@@ -1,5 +1,3 @@
-import * as fs from "node:fs"
-import { join } from "node:path"
 import type {
   LanguageModelV3,
   LanguageModelV3CallOptions,
@@ -12,13 +10,12 @@ import type {
   SharedV3ProviderMetadata,
   SharedV3Warning,
 } from "@ai-sdk/provider"
-import { AgentModel } from "@caseai-connect/api-contracts"
 import { NotImplementedException } from "@nestjs/common"
 import type { JSONSchema7 } from "ai"
 import { z } from "zod"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
+import { castToolInputParameters, objectToRecord } from "@/common/zod-helper"
 import { CallOrigin, extractThoughtAndAnswer } from "@/external/llm/ai-sdk-llm-provider-base"
-import { MedgemmaTokenizer } from "@/external/llm/providers/medgemma/medgemma-tokenizer"
 
 class LanguageModelV3Prompt {}
 
@@ -34,24 +31,6 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
     this.apiKey = apiKey
     this.provider = "CustomMedgemma"
     this.modelId = config.model
-  }
-
-  private __tokenizer: MedgemmaTokenizer | undefined
-  private getTokenizer(): MedgemmaTokenizer {
-    if (this.__tokenizer) return this.__tokenizer
-
-    let tokenizerModelFile = ""
-    switch (this.modelId) {
-      case AgentModel.MedGemma10_27B:
-        tokenizerModelFile = "10-27b-tokenizer.model"
-        break
-      default:
-        throw new NotImplementedException(`DEV - no tokenizer set for ${this.modelId}`)
-    }
-    const tokenizerPath = join(__dirname, "hugging-face", tokenizerModelFile)
-    const buffer = fs.readFileSync(tokenizerPath)
-    this.__tokenizer = new MedgemmaTokenizer(buffer)
-    return this.__tokenizer
   }
 
   //required for LanguageModelV3 implementation
@@ -202,8 +181,7 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
               type: "tool-call",
               id: value.toolCallId,
               name: value.toolName,
-              input: JSON.stringify(value.input),
-              // text: value.text,
+              input: castToolInputParameters(objectToRecord(value.input) ?? {}),
             })
             break
           case "tool-result": {
@@ -340,11 +318,7 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
     delete responseJsonSchema.$schema
     delete responseJsonSchema.additionalProperties
 
-    const localTokenizer = this.getTokenizer()
     const formattedMessages = await this.formatMessages(options.prompt)
-    const inputTokens = localTokenizer.countTokensEstimatedGoogleModel(
-      JSON.stringify(formattedMessages.map((m) => m.content).join("\n")),
-    )
     const jsonFormat = {
       type: "json_schema",
       json_schema: {
@@ -363,6 +337,7 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
       tools: undefined,
       ...(jsonFormat ? { response_format: jsonFormat } : undefined),
       stream: true,
+      stream_options: { include_usage: true },
     }
     const stringifiedBody = JSON.stringify(body)
 
@@ -380,6 +355,7 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
     const decoder = new TextDecoder()
 
     let finishReason: LanguageModelV3FinishReason
+    let usage: LanguageModelV3Usage
 
     const stream = new ReadableStream<LanguageModelV3StreamPart>({
       async start(controller) {
@@ -403,10 +379,6 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
                 CustomMedgemma: providerOptionsToJson(options.providerOptions?.custom?.metadata),
               }
               const id = crypto.randomUUID()
-              const completionTokens = localTokenizer.countTokensEstimatedGoogleModel(
-                JSON.stringify(response.data),
-              )
-              // controller.enqueue({ type: "stream-start", warnings: [] })
 
               if (response.data.type === "answer") {
                 controller.enqueue({
@@ -439,17 +411,19 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
                 type: "finish",
                 finishReason,
                 providerMetadata: metadata,
-                //no usage sent by medgemma when streaming :(
                 usage: {
                   inputTokens: {
-                    total: inputTokens,
+                    // biome-ignore lint/complexity/useLiteralKeys: custom
+                    total: usage["prompt_tokens"],
                     noCache: undefined,
                     cacheRead: undefined,
                     cacheWrite: undefined,
                   },
                   outputTokens: {
-                    total: completionTokens,
-                    text: completionTokens,
+                    // biome-ignore lint/complexity/useLiteralKeys: custom
+                    total: usage["completion_tokens"],
+                    // biome-ignore lint/complexity/useLiteralKeys: custom
+                    text: usage["completion_tokens"],
                     reasoning: undefined,
                   },
                 },
@@ -466,22 +440,17 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
               continue
             }
             if (data.usage) {
-              //never : no usage sent by medgemma when streaming :(
+              usage = data.usage
             }
 
             const choice = data.choices?.[0]
-            const delta = choice.delta
             if (!choice) continue
-            if (choice.usage) {
-              //never : medgemma stream do not send usage
-            }
-
             if (choice.finish_reason) {
               finishReason = choice.finish_reason
             }
 
+            const delta = choice.delta
             if (!delta) continue
-
             if (delta.content) {
               responseBuffer += delta.content
             }

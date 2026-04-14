@@ -2,6 +2,7 @@ import { outputJsonSchemaSchema, ToolName } from "@caseai-connect/api-contracts"
 import { tool } from "ai"
 import { z } from "zod"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+import { castToolInputParameters, zNullableType } from "@/common/zod-helper"
 import type { Agent } from "@/domains/agents/agent.entity"
 import type { FormAgentSessionsService } from "@/domains/agents/form-agent-sessions/form-agent-sessions.service"
 import type { ToolExecutionLog } from "./tool-execution-log"
@@ -32,18 +33,14 @@ export function fillFormTool({
       ),
     }),
     execute: async (input, _options) => {
-      const cleandInput: Record<string, string | number | boolean | undefined> = {}
-      for (const [key, value] of Object.entries(input)) {
-        cleandInput[key] =
-          value === null ? undefined : (value as string | number | boolean | undefined)
-      }
+      const typedInput = castToolInputParameters(input)
       const { result: formState } = await formAgentSessionsService.updateSessionResult({
         connectScope,
         sessionId,
-        input: cleandInput,
+        input: typedInput,
       })
 
-      onExecute({ toolName: ToolName.FillForm, arguments: cleandInput })
+      onExecute({ toolName: ToolName.FillForm, arguments: typedInput })
 
       return { formState }
     },
@@ -59,13 +56,13 @@ function buildInputSchemaForFormTool(
     const description = value.description || ""
     switch (value.type) {
       case "string":
-        shape[key] = z.string().describe(description).nullable().optional()
+        shape[key] = zNullableType(z.string(), description)
         break
       case "number":
-        shape[key] = z.number().describe(description).nullable().optional()
+        shape[key] = zNullableType(z.number(), description)
         break
       case "boolean":
-        shape[key] = z.boolean().describe(description).nullable().optional()
+        shape[key] = zNullableType(z.boolean(), description)
         break
       default:
         throw new Error(`Unsupported property type: ${value.type}`)

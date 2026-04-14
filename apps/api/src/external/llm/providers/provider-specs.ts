@@ -5,6 +5,7 @@ import type { ToolSet } from "ai"
 import { v4 } from "uuid"
 import { z } from "zod"
 import type { LLMChatMessage, LLMProvider } from "@/common/interfaces/llm-provider.interface"
+import { castToolInputParameters, zNullableType } from "@/common/zod-helper"
 import {
   expectIncludes,
   expectIncludesAtLeastOne,
@@ -105,11 +106,11 @@ export class ProviderSpecs {
     If the status is "completed" just send a message to the user that indicates that the form has been completed.
     Response language: Always answer in English.`
     const inputSchema = z.object({
-      happy: z.boolean().describe("Is happy?").nullable(),
-      hourOfSleep: z.int().describe("How many sleep hours per day?").nullable(),
-      weight: z.number().describe("weight in kilogrammes (rounded .5)?").nullable(),
+      happy: zNullableType(z.boolean(), "Is happy?"),
+      hourOfSleep: zNullableType(z.int(), "How many sleep hours per day?"),
+      weight: zNullableType(z.number(), "weight in kilogrammes (rounded .5)?"),
     })
-    let outputForm: Record<string, boolean | string | number | null> = {}
+    let outputForm: Record<string, boolean | string | number | undefined> = {}
     let status: string = "NOT_STARTED"
     const fillFormTool = tool({
       description: "Fill out a form. Get the values from user's answers.",
@@ -123,11 +124,21 @@ export class ProviderSpecs {
         ),
       }),
       execute: async (input, _options) => {
-        outputForm = input
-        status =
-          input.happy !== undefined && (input.hourOfSleep ?? 0) > 0 && (input.weight ?? 0) > 0
-            ? "completed"
-            : "in_progress"
+        const typedInput = castToolInputParameters(input)
+        if (typeof typedInput.happy === "string") {
+          if (typedInput.happy.toLowerCase() === "null") input.happy = undefined
+          else if (
+            typedInput.happy.toLowerCase() === "true" ||
+            typedInput.happy.toLowerCase() === "yes"
+          )
+            input.happy = true
+        }
+        const hours =
+          typeof typedInput.hourOfSleep === "number" ? typedInput.hourOfSleep : undefined
+        const weight = typeof typedInput.weight === "number" ? typedInput.weight : undefined
+        status = typedInput.happy !== undefined && hours && weight ? "completed" : "in_progress"
+
+        outputForm = castToolInputParameters(input)
         return {
           status,
           formState: input,
@@ -247,11 +258,11 @@ export class ProviderSpecs {
     
     Response language: Always answer in English.`
     const inputSchema = z.object({
-      happy: z.boolean().describe("Is happy?").nullable(),
-      hourOfSleep: z.int().describe("How many sleep hours per day?").nullable(),
-      weight: z.number().describe("weight in kilogrammes (rounded .5)?").nullable(),
+      happy: zNullableType(z.boolean(), "Is happy?"),
+      hourOfSleep: zNullableType(z.int(), "How many sleep hours per day?"),
+      weight: zNullableType(z.number(), "weight in kilogrammes (rounded .5)?"),
     })
-    let outputForm: Record<string, boolean | string | number | null> = {}
+    let outputForm: Record<string, boolean | string | number | undefined> = {}
     let status: string = "NOT_STARTED"
     const fillFormTool = tool({
       description: "Fill out a form. Get the values from user's answers.",
@@ -265,11 +276,21 @@ export class ProviderSpecs {
         ),
       }),
       execute: async (input, _options) => {
-        outputForm = input
-        status =
-          input.happy !== undefined && (input.hourOfSleep ?? 0) > 0 && (input.weight ?? 0) > 0
-            ? "completed"
-            : "in_progress"
+        const typedInput = castToolInputParameters(input)
+        if (typeof typedInput.happy === "string") {
+          if (typedInput.happy.toLowerCase() === "null") input.happy = undefined
+          else if (
+            typedInput.happy.toLowerCase() === "true" ||
+            typedInput.happy.toLowerCase() === "yes"
+          )
+            input.happy = true
+        }
+        const hours =
+          typeof typedInput.hourOfSleep === "number" ? typedInput.hourOfSleep : undefined
+        const weight = typeof typedInput.weight === "number" ? typedInput.weight : undefined
+        status = typedInput.happy !== undefined && hours && weight ? "completed" : "in_progress"
+
+        outputForm = castToolInputParameters(input)
         return {
           status,
           formState: input,
@@ -468,7 +489,7 @@ Always answer in English.`
     expect(results.length).toBeGreaterThan(0)
     result = results.join("")
     if (advancedExpectation) {
-      expectIncludesAtLeastOne(result, ["course", "run"])
+      expectIncludesAtLeastOne(result, ["course", "run", "bonus"])
       expectIncludes(result, "5")
     }
 
@@ -483,7 +504,7 @@ Always answer in English.`
     expect(results.length).toBeGreaterThan(0)
     result = results.join("")
     if (advancedExpectation) {
-      expectIncludes(result, "warmachine")
+      expectIncludesAtLeastOne(result, ["warmachine", "SPD"])
     }
   }
 

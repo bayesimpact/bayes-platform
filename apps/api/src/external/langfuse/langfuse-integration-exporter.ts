@@ -2,7 +2,7 @@
 
 import type { ExportResult, ExportResultCode } from "@opentelemetry/core"
 import type { ReadableSpan, SpanExporter } from "@opentelemetry/sdk-trace-base"
-import type { LangfusePromptRecord } from "langfuse"
+import type { LangfuseGenerationClient, LangfusePromptRecord } from "langfuse"
 import type { components } from "langfuse-core"
 import { Langfuse, type LangfuseOptions } from "langfuse-v2"
 
@@ -199,7 +199,7 @@ export class LangfuseIntegrationExporter implements SpanExporter {
     const spanContext = span.spanContext()
     const attributes = span.attributes
 
-    this.langfuse.generation({
+    const generation = this.langfuse.generation({
       traceId,
       parentObservationId: isRootSpan ? undefined : this.getParentSpanId(span),
       id: spanContext.spanId,
@@ -274,6 +274,33 @@ export class LangfuseIntegrationExporter implements SpanExporter {
       metadata: { ...this.parseSpanMetadata(span), loopId: loopId },
       prompt: langfusePrompt,
     })
+    this.checkErrors(span, generation)
+  }
+
+  private checkErrors(span: ReadableSpan, generation: LangfuseGenerationClient) {
+    if (span.events && span.events.length > 0) {
+      if (span.events[0]?.name === "exception") {
+        const event = span.events[0]
+        const attributes = event.attributes ?? {}
+        let message = "unknown error"
+        if (
+          typeof attributes["exception.type"] === "string" &&
+          typeof attributes["exception.message"] === "string"
+        )
+          message = `${attributes["exception.type"]} : ${attributes["exception.message"]}`
+        generation.update({
+          level: "ERROR",
+          statusMessage: message?.toString(),
+        })
+      }
+    }
+    const { isError, message } = this.checkErrorInToolResult(span)
+    if (isError) {
+      generation.update({
+        level: "ERROR",
+        statusMessage: message?.toString(),
+      })
+    }
   }
 
   private parseUsageDetails(attributes: SpanExporterAttributes): SpanExporterAttributes {
@@ -380,6 +407,28 @@ export class LangfuseIntegrationExporter implements SpanExporter {
     this.logDebug("Shutting down Langfuse...")
 
     await this.langfuse.shutdownAsync()
+  }
+
+  private checkErrorInToolResult(span: ReadableSpan): { isError: boolean; message?: string } {
+    //fixme DOO: fix the flag error is on the previous generation :(
+    let isError = false
+    let message: string = ""
+    const attributes = span.attributes
+    const toolCalls =
+      "ai.response.toolCalls" in attributes ? (attributes["ai.response.toolCalls"] as string) : "[]"
+    const toolCallsArray = JSON.parse(toolCalls)
+    if (toolCalls && toolCallsArray?.length > 0) {
+      for (const toolCall of toolCallsArray) {
+        const error = "error" in toolCall ? toolCall.error : undefined
+        if (error) {
+          message += `${JSON.stringify(error)}
+`
+          isError = true
+        }
+      }
+    }
+
+    return { isError, message }
   }
 
   private parseInput(span: ReadableSpan): (typeof span.attributes)[0] | undefined {

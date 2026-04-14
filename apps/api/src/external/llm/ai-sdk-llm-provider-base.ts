@@ -241,7 +241,10 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
         custom: { callOrigin, metadata: this.buildMetadata({ config, metadata }) },
       },
     })
-    if (AgentModelToAgentProvider[config.model] === AgentProvider.MedGemma) {
+    if (
+      AgentModelToAgentProvider[config.model] === AgentProvider.MedGemma ||
+      AgentModelToAgentProvider[config.model] === AgentProvider.Gemma
+    ) {
       // @ts-expect-error
       return JSON.parse(result?.steps[0]?.content[0]?.text)
     }
