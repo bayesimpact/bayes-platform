@@ -1,0 +1,5 @@
+const DEFAULT_URL_CRAWLING_QUEUE_NAME = "url-crawling"
+
+export const URL_CRAWLING_QUEUE_NAME =
+  process.env.URL_CRAWLING_QUEUE_NAME ?? DEFAULT_URL_CRAWLING_QUEUE_NAME
+export const URL_CRAWLING_JOB_NAME = "crawl-url"
