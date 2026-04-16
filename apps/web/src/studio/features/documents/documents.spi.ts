@@ -54,4 +54,10 @@ export interface IDocumentsSpi {
     signal?: AbortSignal
     onStatusChanged: (event: DocumentEmbeddingStatusChangedEvent) => void
   }): Promise<void>
+  crawlUrl(params: {
+    organizationId: string
+    projectId: string
+    url: string
+    limit?: number
+  }): Promise<{ message: string }>
 }

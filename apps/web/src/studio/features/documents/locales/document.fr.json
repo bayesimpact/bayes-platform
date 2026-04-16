@@ -32,6 +32,14 @@
       "title": "Supprimer {{documentTitle}}",
       "description": "Êtes-vous sûr de vouloir supprimer ce document ? Cette action est irréversible."
     },
+    "crawl": {
+      "button": "Explorer un site web",
+      "title": "Explorer un site web",
+      "description": "Entrez une URL à explorer. Chaque page sera ajoutée en tant que document.",
+      "urlLabel": "URL du site web",
+      "limitLabel": "Nombre maximum de pages",
+      "submit": "Lancer l'exploration"
+    },
     "reprocess": {
       "cta": "Relancer le traitement"
     },

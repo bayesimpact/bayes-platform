@@ -54,6 +54,7 @@ import {
 } from "@/studio/features/document-tags/document-tags.helpers"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import { selectDocumentTagsData } from "@/studio/features/document-tags/document-tags.selectors"
+import { CrawlUrlButton } from "@/studio/features/documents/components/CrawlUrlButton"
 import { DocumentTagPicker } from "@/studio/features/documents/components/DocumentTagPicker"
 import { EmbeddingStatusBadge } from "@/studio/features/documents/components/EmbeddingStatusBadge"
 import { EmptyDocument } from "@/studio/features/documents/components/EmptyDocument"
@@ -109,7 +110,8 @@ function WithData({
         title={t("document:documents")}
         description={t("document:list.description")}
         action={
-          <div className="flex items-center flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <CrawlUrlButton />
             <UploadDocumentsButton />
             <DocumentTagsSheet documentTags={documentTags} />
           </div>

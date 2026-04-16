@@ -10,6 +10,7 @@ import {
 import { selectUploaderState } from "./documents.selectors"
 import { documentsActions } from "./documents.slice"
 import {
+  crawlUrl,
   deleteDocument,
   listDocuments,
   updateDocument,
@@ -70,6 +71,7 @@ function registerListeners() {
       // Document changes
       uploadDocument.fulfilled,
       uploadDocuments.fulfilled,
+      crawlUrl.fulfilled,
       updateDocument.fulfilled,
       deleteDocument.fulfilled,
       // DocumentTag changes
@@ -195,6 +197,29 @@ function registerListeners() {
       listenerApi.dispatch(
         notificationsActions.show({
           title: "Document deletion failed",
+          type: "error",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: crawlUrl.fulfilled,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: action.payload.message,
+          type: "success",
+        }),
+      )
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: crawlUrl.rejected,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "Website crawl failed",
           type: "error",
         }),
       )
