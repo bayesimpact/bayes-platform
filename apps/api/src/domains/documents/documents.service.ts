@@ -32,7 +32,8 @@ export class DocumentsService {
     fields: Pick<
       Document,
       "fileName" | "mimeType" | "size" | "storageRelativePath" | "title" | "sourceType"
-    >
+    > &
+      Partial<Pick<Document, "content">>
     uploadStatus: "pending" | "uploaded"
     tagIds?: string[]
   }): Promise<Document> {
@@ -44,6 +45,7 @@ export class DocumentsService {
       storageRelativePath: fields.storageRelativePath,
       title: fields.title ?? fields.fileName,
       sourceType: fields.sourceType,
+      content: fields.content,
       uploadStatus,
       userId: userId ?? null,
     })

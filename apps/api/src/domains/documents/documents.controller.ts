@@ -46,6 +46,10 @@ import type { MulterFile } from "@/common/types"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
+import {
+  URL_CRAWLING_BATCH_SERVICE,
+  type UrlCrawlingBatchService,
+} from "./crawling/url-crawling-batch.interface"
 import type { Document } from "./document.entity"
 import { DocumentsGuard } from "./documents.guard"
 import {
@@ -73,6 +77,8 @@ export class DocumentsController {
     private readonly fileStorageService: IFileStorage,
     @Inject(DOCUMENT_EMBEDDINGS_BATCH_SERVICE)
     private readonly documentEmbeddingsBatchService: DocumentEmbeddingsBatchService,
+    @Inject(URL_CRAWLING_BATCH_SERVICE)
+    private readonly urlCrawlingBatchService: UrlCrawlingBatchService,
     private readonly documentsService: DocumentsService,
     private readonly documentEmbeddingStatusStreamService: DocumentEmbeddingStatusStreamService,
   ) {}
@@ -369,6 +375,39 @@ export class DocumentsController {
       throw new NotFoundException("Temporary URL not found for the document.")
     }
     return { data: { url } }
+  }
+
+  @CheckPolicy((policy) => policy.canCreate())
+  @Post(DocumentsRoutes.crawlUrl.path)
+  @TrackActivity({ action: "document.crawlUrl" })
+  @HttpCode(HttpStatus.ACCEPTED)
+  async crawlUrl(
+    @Body() { payload }: typeof DocumentsRoutes.crawlUrl.request,
+    @Request() req: EndpointRequestWithProject,
+  ): Promise<typeof DocumentsRoutes.crawlUrl.response> {
+    try {
+      new URL(payload.url)
+    } catch {
+      throw new UnprocessableEntityException("Invalid URL.")
+    }
+
+    const limit = Math.min(Math.max(payload.limit ?? 10, 1), 50)
+    const connectScope = getRequiredConnectScope(req)
+
+    await this.urlCrawlingBatchService.enqueueCrawlUrl({
+      url: payload.url,
+      limit,
+      organizationId: connectScope.organizationId,
+      projectId: connectScope.projectId,
+      requestedByUserId: req.user.id,
+      currentTraceId: v4(),
+    })
+
+    return {
+      data: {
+        message: `Crawling ${payload.url} (up to ${limit} pages). Documents will appear as they are processed.`,
+      },
+    }
   }
 
   @CheckPolicy((policy) => policy.canList())

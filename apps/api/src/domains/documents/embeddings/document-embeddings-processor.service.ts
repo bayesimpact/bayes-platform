@@ -106,6 +106,12 @@ export class DocumentEmbeddingsProcessorService {
     doclingParentChunks?: DoclingParentChunk[]
     extractionEngine: DocumentExtractionEngine
   }> {
+    if (document.content && !document.storageRelativePath) {
+      const chunks = this.splitTextForEmbeddings(document.content)
+      this.logger.log(`Split document ${document.id} (from content) into ${chunks.length} chunks`)
+      return { chunks, extractionEngine: "web-crawl" }
+    }
+
     const fileBuffer = await this.fileStorage.readFile(document.storageRelativePath)
     const extractionResult = await this.textExtractorService.extract(fileBuffer, document.mimeType)
     const chunks = extractionResult.chunks ?? this.splitTextForEmbeddings(extractionResult.text)
