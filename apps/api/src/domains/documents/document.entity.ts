@@ -41,6 +41,7 @@ export class Document extends ConnectEntityBase {
     | "extraction"
     | "evaluationExtractionDataset"
     | "evaluationExtractionRun"
+    | "webCrawl"
 
   @Column({ type: "uuid", name: "user_id", nullable: true })
   userId!: string | null

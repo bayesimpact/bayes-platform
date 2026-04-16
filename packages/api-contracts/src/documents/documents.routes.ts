@@ -2,6 +2,8 @@ import type { DocumentTagsUpdateFieldsDto } from "../document-tags/document-tag.
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
 import type {
+  CrawlUrlRequestDto,
+  CrawlUrlResponseDto,
   DocumentDto,
   DocumentUploadOptionalTagFields,
   PresignFileRequestItemDto,
@@ -56,6 +58,10 @@ export const DocumentsRoutes = {
   reprocessOne: defineRoute<ResponseData<SuccessResponseDTO>>({
     method: "post",
     path: "organizations/:organizationId/projects/:projectId/documents/:documentId/reprocess",
+  }),
+  crawlUrl: defineRoute<ResponseData<CrawlUrlResponseDto>, RequestPayload<CrawlUrlRequestDto>>({
+    method: "post",
+    path: "organizations/:organizationId/projects/:projectId/documents/crawl-url",
   }),
   // Streaming responses are sent as text/event-stream (SSE) and do not follow ResponseData<T>.
   streamEmbeddingStatus: defineRoute<ResponseData<unknown>>({

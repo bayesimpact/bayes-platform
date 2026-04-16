@@ -9,6 +9,7 @@ export type DocumentSourceType =
   | "extraction"
   | "evaluationExtractionDataset"
   | "evaluationExtractionRun"
+  | "webCrawl"
 export type DocumentEmbeddingStatus = "pending" | "queued" | "processing" | "completed" | "failed"
 export type DocumentEmbeddingStatusChangedEventPayload = {
   type: typeof DOCUMENT_EMBEDDING_STATUS_CHANGED_CHANNEL_DTO
@@ -51,9 +52,19 @@ export type DocumentDto = {
   mimeType?: MimeTypes
   size?: number
   storageRelativePath?: string
+  sourceUrl?: string | null
   embeddingStatus: DocumentEmbeddingStatus
   embeddingError: string | null
   tagIds: DocumentTagDto["id"][]
+}
+
+export type CrawlUrlRequestDto = {
+  url: string
+  limit?: number
+}
+
+export type CrawlUrlResponseDto = {
+  message: string
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
