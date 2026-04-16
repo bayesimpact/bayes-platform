@@ -83,7 +83,10 @@ export class DocumentsService {
   async listDocuments(connectScope: RequiredConnectScope): Promise<Document[]> {
     return (
       await this.documentConnectRepository.find(connectScope, {
-        where: { sourceType: "project", uploadStatus: "uploaded" },
+        where: [
+          { sourceType: "project", uploadStatus: "uploaded" },
+          { sourceType: "webCrawl", uploadStatus: "uploaded" },
+        ],
         relations: ["tags"],
       })
     )?.sort(this.sortNewestFirst)
