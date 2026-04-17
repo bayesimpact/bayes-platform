@@ -441,6 +441,7 @@ function toDocumentDto(entity: Document): DocumentDto {
     mimeType: entity.mimeType as MimeTypes,
     size: entity.size,
     storageRelativePath: entity.storageRelativePath,
+    sourceType: entity.sourceType,
     embeddingStatus: entity.embeddingStatus,
     embeddingError: entity.embeddingError ?? null,
     tagIds: entity.tags?.map((tag) => tag.id) || [],
