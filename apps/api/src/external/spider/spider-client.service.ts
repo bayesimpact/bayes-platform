@@ -28,7 +28,14 @@ export class SpiderClientService {
       return []
     }
 
-    const pages = response
+    // Spider may return a nested array — flatten it
+    const flatResponse = response.flat()
+
+    this.logger.debug(
+      `Spider flat response: ${flatResponse.length} items, keys: ${flatResponse.length > 0 && flatResponse[0] ? Object.keys(flatResponse[0]).join(", ") : "N/A"}`,
+    )
+
+    const pages = flatResponse
       .filter((page) => page.content && page.content.trim().length > 0)
       .map((page) => ({
         url: page.url ?? params.url,
