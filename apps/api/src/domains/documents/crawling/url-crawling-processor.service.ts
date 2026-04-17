@@ -36,34 +36,40 @@ export class UrlCrawlingProcessorService {
       projectId: payload.projectId,
     }
 
-    for (const page of pages) {
-      const documentId = randomUUID()
+    const contentPages = pages.map((page) => ({
+      url: page.url,
+      markdown: page.markdown,
+    }))
+    const contentJson = JSON.stringify(contentPages)
 
-      const document = await this.documentsService.createDocument({
-        connectScope,
-        documentId,
-        uploadStatus: "uploaded",
-        fields: {
-          title: page.url,
-          content: page.markdown,
-          mimeType: "text/html",
-          sourceType: "webCrawl",
-          size: Buffer.byteLength(page.markdown, "utf-8"),
-          fileName: null as unknown as string,
-          storageRelativePath: null as unknown as string,
-        },
-      })
+    const documentId = randomUUID()
 
-      await this.embeddingsBatchService.enqueueCreateEmbeddingsForDocument({
-        documentId: document.id,
-        organizationId: payload.organizationId,
-        projectId: payload.projectId,
-        uploadedByUserId: payload.requestedByUserId,
-        origin: "web-crawl",
-        currentTraceId: payload.currentTraceId,
-      })
+    const document = await this.documentsService.createDocument({
+      connectScope,
+      documentId,
+      uploadStatus: "uploaded",
+      fields: {
+        title: payload.url,
+        content: contentJson,
+        mimeType: "text/html",
+        sourceType: "webCrawl",
+        size: Buffer.byteLength(contentJson, "utf-8"),
+        fileName: null as unknown as string,
+        storageRelativePath: null as unknown as string,
+      },
+    })
 
-      this.logger.log(`Created document ${document.id} for page ${page.url}`)
-    }
+    await this.embeddingsBatchService.enqueueCreateEmbeddingsForDocument({
+      documentId: document.id,
+      organizationId: payload.organizationId,
+      projectId: payload.projectId,
+      uploadedByUserId: payload.requestedByUserId,
+      origin: "web-crawl",
+      currentTraceId: payload.currentTraceId,
+    })
+
+    this.logger.log(
+      `Created document ${document.id} from ${pages.length} pages crawled at ${payload.url}`,
+    )
   }
 }

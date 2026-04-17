@@ -107,7 +107,7 @@ export class DocumentEmbeddingsProcessorService {
     extractionEngine: DocumentExtractionEngine
   }> {
     if (document.content && !document.storageRelativePath) {
-      const chunks = this.splitTextForEmbeddings(document.content)
+      const chunks = this.splitWebCrawlContent(document.content)
       this.logger.log(`Split document ${document.id} (from content) into ${chunks.length} chunks`)
       return { chunks, extractionEngine: "web-crawl" }
     }
@@ -134,6 +134,15 @@ export class DocumentEmbeddingsProcessorService {
       .getNodesFromDocuments([rootDocument])
       .map((textNode) => textNode.getContent(MetadataMode.NONE).trim())
       .filter((chunk) => chunk.length > 0)
+  }
+
+  private splitWebCrawlContent(content: string): string[] {
+    try {
+      const pages: { url: string; markdown: string }[] = JSON.parse(content)
+      return pages.flatMap((page) => this.splitTextForEmbeddings(page.markdown))
+    } catch {
+      return this.splitTextForEmbeddings(content)
+    }
   }
 
   private async generateEmbeddingsByModel(chunks: string[]): Promise<Map<string, number[][]>> {
