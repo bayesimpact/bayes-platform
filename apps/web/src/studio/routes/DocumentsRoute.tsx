@@ -27,11 +27,15 @@ import {
   TableHeader,
   TableRow,
 } from "@caseai-connect/ui/shad/table"
+import { Collapsible, CollapsibleTrigger } from "@caseai-connect/ui/shad/collapsible"
 import {
+  ChevronDownIcon,
   ChevronRightIcon,
   CloudAlertIcon,
   EllipsisVerticalIcon,
+  ExternalLinkIcon,
   FileDownIcon,
+  GlobeIcon,
   InfoIcon,
   Loader2Icon,
   PencilIcon,
@@ -151,6 +155,19 @@ function WithData({
   )
 }
 
+function parseCrawledPages(content?: string): { url: string; markdown: string }[] | null {
+  if (!content) return null
+  try {
+    const parsed = JSON.parse(content)
+    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].url && parsed[0].markdown) {
+      return parsed
+    }
+  } catch {
+    // not JSON, not a crawl document
+  }
+  return null
+}
+
 function DocumentRow({
   document,
   documentTags,
@@ -159,27 +176,75 @@ function DocumentRow({
   documentTags: DocumentTag[]
 }) {
   const date = buildSince(document.updatedAt)
+  const crawledPages =
+    document.sourceType === "webCrawl" ? parseCrawledPages(document.content) : null
+
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <TableRow>
-      <TableCell>{document.title}</TableCell>
-      <TableCell>
-        <div className="flex flex-wrap gap-1">
-          {document.tagIds.map((tagId) => (
-            <Badge key={tagId} variant="secondary" className="text-xs">
-              {getTagFullPath(documentTags, tagId)}
-            </Badge>
-          ))}
-        </div>
-      </TableCell>
-      <TableCell>
-        <EmbeddingStatusBadge status={document.embeddingStatus} />
-      </TableCell>
-      <TableCell className="text-muted-foreground">{date}</TableCell>
-      <TableCell>
-        <DocumentActions document={document} documentTags={documentTags} />
-      </TableCell>
-    </TableRow>
+    <>
+      <TableRow>
+        <TableCell>
+          <div className="flex items-center gap-2">
+            {crawledPages && crawledPages.length > 0 ? (
+              <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="icon" className="size-6 shrink-0">
+                    {isOpen ? (
+                      <ChevronDownIcon className="size-4" />
+                    ) : (
+                      <ChevronRightIcon className="size-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+              </Collapsible>
+            ) : null}
+            <div className="flex items-center gap-1.5">
+              {crawledPages ? <GlobeIcon className="size-4 text-muted-foreground shrink-0" /> : null}
+              <span className="truncate">{document.title}</span>
+              {crawledPages ? (
+                <Badge variant="secondary" className="text-xs shrink-0">
+                  {crawledPages.length} pages
+                </Badge>
+              ) : null}
+            </div>
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="flex flex-wrap gap-1">
+            {document.tagIds.map((tagId) => (
+              <Badge key={tagId} variant="secondary" className="text-xs">
+                {getTagFullPath(documentTags, tagId)}
+              </Badge>
+            ))}
+          </div>
+        </TableCell>
+        <TableCell>
+          <EmbeddingStatusBadge status={document.embeddingStatus} />
+        </TableCell>
+        <TableCell className="text-muted-foreground">{date}</TableCell>
+        <TableCell>
+          <DocumentActions document={document} documentTags={documentTags} />
+        </TableCell>
+      </TableRow>
+      {crawledPages && isOpen
+        ? crawledPages.map((page) => (
+            <TableRow key={page.url} className="bg-muted/30">
+              <TableCell colSpan={5} className="pl-16">
+                <a
+                  href={page.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ExternalLinkIcon className="size-3.5 shrink-0" />
+                  <span className="truncate">{page.url}</span>
+                </a>
+              </TableCell>
+            </TableRow>
+          ))
+        : null}
+    </>
   )
 }
 

@@ -155,6 +155,7 @@ function toDocument(dto: DocumentDto): Document {
     projectId: dto.projectId,
     size: dto.size,
     storageRelativePath: dto.storageRelativePath,
+    sourceType: dto.sourceType,
     sourceUrl: dto.sourceUrl,
     embeddingStatus: dto.embeddingStatus,
     embeddingError: dto.embeddingError ?? null,

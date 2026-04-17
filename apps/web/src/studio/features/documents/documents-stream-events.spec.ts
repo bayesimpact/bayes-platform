@@ -17,6 +17,7 @@ function buildDocument(documentId: string): Document {
     mimeType: MimeTypes.pdf,
     size: 123,
     storageRelativePath: "/documents/file.pdf",
+    sourceType: "project",
     embeddingStatus: "processing",
     embeddingError: null,
     tagIds: [],
