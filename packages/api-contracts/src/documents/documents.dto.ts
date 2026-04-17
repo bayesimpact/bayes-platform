@@ -52,6 +52,7 @@ export type DocumentDto = {
   mimeType?: MimeTypes
   size?: number
   storageRelativePath?: string
+  sourceType: DocumentSourceType
   sourceUrl?: string | null
   embeddingStatus: DocumentEmbeddingStatus
   embeddingError: string | null
