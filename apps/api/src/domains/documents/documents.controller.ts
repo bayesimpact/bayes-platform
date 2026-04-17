@@ -394,7 +394,23 @@ export class DocumentsController {
     const limit = Math.min(Math.max(payload.limit ?? 10, 1), 50)
     const connectScope = getRequiredConnectScope(req)
 
+    const documentId = v4()
+    await this.documentsService.createDocument({
+      connectScope,
+      documentId,
+      uploadStatus: "uploaded",
+      fields: {
+        title: payload.url,
+        mimeType: "text/html",
+        sourceType: "webCrawl",
+        size: 0,
+        fileName: null as unknown as string,
+        storageRelativePath: null as unknown as string,
+      },
+    })
+
     await this.urlCrawlingBatchService.enqueueCrawlUrl({
+      documentId,
       url: payload.url,
       limit,
       organizationId: connectScope.organizationId,

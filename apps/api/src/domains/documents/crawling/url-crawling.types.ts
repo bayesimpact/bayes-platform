@@ -1,4 +1,5 @@
 export type CrawlUrlJobPayload = {
+  documentId: string
   url: string
   limit: number
   organizationId: string

@@ -174,6 +174,26 @@ export class DocumentsService {
     return this.documentConnectRepository.saveOne(document)
   }
 
+  async updateContent({
+    connectScope,
+    documentId,
+    content,
+    size,
+  }: {
+    connectScope: RequiredConnectScope
+    documentId: string
+    content: string
+    size: number
+  }): Promise<Document> {
+    const document = await this.documentConnectRepository.getOneById(connectScope, documentId)
+    if (!document) {
+      throw new NotFoundException(`Document with id ${documentId} not found`)
+    }
+    document.content = content
+    document.size = size
+    return this.documentConnectRepository.saveOne(document)
+  }
+
   async saveOne(document: Document): Promise<Document> {
     return this.documentConnectRepository.saveOne(document)
   }

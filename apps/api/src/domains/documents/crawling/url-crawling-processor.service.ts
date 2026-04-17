@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto"
 import { Inject, Injectable, Logger } from "@nestjs/common"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { SpiderClientService } from "@/external/spider/spider-client.service"
@@ -42,25 +41,15 @@ export class UrlCrawlingProcessorService {
     }))
     const contentJson = JSON.stringify(contentPages)
 
-    const documentId = randomUUID()
-
-    const document = await this.documentsService.createDocument({
+    await this.documentsService.updateContent({
       connectScope,
-      documentId,
-      uploadStatus: "uploaded",
-      fields: {
-        title: payload.url,
-        content: contentJson,
-        mimeType: "text/html",
-        sourceType: "webCrawl",
-        size: Buffer.byteLength(contentJson, "utf-8"),
-        fileName: null as unknown as string,
-        storageRelativePath: null as unknown as string,
-      },
+      documentId: payload.documentId,
+      content: contentJson,
+      size: Buffer.byteLength(contentJson, "utf-8"),
     })
 
     await this.embeddingsBatchService.enqueueCreateEmbeddingsForDocument({
-      documentId: document.id,
+      documentId: payload.documentId,
       organizationId: payload.organizationId,
       projectId: payload.projectId,
       uploadedByUserId: payload.requestedByUserId,
@@ -69,7 +58,7 @@ export class UrlCrawlingProcessorService {
     })
 
     this.logger.log(
-      `Created document ${document.id} from ${pages.length} pages crawled at ${payload.url}`,
+      `Updated document ${payload.documentId} with ${pages.length} pages crawled at ${payload.url}`,
     )
   }
 }
