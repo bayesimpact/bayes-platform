@@ -176,8 +176,9 @@ function DocumentRow({
   documentTags: DocumentTag[]
 }) {
   const date = buildSince(document.updatedAt)
-  const crawledPages =
-    document.sourceType === "webCrawl" ? parseCrawledPages(document.content) : null
+  const isWebCrawl = document.sourceType === "webCrawl"
+  const crawledPages = isWebCrawl ? parseCrawledPages(document.content) : null
+  const hasPages = crawledPages && crawledPages.length > 0
 
   const [isOpen, setIsOpen] = useState(false)
 
@@ -186,7 +187,7 @@ function DocumentRow({
       <TableRow>
         <TableCell>
           <div className="flex items-center gap-2">
-            {crawledPages && crawledPages.length > 0 ? (
+            {hasPages ? (
               <Collapsible open={isOpen} onOpenChange={setIsOpen}>
                 <CollapsibleTrigger asChild>
                   <Button variant="ghost" size="icon" className="size-6 shrink-0">
@@ -200,9 +201,9 @@ function DocumentRow({
               </Collapsible>
             ) : null}
             <div className="flex items-center gap-1.5">
-              {crawledPages ? <GlobeIcon className="size-4 text-muted-foreground shrink-0" /> : null}
+              {isWebCrawl ? <GlobeIcon className="size-4 text-muted-foreground shrink-0" /> : null}
               <span className="truncate">{document.title}</span>
-              {crawledPages ? (
+              {hasPages ? (
                 <Badge variant="secondary" className="text-xs shrink-0">
                   {crawledPages.length} pages
                 </Badge>

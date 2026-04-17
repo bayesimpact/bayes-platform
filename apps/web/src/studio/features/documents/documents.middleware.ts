@@ -1,6 +1,7 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import { hasProjectChanged } from "@/common/features/projects/projects.selectors"
+import { ADS } from "@/common/store/async-data-status"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
   createDocumentTag,
@@ -53,8 +54,22 @@ function registerListeners() {
 
   listenerMiddleware.startListening({
     actionCreator: documentsActions.patchDocumentEmbeddingStatus,
-    effect: async (_, listenerApi) => {
+    effect: async (action, listenerApi) => {
       syncDocumentEmbeddingStatusStreamWithDocuments(listenerApi)
+
+      // Refetch documents when a webCrawl document finishes embedding
+      // so the content (crawled pages) is available for the dropdown
+      if (action.payload.embeddingStatus === "completed") {
+        const state = listenerApi.getState()
+        if (ADS.isFulfilled(state.studio.documents.data)) {
+          const document = state.studio.documents.data.value.find(
+            (document) => document.id === action.payload.documentId,
+          )
+          if (document?.sourceType === "webCrawl") {
+            listenerApi.dispatch(listDocuments())
+          }
+        }
+      }
     },
   })
 
