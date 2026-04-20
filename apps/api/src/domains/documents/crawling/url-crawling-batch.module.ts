@@ -1,7 +1,7 @@
 import { BullModule } from "@nestjs/bullmq"
 import { Module } from "@nestjs/common"
 import { ConfigModule } from "@nestjs/config"
-import { getDocumentEmbeddingsBullMqConnection } from "../embeddings/document-embeddings-bullmq.config"
+import { getBullMqConnection } from "@/bullmq.config"
 import { BullMqUrlCrawlingBatchService } from "./bull-mq-url-crawling-batch.service"
 import { URL_CRAWLING_QUEUE_NAME } from "./url-crawling.constants"
 import { URL_CRAWLING_BATCH_SERVICE } from "./url-crawling-batch.interface"
@@ -11,7 +11,7 @@ import { URL_CRAWLING_BATCH_SERVICE } from "./url-crawling-batch.interface"
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: () => ({
-        connection: getDocumentEmbeddingsBullMqConnection(),
+        connection: getBullMqConnection(),
       }),
     }),
     BullModule.registerQueue({

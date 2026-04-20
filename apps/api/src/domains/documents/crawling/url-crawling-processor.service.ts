@@ -4,9 +4,9 @@ import { SpiderClientService } from "@/external/spider/spider-client.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "../documents.service"
 import {
-  DOCUMENT_EMBEDDINGS_BATCH_SERVICE,
-  type DocumentEmbeddingsBatchService,
-} from "../embeddings/document-embeddings-batch.interface"
+  WEB_SOURCE_EMBEDDINGS_BATCH_SERVICE,
+  type WebSourceEmbeddingsBatchService,
+} from "./web-source-embeddings-batch.interface"
 import type { CrawlUrlJobPayload } from "./url-crawling.types"
 
 @Injectable()
@@ -16,8 +16,8 @@ export class UrlCrawlingProcessorService {
   constructor(
     private readonly spiderClientService: SpiderClientService,
     private readonly documentsService: DocumentsService,
-    @Inject(DOCUMENT_EMBEDDINGS_BATCH_SERVICE)
-    private readonly embeddingsBatchService: DocumentEmbeddingsBatchService,
+    @Inject(WEB_SOURCE_EMBEDDINGS_BATCH_SERVICE)
+    private readonly embeddingsBatchService: WebSourceEmbeddingsBatchService,
   ) {}
 
   async processCrawlJob(payload: CrawlUrlJobPayload): Promise<void> {
