@@ -9,6 +9,18 @@ import { DEFAULT_TOP_K } from "@/domains/agents/shared/agent-session-messages/st
 import type { RetrievedDocumentChunk } from "./document-chunk.types"
 import { resolveEmbeddingModelNames, resolveVertexConfig } from "./document-embeddings.config"
 
+export type RetrievedDocumentChunk = {
+  chunkId: string
+  documentId: string
+  documentTitle: string
+  documentFileName: string | null
+  documentSourceType: string
+  chunkIndex: number
+  content: string
+  distance: number
+  modelName: string
+}
+
 @Injectable()
 export class DocumentChunkRetrievalService {
   private readonly logger = new Logger(DocumentChunkRetrievalService.name)
@@ -120,6 +132,9 @@ export class DocumentChunkRetrievalService {
       .addSelect("document.file_name", "documentFileName")
       .addSelect("COALESCE(parent.chunk_index, chunk.chunk_index)", "chunkIndex")
       .addSelect("COALESCE(parent.content, chunk.content)", "content")
+      .addSelect("document.source_type", "documentSourceType")
+      .addSelect("chunk.chunk_index", "chunkIndex")
+      .addSelect("chunk.content", "content")
       .addSelect("embedding.model_name", "modelName")
       .addSelect("(embedding.embedding <=> :queryEmbedding::vector)", "distance")
       .addSelect("(parent.id IS NOT NULL)", "isParentChunk")
