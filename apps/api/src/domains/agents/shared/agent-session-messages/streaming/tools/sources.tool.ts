@@ -14,6 +14,16 @@ export function sourcesTool({
       sources: z.array(
         z.object({
           documentId: z.string().describe("The ID of the document to retrieve sources from."),
+          documentTitle: z
+            .string()
+            .optional()
+            .describe("The title of the source document (copy from retrieved chunks)."),
+          documentSourceType: z
+            .string()
+            .optional()
+            .describe(
+              "The source type of the document, e.g. 'project' for an uploaded file or 'webCrawl' for a crawled web page (copy from retrieved chunks).",
+            ),
           chunks: z
             .array(
               z.object({

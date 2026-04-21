@@ -19,7 +19,7 @@ ${names
         return `[${name}]: When the user asks about information that may exist in project documents, call the ${name} tool before answering. Use the returned chunks as primary context and avoid inventing facts not present in those chunks.`
 
       case ToolName.Sources:
-        return `[${name}]: After using ${ToolName.RetrieveProjectDocumentChunks} tool, call the ${name} tool to provide the user with the sources of the information you used to answer their question. This will help build trust and allow the user to verify the information.`
+        return `[${name}]: You MUST call the ${name} tool whenever you use information from the ${ToolName.RetrieveProjectDocumentChunks} tool to answer the user, regardless of whether the chunks come from uploaded documents (documentSourceType="project") or crawled web pages (documentSourceType="webCrawl"). Include EVERY document whose chunks you actually used — do not omit web-crawled pages. For each source, copy the documentId, documentTitle, and documentSourceType verbatim from the retrieved chunks. Do NOT cite sources inline in your text response; the ${name} tool is the only way to show sources to the user.`
 
       case ToolName.FillForm:
         return `[${name}]: You can use the ${name} tool to fill out the form fields. Just fill out the information you have and ask the user for the missing information. You can also update previously filled information if the user changes their answer. Pass undefined for fields that are not filled yet.`
