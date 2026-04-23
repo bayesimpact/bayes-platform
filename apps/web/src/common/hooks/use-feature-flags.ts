@@ -14,11 +14,15 @@ export function useFeatureFlags(project?: Project) {
   if (project) {
     return {
       hasFeature: (feature: FeatureFlagKey): boolean => check(project.featureFlags || [], feature),
+      isLoading: false,
     }
   } else {
-    if (!ADS.isFulfilled(p)) return { hasFeature: () => false }
+    if (!ADS.isFulfilled(p)) {
+      return { hasFeature: () => false, isLoading: ADS.isLoading(p) || ADS.isUninitialized(p) }
+    }
     return {
       hasFeature: (feature: FeatureFlagKey): boolean => check(p.value.featureFlags || [], feature),
+      isLoading: false,
     }
   }
 }
