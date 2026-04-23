@@ -2,6 +2,7 @@ import type { DocumentTagDto } from "../document-tags/document-tag.dto"
 import type { TimeType } from "../generic"
 
 export const DOCUMENT_EMBEDDING_STATUS_CHANGED_CHANNEL_DTO = "document_embedding_status_changed"
+export const DOCUMENT_CRAWL_PROGRESS_CHANGED_CHANNEL_DTO = "document_crawl_progress_changed"
 
 export type DocumentSourceType =
   | "project"
@@ -22,6 +23,17 @@ export type DocumentEmbeddingStatusChangedEventPayload = {
 }
 export type DocumentEmbeddingStatusChangedEventDto = MessageEvent &
   DocumentEmbeddingStatusChangedEventPayload
+
+export type DocumentCrawlProgressChangedEventPayload = {
+  type: typeof DOCUMENT_CRAWL_PROGRESS_CHANGED_CHANNEL_DTO
+  documentId: string
+  organizationId: string
+  projectId: string
+  pagesCrawled: number
+  updatedAt: TimeType
+}
+export type DocumentCrawlProgressChangedEventDto = MessageEvent &
+  DocumentCrawlProgressChangedEventPayload
 
 export type PresignFileRequestItemDto = {
   fileName: string

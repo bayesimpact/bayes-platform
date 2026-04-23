@@ -68,4 +68,8 @@ export const DocumentsRoutes = {
     method: "get",
     path: "organizations/:organizationId/projects/:projectId/documents/embedding-status/stream",
   }),
+  streamCrawlProgress: defineRoute<ResponseData<unknown>>({
+    method: "get",
+    path: "organizations/:organizationId/projects/:projectId/documents/crawl-progress/stream",
+  }),
 }
