@@ -19,7 +19,10 @@
         "queued": "Queued",
         "processing": "Processing",
         "completed": "Ready",
-        "failed": "Failed"
+        "failed": "Failed",
+        "crawling": "Crawling",
+        "embedding": "Embedding",
+        "ready": "Ready"
       },
       "size": "Size",
       "storageRelativePath": "Storage Relative Path",
@@ -35,9 +38,8 @@
     "crawl": {
       "button": "Crawl Website",
       "title": "Crawl a Website",
-      "description": "Enter a URL to crawl. Each page will be added as a document.",
+      "description": "Enter a URL to crawl. The entire website will be indexed in the background.",
       "urlLabel": "Website URL",
-      "limitLabel": "Max pages to crawl",
       "submit": "Start Crawling"
     },
     "reprocess": {

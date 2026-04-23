@@ -44,7 +44,10 @@ export function DocumentDetailsSheet({
             <MetaData label={t("mimeType")} value={document.mimeType} />
             <div className="flex flex-col gap-1">
               <span className="font-medium">{t("embeddingStatus")}:</span>
-              <EmbeddingStatusBadge status={document.embeddingStatus} />
+              <EmbeddingStatusBadge
+                status={document.embeddingStatus}
+                sourceType={document.sourceType}
+              />
             </div>
             {document.embeddingError && (
               <MetaData label={t("embeddingError")} value={document.embeddingError} />

@@ -19,7 +19,10 @@
         "queued": "En file",
         "processing": "En cours",
         "completed": "Prêt",
-        "failed": "Échoué"
+        "failed": "Échoué",
+        "crawling": "Exploration",
+        "embedding": "Indexation",
+        "ready": "Prêt"
       },
       "size": "Taille",
       "storageRelativePath": "Chemin de stockage relatif",
@@ -35,9 +38,8 @@
     "crawl": {
       "button": "Explorer un site web",
       "title": "Explorer un site web",
-      "description": "Entrez une URL à explorer. Chaque page sera ajoutée en tant que document.",
+      "description": "Entrez une URL à explorer. L'intégralité du site sera indexée en arrière-plan.",
       "urlLabel": "URL du site web",
-      "limitLabel": "Nombre maximum de pages",
       "submit": "Lancer l'exploration"
     },
     "reprocess": {

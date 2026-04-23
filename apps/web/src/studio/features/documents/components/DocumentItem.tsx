@@ -22,7 +22,9 @@ export function DocumentItem({
   return (
     <GridItem
       index={index}
-      badge={<EmbeddingStatusBadge status={document.embeddingStatus} />}
+      badge={
+        <EmbeddingStatusBadge status={document.embeddingStatus} sourceType={document.sourceType} />
+      }
       title={<div className="wrap-anywhere">{document.title}</div>}
       description={date}
       action={

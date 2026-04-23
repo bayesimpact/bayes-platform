@@ -133,11 +133,11 @@ export default {
       onStatusChanged,
     })
   },
-  crawlUrl: async ({ organizationId, projectId, url, limit }) => {
+  crawlUrl: async ({ organizationId, projectId, url }) => {
     const axios = getAxiosInstance()
     const response = await axios.post<typeof DocumentsRoutes.crawlUrl.response>(
       DocumentsRoutes.crawlUrl.getPath({ organizationId, projectId }),
-      { payload: { url, limit } } satisfies typeof DocumentsRoutes.crawlUrl.request,
+      { payload: { url } } satisfies typeof DocumentsRoutes.crawlUrl.request,
     )
     return response.data.data
   },

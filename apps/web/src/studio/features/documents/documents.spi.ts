@@ -58,6 +58,5 @@ export interface IDocumentsSpi {
     organizationId: string
     projectId: string
     url: string
-    limit?: number
   }): Promise<{ message: string }>
 }

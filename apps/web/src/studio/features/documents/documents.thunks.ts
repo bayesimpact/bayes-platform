@@ -155,18 +155,17 @@ export const getDocumentTemporaryUrl = createAsyncThunk<
   return await services.documents.getTemporaryUrl({ organizationId, projectId, documentId })
 })
 
-export const crawlUrl = createAsyncThunk<
-  { message: string },
-  { url: string; limit?: number },
-  ThunkConfig
->("documents/crawlUrl", async ({ url, limit }, { extra: { services }, getState }) => {
-  const state = getState()
-  const { organizationId, projectId } = getCurrentIds({
-    state,
-    wantedIds: ["organizationId", "projectId"],
-  })
-  return await services.documents.crawlUrl({ organizationId, projectId, url, limit })
-})
+export const crawlUrl = createAsyncThunk<{ message: string }, { url: string }, ThunkConfig>(
+  "documents/crawlUrl",
+  async ({ url }, { extra: { services }, getState }) => {
+    const state = getState()
+    const { organizationId, projectId } = getCurrentIds({
+      state,
+      wantedIds: ["organizationId", "projectId"],
+    })
+    return await services.documents.crawlUrl({ organizationId, projectId, url })
+  },
+)
 
 export const streamDocumentEmbeddingStatuses = createAsyncThunk<void, void, ThunkConfig>(
   "documents/streamEmbeddingStatus",

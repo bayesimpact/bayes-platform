@@ -37,7 +37,6 @@ function CrawlUrlForm({ onSuccess }: { onSuccess: () => void }) {
   const dispatch = useAppDispatch()
   const { t } = useTranslation("document")
   const [url, setUrl] = useState("")
-  const [limit, setLimit] = useState(10)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const isValidUrl = (() => {
@@ -55,7 +54,7 @@ function CrawlUrlForm({ onSuccess }: { onSuccess: () => void }) {
 
     setIsSubmitting(true)
     try {
-      await dispatch(crawlUrl({ url, limit })).unwrap()
+      await dispatch(crawlUrl({ url })).unwrap()
       onSuccess()
     } finally {
       setIsSubmitting(false)
@@ -79,17 +78,6 @@ function CrawlUrlForm({ onSuccess }: { onSuccess: () => void }) {
               value={url}
               onChange={(event) => setUrl(event.target.value)}
               required
-            />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="crawl-limit">{t("document:crawl.limitLabel")}</FieldLabel>
-            <Input
-              id="crawl-limit"
-              type="number"
-              min={1}
-              max={50}
-              value={limit}
-              onChange={(event) => setLimit(Number(event.target.value))}
             />
           </Field>
         </FieldGroup>
