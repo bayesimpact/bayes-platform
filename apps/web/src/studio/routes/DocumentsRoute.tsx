@@ -65,6 +65,7 @@ import { EmptyDocument } from "@/studio/features/documents/components/EmptyDocum
 import { UploadDocumentsButton } from "@/studio/features/documents/components/UploadDocumentsButton"
 import type { Document } from "@/studio/features/documents/documents.models"
 import {
+  selectCrawlProgressByDocumentId,
   selectDocumentsData,
   selectUploaderState,
 } from "@/studio/features/documents/documents.selectors"
@@ -179,6 +180,7 @@ function DocumentRow({
   const isWebCrawl = document.sourceType === "webCrawl"
   const crawledPages = isWebCrawl ? parseCrawledPages(document.content) : null
   const hasPages = crawledPages && crawledPages.length > 0
+  const pagesCrawled = useAppSelector(selectCrawlProgressByDocumentId)[document.id]
 
   const [isOpen, setIsOpen] = useState(false)
 
@@ -224,6 +226,7 @@ function DocumentRow({
           <EmbeddingStatusBadge
             status={document.embeddingStatus}
             sourceType={document.sourceType}
+            pagesCrawled={pagesCrawled}
           />
         </TableCell>
         <TableCell className="text-muted-foreground">{date}</TableCell>
@@ -285,6 +288,7 @@ function DocumentActions({
   const dispatch = useAppDispatch()
   const { t } = useTranslation()
   const [activeAction, setActiveAction] = useState<"delete" | "edit" | "details" | null>(null)
+  const pagesCrawled = useAppSelector(selectCrawlProgressByDocumentId)[document.id]
 
   const handleDownload = async () => {
     const result = await dispatch(getDocumentTemporaryUrl({ documentId: document.id })).unwrap()
@@ -410,6 +414,7 @@ function DocumentActions({
                 <EmbeddingStatusBadge
                   status={document.embeddingStatus}
                   sourceType={document.sourceType}
+                  pagesCrawled={pagesCrawled}
                 />
               </div>
               {document.embeddingError && (
@@ -548,8 +553,10 @@ function useDocumentEmbeddingStatusStream() {
 
   useEffect(() => {
     dispatch(documentsActions.startEmbeddingStatusStream())
+    dispatch(documentsActions.startCrawlProgressStream())
     return () => {
       dispatch(documentsActions.stopEmbeddingStatusStream())
+      dispatch(documentsActions.stopCrawlProgressStream())
     }
   }, [dispatch])
 }
