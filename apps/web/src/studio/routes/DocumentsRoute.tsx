@@ -237,15 +237,16 @@ function DocumentRow({
       {crawledPages && isOpen
         ? crawledPages.map((page) => (
             <TableRow key={page.url} className="bg-muted/30">
-              <TableCell colSpan={5} className="pl-16">
+              <TableCell colSpan={5} className="pl-16 max-w-0">
                 <a
                   href={page.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  title={page.url}
+                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors min-w-0"
                 >
                   <ExternalLinkIcon className="size-3.5 shrink-0" />
-                  <span className="truncate">{page.url}</span>
+                  <span className="block truncate min-w-0 flex-1">{page.url}</span>
                 </a>
               </TableCell>
             </TableRow>
