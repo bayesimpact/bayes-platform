@@ -1,4 +1,5 @@
 import {
+  type DocumentCrawlProgressChangedEventDto,
   type DocumentDto,
   type DocumentEmbeddingStatusChangedEventDto,
   type DocumentSourceType,
@@ -46,6 +47,8 @@ import type { MulterFile } from "@/common/types"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { DocumentCrawlProgressStreamService } from "./crawling/document-crawl-progress-stream.service"
 import {
   URL_CRAWLING_BATCH_SERVICE,
   type UrlCrawlingBatchService,
@@ -81,6 +84,7 @@ export class DocumentsController {
     private readonly urlCrawlingBatchService: UrlCrawlingBatchService,
     private readonly documentsService: DocumentsService,
     private readonly documentEmbeddingStatusStreamService: DocumentEmbeddingStatusStreamService,
+    private readonly documentCrawlProgressStreamService: DocumentCrawlProgressStreamService,
   ) {}
 
   @CheckPolicy((policy) => policy.canCreate())
@@ -431,6 +435,22 @@ export class DocumentsController {
   ): Observable<DocumentEmbeddingStatusChangedEventDto> {
     const connectScope = getRequiredConnectScope(req)
     return this.documentEmbeddingStatusStreamService.events$.pipe(
+      filter(
+        (event) =>
+          event.organizationId === connectScope.organizationId &&
+          event.projectId === connectScope.projectId,
+      ),
+      map((event) => ({ ...event, data: JSON.stringify(event) })),
+    )
+  }
+
+  @CheckPolicy((policy) => policy.canList())
+  @Sse(DocumentsRoutes.streamCrawlProgress.path, { method: 0 /* GET */ })
+  streamCrawlProgress(
+    @Request() req: EndpointRequestWithProject,
+  ): Observable<DocumentCrawlProgressChangedEventDto> {
+    const connectScope = getRequiredConnectScope(req)
+    return this.documentCrawlProgressStreamService.events$.pipe(
       filter(
         (event) =>
           event.organizationId === connectScope.organizationId &&

@@ -14,6 +14,7 @@ import { ProjectMembership } from "@/domains/projects/memberships/project-member
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
 import { UsersModule } from "@/domains/users/users.module"
+import { DocumentCrawlProgressStreamService } from "./crawling/document-crawl-progress-stream.service"
 import { UrlCrawlingBatchModule } from "./crawling/url-crawling-batch.module"
 import { Document } from "./document.entity"
 import { DocumentsController } from "./documents.controller"
@@ -61,6 +62,7 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
   providers: [
     DocumentsService,
     DocumentEmbeddingStatusStreamService,
+    DocumentCrawlProgressStreamService,
     DocumentChunkRetrievalService,
     DocumentsGuard,
     ResourceContextGuard,

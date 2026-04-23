@@ -11,36 +11,34 @@ export type CrawledPage = {
 export class SpiderClientService {
   private readonly logger = new Logger(SpiderClientService.name)
 
-  async crawlUrl(params: { url: string }): Promise<CrawledPage[]> {
+  async crawlUrl(params: {
+    url: string
+    onPage?: (page: CrawledPage) => void
+  }): Promise<CrawledPage[]> {
     const apiKey = resolveSpiderApiKey()
     const spider = new Spider({ apiKey })
 
-    this.logger.log(`Crawling ${params.url} (full site, no page limit)`)
+    this.logger.log(`Streaming full-site crawl of ${params.url}`)
 
-    const response = await spider.crawlUrl(params.url, {
-      limit: 0,
-      return_format: "markdown",
-      metadata: true,
-    })
+    const pages: CrawledPage[] = []
 
-    if (!response) {
-      this.logger.warn(`Spider returned no response for ${params.url}`)
-      return []
-    }
-
-    // Spider may return a nested array — flatten it
-    const flatResponse = response.flat()
-
-    this.logger.debug(
-      `Spider flat response: ${flatResponse.length} items, keys: ${flatResponse.length > 0 && flatResponse[0] ? Object.keys(flatResponse[0]).join(", ") : "N/A"}`,
+    await spider.crawlUrl(
+      params.url,
+      { limit: 0, return_format: "markdown", metadata: true },
+      true,
+      (chunk) => {
+        const items = Array.isArray(chunk) ? chunk : [chunk]
+        for (const item of items) {
+          if (!item?.content || item.content.trim().length === 0) continue
+          const page: CrawledPage = {
+            url: item.url ?? params.url,
+            markdown: item.content,
+          }
+          pages.push(page)
+          params.onPage?.(page)
+        }
+      },
     )
-
-    const pages = flatResponse
-      .filter((page) => page.content && page.content.trim().length > 0)
-      .map((page) => ({
-        url: page.url ?? params.url,
-        markdown: page.content ?? "",
-      }))
 
     this.logger.log(`Crawled ${pages.length} pages from ${params.url}`)
     return pages
