@@ -167,6 +167,31 @@ export const crawlUrl = createAsyncThunk<{ message: string }, { url: string }, T
   },
 )
 
+export const streamDocumentCrawlProgresses = createAsyncThunk<void, void, ThunkConfig>(
+  "documents/streamCrawlProgress",
+  async (_, { extra: { services }, getState, dispatch, signal }) => {
+    const state = getState()
+    const { organizationId, projectId } = getCurrentIds({
+      state,
+      wantedIds: ["organizationId", "projectId"],
+    })
+
+    await services.documents.streamCrawlProgress({
+      organizationId,
+      projectId,
+      signal,
+      onProgressChanged: ({ documentId, pagesCrawled }) => {
+        dispatch(
+          documentsActions.patchDocumentCrawlProgress({
+            documentId,
+            pagesCrawled,
+          }),
+        )
+      },
+    })
+  },
+)
+
 export const streamDocumentEmbeddingStatuses = createAsyncThunk<void, void, ThunkConfig>(
   "documents/streamEmbeddingStatus",
   async (_, { extra: { services }, getState, dispatch, signal }) => {

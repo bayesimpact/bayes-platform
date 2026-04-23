@@ -6,7 +6,7 @@ import {
 import { getAxiosInstance } from "@/external/axios"
 import type { Document } from "../documents.models"
 import type { IDocumentsSpi } from "../documents.spi"
-import { streamDocumentEmbeddingStatus } from "./documents-streaming"
+import { streamDocumentCrawlProgress, streamDocumentEmbeddingStatus } from "./documents-streaming"
 
 export default {
   getAll: async ({ organizationId, projectId }) => {
@@ -131,6 +131,14 @@ export default {
       projectId,
       signal,
       onStatusChanged,
+    })
+  },
+  streamCrawlProgress: async ({ organizationId, projectId, signal, onProgressChanged }) => {
+    await streamDocumentCrawlProgress({
+      organizationId,
+      projectId,
+      signal,
+      onProgressChanged,
     })
   },
   crawlUrl: async ({ organizationId, projectId, url }) => {

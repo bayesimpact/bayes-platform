@@ -21,6 +21,7 @@
         "completed": "Ready",
         "failed": "Failed",
         "crawling": "Crawling",
+        "crawlingWithCount": "Crawling — {{count}} pages",
         "embedding": "Embedding",
         "ready": "Ready"
       },

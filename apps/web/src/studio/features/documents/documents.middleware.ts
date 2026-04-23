@@ -20,7 +20,9 @@ import {
 } from "./documents.thunks"
 import {
   handleDocumentsContextChanged,
+  startDocumentCrawlProgressStream,
   startDocumentEmbeddingStatusStream,
+  stopDocumentCrawlProgressStream,
   stopDocumentEmbeddingStatusStream,
   syncDocumentEmbeddingStatusStreamWithDocuments,
 } from "./documents-stream-status"
@@ -49,6 +51,20 @@ function registerListeners() {
     actionCreator: documentsActions.stopEmbeddingStatusStream,
     effect: async () => {
       stopDocumentEmbeddingStatusStream()
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: documentsActions.startCrawlProgressStream,
+    effect: async (_, listenerApi) => {
+      await startDocumentCrawlProgressStream(listenerApi)
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: documentsActions.stopCrawlProgressStream,
+    effect: async () => {
+      stopDocumentCrawlProgressStream()
     },
   })
 

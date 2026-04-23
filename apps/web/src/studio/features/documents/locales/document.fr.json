@@ -21,6 +21,7 @@
         "completed": "Prêt",
         "failed": "Échoué",
         "crawling": "Exploration",
+        "crawlingWithCount": "Exploration — {{count}} pages",
         "embedding": "Indexation",
         "ready": "Prêt"
       },

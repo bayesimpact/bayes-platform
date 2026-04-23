@@ -1,6 +1,10 @@
 import type { DocumentSourceType } from "@caseai-connect/api-contracts"
 import type { DocumentTagsUpdateFields } from "@/studio/features/document-tags/document-tags.models"
-import type { Document, DocumentEmbeddingStatusChangedEvent } from "./documents.models"
+import type {
+  Document,
+  DocumentCrawlProgressEvent,
+  DocumentEmbeddingStatusChangedEvent,
+} from "./documents.models"
 
 export interface IDocumentsSpi {
   getAll(params: { organizationId: string; projectId: string }): Promise<Document[]>
@@ -53,6 +57,12 @@ export interface IDocumentsSpi {
     projectId: string
     signal?: AbortSignal
     onStatusChanged: (event: DocumentEmbeddingStatusChangedEvent) => void
+  }): Promise<void>
+  streamCrawlProgress(params: {
+    organizationId: string
+    projectId: string
+    signal?: AbortSignal
+    onProgressChanged: (event: DocumentCrawlProgressEvent) => void
   }): Promise<void>
   crawlUrl(params: {
     organizationId: string
