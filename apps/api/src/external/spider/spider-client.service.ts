@@ -11,14 +11,14 @@ export type CrawledPage = {
 export class SpiderClientService {
   private readonly logger = new Logger(SpiderClientService.name)
 
-  async crawlUrl(params: { url: string; limit: number }): Promise<CrawledPage[]> {
+  async crawlUrl(params: { url: string }): Promise<CrawledPage[]> {
     const apiKey = resolveSpiderApiKey()
     const spider = new Spider({ apiKey })
 
-    this.logger.log(`Crawling ${params.url} with limit ${params.limit}`)
+    this.logger.log(`Crawling ${params.url} (full site, no page limit)`)
 
     const response = await spider.crawlUrl(params.url, {
-      limit: params.limit,
+      limit: 0,
       return_format: "markdown",
       metadata: true,
     })
