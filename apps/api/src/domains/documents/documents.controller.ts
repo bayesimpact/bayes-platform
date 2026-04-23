@@ -391,7 +391,6 @@ export class DocumentsController {
       throw new UnprocessableEntityException("Invalid URL.")
     }
 
-    const limit = Math.min(Math.max(payload.limit ?? 10, 1), 50)
     const connectScope = getRequiredConnectScope(req)
 
     const documentId = v4()
@@ -412,7 +411,6 @@ export class DocumentsController {
     await this.urlCrawlingBatchService.enqueueCrawlUrl({
       documentId,
       url: payload.url,
-      limit,
       organizationId: connectScope.organizationId,
       projectId: connectScope.projectId,
       requestedByUserId: req.user.id,
@@ -421,7 +419,7 @@ export class DocumentsController {
 
     return {
       data: {
-        message: `Crawling ${payload.url} (up to ${limit} pages). Documents will appear as they are processed.`,
+        message: `Crawling ${payload.url}. Documents will appear as they are processed.`,
       },
     }
   }

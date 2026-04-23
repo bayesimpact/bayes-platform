@@ -198,6 +198,23 @@ export class DocumentsService {
     return this.documentConnectRepository.saveOne(document)
   }
 
+  async updateEmbeddingStatus({
+    connectScope,
+    documentId,
+    status,
+  }: {
+    connectScope: RequiredConnectScope
+    documentId: string
+    status: Document["embeddingStatus"]
+  }): Promise<Document> {
+    const document = await this.documentConnectRepository.getOneById(connectScope, documentId)
+    if (!document) {
+      throw new NotFoundException(`Document with id ${documentId} not found`)
+    }
+    document.embeddingStatus = status
+    return this.documentConnectRepository.saveOne(document)
+  }
+
   async deleteDocument({
     connectScope,
     documentId,
