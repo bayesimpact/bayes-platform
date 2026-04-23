@@ -8,6 +8,7 @@ import { SpiderClientService } from "@/external/spider/spider-client.service"
 import { DocumentsService } from "../documents.service"
 import { DocumentEmbeddingStatusNotifierService } from "../embeddings/document-embedding-status-notifier.service"
 import { DocumentTagsService } from "../tags/document-tags.service"
+import { DocumentCrawlProgressNotifierService } from "./document-crawl-progress-notifier.service"
 import { URL_CRAWLING_QUEUE_NAME } from "./url-crawling.constants"
 import { UrlCrawlingWorker } from "./url-crawling.worker"
 import { UrlCrawlingProcessorService } from "./url-crawling-processor.service"
@@ -34,6 +35,7 @@ import { WebSourceEmbeddingsBatchModule } from "./web-source-embeddings-batch.mo
     DocumentsService,
     DocumentTagsService,
     DocumentEmbeddingStatusNotifierService,
+    DocumentCrawlProgressNotifierService,
   ],
 })
 export class UrlCrawlingWorkersModule {}

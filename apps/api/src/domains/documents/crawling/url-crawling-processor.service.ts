@@ -5,6 +5,8 @@ import { SpiderClientService } from "@/external/spider/spider-client.service"
 import { DocumentsService } from "../documents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentEmbeddingStatusNotifierService } from "../embeddings/document-embedding-status-notifier.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { DocumentCrawlProgressNotifierService } from "./document-crawl-progress-notifier.service"
 import type { CrawlUrlJobPayload } from "./url-crawling.types"
 import {
   WEB_SOURCE_EMBEDDINGS_BATCH_SERVICE,
@@ -19,6 +21,7 @@ export class UrlCrawlingProcessorService {
     private readonly spiderClientService: SpiderClientService,
     private readonly documentsService: DocumentsService,
     private readonly embeddingStatusNotifierService: DocumentEmbeddingStatusNotifierService,
+    private readonly crawlProgressNotifierService: DocumentCrawlProgressNotifierService,
     @Inject(WEB_SOURCE_EMBEDDINGS_BATCH_SERVICE)
     private readonly embeddingsBatchService: WebSourceEmbeddingsBatchService,
   ) {}
@@ -31,8 +34,28 @@ export class UrlCrawlingProcessorService {
       projectId: payload.projectId,
     }
 
+    let pagesCrawled = 0
+
     try {
-      const pages = await this.spiderClientService.crawlUrl({ url: payload.url })
+      const pages = await this.spiderClientService.crawlUrl({
+        url: payload.url,
+        onPage: () => {
+          pagesCrawled += 1
+          this.crawlProgressNotifierService
+            .notifyCrawlProgress({
+              documentId: payload.documentId,
+              organizationId: payload.organizationId,
+              projectId: payload.projectId,
+              pagesCrawled,
+              updatedAt: Date.now(),
+            })
+            .catch((error) => {
+              this.logger.error(
+                `Failed to emit crawl progress for ${payload.documentId}: ${(error as Error).message}`,
+              )
+            })
+        },
+      })
 
       this.logger.log(`Crawled ${pages.length} pages from ${payload.url}`)
 
