@@ -61,7 +61,6 @@ export type DocumentDto = {
 
 export type CrawlUrlRequestDto = {
   url: string
-  limit?: number
 }
 
 export type CrawlUrlResponseDto = {

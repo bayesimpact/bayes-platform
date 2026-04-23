@@ -1,6 +1,7 @@
 import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
+import { Collapsible, CollapsibleTrigger } from "@caseai-connect/ui/shad/collapsible"
 import {
   Dialog,
   DialogContent,
@@ -27,7 +28,6 @@ import {
   TableHeader,
   TableRow,
 } from "@caseai-connect/ui/shad/table"
-import { Collapsible, CollapsibleTrigger } from "@caseai-connect/ui/shad/collapsible"
 import {
   ChevronDownIcon,
   ChevronRightIcon,
@@ -221,7 +221,10 @@ function DocumentRow({
           </div>
         </TableCell>
         <TableCell>
-          <EmbeddingStatusBadge status={document.embeddingStatus} />
+          <EmbeddingStatusBadge
+            status={document.embeddingStatus}
+            sourceType={document.sourceType}
+          />
         </TableCell>
         <TableCell className="text-muted-foreground">{date}</TableCell>
         <TableCell>
@@ -404,7 +407,10 @@ function DocumentActions({
               <MetaField label={t("document:props.mimeType")} value={document.mimeType} />
               <div className="flex flex-col gap-1">
                 <span className="font-medium">{t("document:props.embeddingStatus")}:</span>
-                <EmbeddingStatusBadge status={document.embeddingStatus} />
+                <EmbeddingStatusBadge
+                  status={document.embeddingStatus}
+                  sourceType={document.sourceType}
+                />
               </div>
               {document.embeddingError && (
                 <MetaField
