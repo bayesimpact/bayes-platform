@@ -47,6 +47,7 @@ import { useEffect, useReducer, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
+import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/MarkdownWrapper"
 import { useGetPath } from "@/common/hooks/use-build-path"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
@@ -116,7 +117,9 @@ function WithData({
         description={t("document:list.description")}
         action={
           <div className="flex items-center gap-2">
-            <CrawlUrlButton />
+            <RestrictedFeature feature="web_sources">
+              <CrawlUrlButton />
+            </RestrictedFeature>
             <UploadDocumentsButton />
             <DocumentTagsSheet documentTags={documentTags} />
           </div>
