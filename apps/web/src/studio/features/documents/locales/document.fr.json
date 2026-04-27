@@ -53,6 +53,11 @@
         "description": "Téléversez votre premier document pour commencer."
       }
     },
+    "filter": {
+      "all": "Tous",
+      "uploaded": "Documents",
+      "webSources": "Sites web"
+    },
     "upload": {
       "tagDialog": {
         "title": "Tags pour cet envoi",
