@@ -52,11 +52,11 @@ export const uploadDocument = createAsyncThunk<
 
 export const uploadDocuments = createAsyncThunk<
   void,
-  { files: File[]; sourceType: DocumentSourceType; tagIds?: string[] },
+  { files: File[]; sourceType: DocumentSourceType; tagIds?: string[]; name?: string },
   ThunkConfig
 >(
   "documents/uploadMany",
-  async ({ files, sourceType, tagIds }, { extra: { services }, getState, dispatch }) => {
+  async ({ files, sourceType, tagIds, name }, { extra: { services }, getState, dispatch }) => {
     const state = getState()
     const { organizationId, projectId } = getCurrentIds({
       state,
@@ -68,6 +68,7 @@ export const uploadDocuments = createAsyncThunk<
       files,
       sourceType,
       tagIds,
+      name,
       onFileProcessed: (result) => {
         dispatch(documentsActions.setOneDocumentProcessed())
 
@@ -155,17 +156,18 @@ export const getDocumentTemporaryUrl = createAsyncThunk<
   return await services.documents.getTemporaryUrl({ organizationId, projectId, documentId })
 })
 
-export const crawlUrl = createAsyncThunk<{ message: string }, { url: string }, ThunkConfig>(
-  "documents/crawlUrl",
-  async ({ url }, { extra: { services }, getState }) => {
-    const state = getState()
-    const { organizationId, projectId } = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
-    return await services.documents.crawlUrl({ organizationId, projectId, url })
-  },
-)
+export const crawlUrl = createAsyncThunk<
+  { message: string },
+  { url: string; name?: string },
+  ThunkConfig
+>("documents/crawlUrl", async ({ url, name }, { extra: { services }, getState }) => {
+  const state = getState()
+  const { organizationId, projectId } = getCurrentIds({
+    state,
+    wantedIds: ["organizationId", "projectId"],
+  })
+  return await services.documents.crawlUrl({ organizationId, projectId, url, name })
+})
 
 export const streamDocumentCrawlProgresses = createAsyncThunk<void, void, ThunkConfig>(
   "documents/streamCrawlProgress",

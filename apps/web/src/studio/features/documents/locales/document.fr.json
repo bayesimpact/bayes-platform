@@ -27,7 +27,8 @@
       },
       "size": "Taille",
       "storageRelativePath": "Chemin de stockage relatif",
-      "tags": "Tags"
+      "tags": "Tags",
+      "pages": "Pages"
     },
     "update": {
       "title": "Modifier {{documentTitle}}"
@@ -41,6 +42,8 @@
       "title": "Explorer un site web",
       "description": "Entrez une URL à explorer. L'intégralité du site sera indexée en arrière-plan.",
       "urlLabel": "URL du site web",
+      "nameLabel": "Nom (optionnel)",
+      "namePlaceholder": "ex : Site de documentation",
       "submit": "Lancer l'exploration"
     },
     "reprocess": {
@@ -64,6 +67,7 @@
         "description": "Facultatif : choisissez des tags à appliquer à chaque fichier de cet envoi.",
         "fileCountSentence_one": "Vous allez téléverser un fichier.",
         "fileCountSentence_other": "Vous allez téléverser {{count}} fichiers.",
+        "nameLabel": "Nom (optionnel)",
         "confirm": "Téléverser"
       }
     }

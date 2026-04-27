@@ -163,6 +163,7 @@ function WithData({
                 <TableHead className="font-medium rounded-tl-lg bg-muted">
                   {t("document:props.title")}
                 </TableHead>
+                <TableHead className="font-medium bg-muted">{t("document:props.pages")}</TableHead>
                 <TableHead className="font-medium bg-muted">{t("document:props.tags")}</TableHead>
                 <TableHead className="font-medium bg-muted">
                   {t("document:props.embeddingStatus")}
@@ -234,13 +235,11 @@ function DocumentRow({
             <div className="flex items-center gap-1.5">
               {isWebCrawl ? <GlobeIcon className="size-4 text-muted-foreground shrink-0" /> : null}
               <span className="truncate">{document.title}</span>
-              {hasPages ? (
-                <Badge variant="secondary" className="text-xs shrink-0">
-                  {crawledPages.length} pages
-                </Badge>
-              ) : null}
             </div>
           </div>
+        </TableCell>
+        <TableCell className="text-muted-foreground">
+          {hasPages ? crawledPages.length : "—"}
         </TableCell>
         <TableCell>
           <div className="flex flex-wrap gap-1">

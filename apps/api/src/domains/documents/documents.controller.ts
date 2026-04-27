@@ -403,7 +403,7 @@ export class DocumentsController {
       documentId,
       uploadStatus: "uploaded",
       fields: {
-        title: payload.url,
+        title: payload.name ?? payload.url,
         mimeType: "text/html",
         sourceType: "webCrawl",
         size: 0,

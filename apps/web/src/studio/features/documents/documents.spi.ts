@@ -25,6 +25,7 @@ export interface IDocumentsSpi {
     files: File[]
     sourceType: DocumentSourceType
     tagIds?: string[]
+    name?: string
     onFileProcessed: (
       result:
         | { file: File; status: "success"; document: Document }
@@ -68,5 +69,6 @@ export interface IDocumentsSpi {
     organizationId: string
     projectId: string
     url: string
+    name?: string
   }): Promise<{ message: string }>
 }

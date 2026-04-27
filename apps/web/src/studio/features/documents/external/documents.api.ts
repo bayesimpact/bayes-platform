@@ -39,7 +39,15 @@ export default {
     )
     return toDocument(response.data.data)
   },
-  uploadMany: async ({ organizationId, projectId, files, sourceType, tagIds, onFileProcessed }) => {
+  uploadMany: async ({
+    organizationId,
+    projectId,
+    files,
+    sourceType,
+    tagIds,
+    name,
+    onFileProcessed,
+  }) => {
     const axios = getAxiosInstance()
 
     for (const file of files) {
@@ -51,7 +59,7 @@ export default {
             payload: {
               files: [
                 {
-                  fileName: file.name,
+                  fileName: name && files.length === 1 ? name : file.name,
                   mimeType: file.type as PresignFileRequestItemDto["mimeType"],
                   size: file.size,
                 },
@@ -141,11 +149,11 @@ export default {
       onProgressChanged,
     })
   },
-  crawlUrl: async ({ organizationId, projectId, url }) => {
+  crawlUrl: async ({ organizationId, projectId, url, name }) => {
     const axios = getAxiosInstance()
     const response = await axios.post<typeof DocumentsRoutes.crawlUrl.response>(
       DocumentsRoutes.crawlUrl.getPath({ organizationId, projectId }),
-      { payload: { url } } satisfies typeof DocumentsRoutes.crawlUrl.request,
+      { payload: { url, name } } satisfies typeof DocumentsRoutes.crawlUrl.request,
     )
     return response.data.data
   },

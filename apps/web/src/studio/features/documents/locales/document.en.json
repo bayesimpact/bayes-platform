@@ -27,7 +27,8 @@
       },
       "size": "Size",
       "storageRelativePath": "Storage Relative Path",
-      "tags": "Tags"
+      "tags": "Tags",
+      "pages": "Pages"
     },
     "update": {
       "title": "Edit {{documentTitle}}"
@@ -41,6 +42,8 @@
       "title": "Crawl a Website",
       "description": "Enter a URL to crawl. The entire website will be indexed in the background.",
       "urlLabel": "Website URL",
+      "nameLabel": "Name (optional)",
+      "namePlaceholder": "e.g. Documentation site",
       "submit": "Start Crawling"
     },
     "reprocess": {
@@ -64,6 +67,7 @@
         "description": "Optional: choose tags to apply to every file in this upload.",
         "fileCountSentence_one": "You’re about to upload one file.",
         "fileCountSentence_other": "You’re about to upload {{count}} files.",
+        "nameLabel": "Name (optional)",
         "confirm": "Upload"
       }
     }

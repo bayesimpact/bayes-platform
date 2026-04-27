@@ -73,6 +73,7 @@ export type DocumentDto = {
 
 export type CrawlUrlRequestDto = {
   url: string
+  name?: string
 }
 
 export type CrawlUrlResponseDto = {

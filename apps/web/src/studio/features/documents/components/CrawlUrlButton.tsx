@@ -37,6 +37,7 @@ function CrawlUrlForm({ onSuccess }: { onSuccess: () => void }) {
   const dispatch = useAppDispatch()
   const { t } = useTranslation("document")
   const [url, setUrl] = useState("")
+  const [name, setName] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const isValidUrl = (() => {
@@ -54,7 +55,7 @@ function CrawlUrlForm({ onSuccess }: { onSuccess: () => void }) {
 
     setIsSubmitting(true)
     try {
-      await dispatch(crawlUrl({ url })).unwrap()
+      await dispatch(crawlUrl({ url, name: name.trim() || undefined })).unwrap()
       onSuccess()
     } finally {
       setIsSubmitting(false)
@@ -78,6 +79,16 @@ function CrawlUrlForm({ onSuccess }: { onSuccess: () => void }) {
               value={url}
               onChange={(event) => setUrl(event.target.value)}
               required
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="crawl-name">{t("document:crawl.nameLabel")}</FieldLabel>
+            <Input
+              id="crawl-name"
+              type="text"
+              placeholder={t("document:crawl.namePlaceholder")}
+              value={name}
+              onChange={(event) => setName(event.target.value)}
             />
           </Field>
         </FieldGroup>
