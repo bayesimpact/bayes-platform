@@ -80,6 +80,10 @@ export type CrawlUrlResponseDto = {
   message: string
 }
 
+export type ReCrawlUrlResponseDto = {
+  message: string
+}
+
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
 export enum MimeTypes {
   aac = "audio/aac",

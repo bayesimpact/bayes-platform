@@ -71,4 +71,9 @@ export interface IDocumentsSpi {
     url: string
     name?: string
   }): Promise<{ message: string }>
+  reCrawlUrl(params: {
+    organizationId: string
+    projectId: string
+    documentId: string
+  }): Promise<{ message: string }>
 }

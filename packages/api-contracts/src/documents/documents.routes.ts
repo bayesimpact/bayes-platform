@@ -8,6 +8,7 @@ import type {
   DocumentUploadOptionalTagFields,
   PresignFileRequestItemDto,
   PresignFileResponseItemDto,
+  ReCrawlUrlResponseDto,
 } from "./documents.dto"
 
 export const DocumentsRoutes = {
@@ -62,6 +63,10 @@ export const DocumentsRoutes = {
   crawlUrl: defineRoute<ResponseData<CrawlUrlResponseDto>, RequestPayload<CrawlUrlRequestDto>>({
     method: "post",
     path: "organizations/:organizationId/projects/:projectId/documents/crawl-url",
+  }),
+  reCrawlUrl: defineRoute<ResponseData<ReCrawlUrlResponseDto>>({
+    method: "post",
+    path: "organizations/:organizationId/projects/:projectId/documents/:documentId/recrawl",
   }),
   // Streaming responses are sent as text/event-stream (SSE) and do not follow ResponseData<T>.
   streamEmbeddingStatus: defineRoute<ResponseData<unknown>>({

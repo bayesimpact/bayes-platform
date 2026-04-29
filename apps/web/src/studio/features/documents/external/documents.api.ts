@@ -157,6 +157,13 @@ export default {
     )
     return response.data.data
   },
+  reCrawlUrl: async ({ organizationId, projectId, documentId }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<typeof DocumentsRoutes.reCrawlUrl.response>(
+      DocumentsRoutes.reCrawlUrl.getPath({ organizationId, projectId, documentId }),
+    )
+    return response.data.data
+  },
 } satisfies IDocumentsSpi
 
 function toDocument(dto: DocumentDto): Document {

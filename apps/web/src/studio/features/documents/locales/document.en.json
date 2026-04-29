@@ -38,6 +38,7 @@
       "title": "Delete {{documentTitle}}",
       "description": "Are you sure you want to delete this document? This action cannot be undone."
     },
+    "recrawl": "Recrawl website",
     "crawl": {
       "button": "Crawl Website",
       "title": "Crawl a Website",

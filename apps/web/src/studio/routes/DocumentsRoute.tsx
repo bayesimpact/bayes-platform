@@ -39,6 +39,7 @@ import {
   InfoIcon,
   Loader2Icon,
   PencilIcon,
+  RefreshCwIcon,
   RotateCcwIcon,
   Trash2Icon,
   XIcon,
@@ -74,6 +75,7 @@ import { documentsActions } from "@/studio/features/documents/documents.slice"
 import {
   deleteDocument,
   getDocumentTemporaryUrl,
+  reCrawlUrl,
   reprocessDocument,
   updateDocument,
 } from "@/studio/features/documents/documents.thunks"
@@ -340,6 +342,10 @@ function DocumentActions({
     dispatch(reprocessDocument({ documentId: document.id }))
   }
 
+  const handleReCrawl = () => {
+    dispatch(reCrawlUrl({ documentId: document.id }))
+  }
+
   return (
     <>
       <DropdownMenu>
@@ -349,10 +355,12 @@ function DocumentActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={handleDownload}>
-            <FileDownIcon className="size-4" />
-            {t("actions:downloadDocument")}
-          </DropdownMenuItem>
+          {document.sourceType !== "webCrawl" && (
+            <DropdownMenuItem onSelect={handleDownload}>
+              <FileDownIcon className="size-4" />
+              {t("actions:downloadDocument")}
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onSelect={() => setActiveAction("details")}>
             <InfoIcon className="size-4" />
             {t("actions:view")}
@@ -365,6 +373,12 @@ function DocumentActions({
             <DropdownMenuItem onSelect={handleReprocess}>
               <RotateCcwIcon className="size-4" />
               {t("document:reprocess.cta")}
+            </DropdownMenuItem>
+          )}
+          {document.sourceType === "webCrawl" && (
+            <DropdownMenuItem onSelect={handleReCrawl}>
+              <RefreshCwIcon className="size-4" />
+              {t("document:recrawl")}
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
