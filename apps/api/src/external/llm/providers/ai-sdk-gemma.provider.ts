@@ -3,11 +3,11 @@ import { createOpenAI } from "@ai-sdk/openai"
 import type { LanguageModelV3 } from "@ai-sdk/provider"
 import { AgentProvider } from "@caseai-connect/api-contracts"
 import { Injectable, NotImplementedException } from "@nestjs/common"
-import type { ToolSet } from "ai"
 import { GoogleAuth } from "google-auth-library"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { GetAgentModelKeyFromValue } from "@/external/llm/agent-provider"
 import { AISDKLLMProviderBase, CallOrigin } from "@/external/llm/ai-sdk-llm-provider-base"
+import { GemmaPromptHelper } from "@/external/llm/providers/gemma/gemma-prompt-helper"
 
 @Injectable()
 export class AISDKGemmaProvider extends AISDKLLMProviderBase {
@@ -72,63 +72,12 @@ export class AISDKGemmaProvider extends AISDKLLMProviderBase {
     callOrigin: CallOrigin
   }): string {
     if (callOrigin === CallOrigin.streamChatResponse_withTools && config.tools) {
-      const toolDocs = this.convertToolsToDocs(config.tools) ?? [].join("\n")
-      return `${systemPrompt}
-
-##TOOLS
-You have access to the following tools:
-${toolDocs}
-
-(CRITICAL) If a parameters allows null, set the value to null when unknown. Set to null not to quoted "null"`
+      return GemmaPromptHelper.appendToolsToPrompt({ prompt: systemPrompt, tools: config.tools })
     }
 
     return systemPrompt
   }
 
-  private convertToolsToDocs(tools: ToolSet) {
-    if (!tools) return undefined
-    return Object.entries(tools).map(
-      // biome-ignore lint/suspicious/noExplicitAny: custom unknown props
-      ([name, tool]: any) =>
-        `- ${name}: ${tool.description}\n  Parameters: ${this.jsonSchemaToArgumentString(tool.inputSchema)}`,
-    )
-  }
-  // biome-ignore lint/suspicious/noExplicitAny: custom
-  private jsonSchemaToArgumentString(schema: any): string {
-    if (!schema) return "unknown"
-
-    if (schema.def) {
-      return this.jsonSchemaToArgumentString(schema.def)
-    }
-
-    if (schema.type === "nullable") {
-      const inner = this.jsonSchemaToArgumentString(schema.innerType)
-      return `${inner} | null`
-    }
-    if (schema.type === "optional") {
-      if (schema.innerType?.def?.type === "union") {
-        const inner = this.jsonSchemaToArgumentString(schema.innerType?.def?.options[0].def)
-        return `${inner} | null`
-      }
-    }
-
-    if (schema.type === "string") return "string"
-    if (schema.type === "number") return "number"
-    if (schema.type === "boolean") return "boolean"
-
-    // object with shape
-    if (schema.type === "object" && schema.shape) {
-      // biome-ignore lint/suspicious/noExplicitAny: custom
-      const props = Object.entries(schema.shape).map(([key, value]: [string, any]) => {
-        const typeStr = this.jsonSchemaToArgumentString(value)
-        return `${key}: ${typeStr}`
-      })
-
-      return `{ ${props.join("; ")} }`
-    }
-
-    return "unknown"
-  }
   getModelEnvSettings(model: string) {
     const agentModelKey = GetAgentModelKeyFromValue(model)
     const envKeyUrl = `VLLM_${agentModelKey?.toUpperCase()}_URL`
