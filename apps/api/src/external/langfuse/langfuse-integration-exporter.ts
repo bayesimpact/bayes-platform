@@ -441,16 +441,48 @@ export class LangfuseIntegrationExporter implements SpanExporter {
       chatMessages = [attributes["ai.prompt.messages"]]
       try {
         chatMessages = JSON.parse(attributes["ai.prompt.messages"] as string)
+        chatMessages = this.removeFileBase64Data(chatMessages)
+      } catch {}
+    }
+
+    let aiPrompt: any
+    if ("ai.prompt" in attributes) {
+      aiPrompt = attributes["ai.prompt"]
+      try {
+        aiPrompt = JSON.parse(attributes["ai.prompt"] as string)
+        aiPrompt = this.removeFileBase64Data(aiPrompt)
       } catch {}
     }
 
     return "ai.prompt.messages" in attributes
       ? [...chatMessages, ...(Array.isArray(tools) ? tools : [])]
       : "ai.prompt" in attributes
-        ? attributes["ai.prompt"]
+        ? aiPrompt
         : "ai.toolCall.args" in attributes
           ? attributes["ai.toolCall.args"]
           : undefined
+  }
+  private removeFileBase64Data(input: any): any {
+    if (input === null || typeof input !== "object") return input
+
+    if (Array.isArray(input)) {
+      return input.map((i) => this.removeFileBase64Data(i))
+    }
+
+    if (
+      typeof input.type === "string" &&
+      input.type === "file" &&
+      (typeof input.data === "string" || typeof input.data === "object")
+    ) {
+      return {
+        ...input,
+        data: "<not available>",
+      }
+    }
+
+    return Object.fromEntries(
+      Object.entries(input).map(([key, value]) => [key, this.removeFileBase64Data(value)]),
+    )
   }
 
   private parseOutput(span: ReadableSpan): (typeof span.attributes)[0] | undefined {
