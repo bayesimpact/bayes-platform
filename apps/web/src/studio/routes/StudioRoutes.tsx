@@ -99,7 +99,15 @@ export const studioRoutes = {
             },
             {
               path: buildStudioPath(StudioRouteNames.DOCUMENTS),
-              element: <DocumentsRoute />,
+              element: <DocumentsRoute sourceFilter="project" />,
+            },
+            {
+              path: buildStudioPath(StudioRouteNames.WEB_SOURCES),
+              element: (
+                <RestrictedFeature feature="web_sources">
+                  <DocumentsRoute sourceFilter="webCrawl" />
+                </RestrictedFeature>
+              ),
             },
             {
               path: buildStudioPath(StudioRouteNames.PROJECT_ANALYTICS),

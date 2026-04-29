@@ -2,6 +2,7 @@
   "document": {
     "document": "Document",
     "documents": "Documents",
+    "sources": "Sources",
     "uploading": "Téléversement des documents... {{processed}} sur {{total}}",
     "props": {
       "createdAt": "Créé le",

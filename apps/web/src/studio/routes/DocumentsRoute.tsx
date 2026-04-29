@@ -28,7 +28,6 @@ import {
   TableHeader,
   TableRow,
 } from "@caseai-connect/ui/shad/table"
-import { Tabs, TabsList, TabsTrigger } from "@caseai-connect/ui/shad/tabs"
 import {
   ChevronDownIcon,
   ChevronRightIcon,
@@ -50,8 +49,6 @@ import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
 import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/MarkdownWrapper"
-import { useGetPath } from "@/common/hooks/use-build-path"
-import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useGetPath } from "@/common/hooks/use-build-path"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { buildDate, buildSince } from "@/common/utils/build-date"
@@ -84,14 +81,18 @@ import { AsyncRoute } from "../../common/routes/AsyncRoute"
 import { DocumentTagItem } from "../features/document-tags/components/DocumentTagItem"
 import { DocumentTagsSheet } from "../features/document-tags/components/DocumentTagsSheet"
 
-export function DocumentsRoute() {
+export function DocumentsRoute({ sourceFilter }: { sourceFilter?: "project" | "webCrawl" }) {
   useDocumentEmbeddingStatusStream()
   const documents = useAppSelector(selectDocumentsData)
   const documentTags = useAppSelector(selectDocumentTagsData)
   return (
     <AsyncRoute data={[documents, documentTags]}>
       {([documentsValue, documentTagsValue]) => (
-        <WithData documents={documentsValue} documentTags={documentTagsValue} />
+        <WithData
+          documents={documentsValue}
+          documentTags={documentTagsValue}
+          sourceFilter={sourceFilter}
+        />
       )}
     </AsyncRoute>
   )
@@ -100,20 +101,18 @@ export function DocumentsRoute() {
 function WithData({
   documents,
   documentTags,
+  sourceFilter,
 }: {
   documents: Document[]
   documentTags: DocumentTag[]
+  sourceFilter?: "project" | "webCrawl"
 }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { getPath } = useGetPath()
-  const { hasFeature } = useFeatureFlags()
-  const [activeTab, setActiveTab] = useState<"all" | "project" | "webCrawl">("all")
 
-  const visibleDocuments =
-    activeTab === "all"
-      ? documents
-      : documents.filter((document) => document.sourceType === activeTab)
+  const visibleDocuments = sourceFilter
+    ? documents.filter((document) => document.sourceType === sourceFilter)
+    : documents
   const { getPath } = useGetPath()
   const handleBack = () => {
     const path = getPath("project")
@@ -128,29 +127,16 @@ function WithData({
         description={t("document:list.description")}
         action={
           <div className="flex items-center gap-2">
-            <RestrictedFeature feature="web_sources">
-              <CrawlUrlButton />
-            </RestrictedFeature>
-            <UploadDocumentsButton />
+            {sourceFilter !== "project" && (
+              <RestrictedFeature feature="web_sources">
+                <CrawlUrlButton />
+              </RestrictedFeature>
+            )}
+            {sourceFilter !== "webCrawl" && <UploadDocumentsButton />}
             <DocumentTagsSheet documentTags={documentTags} />
           </div>
         }
       />
-
-      {hasFeature("web_sources") && (
-        <div className="px-6 pt-4 bg-white">
-          <Tabs
-            value={activeTab}
-            onValueChange={(value) => setActiveTab(value as typeof activeTab)}
-          >
-            <TabsList>
-              <TabsTrigger value="all">{t("document:filter.all")}</TabsTrigger>
-              <TabsTrigger value="project">{t("document:filter.uploaded")}</TabsTrigger>
-              <TabsTrigger value="webCrawl">{t("document:filter.webSources")}</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-      )}
 
       <div className="p-6 flex flex-col gap-6 bg-white">
         <UploaderStateComp />

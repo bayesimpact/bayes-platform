@@ -3,6 +3,7 @@ export enum StudioRouteNames {
   HOME = "/studio",
   DOCUMENTS = "/o/:organizationId/p/:projectId/d",
   DOCUMENT = "/o/:organizationId/p/:projectId/d/:documentId",
+  WEB_SOURCES = "/o/:organizationId/p/:projectId/web-sources",
   PROJECT_ANALYTICS = "/o/:organizationId/p/:projectId/analytics",
   EVALUATION = "/o/:organizationId/p/:projectId/eval",
   PROJECT_MEMBERSHIPS = "/o/:organizationId/p/:projectId/members",
@@ -27,6 +28,21 @@ export const buildDocumentsPath = ({
 }) => {
   return buildStudioPath(
     StudioRouteNames.DOCUMENTS.replace(":organizationId", organizationId).replace(
+      ":projectId",
+      projectId,
+    ),
+  )
+}
+
+export const buildWebSourcesPath = ({
+  organizationId,
+  projectId,
+}: {
+  organizationId: string
+  projectId: string
+}) => {
+  return buildStudioPath(
+    StudioRouteNames.WEB_SOURCES.replace(":organizationId", organizationId).replace(
       ":projectId",
       projectId,
     ),
