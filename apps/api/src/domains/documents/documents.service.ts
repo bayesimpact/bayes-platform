@@ -33,7 +33,7 @@ export class DocumentsService {
       Document,
       "fileName" | "mimeType" | "size" | "storageRelativePath" | "title" | "sourceType"
     > &
-      Partial<Pick<Document, "content">>
+      Partial<Pick<Document, "content" | "sourceUrl">>
     uploadStatus: "pending" | "uploaded"
     tagIds?: string[]
   }): Promise<Document> {
@@ -45,6 +45,7 @@ export class DocumentsService {
       storageRelativePath: fields.storageRelativePath,
       title: fields.title ?? fields.fileName,
       sourceType: fields.sourceType,
+      sourceUrl: fields.sourceUrl ?? null,
       content: fields.content,
       uploadStatus,
       userId: userId ?? null,
@@ -212,6 +213,23 @@ export class DocumentsService {
       throw new NotFoundException(`Document with id ${documentId} not found`)
     }
     document.embeddingStatus = status
+    return this.documentConnectRepository.saveOne(document)
+  }
+
+  async resetForRecrawl({
+    connectScope,
+    documentId,
+  }: {
+    connectScope: RequiredConnectScope
+    documentId: string
+  }): Promise<Document> {
+    const document = await this.documentConnectRepository.getOneById(connectScope, documentId)
+    if (!document) {
+      throw new NotFoundException(`Document with id ${documentId} not found`)
+    }
+    document.content = null as unknown as string
+    document.embeddingStatus = "pending"
+    document.embeddingError = null
     return this.documentConnectRepository.saveOne(document)
   }
 

@@ -68,6 +68,8 @@ import {
   DOCUMENT_EMBEDDINGS_BATCH_SERVICE,
   type DocumentEmbeddingsBatchService,
 } from "./embeddings/document-embeddings-batch.interface"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { DocumentEmbeddingStatusNotifierService } from "./embeddings/document-embedding-status-notifier.service"
 import { FILE_STORAGE_SERVICE, type IFileStorage } from "./storage/file-storage.interface"
 
 const mega = 1024
@@ -85,6 +87,7 @@ export class DocumentsController {
     private readonly documentsService: DocumentsService,
     private readonly documentEmbeddingStatusStreamService: DocumentEmbeddingStatusStreamService,
     private readonly documentCrawlProgressStreamService: DocumentCrawlProgressStreamService,
+    private readonly documentEmbeddingStatusNotifierService: DocumentEmbeddingStatusNotifierService,
   ) {}
 
   @CheckPolicy((policy) => policy.canCreate())
@@ -406,6 +409,7 @@ export class DocumentsController {
         title: payload.name ?? payload.url,
         mimeType: "text/html",
         sourceType: "webCrawl",
+        sourceUrl: payload.url,
         size: 0,
         fileName: null as unknown as string,
         storageRelativePath: null as unknown as string,
@@ -424,6 +428,63 @@ export class DocumentsController {
     return {
       data: {
         message: `Crawling ${payload.url}. Documents will appear as they are processed.`,
+      },
+    }
+  }
+
+  @CheckPolicy((policy) => policy.canUpdate())
+  @Post(DocumentsRoutes.reCrawlUrl.path)
+  @TrackActivity({ action: "document.reCrawlUrl", entityFrom: "document" })
+  @AddContext("document")
+  @HttpCode(HttpStatus.ACCEPTED)
+  async reCrawlUrl(
+    @Request() req: EndpointRequestWithDocument,
+  ): Promise<typeof DocumentsRoutes.reCrawlUrl.response> {
+    const document = req.document
+
+    if (document.sourceType !== "webCrawl") {
+      throw new UnprocessableEntityException("Document is not a web crawl source.")
+    }
+
+    // sourceUrl may be null for documents crawled before source URL tracking was added —
+    // fall back to title, which equals the original URL when no custom name was given.
+    const urlToRecrawl = document.sourceUrl ?? document.title
+    try {
+      new URL(urlToRecrawl)
+    } catch {
+      throw new UnprocessableEntityException(
+        "Source URL not available for this document. Please delete it and crawl the website again.",
+      )
+    }
+
+    const connectScope = getRequiredConnectScope(req)
+
+    const reset = await this.documentsService.resetForRecrawl({
+      connectScope,
+      documentId: document.id,
+    })
+
+    await this.documentEmbeddingStatusNotifierService.notifyEmbeddingStatusChanged({
+      documentId: reset.id,
+      organizationId: reset.organizationId,
+      projectId: reset.projectId,
+      embeddingStatus: reset.embeddingStatus,
+      embeddingError: reset.embeddingError,
+      updatedAt: reset.updatedAt.getTime(),
+    })
+
+    await this.urlCrawlingBatchService.enqueueCrawlUrl({
+      documentId: document.id,
+      url: urlToRecrawl,
+      organizationId: connectScope.organizationId,
+      projectId: connectScope.projectId,
+      requestedByUserId: req.user.id,
+      currentTraceId: v4(),
+    })
+
+    return {
+      data: {
+        message: `Re-crawling ${urlToRecrawl}. Pages will be updated as they are processed.`,
       },
     }
   }
