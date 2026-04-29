@@ -149,7 +149,11 @@ function WithData({
                 <TableHead className="font-medium rounded-tl-lg bg-muted">
                   {t("document:props.title")}
                 </TableHead>
-                <TableHead className="font-medium bg-muted">{t("document:props.pages")}</TableHead>
+                {sourceFilter === "webCrawl" && (
+                  <TableHead className="font-medium bg-muted">
+                    {t("document:props.pages")}
+                  </TableHead>
+                )}
                 <TableHead className="font-medium bg-muted">{t("document:props.tags")}</TableHead>
                 <TableHead className="font-medium bg-muted">
                   {t("document:props.embeddingStatus")}
@@ -162,7 +166,12 @@ function WithData({
             </TableHeader>
             <TableBody>
               {visibleDocuments.map((document) => (
-                <DocumentRow key={document.id} document={document} documentTags={documentTags} />
+                <DocumentRow
+                  key={document.id}
+                  document={document}
+                  documentTags={documentTags}
+                  showPages={sourceFilter === "webCrawl"}
+                />
               ))}
             </TableBody>
           </Table>
@@ -188,9 +197,11 @@ function parseCrawledPages(content?: string): { url: string; markdown: string }[
 function DocumentRow({
   document,
   documentTags,
+  showPages,
 }: {
   document: Document
   documentTags: DocumentTag[]
+  showPages?: boolean
 }) {
   const date = buildSince(document.updatedAt)
   const isWebCrawl = document.sourceType === "webCrawl"
@@ -224,9 +235,11 @@ function DocumentRow({
             </div>
           </div>
         </TableCell>
-        <TableCell className="text-muted-foreground">
-          {hasPages ? crawledPages.length : "—"}
-        </TableCell>
+        {showPages && (
+          <TableCell className="text-muted-foreground">
+            {hasPages ? crawledPages.length : "—"}
+          </TableCell>
+        )}
         <TableCell>
           <div className="flex flex-wrap gap-1">
             {document.tagIds.map((tagId) => (
