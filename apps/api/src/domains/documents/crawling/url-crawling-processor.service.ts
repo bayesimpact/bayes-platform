@@ -97,6 +97,7 @@ export class UrlCrawlingProcessorService {
           organizationId: failed.organizationId,
           projectId: failed.projectId,
           embeddingStatus: failed.embeddingStatus,
+          embeddingError: failed.embeddingError,
           updatedAt: failed.updatedAt.getTime(),
         })
       } catch (notifyError) {
