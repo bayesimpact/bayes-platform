@@ -160,6 +160,19 @@ export class DocumentsService {
       throw new NotFoundException(`Document with id ${documentId} not found`)
     }
 
+    if (
+      fieldsToUpdate.title !== undefined &&
+      document.sourceType === "webCrawl" &&
+      document.sourceUrl === null
+    ) {
+      try {
+        new URL(document.title)
+        document.sourceUrl = document.title
+      } catch {
+        // title is not a URL (already an alias) — nothing to backfill
+      }
+    }
+
     if (fieldsToUpdate.title !== undefined) {
       document.title = fieldsToUpdate.title
     }

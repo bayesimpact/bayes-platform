@@ -63,13 +63,13 @@ import {
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "./documents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { DocumentEmbeddingStatusNotifierService } from "./embeddings/document-embedding-status-notifier.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentEmbeddingStatusStreamService } from "./embeddings/document-embedding-status-stream.service"
 import {
   DOCUMENT_EMBEDDINGS_BATCH_SERVICE,
   type DocumentEmbeddingsBatchService,
 } from "./embeddings/document-embeddings-batch.interface"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { DocumentEmbeddingStatusNotifierService } from "./embeddings/document-embedding-status-notifier.service"
 import { FILE_STORAGE_SERVICE, type IFileStorage } from "./storage/file-storage.interface"
 
 const mega = 1024
@@ -446,12 +446,10 @@ export class DocumentsController {
       throw new UnprocessableEntityException("Document is not a web crawl source.")
     }
 
-    // sourceUrl may be null for documents crawled before source URL tracking was added —
-    // fall back to title, which equals the original URL when no custom name was given.
-    const urlToRecrawl = document.sourceUrl ?? document.title
-    try {
-      new URL(urlToRecrawl)
-    } catch {
+    const urlToRecrawl =
+      document.sourceUrl ?? resolveSourceUrlFallback(document.title, document.content)
+
+    if (!urlToRecrawl) {
       throw new UnprocessableEntityException(
         "Source URL not available for this document. Please delete it and crawl the website again.",
       )
@@ -522,6 +520,30 @@ export class DocumentsController {
   }
 }
 
+function resolveSourceUrlFallback(title: string, content: string | null): string | null {
+  // 1. Title may be the original URL if the document was never renamed.
+  try {
+    new URL(title)
+    return title
+  } catch {
+    // title is an alias, not a URL
+  }
+  // 2. Extract the shortest URL from crawled content — typically the root entry point.
+  if (content) {
+    try {
+      const pages: { url?: string }[] = JSON.parse(content)
+      const urls = pages.map((page) => page.url).filter((url): url is string => Boolean(url))
+      if (urls.length > 0) {
+        urls.sort((a, b) => a.length - b.length)
+        return urls[0] ?? null
+      }
+    } catch {
+      // malformed content
+    }
+  }
+  return null
+}
+
 function toDocumentDto(entity: Document): DocumentDto {
   return {
     id: entity.id,
@@ -537,6 +559,7 @@ function toDocumentDto(entity: Document): DocumentDto {
     size: entity.size,
     storageRelativePath: entity.storageRelativePath,
     sourceType: entity.sourceType,
+    sourceUrl: entity.sourceUrl ?? null,
     embeddingStatus: entity.embeddingStatus,
     embeddingError: entity.embeddingError ?? null,
     tagIds: entity.tags?.map((tag) => tag.id) || [],

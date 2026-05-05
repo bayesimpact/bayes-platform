@@ -22,6 +22,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Fixed
 - Recover stuck evaluation extraction worker jobs after rebooting
 - Langfuse trace
+- (beta) Re-crawl now works correctly for renamed web sources
 
 ### Security
 
