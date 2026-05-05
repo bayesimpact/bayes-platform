@@ -8,6 +8,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- Require users to accept General Conditions of Service and Privacy Policy before accessing the app
+- Manage General Conditions of Service and Privacy Policy from the Backoffice
 
 ### Changed
 

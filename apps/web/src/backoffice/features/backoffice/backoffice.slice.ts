@@ -1,16 +1,18 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
-import type { BackofficeOrganization, BackofficeUser } from "./backoffice.models"
+import type { BackofficeOrganization, BackofficeUser, TermsDocuments } from "./backoffice.models"
 import { backofficeThunks } from "./backoffice.thunks"
 
 interface State {
   organizations: AsyncData<BackofficeOrganization[]>
   users: AsyncData<BackofficeUser[]>
+  termsDocuments: AsyncData<TermsDocuments>
 }
 
 const initialState: State = {
   organizations: defaultAsyncData,
   users: defaultAsyncData,
+  termsDocuments: defaultAsyncData,
 }
 
 const slice = createSlice({
@@ -97,6 +99,26 @@ const slice = createSlice({
           project.agentCategories = categories
         }
       }
+    })
+
+    builder
+      .addCase(backofficeThunks.listTermsDocuments.pending, (state) => {
+        if (!ADS.isFulfilled(state.termsDocuments)) state.termsDocuments.status = ADS.Loading
+        state.termsDocuments.error = null
+      })
+      .addCase(backofficeThunks.listTermsDocuments.fulfilled, (state, action) => {
+        state.termsDocuments = { status: ADS.Fulfilled, error: null, value: action.payload }
+      })
+      .addCase(backofficeThunks.listTermsDocuments.rejected, (state, action) => {
+        state.termsDocuments = {
+          status: ADS.Error,
+          error: action.error.message || "Failed to fetch terms documents",
+          value: null,
+        }
+      })
+
+    builder.addCase(backofficeThunks.updateTermsDocuments.fulfilled, (state, action) => {
+      state.termsDocuments = { status: ADS.Fulfilled, error: null, value: action.payload }
     })
   },
 })

@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom"
+import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom"
 import { backofficeRoutes } from "@/backoffice/routes/BackofficeRoutes"
 import { HomeRoute } from "@/common/routes/HomeRoute"
 import { LogoutRoute } from "@/common/routes/LogoutRoute"
@@ -31,12 +31,21 @@ const router = () =>
       element: <LogoutRoute />,
     },
 
-    studioRoutes,
-    deskRoutes,
-    evalRoutes,
-    backofficeRoutes,
-    testerRoutes,
-    reviewerRoutes,
+    {
+      element: (
+        <ProtectedRoute>
+          <Outlet />
+        </ProtectedRoute>
+      ),
+      children: [
+        studioRoutes,
+        deskRoutes,
+        evalRoutes,
+        backofficeRoutes,
+        testerRoutes,
+        reviewerRoutes,
+      ],
+    },
 
     {
       path: "*",

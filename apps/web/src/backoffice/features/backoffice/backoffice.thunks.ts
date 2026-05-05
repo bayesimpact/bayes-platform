@@ -1,10 +1,13 @@
 import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import type { RootState, ThunkExtraArg } from "@/common/store"
+
 import type {
   BackofficeOrganization,
   BackofficeProjectAgentCategory,
   BackofficeUser,
+  TermsDocuments,
+  UpdateTermsDocumentsInput,
 } from "./backoffice.models"
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
@@ -50,10 +53,25 @@ const replaceProjectAgentCategories = createAsyncThunk<
   return { projectId: params.projectId, categories }
 })
 
+const listTermsDocuments = createAsyncThunk<TermsDocuments, void, ThunkConfig>(
+  "backoffice/listTermsDocuments",
+  async (_, { extra: { services } }) => services.backoffice.listTermsDocuments(),
+)
+
+const updateTermsDocuments = createAsyncThunk<
+  TermsDocuments,
+  UpdateTermsDocumentsInput,
+  ThunkConfig
+>("backoffice/updateTermsDocuments", async (input, { extra: { services } }) =>
+  services.backoffice.updateTermsDocuments(input),
+)
+
 export const backofficeThunks = {
   listOrganizations,
   listUsers,
   addFeatureFlag,
   removeFeatureFlag,
   replaceProjectAgentCategories,
+  listTermsDocuments,
+  updateTermsDocuments,
 }

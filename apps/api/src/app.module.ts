@@ -26,6 +26,7 @@ import { MeModule } from "./domains/me/me.module"
 import { OrganizationsModule } from "./domains/organizations/organizations.module"
 import { ProjectsModule } from "./domains/projects/projects.module"
 import { ReviewCampaignsModule } from "./domains/review-campaigns/review-campaigns.module"
+import { TermsComplianceModule } from "./domains/terms-compliance/terms-compliance.module"
 import { UsersModule } from "./domains/users/users.module"
 
 @Module({
@@ -65,6 +66,7 @@ import { UsersModule } from "./domains/users/users.module"
     ReviewCampaignsModule,
     StorageModule,
     StreamingModule,
+    TermsComplianceModule,
     UsersModule,
     UsersModule,
   ],

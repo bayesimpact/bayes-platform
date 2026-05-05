@@ -28,6 +28,12 @@ export default {
     )
     return toPendingInvitations(response.data.data)
   },
+  acceptTerms: async ({ aiUsagePolicyAccepted }) => {
+    const axios = getAxiosInstance()
+    await axios.post(MeRoutes.acceptTerms.getPath(), {
+      payload: { aiUsagePolicyAccepted },
+    } satisfies typeof MeRoutes.acceptTerms.request)
+  },
 } satisfies IMeSpi
 
 const toMe = (dto: MeResponseDto): Me => ({
@@ -37,8 +43,11 @@ const toMe = (dto: MeResponseDto): Me => ({
     name: dto.user.name,
     memberships: dto.user.memberships,
     isBackofficeAuthorized: dto.user.isBackofficeAuthorized,
+    isTermsManagementAuthorized: dto.user.isTermsManagementAuthorized,
+    termsAccepted: dto.user.termsAccepted,
   },
   organizations: dto.organizations.map(toOrganization),
+  currentTerms: dto.currentTerms,
 })
 
 const toPendingProjectInvitation = (

@@ -58,3 +58,38 @@ export type BackofficeUserDto = {
   projectMemberships: BackofficeUserProjectMembershipDto[]
   agentMemberships: BackofficeUserAgentMembershipDto[]
 }
+
+export const TERMS_DOCUMENT_TYPES = [
+  "general_conditions",
+  "privacy_policy",
+  "ai_usage_policy",
+] as const
+export type TermsDocumentType = (typeof TERMS_DOCUMENT_TYPES)[number]
+
+export type TermsDocumentDto = {
+  type: TermsDocumentType
+  url: string
+  version: number
+  updatedAt: TimeType
+}
+
+export type CurrentTermsDto = {
+  generalConditions: TermsDocumentDto
+  privacyPolicy: TermsDocumentDto
+  aiUsagePolicy: TermsDocumentDto
+}
+
+export type ListTermsDocumentsResponseDto = {
+  documents: CurrentTermsDto
+}
+
+export type UpdateTermsDocumentInputDto = {
+  url: string
+  version: number
+}
+
+export type UpdateTermsDocumentsRequestDto = {
+  generalConditions: UpdateTermsDocumentInputDto
+  privacyPolicy: UpdateTermsDocumentInputDto
+  aiUsagePolicy: UpdateTermsDocumentInputDto
+}

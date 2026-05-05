@@ -1,4 +1,3 @@
-import { ProtectedRoute } from "@/common/routes/ProtectedRoute"
 import { ReviewerCampaignPage } from "@/reviewer/features/review-campaigns/components/ReviewerCampaignPage"
 import { ReviewerSessionReviewPage } from "@/reviewer/features/review-campaigns/components/ReviewerSessionReviewPage"
 import { ReviewerCampaignRoute } from "@/reviewer/routes/ReviewerCampaignRoute"
@@ -9,11 +8,7 @@ import { ReviewerRoute } from "./ReviewerRoute"
 import { ReviewerSessionRoute } from "./ReviewerSessionRoute"
 
 export const reviewerRoutes = {
-  element: (
-    <ProtectedRoute>
-      <ReviewerRoute />
-    </ProtectedRoute>
-  ),
+  element: <ReviewerRoute />,
   children: [
     {
       path: ReviewerRouteNames.HOME,

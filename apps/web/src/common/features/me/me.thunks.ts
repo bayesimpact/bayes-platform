@@ -40,3 +40,10 @@ export const fetchPendingInvitations = createAsyncThunk<PendingInvitations, void
     }
   },
 )
+
+export const acceptTerms = createAsyncThunk<void, { aiUsagePolicyAccepted: boolean }, ThunkConfig>(
+  "termsAcceptance/accept",
+  async (params, { extra: { services } }) => {
+    await services.me.acceptTerms(params)
+  },
+)

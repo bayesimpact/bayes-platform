@@ -1,6 +1,6 @@
-import type { ResponseData } from "../generic"
+import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
-import type { MeResponseDto, PendingInvitationsResponseDto } from "./me.dto"
+import type { AcceptTermsRequestDto, MeResponseDto, PendingInvitationsResponseDto } from "./me.dto"
 
 export const MeRoutes = {
   getMe: defineRoute<ResponseData<MeResponseDto>>({
@@ -11,4 +11,10 @@ export const MeRoutes = {
     path: "me/pending-invitations",
     method: "get",
   }),
+  acceptTerms: defineRoute<ResponseData<SuccessResponseDTO>, RequestPayload<AcceptTermsRequestDto>>(
+    {
+      method: "post",
+      path: "me/terms-acceptances",
+    },
+  ),
 }

@@ -16,6 +16,14 @@ export const selectIsPremiumMember = (state: RootState): boolean => {
 export const selectIsBackofficeAuthorized = (state: RootState): boolean =>
   state.me.data.value?.isBackofficeAuthorized ?? false
 
+export const selectIsTermsManagementAuthorized = (state: RootState): boolean =>
+  state.me.data.value?.isTermsManagementAuthorized ?? false
+
+export const selectTermsAccepted = (state: RootState): boolean =>
+  state.me.data.value?.termsAccepted ?? false
+
+export const selectCurrentTerms = (state: RootState) => state.me.currentTerms
+
 export const ownerOrAdminRoles = ["owner", "admin"] as Partial<
   Me["user"]["memberships"]["organizationMemberships"][number]["role"]
 >[]

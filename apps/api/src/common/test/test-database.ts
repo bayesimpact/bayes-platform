@@ -176,7 +176,19 @@ export async function clearTestDatabase(dataSource: DataSource): Promise<void> {
       await queryRunner.query(`DELETE FROM "mcp_server"`)
       await queryRunner.query(`DELETE FROM "project"`)
       await queryRunner.query(`DELETE FROM "organization"`)
+      await queryRunner.query(`DELETE FROM "terms_acceptance"`)
       await queryRunner.query(`DELETE FROM "user"`)
+      await queryRunner.query(`DELETE FROM "terms_document"`)
+      // Reseed the three required terms documents the production migration
+      // installs as a permanent invariant — `getMe` and other handlers throw
+      // 404 if any type is missing. The e2e setup uses `synchronize: true`,
+      // so the migration's seed never runs.
+      await queryRunner.query(
+        `INSERT INTO "terms_document" ("type", "url", "version") VALUES
+          ('general_conditions', '', 0),
+          ('privacy_policy', '', 0),
+          ('ai_usage_policy', '', 0)`,
+      )
 
       await queryRunner.commitTransaction()
     } catch (error) {

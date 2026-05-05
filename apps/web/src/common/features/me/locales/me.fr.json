@@ -19,5 +19,19 @@
       "agentBadge": "Agent",
       "roleLabel": "Rôle"
     }
+  },
+  "termsAcceptance": {
+    "title": "Conditions d'utilisation",
+    "intro": "Pour continuer, veuillez prendre connaissance et accepter les documents suivants.",
+    "checkboxes": {
+      "generalConditions": "J'accepte les Conditions Générales de Service (obligatoire)",
+      "privacyPolicy": "J'accepte la Politique de Confidentialité (obligatoire)",
+      "aiUsagePolicy": "J'accepte la Politique d'Utilisation des Systèmes d'Intelligence Artificielle (facultatif)"
+    },
+    "version": "Version {{version}}",
+    "submit": "Valider et continuer",
+    "errors": {
+      "mandatoryRequired": "Vous devez accepter les Conditions Générales et la Politique de Confidentialité pour continuer."
+    }
   }
 }

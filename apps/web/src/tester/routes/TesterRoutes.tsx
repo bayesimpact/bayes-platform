@@ -1,4 +1,3 @@
-import { ProtectedRoute } from "@/common/routes/ProtectedRoute"
 import { TesterAgentSessionPage } from "@/tester/features/review-campaigns/components/TesterAgentSessionPage"
 import { TesterCampaignLandingPage } from "@/tester/features/review-campaigns/components/TesterCampaignLandingPage"
 import { TesterEndOfPhaseSurveyPage } from "@/tester/features/review-campaigns/components/TesterEndOfPhaseSurveyPage"
@@ -9,11 +8,7 @@ import { TesterRoute } from "./TesterRoute"
 import { TesterSessionRoute } from "./TesterSessionRoute"
 
 export const testerRoutes = {
-  element: (
-    <ProtectedRoute>
-      <TesterRoute />
-    </ProtectedRoute>
-  ),
+  element: <TesterRoute />,
   children: [
     {
       path: TesterRouteNames.HOME,

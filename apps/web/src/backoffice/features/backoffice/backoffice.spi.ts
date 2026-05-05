@@ -3,6 +3,8 @@ import type {
   BackofficeOrganization,
   BackofficeProjectAgentCategory,
   BackofficeUser,
+  TermsDocuments,
+  UpdateTermsDocumentsInput,
 } from "./backoffice.models"
 
 export interface IBackofficeSpi {
@@ -17,4 +19,7 @@ export interface IBackofficeSpi {
     projectId: string
     categoryNames: string[]
   }) => Promise<BackofficeProjectAgentCategory[]>
+
+  listTermsDocuments: () => Promise<TermsDocuments>
+  updateTermsDocuments: (input: UpdateTermsDocumentsInput) => Promise<TermsDocuments>
 }

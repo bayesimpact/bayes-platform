@@ -7,6 +7,7 @@ import type {
   BackofficeUserDto,
   BackofficeUserOrganizationMembershipDto,
   BackofficeUserProjectMembershipDto,
+  CurrentTermsDto,
   FeatureFlagKey,
   OrganizationMembershipRoleDto,
   ProjectMembershipRoleDto,
@@ -124,3 +125,11 @@ export const toBackofficeUser = (dto: BackofficeUserDto): BackofficeUser => ({
   projectMemberships: dto.projectMemberships.map(toBackofficeUserProjectMembership),
   agentMemberships: dto.agentMemberships.map(toBackofficeUserAgentMembership),
 })
+
+export type TermsDocuments = CurrentTermsDto
+
+export type UpdateTermsDocumentsInput = {
+  generalConditions: { url: string; version: number }
+  privacyPolicy: { url: string; version: number }
+  aiUsagePolicy: { url: string; version: number }
+}
