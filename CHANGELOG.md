@@ -8,6 +8,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.05.1] - 2026-05-05
+
+### Added
 Allow to reprocess documents after a timeout 
 
 ### Changed
