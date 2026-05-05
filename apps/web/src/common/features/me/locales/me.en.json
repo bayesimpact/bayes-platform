@@ -19,5 +19,19 @@
       "agentBadge": "Agent",
       "roleLabel": "Role"
     }
+  },
+  "termsAcceptance": {
+    "title": "Terms & Compliance",
+    "intro": "To continue, please review and accept the following documents.",
+    "checkboxes": {
+      "generalConditions": "I accept the General Conditions of Service (required)",
+      "privacyPolicy": "I accept the Privacy Policy (required)",
+      "aiUsagePolicy": "I accept the AI Systems Usage Policy (optional)"
+    },
+    "version": "Version {{version}}",
+    "submit": "Accept and continue",
+    "errors": {
+      "mandatoryRequired": "You must accept the General Conditions and the Privacy Policy to continue."
+    }
   }
 }

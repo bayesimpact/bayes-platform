@@ -8,12 +8,14 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
-Allow to reprocess documents after a timeout 
+- Require users to accept General Conditions of Service and Privacy Policy before accessing the app
+- Manage General Conditions of Service and Privacy Policy from the Backoffice
+- Allow to reprocess documents after a timeout 
 
 ### Changed
 
 ### Fixed
-Hide FYI column in evaluation matching
+- Hide FYI column in evaluation matching
 
 ### Security
 

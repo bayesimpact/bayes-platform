@@ -10,7 +10,6 @@ import { DashboardRoute } from "@/common/routes/DashboardRoute"
 import { ErrorRoute } from "@/common/routes/ErrorRoute"
 import { RouteNames } from "@/common/routes/helpers"
 import { ProjectRoute } from "@/common/routes/ProjectRoute"
-import { ProtectedRoute } from "@/common/routes/ProtectedRoute"
 import {
   ConversationAgentSessionList,
   ExtractionAgentSessionList,
@@ -22,11 +21,7 @@ import { buildDeskPath, DeskRouteNames } from "./helpers"
 
 export const deskRoutes = {
   path: DeskRouteNames.HOME,
-  element: (
-    <ProtectedRoute>
-      <Outlet />
-    </ProtectedRoute>
-  ),
+  element: <Outlet />,
   children: [
     {
       path: buildDeskPath(RouteNames.ORGANIZATION_DASHBOARD),

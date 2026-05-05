@@ -41,4 +41,22 @@ export default {
     } satisfies typeof BackofficeRoutes.replaceProjectAgentCategories.request)
     return response.data.data.map(toBackofficeProjectAgentCategory)
   },
+
+  listTermsDocuments: async () => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof BackofficeRoutes.listTermsDocuments.response>(
+      BackofficeRoutes.listTermsDocuments.getPath(),
+    )
+    return response.data.data.documents
+  },
+  updateTermsDocuments: async (input) => {
+    const axios = getAxiosInstance()
+    const response = await axios.put<typeof BackofficeRoutes.updateTermsDocuments.response>(
+      BackofficeRoutes.updateTermsDocuments.getPath(),
+      {
+        payload: input,
+      } satisfies typeof BackofficeRoutes.updateTermsDocuments.request,
+    )
+    return response.data.data.documents
+  },
 } satisfies IBackofficeSpi

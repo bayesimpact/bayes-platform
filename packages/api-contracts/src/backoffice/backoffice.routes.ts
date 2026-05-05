@@ -5,7 +5,9 @@ import type {
   BackofficeOrganizationDto,
   BackofficeProjectAgentCategoryDto,
   BackofficeUserDto,
+  ListTermsDocumentsResponseDto,
   ReplaceBackofficeProjectAgentCategoriesDto,
+  UpdateTermsDocumentsRequestDto,
 } from "./backoffice.dto"
 
 export const BackofficeRoutes = {
@@ -34,5 +36,17 @@ export const BackofficeRoutes = {
   >({
     method: "patch",
     path: "backoffice/projects/:projectId/agent-categories",
+  }),
+
+  listTermsDocuments: defineRoute<ResponseData<ListTermsDocumentsResponseDto>>({
+    method: "get",
+    path: "backoffice/terms-documents",
+  }),
+  updateTermsDocuments: defineRoute<
+    ResponseData<ListTermsDocumentsResponseDto>,
+    RequestPayload<UpdateTermsDocumentsRequestDto>
+  >({
+    method: "put",
+    path: "backoffice/terms-documents",
   }),
 }

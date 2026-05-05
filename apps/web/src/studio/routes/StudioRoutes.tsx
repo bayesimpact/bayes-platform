@@ -10,7 +10,6 @@ import { DashboardRoute } from "@/common/routes/DashboardRoute"
 import { ErrorRoute } from "@/common/routes/ErrorRoute"
 import { RouteNames } from "@/common/routes/helpers"
 import { ProjectRoute } from "@/common/routes/ProjectRoute"
-import { ProtectedRoute } from "@/common/routes/ProtectedRoute"
 import { AgentCreatorButton } from "@/studio/features/agents/components/AgentCreator"
 import {
   ConversationAgentSessionList,
@@ -50,11 +49,7 @@ const extraItems = [
 
 export const studioRoutes = {
   path: StudioRouteNames.HOME,
-  element: (
-    <ProtectedRoute>
-      <StudioRoute />
-    </ProtectedRoute>
-  ),
+  element: <StudioRoute />,
   children: [
     {
       path: buildStudioPath(RouteNames.ORGANIZATION_DASHBOARD),

@@ -1,15 +1,17 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
-import type { PendingInvitations, User } from "./me.models"
+import type { CurrentTerms, PendingInvitations, User } from "./me.models"
 import { fetchMe, fetchPendingInvitations } from "./me.thunks"
 
 interface State {
   data: AsyncData<User>
+  currentTerms: CurrentTerms | null
   pendingInvitations: AsyncData<PendingInvitations>
 }
 
 const initialState: State = {
   data: defaultAsyncData,
+  currentTerms: null,
   pendingInvitations: defaultAsyncData,
 }
 
@@ -31,6 +33,7 @@ const slice = createSlice({
           error: null,
           value: action.payload.user,
         }
+        state.currentTerms = action.payload.currentTerms
       })
       .addCase(fetchMe.rejected, (state, action) => {
         state.data.status = ADS.Error

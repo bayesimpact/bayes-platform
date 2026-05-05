@@ -7,7 +7,6 @@ import { RouteNames } from "@/common/routes/helpers"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { NotFoundRoute } from "@/common/routes/NotFoundRoute"
 import { ProjectRoute } from "@/common/routes/ProjectRoute"
-import { ProtectedRoute } from "@/common/routes/ProtectedRoute"
 import { useAppDispatch } from "@/common/store/hooks"
 import { Dashboard } from "../components/Dashboard"
 import { evaluationExtractionDatasetsActions } from "../features/evaluation-extraction-datasets/evaluation-extraction-datasets.slice"
@@ -21,11 +20,7 @@ import { buildEvalPath, EvalRouteNames } from "./helpers"
 
 export const evalRoutes = {
   path: EvalRouteNames.HOME,
-  element: (
-    <ProtectedRoute>
-      <Outlet />
-    </ProtectedRoute>
-  ),
+  element: <Outlet />,
   children: [
     {
       path: buildEvalPath(RouteNames.ORGANIZATION_DASHBOARD),

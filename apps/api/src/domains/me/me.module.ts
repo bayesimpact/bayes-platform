@@ -7,6 +7,7 @@ import { OrganizationMembership } from "../organizations/memberships/organizatio
 import { OrganizationsModule } from "../organizations/organizations.module"
 import { ProjectMembership } from "../projects/memberships/project-membership.entity"
 import { ProjectsModule } from "../projects/projects.module"
+import { TermsComplianceModule } from "../terms-compliance/terms-compliance.module"
 import { UsersModule } from "../users/users.module"
 import { MeController } from "./me.controller"
 import { MeService } from "./me.service"
@@ -23,6 +24,7 @@ import { MeService } from "./me.service"
     ProjectsModule,
     OrganizationsModule,
     AuthModule,
+    TermsComplianceModule,
   ],
   controllers: [MeController],
   providers: [MeService],
