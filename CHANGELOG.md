@@ -8,10 +8,12 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+Allow to reprocess documents after a timeout 
 
 ### Changed
 
 ### Fixed
+Hide FYI column in evaluation matching
 
 ### Security
 
