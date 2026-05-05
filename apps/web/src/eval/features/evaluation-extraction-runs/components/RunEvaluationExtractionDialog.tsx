@@ -129,7 +129,7 @@ export function RunEvaluationExtractionDialog({
   const isValid = useMemo(() => {
     if (!selectedAgentId) return false
     if (keyMapping.length === 0) return false
-    return keyMapping.every((entry) => entry.datasetColumnId !== "")
+    return keyMapping.every((entry) => entry.mode === "fyi" || entry.datasetColumnId !== "")
   }, [selectedAgentId, keyMapping])
 
   const handleRun = async () => {
@@ -259,7 +259,7 @@ function KeyMappingEditor({
       <div className="rounded-lg border">
         <div className="grid grid-cols-[1fr_1fr_auto] gap-2 bg-muted/50 px-3 py-2 text-xs font-medium text-muted-foreground">
           <span>{t("evaluationExtractionRun:keyMapping.agentOutputKey")}</span>
-          <span>{t("evaluationExtractionRun:keyMapping.datasetColumn")}</span>
+          {<span>{t("evaluationExtractionRun:keyMapping.datasetColumn")}</span>}
           <span>{t("evaluationExtractionRun:keyMapping.mode")}</span>
         </div>
         {agentOutputKeys.map((outputKey) => {
@@ -270,23 +270,27 @@ function KeyMappingEditor({
               className="grid grid-cols-[1fr_1fr_auto] gap-2 border-t px-3 py-2 items-center"
             >
               <span className="text-sm font-mono">{outputKey}</span>
-              <Select
-                value={entry?.datasetColumnId || undefined}
-                onValueChange={(value) => onColumnChange(outputKey, value)}
-              >
-                <SelectTrigger className="w-full" size="sm">
-                  <SelectValue
-                    placeholder={t("evaluationExtractionRun:keyMapping.columnPlaceholder")}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {targetColumns.map((column) => (
-                    <SelectItem key={column.id} value={column.id}>
-                      {column.finalName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {entry?.mode === "fyi" ? (
+                <div />
+              ) : (
+                <Select
+                  value={entry?.datasetColumnId || undefined}
+                  onValueChange={(value) => onColumnChange(outputKey, value)}
+                >
+                  <SelectTrigger className="w-full" size="sm">
+                    <SelectValue
+                      placeholder={t("evaluationExtractionRun:keyMapping.columnPlaceholder")}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {targetColumns.map((column) => (
+                      <SelectItem key={column.id} value={column.id}>
+                        {column.finalName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               <Select
                 value={entry?.mode ?? "scored"}
                 onValueChange={(value) => onModeChange(outputKey, value as "scored" | "fyi")}
