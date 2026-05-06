@@ -41,11 +41,8 @@ export class TermsComplianceService {
 
     const acceptance = this.termsAcceptanceRepository.create({
       userId: params.userId,
-      generalConditionsUrl: generalConditions.url,
       generalConditionsVersion: generalConditions.version,
-      privacyPolicyUrl: privacyPolicy.url,
       privacyPolicyVersion: privacyPolicy.version,
-      aiUsagePolicyUrl: aiUsagePolicy.url,
       aiUsagePolicyVersion: aiUsagePolicy.version,
       aiUsagePolicyAccepted: params.aiUsagePolicyAccepted,
     })
@@ -67,9 +64,7 @@ export class TermsComplianceService {
       if (!update.url || !/^https?:\/\//i.test(update.url)) {
         throw new BadRequestException(`URL for "${update.type}" must be a valid http(s) link`)
       }
-    }
 
-    for (const update of updates) {
       const existing = documents.find((document) => document.type === update.type)
       if (!existing) {
         throw new BadRequestException(`Terms document "${update.type}" is not seeded`)
@@ -79,12 +74,7 @@ export class TermsComplianceService {
 
       if (!urlChanged && !versionChanged) continue
 
-      if (urlChanged && update.version <= existing.version) {
-        throw new BadRequestException(
-          `Version for "${update.type}" must be greater than ${existing.version} when the URL changes`,
-        )
-      }
-      if (!urlChanged && versionChanged && update.version <= existing.version) {
+      if (versionChanged && update.version <= existing.version) {
         throw new BadRequestException(
           `Version for "${update.type}" can only be incremented (was ${existing.version})`,
         )
