@@ -10,6 +10,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Added
 - Display evaluation extraction run metrics in Bull Board
 - Retry failed evaluation extraction runs from the UI
+- Require users to accept General Conditions of Service and Privacy Policy before accessing the app
+- Manage General Conditions of Service and Privacy Policy from the Backoffice
 
 ### Changed
 
@@ -21,7 +23,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [26.05.1] - 2026-05-05
 
 ### Added
-Allow to reprocess documents after a timeout 
+- Allow to reprocess documents after a timeout
 
 ### Changed
 
