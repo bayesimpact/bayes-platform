@@ -2,6 +2,7 @@ import type {
   AgentMembershipDto,
   AgentMembershipRoleDto,
 } from "../agent-membership/agent-membership.dto"
+import type { CurrentTermsDto } from "../backoffice/backoffice.dto"
 import type { TimeType } from "../generic"
 import type { OrganizationDto, OrganizationMembershipDto } from "../organizations/organizations.dto"
 import type {
@@ -35,11 +36,14 @@ export type UserDto = {
   name: string
   memberships: UserMembershipsDto
   isBackofficeAuthorized: boolean
+  isTermsManagementAuthorized: boolean
+  termsAccepted: boolean
 }
 
 export type MeResponseDto = {
   user: UserDto
   organizations: OrganizationDto[]
+  currentTerms: CurrentTermsDto
 }
 
 export type PendingProjectInvitationDto = {
@@ -73,4 +77,20 @@ export type PendingInvitationsResponseDto = {
 
 export function buildNameFromEmail(email: string): string {
   return email.split("@")[0]?.replaceAll(".", " ") ?? "Unnamed User"
+}
+
+export type TermsAcceptanceDto = {
+  id: string
+  createdAt: TimeType
+  generalConditionsUrl: string
+  generalConditionsVersion: number
+  privacyPolicyUrl: string
+  privacyPolicyVersion: number
+  aiUsagePolicyUrl: string
+  aiUsagePolicyVersion: number
+  aiUsagePolicyAccepted: boolean
+}
+
+export type AcceptTermsRequestDto = {
+  aiUsagePolicyAccepted: boolean
 }

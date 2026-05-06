@@ -23,7 +23,7 @@ Allow to reprocess documents after a timeout
 ### Changed
 
 ### Fixed
-Hide FYI column in evaluation matching
+- Hide FYI column in evaluation matching
 
 ### Security
 

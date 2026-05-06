@@ -31,6 +31,8 @@ import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entit
 import { ReviewerSessionReview } from "@/domains/review-campaigns/reviewer-session-reviews/reviewer-session-review.entity"
 import { TesterCampaignSurvey } from "@/domains/review-campaigns/tester-campaign-surveys/tester-campaign-survey.entity"
 import { TesterSessionFeedback } from "@/domains/review-campaigns/tester-session-feedbacks/tester-session-feedback.entity"
+import { TermsAcceptance } from "@/domains/terms-compliance/terms-acceptance.entity"
+import { TermsDocument } from "@/domains/terms-compliance/terms-document.entity"
 import { User } from "@/domains/users/user.entity"
 
 export type AllRepositories = {
@@ -64,6 +66,8 @@ export type AllRepositories = {
   reviewCampaignMembershipRepository: Repository<ReviewCampaignMembership>
   reviewCampaignRepository: Repository<ReviewCampaign>
   reviewerSessionReviewRepository: Repository<ReviewerSessionReview>
+  termsAcceptanceRepository: Repository<TermsAcceptance>
+  termsDocumentRepository: Repository<TermsDocument>
   testerCampaignSurveyRepository: Repository<TesterCampaignSurvey>
   testerSessionFeedbackRepository: Repository<TesterSessionFeedback>
   userRepository: Repository<User>
@@ -105,6 +109,8 @@ export function buildAllRepositories(
     reviewCampaignMembershipRepository: getRepository(ReviewCampaignMembership),
     reviewCampaignRepository: getRepository(ReviewCampaign),
     reviewerSessionReviewRepository: getRepository(ReviewerSessionReview),
+    termsAcceptanceRepository: getRepository(TermsAcceptance),
+    termsDocumentRepository: getRepository(TermsDocument),
     testerCampaignSurveyRepository: getRepository(TesterCampaignSurvey),
     testerSessionFeedbackRepository: getRepository(TesterSessionFeedback),
     userRepository: getRepository(User),

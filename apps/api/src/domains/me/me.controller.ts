@@ -7,9 +7,18 @@ import type {
 import { Controller, Get, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
-import { isDomainBackofficeAuthorized } from "@/domains/backoffice/backoffice.authorization"
+import {
+  isDomainBackofficeAuthorized,
+  isEmailBackofficeAuthorized,
+} from "@/domains/backoffice/backoffice.authorization"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationsService } from "@/domains/organizations/organizations.service"
+import {
+  isAcceptanceUpToDate,
+  toCurrentTermsDto,
+} from "@/domains/terms-compliance/terms-compliance.helpers"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { TermsComplianceService } from "@/domains/terms-compliance/terms-compliance.service"
 import { UserGuard } from "@/domains/users/user.guard"
 import { toDto as toOrganizationDto } from "../organizations/organization.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -24,12 +33,18 @@ export class MeController {
     private readonly organizationsService: OrganizationsService,
     private readonly meService: MeService,
     private readonly projectsService: ProjectsService,
+    private readonly termsComplianceService: TermsComplianceService,
   ) {}
 
   @Get(MeRoutes.getMe.path)
   async getMe(@Req() request: EndpointRequest): Promise<typeof MeRoutes.getMe.response> {
     const user = request.user
-    const organizations = await this.organizationsService.getUserOrganizations(user.id)
+    const [organizations, memberships, termsDocuments, latestAcceptance] = await Promise.all([
+      this.organizationsService.getUserOrganizations(user.id),
+      this.meService.getUserMemberships(user.id),
+      this.termsComplianceService.listTermsDocuments(),
+      this.termsComplianceService.getLatestAcceptanceForUser(user.id),
+    ])
     const organizationsWithProjects = await Promise.all(
       organizations.map(async (org) => {
         const projects = await this.projectsService.listProjects({
@@ -42,7 +57,6 @@ export class MeController {
         }
       }),
     )
-    const memberships = await this.meService.getUserMemberships(user.id)
     return {
       data: {
         user: {
@@ -51,8 +65,11 @@ export class MeController {
           name: user.name ?? buildNameFromEmail(user.email),
           memberships: toUserMembershipDto(memberships),
           isBackofficeAuthorized: isDomainBackofficeAuthorized(user.email),
+          isTermsManagementAuthorized: isEmailBackofficeAuthorized(user.email),
+          termsAccepted: isAcceptanceUpToDate(latestAcceptance, termsDocuments),
         },
         organizations: organizationsWithProjects.map(toOrganizationDto),
+        currentTerms: toCurrentTermsDto(termsDocuments),
       },
     }
   }

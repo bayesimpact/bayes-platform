@@ -1,4 +1,5 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
+import { selectIsTermsManagementAuthorized } from "@/common/features/me/me.selectors"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { backofficeActions } from "./backoffice.slice"
@@ -11,6 +12,8 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(backofficeActions.listOrganizations())
       listenerApi.dispatch(backofficeActions.listUsers())
+      if (selectIsTermsManagementAuthorized(listenerApi.getState()))
+        listenerApi.dispatch(backofficeActions.listTermsDocuments())
     },
   })
   listenerMiddleware.startListening({
@@ -46,6 +49,31 @@ function registerListeners() {
       listenerApi.dispatch(
         notificationsActions.show({
           title: "Backoffice project update failed",
+          type: "error",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: backofficeActions.updateTermsDocuments.fulfilled,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "Terms documents saved",
+          type: "success",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: backofficeActions.updateTermsDocuments.rejected,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "Failed to save terms documents",
+          description: action.error.message,
           type: "error",
         }),
       )
