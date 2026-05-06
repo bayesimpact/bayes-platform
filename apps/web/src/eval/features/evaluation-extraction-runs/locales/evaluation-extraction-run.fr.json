@@ -44,7 +44,11 @@
       "completed": "Terminé",
       "failed": "Échoué",
       "cancelled": "Annulé",
-      "cancel": "Annuler l'exécution"
+      "cancel": "Annuler l'exécution",
+      "retry": "Relancer l'exécution",
+      "remaining_one": "{{count}} enregistrement restant",
+      "remaining_other": "{{count}} enregistrements restants",
+      "remaining_zero": "{{count}} enregistrement restant"
     },
     "history": {
       "title": "Historique des exécutions",

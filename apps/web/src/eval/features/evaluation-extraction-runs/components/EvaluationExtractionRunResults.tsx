@@ -24,6 +24,12 @@ import { useTranslation } from "react-i18next"
 import { Loader } from "@/common/components/Loader"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import {
+  DEFAULT_PAGE_SIZE,
+  PaginationControls,
+  SortableFilterableHeader,
+  TruncatedCell,
+} from "@/eval/components/shared/RecordTableParts"
 import type {
   EvaluationExtractionDataset,
   EvaluationExtractionDatasetSchemaColumn,
@@ -37,12 +43,6 @@ import type {
 import { selectCurrentRunRecords } from "@/eval/features/evaluation-extraction-runs/evaluation-extraction-runs.selectors"
 import { evaluationExtractionRunsActions } from "@/eval/features/evaluation-extraction-runs/evaluation-extraction-runs.slice"
 import { TraceUrlOpener } from "@/studio/components/TraceUrlOpener"
-import {
-  DEFAULT_PAGE_SIZE,
-  PaginationControls,
-  SortableFilterableHeader,
-  TruncatedCell,
-} from "../../../components/shared/RecordTableParts"
 
 function StatusBadge({ status }: { status: EvaluationExtractionRunRecordStatus }) {
   const { t } = useTranslation()

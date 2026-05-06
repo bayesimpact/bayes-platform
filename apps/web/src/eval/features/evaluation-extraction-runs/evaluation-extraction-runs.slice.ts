@@ -23,6 +23,7 @@ interface State {
   currentRunRecords: AsyncData<PaginatedEvaluationExtractionRunRecords>
   currentRecordsQuery: RecordsQuery
   isExecuting: boolean
+  isRetrying: boolean
   isCancelling: boolean
   runStatusStream: { isActive: boolean }
 }
@@ -36,6 +37,7 @@ const initialState: State = {
   currentRunRecords: defaultAsyncData,
   currentRecordsQuery: defaultRecordsQuery,
   isExecuting: false,
+  isRetrying: false,
   isCancelling: false,
   runStatusStream: { isActive: false },
 }
@@ -158,6 +160,20 @@ const slice = createSlice({
       })
       .addCase(evaluationExtractionRunsThunks.createAndExecute.rejected, (state) => {
         state.isExecuting = false
+      })
+
+    // retryOne
+    builder
+      .addCase(evaluationExtractionRunsThunks.retryOne.pending, (state) => {
+        state.isRetrying = true
+      })
+      .addCase(evaluationExtractionRunsThunks.retryOne.fulfilled, (state, action) => {
+        state.isRetrying = false
+        state.currentRun = { status: ADS.Fulfilled, error: null, value: action.payload }
+        state.currentRunId = action.payload.id
+      })
+      .addCase(evaluationExtractionRunsThunks.retryOne.rejected, (state) => {
+        state.isRetrying = false
       })
 
     // cancelOne

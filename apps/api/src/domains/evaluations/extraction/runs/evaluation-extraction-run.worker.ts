@@ -9,7 +9,9 @@ import type { ExecuteEvaluationExtractionRunJobPayload } from "./evaluation-extr
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationExtractionRunProcessorService } from "./evaluation-extraction-run-processor.service"
 
-@Processor(EVALUATION_EXTRACTION_RUN_QUEUE_NAME)
+@Processor(EVALUATION_EXTRACTION_RUN_QUEUE_NAME, {
+  maxStalledCount: 3, // Allow up to 3 stalls before giving up on the job
+})
 export class EvaluationExtractionRunWorker extends WorkerHost {
   private readonly logger = new Logger(EvaluationExtractionRunWorker.name)
 
@@ -36,10 +38,16 @@ export class EvaluationExtractionRunWorker extends WorkerHost {
   }
 
   @OnWorkerEvent("failed")
-  onFailed(job: Job<ExecuteEvaluationExtractionRunJobPayload> | undefined, error: Error): void {
+  async onFailed(
+    job: Job<ExecuteEvaluationExtractionRunJobPayload> | undefined,
+    error: Error,
+  ): Promise<void> {
     this.logger.error(
       `Job failed: ${job?.name ?? "unknown"} (${job?.id ?? "unknown"})`,
       error.stack,
     )
+    if (job) {
+      await this.processorService.markFailed(job.data)
+    }
   }
 }

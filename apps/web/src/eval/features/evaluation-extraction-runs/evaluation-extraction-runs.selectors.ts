@@ -16,6 +16,7 @@ export const selectCurrentRunRecords = (state: RootState) =>
 export const selectIsExecuting = (state: RootState) => state.evaluation.extractionRuns.isExecuting
 
 export const selectIsCancelling = (state: RootState) => state.evaluation.extractionRuns.isCancelling
+export const selectIsRetrying = (state: RootState) => state.evaluation.extractionRuns.isRetrying
 
 export const selectCurrentRecordsQuery = (state: RootState) =>
   state.evaluation.extractionRuns.currentRecordsQuery

@@ -1,4 +1,7 @@
+import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
+import { Spinner } from "@caseai-connect/ui/shad/spinner"
+import { AlertCircleIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
@@ -14,11 +17,13 @@ import {
   EvaluationExtractionRunRecordsTable,
   EvaluationExtractionRunSummary,
 } from "../features/evaluation-extraction-runs/components/EvaluationExtractionRunResults"
+import { RunStatusBadge } from "../features/evaluation-extraction-runs/components/RunStatusBadge"
 import type { EvaluationExtractionRun } from "../features/evaluation-extraction-runs/evaluation-extraction-runs.models"
 import {
   selectCurrentRunData,
   selectCurrentRunId,
   selectIsCancelling,
+  selectIsRetrying,
 } from "../features/evaluation-extraction-runs/evaluation-extraction-runs.selectors"
 import { evaluationExtractionRunsActions } from "../features/evaluation-extraction-runs/evaluation-extraction-runs.slice"
 
@@ -48,18 +53,38 @@ function WithData({
   const dispatch = useAppDispatch()
   const { t } = useTranslation()
   const isCancelling = useAppSelector(selectIsCancelling)
+  const isRetrying = useAppSelector(selectIsRetrying)
 
   const handleBack = () => navigate(-1)
   const canCancel = run.status === "pending" || run.status === "running"
+  const canRetry = run.status === "failed"
   const handleCancel = () => {
     dispatch(evaluationExtractionRunsActions.cancelOne({ evaluationExtractionRunId: run.id }))
   }
 
+  const handleRetry = () => {
+    dispatch(evaluationExtractionRunsActions.retryOne({ evaluationExtractionRunId: run.id }))
+  }
   return (
     <div>
       <GridHeader
         title={t("evaluationExtractionRun:results.title")}
-        description={buildSince(run.createdAt)}
+        description={
+          <div className="flex flex-col gap-2">
+            {buildSince(run.createdAt)}
+
+            <div className="flex gap-2">
+              <RunStatusBadge status={run.status} />
+
+              {run.summary && run.summary.running > 0 && (
+                <Badge variant="secondary">
+                  {canCancel ? <Spinner /> : <AlertCircleIcon />}
+                  {t("evaluationExtractionRun:results.remaining", { count: run.summary.running })}
+                </Badge>
+              )}
+            </div>
+          </div>
+        }
         onBack={handleBack}
         action={
           canCancel ? (
@@ -68,7 +93,11 @@ function WithData({
             </Button>
           ) : run.csvExportDocumentId ? (
             <DocumentOpener documentId={run.csvExportDocumentId} />
-          ) : undefined
+          ) : canRetry ? (
+            <Button variant="outline" onClick={handleRetry} disabled={isRetrying}>
+              {t("evaluationExtractionRun:results.retry")}
+            </Button>
+          ) : null
         }
       />
       <div className="p-6 flex flex-col gap-6">

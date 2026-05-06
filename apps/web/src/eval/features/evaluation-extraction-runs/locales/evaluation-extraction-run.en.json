@@ -44,7 +44,11 @@
       "completed": "Completed",
       "failed": "Failed",
       "cancelled": "Cancelled",
-      "cancel": "Cancel run"
+      "cancel": "Cancel run",
+      "retry": "Retry run",
+      "remaining_one": "{{count}} record remaining",
+      "remaining_other": "{{count}} records remaining",
+      "remaining_zero": "{{count}} record remaining"
     },
     "history": {
       "title": "Run History",
