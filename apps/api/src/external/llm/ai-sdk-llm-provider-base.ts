@@ -1,6 +1,13 @@
 import { AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
 import { NotImplementedException } from "@nestjs/common"
-import { generateText, type JSONSchema7, jsonSchema, Output, ToolLoopAgent } from "ai"
+import {
+  type FilePart,
+  generateText,
+  type JSONSchema7,
+  jsonSchema,
+  Output,
+  ToolLoopAgent,
+} from "ai"
 import { type ZodObject, z } from "zod"
 import type {
   LLMChatMessage,
@@ -219,6 +226,16 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
         ],
       }
     }
+    //Gemma restriction: no pdf
+    if (AgentModelToAgentProvider[config.model] === AgentProvider.Gemma) {
+      if (Array.isArray(message.content)) {
+        const filePart = message.content.find((p): p is FilePart => p.type === "file")
+        if (filePart?.mediaType === "application/pdf") {
+          throw new Error(`MedGemma model cannot process ${filePart?.mediaType} file`)
+        }
+      }
+    }
+
     const aiSDKMessages: LLMChatMessage[] = [message]
       .map((currentMessage) => {
         if (currentMessage.role === "system") {

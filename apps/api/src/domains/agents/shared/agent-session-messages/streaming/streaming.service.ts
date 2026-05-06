@@ -85,8 +85,10 @@ export class StreamingService extends ServiceWithLLM {
     vertexLlmProvider: LLMProvider,
     @Inject("MedGemmaLLMProvider")
     medGemmaLlmProvider: LLMProvider,
+    @Inject("GemmaLLMProvider")
+    gemmaLlmProvider: LLMProvider,
   ) {
-    super({ mockLlmProvider, vertexLlmProvider, medGemmaLlmProvider })
+    super({ mockLlmProvider, vertexLlmProvider, medGemmaLlmProvider, gemmaLlmProvider })
 
     this.conversationAgentSessionRepository = conversationAgentSessionRepository
 

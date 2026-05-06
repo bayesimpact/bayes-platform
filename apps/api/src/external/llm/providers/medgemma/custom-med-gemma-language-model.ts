@@ -11,6 +11,7 @@ import type {
   SharedV3Warning,
 } from "@ai-sdk/provider"
 import { NotImplementedException } from "@nestjs/common"
+import { type Span, SpanStatusCode, trace } from "@opentelemetry/api"
 import type { JSONSchema7 } from "ai"
 import { z } from "zod"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
@@ -195,7 +196,7 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
           }
           case "file": {
             if (!value.mediaType.startsWith("image/"))
-              throw new NotImplementedException(`DEV - Unsupported media type: ${value.mediaType}`)
+              throw new Error(`MedGemma model cannot process ${value.mediaType} file`)
             const buf = Buffer.from(value.data)
             // fixme DOO: reduce file size ?
             // const resizedBuffer = await sharp(buf)
@@ -338,6 +339,7 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
       ...(jsonFormat ? { response_format: jsonFormat } : undefined),
       stream: true,
       stream_options: { include_usage: true },
+      toolChoice: { type: "none" },
     }
     const stringifiedBody = JSON.stringify(body)
 
@@ -357,106 +359,167 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
     let finishReason: LanguageModelV3FinishReason
     let usage: LanguageModelV3Usage
 
+    // Capture the active OTel span at doStream invocation time. The AI SDK
+    // sets `ai.streamText.doStream` as the active span here. We need a stable
+    // reference because the OTel context isn't preserved into the
+    // ReadableStream's `start` callback (it runs later, on consumer pull).
+    const otelSpan: Span | undefined = trace.getActiveSpan()
+
     const stream = new ReadableStream<LanguageModelV3StreamPart>({
       async start(controller) {
-        let buffer = ""
-        let responseBuffer = ""
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
+        try {
+          let buffer = ""
+          let responseBuffer = ""
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
 
-          buffer = decoder.decode(value)
-          const lines = buffer.split("\n").filter((l) => l !== "")
-          for (const line of lines) {
-            const jsonStr = line.replace("data:", "").trim()
-            if (jsonStr === "[DONE]") {
-              const response = responseSchema.safeParse(JSON.parse(responseBuffer))
-              if (!response.success) {
-                throw new Error("Failed to parse response")
-              }
+            buffer = decoder.decode(value)
+            const lines = buffer.split("\n").filter((l) => l !== "")
+            for (const line of lines) {
+              const jsonStr = line.replace("data:", "").trim()
+              if (jsonStr === "[DONE]") {
+                const response = responseSchema.safeParse(JSON.parse(responseBuffer))
+                if (!response.success) {
+                  throw new Error("Failed to parse response")
+                }
 
-              const metadata: SharedV3ProviderMetadata = {
-                CustomMedgemma: providerOptionsToJson(options.providerOptions?.custom?.metadata),
-              }
-              const id = crypto.randomUUID()
+                const metadata: SharedV3ProviderMetadata = {
+                  CustomMedgemma: providerOptionsToJson(options.providerOptions?.custom?.metadata),
+                }
+                const id = crypto.randomUUID()
 
-              if (response.data.type === "answer") {
+                if (response.data.type === "answer") {
+                  controller.enqueue({
+                    type: "text-start",
+                    id,
+                    providerMetadata: metadata,
+                  })
+                  controller.enqueue({
+                    type: "text-delta",
+                    delta: response.data.content,
+                    id,
+                    providerMetadata: metadata,
+                  })
+                  controller.enqueue({
+                    type: "text-end",
+                    id,
+                    providerMetadata: metadata,
+                  })
+                } else if (response.data.type === "tool") {
+                  const toolCallId = crypto.randomUUID()
+                  controller.enqueue({
+                    type: "tool-call",
+                    toolCallId,
+                    toolName: response.data.name,
+                    input: JSON.stringify(response.data.arguments),
+                    providerMetadata: metadata,
+                  })
+                }
                 controller.enqueue({
-                  type: "text-start",
-                  id,
+                  type: "finish",
+                  finishReason,
                   providerMetadata: metadata,
-                })
-                controller.enqueue({
-                  type: "text-delta",
-                  delta: response.data.content,
-                  id,
-                  providerMetadata: metadata,
-                })
-                controller.enqueue({
-                  type: "text-end",
-                  id,
-                  providerMetadata: metadata,
-                })
-              } else if (response.data.type === "tool") {
-                const toolCallId = crypto.randomUUID()
-                controller.enqueue({
-                  type: "tool-call",
-                  toolCallId,
-                  toolName: response.data.name,
-                  input: JSON.stringify(response.data.arguments),
-                  providerMetadata: metadata,
-                })
-              }
-              controller.enqueue({
-                type: "finish",
-                finishReason,
-                providerMetadata: metadata,
-                usage: {
-                  inputTokens: {
-                    // biome-ignore lint/complexity/useLiteralKeys: custom
-                    total: usage["prompt_tokens"],
-                    noCache: undefined,
-                    cacheRead: undefined,
-                    cacheWrite: undefined,
+                  usage: {
+                    inputTokens: {
+                      // biome-ignore lint/complexity/useLiteralKeys: custom
+                      total: usage["prompt_tokens"],
+                      noCache: undefined,
+                      cacheRead: undefined,
+                      cacheWrite: undefined,
+                    },
+                    outputTokens: {
+                      // biome-ignore lint/complexity/useLiteralKeys: custom
+                      total: usage["completion_tokens"],
+                      // biome-ignore lint/complexity/useLiteralKeys: custom
+                      text: usage["completion_tokens"],
+                      reasoning: undefined,
+                    },
                   },
-                  outputTokens: {
-                    // biome-ignore lint/complexity/useLiteralKeys: custom
-                    total: usage["completion_tokens"],
-                    // biome-ignore lint/complexity/useLiteralKeys: custom
-                    text: usage["completion_tokens"],
-                    reasoning: undefined,
-                  },
-                },
-              })
-              controller.close()
-              return
-            }
+                })
+                return
+              }
 
-            // biome-ignore lint/suspicious/noExplicitAny: custom
-            let data: any
-            try {
-              data = JSON.parse(jsonStr)
-            } catch {
-              continue
-            }
-            if (data.usage) {
-              usage = data.usage
-            }
+              // biome-ignore lint/suspicious/noExplicitAny: custom
+              let data: any
+              try {
+                data = JSON.parse(jsonStr)
+              } catch {
+                continue
+              }
 
-            const choice = data.choices?.[0]
-            if (!choice) continue
-            if (choice.finish_reason) {
-              finishReason = choice.finish_reason
-            }
+              //check if error returned from llm
+              if (
+                typeof data === "object" &&
+                data !== null &&
+                typeof data.error === "object" &&
+                data.error !== null &&
+                typeof data.error.message === "string" &&
+                typeof data.error.type === "string"
+              ) {
+                throw new Error(`Unexpected LLM error : ${JSON.stringify(data.error)}`)
+              }
 
-            const delta = choice.delta
-            if (!delta) continue
-            if (delta.content) {
-              responseBuffer += delta.content
+              if (data.usage) {
+                usage = data.usage
+              }
+
+              const choice = data.choices?.[0]
+              if (!choice) continue
+              if (choice.finish_reason) {
+                finishReason = choice.finish_reason
+              }
+
+              const delta = choice.delta
+              if (!delta) continue
+              if (delta.content) {
+                responseBuffer += delta.content
+              }
             }
           }
+        } catch (error) {
+          const normalized =
+            error instanceof Error
+              ? error
+              : new Error(typeof error === "string" ? error : JSON.stringify(error))
+          // Record the exception on the captured doStream span so the Langfuse
+          // exporter (LangfuseIntegrationExporter.checkErrors) flags the
+          // generation as ERROR. recordException emits an event named
+          // "exception" with `exception.type` / `exception.message` attributes.
+          otelSpan?.recordException(normalized)
+          otelSpan?.setStatus({ code: SpanStatusCode.ERROR, message: normalized.message })
+
+          const metadata: SharedV3ProviderMetadata = {
+            CustomMedgemma: providerOptionsToJson(options.providerOptions?.custom?.metadata),
+          }
+          const id = crypto.randomUUID()
+          controller.enqueue({
+            type: "text-start",
+            id,
+            providerMetadata: metadata,
+          })
+          controller.enqueue({
+            type: "text-delta",
+            delta: "<Unexpected LLM error>",
+            id,
+            providerMetadata: metadata,
+          })
+          controller.enqueue({
+            type: "text-end",
+            id,
+            providerMetadata: metadata,
+          })
+
+          controller.enqueue({
+            type: "error",
+            error: {
+              message: normalized.message,
+              code: "INTERNAL_ERROR",
+            },
+          })
+        } finally {
+          controller.close()
         }
-        controller.close()
       },
     })
 

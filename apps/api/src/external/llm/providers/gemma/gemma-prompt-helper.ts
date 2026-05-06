@@ -3,17 +3,18 @@ import type { ToolSet } from "ai"
 // biome-ignore lint/complexity/noStaticOnlyClass: helper
 export class GemmaPromptHelper {
   static appendToolsToPrompt({ prompt, tools }: { prompt: string; tools: ToolSet }): string {
-    const toolDocs = GemmaPromptHelper.convertToolsToDocs(tools) ?? [].join("\n")
+    const toolDocs = GemmaPromptHelper.convertToolsToDocs(tools)
+    if (!toolDocs) return prompt
     return `${prompt}
 
 ##TOOLS
 You have access to the following tools:
-${toolDocs}
+${toolDocs.join("\n")}
 
 (CRITICAL) If a parameters allows null, set the value to null when unknown. Set to null not to quoted "null"`
   }
   static convertToolsToDocs(tools: ToolSet) {
-    if (!tools) return undefined
+    if (!tools || Object.entries(tools).length === 0) return undefined
     return Object.entries(tools).map(
       // biome-ignore lint/suspicious/noExplicitAny: custom unknown props
       ([name, tool]: any) =>
