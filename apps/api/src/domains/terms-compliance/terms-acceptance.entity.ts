@@ -12,20 +12,11 @@ export class TermsAcceptance extends Base4AllEntity {
   @JoinColumn({ name: "user_id" })
   user!: User
 
-  @Column({ type: "varchar", name: "general_conditions_url" })
-  generalConditionsUrl!: string
-
   @Column({ type: "integer", name: "general_conditions_version" })
   generalConditionsVersion!: number
 
-  @Column({ type: "varchar", name: "privacy_policy_url" })
-  privacyPolicyUrl!: string
-
   @Column({ type: "integer", name: "privacy_policy_version" })
   privacyPolicyVersion!: number
-
-  @Column({ type: "varchar", name: "ai_usage_policy_url" })
-  aiUsagePolicyUrl!: string
 
   @Column({ type: "integer", name: "ai_usage_policy_version" })
   aiUsagePolicyVersion!: number

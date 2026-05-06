@@ -173,13 +173,9 @@ function validateForm(form: FormState, current: TermsDocuments): string | null {
       return `${entry.label}: version must be a positive integer`
     }
 
-    const urlChanged = entry.document.url !== url
     const versionChanged = entry.document.version !== version
 
-    if (urlChanged && version <= entry.document.version) {
-      return `${entry.label}: bump the version above ${entry.document.version} when changing the URL`
-    }
-    if (!urlChanged && versionChanged && version <= entry.document.version) {
+    if (versionChanged && version <= entry.document.version) {
       return `${entry.label}: version can only be incremented (current: ${entry.document.version})`
     }
   }

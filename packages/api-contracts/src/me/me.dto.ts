@@ -82,11 +82,8 @@ export function buildNameFromEmail(email: string): string {
 export type TermsAcceptanceDto = {
   id: string
   createdAt: TimeType
-  generalConditionsUrl: string
   generalConditionsVersion: number
-  privacyPolicyUrl: string
   privacyPolicyVersion: number
-  aiUsagePolicyUrl: string
   aiUsagePolicyVersion: number
   aiUsagePolicyAccepted: boolean
 }

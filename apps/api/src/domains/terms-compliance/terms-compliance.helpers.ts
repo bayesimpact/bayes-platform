@@ -51,11 +51,8 @@ export function isAcceptanceUpToDate(
 
   if (!acceptance) return false
   return (
-    acceptance.generalConditionsUrl === generalConditions.url &&
     acceptance.generalConditionsVersion === generalConditions.version &&
-    acceptance.privacyPolicyUrl === privacyPolicy.url &&
     acceptance.privacyPolicyVersion === privacyPolicy.version &&
-    acceptance.aiUsagePolicyUrl === aiUsagePolicy.url &&
     acceptance.aiUsagePolicyVersion === aiUsagePolicy.version
   )
 }
