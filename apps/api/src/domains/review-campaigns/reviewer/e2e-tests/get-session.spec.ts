@@ -140,6 +140,13 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
         role: "assistant",
         content: "hi",
       },
+      {
+        organizationId: organization.id,
+        projectId: project.id,
+        sessionId: session.id,
+        role: "tool",
+        content: '{"result": "internal"}',
+      },
     ])
     await repositories.testerSessionFeedbackRepository.save({
       organizationId: organization.id,

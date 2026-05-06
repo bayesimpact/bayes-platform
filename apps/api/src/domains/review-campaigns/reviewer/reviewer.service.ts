@@ -6,7 +6,7 @@ import {
   UnprocessableEntityException,
 } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import type { Repository } from "typeorm"
+import { In, type Repository } from "typeorm"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
@@ -198,7 +198,7 @@ export class ReviewerService {
         },
       }),
       this.agentMessageRepository.find({
-        where: { sessionId },
+        where: { sessionId, role: In(["user", "assistant"]) },
         order: { createdAt: "ASC" },
       }),
       this.reviewRepository.findOne({ where: { sessionId, reviewerUserId } }),
