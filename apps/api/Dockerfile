@@ -68,15 +68,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   libxcb1 libgl1 libglib2.0-0 \
   && rm -rf /var/lib/apt/lists/*
 
-# Needed for the docling TS wrapper to execute our custom docling_nodes CLI
+# Needed for the docling TS wrapper to execute our custom document_chunker CLI
 # inside the container (`apps/api/bin` is not copied into runtime-base).
 COPY --from=build /app/apps/api/bin /app/apps/api/bin
 
-# We need the sample PDF for the Docling self-test 
+# We need the sample PDF for the Docling self-test
 # Warning: this test is only run if the environment variable WORKER_DOCLING_SELF_TEST_ENABLED is set to true
 COPY --from=build /app/apps/api/test/fixtures/sample.pdf /app/apps/api/bin/sample.pdf
 
-RUN chmod +x /app/apps/api/bin/docling_nodes || true
+RUN chmod +x /app/apps/api/bin/document_chunker || true
 RUN python3 -m venv /opt/docling-venv \
   && /opt/docling-venv/bin/pip install --no-cache-dir --upgrade pip \
   && /opt/docling-venv/bin/pip install --no-cache-dir \
@@ -88,7 +88,7 @@ RUN python3 -m venv /opt/docling-venv \
     llama-index-core \
     llama-index-readers-docling \
     llama-index-node-parser-docling \
-  && /opt/docling-venv/bin/python /app/apps/api/bin/docling_nodes.py \
+  && /opt/docling-venv/bin/python /app/apps/api/bin/document_chunker.py \
     --doc-path /app/apps/api/bin/sample.pdf \
     --output-json /tmp/docling-prewarm.json \
     --max-nodes 1 \

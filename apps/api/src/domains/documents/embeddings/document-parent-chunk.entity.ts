@@ -1,8 +1,8 @@
 import { Column } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 
-@ConnectEntity("document_chunk")
-export class DocumentChunk extends ConnectEntityBase {
+@ConnectEntity("document_parent_chunk")
+export class DocumentParentChunk extends ConnectEntityBase {
   @Column({ name: "document_id", type: "uuid" })
   documentId!: string
 
@@ -14,9 +14,6 @@ export class DocumentChunk extends ConnectEntityBase {
 
   @Column({ name: "chunk_index", type: "integer" })
   chunkIndex!: number
-
-  @Column({ name: "parent_id", type: "uuid", nullable: true })
-  parentId!: string | null
 
   @Column({ name: "prev_chunk_id", type: "uuid", nullable: true })
   prevChunkId!: string | null

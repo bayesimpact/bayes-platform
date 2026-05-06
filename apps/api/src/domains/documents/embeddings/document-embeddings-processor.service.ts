@@ -6,6 +6,7 @@ import { embedMany } from "ai"
 import { Document as LlamaDocument, MetadataMode, SentenceSplitter } from "llamaindex"
 import { toSql } from "pgvector"
 import type { DataSource } from "typeorm"
+import type { DoclingChunk, DoclingParentChunk } from "@/external/docling/docling.cli"
 import type { Document } from "../document.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "../documents.service"
@@ -52,10 +53,14 @@ export class DocumentEmbeddingsProcessorService {
       const embeddingsByModelName = await this.generateEmbeddingsByModel(extractionResult.chunks)
 
       await this.insertChunks({
-        documentId: document.id,
-        organizationId: payload.organizationId,
-        projectId: payload.projectId,
+        scope: {
+          documentId: document.id,
+          organizationId: payload.organizationId,
+          projectId: payload.projectId,
+        },
         chunks: extractionResult.chunks,
+        doclingChunks: extractionResult.doclingChunks,
+        doclingParentChunks: extractionResult.doclingParentChunks,
         embeddingsByModelName,
       })
 
@@ -91,6 +96,8 @@ export class DocumentEmbeddingsProcessorService {
 
   private async extractDocumentChunks(document: Document): Promise<{
     chunks: string[]
+    doclingChunks?: DoclingChunk[]
+    doclingParentChunks?: DoclingParentChunk[]
     extractionEngine: DocumentExtractionEngine
   }> {
     const fileBuffer = await this.fileStorage.readFile(document.storageRelativePath)
@@ -99,6 +106,8 @@ export class DocumentEmbeddingsProcessorService {
     this.logger.log(`Split document ${document.id} into ${chunks.length} chunks`)
     return {
       chunks,
+      doclingChunks: extractionResult.doclingChunks,
+      doclingParentChunks: extractionResult.doclingParentChunks,
       extractionEngine: extractionResult.extractionEngine,
     }
   }
@@ -174,28 +183,55 @@ export class DocumentEmbeddingsProcessorService {
   }
 
   private async insertChunks({
-    documentId,
-    organizationId,
-    projectId,
+    scope,
     chunks,
+    doclingChunks,
+    doclingParentChunks,
     embeddingsByModelName,
   }: {
-    documentId: string
-    organizationId: string
-    projectId: string
+    scope: { documentId: string; organizationId: string; projectId: string }
     chunks: string[]
+    doclingChunks?: DoclingChunk[]
+    doclingParentChunks?: DoclingParentChunk[]
     embeddingsByModelName: Map<string, number[][]>
   }): Promise<void> {
-    // Delete any previous chunks for this document before re-inserting.
-    // Embeddings are deleted by cascade from document_chunk_embedding.
-    await this.dataSource.query(`DELETE FROM document_chunk WHERE document_id = $1`, [documentId])
+    const { documentId, organizationId, projectId } = scope
+    // Embeddings are cascade-deleted from document_chunk_embedding.
+    await Promise.all([
+      this.dataSource.query(`DELETE FROM document_chunk WHERE document_id = $1`, [documentId]),
+      this.dataSource.query(`DELETE FROM document_parent_chunk WHERE document_id = $1`, [
+        documentId,
+      ]),
+    ])
 
     for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
-      const chunkId = randomUUID()
+      const doclingChunk = doclingChunks?.[chunkIndex]
+      const chunkId = doclingChunk?.chunk_id ?? randomUUID()
+      const content = doclingChunk?.text ?? chunks[chunkIndex]
+      const embedText = chunks[chunkIndex]
+      const parentId = doclingChunk?.parent_id ?? null
+      const prevChunkId = doclingChunk?.prev_chunk_id ?? null
+      const nextChunkId = doclingChunk?.next_chunk_id ?? null
+      const headings = JSON.stringify(doclingChunk?.headings ?? [])
+      const captions = JSON.stringify(doclingChunk?.captions ?? [])
+
       await this.dataSource.query(
-        `INSERT INTO document_chunk (id, created_at, updated_at, organization_id, project_id, document_id, content, chunk_index)
-         VALUES ($1, now(), now(), $2, $3, $4, $5, $6)`,
-        [chunkId, organizationId, projectId, documentId, chunks[chunkIndex], chunkIndex],
+        `INSERT INTO document_chunk (id, created_at, updated_at, organization_id, project_id, document_id, content, embed_text, chunk_index, parent_id, prev_chunk_id, next_chunk_id, headings, captions)
+         VALUES ($1, now(), now(), $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+        [
+          chunkId,
+          organizationId,
+          projectId,
+          documentId,
+          content,
+          embedText,
+          chunkIndex,
+          parentId,
+          prevChunkId,
+          nextChunkId,
+          headings,
+          captions,
+        ],
       )
 
       for (const [embeddingModelName, embeddings] of embeddingsByModelName.entries()) {
@@ -204,6 +240,28 @@ export class DocumentEmbeddingsProcessorService {
           `INSERT INTO document_chunk_embedding (id, created_at, updated_at, organization_id, project_id, document_chunk_id, model_name, embedding)
            VALUES (uuid_generate_v4(), now(), now(), $1, $2, $3, $4, $5::vector)`,
           [organizationId, projectId, chunkId, embeddingModelName, toSql(embeddings[chunkIndex])],
+        )
+      }
+    }
+
+    if (doclingParentChunks) {
+      for (const [chunkIndex, parentChunk] of doclingParentChunks.entries()) {
+        await this.dataSource.query(
+          `INSERT INTO document_parent_chunk (id, created_at, updated_at, organization_id, project_id, document_id, content, embed_text, chunk_index, prev_chunk_id, next_chunk_id, headings, captions)
+           VALUES ($1, now(), now(), $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+          [
+            parentChunk.chunk_id,
+            organizationId,
+            projectId,
+            documentId,
+            parentChunk.text,
+            parentChunk.embed_text,
+            chunkIndex,
+            parentChunk.prev_chunk_id,
+            parentChunk.next_chunk_id,
+            JSON.stringify(parentChunk.headings),
+            JSON.stringify(parentChunk.captions),
+          ],
         )
       }
     }

@@ -15,6 +15,9 @@ import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/age
 import { AgentMessageAttachmentDocument } from "@/domains/agents/shared/agent-session-messages/agent-message-attachment-document.entity"
 import { AgentMessageFeedback } from "@/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity"
 import { Document } from "@/domains/documents/document.entity"
+import { DocumentChunk } from "@/domains/documents/embeddings/document-chunk.entity"
+import { DocumentChunkEmbedding } from "@/domains/documents/embeddings/document-chunk-embedding.entity"
+import { DocumentParentChunk } from "@/domains/documents/embeddings/document-parent-chunk.entity"
 import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
 import { Evaluation } from "@/domains/evaluations/evaluation.entity"
 import { EvaluationExtractionDataset } from "@/domains/evaluations/extraction/datasets/evaluation-extraction-dataset.entity"
@@ -52,6 +55,9 @@ export const ALL_ENTITIES = [
   ConversationAgentSession,
   ConversationAgentSessionCategory,
   Document,
+  DocumentChunk,
+  DocumentChunkEmbedding,
+  DocumentParentChunk,
   DocumentTag,
   Evaluation,
   EvaluationExtractionDataset,

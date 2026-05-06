@@ -85,7 +85,7 @@ This happens in:
 ### 3) Worker processing
 
 A separate workers process (`workers-main.ts`) consumes embedding jobs.
-At startup, workers run a Docling health check (`docling_nodes --docling-version`) when Docling extraction is enabled.
+At startup, workers run a Docling health check (`document_chunker --docling-version`) when Docling extraction is enabled.
 
 For each job, `DocumentEmbeddingsProcessorService.processDocument(...)`:
 
@@ -207,7 +207,7 @@ Tool executions are also persisted in message history as `"tool"` messages with 
 - `BULLMQ_REDIS_URL` (defaults to `redis://localhost:6379` if unset)
 - `DOCUMENT_EMBEDDINGS_QUEUE_NAME` (optional, defaults to `document-embeddings`)
 - `DOCUMENT_EXTRACTOR_DOCLING_ENABLED` (optional, defaults to `true`)
-- `DOCUMENT_EXTRACTOR_DOCLING_NODES_COMMAND` (optional path override for `apps/api/bin/docling_nodes`)
+- `DOCUMENT_CHUNKER_COMMAND` (optional path override for `apps/api/bin/document_chunker`)
 - `DOCUMENT_EXTRACTOR_DOCLING_TIMEOUT_MS` (optional, extraction timeout and worker health-check timeout source)
 
 ### Storage/Infra Variables Used in the Flow
@@ -222,7 +222,7 @@ Tool executions are also persisted in message history as `"tool"` messages with 
 - PostgreSQL with `pgvector`
 - Redis (BullMQ queue)
 - Google Cloud Storage (optional file storage backend)
-- Docling runtime available through the `docling_nodes` wrapper script in worker container/host
+- Docling runtime available through the `document_chunker` wrapper script in worker container/host
 
 ---
 

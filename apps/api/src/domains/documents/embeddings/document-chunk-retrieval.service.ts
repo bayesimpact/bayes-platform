@@ -8,6 +8,8 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 import { DEFAULT_TOP_K } from "@/domains/agents/shared/agent-session-messages/streaming/tools/retrieve-project-document-chunks.tool"
 import { resolveEmbeddingModelNames, resolveVertexConfig } from "./document-embeddings.config"
 
+const PARENT_DEDUPLICATION_FETCH_MULTIPLIER = 5
+
 export type RetrievedDocumentChunk = {
   chunkId: string
   documentId: string
@@ -17,6 +19,7 @@ export type RetrievedDocumentChunk = {
   content: string
   distance: number
   modelName: string
+  isParentChunk: boolean
 }
 
 @Injectable()
@@ -51,7 +54,7 @@ export class DocumentChunkRetrievalService {
     const normalizedDocumentTagIds = this.normalizeDocumentTagIds(documentTagIds)
     const embedding = await this.embedQuery({ query: retrievalQueryText, modelName })
 
-    const chunks = await this.fetchChunksByEmbedding({
+    const results = await this.fetchChunksByEmbedding({
       connectScope,
       modelName,
       embedding,
@@ -61,9 +64,9 @@ export class DocumentChunkRetrievalService {
     this.logRetrievalResult({
       projectId: connectScope.projectId,
       modelName,
-      chunkCount: chunks.length,
+      chunkCount: results.length,
     })
-    return chunks
+    return results
   }
 
   private resolvePrimaryModelName(): string | undefined {
@@ -93,17 +96,23 @@ export class DocumentChunkRetrievalService {
   }): Promise<RetrievedDocumentChunk[]> {
     const queryBuilder = this.dataSource
       .createQueryBuilder()
-      .select("chunk.id", "chunkId")
+      .select("COALESCE(parent.id, chunk.id)", "chunkId")
       .addSelect("chunk.document_id", "documentId")
       .addSelect("document.title", "documentTitle")
       .addSelect("document.file_name", "documentFileName")
-      .addSelect("chunk.chunk_index", "chunkIndex")
-      .addSelect("chunk.content", "content")
+      .addSelect("COALESCE(parent.chunk_index, chunk.chunk_index)", "chunkIndex")
+      .addSelect("COALESCE(parent.content, chunk.content)", "content")
       .addSelect("embedding.model_name", "modelName")
       .addSelect("(embedding.embedding <=> :queryEmbedding::vector)", "distance")
+      .addSelect("(parent.id IS NOT NULL)", "isParentChunk")
       .from("document_chunk_embedding", "embedding")
       .innerJoin("document_chunk", "chunk", "chunk.id = embedding.document_chunk_id")
       .innerJoin("document", "document", "document.id = chunk.document_id")
+      .leftJoin(
+        "document_parent_chunk",
+        "parent",
+        "parent.id = chunk.parent_id AND parent.deleted_at IS NULL",
+      )
       .where("embedding.organization_id = :organizationId", {
         organizationId: connectScope.organizationId,
       })
@@ -121,11 +130,24 @@ export class DocumentChunkRetrievalService {
 
     this.applyDocumentTagFilter({ queryBuilder, documentTagIds })
 
-    return await queryBuilder
+    const rows = await queryBuilder
       .setParameters({ queryEmbedding: toSql(embedding) })
       .orderBy("embedding.embedding <=> :queryEmbedding::vector", "ASC")
-      .limit(topK)
+      .limit(topK * PARENT_DEDUPLICATION_FETCH_MULTIPLIER)
       .getRawMany<RetrievedDocumentChunk>()
+
+    const seenIds = new Set<string>()
+    const deduplicated: RetrievedDocumentChunk[] = []
+    for (const row of rows) {
+      if (seenIds.has(row.chunkId)) continue
+      seenIds.add(row.chunkId)
+      deduplicated.push({
+        ...row,
+        isParentChunk: Boolean(row.isParentChunk),
+      })
+      if (deduplicated.length === topK) break
+    }
+    return deduplicated
   }
 
   private applyDocumentTagFilter({

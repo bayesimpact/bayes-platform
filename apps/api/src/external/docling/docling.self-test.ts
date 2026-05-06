@@ -2,7 +2,7 @@ import { execFile } from "node:child_process"
 import { access } from "node:fs/promises"
 import { promisify } from "node:util"
 import { Logger } from "@nestjs/common"
-import { getDoclingNodesCommand, getDoclingTimeoutMs, isDoclingEnabled } from "./docling.cli"
+import { getDoclingTimeoutMs, getDocumentChunkerCommand, isDoclingEnabled } from "./docling.cli"
 
 const DEFAULT_WORKER_DOCLING_SELF_TEST_FILE = "/app/apps/api/bin/sample.pdf"
 const DOCLING_SELF_TEST_MAX_BUFFER_BYTES = 20 * 1024 * 1024
@@ -44,20 +44,13 @@ export async function runDoclingSelfTestIfEnabled(timeoutMs: number): Promise<vo
   }
 
   Logger.log(
-    `Running Docling self-test on file: ${selfTestFile} (command: ${getDoclingNodesCommand()})`,
+    `Running Docling self-test on file: ${selfTestFile} (command: ${getDocumentChunkerCommand()})`,
     "WorkersMain",
   )
 
   const { stdout, stderr } = await runCommand(
-    getDoclingNodesCommand(),
-    [
-      "--doc-path",
-      selfTestFile,
-      "--output-json",
-      "/tmp/docling-self-test.json",
-      "--max-nodes",
-      "1",
-    ],
+    getDocumentChunkerCommand(),
+    ["--doc-path", selfTestFile, "--output-stdout", "--max-nodes", "1"],
     {
       timeout: getDoclingTimeoutMs(timeoutMs),
       maxBuffer: DOCLING_SELF_TEST_MAX_BUFFER_BYTES,

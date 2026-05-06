@@ -75,3 +75,8 @@ llm-logs/
 .cursorrules
 
 *.venv*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo

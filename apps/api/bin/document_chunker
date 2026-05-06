@@ -16,10 +16,10 @@ else
   PYTHON_BIN=""
 fi
 
-SCRIPT_PATH="${REPO_ROOT}/apps/api/bin/docling_nodes.py"
+SCRIPT_PATH="${REPO_ROOT}/apps/api/bin/document_chunker.py"
 
 if [[ -z "${PYTHON_BIN}" || ! -x "${PYTHON_BIN}" ]]; then
-  echo "Error: no suitable python venv found for docling_nodes." >&2
+  echo "Error: no suitable python venv found for document_chunker." >&2
   echo "Looked for:" >&2
   echo "  - ${PYTHON_BIN_DOCKER}" >&2
   echo "  - ${PYTHON_BIN_REPO}" >&2

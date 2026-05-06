@@ -3,9 +3,9 @@ import { Logger } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 import { getLogLevels, StructuredLogger } from "@/common/logger/structured-logger"
 import {
-  getDoclingNodesCommand,
   getDoclingTimeoutMs,
   getDoclingVersion,
+  getDocumentChunkerCommand,
   isDoclingEnabled,
 } from "@/external/docling/docling.cli"
 import { runDoclingSelfTestIfEnabled } from "@/external/docling/docling.self-test"
@@ -66,7 +66,7 @@ async function ensureDoclingIsReadyForWorkers(timeoutMs: number): Promise<void> 
     Logger.log(`Docling health check passed (${version || "version unavailable"})`, "WorkersMain")
   } catch (error) {
     Logger.error(
-      `Docling health check failed. Command "${getDoclingNodesCommand()} --docling-version" is not available or timed out.`,
+      `Docling health check failed. Command "${getDocumentChunkerCommand()} --docling-version" is not available or timed out.`,
       error instanceof Error ? error.stack : String(error),
       "WorkersMain",
     )

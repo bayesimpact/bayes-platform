@@ -34,6 +34,7 @@ describe("DocumentChunkRetrievalService", () => {
         content: "Relevant policy details",
         distance: 0.12,
         modelName: "gemini-embedding-001",
+        isParentChunk: false,
       },
     ])
     const queryBuilder = {
@@ -41,6 +42,7 @@ describe("DocumentChunkRetrievalService", () => {
       addSelect: jest.fn().mockReturnThis(),
       from: jest.fn().mockReturnThis(),
       innerJoin: jest.fn().mockReturnThis(),
+      leftJoin: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       setParameters: jest.fn().mockReturnThis(),
@@ -75,7 +77,7 @@ describe("DocumentChunkRetrievalService", () => {
     })
     expect(mockTextEmbeddingModel).toHaveBeenCalledWith("gemini-embedding-001")
     expect(getRawMany).toHaveBeenCalledTimes(1)
-    expect(queryBuilder.limit).toHaveBeenCalledWith(3)
+    expect(queryBuilder.limit).toHaveBeenCalledWith(15) // topK(3) * FETCH_MULTIPLIER(5)
     expect(queryBuilder.andWhere).toHaveBeenCalledWith(
       "document.source_type = :projectSourceType",
       {
@@ -95,6 +97,7 @@ describe("DocumentChunkRetrievalService", () => {
       addSelect: jest.fn().mockReturnThis(),
       from: jest.fn().mockReturnThis(),
       innerJoin: jest.fn().mockReturnThis(),
+      leftJoin: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       setParameters: jest.fn().mockReturnThis(),

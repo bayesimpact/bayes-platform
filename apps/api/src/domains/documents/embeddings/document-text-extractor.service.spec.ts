@@ -25,27 +25,63 @@ describe("DocumentTextExtractorService", () => {
     process.env = originalEnv
   })
 
-  it("extracts plain text documents without docling", async () => {
+  it("uses the chunker script for text/plain", async () => {
     const extractor = new DocumentTextExtractorService()
+    mockExtractTextWithDocling.mockResolvedValue({
+      child_chunks: [
+        {
+          chunk_id: "uuid",
+          embed_text: "hello world",
+          text: "hello world",
+          parent_id: null,
+          prev_chunk_id: null,
+          next_chunk_id: null,
+          headings: [],
+          captions: [],
+          metadata: {},
+        },
+      ],
+      parent_chunks: [],
+    })
 
     const result = await extractor.extract(Buffer.from("hello world"), "text/plain")
 
     expect(result).toEqual({
       text: "hello world",
-      extractionEngine: null,
+      chunks: ["hello world"],
+      doclingChunks: expect.any(Array),
+      doclingParentChunks: expect.any(Array),
+      extractionEngine: "docling@2.51.0",
     })
-    expect(mockExtractTextWithDocling).not.toHaveBeenCalled()
+    expect(mockExtractTextWithDocling).toHaveBeenCalledTimes(1)
   })
 
   it("uses docling for supported non-text mime types", async () => {
     const extractor = new DocumentTextExtractorService()
-    mockExtractTextWithDocling.mockResolvedValue([{ embed_text: "# Converted markdown\n" }])
+    mockExtractTextWithDocling.mockResolvedValue({
+      child_chunks: [
+        {
+          chunk_id: "uuid",
+          embed_text: "# Converted markdown\n",
+          text: "# Converted markdown",
+          parent_id: null,
+          prev_chunk_id: null,
+          next_chunk_id: null,
+          headings: [],
+          captions: [],
+          metadata: {},
+        },
+      ],
+      parent_chunks: [],
+    })
 
     const result = await extractor.extract(Buffer.from("fake"), "image/png")
 
     expect(result).toEqual({
       text: "# Converted markdown",
       chunks: ["# Converted markdown"],
+      doclingChunks: expect.any(Array),
+      doclingParentChunks: expect.any(Array),
       extractionEngine: "docling@2.51.0",
     })
     expect(mockExtractTextWithDocling).toHaveBeenCalledTimes(1)

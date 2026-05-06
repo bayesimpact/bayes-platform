@@ -1,16 +1,19 @@
 import { execFile } from "node:child_process"
 import { randomUUID } from "node:crypto"
 import { existsSync } from "node:fs"
-import { unlink, writeFile } from "node:fs/promises"
+import { readFile, unlink, writeFile } from "node:fs/promises"
 import { platform, tmpdir } from "node:os"
 import { join } from "node:path"
 import { promisify } from "node:util"
 import { EXTENSION_BY_MIME_TYPE } from "./docling.constants"
 
-const DOCLING_NODES_BASH_RELATIVE_FROM_API = "bin/docling_nodes"
-const DOCLING_NODES_BASH_RELATIVE_FROM_REPO_ROOT = "apps/api/bin/docling_nodes"
-const DOCLING_NODES_PS1_RELATIVE_FROM_API = "bin/docling_nodes.ps1"
-const DOCLING_NODES_PS1_RELATIVE_FROM_REPO_ROOT = "apps/api/bin/docling_nodes.ps1"
+const DOCUMENT_CHUNKER_BASH_RELATIVE_FROM_API = "bin/document_chunker"
+const DOCUMENT_CHUNKER_BASH_RELATIVE_FROM_REPO_ROOT = "apps/api/bin/document_chunker"
+// PS1 fallback points at the legacy docling_nodes.ps1 (which invokes docling_nodes_cuda.py).
+// That script still emits the pre-chunking-v2 JSON schema, so Windows extraction will need
+// a follow-up to either port CUDA detection into document_chunker.py or add a document_chunker.ps1.
+const DOCUMENT_CHUNKER_PS1_RELATIVE_FROM_API = "bin/docling_nodes.ps1"
+const DOCUMENT_CHUNKER_PS1_RELATIVE_FROM_REPO_ROOT = "apps/api/bin/docling_nodes.ps1"
 const DEFAULT_DOCLING_TIMEOUT_MS = 60_000
 
 const IS_WINDOWS = platform() === "win32"
@@ -27,11 +30,11 @@ function getPowerShellExecutable(): string {
   )
 }
 
-function buildDoclingNodesInvocation(extraArgs: readonly string[]): {
+function buildDocumentChunkerInvocation(extraArgs: readonly string[]): {
   executable: string
   args: string[]
 } {
-  const scriptPath = getDoclingNodesCommand()
+  const scriptPath = getDocumentChunkerCommand()
   if (isPowerShellScript(scriptPath)) {
     return {
       executable: getPowerShellExecutable(),
@@ -42,9 +45,30 @@ function buildDoclingNodesInvocation(extraArgs: readonly string[]): {
 }
 
 export type DoclingChunk = {
+  chunk_id: string
   embed_text: string
-  // Keep other keys if the JSON schema changes; we only require embed_text.
-  [key: string]: unknown
+  text: string
+  parent_id: string | null
+  prev_chunk_id: string | null
+  next_chunk_id: string | null
+  headings: string[]
+  captions: string[]
+  metadata: Record<string, unknown>
+}
+
+export type DoclingParentChunk = {
+  chunk_id: string
+  embed_text: string
+  text: string
+  prev_chunk_id: string | null
+  next_chunk_id: string | null
+  headings: string[]
+  captions: string[]
+}
+
+export type DoclingOutput = {
+  child_chunks: DoclingChunk[]
+  parent_chunks: DoclingParentChunk[]
 }
 
 export function isDoclingEnabled(): boolean {
@@ -55,8 +79,8 @@ export function isDoclingEnabled(): boolean {
   return value.toLowerCase() === "true"
 }
 
-export function getDoclingNodesCommand(): string {
-  const envOverride = process.env.DOCUMENT_EXTRACTOR_DOCLING_NODES_COMMAND
+export function getDocumentChunkerCommand(): string {
+  const envOverride = process.env.DOCUMENT_CHUNKER_COMMAND
   if (envOverride) {
     return envOverride
   }
@@ -65,12 +89,12 @@ export function getDoclingNodesCommand(): string {
   // Support both without requiring env configuration.
   const cwd = process.cwd()
   const bashCandidates: [string, string] = [
-    join(cwd, DOCLING_NODES_BASH_RELATIVE_FROM_API),
-    join(cwd, DOCLING_NODES_BASH_RELATIVE_FROM_REPO_ROOT),
+    join(cwd, DOCUMENT_CHUNKER_BASH_RELATIVE_FROM_API),
+    join(cwd, DOCUMENT_CHUNKER_BASH_RELATIVE_FROM_REPO_ROOT),
   ]
   const ps1Candidates: [string, string] = [
-    join(cwd, DOCLING_NODES_PS1_RELATIVE_FROM_API),
-    join(cwd, DOCLING_NODES_PS1_RELATIVE_FROM_REPO_ROOT),
+    join(cwd, DOCUMENT_CHUNKER_PS1_RELATIVE_FROM_API),
+    join(cwd, DOCUMENT_CHUNKER_PS1_RELATIVE_FROM_REPO_ROOT),
   ]
 
   const candidates = IS_WINDOWS
@@ -107,54 +131,47 @@ export async function extractTextWithDocling({
   mimeType: string
   timeoutMs?: number
   maxBuffer: number
-}): Promise<DoclingChunk[]> {
+}): Promise<DoclingOutput> {
   const extension = EXTENSION_BY_MIME_TYPE[mimeType]
   if (!extension) {
     throw new Error(`Docling does not support MIME type mapping: ${mimeType}`)
   }
 
   const inputPath = join(tmpdir(), `docling-${randomUUID()}.${extension}`)
+  const outputPath = join(tmpdir(), `docling-out-${randomUUID()}.json`)
   await writeFile(inputPath, buffer)
 
   try {
-    const invocation = buildDoclingNodesInvocation([
+    const invocation = buildDocumentChunkerInvocation([
       "--doc-path",
       inputPath,
-      "--output-stdout",
-      "--no-all-content",
+      "--output-json",
+      outputPath,
     ])
-    const { stdout } = await runCommand(invocation.executable, invocation.args, {
+    await runCommand(invocation.executable, invocation.args, {
       timeout: timeoutMs ?? getDoclingTimeoutMs(),
       maxBuffer,
     })
 
-    const stdoutTrimmed = stdout.trim()
-    if (!stdoutTrimmed) {
-      throw new Error(`Docling nodes produced empty stdout for MIME type: ${mimeType}`)
-    }
-
-    const parsed: unknown = JSON.parse(stdoutTrimmed)
-    if (!Array.isArray(parsed)) {
+    const raw = await readFile(outputPath, "utf8")
+    const parsed: unknown = JSON.parse(raw)
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
       throw new Error(
-        `Docling nodes returned non-array JSON for MIME type ${mimeType}: ${stdoutTrimmed.slice(0, 200)}`,
+        `Document chunker returned unexpected JSON shape for MIME type ${mimeType}: ${raw.slice(0, 200)}`,
       )
     }
 
-    const chunks = parsed.map((item: unknown, index: number) => {
-      if (!item || typeof item !== "object") {
-        throw new Error(`Docling node at index ${index} is not an object`)
-      }
-      const maybeRecord = item as Record<string, unknown>
-      const embedText = maybeRecord.embed_text
-      if (typeof embedText !== "string") {
-        throw new Error(`Docling node at index ${index} missing embed_text string`)
-      }
-      return maybeRecord as DoclingChunk
-    })
+    const record = parsed as Record<string, unknown>
+    if (!Array.isArray(record.child_chunks) || !Array.isArray(record.parent_chunks)) {
+      throw new Error(
+        `Document chunker output missing child_chunks or parent_chunks for MIME type ${mimeType}`,
+      )
+    }
 
-    return chunks
+    return parsed as DoclingOutput
   } finally {
     await unlink(inputPath).catch(() => undefined)
+    await unlink(outputPath).catch(() => undefined)
   }
 }
 
@@ -165,7 +182,7 @@ export async function getDoclingVersion({
   timeoutMs?: number
   maxBuffer?: number
 } = {}): Promise<string> {
-  const invocation = buildDoclingNodesInvocation(["--docling-version"])
+  const invocation = buildDocumentChunkerInvocation(["--docling-version"])
   const { stdout } = await runCommand(invocation.executable, invocation.args, {
     timeout: timeoutMs ?? getDoclingTimeoutMs(),
     maxBuffer,
