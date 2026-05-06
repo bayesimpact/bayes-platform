@@ -80,6 +80,25 @@ export class EvaluationExtractionRunsController {
     return { data: toEvaluationExtractionRunDto(run) }
   }
 
+  @Post(EvaluationExtractionRunsRoutes.retryOne.path)
+  @AddContext("evaluationExtractionRun")
+  @CheckPolicy((policy) => policy.canUpdate())
+  @TrackActivity({ action: "evaluationExtractionRun.retry" })
+  async retryOne(
+    @Req() request: EndpointRequestWithEvaluationExtractionRun,
+  ): Promise<typeof EvaluationExtractionRunsRoutes.retryOne.response> {
+    const connectScope = getRequiredConnectScope(request)
+    const run = request.evaluationExtractionRun
+
+    await this.batchService.retryExecuteRun({
+      runId: run.id,
+      organizationId: connectScope.organizationId,
+      projectId: connectScope.projectId,
+    })
+
+    return { data: toEvaluationExtractionRunDto(run) }
+  }
+
   @Post(EvaluationExtractionRunsRoutes.cancelOne.path)
   @AddContext("evaluationExtractionRun")
   @CheckPolicy((policy) => policy.canUpdate())

@@ -8,10 +8,13 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- Display evaluation extraction run metrics in Bull Board
+- Retry failed evaluation extraction runs from the UI
 
 ### Changed
 
 ### Fixed
+- Recover stuck evaluation extraction worker jobs after rebooting
 
 ### Security
 

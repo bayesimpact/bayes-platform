@@ -6,7 +6,7 @@ import {
   UnprocessableEntityException,
 } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import type { Repository } from "typeorm"
+import { In, type Repository } from "typeorm"
 import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
@@ -41,7 +41,6 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
   private readonly runConnectRepository: ConnectRepository<EvaluationExtractionRun>
   private readonly runRepository: Repository<EvaluationExtractionRun>
   private readonly runRecordConnectRepository: ConnectRepository<EvaluationExtractionRunRecord>
-  private readonly runRecordRepository: Repository<EvaluationExtractionRunRecord>
   private readonly datasetConnectRepository: ConnectRepository<EvaluationExtractionDataset>
   private readonly datasetRecordConnectRepository: ConnectRepository<EvaluationExtractionDatasetRecord>
   private readonly agentConnectRepository: ConnectRepository<Agent>
@@ -73,7 +72,6 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
       evaluationExtractionRunRepository,
       "evaluationExtractionRun",
     )
-    this.runRecordRepository = evaluationExtractionRunRecordRepository
     this.runRecordConnectRepository = new ConnectRepository(
       evaluationExtractionRunRecordRepository,
       "evaluationExtractionRunRecord",
@@ -106,13 +104,16 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
       )
     }
 
-    if (run.status === "running" || run.status === "failed" || run.status === "cancelled") {
-      this.logger.warn(
-        `Evaluation run ${run.id} is being retried (previous status: "${run.status}"). Cleaning up partial results.`,
+    if (run.status === "cancelled") {
+      throw new UnprocessableEntityException(
+        `Evaluation run has been cancelled and cannot be re-executed.`,
       )
-      await this.runRecordRepository.delete({
-        evaluationExtractionRunId: run.id,
-      })
+    }
+
+    if (run.status === "running" || run.status === "failed") {
+      this.logger.warn(
+        `Evaluation run ${run.id} is being retried (previous status: "${run.status}").`,
+      )
     }
 
     run.status = "running"
@@ -137,19 +138,30 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
     run: EvaluationExtractionRun
     connectScope: RequiredConnectScope
   }): Promise<void> {
-    const { dataset, datasetRecords, agent } = await this.loadExecutionContext({
+    const { dataset, datasetRecords, agent, existingRunRecords } = await this.loadExecutionContext({
       run,
       connectScope,
     })
 
-    const summary = createInitialSummary({ recordCount: datasetRecords.length })
+    const summary = createInitialSummary({
+      recordCount: datasetRecords.length,
+      existingRunRecords,
+    })
     await this.initializeSummary({ run, summary })
+
+    const processedDatasetRecordIds = new Set(
+      existingRunRecords.map((record) => record.evaluationExtractionDatasetRecordId),
+    )
 
     for (const datasetRecord of datasetRecords) {
       const cancelled = await this.loadRunIfCancelled({ runId: run.id, connectScope })
       if (cancelled) {
         await this.finalizeCancelledRun({ run: cancelled, summary })
         return
+      }
+
+      if (processedDatasetRecordIds.has(datasetRecord.id)) {
+        continue
       }
 
       await this.processOneRecord({
@@ -178,6 +190,7 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
     dataset: EvaluationExtractionDataset
     datasetRecords: EvaluationExtractionDatasetRecord[]
     agent: Agent
+    existingRunRecords: EvaluationExtractionRunRecord[]
   }> {
     const dataset = await this.datasetConnectRepository.getOneById(
       connectScope,
@@ -198,7 +211,11 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
       throw new NotFoundException(`Agent with id ${run.agentId} not found`)
     }
 
-    return { dataset, datasetRecords, agent }
+    const existingRunRecords = await this.runRecordConnectRepository.find(connectScope, {
+      where: { evaluationExtractionRunId: run.id, status: In(["match", "mismatch"]) },
+    })
+
+    return { dataset, datasetRecords, agent, existingRunRecords }
   }
 
   private async initializeSummary({
@@ -338,6 +355,22 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
     await this.notifyStatusChanged(run)
   }
 
+  async markFailed(payload: ExecuteEvaluationExtractionRunJobPayload): Promise<void> {
+    const connectScope: RequiredConnectScope = {
+      organizationId: payload.organizationId,
+      projectId: payload.projectId,
+    }
+
+    const run = await this.runConnectRepository.getOneById(connectScope, payload.runId)
+    if (!run) {
+      throw new NotFoundException(`Evaluation run with id ${payload.runId} not found`)
+    }
+
+    run.status = "failed"
+    await this.runConnectRepository.saveOne(run)
+    await this.notifyStatusChanged(run)
+  }
+
   private async generateCsv(run: EvaluationExtractionRun): Promise<void> {
     try {
       await this.csvExportService.generateAndStoreDocument(run)
@@ -432,14 +465,24 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
 
 function createInitialSummary({
   recordCount,
+  existingRunRecords,
 }: {
   recordCount: number
+  existingRunRecords: EvaluationExtractionRunRecord[]
 }): EvaluationExtractionRunSummary {
+  let perfectMatches = 0
+  let mismatches = 0
+  let errors = 0
+  for (const record of existingRunRecords) {
+    if (record.status === "match") perfectMatches++
+    else if (record.status === "mismatch") mismatches++
+    else if (record.status === "error") errors++
+  }
   return {
     total: recordCount,
-    perfectMatches: 0,
-    mismatches: 0,
-    errors: 0,
-    running: recordCount,
+    perfectMatches,
+    mismatches,
+    errors,
+    running: recordCount - existingRunRecords.length,
   }
 }

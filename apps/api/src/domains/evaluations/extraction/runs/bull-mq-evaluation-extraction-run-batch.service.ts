@@ -23,9 +23,15 @@ export class BullMqEvaluationExtractionRunBatchService {
     })
   }
 
+  async retryExecuteRun(payload: ExecuteEvaluationExtractionRunJobPayload): Promise<void> {
+    const job = await this.evaluationExtractionRunQueue.getJob(payload.runId)
+    if (!job) return this.logger.log(`Job ${payload.runId} not found when attempting to retry`)
+    await job.retry()
+  }
+
   async removePendingJob(runId: string): Promise<void> {
     const job = await this.evaluationExtractionRunQueue.getJob(runId)
-    if (!job) return
+    if (!job) return this.logger.log(`Job ${runId} not found when attempting to remove`)
 
     const state = await job.getState()
     if (state === "active") {

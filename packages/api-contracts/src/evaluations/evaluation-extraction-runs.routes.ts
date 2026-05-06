@@ -21,6 +21,10 @@ export const EvaluationExtractionRunsRoutes = {
     method: "post",
     path: `${prefix}/:evaluationExtractionRunId/execute`,
   }),
+  retryOne: defineRoute<ResponseData<EvaluationExtractionRunDto>>({
+    method: "post",
+    path: `${prefix}/:evaluationExtractionRunId/retry`,
+  }),
   cancelOne: defineRoute<ResponseData<EvaluationExtractionRunDto>>({
     method: "post",
     path: `${prefix}/:evaluationExtractionRunId/cancel`,

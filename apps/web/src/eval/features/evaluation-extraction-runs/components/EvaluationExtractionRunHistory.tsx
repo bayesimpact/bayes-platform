@@ -1,4 +1,3 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
 import {
   Card,
   CardContent,
@@ -9,26 +8,9 @@ import {
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { buildSince } from "@/common/utils/build-date"
-import type {
-  EvaluationExtractionRun,
-  EvaluationExtractionRunStatus,
-} from "@/eval/features/evaluation-extraction-runs/evaluation-extraction-runs.models"
+import type { EvaluationExtractionRun } from "@/eval/features/evaluation-extraction-runs/evaluation-extraction-runs.models"
 import { useEvaluationExtractionRunPath } from "@/eval/hooks/use-evaluation-extraction-run-path"
-
-function RunStatusBadge({ status }: { status: EvaluationExtractionRunStatus }) {
-  const { t } = useTranslation()
-  const variant =
-    status === "completed"
-      ? "success"
-      : status === "failed"
-        ? "destructive"
-        : status === "running"
-          ? "default"
-          : status === "cancelled"
-            ? "outline"
-            : "secondary"
-  return <Badge variant={variant}>{t(`evaluationExtractionRun:results.${status}`)}</Badge>
-}
+import { RunStatusBadge } from "./RunStatusBadge"
 
 export function EvaluationExtractionRunHistory({ runs }: { runs: EvaluationExtractionRun[] }) {
   const { t } = useTranslation()

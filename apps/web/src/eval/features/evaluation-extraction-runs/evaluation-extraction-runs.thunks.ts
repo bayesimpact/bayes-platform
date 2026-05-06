@@ -85,12 +85,31 @@ const createAndExecute = createAsyncThunk<
       wantedIds: ["organizationId", "projectId"],
     })
     const run = await services.evaluationExtractionRuns.createOne({ ...params, payload })
-    // Fire-and-forget: enqueue execution via BullMQ worker, don't await completion
     await services.evaluationExtractionRuns.executeOne({
       ...params,
       evaluationExtractionRunId: run.id,
     })
     return run
+  },
+)
+
+const retryOne = createAsyncThunk<
+  EvaluationExtractionRun,
+  {
+    evaluationExtractionRunId: string
+  },
+  ThunkConfig
+>(
+  "evaluationExtractionRuns/retryOne",
+  async ({ evaluationExtractionRunId }, { extra: { services }, getState }) => {
+    const params = getCurrentIds({
+      state: getState(),
+      wantedIds: ["organizationId", "projectId"],
+    })
+    return await services.evaluationExtractionRuns.retryOne({
+      ...params,
+      evaluationExtractionRunId,
+    })
   },
 )
 
@@ -145,10 +164,11 @@ const streamRunStatus = createAsyncThunk<void, void, ThunkConfigWithSignal>(
 )
 
 export const evaluationExtractionRunsThunks = {
+  cancelOne,
+  createAndExecute,
+  retryOne,
   getAll,
   getOne,
   getRecords,
-  createAndExecute,
-  cancelOne,
   streamRunStatus,
 }
