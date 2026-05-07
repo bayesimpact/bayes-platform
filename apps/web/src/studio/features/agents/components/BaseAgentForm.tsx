@@ -387,7 +387,7 @@ export function BaseAgentForm({
                         />
                       )}
                     />
-                    {errors.outputJsonSchema && (
+                    {typeof errors.outputJsonSchema?.message === "string" && (
                       <p className="text-sm text-destructive">{errors.outputJsonSchema.message}</p>
                     )}
                   </Field>

@@ -325,4 +325,46 @@ describe("Agents - updateOne", () => {
     })
     expect(activeCategory).not.toBeNull()
   })
+
+  it("should persist an outputJsonSchema containing if/then/else conditionals", async () => {
+    const { agent } = await createContext()
+
+    const conditionalSchema = {
+      type: "object" as const,
+      properties: {
+        claim_type: {
+          type: "string" as const,
+          enum: ["medical", "dental"],
+        },
+        provider_npi: { type: "string" as const },
+        tooth_number: { type: "number" as const },
+      },
+      required: ["claim_type"],
+      if: {
+        properties: { claim_type: { const: "medical" } },
+      },
+      // biome-ignore lint/suspicious/noThenProperty: JSON Schema 'then' keyword
+      then: { required: ["provider_npi"] },
+      else: { required: ["tooth_number"] },
+    }
+
+    const response = await subject({
+      payload: {
+        ...agent,
+        documentTagIds: [],
+        documentsRagMode: DocumentsRagMode.All,
+        outputJsonSchema: conditionalSchema,
+        tagsToAdd: [],
+        tagsToRemove: [],
+        projectAgentCategoryIds: [],
+      },
+    })
+
+    expectResponse(response, 200)
+
+    const updatedAgent = await repositories.agentRepository.findOne({
+      where: { id: agentId },
+    })
+    expect(updatedAgent?.outputJsonSchema).toEqual(conditionalSchema)
+  })
 })

@@ -3,6 +3,7 @@ import { Item, ItemHeader, ItemTitle } from "@caseai-connect/ui/shad/item"
 import { Separator } from "@caseai-connect/ui/shad/separator"
 import { useTranslation } from "react-i18next"
 import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
+import { collectFormDisplayKeys } from "@/common/features/agents/agent-sessions/form/output-schema-keys.helpers"
 import type { Agent } from "@/common/features/agents/agents.models"
 
 export function FormResult({
@@ -53,15 +54,16 @@ export function FormResult({
 }
 
 function buildForm({ agent, agentSession }: { agent: Agent; agentSession: FormAgentSession }) {
-  const properties = Object.fromEntries(
-    Object.entries(agent.outputJsonSchema?.properties ?? {}).map(([key]) => [key, ""]),
-  )
-  if (agentSession.result) {
-    for (const key of Object.keys(properties)) {
-      if (key in agentSession.result) {
-        properties[key] = String(agentSession.result[key])
-      }
-    }
+  const keys = collectFormDisplayKeys(agent.outputJsonSchema, agentSession.result)
+  const form: Record<string, string> = {}
+  for (const key of keys) {
+    const value = agentSession.result?.[key]
+    form[key] = value === undefined || value === null ? "" : formatValue(value)
   }
-  return properties
+  return form
+}
+
+function formatValue(value: unknown): string {
+  if (typeof value === "object") return JSON.stringify(value)
+  return String(value)
 }

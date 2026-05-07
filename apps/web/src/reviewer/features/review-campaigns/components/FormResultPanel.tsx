@@ -1,6 +1,7 @@
 import type { ReviewerFormResultDto } from "@caseai-connect/api-contracts"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { useTranslation } from "react-i18next"
+import { collectFormDisplayKeys } from "@/common/features/agents/agent-sessions/form/output-schema-keys.helpers"
 
 type Props = {
   result: ReviewerFormResultDto
@@ -15,16 +16,14 @@ type SchemaProperty = {
 /**
  * Read-only rendering of a form-agent session's collected JSON.
  *
- * Shape of the incoming shapes:
- *  - `schema` is the agent's `outputJsonSchema` — we look at `schema.properties`
- *    to build the ordered list of fields and their labels.
- *  - `value` is the session's `result` (the collected Record) or null if the
- *    user abandoned mid-session.
+ * Field list is built by walking `schema.properties` and any conditional
+ * `then` / `else` branches, then unioned with the keys actually present in
+ * `value`. `value` is null if the user abandoned the session mid-flow.
  */
 export function FormResultPanel({ result }: Props) {
   const { t } = useTranslation()
   const properties = extractProperties(result.schema)
-  const keys = Object.keys(properties)
+  const keys = collectFormDisplayKeys(result.schema, result.value)
 
   if (keys.length === 0) {
     return (
@@ -74,23 +73,33 @@ export function FormResultPanel({ result }: Props) {
 }
 
 function extractProperties(schema: Record<string, unknown>): Record<string, SchemaProperty> {
-  const rawProperties = schema.properties
-  if (!rawProperties || typeof rawProperties !== "object") return {}
-  const entries = Object.entries(rawProperties as Record<string, unknown>).map(
-    ([key, value]): [string, SchemaProperty] => {
-      if (!value || typeof value !== "object") return [key, {}]
-      const record = value as Record<string, unknown>
-      return [
-        key,
-        {
-          title: typeof record.title === "string" ? record.title : undefined,
-          description: typeof record.description === "string" ? record.description : undefined,
-          type: typeof record.type === "string" ? record.type : undefined,
-        },
-      ]
-    },
-  )
-  return Object.fromEntries(entries)
+  const collected: Record<string, SchemaProperty> = {}
+  collectProperties(schema, collected)
+  return collected
+}
+
+function collectProperties(node: unknown, into: Record<string, SchemaProperty>) {
+  if (!node || typeof node !== "object") return
+  const record = node as Record<string, unknown>
+  const rawProperties = record.properties
+  if (rawProperties && typeof rawProperties === "object") {
+    for (const [key, value] of Object.entries(rawProperties as Record<string, unknown>)) {
+      if (key in into) continue
+      if (!value || typeof value !== "object") {
+        into[key] = {}
+        continue
+      }
+      const valueRecord = value as Record<string, unknown>
+      into[key] = {
+        title: typeof valueRecord.title === "string" ? valueRecord.title : undefined,
+        description:
+          typeof valueRecord.description === "string" ? valueRecord.description : undefined,
+        type: typeof valueRecord.type === "string" ? valueRecord.type : undefined,
+      }
+    }
+  }
+  collectProperties(record.then, into)
+  collectProperties(record.else, into)
 }
 
 function RenderedValue({ value }: { value: unknown }) {

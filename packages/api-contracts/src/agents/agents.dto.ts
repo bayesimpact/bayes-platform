@@ -66,18 +66,58 @@ export type AgentDto = {
   usedProjectAgentCategoryIds: string[]
 }
 
+const SUPPORTED_JSON_SCHEMA_TYPES = [
+  "string",
+  "number",
+  "boolean",
+  "object",
+  "array",
+  "null",
+  "integer",
+] as const
+
+const jsonSchemaNodeSchema: z.ZodType<unknown> = z.lazy(() =>
+  z
+    .object({
+      type: z
+        .union([z.enum(SUPPORTED_JSON_SCHEMA_TYPES), z.array(z.enum(SUPPORTED_JSON_SCHEMA_TYPES))])
+        .optional(),
+      title: z.string().optional(),
+      description: z.string().optional(),
+      enum: z.array(z.unknown()).optional(),
+      const: z.unknown().optional(),
+      format: z.string().optional(),
+      pattern: z.string().optional(),
+      minimum: z.number().optional(),
+      maximum: z.number().optional(),
+      minLength: z.number().int().nonnegative().optional(),
+      maxLength: z.number().int().nonnegative().optional(),
+      properties: z.record(z.string(), jsonSchemaNodeSchema).optional(),
+      required: z.array(z.string()).optional(),
+      items: jsonSchemaNodeSchema.optional(),
+      if: jsonSchemaNodeSchema.optional(),
+      // biome-ignore lint/suspicious/noThenProperty: JSON Schema 'then' keyword
+      then: jsonSchemaNodeSchema.optional(),
+      else: jsonSchemaNodeSchema.optional(),
+      additionalProperties: z.union([z.boolean(), jsonSchemaNodeSchema]).optional(),
+    })
+    .catchall(z.unknown()),
+)
+
 export const outputJsonSchemaSchema = z
   .object({
     type: z.literal("object"),
+    title: z.string().optional(),
+    description: z.string().optional(),
+    properties: z.record(z.string(), jsonSchemaNodeSchema),
     required: z.array(z.string()).optional(),
-    properties: z.record(
-      z.string(),
-      z.object({
-        type: z.enum(["string", "number", "boolean", "object", "array"]),
-        description: z.string().optional(),
-      }),
-    ),
+    if: jsonSchemaNodeSchema.optional(),
+    // biome-ignore lint/suspicious/noThenProperty: JSON Schema 'then' keyword
+    then: jsonSchemaNodeSchema.optional(),
+    else: jsonSchemaNodeSchema.optional(),
+    additionalProperties: z.union([z.boolean(), jsonSchemaNodeSchema]).optional(),
   })
+  .catchall(z.unknown())
   .refine((data) => {
     if (data.required) {
       return data.required.every((requiredKey) => requiredKey in data.properties)
