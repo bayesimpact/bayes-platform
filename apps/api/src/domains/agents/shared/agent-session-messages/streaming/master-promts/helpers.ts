@@ -9,7 +9,9 @@ Always answer in ${locale === "en" ? "English" : locale === "fr" ? "French" : "u
       `.trim(),
 
   tools: (names: ToolName[]) =>
-    `## Tools:
+    names.length === 0
+      ? ""
+      : `## Tools:
 ${names
   .map((name) => {
     switch (name) {

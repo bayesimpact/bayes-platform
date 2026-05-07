@@ -13,18 +13,22 @@ export abstract class ServiceWithLLM {
     mockLlmProvider,
     vertexLlmProvider,
     medGemmaLlmProvider,
+    gemmaLlmProvider,
   }: {
     mockLlmProvider: LLMProvider
     vertexLlmProvider: LLMProvider
     medGemmaLlmProvider: LLMProvider
+    gemmaLlmProvider: LLMProvider
   }) {
     this._mockLlmProvider = mockLlmProvider
     this.vertexLlmProvider = vertexLlmProvider
     this.medGemmaLlmProvider = medGemmaLlmProvider
+    this.gemmaLlmProvider = gemmaLlmProvider
   }
   private readonly _mockLlmProvider: LLMProvider
   private readonly vertexLlmProvider: LLMProvider
   private readonly medGemmaLlmProvider: LLMProvider
+  private readonly gemmaLlmProvider: LLMProvider
   protected getProviderForModel(model: string): LLMProvider {
     const provider = AgentModelToAgentProvider[model]
     switch (provider) {
@@ -34,6 +38,8 @@ export abstract class ServiceWithLLM {
         return this.vertexLlmProvider
       case AgentProvider.MedGemma:
         return this.medGemmaLlmProvider
+      case AgentProvider.Gemma:
+        return this.gemmaLlmProvider
       default:
         throw new NotImplementedException(`not supported llm provider: ${provider}`)
     }

@@ -1,6 +1,13 @@
 import { AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
 import { NotImplementedException } from "@nestjs/common"
-import { generateText, jsonSchema, Output, ToolLoopAgent } from "ai"
+import {
+  type FilePart,
+  generateText,
+  type JSONSchema7,
+  jsonSchema,
+  Output,
+  ToolLoopAgent,
+} from "ai"
 import { type ZodObject, z } from "zod"
 import type {
   LLMChatMessage,
@@ -164,13 +171,24 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
       experimental_telemetry: {
         isEnabled: true,
         functionId: "LLMProvider.generateObject",
-        metadata: this.buildMetadata({ config, metadata }),
+        metadata: this.buildMetadata({
+          config,
+          metadata,
+          schema: schema.toJSONSchema() as JSONSchema7,
+        }),
       },
       output: Output.object({
         schema: schema,
       }),
       providerOptions: {
-        custom: { callOrigin, metadata: this.buildMetadata({ config, metadata }) },
+        custom: {
+          callOrigin,
+          metadata: this.buildMetadata({
+            config,
+            metadata,
+            schema: schema.toJSONSchema() as JSONSchema7,
+          }),
+        },
       },
     })
     return schema.parse(res.output)
@@ -208,6 +226,16 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
         ],
       }
     }
+    //Gemma restriction: no pdf
+    if (AgentModelToAgentProvider[config.model] === AgentProvider.Gemma) {
+      if (Array.isArray(message.content)) {
+        const filePart = message.content.find((p): p is FilePart => p.type === "file")
+        if (filePart?.mediaType === "application/pdf") {
+          throw new Error(`MedGemma model cannot process ${filePart?.mediaType} file`)
+        }
+      }
+    }
+
     const aiSDKMessages: LLMChatMessage[] = [message]
       .map((currentMessage) => {
         if (currentMessage.role === "system") {
@@ -235,13 +263,27 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
       experimental_telemetry: {
         isEnabled: true,
         functionId: "LLMProvider.generateStructuredOutput",
-        metadata: this.buildMetadata({ config, metadata }),
+        metadata: this.buildMetadata({
+          config,
+          metadata,
+          schema,
+        }),
       },
       providerOptions: {
-        custom: { callOrigin, metadata: this.buildMetadata({ config, metadata }) },
+        custom: {
+          callOrigin,
+          metadata: this.buildMetadata({
+            config,
+            metadata,
+            schema,
+          }),
+        },
       },
     })
-    if (AgentModelToAgentProvider[config.model] === AgentProvider.MedGemma) {
+    if (
+      AgentModelToAgentProvider[config.model] === AgentProvider.MedGemma ||
+      AgentModelToAgentProvider[config.model] === AgentProvider.Gemma
+    ) {
       // @ts-expect-error
       return JSON.parse(result?.steps[0]?.content[0]?.text)
     }
@@ -291,9 +333,11 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
   private buildMetadata({
     config,
     metadata,
+    schema,
   }: {
     config: LLMConfig
     metadata: LLMMetadata
+    schema?: JSONSchema7
   }): Record<string, string | number | string[]> {
     return removeNullish({
       langfuseTraceId: metadata.traceId,
@@ -301,6 +345,8 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
       userId: `o:${metadata.organizationId} / p:${metadata.projectId}`,
       tags: [...this.getTags(config), ...(metadata?.tags || [])],
       currentTurn: metadata.currentTurn,
+      outputSchema: JSON.stringify(schema),
+      availableTools: JSON.stringify(config.tools),
     })
   }
 

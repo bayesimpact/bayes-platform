@@ -65,8 +65,10 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
     vertexLlmProvider: LLMProvider,
     @Inject("MedGemmaLLMProvider")
     medGemmaLlmProvider: LLMProvider,
+    @Inject("GemmaLLMProvider")
+    gemmaLlmProvider: LLMProvider,
   ) {
-    super({ mockLlmProvider, vertexLlmProvider, medGemmaLlmProvider })
+    super({ mockLlmProvider, vertexLlmProvider, medGemmaLlmProvider, gemmaLlmProvider })
     this.runRepository = evaluationExtractionRunRepository
     this.runConnectRepository = new ConnectRepository(
       evaluationExtractionRunRepository,

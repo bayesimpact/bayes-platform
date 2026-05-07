@@ -13,6 +13,10 @@ export const FeatureFlags = [
     description: "Access and utilize gemma models.",
   },
   {
+    key: "medgemma",
+    description: "Access and utilize medgemma models.",
+  },
+  {
     key: "project-analytics",
     description: "View project-level analytics and usage charts in the studio.",
   },

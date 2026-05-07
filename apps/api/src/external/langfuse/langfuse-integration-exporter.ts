@@ -2,7 +2,7 @@
 
 import type { ExportResult, ExportResultCode } from "@opentelemetry/core"
 import type { ReadableSpan, SpanExporter } from "@opentelemetry/sdk-trace-base"
-import type { LangfusePromptRecord } from "langfuse"
+import type { LangfuseGenerationClient, LangfusePromptRecord } from "langfuse"
 import type { components } from "langfuse-core"
 import { Langfuse, type LangfuseOptions } from "langfuse-v2"
 
@@ -83,125 +83,97 @@ export class LangfuseIntegrationExporter implements SpanExporter {
   }
 
   private processTraceSpans(traceId: string, spans: ReadableSpan[]): void {
-    const rootSpan = spans.find((span) => this.isRootAiSdkSpan(span, spans))
-    if (!rootSpan) {
-      this.logDebug("No root span found with AI SDK spans, skipping trace")
-
-      return
-    }
-
     const userProvidedTraceId = this.parseTraceId(spans)
     const finalTraceId = userProvidedTraceId ?? traceId
     const langfusePrompt = this.parseLangfusePromptTraceAttribute(spans)
     const updateParent = this.parseLangfuseUpdateParentTraceAttribute(spans)
     const currentTurn = this.parseCurrentTurnTraceAttribute(spans)
 
-    const traceParams = {
-      userId: this.parseUserIdTraceAttribute(spans),
-      sessionId: this.parseSessionIdTraceAttribute(spans),
-      tags:
-        this.parseTagsTraceAttribute(spans).length > 0
-          ? this.parseTagsTraceAttribute(spans)
-          : undefined,
-      name: this.parseTraceName(spans) ?? rootSpan?.name,
-      input: this.parseInput(rootSpan),
-      output: this.parseOutput(rootSpan),
-      metadata: this.filterTraceAttributes(this.parseMetadataTraceAttribute(spans)),
-    }
-
-    const finalTraceParams = {
-      id: finalTraceId,
-      ...(updateParent ? traceParams : {}),
-    }
+    const finalTraceParams = updateParent
+      ? {
+          id: finalTraceId,
+          userId: this.parseUserIdTraceAttribute(spans),
+          sessionId: this.parseSessionIdTraceAttribute(spans),
+          tags:
+            this.parseTagsTraceAttribute(spans).length > 0
+              ? this.parseTagsTraceAttribute(spans)
+              : undefined,
+          name: this.parseTraceName(spans),
+          input: "<see GENERATION for details>",
+          output: "<see GENERATION for details>",
+          // metadata: this.filterTraceAttributes(this.parseMetadataTraceAttribute(spans)),
+          metadata: this.parseMetadataTraceAttribute(spans),
+        }
+      : { id: finalTraceId }
 
     this.langfuse.trace(finalTraceParams)
 
-    let loopId = 0
     for (const span of spans.sort((a, b) => {
       const [as, an] = a.startTime
       const [bs, bn] = b.startTime
       if (as !== bs) return as - bs
       return an - bn
     })) {
-      loopId++
       if (this.isGenerationSpan(span)) {
-        this.processSpanAsLangfuseGeneration(
-          finalTraceId,
-          span,
-          this.isRootAiSdkSpan(span, spans),
-          loopId,
-          langfusePrompt,
-        )
+        this.processSpanAsLangfuseGeneration(finalTraceId, span, langfusePrompt)
       } else {
-        this.processSpanAsLangfuseSpan(
-          finalTraceId,
-          span,
-          this.isRootAiSdkSpan(span, spans),
-          loopId,
-          currentTurn
-            ? `Turn #${currentTurn}`
-            : userProvidedTraceId
-              ? this.parseTraceName(spans)
-              : undefined,
-        )
+        const spanName = currentTurn
+          ? `Turn #${currentTurn}`
+          : userProvidedTraceId
+            ? this.parseTraceName(spans)
+            : undefined
+
+        this.processSpanAsLangfuseSpan(finalTraceId, span, spanName)
       }
     }
   }
 
-  private processSpanAsLangfuseSpan(
-    traceId: string,
-    span: ReadableSpan,
-    isRootSpan: boolean,
-    loopId: number,
-    rootSpanName?: string,
-  ): void {
+  private processSpanAsLangfuseSpan(traceId: string, span: ReadableSpan, spanName?: string): void {
     const spanContext = span.spanContext()
     const attributes = span.attributes
     const isToolCall = "ai.toolCall.name" in attributes
 
+    const parentObservationId = this.getParentSpanId(span) ?? undefined
+
     if (isToolCall)
       this.langfuse.event({
         traceId,
-        parentObservationId: isRootSpan ? undefined : this.getParentSpanId(span),
+        parentObservationId,
         id: spanContext.spanId,
         name: `ai.toolCall ${attributes["ai.toolCall.name"]?.toString()}`,
         startTime: this.hrTimeToDate(span.startTime),
         input: this.parseInput(span),
         output: this.parseOutput(span),
-
         // metadata: this.filterTraceAttributes(this.parseSpanMetadata(span)),
-        metadata: { ...this.parseSpanMetadata(span), loopId: loopId },
+        metadata: this.parseSpanMetadata(span),
       })
     else
       this.langfuse.span({
         traceId,
-        parentObservationId: isRootSpan ? undefined : this.getParentSpanId(span),
+        parentObservationId,
         id: spanContext.spanId,
-        name: isRootSpan && rootSpanName ? rootSpanName : span.name,
+        name: spanName ? spanName : span.name,
         startTime: this.hrTimeToDate(span.startTime),
         endTime: this.hrTimeToDate(span.endTime),
 
         input: this.parseInput(span),
         output: this.parseOutput(span),
-
         // metadata: this.filterTraceAttributes(this.parseSpanMetadata(span)),
-        metadata: { ...this.parseSpanMetadata(span), loopId: loopId },
+        metadata: this.parseSpanMetadata(span),
       })
   }
 
   private processSpanAsLangfuseGeneration(
     traceId: string,
     span: ReadableSpan,
-    isRootSpan: boolean,
-    loopId: number,
     langfusePrompt: LangfusePromptRecord | undefined,
   ): void {
     const spanContext = span.spanContext()
     const attributes = span.attributes
 
-    this.langfuse.generation({
+    const generation = this.langfuse.generation({
       traceId,
-      parentObservationId: isRootSpan ? undefined : this.getParentSpanId(span),
+      parentObservationId: this.getParentSpanId(span) ?? undefined,
       id: spanContext.spanId,
       name: span.name,
       startTime: this.hrTimeToDate(span.startTime),
@@ -271,9 +243,36 @@ export class LangfuseIntegrationExporter implements SpanExporter {
       output: this.parseOutput(span),
 
       // metadata: this.filterTraceAttributes(this.parseSpanMetadata(span)),
-      metadata: { ...this.parseSpanMetadata(span), loopId: loopId },
+      metadata: this.parseSpanMetadata(span),
       prompt: langfusePrompt,
     })
+    this.checkErrors(span, generation)
+  }
+
+  private checkErrors(span: ReadableSpan, generation: LangfuseGenerationClient) {
+    if (span.events && span.events.length > 0) {
+      if (span.events[0]?.name === "exception") {
+        const event = span.events[0]
+        const attributes = event.attributes ?? {}
+        let message = "unknown error"
+        if (
+          typeof attributes["exception.type"] === "string" &&
+          typeof attributes["exception.message"] === "string"
+        )
+          message = `${attributes["exception.type"]} : ${attributes["exception.message"]}`
+        generation.update({
+          level: "ERROR",
+          statusMessage: message?.toString(),
+        })
+      }
+    }
+    const { isError, message } = this.checkErrorInToolResult(span)
+    if (isError) {
+      generation.update({
+        level: "ERROR",
+        statusMessage: message?.toString(),
+      })
+    }
   }
 
   private parseUsageDetails(attributes: SpanExporterAttributes): SpanExporterAttributes {
@@ -304,7 +303,6 @@ export class LangfuseIntegrationExporter implements SpanExporter {
 
       if (key.startsWith(metadataPrefix) && value != null) {
         const strippedKey = key.slice(metadataPrefix.length)
-
         acc[strippedKey] = value
       }
 
@@ -315,6 +313,8 @@ export class LangfuseIntegrationExporter implements SpanExporter {
         "ai.schema",
         "ai.response.providerMetadata",
         "ai.provider.model",
+        "ai.model.provider",
+        "ai.model.id",
         "ai.settings.temperature",
         "ai.settings.maxRetries",
       ]
@@ -339,13 +339,6 @@ export class LangfuseIntegrationExporter implements SpanExporter {
       // biome-ignore lint/suspicious/noExplicitAny: specific
       (span as any).instrumentationLibrary?.name ?? (span as any).instrumentationScope?.name
     return instrumentationScopeName === "ai"
-  }
-
-  private isRootAiSdkSpan(span: ReadableSpan, spans: ReadableSpan[]): boolean {
-    const spanIds = new Set(spans.map((span) => span.spanContext().spanId))
-    const parentSpanId = this.getParentSpanId(span)
-
-    return !parentSpanId || !spanIds.has(parentSpanId)
   }
 
   private logDebug(message: string, spans?: ReadableSpan[]): void {
@@ -382,6 +375,28 @@ export class LangfuseIntegrationExporter implements SpanExporter {
     await this.langfuse.shutdownAsync()
   }
 
+  private checkErrorInToolResult(span: ReadableSpan): { isError: boolean; message?: string } {
+    //fixme DOO: fix the flag error is on the previous generation :(
+    let isError = false
+    let message: string = ""
+    const attributes = span.attributes
+    const toolCalls =
+      "ai.response.toolCalls" in attributes ? (attributes["ai.response.toolCalls"] as string) : "[]"
+    const toolCallsArray = JSON.parse(toolCalls)
+    if (toolCalls && toolCallsArray?.length > 0) {
+      for (const toolCall of toolCallsArray) {
+        const error = "error" in toolCall ? toolCall.error : undefined
+        if (error) {
+          message += `${JSON.stringify(error)}
+`
+          isError = true
+        }
+      }
+    }
+
+    return { isError, message }
+  }
+
   private parseInput(span: ReadableSpan): (typeof span.attributes)[0] | undefined {
     const attributes = span.attributes
     const tools = "ai.prompt.tools" in attributes ? attributes["ai.prompt.tools"] : []
@@ -392,16 +407,50 @@ export class LangfuseIntegrationExporter implements SpanExporter {
       chatMessages = [attributes["ai.prompt.messages"]]
       try {
         chatMessages = JSON.parse(attributes["ai.prompt.messages"] as string)
+        chatMessages = this.removeFileBase64Data(chatMessages)
+      } catch {}
+    }
+
+    // biome-ignore lint/suspicious/noExplicitAny: custom
+    let aiPrompt: any
+    if ("ai.prompt" in attributes) {
+      aiPrompt = attributes["ai.prompt"]
+      try {
+        aiPrompt = JSON.parse(attributes["ai.prompt"] as string)
+        aiPrompt = this.removeFileBase64Data(aiPrompt)
       } catch {}
     }
 
     return "ai.prompt.messages" in attributes
       ? [...chatMessages, ...(Array.isArray(tools) ? tools : [])]
       : "ai.prompt" in attributes
-        ? attributes["ai.prompt"]
+        ? aiPrompt
         : "ai.toolCall.args" in attributes
           ? attributes["ai.toolCall.args"]
           : undefined
+  }
+  // biome-ignore lint/suspicious/noExplicitAny: custom
+  private removeFileBase64Data(input: any): any {
+    if (input === null || typeof input !== "object") return input
+
+    if (Array.isArray(input)) {
+      return input.map((i) => this.removeFileBase64Data(i))
+    }
+
+    if (
+      typeof input.type === "string" &&
+      input.type === "file" &&
+      (typeof input.data === "string" || typeof input.data === "object")
+    ) {
+      return {
+        ...input,
+        data: `<not available>`,
+      }
+    }
+
+    return Object.fromEntries(
+      Object.entries(input).map(([key, value]) => [key, this.removeFileBase64Data(value)]),
+    )
   }
 
   private parseOutput(span: ReadableSpan): (typeof span.attributes)[0] | undefined {
@@ -521,6 +570,7 @@ export class LangfuseIntegrationExporter implements SpanExporter {
     }, {} as SpanExporterAttributes)
   }
 
+  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: for later use
   private filterTraceAttributes(obj: SpanExporterAttributes): SpanExporterAttributes {
     const langfuseTraceAttributes = [
       "userId",

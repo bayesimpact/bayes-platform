@@ -52,12 +52,13 @@ export class AISDKMedGemmaProvider extends AISDKLLMProviderBase {
     callOrigin: CallOrigin
   }): string {
     if (callOrigin === CallOrigin.streamChatResponse_withTools && config.tools) {
-      const toolDocs = this.convertToolsToDocs(config.tools) ?? [].join("\n")
+      const toolDocs = this.convertToolsToDocs(config.tools)
+      if (!toolDocs) return systemPrompt
       return `${systemPrompt}
 
 ##TOOLS
 You have access to the following tools:
-${toolDocs}
+${toolDocs.join("\n")}
 
 (CRITICAL) To call a tool, you MUST output valid JSON exactly like this:
         {type:"tool", name: "toolName", arguments: '{"key1": "value1", "key2": "value2", ... , "keyX": "valueX" }'}
@@ -69,7 +70,7 @@ ${toolDocs}
   }
 
   private convertToolsToDocs(tools: ToolSet) {
-    if (!tools) return undefined
+    if (!tools || Object.entries(tools).length === 0) return undefined
     return Object.entries(tools).map(
       // biome-ignore lint/suspicious/noExplicitAny: custom unknown props
       ([name, tool]: any) =>
