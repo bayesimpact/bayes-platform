@@ -49,7 +49,7 @@ jobs:
           fetch-depth: 1
 
       - name: Run tests
-        run: make tests
+        run: TEST_WORKERS=5 make tests-parallel
 
       - name: Notify on failure
         if: ${{ failure() }}
