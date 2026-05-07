@@ -3,7 +3,7 @@ import {
   type ProjectMembershipDto,
   ProjectMembershipRoutes,
 } from "@caseai-connect/api-contracts"
-import { Body, Controller, Delete, Get, Post, Req, UseGuards } from "@nestjs/common"
+import { Controller, Delete, Get, Req, UseGuards } from "@nestjs/common"
 import type {
   EndpointRequestWithProject,
   EndpointRequestWithProjectMembership,
@@ -63,24 +63,6 @@ export class ProjectMembershipsController {
   }
 
   // TODO: edit role
-
-  @Post(ProjectMembershipRoutes.createOne.path)
-  @CheckPolicy((policy) => policy.canCreate())
-  @TrackActivity({ action: "projectMembership.inviteMany" })
-  async inviteProjectMembers(
-    @Req() request: EndpointRequestWithProject,
-    @Body() { payload }: typeof ProjectMembershipRoutes.createOne.request,
-  ): Promise<typeof ProjectMembershipRoutes.createOne.response> {
-    const { project, user } = request
-
-    const memberships = await this.projectMembershipsService.inviteProjectMembers({
-      projectId: project.id,
-      emails: payload.emails,
-      inviterName: user.name ?? user.email,
-    })
-
-    return { data: memberships.map(toDto) }
-  }
 
   @Delete(ProjectMembershipRoutes.deleteOne.path)
   @CheckPolicy((policy) => policy.canDelete())

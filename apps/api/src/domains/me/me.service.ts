@@ -56,22 +56,4 @@ export class MeService {
       reviewCampaignMemberships,
     }
   }
-
-  async getPendingInvitations(userId: string): Promise<{
-    projectInvitations: ProjectMembership[]
-    agentInvitations: AgentMembership[]
-  }> {
-    const [projectInvitations, agentInvitations] = await Promise.all([
-      this.projectMembershipRepository.find({
-        where: { userId, status: "sent" },
-        relations: ["project", "project.organization"],
-      }),
-      this.agentMembershipRepository.find({
-        where: { userId, status: "sent" },
-        relations: ["agent", "agent.project", "agent.project.organization"],
-      }),
-    ])
-
-    return { projectInvitations, agentInvitations }
-  }
 }

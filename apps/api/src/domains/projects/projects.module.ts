@@ -12,6 +12,7 @@ import { User } from "@/domains/users/user.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { AgentsModule } from "../agents/agents.module"
 import { FeatureFlag } from "../feature-flags/feature-flag.entity"
+import { InvitationsModule } from "../invitations/invitations.module"
 import { ProjectMembership } from "./memberships/project-membership.entity"
 import { ProjectMembershipsController } from "./memberships/project-memberships.controller"
 import { ProjectMembershipsService } from "./memberships/project-memberships.service"
@@ -32,6 +33,7 @@ import { ProjectsService } from "./projects.service"
     ]),
     OrganizationsModule,
     forwardRef(() => AgentsModule),
+    forwardRef(() => InvitationsModule),
     UsersModule,
     AuthModule,
   ],

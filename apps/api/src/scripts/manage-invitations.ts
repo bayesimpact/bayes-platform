@@ -13,6 +13,7 @@ const logger = new Logger("ManageInvitations")
 
 type PendingInvitation = {
   index: number
+  invitationId: string
   membershipId: string
   email: string
   userName: string | null
@@ -27,28 +28,35 @@ type PendingInvitation = {
 async function listPendingInvitations(dataSource: DataSource): Promise<PendingInvitation[]> {
   const rows = await dataSource
     .createQueryBuilder()
-    .select("pm.id", "membershipId")
+    .select("inv.id", "invitationId")
+    .addSelect("pm.id", "membershipId")
     .addSelect("u.email", "email")
     .addSelect("u.name", "userName")
     .addSelect("u.auth0_id", "auth0Id")
     .addSelect("p.name", "projectName")
     .addSelect("o.name", "organizationName")
-    .addSelect("pm.role", "role")
-    .addSelect("pm.created_at", "sentAt")
-    .from("project_membership", "pm")
-    .innerJoin("user", "u", "pm.user_id = u.id")
-    .innerJoin("project", "p", "pm.project_id = p.id")
+    .addSelect("inv.role", "role")
+    .addSelect("inv.invited_at", "sentAt")
+    .from("invitation", "inv")
+    .innerJoin("user", "u", "inv.user_id = u.id")
+    .innerJoin("project", "p", "inv.target_id = p.id AND inv.target_type = 'project'")
     .innerJoin("organization", "o", "p.organization_id = o.id")
-    .where("pm.status = :status", { status: "sent" })
+    .innerJoin(
+      "project_membership",
+      "pm",
+      "pm.project_id = inv.target_id AND pm.user_id = inv.user_id",
+    )
+    .where("inv.status = :status", { status: "pending" })
     .orderBy("o.name", "ASC")
-    .addOrderBy("pm.created_at", "ASC")
+    .addOrderBy("inv.invited_at", "ASC")
     .getRawMany()
 
   return rows.map((row: Record<string, unknown>, index: number) => {
     const auth0Id = row.auth0Id as string
     return {
       index: index + 1,
-      membershipId: row.membershipId,
+      invitationId: row.invitationId as string,
+      membershipId: row.membershipId as string,
       email: row.email,
       userName: row.userName,
       auth0Id,
@@ -94,6 +102,13 @@ async function resendInvitation(
     .update("project_membership")
     .set({ invitationToken: ticketId })
     .where("id = :id", { id: invitation.membershipId })
+    .execute()
+
+  await dataSource
+    .createQueryBuilder()
+    .update("invitation")
+    .set({ invitationToken: ticketId })
+    .where("id = :id", { id: invitation.invitationId })
     .execute()
 
   logger.log(`Invitation resent to ${invitation.email} (new ticketId: ${ticketId})`)

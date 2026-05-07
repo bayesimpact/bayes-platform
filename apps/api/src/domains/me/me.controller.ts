@@ -1,9 +1,5 @@
 import { buildNameFromEmail, MeRoutes } from "@caseai-connect/api-contracts"
-import type {
-  PendingAgentInvitationDto,
-  PendingProjectInvitationDto,
-  UserMembershipsDto,
-} from "@caseai-connect/api-contracts/src/me/me.dto"
+import type { UserMembershipsDto } from "@caseai-connect/api-contracts/src/me/me.dto"
 import { Controller, Get, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
@@ -72,53 +68,6 @@ export class MeController {
         currentTerms: toCurrentTermsDto(termsDocuments),
       },
     }
-  }
-
-  @Get(MeRoutes.getPendingInvitations.path)
-  async getPendingInvitations(
-    @Req() request: EndpointRequest,
-  ): Promise<typeof MeRoutes.getPendingInvitations.response> {
-    const { projectInvitations, agentInvitations } = await this.meService.getPendingInvitations(
-      request.user.id,
-    )
-    return {
-      data: {
-        projectInvitations: projectInvitations.map(toPendingProjectInvitationDto),
-        agentInvitations: agentInvitations.map(toPendingAgentInvitationDto),
-      },
-    }
-  }
-}
-
-function toPendingProjectInvitationDto(
-  membership: Awaited<ReturnType<MeService["getPendingInvitations"]>>["projectInvitations"][number],
-): PendingProjectInvitationDto {
-  return {
-    id: membership.id,
-    projectId: membership.projectId,
-    projectName: membership.project.name,
-    organizationId: membership.project.organizationId,
-    organizationName: membership.project.organization.name,
-    role: membership.role,
-    invitationToken: membership.invitationToken,
-    createdAt: membership.createdAt.getTime(),
-  }
-}
-
-function toPendingAgentInvitationDto(
-  membership: Awaited<ReturnType<MeService["getPendingInvitations"]>>["agentInvitations"][number],
-): PendingAgentInvitationDto {
-  return {
-    id: membership.id,
-    agentId: membership.agentId,
-    agentName: membership.agent.name,
-    projectId: membership.agent.project.id,
-    projectName: membership.agent.project.name,
-    organizationId: membership.agent.project.organizationId,
-    organizationName: membership.agent.project.organization.name,
-    role: membership.role,
-    invitationToken: membership.invitationToken,
-    createdAt: membership.createdAt.getTime(),
   }
 }
 

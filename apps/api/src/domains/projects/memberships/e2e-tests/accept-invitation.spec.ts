@@ -7,7 +7,7 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { InvitationsModule } from "@/domains/agents/shared/memberships/invitations.module"
+import { InvitationsModule } from "@/domains/invitations/invitations.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import {
   mockAuth0EmailForSub,
@@ -61,7 +61,7 @@ describe("Invitations - acceptInvitation", () => {
   const createInvitation = async () => {
     const { organization, project } = await createOrganizationWithProject(repositories)
 
-    const { membership } = await inviteUserToProject({
+    const { membership, invitedUser } = await inviteUserToProject({
       repositories,
       project,
       user: {
@@ -72,6 +72,19 @@ describe("Invitations - acceptInvitation", () => {
       },
     })
     const ticketId = membership.invitationToken
+    await repositories.invitationRepository.save({
+      organizationId: organization.id,
+      projectId: project.id,
+      targetType: "project",
+      targetId: project.id,
+      userId: invitedUser.id,
+      invitedEmail: invitedUser.email,
+      role: "admin",
+      invitationToken: ticketId,
+      status: "pending",
+      invitedAt: membership.createdAt,
+      acceptedAt: null,
+    })
     return { membership, ticketId, organization, project }
   }
 

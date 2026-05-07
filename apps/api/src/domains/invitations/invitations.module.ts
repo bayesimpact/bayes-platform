@@ -1,39 +1,54 @@
-import { Module } from "@nestjs/common"
+import { forwardRef, Global, Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
+import { Agent } from "@/domains/agents/agent.entity"
+import { AgentsModule } from "@/domains/agents/agents.module"
 import { AgentMembership } from "@/domains/agents/memberships/agent-membership.entity"
-import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
+import { Organization } from "@/domains/organizations/organization.entity"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
-import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
+import { Project } from "@/domains/projects/project.entity"
+import { ProjectsModule } from "@/domains/projects/projects.module"
 import { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
-import { ReviewCampaignMembershipsService } from "@/domains/review-campaigns/memberships/review-campaign-memberships.service"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { LlmModule } from "@/external/llm/llm.module"
+import { AgentInvitationHandler } from "./handlers/agent-invitation.handler"
+import { ProjectInvitationHandler } from "./handlers/project-invitation.handler"
+import { ReviewCampaignInvitationHandler } from "./handlers/review-campaign-invitation.handler"
+import { Invitation } from "./invitation.entity"
 import { InvitationsController } from "./invitations.controller"
 import { InvitationsService } from "./invitations.service"
+import { InvitationsPersistenceModule } from "./invitations-persistence.module"
 
+@Global()
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      AgentMembership,
+      Invitation,
+      Organization,
+      Project,
+      Agent,
+      ReviewCampaign,
       OrganizationMembership,
       ProjectMembership,
-      ReviewCampaign,
+      AgentMembership,
       ReviewCampaignMembership,
     ]),
+    InvitationsPersistenceModule,
     LlmModule,
     UsersModule,
     AuthModule,
+    forwardRef(() => ProjectsModule),
+    forwardRef(() => AgentsModule),
   ],
   providers: [
-    AgentMembershipsService,
-    ProjectMembershipsService,
-    ReviewCampaignMembershipsService,
+    ProjectInvitationHandler,
+    AgentInvitationHandler,
+    ReviewCampaignInvitationHandler,
     InvitationsService,
   ],
   controllers: [InvitationsController],
-  exports: [],
+  exports: [InvitationsService],
 })
 export class InvitationsModule {}

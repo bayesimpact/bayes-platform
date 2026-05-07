@@ -17,8 +17,12 @@ import { expectResponse, type Requester, testRequester } from "../../../../test/
 import { reviewCampaignFactory } from "../review-campaign.factory"
 import { ReviewCampaignsModule } from "../review-campaigns.module"
 
+let inviteTicketSerial = 0
 const mockInvitationSender = {
-  sendInvitation: jest.fn().mockResolvedValue({ ticketId: "ticket-invite" }),
+  sendInvitation: jest.fn().mockImplementation(() => {
+    inviteTicketSerial += 1
+    return Promise.resolve({ ticketId: `ticket-invite-${inviteTicketSerial}` })
+  }),
 }
 
 describe("ReviewCampaigns - inviteMembers", () => {
@@ -51,6 +55,7 @@ describe("ReviewCampaigns - inviteMembers", () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
     auth0Id = `auth0|${randomUUID()}`
+    inviteTicketSerial = 0
     mockInvitationSender.sendInvitation.mockClear()
   })
 
