@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "nest start --watch",
     "dev:workers-main": "BULL_BOARD_ENABLED=false nest start --entryFile workers-main --watch",
+    "dev:workers-main-windows": "nest start --entryFile workers-main --watch",
     "build": "nest build",
     "start": "nest start",
     "start:workers-main": "node dist/workers-main",

@@ -2,16 +2,44 @@ import { execFile } from "node:child_process"
 import { randomUUID } from "node:crypto"
 import { existsSync } from "node:fs"
 import { unlink, writeFile } from "node:fs/promises"
-import { tmpdir } from "node:os"
+import { platform, tmpdir } from "node:os"
 import { join } from "node:path"
 import { promisify } from "node:util"
 import { EXTENSION_BY_MIME_TYPE } from "./docling.constants"
 
-const DOCLING_NODES_COMMAND_RELATIVE_FROM_API = "bin/docling_nodes"
-const DOCLING_NODES_COMMAND_RELATIVE_FROM_REPO_ROOT = "apps/api/bin/docling_nodes"
+const DOCLING_NODES_BASH_RELATIVE_FROM_API = "bin/docling_nodes"
+const DOCLING_NODES_BASH_RELATIVE_FROM_REPO_ROOT = "apps/api/bin/docling_nodes"
+const DOCLING_NODES_PS1_RELATIVE_FROM_API = "bin/docling_nodes.ps1"
+const DOCLING_NODES_PS1_RELATIVE_FROM_REPO_ROOT = "apps/api/bin/docling_nodes.ps1"
 const DEFAULT_DOCLING_TIMEOUT_MS = 60_000
 
+const IS_WINDOWS = platform() === "win32"
+
 const runCommand = promisify(execFile)
+
+function isPowerShellScript(scriptPath: string): boolean {
+  return scriptPath.toLowerCase().endsWith(".ps1")
+}
+
+function getPowerShellExecutable(): string {
+  return (
+    process.env.DOCUMENT_EXTRACTOR_DOCLING_POWERSHELL ?? (IS_WINDOWS ? "powershell.exe" : "pwsh")
+  )
+}
+
+function buildDoclingNodesInvocation(extraArgs: readonly string[]): {
+  executable: string
+  args: string[]
+} {
+  const scriptPath = getDoclingNodesCommand()
+  if (isPowerShellScript(scriptPath)) {
+    return {
+      executable: getPowerShellExecutable(),
+      args: ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", scriptPath, ...extraArgs],
+    }
+  }
+  return { executable: scriptPath, args: [...extraArgs] }
+}
 
 export type DoclingChunk = {
   embed_text: string
@@ -36,10 +64,18 @@ export function getDoclingNodesCommand(): string {
   // The API can run with cwd at repo root OR at apps/api.
   // Support both without requiring env configuration.
   const cwd = process.cwd()
-  const candidates: [string, string] = [
-    join(cwd, DOCLING_NODES_COMMAND_RELATIVE_FROM_API),
-    join(cwd, DOCLING_NODES_COMMAND_RELATIVE_FROM_REPO_ROOT),
+  const bashCandidates: [string, string] = [
+    join(cwd, DOCLING_NODES_BASH_RELATIVE_FROM_API),
+    join(cwd, DOCLING_NODES_BASH_RELATIVE_FROM_REPO_ROOT),
   ]
+  const ps1Candidates: [string, string] = [
+    join(cwd, DOCLING_NODES_PS1_RELATIVE_FROM_API),
+    join(cwd, DOCLING_NODES_PS1_RELATIVE_FROM_REPO_ROOT),
+  ]
+
+  const candidates = IS_WINDOWS
+    ? [...ps1Candidates, ...bashCandidates]
+    : [...bashCandidates, ...ps1Candidates]
 
   for (const candidate of candidates) {
     if (existsSync(candidate)) {
@@ -48,7 +84,7 @@ export function getDoclingNodesCommand(): string {
   }
 
   // Fall back to the repo-root shape for a clearer error message.
-  return candidates[1]
+  return IS_WINDOWS ? ps1Candidates[1] : bashCandidates[1]
 }
 
 export function getDoclingTimeoutMs(defaultTimeoutMs = DEFAULT_DOCLING_TIMEOUT_MS): number {
@@ -81,14 +117,16 @@ export async function extractTextWithDocling({
   await writeFile(inputPath, buffer)
 
   try {
-    const { stdout } = await runCommand(
-      getDoclingNodesCommand(),
-      ["--doc-path", inputPath, "--output-stdout", "--no-all-content"],
-      {
-        timeout: timeoutMs ?? getDoclingTimeoutMs(),
-        maxBuffer,
-      },
-    )
+    const invocation = buildDoclingNodesInvocation([
+      "--doc-path",
+      inputPath,
+      "--output-stdout",
+      "--no-all-content",
+    ])
+    const { stdout } = await runCommand(invocation.executable, invocation.args, {
+      timeout: timeoutMs ?? getDoclingTimeoutMs(),
+      maxBuffer,
+    })
 
     const stdoutTrimmed = stdout.trim()
     if (!stdoutTrimmed) {
@@ -127,7 +165,8 @@ export async function getDoclingVersion({
   timeoutMs?: number
   maxBuffer?: number
 } = {}): Promise<string> {
-  const { stdout } = await runCommand(getDoclingNodesCommand(), ["--docling-version"], {
+  const invocation = buildDoclingNodesInvocation(["--docling-version"])
+  const { stdout } = await runCommand(invocation.executable, invocation.args, {
     timeout: timeoutMs ?? getDoclingTimeoutMs(),
     maxBuffer,
   })
