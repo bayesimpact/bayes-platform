@@ -35,7 +35,7 @@ export const DocumentsRoutes = {
   }),
   getAll: defineRoute<ResponseData<DocumentDto[]>>({
     method: "get",
-    path: "organizations/:organizationId/projects/:projectId/documents",
+    path: "organizations/:organizationId/projects/:projectId/documents/:sourceType",
   }),
   listMyExtractionDocuments: defineRoute<ResponseData<DocumentDto[]>>({
     method: "get",

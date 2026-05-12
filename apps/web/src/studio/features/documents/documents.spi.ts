@@ -12,6 +12,7 @@ export interface IDocumentsSpi {
     organizationId: string
     projectId: string
   }): Promise<Document[]>
+  getAll(params: { organizationId: string; projectId: string; sourceType: DocumentSourceType }): Promise<Document[]>
   uploadOne(params: {
     organizationId: string
     projectId: string

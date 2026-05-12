@@ -9,10 +9,10 @@ import type { IDocumentsSpi } from "../documents.spi"
 import { streamDocumentCrawlProgress, streamDocumentEmbeddingStatus } from "./documents-streaming"
 
 export default {
-  getAll: async ({ organizationId, projectId }) => {
+  getAll: async ({ organizationId, projectId, sourceType }) => {
     const axios = getAxiosInstance()
     const response = await axios.get<typeof DocumentsRoutes.getAll.response>(
-      DocumentsRoutes.getAll.getPath({ organizationId, projectId }),
+      DocumentsRoutes.getAll.getPath({ organizationId, projectId, sourceType }),
     )
     return response.data.data.map(toDocument)
   },

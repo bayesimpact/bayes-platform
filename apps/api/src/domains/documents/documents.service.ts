@@ -81,12 +81,11 @@ export class DocumentsService {
   private sortNewestFirst = (a: Document, b: Document) =>
     b.createdAt.getTime() - a.createdAt.getTime()
 
-  async listDocuments(connectScope: RequiredConnectScope): Promise<Document[]> {
+  async listDocuments(connectScope: RequiredConnectScope, sourceType: Document["sourceType"]): Promise<Document[]> {
     return (
       await this.documentConnectRepository.find(connectScope, {
         where: [
-          { sourceType: "project", uploadStatus: "uploaded" },
-          { sourceType: "webCrawl", uploadStatus: "uploaded" },
+          { sourceType, uploadStatus: "uploaded" }
         ],
         relations: ["tags"],
       })

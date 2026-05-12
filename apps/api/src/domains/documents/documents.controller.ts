@@ -315,8 +315,9 @@ export class DocumentsController {
   @Get(DocumentsRoutes.getAll.path)
   async getAll(
     @Request() req: EndpointRequestWithProject,
+    @Param("sourceType") sourceType: DocumentSourceType,
   ): Promise<typeof DocumentsRoutes.getAll.response> {
-    const documents = await this.documentsService.listDocuments(getRequiredConnectScope(req))
+    const documents = await this.documentsService.listDocuments(getRequiredConnectScope(req), sourceType)
     return { data: documents.map(toDocumentDto) }
   }
 
