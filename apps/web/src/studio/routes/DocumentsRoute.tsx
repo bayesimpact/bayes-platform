@@ -84,7 +84,7 @@ import { DocumentTagItem } from "../features/document-tags/components/DocumentTa
 import { DocumentTagsSheet } from "../features/document-tags/components/DocumentTagsSheet"
 
 export function DocumentsRoute({ sourceFilter }: { sourceFilter?: "project" | "webCrawl" }) {
-  useDocumentEmbeddingStatusStream()
+  useDocumentEmbeddingStatusStream(sourceFilter)
   const documents = useAppSelector(selectDocumentsData)
   const documentTags = useAppSelector(selectDocumentTagsData)
   return (
@@ -590,17 +590,19 @@ function MetaField({ label, value }: { label: string; value?: string }) {
   )
 }
 
-function useDocumentEmbeddingStatusStream() {
+function useDocumentEmbeddingStatusStream(sourceFilter?: "project" | "webCrawl") {
   const dispatch = useAppDispatch()
 
   useEffect(() => {
+    dispatch(documentsActions.setCurrentSourceType({ sourceType: sourceFilter ?? null }))
     dispatch(documentsActions.startEmbeddingStatusStream())
     dispatch(documentsActions.startCrawlProgressStream())
     return () => {
+      dispatch(documentsActions.setCurrentSourceType({ sourceType: null }))
       dispatch(documentsActions.stopEmbeddingStatusStream())
       dispatch(documentsActions.stopCrawlProgressStream())
     }
-  }, [dispatch])
+  }, [dispatch, sourceFilter])
 }
 
 function UploaderStateComp() {
