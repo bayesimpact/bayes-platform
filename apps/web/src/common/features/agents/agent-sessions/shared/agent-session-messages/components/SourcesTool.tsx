@@ -28,7 +28,7 @@ export function SourcesTool({
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="sm" className="text-muted-foreground text-xs">
-          {t("agent:source", { count: sources.length })}: ({sources.length})
+          {t("agent:source", { count: sources.length })}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-96 max-h-96 overflow-y-auto" align="start" sideOffset={-4}>
