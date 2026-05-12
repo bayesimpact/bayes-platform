@@ -91,20 +91,14 @@ describe("EvaluationExtractionRuns - executeOne", () => {
       token: accessToken,
     })
 
-  it("creates run records, enqueues per-record jobs, and returns the run as running", async () => {
+  it("creates run records, enqueues per-record jobs, and returns the run as pending", async () => {
     await createContext()
 
     const res = await subject()
 
     expectResponse(res, 201)
-    expect(res.body.data.status).toBe("running")
-    expect(res.body.data.summary).toEqual({
-      total: expect.any(Number),
-      perfectMatches: 0,
-      mismatches: 0,
-      errors: 0,
-      running: expect.any(Number),
-    })
+    expect(res.body.data.status).toBe("pending")
+    expect(res.body.data.summary).toBeNull()
 
     await expectActivityCreated("evaluationExtractionRun.execute")
   })
