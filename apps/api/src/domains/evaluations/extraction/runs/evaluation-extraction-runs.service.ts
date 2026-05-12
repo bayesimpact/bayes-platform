@@ -17,6 +17,8 @@ import {
 } from "./evaluation-extraction-run-batch.interface"
 import { EvaluationExtractionRunRecord } from "./records/evaluation-extraction-run-record.entity"
 
+const BATCH_SIZE = 500
+
 @Injectable()
 export class EvaluationExtractionRunsService {
   private readonly runConnectRepository: ConnectRepository<EvaluationExtractionRun>
@@ -280,28 +282,42 @@ export class EvaluationExtractionRunsService {
     evaluationExtractionRun: EvaluationExtractionRun
     connectScope: RequiredConnectScope
   }): Promise<void> {
-    const { dataset, runRecords } = await this.createRunRecords({
+    const dataset = await this.getDataset({
+      id: evaluationExtractionRun.evaluationExtractionDatasetId,
       connectScope,
-      run: evaluationExtractionRun,
     })
 
-    evaluationExtractionRun.summary = this.createInitialSummary({
-      recordCount: runRecords.length,
+    const datasetRecords = await this.datasetRecordConnectRepository.find(connectScope, {
+      where: { evaluationExtractionDatasetId: dataset.id },
     })
-    evaluationExtractionRun.status = "running"
-    await this.runConnectRepository.saveOne(evaluationExtractionRun)
+
+    const batchSize = BATCH_SIZE
+    const datasetRecordBatches = batchArray(datasetRecords, batchSize)
 
     const agent = await this.getAgent({ connectScope, agentId: evaluationExtractionRun.agentId })
 
+    const runRecords: EvaluationExtractionRunRecord[] = []
+
     try {
-      await this.batchService.enqueueRunRecords(
-        runRecords.map((runRecord) => ({
-          agent,
-          connectScope,
-          evaluationExtractionRun,
-          runRecordId: runRecord.id,
-          schemaMapping: dataset.schemaMapping,
-        })),
+      await Promise.all(
+        datasetRecordBatches.map(async (batch) => {
+          const { runRecords: batchRunRecords } = await this.createRunRecords({
+            connectScope,
+            run: evaluationExtractionRun,
+            datasetRecords: batch,
+          })
+          runRecords.push(...batchRunRecords)
+
+          await this.batchService.enqueueRunRecords(
+            batchRunRecords.map((runRecord) => ({
+              agent,
+              connectScope,
+              evaluationExtractionRun,
+              runRecordId: runRecord.id,
+              schemaMapping: dataset.schemaMapping,
+            })),
+          )
+        }),
       )
     } catch (error) {
       // If enqueueing fails, mark the run as failed and set all records to error to avoid leaving them in a limbo state
@@ -319,6 +335,12 @@ export class EvaluationExtractionRunsService {
         `Failed to enqueue jobs for the evaluation run ${evaluationExtractionRun.id}. Error: ${error instanceof Error ? error.message : "No error message"}`,
       )
     }
+
+    evaluationExtractionRun.summary = this.createInitialSummary({
+      recordCount: runRecords.length,
+    })
+    evaluationExtractionRun.status = "running"
+    await this.runConnectRepository.saveOne(evaluationExtractionRun)
   }
 
   private async getAgent({
@@ -405,31 +427,25 @@ export class EvaluationExtractionRunsService {
   private async createRunRecords({
     connectScope,
     run,
+    datasetRecords,
   }: {
+    datasetRecords: EvaluationExtractionDatasetRecord[]
     connectScope: RequiredConnectScope
     run: EvaluationExtractionRun
   }) {
-    const dataset = await this.getDataset({
-      id: run.evaluationExtractionDatasetId,
+    const runRecords = await this.runRecordConnectRepository.createAndSaveMany({
       connectScope,
-    })
-
-    const datasetRecords = await this.datasetRecordConnectRepository.find(connectScope, {
-      where: { evaluationExtractionDatasetId: dataset.id },
-    })
-
-    const runRecords = await this.runRecordConnectRepository.createAndSaveMany(
-      connectScope,
-      datasetRecords.map((datasetRecord) => ({
+      entities: datasetRecords.map((datasetRecord) => ({
         evaluationExtractionRunId: run.id,
         evaluationExtractionDatasetRecordId: datasetRecord.id,
         status: "running",
         errorDetails: null,
         traceId: null,
       })),
-    )
+      chunkSize: 500,
+    })
 
-    return { dataset, runRecords }
+    return { runRecords }
   }
 
   private createInitialSummary({
@@ -445,4 +461,12 @@ export class EvaluationExtractionRunsService {
       running: recordCount,
     }
   }
+}
+
+function batchArray<T>(array: T[], batchSize: number): T[][] {
+  const batches: T[][] = []
+  for (let i = 0; i < array.length; i += batchSize) {
+    batches.push(array.slice(i, i + batchSize))
+  }
+  return batches
 }

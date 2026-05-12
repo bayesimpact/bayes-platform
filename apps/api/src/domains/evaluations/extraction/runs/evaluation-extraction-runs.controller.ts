@@ -67,7 +67,7 @@ export class EvaluationExtractionRunsController {
     const connectScope = getRequiredConnectScope(request)
     const { evaluationExtractionRun } = request
 
-    await this.evaluationExtractionRunsService.executeRun({ evaluationExtractionRun, connectScope })
+    this.evaluationExtractionRunsService.executeRun({ evaluationExtractionRun, connectScope })
 
     return { data: toEvaluationExtractionRunDto(evaluationExtractionRun) }
   }
