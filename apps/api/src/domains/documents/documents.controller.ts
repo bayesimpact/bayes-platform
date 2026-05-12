@@ -447,14 +447,13 @@ export class DocumentsController {
       throw new UnprocessableEntityException("Document is not a web crawl source.")
     }
 
-    const urlToRecrawl =
-      document.sourceUrl ?? resolveSourceUrlFallback(document.title, document.content)
-
-    if (!urlToRecrawl) {
+    if (!document.sourceUrl) {
       throw new UnprocessableEntityException(
         "Source URL not available for this document. Please delete it and crawl the website again.",
       )
     }
+
+    const urlToRecrawl = document.sourceUrl
 
     const connectScope = getRequiredConnectScope(req)
 
@@ -521,29 +520,6 @@ export class DocumentsController {
   }
 }
 
-function resolveSourceUrlFallback(title: string, content: string | null): string | null {
-  // 1. Title may be the original URL if the document was never renamed.
-  try {
-    new URL(title)
-    return title
-  } catch {
-    // title is an alias, not a URL
-  }
-  // 2. Extract the shortest URL from crawled content — typically the root entry point.
-  if (content) {
-    try {
-      const pages: { url?: string }[] = JSON.parse(content)
-      const urls = pages.map((page) => page.url).filter((url): url is string => Boolean(url))
-      if (urls.length > 0) {
-        urls.sort((a, b) => a.length - b.length)
-        return urls[0] ?? null
-      }
-    } catch {
-      // malformed content
-    }
-  }
-  return null
-}
 
 function toDocumentDto(entity: Document): DocumentDto {
   return {
