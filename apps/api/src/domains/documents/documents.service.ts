@@ -69,13 +69,14 @@ export class DocumentsService {
   }: {
     connectScope: RequiredConnectScope
     documentId: string
-  }): Promise<Document> {
-    const document = await this.documentConnectRepository.getOneById(connectScope, documentId)
-    if (!document) {
+  }): Promise<void> {
+    const result: UpdateResult = await this.documentRepository.update(
+      { id: documentId, organizationId: connectScope.organizationId, projectId: connectScope.projectId },
+      { uploadStatus: "uploaded" },
+    )
+    if (!result.affected) {
       throw new NotFoundException(`Document with id ${documentId} not found`)
     }
-    document.uploadStatus = "uploaded"
-    return this.documentConnectRepository.saveOne(document)
   }
 
   private sortNewestFirst = (a: Document, b: Document) =>
@@ -184,14 +185,14 @@ export class DocumentsService {
     documentId: string
     content: string
     size: number
-  }): Promise<Document> {
-    const document = await this.documentConnectRepository.getOneById(connectScope, documentId)
-    if (!document) {
+  }): Promise<void> {
+    const result: UpdateResult = await this.documentRepository.update(
+      { id: documentId, organizationId: connectScope.organizationId, projectId: connectScope.projectId },
+      { content, size },
+    )
+    if (!result.affected) {
       throw new NotFoundException(`Document with id ${documentId} not found`)
     }
-    document.content = content
-    document.size = size
-    return this.documentConnectRepository.saveOne(document)
   }
 
   async saveOne(document: Document): Promise<Document> {
@@ -206,13 +207,14 @@ export class DocumentsService {
     connectScope: RequiredConnectScope
     documentId: string
     status: Document["embeddingStatus"]
-  }): Promise<Document> {
-    const document = await this.documentConnectRepository.getOneById(connectScope, documentId)
-    if (!document) {
+  }): Promise<void> {
+    const result: UpdateResult = await this.documentRepository.update(
+      { id: documentId, organizationId: connectScope.organizationId, projectId: connectScope.projectId },
+      { embeddingStatus: status },
+    )
+    if (!result.affected) {
       throw new NotFoundException(`Document with id ${documentId} not found`)
     }
-    document.embeddingStatus = status
-    return this.documentConnectRepository.saveOne(document)
   }
 
   async resetForRecrawl({

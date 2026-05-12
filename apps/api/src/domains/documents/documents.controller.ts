@@ -254,14 +254,19 @@ export class DocumentsController {
       payload.tagIds !== undefined && payload.tagIds.length > 0 ? payload.tagIds : undefined
 
     for (const documentId of payload.documentIds) {
-      let document = await this.documentsService.markAsUploaded({ connectScope, documentId })
+      await this.documentsService.markAsUploaded({ connectScope, documentId })
 
+      let document: Document
       if (tagIds !== undefined) {
         document = await this.documentsService.updateDocument({
           connectScope,
-          documentId: document.id,
+          documentId,
           fieldsToUpdate: { tagsToAdd: tagIds },
         })
+      } else {
+        const found = await this.documentsService.findById({ connectScope, documentId })
+        if (!found) throw new NotFoundException(`Document ${documentId} not found`)
+        document = found
       }
 
       if (document.sourceType === "project") {

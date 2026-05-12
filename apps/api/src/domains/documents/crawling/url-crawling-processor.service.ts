@@ -87,18 +87,18 @@ export class UrlCrawlingProcessorService {
     } catch (error) {
       this.logger.error(`Crawl failed for ${payload.url}: ${(error as Error).message}`)
       try {
-        const failed = await this.documentsService.updateEmbeddingStatus({
+        await this.documentsService.updateEmbeddingStatus({
           connectScope,
           documentId: payload.documentId,
           status: "failed",
         })
         await this.embeddingStatusNotifierService.notifyEmbeddingStatusChanged({
-          documentId: failed.id,
-          organizationId: failed.organizationId,
-          projectId: failed.projectId,
-          embeddingStatus: failed.embeddingStatus,
-          embeddingError: failed.embeddingError,
-          updatedAt: failed.updatedAt.getTime(),
+          documentId: payload.documentId,
+          organizationId: payload.organizationId,
+          projectId: payload.projectId,
+          embeddingStatus: "failed",
+          embeddingError: null,
+          updatedAt: Date.now(),
         })
       } catch (notifyError) {
         this.logger.error(
