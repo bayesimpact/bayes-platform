@@ -8,8 +8,7 @@ export function RestrictedFeature({
   feature: FeatureFlagKey
   children: React.ReactNode
 }) {
-  const { hasFeature, isLoading } = useFeatureFlags()
-  if (isLoading) return null
+  const { hasFeature } = useFeatureFlags()
   if (!hasFeature(feature)) return null
   return <>{children}</>
 }
