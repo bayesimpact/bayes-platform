@@ -457,18 +457,18 @@ export class DocumentsController {
 
     const connectScope = getRequiredConnectScope(req)
 
-    const reset = await this.documentsService.resetForRecrawl({
+    await this.documentsService.resetForRecrawl({
       connectScope,
       documentId: document.id,
     })
 
     await this.documentEmbeddingStatusNotifierService.notifyEmbeddingStatusChanged({
-      documentId: reset.id,
-      organizationId: reset.organizationId,
-      projectId: reset.projectId,
-      embeddingStatus: reset.embeddingStatus,
-      embeddingError: reset.embeddingError,
-      updatedAt: reset.updatedAt.getTime(),
+      documentId: document.id,
+      organizationId: document.organizationId,
+      projectId: document.projectId,
+      embeddingStatus: "pending",
+      embeddingError: null,
+      updatedAt: Date.now(),
     })
 
     await this.urlCrawlingBatchService.enqueueCrawlUrl({

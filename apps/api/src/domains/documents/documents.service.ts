@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import type { Repository } from "typeorm"
+import type { Repository, UpdateResult } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Document } from "./document.entity"
@@ -11,7 +11,7 @@ import type { DocumentTagsUpdateFields } from "./tags/document-tags.types"
 @Injectable()
 export class DocumentsService {
   constructor(
-    @InjectRepository(Document) documentRepository: Repository<Document>,
+    @InjectRepository(Document) private readonly documentRepository: Repository<Document>,
     private readonly documentTagsService: DocumentTagsService,
   ) {
     this.documentConnectRepository = new ConnectRepository(documentRepository, "documents")
@@ -221,15 +221,14 @@ export class DocumentsService {
   }: {
     connectScope: RequiredConnectScope
     documentId: string
-  }): Promise<Document> {
-    const document = await this.documentConnectRepository.getOneById(connectScope, documentId)
-    if (!document) {
+  }): Promise<void> {
+    const result: UpdateResult = await this.documentRepository.update(
+      { id: documentId, organizationId: connectScope.organizationId, projectId: connectScope.projectId },
+      { content: null as unknown as string, embeddingStatus: "pending", embeddingError: null },
+    )
+    if (!result.affected) {
       throw new NotFoundException(`Document with id ${documentId} not found`)
     }
-    document.content = null as unknown as string
-    document.embeddingStatus = "pending"
-    document.embeddingError = null
-    return this.documentConnectRepository.saveOne(document)
   }
 
   async deleteDocument({
