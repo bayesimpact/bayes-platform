@@ -194,8 +194,7 @@ function DocumentRow({
 }) {
   const date = buildSince(document.updatedAt)
   const isWebCrawl = document.sourceType === "webCrawl"
-  const crawledPages = document.pages ?? null
-  const hasPages = crawledPages && crawledPages.length > 0
+  const hasPages = document.pages && document.pages.length > 0
   const pagesCrawled = useAppSelector(selectCrawlProgressByDocumentId)[document.id]
 
   const [isOpen, setIsOpen] = useState(false)
@@ -226,7 +225,7 @@ function DocumentRow({
         </TableCell>
         {showPages && (
           <TableCell className="text-muted-foreground">
-            {hasPages ? crawledPages.length : "—"}
+            {hasPages ? document.pages!.length : "—"}
           </TableCell>
         )}
         <TableCell>
@@ -250,8 +249,8 @@ function DocumentRow({
           <DocumentActions document={document} documentTags={documentTags} />
         </TableCell>
       </TableRow>
-      {crawledPages && isOpen
-        ? crawledPages.map((page) => (
+      {document.pages && isOpen
+        ? document.pages.map((page) => (
             <TableRow key={page.url} className="bg-muted/30">
               <TableCell colSpan={5} className="pl-16 max-w-0">
                 <a
