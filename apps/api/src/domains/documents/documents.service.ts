@@ -159,20 +159,6 @@ export class DocumentsService {
       throw new NotFoundException(`Document with id ${documentId} not found`)
     }
 
-    const shouldBackfillSourceUrl =
-      fieldsToUpdate.title !== undefined &&
-      document.sourceType === "webCrawl" &&
-      document.sourceUrl === null
-
-    if (shouldBackfillSourceUrl) {
-      try {
-        new URL(document.title)
-        document.sourceUrl = document.title
-      } catch {
-        // title is not a URL (already an alias) — nothing to backfill
-      }
-    }
-
     if (fieldsToUpdate.title !== undefined) {
       document.title = fieldsToUpdate.title
     }
