@@ -291,8 +291,7 @@ export class EvaluationExtractionRunsService {
       where: { evaluationExtractionDatasetId: dataset.id },
     })
 
-    const batchSize = BATCH_SIZE
-    const datasetRecordBatches = batchArray(datasetRecords, batchSize)
+    const batches = batchArray(datasetRecords, BATCH_SIZE)
 
     const agent = await this.getAgent({ connectScope, agentId: evaluationExtractionRun.agentId })
 
@@ -300,7 +299,7 @@ export class EvaluationExtractionRunsService {
 
     try {
       await Promise.all(
-        datasetRecordBatches.map(async (batch) => {
+        batches.map(async (batch) => {
           const { runRecords: batchRunRecords } = await this.createRunRecords({
             connectScope,
             run: evaluationExtractionRun,
@@ -368,6 +367,10 @@ export class EvaluationExtractionRunsService {
       id: evaluationExtractionRun.evaluationExtractionDatasetId,
       connectScope,
     })
+    evaluationExtractionRun.status = "running"
+    await this.runConnectRepository.saveOne(evaluationExtractionRun)
+
+    const agent = await this.getAgent({ connectScope, agentId: evaluationExtractionRun.agentId })
 
     const unfinishedRecords = await this.runRecordConnectRepository.find(connectScope, {
       where: [
@@ -376,20 +379,22 @@ export class EvaluationExtractionRunsService {
       ],
     })
 
-    evaluationExtractionRun.status = "running"
-    await this.runConnectRepository.saveOne(evaluationExtractionRun)
-
-    const agent = await this.getAgent({ connectScope, agentId: evaluationExtractionRun.agentId })
+    const batches = batchArray(unfinishedRecords, BATCH_SIZE)
 
     try {
-      await this.batchService.retryRunRecords(
-        unfinishedRecords.map((runRecord) => ({
-          agent,
-          connectScope,
-          evaluationExtractionRun,
-          runRecordId: runRecord.id,
-          schemaMapping: dataset.schemaMapping,
-        })),
+      await Promise.all(
+        batches.map(
+          async (batch) =>
+            await this.batchService.retryRunRecords(
+              batch.map((runRecord) => ({
+                agent,
+                connectScope,
+                evaluationExtractionRun,
+                runRecordId: runRecord.id,
+                schemaMapping: dataset.schemaMapping,
+              })),
+            ),
+        ),
       )
     } catch (error) {
       // If retrying fails, mark the run as failed to avoid leaving it in a limbo state
@@ -413,9 +418,14 @@ export class EvaluationExtractionRunsService {
       where: { evaluationExtractionRunId, status: "running" },
     })
 
+    const batches = batchArray(unfinishedRecords, BATCH_SIZE)
+
     try {
-      await this.batchService.removePendingRunRecords(
-        unfinishedRecords.map((runRecord) => runRecord.id),
+      await Promise.all(
+        batches.map(
+          async (batch) =>
+            await this.batchService.removePendingRunRecords(batch.map((runRecord) => runRecord.id)),
+        ),
       )
     } catch (error) {
       throw new UnprocessableEntityException(
@@ -442,7 +452,7 @@ export class EvaluationExtractionRunsService {
         errorDetails: null,
         traceId: null,
       })),
-      chunkSize: 500,
+      chunkSize: BATCH_SIZE,
     })
 
     return { runRecords }
