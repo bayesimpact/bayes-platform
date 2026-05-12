@@ -59,6 +59,7 @@ export type DocumentDto = {
   deletedAt?: TimeType
   title: string
   content?: string
+  pages?: { url: string; markdown: string }[]
   fileName?: string
   language: "en" | "fr"
   mimeType?: MimeTypes

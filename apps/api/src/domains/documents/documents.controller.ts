@@ -521,12 +521,29 @@ export class DocumentsController {
 }
 
 
+function parseCrawledPages(
+  content: string | null,
+): { url: string; markdown: string }[] | undefined {
+  if (!content) return undefined
+  try {
+    const parsed: unknown = JSON.parse(content)
+    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].url && parsed[0].markdown) {
+      return parsed as { url: string; markdown: string }[]
+    }
+  } catch {
+    // malformed content
+  }
+  return undefined
+}
+
 function toDocumentDto(entity: Document): DocumentDto {
+  const isWebCrawl = entity.sourceType === "webCrawl"
   return {
     id: entity.id,
     projectId: entity.projectId,
     title: entity.title,
-    content: entity.content,
+    content: isWebCrawl ? undefined : entity.content,
+    pages: isWebCrawl ? parseCrawledPages(entity.content) : undefined,
     fileName: entity.fileName,
     createdAt: entity.createdAt.getTime(),
     updatedAt: entity.updatedAt.getTime(),

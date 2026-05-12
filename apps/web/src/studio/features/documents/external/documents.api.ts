@@ -169,6 +169,7 @@ export default {
 function toDocument(dto: DocumentDto): Document {
   return {
     content: dto.content,
+    pages: dto.pages,
     createdAt: dto.createdAt,
     deletedAt: dto.deletedAt,
     fileName: dto.fileName,

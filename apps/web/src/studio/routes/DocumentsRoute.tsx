@@ -183,19 +183,6 @@ function WithData({
   )
 }
 
-function parseCrawledPages(content?: string): { url: string; markdown: string }[] | null {
-  if (!content) return null
-  try {
-    const parsed = JSON.parse(content)
-    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].url && parsed[0].markdown) {
-      return parsed
-    }
-  } catch {
-    // not JSON, not a crawl document
-  }
-  return null
-}
-
 function DocumentRow({
   document,
   documentTags,
@@ -207,7 +194,7 @@ function DocumentRow({
 }) {
   const date = buildSince(document.updatedAt)
   const isWebCrawl = document.sourceType === "webCrawl"
-  const crawledPages = isWebCrawl ? parseCrawledPages(document.content) : null
+  const crawledPages = document.pages ?? null
   const hasPages = crawledPages && crawledPages.length > 0
   const pagesCrawled = useAppSelector(selectCrawlProgressByDocumentId)[document.id]
 
