@@ -6,8 +6,16 @@ export type InvitationTargetScope = {
   projectId: string
 }
 
+export type CreateInvitationsForTargetParams = {
+  targetId: string
+  emails: string[]
+  role?: string
+  inviterName: string
+}
+
 export interface InvitationTargetHandler {
   targetType: InvitationTargetTypeDto
   resolveScope(targetId: string): Promise<InvitationTargetScope>
+  createInvitations(params: CreateInvitationsForTargetParams): Promise<Invitation[]>
   resolveTargetNameByInvitationId(invitations: Invitation[]): Promise<Map<string, string>>
 }

@@ -1,0 +1,12 @@
+{
+  "invitations": {
+    "pendingItem": {
+      "description": "Invité {{invitedAt}}",
+      "revoke": "Supprimer l'invitation"
+    },
+    "deleteDialog": {
+      "title": "Supprimer l'invitation ?",
+      "description": "Cela annulera l'invitation envoyée à {{email}}."
+    }
+  }
+}

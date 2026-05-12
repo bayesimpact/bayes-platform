@@ -22,6 +22,17 @@ export type InvitationDto = {
   targetName: string
 }
 
+export type CreateInvitationsRequestDto = {
+  targetType: InvitationTargetTypeDto
+  targetId: string
+  emails: string[]
+  role?: string
+}
+
+export type CreateInvitationsResponseDto = {
+  invitations: InvitationDto[]
+}
+
 export type ListInvitationsResponseDto = {
   invitations: InvitationDto[]
 }

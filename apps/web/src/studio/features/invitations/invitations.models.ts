@@ -6,6 +6,7 @@ export type PendingInvitationItem = {
   targetId: string
   organizationId: string
   projectId: string
+  invitedEmail: string | null
   role: string
   invitationToken: string
   invitedAt: number

@@ -15,14 +15,6 @@ export default {
     )
     return response.data.data.map(fromDto)
   },
-  invite: async ({ organizationId, projectId, emails }) => {
-    const axios = getAxiosInstance()
-    const response = await axios.post<typeof ProjectMembershipRoutes.createOne.response>(
-      ProjectMembershipRoutes.createOne.getPath({ organizationId, projectId }),
-      { payload: { emails } },
-    )
-    return response.data.data.map(fromDto)
-  },
   remove: async ({ organizationId, projectId, membershipId }) => {
     const axios = getAxiosInstance()
     await axios.delete(

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto"
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -7,9 +8,9 @@ import {
   UnauthorizedException,
 } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
+import type { EntityManager } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource, In, type Repository } from "typeorm"
-import type { EntityManager } from "typeorm"
 import {
   INVITATION_SENDER,
   type InvitationSender,
@@ -27,13 +28,23 @@ import type {
   InvitationAcceptanceHandler,
   InvitationAcceptanceType,
 } from "./invitation-acceptance.handler"
-import type { InvitationTargetHandler, InvitationTargetScope } from "./invitation-target.handler"
+import type {
+  CreateInvitationsForTargetParams,
+  InvitationTargetHandler,
+  InvitationTargetScope,
+} from "./invitation-target.handler"
 
 type InviteMembersContext = {
   userRepository: Repository<User>
   membershipRepository: Repository<ReviewCampaignMembership>
   invitationRepository: Repository<Invitation>
   reviewCampaign: Pick<ReviewCampaign, "id" | "organizationId" | "projectId" | "status">
+}
+
+function isReviewCampaignMembershipRole(
+  value: string | undefined,
+): value is ReviewCampaignMembershipRole {
+  return value === "tester" || value === "reviewer"
 }
 
 @Injectable()
@@ -55,6 +66,21 @@ export class ReviewCampaignInvitationHandler
     private readonly dataSource: DataSource,
     private readonly invitationPersistence: InvitationPersistenceService,
   ) {}
+
+  async createInvitations(params: CreateInvitationsForTargetParams): Promise<Invitation[]> {
+    if (!params.role) {
+      throw new BadRequestException("role is required for review campaign invitations")
+    }
+    if (!isReviewCampaignMembershipRole(params.role)) {
+      throw new BadRequestException(`Invalid review campaign invitation role: ${params.role}`)
+    }
+    return this.inviteMembers({
+      reviewCampaignId: params.targetId,
+      emails: params.emails,
+      inviterName: params.inviterName,
+      role: params.role,
+    })
+  }
 
   async inviteMembers(params: {
     reviewCampaignId: string

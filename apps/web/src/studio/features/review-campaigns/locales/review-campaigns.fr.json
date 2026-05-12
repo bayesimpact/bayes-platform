@@ -127,7 +127,11 @@
       "accepted": "Accepté",
       "actions": "Actions",
       "pending": "en attente",
-      "revoke": "Révoquer"
+      "revoke": "Révoquer",
+      "pendingInvitations": {
+        "title": "Invitations en attente",
+        "description": "Invitations déjà envoyées pour cette campagne de revue."
+      }
     },
     "preview": {
       "perSessionTitle": "Après chaque session",

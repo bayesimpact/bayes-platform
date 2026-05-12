@@ -22,6 +22,10 @@
       "label": "Adresse email",
       "placeholder": "Entrez l'adresse email"
     },
+    "pendingInvitations": {
+      "title": "Invitations en attente",
+      "description": "Invitations déjà envoyées pour cet agent."
+    },
     "list": {
       "title": "Membres de {{agentName}}",
       "description": "Invitez des membres à utiliser votre agent.",

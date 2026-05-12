@@ -17,18 +17,6 @@ const list = createAsyncThunk<AgentMembership[], void, ThunkConfig>(
   },
 )
 
-const invite = createAsyncThunk<AgentMembership[], { emails: string[] }, ThunkConfig>(
-  "agentMemberships/invite",
-  async ({ emails }, { extra: { services }, getState }) => {
-    const state = getState()
-    const { organizationId, projectId, agentId } = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId", "agentId"],
-    })
-    return await services.agentMemberships.invite({ organizationId, projectId, agentId, emails })
-  },
-)
-
 const remove = createAsyncThunk<void, { membershipId: string }, ThunkConfig>(
   "agentMemberships/remove",
   async ({ membershipId }, { extra: { services }, getState }) => {
@@ -46,4 +34,4 @@ const remove = createAsyncThunk<void, { membershipId: string }, ThunkConfig>(
   },
 )
 
-export const agentMembershipsThunks = { list, invite, remove }
+export const agentMembershipsThunks = { list, remove }

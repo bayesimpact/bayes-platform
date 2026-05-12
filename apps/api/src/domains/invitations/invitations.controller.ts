@@ -3,7 +3,9 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
   Post,
   Query,
   Req,
@@ -20,6 +22,24 @@ import { InvitationsService } from "./invitations.service"
 @Controller()
 export class InvitationsController {
   constructor(private readonly invitationsService: InvitationsService) {}
+
+  @UseGuards(JwtAuthGuard, UserGuard)
+  @Post(InvitationsRoutes.createForTarget.path)
+  @TrackActivity({ action: "invitation.invite" })
+  async createForTarget(
+    @Req() request: EndpointRequest,
+    @Body() body: typeof InvitationsRoutes.createForTarget.request,
+  ): Promise<typeof InvitationsRoutes.createForTarget.response> {
+    const invitations = await this.invitationsService.createForTarget({
+      userId: request.user.id,
+      targetType: body.payload.targetType,
+      targetId: body.payload.targetId,
+      emails: body.payload.emails,
+      role: body.payload.role,
+      inviterName: request.user.name ?? request.user.email,
+    })
+    return { data: { invitations } }
+  }
 
   /**
    * Only JwtAuthGuard (no UserGuard) so this runs before /me and reconciles placeholder auth0Id.
@@ -43,6 +63,20 @@ export class InvitationsController {
 
     ;(request as Record<string, unknown>).activityUserId = userId
 
+    return { data: { success: true } }
+  }
+
+  @UseGuards(JwtAuthGuard, UserGuard)
+  @Delete(InvitationsRoutes.revokeOne.path)
+  @TrackActivity({ action: "invitation.revoke" })
+  async revokeOne(
+    @Req() request: EndpointRequest,
+    @Param("invitationId") invitationId: string,
+  ): Promise<typeof InvitationsRoutes.revokeOne.response> {
+    await this.invitationsService.revokeOne({
+      userId: request.user.id,
+      invitationId,
+    })
     return { data: { success: true } }
   }
 

@@ -21,7 +21,11 @@ import type {
   InvitationAcceptanceHandler,
   InvitationAcceptanceType,
 } from "./invitation-acceptance.handler"
-import type { InvitationTargetHandler, InvitationTargetScope } from "./invitation-target.handler"
+import type {
+  CreateInvitationsForTargetParams,
+  InvitationTargetHandler,
+  InvitationTargetScope,
+} from "./invitation-target.handler"
 
 type InviteMembersContext = {
   invitationRepository: Repository<Invitation>
@@ -51,6 +55,14 @@ export class ProjectInvitationHandler
     private readonly agentMembershipsService: AgentMembershipsService,
   ) {}
 
+  async createInvitations(params: CreateInvitationsForTargetParams): Promise<Invitation[]> {
+    return this.inviteMembers({
+      projectId: params.targetId,
+      emails: params.emails,
+      inviterName: params.inviterName,
+    })
+  }
+
   async inviteMembers(params: {
     projectId: string
     emails: string[]
@@ -72,7 +84,9 @@ export class ProjectInvitationHandler
   }
 
   private async buildInviteMembersContext(params: {
-    manager: Parameters<AgentMembershipsService["createAdminAgentMembershipsForUserInProject"]>[0]["manager"]
+    manager: Parameters<
+      AgentMembershipsService["createAdminAgentMembershipsForUserInProject"]
+    >[0]["manager"]
     projectId: string
   }): Promise<InviteMembersContext> {
     const context: InviteMembersContext = {
@@ -93,7 +107,9 @@ export class ProjectInvitationHandler
     emails: string[]
     inviterName: string
     projectId: string
-    manager: Parameters<AgentMembershipsService["createAdminAgentMembershipsForUserInProject"]>[0]["manager"]
+    manager: Parameters<
+      AgentMembershipsService["createAdminAgentMembershipsForUserInProject"]
+    >[0]["manager"]
     context: InviteMembersContext
   }): Promise<Invitation[]> {
     const createdInvitations: Invitation[] = []

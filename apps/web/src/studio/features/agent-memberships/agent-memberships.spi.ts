@@ -6,12 +6,6 @@ export interface IAgentMembershipsSpi {
     projectId: string
     agentId: string
   }) => Promise<AgentMembership[]>
-  invite: (params: {
-    organizationId: string
-    projectId: string
-    agentId: string
-    emails: string[]
-  }) => Promise<AgentMembership[]>
   remove: (params: {
     organizationId: string
     projectId: string

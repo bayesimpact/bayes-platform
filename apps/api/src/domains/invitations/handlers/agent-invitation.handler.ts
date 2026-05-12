@@ -19,7 +19,11 @@ import type {
   InvitationAcceptanceHandler,
   InvitationAcceptanceType,
 } from "./invitation-acceptance.handler"
-import type { InvitationTargetHandler, InvitationTargetScope } from "./invitation-target.handler"
+import type {
+  CreateInvitationsForTargetParams,
+  InvitationTargetHandler,
+  InvitationTargetScope,
+} from "./invitation-target.handler"
 
 type InviteMembersContext = {
   userRepository: Repository<User>
@@ -48,6 +52,14 @@ export class AgentInvitationHandler
     private readonly dataSource: DataSource,
     private readonly invitationPersistence: InvitationPersistenceService,
   ) {}
+
+  async createInvitations(params: CreateInvitationsForTargetParams): Promise<Invitation[]> {
+    return this.inviteMembers({
+      agentId: params.targetId,
+      emails: params.emails,
+      inviterName: params.inviterName,
+    })
+  }
 
   async inviteMembers(params: {
     agentId: string

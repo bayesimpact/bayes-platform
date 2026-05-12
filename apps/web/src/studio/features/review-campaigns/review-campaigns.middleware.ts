@@ -3,12 +3,16 @@ import { notificationsActions } from "@/common/features/notifications/notificati
 import { hasOrganizationChanged } from "@/common/features/organizations/organizations.selectors"
 import { hasProjectChanged } from "@/common/features/projects/projects.selectors"
 import type { AppDispatch, RootState } from "@/common/store/types"
+import {
+  createInvitationsForTarget,
+  listInvitationsForTarget,
+  revokeInvitation,
+} from "@/studio/features/invitations/invitations.thunks"
 import { reviewCampaignsActions } from "./review-campaigns.slice"
 import {
   createReviewCampaign,
   deleteReviewCampaign,
   getReviewCampaignDetail,
-  inviteReviewCampaignMembers,
   listReviewCampaigns,
   revokeReviewCampaignMembership,
   updateReviewCampaign,
@@ -36,9 +40,17 @@ function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: reviewCampaignsActions.selectDetail,
     effect: async (action, listenerApi) => {
-      await listenerApi.dispatch(
-        getReviewCampaignDetail({ reviewCampaignId: action.payload.reviewCampaignId }),
-      )
+      await Promise.all([
+        listenerApi.dispatch(
+          getReviewCampaignDetail({ reviewCampaignId: action.payload.reviewCampaignId }),
+        ),
+        listenerApi.dispatch(
+          listInvitationsForTarget({
+            targetType: "review_campaign",
+            targetId: action.payload.reviewCampaignId,
+          }),
+        ),
+      ])
     },
   })
 
@@ -48,11 +60,48 @@ function registerListeners() {
       createReviewCampaign.fulfilled,
       updateReviewCampaign.fulfilled,
       deleteReviewCampaign.fulfilled,
-      inviteReviewCampaignMembers.fulfilled,
       revokeReviewCampaignMembership.fulfilled,
     ),
     effect: async (_, listenerApi) => {
       await listenerApi.dispatch(listReviewCampaigns())
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: revokeInvitation.fulfilled,
+    effect: async (action, listenerApi) => {
+      const refreshTarget = action.meta.arg.refreshTarget
+      if (refreshTarget?.targetType !== "review_campaign") return
+      await listenerApi.dispatch(listInvitationsForTarget(refreshTarget))
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: createInvitationsForTarget.fulfilled,
+    effect: async (action, listenerApi) => {
+      const refreshTarget = action.meta.arg.refreshTarget
+      if (refreshTarget?.targetType !== "review_campaign") return
+      await listenerApi.dispatch(listInvitationsForTarget(refreshTarget))
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: createInvitationsForTarget.fulfilled,
+    effect: async (action, listenerApi) => {
+      if (action.meta.arg.refreshTarget?.targetType !== "review_campaign") return
+      listenerApi.dispatch(
+        notificationsActions.show({ title: "Invitations sent", type: "success" }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: createInvitationsForTarget.rejected,
+    effect: async (action, listenerApi) => {
+      if (action.meta.arg.refreshTarget?.targetType !== "review_campaign") return
+      listenerApi.dispatch(
+        notificationsActions.show({ title: "Failed to send invitations", type: "error" }),
+      )
     },
   })
 
@@ -62,7 +111,6 @@ function registerListeners() {
       | typeof createReviewCampaign
       | typeof updateReviewCampaign
       | typeof deleteReviewCampaign
-      | typeof inviteReviewCampaignMembers
       | typeof revokeReviewCampaignMembership
     success: string
     error: string
@@ -81,11 +129,6 @@ function registerListeners() {
       action: deleteReviewCampaign,
       success: "Review campaign deleted successfully",
       error: "Review campaign deletion failed",
-    },
-    {
-      action: inviteReviewCampaignMembers,
-      success: "Invitations sent",
-      error: "Failed to send invitations",
     },
     {
       action: revokeReviewCampaignMembership,

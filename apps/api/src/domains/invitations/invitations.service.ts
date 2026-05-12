@@ -1,4 +1,4 @@
-import type { InvitationDto, InvitationTargetTypeDto } from "@caseai-connect/api-contracts"
+import type { InvitationDto } from "@caseai-connect/api-contracts"
 import {
   BadRequestException,
   ForbiddenException,
@@ -13,7 +13,6 @@ import { OrganizationMembership } from "@/domains/organizations/memberships/orga
 import { Organization } from "@/domains/organizations/organization.entity"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
-import type { ReviewCampaignMembershipRole } from "@/domains/review-campaigns/review-campaigns.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentInvitationHandler } from "./handlers/agent-invitation.handler"
 import type { InvitationAcceptanceHandler } from "./handlers/invitation-acceptance.handler"
@@ -29,12 +28,6 @@ import { InvitationPersistenceService } from "./invitation-persistence.service"
 type BaseInvitationNameMaps = {
   organizationNameById: Map<string, string>
   projectNameById: Map<string, string>
-}
-
-const TARGET_TYPES: InvitationTargetTypeDto[] = ["project", "agent", "review_campaign"]
-
-function isInvitationTargetType(value: string): value is InvitationTargetTypeDto {
-  return TARGET_TYPES.includes(value as InvitationTargetTypeDto)
 }
 
 @Injectable()
@@ -69,29 +62,27 @@ export class InvitationsService {
     return this.toDtos(invitations)
   }
 
-  async inviteProjectMembers(params: {
-    projectId: string
+  async createForTarget(params: {
+    userId: string
+    targetType: string
+    targetId: string
     emails: string[]
+    role?: string
     inviterName: string
-  }): Promise<Invitation[]> {
-    return this.projectInvitationHandler.inviteMembers(params)
-  }
+  }): Promise<InvitationDto[]> {
+    const { targetType, targetId, userId } = params
+    const targetHandler = this.getTargetHandler(targetType)
+    const scope = await targetHandler.resolveScope(targetId)
+    await this.assertUserCanManageInvitations({ userId, ...scope })
 
-  async inviteAgentMembers(params: {
-    agentId: string
-    emails: string[]
-    inviterName: string
-  }): Promise<Invitation[]> {
-    return this.agentInvitationHandler.inviteMembers(params)
-  }
-
-  async inviteReviewCampaignMembers(params: {
-    reviewCampaignId: string
-    emails: string[]
-    role: ReviewCampaignMembershipRole
-    inviterName: string
-  }): Promise<Invitation[]> {
-    return this.reviewCampaignInvitationHandler.inviteMembers(params)
+    return this.toDtos(
+      await targetHandler.createInvitations({
+        targetId,
+        emails: params.emails,
+        role: params.role,
+        inviterName: params.inviterName,
+      }),
+    )
   }
 
   async listForTarget(params: {
@@ -100,25 +91,32 @@ export class InvitationsService {
     targetId: string
   }): Promise<InvitationDto[]> {
     const { targetType, targetId, userId } = params
-    if (!isInvitationTargetType(targetType)) {
-      throw new BadRequestException(`Invalid targetType: ${targetType}`)
-    }
-
-    const scope = await this.resolveTargetScope(targetType, targetId)
+    const targetHandler = this.getTargetHandler(targetType)
+    const scope = await targetHandler.resolveScope(targetId)
     await this.assertUserCanManageInvitations({ userId, ...scope })
 
     const invitations = await this.invitationRepository.find({
-      where: { targetType, targetId, status: "pending" },
+      where: { targetType: targetHandler.targetType, targetId, status: "pending" },
       order: { invitedAt: "DESC" },
     })
     return this.toDtos(invitations)
   }
 
-  private async resolveTargetScope(
-    targetType: InvitationTargetTypeDto,
-    targetId: string,
-  ): Promise<{ organizationId: string; projectId: string }> {
-    return this.getTargetHandler(targetType).resolveScope(targetId)
+  async revokeOne(params: { userId: string; invitationId: string }): Promise<void> {
+    const invitation = await this.invitationRepository.findOne({
+      where: { id: params.invitationId, status: "pending" },
+    })
+    if (!invitation) {
+      throw new NotFoundException(`Pending invitation ${params.invitationId} not found`)
+    }
+
+    await this.assertUserCanManageInvitations({
+      userId: params.userId,
+      organizationId: invitation.organizationId,
+      projectId: invitation.projectId,
+    })
+
+    await this.invitationRepository.update({ id: invitation.id }, { status: "revoked" })
   }
 
   private async assertUserCanManageInvitations(params: {
@@ -186,15 +184,12 @@ export class InvitationsService {
   ): Promise<Map<string, string>> {
     const targetNameByInvitationId = new Map<string, string>()
     await Promise.all(
-      TARGET_TYPES.map(async (targetType) => {
+      this.getTargetHandlers().map(async (targetHandler) => {
         const invitationsForTargetType = invitations.filter(
-          (invitation) => invitation.targetType === targetType,
+          (invitation) => invitation.targetType === targetHandler.targetType,
         )
         if (invitationsForTargetType.length === 0) return
-        const names =
-          await this.getTargetHandler(targetType).resolveTargetNameByInvitationId(
-            invitationsForTargetType,
-          )
+        const names = await targetHandler.resolveTargetNameByInvitationId(invitationsForTargetType)
         for (const [invitationId, targetName] of names.entries()) {
           targetNameByInvitationId.set(invitationId, targetName)
         }
@@ -203,10 +198,22 @@ export class InvitationsService {
     return targetNameByInvitationId
   }
 
-  private getTargetHandler(targetType: InvitationTargetTypeDto): InvitationTargetHandler {
-    if (targetType === "project") return this.projectInvitationHandler
-    if (targetType === "agent") return this.agentInvitationHandler
-    return this.reviewCampaignInvitationHandler
+  private getTargetHandler(targetType: string): InvitationTargetHandler {
+    const targetHandler = this.getTargetHandlers().find(
+      (handler) => handler.targetType === targetType,
+    )
+    if (!targetHandler) {
+      throw new BadRequestException(`Invalid targetType: ${targetType}`)
+    }
+    return targetHandler
+  }
+
+  private getTargetHandlers(): InvitationTargetHandler[] {
+    return [
+      this.projectInvitationHandler,
+      this.agentInvitationHandler,
+      this.reviewCampaignInvitationHandler,
+    ]
   }
 
   private toDto(

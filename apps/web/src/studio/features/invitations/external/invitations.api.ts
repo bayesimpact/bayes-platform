@@ -14,6 +14,18 @@ export default {
       payload: { ticketId },
     })
   },
+  revokeInvitation: async (invitationId: string) => {
+    const axios = getAxiosInstance()
+    await axios.delete(InvitationsRoutes.revokeOne.getPath({ invitationId }))
+  },
+  createForTarget: async ({ targetType, targetId, emails, role }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<typeof InvitationsRoutes.createForTarget.response>(
+      InvitationsRoutes.createForTarget.getPath(),
+      { payload: { targetType, targetId, emails, role } },
+    )
+    return toPendingInvitations(response.data.data)
+  },
   listPendingMine: async () => {
     const axios = getAxiosInstance()
     const response = await axios.get<typeof InvitationsRoutes.listPendingMine.response>(
@@ -21,14 +33,23 @@ export default {
     )
     return toPendingInvitations(response.data.data)
   },
+  listForTarget: async ({ targetType, targetId }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof InvitationsRoutes.listForTarget.response>(
+      InvitationsRoutes.listForTarget.getPath(),
+      { params: { targetType, targetId } },
+    )
+    return toPendingInvitations(response.data.data)
+  },
 } satisfies IInvitationsSpi
 
-const toPendingInvitationItem = (dto: InvitationDto): PendingInvitationItem => ({
+export const toPendingInvitationItem = (dto: InvitationDto): PendingInvitationItem => ({
   id: dto.id,
   targetType: dto.targetType,
   targetId: dto.targetId,
   organizationId: dto.organizationId,
   projectId: dto.projectId,
+  invitedEmail: dto.invitedEmail,
   role: dto.role,
   invitationToken: dto.invitationToken,
   invitedAt: dto.invitedAt,
@@ -37,5 +58,5 @@ const toPendingInvitationItem = (dto: InvitationDto): PendingInvitationItem => (
   targetName: dto.targetName,
 })
 
-const toPendingInvitations = (dto: ListInvitationsResponseDto): PendingInvitations =>
+export const toPendingInvitations = (dto: ListInvitationsResponseDto): PendingInvitations =>
   dto.invitations.map(toPendingInvitationItem)

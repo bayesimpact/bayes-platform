@@ -1,12 +1,16 @@
-import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
+import { createListenerMiddleware } from "@reduxjs/toolkit"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
-import { hasProjectChanged } from "@/common/features/projects/projects.selectors"
+import {
+  hasProjectChanged,
+  selectCurrentProjectId,
+} from "@/common/features/projects/projects.selectors"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
-  inviteProjectMembers,
-  listProjectMemberships,
-  removeProjectMembership,
-} from "./project-memberships.thunks"
+  createInvitationsForTarget,
+  listInvitationsForTarget,
+  revokeInvitation,
+} from "@/studio/features/invitations/invitations.thunks"
+import { listProjectMemberships, removeProjectMembership } from "./project-memberships.thunks"
 
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
@@ -17,22 +21,55 @@ function registerListeners() {
       return hasProjectChanged(originalState, currentState)
     },
     effect: async (_, listenerApi) => {
-      await listenerApi.dispatch(listProjectMemberships())
+      const projectId = selectCurrentProjectId(listenerApi.getState())
+      if (!projectId) return
+      await Promise.all([
+        listenerApi.dispatch(listProjectMemberships()),
+        listenerApi.dispatch(
+          listInvitationsForTarget({ targetType: "project", targetId: projectId }),
+        ),
+      ])
     },
   })
 
-  // Refresh list after invite or remove
+  // Refresh list after member removal
   listenerMiddleware.startListening({
-    matcher: isAnyOf(inviteProjectMembers.fulfilled, removeProjectMembership.fulfilled),
+    actionCreator: removeProjectMembership.fulfilled,
     effect: async (_, listenerApi) => {
-      await listenerApi.dispatch(listProjectMemberships())
+      const projectId = selectCurrentProjectId(listenerApi.getState())
+      if (!projectId) return
+      await Promise.all([
+        listenerApi.dispatch(listProjectMemberships()),
+        listenerApi.dispatch(
+          listInvitationsForTarget({ targetType: "project", targetId: projectId }),
+        ),
+      ])
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: createInvitationsForTarget.fulfilled,
+    effect: async (action, listenerApi) => {
+      const refreshTarget = action.meta.arg.refreshTarget
+      if (refreshTarget?.targetType !== "project") return
+      await listenerApi.dispatch(listInvitationsForTarget(refreshTarget))
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: revokeInvitation.fulfilled,
+    effect: async (action, listenerApi) => {
+      const refreshTarget = action.meta.arg.refreshTarget
+      if (refreshTarget?.targetType !== "project") return
+      await listenerApi.dispatch(listInvitationsForTarget(refreshTarget))
     },
   })
 
   // Success notifications
   listenerMiddleware.startListening({
-    actionCreator: inviteProjectMembers.fulfilled,
-    effect: async (_, listenerApi) => {
+    actionCreator: createInvitationsForTarget.fulfilled,
+    effect: async (action, listenerApi) => {
+      if (action.meta.arg.refreshTarget?.targetType !== "project") return
       listenerApi.dispatch(
         notificationsActions.show({
           title: "Invitations sent successfully",
@@ -56,8 +93,9 @@ function registerListeners() {
 
   // Error notifications
   listenerMiddleware.startListening({
-    actionCreator: inviteProjectMembers.rejected,
-    effect: async (_, listenerApi) => {
+    actionCreator: createInvitationsForTarget.rejected,
+    effect: async (action, listenerApi) => {
+      if (action.meta.arg.refreshTarget?.targetType !== "project") return
       listenerApi.dispatch(
         notificationsActions.show({
           title: "Failed to send invitations",

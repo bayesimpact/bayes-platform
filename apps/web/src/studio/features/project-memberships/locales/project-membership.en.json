@@ -32,6 +32,10 @@
       "label": "Email address",
       "placeholder": "Enter email address"
     },
+    "pendingInvitations": {
+      "title": "Pending invitations",
+      "description": "Invitations already sent for this project."
+    },
     "list": {
       "title": "Members of {{projectName}}",
       "description": "Invite members to join your workspace to collaborate together.",

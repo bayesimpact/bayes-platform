@@ -23,11 +23,15 @@ import {
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { PendingInvitationsSection } from "@/studio/features/invitations/components/PendingInvitationsSection"
+import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 
 type Props = {
   memberships: ReviewCampaignMembershipDto[]
+  pendingInvitations: PendingInvitations
   onInvite: (role: ReviewCampaignMembershipRole, emails: string[]) => void
   onRevoke: (membershipId: string) => void
+  onRevokeInvitation: (invitationId: string) => void
   disabled?: boolean
 }
 
@@ -44,7 +48,14 @@ const parseEmails = (raw: string): string[] =>
     .map((email) => email.trim())
     .filter(Boolean)
 
-export function ParticipantsList({ memberships, onInvite, onRevoke, disabled = false }: Props) {
+export function ParticipantsList({
+  memberships,
+  pendingInvitations,
+  onInvite,
+  onRevoke,
+  onRevokeInvitation,
+  disabled = false,
+}: Props) {
   const { t } = useTranslation()
   const [emailsInput, setEmailsInput] = useState("")
   const [role, setRole] = useState<ReviewCampaignMembershipRole>("tester")
@@ -111,55 +122,63 @@ export function ParticipantsList({ memberships, onInvite, onRevoke, disabled = f
         </div>
       </div>
 
-      {memberships.length === 0 ? (
-        <p className="text-muted-foreground text-sm italic">
-          {t("reviewCampaigns:participants.empty")}
-        </p>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("reviewCampaigns:participants.email")}</TableHead>
-              <TableHead>{t("reviewCampaigns:participants.roleLabel")}</TableHead>
-              <TableHead>{t("reviewCampaigns:participants.invited")}</TableHead>
-              <TableHead>{t("reviewCampaigns:participants.accepted")}</TableHead>
-              <TableHead className="text-right">
-                {t("reviewCampaigns:participants.actions")}
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {memberships.map((membership) => (
-              <TableRow key={membership.id}>
-                <TableCell className="font-medium">{membership.userEmail}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{roleLabel(membership.role)}</Badge>
-                </TableCell>
-                <TableCell>{formatDate(membership.invitedAt)}</TableCell>
-                <TableCell>
-                  {membership.acceptedAt ? (
-                    formatDate(membership.acceptedAt)
-                  ) : (
-                    <span className="text-muted-foreground text-sm italic">
-                      {t("reviewCampaigns:participants.pending")}
-                    </span>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={disabled}
-                    onClick={() => onRevoke(membership.id)}
-                  >
-                    {t("reviewCampaigns:participants.revoke")}
-                  </Button>
-                </TableCell>
+      <div className="rounded-md border">
+        {memberships.length === 0 ? (
+          <p className="p-4 text-muted-foreground text-sm italic">
+            {t("reviewCampaigns:participants.empty")}
+          </p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("reviewCampaigns:participants.email")}</TableHead>
+                <TableHead>{t("reviewCampaigns:participants.roleLabel")}</TableHead>
+                <TableHead>{t("reviewCampaigns:participants.invited")}</TableHead>
+                <TableHead>{t("reviewCampaigns:participants.accepted")}</TableHead>
+                <TableHead className="text-right">
+                  {t("reviewCampaigns:participants.actions")}
+                </TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+            </TableHeader>
+            <TableBody>
+              {memberships.map((membership) => (
+                <TableRow key={membership.id}>
+                  <TableCell className="font-medium">{membership.userEmail}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{roleLabel(membership.role)}</Badge>
+                  </TableCell>
+                  <TableCell>{formatDate(membership.invitedAt)}</TableCell>
+                  <TableCell>
+                    {membership.acceptedAt ? (
+                      formatDate(membership.acceptedAt)
+                    ) : (
+                      <span className="text-muted-foreground text-sm italic">
+                        {t("reviewCampaigns:participants.pending")}
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={disabled}
+                      onClick={() => onRevoke(membership.id)}
+                    >
+                      {t("reviewCampaigns:participants.revoke")}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+        <PendingInvitationsSection
+          invitations={pendingInvitations}
+          title={t("reviewCampaigns:participants.pendingInvitations.title")}
+          description={t("reviewCampaigns:participants.pendingInvitations.description")}
+          onRevoke={onRevokeInvitation}
+        />
+      </div>
     </section>
   )
 }

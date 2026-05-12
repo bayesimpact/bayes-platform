@@ -39,7 +39,7 @@ export class InvitationEntityAndBackfill1778086394496 implements MigrationInterf
       FROM project_membership pm
       INNER JOIN project p ON p.id = pm.project_id
       INNER JOIN "user" u ON u.id = pm.user_id
-      WHERE pm.status = 'sent'
+      WHERE pm.status = 'sent' AND pm.invitation_token IS NOT NULL
     `)
 
     await queryRunner.query(`
@@ -67,7 +67,7 @@ export class InvitationEntityAndBackfill1778086394496 implements MigrationInterf
       FROM agent_membership am
       INNER JOIN agent a ON a.id = am.agent_id
       INNER JOIN "user" u ON u.id = am.user_id
-      WHERE am.status = 'sent'
+      WHERE am.status = 'sent' AND am.invitation_token IS NOT NULL
     `)
 
     await queryRunner.query(`

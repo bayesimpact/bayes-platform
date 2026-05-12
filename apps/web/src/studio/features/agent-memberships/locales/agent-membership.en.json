@@ -22,6 +22,10 @@
       "label": "Email address",
       "placeholder": "Enter email address"
     },
+    "pendingInvitations": {
+      "title": "Pending invitations",
+      "description": "Invitations already sent for this agent."
+    },
     "list": {
       "title": "Members of {{agentName}}",
       "description": "Invite users to use your agent.",
