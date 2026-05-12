@@ -159,11 +159,12 @@ export class DocumentsService {
       throw new NotFoundException(`Document with id ${documentId} not found`)
     }
 
-    if (
+    const shouldBackfillSourceUrl =
       fieldsToUpdate.title !== undefined &&
       document.sourceType === "webCrawl" &&
       document.sourceUrl === null
-    ) {
+
+    if (shouldBackfillSourceUrl) {
       try {
         new URL(document.title)
         document.sourceUrl = document.title
