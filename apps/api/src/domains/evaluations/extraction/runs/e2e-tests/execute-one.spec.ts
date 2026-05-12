@@ -91,15 +91,20 @@ describe("EvaluationExtractionRuns - executeOne", () => {
       token: accessToken,
     })
 
-  it("should enqueue a pending run and return it with pending status", async () => {
+  it("creates run records, enqueues per-record jobs, and returns the run as running", async () => {
     await createContext()
 
     const res = await subject()
 
     expectResponse(res, 201)
-    // executeOne now enqueues the job asynchronously — the run stays pending until the worker picks it up
-    expect(res.body.data.status).toBe("pending")
-    expect(res.body.data.summary).toBeNull()
+    expect(res.body.data.status).toBe("running")
+    expect(res.body.data.summary).toEqual({
+      total: expect.any(Number),
+      perfectMatches: 0,
+      mismatches: 0,
+      errors: 0,
+      running: expect.any(Number),
+    })
 
     await expectActivityCreated("evaluationExtractionRun.execute")
   })

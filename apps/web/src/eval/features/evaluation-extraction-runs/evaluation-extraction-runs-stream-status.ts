@@ -1,4 +1,3 @@
-import throttle from "lodash/throttle"
 import { createStreamStatusManager } from "@/common/sse/stream-status-manager"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
@@ -13,21 +12,14 @@ type StreamListenerApi = {
   getState: () => RootState
 }
 
-const throttledGetAll = throttle(
-  (listenerApi: StreamListenerApi) =>
-    listenerApi.dispatch(evaluationExtractionRunsActions.getAll()).unwrap(),
-  5_000,
-  { leading: true, trailing: false },
-)
-
 const manager = createStreamStatusManager({
   selectIsStreamActive: selectIsRunStatusStreamActive,
   selectHasItemsInProgress: selectHasRunsInProgress,
-  dispatchStreamThunk: (listenerApi) =>
-    listenerApi.dispatch(
+  dispatchStreamThunk: (listenerApi) => {
+    return listenerApi.dispatch(
       evaluationExtractionRunsActions.streamRunStatus(),
-    ) as unknown as AbortableStreamTask,
-  dispatchRefresh: (listenerApi) => throttledGetAll(listenerApi),
+    ) as unknown as AbortableStreamTask
+  },
 })
 
 export function stopRunStatusStream() {

@@ -4,7 +4,7 @@ import {
   type EvaluationExtractionRunStatusChangedEventDto,
   EvaluationExtractionRunsRoutes,
 } from "@caseai-connect/api-contracts"
-import { Body, Controller, Get, Inject, Post, Query, Req, Sse, UseGuards } from "@nestjs/common"
+import { Body, Controller, Get, Post, Query, Req, Sse, UseGuards } from "@nestjs/common"
 import type { Observable } from "rxjs"
 import { filter, map } from "rxjs/operators"
 import type {
@@ -21,8 +21,6 @@ import { UserGuard } from "@/domains/users/user.guard"
 import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
 import type { EvaluationExtractionRun } from "./evaluation-extraction-run.entity"
 import { EvaluationExtractionRunGuard } from "./evaluation-extraction-run.guard"
-import type { EvaluationExtractionRunBatchService } from "./evaluation-extraction-run-batch.interface"
-import { EVALUATION_EXTRACTION_RUN_BATCH_SERVICE } from "./evaluation-extraction-run-batch.interface"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationExtractionRunStatusNotifierService } from "./evaluation-extraction-run-status-notifier.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -37,8 +35,6 @@ import type { EvaluationExtractionRunRecord } from "./records/evaluation-extract
 export class EvaluationExtractionRunsController {
   constructor(
     private readonly evaluationExtractionRunsService: EvaluationExtractionRunsService,
-    @Inject(EVALUATION_EXTRACTION_RUN_BATCH_SERVICE)
-    private readonly batchService: EvaluationExtractionRunBatchService,
     private readonly runStatusStreamService: EvaluationExtractionRunStatusStreamService,
     private readonly statusNotifierService: EvaluationExtractionRunStatusNotifierService,
   ) {}
@@ -69,15 +65,11 @@ export class EvaluationExtractionRunsController {
     @Req() request: EndpointRequestWithEvaluationExtractionRun,
   ): Promise<typeof EvaluationExtractionRunsRoutes.executeOne.response> {
     const connectScope = getRequiredConnectScope(request)
-    const run = request.evaluationExtractionRun
+    const { evaluationExtractionRun } = request
 
-    await this.batchService.enqueueExecuteRun({
-      runId: run.id,
-      organizationId: connectScope.organizationId,
-      projectId: connectScope.projectId,
-    })
+    await this.evaluationExtractionRunsService.executeRun({ evaluationExtractionRun, connectScope })
 
-    return { data: toEvaluationExtractionRunDto(run) }
+    return { data: toEvaluationExtractionRunDto(evaluationExtractionRun) }
   }
 
   @Post(EvaluationExtractionRunsRoutes.retryOne.path)
@@ -88,15 +80,11 @@ export class EvaluationExtractionRunsController {
     @Req() request: EndpointRequestWithEvaluationExtractionRun,
   ): Promise<typeof EvaluationExtractionRunsRoutes.retryOne.response> {
     const connectScope = getRequiredConnectScope(request)
-    const run = request.evaluationExtractionRun
+    const { evaluationExtractionRun } = request
 
-    await this.batchService.retryExecuteRun({
-      runId: run.id,
-      organizationId: connectScope.organizationId,
-      projectId: connectScope.projectId,
-    })
+    await this.evaluationExtractionRunsService.retryRun({ evaluationExtractionRun, connectScope })
 
-    return { data: toEvaluationExtractionRunDto(run) }
+    return { data: toEvaluationExtractionRunDto(evaluationExtractionRun) }
   }
 
   @Post(EvaluationExtractionRunsRoutes.cancelOne.path)
@@ -106,11 +94,18 @@ export class EvaluationExtractionRunsController {
   async cancelOne(
     @Req() request: EndpointRequestWithEvaluationExtractionRun,
   ): Promise<typeof EvaluationExtractionRunsRoutes.cancelOne.response> {
-    const run = await this.evaluationExtractionRunsService.markRunCancelled({
-      run: request.evaluationExtractionRun,
+    const connectScope = getRequiredConnectScope(request)
+    const evaluationExtractionRunId = request.evaluationExtractionRun.id
+
+    await this.evaluationExtractionRunsService.removePendingJobsForRun({
+      evaluationExtractionRunId,
+      connectScope,
     })
 
-    await this.batchService.removePendingJob(run.id)
+    const run = await this.evaluationExtractionRunsService.markRunCancelled({
+      evaluationExtractionRun: request.evaluationExtractionRun,
+      connectScope,
+    })
 
     await this.statusNotifierService.notifyRunStatusChanged({
       evaluationExtractionRunId: run.id,

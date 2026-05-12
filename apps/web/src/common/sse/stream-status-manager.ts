@@ -10,7 +10,7 @@ export interface StreamStatusManagerConfig {
   selectIsStreamActive: (state: RootState) => boolean
   selectHasItemsInProgress: (state: RootState) => boolean
   dispatchStreamThunk: (listenerApi: StreamListenerApi) => AbortableStreamTask
-  dispatchRefresh?: (listenerApi: StreamListenerApi) => Promise<unknown>
+  dispatchRefresh?: (listenerApi: StreamListenerApi) => void
 }
 
 export interface StreamStatusManager {
@@ -87,7 +87,7 @@ export function createStreamStatusManager(config: StreamStatusManagerConfig): St
       }
 
       if (config.dispatchRefresh) {
-        await config.dispatchRefresh(listenerApi)
+        config.dispatchRefresh(listenerApi)
       }
 
       await runStreamLoop(listenerApi, generation, nextReconnectAttemptCount)
@@ -113,9 +113,6 @@ export function createStreamStatusManager(config: StreamStatusManagerConfig): St
   }
 
   async function start(listenerApi: StreamListenerApi): Promise<void> {
-    if (config.dispatchRefresh) {
-      await config.dispatchRefresh(listenerApi)
-    }
     sync(listenerApi)
   }
 

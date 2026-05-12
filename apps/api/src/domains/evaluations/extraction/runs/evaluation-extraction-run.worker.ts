@@ -2,10 +2,10 @@ import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq"
 import { Logger } from "@nestjs/common"
 import type { Job } from "bullmq"
 import {
-  EVALUATION_EXTRACTION_RUN_JOB_NAME,
   EVALUATION_EXTRACTION_RUN_QUEUE_NAME,
+  EVALUATION_EXTRACTION_RUN_RECORD_JOB_NAME,
 } from "./evaluation-extraction-run.constants"
-import type { ExecuteEvaluationExtractionRunJobPayload } from "./evaluation-extraction-run.types"
+import type { ProcessEvaluationExtractionRunRecordJobPayload } from "./evaluation-extraction-run.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationExtractionRunProcessorService } from "./evaluation-extraction-run-processor.service"
 
@@ -19,27 +19,27 @@ export class EvaluationExtractionRunWorker extends WorkerHost {
     super()
   }
 
-  async process(job: Job<ExecuteEvaluationExtractionRunJobPayload>): Promise<void> {
-    if (job.name !== EVALUATION_EXTRACTION_RUN_JOB_NAME) {
+  async process(job: Job<ProcessEvaluationExtractionRunRecordJobPayload>): Promise<void> {
+    if (job.name !== EVALUATION_EXTRACTION_RUN_RECORD_JOB_NAME) {
       return
     }
 
-    await this.processorService.processRun(job.data)
+    await this.processorService.processRunRecord(job.data)
   }
 
   @OnWorkerEvent("active")
-  onActive(job: Job<ExecuteEvaluationExtractionRunJobPayload>): void {
+  onActive(job: Job<ProcessEvaluationExtractionRunRecordJobPayload>): void {
     this.logger.log(`Job active: ${job.name} (${job.id})`)
   }
 
   @OnWorkerEvent("completed")
-  onCompleted(job: Job<ExecuteEvaluationExtractionRunJobPayload>): void {
+  onCompleted(job: Job<ProcessEvaluationExtractionRunRecordJobPayload>): void {
     this.logger.log(`Job completed: ${job.name} (${job.id})`)
   }
 
   @OnWorkerEvent("failed")
   async onFailed(
-    job: Job<ExecuteEvaluationExtractionRunJobPayload> | undefined,
+    job: Job<ProcessEvaluationExtractionRunRecordJobPayload> | undefined,
     error: Error,
   ): Promise<void> {
     this.logger.error(
@@ -47,7 +47,7 @@ export class EvaluationExtractionRunWorker extends WorkerHost {
       error.stack,
     )
     if (job) {
-      await this.processorService.markFailed(job.data)
+      await this.processorService.markRecordFailed(job.data, error)
     }
   }
 }

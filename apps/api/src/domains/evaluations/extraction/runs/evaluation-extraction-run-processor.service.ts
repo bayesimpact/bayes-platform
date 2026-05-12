@@ -6,7 +6,7 @@ import {
   UnprocessableEntityException,
 } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import { In, type Repository } from "typeorm"
+import type { Repository } from "typeorm"
 import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
@@ -15,18 +15,15 @@ import type {
   LLMMetadata,
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
-import { Agent } from "@/domains/agents/agent.entity"
+import type { Agent } from "@/domains/agents/agent.entity"
 import { ServiceWithLLM } from "@/external/llm"
-import {
-  type DatasetSchemaColumn,
-  EvaluationExtractionDataset,
+import type {
+  DatasetSchemaColumn,
+  EvaluationExtractionDatasetSchemaMapping,
 } from "../datasets/evaluation-extraction-dataset.entity"
-import { EvaluationExtractionDatasetRecord } from "../datasets/records/evaluation-extraction-dataset-record.entity"
-import {
-  EvaluationExtractionRun,
-  type EvaluationExtractionRunSummary,
-} from "./evaluation-extraction-run.entity"
-import type { ExecuteEvaluationExtractionRunJobPayload } from "./evaluation-extraction-run.types"
+import type { EvaluationExtractionDatasetRecord } from "../datasets/records/evaluation-extraction-dataset-record.entity"
+import { EvaluationExtractionRun } from "./evaluation-extraction-run.entity"
+import type { ProcessEvaluationExtractionRunRecordJobPayload } from "./evaluation-extraction-run.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationExtractionRunCsvExportService } from "./evaluation-extraction-run-csv-export.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -38,24 +35,14 @@ import { EvaluationExtractionRunRecord } from "./records/evaluation-extraction-r
 @Injectable()
 export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
   private readonly logger = new Logger(EvaluationExtractionRunProcessorService.name)
-  private readonly runConnectRepository: ConnectRepository<EvaluationExtractionRun>
-  private readonly runRepository: Repository<EvaluationExtractionRun>
+  private readonly evaluationExtractionRunConnectRepository: ConnectRepository<EvaluationExtractionRun>
   private readonly runRecordConnectRepository: ConnectRepository<EvaluationExtractionRunRecord>
-  private readonly datasetConnectRepository: ConnectRepository<EvaluationExtractionDataset>
-  private readonly datasetRecordConnectRepository: ConnectRepository<EvaluationExtractionDatasetRecord>
-  private readonly agentConnectRepository: ConnectRepository<Agent>
 
   constructor(
     @InjectRepository(EvaluationExtractionRun)
     evaluationExtractionRunRepository: Repository<EvaluationExtractionRun>,
     @InjectRepository(EvaluationExtractionRunRecord)
     evaluationExtractionRunRecordRepository: Repository<EvaluationExtractionRunRecord>,
-    @InjectRepository(EvaluationExtractionDataset)
-    evaluationExtractionDatasetRepository: Repository<EvaluationExtractionDataset>,
-    @InjectRepository(EvaluationExtractionDatasetRecord)
-    evaluationExtractionDatasetRecordRepository: Repository<EvaluationExtractionDatasetRecord>,
-    @InjectRepository(Agent)
-    agentRepository: Repository<Agent>,
     private readonly graderService: EvaluationExtractionRunGraderService,
     private readonly statusNotifierService: EvaluationExtractionRunStatusNotifierService,
     private readonly csvExportService: EvaluationExtractionRunCsvExportService,
@@ -69,8 +56,7 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
     gemmaLlmProvider: LLMProvider,
   ) {
     super({ mockLlmProvider, vertexLlmProvider, medGemmaLlmProvider, gemmaLlmProvider })
-    this.runRepository = evaluationExtractionRunRepository
-    this.runConnectRepository = new ConnectRepository(
+    this.evaluationExtractionRunConnectRepository = new ConnectRepository(
       evaluationExtractionRunRepository,
       "evaluationExtractionRun",
     )
@@ -78,179 +64,199 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
       evaluationExtractionRunRecordRepository,
       "evaluationExtractionRunRecord",
     )
-    this.datasetConnectRepository = new ConnectRepository(
-      evaluationExtractionDatasetRepository,
-      "evaluationExtractionDataset",
-    )
-    this.datasetRecordConnectRepository = new ConnectRepository(
-      evaluationExtractionDatasetRecordRepository,
-      "evaluationExtractionDatasetRecord",
-    )
-    this.agentConnectRepository = new ConnectRepository(agentRepository, "agent")
   }
 
-  async processRun(payload: ExecuteEvaluationExtractionRunJobPayload): Promise<void> {
-    const connectScope: RequiredConnectScope = {
-      organizationId: payload.organizationId,
-      projectId: payload.projectId,
-    }
+  async processRunRecord(payload: ProcessEvaluationExtractionRunRecordJobPayload): Promise<void> {
+    const { connectScope, evaluationExtractionRun, runRecordId, agent } = payload
 
-    const run = await this.runConnectRepository.getOneById(connectScope, payload.runId)
-    if (!run) {
-      throw new NotFoundException(`Evaluation run with id ${payload.runId} not found`)
+    const runRecord = await this.runRecordConnectRepository.getOneById(connectScope, runRecordId, {
+      relations: ["evaluationExtractionDatasetRecord"],
+    })
+    if (!runRecord) {
+      throw new NotFoundException(`Evaluation run record with id ${runRecordId} not found`)
     }
-
-    if (run.status === "completed") {
-      throw new UnprocessableEntityException(
-        `Evaluation run has already completed and cannot be re-executed.`,
+    if (!runRecord.evaluationExtractionDatasetRecord) {
+      throw new NotFoundException(
+        `Evaluation dataset record for run record ${runRecordId} not found`,
       )
     }
 
-    if (run.status === "cancelled") {
-      throw new UnprocessableEntityException(
-        `Evaluation run has been cancelled and cannot be re-executed.`,
+    if (runRecord.status === "match" || runRecord.status === "mismatch") {
+      this.logger.log(
+        `Evaluation run record ${runRecordId} already processed (status=${runRecord.status}); skipping`,
       )
+      return
     }
 
-    if (run.status === "running" || run.status === "failed") {
-      this.logger.warn(
-        `Evaluation run ${run.id} is being retried (previous status: "${run.status}").`,
+    if (
+      evaluationExtractionRun.status === "cancelled" ||
+      evaluationExtractionRun.status === "completed"
+    ) {
+      this.logger.log(
+        `Evaluation run ${evaluationExtractionRun.id} is ${evaluationExtractionRun.status}; skipping record ${runRecordId}`,
       )
+      return
     }
 
-    run.status = "running"
-    run.summary = null
-    await this.runConnectRepository.saveOne(run)
-    await this.notifyStatusChanged(run)
-
-    try {
-      await this.executeAllRecords({ run, connectScope })
-    } catch (error) {
-      run.status = "failed"
-      await this.runConnectRepository.saveOne(run)
-      await this.notifyStatusChanged(run)
-      throw error
-    }
-  }
-
-  private async executeAllRecords({
-    run,
-    connectScope,
-  }: {
-    run: EvaluationExtractionRun
-    connectScope: RequiredConnectScope
-  }): Promise<void> {
-    const { dataset, datasetRecords, agent, existingRunRecords } = await this.loadExecutionContext({
-      run,
+    await this.processOneRecord({
+      runRecord,
+      datasetRecord: runRecord.evaluationExtractionDatasetRecord,
+      schemaMapping: payload.schemaMapping,
+      agent,
+      evaluationExtractionRun,
       connectScope,
     })
+  }
 
-    const summary = createInitialSummary({
-      recordCount: datasetRecords.length,
-      existingRunRecords,
+  private async incrementSummary({
+    connectScope,
+    evaluationExtractionRunId,
+    runRecord,
+  }: {
+    connectScope: RequiredConnectScope
+    evaluationExtractionRunId: string
+    runRecord: EvaluationExtractionRunRecord
+  }): Promise<void> {
+    const run = await this.getEvaluationExtractionRun({
+      id: evaluationExtractionRunId,
+      connectScope,
     })
-    await this.initializeSummary({ run, summary })
+    const summary = run.summary
+    if (!summary) {
+      throw new Error(`Run ${evaluationExtractionRunId} has no summary to increment`)
+    }
 
-    const processedDatasetRecordIds = new Set(
-      existingRunRecords.map((record) => record.evaluationExtractionDatasetRecordId),
-    )
+    const stopRunning = () => {
+      summary.running -= 1
+    }
 
-    for (const datasetRecord of datasetRecords) {
-      const cancelled = await this.loadRunIfCancelled({ runId: run.id, connectScope })
-      if (cancelled) {
-        await this.finalizeCancelledRun({ run: cancelled, summary })
-        return
-      }
+    switch (runRecord.status) {
+      case "match":
+        summary.perfectMatches += 1
+        stopRunning()
+        break
+      case "mismatch":
+        summary.mismatches += 1
+        stopRunning()
+        break
+      case "error":
+        summary.errors += 1
+        stopRunning()
+        break
+      case "running":
+        summary.running += 1
+        break
+    }
 
-      if (processedDatasetRecordIds.has(datasetRecord.id)) {
-        continue
-      }
-
-      await this.processOneRecord({
-        datasetRecord,
-        dataset,
-        agent,
-        run,
+    async function updateRunStatus({
+      status,
+      evaluationExtractionRunConnectRepository,
+    }: {
+      status: EvaluationExtractionRun["status"]
+      evaluationExtractionRunConnectRepository: ConnectRepository<EvaluationExtractionRun>
+    }) {
+      await evaluationExtractionRunConnectRepository.updateOneById({
         connectScope,
-        summary,
+        id: evaluationExtractionRunId,
+        fields: { status },
+      })
+    }
+
+    await this.evaluationExtractionRunConnectRepository.updateOneById({
+      connectScope,
+      id: evaluationExtractionRunId,
+      fields: { summary },
+    })
+
+    if (summary.errors > 0) {
+      await updateRunStatus({
+        status: "failed",
+        evaluationExtractionRunConnectRepository: this.evaluationExtractionRunConnectRepository,
+      })
+    }
+
+    const isCompleted =
+      summary.running === 0 && summary.mismatches + summary.perfectMatches === summary.total
+    if (isCompleted) {
+      await updateRunStatus({
+        status: "completed",
+        evaluationExtractionRunConnectRepository: this.evaluationExtractionRunConnectRepository,
       })
 
-      await this.persistSummaryProgress({ runId: run.id, summary, connectScope })
+      await this.generateCsv(run)
     }
 
-    await this.markCompleted({ run, summary })
-    this.logger.log(`Evaluation run ${run.id} completed`)
+    const updatedRun = await this.getEvaluationExtractionRun({
+      id: evaluationExtractionRunId,
+      connectScope,
+    })
+    await this.notifyStatusChanged(updatedRun)
   }
 
-  private async loadExecutionContext({
-    run,
+  async markRecordFailed(
+    payload: ProcessEvaluationExtractionRunRecordJobPayload,
+    error: Error,
+  ): Promise<void> {
+    const { connectScope, evaluationExtractionRun } = payload
+
+    const runRecord = await this.runRecordConnectRepository.getOneById(
+      connectScope,
+      payload.runRecordId,
+    )
+    if (!runRecord) {
+      this.logger.warn(`markRecordFailed: run record ${payload.runRecordId} not found`)
+      return
+    }
+
+    if (runRecord.status !== "running") return
+
+    runRecord.status = "error"
+    runRecord.errorDetails = error.message ?? "Unknown error"
+    runRecord.comparison = null
+    runRecord.agentRawOutput = null
+    runRecord.traceId = null
+    await this.runRecordConnectRepository.saveOne(runRecord)
+
+    await this.incrementSummary({
+      connectScope,
+      evaluationExtractionRunId: evaluationExtractionRun.id,
+      runRecord,
+    })
+  }
+
+  private async getEvaluationExtractionRun({
+    id,
     connectScope,
   }: {
-    run: EvaluationExtractionRun
+    id: string
     connectScope: RequiredConnectScope
-  }): Promise<{
-    dataset: EvaluationExtractionDataset
-    datasetRecords: EvaluationExtractionDatasetRecord[]
-    agent: Agent
-    existingRunRecords: EvaluationExtractionRunRecord[]
-  }> {
-    const dataset = await this.datasetConnectRepository.getOneById(
-      connectScope,
-      run.evaluationExtractionDatasetId,
-    )
-    if (!dataset) {
-      throw new NotFoundException(
-        `Evaluation dataset with id ${run.evaluationExtractionDatasetId} not found`,
-      )
+  }): Promise<EvaluationExtractionRun> {
+    const run = await this.evaluationExtractionRunConnectRepository.getOneById(connectScope, id)
+    if (!run) {
+      throw new NotFoundException(`Evaluation run with id ${id} not found`)
     }
-
-    const datasetRecords = await this.datasetRecordConnectRepository.find(connectScope, {
-      where: { evaluationExtractionDatasetId: dataset.id },
-    })
-
-    const agent = await this.agentConnectRepository.getOneById(connectScope, run.agentId)
-    if (!agent) {
-      throw new NotFoundException(`Agent with id ${run.agentId} not found`)
-    }
-
-    const existingRunRecords = await this.runRecordConnectRepository.find(connectScope, {
-      where: { evaluationExtractionRunId: run.id, status: In(["match", "mismatch"]) },
-    })
-
-    return { dataset, datasetRecords, agent, existingRunRecords }
-  }
-
-  private async initializeSummary({
-    run,
-    summary,
-  }: {
-    run: EvaluationExtractionRun
-    summary: EvaluationExtractionRunSummary
-  }): Promise<void> {
-    run.summary = summary
-    await this.runConnectRepository.saveOne(run)
-    await this.notifyStatusChanged(run)
+    return run
   }
 
   private async processOneRecord({
+    runRecord,
     datasetRecord,
-    dataset,
+    schemaMapping,
     agent,
-    run,
+    evaluationExtractionRun,
     connectScope,
-    summary,
   }: {
+    runRecord: EvaluationExtractionRunRecord
     datasetRecord: EvaluationExtractionDatasetRecord
-    dataset: EvaluationExtractionDataset
+    schemaMapping: EvaluationExtractionDatasetSchemaMapping
     agent: Agent
-    run: EvaluationExtractionRun
+    evaluationExtractionRun: EvaluationExtractionRun
     connectScope: RequiredConnectScope
-    summary: EvaluationExtractionRunSummary
   }): Promise<void> {
     try {
       const inputText = this.buildInputText({
         datasetRecord,
-        schemaMapping: dataset.schemaMapping,
+        schemaMapping,
       })
 
       const { output: agentOutput, traceId } = await this.invokeAgent({
@@ -262,136 +268,55 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
       const gradeResult = this.graderService.gradeRecord({
         agentOutput,
         datasetRecordData: datasetRecord.data,
-        keyMapping: run.keyMapping,
+        keyMapping: evaluationExtractionRun.keyMapping,
       })
 
-      await this.runRecordConnectRepository.createAndSave(connectScope, {
-        evaluationExtractionRunId: run.id,
-        evaluationExtractionDatasetRecordId: datasetRecord.id,
-        status: gradeResult.status,
-        comparison: gradeResult.comparison,
-        agentRawOutput: agentOutput,
-        errorDetails: null,
-        traceId,
-      })
-
-      summary.running--
-      if (gradeResult.status === "match") {
-        summary.perfectMatches++
-      } else {
-        summary.mismatches++
-      }
+      runRecord.status = gradeResult.status
+      runRecord.comparison = gradeResult.comparison
+      runRecord.agentRawOutput = agentOutput
+      runRecord.errorDetails = null
+      runRecord.traceId = traceId
+      await this.runRecordConnectRepository.saveOne(runRecord)
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error during agent invocation"
 
-      await this.runRecordConnectRepository.createAndSave(connectScope, {
-        evaluationExtractionRunId: run.id,
-        evaluationExtractionDatasetRecordId: datasetRecord.id,
-        status: "error",
-        comparison: null,
-        agentRawOutput: null,
-        errorDetails: errorMessage,
-      })
-
-      summary.running--
-      summary.errors++
-    }
-  }
-
-  /**
-   * Persists progress after a record completes. Uses a targeted summary-only update
-   * (not saveOne) so a concurrent cancel, which writes status="cancelled", isn't
-   * clobbered by a stale in-memory status="running". Reloads the run before notifying
-   * so the SSE event carries the authoritative status.
-   */
-  private async persistSummaryProgress({
-    runId,
-    summary,
-    connectScope,
-  }: {
-    runId: string
-    summary: EvaluationExtractionRunSummary
-    connectScope: RequiredConnectScope
-  }): Promise<void> {
-    await this.runRepository.update({ id: runId }, { summary })
-    const latest = await this.runConnectRepository.getOneById(connectScope, runId)
-    if (latest) await this.notifyStatusChanged(latest)
-  }
-
-  private async loadRunIfCancelled({
-    runId,
-    connectScope,
-  }: {
-    runId: string
-    connectScope: RequiredConnectScope
-  }): Promise<EvaluationExtractionRun | null> {
-    const latest = await this.runConnectRepository.getOneById(connectScope, runId)
-    return latest?.status === "cancelled" ? latest : null
-  }
-
-  private async finalizeCancelledRun({
-    run,
-    summary,
-  }: {
-    run: EvaluationExtractionRun
-    summary: EvaluationExtractionRunSummary
-  }): Promise<void> {
-    this.logger.log(`Evaluation run ${run.id} cancelled — stopping processing`)
-    run.summary = summary
-    await this.runConnectRepository.saveOne(run)
-    await this.notifyStatusChanged(run)
-  }
-
-  private async markCompleted({
-    run,
-    summary,
-  }: {
-    run: EvaluationExtractionRun
-    summary: EvaluationExtractionRunSummary
-  }): Promise<void> {
-    run.status = "completed"
-    run.summary = summary
-    await this.runConnectRepository.saveOne(run)
-    await this.generateCsv(run)
-    await this.notifyStatusChanged(run)
-  }
-
-  async markFailed(payload: ExecuteEvaluationExtractionRunJobPayload): Promise<void> {
-    const connectScope: RequiredConnectScope = {
-      organizationId: payload.organizationId,
-      projectId: payload.projectId,
+      runRecord.status = "error"
+      runRecord.comparison = null
+      runRecord.agentRawOutput = null
+      runRecord.errorDetails = errorMessage
+      runRecord.traceId = null
+      await this.runRecordConnectRepository.saveOne(runRecord)
     }
 
-    const run = await this.runConnectRepository.getOneById(connectScope, payload.runId)
-    if (!run) {
-      throw new NotFoundException(`Evaluation run with id ${payload.runId} not found`)
-    }
-
-    run.status = "failed"
-    await this.runConnectRepository.saveOne(run)
-    await this.notifyStatusChanged(run)
+    await this.incrementSummary({
+      connectScope,
+      evaluationExtractionRunId: evaluationExtractionRun.id,
+      runRecord,
+    })
   }
 
-  private async generateCsv(run: EvaluationExtractionRun): Promise<void> {
+  private async generateCsv(evaluationExtractionRun: EvaluationExtractionRun): Promise<void> {
     try {
-      await this.csvExportService.generateAndStoreDocument(run)
+      await this.csvExportService.generateAndStoreDocument(evaluationExtractionRun)
     } catch (error) {
       this.logger.error(
-        `Failed to generate CSV export for run ${run.id}: ${(error as Error).message}`,
+        `Failed to generate CSV export for run ${evaluationExtractionRun.id}: ${(error as Error).message}`,
         (error as Error).stack,
       )
     }
   }
 
-  private async notifyStatusChanged(run: EvaluationExtractionRun): Promise<void> {
+  private async notifyStatusChanged(
+    evaluationExtractionRun: EvaluationExtractionRun,
+  ): Promise<void> {
     await this.statusNotifierService.notifyRunStatusChanged({
-      evaluationExtractionRunId: run.id,
-      organizationId: run.organizationId,
-      projectId: run.projectId,
-      status: run.status,
-      summary: run.summary,
-      updatedAt: run.updatedAt.getTime(),
+      evaluationExtractionRunId: evaluationExtractionRun.id,
+      organizationId: evaluationExtractionRun.organizationId,
+      projectId: evaluationExtractionRun.projectId,
+      status: evaluationExtractionRun.status,
+      summary: evaluationExtractionRun.summary,
+      updatedAt: evaluationExtractionRun.updatedAt.getTime(),
     })
   }
 
@@ -400,7 +325,7 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
     schemaMapping,
   }: {
     datasetRecord: EvaluationExtractionDatasetRecord
-    schemaMapping: EvaluationExtractionDataset["schemaMapping"]
+    schemaMapping: EvaluationExtractionDatasetSchemaMapping
   }): string {
     const inputColumns: DatasetSchemaColumn[] = Object.values(schemaMapping).filter(
       (column) => column.role === "input",
@@ -462,29 +387,5 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
     })
 
     return { output, traceId }
-  }
-}
-
-function createInitialSummary({
-  recordCount,
-  existingRunRecords,
-}: {
-  recordCount: number
-  existingRunRecords: EvaluationExtractionRunRecord[]
-}): EvaluationExtractionRunSummary {
-  let perfectMatches = 0
-  let mismatches = 0
-  let errors = 0
-  for (const record of existingRunRecords) {
-    if (record.status === "match") perfectMatches++
-    else if (record.status === "mismatch") mismatches++
-    else if (record.status === "error") errors++
-  }
-  return {
-    total: recordCount,
-    perfectMatches,
-    mismatches,
-    errors,
-    running: recordCount - existingRunRecords.length,
   }
 }
