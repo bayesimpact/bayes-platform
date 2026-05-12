@@ -9,11 +9,21 @@ import {
 } from "@caseai-connect/ui/shad/dialog"
 import { Field, FieldGroup, FieldLabel } from "@caseai-connect/ui/shad/field"
 import { Input } from "@caseai-connect/ui/shad/input"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { GlobeIcon, Loader2Icon } from "lucide-react"
 import { useState } from "react"
+import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
+import { z } from "zod"
 import { useAppDispatch } from "@/common/store/hooks"
 import { crawlUrl } from "../documents.thunks"
+
+const crawlUrlSchema = z.object({
+  url: z.string().url(),
+  name: z.string(),
+})
+
+type CrawlUrlFormData = z.infer<typeof crawlUrlSchema>
 
 export function CrawlUrlButton() {
   const [open, setOpen] = useState(false)
@@ -36,34 +46,23 @@ export function CrawlUrlButton() {
 function CrawlUrlForm({ onSuccess }: { onSuccess: () => void }) {
   const dispatch = useAppDispatch()
   const { t } = useTranslation("document")
-  const [url, setUrl] = useState("")
-  const [name, setName] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const isValidUrl = (() => {
-    try {
-      new URL(url)
-      return true
-    } catch {
-      return false
-    }
-  })()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<CrawlUrlFormData>({
+    resolver: zodResolver(crawlUrlSchema),
+    defaultValues: { url: "", name: "" },
+  })
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault()
-    if (!isValidUrl || isSubmitting) return
-
-    setIsSubmitting(true)
-    try {
-      await dispatch(crawlUrl({ url, name: name.trim() || undefined })).unwrap()
-      onSuccess()
-    } finally {
-      setIsSubmitting(false)
-    }
+  const onSubmit = async (data: CrawlUrlFormData) => {
+    await dispatch(crawlUrl({ url: data.url, name: data.name.trim() || undefined })).unwrap()
+    onSuccess()
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <DialogHeader>
         <DialogTitle>{t("document:crawl.title")}</DialogTitle>
         <DialogDescription>{t("document:crawl.description")}</DialogDescription>
@@ -76,10 +75,10 @@ function CrawlUrlForm({ onSuccess }: { onSuccess: () => void }) {
               id="crawl-url"
               type="url"
               placeholder="https://example.com"
-              value={url}
-              onChange={(event) => setUrl(event.target.value)}
-              required
+              {...register("url")}
+              aria-invalid={errors.url ? "true" : "false"}
             />
+            {errors.url && <p className="text-sm text-destructive">{errors.url.message}</p>}
           </Field>
           <Field>
             <FieldLabel htmlFor="crawl-name">{t("document:crawl.nameLabel")}</FieldLabel>
@@ -87,13 +86,12 @@ function CrawlUrlForm({ onSuccess }: { onSuccess: () => void }) {
               id="crawl-name"
               type="text"
               placeholder={t("document:crawl.namePlaceholder")}
-              value={name}
-              onChange={(event) => setName(event.target.value)}
+              {...register("name")}
             />
           </Field>
         </FieldGroup>
         <div className="flex justify-end">
-          <Button type="submit" disabled={!isValidUrl || isSubmitting}>
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Loader2Icon className="size-4 animate-spin" />}
             {t("document:crawl.submit")}
           </Button>
