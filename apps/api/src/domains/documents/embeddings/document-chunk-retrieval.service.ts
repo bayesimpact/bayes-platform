@@ -6,21 +6,8 @@ import { toSql } from "pgvector"
 import type { DataSource, SelectQueryBuilder } from "typeorm"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { DEFAULT_TOP_K } from "@/domains/agents/shared/agent-session-messages/streaming/tools/retrieve-project-document-chunks.tool"
+import type { RetrievedDocumentChunk } from "./document-chunk.types"
 import { resolveEmbeddingModelNames, resolveVertexConfig } from "./document-embeddings.config"
-
-const PARENT_DEDUPLICATION_FETCH_MULTIPLIER = 5
-
-export type RetrievedDocumentChunk = {
-  chunkId: string
-  documentId: string
-  documentTitle: string
-  documentFileName: string | null
-  chunkIndex: number
-  content: string
-  distance: number
-  modelName: string
-  isParentChunk: boolean
-}
 
 @Injectable()
 export class DocumentChunkRetrievalService {
@@ -94,7 +81,38 @@ export class DocumentChunkRetrievalService {
     topK: number
     documentTagIds: string[]
   }): Promise<RetrievedDocumentChunk[]> {
-    const queryBuilder = this.dataSource
+    const dedupedChunks = this.buildDedupedChunksQuery({
+      connectScope,
+      modelName,
+      embedding,
+    })
+    this.applyDocumentTagFilter({ queryBuilder: dedupedChunks, documentTagIds })
+
+    const rows = await this.buildTopChunksQuery({
+      dedupedChunks,
+      topK,
+    }).getRawMany<RetrievedDocumentChunk>()
+
+    return rows.map((row) => ({
+      ...row,
+      isParentChunk: Boolean(row.isParentChunk),
+    }))
+  }
+
+  /**
+   * Rank all matching child chunks by vector distance, then collapse children
+   * of the same parent down to the single best-scoring one via DISTINCT ON.
+   */
+  private buildDedupedChunksQuery({
+    connectScope,
+    modelName,
+    embedding,
+  }: {
+    connectScope: RequiredConnectScope
+    modelName: string
+    embedding: number[]
+  }): SelectQueryBuilder<Record<string, unknown>> {
+    return this.dataSource
       .createQueryBuilder()
       .select("COALESCE(parent.id, chunk.id)", "chunkId")
       .addSelect("chunk.document_id", "documentId")
@@ -105,6 +123,7 @@ export class DocumentChunkRetrievalService {
       .addSelect("embedding.model_name", "modelName")
       .addSelect("(embedding.embedding <=> :queryEmbedding::vector)", "distance")
       .addSelect("(parent.id IS NOT NULL)", "isParentChunk")
+      .distinctOn(["COALESCE(parent.id, chunk.id)"])
       .from("document_chunk_embedding", "embedding")
       .innerJoin("document_chunk", "chunk", "chunk.id = embedding.document_chunk_id")
       .innerJoin("document", "document", "document.id = chunk.document_id")
@@ -127,27 +146,28 @@ export class DocumentChunkRetrievalService {
       .andWhere("chunk.deleted_at IS NULL")
       .andWhere("embedding.deleted_at IS NULL")
       .andWhere("document.deleted_at IS NULL")
-
-    this.applyDocumentTagFilter({ queryBuilder, documentTagIds })
-
-    const rows = await queryBuilder
       .setParameters({ queryEmbedding: toSql(embedding) })
-      .orderBy("embedding.embedding <=> :queryEmbedding::vector", "ASC")
-      .limit(topK * PARENT_DEDUPLICATION_FETCH_MULTIPLIER)
-      .getRawMany<RetrievedDocumentChunk>()
+      .orderBy("COALESCE(parent.id, chunk.id)")
+      .addOrderBy("embedding.embedding <=> :queryEmbedding::vector", "ASC")
+  }
 
-    const seenIds = new Set<string>()
-    const deduplicated: RetrievedDocumentChunk[] = []
-    for (const row of rows) {
-      if (seenIds.has(row.chunkId)) continue
-      seenIds.add(row.chunkId)
-      deduplicated.push({
-        ...row,
-        isParentChunk: Boolean(row.isParentChunk),
-      })
-      if (deduplicated.length === topK) break
-    }
-    return deduplicated
+  /**
+   * Wrap the deduplicated chunks subquery, re-sort by distance and take topK.
+   */
+  private buildTopChunksQuery({
+    dedupedChunks,
+    topK,
+  }: {
+    dedupedChunks: SelectQueryBuilder<Record<string, unknown>>
+    topK: number
+  }): SelectQueryBuilder<Record<string, unknown>> {
+    return this.dataSource
+      .createQueryBuilder()
+      .select("*")
+      .from(`(${dedupedChunks.getQuery()})`, "deduplicated")
+      .setParameters(dedupedChunks.getParameters())
+      .orderBy('"distance"', "ASC")
+      .limit(topK)
   }
 
   private applyDocumentTagFilter({

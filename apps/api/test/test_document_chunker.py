@@ -274,9 +274,13 @@ def _run_pipeline(pdf_path: Path) -> tuple[list[dict[str, Any]], list[dict[str, 
     """Run the full Docling pipeline and return (child_chunks, parent_chunks)."""
     from document_chunker import _enrich_nodes, _import_docling_components
 
-    docling_reader_class, docling_node_parser_class, hybrid_chunker_class, metadata_mode_class = (
-        _import_docling_components()
-    )
+    (
+        docling_reader_class,
+        docling_node_parser_class,
+        hybrid_chunker_class,
+        metadata_mode_class,
+        _text_node_class,
+    ) = _import_docling_components()
     reader = docling_reader_class(export_type="json")
     parser = docling_node_parser_class(chunker=hybrid_chunker_class())
     documents = reader.load_data(file_path=str(pdf_path))
@@ -368,3 +372,87 @@ class TestIntegrationSamplePdf:
             parent_text = parent_by_id[parent_id]["text"]
             for child_text in child_texts:
                 assert child_text in parent_text
+
+
+# ---------------------------------------------------------------------------
+# Integration tests — tabular pipeline against test/fixtures/sample.csv
+# ---------------------------------------------------------------------------
+
+
+csv_available = pytest.mark.skipif(
+    not (FIXTURES_DIR / "sample.csv").exists(),
+    reason="sample.csv fixture not found",
+)
+
+
+@pytest.fixture(scope="class")
+def sample_csv_result() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Run the tabular chunker once for sample.csv and share across the test class."""
+    from document_chunker import _chunk_tabular
+
+    return _chunk_tabular(FIXTURES_DIR / "sample.csv")
+
+
+@csv_available
+class TestIntegrationSampleCsv:
+    def test_produces_at_least_one_chunk(self, sample_csv_result: tuple) -> None:
+        child_chunks, _ = sample_csv_result
+        assert len(child_chunks) >= 1
+
+    def test_produces_no_parent_chunks(self, sample_csv_result: tuple) -> None:
+        """Tabular chunking is flat — every chunk is a child with no parent."""
+        _, parent_chunks = sample_csv_result
+        assert parent_chunks == []
+
+    def test_chunk_ids_are_valid_uuids(self, sample_csv_result: tuple) -> None:
+        child_chunks, _ = sample_csv_result
+        for chunk in child_chunks:
+            uuid.UUID(chunk["chunk_id"])
+
+    def test_no_child_has_a_parent(self, sample_csv_result: tuple) -> None:
+        child_chunks, _ = sample_csv_result
+        assert all(chunk["parent_id"] is None for chunk in child_chunks)
+
+    def test_chunks_carry_column_metadata(self, sample_csv_result: tuple) -> None:
+        """Every CSV chunk should expose the source column list in its metadata."""
+        child_chunks, _ = sample_csv_result
+        expected_columns = ["id", "name", "department", "salary"]
+        for chunk in child_chunks:
+            assert chunk["metadata"]["columns"] == expected_columns
+
+    def test_text_and_embed_text_match(self, sample_csv_result: tuple) -> None:
+        """For tabular chunks there is no heading prefix to add."""
+        child_chunks, _ = sample_csv_result
+        for chunk in child_chunks:
+            assert chunk["text"] == chunk["embed_text"]
+            assert chunk["text"].strip()
+
+    def test_lane_integrity(self, sample_csv_result: tuple) -> None:
+        child_chunks, parent_chunks = sample_csv_result
+        _assert_lane_integrity(child_chunks, parent_chunks)
+
+    def test_chunks_contain_source_row_values(self, sample_csv_result: tuple) -> None:
+        """The concatenated chunk text must mention every source row's name."""
+        child_chunks, _ = sample_csv_result
+        full_text = "\n".join(chunk["text"] for chunk in child_chunks)
+        for name in ("Alice Martin", "Eve Johnson", "Julia Rossi"):
+            assert name in full_text
+
+
+class TestChunkTabularBudget:
+    """Unit tests for _chunk_tabular's character-budget splitting behaviour."""
+
+    def test_small_budget_splits_into_multiple_chunks(self) -> None:
+        """A tight token budget forces multiple chunks for a 10-row CSV."""
+        from document_chunker import _chunk_tabular
+
+        # max_tokens=8 -> char budget ~= 32, single row already exceeds.
+        child_chunks, _ = _chunk_tabular(FIXTURES_DIR / "sample.csv", max_tokens=8)
+        assert len(child_chunks) > 1
+
+    def test_large_budget_fits_in_one_chunk(self) -> None:
+        """A generous budget keeps every row in a single chunk."""
+        from document_chunker import _chunk_tabular
+
+        child_chunks, _ = _chunk_tabular(FIXTURES_DIR / "sample.csv", max_tokens=4096)
+        assert len(child_chunks) == 1

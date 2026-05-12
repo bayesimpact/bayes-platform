@@ -6,6 +6,7 @@ import { platform, tmpdir } from "node:os"
 import { join } from "node:path"
 import { promisify } from "node:util"
 import { EXTENSION_BY_MIME_TYPE } from "./docling.constants"
+import type { DoclingOutput } from "./docling.types"
 
 const DOCUMENT_CHUNKER_BASH_RELATIVE_FROM_API = "bin/document_chunker"
 const DOCUMENT_CHUNKER_BASH_RELATIVE_FROM_REPO_ROOT = "apps/api/bin/document_chunker"
@@ -42,33 +43,6 @@ function buildDocumentChunkerInvocation(extraArgs: readonly string[]): {
     }
   }
   return { executable: scriptPath, args: [...extraArgs] }
-}
-
-export type DoclingChunk = {
-  chunk_id: string
-  embed_text: string
-  text: string
-  parent_id: string | null
-  prev_chunk_id: string | null
-  next_chunk_id: string | null
-  headings: string[]
-  captions: string[]
-  metadata: Record<string, unknown>
-}
-
-export type DoclingParentChunk = {
-  chunk_id: string
-  embed_text: string
-  text: string
-  prev_chunk_id: string | null
-  next_chunk_id: string | null
-  headings: string[]
-  captions: string[]
-}
-
-export type DoclingOutput = {
-  child_chunks: DoclingChunk[]
-  parent_chunks: DoclingParentChunk[]
 }
 
 export function isDoclingEnabled(): boolean {

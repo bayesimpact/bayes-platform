@@ -6,13 +6,12 @@ import {
 } from "@nestjs/common"
 import mammoth from "mammoth"
 import {
-  type DoclingChunk,
-  type DoclingParentChunk,
   extractTextWithDocling,
   getDoclingVersion,
   isDoclingEnabled,
 } from "@/external/docling/docling.cli"
 import { DOC_MIME_TYPES, DOCLING_SUPPORTED_MIME_TYPES } from "@/external/docling/docling.constants"
+import type { DoclingChunk, DoclingParentChunk } from "@/external/docling/docling.types"
 
 const DOCUMENT_CHUNKER_MAX_BUFFER = 50 * 1024 * 1024
 
