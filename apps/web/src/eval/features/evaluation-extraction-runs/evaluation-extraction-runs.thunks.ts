@@ -151,13 +151,6 @@ const streamRunStatus = createAsyncThunk<void, void, ThunkConfigWithSignal>(
             updatedAt: event.updatedAt,
           }),
         )
-        if (event.status === "completed") {
-          dispatch(
-            evaluationExtractionRunsThunks.getOne({
-              evaluationExtractionRunId: event.evaluationExtractionRunId,
-            }),
-          )
-        }
       },
     })
   },

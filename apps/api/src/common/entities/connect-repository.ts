@@ -117,6 +117,22 @@ export class ConnectRepository<T extends ConnectEntityBase> {
     return this.repository.save(this.repository.create({ ...connectScope, ...entity }))
   }
 
+  public async createAndSaveMany({
+    connectScope,
+    entities,
+    chunkSize = 1000,
+  }: {
+    connectScope: RequiredConnectScope
+    entities: Array<Pick<RequiredConnectScope, never> & DeepPartial<T>>
+    chunkSize?: number
+  }): Promise<T[]> {
+    if (entities.length === 0) return []
+    return this.repository.save(
+      this.repository.create(entities.map((entity) => ({ ...connectScope, ...entity }))),
+      { chunk: chunkSize },
+    )
+  }
+
   public async saveOne(entity: T): Promise<T> {
     return this.repository.save(entity)
   }

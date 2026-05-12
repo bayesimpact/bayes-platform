@@ -3,14 +3,21 @@ import { NestFactory } from "@nestjs/core"
 import { getRepositoryToken } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import { AppModule } from "@/app.module"
+import { Agent } from "@/domains/agents/agent.entity"
 import {
-  EvaluationExtractionRun,
-  type EvaluationExtractionRunStatus,
-} from "@/domains/evaluations/extraction/runs/evaluation-extraction-run.entity"
+  EvaluationExtractionDataset,
+  type EvaluationExtractionDatasetSchemaMapping,
+} from "@/domains/evaluations/extraction/datasets/evaluation-extraction-dataset.entity"
+import { EvaluationExtractionRun } from "@/domains/evaluations/extraction/runs/evaluation-extraction-run.entity"
+import type { ProcessEvaluationExtractionRunRecordJobPayload } from "@/domains/evaluations/extraction/runs/evaluation-extraction-run.types"
 import {
   EVALUATION_EXTRACTION_RUN_BATCH_SERVICE,
   type EvaluationExtractionRunBatchService,
 } from "@/domains/evaluations/extraction/runs/evaluation-extraction-run-batch.interface"
+import {
+  EvaluationExtractionRunRecord,
+  type EvaluationExtractionRunRecordStatus,
+} from "@/domains/evaluations/extraction/runs/records/evaluation-extraction-run-record.entity"
 import { confirmDatabaseTarget } from "./script-bootstrap"
 import {
   type BaseRequeueOptions,
@@ -20,10 +27,10 @@ import {
   validateBaseRequeueOptions,
 } from "./shared/requeue-helpers"
 
-const REQUEUEABLE_STATUSES: EvaluationExtractionRunStatus[] = ["pending", "failed"]
+const REQUEUEABLE_STATUSES: EvaluationExtractionRunRecordStatus[] = ["running", "error"]
 
 type CliOptions = BaseRequeueOptions & {
-  statuses: EvaluationExtractionRunStatus[]
+  statuses: EvaluationExtractionRunRecordStatus[]
 }
 
 export function parseCliOptions(argv: string[]): CliOptions {
@@ -31,7 +38,7 @@ export function parseCliOptions(argv: string[]): CliOptions {
   return {
     ...parseBaseRequeueOptions(argv),
     statuses: statusArg
-      ? (statusArg.split(",") as EvaluationExtractionRunStatus[])
+      ? (statusArg.split(",") as EvaluationExtractionRunRecordStatus[])
       : REQUEUEABLE_STATUSES,
   }
 }
@@ -41,12 +48,7 @@ const logger = new Logger("RequeueEvaluationExtractionRuns")
 function validateCliOptions(options: CliOptions): void {
   validateBaseRequeueOptions(options)
 
-  const validStatuses: EvaluationExtractionRunStatus[] = [
-    "pending",
-    "running",
-    "completed",
-    "failed",
-  ]
+  const validStatuses: EvaluationExtractionRunRecordStatus[] = ["running", "error"]
   for (const status of options.statuses) {
     if (!validStatuses.includes(status)) {
       throw new Error(
@@ -55,7 +57,7 @@ function validateCliOptions(options: CliOptions): void {
     }
   }
 }
-
+// FIXME:
 async function bootstrapCli(): Promise<void> {
   const options = parseCliOptions(process.argv.slice(2))
   validateCliOptions(options)
@@ -66,14 +68,21 @@ async function bootstrapCli(): Promise<void> {
   })
 
   try {
+    const agentRepository = app.get<Repository<Agent>>(getRepositoryToken(Agent))
     const runRepository = app.get<Repository<EvaluationExtractionRun>>(
       getRepositoryToken(EvaluationExtractionRun),
+    )
+    const runRecordRepository = app.get<Repository<EvaluationExtractionRunRecord>>(
+      getRepositoryToken(EvaluationExtractionRunRecord),
+    )
+    const datasetRepository = app.get<Repository<EvaluationExtractionDataset>>(
+      getRepositoryToken(EvaluationExtractionDataset),
     )
     const batchService = app.get<EvaluationExtractionRunBatchService>(
       EVALUATION_EXTRACTION_RUN_BATCH_SERVICE,
     )
 
-    const runsToRequeue = await loadRunsForRequeue({ options, runRepository })
+    const runsToRequeue = await loadRunRecordsForRequeue({ options, runRecordRepository })
 
     if (runsToRequeue.length === 0) {
       logger.log("No evaluation runs matched the requeue filters.")
@@ -85,7 +94,7 @@ async function bootstrapCli(): Promise<void> {
     if (options.dryRun) {
       for (const run of runsToRequeue.slice(0, 20)) {
         logger.log(
-          `[dry-run] ${run.id} org=${run.organizationId} project=${run.projectId} status=${run.status} dataset=${run.evaluationExtractionDatasetId}`,
+          `[dry-run] evaluationExtractionRunId=${run.evaluationExtractionRunId} recordId=${run.id} organizationId=${run.organizationId} projectId=${run.projectId} status=${run.status}`,
         )
       }
       if (runsToRequeue.length > 20) {
@@ -94,46 +103,91 @@ async function bootstrapCli(): Promise<void> {
       return
     }
 
-    let enqueuedCount = 0
-    for (const runsBatch of chunk(runsToRequeue, options.batchSize)) {
-      for (const run of runsBatch) {
-        await batchService.enqueueExecuteRun({
-          runId: run.id,
-          organizationId: run.organizationId,
-          projectId: run.projectId,
-        })
-        enqueuedCount += 1
+    async function getEvaluationExtractionRun(id: string): Promise<EvaluationExtractionRun> {
+      const evaluationExtractionRun = await runRepository.findOneBy({ id })
+      if (!evaluationExtractionRun) {
+        throw logger.warn(`Evaluation extraction run with id=${id} not found.`)
       }
-      logger.log(`Enqueued ${enqueuedCount}/${runsToRequeue.length} runs`)
+      return evaluationExtractionRun
+    }
+
+    async function getAgent(id: string): Promise<Agent> {
+      const agent = await agentRepository.findOneBy({ id })
+      if (!agent) {
+        throw logger.warn(`Agent with id=${id} not found.`)
+      }
+      return agent
+    }
+
+    async function getDatasetSchemaMapping(
+      id: string,
+    ): Promise<EvaluationExtractionDatasetSchemaMapping> {
+      const dataset = await datasetRepository.findOneBy({ id })
+      if (!dataset) {
+        throw logger.warn(`Dataset with id=${id} not found.`)
+      }
+      return dataset.schemaMapping
+    }
+
+    for (const runsBatch of chunk(runsToRequeue, options.batchSize)) {
+      const runs = await Promise.all(
+        runsBatch.map(async (runRecord) => {
+          const connectScope = {
+            organizationId: runRecord.organizationId,
+            projectId: runRecord.projectId,
+          }
+
+          const evaluationExtractionRun = await getEvaluationExtractionRun(
+            runRecord.evaluationExtractionRunId,
+          )
+
+          const agent = await getAgent(evaluationExtractionRun.agentId)
+
+          const schemaMapping = await getDatasetSchemaMapping(
+            evaluationExtractionRun.evaluationExtractionDatasetId,
+          )
+
+          return {
+            evaluationExtractionRun,
+            runRecordId: runRecord.id,
+            agent,
+            schemaMapping,
+            connectScope,
+          } satisfies ProcessEvaluationExtractionRunRecordJobPayload
+        }),
+      )
+      await batchService.enqueueRunRecords(runs)
+
+      logger.log(`Enqueued batch of ${runs.length} run(s) for reprocessing.`)
     }
   } finally {
     await app.close()
   }
 }
 
-async function loadRunsForRequeue({
+async function loadRunRecordsForRequeue({
   options,
-  runRepository,
+  runRecordRepository,
 }: {
   options: CliOptions
-  runRepository: Repository<EvaluationExtractionRun>
-}): Promise<EvaluationExtractionRun[]> {
-  const queryBuilder = runRepository
+  runRecordRepository: Repository<EvaluationExtractionRunRecord>
+}): Promise<EvaluationExtractionRunRecord[]> {
+  const queryBuilder = runRecordRepository
     .createQueryBuilder("run")
     .where("run.status IN (:...statuses)", { statuses: options.statuses })
+    .andWhere("run.organizationId = :organizationId", {
+      organizationId: options.organizationId,
+    })
+    .andWhere("run.projectId = :projectId", {
+      projectId: options.projectId,
+    })
     .andWhere("run.deletedAt IS NULL")
     .orderBy("run.createdAt", "ASC")
 
-  if (options.organizationId) {
-    queryBuilder.andWhere("run.organizationId = :organizationId", {
-      organizationId: options.organizationId,
-    })
-  }
-
-  if (options.projectId) {
-    queryBuilder.andWhere("run.projectId = :projectId", {
-      projectId: options.projectId,
-    })
+  if (!options.organizationId || !options.projectId) {
+    const error =
+      "Cannot load runs for requeue. Both --organizationId and --projectId must be specified."
+    throw logger.error(error)
   }
 
   if (options.limit !== undefined) {

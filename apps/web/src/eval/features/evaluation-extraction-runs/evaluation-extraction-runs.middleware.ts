@@ -1,5 +1,4 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
-import throttle from "lodash/throttle"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
@@ -14,15 +13,6 @@ import {
 } from "./evaluation-extraction-runs-stream-status"
 
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
-
-const throttledRefreshRecords = throttle(
-  (dispatch: AppDispatch, getState: () => RootState, evaluationExtractionRunId: string) => {
-    const query = selectCurrentRecordsQuery(getState())
-    dispatch(evaluationExtractionRunsActions.getRecords({ evaluationExtractionRunId, ...query }))
-  },
-  5_000,
-  { leading: true, trailing: false },
-)
 
 function registerListeners() {
   listenerMiddleware.startListening({
@@ -47,14 +37,16 @@ function registerListeners() {
 
   listenerMiddleware.startListening({
     actionCreator: evaluationExtractionRunsActions.createAndExecute.fulfilled,
-    effect: async (_, listenerApi) => {
+    effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
           title: "Evaluation run started",
           type: "info",
         }),
       )
-      listenerApi.dispatch(evaluationExtractionRunsActions.getAll())
+      listenerApi.dispatch(
+        evaluationExtractionRunsActions.getOne({ evaluationExtractionRunId: action.payload.id }),
+      )
       // Start SSE stream to track progress
       listenerApi.dispatch(evaluationExtractionRunsActions.startRunStatusStream())
     },
@@ -92,41 +84,43 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       const { status, evaluationExtractionRunId } = action.payload
 
-      if (status === "running") {
-        throttledRefreshRecords(
-          listenerApi.dispatch,
-          listenerApi.getState,
-          evaluationExtractionRunId,
-        )
-      }
+      const state = listenerApi.getState()
 
-      // When a run completes or fails, refetch records and the full run list
-      if (status === "completed" || status === "failed") {
-        throttledRefreshRecords.cancel()
-        listenerApi.dispatch(evaluationExtractionRunsActions.getAll())
-        const query = selectCurrentRecordsQuery(listenerApi.getState())
-        listenerApi.dispatch(
-          evaluationExtractionRunsActions.getRecords({
-            evaluationExtractionRunId,
-            ...query,
-          }),
-        )
+      // Refetch records for the current run to get the latest status and progress
+      const query = selectCurrentRecordsQuery(state)
+      listenerApi.dispatch(
+        evaluationExtractionRunsActions.getRecords({ evaluationExtractionRunId, ...query }),
+      )
 
-        if (status === "completed") {
-          listenerApi.dispatch(
-            notificationsActions.show({
-              title: "Evaluation run completed successfully",
-              type: "success",
-            }),
+      switch (status) {
+        case "completed":
+          {
+            await listenerApi.dispatch(evaluationExtractionRunsActions.getAll())
+            listenerApi.dispatch(
+              notificationsActions.show({
+                title: "Evaluation run completed successfully",
+                type: "success",
+              }),
+            )
+          }
+          break
+        case "failed":
+          {
+            await listenerApi.dispatch(evaluationExtractionRunsActions.getAll())
+            listenerApi.dispatch(
+              notificationsActions.show({
+                title: "Evaluation run failed",
+                type: "error",
+              }),
+            )
+          }
+          break
+
+        default:
+          await listenerApi.dispatch(
+            evaluationExtractionRunsActions.getOne({ evaluationExtractionRunId }),
           )
-        } else {
-          listenerApi.dispatch(
-            notificationsActions.show({
-              title: "Evaluation run failed",
-              type: "error",
-            }),
-          )
-        }
+          break
       }
 
       syncRunStatusStreamWithRuns(listenerApi)
