@@ -142,7 +142,6 @@ function toReviewCampaignMembershipDto(
     userId: membership.userId,
     userEmail: membership.user?.email ?? "",
     role: membership.role,
-    invitedAt: membership.invitedAt.getTime(),
     acceptedAt: membership.acceptedAt ? membership.acceptedAt.getTime() : null,
   }
 }

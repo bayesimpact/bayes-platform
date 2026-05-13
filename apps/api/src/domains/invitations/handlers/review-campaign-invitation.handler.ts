@@ -322,8 +322,6 @@ export class ReviewCampaignInvitationHandler
           campaignId: invitation.targetId,
           userId: user.id,
           role: invitation.role as ReviewCampaignMembershipRole,
-          invitationToken: `accepted-review-campaign-invitation-${randomUUID()}`,
-          invitedAt: invitation.invitedAt,
           acceptedAt: new Date(),
         })
         await membershipRepository.save(membership)
@@ -388,7 +386,6 @@ export class ReviewCampaignInvitationHandler
       userId: params.userId,
       projectId: params.projectId,
       role: "member",
-      status: "accepted",
       invitationToken: `review-campaign-invitation-${Date.now()}-${params.userId}`,
     })
     await params.projectMembershipRepository.save(membership)

@@ -44,7 +44,6 @@ export type ReviewCampaignMembershipDto = {
   userId: string
   userEmail: string
   role: ReviewCampaignMembershipRole
-  invitedAt: TimeType
   acceptedAt: TimeType | null
 }
 

@@ -31,12 +31,6 @@ export class ReviewCampaignMembership extends ConnectEntityBase {
   @Column({ type: "varchar" })
   role!: ReviewCampaignMembershipRole
 
-  @Column({ type: "varchar", name: "invitation_token", nullable: true })
-  invitationToken!: string | null
-
-  @Column({ type: "timestamp", name: "invited_at" })
-  invitedAt!: Date
-
   @Column({ type: "timestamp", name: "accepted_at", nullable: true })
   acceptedAt!: Date | null
 }

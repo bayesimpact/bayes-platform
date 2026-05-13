@@ -63,7 +63,6 @@ function toDto(entity: AgentMembership): AgentMembershipDto {
     userName: entity.user.name ?? buildNameFromEmail(entity.user.email),
     userEmail: entity.user.email,
     role: entity.role,
-    status: entity.status,
     createdAt: entity.createdAt.getTime(),
   }
 }

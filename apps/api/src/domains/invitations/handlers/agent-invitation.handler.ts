@@ -240,17 +240,11 @@ export class AgentInvitationHandler
       const existingMembership = await membershipRepository.findOne({
         where: { agentId: invitation.targetId, userId: user.id },
       })
-      if (existingMembership) {
-        if (existingMembership.status !== "accepted") {
-          existingMembership.status = "accepted"
-          await membershipRepository.save(existingMembership)
-        }
-      } else {
+      if (!existingMembership) {
         const membership = membershipRepository.create({
           agentId: invitation.targetId,
           userId: user.id,
           invitationToken: `accepted-agent-invitation-${randomUUID()}`,
-          status: "accepted",
           role: invitation.role as AgentMembership["role"],
         })
         await membershipRepository.save(membership)
@@ -293,18 +287,11 @@ export class AgentInvitationHandler
     const existingMembership = await params.projectMembershipRepository.findOne({
       where: { userId: params.userId, projectId: params.projectId },
     })
-    if (existingMembership) {
-      if (existingMembership.status !== "accepted") {
-        existingMembership.status = "accepted"
-        await params.projectMembershipRepository.save(existingMembership)
-      }
-      return
-    }
+    if (existingMembership) return
     const membership = params.projectMembershipRepository.create({
       userId: params.userId,
       projectId: params.projectId,
       invitationToken: randomUUID(),
-      status: "accepted",
       role: "member",
     })
     await params.projectMembershipRepository.save(membership)

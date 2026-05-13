@@ -40,7 +40,6 @@ const fromDto = (dto: ProjectMembershipDto): ProjectMembership => ({
   userId: dto.userId,
   userName: dto.userName,
   userEmail: dto.userEmail,
-  status: dto.status,
   createdAt: dto.createdAt,
   role: dto.role,
 })
@@ -51,5 +50,4 @@ const memberAgentFromDto = (dto: ProjectMemberAgentDto): ProjectMemberAgent => (
   agentType: dto.agentType,
   membershipId: dto.membershipId,
   role: dto.role,
-  status: dto.status,
 })

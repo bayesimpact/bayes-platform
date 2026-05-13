@@ -111,9 +111,29 @@ export class InvitationEntityAndBackfill1778086394496 implements MigrationInterf
       DELETE FROM "review_campaign_membership"
       WHERE accepted_at IS NULL AND invitation_token IS NOT NULL
     `)
+
+    await queryRunner.query(`ALTER TABLE "project_membership" DROP COLUMN "status"`)
+    await queryRunner.query(`ALTER TABLE "agent_membership" DROP COLUMN "status"`)
+    await queryRunner.query(
+      `ALTER TABLE "review_campaign_membership" DROP COLUMN "invitation_token"`,
+    )
+    await queryRunner.query(`ALTER TABLE "review_campaign_membership" DROP COLUMN "invited_at"`)
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `ALTER TABLE "project_membership" ADD COLUMN "status" character varying NOT NULL DEFAULT 'sent'`,
+    )
+    await queryRunner.query(
+      `ALTER TABLE "agent_membership" ADD COLUMN "status" character varying NOT NULL DEFAULT 'sent'`,
+    )
+    await queryRunner.query(
+      `ALTER TABLE "review_campaign_membership" ADD COLUMN "invitation_token" character varying`,
+    )
+    await queryRunner.query(
+      `ALTER TABLE "review_campaign_membership" ADD COLUMN "invited_at" TIMESTAMP`,
+    )
+
     await queryRunner.query(`
       INSERT INTO "project_membership" (
         "id", "created_at", "updated_at", "deleted_at",

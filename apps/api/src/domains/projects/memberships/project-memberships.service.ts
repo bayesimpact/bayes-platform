@@ -50,7 +50,6 @@ export class ProjectMembershipsService {
       projectId,
       userId,
       role: "owner",
-      status: "accepted",
       invitationToken: `create_project_owner_membership-${randomUUID()}`,
     })
     return this.projectMembershipRepository.save(membership)
@@ -84,7 +83,6 @@ export class ProjectMembershipsService {
       projectId: params.projectId,
       userId: params.userId,
       invitationToken: params.invitationToken,
-      status: "sent",
       role: "admin",
     })
     return membershipRepo.save(newMembership)

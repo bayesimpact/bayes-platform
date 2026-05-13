@@ -56,7 +56,6 @@ export class ProjectMembershipsController {
       agentType: agent.type,
       membershipId: membership?.id ?? null,
       role: membership?.role ?? null,
-      status: membership?.status ?? null,
     }))
 
     return { data }
@@ -90,7 +89,6 @@ function toDto(entity: ProjectMembership): ProjectMembershipDto {
     userId: entity.userId,
     userName: entity.user.name,
     userEmail: entity.user.email,
-    status: entity.status,
     createdAt: entity.createdAt.getTime(),
     role: entity.role,
   }

@@ -108,16 +108,6 @@ export class WorkspaceInvitationService {
         inviterName: input.inviterName,
       })
 
-      const projectMembership = await projectMembershipRepository.save(
-        projectMembershipRepository.create({
-          projectId: project.id,
-          userId: user.id,
-          invitationToken: ticketId,
-          status: "sent",
-          role: "admin",
-        }),
-      )
-
       const invitationRepository = manager.getRepository(Invitation)
       await invitationRepository.save(
         invitationRepository.create({
@@ -127,10 +117,10 @@ export class WorkspaceInvitationService {
           targetId: project.id,
           userId: user.id,
           invitedEmail: user.email,
-          invitationToken: projectMembership.invitationToken,
+          invitationToken: ticketId,
           status: "pending",
-          role: projectMembership.role,
-          invitedAt: projectMembership.createdAt,
+          role: "admin",
+          invitedAt: new Date(),
           acceptedAt: null,
         }),
       )

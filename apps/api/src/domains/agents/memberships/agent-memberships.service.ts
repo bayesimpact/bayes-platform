@@ -76,7 +76,6 @@ export class AgentMembershipsService {
       agentId: params.agentId,
       userId: params.userId,
       role: "owner",
-      status: "accepted",
       invitationToken: `new_agent_no_invitation_token-${randomUUID()}`,
     })
     return this.agentMembershipRepository.save(membership)
@@ -101,7 +100,6 @@ export class AgentMembershipsService {
       agentId: params.agentId,
       userId: params.userId,
       invitationToken: params.invitationToken,
-      status: "sent",
       role: "member",
     })
     return membershipRepo.save(newMembership)
@@ -193,7 +191,6 @@ export class AgentMembershipsService {
         agentId: agent.id,
         userId,
         role: "admin",
-        status: "accepted",
         invitationToken: `project_invite-${randomUUID()}`,
       })
       await manager.save(AgentMembership, membership)
@@ -228,7 +225,6 @@ export class AgentMembershipsService {
         agentId,
         userId: projectMembership.userId,
         role: "admin",
-        status: "accepted",
         invitationToken: `project_admin_propagation-${randomUUID()}`,
       })
       await this.agentMembershipRepository.save(membership)

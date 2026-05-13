@@ -309,9 +309,8 @@ export class ProjectInvitationHandler
         where: { projectId: invitation.projectId, userId: user.id },
       })
       if (existingMembership) {
-        if (existingMembership.role !== "admin" || existingMembership.status !== "accepted") {
+        if (existingMembership.role !== "admin") {
           existingMembership.role = "admin"
-          existingMembership.status = "accepted"
           await projectMembershipRepository.save(existingMembership)
         }
       } else {
@@ -319,7 +318,6 @@ export class ProjectInvitationHandler
           projectId: invitation.projectId,
           userId: user.id,
           invitationToken: `accepted-project-invitation-${randomUUID()}`,
-          status: "accepted",
           role: "admin",
         })
         await projectMembershipRepository.save(membership)

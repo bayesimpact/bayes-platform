@@ -3,7 +3,6 @@ import { Base4AllEntity } from "@/common/entities/base4all.entity"
 import { User } from "@/domains/users/user.entity"
 import { Project } from "../project.entity"
 
-export type ProjectMembershipStatus = "sent" | "accepted"
 export type ProjectMembershipRole = "owner" | "admin" | "member"
 
 @Entity("project_membership")
@@ -17,9 +16,6 @@ export class ProjectMembership extends Base4AllEntity {
 
   @Column({ type: "varchar", name: "invitation_token", unique: true })
   invitationToken!: string
-
-  @Column({ type: "varchar", default: "sent" })
-  status!: ProjectMembershipStatus
 
   @Column({ type: "varchar", default: "member" })
   role!: ProjectMembershipRole

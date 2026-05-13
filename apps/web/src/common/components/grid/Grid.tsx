@@ -54,6 +54,7 @@ export function GridItem({
   badge,
   badgeVariant = "secondary",
   index = -1,
+  topAction,
   ...props
 }: {
   className?: string
@@ -63,6 +64,7 @@ export function GridItem({
   footer?: React.ReactNode
   badge?: React.ReactNode
   badgeVariant?: BadgeVariant
+  topAction?: React.ReactNode
 } & (
   | {
       onClick: () => void
@@ -70,15 +72,29 @@ export function GridItem({
   | { action: React.ReactNode }
 )) {
   const { cols, total } = useGrid()
+  const arrow =
+    "onClick" in props ? (
+      <Button onClick={props.onClick} className="rounded-full" size="icon" variant="outline">
+        <ArrowRightIcon className="size-4" />
+      </Button>
+    ) : null
+
   return (
     <div
       className={cn(
-        "p-4 flex flex-col items-start justify-center",
+        "relative p-4 flex flex-col items-start justify-center",
         footer ? "pb-0" : "",
         className,
         getGridItemClassName({ index: index + 1, total, cols }),
       )}
     >
+      {(topAction || arrow) && (
+        <div className="absolute top-3 right-3 flex items-center gap-1">
+          {topAction}
+          {arrow}
+        </div>
+      )}
+
       {badge && typeof badge === "string" ? (
         <Badge variant={badgeVariant} className="capitalize">
           {badge}
@@ -92,13 +108,7 @@ export function GridItem({
 
         <h3 className="text-base text-muted-foreground leading-snug mt-1 mb-4">{description}</h3>
 
-        {"action" in props ? (
-          props.action
-        ) : (
-          <Button onClick={props.onClick} className="rounded-full" size="icon" variant="outline">
-            <ArrowRightIcon className="size-4" />
-          </Button>
-        )}
+        {"action" in props ? props.action : null}
       </div>
 
       {footer && <div className="w-full mt-auto">{footer}</div>}

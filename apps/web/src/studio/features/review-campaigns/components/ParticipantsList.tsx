@@ -133,7 +133,6 @@ export function ParticipantsList({
               <TableRow>
                 <TableHead>{t("reviewCampaigns:participants.email")}</TableHead>
                 <TableHead>{t("reviewCampaigns:participants.roleLabel")}</TableHead>
-                <TableHead>{t("reviewCampaigns:participants.invited")}</TableHead>
                 <TableHead>{t("reviewCampaigns:participants.accepted")}</TableHead>
                 <TableHead className="text-right">
                   {t("reviewCampaigns:participants.actions")}
@@ -147,7 +146,6 @@ export function ParticipantsList({
                   <TableCell>
                     <Badge variant="outline">{roleLabel(membership.role)}</Badge>
                   </TableCell>
-                  <TableCell>{formatDate(membership.invitedAt)}</TableCell>
                   <TableCell>
                     {membership.acceptedAt ? (
                       formatDate(membership.acceptedAt)
