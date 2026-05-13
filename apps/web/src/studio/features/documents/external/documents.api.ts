@@ -16,6 +16,13 @@ export default {
     )
     return response.data.data.map(toDocument)
   },
+  listMyExtractionDocuments: async ({ organizationId, projectId }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof DocumentsRoutes.listMyExtractionDocuments.response>(
+      DocumentsRoutes.listMyExtractionDocuments.getPath({ organizationId, projectId }),
+    )
+    return response.data.data.map(toDocument)
+  },
   uploadOne: async ({ organizationId, projectId, file, sourceType, tagIds }) => {
     const axios = getAxiosInstance()
 

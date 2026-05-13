@@ -4,6 +4,10 @@ import type { Document, DocumentEmbeddingStatusChangedEvent } from "./documents.
 
 export interface IDocumentsSpi {
   getAll(params: { organizationId: string; projectId: string }): Promise<Document[]>
+  listMyExtractionDocuments(params: {
+    organizationId: string
+    projectId: string
+  }): Promise<Document[]>
   uploadOne(params: {
     organizationId: string
     projectId: string

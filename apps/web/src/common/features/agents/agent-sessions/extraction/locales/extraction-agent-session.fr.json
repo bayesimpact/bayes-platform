@@ -3,7 +3,8 @@
     "create": {
       "button": "Nouvelle extraction",
       "title": "Nouvelle extraction",
-      "description": "Téléversez un PDF ou une image pour lancer l'extraction."
+      "description": "Sélectionnez un document pour lancer l'extraction.",
+      "processingMessage": "Traitement en cours... Cela peut prendre un certain temps..."
     },
     "list": {
       "title": "Extractions"
@@ -17,6 +18,28 @@
       "download": {
         "button": "Télécharger JSON"
       }
+    },
+    "document": {
+      "props": {
+        "name": "Nom",
+        "createdAt": "Créé le"
+      },
+      "empty": {
+        "title": "Aucun document",
+        "description": "Téléversez un PDF ou une image pour commencer."
+      }
+    },
+    "lastExtraction": {
+      "info": "Ceci est votre dernière session d'extraction. Vous pouvez la retrouver dans l'historique pour y accéder plus tard."
+    },
+    "playground": {
+      "title": "Bac à sable",
+      "description": "Testez votre agent avec différentes entrées et paramètres"
+    },
+    "history": {
+      "button": "Historique",
+      "title": "Historique",
+      "description": "Consultez l'historique de vos sessions d'agent"
     }
   }
 }

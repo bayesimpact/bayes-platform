@@ -212,6 +212,7 @@ export function BaseAgentForm({
                       id="greetingMessage"
                       placeholder={t("agent:props.placeholders.greeting")}
                       rows={3}
+                      className="min-h-40 max-h-96 font-mono"
                       {...register("greetingMessage", {
                         setValueAs: (value: string | null | undefined) => {
                           if (value === null || value === undefined) return null
@@ -233,7 +234,7 @@ export function BaseAgentForm({
                     id="defaultPrompt"
                     placeholder={t("agent:props.placeholders.defaultPrompt")}
                     rows={8}
-                    className="min-h-40"
+                    className="min-h-40 max-h-96 font-mono"
                     {...register("defaultPrompt")}
                     aria-invalid={errors.defaultPrompt ? "true" : "false"}
                   />

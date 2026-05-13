@@ -161,7 +161,13 @@ export function ExtractionAgentSessionList({
           )}
           title={t("extractionAgentSession:create.title")}
           description={t("extractionAgentSession:create.description")}
-          action={<ExtractionSessionCreator disabled={isProcessingExecution} />}
+          action={
+            <ExtractionSessionCreator
+              buttonText={t("actions:run")}
+              onSuccess={() => {}}
+              disabled={isProcessingExecution}
+            />
+          }
         />
 
         {agentSessions.map((session, index) => (

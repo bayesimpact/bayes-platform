@@ -14,7 +14,7 @@ type UploaderProps = {
   maxFiles?: number
   onDropFiles?: (files: File[]) => void
   onProcessFiles?: (files: File[]) => Promise<void>
-  onProcessEnd?: () => void
+  onProcessEnd?: (status: "error" | "success") => void
   startProcessingFiles?: boolean
   disabled?: boolean
   maxSize?: number
@@ -37,7 +37,7 @@ export function FileUploader({
   const dispatch = useAppDispatch()
   const { t } = useTranslation("actions")
   const [files, setFiles] = useState<File[]>([])
-  const [status, setStatus] = useState<"loading" | "error">()
+  const [status, setStatus] = useState<"loading" | "error" | "success">()
 
   const disabled = disabledProp || status === "loading"
 
@@ -52,11 +52,18 @@ export function FileUploader({
 
   const handleFiles = useCallback(
     async (files: File[]) => {
-      await onProcessFiles?.(files).finally(() => {
-        setStatus(undefined)
-        setFiles([])
-        onProcessEnd?.()
-      })
+      try {
+        setStatus("loading")
+        await onProcessFiles?.(files).finally(() => {
+          setStatus(undefined)
+          setFiles([])
+          onProcessEnd?.("success")
+        })
+      } catch (error) {
+        console.error(error)
+        setStatus("error")
+        onProcessEnd?.("error")
+      }
     },
     [onProcessFiles, onProcessEnd],
   )

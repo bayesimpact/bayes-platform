@@ -42,6 +42,9 @@ export class Document extends ConnectEntityBase {
     | "evaluationExtractionDataset"
     | "evaluationExtractionRun"
 
+  @Column({ type: "uuid", name: "user_id", nullable: true })
+  userId!: string | null
+
   @Column({ name: "embedding_status", nullable: false, default: "pending" })
   embeddingStatus!: "pending" | "queued" | "processing" | "completed" | "failed"
 

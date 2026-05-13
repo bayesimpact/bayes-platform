@@ -8,6 +8,19 @@ export const selectExtractionAgentSessionsData = (state: RootState) =>
   state.extractionAgentSessions.data
 export const selectIsProcessingExecution = (state: RootState) =>
   state.extractionAgentSessions.isProcesssingExecution
+export const selectLastExtractionSession = (state: RootState) => {
+  const data = selectCurrentExtractionAgentSessionsData(state)
+  if (!ADS.isFulfilled(data)) return null
+
+  const sessions = data.value
+  if (!sessions || sessions.length === 0) return null
+
+  return sessions.reduce((latest, session) => {
+    return new Date(session.createdAt) > new Date(latest.createdAt) ? session : latest
+  })
+}
+export const selectExtractionAgentSessionsDocuments = (state: RootState) =>
+  state.extractionAgentSessions.documents
 
 const missingAgentId = { status: ADS.Error, value: null, error: "No agent selected" }
 const missingAgentSessions = {

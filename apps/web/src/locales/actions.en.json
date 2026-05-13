@@ -1,5 +1,6 @@
 {
   "actions": {
+    "test": "Test",
     "accept": "Accept",
     "add": "Add",
     "back": "Back",

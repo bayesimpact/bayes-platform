@@ -22,9 +22,11 @@ export class DocumentsService {
     connectScope,
     documentId,
     fields,
+    userId,
     uploadStatus,
     tagIds,
   }: {
+    userId?: string
     connectScope: RequiredConnectScope
     documentId: string
     fields: Pick<
@@ -43,6 +45,7 @@ export class DocumentsService {
       title: fields.title ?? fields.fileName,
       sourceType: fields.sourceType,
       uploadStatus,
+      userId: userId ?? null,
     })
 
     if (tagIds === undefined || tagIds.length === 0) {
@@ -94,6 +97,21 @@ export class DocumentsService {
     return (
       await this.documentConnectRepository.find(connectScope, {
         where: { sourceType, uploadStatus: "uploaded" },
+      })
+    )?.sort(this.sortNewestFirst)
+  }
+
+  async listExtractionDocumentsForUser({
+    connectScope,
+    userId,
+  }: {
+    connectScope: RequiredConnectScope
+    userId: string
+  }): Promise<Document[]> {
+    return (
+      await this.documentConnectRepository.find(connectScope, {
+        where: { sourceType: "extraction", uploadStatus: "uploaded", userId },
+        relations: ["tags"],
       })
     )?.sort(this.sortNewestFirst)
   }

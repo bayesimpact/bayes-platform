@@ -151,6 +151,38 @@ describe("Documents - Auth", () => {
     })
   })
 
+  describe("DocumentsRoutes.listMyExtractionDocuments", () => {
+    const subject = async () =>
+      request({
+        route: DocumentsRoutes.listMyExtractionDocuments,
+        pathParams: removeNullish({ organizationId, projectId }),
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("requires a valid organization ID", async () => {
+      organizationId = null
+      expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    })
+    it("requires a valid project ID", async () => {
+      await createContextForRole("owner")
+      projectId = null
+      expectResponse(await subject(), 404)
+    })
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("owner")
+      auth0Id = mockForeignAuth0Id()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+    it("allows a simple member to list their own extraction documents", async () => {
+      await createContextForRole("member")
+      expectResponse(await subject(), 200)
+    })
+  })
+
   describe("DocumentsRoutes.streamEmbeddingStatus", () => {
     const subject = async () =>
       request({

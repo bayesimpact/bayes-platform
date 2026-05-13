@@ -43,6 +43,7 @@ export const documentFactory = DocumentFactory.define(({ sequence, params, trans
     tags: params.tags || [],
     uploadStatus: params.uploadStatus || "uploaded",
     evaluationExtractionDatasetDocuments: params.evaluationExtractionDatasetDocuments || [],
+    userId: params.userId || null,
   } satisfies Document
 })
 

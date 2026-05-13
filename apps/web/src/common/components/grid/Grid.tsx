@@ -115,7 +115,7 @@ export function GridHeader({
 }: {
   className?: string
   onBack?: () => void
-  title: string
+  title: React.ReactNode
   description?: React.ReactNode
   action?: React.ReactNode
 }) {
