@@ -2,6 +2,7 @@ import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Input } from "@caseai-connect/ui/shad/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
+import { cn } from "@caseai-connect/ui/utils"
 import type { Column } from "@tanstack/react-table"
 import {
   ArrowDownIcon,
@@ -9,6 +10,7 @@ import {
   ArrowUpIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  SearchCheckIcon,
   SearchIcon,
 } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -36,6 +38,49 @@ export function TruncatedCell({ value, className }: { value: string; className?:
   )
 }
 
+export function Search({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const { t } = useTranslation()
+  const [localValue, setLocalValue] = useState(value)
+
+  useEffect(() => {
+    setLocalValue(value)
+  }, [value])
+
+  const hasValue = localValue.length > 0
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "text-muted-foreground hover:text-foreground transition-colors data-[state=open]:text-primary",
+            hasValue && "text-primary",
+          )}
+        >
+          {hasValue ? (
+            <SearchCheckIcon className="size-3.5" />
+          ) : (
+            <SearchIcon className="size-3.5" />
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-2">
+        <Input
+          className="h-7 text-xs font-normal bg-background"
+          placeholder={t("actions:search")}
+          value={localValue}
+          type="search"
+          onChange={(event) => {
+            setLocalValue(event.target.value)
+            onChange(event.target.value)
+          }}
+        />
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 export function SortableFilterableHeader<TData>({
   column,
   label,
@@ -45,17 +90,11 @@ export function SortableFilterableHeader<TData>({
   label: string
   badge?: string
 }) {
-  const { t } = useTranslation()
   const sorted = column.getIsSorted()
-  const externalValue = (column.getFilterValue() as string) ?? ""
-  const [localValue, setLocalValue] = useState(externalValue)
-
-  useEffect(() => {
-    setLocalValue(externalValue)
-  }, [externalValue])
+  const filterValue = (column.getFilterValue() as string) ?? ""
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-row gap-1.5">
       <button
         type="button"
         className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
@@ -72,20 +111,7 @@ export function SortableFilterableHeader<TData>({
         )}
       </button>
       {column.getCanFilter() && (
-        <div className="relative">
-          <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 size-3 text-muted-foreground/60" />
-          <Input
-            className="h-7 pl-7 text-xs font-normal bg-background"
-            placeholder={t("actions:search")}
-            value={localValue}
-            type="search"
-            onClick={(event) => event.stopPropagation()}
-            onChange={(event) => {
-              setLocalValue(event.target.value)
-              column.setFilterValue(event.target.value)
-            }}
-          />
-        </div>
+        <Search value={filterValue} onChange={(value) => column.setFilterValue(value)} />
       )}
     </div>
   )
