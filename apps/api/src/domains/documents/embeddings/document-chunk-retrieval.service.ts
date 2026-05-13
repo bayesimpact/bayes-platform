@@ -6,18 +6,8 @@ import { toSql } from "pgvector"
 import type { DataSource, SelectQueryBuilder } from "typeorm"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { DEFAULT_TOP_K } from "@/domains/agents/shared/agent-session-messages/streaming/tools/retrieve-project-document-chunks.tool"
+import type { RetrievedDocumentChunk } from "./document-chunk.types"
 import { resolveEmbeddingModelNames, resolveVertexConfig } from "./document-embeddings.config"
-
-export type RetrievedDocumentChunk = {
-  chunkId: string
-  documentId: string
-  documentTitle: string
-  documentFileName: string | null
-  chunkIndex: number
-  content: string
-  distance: number
-  modelName: string
-}
 
 @Injectable()
 export class DocumentChunkRetrievalService {
@@ -51,7 +41,7 @@ export class DocumentChunkRetrievalService {
     const normalizedDocumentTagIds = this.normalizeDocumentTagIds(documentTagIds)
     const embedding = await this.embedQuery({ query: retrievalQueryText, modelName })
 
-    const chunks = await this.fetchChunksByEmbedding({
+    const results = await this.fetchChunksByEmbedding({
       connectScope,
       modelName,
       embedding,
@@ -61,9 +51,9 @@ export class DocumentChunkRetrievalService {
     this.logRetrievalResult({
       projectId: connectScope.projectId,
       modelName,
-      chunkCount: chunks.length,
+      chunkCount: results.length,
     })
-    return chunks
+    return results
   }
 
   private resolvePrimaryModelName(): string | undefined {
@@ -91,19 +81,57 @@ export class DocumentChunkRetrievalService {
     topK: number
     documentTagIds: string[]
   }): Promise<RetrievedDocumentChunk[]> {
-    const queryBuilder = this.dataSource
+    const dedupedChunks = this.buildDedupedChunksQuery({
+      connectScope,
+      modelName,
+      embedding,
+    })
+    this.applyDocumentTagFilter({ queryBuilder: dedupedChunks, documentTagIds })
+
+    const rows = await this.buildTopChunksQuery({
+      dedupedChunks,
+      topK,
+    }).getRawMany<RetrievedDocumentChunk>()
+
+    return rows.map((row) => ({
+      ...row,
+      isParentChunk: Boolean(row.isParentChunk),
+    }))
+  }
+
+  /**
+   * Rank all matching child chunks by vector distance, then collapse children
+   * of the same parent down to the single best-scoring one via DISTINCT ON.
+   */
+  private buildDedupedChunksQuery({
+    connectScope,
+    modelName,
+    embedding,
+  }: {
+    connectScope: RequiredConnectScope
+    modelName: string
+    embedding: number[]
+  }): SelectQueryBuilder<Record<string, unknown>> {
+    return this.dataSource
       .createQueryBuilder()
-      .select("chunk.id", "chunkId")
+      .select("COALESCE(parent.id, chunk.id)", "chunkId")
       .addSelect("chunk.document_id", "documentId")
       .addSelect("document.title", "documentTitle")
       .addSelect("document.file_name", "documentFileName")
-      .addSelect("chunk.chunk_index", "chunkIndex")
-      .addSelect("chunk.content", "content")
+      .addSelect("COALESCE(parent.chunk_index, chunk.chunk_index)", "chunkIndex")
+      .addSelect("COALESCE(parent.content, chunk.content)", "content")
       .addSelect("embedding.model_name", "modelName")
       .addSelect("(embedding.embedding <=> :queryEmbedding::vector)", "distance")
+      .addSelect("(parent.id IS NOT NULL)", "isParentChunk")
+      .distinctOn(["COALESCE(parent.id, chunk.id)"])
       .from("document_chunk_embedding", "embedding")
       .innerJoin("document_chunk", "chunk", "chunk.id = embedding.document_chunk_id")
       .innerJoin("document", "document", "document.id = chunk.document_id")
+      .leftJoin(
+        "document_parent_chunk",
+        "parent",
+        "parent.id = chunk.parent_id AND parent.deleted_at IS NULL",
+      )
       .where("embedding.organization_id = :organizationId", {
         organizationId: connectScope.organizationId,
       })
@@ -118,14 +146,28 @@ export class DocumentChunkRetrievalService {
       .andWhere("chunk.deleted_at IS NULL")
       .andWhere("embedding.deleted_at IS NULL")
       .andWhere("document.deleted_at IS NULL")
-
-    this.applyDocumentTagFilter({ queryBuilder, documentTagIds })
-
-    return await queryBuilder
       .setParameters({ queryEmbedding: toSql(embedding) })
-      .orderBy("embedding.embedding <=> :queryEmbedding::vector", "ASC")
+      .orderBy("COALESCE(parent.id, chunk.id)")
+      .addOrderBy("embedding.embedding <=> :queryEmbedding::vector", "ASC")
+  }
+
+  /**
+   * Wrap the deduplicated chunks subquery, re-sort by distance and take topK.
+   */
+  private buildTopChunksQuery({
+    dedupedChunks,
+    topK,
+  }: {
+    dedupedChunks: SelectQueryBuilder<Record<string, unknown>>
+    topK: number
+  }): SelectQueryBuilder<Record<string, unknown>> {
+    return this.dataSource
+      .createQueryBuilder()
+      .select("*")
+      .from(`(${dedupedChunks.getQuery()})`, "deduplicated")
+      .setParameters(dedupedChunks.getParameters())
+      .orderBy('"distance"', "ASC")
       .limit(topK)
-      .getRawMany<RetrievedDocumentChunk>()
   }
 
   private applyDocumentTagFilter({

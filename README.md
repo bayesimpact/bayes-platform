@@ -192,7 +192,7 @@ If `docling` is not recognized, restart the terminal and make sure your Python S
 Docling-related environment variables:
 
 - `DOCUMENT_EXTRACTOR_DOCLING_ENABLED` (default: `true`)
-- `DOCUMENT_EXTRACTOR_DOCLING_NODES_COMMAND` (optional path override for `apps/api/bin/docling_nodes`)
+- `DOCUMENT_CHUNKER_COMMAND` (optional path override for `apps/api/bin/document_chunker`)
 - `DOCUMENT_EXTRACTOR_DOCLING_TIMEOUT_MS` (default: `60000` for extraction; worker health check uses `10000` fallback if unset)
 
 ### 4. Run Database Migrations

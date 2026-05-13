@@ -14,6 +14,35 @@ jest.mock("ai", () => ({
   embed: jest.fn(),
 }))
 
+function buildInnerQueryBuilderMock() {
+  return {
+    select: jest.fn().mockReturnThis(),
+    addSelect: jest.fn().mockReturnThis(),
+    distinctOn: jest.fn().mockReturnThis(),
+    from: jest.fn().mockReturnThis(),
+    innerJoin: jest.fn().mockReturnThis(),
+    leftJoin: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    setParameters: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    addOrderBy: jest.fn().mockReturnThis(),
+    getQuery: jest.fn().mockReturnValue("INNER_SQL"),
+    getParameters: jest.fn().mockReturnValue({}),
+  }
+}
+
+function buildOuterQueryBuilderMock(getRawMany: jest.Mock) {
+  return {
+    select: jest.fn().mockReturnThis(),
+    from: jest.fn().mockReturnThis(),
+    setParameters: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    getRawMany,
+  }
+}
+
 describe("DocumentChunkRetrievalService", () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -34,27 +63,21 @@ describe("DocumentChunkRetrievalService", () => {
         content: "Relevant policy details",
         distance: 0.12,
         modelName: "gemini-embedding-001",
+        isParentChunk: false,
       },
     ])
-    const queryBuilder = {
-      select: jest.fn().mockReturnThis(),
-      addSelect: jest.fn().mockReturnThis(),
-      from: jest.fn().mockReturnThis(),
-      innerJoin: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      setParameters: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      getRawMany,
-    }
+    const innerQueryBuilder = buildInnerQueryBuilderMock()
+    const outerQueryBuilder = buildOuterQueryBuilderMock(getRawMany)
     const mockedEmbed = embed as jest.MockedFunction<typeof embed>
     mockedEmbed.mockResolvedValue({
       embedding: [0.1, 0.2, 0.3],
     } as never)
 
     const service = new DocumentChunkRetrievalService({
-      createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+      createQueryBuilder: jest
+        .fn()
+        .mockReturnValueOnce(innerQueryBuilder)
+        .mockReturnValueOnce(outerQueryBuilder),
     } as never)
 
     const chunks = await service.retrieveTopChunks({
@@ -75,14 +98,15 @@ describe("DocumentChunkRetrievalService", () => {
     })
     expect(mockTextEmbeddingModel).toHaveBeenCalledWith("gemini-embedding-001")
     expect(getRawMany).toHaveBeenCalledTimes(1)
-    expect(queryBuilder.limit).toHaveBeenCalledWith(3)
-    expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+    expect(outerQueryBuilder.limit).toHaveBeenCalledWith(3)
+    expect(innerQueryBuilder.distinctOn).toHaveBeenCalledWith(["COALESCE(parent.id, chunk.id)"])
+    expect(innerQueryBuilder.andWhere).toHaveBeenCalledWith(
       "document.source_type = :projectSourceType",
       {
         projectSourceType: "project",
       },
     )
-    expect(queryBuilder.andWhere).not.toHaveBeenCalledWith(
+    expect(innerQueryBuilder.andWhere).not.toHaveBeenCalledWith(
       expect.stringContaining("document_document_tag"),
       expect.anything(),
     )
@@ -90,25 +114,18 @@ describe("DocumentChunkRetrievalService", () => {
 
   it("filters retrieved chunks by document tags when provided", async () => {
     const getRawMany = jest.fn().mockResolvedValue([])
-    const queryBuilder = {
-      select: jest.fn().mockReturnThis(),
-      addSelect: jest.fn().mockReturnThis(),
-      from: jest.fn().mockReturnThis(),
-      innerJoin: jest.fn().mockReturnThis(),
-      where: jest.fn().mockReturnThis(),
-      andWhere: jest.fn().mockReturnThis(),
-      setParameters: jest.fn().mockReturnThis(),
-      orderBy: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      getRawMany,
-    }
+    const innerQueryBuilder = buildInnerQueryBuilderMock()
+    const outerQueryBuilder = buildOuterQueryBuilderMock(getRawMany)
     const mockedEmbed = embed as jest.MockedFunction<typeof embed>
     mockedEmbed.mockResolvedValue({
       embedding: [0.1, 0.2, 0.3],
     } as never)
 
     const service = new DocumentChunkRetrievalService({
-      createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+      createQueryBuilder: jest
+        .fn()
+        .mockReturnValueOnce(innerQueryBuilder)
+        .mockReturnValueOnce(outerQueryBuilder),
     } as never)
 
     await service.retrieveTopChunks({
@@ -122,7 +139,7 @@ describe("DocumentChunkRetrievalService", () => {
       documentTagIds: ["tag-1", "tag-2", "tag-1"],
     })
 
-    expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+    expect(innerQueryBuilder.andWhere).toHaveBeenCalledWith(
       expect.stringContaining("document_document_tag"),
       { documentTagIds: ["tag-1", "tag-2"] },
     )

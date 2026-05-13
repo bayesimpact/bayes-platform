@@ -10,6 +10,8 @@ export const DOCLING_SUPPORTED_MIME_TYPES = new Set([
   "application/vnd.ms-powerpoint",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   "application/vnd.ms-excel",
+  "text/csv",
+  "text/plain",
   "image/png",
   "image/jpeg",
   "image/jpg",
@@ -20,6 +22,8 @@ export const DOCLING_SUPPORTED_MIME_TYPES = new Set([
 
 export const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
   "application/pdf": "pdf",
+  "text/csv": "csv",
+  "text/plain": "txt",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
   "application/msword": "doc",
   "application/vnd.openxmlformats-officedocument.presentationml.presentation": "pptx",
