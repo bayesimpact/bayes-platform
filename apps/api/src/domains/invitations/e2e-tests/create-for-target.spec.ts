@@ -1,4 +1,4 @@
-import { ProjectMembershipRoutes } from "@caseai-connect/api-contracts"
+import { InvitationsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
@@ -8,21 +8,19 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
-import { mockInvitationSender, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
-import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
-import { ProjectsModule } from "../../projects.module"
+import { mockInvitationSender, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { expectResponse, type Requester, testRequester } from "../../../../test/request"
+import { InvitationsModule } from "../invitations.module"
 
-describe("Project membership - createOne", () => {
+describe("Invitations — createForTarget (project)", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
 
-  let organizationId: string
   let projectId: string
   let accessToken: string | undefined = "token"
   let auth0Id = "auth0|123"
@@ -30,7 +28,7 @@ describe("Project membership - createOne", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [ProjectsModule, ActivitiesModule],
+      additionalImports: [InvitationsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
     repositories = setup.getAllRepositories()
@@ -53,43 +51,46 @@ describe("Project membership - createOne", () => {
   })
 
   const createContext = async () => {
-    const { user, organization, project } = await createOrganizationWithProject(repositories)
-    organizationId = organization.id
+    const { user, project } = await createOrganizationWithProject(repositories)
     projectId = project.id
     auth0Id = user.auth0Id
-    return { organization, project, user }
+    return { project, user }
   }
 
-  const subject = async (payload?: typeof ProjectMembershipRoutes.createOne.request) =>
+  const subject = async (payload?: typeof InvitationsRoutes.createForTarget.request) =>
     request({
-      route: ProjectMembershipRoutes.createOne,
-      pathParams: removeNullish({ organizationId, projectId }),
+      route: InvitationsRoutes.createForTarget,
       token: accessToken,
       request: payload,
     })
 
-  it("should invite a new user (creates user + membership)", async () => {
+  it("should invite a new email (pending invitation; user created on accept)", async () => {
     await createContext()
 
-    const response = await subject({ payload: { emails: ["newuser@example.com"] } })
+    const response = await subject({
+      payload: {
+        targetType: "project",
+        targetId: projectId,
+        emails: ["newuser@example.com"],
+      },
+    })
 
     expectResponse(response, 201)
-    const memberships = response.body.data
-    expect(memberships).toHaveLength(1)
-    expect(memberships[0]!.userEmail).toBe("newuser@example.com")
-    expect(memberships[0]!.status).toBe("sent")
-    expect(memberships[0]!.userName).toBeNull()
+    const invitations = response.body.data.invitations
+    expect(invitations).toHaveLength(1)
+    expect(invitations[0]!.invitedEmail).toBe("newuser@example.com")
+    expect(invitations[0]!.status).toBe("pending")
+    expect(invitations[0]!.userId).toBeNull()
 
-    // Verify user was created in the database
     const createdUser = await repositories.userRepository.findOne({
       where: { email: "newuser@example.com" },
     })
-    expect(createdUser).toBeDefined()
-    expect(createdUser!.auth0Id).toMatch(/^00000000-0000-0000-0000-/)
-    await expectActivityCreated("projectMembership.inviteMany")
+    expect(createdUser).toBeNull()
+
+    await expectActivityCreated("invitation.invite")
   })
 
-  it("should invite an existing user (creates membership only)", async () => {
+  it("should invite an existing user (links invitation to userId)", async () => {
     await createContext()
 
     const existingUser = userFactory.build({
@@ -98,20 +99,31 @@ describe("Project membership - createOne", () => {
     })
     await repositories.userRepository.save(existingUser)
 
-    const response = await subject({ payload: { emails: ["existing@example.com"] } })
+    const response = await subject({
+      payload: {
+        targetType: "project",
+        targetId: projectId,
+        emails: ["existing@example.com"],
+      },
+    })
 
     expectResponse(response, 201)
-    const memberships = response.body.data
-    expect(memberships).toHaveLength(1)
-    expect(memberships[0]!.userEmail).toBe("existing@example.com")
-    expect(memberships[0]!.userName).toBe("Existing User")
-    expect(memberships[0]!.userId).toBe(existingUser.id)
+    const invitations = response.body.data.invitations
+    expect(invitations).toHaveLength(1)
+    expect(invitations[0]!.invitedEmail).toBe("existing@example.com")
+    expect(invitations[0]!.userId).toBe(existingUser.id)
   })
 
   it("should call the invitation sender for each invited user", async () => {
     await createContext()
 
-    await subject({ payload: { emails: ["user1@example.com", "user2@example.com"] } })
+    await subject({
+      payload: {
+        targetType: "project",
+        targetId: projectId,
+        emails: ["user1@example.com", "user2@example.com"],
+      },
+    })
 
     expect(mockInvitationSender.sendInvitation).toHaveBeenCalledTimes(2)
     expect(mockInvitationSender.sendInvitation).toHaveBeenCalledWith(

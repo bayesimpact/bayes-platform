@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { InvitationsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -10,7 +11,7 @@ import {
 } from "@/common/test/test-database"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
-import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { projectMembershipFactory } from "../../projects/memberships/project-membership.factory"
 import { InvitationsModule } from "../invitations.module"
@@ -24,6 +25,7 @@ describe("Invitations — authorization", () => {
   let accessToken: string | undefined = "token"
   let auth0Id = "auth0|123"
   let projectId: string
+  let invitationId: string
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
@@ -41,6 +43,7 @@ describe("Invitations — authorization", () => {
     accessToken = "token"
     auth0Id = "auth0|123"
     projectId = ""
+    invitationId = ""
   })
 
   afterAll(async () => {
@@ -54,6 +57,93 @@ describe("Invitations — authorization", () => {
     auth0Id = user.auth0Id
     return { user, organization, project }
   }
+
+  describe("InvitationsRoutes.revokeOne", () => {
+    const seedPendingProjectInvitation = async () => {
+      const { user, organization, project } = await createOrganizationWithProject(repositories)
+      projectId = project.id
+      auth0Id = user.auth0Id
+      const invitation = await repositories.invitationRepository.save(
+        repositories.invitationRepository.create({
+          organizationId: organization.id,
+          projectId: project.id,
+          targetType: "project",
+          targetId: project.id,
+          userId: null,
+          invitedEmail: "revoke-auth@example.com",
+          invitationToken: `e2e-revoke-auth-${randomUUID()}`,
+          status: "pending",
+          role: "admin",
+          invitedAt: new Date(),
+          acceptedAt: null,
+        }),
+      )
+      invitationId = invitation.id
+    }
+
+    const subject = async () =>
+      request({
+        route: InvitationsRoutes.revokeOne,
+        pathParams: { invitationId },
+        token: accessToken,
+      })
+
+    it("rejects unauthenticated requests", async () => {
+      await seedPendingProjectInvitation()
+      accessToken = undefined
+      const response = await subject()
+      expectResponse(response, 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+
+    it("forbids a user who is not an organization member", async () => {
+      await seedPendingProjectInvitation()
+      auth0Id = mockForeignAuth0Id()
+      const response = await subject()
+      expectResponse(response, 403, "You do not have access to this organization")
+    })
+
+    it("forbids project member without admin role", async () => {
+      const { project, organization } = await createOrganizationWithProject(repositories)
+      projectId = project.id
+
+      const savedInvitation = await repositories.invitationRepository.save(
+        repositories.invitationRepository.create({
+          organizationId: organization.id,
+          projectId: project.id,
+          targetType: "project",
+          targetId: project.id,
+          userId: null,
+          invitedEmail: "revoke-member@example.com",
+          invitationToken: `e2e-revoke-member-${randomUUID()}`,
+          status: "pending",
+          role: "admin",
+          invitedAt: new Date(),
+          acceptedAt: null,
+        }),
+      )
+      invitationId = savedInvitation.id
+
+      const memberUser = userFactory.build()
+      await repositories.userRepository.save(memberUser)
+      await repositories.projectMembershipRepository.save(
+        projectMembershipFactory
+          .member()
+          .transient({ project, user: memberUser })
+          .build({ status: "accepted" }),
+      )
+      await repositories.organizationMembershipRepository.save(
+        repositories.organizationMembershipRepository.create({
+          userId: memberUser.id,
+          organizationId: organization.id,
+          role: "member",
+        }),
+      )
+
+      auth0Id = memberUser.auth0Id
+      const response = await subject()
+      expectResponse(response, 403, "You must be a project owner or admin to list invitations")
+    })
+  })
 
   describe("InvitationsRoutes.listPendingMine", () => {
     it("rejects unauthenticated requests", async () => {
