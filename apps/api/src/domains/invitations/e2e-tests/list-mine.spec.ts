@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { InvitationsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -76,10 +77,11 @@ describe("Invitations — listPendingMine", () => {
       .transient({ organization })
       .build({ name: "Pending Project" })
     await repositories.projectRepository.save(pendingProject)
+    const pendingProjectToken = randomUUID()
     const pendingProjectMembership = projectMembershipFactory
       .admin()
       .transient({ project: pendingProject, user })
-      .build({ status: "sent" })
+      .build()
     await repositories.projectMembershipRepository.save(pendingProjectMembership)
     await repositories.invitationRepository.save(
       repositories.invitationRepository.create({
@@ -89,7 +91,7 @@ describe("Invitations — listPendingMine", () => {
         targetId: pendingProject.id,
         userId: user.id,
         invitedEmail: user.email,
-        invitationToken: pendingProjectMembership.invitationToken,
+        invitationToken: pendingProjectToken,
         status: "pending",
         role: pendingProjectMembership.role,
         invitedAt: pendingProjectMembership.createdAt,
@@ -101,10 +103,11 @@ describe("Invitations — listPendingMine", () => {
       .transient({ organization, project })
       .build({ name: "Pending Agent", type: "conversation" })
     await repositories.agentRepository.save(pendingAgent)
+    const pendingAgentToken = randomUUID()
     const pendingAgentMembership = agentMembershipFactory
       .member()
       .transient({ agent: pendingAgent, user })
-      .build({ status: "sent" })
+      .build()
     await repositories.agentMembershipRepository.save(pendingAgentMembership)
     await repositories.invitationRepository.save(
       repositories.invitationRepository.create({
@@ -114,7 +117,7 @@ describe("Invitations — listPendingMine", () => {
         targetId: pendingAgent.id,
         userId: user.id,
         invitedEmail: user.email,
-        invitationToken: pendingAgentMembership.invitationToken,
+        invitationToken: pendingAgentToken,
         status: "pending",
         role: pendingAgentMembership.role,
         invitedAt: pendingAgentMembership.createdAt,
@@ -129,7 +132,7 @@ describe("Invitations — listPendingMine", () => {
     const acceptedAgentMembership = agentMembershipFactory
       .member()
       .transient({ agent: acceptedAgent, user })
-      .build({ status: "accepted" })
+      .build()
     await repositories.agentMembershipRepository.save(acceptedAgentMembership)
 
     const response = await subject()
@@ -147,7 +150,7 @@ describe("Invitations — listPendingMine", () => {
       projectName: "Pending Project",
       targetName: "Pending Project",
       role: "admin",
-      invitationToken: pendingProjectMembership.invitationToken,
+      invitationToken: pendingProjectToken,
       status: "pending",
     })
 
@@ -160,7 +163,7 @@ describe("Invitations — listPendingMine", () => {
       projectName: project.name,
       targetName: "Pending Agent",
       role: "member",
-      invitationToken: pendingAgentMembership.invitationToken,
+      invitationToken: pendingAgentToken,
       status: "pending",
     })
   })
@@ -174,7 +177,7 @@ describe("Invitations — listPendingMine", () => {
     const otherMembership = projectMembershipFactory
       .member()
       .transient({ project, user: otherUser })
-      .build({ status: "sent" })
+      .build()
     await repositories.projectMembershipRepository.save(otherMembership)
     await repositories.invitationRepository.save(
       repositories.invitationRepository.create({
@@ -184,7 +187,7 @@ describe("Invitations — listPendingMine", () => {
         targetId: project.id,
         userId: otherUser.id,
         invitedEmail: otherUser.email,
-        invitationToken: otherMembership.invitationToken,
+        invitationToken: randomUUID(),
         status: "pending",
         role: otherMembership.role,
         invitedAt: otherMembership.createdAt,

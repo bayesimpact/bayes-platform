@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto"
 import {
   BadRequestException,
   ConflictException,
@@ -386,7 +385,6 @@ export class ReviewCampaignInvitationHandler
       userId: params.userId,
       projectId: params.projectId,
       role: "member",
-      invitationToken: `review-campaign-invitation-${Date.now()}-${params.userId}`,
     })
     await params.projectMembershipRepository.save(membership)
   }

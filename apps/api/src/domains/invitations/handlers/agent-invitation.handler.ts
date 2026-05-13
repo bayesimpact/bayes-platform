@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto"
 import { Inject, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -244,7 +243,6 @@ export class AgentInvitationHandler
         const membership = membershipRepository.create({
           agentId: invitation.targetId,
           userId: user.id,
-          invitationToken: `accepted-agent-invitation-${randomUUID()}`,
           role: invitation.role as AgentMembership["role"],
         })
         await membershipRepository.save(membership)
@@ -291,7 +289,6 @@ export class AgentInvitationHandler
     const membership = params.projectMembershipRepository.create({
       userId: params.userId,
       projectId: params.projectId,
-      invitationToken: randomUUID(),
       role: "member",
     })
     await params.projectMembershipRepository.save(membership)

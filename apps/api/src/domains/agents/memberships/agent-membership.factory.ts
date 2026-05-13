@@ -41,7 +41,6 @@ export const agentMembershipFactory = AgentMembershipFactory.define(
       id: params.id || randomUUID(),
       agentId: transientParams.agent.id,
       userId: transientParams.user.id,
-      invitationToken: params.invitationToken || randomUUID(),
       role: (params.role || "member") as AgentMembershipRole,
       createdAt: params.createdAt || now,
       updatedAt: params.updatedAt || now,
@@ -96,8 +95,9 @@ export const inviteUserToAgent = async ({
   const invitedUser = userFactory.build(user)
   await repositories.userRepository.save(invitedUser)
 
+  const invitationToken = randomUUID()
   const membership = agentMembershipFactory.transient({ agent, user: invitedUser }).build()
   await repositories.agentMembershipRepository.save(membership)
 
-  return { membership, invitedUser }
+  return { membership, invitedUser, invitationToken }
 }

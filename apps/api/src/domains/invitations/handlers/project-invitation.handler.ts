@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto"
 import { Inject, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
@@ -317,7 +316,6 @@ export class ProjectInvitationHandler
         const membership = projectMembershipRepository.create({
           projectId: invitation.projectId,
           userId: user.id,
-          invitationToken: `accepted-project-invitation-${randomUUID()}`,
           role: "admin",
         })
         await projectMembershipRepository.save(membership)

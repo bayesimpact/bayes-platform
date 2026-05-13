@@ -44,7 +44,7 @@ describe("ProjectMembershipsService", () => {
   })
 
   describe("createProjectOwnerMembership", () => {
-    it("creates an accepted owner membership", async () => {
+    it("creates an owner membership", async () => {
       const { organization, user } = await createOrganizationWithOwner(repositories)
       const project = await repositories.projectRepository.save(
         projectFactory.transient({ organization }).build(),
@@ -56,8 +56,6 @@ describe("ProjectMembershipsService", () => {
       })
 
       expect(membership.role).toBe("owner")
-      expect(membership.status).toBe("accepted")
-      expect(membership.invitationToken).toContain("create_project_owner_membership-")
     })
   })
 
@@ -88,7 +86,7 @@ describe("ProjectMembershipsService", () => {
   })
 
   describe("upsertProjectAdminMembership", () => {
-    it("creates a sent admin membership when missing", async () => {
+    it("creates an admin membership when missing", async () => {
       const { project } = await createOrganizationWithProject(repositories)
       const invitedUser = await repositories.userRepository.save(userFactory.build())
 
@@ -97,14 +95,11 @@ describe("ProjectMembershipsService", () => {
           manager,
           projectId: project.id,
           userId: invitedUser.id,
-          invitationToken: "ticket_create_admin",
         }),
       )
 
       expect(created).not.toBeNull()
-      expect(created?.status).toBe("sent")
       expect(created?.role).toBe("admin")
-      expect(created?.invitationToken).toBe("ticket_create_admin")
     })
 
     it("promotes existing non-admin membership and syncs agent admins", async () => {
@@ -125,7 +120,6 @@ describe("ProjectMembershipsService", () => {
           manager,
           projectId: project.id,
           userId: invitedUser.id,
-          invitationToken: "ticket_promote_admin",
         }),
       )
 

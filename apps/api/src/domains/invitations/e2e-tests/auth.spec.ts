@@ -129,10 +129,7 @@ describe("Invitations — authorization", () => {
       const memberUser = userFactory.build()
       await repositories.userRepository.save(memberUser)
       await repositories.projectMembershipRepository.save(
-        projectMembershipFactory
-          .member()
-          .transient({ project, user: memberUser })
-          .build({ status: "accepted" }),
+        projectMembershipFactory.member().transient({ project, user: memberUser }).build(),
       )
       await repositories.organizationMembershipRepository.save(
         repositories.organizationMembershipRepository.create({
@@ -204,10 +201,7 @@ describe("Invitations — authorization", () => {
       const memberUser = userFactory.build()
       await repositories.userRepository.save(memberUser)
       await repositories.projectMembershipRepository.save(
-        projectMembershipFactory
-          .member()
-          .transient({ project, user: memberUser })
-          .build({ status: "accepted" }),
+        projectMembershipFactory.member().transient({ project, user: memberUser }).build(),
       )
       await repositories.organizationMembershipRepository.save(
         repositories.organizationMembershipRepository.create({
@@ -257,10 +251,7 @@ describe("Invitations — authorization", () => {
           }),
         )
         await repositories.projectMembershipRepository.save(
-          projectMembershipFactory
-            .member()
-            .transient({ project, user: nonMemberUser })
-            .build({ status: "accepted" }),
+          projectMembershipFactory.member().transient({ project, user: nonMemberUser }).build(),
         )
 
         auth0Id = nonMemberUser.auth0Id
@@ -284,10 +275,7 @@ describe("Invitations — authorization", () => {
           }),
         )
         await repositories.projectMembershipRepository.save(
-          projectMembershipFactory
-            .member()
-            .transient({ project, user: memberUser })
-            .build({ status: "accepted" }),
+          projectMembershipFactory.member().transient({ project, user: memberUser }).build(),
         )
         await addUserToAgent({
           repositories,
@@ -340,10 +328,7 @@ describe("Invitations — authorization", () => {
           }),
         )
         await repositories.projectMembershipRepository.save(
-          projectMembershipFactory
-            .member()
-            .transient({ project, user: memberUser })
-            .build({ status: "accepted" }),
+          projectMembershipFactory.member().transient({ project, user: memberUser }).build(),
         )
 
         auth0Id = memberUser.auth0Id

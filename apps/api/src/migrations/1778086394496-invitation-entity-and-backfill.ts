@@ -98,6 +98,89 @@ export class InvitationEntityAndBackfill1778086394496 implements MigrationInterf
     `)
 
     await queryRunner.query(`
+      INSERT INTO "invitation" (
+        "id", "created_at", "updated_at", "deleted_at",
+        "organization_id", "project_id", "target_type", "target_id", "user_id",
+        "invited_email", "invitation_token", "status", "role", "invited_at", "accepted_at"
+      )
+      SELECT
+        uuid_generate_v4(),
+        pm.created_at,
+        pm.updated_at,
+        pm.deleted_at,
+        p.organization_id,
+        p.id,
+        'project',
+        p.id,
+        pm.user_id,
+        u.email,
+        pm.invitation_token,
+        'accepted',
+        pm.role,
+        pm.created_at,
+        pm.updated_at
+      FROM project_membership pm
+      INNER JOIN project p ON p.id = pm.project_id
+      INNER JOIN "user" u ON u.id = pm.user_id
+      WHERE pm.status = 'accepted' AND pm.invitation_token IS NOT NULL
+    `)
+
+    await queryRunner.query(`
+      INSERT INTO "invitation" (
+        "id", "created_at", "updated_at", "deleted_at",
+        "organization_id", "project_id", "target_type", "target_id", "user_id",
+        "invited_email", "invitation_token", "status", "role", "invited_at", "accepted_at"
+      )
+      SELECT
+        uuid_generate_v4(),
+        am.created_at,
+        am.updated_at,
+        am.deleted_at,
+        a.organization_id,
+        a.project_id,
+        'agent',
+        a.id,
+        am.user_id,
+        u.email,
+        am.invitation_token,
+        'accepted',
+        am.role,
+        am.created_at,
+        am.updated_at
+      FROM agent_membership am
+      INNER JOIN agent a ON a.id = am.agent_id
+      INNER JOIN "user" u ON u.id = am.user_id
+      WHERE am.status = 'accepted' AND am.invitation_token IS NOT NULL
+    `)
+
+    await queryRunner.query(`
+      INSERT INTO "invitation" (
+        "id", "created_at", "updated_at", "deleted_at",
+        "organization_id", "project_id", "target_type", "target_id", "user_id",
+        "invited_email", "invitation_token", "status", "role", "invited_at", "accepted_at"
+      )
+      SELECT
+        uuid_generate_v4(),
+        rcm.created_at,
+        rcm.updated_at,
+        rcm.deleted_at,
+        rcm.organization_id,
+        rcm.project_id,
+        'review_campaign',
+        rcm.campaign_id,
+        rcm.user_id,
+        u.email,
+        rcm.invitation_token,
+        'accepted',
+        rcm.role,
+        rcm.invited_at,
+        rcm.accepted_at
+      FROM review_campaign_membership rcm
+      INNER JOIN "user" u ON u.id = rcm.user_id
+      WHERE rcm.accepted_at IS NOT NULL AND rcm.invitation_token IS NOT NULL
+    `)
+
+    await queryRunner.query(`
       DELETE FROM "project_membership"
       WHERE status = 'sent' AND invitation_token IS NOT NULL
     `)
@@ -113,7 +196,9 @@ export class InvitationEntityAndBackfill1778086394496 implements MigrationInterf
     `)
 
     await queryRunner.query(`ALTER TABLE "project_membership" DROP COLUMN "status"`)
+    await queryRunner.query(`ALTER TABLE "project_membership" DROP COLUMN "invitation_token"`)
     await queryRunner.query(`ALTER TABLE "agent_membership" DROP COLUMN "status"`)
+    await queryRunner.query(`ALTER TABLE "agent_membership" DROP COLUMN "invitation_token"`)
     await queryRunner.query(
       `ALTER TABLE "review_campaign_membership" DROP COLUMN "invitation_token"`,
     )
@@ -125,7 +210,13 @@ export class InvitationEntityAndBackfill1778086394496 implements MigrationInterf
       `ALTER TABLE "project_membership" ADD COLUMN "status" character varying NOT NULL DEFAULT 'sent'`,
     )
     await queryRunner.query(
+      `ALTER TABLE "project_membership" ADD COLUMN "invitation_token" character varying`,
+    )
+    await queryRunner.query(
       `ALTER TABLE "agent_membership" ADD COLUMN "status" character varying NOT NULL DEFAULT 'sent'`,
+    )
+    await queryRunner.query(
+      `ALTER TABLE "agent_membership" ADD COLUMN "invitation_token" character varying`,
     )
     await queryRunner.query(
       `ALTER TABLE "review_campaign_membership" ADD COLUMN "invitation_token" character varying`,
@@ -154,6 +245,22 @@ export class InvitationEntityAndBackfill1778086394496 implements MigrationInterf
     `)
 
     await queryRunner.query(`
+      UPDATE "project_membership" pm
+      SET invitation_token = i.invitation_token
+      FROM "invitation" i
+      WHERE i.target_type = 'project'
+        AND i.user_id = pm.user_id
+        AND i.project_id = pm.project_id
+        AND pm.invitation_token IS NULL
+    `)
+
+    await queryRunner.query(`
+      UPDATE "project_membership"
+      SET invitation_token = uuid_generate_v4()
+      WHERE invitation_token IS NULL
+    `)
+
+    await queryRunner.query(`
       INSERT INTO "agent_membership" (
         "id", "created_at", "updated_at", "deleted_at",
         "agent_id", "user_id", "invitation_token", "status", "role"
@@ -170,6 +277,22 @@ export class InvitationEntityAndBackfill1778086394496 implements MigrationInterf
         i.role
       FROM "invitation" i
       WHERE i.target_type = 'agent' AND i.status = 'pending'
+    `)
+
+    await queryRunner.query(`
+      UPDATE "agent_membership" am
+      SET invitation_token = i.invitation_token
+      FROM "invitation" i
+      WHERE i.target_type = 'agent'
+        AND i.user_id = am.user_id
+        AND i.target_id = am.agent_id
+        AND am.invitation_token IS NULL
+    `)
+
+    await queryRunner.query(`
+      UPDATE "agent_membership"
+      SET invitation_token = uuid_generate_v4()
+      WHERE invitation_token IS NULL
     `)
 
     await queryRunner.query(`

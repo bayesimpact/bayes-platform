@@ -71,7 +71,6 @@ describe("Project membership - getAll", () => {
     expect(memberships).toHaveLength(1)
     expect(memberships[0]!.userName).toBe(user.name)
     expect(memberships[0]!.userEmail).toBe(user.email)
-    expect(memberships[0]!.status).toBe("accepted")
     expect(memberships[0]!).toHaveProperty("id")
     expect(memberships[0]!).toHaveProperty("projectId")
     expect(memberships[0]!).toHaveProperty("userId")

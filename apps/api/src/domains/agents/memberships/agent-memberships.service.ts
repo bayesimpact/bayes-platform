@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto"
 import { Injectable } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { EntityManager, Repository } from "typeorm"
@@ -76,7 +75,6 @@ export class AgentMembershipsService {
       agentId: params.agentId,
       userId: params.userId,
       role: "owner",
-      invitationToken: `new_agent_no_invitation_token-${randomUUID()}`,
     })
     return this.agentMembershipRepository.save(membership)
   }
@@ -85,7 +83,6 @@ export class AgentMembershipsService {
     manager: EntityManager
     agentId: string
     userId: string
-    invitationToken: string
   }): Promise<AgentMembership | null> {
     const membershipRepo = params.manager.getRepository(AgentMembership)
     const existingMembership = await membershipRepo.findOne({
@@ -99,7 +96,6 @@ export class AgentMembershipsService {
     const newMembership = membershipRepo.create({
       agentId: params.agentId,
       userId: params.userId,
-      invitationToken: params.invitationToken,
       role: "member",
     })
     return membershipRepo.save(newMembership)
@@ -191,7 +187,6 @@ export class AgentMembershipsService {
         agentId: agent.id,
         userId,
         role: "admin",
-        invitationToken: `project_invite-${randomUUID()}`,
       })
       await manager.save(AgentMembership, membership)
     }
@@ -225,7 +220,6 @@ export class AgentMembershipsService {
         agentId,
         userId: projectMembership.userId,
         role: "admin",
-        invitationToken: `project_admin_propagation-${randomUUID()}`,
       })
       await this.agentMembershipRepository.save(membership)
     }

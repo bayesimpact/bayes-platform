@@ -27,6 +27,9 @@ describe("WorkspaceInvitationService", () => {
   let projectMembershipRepository: ReturnType<
     Awaited<ReturnType<typeof setupTransactionalTestDatabase>>["getAllRepositories"]
   >["projectMembershipRepository"]
+  let invitationRepository: ReturnType<
+    Awaited<ReturnType<typeof setupTransactionalTestDatabase>>["getAllRepositories"]
+  >["invitationRepository"]
 
   const mockInvitationSender = {
     sendInvitation: jest.fn().mockResolvedValue({ ticketId: "ticket_abc123" }),
@@ -42,6 +45,7 @@ describe("WorkspaceInvitationService", () => {
     organizationMembershipRepository = repositories.organizationMembershipRepository
     projectRepository = repositories.projectRepository
     projectMembershipRepository = repositories.projectMembershipRepository
+    invitationRepository = repositories.invitationRepository
     const dataSource = setup.module.get(DataSource)
     service = new WorkspaceInvitationService(mockInvitationSender, dataSource)
   })
@@ -88,13 +92,13 @@ describe("WorkspaceInvitationService", () => {
       expect(orgMembership).toBeDefined()
       expect(orgMembership!.role).toBe("admin")
 
-      const projectMembership = await projectMembershipRepository.findOne({
+      const invitation = await invitationRepository.findOne({
         where: { userId: result.userId, projectId: result.projectId },
       })
-      expect(projectMembership).toBeDefined()
-      expect(projectMembership!.role).toBe("admin")
-      expect(projectMembership!.status).toBe("sent")
-      expect(projectMembership!.invitationToken).toBe("ticket_abc123")
+      expect(invitation).toBeDefined()
+      expect(invitation!.role).toBe("admin")
+      expect(invitation!.status).toBe("pending")
+      expect(invitation!.invitationToken).toBe("ticket_abc123")
     })
 
     it("should reuse existing organization by case-insensitive name", async () => {
@@ -142,8 +146,6 @@ describe("WorkspaceInvitationService", () => {
         projectMembershipRepository.create({
           projectId: project.id,
           userId: existingUser.id,
-          invitationToken: "existing-ticket",
-          status: "accepted",
           role: "admin",
         }),
       )
@@ -219,8 +221,6 @@ describe("WorkspaceInvitationService", () => {
         projectMembershipRepository.create({
           projectId: project.id,
           userId: existingUser.id,
-          invitationToken: "existing-ticket",
-          status: "accepted",
           role: "admin",
         }),
       )

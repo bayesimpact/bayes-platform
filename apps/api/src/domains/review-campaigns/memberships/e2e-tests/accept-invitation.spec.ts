@@ -76,7 +76,7 @@ describe("Invitations - acceptInvitation (review campaigns)", () => {
       reviewCampaignMembershipFactory
         .tester()
         .transient({ organization, project, campaign, user: invitee })
-        .build({ invitationToken: "ticket_test" }),
+        .build(),
     )
     await repositories.invitationRepository.save({
       organizationId: organization.id,
@@ -88,7 +88,7 @@ describe("Invitations - acceptInvitation (review campaigns)", () => {
       role: membership.role,
       invitationToken: "ticket_test",
       status: "pending",
-      invitedAt: membership.invitedAt,
+      invitedAt: membership.createdAt,
       acceptedAt: null,
     })
     return { organization, project, campaign, membership, invitee }

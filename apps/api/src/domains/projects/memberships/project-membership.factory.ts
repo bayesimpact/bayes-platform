@@ -47,7 +47,6 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
       id: params.id || randomUUID(),
       projectId: transientParams.project.id,
       userId: transientParams.user.id,
-      invitationToken: params.invitationToken || randomUUID(),
       createdAt: params.createdAt || now,
       updatedAt: params.updatedAt || now,
       deletedAt: params.deletedAt || null,
@@ -116,10 +115,11 @@ export const inviteUserToProject = async ({
     )
   }
 
+  const invitationToken = randomUUID()
   const membership = projectMembershipFactory
     .transient({ project, user: invitedUser })
     .build(projectMembership)
   await repositories.projectMembershipRepository.save(membership)
 
-  return { membership, invitedUser }
+  return { membership, invitedUser, invitationToken }
 }
