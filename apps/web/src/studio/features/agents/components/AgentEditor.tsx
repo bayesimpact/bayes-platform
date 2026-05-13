@@ -84,6 +84,14 @@ function Content({ agent, onSuccess }: { agent: Agent; onSuccess: () => void }) 
   )
 }
 
+export function AgentEditor({ agent, className }: { agent: Agent; className?: string }) {
+  return (
+    <div className={className}>
+      <UpdateForm agent={agent} />
+    </div>
+  )
+}
+
 function UpdateForm({ agent, onSuccess }: { agent: Agent; onSuccess?: () => void }) {
   const dispatch = useAppDispatch()
   const currentProject = useAppSelector(selectCurrentProjectData)

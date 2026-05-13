@@ -136,6 +136,7 @@ export class DocumentsController {
         title: normalizedFileName,
         sourceType,
       },
+      userId: req.user.id,
     })
 
     if (!document) {
@@ -212,6 +213,7 @@ export class DocumentsController {
           title: normalizedFileName,
           sourceType,
         },
+        userId: req.user.id,
       })
 
       results.push({ documentId, uploadUrl })
@@ -302,6 +304,18 @@ export class DocumentsController {
     @Request() req: EndpointRequestWithProject,
   ): Promise<typeof DocumentsRoutes.getAll.response> {
     const documents = await this.documentsService.listDocuments(getRequiredConnectScope(req))
+    return { data: documents.map(toDocumentDto) }
+  }
+
+  @CheckPolicy((policy) => policy.canView())
+  @Get(DocumentsRoutes.listMyExtractionDocuments.path)
+  async listMyExtractionDocuments(
+    @Request() req: EndpointRequestWithProject,
+  ): Promise<typeof DocumentsRoutes.listMyExtractionDocuments.response> {
+    const documents = await this.documentsService.listExtractionDocumentsForUser({
+      connectScope: getRequiredConnectScope(req),
+      userId: req.user.id,
+    })
     return { data: documents.map(toDocumentDto) }
   }
 

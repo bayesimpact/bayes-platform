@@ -2,7 +2,6 @@ import { Injectable } from "@nestjs/common"
 import type { EntityManager, EntityTarget } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource } from "typeorm"
-import { Document } from "../../documents/document.entity"
 import type { Agent } from "../agent.entity"
 import { ConversationAgentSession } from "../conversation-agent-sessions/conversation-agent-session.entity"
 import { ExtractionAgentSession } from "../extraction-agent-sessions/extraction-agent-session.entity"
@@ -76,10 +75,6 @@ export class BaseAgentSessionsService {
         agentId,
         id: agentSession.id,
       })
-      if (agentType === "extraction") {
-        const documentId = (agentSession as ExtractionAgentSession).documentId
-        await entityManager.delete(Document, { id: documentId })
-      }
     })
   }
 

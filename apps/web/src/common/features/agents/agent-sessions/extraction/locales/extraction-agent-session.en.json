@@ -3,7 +3,8 @@
     "create": {
       "button": "New Extraction",
       "title": "New Extraction",
-      "description": "Upload a PDF or image to run extraction."
+      "description": "Select a document to run extraction.",
+      "processingMessage": "Processing... This may take a while..."
     },
     "list": {
       "title": "Extractions"
@@ -17,6 +18,28 @@
       "download": {
         "button": "Download JSON"
       }
+    },
+    "document": {
+      "props": {
+        "name": "Name",
+        "createdAt": "Created"
+      },
+      "empty": {
+        "title": "No documents yet",
+        "description": "Upload a PDF or image to get started."
+      }
+    },
+    "lastExtraction": {
+      "info": "This is your last extraction session. You can find it in the history if you want to access it later."
+    },
+    "playground": {
+      "title": "Playground",
+      "description": "Test your agent with different inputs and settings"
+    },
+    "history": {
+      "button": "History",
+      "title": "History",
+      "description": "View the history of your agent sessions"
     }
   }
 }

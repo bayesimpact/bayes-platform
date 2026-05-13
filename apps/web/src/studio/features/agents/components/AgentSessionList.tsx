@@ -1,23 +1,32 @@
+import { Button } from "@caseai-connect/ui/shad/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@caseai-connect/ui/shad/dialog"
 import { cn } from "@caseai-connect/ui/utils"
-import { Loader2Icon } from "lucide-react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate, useOutlet } from "react-router-dom"
 import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/grid/Grid"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import type { ExtractionAgentSessionSummary } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
-import { selectIsProcessingExecution } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.selectors"
 import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
 import type { Agent } from "@/common/features/agents/agents.models"
-import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
 import { AgentSessionItem } from "@/common/features/agents/components/AgentSessionItem"
-import { ExtractionSessionCreator } from "@/common/features/agents/components/ExtractionAgentSessionCreator"
+import { ExtractionSessionCreatorWithLastSession } from "@/common/features/agents/components/ExtractionAgentSessionCreator"
 import { ExtractionSessionItem } from "@/common/features/agents/components/ExtractionAgentSessionItem"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
+import { useAbility } from "@/common/hooks/use-ability"
 import { useGetPath } from "@/common/hooks/use-build-path"
 import { ErrorRoute } from "@/common/routes/ErrorRoute"
 import { useAppSelector } from "@/common/store/hooks"
 import { AgentActions } from "./AgentActions"
+import { AgentEditor } from "./AgentEditor"
 import { AgentSessionListHeader } from "./AgentSessionListHeader"
 
 export function ConversationAgentSessionList({
@@ -122,14 +131,12 @@ export function ExtractionAgentSessionList({
   const { getPath } = useGetPath()
   const organizationId = useAppSelector(selectCurrentOrganizationId)
   const projectId = useAppSelector(selectCurrentProjectId)
-  const isProcessingExecution = useAppSelector(selectIsProcessingExecution)
-
+  const { abilities } = useAbility()
+  const canManageAgent = abilities.canManageAgent({ agentId: agent.id })
   const handleBack = () => {
     const path = getPath("project")
     navigate(path)
   }
-
-  const Icon = getAgentIcon(agent.type)
 
   if (!organizationId || !projectId)
     return <ErrorRoute error={"Missing organization or project ID"} />
@@ -139,40 +146,57 @@ export function ExtractionAgentSessionList({
     <Grid cols={0} total={0}>
       <GridHeader
         onBack={handleBack}
-        title={agent.name}
-        description={
-          isProcessingExecution ? (
-            <div className="flex items-center gap-1 text-primary">
-              {t("status:loading")} <Loader2Icon className="animate-spin" />
-            </div>
-          ) : (
-            <>
-              <span className="capitalize-first">{t(`agent:create.typeDialog.${agent.type}`)}</span>
-              <Icon />
-            </>
-          )
-        }
+        title={t("extractionAgentSession:playground.title")}
+        description={t("extractionAgentSession:playground.description")}
         action={<AgentActions agent={agent} organizationId={organizationId} />}
       />
-      <div className="flex flex-col">
-        <GridItem
-          className={cn(
-            "bg-muted/35 border-r-0 col-span-full",
-            agentSessions.length > 0 && "border-b",
-          )}
-          title={t("extractionAgentSession:create.title")}
-          description={t("extractionAgentSession:create.description")}
-          action={<ExtractionSessionCreator disabled={isProcessingExecution} />}
-        />
 
-        {agentSessions.map((session, index) => (
-          <ExtractionSessionItem
-            className={cn(index === agentSessions.length - 1 ? "" : "border-b")}
-            key={session.id}
-            agentSession={session}
-          />
-        ))}
-      </div>
+      <GridItem
+        className={cn("bg-muted/35 border-r-0 col-span-full", canManageAgent && "border-b")}
+        title={t("extractionAgentSession:create.title")}
+        description={t("extractionAgentSession:create.description")}
+        action={
+          <div className="flex items-center gap-2">
+            <History agentSessions={agentSessions} />
+            <ExtractionSessionCreatorWithLastSession buttonText={t("actions:test")} />
+          </div>
+        }
+      />
+
+      {canManageAgent && <AgentEditor key={agent.id} agent={agent} className="bg-white p-6" />}
     </Grid>
+  )
+}
+
+function History({ agentSessions }: { agentSessions: ExtractionAgentSessionSummary[] }) {
+  const [open, setOpen] = useState(false)
+  const { t } = useTranslation()
+  if (agentSessions.length === 0) return null
+  return (
+    <Dialog modal open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="lg" variant="outline">
+          {t("extractionAgentSession:history.button")}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="min-w-fit max-h-[80vh]">
+        <DialogHeader>
+          <DialogTitle>{t("extractionAgentSession:history.title")}</DialogTitle>
+          <DialogDescription>{t("extractionAgentSession:history.description")}</DialogDescription>
+        </DialogHeader>
+
+        <div className="min-h-0 max-h-[60vh] overflow-y-auto">
+          <Grid cols={0} total={0}>
+            {agentSessions.map((session, index) => (
+              <ExtractionSessionItem
+                className={cn("px-0", index !== agentSessions.length - 1 && "border-b")}
+                key={session.id}
+                agentSession={session}
+              />
+            ))}
+          </Grid>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

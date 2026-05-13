@@ -7,7 +7,6 @@ import { useAbility } from "@/common/hooks/use-ability"
 import { useGetPath } from "@/common/hooks/use-build-path"
 import { DeskRouteNames } from "@/desk/routes/helpers"
 import { AgentDeletorWithTrigger } from "@/studio/features/agents/components/AgentDeletor"
-import { AgentEditorWithTrigger } from "@/studio/features/agents/components/AgentEditor"
 import { buildAgentMembershipsPath } from "@/studio/routes/helpers"
 
 export function AgentActions({ organizationId, agent }: { organizationId: string; agent: Agent }) {
@@ -32,8 +31,6 @@ export function AgentActions({ organizationId, agent }: { organizationId: string
             projectId={agent.projectId}
             agentId={agent.id}
           />
-
-          <AgentEditorWithTrigger agent={agent} />
 
           <AgentDeletorWithTrigger organizationId={organizationId} agent={agent} />
         </>

@@ -13,19 +13,21 @@ import { useTranslation } from "react-i18next"
 import { GridItem } from "@/common/components/grid/Grid"
 import { Loader } from "@/common/components/Loader"
 import type { ExtractionAgentSessionSummary } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
-import { getExtractionAgentSession } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.thunks"
 import { deleteAgentSession } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.thunks"
 import { useAppDispatch } from "@/common/store/hooks"
 import { buildDate, buildSince } from "@/common/utils/build-date"
 import { TraceUrlOpener } from "@/studio/components/TraceUrlOpener"
 import { DocumentOpener } from "@/studio/features/documents/components/DocumentOpener"
+import { extractionAgentSessionsActions } from "../agent-sessions/extraction/extraction-agent-sessions.slice"
 
 export function ExtractionSessionItem({
   agentSession,
   className,
+  canDelete = true,
 }: {
   agentSession: ExtractionAgentSessionSummary
   className?: string
+  canDelete?: boolean
 }) {
   const { t } = useTranslation()
   const isSuccess = agentSession.status === "success"
@@ -39,7 +41,7 @@ export function ExtractionSessionItem({
       badgeVariant={isSuccess ? "secondary" : "destructive"}
       title={date}
       description={agentSession.documentFileName ?? agentSession.documentId}
-      action={<Actions agentSession={agentSession} isSuccess={isSuccess} />}
+      action={<Actions canDelete={canDelete} agentSession={agentSession} isSuccess={isSuccess} />}
     />
   )
 }
@@ -47,9 +49,11 @@ export function ExtractionSessionItem({
 function Actions({
   agentSession,
   isSuccess,
+  canDelete = true,
 }: {
   agentSession: ExtractionAgentSessionSummary
   isSuccess: boolean
+  canDelete?: boolean
 }) {
   const dispatch = useAppDispatch()
   const [isLoading, setIsLoading] = useState(false)
@@ -63,7 +67,9 @@ function Actions({
     setIsLoading(true)
     try {
       // FIXME:
-      const runDetails = await dispatch(getExtractionAgentSession({ agentSessionId })).unwrap()
+      const runDetails = await dispatch(
+        extractionAgentSessionsActions.getOne({ agentSessionId }),
+      ).unwrap()
       if (!runDetails.result) {
         return null
       }
@@ -111,9 +117,11 @@ function Actions({
         traceUrl={agentSession.traceUrl}
         buttonProps={{ size: "sm", variant: "outline" }}
       />
-      <Button variant="outline" size="sm" onClick={handleDelete}>
-        <Trash2Icon />
-      </Button>
+      {canDelete && (
+        <Button variant="outline" size="sm" onClick={handleDelete}>
+          <Trash2Icon />
+        </Button>
+      )}
     </div>
   )
 }

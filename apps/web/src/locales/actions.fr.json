@@ -1,5 +1,6 @@
 {
   "actions": {
+    "test": "Test",
     "accept": "Accepter",
     "initialize": "Initialiser",
     "add": "Ajouter",

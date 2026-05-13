@@ -34,6 +34,10 @@ export const DocumentsRoutes = {
     method: "get",
     path: "organizations/:organizationId/projects/:projectId/documents",
   }),
+  listMyExtractionDocuments: defineRoute<ResponseData<DocumentDto[]>>({
+    method: "get",
+    path: "organizations/:organizationId/projects/:projectId/documents/extraction/mine",
+  }),
   getTemporaryUrl: defineRoute<ResponseData<{ url: string }>>({
     method: "get",
     path: "organizations/:organizationId/projects/:projectId/documents/:documentId/temporary-url",

@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { getCurrentIds } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
+import type { Document } from "@/studio/features/documents/documents.models"
 import { uploadDocument } from "@/studio/features/documents/documents.thunks"
 import { isStudioInterface } from "@/studio/routes/helpers"
 import type {
@@ -10,11 +11,21 @@ import type {
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
 
-// FIXME:
+export const listMyDocuments = createAsyncThunk<Document[], void, ThunkConfig>(
+  "extractionAgentSessions/listMyDocuments",
+  async (_, { extra: { services }, getState }) => {
+    const state = getState()
+    const { organizationId, projectId } = getCurrentIds({
+      state,
+      wantedIds: ["organizationId", "projectId"],
+    })
+    return await services.documents.listMyExtractionDocuments({ organizationId, projectId })
+  },
+)
 
-export const executeExtractionAgentSession = createAsyncThunk<
+const executeOne = createAsyncThunk<
   ExtractionAgentSessionResult,
-  { file: File },
+  { onSuccess: () => void } & ({ file: File } | { document: Document }),
   ThunkConfig
 >(
   "extractionAgentSessions/executeOne",
@@ -22,12 +33,15 @@ export const executeExtractionAgentSession = createAsyncThunk<
     const state = getState()
     const isStudio = isStudioInterface()
 
-    const document = await dispatch(
-      uploadDocument({
-        file: params.file,
-        sourceType: "extraction",
-      }),
-    ).unwrap()
+    const document =
+      "file" in params
+        ? await dispatch(
+            uploadDocument({
+              file: params.file,
+              sourceType: "extraction",
+            }),
+          ).unwrap()
+        : params.document
 
     const { organizationId, projectId, agentId } = getCurrentIds({
       state,
@@ -44,11 +58,7 @@ export const executeExtractionAgentSession = createAsyncThunk<
   },
 )
 
-export const getExtractionAgentSession = createAsyncThunk<
-  ExtractionAgentSession,
-  { agentSessionId: string },
-  ThunkConfig
->(
+const getOne = createAsyncThunk<ExtractionAgentSession, { agentSessionId: string }, ThunkConfig>(
   "extractionAgentSessions/getOne",
   async ({ agentSessionId }, { extra: { services }, getState }) => {
     const state = getState()
@@ -64,3 +74,9 @@ export const getExtractionAgentSession = createAsyncThunk<
     })
   },
 )
+
+export const extractionAgentSessionThunks = {
+  getOne,
+  executeOne,
+  listMyDocuments,
+}

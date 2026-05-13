@@ -7,85 +7,141 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@caseai-connect/ui/shad/dialog"
-import { PlusCircleIcon } from "lucide-react"
+import { Item, ItemContent } from "@caseai-connect/ui/shad/item"
+import { Spinner } from "@caseai-connect/ui/shad/spinner"
+import { InfoIcon, PlusCircleIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FileUploader } from "@/common/components/FileUploader"
-import { executeExtractionAgentSession } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.thunks"
-import { useAppDispatch } from "@/common/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import type { Document } from "@/studio/features/documents/documents.models"
+import {
+  selectIsProcessingExecution,
+  selectLastExtractionSession,
+} from "../agent-sessions/extraction/extraction-agent-sessions.selectors"
+import { extractionAgentSessionsActions } from "../agent-sessions/extraction/extraction-agent-sessions.slice"
+import { DocumentList } from "./DocumentList"
+import { ExtractionSessionItem } from "./ExtractionAgentSessionItem"
 
-export function ExtractionSessionCreator({ disabled }: { disabled: boolean }) {
+export function ExtractionSessionCreator({
+  disabled,
+  onSuccess,
+  buttonText,
+}: {
+  buttonText: string
+  disabled?: boolean
+  onSuccess: () => void
+}) {
   const dispatch = useAppDispatch()
   const { t } = useTranslation()
 
+  const isProcessingExecution = useAppSelector(selectIsProcessingExecution)
   const [open, setOpen] = useState(false)
-  const [file, setFile] = useState<File>()
-  const [startProcessingFiles, setStartProcessingFiles] = useState(false)
 
-  const resetState = () => {
+  const handleSuccess = () => {
     setOpen(false)
-    setStartProcessingFiles(false)
-    setFile(undefined)
+    onSuccess()
   }
 
-  const handleOpenChange = (nextOpen: boolean) => {
-    if (!nextOpen) {
-      setStartProcessingFiles(false)
-      setFile(undefined)
+  const handleSubmit = async (data: { file: File } | { document: Document }) => {
+    if (!data) return
+    dispatch(extractionAgentSessionsActions.executeOne({ ...data, onSuccess: handleSuccess }))
+  }
+
+  const handleDismiss = (e: { preventDefault: () => void }) => {
+    if (isProcessingExecution) {
+      e.preventDefault()
     }
-    setOpen(nextOpen)
-  }
-
-  const handleSubmit = async () => {
-    if (!file) return
-    setStartProcessingFiles(true)
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="lg" className="text-base" disabled={startProcessingFiles || disabled}>
-          {t("actions:create")}
+        <Button size="lg" className="text-base" disabled={isProcessingExecution || disabled}>
+          {buttonText}
           <PlusCircleIcon className="ml-2 size-5" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{t("extractionAgentSession:create.title")}</DialogTitle>
-          <DialogDescription>{t("extractionAgentSession:create.description")}</DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        className="min-w-fit"
+        showCloseButton={!isProcessingExecution}
+        onEscapeKeyDown={handleDismiss}
+        onPointerDownOutside={handleDismiss}
+      >
+        <div className="flex pr-6 gap-12 items-center">
+          <DialogHeader className="flex-1">
+            <DialogTitle>{t("extractionAgentSession:create.title")}</DialogTitle>
+            <DialogDescription>{t("extractionAgentSession:create.description")}</DialogDescription>
+          </DialogHeader>
 
-        <FileUploader
-          className="w-full max-w-full overflow-hidden"
-          maxFiles={1}
-          onProcessFiles={async (files) => {
-            const file = files[0]
-            if (!file) return // because maxFiles is 1
-            await dispatch(executeExtractionAgentSession({ file })).unwrap()
-          }}
-          onProcessEnd={resetState}
-          allowedMimeTypes={{ "application/pdf": true, "image/jpeg": true }}
-          startProcessingFiles={startProcessingFiles}
-          onDropFiles={(files) => setFile(files[0])}
-        >
-          <Button
-            className="w-full max-w-full justify-start"
-            variant={file ? "secondary" : "outline"}
-            disabled={startProcessingFiles}
-          >
-            {file ? (
-              file.name
-            ) : (
-              <span className="capitalize-first">{t("actions:dragOrUploadFile")}</span>
-            )}
-          </Button>
-        </FileUploader>
+          <FileUploader
+            disabled={isProcessingExecution}
+            maxFiles={1}
+            allowedMimeTypes={{
+              "application/pdf": true,
+              "image/jpeg": true,
+            }}
+            onDropFiles={(files) => {
+              const file = files[0]
+              if (!file) return
+              handleSubmit({ file })
+            }}
+          />
+        </div>
 
-        <Button disabled={startProcessingFiles} onClick={handleSubmit}>
-          <span className=" capitalize-first">
-            {startProcessingFiles ? t("status:loading") : t("actions:run")}
-          </span>
-        </Button>
+        {isProcessingExecution ? (
+          <Item variant="muted">
+            <Spinner />
+            <ItemContent>{t("extractionAgentSession:create.processingMessage")}</ItemContent>
+          </Item>
+        ) : (
+          <DocumentList onSelectDocument={(document) => handleSubmit({ document })} />
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+export function ExtractionSessionCreatorWithLastSession({
+  buttonText,
+  disabled,
+}: {
+  buttonText: string
+  disabled?: boolean
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <>
+      <ExtractionSessionCreator
+        buttonText={buttonText}
+        disabled={disabled}
+        onSuccess={() => setOpen(true)}
+      />
+      {<LastExtraction open={open} setOpen={setOpen} />}
+    </>
+  )
+}
+
+function LastExtraction({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => void }) {
+  const lastExtraction = useAppSelector(selectLastExtractionSession)
+  const { t } = useTranslation()
+
+  if (!lastExtraction) return null
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="min-w-fit">
+        <ExtractionSessionItem
+          className="p-0"
+          key={lastExtraction.id}
+          agentSession={lastExtraction}
+          canDelete={false}
+        />
+
+        <Item variant="muted">
+          <InfoIcon />
+          <ItemContent>{t("extractionAgentSession:lastExtraction.info")}</ItemContent>
+        </Item>
       </DialogContent>
     </Dialog>
   )

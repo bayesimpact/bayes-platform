@@ -3,15 +3,27 @@ import { getCurrentIds } from "@/common/features/helpers"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store"
 import type { Agent } from "../../agents.models"
-import { loadAgentSessionsForAllAgents } from "../shared/base-agent-session/base-agent-sessions.thunks"
-import { executeExtractionAgentSession } from "./extraction-agent-sessions.thunks"
+import {
+  deleteAgentSession,
+  loadAgentSessionsForAllAgents,
+} from "../shared/base-agent-session/base-agent-sessions.thunks"
+import { extractionAgentSessionsActions } from "./extraction-agent-sessions.slice"
 
 // Create typed listener middleware
 export const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
+const { mount, executeOne, listMyDocuments } = extractionAgentSessionsActions
+
+listenerMiddleware.startListening({
+  matcher: isAnyOf(mount, executeOne.fulfilled, executeOne.rejected),
+  effect: async (_, listenerApi) => {
+    listenerApi.dispatch(listMyDocuments())
+  },
+})
+
 // Refresh extraction agent sessions when create a new run
 listenerMiddleware.startListening({
-  matcher: isAnyOf(executeExtractionAgentSession.fulfilled, executeExtractionAgentSession.rejected),
+  matcher: isAnyOf(executeOne.fulfilled, executeOne.rejected),
   effect: async (_, listenerApi) => {
     const state = listenerApi.getState()
     const { agentId } = getCurrentIds({ state, wantedIds: ["agentId"] })
@@ -23,22 +35,51 @@ listenerMiddleware.startListening({
   },
 })
 listenerMiddleware.startListening({
-  actionCreator: executeExtractionAgentSession.fulfilled,
-  effect: async (_, listenerApi) => {
+  actionCreator: executeOne.fulfilled,
+  effect: async (action, listenerApi) => {
     listenerApi.dispatch(
       notificationsActions.show({
         title: "Extraction executed successfully",
         type: "success",
       }),
     )
+
+    action.meta.arg.onSuccess?.()
   },
 })
 listenerMiddleware.startListening({
-  actionCreator: executeExtractionAgentSession.rejected,
+  actionCreator: executeOne.rejected,
   effect: async (_, listenerApi) => {
     listenerApi.dispatch(
       notificationsActions.show({
         title: "Extraction execution failed",
+        type: "error",
+      }),
+    )
+  },
+})
+
+listenerMiddleware.startListening({
+  actionCreator: deleteAgentSession.fulfilled,
+  effect: async (action, listenerApi) => {
+    if (action.meta.arg.agentType !== "extraction") return
+
+    listenerApi.dispatch(
+      notificationsActions.show({
+        title: "Extraction deleted successfully",
+        type: "success",
+      }),
+    )
+  },
+})
+listenerMiddleware.startListening({
+  actionCreator: deleteAgentSession.rejected,
+  effect: async (action, listenerApi) => {
+    if (action.meta.arg.agentType !== "extraction") return
+
+    listenerApi.dispatch(
+      notificationsActions.show({
+        title: "Extraction deletion failed",
         type: "error",
       }),
     )
