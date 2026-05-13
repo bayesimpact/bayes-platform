@@ -12,18 +12,29 @@ import {
   UseGuards,
 } from "@nestjs/common"
 import type { EndpointRequest, JwtPayload } from "@/common/context/request.interface"
+import { RequireContext } from "@/common/context/require-context.decorator"
+import { ResourceContextGuard } from "@/common/context/resource-context.guard"
+import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { getAccessToken } from "@/common/utils/get-access-token"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { InvitationMapper } from "./invitation.mapper"
+import { InvitationsGuard } from "./invitations.guard"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { InvitationsService } from "./invitations.service"
 
 @Controller()
 export class InvitationsController {
-  constructor(private readonly invitationsService: InvitationsService) {}
+  constructor(
+    private readonly invitationsService: InvitationsService,
+    private readonly invitationMapper: InvitationMapper,
+  ) {}
 
-  @UseGuards(JwtAuthGuard, UserGuard)
+  @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, InvitationsGuard)
+  @RequireContext("invitationScope")
+  @CheckPolicy((policy) => policy.canCreate())
   @Post(InvitationsRoutes.createForTarget.path)
   @TrackActivity({ action: "invitation.invite" })
   async createForTarget(
@@ -31,14 +42,13 @@ export class InvitationsController {
     @Body() body: typeof InvitationsRoutes.createForTarget.request,
   ): Promise<typeof InvitationsRoutes.createForTarget.response> {
     const invitations = await this.invitationsService.createForTarget({
-      userId: request.user.id,
       targetType: body.payload.targetType,
       targetId: body.payload.targetId,
       emails: body.payload.emails,
       role: body.payload.role,
       inviterName: request.user.name ?? request.user.email,
     })
-    return { data: { invitations } }
+    return { data: { invitations: await this.invitationMapper.toDtos(invitations) } }
   }
 
   /**
@@ -66,17 +76,16 @@ export class InvitationsController {
     return { data: { success: true } }
   }
 
-  @UseGuards(JwtAuthGuard, UserGuard)
+  @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, InvitationsGuard)
+  @RequireContext("invitationScope")
+  @CheckPolicy((policy) => policy.canDelete())
   @Delete(InvitationsRoutes.revokeOne.path)
   @TrackActivity({ action: "invitation.revoke" })
   async revokeOne(
-    @Req() request: EndpointRequest,
+    @Req() _request: EndpointRequest,
     @Param("invitationId") invitationId: string,
   ): Promise<typeof InvitationsRoutes.revokeOne.response> {
-    await this.invitationsService.revokeOne({
-      userId: request.user.id,
-      invitationId,
-    })
+    await this.invitationsService.revokeOne({ invitationId })
     return { data: { success: true } }
   }
 
@@ -89,24 +98,22 @@ export class InvitationsController {
       userId: request.user.id,
       userEmail: request.user.email,
     })
-    return { data: { invitations } }
+    return { data: { invitations: await this.invitationMapper.toDtos(invitations) } }
   }
 
-  @UseGuards(JwtAuthGuard, UserGuard)
+  @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, InvitationsGuard)
+  @RequireContext("invitationScope")
+  @CheckPolicy((policy) => policy.canList())
   @Get(InvitationsRoutes.listForTarget.path)
   async listForTarget(
-    @Req() request: EndpointRequest,
+    @Req() _request: EndpointRequest,
     @Query("targetType") targetType: string | undefined,
     @Query("targetId") targetId: string | undefined,
   ): Promise<typeof InvitationsRoutes.listForTarget.response> {
     if (!targetType || !targetId) {
       throw new BadRequestException("targetType and targetId query parameters are required")
     }
-    const invitations = await this.invitationsService.listForTarget({
-      userId: request.user.id,
-      targetType,
-      targetId,
-    })
-    return { data: { invitations } }
+    const invitations = await this.invitationsService.listForTarget({ targetType, targetId })
+    return { data: { invitations: await this.invitationMapper.toDtos(invitations) } }
   }
 }

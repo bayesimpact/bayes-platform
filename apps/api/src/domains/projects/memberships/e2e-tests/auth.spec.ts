@@ -155,11 +155,7 @@ describe("Project Memberships - Auth", () => {
     })
     it("doesn't allow a simple member to invite project members", async () => {
       await createContextForRole("member")
-      expectResponse(
-        await subject(),
-        403,
-        "You must be a project owner or admin to list invitations",
-      )
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
 

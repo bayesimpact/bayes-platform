@@ -9,7 +9,10 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { agentFactory } from "@/domains/agents/agent.factory"
+import { addUserToAgent } from "@/domains/agents/memberships/agent-membership.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
@@ -141,7 +144,7 @@ describe("Invitations — authorization", () => {
 
       auth0Id = memberUser.auth0Id
       const response = await subject()
-      expectResponse(response, 403, "You must be a project owner or admin to list invitations")
+      expectResponse(response, 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
 
@@ -217,6 +220,139 @@ describe("Invitations — authorization", () => {
       auth0Id = memberUser.auth0Id
       const response = await subject({ targetType: "project", targetId: projectId })
       expectResponse(response, 403)
+    })
+
+    describe("agent target", () => {
+      it("allows agent admin to list invitations", async () => {
+        const { user, organization, project } = await createOrganizationWithProject(repositories)
+        auth0Id = user.auth0Id
+        const agent = await repositories.agentRepository.save(
+          agentFactory.transient({ organization, project }).build(),
+        )
+        await addUserToAgent({
+          repositories,
+          agent,
+          user,
+          membership: { role: "admin" },
+        })
+
+        const response = await subject({ targetType: "agent", targetId: agent.id })
+        expectResponse(response, 200)
+        expect(response.body.data.invitations).toEqual([])
+      })
+
+      it("forbids a user with no agent membership from listing invitations", async () => {
+        const { organization, project } = await createOrganizationWithProject(repositories)
+        const agent = await repositories.agentRepository.save(
+          agentFactory.transient({ organization, project }).build(),
+        )
+
+        const nonMemberUser = userFactory.build()
+        await repositories.userRepository.save(nonMemberUser)
+        await repositories.organizationMembershipRepository.save(
+          repositories.organizationMembershipRepository.create({
+            userId: nonMemberUser.id,
+            organizationId: organization.id,
+            role: "member",
+          }),
+        )
+        await repositories.projectMembershipRepository.save(
+          projectMembershipFactory
+            .member()
+            .transient({ project, user: nonMemberUser })
+            .build({ status: "accepted" }),
+        )
+
+        auth0Id = nonMemberUser.auth0Id
+        const response = await subject({ targetType: "agent", targetId: agent.id })
+        expectResponse(response, 403)
+      })
+
+      it("forbids an agent member (non-admin) from listing invitations", async () => {
+        const { organization, project } = await createOrganizationWithProject(repositories)
+        const agent = await repositories.agentRepository.save(
+          agentFactory.transient({ organization, project }).build(),
+        )
+
+        const memberUser = userFactory.build()
+        await repositories.userRepository.save(memberUser)
+        await repositories.organizationMembershipRepository.save(
+          repositories.organizationMembershipRepository.create({
+            userId: memberUser.id,
+            organizationId: organization.id,
+            role: "member",
+          }),
+        )
+        await repositories.projectMembershipRepository.save(
+          projectMembershipFactory
+            .member()
+            .transient({ project, user: memberUser })
+            .build({ status: "accepted" }),
+        )
+        await addUserToAgent({
+          repositories,
+          agent,
+          user: memberUser,
+          membership: { role: "member" },
+        })
+
+        auth0Id = memberUser.auth0Id
+        const response = await subject({ targetType: "agent", targetId: agent.id })
+        expectResponse(response, 403)
+      })
+    })
+
+    describe("review_campaign target", () => {
+      it("allows project admin to list invitations for a review campaign", async () => {
+        const { user, organization, project } = await createOrganizationWithProject(repositories)
+        auth0Id = user.auth0Id
+        const agent = await repositories.agentRepository.save(
+          agentFactory.transient({ organization, project }).build(),
+        )
+        const reviewCampaign = await repositories.reviewCampaignRepository.save(
+          reviewCampaignFactory.transient({ organization, project, agent }).build(),
+        )
+
+        const response = await subject({
+          targetType: "review_campaign",
+          targetId: reviewCampaign.id,
+        })
+        expectResponse(response, 200)
+        expect(response.body.data.invitations).toEqual([])
+      })
+
+      it("forbids project member (non-admin) from listing review campaign invitations", async () => {
+        const { organization, project } = await createOrganizationWithProject(repositories)
+        const agent = await repositories.agentRepository.save(
+          agentFactory.transient({ organization, project }).build(),
+        )
+        const reviewCampaign = await repositories.reviewCampaignRepository.save(
+          reviewCampaignFactory.transient({ organization, project, agent }).build(),
+        )
+
+        const memberUser = userFactory.build()
+        await repositories.userRepository.save(memberUser)
+        await repositories.organizationMembershipRepository.save(
+          repositories.organizationMembershipRepository.create({
+            userId: memberUser.id,
+            organizationId: organization.id,
+            role: "member",
+          }),
+        )
+        await repositories.projectMembershipRepository.save(
+          projectMembershipFactory
+            .member()
+            .transient({ project, user: memberUser })
+            .build({ status: "accepted" }),
+        )
+
+        auth0Id = memberUser.auth0Id
+        const response = await subject({
+          targetType: "review_campaign",
+          targetId: reviewCampaign.id,
+        })
+        expectResponse(response, 403)
+      })
     })
   })
 })
