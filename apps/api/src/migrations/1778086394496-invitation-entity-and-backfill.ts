@@ -96,9 +96,85 @@ export class InvitationEntityAndBackfill1778086394496 implements MigrationInterf
       INNER JOIN "user" u ON u.id = rcm.user_id
       WHERE rcm.accepted_at IS NULL AND rcm.invitation_token IS NOT NULL
     `)
+
+    await queryRunner.query(`
+      DELETE FROM "project_membership"
+      WHERE status = 'sent' AND invitation_token IS NOT NULL
+    `)
+
+    await queryRunner.query(`
+      DELETE FROM "agent_membership"
+      WHERE status = 'sent' AND invitation_token IS NOT NULL
+    `)
+
+    await queryRunner.query(`
+      DELETE FROM "review_campaign_membership"
+      WHERE accepted_at IS NULL AND invitation_token IS NOT NULL
+    `)
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
+      INSERT INTO "project_membership" (
+        "id", "created_at", "updated_at", "deleted_at",
+        "project_id", "user_id", "invitation_token", "status", "role"
+      )
+      SELECT
+        uuid_generate_v4(),
+        i.created_at,
+        i.updated_at,
+        i.deleted_at,
+        i.project_id,
+        i.user_id,
+        i.invitation_token,
+        'sent',
+        i.role
+      FROM "invitation" i
+      WHERE i.target_type = 'project' AND i.status = 'pending'
+    `)
+
+    await queryRunner.query(`
+      INSERT INTO "agent_membership" (
+        "id", "created_at", "updated_at", "deleted_at",
+        "agent_id", "user_id", "invitation_token", "status", "role"
+      )
+      SELECT
+        uuid_generate_v4(),
+        i.created_at,
+        i.updated_at,
+        i.deleted_at,
+        i.target_id,
+        i.user_id,
+        i.invitation_token,
+        'sent',
+        i.role
+      FROM "invitation" i
+      WHERE i.target_type = 'agent' AND i.status = 'pending'
+    `)
+
+    await queryRunner.query(`
+      INSERT INTO "review_campaign_membership" (
+        "id", "created_at", "updated_at", "deleted_at",
+        "organization_id", "project_id", "campaign_id", "user_id",
+        "role", "invited_at", "accepted_at", "invitation_token"
+      )
+      SELECT
+        uuid_generate_v4(),
+        i.created_at,
+        i.updated_at,
+        i.deleted_at,
+        i.organization_id,
+        i.project_id,
+        i.target_id,
+        i.user_id,
+        i.role,
+        i.invited_at,
+        NULL,
+        i.invitation_token
+      FROM "invitation" i
+      WHERE i.target_type = 'review_campaign' AND i.status = 'pending'
+    `)
+
     await queryRunner.query(`DROP INDEX "public"."IDX_131357ee80865e3c2dd2118556"`)
     await queryRunner.query(`DROP INDEX "public"."IDX_fff32f66ca12d5cf475e6620ff"`)
     await queryRunner.query(`DROP TABLE "invitation"`)
