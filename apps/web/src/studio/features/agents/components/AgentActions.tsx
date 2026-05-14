@@ -8,6 +8,7 @@ import { useGetPath } from "@/common/hooks/use-build-path"
 import { DeskRouteNames } from "@/desk/routes/helpers"
 import { AgentDeletorWithTrigger } from "@/studio/features/agents/components/AgentDeletor"
 import { buildAgentMembershipsPath } from "@/studio/routes/helpers"
+import { AgentEditorWithTrigger } from "./AgentEditor"
 
 export function AgentActions({ organizationId, agent }: { organizationId: string; agent: Agent }) {
   const { t } = useTranslation()
@@ -31,6 +32,8 @@ export function AgentActions({ organizationId, agent }: { organizationId: string
             projectId={agent.projectId}
             agentId={agent.id}
           />
+
+          {agent.type !== "extraction" && <AgentEditorWithTrigger agent={agent} />}
 
           <AgentDeletorWithTrigger organizationId={organizationId} agent={agent} />
         </>
