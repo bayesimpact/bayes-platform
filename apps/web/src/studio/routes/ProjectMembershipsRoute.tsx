@@ -6,6 +6,7 @@ import { useNavigate, useOutlet } from "react-router-dom"
 import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/grid/Grid"
 import type { Project } from "@/common/features/projects/projects.models"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
+import { useGetPath } from "@/common/hooks/use-build-path"
 import { useAppSelector } from "@/common/store/hooks"
 import { MembersCreator } from "@/studio/features/project-memberships/components/MembersCreator"
 import { ProjectMembershipItem } from "@/studio/features/project-memberships/components/ProjectMembershipItem"
@@ -37,8 +38,10 @@ function WithData({
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState("")
+  const { getPath } = useGetPath()
   const handleBack = () => {
-    navigate(-1)
+    const path = getPath("project")
+    navigate(path)
   }
 
   const filteredMemberships = useMemo(() => {
