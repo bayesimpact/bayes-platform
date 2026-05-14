@@ -13,7 +13,6 @@ import {
 } from "@caseai-connect/ui/shad/dropdown-menu"
 import { cn } from "@caseai-connect/ui/utils"
 import { CheckIcon, ChevronDownIcon, GitCommitHorizontalIcon } from "lucide-react"
-import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import {
@@ -25,9 +24,7 @@ import {
   selectCurrentFormAgentSessionData,
   selectCurrentFormAgentSessionsData,
 } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.selectors"
-import type { Agent } from "@/common/features/agents/agents.models"
 import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
-import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useBuildPath } from "@/common/hooks/use-build-path"
 import { ADS } from "@/common/store/async-data-status"
@@ -40,21 +37,15 @@ export function BreadcrumbAgentSession({ organizationId }: { organizationId: str
 
   switch (agent.value.type) {
     case "conversation":
-      return <ConversationAgentSessionList organizationId={organizationId} agent={agent.value} />
+      return <ConversationAgentSessionList organizationId={organizationId} />
     case "form":
-      return <FormAgentSessionList organizationId={organizationId} agent={agent.value} />
+      return <FormAgentSessionList organizationId={organizationId} />
     default:
       return null
   }
 }
 
-function ConversationAgentSessionList({
-  organizationId,
-  agent,
-}: {
-  organizationId: string
-  agent: Agent
-}) {
+function ConversationAgentSessionList({ organizationId }: { organizationId: string }) {
   const sessions = useAppSelector(selectCurrentConversationAgentSessionsData)
   const currentSession = useAppSelector(selectCurrentConversationAgentSessionData)
   if (!ADS.isFulfilled(sessions) || !ADS.isFulfilled(currentSession)) return null
@@ -64,12 +55,11 @@ function ConversationAgentSessionList({
       organizationId={organizationId}
       currentSession={currentSession.value}
       sessions={sessions.value}
-      agent={agent}
     />
   )
 }
 
-function FormAgentSessionList({ organizationId, agent }: { organizationId: string; agent: Agent }) {
+function FormAgentSessionList({ organizationId }: { organizationId: string }) {
   const sessions = useAppSelector(selectCurrentFormAgentSessionsData)
   const currentSession = useAppSelector(selectCurrentFormAgentSessionData)
   if (!ADS.isFulfilled(sessions) || !ADS.isFulfilled(currentSession)) return null
@@ -79,7 +69,6 @@ function FormAgentSessionList({ organizationId, agent }: { organizationId: strin
       organizationId={organizationId}
       currentSession={currentSession.value}
       sessions={sessions.value}
-      agent={agent}
     />
   )
 }
@@ -88,17 +77,13 @@ function WithData({
   organizationId,
   currentSession,
   sessions,
-  agent,
 }: {
   organizationId: string
   currentSession: ConversationAgentSession | FormAgentSession
   sessions: (ConversationAgentSession | FormAgentSession)[]
-  agent: Agent
 }) {
-  const { t } = useTranslation()
   const projectId = useAppSelector(selectCurrentProjectId)
   const { buildPath } = useBuildPath()
-  const Icon = getAgentIcon(agent.type)
   const currentSessionName = buildSince(currentSession.createdAt)
   const currentSessionPath = buildPath("agentSession", {
     organizationId,
@@ -126,12 +111,9 @@ function WithData({
         </BreadcrumbSeparator>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link to={currentSessionPath}>
-              <div className="flex items-center gap-2">
-                {t(`agent:create.typeDialog.${agent.type}`)} <Icon className="size-4" />
-                {currentSessionName}
-              </div>
-            </Link>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to={currentSessionPath}>{currentSessionName}</Link>
+            </Button>
           </BreadcrumbLink>
         </BreadcrumbItem>
       </>
@@ -144,7 +126,6 @@ function WithData({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm">
-            {t(`agent:create.typeDialog.${agent.type}`)} <Icon className="size-4" />
             {currentSessionName}
             <ChevronDownIcon className="size-3.5" />
           </Button>

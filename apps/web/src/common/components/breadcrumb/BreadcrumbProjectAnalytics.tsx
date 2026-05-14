@@ -1,5 +1,4 @@
-import { BreadcrumbItem, BreadcrumbSeparator } from "@caseai-connect/ui/shad/breadcrumb"
-import { GitCommitHorizontalIcon } from "lucide-react"
+import { BreadcrumbItem } from "@caseai-connect/ui/shad/breadcrumb"
 import { useTranslation } from "react-i18next"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useIsRoute } from "@/common/hooks/use-is-route"
@@ -11,12 +10,5 @@ export function BreadcrumbProjectAnalytics() {
   const isProjectAnalyticsRoute = isRoute(StudioRouteNames.PROJECT_ANALYTICS)
   const { t } = useTranslation()
   if (!hasFeature("project-analytics") || !isProjectAnalyticsRoute) return null
-  return (
-    <>
-      <BreadcrumbSeparator>
-        <GitCommitHorizontalIcon />
-      </BreadcrumbSeparator>
-      <BreadcrumbItem className="capitalize">{t("analytics:analytics")}</BreadcrumbItem>
-    </>
-  )
+  return <BreadcrumbItem className="capitalize">{t("analytics:analytics")}</BreadcrumbItem>
 }

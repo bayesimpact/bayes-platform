@@ -7,7 +7,12 @@ type Params = {
   projectId: string
   reviewCampaignId: string
 }
-
+// FIXME:
+// const { getPath } = useGetPath()
+// const handleBack = () => {
+//   const path = getPath("project")
+//   navigate(path)
+// }
 export function ReviewCampaignReportRoute() {
   const params = useParams<Params>()
   if (!params.organizationId || !params.projectId || !params.reviewCampaignId) return null
