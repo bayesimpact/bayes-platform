@@ -4,6 +4,10 @@ import { organizationFactory } from "@/common/features/organizations/organizatio
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import type { Project } from "@/common/features/projects/projects.models"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
+import type {
+  AnalyticsCategoryDailyPoint,
+  AnalyticsDailyPoint,
+} from "@/studio/features/analytics/project/analytics.models"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import type { Document } from "@/studio/features/documents/documents.models"
 import type { EvaluationReport } from "@/studio/features/evaluation-reports/evaluation-reports.models"
@@ -149,6 +153,22 @@ export const seed = {
       reportsByEvaluationId: Record<string, EvaluationReport[]>,
     ): StoryPreloadedState {
       return { studio: { evaluationReports: { data: ads.fulfilled(reportsByEvaluationId) } } }
+    },
+
+    projectAnalytics(value: {
+      conversationsPerDay: AnalyticsDailyPoint[]
+      avgUserQuestionsPerSessionPerDay: AnalyticsDailyPoint[]
+      conversationsByCategoryPerDay: AnalyticsCategoryDailyPoint[]
+    }): StoryPreloadedState {
+      return {
+        studio: {
+          projectAnalytics: {
+            conversationsPerDay: ads.fulfilled(value.conversationsPerDay),
+            avgUserQuestionsPerSessionPerDay: ads.fulfilled(value.avgUserQuestionsPerSessionPerDay),
+            conversationsByCategoryPerDay: ads.fulfilled(value.conversationsByCategoryPerDay),
+          },
+        },
+      }
     },
 
     reviewCampaigns(campaigns: ReviewCampaign[]): StoryPreloadedState {

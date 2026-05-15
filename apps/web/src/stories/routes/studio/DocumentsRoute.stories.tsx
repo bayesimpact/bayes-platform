@@ -33,7 +33,16 @@ function buildDecorator(): Decorator {
     const projectMemberships = [projectMembershipFactory.transient({ project }).build({ role })]
     const user = userFactory.transient({ projectMemberships }).build()
     const agents = agentFactory.transient({ project }).buildList(3)
-    const documents = withDocuments ? documentFactory.transient({ project }).buildList(3) : []
+    const documents = withDocuments
+      ? [
+          documentFactory.transient({ project }).build(),
+          documentFactory.transient({ project }).build({ embeddingStatus: "pending" }),
+          documentFactory.transient({ project }).build({ embeddingStatus: "processing" }),
+          documentFactory
+            .transient({ project })
+            .build({ embeddingError: "Some error message", embeddingStatus: "failed" }),
+        ]
+      : []
     const documentTags = withDocumentTags
       ? documentTagFactory.transient({ project }).buildList(3)
       : []
