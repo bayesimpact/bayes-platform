@@ -6,6 +6,8 @@ import type { Project } from "@/common/features/projects/projects.models"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import type { Document } from "@/studio/features/documents/documents.models"
+import type { EvaluationReport } from "@/studio/features/evaluation-reports/evaluation-reports.models"
+import type { Evaluation } from "@/studio/features/evaluations/evaluations.models"
 import type {
   ReviewCampaign,
   ReviewCampaignDetail,
@@ -137,6 +139,16 @@ export const seed = {
 
     documentTags(documentTags: DocumentTag[]): StoryPreloadedState {
       return { studio: { documentTags: { data: ads.fulfilled(documentTags) } } }
+    },
+
+    evaluations(evaluations: Evaluation[]): StoryPreloadedState {
+      return { studio: { evaluations: { data: ads.fulfilled(evaluations) } } }
+    },
+
+    evaluationReports(
+      reportsByEvaluationId: Record<string, EvaluationReport[]>,
+    ): StoryPreloadedState {
+      return { studio: { evaluationReports: { data: ads.fulfilled(reportsByEvaluationId) } } }
     },
 
     reviewCampaigns(campaigns: ReviewCampaign[]): StoryPreloadedState {
