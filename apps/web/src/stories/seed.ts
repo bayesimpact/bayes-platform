@@ -5,6 +5,7 @@ import type { Organization } from "@/common/features/organizations/organizations
 import type { Project } from "@/common/features/projects/projects.models"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
+import type { Document } from "@/studio/features/documents/documents.models"
 import type {
   ReviewCampaign,
   ReviewCampaignDetail,
@@ -130,6 +131,10 @@ export const seed = {
   },
 
   studio: {
+    documents(documents: Document[]): StoryPreloadedState {
+      return { studio: { documents: { data: ads.fulfilled(documents) } } }
+    },
+
     documentTags(documentTags: DocumentTag[]): StoryPreloadedState {
       return { studio: { documentTags: { data: ads.fulfilled(documentTags) } } }
     },
