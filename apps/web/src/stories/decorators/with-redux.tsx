@@ -1,160 +1,87 @@
-import { combineReducers, configureStore } from "@reduxjs/toolkit"
+import { combineReducers, configureStore, type Reducer } from "@reduxjs/toolkit"
 import type { Decorator } from "@storybook/react-vite"
 import { Provider } from "react-redux"
-import type { Agent } from "@/common/features/agents/agents.models"
-import type { Project } from "@/common/features/projects/projects.models"
-import { ADS } from "@/common/store/async-data-status"
+import { backofficeSliceList } from "@/backoffice/store/slices"
+import type { RootState } from "@/common/store"
 import { rootSliceList } from "@/common/store/root-slices"
 import type { Services } from "@/di/services"
+import { evalSliceList } from "@/eval/store/slices"
 import { reviewerSliceList } from "@/reviewer/store/slices"
-import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
-import type {
-  ReviewCampaign,
-  ReviewCampaignDetail,
-} from "@/studio/features/review-campaigns/review-campaigns.models"
 import { studioSliceList } from "@/studio/store/slices"
-import type {
-  MyReviewCampaign,
-  TesterCampaignSurvey,
-  TesterContext,
-} from "@/tester/features/review-campaigns/tester.models"
-import type { LocalSessionSummary } from "@/tester/features/review-campaigns/tester.slice"
 import { testerSliceList } from "@/tester/store/slices"
 
-const studioReducer = combineReducers(
-  Object.assign({}, ...studioSliceList.map((slice) => ({ [slice.name]: slice.reducer }))),
-)
+export type DeepPartial<T> =
+  T extends ReadonlyArray<infer U>
+    ? ReadonlyArray<DeepPartial<U>>
+    : T extends object
+      ? { [K in keyof T]?: DeepPartial<T[K]> }
+      : T
 
-const testerReducer = combineReducers(
-  Object.assign({}, ...testerSliceList.map((slice) => ({ [slice.name]: slice.reducer }))),
-)
+export type StoryPreloadedState = DeepPartial<RootState>
 
-const reviewerReducer = combineReducers(
-  Object.assign({}, ...reviewerSliceList.map((slice) => ({ [slice.name]: slice.reducer }))),
-)
-
-const mockRootReducer = combineReducers(
-  Object.assign({}, ...rootSliceList.map((slice) => ({ [slice.name]: slice.reducer })), {
-    studio: studioReducer,
-    tester: testerReducer,
-    reviewer: reviewerReducer,
-  }),
-)
-
-type MockRootReducerState = ReturnType<typeof mockRootReducer>
-
-export type StoryMockState = {
-  agents?: Agent[]
-  currentProject?: Project
-  documentTags?: DocumentTag[]
-  reviewCampaigns?: ReviewCampaign[]
-  selectedReviewCampaignDetail?: ReviewCampaignDetail
-  myReviewCampaigns?: MyReviewCampaign[]
-  testerContext?: TesterContext
-  testerLocalSessionsByCampaignId?: Record<string, LocalSessionSummary[]>
-  testerSurveyByCampaignId?: Record<string, TesterCampaignSurvey>
-  /**
-   * When set, thunks are enabled and `extra.services` uses these mocks.
-   * Services not overridden will throw at dispatch time, which is fine for
-   * stories that only exercise a subset of thunks.
-   */
-  servicesMock?: Partial<Services>
+export type WithReduxConfig = {
+  /** Partial RootState to seed. Compose with helpers from `@/stories/seed` or pass any slice fragment directly. */
+  state?: StoryPreloadedState
+  /** Partial services injected as `thunk.extraArgument.services`. Missing services throw when their thunks run. */
+  services?: Partial<Services>
 }
 
-function buildMockPreloadedState({
-  agents,
-  currentProject,
-  documentTags,
-  reviewCampaigns,
-  selectedReviewCampaignDetail,
-  myReviewCampaigns,
-  testerContext,
-  testerLocalSessionsByCampaignId,
-  testerSurveyByCampaignId,
-}: StoryMockState): Partial<MockRootReducerState> {
-  const studioInitial = studioReducer(undefined, { type: "@@INIT" }) as ReturnType<
-    typeof studioReducer
-  >
-  const organizationId = currentProject?.organizationId ?? null
-  return {
-    organizations: {
-      currentOrganizationId: organizationId,
-      data: organizationId
-        ? {
-            status: ADS.Fulfilled,
-            error: null,
-            value: [
-              {
-                id: organizationId,
-                name: "Mock organization",
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
-              },
-            ],
-          }
-        : { status: ADS.Uninitialized, error: null, value: null },
-    },
-    projects: {
-      currentProjectId: currentProject?.id ?? null,
-      data: currentProject
-        ? { status: ADS.Fulfilled, error: null, value: [currentProject] }
-        : { status: ADS.Uninitialized, error: null, value: null },
-    },
-    agents: {
-      currentAgentId: null,
-      data: agents
-        ? { status: ADS.Fulfilled, error: null, value: agents }
-        : { status: ADS.Uninitialized, error: null, value: null },
-    },
-    studio: {
-      ...studioInitial,
-      documentTags: {
-        data: documentTags
-          ? { status: ADS.Fulfilled, error: null, value: documentTags }
-          : { status: ADS.Uninitialized, error: null, value: null },
-      },
-      reviewCampaigns: {
-        data: reviewCampaigns
-          ? { status: ADS.Fulfilled, error: null, value: reviewCampaigns }
-          : { status: ADS.Uninitialized, error: null, value: null },
-        selectedDetail: selectedReviewCampaignDetail
-          ? { status: ADS.Fulfilled, error: null, value: selectedReviewCampaignDetail }
-          : { status: ADS.Uninitialized, error: null, value: null },
-      },
-    },
-    tester: {
-      reviewCampaignsTester: {
-        myCampaigns: myReviewCampaigns
-          ? { status: ADS.Fulfilled, error: null, value: myReviewCampaigns }
-          : { status: ADS.Uninitialized, error: null, value: null },
-        selectedContext: testerContext
-          ? { status: ADS.Fulfilled, error: null, value: testerContext }
-          : { status: ADS.Uninitialized, error: null, value: null },
-        selectedFeedbackBySessionId: {},
-        selectedSurveyByCampaignId: testerSurveyByCampaignId ?? {},
-        mySessionsByCampaignId: testerLocalSessionsByCampaignId ?? {},
-      },
-    },
-  } as Partial<MockRootReducerState>
+type Slice = { name: string; reducer: Reducer }
+
+function combineSliceList(slices: ReadonlyArray<Slice>): Reducer {
+  return combineReducers(
+    Object.assign({}, ...slices.map((slice) => ({ [slice.name]: slice.reducer }))),
+  )
 }
 
-export function buildMockStore(state: StoryMockState = {}) {
-  const { servicesMock } = state
+const mockRootReducer = combineReducers({
+  ...Object.assign({}, ...rootSliceList.map((slice) => ({ [slice.name]: slice.reducer }))),
+  studio: combineSliceList(studioSliceList),
+  tester: combineSliceList(testerSliceList),
+  reviewer: combineSliceList(reviewerSliceList),
+  evaluation: combineSliceList(evalSliceList),
+  backoffice: combineSliceList(backofficeSliceList),
+}) as unknown as Reducer<RootState>
+
+const defaultInitialState = mockRootReducer(undefined, { type: "@@INIT" })
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+}
+
+function deepMerge<T>(target: T, source: DeepPartial<T>): T {
+  if (!isPlainObject(target) || !isPlainObject(source)) {
+    return source === undefined ? target : (source as T)
+  }
+  const merged: Record<string, unknown> = { ...target }
+  for (const [key, value] of Object.entries(source)) {
+    if (value === undefined) continue
+    const current = (target as Record<string, unknown>)[key]
+    merged[key] =
+      isPlainObject(current) && isPlainObject(value)
+        ? deepMerge(current, value as DeepPartial<typeof current>)
+        : value
+  }
+  return merged as T
+}
+
+export function buildMockStore({ state, services }: WithReduxConfig = {}) {
+  const preloadedState = state ? deepMerge(defaultInitialState, state) : defaultInitialState
   return configureStore({
     reducer: mockRootReducer,
-    preloadedState: buildMockPreloadedState(state),
+    preloadedState,
     middleware: (getDefault) =>
-      servicesMock
+      services
         ? getDefault({
-            thunk: { extraArgument: { services: servicesMock as Services } },
+            thunk: { extraArgument: { services: services as Services } },
             serializableCheck: false,
           })
         : getDefault({ thunk: false, serializableCheck: false }),
   })
 }
 
-export function withRedux(state: StoryMockState = {}): Decorator {
-  const store = buildMockStore(state)
+export function withRedux(config: WithReduxConfig = {}): Decorator {
+  const store = buildMockStore(config)
   return (Story) => (
     <Provider store={store}>
       <Story />

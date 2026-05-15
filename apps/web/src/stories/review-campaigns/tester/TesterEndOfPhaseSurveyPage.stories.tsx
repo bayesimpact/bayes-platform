@@ -1,25 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { reactRouterParameters, withRouter } from "storybook-addon-remix-react-router"
-import type { Project } from "@/common/features/projects/projects.models"
 import { TesterEndOfPhaseSurveyPage } from "@/tester/features/review-campaigns/components/TesterEndOfPhaseSurveyPage"
 import { TesterRouteNames } from "@/tester/routes/helpers"
 import { withRedux } from "../../decorators/with-redux"
+import { mergeSeeds, seed } from "../../seed"
+import { mockProject } from "../fixtures"
 import { mockSurvey, mockTesterContext } from "./fixtures"
 import { buildMockTesterService } from "./mock-service"
 
-const mockProject: Project = {
-  id: "proj-1",
-  name: "Demo project",
-  organizationId: "org-1",
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
-  featureFlags: [],
-  agentCategories: [],
-}
-
 const pathParams = {
-  organizationId: "org-1",
-  projectId: "proj-1",
+  organizationId: mockProject.organizationId,
+  projectId: mockProject.id,
   reviewCampaignId: mockTesterContext.id,
 }
 
@@ -42,9 +33,8 @@ type Story = StoryObj<typeof meta>
 export const FirstTime: Story = {
   decorators: [
     withRedux({
-      currentProject: mockProject,
-      testerContext: mockTesterContext,
-      servicesMock: { reviewCampaignsTester: buildMockTesterService() },
+      state: mergeSeeds(seed.currentProject(mockProject), seed.tester.context(mockTesterContext)),
+      services: { reviewCampaignsTester: buildMockTesterService() },
     }),
   ],
 }
@@ -58,10 +48,12 @@ const editingSurvey = {
 export const Editing: Story = {
   decorators: [
     withRedux({
-      currentProject: mockProject,
-      testerContext: mockTesterContext,
-      testerSurveyByCampaignId: { [mockTesterContext.id]: editingSurvey },
-      servicesMock: {
+      state: mergeSeeds(
+        seed.currentProject(mockProject),
+        seed.tester.context(mockTesterContext),
+        seed.tester.surveyByCampaignId({ [mockTesterContext.id]: editingSurvey }),
+      ),
+      services: {
         reviewCampaignsTester: buildMockTesterService({ myTesterSurvey: editingSurvey }),
       },
     }),

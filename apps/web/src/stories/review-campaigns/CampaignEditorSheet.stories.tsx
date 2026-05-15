@@ -1,20 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { fn } from "storybook/test"
-import type { Project } from "@/common/features/projects/projects.models"
 import { CampaignEditorSheet } from "@/studio/features/review-campaigns/components/CampaignEditorSheet"
 import { withRedux } from "../decorators/with-redux"
-import { mockActiveCampaign, mockAgents, mockDraftCampaign, mockMemberships } from "./fixtures"
+import { mergeSeeds, seed } from "../seed"
+import {
+  mockActiveCampaign,
+  mockAgents,
+  mockDraftCampaign,
+  mockMemberships,
+  mockProject,
+} from "./fixtures"
 import { buildMockReviewCampaignsService } from "./mock-service"
-
-const mockProject: Project = {
-  id: "proj-1",
-  name: "Demo project",
-  organizationId: "org-1",
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
-  featureFlags: [],
-  agentCategories: [],
-}
 
 const meta = {
   title: "review-campaigns/CampaignEditorSheet",
@@ -36,8 +32,8 @@ export const CreateOpen: Story = {
   },
   decorators: [
     withRedux({
-      currentProject: mockProject,
-      servicesMock: { reviewCampaigns: buildMockReviewCampaignsService() },
+      state: seed.currentProject(mockProject),
+      services: { reviewCampaigns: buildMockReviewCampaignsService() },
     }),
   ],
 }
@@ -49,13 +45,15 @@ export const EditDraft: Story = {
   },
   decorators: [
     withRedux({
-      currentProject: mockProject,
-      selectedReviewCampaignDetail: {
-        ...mockDraftCampaign,
-        memberships: [],
-        aggregates: null,
-      },
-      servicesMock: { reviewCampaigns: buildMockReviewCampaignsService() },
+      state: mergeSeeds(
+        seed.currentProject(mockProject),
+        seed.studio.selectedReviewCampaignDetail({
+          ...mockDraftCampaign,
+          memberships: [],
+          aggregates: null,
+        }),
+      ),
+      services: { reviewCampaigns: buildMockReviewCampaignsService() },
     }),
   ],
 }
@@ -67,13 +65,15 @@ export const EditActive: Story = {
   },
   decorators: [
     withRedux({
-      currentProject: mockProject,
-      selectedReviewCampaignDetail: {
-        ...mockActiveCampaign,
-        memberships: mockMemberships,
-        aggregates: null,
-      },
-      servicesMock: { reviewCampaigns: buildMockReviewCampaignsService() },
+      state: mergeSeeds(
+        seed.currentProject(mockProject),
+        seed.studio.selectedReviewCampaignDetail({
+          ...mockActiveCampaign,
+          memberships: mockMemberships,
+          aggregates: null,
+        }),
+      ),
+      services: { reviewCampaigns: buildMockReviewCampaignsService() },
     }),
   ],
 }

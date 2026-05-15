@@ -1,14 +1,14 @@
-import type {
-  CampaignReportDto,
-  CampaignReportHeadlineDto,
-  CampaignReportQuestionDistributionDto,
-  CampaignReportSessionRowDto,
-} from "@caseai-connect/api-contracts"
+import {
+  campaignReportFactory,
+  campaignReportHeadlineFactory,
+  campaignReportQuestionDistributionFactory,
+  campaignReportSessionRowFactory,
+} from "@/studio/features/review-campaigns/reports/report.factory"
 
 const MS_PER_HOUR = 3_600_000
 const now = Date.now()
 
-export const mockHeadline: CampaignReportHeadlineDto = {
+export const mockHeadline = campaignReportHeadlineFactory.build({
   sessionCount: 42,
   testerFeedbackCount: 38,
   reviewerReviewCount: 21,
@@ -16,10 +16,10 @@ export const mockHeadline: CampaignReportHeadlineDto = {
   meanReviewerRating: 3.58,
   meanEndOfPhaseRating: 4.4,
   participantCount: 7,
-}
+})
 
-export const mockTesterPerSessionDistributions: CampaignReportQuestionDistributionDto[] = [
-  {
+export const mockTesterPerSessionDistributions = [
+  campaignReportQuestionDistributionFactory.build({
     questionId: "tp-helpful",
     prompt: "Was the answer helpful?",
     type: "rating",
@@ -31,15 +31,15 @@ export const mockTesterPerSessionDistributions: CampaignReportQuestionDistributi
       { label: "4", count: 14 },
       { label: "5", count: 11 },
     ],
-  },
-  {
+  }),
+  campaignReportQuestionDistributionFactory.build({
     questionId: "tp-notes",
     prompt: "Anything we should know?",
     type: "free-text",
     responseCount: 12,
     buckets: [],
-  },
-  {
+  }),
+  campaignReportQuestionDistributionFactory.build({
     questionId: "tp-escalated",
     prompt: "Did the agent escalate to a human?",
     type: "single-choice",
@@ -48,11 +48,11 @@ export const mockTesterPerSessionDistributions: CampaignReportQuestionDistributi
       { label: "Yes", count: 4 },
       { label: "No", count: 34 },
     ],
-  },
+  }),
 ]
 
-export const mockReviewerDistributions: CampaignReportQuestionDistributionDto[] = [
-  {
+export const mockReviewerDistributions = [
+  campaignReportQuestionDistributionFactory.build({
     questionId: "rv-accurate",
     prompt: "How accurate was the agent's response?",
     type: "rating",
@@ -64,8 +64,8 @@ export const mockReviewerDistributions: CampaignReportQuestionDistributionDto[] 
       { label: "4", count: 7 },
       { label: "5", count: 3 },
     ],
-  },
-  {
+  }),
+  campaignReportQuestionDistributionFactory.build({
     questionId: "rv-escalate",
     prompt: "Would you escalate this conversation?",
     type: "single-choice",
@@ -75,11 +75,11 @@ export const mockReviewerDistributions: CampaignReportQuestionDistributionDto[] 
       { label: "No", count: 12 },
       { label: "Maybe", count: 4 },
     ],
-  },
+  }),
 ]
 
-export const mockEndOfPhaseDistributions: CampaignReportQuestionDistributionDto[] = [
-  {
+export const mockEndOfPhaseDistributions = [
+  campaignReportQuestionDistributionFactory.build({
     questionId: "eop-impression",
     prompt: "Overall, how would you rate the agent?",
     type: "rating",
@@ -91,11 +91,11 @@ export const mockEndOfPhaseDistributions: CampaignReportQuestionDistributionDto[
       { label: "4", count: 2 },
       { label: "5", count: 2 },
     ],
-  },
+  }),
 ]
 
-export const mockSessionMatrix: CampaignReportSessionRowDto[] = [
-  {
+export const mockSessionMatrix = [
+  campaignReportSessionRowFactory.build({
     sessionId: "session-4f7a2c8e-3b1d-4e5f-9a6c-8d2b1c3e4f5a",
     sessionType: "conversation",
     testerUserId: "user-alice",
@@ -105,8 +105,8 @@ export const mockSessionMatrix: CampaignReportSessionRowDto[] = [
     reviewerCount: 3,
     meanReviewerRating: 4,
     reviewerRatingSpread: 2,
-  },
-  {
+  }),
+  campaignReportSessionRowFactory.build({
     sessionId: "session-1a2b3c4d-5e6f-7890-abcd-ef1234567890",
     sessionType: "conversation",
     testerUserId: "user-bob",
@@ -116,8 +116,8 @@ export const mockSessionMatrix: CampaignReportSessionRowDto[] = [
     reviewerCount: 2,
     meanReviewerRating: 3,
     reviewerRatingSpread: 2,
-  },
-  {
+  }),
+  campaignReportSessionRowFactory.build({
     sessionId: "session-form-8c3b1d5f-2a6e-4c7d-9b0a-1e2f3a4b5c6d",
     sessionType: "form",
     testerUserId: "user-carol",
@@ -127,31 +127,18 @@ export const mockSessionMatrix: CampaignReportSessionRowDto[] = [
     reviewerCount: 0,
     meanReviewerRating: null,
     reviewerRatingSpread: null,
-  },
+  }),
 ]
 
-export const mockCampaignReport: CampaignReportDto = {
+export const mockCampaignReport = campaignReportFactory.build({
   campaignId: "campaign-support-q2",
   headline: mockHeadline,
   testerPerSessionDistributions: mockTesterPerSessionDistributions,
   testerEndOfPhaseDistributions: mockEndOfPhaseDistributions,
   reviewerDistributions: mockReviewerDistributions,
   sessionMatrix: mockSessionMatrix,
-}
+})
 
-export const mockEmptyCampaignReport: CampaignReportDto = {
+export const mockEmptyCampaignReport = campaignReportFactory.build({
   campaignId: "campaign-empty",
-  headline: {
-    sessionCount: 0,
-    testerFeedbackCount: 0,
-    reviewerReviewCount: 0,
-    meanTesterRating: null,
-    meanReviewerRating: null,
-    meanEndOfPhaseRating: null,
-    participantCount: 0,
-  },
-  testerPerSessionDistributions: [],
-  testerEndOfPhaseDistributions: [],
-  reviewerDistributions: [],
-  sessionMatrix: [],
-}
+})

@@ -4,6 +4,7 @@ import { fn } from "storybook/test"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { Project } from "@/common/features/projects/projects.models"
 import { withRedux } from "@/stories/decorators/with-redux"
+import { mergeSeeds, seed } from "@/stories/seed"
 import { AgentEditorWithoutTrigger } from "@/studio/features/agents/components/AgentEditor"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 
@@ -100,7 +101,14 @@ const mockFormAgent: Agent = {
 const meta = {
   title: "forms/AgentEditor",
   component: AgentEditorWithoutTrigger,
-  decorators: [withRedux({ currentProject: mockProject, documentTags: mockDocumentTags })],
+  decorators: [
+    withRedux({
+      state: mergeSeeds(
+        seed.currentProject(mockProject),
+        seed.studio.documentTags(mockDocumentTags),
+      ),
+    }),
+  ],
   parameters: { layout: "fullscreen" },
   args: {
     onClose: fn(),

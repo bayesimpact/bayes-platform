@@ -4,6 +4,7 @@ import { fn } from "storybook/test"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { Project } from "@/common/features/projects/projects.models"
 import { withRedux } from "@/stories/decorators/with-redux"
+import { mergeSeeds, seed } from "@/stories/seed"
 import { BaseAgentForm } from "@/studio/features/agents/components/BaseAgentForm"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 
@@ -114,7 +115,14 @@ const mockFormAgent: Agent = {
 const meta = {
   title: "forms/BaseAgentForm",
   component: BaseAgentForm,
-  decorators: [withRedux({ currentProject: mockProject, documentTags: mockDocumentTags })],
+  decorators: [
+    withRedux({
+      state: mergeSeeds(
+        seed.currentProject(mockProject),
+        seed.studio.documentTags(mockDocumentTags),
+      ),
+    }),
+  ],
   parameters: { layout: "padded" },
   args: {
     documentTags: mockDocumentTags,
@@ -136,8 +144,10 @@ export const ConversationEdit: Story = {
 export const ConversationEditWithoutProjectCategories: Story = {
   decorators: [
     withRedux({
-      currentProject: mockProjectWithoutAgentCategories,
-      documentTags: mockDocumentTags,
+      state: mergeSeeds(
+        seed.currentProject(mockProjectWithoutAgentCategories),
+        seed.studio.documentTags(mockDocumentTags),
+      ),
     }),
   ],
   args: {

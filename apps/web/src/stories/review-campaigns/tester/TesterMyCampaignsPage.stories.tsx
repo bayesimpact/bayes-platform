@@ -1,20 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { withRouter } from "storybook-addon-remix-react-router"
-import type { Project } from "@/common/features/projects/projects.models"
 import { TesterMyCampaignsPage } from "@/tester/features/review-campaigns/components/TesterMyCampaignsPage"
 import { withRedux } from "../../decorators/with-redux"
+import { mergeSeeds, seed } from "../../seed"
+import { mockProject } from "../fixtures"
 import { mockMyCampaigns } from "./fixtures"
 import { buildMockTesterService } from "./mock-service"
-
-const mockProject: Project = {
-  id: "proj-1",
-  name: "Demo project",
-  organizationId: "org-1",
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
-  featureFlags: [],
-  agentCategories: [],
-}
 
 const meta = {
   title: "review-campaigns/tester/pages/TesterMyCampaignsPage",
@@ -29,9 +20,8 @@ type Story = StoryObj<typeof meta>
 export const Empty: Story = {
   decorators: [
     withRedux({
-      currentProject: mockProject,
-      myReviewCampaigns: [],
-      servicesMock: {
+      state: mergeSeeds(seed.currentProject(mockProject), seed.tester.myCampaigns([])),
+      services: {
         reviewCampaignsTester: buildMockTesterService({ myCampaigns: [] }),
       },
     }),
@@ -41,9 +31,8 @@ export const Empty: Story = {
 export const WithCampaigns: Story = {
   decorators: [
     withRedux({
-      currentProject: mockProject,
-      myReviewCampaigns: mockMyCampaigns,
-      servicesMock: {
+      state: mergeSeeds(seed.currentProject(mockProject), seed.tester.myCampaigns(mockMyCampaigns)),
+      services: {
         reviewCampaignsTester: buildMockTesterService({ myCampaigns: mockMyCampaigns }),
       },
     }),

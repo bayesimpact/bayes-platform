@@ -1,21 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { withRouter } from "storybook-addon-remix-react-router"
 import type { Agent } from "@/common/features/agents/agents.models"
-import type { Project } from "@/common/features/projects/projects.models"
 import { CampaignListPage } from "@/studio/features/review-campaigns/components/CampaignListPage"
 import { withRedux } from "../decorators/with-redux"
-import { mockActiveCampaign, mockAgents, mockClosedCampaign, mockDraftCampaign } from "./fixtures"
+import { mergeSeeds, seed } from "../seed"
+import {
+  mockActiveCampaign,
+  mockAgents,
+  mockClosedCampaign,
+  mockDraftCampaign,
+  mockProject,
+} from "./fixtures"
 import { buildMockReviewCampaignsService } from "./mock-service"
-
-const mockProject: Project = {
-  id: "proj-1",
-  name: "Demo project",
-  organizationId: "org-1",
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
-  featureFlags: [],
-  agentCategories: [],
-}
 
 const meta = {
   title: "review-campaigns/CampaignListPage",
@@ -30,10 +26,12 @@ type Story = StoryObj<typeof meta>
 export const Empty: Story = {
   decorators: [
     withRedux({
-      currentProject: mockProject,
-      agents: [],
-      reviewCampaigns: [],
-      servicesMock: {
+      state: mergeSeeds(
+        seed.currentProject(mockProject),
+        seed.agents([]),
+        seed.studio.reviewCampaigns([]),
+      ),
+      services: {
         reviewCampaigns: buildMockReviewCampaignsService({ campaigns: [] }),
       },
     }),
@@ -43,10 +41,12 @@ export const Empty: Story = {
 export const WithCampaigns: Story = {
   decorators: [
     withRedux({
-      currentProject: mockProject,
-      agents: mockAgents as Agent[],
-      reviewCampaigns: [mockDraftCampaign, mockActiveCampaign, mockClosedCampaign],
-      servicesMock: {
+      state: mergeSeeds(
+        seed.currentProject(mockProject),
+        seed.agents(mockAgents as Agent[]),
+        seed.studio.reviewCampaigns([mockDraftCampaign, mockActiveCampaign, mockClosedCampaign]),
+      ),
+      services: {
         reviewCampaigns: buildMockReviewCampaignsService({
           campaigns: [mockDraftCampaign, mockActiveCampaign, mockClosedCampaign],
         }),
