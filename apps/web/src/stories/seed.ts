@@ -1,3 +1,6 @@
+import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
+import type { ExtractionAgentSessionSummary } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
+import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { PendingInvitations, User } from "@/common/features/me/me.models"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
@@ -138,6 +141,22 @@ export const seed = {
         currentAgentId: options.currentId ?? null,
       },
     }
+  },
+
+  conversationAgentSessions(
+    sessionsByAgentId: Record<string, ConversationAgentSession[]>,
+  ): StoryPreloadedState {
+    return { conversationAgentSessions: { data: ads.fulfilled(sessionsByAgentId) } }
+  },
+
+  formAgentSessions(sessionsByAgentId: Record<string, FormAgentSession[]>): StoryPreloadedState {
+    return { formAgentSessions: { data: ads.fulfilled(sessionsByAgentId) } }
+  },
+
+  extractionAgentSessions(
+    sessionsByAgentId: Record<string, ExtractionAgentSessionSummary[]>,
+  ): StoryPreloadedState {
+    return { extractionAgentSessions: { data: ads.fulfilled(sessionsByAgentId) } }
   },
 
   studio: {

@@ -1,6 +1,7 @@
 import { agentFactory } from "@/common/features/agents/agent.factory"
 import type { Agent } from "@/common/features/agents/agents.models"
 import {
+  agentMembershipFactory,
   organizationMembershipFactory,
   projectMembershipFactory,
   userFactory,
@@ -40,7 +41,13 @@ export function buildStudioData(input: StudioStoryArgs): {
   agents: Agent[]
   baseSeeds: StoryPreloadedState
 } {
-  const { organizationMembershipRole, projectMembershipRole, featureFlags, withAgents } = input
+  const {
+    organizationMembershipRole,
+    projectMembershipRole,
+    agentMembershipRole,
+    featureFlags,
+    withAgents,
+  } = input
   const organization = organizationFactory.build()
   const organizationMemberships = [
     organizationMembershipFactory
@@ -54,7 +61,12 @@ export function buildStudioData(input: StudioStoryArgs): {
   const agents = withAgents
     ? agentFactory.transient({ project }).buildList(3).sort(sortRecentlyCreated)
     : []
-  const user = userFactory.transient({ organizationMemberships, projectMemberships }).build()
+  const agentMemberships = agents.map((agent) =>
+    agentMembershipFactory.transient({ agent }).build({ role: agentMembershipRole }),
+  )
+  const user = userFactory
+    .transient({ organizationMemberships, projectMemberships, agentMemberships })
+    .build()
   const seededProject = featureFlags !== undefined ? { ...project, featureFlags } : project
   const baseSeeds = mergeSeeds(
     seed.me(user),

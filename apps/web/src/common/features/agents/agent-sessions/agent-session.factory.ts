@@ -1,6 +1,7 @@
 import type {
   AgentSessionMessageDto,
   ConversationAgentSessionDto,
+  ExtractionAgentSessionSummaryDto,
   FormAgentSessionDto,
 } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
@@ -38,6 +39,28 @@ export const formAgentSessionFactory = FormAgentSessionFactory.define(
       id: params.id ?? faker.string.uuid(),
       agentId: params.agentId ?? transientParams.agent?.id ?? faker.string.uuid(),
       type: params.type ?? "live",
+      createdAt: time,
+      updatedAt: params.updatedAt ?? time,
+    }
+  },
+)
+
+class ExtractionAgentSessionSummaryFactory extends Factory<
+  ExtractionAgentSessionSummaryDto,
+  SessionTransientParams
+> {}
+
+export const extractionAgentSessionSummaryFactory = ExtractionAgentSessionSummaryFactory.define(
+  ({ params, transientParams }) => {
+    const time = params.createdAt ?? faker.date.recent().getTime()
+    return {
+      id: params.id ?? faker.string.uuid(),
+      agentId: params.agentId ?? transientParams.agent?.id ?? faker.string.uuid(),
+      documentId: params.documentId ?? faker.string.uuid(),
+      documentFileName: params.documentFileName ?? `${faker.system.commonFileName("pdf")}`,
+      traceUrl: params.traceUrl,
+      type: params.type ?? "live",
+      status: params.status ?? "success",
       createdAt: time,
       updatedAt: params.updatedAt ?? time,
     }

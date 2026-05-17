@@ -4,7 +4,14 @@ import type { JSX } from "react"
 import { Provider } from "react-redux"
 import { createMemoryRouter, RouterProvider } from "react-router-dom"
 import { backofficeSliceList } from "@/backoffice/store/slices"
+import { selectCurrentAgentSessionId } from "@/common/features/agents/agent-sessions/current-agent-session-id/current-agent-session-id.selectors"
+import { selectCurrentAgentId } from "@/common/features/agents/agents.selectors"
+import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
+import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
+import { selectCurrentReviewCampaignId } from "@/common/features/review-campaigns/current-review-campaign-id/current-review-campaign-id.selectors"
+import { selectCurrentReviewerSessionId } from "@/common/features/review-campaigns/current-reviewer-session-id/current-reviewer-session-id.selectors"
 import type { RootState } from "@/common/store"
+import { useAppSelector } from "@/common/store/hooks"
 import { rootSliceList } from "@/common/store/root-slices"
 import type { Services } from "@/di/services"
 import { evalSliceList } from "@/eval/store/slices"
@@ -109,7 +116,27 @@ type Route = {
 }
 export function render({ path, routes }: { routes: Route; path: string }) {
   return () => {
-    const router = createMemoryRouter([routes], { initialEntries: [path] })
-    return <RouterProvider router={router} />
+    const resolvedPath = useReplaceIds(path)
+    const router = createMemoryRouter([routes], { initialEntries: [resolvedPath] })
+    // Key forces remount on path change, ensuring selectors re-run with updated params
+    return <RouterProvider key={resolvedPath} router={router} />
   }
+}
+
+function useReplaceIds(path: string) {
+  const organizationId = useAppSelector(selectCurrentOrganizationId)
+  const projectId = useAppSelector(selectCurrentProjectId)
+  const agentId = useAppSelector(selectCurrentAgentId)
+  const agentSessionId = useAppSelector(selectCurrentAgentSessionId)
+  const reviewCampaignId = useAppSelector(selectCurrentReviewCampaignId)
+  const reviewerSessionId = useAppSelector(selectCurrentReviewerSessionId)
+
+  path = path.replace(":organizationId", organizationId ?? "")
+  path = path.replace(":projectId", projectId ?? "")
+  path = path.replace(":agentId", agentId ?? "")
+  path = path.replace(":agentSessionId", agentSessionId ?? "")
+  path = path.replace(":reviewCampaignId", reviewCampaignId ?? "")
+  path = path.replace(":reviewerSessionId", reviewerSessionId ?? "")
+
+  return path
 }

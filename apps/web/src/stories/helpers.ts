@@ -1,4 +1,5 @@
 import {
+  type AgentMembershipRoleDto,
   type FeatureFlagKey,
   FeatureFlags,
   type OrganizationMembershipRoleDto,
@@ -14,18 +15,21 @@ export function sortRecentlyCreated<T extends { createdAt: number }>(a: T, b: T)
 export type BaseStoryArgs = {
   organizationMembershipRole: OrganizationMembershipRoleDto
   projectMembershipRole: ProjectMembershipRoleDto
+  agentMembershipRole: AgentMembershipRoleDto
   featureFlags?: Project["featureFlags"]
 }
 
 export const baseStoryArgs = {
   organizationMembershipRole: "owner",
   projectMembershipRole: "owner",
+  agentMembershipRole: "owner",
   featureFlags: [],
 } satisfies BaseStoryArgs
 
 export const baseStoryArgTypes = {
   organizationMembershipRole: { control: "select", options: ROLES },
   projectMembershipRole: { control: "select", options: ROLES },
+  agentMembershipRole: { control: "select", options: ROLES },
   featureFlags: {
     control: "inline-check",
     options: FeatureFlags.map((flag) => flag.key) as FeatureFlagKey[],
