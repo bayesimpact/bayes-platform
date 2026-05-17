@@ -131,12 +131,12 @@ function useReplaceIds(path: string) {
   const reviewCampaignId = useAppSelector(selectCurrentReviewCampaignId)
   const reviewerSessionId = useAppSelector(selectCurrentReviewerSessionId)
 
-  path = path.replace(":organizationId", organizationId ?? "")
-  path = path.replace(":projectId", projectId ?? "")
-  path = path.replace(":agentId", agentId ?? "")
-  path = path.replace(":agentSessionId", agentSessionId ?? "")
-  path = path.replace(":reviewCampaignId", reviewCampaignId ?? "")
-  path = path.replace(":reviewerSessionId", reviewerSessionId ?? "")
+  if (organizationId) path = path.replace(":organizationId", organizationId)
+  if (projectId) path = path.replace(":projectId", projectId)
+  if (agentId) path = path.replace(":agentId", agentId)
+  if (agentSessionId) path = path.replace(":agentSessionId", agentSessionId)
+  if (reviewCampaignId) path = path.replace(":reviewCampaignId", reviewCampaignId)
+  if (reviewerSessionId) path = path.replace(":reviewerSessionId", reviewerSessionId)
 
   return path
 }

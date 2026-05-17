@@ -31,6 +31,7 @@ const meta = {
   parameters: { layout: "fullscreen" },
   argTypes: {
     ...studioStoryArgTypes,
+    withAgents: { control: undefined },
     agentType: {
       control: "select",
       options: ["conversation", "form", "extraction"] satisfies AgentType[],

@@ -1,19 +1,17 @@
-import type {
-  AgentSessionMessageDto,
-  ConversationAgentSessionDto,
-  ExtractionAgentSessionSummaryDto,
-  FormAgentSessionDto,
-} from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { Agent } from "@/common/features/agents/agents.models"
+import type { ConversationAgentSession } from "./conversation/conversation-agent-sessions.models"
+import type { ExtractionAgentSessionSummary } from "./extraction/extraction-agent-sessions.models"
+import type { FormAgentSession } from "./form/form-agent-sessions.models"
+import type { AgentSessionMessage } from "./shared/agent-session-messages/agent-session-messages.models"
 
 type SessionTransientParams = {
   agent?: Pick<Agent, "id">
 }
 
 class ConversationAgentSessionFactory extends Factory<
-  ConversationAgentSessionDto,
+  ConversationAgentSession,
   SessionTransientParams
 > {}
 
@@ -26,14 +24,14 @@ export const conversationAgentSessionFactory = ConversationAgentSessionFactory.d
       type: params.type ?? "live",
       createdAt: time,
       updatedAt: params.updatedAt ?? time,
-    }
+    } satisfies ConversationAgentSession
   },
 )
 
-class FormAgentSessionFactory extends Factory<FormAgentSessionDto, SessionTransientParams> {}
+class FormAgentSessionFactory extends Factory<FormAgentSession, SessionTransientParams> {}
 
 export const formAgentSessionFactory = FormAgentSessionFactory.define(
-  ({ params, transientParams }) => {
+  ({ params, transientParams }): FormAgentSession => {
     const time = params.createdAt ?? faker.date.recent().getTime()
     return {
       id: params.id ?? faker.string.uuid(),
@@ -41,12 +39,23 @@ export const formAgentSessionFactory = FormAgentSessionFactory.define(
       type: params.type ?? "live",
       createdAt: time,
       updatedAt: params.updatedAt ?? time,
+      result: params.result ?? {
+        firstName: faker.person.firstName(),
+        lastName: faker.person.lastName(),
+        email: faker.internet.email(),
+        company: faker.company.name(),
+        role: faker.person.jobTitle(),
+        country: faker.location.country(),
+        city: faker.location.city(),
+        industry: faker.commerce.department(),
+        teamSize: faker.string.numeric({ length: { min: 1, max: 2 } }),
+      },
     }
   },
 )
 
 class ExtractionAgentSessionSummaryFactory extends Factory<
-  ExtractionAgentSessionSummaryDto,
+  ExtractionAgentSessionSummary,
   SessionTransientParams
 > {}
 
@@ -63,11 +72,11 @@ export const extractionAgentSessionSummaryFactory = ExtractionAgentSessionSummar
       status: params.status ?? "success",
       createdAt: time,
       updatedAt: params.updatedAt ?? time,
-    }
+    } satisfies ExtractionAgentSessionSummary
   },
 )
 
-class AgentSessionMessageFactory extends Factory<AgentSessionMessageDto> {}
+class AgentSessionMessageFactory extends Factory<AgentSessionMessage> {}
 
 export const agentSessionMessageFactory = AgentSessionMessageFactory.define(({ params }) => ({
   id: params.id ?? faker.string.uuid(),
