@@ -56,7 +56,7 @@ function buildMockAgentAnalyticsService(
 }
 
 const meta = {
-  title: "routes/studio/agent-analytics",
+  title: "routes/studio/project/agent/analytics",
   parameters: { layout: "fullscreen" },
   argTypes: {
     ...studioStoryArgTypes,

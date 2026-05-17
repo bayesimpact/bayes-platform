@@ -8,6 +8,8 @@ import { organizationFactory } from "@/common/features/organizations/organizatio
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import type { Project } from "@/common/features/projects/projects.models"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
+import type { AgentMembership } from "@/studio/features/agent-memberships/agent-memberships.models"
+import type { AgentMessageFeedback } from "@/studio/features/agent-message-feedback/agent-message-feedback.models"
 import type {
   AnalyticsCategoryDailyPoint,
   AnalyticsDailyPoint,
@@ -225,6 +227,16 @@ export const seed = {
 
     selectedReviewCampaignDetail(detail: ReviewCampaignDetail): StoryPreloadedState {
       return { studio: { reviewCampaigns: { selectedDetail: ads.fulfilled(detail) } } }
+    },
+
+    agentMemberships(memberships: AgentMembership[]): StoryPreloadedState {
+      return { studio: { agentMemberships: { data: ads.fulfilled(memberships) } } }
+    },
+
+    agentMessageFeedbacks(
+      feedbacksByAgentId: Record<string, AgentMessageFeedback[]>,
+    ): StoryPreloadedState {
+      return { studio: { agentMessageFeedback: { data: ads.fulfilled(feedbacksByAgentId) } } }
     },
   },
 

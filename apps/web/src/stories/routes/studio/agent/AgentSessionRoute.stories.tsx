@@ -27,7 +27,7 @@ type StoryArgs = StudioStoryArgs & {
 }
 
 const meta = {
-  title: "routes/studio/agent-session",
+  title: "routes/studio/project/agent/session",
   parameters: { layout: "fullscreen" },
   argTypes: {
     ...studioStoryArgTypes,

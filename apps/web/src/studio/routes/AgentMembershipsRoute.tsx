@@ -2,10 +2,15 @@ import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/grid/Grid"
 import type { Agent } from "@/common/features/agents/agents.models"
-import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
+import {
+  selectCurrentAgentData,
+  selectCurrentAgentId,
+} from "@/common/features/agents/agents.selectors"
+import { useAbility } from "@/common/hooks/use-ability"
 import { useGetPath } from "@/common/hooks/use-build-path"
 import { useMount } from "@/common/hooks/use-mount"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
+import { NotFoundRoute } from "@/common/routes/NotFoundRoute"
 import { useAppSelector } from "@/common/store/hooks"
 import type { AgentMembership } from "@/studio/features/agent-memberships/agent-memberships.models"
 import { selectAgentMemberships } from "@/studio/features/agent-memberships/agent-memberships.selectors"
@@ -14,13 +19,17 @@ import { MembersCreator } from "@/studio/features/agent-memberships/components/M
 import { agentMembershipsActions } from "../features/agent-memberships/agent-memberships.slice"
 
 export function AgentMembershipsRoute() {
+  const agentId = useAppSelector(selectCurrentAgentId)
   const agent = useAppSelector(selectCurrentAgentData)
   const memberships = useAppSelector(selectAgentMemberships)
+  const { abilities } = useAbility()
+  const canManageAgent = abilities.canManageAgent({ agentId: agentId })
 
   useMount({
     actions: agentMembershipsActions,
   })
 
+  if (!canManageAgent) return <NotFoundRoute />
   return (
     <AsyncRoute data={[memberships, agent]}>
       {([membershipsValue, agentValue]) => (

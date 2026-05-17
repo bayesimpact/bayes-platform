@@ -12,7 +12,9 @@ import {
   selectCurrentAgentId,
 } from "@/common/features/agents/agents.selectors"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
+import { useAbility } from "@/common/hooks/use-ability"
 import { useGetPath } from "@/common/hooks/use-build-path"
+import { NotFoundRoute } from "@/common/routes/NotFoundRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import {
   selectAgentAnalyticsAvgUserQuestionsPerSessionPerDay,
@@ -48,9 +50,12 @@ function getInitialAnalyticsBounds() {
 export function AgentAnalyticsRoute() {
   const agentId = useAppSelector(selectCurrentAgentId)
   const agent = useAppSelector(selectCurrentAgentData)
+  const { abilities } = useAbility()
+  const canManageAgent = abilities.canManageAgent({ agentId: agentId })
 
   if (!agentId) return <ErrorRoute error="Missing valid agent ID" />
 
+  if (!canManageAgent) return <NotFoundRoute />
   return (
     <AsyncRoute data={[agent]}>{([agentValue]) => <WithAgent agent={agentValue} />}</AsyncRoute>
   )

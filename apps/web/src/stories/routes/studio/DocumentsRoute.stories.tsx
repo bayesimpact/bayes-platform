@@ -18,7 +18,7 @@ type StoryArgs = StudioStoryArgs & {
 }
 
 const meta = {
-  title: "routes/studio/documents",
+  title: "routes/studio/project/documents",
   parameters: { layout: "fullscreen" },
   argTypes: {
     ...studioStoryArgTypes,

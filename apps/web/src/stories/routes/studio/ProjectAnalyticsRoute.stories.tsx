@@ -56,7 +56,7 @@ function buildMockProjectAnalyticsService(
 }
 
 const meta = {
-  title: "routes/studio/project-analytics",
+  title: "routes/studio/project/analytics",
   parameters: { layout: "fullscreen" },
   argTypes: {
     ...studioStoryArgTypes,
