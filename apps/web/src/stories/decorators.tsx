@@ -1,6 +1,8 @@
 import { combineReducers, configureStore, type Reducer } from "@reduxjs/toolkit"
 import type { Decorator } from "@storybook/react-vite"
+import type { JSX } from "react"
 import { Provider } from "react-redux"
+import { createMemoryRouter, RouterProvider } from "react-router-dom"
 import { backofficeSliceList } from "@/backoffice/store/slices"
 import type { RootState } from "@/common/store"
 import { rootSliceList } from "@/common/store/root-slices"
@@ -87,4 +89,27 @@ export function withRedux(config: WithReduxConfig = {}): Decorator {
       <Story />
     </Provider>
   )
+}
+
+export function buildDecorator<TArgs>(build: (args: TArgs) => WithReduxConfig): Decorator {
+  return (Story, ctx) => {
+    const store = buildMockStore(build(ctx.args as TArgs))
+    return (
+      <Provider store={store}>
+        <Story />
+      </Provider>
+    )
+  }
+}
+
+type Route = {
+  path: string
+  element: JSX.Element
+  children?: Route[]
+}
+export function render({ path, routes }: { routes: Route; path: string }) {
+  return () => {
+    const router = createMemoryRouter([routes], { initialEntries: [path] })
+    return <RouterProvider router={router} />
+  }
 }

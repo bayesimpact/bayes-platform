@@ -15,7 +15,7 @@ import {
   ChatSubmit,
 } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/Chat"
 import { DotsBackground } from "@/studio/components/DotsBackground"
-import { withRedux } from "../decorators/with-redux"
+import { withRedux } from "../decorators"
 
 type StoryArgs = {
   messages: AgentSessionMessage[]

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import { withRouter } from "storybook-addon-remix-react-router"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { CampaignListPage } from "@/studio/features/review-campaigns/components/CampaignListPage"
-import { withRedux } from "../decorators/with-redux"
+import { withRedux } from "../decorators"
 import { mergeSeeds, seed } from "../seed"
 import {
   mockActiveCampaign,

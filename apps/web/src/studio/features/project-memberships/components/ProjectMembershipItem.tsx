@@ -5,6 +5,7 @@ import { CheckIcon, CrownIcon, SendIcon, StarIcon, Trash2Icon } from "lucide-rea
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridItem } from "@/common/components/grid/Grid"
+import { SUPER_ROLES } from "@/common/features/me/me.models"
 import { selectMe } from "@/common/features/me/me.selectors"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
@@ -75,13 +76,12 @@ export function ProjectMembershipItem({
 }
 
 export function BadgeWithIcon({ role }: { role: ProjectMembershipRoleDto }) {
-  const superRoles = ["owner", "admin"]
   const iconMap: Record<ProjectMembershipRoleDto, React.ReactNode> = {
     owner: <CrownIcon className="size-3.5 text-primary" />,
     admin: <StarIcon className="size-3.5 text-yellow-500" />,
     member: null,
   }
-  const variant = superRoles.includes(role) ? "outline" : "secondary"
+  const variant = SUPER_ROLES.includes(role) ? "outline" : "secondary"
   const icon = iconMap[role]
   return (
     <Badge className="flex gap-1 capitalize" variant={variant}>

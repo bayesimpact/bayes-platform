@@ -8,7 +8,7 @@ import type { FormAgentSession } from "@/common/features/agents/agent-sessions/f
 import type { AgentSessionMessage as AgentSessionMessageType } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import { AgentSessionMessages } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/AgentSessionMessages"
 import type { Agent } from "@/common/features/agents/agents.models"
-import { withRedux } from "@/stories/decorators/with-redux"
+import { withRedux } from "@/stories/decorators"
 import { DotsBackground } from "@/studio/components/DotsBackground"
 
 const mockAgent: Agent = {

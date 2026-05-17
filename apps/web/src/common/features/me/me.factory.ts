@@ -9,7 +9,12 @@ import { Factory } from "fishery"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import type { Project } from "@/common/features/projects/projects.models"
-import type { User } from "./me.models"
+import type {
+  PendingAgentInvitation,
+  PendingInvitations,
+  PendingProjectInvitation,
+  User,
+} from "./me.models"
 
 type UserTransientParams = {
   organizationMemberships?: OrganizationMembershipDto[]
@@ -139,6 +144,83 @@ export const agentMembershipFactory = AgentMembershipFactory.define(
     }
   },
 )
+
+type PendingProjectInvitationTransientParams = {
+  project: Project
+  organization?: Organization
+}
+
+class PendingProjectInvitationFactory extends Factory<
+  PendingProjectInvitation,
+  PendingProjectInvitationTransientParams
+> {}
+
+export const pendingProjectInvitationFactory = PendingProjectInvitationFactory.define(
+  ({ params, transientParams }) => {
+    const { project, organization } = transientParams
+    if (!project) {
+      throw new Error(
+        "Project must be provided in transient params to build a PendingProjectInvitation",
+      )
+    }
+    return {
+      id: params.id ?? faker.string.uuid(),
+      projectId: project.id,
+      projectName: params.projectName ?? project.name,
+      organizationId: params.organizationId ?? organization?.id ?? project.organizationId,
+      organizationName: params.organizationName ?? organization?.name ?? faker.company.name(),
+      role: params.role ?? "member",
+      invitationToken: params.invitationToken ?? faker.string.uuid(),
+      createdAt: params.createdAt ?? faker.date.recent().getTime(),
+    }
+  },
+)
+
+type PendingAgentInvitationTransientParams = {
+  agent: Agent
+  project: Project
+  organization?: Organization
+}
+
+class PendingAgentInvitationFactory extends Factory<
+  PendingAgentInvitation,
+  PendingAgentInvitationTransientParams
+> {}
+
+export const pendingAgentInvitationFactory = PendingAgentInvitationFactory.define(
+  ({ params, transientParams }) => {
+    const { agent, project, organization } = transientParams
+    if (!agent) {
+      throw new Error(
+        "Agent must be provided in transient params to build a PendingAgentInvitation",
+      )
+    }
+    if (!project) {
+      throw new Error(
+        "Project must be provided in transient params to build a PendingAgentInvitation",
+      )
+    }
+    return {
+      id: params.id ?? faker.string.uuid(),
+      agentId: agent.id,
+      agentName: params.agentName ?? agent.name,
+      projectId: project.id,
+      projectName: params.projectName ?? project.name,
+      organizationId: params.organizationId ?? organization?.id ?? project.organizationId,
+      organizationName: params.organizationName ?? organization?.name ?? faker.company.name(),
+      role: params.role ?? "member",
+      invitationToken: params.invitationToken ?? faker.string.uuid(),
+      createdAt: params.createdAt ?? faker.date.recent().getTime(),
+    }
+  },
+)
+
+class PendingInvitationsFactory extends Factory<PendingInvitations> {}
+
+export const pendingInvitationsFactory = PendingInvitationsFactory.define(({ params }) => ({
+  projectInvitations: params.projectInvitations ?? [],
+  agentInvitations: params.agentInvitations ?? [],
+}))
 
 type ReviewCampaignMembershipTransientParams = {
   project: Project

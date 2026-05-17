@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { withRouter } from "storybook-addon-remix-react-router"
 import { NotFoundRoute as Comp } from "@/common/routes/NotFoundRoute"
-import { withRedux } from "../decorators/with-redux"
+import { withRedux } from "../decorators"
 
 const meta = {
   title: "routes/NotFound",

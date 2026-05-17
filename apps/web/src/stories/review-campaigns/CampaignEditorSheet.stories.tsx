@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { fn } from "storybook/test"
 import { CampaignEditorSheet } from "@/studio/features/review-campaigns/components/CampaignEditorSheet"
-import { withRedux } from "../decorators/with-redux"
+import { withRedux } from "../decorators"
 import { mergeSeeds, seed } from "../seed"
 import {
   mockActiveCampaign,

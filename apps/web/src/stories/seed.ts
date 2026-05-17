@@ -1,5 +1,5 @@
 import type { Agent } from "@/common/features/agents/agents.models"
-import type { User } from "@/common/features/me/me.models"
+import type { PendingInvitations, User } from "@/common/features/me/me.models"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import type { Project } from "@/common/features/projects/projects.models"
@@ -22,7 +22,7 @@ import type {
   TesterContext,
 } from "@/tester/features/review-campaigns/tester.models"
 import type { LocalSessionSummary } from "@/tester/features/review-campaigns/tester.slice"
-import type { StoryPreloadedState } from "./decorators/with-redux"
+import type { StoryPreloadedState } from "./decorators"
 
 /**
  * AsyncData factories. Use these to build the `{ status, error, value }` envelopes
@@ -85,6 +85,10 @@ export function mergeSeeds(...seeds: StoryPreloadedState[]): StoryPreloadedState
 export const seed = {
   me(user: User): StoryPreloadedState {
     return { me: { data: ads.fulfilled(user) } }
+  },
+
+  pendingInvitations(invitations: PendingInvitations): StoryPreloadedState {
+    return { me: { pendingInvitations: ads.fulfilled(invitations) } }
   },
 
   organizations(

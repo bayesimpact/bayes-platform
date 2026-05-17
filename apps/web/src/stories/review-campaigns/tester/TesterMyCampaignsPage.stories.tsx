@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { withRouter } from "storybook-addon-remix-react-router"
 import { TesterMyCampaignsPage } from "@/tester/features/review-campaigns/components/TesterMyCampaignsPage"
-import { withRedux } from "../../decorators/with-redux"
+import { withRedux } from "../../decorators"
 import { mergeSeeds, seed } from "../../seed"
 import { mockProject } from "../fixtures"
 import { mockMyCampaigns } from "./fixtures"

@@ -8,7 +8,7 @@ import {
   formAgentSessionFactory,
 } from "@/common/features/agents/agent-sessions/agent-session.factory"
 import { TesterAgentSessionContent } from "@/tester/features/review-campaigns/components/TesterAgentSessionPage"
-import { withRedux } from "../../decorators/with-redux"
+import { withRedux } from "../../decorators"
 import { mergeSeeds, seed } from "../../seed"
 import { mockProject } from "../fixtures"
 import { mockPerSessionQuestions, mockTesterContext } from "./fixtures"
