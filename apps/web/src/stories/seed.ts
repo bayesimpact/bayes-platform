@@ -203,6 +203,22 @@ export const seed = {
       }
     },
 
+    agentAnalytics(value: {
+      conversationsPerDay: AnalyticsDailyPoint[]
+      avgUserQuestionsPerSessionPerDay: AnalyticsDailyPoint[]
+      conversationsByCategoryPerDay: AnalyticsCategoryDailyPoint[]
+    }): StoryPreloadedState {
+      return {
+        studio: {
+          agentAnalytics: {
+            conversationsPerDay: ads.fulfilled(value.conversationsPerDay),
+            avgUserQuestionsPerSessionPerDay: ads.fulfilled(value.avgUserQuestionsPerSessionPerDay),
+            conversationsByCategoryPerDay: ads.fulfilled(value.conversationsByCategoryPerDay),
+          },
+        },
+      }
+    },
+
     reviewCampaigns(campaigns: ReviewCampaign[]): StoryPreloadedState {
       return { studio: { reviewCampaigns: { data: ads.fulfilled(campaigns) } } }
     },
