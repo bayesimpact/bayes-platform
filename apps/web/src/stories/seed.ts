@@ -19,6 +19,11 @@ import type { Document } from "@/studio/features/documents/documents.models"
 import type { EvaluationReport } from "@/studio/features/evaluation-reports/evaluation-reports.models"
 import type { Evaluation } from "@/studio/features/evaluations/evaluations.models"
 import type {
+  ProjectMemberAgent,
+  ProjectMembership,
+} from "@/studio/features/project-memberships/project-memberships.models"
+import type { CampaignReport } from "@/studio/features/review-campaigns/reports/reports.models"
+import type {
   ReviewCampaign,
   ReviewCampaignDetail,
 } from "@/studio/features/review-campaigns/review-campaigns.models"
@@ -146,6 +151,18 @@ export const seed = {
     }
   },
 
+  currentReviewCampaignId(id: string | null): StoryPreloadedState {
+    return { currentReviewCampaignId: { value: id } }
+  },
+
+  campaignReport(reviewCampaignId: string, report: CampaignReport): StoryPreloadedState {
+    return {
+      reviewCampaignsReports: {
+        reportByCampaignId: { [reviewCampaignId]: ads.fulfilled(report) },
+      },
+    }
+  },
+
   conversationAgentSessions(
     sessionsByAgentId: Record<string, ConversationAgentSession[]>,
   ): StoryPreloadedState {
@@ -231,6 +248,16 @@ export const seed = {
 
     agentMemberships(memberships: AgentMembership[]): StoryPreloadedState {
       return { studio: { agentMemberships: { data: ads.fulfilled(memberships) } } }
+    },
+
+    projectMemberships(memberships: ProjectMembership[]): StoryPreloadedState {
+      return { studio: { projectMemberships: { data: ads.fulfilled(memberships) } } }
+    },
+
+    projectMemberAgents(memberAgents: ProjectMemberAgent[]): StoryPreloadedState {
+      return {
+        studio: { projectMemberships: { memberAgents: ads.fulfilled(memberAgents) } },
+      }
     },
 
     agentMessageFeedbacks(
