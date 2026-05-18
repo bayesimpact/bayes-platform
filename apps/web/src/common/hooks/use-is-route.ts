@@ -37,7 +37,12 @@ const interfaceHomePieces = new Set(
   ),
 )
 function getRoutePieces(routeName: string) {
-  return routeName
+  let result = routeName
+  for (const piece of interfaceHomePieces) {
+    // Remove all interface home pieces from the route, so that we can match routes regardless of which interface we're in. For example, "/studio/documents" and "/desk/documents" should both match "documents".
+    result = result.replace(piece, "")
+  }
+  return result
     .split("/")
     .filter(Boolean)
     .filter((piece) => !piece.startsWith(":"))
