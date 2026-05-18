@@ -64,27 +64,27 @@ describe("InvitationsService", () => {
     }
 
     it("throws NotFoundException when the invitation does not exist", async () => {
-      await expect(
-        service.revokeOne({ invitationId: randomUUID() }),
-      ).rejects.toThrow(NotFoundException)
+      await expect(service.revokeOne({ invitationId: randomUUID() })).rejects.toThrow(
+        NotFoundException,
+      )
     })
 
     it("throws ConflictException when the invitation has already been accepted", async () => {
       const repositories = setup.getAllRepositories()
       const invitation = await seedInvitation("accepted", repositories)
 
-      await expect(
-        service.revokeOne({ invitationId: invitation.id }),
-      ).rejects.toThrow(ConflictException)
+      await expect(service.revokeOne({ invitationId: invitation.id })).rejects.toThrow(
+        ConflictException,
+      )
     })
 
     it("throws ConflictException when the invitation is already revoked", async () => {
       const repositories = setup.getAllRepositories()
       const invitation = await seedInvitation("revoked", repositories)
 
-      await expect(
-        service.revokeOne({ invitationId: invitation.id }),
-      ).rejects.toThrow(ConflictException)
+      await expect(service.revokeOne({ invitationId: invitation.id })).rejects.toThrow(
+        ConflictException,
+      )
     })
   })
 })

@@ -29,18 +29,17 @@ import type {
 } from "./invitation-acceptance.handler"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { InvitationAcceptanceHelpersService } from "./invitation-acceptance-helpers.service"
+import type { BaseInviteMembersContext } from "./invitation-handler.types"
 import type {
   CreateInvitationsForTargetParams,
   InvitationTargetHandler,
   InvitationTargetScope,
 } from "./invitation-target.handler"
-import type { BaseInviteMembersContext } from "./invitation-handler.types"
 
 type InviteMembersContext = BaseInviteMembersContext & {
   membershipRepository: Repository<ReviewCampaignMembership>
   reviewCampaign: Pick<ReviewCampaign, "id" | "organizationId" | "projectId" | "status">
 }
-
 
 function isReviewCampaignMembershipRole(
   value: string | undefined,
@@ -287,10 +286,20 @@ export class ReviewCampaignInvitationHandler
         params.auth0Sub,
         params.email,
       )
-      const campaign = await reviewCampaignRepository.findOneOrFail({ where: { id: invitation.targetId } })
+      const campaign = await reviewCampaignRepository.findOneOrFail({
+        where: { id: invitation.targetId },
+      })
 
-      await this.acceptanceHelpers.ensureOrganizationMembership(organizationMembershipRepository, user.id, campaign.organizationId)
-      await this.acceptanceHelpers.ensureProjectMembership(projectMembershipRepository, user.id, campaign.projectId)
+      await this.acceptanceHelpers.ensureOrganizationMembership(
+        organizationMembershipRepository,
+        user.id,
+        campaign.organizationId,
+      )
+      await this.acceptanceHelpers.ensureProjectMembership(
+        projectMembershipRepository,
+        user.id,
+        campaign.projectId,
+      )
       await this.upsertCampaignMembership(membershipRepository, invitation, user.id, campaign)
       await invitationRepository.update({ id: invitation.id }, { userId: user.id })
       return { userId: user.id }

@@ -22,14 +22,14 @@ import type {
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { InvitationAcceptanceHelpersService } from "./invitation-acceptance-helpers.service"
 import type {
+  BaseAcceptanceRepositories,
+  BaseInviteMembersContext,
+} from "./invitation-handler.types"
+import type {
   CreateInvitationsForTargetParams,
   InvitationTargetHandler,
   InvitationTargetScope,
 } from "./invitation-target.handler"
-import type {
-  BaseAcceptanceRepositories,
-  BaseInviteMembersContext,
-} from "./invitation-handler.types"
 
 type InviteMembersContext = BaseInviteMembersContext & {
   membershipRepository: Repository<AgentMembership>
@@ -237,7 +237,9 @@ export class AgentInvitationHandler
         params.auth0Sub,
         params.email,
       )
-      const agent = await repos.agentRepository.findOneOrFail({ where: { id: invitation.targetId } })
+      const agent = await repos.agentRepository.findOneOrFail({
+        where: { id: invitation.targetId },
+      })
 
       await this.acceptanceHelpers.ensureOrganizationMembership(
         repos.organizationMembershipRepository,

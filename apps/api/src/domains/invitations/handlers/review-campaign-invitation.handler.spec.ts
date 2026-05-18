@@ -13,11 +13,11 @@ import {
 } from "@/common/test/test-database"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { reviewCampaignMembershipFactory } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { mockInvitationSender, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { InvitationsModule } from "../invitations.module"
-import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
-import { reviewCampaignMembershipFactory } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
 import { ReviewCampaignInvitationHandler } from "./review-campaign-invitation.handler"
 
 describe("ReviewCampaignInvitationHandler", () => {

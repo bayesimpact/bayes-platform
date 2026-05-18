@@ -460,9 +460,10 @@ describe("ProjectInvitationHandler", () => {
         email: inviteeUser.email,
       })
 
-      const updatedOrgMembership = await repositories.organizationMembershipRepository.findOneOrFail(
-        { where: { id: orgMembership.id } },
-      )
+      const updatedOrgMembership =
+        await repositories.organizationMembershipRepository.findOneOrFail({
+          where: { id: orgMembership.id },
+        })
       expect(updatedOrgMembership.role).toBe("admin")
     })
 
@@ -488,9 +489,10 @@ describe("ProjectInvitationHandler", () => {
         email: inviteeUser.email,
       })
 
-      const updatedOrgMembership = await repositories.organizationMembershipRepository.findOneOrFail(
-        { where: { id: orgMembership.id } },
-      )
+      const updatedOrgMembership =
+        await repositories.organizationMembershipRepository.findOneOrFail({
+          where: { id: orgMembership.id },
+        })
       expect(updatedOrgMembership.role).toBe("admin")
     })
 

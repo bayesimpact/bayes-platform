@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common"
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common"
 import type { Repository } from "typeorm"
 import type { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import type { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
@@ -24,7 +29,12 @@ export class InvitationAcceptanceHelpersService {
       return byEmail
     }
     return userRepository.save(
-      userRepository.create({ auth0Id: auth0Sub, email: normalizedEmail, name: null, pictureUrl: null }),
+      userRepository.create({
+        auth0Id: auth0Sub,
+        email: normalizedEmail,
+        name: null,
+        pictureUrl: null,
+      }),
     )
   }
 
