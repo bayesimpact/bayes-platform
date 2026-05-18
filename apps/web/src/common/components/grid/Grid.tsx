@@ -72,12 +72,6 @@ export function GridItem({
   | { action: React.ReactNode }
 )) {
   const { cols, total } = useGrid()
-  const arrow =
-    "onClick" in props ? (
-      <Button onClick={props.onClick} className="rounded-full" size="icon" variant="outline">
-        <ArrowRightIcon className="size-4" />
-      </Button>
-    ) : null
 
   return (
     <div
@@ -88,11 +82,8 @@ export function GridItem({
         getGridItemClassName({ index: index + 1, total, cols }),
       )}
     >
-      {(topAction || arrow) && (
-        <div className="absolute top-3 right-3 flex items-center gap-1">
-          {topAction}
-          {arrow}
-        </div>
+      {topAction && (
+        <div className="absolute top-3 right-3 flex items-center gap-1">{topAction}</div>
       )}
 
       {badge && typeof badge === "string" ? (
@@ -108,7 +99,13 @@ export function GridItem({
 
         <h3 className="text-base text-muted-foreground leading-snug mt-1 mb-4">{description}</h3>
 
-        {"action" in props ? props.action : null}
+        {"action" in props ? (
+          props.action
+        ) : (
+          <Button onClick={props.onClick} className="rounded-full" size="icon" variant="outline">
+            <ArrowRightIcon className="size-4" />
+          </Button>
+        )}
       </div>
 
       {footer && <div className="w-full mt-auto">{footer}</div>}
