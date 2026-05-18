@@ -9,30 +9,21 @@ import {
 } from "@/common/features/projects/projects.factory"
 import { withRedux } from "@/stories/decorators"
 import { mergeSeeds, seed } from "@/stories/seed"
-import { BaseAgentForm } from "@/studio/features/agents/components/BaseAgentForm"
+import { AgentEditorWithoutTrigger } from "@/studio/features/agents/components/AgentEditor"
 import { documentTagFactory } from "@/studio/features/document-tags/document-tags.factory"
 
 const organization = organizationFactory.build()
 const billingCategory = projectAgentCategoryFactory.build({ name: "Billing" })
 const supportCategory = projectAgentCategoryFactory.build({ name: "Support" })
-const agentCategories = [billingCategory, supportCategory]
-const project = projectFactory.transient({ organization }).build({ agentCategories })
-const projectWithoutAgentCategories = projectFactory
+const project = projectFactory
   .transient({ organization })
-  .build({ agentCategories: [] })
+  .build({ agentCategories: [billingCategory, supportCategory] })
 
 const productTag = documentTagFactory.transient({ project }).build({ name: "Product" })
 const pricingTag = documentTagFactory.transient({ project }).build({ name: "Pricing" })
-const supportTag = documentTagFactory.transient({ project }).build({ name: "Support" })
-const documentTags = [productTag, pricingTag, supportTag]
+const documentTags = [productTag, pricingTag]
 
-const mockOutputJsonSchema = agentOutputJsonSchemaFactory.build({
-  properties: {
-    title: { type: "string", description: "Short title for the item" },
-    summary: { type: "string", description: "One-sentence summary" },
-  },
-  required: ["title"],
-})
+const mockOutputJsonSchema = agentOutputJsonSchemaFactory.build()
 
 const conversationAgent = agentFactory.transient({ project }).build({
   type: "conversation",
@@ -61,82 +52,36 @@ const formAgent = agentFactory.transient({ project }).build({
 })
 
 const meta = {
-  title: "forms/BaseAgentForm",
-  component: BaseAgentForm,
+  title: "routes/studio/project/agent/AgentEditor",
+  component: AgentEditorWithoutTrigger,
   decorators: [
     withRedux({
       state: mergeSeeds(seed.currentProject(project), seed.studio.documentTags(documentTags)),
     }),
   ],
-  parameters: { layout: "padded" },
+  parameters: { layout: "fullscreen" },
   args: {
-    documentTags,
-    projectAgentCategories: project.agentCategories,
-    onSubmit: fn(),
+    onClose: fn(),
   },
-} satisfies Meta<typeof BaseAgentForm>
+} satisfies Meta<typeof AgentEditorWithoutTrigger>
 
 export default meta
 type Story = StoryObj<typeof meta>
 
 export const ConversationEdit: Story = {
   args: {
-    agentType: "conversation",
-    editableAgent: conversationAgent,
-  },
-}
-
-export const ConversationEditWithoutProjectCategories: Story = {
-  decorators: [
-    withRedux({
-      state: mergeSeeds(
-        seed.currentProject(projectWithoutAgentCategories),
-        seed.studio.documentTags(documentTags),
-      ),
-    }),
-  ],
-  args: {
-    agentType: "conversation",
-    editableAgent: {
-      ...conversationAgent,
-      projectAgentCategoryIds: [],
-      usedProjectAgentCategoryIds: [],
-    },
-    projectAgentCategories: [],
-  },
-}
-
-export const ConversationCreate: Story = {
-  args: {
-    agentType: "conversation",
-    editableAgent: undefined,
+    agent: conversationAgent,
   },
 }
 
 export const ExtractionEdit: Story = {
   args: {
-    agentType: "extraction",
-    editableAgent: extractionAgent,
-  },
-}
-
-export const ExtractionCreate: Story = {
-  args: {
-    agentType: "extraction",
-    editableAgent: undefined,
+    agent: extractionAgent,
   },
 }
 
 export const FormEdit: Story = {
   args: {
-    agentType: "form",
-    editableAgent: formAgent,
-  },
-}
-
-export const FormCreate: Story = {
-  args: {
-    agentType: "form",
-    editableAgent: undefined,
+    agent: formAgent,
   },
 }
