@@ -64,7 +64,7 @@ describe("Documents - reCrawlUrl", () => {
           sourceType: "webCrawl",
           sourceUrl: overrides?.sourceUrl !== undefined ? overrides.sourceUrl : "https://example.com",
           title: overrides?.title ?? "https://example.com",
-          content: overrides?.content !== undefined ? overrides.content : null,
+          content: overrides?.content ?? undefined,
           embeddingStatus: (overrides?.embeddingStatus as "completed") ?? "completed",
         },
       },

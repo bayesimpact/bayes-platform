@@ -9,18 +9,6 @@ import { DEFAULT_TOP_K } from "@/domains/agents/shared/agent-session-messages/st
 import type { RetrievedDocumentChunk } from "./document-chunk.types"
 import { resolveEmbeddingModelNames, resolveVertexConfig } from "./document-embeddings.config"
 
-export type RetrievedDocumentChunk = {
-  chunkId: string
-  documentId: string
-  documentTitle: string
-  documentFileName: string | null
-  documentSourceType: string
-  chunkIndex: number
-  content: string
-  distance: number
-  modelName: string
-}
-
 @Injectable()
 export class DocumentChunkRetrievalService {
   private readonly logger = new Logger(DocumentChunkRetrievalService.name)
