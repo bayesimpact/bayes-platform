@@ -33,6 +33,13 @@
         "title": "Aucun membre",
         "description": "Invitez des membres à utiliser votre agent."
       }
+    },
+    "remove": {
+      "dialog": {
+        "title": "Retirer {{name}} ?",
+        "description": "Ce membre sera retiré de l'agent. Cette action est irréversible.",
+        "confirm": "Retirer"
+      }
     }
   }
 }

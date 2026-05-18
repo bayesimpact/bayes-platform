@@ -1,16 +1,8 @@
 import { Button } from "@caseai-connect/ui/shad/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@caseai-connect/ui/shad/dialog"
 import { Trash2Icon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { buildSince } from "@/common/utils/build-date"
 import type { PendingInvitationItem, PendingInvitations } from "../invitations.models"
 
@@ -70,35 +62,24 @@ function PendingInvitationCard({
           })}
         </p>
       </div>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
-            aria-label={t("invitations:pendingItem.revoke")}
-          >
-            <Trash2Icon className="size-4" />
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("invitations:deleteDialog.title")}</DialogTitle>
-            <DialogDescription>
-              {t("invitations:deleteDialog.description", { email: label })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              {t("actions:cancel")}
-            </Button>
-            <Button type="button" variant="destructive" onClick={handleConfirm}>
-              {t("actions:confirm")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
+        aria-label={t("invitations:pendingItem.revoke")}
+        onClick={() => setOpen(true)}
+      >
+        <Trash2Icon className="size-4" />
+      </Button>
+      <ConfirmDialog
+        open={open}
+        title={t("invitations:deleteDialog.title")}
+        description={t("invitations:deleteDialog.description", { email: label })}
+        confirmLabel={t("actions:confirm")}
+        onConfirm={handleConfirm}
+        onCancel={() => setOpen(false)}
+      />
     </div>
   )
 }

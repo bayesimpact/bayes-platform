@@ -131,6 +131,11 @@
       "pendingInvitations": {
         "title": "Pending invitations",
         "description": "Invitations already sent for this review campaign."
+      },
+      "revokeDialog": {
+        "title": "Revoke {{email}}?",
+        "description": "This will remove the participant from the campaign. This action cannot be undone.",
+        "confirm": "Revoke"
       }
     },
     "preview": {

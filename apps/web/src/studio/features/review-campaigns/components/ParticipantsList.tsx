@@ -23,6 +23,7 @@ import {
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { PendingInvitationsSection } from "@/studio/features/invitations/components/PendingInvitationsSection"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 
@@ -59,6 +60,8 @@ export function ParticipantsList({
   const { t } = useTranslation()
   const [emailsInput, setEmailsInput] = useState("")
   const [role, setRole] = useState<ReviewCampaignMembershipRole>("tester")
+  const [confirmRevokeMembership, setConfirmRevokeMembership] =
+    useState<ReviewCampaignMembershipDto | null>(null)
 
   const roleLabel = (membershipRole: ReviewCampaignMembershipRole): string =>
     membershipRole === "tester"
@@ -160,7 +163,7 @@ export function ParticipantsList({
                       variant="ghost"
                       size="sm"
                       disabled={disabled}
-                      onClick={() => onRevoke(membership.id)}
+                      onClick={() => setConfirmRevokeMembership(membership)}
                     >
                       {t("reviewCampaigns:participants.revoke")}
                     </Button>
@@ -177,6 +180,20 @@ export function ParticipantsList({
           onRevoke={onRevokeInvitation}
         />
       </div>
+
+      <ConfirmDialog
+        open={confirmRevokeMembership !== null}
+        title={t("reviewCampaigns:participants.revokeDialog.title", {
+          email: confirmRevokeMembership?.userEmail,
+        })}
+        description={t("reviewCampaigns:participants.revokeDialog.description")}
+        confirmLabel={t("reviewCampaigns:participants.revokeDialog.confirm")}
+        onConfirm={() => {
+          if (confirmRevokeMembership) onRevoke(confirmRevokeMembership.id)
+          setConfirmRevokeMembership(null)
+        }}
+        onCancel={() => setConfirmRevokeMembership(null)}
+      />
     </section>
   )
 }

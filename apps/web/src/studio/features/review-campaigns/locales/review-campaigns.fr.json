@@ -131,6 +131,11 @@
       "pendingInvitations": {
         "title": "Invitations en attente",
         "description": "Invitations déjà envoyées pour cette campagne de revue."
+      },
+      "revokeDialog": {
+        "title": "Révoquer {{email}} ?",
+        "description": "Ce participant sera retiré de la campagne. Cette action est irréversible.",
+        "confirm": "Révoquer"
       }
     },
     "preview": {

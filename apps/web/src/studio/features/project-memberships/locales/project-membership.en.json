@@ -44,6 +44,13 @@
         "title": "No members",
         "description": "Invite admins to join your workspace to collaborate together."
       }
+    },
+    "remove": {
+      "dialog": {
+        "title": "Remove {{name}}?",
+        "description": "This will remove the member from the project. This action cannot be undone.",
+        "confirm": "Remove"
+      }
     }
   }
 }
