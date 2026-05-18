@@ -6,7 +6,7 @@ import { selectCurrentAgentData } from "@/common/features/agents/agents.selector
 import { useGetPath } from "@/common/hooks/use-build-path"
 import { useMount } from "@/common/hooks/use-mount"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
-import { useAppSelector } from "@/common/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import type { AgentMembership } from "@/studio/features/agent-memberships/agent-memberships.models"
 import {
   selectAgentMemberships,
