@@ -8,6 +8,24 @@ import type {
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { Project } from "@/common/features/projects/projects.models"
+import type { CampaignFormAgentOption } from "./components/CampaignForm"
+
+const AGENT_OPTION_NAMES = [
+  "Helpful Assistant",
+  "Scheduling Bot",
+  "Intake Form Agent",
+  "Research Agent",
+  "Summary Bot",
+]
+
+class CampaignFormAgentOptionFactory extends Factory<CampaignFormAgentOption> {}
+
+export const campaignFormAgentOptionFactory = CampaignFormAgentOptionFactory.define(
+  ({ params }) => ({
+    id: params.id ?? faker.string.uuid(),
+    name: params.name ?? faker.helpers.arrayElement(AGENT_OPTION_NAMES),
+  }),
+)
 
 type QuestionTransientParams = {
   type?: ReviewCampaignQuestionType

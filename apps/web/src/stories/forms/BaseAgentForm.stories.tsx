@@ -1,132 +1,77 @@
-import { AgentLocale, AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import { DocumentsRagMode } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { fn } from "storybook/test"
-import type { Agent } from "@/common/features/agents/agents.models"
-import type { Project } from "@/common/features/projects/projects.models"
+import { agentFactory, agentOutputJsonSchemaFactory } from "@/common/features/agents/agent.factory"
+import { organizationFactory } from "@/common/features/organizations/organization.factory"
+import {
+  projectAgentCategoryFactory,
+  projectFactory,
+} from "@/common/features/projects/projects.factory"
 import { withRedux } from "@/stories/decorators"
 import { mergeSeeds, seed } from "@/stories/seed"
 import { BaseAgentForm } from "@/studio/features/agents/components/BaseAgentForm"
-import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
+import { documentTagFactory } from "@/studio/features/document-tags/document-tags.factory"
 
-const mockProject: Project = {
-  id: "proj-1",
-  name: "Mock Project",
-  organizationId: "org-1",
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
-  featureFlags: [],
-  agentCategories: [
-    { id: "category-1", name: "Billing" },
-    { id: "category-2", name: "Support" },
-  ],
-}
+const organization = organizationFactory.build()
+const billingCategory = projectAgentCategoryFactory.build({ name: "Billing" })
+const supportCategory = projectAgentCategoryFactory.build({ name: "Support" })
+const agentCategories = [billingCategory, supportCategory]
+const project = projectFactory.transient({ organization }).build({ agentCategories })
+const projectWithoutAgentCategories = projectFactory
+  .transient({ organization })
+  .build({ agentCategories: [] })
 
-const mockProjectWithoutAgentCategories: Project = {
-  ...mockProject,
-  agentCategories: [],
-}
+const productTag = documentTagFactory.transient({ project }).build({ name: "Product" })
+const pricingTag = documentTagFactory.transient({ project }).build({ name: "Pricing" })
+const supportTag = documentTagFactory.transient({ project }).build({ name: "Support" })
+const documentTags = [productTag, pricingTag, supportTag]
 
-const mockDocumentTags: DocumentTag[] = [
-  {
-    id: "tag-1",
-    name: "Product",
-    childrenIds: [],
-    organizationId: "org-1",
-    projectId: "proj-1",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-  },
-  {
-    id: "tag-2",
-    name: "Pricing",
-    childrenIds: [],
-    organizationId: "org-1",
-    projectId: "proj-1",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-  },
-  {
-    id: "tag-3",
-    name: "Support",
-    childrenIds: [],
-    organizationId: "org-1",
-    projectId: "proj-1",
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-  },
-]
-
-const mockOutputJsonSchema = {
-  type: "object" as const,
+const mockOutputJsonSchema = agentOutputJsonSchemaFactory.build({
   properties: {
-    title: { type: "string" as const, description: "Short title for the item" },
-    summary: { type: "string" as const, description: "One-sentence summary" },
+    title: { type: "string", description: "Short title for the item" },
+    summary: { type: "string", description: "One-sentence summary" },
   },
   required: ["title"],
-}
+})
 
-const baseAgent = {
-  projectId: "proj-1",
-  name: "Helpful Assistant",
-  defaultPrompt:
-    "You are a helpful assistant. Answer the user's questions clearly using the available context.",
-  model: AgentModel.Gemini25Flash,
-  temperature: 0.2,
-  locale: AgentLocale.EN,
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
-  projectAgentCategoryIds: [],
-  usedProjectAgentCategoryIds: [],
-}
-
-const mockConversationAgent: Agent = {
-  ...baseAgent,
-  id: "agent-conv-1",
+const conversationAgent = agentFactory.transient({ project }).build({
   type: "conversation",
-  documentTagIds: ["tag-1"],
-  projectAgentCategoryIds: ["category-1"],
-  usedProjectAgentCategoryIds: ["category-1"],
+  name: "Helpful Assistant",
+  documentTagIds: [productTag.id],
   documentsRagMode: DocumentsRagMode.Tags,
+  projectAgentCategoryIds: [billingCategory.id],
+  usedProjectAgentCategoryIds: [billingCategory.id],
   greetingMessage: "Hi! How can I help you today?",
-}
+})
 
-const mockExtractionAgent: Agent = {
-  ...baseAgent,
-  id: "agent-ext-1",
-  name: "Document Extractor",
+const extractionAgent = agentFactory.transient({ project }).build({
   type: "extraction",
-  documentTagIds: [],
+  name: "Document Extractor",
   documentsRagMode: DocumentsRagMode.None,
   outputJsonSchema: mockOutputJsonSchema,
   greetingMessage: null,
-}
+})
 
-const mockFormAgent: Agent = {
-  ...baseAgent,
-  id: "agent-form-1",
-  name: "Intake Form Agent",
+const formAgent = agentFactory.transient({ project }).build({
   type: "form",
-  documentTagIds: [],
+  name: "Intake Form Agent",
   documentsRagMode: DocumentsRagMode.None,
   outputJsonSchema: mockOutputJsonSchema,
   greetingMessage: "Welcome — let's get started. I'll ask a few questions.",
-}
+})
 
 const meta = {
   title: "forms/BaseAgentForm",
   component: BaseAgentForm,
   decorators: [
     withRedux({
-      state: mergeSeeds(
-        seed.currentProject(mockProject),
-        seed.studio.documentTags(mockDocumentTags),
-      ),
+      state: mergeSeeds(seed.currentProject(project), seed.studio.documentTags(documentTags)),
     }),
   ],
   parameters: { layout: "padded" },
   args: {
-    documentTags: mockDocumentTags,
-    projectAgentCategories: mockProject.agentCategories,
+    documentTags,
+    projectAgentCategories: project.agentCategories,
     onSubmit: fn(),
   },
 } satisfies Meta<typeof BaseAgentForm>
@@ -137,7 +82,7 @@ type Story = StoryObj<typeof meta>
 export const ConversationEdit: Story = {
   args: {
     agentType: "conversation",
-    editableAgent: mockConversationAgent,
+    editableAgent: conversationAgent,
   },
 }
 
@@ -145,15 +90,15 @@ export const ConversationEditWithoutProjectCategories: Story = {
   decorators: [
     withRedux({
       state: mergeSeeds(
-        seed.currentProject(mockProjectWithoutAgentCategories),
-        seed.studio.documentTags(mockDocumentTags),
+        seed.currentProject(projectWithoutAgentCategories),
+        seed.studio.documentTags(documentTags),
       ),
     }),
   ],
   args: {
     agentType: "conversation",
     editableAgent: {
-      ...mockConversationAgent,
+      ...conversationAgent,
       projectAgentCategoryIds: [],
       usedProjectAgentCategoryIds: [],
     },
@@ -171,7 +116,7 @@ export const ConversationCreate: Story = {
 export const ExtractionEdit: Story = {
   args: {
     agentType: "extraction",
-    editableAgent: mockExtractionAgent,
+    editableAgent: extractionAgent,
   },
 }
 
@@ -185,7 +130,7 @@ export const ExtractionCreate: Story = {
 export const FormEdit: Story = {
   args: {
     agentType: "form",
-    editableAgent: mockFormAgent,
+    editableAgent: formAgent,
   },
 }
 

@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { Organization } from "@/common/features/organizations/organizations.models"
-import type { Project } from "./projects.models"
+import type { Project, ProjectAgentCategory } from "./projects.models"
 
 type ProjectTransientParams = {
   organization: Organization
@@ -26,3 +26,12 @@ export const projectFactory = ProjectFactory.define(({ params, transientParams }
     agentCategories: params.agentCategories ?? [],
   }
 })
+
+const AGENT_CATEGORY_NAMES = ["Billing", "Support", "Onboarding", "Sales", "Operations", "Research"]
+
+class ProjectAgentCategoryFactory extends Factory<ProjectAgentCategory> {}
+
+export const projectAgentCategoryFactory = ProjectAgentCategoryFactory.define(({ params }) => ({
+  id: params.id ?? faker.string.uuid(),
+  name: params.name ?? faker.helpers.arrayElement(AGENT_CATEGORY_NAMES),
+}))

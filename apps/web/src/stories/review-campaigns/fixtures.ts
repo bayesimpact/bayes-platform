@@ -1,8 +1,8 @@
 import type { ReviewCampaignMembershipDto } from "@caseai-connect/api-contracts"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import { projectFactory } from "@/common/features/projects/projects.factory"
-import type { CampaignFormAgentOption } from "@/studio/features/review-campaigns/components/CampaignForm"
 import {
+  campaignFormAgentOptionFactory,
   reviewCampaignFactory,
   reviewCampaignMembershipFactory,
   reviewCampaignQuestionFactory,
@@ -17,10 +17,10 @@ export const mockProject = projectFactory
   .transient({ organization: mockOrganization })
   .build({ id: "proj-1", name: "Demo project" })
 
-export const mockAgents: CampaignFormAgentOption[] = [
-  { id: "agent-1", name: "Helpful Assistant" },
-  { id: "agent-2", name: "Scheduling Bot" },
-  { id: "agent-3", name: "Intake Form Agent" },
+export const mockAgents = [
+  campaignFormAgentOptionFactory.build({ id: "agent-1", name: "Helpful Assistant" }),
+  campaignFormAgentOptionFactory.build({ id: "agent-2", name: "Scheduling Bot" }),
+  campaignFormAgentOptionFactory.build({ id: "agent-3", name: "Intake Form Agent" }),
 ]
 
 export const mockPerSessionQuestions = [

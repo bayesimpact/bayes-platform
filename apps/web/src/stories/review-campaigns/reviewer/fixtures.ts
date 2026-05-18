@@ -3,6 +3,7 @@ import type {
   ListMyReviewCampaignsResponseDto,
   ReviewerSessionFullDto,
 } from "@caseai-connect/api-contracts"
+import { agentOutputJsonSchemaFactory } from "@/common/features/agents/agent.factory"
 import {
   reviewerAgentSnapshotFactory,
   reviewerSessionBlindFactory,
@@ -129,16 +130,16 @@ const baseSessionId = "session-1"
 const baseStartedAt = now - MS_PER_HOUR
 const baseTesterUserId = "user-4f7a2c8e-3b1d-4e5f-9a6c-8d2b1c3e4f5a"
 
-const mockFormSchema = {
-  type: "object",
+const mockFormSchema = agentOutputJsonSchemaFactory.build({
   properties: {
-    fullName: { type: "string", title: "Full name" },
-    email: { type: "string", title: "Email address" },
-    role: { type: "string", title: "Role at company" },
-    teamSize: { type: "number", title: "Team size" },
-    interests: { type: "array", title: "Topics of interest" },
+    fullName: { type: "string", description: "Full name" },
+    email: { type: "string", description: "Email address" },
+    role: { type: "string", description: "Role at company" },
+    teamSize: { type: "number", description: "Team size" },
+    interests: { type: "array", description: "Topics of interest" },
   },
-} as const
+  required: [],
+})
 
 const mockFormAgent = reviewerAgentSnapshotFactory.build({
   id: "agent-form-1",
@@ -280,7 +281,7 @@ export const mockBlindFormSession = reviewerSessionBlindFactory.build({
   transcript: mockFormTranscript,
   reviewerQuestions: mockReviewerQuestions,
   formResult: {
-    schema: mockFormSchema as Record<string, unknown>,
+    schema: mockFormSchema,
     value: {
       fullName: "Jane Doe",
       email: "jane@example.com",
@@ -300,7 +301,7 @@ export const mockFullFormSession = reviewerSessionFullFactory.build({
   transcript: mockFormTranscript,
   reviewerQuestions: mockReviewerQuestions,
   formResult: {
-    schema: mockFormSchema as Record<string, unknown>,
+    schema: mockFormSchema,
     value: {
       fullName: "Jane Doe",
       email: "jane@example.com",
@@ -320,7 +321,7 @@ export const mockFullFormSession = reviewerSessionFullFactory.build({
 export const mockFullFormSessionAbandoned = reviewerSessionFullFactory.build({
   ...mockFullFormSession,
   formResult: {
-    schema: mockFormSchema as Record<string, unknown>,
+    schema: mockFormSchema,
     value: null,
   },
 })

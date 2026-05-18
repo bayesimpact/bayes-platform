@@ -1,8 +1,16 @@
-import { AgentLocale, AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import {
+  AgentLocale,
+  AgentModel,
+  DocumentsRagMode,
+  type outputJsonSchemaSchema,
+} from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
+import type { z } from "zod"
 import type { Project } from "@/common/features/projects/projects.models"
 import type { Agent } from "./agents.models"
+
+type AgentOutputJsonSchema = z.infer<typeof outputJsonSchemaSchema>
 
 type AgentTransientParams = {
   project: Project
@@ -16,6 +24,20 @@ const AGENT_NAMES = [
   "Triage Assistant",
   "Support Agent",
 ]
+
+class AgentOutputJsonSchemaFactory extends Factory<AgentOutputJsonSchema> {}
+
+export const agentOutputJsonSchemaFactory = AgentOutputJsonSchemaFactory.define(({ params }) => {
+  const properties: AgentOutputJsonSchema["properties"] = (params.properties ?? {
+    title: { type: "string", description: faker.lorem.sentence() },
+    summary: { type: "string", description: faker.lorem.sentence() },
+  }) as AgentOutputJsonSchema["properties"]
+  return {
+    type: "object" as const,
+    properties,
+    required: params.required ?? Object.keys(properties).slice(0, 1),
+  }
+})
 
 class AgentFactory extends Factory<Agent, AgentTransientParams> {}
 
