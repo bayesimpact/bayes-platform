@@ -1,7 +1,7 @@
 import { ReviewerCampaignPage } from "@/reviewer/features/review-campaigns/components/ReviewerCampaignPage"
 import { ReviewerSessionReviewPage } from "@/reviewer/features/review-campaigns/components/ReviewerSessionReviewPage"
 import { ReviewerCampaignRoute } from "@/reviewer/routes/ReviewerCampaignRoute"
-import { ReviewerRouteNames } from "./helpers"
+import { ReviewerRoutes } from "./helpers"
 import { ReviewerCampaignsRoute } from "./ReviewerCampaignsRoute"
 import { ReviewerReportRoute } from "./ReviewerReportRoute"
 import { ReviewerRoute } from "./ReviewerRoute"
@@ -11,25 +11,25 @@ export const reviewerRoutes = {
   element: <ReviewerRoute />,
   children: [
     {
-      path: ReviewerRouteNames.HOME,
+      path: ReviewerRoutes.home.path,
       element: <ReviewerCampaignsRoute />,
     },
     {
       element: <ReviewerCampaignRoute />,
       children: [
         {
-          path: ReviewerRouteNames.CAMPAIGN,
+          path: ReviewerRoutes.campaign.path,
           element: <ReviewerCampaignPage />,
         },
         {
-          path: ReviewerRouteNames.REPORT,
+          path: ReviewerRoutes.report.path,
           element: <ReviewerReportRoute />,
         },
         {
           element: <ReviewerSessionRoute />,
           children: [
             {
-              path: ReviewerRouteNames.SESSION,
+              path: ReviewerRoutes.session.path,
               element: <ReviewerSessionReviewPage />,
             },
           ],

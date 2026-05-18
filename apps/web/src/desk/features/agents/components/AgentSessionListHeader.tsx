@@ -5,7 +5,7 @@ import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/gri
 import { BaseAgentSessionCreator } from "@/common/features/agents/agent-sessions/shared/base-agent-session/components/BaseAgentSessionCreator"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
-import { useGetPath } from "@/common/hooks/use-build-path"
+import { useGetAgentRoute, useGetProjectRoute } from "@/common/hooks/use-get-path"
 
 export function AgentSessionListHeader({
   agent,
@@ -22,10 +22,11 @@ export function AgentSessionListHeader({
 }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { getPath } = useGetPath()
+  const getProjectRoute = useGetProjectRoute()
+  const getAgentRoute = useGetAgentRoute()
 
   const handleBack = () => {
-    const path = getPath(backTo)
+    const path = backTo === "agent" ? getAgentRoute() : getProjectRoute()
     navigate(path)
   }
 

@@ -11,8 +11,8 @@ import { selectCurrentProjectData } from "@/common/features/projects/projects.se
 import { useAbility } from "@/common/hooks/use-ability"
 import { RouteNames } from "@/common/routes/helpers"
 import { useAppSelector } from "@/common/store/hooks"
-import { StudioRouteNames } from "@/studio/routes/helpers"
-import { DeskRouteNames } from "./helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
+import { DeskRoutes } from "./helpers"
 
 export function DeskDashboardRoute({
   user,
@@ -32,6 +32,7 @@ export function DeskDashboardRoute({
       }
       user={{ name: user.name, email: user.email }}
       sidebarFooterChildren={<SidebarFooterChildren projectId={project.value?.id} />}
+      routes={DeskRoutes}
     >
       <Wrap>{outlet ? outlet : <Navigate to={RouteNames.HOME} />}</Wrap>
     </SidebarLayout>
@@ -43,7 +44,7 @@ function SidebarFooterChildren({ projectId }: { projectId?: string }) {
   const { abilities } = useAbility()
   const location = useLocation()
 
-  const studioPath = location.pathname.replace(DeskRouteNames.HOME, StudioRouteNames.HOME)
+  const studioPath = location.pathname.replace(DeskRoutes.home.path, StudioRoutes.home.path)
 
   if (!projectId || !abilities.canAccessStudio({ projectId })) return null
   return (

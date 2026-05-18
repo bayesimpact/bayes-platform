@@ -10,7 +10,7 @@ import {
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
 import { agentMessageFeedbackFactory } from "@/studio/features/agent-message-feedback/agent-message-feedback.factory"
-import { buildStudioPath, StudioRouteNames } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type AgentType = Extract<Agent["type"], "conversation" | "form">
@@ -38,7 +38,7 @@ const meta = {
     agentType: "conversation",
     withFeedbacks: false,
   },
-  render: render({ routes: studioRoutes, path: buildStudioPath(StudioRouteNames.FEEDBACK) }),
+  render: render({ routes: studioRoutes, path: StudioRoutes.feedback.path }),
 } satisfies Meta<StoryArgs>
 
 export default meta

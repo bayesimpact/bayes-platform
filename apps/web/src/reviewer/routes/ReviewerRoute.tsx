@@ -13,7 +13,7 @@ import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { injectTesterSlices, resetTesterSlices } from "@/tester/store/slices"
 import { injectReviewerSlices, resetReviewerSlices } from "../store/slices"
-import { ReviewerRouteNames } from "./helpers"
+import { ReviewerRoutes } from "./helpers"
 
 const useSetCurrentIds = () => {
   const dispatch = useAppDispatch()
@@ -59,7 +59,7 @@ export function ReviewerRoute() {
         <>
           <HorizontalNavbar
             user={user}
-            homePath={ReviewerRouteNames.HOME}
+            homePath={ReviewerRoutes.home.path}
             appName={t("reviewerCampaigns:shell.title")}
           />
           <div className="mx-10 xl:mx-20 my-10 relative border rounded-2xl overflow-hidden">

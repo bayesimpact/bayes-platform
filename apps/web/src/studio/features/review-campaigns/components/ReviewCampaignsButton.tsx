@@ -6,7 +6,7 @@ import { GridItem } from "@/common/components/grid/Grid"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useAppSelector } from "@/common/store/hooks"
-import { buildReviewCampaignsPath } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 
 export function ReviewCampaignsButton({ index }: { index: number }) {
   const { t } = useTranslation()
@@ -14,7 +14,7 @@ export function ReviewCampaignsButton({ index }: { index: number }) {
   const organizationId = useAppSelector(selectCurrentOrganizationId)
   const projectId = useAppSelector(selectCurrentProjectId)
   if (!organizationId || !projectId) return null
-  const path = buildReviewCampaignsPath({ organizationId, projectId })
+  const path = StudioRoutes.reviewCampaigns.build({ organizationId, projectId })
   const handleClick = () => {
     navigate(path)
   }

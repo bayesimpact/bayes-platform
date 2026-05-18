@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { RouteNames } from "@/common/routes/helpers"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -8,7 +7,7 @@ import {
   studioStoryArgTypes,
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds } from "@/stories/seed"
-import { buildStudioPath } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
@@ -24,7 +23,7 @@ const meta = {
     featureFlags: [],
     withAgents: false,
   },
-  render: render({ path: buildStudioPath(RouteNames.PROJECT), routes: studioRoutes }),
+  render: render({ path: StudioRoutes.project.path, routes: studioRoutes }),
 } satisfies Meta<StoryArgs>
 
 export default meta

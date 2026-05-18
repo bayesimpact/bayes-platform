@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import { buildTesterCampaignPath } from "@/tester/routes/helpers"
+import { TesterRoutes } from "@/tester/routes/helpers"
 import { selectMyReviewCampaigns } from "../tester.selectors"
 import { reviewCampaignsTesterActions } from "../tester.slice"
 import { MyCampaignsList } from "./MyCampaignsList"
@@ -37,7 +37,7 @@ export function TesterMyCampaignsPage() {
           campaigns={myCampaigns.value}
           onOpen={(campaign) =>
             navigate(
-              buildTesterCampaignPath({
+              TesterRoutes.campaign.build({
                 organizationId: campaign.organizationId,
                 projectId: campaign.projectId,
                 reviewCampaignId: campaign.id,

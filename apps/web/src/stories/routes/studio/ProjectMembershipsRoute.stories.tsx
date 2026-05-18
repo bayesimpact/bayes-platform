@@ -8,7 +8,7 @@ import {
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
 import { projectMembershipFactory } from "@/studio/features/project-memberships/project-memberships.factory"
-import { buildStudioPath, StudioRouteNames } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
@@ -28,7 +28,7 @@ const meta = {
   },
   render: render({
     routes: studioRoutes,
-    path: buildStudioPath(StudioRouteNames.PROJECT_MEMBERSHIPS),
+    path: StudioRoutes.projectMemberships.path,
   }),
 } satisfies Meta<StoryArgs>
 

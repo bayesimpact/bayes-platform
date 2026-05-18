@@ -3,7 +3,7 @@ import { selectCurrentProjectId } from "@/common/features/projects/projects.sele
 import { useAppSelector } from "@/common/store/hooks"
 import { assert } from "@/common/utils/assert"
 import { selectCurrentDatasetId } from "../features/evaluation-extraction-datasets/evaluation-extraction-datasets.selectors"
-import { buildEvalPath, EvalRouteNames } from "../routes/helpers"
+import { EvalRoutes } from "../routes/helpers"
 
 export function useEvaluationExtractionRunPath() {
   const organizationId = useAppSelector(selectCurrentOrganizationId)
@@ -15,12 +15,7 @@ export function useEvaluationExtractionRunPath() {
     assert(projectId, "Project ID is required to build run path")
     assert(datasetId, "Dataset ID is required to build run path")
 
-    return buildEvalPath(
-      EvalRouteNames.EVALUATION_RUN.replace(":organizationId", organizationId)
-        .replace(":projectId", projectId)
-        .replace(":datasetId", datasetId)
-        .replace(":runId", runId),
-    )
+    return EvalRoutes.evaluationRun.build({ organizationId, projectId, datasetId, runId })
   }
 
   return { buildRunPath }

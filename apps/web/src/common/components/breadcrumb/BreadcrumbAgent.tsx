@@ -13,28 +13,44 @@ import { Link } from "react-router-dom"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectAgentsData, selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
-import { useBuildPath } from "@/common/hooks/use-build-path"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
+import type { DeskRoutes } from "@/desk/routes/helpers"
+import type { StudioRoutes } from "@/studio/routes/helpers"
 
-export function BreadcrumbAgent({ organizationId }: { organizationId: string }) {
+export function BreadcrumbAgent({
+  organizationId,
+  buildPath,
+}: {
+  organizationId: string
+  buildPath: (typeof StudioRoutes)["agent"]["build"] | (typeof DeskRoutes)["agent"]["build"]
+}) {
   const agents = useAppSelector(selectAgentsData)
   const agent = useAppSelector(selectCurrentAgentData)
-  const { buildPath } = useBuildPath()
   if (!ADS.isFulfilled(agents) || !ADS.isFulfilled(agent)) return null
 
   const handleClick = (agentId: string) => () => {
     const nextAgent = agents.value.find((candidateAgent) => candidateAgent.id === agentId)
     if (!nextAgent) return
-    const path = buildPath("agent", { organizationId, projectId: agent.value.projectId, agentId })
+    const path = buildPath({ organizationId, projectId: agent.value.projectId, agentId })
     window.location.assign(path)
   }
 
   if (agents.value.length === 1)
-    return <CurrentAgentButton agent={agent.value} organizationId={organizationId} />
+    return (
+      <CurrentAgentButton
+        agent={agent.value}
+        organizationId={organizationId}
+        buildPath={buildPath}
+      />
+    )
   return (
     <div className="flex items-center">
-      <CurrentAgentButton agent={agent.value} organizationId={organizationId} />
+      <CurrentAgentButton
+        agent={agent.value}
+        organizationId={organizationId}
+        buildPath={buildPath}
+      />
       <BreadcrumbItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -60,9 +76,16 @@ export function BreadcrumbAgent({ organizationId }: { organizationId: string }) 
   )
 }
 
-function CurrentAgentButton({ agent, organizationId }: { agent: Agent; organizationId: string }) {
-  const { buildPath } = useBuildPath()
-  const currentAgentPath = buildPath("agent", {
+function CurrentAgentButton({
+  agent,
+  organizationId,
+  buildPath,
+}: {
+  agent: Agent
+  organizationId: string
+  buildPath: (typeof StudioRoutes)["agent"]["build"] | (typeof DeskRoutes)["agent"]["build"]
+}) {
+  const currentAgentPath = buildPath({
     organizationId,
     projectId: agent.projectId,
     agentId: agent.id,

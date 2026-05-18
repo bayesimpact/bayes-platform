@@ -8,11 +8,7 @@ import { useNavigate, useParams } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
-import {
-  buildReviewerReportPath,
-  buildReviewerSessionPath,
-  ReviewerRouteNames,
-} from "@/reviewer/routes/helpers"
+import { ReviewerRoutes } from "@/reviewer/routes/helpers"
 import { selectTesterContext } from "@/tester/features/review-campaigns/tester.selectors"
 import type { ReviewCampaignTesterContext, ReviewerSessionListItem } from "../reviewer.models"
 import { selectReviewerSessions } from "../reviewer.selectors"
@@ -38,7 +34,7 @@ export function ReviewerCampaignPage() {
       sessions={sessionsState.value}
       onOpenSession={(sessionId) =>
         navigate(
-          buildReviewerSessionPath({
+          ReviewerRoutes.session.build({
             organizationId: params.organizationId,
             projectId: params.projectId,
             reviewCampaignId: params.reviewCampaignId,
@@ -48,7 +44,7 @@ export function ReviewerCampaignPage() {
       }
       onOpenReport={() =>
         navigate(
-          buildReviewerReportPath({
+          ReviewerRoutes.report.build({
             organizationId: params.organizationId,
             projectId: params.projectId,
             reviewCampaignId: params.reviewCampaignId,
@@ -88,7 +84,7 @@ export function ReviewerCampaignLanding({
   return (
     <>
       <GridHeader
-        onBack={() => navigate(ReviewerRouteNames.HOME)}
+        onBack={() => navigate(ReviewerRoutes.home.path)}
         title={context.name}
         description={context.description}
         action={

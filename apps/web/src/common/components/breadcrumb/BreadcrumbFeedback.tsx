@@ -2,11 +2,11 @@ import { BreadcrumbItem, BreadcrumbSeparator } from "@caseai-connect/ui/shad/bre
 import { GitCommitHorizontalIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useIsRoute } from "@/common/hooks/use-is-route"
-import { StudioRouteNames } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 
 export function BreadcrumbFeedback() {
   const { isRoute } = useIsRoute()
-  const isFeedbackRoute = isRoute(StudioRouteNames.FEEDBACK)
+  const isFeedbackRoute = isRoute(StudioRoutes.feedback.path)
   const { t } = useTranslation()
   if (!isFeedbackRoute) return null
   return (

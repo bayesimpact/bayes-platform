@@ -11,7 +11,7 @@ import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
 import type { ProjectMembership } from "@/studio/features/project-memberships/project-memberships.models"
 import { removeProjectMembership } from "@/studio/features/project-memberships/project-memberships.thunks"
-import { buildProjectMembershipPath } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 
 export function ProjectMembershipItem({
   membership,
@@ -34,7 +34,7 @@ export function ProjectMembershipItem({
   const date = buildSince(membership.createdAt)
   const handleClick = () => {
     navigate(
-      buildProjectMembershipPath({
+      StudioRoutes.projectMembership.build({
         organizationId,
         projectId: membership.projectId,
         membershipId: membership.id,

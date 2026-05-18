@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { reactRouterParameters, withRouter } from "storybook-addon-remix-react-router"
 import { TesterCampaignLandingPage } from "@/tester/features/review-campaigns/components/TesterCampaignLandingPage"
-import { TesterRouteNames } from "@/tester/routes/helpers"
+import { TesterRoutes } from "@/tester/routes/helpers"
 import { withRedux } from "../../decorators"
 import { mergeSeeds, seed } from "../../seed"
 import { mockProject } from "../fixtures"
@@ -21,7 +21,7 @@ const meta = {
     layout: "fullscreen",
     reactRouter: reactRouterParameters({
       location: { pathParams },
-      routing: { path: TesterRouteNames.CAMPAIGN },
+      routing: { path: TesterRoutes.campaign.build(pathParams) },
     }),
   },
   decorators: [withRouter],

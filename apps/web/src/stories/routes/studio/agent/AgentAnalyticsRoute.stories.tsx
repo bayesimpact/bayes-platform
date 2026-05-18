@@ -14,7 +14,7 @@ import {
   analyticsCategoryDailyPointFactory,
   analyticsDailyPointFactory,
 } from "@/studio/features/analytics/project/analytics.factory"
-import { buildStudioPath, StudioRouteNames } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
@@ -73,7 +73,7 @@ const meta = {
   },
   render: render({
     routes: studioRoutes,
-    path: buildStudioPath(StudioRouteNames.AGENT_ANALYTICS),
+    path: StudioRoutes.agentAnalytics.path,
   }),
 } satisfies Meta<StoryArgs>
 

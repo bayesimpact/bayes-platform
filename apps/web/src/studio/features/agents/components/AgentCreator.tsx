@@ -24,9 +24,9 @@ import { useNavigate } from "react-router-dom"
 import { GridItem } from "@/common/components/grid/Grid"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { Project } from "@/common/features/projects/projects.models"
-import { useBuildPath } from "@/common/hooks/use-build-path"
 import { useAppDispatch } from "@/common/store/hooks"
 import { useDocumentTags } from "@/studio/features/document-tags/document-tags.helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 import { createAgent } from "../agents.thunks"
 import type { AgentFormData } from "./agent-form.shared"
 import { BaseAgentForm } from "./BaseAgentForm"
@@ -193,10 +193,9 @@ function AgentCreation({
 }) {
   const { t } = useTranslation("agent", { keyPrefix: "create" })
   const navigate = useNavigate()
-  const { buildPath } = useBuildPath()
 
   const handleSuccess = (agent: Agent) => {
-    const path = buildPath("agent", {
+    const path = StudioRoutes.agent.build({
       organizationId: project.organizationId,
       projectId: project.id,
       agentId: agent.id,

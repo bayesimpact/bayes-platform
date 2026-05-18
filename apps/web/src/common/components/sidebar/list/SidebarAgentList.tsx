@@ -11,7 +11,7 @@ import type { Agent } from "@/common/features/agents/agents.models"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
 import type { Project } from "@/common/features/projects/projects.models"
-import { useBuildPath } from "@/common/hooks/use-build-path"
+import { useRoutesBuilder } from "@/common/routes/build-routes/context"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
 import { AppNavItem } from "../nav/NavItem"
@@ -53,8 +53,8 @@ function WithData({
 }) {
   const { t } = useTranslation()
   const { agentId: urlagentId } = useParams()
-  const { buildPath } = useBuildPath()
 
+  const { build } = useRoutesBuilder()
   return (
     <SidebarGroup>
       <div className="flex items-center gap-2">
@@ -71,11 +71,7 @@ function WithData({
               item={{
                 id: agent.id,
                 title: agent.name,
-                url: buildPath("agent", {
-                  organizationId,
-                  projectId: project.id,
-                  agentId: agent.id,
-                }),
+                url: build.agentRoute({ organizationId, projectId: project.id, agentId: agent.id }),
                 isActive: urlagentId === agent.id,
                 icon: getAgentIcon(agent.type),
               }}

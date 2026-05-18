@@ -3,7 +3,6 @@ import { Outlet, useParams } from "react-router-dom"
 import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import { useInitStore } from "@/common/hooks/use-init-store"
 import { DashboardRoute } from "@/common/routes/DashboardRoute"
-import { RouteNames } from "@/common/routes/helpers"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { ProjectRoute } from "@/common/routes/ProjectRoute"
 import { useAppDispatch } from "@/common/store/hooks"
@@ -15,14 +14,14 @@ import { EvalDashboardRoute } from "./EvalDashboardRoute"
 import { EvaluationExtractionDatasetRoute } from "./EvaluationExtractionDatasetRoute"
 import { EvaluationExtractionDatasetsRoute } from "./EvaluationExtractionDatasetsRoute"
 import { EvaluationExtractionRunRoute } from "./EvaluationExtractionRunRoute"
-import { buildEvalPath, EvalRouteNames } from "./helpers"
+import { EvalRoutes } from "./helpers"
 
 export const evalRoutes = {
-  path: EvalRouteNames.HOME,
+  path: EvalRoutes.home.path,
   element: <Outlet />,
   children: [
     {
-      path: buildEvalPath(RouteNames.ORGANIZATION_DASHBOARD),
+      path: EvalRoutes.organization.path,
       element: (
         <DashboardRoute>
           {(user, _projects, _organization) => <EvalDashboardRoute user={user} />}
@@ -30,7 +29,7 @@ export const evalRoutes = {
       ),
       children: [
         {
-          path: buildEvalPath(RouteNames.PROJECT),
+          path: EvalRoutes.project.path,
           element: (
             <ProjectRoute>
               {() => (
@@ -42,15 +41,15 @@ export const evalRoutes = {
           ),
           children: [
             {
-              path: buildEvalPath(EvalRouteNames.EXTRACTION),
+              path: EvalRoutes.extraction.path,
               element: <EvaluationExtractionDatasetsRoute />,
               children: [
                 {
-                  path: buildEvalPath(EvalRouteNames.EXTRACTION_DATASET),
+                  path: EvalRoutes.extractionDataset.path,
                   element: <EvaluationExtractionDatasetRoute />,
                   children: [
                     {
-                      path: buildEvalPath(EvalRouteNames.EVALUATION_RUN),
+                      path: EvalRoutes.evaluationRun.path,
                       element: <EvaluationExtractionRunRoute />,
                     },
                   ],

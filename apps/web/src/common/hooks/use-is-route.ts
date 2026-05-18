@@ -1,8 +1,10 @@
 import { useCallback, useMemo } from "react"
 import { useLocation } from "react-router-dom"
-import type { RouteNames } from "@/common/routes/helpers"
-import { DeskRouteNames } from "@/desk/routes/helpers"
-import { StudioRouteNames } from "@/studio/routes/helpers"
+import { DeskRoutes } from "@/desk/routes/helpers"
+import { EvalRoutes } from "@/eval/routes/helpers"
+import { ReviewerRoutes } from "@/reviewer/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
+import { TesterRoutes } from "@/tester/routes/helpers"
 
 export function useIsRoute() {
   const { pathname } = useLocation()
@@ -11,7 +13,7 @@ export function useIsRoute() {
   }, [pathname])
 
   const isRoute = useCallback(
-    (routeName: RouteNames | StudioRouteNames | DeskRouteNames) => {
+    (routeName: string) => {
       const routePieces = getRoutePieces(routeName)
       return pathPieces === routePieces
     },
@@ -22,21 +24,19 @@ export function useIsRoute() {
 }
 
 function getPathPieces(pathname: string) {
-  return (
-    pathname
-      .split("/")
-      .filter(Boolean)
-      // filter out id params and "app" and "studio" (for app routes)
-      .filter(
-        (piece) =>
-          !idParamRegex.test(piece) &&
-          piece !== DeskRouteNames.HOME.slice(1) &&
-          piece !== StudioRouteNames.HOME.slice(1),
-      )
-      .toString()
-  )
+  return pathname
+    .split("/")
+    .filter(Boolean)
+    .filter((piece) => !idParamRegex.test(piece) && !interfaceHomePieces.has(piece))
+    .toString()
 }
-function getRoutePieces(routeName: RouteNames | StudioRouteNames | DeskRouteNames) {
+
+const interfaceHomePieces = new Set(
+  [DeskRoutes, StudioRoutes, EvalRoutes, TesterRoutes, ReviewerRoutes].map((routes) =>
+    routes.home.path.slice(1),
+  ),
+)
+function getRoutePieces(routeName: string) {
   return routeName
     .split("/")
     .filter(Boolean)

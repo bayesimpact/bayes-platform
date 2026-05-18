@@ -11,7 +11,7 @@ import {
 import { mergeSeeds, seed } from "@/stories/seed"
 import type { AgentMembership } from "@/studio/features/agent-memberships/agent-memberships.models"
 import type { IAgentMembershipsSpi } from "@/studio/features/agent-memberships/agent-memberships.spi"
-import { buildStudioPath, StudioRouteNames } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
@@ -48,7 +48,7 @@ const meta = {
   },
   render: render({
     routes: studioRoutes,
-    path: buildStudioPath(StudioRouteNames.AGENT_MEMBERSHIPS),
+    path: StudioRoutes.agentMemberships.path,
   }),
 } satisfies Meta<StoryArgs>
 

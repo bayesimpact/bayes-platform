@@ -1,176 +1,43 @@
-export enum StudioRouteNames {
-  // STUDIO ROUTES
-  HOME = "/studio",
-  DOCUMENTS = "/o/:organizationId/p/:projectId/d",
-  DOCUMENT = "/o/:organizationId/p/:projectId/d/:documentId",
-  PROJECT_ANALYTICS = "/o/:organizationId/p/:projectId/analytics",
-  EVALUATION = "/o/:organizationId/p/:projectId/eval",
-  PROJECT_MEMBERSHIPS = "/o/:organizationId/p/:projectId/members",
-  PROJECT_MEMBERSHIP = "/o/:organizationId/p/:projectId/members/:membershipId",
-  FEEDBACK = "/o/:organizationId/p/:projectId/a/:agentId/f",
-  AGENT_MEMBERSHIPS = "/o/:organizationId/p/:projectId/a/:agentId/members",
-  AGENT_ANALYTICS = "/o/:organizationId/p/:projectId/a/:agentId/analytics",
-  REVIEW_CAMPAIGNS = "/o/:organizationId/p/:projectId/review-campaigns",
-  REVIEW_CAMPAIGN_REPORT = "/o/:organizationId/p/:projectId/review-campaigns/:reviewCampaignId/report",
+import { defineRoute } from "@/common/routes/helpers"
+
+const home = defineRoute("/studio")
+const organization = home.extend("/o/:organizationId")
+const project = organization.extend("/p/:projectId")
+
+// PROJECT-LEVEL
+const agent = project.extend("/a/:agentId")
+const documents = project.extend("/d")
+const document = documents.extend("/:documentId")
+const projectAnalytics = project.extend("/analytics")
+const evaluation = project.extend("/eval")
+const projectMemberships = project.extend("/members")
+const projectMembership = projectMemberships.extend("/:membershipId")
+const reviewCampaigns = project.extend("/review-campaigns")
+const reviewCampaignReport = reviewCampaigns.extend("/:reviewCampaignId/report")
+
+// AGENT-LEVEL
+const agentSession = agent.extend("/as/:agentSessionId")
+const feedback = agent.extend("/f")
+const agentMemberships = agent.extend("/members")
+const agentAnalytics = agent.extend("/analytics")
+
+export const StudioRoutes = {
+  agent,
+  agentAnalytics,
+  agentMemberships,
+  agentSession,
+  document,
+  documents,
+  evaluation,
+  feedback,
+  home,
+  organization,
+  project,
+  projectAnalytics,
+  projectMembership,
+  projectMemberships,
+  reviewCampaignReport,
+  reviewCampaigns,
 }
 
-export const buildStudioPath = (path: string) => {
-  return `${StudioRouteNames.HOME}${path}`
-}
-
-export const buildDocumentsPath = ({
-  organizationId,
-  projectId,
-}: {
-  organizationId: string
-  projectId: string
-}) => {
-  return buildStudioPath(
-    StudioRouteNames.DOCUMENTS.replace(":organizationId", organizationId).replace(
-      ":projectId",
-      projectId,
-    ),
-  )
-}
-
-export const buildProjectAnalyticsPath = ({
-  organizationId,
-  projectId,
-}: {
-  organizationId: string
-  projectId: string
-}) => {
-  return buildStudioPath(
-    StudioRouteNames.PROJECT_ANALYTICS.replace(":organizationId", organizationId).replace(
-      ":projectId",
-      projectId,
-    ),
-  )
-}
-
-export const buildEvaluationPath = ({
-  organizationId,
-  projectId,
-}: {
-  organizationId: string
-  projectId: string
-}) => {
-  return buildStudioPath(
-    StudioRouteNames.EVALUATION.replace(":organizationId", organizationId).replace(
-      ":projectId",
-      projectId,
-    ),
-  )
-}
-
-export const buildFeedbackPath = ({
-  organizationId,
-  projectId,
-  agentId,
-}: {
-  organizationId: string
-  projectId: string
-  agentId: string
-}) => {
-  return buildStudioPath(
-    StudioRouteNames.FEEDBACK.replace(":organizationId", organizationId)
-      .replace(":projectId", projectId)
-      .replace(":agentId", agentId),
-  )
-}
-
-export const buildProjectMembershipsPath = ({
-  organizationId,
-  projectId,
-}: {
-  organizationId: string
-  projectId: string
-}) => {
-  return buildStudioPath(
-    StudioRouteNames.PROJECT_MEMBERSHIPS.replace(":organizationId", organizationId).replace(
-      ":projectId",
-      projectId,
-    ),
-  )
-}
-
-export const buildProjectMembershipPath = ({
-  organizationId,
-  projectId,
-  membershipId,
-}: {
-  organizationId: string
-  projectId: string
-  membershipId: string
-}) => {
-  return buildStudioPath(
-    StudioRouteNames.PROJECT_MEMBERSHIP.replace(":organizationId", organizationId)
-      .replace(":projectId", projectId)
-      .replace(":membershipId", membershipId),
-  )
-}
-
-export const buildAgentMembershipsPath = ({
-  organizationId,
-  projectId,
-  agentId,
-}: {
-  organizationId: string
-  projectId: string
-  agentId: string
-}) => {
-  return buildStudioPath(
-    StudioRouteNames.AGENT_MEMBERSHIPS.replace(":organizationId", organizationId)
-      .replace(":projectId", projectId)
-      .replace(":agentId", agentId),
-  )
-}
-
-export const buildAgentAnalyticsPath = ({
-  organizationId,
-  projectId,
-  agentId,
-}: {
-  organizationId: string
-  projectId: string
-  agentId: string
-}) => {
-  return buildStudioPath(
-    StudioRouteNames.AGENT_ANALYTICS.replace(":organizationId", organizationId)
-      .replace(":projectId", projectId)
-      .replace(":agentId", agentId),
-  )
-}
-
-export const buildReviewCampaignsPath = ({
-  organizationId,
-  projectId,
-}: {
-  organizationId: string
-  projectId: string
-}) => {
-  return buildStudioPath(
-    StudioRouteNames.REVIEW_CAMPAIGNS.replace(":organizationId", organizationId).replace(
-      ":projectId",
-      projectId,
-    ),
-  )
-}
-
-export const buildReviewCampaignReportPath = ({
-  organizationId,
-  projectId,
-  reviewCampaignId,
-}: {
-  organizationId: string
-  projectId: string
-  reviewCampaignId: string
-}) => {
-  return buildStudioPath(
-    StudioRouteNames.REVIEW_CAMPAIGN_REPORT.replace(":organizationId", organizationId)
-      .replace(":projectId", projectId)
-      .replace(":reviewCampaignId", reviewCampaignId),
-  )
-}
-
-export const isStudioInterface = () => window.location.pathname.startsWith(StudioRouteNames.HOME)
+export const isStudioInterface = () => window.location.pathname.startsWith(StudioRoutes.home.path)

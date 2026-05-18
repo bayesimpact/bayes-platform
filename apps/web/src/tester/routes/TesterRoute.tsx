@@ -12,7 +12,7 @@ import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { injectTesterSlices, resetTesterSlices } from "../store/slices"
-import { TesterRouteNames } from "./helpers"
+import { TesterRoutes } from "./helpers"
 
 const useSetCurrentIds = () => {
   const dispatch = useAppDispatch()
@@ -52,7 +52,7 @@ export function TesterRoute() {
         <>
           <HorizontalNavbar
             user={user}
-            homePath={TesterRouteNames.HOME}
+            homePath={TesterRoutes.home.path}
             appName={t("testerCampaigns:shell.title")}
           />
           <Outlet />

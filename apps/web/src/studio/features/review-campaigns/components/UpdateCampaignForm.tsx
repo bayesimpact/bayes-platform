@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAppDispatch } from "@/common/store/hooks"
-import { buildReviewCampaignReportPath } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 import type { ReviewCampaignDetail } from "../review-campaigns.models"
 import {
   deleteReviewCampaign,
@@ -33,7 +33,7 @@ export function UpdateCampaignForm({ campaign, agents, onSuccess, onDeleted }: P
 
   const handleOpenReport = () => {
     navigate(
-      buildReviewCampaignReportPath({
+      StudioRoutes.reviewCampaignReport.build({
         organizationId: campaign.organizationId,
         projectId: campaign.projectId,
         reviewCampaignId: campaign.id,

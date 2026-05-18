@@ -10,7 +10,7 @@ import { mergeSeeds, seed } from "@/stories/seed"
 import { evaluationReportFactory } from "@/studio/features/evaluation-reports/evaluation-reports.factory"
 import type { EvaluationReport } from "@/studio/features/evaluation-reports/evaluation-reports.models"
 import { evaluationFactory } from "@/studio/features/evaluations/evaluations.factory"
-import { buildStudioPath, StudioRouteNames } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
@@ -32,7 +32,7 @@ const meta = {
     withEvaluations: false,
     withEvaluationReports: false,
   },
-  render: render({ routes: studioRoutes, path: buildStudioPath(StudioRouteNames.EVALUATION) }),
+  render: render({ routes: studioRoutes, path: StudioRoutes.evaluation.path }),
 } satisfies Meta<StoryArgs>
 
 export default meta

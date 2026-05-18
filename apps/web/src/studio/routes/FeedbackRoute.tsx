@@ -7,7 +7,7 @@ import {
   selectCurrentAgentId,
 } from "@/common/features/agents/agents.selectors"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
-import { useGetPath } from "@/common/hooks/use-build-path"
+import { useGetAgentRoute } from "@/common/hooks/use-get-path"
 import { useAppSelector } from "@/common/store/hooks"
 import type { AgentMessageFeedback } from "@/studio/features/agent-message-feedback/agent-message-feedback.models"
 import { selectFeedbacksFromAgentId } from "@/studio/features/agent-message-feedback/agent-message-feedback.selectors"
@@ -32,12 +32,9 @@ export function FeedbackRoute() {
 function WithData({ feedbacks, agent }: { feedbacks: AgentMessageFeedback[]; agent: Agent }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { getPath } = useGetPath()
+  const getAgentRoute = useGetAgentRoute()
 
-  const handleBack = () => {
-    const path = getPath("agent")
-    navigate(path)
-  }
+  const handleBack = () => navigate(getAgentRoute())
 
   const Icon = getAgentIcon(agent.type)
   return (

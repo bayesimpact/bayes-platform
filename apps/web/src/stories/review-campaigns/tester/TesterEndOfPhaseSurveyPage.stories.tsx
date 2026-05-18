@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { reactRouterParameters, withRouter } from "storybook-addon-remix-react-router"
 import { TesterEndOfPhaseSurveyPage } from "@/tester/features/review-campaigns/components/TesterEndOfPhaseSurveyPage"
-import { TesterRouteNames } from "@/tester/routes/helpers"
+import { TesterRoutes } from "@/tester/routes/helpers"
 import { withRedux } from "../../decorators"
 import { mergeSeeds, seed } from "../../seed"
 import { mockProject } from "../fixtures"
@@ -21,7 +21,7 @@ const meta = {
     layout: "fullscreen",
     reactRouter: reactRouterParameters({
       location: { pathParams },
-      routing: { path: TesterRouteNames.SURVEY },
+      routing: { path: TesterRoutes.survey.build(pathParams) },
     }),
   },
   decorators: [withRouter],

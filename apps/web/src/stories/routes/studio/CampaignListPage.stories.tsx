@@ -13,7 +13,7 @@ import type {
   ReviewCampaignListItem,
 } from "@/studio/features/review-campaigns/review-campaigns.models"
 import type { IReviewCampaignsSpi } from "@/studio/features/review-campaigns/review-campaigns.spi"
-import { buildStudioPath, StudioRouteNames } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
@@ -66,7 +66,7 @@ const meta = {
   },
   render: render({
     routes: studioRoutes,
-    path: buildStudioPath(StudioRouteNames.REVIEW_CAMPAIGNS),
+    path: StudioRoutes.reviewCampaigns.path,
   }),
 } satisfies Meta<StoryArgs>
 

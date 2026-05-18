@@ -14,7 +14,7 @@ import { AgentSessionMessages } from "@/common/features/agents/agent-sessions/sh
 import type { Agent } from "@/common/features/agents/agents.models"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import { buildTesterCampaignPath } from "@/tester/routes/helpers"
+import { TesterRoutes } from "@/tester/routes/helpers"
 import { selectTesterContext } from "../tester.selectors"
 import { submitTesterFeedback } from "../tester.thunks"
 import { TesterFeedbackModal } from "./TesterFeedbackModal"
@@ -56,11 +56,7 @@ export function TesterAgentSessionPage() {
       messages={messages}
       campaignName={contextState.value.name}
       perSessionQuestions={contextState.value.testerPerSessionQuestions}
-      backPath={buildTesterCampaignPath({
-        organizationId: params.organizationId,
-        projectId: params.projectId,
-        reviewCampaignId: params.reviewCampaignId,
-      })}
+      backPath={TesterRoutes.campaign.build(params)}
     />
   )
 }

@@ -22,7 +22,7 @@ import { ExtractionSessionItem } from "@/common/features/agents/components/Extra
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useAbility } from "@/common/hooks/use-ability"
-import { useGetPath } from "@/common/hooks/use-build-path"
+import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { ErrorRoute } from "@/common/routes/ErrorRoute"
 import { useAppSelector } from "@/common/store/hooks"
 import { AgentActions } from "./AgentActions"
@@ -128,15 +128,15 @@ export function ExtractionAgentSessionList({
   const outlet = useOutlet()
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { getPath } = useGetPath()
+  const getProjectRoute = useGetProjectRoute()
+
   const organizationId = useAppSelector(selectCurrentOrganizationId)
   const projectId = useAppSelector(selectCurrentProjectId)
+
   const { abilities } = useAbility()
   const canManageAgent = abilities.canManageAgent({ agentId: agent.id })
-  const handleBack = () => {
-    const path = getPath("project")
-    navigate(path)
-  }
+
+  const handleBack = () => navigate(getProjectRoute())
 
   if (!organizationId || !projectId)
     return <ErrorRoute error={"Missing organization or project ID"} />

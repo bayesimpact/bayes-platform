@@ -1,10 +1,21 @@
-export enum EvalRouteNames {
-  HOME = "/eval",
-  EXTRACTION = "/o/:organizationId/p/:projectId/extraction",
-  EXTRACTION_DATASET = "/o/:organizationId/p/:projectId/extraction/:datasetId",
-  EVALUATION_RUN = "/o/:organizationId/p/:projectId/extraction/:datasetId/runs/:runId",
-}
+import { defineRoute } from "@/common/routes/helpers"
 
-export const buildEvalPath = (path: string) => {
-  return `${EvalRouteNames.HOME}${path}`
+const home = defineRoute("/eval")
+const organization = home.extend("/o/:organizationId")
+const project = organization.extend("/p/:projectId")
+
+// PROJECT-LEVEL
+const extraction = project.extend("/extraction")
+
+// EXTRACTION-LEVEL
+const extractionDataset = extraction.extend("/:datasetId")
+const evaluationRun = extractionDataset.extend("/runs/:runId")
+
+export const EvalRoutes = {
+  evaluationRun,
+  extraction,
+  extractionDataset,
+  home,
+  organization,
+  project,
 }

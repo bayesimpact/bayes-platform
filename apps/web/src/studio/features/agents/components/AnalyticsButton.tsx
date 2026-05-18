@@ -6,7 +6,7 @@ import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useAppSelector } from "@/common/store/hooks"
-import { buildProjectAnalyticsPath } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 
 const bars = [40, 65, 45, 80, 55, 70, 90, 60, 75, 50, 85, 68]
 export function AnalyticsButton({ index }: { index: number }) {
@@ -15,7 +15,7 @@ export function AnalyticsButton({ index }: { index: number }) {
   const organizationId = useAppSelector(selectCurrentOrganizationId)
   const projectId = useAppSelector(selectCurrentProjectId)
   if (!organizationId || !projectId) return null
-  const path = buildProjectAnalyticsPath({ organizationId, projectId })
+  const path = StudioRoutes.projectAnalytics.build({ organizationId, projectId })
   const handleClick = () => {
     navigate(path)
   }

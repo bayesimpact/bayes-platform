@@ -23,7 +23,8 @@ import { deleteAgentSession } from "@/common/features/agents/agent-sessions/shar
 import { BaseAgentSessionCreator } from "@/common/features/agents/agent-sessions/shared/base-agent-session/components/BaseAgentSessionCreator"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectCurrentAgentId } from "@/common/features/agents/agents.selectors"
-import { useBuildPath, useGetPath } from "@/common/hooks/use-build-path"
+import { useGetAgentRoute } from "@/common/hooks/use-get-path"
+import { useRoutesBuilder } from "@/common/routes/build-routes/context"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
@@ -86,12 +87,11 @@ function SessionList({
   children?: React.ReactNode
 }) {
   const currentSessionId = useAppSelector(selectCurrentAgentSessionId)
-
-  const { buildPath } = useBuildPath()
+  const { build } = useRoutesBuilder()
   const items: MenuItem[] = sessions.map((session) => ({
     id: session.id,
     title: buildSince(session.createdAt),
-    url: buildPath("agentSession", { ...agentSessionProps, agentSessionId: session.id }),
+    url: build.agentSessionRoute({ ...agentSessionProps, agentSessionId: session.id }),
     isActive: currentSessionId === session.id,
     icon: MessagesSquareIcon,
   }))
@@ -138,8 +138,8 @@ function OptionsMenu({
   const dispatch = useAppDispatch()
   const { isMobile } = useSidebar()
   const { t } = useTranslation()
-  const { getPath } = useGetPath()
-  const handleSuccess = () => navigate(getPath("agent"))
+  const getAgentRoute = useGetAgentRoute()
+  const handleSuccess = () => navigate(getAgentRoute())
   const handleDelete = () => {
     dispatch(deleteAgentSession({ agentType, agentId, agentSessionId, onSuccess: handleSuccess }))
   }

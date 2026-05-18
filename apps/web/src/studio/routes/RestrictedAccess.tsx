@@ -19,5 +19,5 @@ export function RestrictedAccess({
   const canAccess = abilities[ability]({ agentId, projectId })
 
   if (canAccess) return <>{children || <Outlet />}</>
-  return <NotFoundRoute redirectToHome />
+  return <NotFoundRoute />
 }

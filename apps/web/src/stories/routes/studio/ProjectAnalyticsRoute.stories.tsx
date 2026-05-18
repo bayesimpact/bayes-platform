@@ -13,7 +13,7 @@ import {
   analyticsDailyPointFactory,
 } from "@/studio/features/analytics/project/analytics.factory"
 import type { IProjectAnalyticsSpi } from "@/studio/features/analytics/project/analytics.spi"
-import { buildStudioPath, StudioRouteNames } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
@@ -69,7 +69,7 @@ const meta = {
   },
   render: render({
     routes: studioRoutes,
-    path: buildStudioPath(StudioRouteNames.PROJECT_ANALYTICS),
+    path: StudioRoutes.projectAnalytics.path,
   }),
 } satisfies Meta<StoryArgs>
 

@@ -12,6 +12,6 @@ export function RestrictedFeature({
   returnNull?: boolean
 }) {
   const { hasFeature } = useFeatureFlags()
-  if (!hasFeature(feature)) return returnNull ? null : <NotFoundRoute redirectToHome />
+  if (!hasFeature(feature)) return returnNull ? null : <NotFoundRoute />
   return <>{children}</>
 }

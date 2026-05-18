@@ -6,7 +6,6 @@ import {
   formAgentSessionFactory,
 } from "@/common/features/agents/agent-sessions/agent-session.factory"
 import type { Agent } from "@/common/features/agents/agents.models"
-import { RouteNames } from "@/common/routes/helpers"
 import { buildDecorator, render } from "@/stories/decorators"
 import { sortRecentlyCreated } from "@/stories/helpers"
 import {
@@ -16,7 +15,7 @@ import {
   studioStoryArgTypes,
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
-import { buildStudioPath } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type AgentType = Agent["type"]
@@ -44,7 +43,7 @@ const meta = {
     agentType: "conversation",
     withAgentSessions: false,
   },
-  render: render({ routes: studioRoutes, path: buildStudioPath(RouteNames.AGENT) }),
+  render: render({ routes: studioRoutes, path: StudioRoutes.agent.path }),
 } satisfies Meta<StoryArgs>
 
 export default meta

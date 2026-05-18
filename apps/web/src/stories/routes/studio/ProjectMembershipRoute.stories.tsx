@@ -16,7 +16,7 @@ import type {
   ProjectMembership,
 } from "@/studio/features/project-memberships/project-memberships.models"
 import type { IProjectMembershipsSpi } from "@/studio/features/project-memberships/project-memberships.spi"
-import { buildStudioPath, StudioRouteNames } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
@@ -57,10 +57,7 @@ const meta = {
   },
   render: render({
     routes: studioRoutes,
-    path: buildStudioPath(StudioRouteNames.PROJECT_MEMBERSHIP).replace(
-      ":membershipId",
-      FIXED_MEMBERSHIP_ID,
-    ),
+    path: StudioRoutes.projectMembership.path.replace(":membershipId", FIXED_MEMBERSHIP_ID),
   }),
 } satisfies Meta<StoryArgs>
 

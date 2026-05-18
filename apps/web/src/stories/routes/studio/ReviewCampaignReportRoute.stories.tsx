@@ -15,7 +15,7 @@ import {
 } from "@/studio/features/review-campaigns/reports/report.factory"
 import type { CampaignReport } from "@/studio/features/review-campaigns/reports/reports.models"
 import type { IReportsSpi } from "@/studio/features/review-campaigns/reports/reports.spi"
-import { buildStudioPath, StudioRouteNames } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
@@ -122,7 +122,7 @@ const meta = {
   },
   render: render({
     routes: studioRoutes,
-    path: buildStudioPath(StudioRouteNames.REVIEW_CAMPAIGN_REPORT),
+    path: StudioRoutes.reviewCampaignReport.path,
   }),
 } satisfies Meta<StoryArgs>
 

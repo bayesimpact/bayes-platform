@@ -12,7 +12,7 @@ import {
   selectCurrentAgentId,
 } from "@/common/features/agents/agents.selectors"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
-import { useGetPath } from "@/common/hooks/use-build-path"
+import { useGetAgentRoute } from "@/common/hooks/use-get-path"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import {
   selectAgentAnalyticsAvgUserQuestionsPerSessionPerDay,
@@ -99,12 +99,9 @@ function WithData({
 }) {
   const { t } = useTranslation("agentAnalytics")
   const navigate = useNavigate()
-  const { getPath } = useGetPath()
+  const getAgentRoute = useGetAgentRoute()
 
-  const handleBack = () => {
-    const path = getPath("agent")
-    navigate(path)
-  }
+  const handleBack = () => navigate(getAgentRoute())
 
   const onRangeChange = useCallback(
     (range: DateRange | undefined) => {

@@ -9,7 +9,7 @@ import {
 import { mergeSeeds, seed } from "@/stories/seed"
 import { documentTagFactory } from "@/studio/features/document-tags/document-tags.factory"
 import { documentFactory } from "@/studio/features/documents/documents.factory"
-import { buildStudioPath, StudioRouteNames } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
@@ -30,7 +30,7 @@ const meta = {
     withDocuments: false,
     withDocumentTags: false,
   },
-  render: render({ routes: studioRoutes, path: buildStudioPath(StudioRouteNames.DOCUMENTS) }),
+  render: render({ routes: studioRoutes, path: StudioRoutes.documents.path }),
 } satisfies Meta<StoryArgs>
 
 export default meta

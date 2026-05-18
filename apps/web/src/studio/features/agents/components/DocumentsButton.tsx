@@ -6,7 +6,7 @@ import { GridItem } from "@/common/components/grid/Grid"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useAppSelector } from "@/common/store/hooks"
-import { buildDocumentsPath } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 import { selectUploaderState } from "../../documents/documents.selectors"
 
 export function DocumentsButton({ index }: { index: number }) {
@@ -15,7 +15,7 @@ export function DocumentsButton({ index }: { index: number }) {
   const organizationId = useAppSelector(selectCurrentOrganizationId)
   const projectId = useAppSelector(selectCurrentProjectId)
   if (!organizationId || !projectId) return null
-  const path = buildDocumentsPath({ organizationId, projectId })
+  const path = StudioRoutes.documents.build({ organizationId, projectId })
   const handleClick = () => {
     navigate(path)
   }
