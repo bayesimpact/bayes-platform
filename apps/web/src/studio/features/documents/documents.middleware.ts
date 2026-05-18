@@ -41,6 +41,15 @@ function registerListeners() {
   })
 
   listenerMiddleware.startListening({
+    actionCreator: documentsActions.setCurrentSourceType,
+    effect: async (action, listenerApi) => {
+      if (action.payload.sourceType) {
+        listenerApi.dispatch(listDocuments())
+      }
+    },
+  })
+
+  listenerMiddleware.startListening({
     actionCreator: documentsActions.startEmbeddingStatusStream,
     effect: async (_, listenerApi) => {
       await startDocumentEmbeddingStatusStream(listenerApi)
