@@ -210,6 +210,7 @@ describe("ReviewCampaignInvitationHandler", () => {
       })
 
       expect(invitations[0]!.userId).toBe(existingUser.id)
+      expect(mockInvitationSender.sendInvitation).not.toHaveBeenCalled()
     })
 
     it("skips when the user already has a membership with the same role in the campaign", async () => {

@@ -86,6 +86,7 @@ describe("ProjectInvitationHandler", () => {
 
       expect(invitations).toHaveLength(1)
       expect(invitations[0]!.userId).toBe(existingUser.id)
+      expect(mockInvitationSender.sendInvitation).not.toHaveBeenCalled()
     })
 
     it("skips an invitation when the user is already a project member", async () => {

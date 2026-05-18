@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { Inject, Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { EntityManager, Repository } from "typeorm"
@@ -207,10 +208,14 @@ export class ProjectInvitationHandler
     })
     if (shouldSkip) return null
 
-    const { ticketId } = await this.invitationSender.sendInvitation({
-      inviteeEmail: normalizedEmail,
-      inviterName: params.inviterName,
-    })
+    const ticketId = existingUser
+      ? randomUUID()
+      : (
+          await this.invitationSender.sendInvitation({
+            inviteeEmail: normalizedEmail,
+            inviterName: params.inviterName,
+          })
+        ).ticketId
     return this.invitationPersistence.createPendingProjectInvitation(
       {
         organizationId: params.context.projectOrganizationId,

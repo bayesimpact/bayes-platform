@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { Inject, Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -130,10 +131,14 @@ export class AgentInvitationHandler
       return null
     }
 
-    const { ticketId } = await this.invitationSender.sendInvitation({
-      inviteeEmail: normalizedEmail,
-      inviterName: params.inviterName,
-    })
+    const ticketId = existingUser
+      ? randomUUID()
+      : (
+          await this.invitationSender.sendInvitation({
+            inviteeEmail: normalizedEmail,
+            inviterName: params.inviterName,
+          })
+        ).ticketId
     return this.invitationPersistence.createPendingAgentInvitation(
       {
         organizationId: params.context.agentOrganizationId,

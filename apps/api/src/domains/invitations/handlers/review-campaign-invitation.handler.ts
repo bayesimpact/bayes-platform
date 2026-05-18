@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import {
   BadRequestException,
   ConflictException,
@@ -172,10 +173,14 @@ export class ReviewCampaignInvitationHandler
       return null
     }
 
-    const { ticketId } = await this.invitationSender.sendInvitation({
-      inviteeEmail: normalizedEmail,
-      inviterName: params.inviterName,
-    })
+    const ticketId = existingUser
+      ? randomUUID()
+      : (
+          await this.invitationSender.sendInvitation({
+            inviteeEmail: normalizedEmail,
+            inviterName: params.inviterName,
+          })
+        ).ticketId
     return this.invitationPersistence.createPendingReviewCampaignInvitation(
       {
         organizationId: params.context.reviewCampaign.organizationId,

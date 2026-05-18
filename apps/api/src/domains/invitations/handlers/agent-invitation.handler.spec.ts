@@ -84,6 +84,7 @@ describe("AgentInvitationHandler", () => {
       })
 
       expect(invitations[0]!.userId).toBe(existingUser.id)
+      expect(mockInvitationSender.sendInvitation).not.toHaveBeenCalled()
     })
 
     it("skips when the user is already an agent member", async () => {
