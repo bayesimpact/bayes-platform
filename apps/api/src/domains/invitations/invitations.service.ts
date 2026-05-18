@@ -95,6 +95,18 @@ export class InvitationsService {
   }): Promise<{ type: "agent" | "project" | "reviewCampaign"; userId: string }> {
     const acceptanceHandler = await this.resolveAcceptanceHandler(ticketId)
 
+    // Idempotency: if the invitation was already accepted (e.g. the user clicks the
+    // link a second time), return success without re-running side effects.
+    // Note: findAndValidateInvitation in the handler would throw 400 for any
+    // non-pending status, so we must short-circuit here before reaching it.
+    const invitation = await this.invitationRepository.findOne({
+      where: { invitationToken: ticketId },
+      select: { status: true, userId: true },
+    })
+    if (invitation?.status === "accepted") {
+      return { type: acceptanceHandler.acceptanceType, userId: invitation.userId ?? "" }
+    }
+
     const { email } = await this.auth0UserInfoService.getUserInfo(accessToken)
     if (!email) throw new NotFoundException(`No email found for auth0Sub: ${auth0Sub}`)
 
