@@ -16,6 +16,7 @@ import { useBuildPath } from "@/common/hooks/use-build-path"
 import { useAppDispatch } from "@/common/store/hooks"
 import { ProjectForm } from "@/studio/features/projects/components/ProjectForm"
 import { createProject } from "@/studio/features/projects/projects.thunks"
+import { StudioRouteNames } from "@/studio/routes/helpers"
 
 export function ProjectCreatorButton({
   organization,
@@ -54,7 +55,11 @@ export function ProjectCreator({
   const handleSuccess = (projectId: string) => {
     modalHandler ? modalHandler.setOpen(false) : setOpen(false)
 
-    const path = buildPath("project", { organizationId: organization.id, projectId })
+    const path = buildPath("project", {
+      organizationId: organization.id,
+      projectId,
+      forceInterface: StudioRouteNames.HOME,
+    })
     // NOTE: do not use navigate from react-router
     window.location.assign(path)
   }
