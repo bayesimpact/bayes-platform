@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto"
+import { ConflictException, NotFoundException } from "@nestjs/common"
 import {
   clearTestDatabase,
   setupE2eTestDatabase,
@@ -36,5 +38,53 @@ describe("InvitationsService", () => {
     await expect(
       service.listPendingMine({ userId: user.id, userEmail: user.email }),
     ).resolves.toEqual([])
+  })
+
+  // ─── revokeOne ────────────────────────────────────────────────────────────
+
+  describe("revokeOne", () => {
+    const seedInvitation = async (
+      status: "pending" | "accepted" | "revoked",
+      repositories: ReturnType<typeof setup.getAllRepositories>,
+    ) => {
+      const { organization, project } = await createOrganizationWithProject(repositories)
+      return repositories.invitationRepository.save({
+        organizationId: organization.id,
+        projectId: project.id,
+        targetType: "project",
+        targetId: project.id,
+        userId: null,
+        invitedEmail: "someone@example.com",
+        role: "admin",
+        invitationToken: `token-${status}`,
+        status,
+        invitedAt: new Date(),
+        acceptedAt: status === "accepted" ? new Date() : null,
+      })
+    }
+
+    it("throws NotFoundException when the invitation does not exist", async () => {
+      await expect(
+        service.revokeOne({ invitationId: randomUUID() }),
+      ).rejects.toThrow(NotFoundException)
+    })
+
+    it("throws ConflictException when the invitation has already been accepted", async () => {
+      const repositories = setup.getAllRepositories()
+      const invitation = await seedInvitation("accepted", repositories)
+
+      await expect(
+        service.revokeOne({ invitationId: invitation.id }),
+      ).rejects.toThrow(ConflictException)
+    })
+
+    it("throws ConflictException when the invitation is already revoked", async () => {
+      const repositories = setup.getAllRepositories()
+      const invitation = await seedInvitation("revoked", repositories)
+
+      await expect(
+        service.revokeOne({ invitationId: invitation.id }),
+      ).rejects.toThrow(ConflictException)
+    })
   })
 })

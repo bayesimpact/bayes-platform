@@ -1,6 +1,6 @@
-import { Inject, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common"
+import { Inject, Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import type { Repository } from "typeorm"
+import type { EntityManager, Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -20,17 +20,25 @@ import type {
   InvitationAcceptanceHandler,
   InvitationAcceptanceType,
 } from "./invitation-acceptance.handler"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { InvitationAcceptanceHelpersService } from "./invitation-acceptance-helpers.service"
 import type {
   CreateInvitationsForTargetParams,
   InvitationTargetHandler,
   InvitationTargetScope,
 } from "./invitation-target.handler"
+import type {
+  BaseAcceptanceRepositories,
+  BaseInviteMembersContext,
+} from "./invitation-handler.types"
 
-type InviteMembersContext = {
-  invitationRepository: Repository<Invitation>
+type InviteMembersContext = BaseInviteMembersContext & {
   projectMembershipRepository: Repository<ProjectMembership>
   projectOrganizationId: string
-  userRepository: Repository<User>
+}
+
+type AcceptanceRepositories = BaseAcceptanceRepositories & {
+  projectRepository: Repository<Project>
 }
 
 @Injectable()
@@ -52,6 +60,7 @@ export class ProjectInvitationHandler
     private readonly dataSource: DataSource,
     private readonly invitationPersistence: InvitationPersistenceService,
     private readonly agentMembershipsService: AgentMembershipsService,
+    private readonly acceptanceHelpers: InvitationAcceptanceHelpersService,
   ) {}
 
   async createInvitations(params: CreateInvitationsForTargetParams): Promise<Invitation[]> {
@@ -68,181 +77,20 @@ export class ProjectInvitationHandler
     inviterName: string
   }): Promise<Invitation[]> {
     return this.dataSource.transaction(async (manager) => {
-      const context = await this.buildInviteMembersContext({
-        manager,
-        projectId: params.projectId,
-      })
-      return this.collectInvitationsForEmails({
-        emails: params.emails,
-        inviterName: params.inviterName,
-        projectId: params.projectId,
-        manager,
-        context,
-      })
-    })
-  }
-
-  private async buildInviteMembersContext(params: {
-    manager: Parameters<
-      AgentMembershipsService["createAdminAgentMembershipsForUserInProject"]
-    >[0]["manager"]
-    projectId: string
-  }): Promise<InviteMembersContext> {
-    const context: InviteMembersContext = {
-      userRepository: params.manager.getRepository(User),
-      projectMembershipRepository: params.manager.getRepository(ProjectMembership),
-      invitationRepository: params.manager.getRepository(Invitation),
-      projectOrganizationId: "",
-    }
-    const project = await params.manager.getRepository(Project).findOneOrFail({
-      where: { id: params.projectId },
-      select: { id: true, organizationId: true },
-    })
-    context.projectOrganizationId = project.organizationId
-    return context
-  }
-
-  private async collectInvitationsForEmails(params: {
-    emails: string[]
-    inviterName: string
-    projectId: string
-    manager: Parameters<
-      AgentMembershipsService["createAdminAgentMembershipsForUserInProject"]
-    >[0]["manager"]
-    context: InviteMembersContext
-  }): Promise<Invitation[]> {
-    const createdInvitations: Invitation[] = []
-    for (const email of params.emails) {
-      const invitation = await this.inviteOneMember({
-        email,
-        inviterName: params.inviterName,
-        projectId: params.projectId,
-        manager: params.manager,
-        context: params.context,
-      })
-      if (invitation) {
-        createdInvitations.push(invitation)
-      }
-    }
-    return createdInvitations
-  }
-
-  private async inviteOneMember(params: {
-    email: string
-    inviterName: string
-    projectId: string
-    manager: Parameters<
-      AgentMembershipsService["createAdminAgentMembershipsForUserInProject"]
-    >[0]["manager"]
-    context: InviteMembersContext
-  }): Promise<Invitation | null> {
-    const normalizedEmail = params.email.trim().toLowerCase()
-    if (!normalizedEmail) return null
-
-    const existingUser = await params.context.userRepository.findOne({
-      where: { email: normalizedEmail },
-    })
-    const shouldSkip = await this.shouldSkipInvitation({
-      existingUser,
-      normalizedEmail,
-      projectId: params.projectId,
-      manager: params.manager,
-      context: params.context,
-    })
-    if (shouldSkip) return null
-
-    const { ticketId } = await this.invitationSender.sendInvitation({
-      inviteeEmail: normalizedEmail,
-      inviterName: params.inviterName,
-    })
-    return this.createPendingProjectInvitation({
-      existingUser,
-      normalizedEmail,
-      ticketId,
-      projectId: params.projectId,
-      manager: params.manager,
-      context: params.context,
-    })
-  }
-
-  private async shouldSkipInvitation(params: {
-    existingUser: User | null
-    normalizedEmail: string
-    projectId: string
-    manager: Parameters<
-      AgentMembershipsService["createAdminAgentMembershipsForUserInProject"]
-    >[0]["manager"]
-    context: InviteMembersContext
-  }): Promise<boolean> {
-    if (params.existingUser) {
-      const existingMembership = await params.context.projectMembershipRepository.findOne({
-        where: { projectId: params.projectId, userId: params.existingUser.id },
-      })
-      if (existingMembership) {
-        await this.promoteExistingMembershipToAdminIfNeeded({
-          existingMembership,
-          userId: params.existingUser.id,
+      const context = await this.buildInviteMembersContext(manager, params.projectId)
+      const invitations: Invitation[] = []
+      for (const email of params.emails) {
+        const invitation = await this.inviteOneMember({
+          email,
+          inviterName: params.inviterName,
           projectId: params.projectId,
-          manager: params.manager,
-          projectMembershipRepository: params.context.projectMembershipRepository,
+          manager,
+          context,
         })
-        return true
+        if (invitation) invitations.push(invitation)
       }
-    }
-
-    const existingPendingInvitation = await params.context.invitationRepository.findOne({
-      where: {
-        targetType: "project",
-        targetId: params.projectId,
-        invitedEmail: params.normalizedEmail,
-        status: "pending",
-      },
-      select: { id: true },
+      return invitations
     })
-    return !!existingPendingInvitation
-  }
-
-  private async promoteExistingMembershipToAdminIfNeeded(params: {
-    existingMembership: ProjectMembership
-    userId: string
-    projectId: string
-    manager: Parameters<
-      AgentMembershipsService["createAdminAgentMembershipsForUserInProject"]
-    >[0]["manager"]
-    projectMembershipRepository: Repository<ProjectMembership>
-  }): Promise<void> {
-    if (params.existingMembership.role === "admin") return
-
-    params.existingMembership.role = "admin"
-    await params.projectMembershipRepository.save(params.existingMembership)
-    await this.agentMembershipsService.createAdminAgentMembershipsForUserInProject({
-      manager: params.manager,
-      userId: params.userId,
-      projectId: params.projectId,
-    })
-  }
-
-  private async createPendingProjectInvitation(params: {
-    existingUser: User | null
-    normalizedEmail: string
-    ticketId: string
-    projectId: string
-    manager: Parameters<
-      AgentMembershipsService["createAdminAgentMembershipsForUserInProject"]
-    >[0]["manager"]
-    context: InviteMembersContext
-  }): Promise<Invitation> {
-    return this.invitationPersistence.createPendingProjectInvitation(
-      {
-        organizationId: params.context.projectOrganizationId,
-        projectId: params.projectId,
-        userId: params.existingUser?.id ?? null,
-        invitedEmail: params.normalizedEmail,
-        invitationToken: params.ticketId,
-        role: "admin",
-      },
-      params.manager,
-    )
   }
 
   async resolveScope(targetId: string): Promise<InvitationTargetScope> {
@@ -275,106 +123,157 @@ export class ProjectInvitationHandler
     email: string
   }): Promise<{ userId: string }> {
     return this.dataSource.transaction(async (manager) => {
-      const projectMembershipRepository = manager.getRepository(ProjectMembership)
-      const userRepository = manager.getRepository(User)
-      const invitationRepository = manager.getRepository(Invitation)
-      const organizationMembershipRepository = manager.getRepository(OrganizationMembership)
-      const projectRepository = manager.getRepository(Project)
+      const repos: AcceptanceRepositories = {
+        invitationRepository: manager.getRepository(Invitation),
+        organizationMembershipRepository: manager.getRepository(OrganizationMembership),
+        projectMembershipRepository: manager.getRepository(ProjectMembership),
+        projectRepository: manager.getRepository(Project),
+        userRepository: manager.getRepository(User),
+      }
 
-      const invitation = await invitationRepository.findOne({
-        where: { invitationToken: params.ticketId, targetType: "project" },
+      const invitation = await this.acceptanceHelpers.findAndValidateInvitation(
+        repos.invitationRepository,
+        params.ticketId,
+        params.email,
+        this.targetType,
+      )
+      const project = await repos.projectRepository.findOneOrFail({
+        where: { id: invitation.projectId },
       })
-      if (!invitation) {
-        throw new NotFoundException(`Invitation not found for ticket: ${params.ticketId}`)
-      }
-      if (
-        invitation.invitedEmail &&
-        invitation.invitedEmail.trim().toLowerCase() !== params.email.trim().toLowerCase()
-      ) {
-        throw new UnauthorizedException(`No invitation found for email: ${params.email}`)
-      }
-      const project = await projectRepository.findOneOrFail({ where: { id: invitation.projectId } })
-      const user = await this.resolveAcceptedUser({
-        userRepository,
-        auth0Sub: params.auth0Sub,
-        email: params.email,
-      })
-      await this.ensureOrganizationMembership({
-        organizationMembershipRepository,
-        userId: user.id,
-        organizationId: project.organizationId,
-      })
-      const existingMembership = await projectMembershipRepository.findOne({
-        where: { projectId: invitation.projectId, userId: user.id },
-      })
-      if (existingMembership) {
-        if (existingMembership.role !== "admin") {
-          existingMembership.role = "admin"
-          await projectMembershipRepository.save(existingMembership)
-        }
-      } else {
-        const membership = projectMembershipRepository.create({
-          projectId: invitation.projectId,
-          userId: user.id,
-          role: "admin",
-        })
-        await projectMembershipRepository.save(membership)
-      }
+      const user = await this.acceptanceHelpers.resolveAcceptedUser(
+        repos.userRepository,
+        params.auth0Sub,
+        params.email,
+      )
+
+      await this.acceptanceHelpers.ensureOrganizationMembership(
+        repos.organizationMembershipRepository,
+        user.id,
+        project.organizationId,
+        "admin",
+      )
+      await this.acceptanceHelpers.ensureProjectMembership(
+        repos.projectMembershipRepository,
+        user.id,
+        invitation.projectId,
+        "admin",
+      )
       await this.agentMembershipsService.createAdminAgentMembershipsForUserInProject({
         manager,
         userId: user.id,
         projectId: project.id,
       })
-      await invitationRepository.update({ id: invitation.id }, { userId: user.id })
+      await repos.invitationRepository.update({ id: invitation.id }, { userId: user.id })
+
       return { userId: user.id }
     })
   }
 
-  private async resolveAcceptedUser(params: {
-    userRepository: Repository<User>
-    auth0Sub: string
-    email: string
-  }): Promise<User> {
-    const normalizedEmail = params.email.trim().toLowerCase()
-    const byAuth0Id = await params.userRepository.findOne({ where: { auth0Id: params.auth0Sub } })
-    if (byAuth0Id) return byAuth0Id
-    const byEmail = await params.userRepository.findOne({ where: { email: normalizedEmail } })
-    if (byEmail) {
-      if (byEmail.auth0Id !== params.auth0Sub) {
-        byEmail.auth0Id = params.auth0Sub
-        return params.userRepository.save(byEmail)
-      }
-      return byEmail
-    }
-    const user = params.userRepository.create({
-      auth0Id: params.auth0Sub,
-      email: normalizedEmail,
-      name: null,
-      pictureUrl: null,
+  private async buildInviteMembersContext(
+    manager: EntityManager,
+    projectId: string,
+  ): Promise<InviteMembersContext> {
+    const project = await manager.getRepository(Project).findOneOrFail({
+      where: { id: projectId },
+      select: { id: true, organizationId: true },
     })
-    return params.userRepository.save(user)
+    return {
+      userRepository: manager.getRepository(User),
+      projectMembershipRepository: manager.getRepository(ProjectMembership),
+      invitationRepository: manager.getRepository(Invitation),
+      projectOrganizationId: project.organizationId,
+    }
   }
 
-  private async ensureOrganizationMembership(params: {
-    organizationMembershipRepository: Repository<OrganizationMembership>
-    userId: string
-    organizationId: string
-  }): Promise<void> {
-    const existingMembership = await params.organizationMembershipRepository.findOne({
-      where: { userId: params.userId, organizationId: params.organizationId },
+  private async inviteOneMember(params: {
+    email: string
+    inviterName: string
+    projectId: string
+    manager: EntityManager
+    context: InviteMembersContext
+  }): Promise<Invitation | null> {
+    const normalizedEmail = params.email.trim().toLowerCase()
+    if (!normalizedEmail) return null
+
+    const existingUser = await params.context.userRepository.findOne({
+      where: { email: normalizedEmail },
     })
-    if (existingMembership) {
-      if (existingMembership.role === "member") {
-        existingMembership.role = "admin"
-        await params.organizationMembershipRepository.save(existingMembership)
+    const shouldSkip = await this.shouldSkipInvitation({
+      existingUser,
+      normalizedEmail,
+      projectId: params.projectId,
+      manager: params.manager,
+      context: params.context,
+    })
+    if (shouldSkip) return null
+
+    const { ticketId } = await this.invitationSender.sendInvitation({
+      inviteeEmail: normalizedEmail,
+      inviterName: params.inviterName,
+    })
+    return this.invitationPersistence.createPendingProjectInvitation(
+      {
+        organizationId: params.context.projectOrganizationId,
+        projectId: params.projectId,
+        userId: existingUser?.id ?? null,
+        invitedEmail: normalizedEmail,
+        invitationToken: ticketId,
+        role: "admin",
+      },
+      params.manager,
+    )
+  }
+
+  private async shouldSkipInvitation(params: {
+    existingUser: User | null
+    normalizedEmail: string
+    projectId: string
+    manager: EntityManager
+    context: InviteMembersContext
+  }): Promise<boolean> {
+    if (params.existingUser) {
+      const existingMembership = await params.context.projectMembershipRepository.findOne({
+        where: { projectId: params.projectId, userId: params.existingUser.id },
+      })
+      if (existingMembership) {
+        await this.promoteToAdminIfNeeded(
+          params.context.projectMembershipRepository,
+          existingMembership,
+          params.existingUser.id,
+          params.projectId,
+          params.manager,
+        )
+        return true
       }
-      return
     }
-    const membership = params.organizationMembershipRepository.create({
-      userId: params.userId,
-      organizationId: params.organizationId,
-      role: "admin",
+
+    const existingPendingInvitation = await params.context.invitationRepository.findOne({
+      where: {
+        targetType: "project",
+        targetId: params.projectId,
+        invitedEmail: params.normalizedEmail,
+        status: "pending",
+      },
+      select: { id: true },
     })
-    await params.organizationMembershipRepository.save(membership)
+    return !!existingPendingInvitation
+  }
+
+  private async promoteToAdminIfNeeded(
+    repository: Repository<ProjectMembership>,
+    membership: ProjectMembership,
+    userId: string,
+    projectId: string,
+    manager: EntityManager,
+  ): Promise<void> {
+    if (membership.role === "admin") return
+
+    membership.role = "admin"
+    await repository.save(membership)
+    await this.agentMembershipsService.createAdminAgentMembershipsForUserInProject({
+      manager,
+      userId,
+      projectId,
+    })
   }
 }

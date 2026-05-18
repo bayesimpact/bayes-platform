@@ -4,7 +4,6 @@ import {
   Inject,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { EntityManager } from "typeorm"
@@ -27,18 +26,20 @@ import type {
   InvitationAcceptanceHandler,
   InvitationAcceptanceType,
 } from "./invitation-acceptance.handler"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { InvitationAcceptanceHelpersService } from "./invitation-acceptance-helpers.service"
 import type {
   CreateInvitationsForTargetParams,
   InvitationTargetHandler,
   InvitationTargetScope,
 } from "./invitation-target.handler"
+import type { BaseInviteMembersContext } from "./invitation-handler.types"
 
-type InviteMembersContext = {
-  userRepository: Repository<User>
+type InviteMembersContext = BaseInviteMembersContext & {
   membershipRepository: Repository<ReviewCampaignMembership>
-  invitationRepository: Repository<Invitation>
   reviewCampaign: Pick<ReviewCampaign, "id" | "organizationId" | "projectId" | "status">
 }
+
 
 function isReviewCampaignMembershipRole(
   value: string | undefined,
@@ -64,6 +65,7 @@ export class ReviewCampaignInvitationHandler
     private readonly invitationSender: InvitationSender,
     private readonly dataSource: DataSource,
     private readonly invitationPersistence: InvitationPersistenceService,
+    private readonly acceptanceHelpers: InvitationAcceptanceHelpersService,
   ) {}
 
   async createInvitations(params: CreateInvitationsForTargetParams): Promise<Invitation[]> {
@@ -262,130 +264,60 @@ export class ReviewCampaignInvitationHandler
     email: string
   }): Promise<{ userId: string }> {
     return this.dataSource.transaction(async (manager) => {
-      const membershipRepository = manager.getRepository(ReviewCampaignMembership)
-      const userRepository = manager.getRepository(User)
       const invitationRepository = manager.getRepository(Invitation)
+      const membershipRepository = manager.getRepository(ReviewCampaignMembership)
       const organizationMembershipRepository = manager.getRepository(OrganizationMembership)
       const projectMembershipRepository = manager.getRepository(ProjectMembership)
       const reviewCampaignRepository = manager.getRepository(ReviewCampaign)
+      const userRepository = manager.getRepository(User)
 
-      const invitation = await invitationRepository.findOne({
-        where: { invitationToken: params.ticketId, targetType: "review_campaign" },
-      })
-      if (!invitation) {
-        throw new NotFoundException(
-          `No review-campaign invitation found for ticket: ${params.ticketId}`,
-        )
-      }
-      if (
-        invitation.invitedEmail &&
-        invitation.invitedEmail.trim().toLowerCase() !== params.email.trim().toLowerCase()
-      ) {
-        throw new UnauthorizedException(`No invitation found for email: ${params.email}`)
-      }
-      const user = await this.resolveAcceptedUser({
+      const invitation = await this.acceptanceHelpers.findAndValidateInvitation(
+        invitationRepository,
+        params.ticketId,
+        params.email,
+        this.targetType,
+      )
+      const user = await this.acceptanceHelpers.resolveAcceptedUser(
         userRepository,
-        auth0Sub: params.auth0Sub,
-        email: params.email,
-      })
+        params.auth0Sub,
+        params.email,
+      )
+      const campaign = await reviewCampaignRepository.findOneOrFail({ where: { id: invitation.targetId } })
 
-      const campaign = await reviewCampaignRepository.findOneOrFail({
-        where: { id: invitation.targetId },
-      })
-      await this.ensureOrganizationMembership({
-        organizationMembershipRepository,
-        userId: user.id,
-        organizationId: campaign.organizationId,
-      })
-      await this.ensureProjectMembership({
-        projectMembershipRepository,
-        userId: user.id,
-        projectId: campaign.projectId,
-      })
-      const existingMembership = await membershipRepository.findOne({
-        where: {
-          campaignId: invitation.targetId,
-          userId: user.id,
-          role: invitation.role as ReviewCampaignMembershipRole,
-        },
-      })
-      if (existingMembership) {
-        if (!existingMembership.acceptedAt) {
-          existingMembership.acceptedAt = new Date()
-          await membershipRepository.save(existingMembership)
-        }
-      } else {
-        const membership = membershipRepository.create({
-          organizationId: campaign.organizationId,
-          projectId: campaign.projectId,
-          campaignId: invitation.targetId,
-          userId: user.id,
-          role: invitation.role as ReviewCampaignMembershipRole,
-          acceptedAt: new Date(),
-        })
-        await membershipRepository.save(membership)
-      }
+      await this.acceptanceHelpers.ensureOrganizationMembership(organizationMembershipRepository, user.id, campaign.organizationId)
+      await this.acceptanceHelpers.ensureProjectMembership(projectMembershipRepository, user.id, campaign.projectId)
+      await this.upsertCampaignMembership(membershipRepository, invitation, user.id, campaign)
       await invitationRepository.update({ id: invitation.id }, { userId: user.id })
       return { userId: user.id }
     })
   }
 
-  private async resolveAcceptedUser(params: {
-    userRepository: Repository<User>
-    auth0Sub: string
-    email: string
-  }): Promise<User> {
-    const normalizedEmail = params.email.trim().toLowerCase()
-    const byAuth0Id = await params.userRepository.findOne({ where: { auth0Id: params.auth0Sub } })
-    if (byAuth0Id) return byAuth0Id
-    const byEmail = await params.userRepository.findOne({ where: { email: normalizedEmail } })
-    if (byEmail) {
-      if (byEmail.auth0Id !== params.auth0Sub) {
-        byEmail.auth0Id = params.auth0Sub
-        return params.userRepository.save(byEmail)
+  private async upsertCampaignMembership(
+    repository: Repository<ReviewCampaignMembership>,
+    invitation: Invitation,
+    userId: string,
+    campaign: ReviewCampaign,
+  ): Promise<void> {
+    const role = invitation.role as ReviewCampaignMembershipRole
+    const existing = await repository.findOne({
+      where: { campaignId: invitation.targetId, userId, role },
+    })
+    if (existing) {
+      if (!existing.acceptedAt) {
+        existing.acceptedAt = new Date()
+        await repository.save(existing)
       }
-      return byEmail
+      return
     }
-    const user = params.userRepository.create({
-      auth0Id: params.auth0Sub,
-      email: normalizedEmail,
-      name: null,
-      pictureUrl: null,
-    })
-    return params.userRepository.save(user)
-  }
-
-  private async ensureOrganizationMembership(params: {
-    organizationMembershipRepository: Repository<OrganizationMembership>
-    userId: string
-    organizationId: string
-  }): Promise<void> {
-    const existingMembership = await params.organizationMembershipRepository.findOne({
-      where: { userId: params.userId, organizationId: params.organizationId },
-    })
-    if (existingMembership) return
-    const membership = params.organizationMembershipRepository.create({
-      userId: params.userId,
-      organizationId: params.organizationId,
-      role: "member",
-    })
-    await params.organizationMembershipRepository.save(membership)
-  }
-
-  private async ensureProjectMembership(params: {
-    projectMembershipRepository: Repository<ProjectMembership>
-    userId: string
-    projectId: string
-  }): Promise<void> {
-    const existingMembership = await params.projectMembershipRepository.findOne({
-      where: { userId: params.userId, projectId: params.projectId },
-    })
-    if (existingMembership) return
-    const membership = params.projectMembershipRepository.create({
-      userId: params.userId,
-      projectId: params.projectId,
-      role: "member",
-    })
-    await params.projectMembershipRepository.save(membership)
+    await repository.save(
+      repository.create({
+        organizationId: campaign.organizationId,
+        projectId: campaign.projectId,
+        campaignId: invitation.targetId,
+        userId,
+        role,
+        acceptedAt: new Date(),
+      }),
+    )
   }
 }

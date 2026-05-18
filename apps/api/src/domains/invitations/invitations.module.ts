@@ -16,6 +16,7 @@ import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entit
 import { UsersModule } from "@/domains/users/users.module"
 import { LlmModule } from "@/external/llm/llm.module"
 import { AgentInvitationHandler } from "./handlers/agent-invitation.handler"
+import { InvitationAcceptanceHelpersService } from "./handlers/invitation-acceptance-helpers.service"
 import { ProjectInvitationHandler } from "./handlers/project-invitation.handler"
 import { ReviewCampaignInvitationHandler } from "./handlers/review-campaign-invitation.handler"
 import { Invitation } from "./invitation.entity"
@@ -47,6 +48,7 @@ import { InvitationsPersistenceModule } from "./invitations-persistence.module"
     forwardRef(() => AgentsModule),
   ],
   providers: [
+    InvitationAcceptanceHelpersService,
     ProjectInvitationHandler,
     AgentInvitationHandler,
     ReviewCampaignInvitationHandler,

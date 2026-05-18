@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common"
+import { Inject, Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource, In, type Repository } from "typeorm"
@@ -18,18 +18,27 @@ import type {
   InvitationAcceptanceHandler,
   InvitationAcceptanceType,
 } from "./invitation-acceptance.handler"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { InvitationAcceptanceHelpersService } from "./invitation-acceptance-helpers.service"
 import type {
   CreateInvitationsForTargetParams,
   InvitationTargetHandler,
   InvitationTargetScope,
 } from "./invitation-target.handler"
+import type {
+  BaseAcceptanceRepositories,
+  BaseInviteMembersContext,
+} from "./invitation-handler.types"
 
-type InviteMembersContext = {
-  userRepository: Repository<User>
+type InviteMembersContext = BaseInviteMembersContext & {
   membershipRepository: Repository<AgentMembership>
-  invitationRepository: Repository<Invitation>
   agentOrganizationId: string
   agentProjectId: string
+}
+
+type AcceptanceRepositories = BaseAcceptanceRepositories & {
+  agentRepository: Repository<Agent>
+  membershipRepository: Repository<AgentMembership>
 }
 
 @Injectable()
@@ -50,6 +59,7 @@ export class AgentInvitationHandler
     private readonly invitationSender: InvitationSender,
     private readonly dataSource: DataSource,
     private readonly invitationPersistence: InvitationPersistenceService,
+    private readonly acceptanceHelpers: InvitationAcceptanceHelpersService,
   ) {}
 
   async createInvitations(params: CreateInvitationsForTargetParams): Promise<Invitation[]> {
@@ -202,112 +212,53 @@ export class AgentInvitationHandler
     email: string
   }): Promise<{ userId: string }> {
     return this.dataSource.transaction(async (manager) => {
-      const membershipRepository = manager.getRepository(AgentMembership)
-      const userRepository = manager.getRepository(User)
-      const invitationRepository = manager.getRepository(Invitation)
-      const organizationMembershipRepository = manager.getRepository(OrganizationMembership)
-      const projectMembershipRepository = manager.getRepository(ProjectMembership)
-      const agentRepository = manager.getRepository(Agent)
-
-      const invitation = await invitationRepository.findOne({
-        where: { invitationToken: params.ticketId, targetType: "agent" },
-      })
-      if (!invitation)
-        throw new NotFoundException(`Invitation not found for ticket: ${params.ticketId}`)
-      if (
-        invitation.invitedEmail &&
-        invitation.invitedEmail.trim().toLowerCase() !== params.email.trim().toLowerCase()
-      ) {
-        throw new UnauthorizedException(`No invitation found for email: ${params.email}`)
+      const repos: AcceptanceRepositories = {
+        agentRepository: manager.getRepository(Agent),
+        invitationRepository: manager.getRepository(Invitation),
+        membershipRepository: manager.getRepository(AgentMembership),
+        organizationMembershipRepository: manager.getRepository(OrganizationMembership),
+        projectMembershipRepository: manager.getRepository(ProjectMembership),
+        userRepository: manager.getRepository(User),
       }
-      const user = await this.resolveAcceptedUser({
-        userRepository,
-        auth0Sub: params.auth0Sub,
-        email: params.email,
-      })
-      const agent = await agentRepository.findOneOrFail({ where: { id: invitation.targetId } })
-      await this.ensureOrganizationMembership({
-        organizationMembershipRepository,
-        userId: user.id,
-        organizationId: agent.organizationId,
-      })
-      await this.ensureProjectMembership({
-        projectMembershipRepository,
-        userId: user.id,
-        projectId: agent.projectId,
-      })
-      const existingMembership = await membershipRepository.findOne({
+
+      const invitation = await this.acceptanceHelpers.findAndValidateInvitation(
+        repos.invitationRepository,
+        params.ticketId,
+        params.email,
+        this.targetType,
+      )
+      const user = await this.acceptanceHelpers.resolveAcceptedUser(
+        repos.userRepository,
+        params.auth0Sub,
+        params.email,
+      )
+      const agent = await repos.agentRepository.findOneOrFail({ where: { id: invitation.targetId } })
+
+      await this.acceptanceHelpers.ensureOrganizationMembership(
+        repos.organizationMembershipRepository,
+        user.id,
+        agent.organizationId,
+      )
+      await this.acceptanceHelpers.ensureProjectMembership(
+        repos.projectMembershipRepository,
+        user.id,
+        agent.projectId,
+      )
+
+      const existingMembership = await repos.membershipRepository.findOne({
         where: { agentId: invitation.targetId, userId: user.id },
       })
       if (!existingMembership) {
-        const membership = membershipRepository.create({
-          agentId: invitation.targetId,
-          userId: user.id,
-          role: invitation.role as AgentMembership["role"],
-        })
-        await membershipRepository.save(membership)
+        await repos.membershipRepository.save(
+          repos.membershipRepository.create({
+            agentId: invitation.targetId,
+            userId: user.id,
+            role: invitation.role as AgentMembership["role"],
+          }),
+        )
       }
-      await invitationRepository.update({ id: invitation.id }, { userId: user.id })
+      await repos.invitationRepository.update({ id: invitation.id }, { userId: user.id })
       return { userId: user.id }
     })
-  }
-
-  private async resolveAcceptedUser(params: {
-    userRepository: Repository<User>
-    auth0Sub: string
-    email: string
-  }): Promise<User> {
-    const normalizedEmail = params.email.trim().toLowerCase()
-    const byAuth0Id = await params.userRepository.findOne({ where: { auth0Id: params.auth0Sub } })
-    if (byAuth0Id) return byAuth0Id
-    const byEmail = await params.userRepository.findOne({ where: { email: normalizedEmail } })
-    if (byEmail) {
-      if (byEmail.auth0Id !== params.auth0Sub) {
-        byEmail.auth0Id = params.auth0Sub
-        return params.userRepository.save(byEmail)
-      }
-      return byEmail
-    }
-    const user = params.userRepository.create({
-      auth0Id: params.auth0Sub,
-      email: normalizedEmail,
-      name: null,
-      pictureUrl: null,
-    })
-    return params.userRepository.save(user)
-  }
-
-  private async ensureProjectMembership(params: {
-    projectMembershipRepository: Repository<ProjectMembership>
-    userId: string
-    projectId: string
-  }): Promise<void> {
-    const existingMembership = await params.projectMembershipRepository.findOne({
-      where: { userId: params.userId, projectId: params.projectId },
-    })
-    if (existingMembership) return
-    const membership = params.projectMembershipRepository.create({
-      userId: params.userId,
-      projectId: params.projectId,
-      role: "member",
-    })
-    await params.projectMembershipRepository.save(membership)
-  }
-
-  private async ensureOrganizationMembership(params: {
-    organizationMembershipRepository: Repository<OrganizationMembership>
-    userId: string
-    organizationId: string
-  }): Promise<void> {
-    const existingMembership = await params.organizationMembershipRepository.findOne({
-      where: { userId: params.userId, organizationId: params.organizationId },
-    })
-    if (existingMembership) return
-    const membership = params.organizationMembershipRepository.create({
-      userId: params.userId,
-      organizationId: params.organizationId,
-      role: "member",
-    })
-    await params.organizationMembershipRepository.save(membership)
   }
 }

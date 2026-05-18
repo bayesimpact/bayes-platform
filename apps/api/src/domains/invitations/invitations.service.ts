@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common"
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -66,10 +66,15 @@ export class InvitationsService {
 
   async revokeOne(params: { invitationId: string }): Promise<void> {
     const invitation = await this.invitationRepository.findOne({
-      where: { id: params.invitationId, status: "pending" },
+      where: { id: params.invitationId },
     })
     if (!invitation) {
-      throw new NotFoundException(`Pending invitation ${params.invitationId} not found`)
+      throw new NotFoundException(`Invitation ${params.invitationId} not found`)
+    }
+    if (invitation.status !== "pending") {
+      throw new ConflictException(
+        `Cannot revoke an invitation that has already been ${invitation.status}`,
+      )
     }
     await this.invitationRepository.update({ id: invitation.id }, { status: "revoked" })
   }
