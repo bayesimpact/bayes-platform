@@ -33,6 +33,7 @@ import { buildStudioPath, StudioRouteNames } from "./helpers"
 import { ProjectAnalyticsRoute } from "./ProjectAnalyticsRoute"
 import { ProjectMembershipRoute } from "./ProjectMembershipRoute"
 import { ProjectMembershipsRoute } from "./ProjectMembershipsRoute"
+import { RestrictedAccess } from "./RestrictedAccess"
 import { ReviewCampaignReportRoute } from "./ReviewCampaignReportRoute"
 import { StudioAgentSessionRoute } from "./StudioAgentSessionRoute"
 import { StudioDashboardRoute } from "./StudioDashboardRoute"
@@ -49,7 +50,11 @@ const extraItems = [
 
 export const studioRoutes = {
   path: StudioRouteNames.HOME,
-  element: <StudioRoute />,
+  element: (
+    <RestrictedAccess ability="canAccessStudio">
+      <StudioRoute />
+    </RestrictedAccess>
+  ),
   children: [
     {
       path: buildStudioPath(RouteNames.ORGANIZATION_DASHBOARD),
@@ -146,20 +151,25 @@ export const studioRoutes = {
                   ),
                 },
                 {
-                  path: buildStudioPath(StudioRouteNames.AGENT_ANALYTICS),
-                  element: (
-                    <RestrictedFeature feature="project-analytics">
-                      <AgentAnalyticsRoute />
-                    </RestrictedFeature>
-                  ),
-                },
-                {
-                  path: buildStudioPath(StudioRouteNames.FEEDBACK),
-                  element: <FeedbackRoute />,
-                },
-                {
-                  path: buildStudioPath(StudioRouteNames.AGENT_MEMBERSHIPS),
-                  element: <AgentMembershipsRoute />,
+                  element: <RestrictedAccess ability="canManageAgent" />,
+                  children: [
+                    {
+                      path: buildStudioPath(StudioRouteNames.AGENT_ANALYTICS),
+                      element: (
+                        <RestrictedFeature feature="project-analytics">
+                          <AgentAnalyticsRoute />
+                        </RestrictedFeature>
+                      ),
+                    },
+                    {
+                      path: buildStudioPath(StudioRouteNames.FEEDBACK),
+                      element: <FeedbackRoute />,
+                    },
+                    {
+                      path: buildStudioPath(StudioRouteNames.AGENT_MEMBERSHIPS),
+                      element: <AgentMembershipsRoute />,
+                    },
+                  ],
                 },
               ],
             },

@@ -7,9 +7,7 @@ import {
   selectCurrentAgentId,
 } from "@/common/features/agents/agents.selectors"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
-import { useAbility } from "@/common/hooks/use-ability"
 import { useGetPath } from "@/common/hooks/use-build-path"
-import { NotFoundRoute } from "@/common/routes/NotFoundRoute"
 import { useAppSelector } from "@/common/store/hooks"
 import type { AgentMessageFeedback } from "@/studio/features/agent-message-feedback/agent-message-feedback.models"
 import { selectFeedbacksFromAgentId } from "@/studio/features/agent-message-feedback/agent-message-feedback.selectors"
@@ -22,12 +20,8 @@ export function FeedbackRoute() {
   const agentId = useAppSelector(selectCurrentAgentId)
   const agent = useAppSelector(selectCurrentAgentData)
   const feedbacks = useAppSelector(selectFeedbacksFromAgentId(agentId))
-  const { abilities } = useAbility()
-  const canManageAgent = abilities.canManageAgent({ agentId: agentId })
 
   if (!agentId) return <ErrorRoute error="Missing valid agent ID" />
-
-  if (!canManageAgent) return <NotFoundRoute />
   return (
     <AsyncRoute data={[agent, feedbacks]}>
       {([agentValue, feedbacksValue]) => <WithData agent={agentValue} feedbacks={feedbacksValue} />}

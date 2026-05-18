@@ -110,7 +110,7 @@ export function buildDecorator<TArgs>(build: (args: TArgs) => WithReduxConfig): 
 }
 
 type Route = {
-  path: string
+  path?: string
   element: JSX.Element
   children?: Route[]
 }
