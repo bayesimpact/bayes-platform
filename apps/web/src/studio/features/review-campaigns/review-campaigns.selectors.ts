@@ -10,3 +10,6 @@ export const selectReviewCampaignsData = (state: RootState) => state.studio.revi
 
 export const selectReviewCampaignDetail = (state: RootState) =>
   state.studio.reviewCampaigns.selectedDetail
+
+export const selectReviewCampaignPendingInvitations = (state: RootState) =>
+  state.studio.reviewCampaigns.pendingInvitations

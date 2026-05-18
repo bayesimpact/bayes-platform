@@ -1,5 +1,4 @@
 import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Table,
   TableBody,
@@ -17,7 +16,7 @@ import {
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDownIcon, CheckIcon, SendIcon } from "lucide-react"
+import { ArrowUpDownIcon } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate, useParams } from "react-router-dom"
@@ -28,7 +27,6 @@ import { ErrorRoute } from "@/common/routes/ErrorRoute"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import { buildSince } from "@/common/utils/build-date"
 import { BadgeWithIcon } from "@/studio/features/project-memberships/components/ProjectMembershipItem"
 import type {
   ProjectMemberAgent,
@@ -63,7 +61,6 @@ function WithData({
   membership: ProjectMembership
   projectName: string
 }) {
-  const { t } = useTranslation()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const memberAgents = useAppSelector(selectProjectMemberAgents)
@@ -86,21 +83,6 @@ function WithData({
           <div className="flex flex-col gap-2">
             <div>{projectName}</div>
             <div>{BadgeWithIcon({ role: membership.role })}</div>
-          </div>
-          <div>
-            {membership.status === "accepted" ? (
-              <Button variant="secondary" size="sm" onClick={() => {}} disabled>
-                <CheckIcon className="size-4 text-green-500" />{" "}
-                {t("projectMembership:statuses.accepted")}
-              </Button>
-            ) : (
-              <Button variant="secondary" size="sm" onClick={() => {}} disabled>
-                <SendIcon className="size-4" />{" "}
-                <span>
-                  {t("projectMembership:statuses.sent")} {buildSince(membership.createdAt)}
-                </span>
-              </Button>
-            )}
           </div>
         </div>
 

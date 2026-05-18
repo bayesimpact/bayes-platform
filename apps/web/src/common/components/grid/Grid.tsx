@@ -54,6 +54,7 @@ export function GridItem({
   badge,
   badgeVariant = "secondary",
   index = -1,
+  topAction,
   ...props
 }: {
   className?: string
@@ -63,6 +64,7 @@ export function GridItem({
   footer?: React.ReactNode
   badge?: React.ReactNode
   badgeVariant?: BadgeVariant
+  topAction?: React.ReactNode
 } & (
   | {
       onClick: () => void
@@ -70,15 +72,20 @@ export function GridItem({
   | { action: React.ReactNode }
 )) {
   const { cols, total } = useGrid()
+
   return (
     <div
       className={cn(
-        "p-4 flex flex-col items-start justify-center",
+        "relative p-4 flex flex-col items-start justify-center",
         footer ? "pb-0" : "",
         className,
         getGridItemClassName({ index: index + 1, total, cols }),
       )}
     >
+      {topAction && (
+        <div className="absolute top-3 right-3 flex items-center gap-1">{topAction}</div>
+      )}
+
       {badge && typeof badge === "string" ? (
         <Badge variant={badgeVariant} className="capitalize">
           {badge}

@@ -9,6 +9,7 @@ import type { Evaluation } from "@/domains/evaluations/evaluation.entity"
 import type { EvaluationExtractionDataset } from "@/domains/evaluations/extraction/datasets/evaluation-extraction-dataset.entity"
 import type { EvaluationExtractionRun } from "@/domains/evaluations/extraction/runs/evaluation-extraction-run.entity"
 import type { EvaluationReport } from "@/domains/evaluations/reports/evaluation-report.entity"
+import type { Invitation } from "@/domains/invitations/invitation.entity"
 import type { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import type { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import type { Project } from "@/domains/projects/project.entity"
@@ -102,4 +103,13 @@ export interface EndpointRequestWithAgentSessionInCampaign extends EndpointReque
     sessionType: ReviewCampaignSessionType
     userId: string
   }
+}
+
+export interface EndpointRequestWithInvitationScope extends EndpointRequestWithProject {
+  /** Set for revokeOne — the pending invitation being acted on. */
+  invitation?: Invitation
+  /** The target entity (Project, Agent, or ReviewCampaign) loaded by the resolver. */
+  invitationTarget?: Project | Agent | ReviewCampaign
+  /** Caller's agent membership, set only when targetType is "agent". */
+  invitationAgentMembership?: AgentMembership
 }

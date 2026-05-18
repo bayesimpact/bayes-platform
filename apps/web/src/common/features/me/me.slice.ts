@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
-import type { CurrentTerms, PendingInvitations, User } from "./me.models"
+import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
+import type { CurrentTerms, User } from "./me.models"
 import { fetchMe, fetchPendingInvitations } from "./me.thunks"
 
 interface State {

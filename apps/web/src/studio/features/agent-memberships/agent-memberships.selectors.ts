@@ -4,3 +4,6 @@ export const selectAgentMemberships = (state: RootState) => state.studio.agentMe
 
 export const selectAgentMembershipsStatus = (state: RootState) =>
   state.studio.agentMemberships.data.status
+
+export const selectAgentPendingInvitations = (state: RootState) =>
+  state.studio.agentMemberships.pendingInvitations

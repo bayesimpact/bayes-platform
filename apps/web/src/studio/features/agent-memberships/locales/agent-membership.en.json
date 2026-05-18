@@ -22,12 +22,23 @@
       "label": "Email address",
       "placeholder": "Enter email address"
     },
+    "pendingInvitations": {
+      "title": "Pending invitations",
+      "description": "Invitations already sent for this agent."
+    },
     "list": {
       "title": "Members of {{agentName}}",
       "description": "Invite users to use your agent.",
       "empty": {
         "title": "No members",
         "description": "Invite users to use your agent."
+      }
+    },
+    "remove": {
+      "dialog": {
+        "title": "Remove {{name}}?",
+        "description": "This will remove the member from the agent. This action cannot be undone.",
+        "confirm": "Remove"
       }
     }
   }

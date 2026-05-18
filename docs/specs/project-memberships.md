@@ -132,7 +132,7 @@ export type RemoveProjectMembershipResponseDto = {
 | Route Name                    | Method   | Path                                                                     | Request DTO                          | Response DTO                            |
 |-------------------------------|----------|--------------------------------------------------------------------------|--------------------------------------|-----------------------------------------|
 | `listProjectMemberships`      | `GET`    | `organizations/:organizationId/projects/:projectId/memberships`          | —                                    | `ListProjectMembershipsResponseDto`     |
-| `inviteProjectMembers`        | `POST`   | `organizations/:organizationId/projects/:projectId/memberships/invite`   | `InviteProjectMembersRequestDto`     | `InviteProjectMembersResponseDto`       |
+| `inviteProjectMembers`        | `POST`   | `invitations` (see `InvitationsRoutes.createForTarget`, `targetType: "project"`) | `CreateInvitationsRequestDto` | `CreateInvitationsResponseDto`          |
 | `removeProjectMembership`     | `DELETE` | `organizations/:organizationId/projects/:projectId/memberships/:membershipId` | —                                | `RemoveProjectMembershipResponseDto`    |
 
 **Route definitions** (added to the existing `ProjectsRoutes` object):
@@ -142,13 +142,7 @@ listProjectMemberships: defineRoute<ResponseData<ListProjectMembershipsResponseD
   method: "get",
   path: "organizations/:organizationId/projects/:projectId/memberships",
 }),
-inviteProjectMembers: defineRoute<
-  ResponseData<InviteProjectMembersResponseDto>,
-  RequestPayload<InviteProjectMembersRequestDto>
->({
-  method: "post",
-  path: "organizations/:organizationId/projects/:projectId/memberships/invite",
-}),
+// Project invites: use InvitationsRoutes.createForTarget (POST invitations) with targetType "project".
 removeProjectMembership: defineRoute<ResponseData<RemoveProjectMembershipResponseDto>>({
   method: "delete",
   path: "organizations/:organizationId/projects/:projectId/memberships/:membershipId",
@@ -434,15 +428,13 @@ A separate auth test file for project memberships (decoupled from `projects/e2e-
 - Returns memberships with user name and email
 - Only returns memberships for the specified project (not other projects)
 
-#### `apps/api/src/domains/projects/memberships/e2e-tests/invite-project-members.spec.ts`
+#### `apps/api/src/domains/invitations/e2e-tests/create-for-target.spec.ts`
 
-- Successfully invites a new user (creates user + membership)
-- Successfully invites an existing user (creates membership only)
-- Skips duplicate invitations (user already a member of the project)
-- Creates memberships with `status: "sent"` and a valid `invitationToken`
-- Handles multiple emails in a single request
+- `targetType: "project"`: pending invitation for a new email (no user row until accept); activity `invitation.invite`
+- `targetType: "project"`: invitation linked to an existing user’s `userId`
+- Invitation sender invoked once per email
 
-#### `apps/api/src/domains/projects/memberships/e2e-tests/remove-project-membership.spec.ts`
+#### `apps/api/src/domains/projects/memberships/e2e-tests/delete-one.spec.ts`
 
 - Successfully removes a membership
 - Returns `404` for non-existent membership ID
@@ -1033,12 +1025,9 @@ User clicks "Invite Members" button (in route header right slot)
   → InviteProjectMembersDialog opens (Dialog from shadcn/ui)
   → User enters emails and clicks "Invite"
   → dispatch(inviteProjectMembers({ organizationId, projectId, emails }))
-  → thunk calls extra.services.projectMemberships.invite(...)
-  → Axios POST /organizations/:orgId/projects/:projId/memberships/invite
-  → API creates User records (if needed)
-  → API sends Auth0 org invitations (returns ticket_id per email)
-  → API creates ProjectMembership records (invitationToken = ticket_id)
-  → Response returns created memberships
+  → thunk calls invitations service (POST `/invitations`, `InvitationsRoutes.createForTarget`)
+  → API creates pending `Invitation` rows and sends invitation emails (ticket per email)
+  → Response returns `{ invitations: InvitationDto[] }`
   → Dialog closes via .unwrap().then()
   → Middleware: inviteProjectMembers.fulfilled triggers listProjectMemberships refresh
   → Middleware: notificationsActions.show({ title: "Members invited successfully", type: "success" })
@@ -1128,7 +1117,6 @@ Registered in `external/axios.services.ts` and `di/services.ts`.
 | `project-memberships.service.spec.ts` | **New** | Service tests                             |
 | `e2e-tests/auth.spec.ts`           | **New**  | Auth tests for all 3 membership routes     |
 | `e2e-tests/list-project-memberships.spec.ts` | **New** | Functional e2e tests             |
-| `e2e-tests/invite-project-members.spec.ts`   | **New** | Functional e2e tests             |
 | `e2e-tests/remove-project-membership.spec.ts` | **New** | Functional e2e tests            |
 
 ### API — `apps/api/src/domains/projects/` (modified)
@@ -1144,6 +1132,7 @@ Registered in `external/axios.services.ts` and `di/services.ts`.
 |---------------------------------------|----------|--------------------------------------------|
 | `invitations.controller.ts`           | **New**  | Invitation acceptance endpoint (JwtAuthGuard only) |
 | `invitations.module.ts`               | **New**  | NestJS module for invitations              |
+| `e2e-tests/create-for-target.spec.ts` | **New**  | E2E: `InvitationsRoutes.createForTarget` (project target) |
 | `e2e-tests/accept-invitation.spec.ts` | **New**  | E2E tests for invitation acceptance        |
 
 ### API — `apps/api/src/domains/auth/`

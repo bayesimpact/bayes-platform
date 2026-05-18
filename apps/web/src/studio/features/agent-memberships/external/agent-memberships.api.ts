@@ -11,14 +11,6 @@ export default {
     )
     return response.data.data.map(fromDto)
   },
-  invite: async ({ organizationId, projectId, agentId, emails }) => {
-    const axios = getAxiosInstance()
-    const response = await axios.post<typeof AgentMembershipRoutes.createOne.response>(
-      AgentMembershipRoutes.createOne.getPath({ organizationId, projectId, agentId }),
-      { payload: { emails } },
-    )
-    return response.data.data.map(fromDto)
-  },
   remove: async ({ organizationId, projectId, agentId, membershipId }) => {
     const axios = getAxiosInstance()
     await axios.delete(
@@ -38,7 +30,6 @@ const fromDto = (dto: AgentMembershipDto): AgentMembership => ({
   userId: dto.userId,
   userName: dto.userName,
   userEmail: dto.userEmail,
-  status: dto.status,
   createdAt: dto.createdAt,
   role: dto.role,
 })

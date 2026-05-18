@@ -1,7 +1,12 @@
-import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
-import { hasAgentChanged } from "@/common/features/agents/agents.selectors"
+import { createListenerMiddleware } from "@reduxjs/toolkit"
+import { hasAgentChanged, selectCurrentAgentId } from "@/common/features/agents/agents.selectors"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
+import {
+  createInvitationsForTarget,
+  listInvitationsForTarget,
+  revokeInvitation,
+} from "@/studio/features/invitations/invitations.thunks"
 import { agentMembershipsActions } from "./agent-memberships.slice"
 
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
@@ -10,7 +15,12 @@ function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: agentMembershipsActions.mount,
     effect: async (_, listenerApi) => {
-      await listenerApi.dispatch(agentMembershipsActions.list())
+      const agentId = selectCurrentAgentId(listenerApi.getState())
+      if (!agentId) return
+      await Promise.all([
+        listenerApi.dispatch(agentMembershipsActions.list()),
+        listenerApi.dispatch(listInvitationsForTarget({ targetType: "agent", targetId: agentId })),
+      ])
     },
   })
   listenerMiddleware.startListening({
@@ -26,24 +36,50 @@ function registerListeners() {
       return hasAgentChanged(originalState, currentState)
     },
     effect: async (_, listenerApi) => {
-      await listenerApi.dispatch(agentMembershipsActions.list())
+      const agentId = selectCurrentAgentId(listenerApi.getState())
+      if (!agentId) return
+      await Promise.all([
+        listenerApi.dispatch(agentMembershipsActions.list()),
+        listenerApi.dispatch(listInvitationsForTarget({ targetType: "agent", targetId: agentId })),
+      ])
     },
   })
 
-  // Refresh list after invite or remove
+  // Refresh list after member removal
   listenerMiddleware.startListening({
-    matcher: isAnyOf(
-      agentMembershipsActions.invite.fulfilled,
-      agentMembershipsActions.remove.fulfilled,
-    ),
+    actionCreator: agentMembershipsActions.remove.fulfilled,
     effect: async (_, listenerApi) => {
-      await listenerApi.dispatch(agentMembershipsActions.list())
+      const agentId = selectCurrentAgentId(listenerApi.getState())
+      if (!agentId) return
+      await Promise.all([
+        listenerApi.dispatch(agentMembershipsActions.list()),
+        listenerApi.dispatch(listInvitationsForTarget({ targetType: "agent", targetId: agentId })),
+      ])
     },
   })
 
   listenerMiddleware.startListening({
-    actionCreator: agentMembershipsActions.invite.fulfilled,
-    effect: async (_, listenerApi) => {
+    actionCreator: createInvitationsForTarget.fulfilled,
+    effect: async (action, listenerApi) => {
+      const refreshTarget = action.meta.arg.refreshTarget
+      if (refreshTarget?.targetType !== "agent") return
+      await listenerApi.dispatch(listInvitationsForTarget(refreshTarget))
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: revokeInvitation.fulfilled,
+    effect: async (action, listenerApi) => {
+      const refreshTarget = action.meta.arg.refreshTarget
+      if (refreshTarget?.targetType !== "agent") return
+      await listenerApi.dispatch(listInvitationsForTarget(refreshTarget))
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: createInvitationsForTarget.fulfilled,
+    effect: async (action, listenerApi) => {
+      if (action.meta.arg.refreshTarget?.targetType !== "agent") return
       listenerApi.dispatch(
         notificationsActions.show({
           title: "Invitations sent successfully",
@@ -53,8 +89,9 @@ function registerListeners() {
     },
   })
   listenerMiddleware.startListening({
-    actionCreator: agentMembershipsActions.invite.rejected,
-    effect: async (_, listenerApi) => {
+    actionCreator: createInvitationsForTarget.rejected,
+    effect: async (action, listenerApi) => {
+      if (action.meta.arg.refreshTarget?.targetType !== "agent") return
       listenerApi.dispatch(
         notificationsActions.show({
           title: "Failed to send invitations",

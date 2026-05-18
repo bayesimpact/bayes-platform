@@ -8,7 +8,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { agentFactory } from "@/domains/agents/agent.factory"
-import { InvitationsModule } from "@/domains/agents/shared/memberships/invitations.module"
+import { InvitationsModule } from "@/domains/invitations/invitations.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import {
@@ -76,8 +76,21 @@ describe("Invitations - acceptInvitation (review campaigns)", () => {
       reviewCampaignMembershipFactory
         .tester()
         .transient({ organization, project, campaign, user: invitee })
-        .build({ invitationToken: "ticket_test" }),
+        .build(),
     )
+    await repositories.invitationRepository.save({
+      organizationId: organization.id,
+      projectId: project.id,
+      targetType: "review_campaign",
+      targetId: campaign.id,
+      userId: invitee.id,
+      invitedEmail: invitee.email,
+      role: membership.role,
+      invitationToken: "ticket_test",
+      status: "pending",
+      invitedAt: membership.createdAt,
+      acceptedAt: null,
+    })
     return { organization, project, campaign, membership, invitee }
   }
 

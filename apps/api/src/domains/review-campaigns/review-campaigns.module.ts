@@ -14,6 +14,7 @@ import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agen
 import { FormAgentSessionsModule } from "@/domains/agents/form-agent-sessions/form-agent-sessions.module"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import { AuthModule } from "@/domains/auth/auth.module"
+import { InvitationsModule } from "@/domains/invitations/invitations.module"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
@@ -67,6 +68,7 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
     ]),
     OrganizationsModule,
     ProjectsModule,
+    forwardRef(() => InvitationsModule),
     UsersModule,
     AuthModule,
     forwardRef(() => ConversationAgentSessionsModule),

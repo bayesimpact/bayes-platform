@@ -11,16 +11,11 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
-import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { reviewCampaignFactory } from "../review-campaign.factory"
 import { ReviewCampaignsModule } from "../review-campaigns.module"
-
-const mockInvitationSender = {
-  sendInvitation: jest.fn().mockResolvedValue({ ticketId: "ticket-auth" }),
-}
 
 describe("ReviewCampaigns - Auth", () => {
   let app: INestApplication<App>
@@ -38,10 +33,7 @@ describe("ReviewCampaigns - Auth", () => {
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ReviewCampaignsModule],
-      applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
-          .overrideProvider(INVITATION_SENDER)
-          .useValue(mockInvitationSender),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -57,7 +49,6 @@ describe("ReviewCampaigns - Auth", () => {
     membershipId = randomUUID()
     accessToken = "token"
     auth0Id = `auth0|${randomUUID()}`
-    mockInvitationSender.sendInvitation.mockClear()
   })
 
   afterAll(async () => {
@@ -205,33 +196,6 @@ describe("ReviewCampaigns - Auth", () => {
         route: ReviewCampaignsRoutes.deleteOne,
         pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
         token: accessToken ?? undefined,
-      })
-
-    it("requires an authentication token", async () => {
-      accessToken = null
-      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
-    })
-    it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
-      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
-    })
-    it("forbids project members without admin role", async () => {
-      await createContextForRole("member")
-      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-    })
-  })
-
-  describe("ReviewCampaignsRoutes.inviteMembers", () => {
-    const payload: typeof ReviewCampaignsRoutes.inviteMembers.request = {
-      payload: { role: "tester", emails: ["x@example.com"] },
-    }
-    const subject = async () =>
-      request({
-        route: ReviewCampaignsRoutes.inviteMembers,
-        pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
-        token: accessToken ?? undefined,
-        request: payload,
       })
 
     it("requires an authentication token", async () => {

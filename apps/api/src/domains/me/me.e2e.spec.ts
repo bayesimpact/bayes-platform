@@ -20,11 +20,7 @@ import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaig
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../test/request"
-import { agentMembershipFactory } from "../agents/memberships/agent-membership.factory"
-import {
-  addUserToProject,
-  projectMembershipFactory,
-} from "../projects/memberships/project-membership.factory"
+import { addUserToProject } from "../projects/memberships/project-membership.factory"
 import { MeModule } from "./me.module"
 
 describe("MeController (e2e)", () => {
@@ -217,105 +213,6 @@ describe("MeController (e2e)", () => {
         projectId: project.id,
         campaignStatus: "draft",
       })
-    })
-  })
-
-  describe("MeRoutes.getPendingInvitations", () => {
-    const pendingSubject = async () =>
-      request({
-        route: MeRoutes.getPendingInvitations,
-        token: accessToken,
-      })
-
-    it("requires an authentication token", async () => {
-      accessToken = undefined
-      expectResponse(await pendingSubject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
-    })
-
-    it("returns empty arrays when the user has no pending invitations", async () => {
-      await createContext()
-      const response = await pendingSubject()
-      expectResponse(response, 200)
-      expect(response.body.data).toEqual({ projectInvitations: [], agentInvitations: [] })
-    })
-
-    it("returns pending project and agent invitations with org/project/agent context", async () => {
-      const { user, organization, project } = await createOrganizationWithProject(repositories)
-      auth0Id = user.auth0Id
-
-      const pendingProject = projectFactory
-        .transient({ organization })
-        .build({ name: "Pending Project" })
-      await repositories.projectRepository.save(pendingProject)
-      const pendingProjectMembership = projectMembershipFactory
-        .admin()
-        .transient({ project: pendingProject, user })
-        .build({ status: "sent" })
-      await repositories.projectMembershipRepository.save(pendingProjectMembership)
-
-      const pendingAgent = agentFactory
-        .transient({ organization, project })
-        .build({ name: "Pending Agent", type: "conversation" })
-      await repositories.agentRepository.save(pendingAgent)
-      const pendingAgentMembership = agentMembershipFactory
-        .member()
-        .transient({ agent: pendingAgent, user })
-        .build({ status: "sent" })
-      await repositories.agentMembershipRepository.save(pendingAgentMembership)
-
-      const acceptedAgent = agentFactory
-        .transient({ organization, project })
-        .build({ name: "Accepted Agent", type: "conversation" })
-      await repositories.agentRepository.save(acceptedAgent)
-      const acceptedAgentMembership = agentMembershipFactory
-        .member()
-        .transient({ agent: acceptedAgent, user })
-        .build({ status: "accepted" })
-      await repositories.agentMembershipRepository.save(acceptedAgentMembership)
-
-      const response = await pendingSubject()
-      expectResponse(response, 200)
-
-      expect(response.body.data.projectInvitations).toHaveLength(1)
-      expect(response.body.data.projectInvitations[0]).toMatchObject({
-        id: pendingProjectMembership.id,
-        projectId: pendingProject.id,
-        projectName: "Pending Project",
-        organizationId: organization.id,
-        organizationName: organization.name,
-        role: "admin",
-        invitationToken: pendingProjectMembership.invitationToken,
-      })
-
-      expect(response.body.data.agentInvitations).toHaveLength(1)
-      expect(response.body.data.agentInvitations[0]).toMatchObject({
-        id: pendingAgentMembership.id,
-        agentId: pendingAgent.id,
-        agentName: "Pending Agent",
-        projectId: project.id,
-        projectName: project.name,
-        organizationId: organization.id,
-        organizationName: organization.name,
-        role: "member",
-        invitationToken: pendingAgentMembership.invitationToken,
-      })
-    })
-
-    it("does not leak invitations sent to other users", async () => {
-      const { user, project } = await createOrganizationWithProject(repositories)
-      auth0Id = user.auth0Id
-
-      const otherUser = userFactory.build()
-      await repositories.userRepository.save(otherUser)
-      const otherMembership = projectMembershipFactory
-        .member()
-        .transient({ project, user: otherUser })
-        .build({ status: "sent" })
-      await repositories.projectMembershipRepository.save(otherMembership)
-
-      const response = await pendingSubject()
-      expectResponse(response, 200)
-      expect(response.body.data).toEqual({ projectInvitations: [], agentInvitations: [] })
     })
   })
 })

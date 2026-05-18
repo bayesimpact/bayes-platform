@@ -5,8 +5,6 @@ import type {
   CreateReviewCampaignRequestDto,
   GetMyTesterSurveyResponseDto,
   GetReviewerSessionResponseDto,
-  InviteReviewCampaignMembersRequestDto,
-  InviteReviewCampaignMembersResponseDto,
   ListMyReviewCampaignsResponseDto,
   ListMyTesterSessionsResponseDto,
   ListReviewCampaignsResponseDto,
@@ -54,13 +52,6 @@ export const ReviewCampaignsRoutes = {
   deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
     method: "delete",
     path: "organizations/:organizationId/projects/:projectId/review-campaigns/:reviewCampaignId",
-  }),
-  inviteMembers: defineRoute<
-    ResponseData<InviteReviewCampaignMembersResponseDto>,
-    RequestPayload<InviteReviewCampaignMembersRequestDto>
-  >({
-    method: "post",
-    path: "organizations/:organizationId/projects/:projectId/review-campaigns/:reviewCampaignId/invitations",
   }),
   revokeMembership: defineRoute<ResponseData<SuccessResponseDTO>>({
     method: "delete",
