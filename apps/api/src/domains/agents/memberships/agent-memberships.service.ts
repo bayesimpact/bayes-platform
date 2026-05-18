@@ -3,7 +3,6 @@ import { InjectRepository } from "@nestjs/typeorm"
 import type { EntityManager, Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource, In } from "typeorm"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { User } from "@/domains/users/user.entity"
 import { Agent } from "../agent.entity"
@@ -117,8 +116,6 @@ export class AgentMembershipsService {
     return this.dataSource.transaction(async (manager) => {
       const membershipRepo = manager.getRepository(AgentMembership)
       const userRepo = manager.getRepository(User)
-      const projectMembershipRepo = manager.getRepository(ProjectMembership)
-      const organizationMembershipRepo = manager.getRepository(OrganizationMembership)
 
       // when calling findById, we use another DB transaction, it's not ideal but it's ok for this use case
       const membership = await this.findById(membershipId)
@@ -132,23 +129,6 @@ export class AgentMembershipsService {
       }
 
       await membershipRepo.delete({ id: membershipId, agentId })
-
-      const memberships = await membershipRepo.find({
-        where: { id: membershipId, agentId },
-        relations: ["user"],
-      })
-
-      if (memberships.length === 0) {
-        // If the user has no more memberships for this agent, also remove their ProjectMembership and OrganizationMembership related to this agent's project and organization
-        await projectMembershipRepo.delete({
-          userId: membership.user.id,
-          projectId: membership.agent.projectId,
-        })
-        await organizationMembershipRepo.delete({
-          userId: membership.user.id,
-          organizationId: membership.agent.organizationId,
-        })
-      }
 
       if (membership.user.auth0Id.startsWith(PLACEHOLDER_AUTH0_ID_PREFIX)) {
         // If the user is a placeholder (never signed up), clean them up
