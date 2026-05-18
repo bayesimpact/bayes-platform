@@ -12,7 +12,6 @@ import { Label } from "@caseai-connect/ui/shad/label"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import { useNavigate } from "react-router-dom"
 import { z } from "zod"
 import { selectIsPremiumMember } from "@/common/features/me/me.selectors"
 import {
@@ -20,21 +19,17 @@ import {
   selectOrganizationsStatus,
 } from "@/common/features/organizations/organizations.selectors"
 import { createOrganization } from "@/common/features/organizations/organizations.thunks"
-import { useBuildPath } from "@/common/hooks/use-build-path"
 import { ErrorRoute } from "@/common/routes/ErrorRoute"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import { StudioRouteNames } from "@/studio/routes/helpers"
 import { FullPageCenterLayout } from "../layouts/FullPageCenterLayout"
 
 export function OrganizationCreator() {
   const isPremiumUser = useAppSelector(selectIsPremiumMember)
   const { t } = useTranslation("organization", { keyPrefix: "createForm" })
   const dispatch = useAppDispatch()
-  const navigate = useNavigate()
   const status = useAppSelector(selectOrganizationsStatus)
   const error = useAppSelector(selectOrganizationsError)
-  const { buildPath } = useBuildPath()
 
   const createOrganizationSchema = z.object({
     name: z.string().min(3, t("validation.minNameLength")),
@@ -50,14 +45,8 @@ export function OrganizationCreator() {
     resolver: zodResolver(createOrganizationSchema),
   })
 
-  const onSubmit = async (data: CreateOrganizationFormData) => {
-    const createdOrganization = await dispatch(createOrganization({ name: data.name })).unwrap()
-
-    const path = buildPath("organization", {
-      organizationId: createdOrganization.id,
-      forceInterface: StudioRouteNames.HOME,
-    })
-    navigate(path)
+  const onSubmit = (data: CreateOrganizationFormData) => {
+    dispatch(createOrganization({ name: data.name }))
   }
 
   const isLoading = ADS.isLoading(status)

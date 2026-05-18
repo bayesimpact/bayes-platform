@@ -206,7 +206,7 @@ function OrganizationItem({ organization, index }: { organization: Organization;
     organizationId: organization.id,
   })
   const extraItems = canCreateProject ? 1 : 0
-  if (organization.projects.length === 0) return
+  if (!canCreateProject && organization.projects.length === 0) return
   return (
     <GridItem
       className="bg-gray-50"
