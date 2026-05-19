@@ -10,6 +10,7 @@ import type {
   CurrentTermsDto,
   FeatureFlagKey,
   OrganizationMembershipRoleDto,
+  PaginatedBackofficeUsersDto,
   ProjectMembershipRoleDto,
   TimeType,
 } from "@caseai-connect/api-contracts"
@@ -124,6 +125,22 @@ export const toBackofficeUser = (dto: BackofficeUserDto): BackofficeUser => ({
   organizationMemberships: dto.organizationMemberships.map(toBackofficeUserOrganizationMembership),
   projectMemberships: dto.projectMemberships.map(toBackofficeUserProjectMembership),
   agentMemberships: dto.agentMemberships.map(toBackofficeUserAgentMembership),
+})
+
+export type PaginatedBackofficeUsers = {
+  users: BackofficeUser[]
+  total: number
+  page: number
+  limit: number
+}
+
+export const toPaginatedBackofficeUsers = (
+  dto: PaginatedBackofficeUsersDto,
+): PaginatedBackofficeUsers => ({
+  users: dto.users.map(toBackofficeUser),
+  total: dto.total,
+  page: dto.page,
+  limit: dto.limit,
 })
 
 export type TermsDocuments = CurrentTermsDto

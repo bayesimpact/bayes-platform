@@ -77,7 +77,10 @@ describe("Backoffice - list users", () => {
       token: "token",
     })
     expectResponse(response, 200)
-    const users = response.body.data
+    const { users, total, page, limit } = response.body.data
+    expect(page).toBe(0)
+    expect(limit).toBe(10)
+    expect(total).toBeGreaterThanOrEqual(1)
     const returned = users.find((candidate) => candidate.id === user.id)
     expect(returned).toBeDefined()
     expect(returned?.email).toBe(user.email)
@@ -120,10 +123,68 @@ describe("Backoffice - list users", () => {
       token: "token",
     })
     expectResponse(response, 200)
-    const returned = response.body.data.find((candidate) => candidate.id === createdUser.id)
+    const returned = response.body.data.users.find((candidate) => candidate.id === createdUser.id)
     expect(returned).toBeDefined()
     expect(returned?.organizationMemberships).toEqual([])
     expect(returned?.projectMemberships).toEqual([])
     expect(returned?.agentMemberships).toEqual([])
+  })
+
+  it("paginates with the requested page and limit", async () => {
+    await createAuthorizedContext()
+    for (let userIndex = 0; userIndex < 15; userIndex++) {
+      await repositories.userRepository.save(
+        repositories.userRepository.create({
+          auth0Id: `auth0|${randomUUID()}`,
+          email: `bulk-${userIndex}-${randomUUID()}@example.com`,
+          name: null,
+          pictureUrl: null,
+        }),
+      )
+    }
+    const firstPage = await request({
+      route: BackofficeRoutes.listUsers,
+      query: { page: "0", limit: "10" },
+      token: "token",
+    })
+    expectResponse(firstPage, 200)
+    expect(firstPage.body.data.users).toHaveLength(10)
+    expect(firstPage.body.data.total).toBeGreaterThanOrEqual(16)
+
+    const secondPage = await request({
+      route: BackofficeRoutes.listUsers,
+      query: { page: "1", limit: "10" },
+      token: "token",
+    })
+    expectResponse(secondPage, 200)
+    expect(secondPage.body.data.users.length).toBeGreaterThan(0)
+    const firstPageIds = new Set(firstPage.body.data.users.map((listedUser) => listedUser.id))
+    for (const listedUser of secondPage.body.data.users) {
+      expect(firstPageIds.has(listedUser.id)).toBe(false)
+    }
+  })
+
+  it("filters by search across email, name, and membership names", async () => {
+    await createAuthorizedContext()
+    const matchingEmail = `findme-${randomUUID()}@example.com`
+    const matchingUser = await repositories.userRepository.save(
+      repositories.userRepository.create({
+        auth0Id: `auth0|${randomUUID()}`,
+        email: matchingEmail,
+        name: null,
+        pictureUrl: null,
+      }),
+    )
+
+    const response = await request({
+      route: BackofficeRoutes.listUsers,
+      query: { search: "findme" },
+      token: "token",
+    })
+    expectResponse(response, 200)
+    expect(response.body.data.users.length).toBeGreaterThanOrEqual(1)
+    expect(response.body.data.users.some((listedUser) => listedUser.id === matchingUser.id)).toBe(
+      true,
+    )
   })
 })

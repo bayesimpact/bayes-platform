@@ -59,6 +59,13 @@ export type BackofficeUserDto = {
   agentMemberships: BackofficeUserAgentMembershipDto[]
 }
 
+export type PaginatedBackofficeUsersDto = {
+  users: BackofficeUserDto[]
+  total: number
+  page: number
+  limit: number
+}
+
 export const TERMS_DOCUMENT_TYPES = [
   "general_conditions",
   "privacy_policy",

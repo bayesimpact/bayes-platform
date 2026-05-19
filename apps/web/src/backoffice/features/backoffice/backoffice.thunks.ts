@@ -5,7 +5,7 @@ import type { RootState, ThunkExtraArg } from "@/common/store"
 import type {
   BackofficeOrganization,
   BackofficeProjectAgentCategory,
-  BackofficeUser,
+  PaginatedBackofficeUsers,
   TermsDocuments,
   UpdateTermsDocumentsInput,
 } from "./backoffice.models"
@@ -19,12 +19,13 @@ const listOrganizations = createAsyncThunk<BackofficeOrganization[], void, Thunk
   },
 )
 
-const listUsers = createAsyncThunk<BackofficeUser[], void, ThunkConfig>(
-  "backoffice/fetchUsers",
-  async (_, { extra: { services } }) => {
-    return services.backoffice.listUsers()
-  },
-)
+const listUsers = createAsyncThunk<
+  PaginatedBackofficeUsers,
+  { page?: number; limit?: number; search?: string } | undefined,
+  ThunkConfig
+>("backoffice/fetchUsers", async (params, { extra: { services } }) => {
+  return services.backoffice.listUsers(params ?? {})
+})
 
 const addFeatureFlag = createAsyncThunk<
   { projectId: string; featureFlagKey: FeatureFlagKey },
