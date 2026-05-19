@@ -14,21 +14,19 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import type { Project } from "@/common/features/projects/projects.models"
-import { useBuildPath } from "@/common/hooks/use-build-path"
+import { RouteNames } from "@/common/routes/helpers"
 import { useAppDispatch } from "@/common/store/hooks"
 import { deleteProject } from "@/studio/features/projects/projects.thunks"
 
 export function ProjectDeletor({ project }: { project: Project }) {
   const navigate = useNavigate()
-  const { buildPath } = useBuildPath()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
   const [open, setOpen] = useState<boolean>(false)
-  const path = buildPath("organization", { organizationId: project.organizationId })
 
   const onSuccess = () => {
-    navigate(path, { replace: true })
+    navigate(RouteNames.ONBOARDING, { replace: true })
     setOpen(false)
   }
 

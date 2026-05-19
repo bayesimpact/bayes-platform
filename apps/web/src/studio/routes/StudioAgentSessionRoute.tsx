@@ -8,7 +8,7 @@ import type { AgentSessionMessage } from "@/common/features/agents/agent-session
 import { AgentSessionMessages } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/AgentSessionMessages"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
-import { useGetPath } from "@/common/hooks/use-build-path"
+import { useGetAgentRoute } from "@/common/hooks/use-get-path"
 import { buildSince } from "@/common/utils/build-date"
 import { AgentSessionActions } from "../features/agents/components/AgentSessionActions"
 
@@ -24,16 +24,13 @@ export function StudioAgentSessionRoute({
 }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { getPath } = useGetPath()
+  const getAgentRoute = useGetAgentRoute()
 
   const Icon = getAgentIcon(agent.type)
 
   const date = buildSince(agentSession.updatedAt)
 
-  const handleBack = () => {
-    const path = getPath("agent")
-    navigate(path)
-  }
+  const handleBack = () => navigate(getAgentRoute())
 
   return (
     <div className="flex flex-col h-full">

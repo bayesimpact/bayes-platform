@@ -1,0 +1,87 @@
+import { DocumentsRagMode } from "@caseai-connect/api-contracts"
+import type { Meta, StoryObj } from "@storybook/react-vite"
+import { fn } from "storybook/test"
+import { agentFactory, agentOutputJsonSchemaFactory } from "@/common/features/agents/agent.factory"
+import { organizationFactory } from "@/common/features/organizations/organization.factory"
+import {
+  projectAgentCategoryFactory,
+  projectFactory,
+} from "@/common/features/projects/projects.factory"
+import { withRedux } from "@/stories/decorators"
+import { mergeSeeds, seed } from "@/stories/seed"
+import { AgentEditorWithoutTrigger } from "@/studio/features/agents/components/AgentEditor"
+import { documentTagFactory } from "@/studio/features/document-tags/document-tags.factory"
+
+const organization = organizationFactory.build()
+const billingCategory = projectAgentCategoryFactory.build({ name: "Billing" })
+const supportCategory = projectAgentCategoryFactory.build({ name: "Support" })
+const project = projectFactory
+  .transient({ organization })
+  .build({ agentCategories: [billingCategory, supportCategory] })
+
+const productTag = documentTagFactory.transient({ project }).build({ name: "Product" })
+const pricingTag = documentTagFactory.transient({ project }).build({ name: "Pricing" })
+const documentTags = [productTag, pricingTag]
+
+const mockOutputJsonSchema = agentOutputJsonSchemaFactory.build()
+
+const conversationAgent = agentFactory.transient({ project }).build({
+  type: "conversation",
+  name: "Helpful Assistant",
+  documentTagIds: [productTag.id],
+  documentsRagMode: DocumentsRagMode.Tags,
+  projectAgentCategoryIds: [billingCategory.id],
+  usedProjectAgentCategoryIds: [billingCategory.id],
+  greetingMessage: "Hi! How can I help you today?",
+})
+
+const extractionAgent = agentFactory.transient({ project }).build({
+  type: "extraction",
+  name: "Document Extractor",
+  documentsRagMode: DocumentsRagMode.None,
+  outputJsonSchema: mockOutputJsonSchema,
+  greetingMessage: null,
+})
+
+const formAgent = agentFactory.transient({ project }).build({
+  type: "form",
+  name: "Intake Form Agent",
+  documentsRagMode: DocumentsRagMode.None,
+  outputJsonSchema: mockOutputJsonSchema,
+  greetingMessage: "Welcome — let's get started. I'll ask a few questions.",
+})
+
+const meta = {
+  title: "routes/studio/project/agent/AgentEditor",
+  component: AgentEditorWithoutTrigger,
+  decorators: [
+    withRedux({
+      state: mergeSeeds(seed.currentProject(project), seed.studio.documentTags(documentTags)),
+    }),
+  ],
+  parameters: { layout: "fullscreen" },
+  args: {
+    onClose: fn(),
+  },
+} satisfies Meta<typeof AgentEditorWithoutTrigger>
+
+export default meta
+type Story = StoryObj<typeof meta>
+
+export const ConversationEdit: Story = {
+  args: {
+    agent: conversationAgent,
+  },
+}
+
+export const ExtractionEdit: Story = {
+  args: {
+    agent: extractionAgent,
+  },
+}
+
+export const FormEdit: Story = {
+  args: {
+    agent: formAgent,
+  },
+}

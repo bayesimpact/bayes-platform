@@ -6,7 +6,7 @@ import { useNavigate, useOutlet } from "react-router-dom"
 import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/grid/Grid"
 import type { Project } from "@/common/features/projects/projects.models"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
-import { useGetPath } from "@/common/hooks/use-build-path"
+import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { PendingInvitationsSection } from "@/studio/features/invitations/components/PendingInvitationsSection"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
@@ -52,11 +52,8 @@ function WithData({
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState("")
-  const { getPath } = useGetPath()
-  const handleBack = () => {
-    const path = getPath("project")
-    navigate(path)
-  }
+  const getProjectRoute = useGetProjectRoute()
+  const handleBack = () => navigate(getProjectRoute())
 
   const filteredMemberships = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()

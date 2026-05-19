@@ -18,14 +18,7 @@ const router = () =>
       path: RouteNames.HOME,
       element: <HomeRoute />,
     },
-    {
-      path: RouteNames.ONBOARDING,
-      element: (
-        <ProtectedRoute>
-          <OnboardingRoute />
-        </ProtectedRoute>
-      ),
-    },
+
     {
       path: RouteNames.LOGOUT,
       element: <LogoutRoute />,
@@ -38,6 +31,7 @@ const router = () =>
         </ProtectedRoute>
       ),
       children: [
+        onboardingRoute,
         studioRoutes,
         deskRoutes,
         evalRoutes,
@@ -55,4 +49,9 @@ const router = () =>
 
 export function Router() {
   return <RouterProvider router={router()} />
+}
+
+export const onboardingRoute = {
+  path: RouteNames.ONBOARDING,
+  element: <OnboardingRoute />,
 }

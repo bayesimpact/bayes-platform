@@ -9,7 +9,7 @@ import { ClipboardCheckIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { Grid, GridContent, GridItem } from "@/common/components/grid/Grid"
-import { buildReviewerCampaignPath } from "@/reviewer/routes/helpers"
+import { ReviewerRoutes } from "@/reviewer/routes/helpers"
 import type { ReviewerCampaign } from "../reviewer.models"
 
 export function ReviewerCampaignsList({ campaigns }: { campaigns: ReviewerCampaign[] }) {
@@ -44,7 +44,7 @@ function CampaignItem({ campaign, index }: { campaign: ReviewerCampaign; index: 
   const { t } = useTranslation()
   const navigate = useNavigate()
   const handleClick = () => {
-    const path = buildReviewerCampaignPath({
+    const path = ReviewerRoutes.campaign.build({
       organizationId: campaign.organizationId,
       projectId: campaign.projectId,
       reviewCampaignId: campaign.id,

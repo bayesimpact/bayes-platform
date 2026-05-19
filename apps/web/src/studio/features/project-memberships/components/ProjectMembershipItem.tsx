@@ -7,11 +7,12 @@ import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { GridItem } from "@/common/components/grid/Grid"
+import { SUPER_ROLES } from "@/common/features/me/me.models"
 import { selectMe } from "@/common/features/me/me.selectors"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import type { ProjectMembership } from "@/studio/features/project-memberships/project-memberships.models"
 import { removeProjectMembership } from "@/studio/features/project-memberships/project-memberships.thunks"
-import { buildProjectMembershipPath } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 
 export function ProjectMembershipItem({
   membership,
@@ -37,7 +38,7 @@ export function ProjectMembershipItem({
 
   const handleClick = () => {
     navigate(
-      buildProjectMembershipPath({
+      StudioRoutes.projectMembership.build({
         organizationId,
         projectId: membership.projectId,
         membershipId: membership.id,
@@ -74,13 +75,12 @@ export function ProjectMembershipItem({
 }
 
 export function BadgeWithIcon({ role }: { role: ProjectMembershipRoleDto }) {
-  const superRoles = ["owner", "admin"]
   const iconMap: Record<ProjectMembershipRoleDto, React.ReactNode> = {
     owner: <CrownIcon className="size-3.5 text-primary" />,
     admin: <StarIcon className="size-3.5 text-yellow-500" />,
     member: null,
   }
-  const variant = superRoles.includes(role) ? "outline" : "secondary"
+  const variant = SUPER_ROLES.includes(role) ? "outline" : "secondary"
   const icon = iconMap[role]
   return (
     <Badge className="flex gap-1 capitalize" variant={variant}>

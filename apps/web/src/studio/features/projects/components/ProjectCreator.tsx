@@ -12,11 +12,10 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { GridItem } from "@/common/components/grid/Grid"
 import type { Organization } from "@/common/features/organizations/organizations.models"
-import { useBuildPath } from "@/common/hooks/use-build-path"
 import { useAppDispatch } from "@/common/store/hooks"
 import { ProjectForm } from "@/studio/features/projects/components/ProjectForm"
 import { createProject } from "@/studio/features/projects/projects.thunks"
-import { StudioRouteNames } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 
 export function ProjectCreatorButton({
   organization,
@@ -47,7 +46,6 @@ export function ProjectCreator({
     setOpen: (open: boolean) => void
   }
 }) {
-  const { buildPath } = useBuildPath()
   const { t } = useTranslation()
 
   const [open, setOpen] = useState(false)
@@ -55,10 +53,9 @@ export function ProjectCreator({
   const handleSuccess = (projectId: string) => {
     modalHandler ? modalHandler.setOpen(false) : setOpen(false)
 
-    const path = buildPath("project", {
+    const path = StudioRoutes.project.build({
       organizationId: organization.id,
       projectId,
-      forceInterface: StudioRouteNames.HOME,
     })
     // NOTE: do not use navigate from react-router
     window.location.assign(path)

@@ -1,52 +1,35 @@
-import {
-  type AgentDto,
-  AgentLocale,
-  AgentModel,
-  type AgentSessionMessageDto,
-  type ConversationAgentSessionDto,
-  DocumentsRagMode,
-  type FormAgentSessionDto,
-} from "@caseai-connect/api-contracts"
+import { AgentLocale, AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { withRouter } from "storybook-addon-remix-react-router"
-import type { Project } from "@/common/features/projects/projects.models"
+import { agentFactory } from "@/common/features/agents/agent.factory"
+import {
+  agentSessionMessageFactory,
+  conversationAgentSessionFactory,
+  formAgentSessionFactory,
+} from "@/common/features/agents/agent-sessions/agent-session.factory"
 import { TesterAgentSessionContent } from "@/tester/features/review-campaigns/components/TesterAgentSessionPage"
-import { withRedux } from "../../decorators/with-redux"
+import { withRedux } from "../../decorators"
+import { mergeSeeds, seed } from "../../seed"
+import { mockProject } from "../fixtures"
 import { mockPerSessionQuestions, mockTesterContext } from "./fixtures"
 import { buildMockTesterService } from "./mock-service"
 
-const mockProject: Project = {
-  id: "proj-1",
-  name: "Demo project",
-  organizationId: "org-1",
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
-  featureFlags: [],
-  agentCategories: [],
-}
-
-const mockConversationAgent: AgentDto = {
+const mockConversationAgent = agentFactory.transient({ project: mockProject }).build({
   id: "agent-1",
-  projectId: mockProject.id,
-  name: "Support assistant",
+  name: "Helpful Assistant",
   type: "conversation",
-  defaultPrompt: "You are a helpful support assistant.",
+  defaultPrompt: "You are a helpful assistant.",
   greetingMessage: "Hi! Ask me anything about your account.",
   locale: AgentLocale.EN,
   model: AgentModel.Gemini25Flash,
   temperature: 0.5,
-  documentTagIds: [],
   documentsRagMode: DocumentsRagMode.All,
-  projectAgentCategoryIds: [],
-  usedProjectAgentCategoryIds: [],
-  createdAt: Date.now(),
-  updatedAt: Date.now(),
-}
+})
 
-const mockFormAgent: AgentDto = {
+const mockFormAgent = agentFactory.transient({ project: mockProject }).build({
   ...mockConversationAgent,
   id: "agent-2",
-  name: "Intake form",
+  name: "Intake Form Agent",
   type: "form",
   outputJsonSchema: {
     type: "object",
@@ -56,45 +39,42 @@ const mockFormAgent: AgentDto = {
       priority: { type: "string", description: "Priority level" },
     },
   },
-}
+})
 
-const mockConversationSession: ConversationAgentSessionDto = {
-  id: "session-1",
-  agentId: mockConversationAgent.id,
-  type: "live",
-  createdAt: Date.now() - 5 * 60_000,
-  updatedAt: Date.now(),
-}
+const mockConversationSession = conversationAgentSessionFactory
+  .transient({ agent: mockConversationAgent })
+  .build({
+    id: "session-1",
+    type: "live",
+    createdAt: Date.now() - 5 * 60_000,
+    updatedAt: Date.now(),
+  })
 
-const mockFormSession: FormAgentSessionDto = {
+const mockFormSession = formAgentSessionFactory.transient({ agent: mockFormAgent }).build({
   id: "session-2",
-  agentId: mockFormAgent.id,
   type: "live",
   createdAt: Date.now() - 3 * 60_000,
   updatedAt: Date.now(),
   result: { reason: "Account access", priority: "Medium" },
-}
+})
 
-const mockMessages: AgentSessionMessageDto[] = [
-  {
+const mockMessages = [
+  agentSessionMessageFactory.build({
     id: "msg-1",
     role: "assistant",
     content: "Hi! Ask me anything about your account.",
-    status: "completed",
-  },
-  {
+  }),
+  agentSessionMessageFactory.build({
     id: "msg-2",
     role: "user",
     content: "How do I reset my password?",
-    status: "completed",
-  },
-  {
+  }),
+  agentSessionMessageFactory.build({
     id: "msg-3",
     role: "assistant",
     content:
       "Sure — go to Settings → Security and click 'Reset password'. You'll receive an email with a secure link.",
-    status: "completed",
-  },
+  }),
 ]
 
 const baseStoryArgs = {
@@ -112,9 +92,8 @@ const meta = {
   decorators: [
     withRouter,
     withRedux({
-      currentProject: mockProject,
-      testerContext: mockTesterContext,
-      servicesMock: { reviewCampaignsTester: buildMockTesterService() },
+      state: mergeSeeds(seed.currentProject(mockProject), seed.tester.context(mockTesterContext)),
+      services: { reviewCampaignsTester: buildMockTesterService() },
     }),
   ],
 } satisfies Meta<typeof TesterAgentSessionContent>

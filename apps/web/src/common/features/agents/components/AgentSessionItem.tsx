@@ -5,7 +5,7 @@ import { GridItem } from "@/common/components/grid/Grid"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import type { ExtractionAgentSession } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
 import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
-import { useBuildPath } from "@/common/hooks/use-build-path"
+import { useRoutesBuilder } from "@/common/routes/build-routes/context"
 import { useAppDispatch } from "@/common/store/hooks"
 import { buildDate, buildSince } from "@/common/utils/build-date"
 import { deleteAgentSession } from "../agent-sessions/shared/base-agent-session/base-agent-sessions.thunks"
@@ -32,9 +32,9 @@ export function AgentSessionItem({
 }) {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const { buildPath } = useBuildPath()
+  const { build } = useRoutesBuilder()
   const handleClick = () => {
-    const path = buildPath("agentSession", {
+    const path = build.agentSessionRoute({
       organizationId,
       projectId,
       agentId,

@@ -9,17 +9,17 @@ import { SidebarLayout } from "@/common/components/sidebar/SidebarLayout"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import { selectOrganizationsData } from "@/common/features/organizations/organizations.selectors"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import { DeskRouteNames } from "@/desk/routes/helpers"
-import { EvalRouteNames } from "@/eval/routes/helpers"
-import { buildReviewerHomePath } from "@/reviewer/routes/helpers"
+import { DeskRoutes } from "@/desk/routes/helpers"
+import { EvalRoutes } from "@/eval/routes/helpers"
+import { ReviewerRoutes } from "@/reviewer/routes/helpers"
 import type {
   PendingInvitationItem as PendingInvitationEntry,
   PendingInvitations,
 } from "@/studio/features/invitations/invitations.models"
 import { acceptInvitation } from "@/studio/features/invitations/invitations.thunks"
 import { ProjectCreatorButton } from "@/studio/features/projects/components/ProjectCreator"
-import { StudioRouteNames } from "@/studio/routes/helpers"
-import { buildTesterHomePath } from "@/tester/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
+import { TesterRoutes } from "@/tester/routes/helpers"
 import { Wrap } from "../components/layouts/Wrap"
 import type { User } from "../features/me/me.models"
 import {
@@ -29,7 +29,6 @@ import {
 } from "../features/me/me.selectors"
 import type { Project } from "../features/projects/projects.models"
 import { useAbility } from "../hooks/use-ability"
-import { useBuildPath } from "../hooks/use-build-path"
 import { useFeatureFlags } from "../hooks/use-feature-flags"
 import { buildSince } from "../utils/build-date"
 import { AsyncRoute } from "./AsyncRoute"
@@ -234,13 +233,11 @@ function NavAppButton({
   projectId: string
 }) {
   const { t } = useTranslation()
-  const { buildPath } = useBuildPath()
 
   const handleClick = () => {
-    const path = buildPath("project", {
+    const path = DeskRoutes.project.build({
       organizationId,
       projectId,
-      forceInterface: DeskRouteNames.HOME,
     })
     // NOTE: do not use navigate from react-router
     window.location.assign(path)
@@ -263,13 +260,11 @@ function NavStudioButton({
   const { t } = useTranslation()
   const { abilities } = useAbility()
   const canAccessStudio = abilities.canAccessStudio({ projectId })
-  const { buildPath } = useBuildPath()
 
   const handleClick = () => {
-    const path = buildPath("project", {
+    const path = StudioRoutes.project.build({
       organizationId,
       projectId,
-      forceInterface: StudioRouteNames.HOME,
     })
     // NOTE: do not use navigate from react-router
     window.location.assign(path)
@@ -286,13 +281,11 @@ function NavStudioButton({
 function NavEvalButton({ organizationId, project }: { organizationId: string; project: Project }) {
   const { t } = useTranslation()
   const { hasFeature } = useFeatureFlags(project)
-  const { buildPath } = useBuildPath()
 
   const handleClick = () => {
-    const path = buildPath("project", {
+    const path = EvalRoutes.project.build({
       organizationId,
       projectId: project.id,
-      forceInterface: EvalRouteNames.HOME,
     })
     // NOTE: do not use navigate from react-router
     window.location.assign(path)
@@ -314,7 +307,7 @@ function NavTesterButton({ projectId }: { projectId: string }) {
 
   const handleClick = () => {
     // NOTE: do not use navigate from react-router — tester is its own route tree
-    window.location.assign(buildTesterHomePath())
+    window.location.assign(TesterRoutes.home.path)
   }
 
   if (!hasTesterCampaignInProject) return null
@@ -332,7 +325,7 @@ function NavReviewerButton({ projectId }: { projectId: string }) {
 
   const handleClick = () => {
     // NOTE: do not use navigate from react-router — reviewer is its own route tree
-    window.location.assign(buildReviewerHomePath())
+    window.location.assign(ReviewerRoutes.home.path)
   }
 
   if (!hasReviewerCampaignInProject) return null

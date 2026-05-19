@@ -1,5 +1,5 @@
 import type { RootState } from "@/common/store"
-import type { Me } from "./me.models"
+import { SUPER_ROLES } from "./me.models"
 
 export const selectMe = (state: RootState) => state.me.data
 export const selectMeStatus = (state: RootState) => state.me.data.status
@@ -24,10 +24,6 @@ export const selectTermsAccepted = (state: RootState): boolean =>
 
 export const selectCurrentTerms = (state: RootState) => state.me.currentTerms
 
-export const ownerOrAdminRoles = ["owner", "admin"] as Partial<
-  Me["user"]["memberships"]["organizationMemberships"][number]["role"]
->[]
-
 export const selectOrganizationMemberships = (state: RootState) =>
   state.me.data.value?.memberships.organizationMemberships
 
@@ -44,7 +40,7 @@ export const selectCanAccessStudioForOrganizationId =
     if (!memberships) return false
     return memberships.organizationMemberships.some(
       (membership) =>
-        membership.organizationId === organizationId && ownerOrAdminRoles.includes(membership.role),
+        membership.organizationId === organizationId && SUPER_ROLES.includes(membership.role),
     )
   }
 

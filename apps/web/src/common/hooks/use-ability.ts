@@ -1,12 +1,12 @@
 import { useCallback, useMemo } from "react"
 import {
-  ownerOrAdminRoles,
   selectAgentMemberships,
   selectIsPremiumMember,
   selectOrganizationMemberships,
   selectProjectMemberships,
 } from "@/common/features/me/me.selectors"
 import { useAppSelector } from "@/common/store/hooks"
+import { SUPER_ROLES } from "../features/me/me.models"
 
 export function useAbility() {
   const organizationMemberships = useAppSelector(selectOrganizationMemberships)
@@ -18,8 +18,7 @@ export function useAbility() {
       if (!organizationId) return false
       const isOrganizationOwnerOrAdmin = [...(organizationMemberships ?? [])].some(
         (membership) =>
-          membership.organizationId === organizationId &&
-          ownerOrAdminRoles.includes(membership.role),
+          membership.organizationId === organizationId && SUPER_ROLES.includes(membership.role),
       )
 
       return isOrganizationOwnerOrAdmin
@@ -30,8 +29,7 @@ export function useAbility() {
   const canAccessStudio = useCallback(
     ({ projectId }: { projectId: string | null }) => {
       const isProjectOwnerOrAdmin = [...(projectMemberships ?? [])].some(
-        (membership) =>
-          membership.projectId === projectId && ownerOrAdminRoles.includes(membership.role),
+        (membership) => membership.projectId === projectId && SUPER_ROLES.includes(membership.role),
       )
       return isProjectOwnerOrAdmin
     },
@@ -41,8 +39,7 @@ export function useAbility() {
   const canManageAgent = useCallback(
     ({ agentId }: { agentId: string | null }) => {
       const isAgentOwnerOrAdmin = [...(agentMemberships ?? [])].some(
-        (membership) =>
-          membership.agentId === agentId && ownerOrAdminRoles.includes(membership.role),
+        (membership) => membership.agentId === agentId && SUPER_ROLES.includes(membership.role),
       )
       return isAgentOwnerOrAdmin
     },

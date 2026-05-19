@@ -32,13 +32,7 @@ import type { Project } from "@/common/features/projects/projects.models"
 import { useIsRoute } from "@/common/hooks/use-is-route"
 import { useAppSelector } from "@/common/store/hooks"
 import { selectUploaderState } from "../features/documents/documents.selectors"
-import {
-  buildDocumentsPath,
-  buildProjectAnalyticsPath,
-  buildProjectMembershipsPath,
-  buildReviewCampaignsPath,
-  StudioRouteNames,
-} from "./helpers"
+import { StudioRoutes } from "./helpers"
 
 export function SidebarFooterChildren({ project }: { project: Project }) {
   const { t } = useTranslation()
@@ -73,8 +67,8 @@ function NavReviewCampaigns({
   const { t } = useTranslation()
   const { isRoute } = useIsRoute()
   const isActive =
-    isRoute(StudioRouteNames.REVIEW_CAMPAIGNS) || isRoute(StudioRouteNames.REVIEW_CAMPAIGN_REPORT)
-  const path = buildReviewCampaignsPath({ organizationId, projectId })
+    isRoute(StudioRoutes.reviewCampaigns.path) || isRoute(StudioRoutes.reviewCampaignReport.path)
+  const path = StudioRoutes.reviewCampaigns.build({ organizationId, projectId })
   return (
     <SidebarMenuSubItem>
       <SidebarMenuSubButton isActive={isActive} asChild>
@@ -96,8 +90,8 @@ function NavProjectMemberships({
 }) {
   const { t } = useTranslation()
   const { isRoute } = useIsRoute()
-  const isActive = isRoute(StudioRouteNames.PROJECT_MEMBERSHIPS)
-  const path = buildProjectMembershipsPath({ organizationId, projectId })
+  const isActive = isRoute(StudioRoutes.projectMemberships.path)
+  const path = StudioRoutes.projectMemberships.build({ organizationId, projectId })
   return (
     <SidebarMenuItem>
       <SidebarMenuButton isActive={isActive} asChild>
@@ -121,8 +115,8 @@ function NavAnalytics({
 }) {
   const { t } = useTranslation("analytics")
   const { isRoute } = useIsRoute()
-  const isActive = isRoute(StudioRouteNames.PROJECT_ANALYTICS)
-  const path = buildProjectAnalyticsPath({ organizationId, projectId })
+  const isActive = isRoute(StudioRoutes.projectAnalytics.path)
+  const path = StudioRoutes.projectAnalytics.build({ organizationId, projectId })
   return (
     <SidebarMenuItem>
       <SidebarMenuButton isActive={isActive} asChild>
@@ -144,8 +138,8 @@ function NavDocuments({
 }) {
   const { t } = useTranslation()
   const { isRoute } = useIsRoute()
-  const isActive = isRoute(StudioRouteNames.DOCUMENTS)
-  const path = buildDocumentsPath({ organizationId, projectId })
+  const isActive = isRoute(StudioRoutes.documents.path)
+  const path = StudioRoutes.documents.build({ organizationId, projectId })
   return (
     <SidebarMenuItem>
       <SidebarMenuButton isActive={isActive} asChild>

@@ -26,26 +26,42 @@ import {
 } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.selectors"
 import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
-import { useBuildPath } from "@/common/hooks/use-build-path"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
+import type { DeskRoutes } from "@/desk/routes/helpers"
+import type { StudioRoutes } from "@/studio/routes/helpers"
 
-export function BreadcrumbAgentSession({ organizationId }: { organizationId: string }) {
+type BuildPath =
+  | (typeof StudioRoutes)["agentSession"]["build"]
+  | (typeof DeskRoutes)["agentSession"]["build"]
+export function BreadcrumbAgentSession({
+  organizationId,
+  buildPath,
+}: {
+  organizationId: string
+  buildPath: BuildPath
+}) {
   const agent = useAppSelector(selectCurrentAgentData)
   if (!ADS.isFulfilled(agent)) return null
 
   switch (agent.value.type) {
     case "conversation":
-      return <ConversationAgentSessionList organizationId={organizationId} />
+      return <ConversationAgentSessionList organizationId={organizationId} buildPath={buildPath} />
     case "form":
-      return <FormAgentSessionList organizationId={organizationId} />
+      return <FormAgentSessionList organizationId={organizationId} buildPath={buildPath} />
     default:
       return null
   }
 }
 
-function ConversationAgentSessionList({ organizationId }: { organizationId: string }) {
+function ConversationAgentSessionList({
+  organizationId,
+  buildPath,
+}: {
+  organizationId: string
+  buildPath: BuildPath
+}) {
   const sessions = useAppSelector(selectCurrentConversationAgentSessionsData)
   const currentSession = useAppSelector(selectCurrentConversationAgentSessionData)
   if (!ADS.isFulfilled(sessions) || !ADS.isFulfilled(currentSession)) return null
@@ -55,11 +71,18 @@ function ConversationAgentSessionList({ organizationId }: { organizationId: stri
       organizationId={organizationId}
       currentSession={currentSession.value}
       sessions={sessions.value}
+      buildPath={buildPath}
     />
   )
 }
 
-function FormAgentSessionList({ organizationId }: { organizationId: string }) {
+function FormAgentSessionList({
+  organizationId,
+  buildPath,
+}: {
+  organizationId: string
+  buildPath: BuildPath
+}) {
   const sessions = useAppSelector(selectCurrentFormAgentSessionsData)
   const currentSession = useAppSelector(selectCurrentFormAgentSessionData)
   if (!ADS.isFulfilled(sessions) || !ADS.isFulfilled(currentSession)) return null
@@ -69,6 +92,7 @@ function FormAgentSessionList({ organizationId }: { organizationId: string }) {
       organizationId={organizationId}
       currentSession={currentSession.value}
       sessions={sessions.value}
+      buildPath={buildPath}
     />
   )
 }
@@ -77,15 +101,18 @@ function WithData({
   organizationId,
   currentSession,
   sessions,
+  buildPath,
 }: {
   organizationId: string
   currentSession: ConversationAgentSession | FormAgentSession
   sessions: (ConversationAgentSession | FormAgentSession)[]
+  buildPath:
+    | (typeof StudioRoutes)["agentSession"]["build"]
+    | (typeof DeskRoutes)["agentSession"]["build"]
 }) {
   const projectId = useAppSelector(selectCurrentProjectId)
-  const { buildPath } = useBuildPath()
   const currentSessionName = buildSince(currentSession.createdAt)
-  const currentSessionPath = buildPath("agentSession", {
+  const currentSessionPath = buildPath({
     organizationId,
     projectId: projectId!,
     agentId: currentSession.agentId,
@@ -95,7 +122,7 @@ function WithData({
   const handleClick =
     ({ agentId, agentSessionId }: { agentId: string; agentSessionId: string }) =>
     () => {
-      const path = buildPath("agentSession", {
+      const path = buildPath({
         organizationId,
         projectId: projectId!,
         agentId,

@@ -9,7 +9,7 @@ import {
   listInvitationsForTarget,
   revokeInvitation,
 } from "@/studio/features/invitations/invitations.thunks"
-import { buildReviewCampaignReportPath } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 import type { ReviewCampaignDetail } from "../review-campaigns.models"
 import { selectReviewCampaignPendingInvitations } from "../review-campaigns.selectors"
 import {
@@ -47,7 +47,7 @@ export function UpdateCampaignForm({ campaign, agents, onSuccess, onDeleted }: P
 
   const handleOpenReport = () => {
     navigate(
-      buildReviewCampaignReportPath({
+      StudioRoutes.reviewCampaignReport.build({
         organizationId: campaign.organizationId,
         projectId: campaign.projectId,
         reviewCampaignId: campaign.id,

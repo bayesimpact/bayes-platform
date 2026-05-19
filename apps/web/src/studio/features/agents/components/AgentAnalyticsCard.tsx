@@ -3,7 +3,7 @@ import { cn } from "@caseai-connect/ui/utils"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridItem } from "@/common/components/grid/Grid"
-import { buildAgentAnalyticsPath } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 
 const bars = [40, 65, 45, 80, 55, 70, 90, 60, 75, 50, 85, 68]
 
@@ -24,7 +24,7 @@ export function AgentAnalyticsCard({
 }) {
   const { t } = useTranslation("agentAnalytics")
   const navigate = useNavigate()
-  const path = buildAgentAnalyticsPath({ organizationId, projectId, agentId })
+  const path = StudioRoutes.agentAnalytics.build({ organizationId, projectId, agentId })
   const handleClick = () => {
     navigate(path)
   }

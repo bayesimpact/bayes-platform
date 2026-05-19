@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/grid/Grid"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
-import { useGetPath } from "@/common/hooks/use-build-path"
+import { useGetAgentRoute } from "@/common/hooks/use-get-path"
 import { useMount } from "@/common/hooks/use-mount"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
@@ -24,9 +24,7 @@ export function AgentMembershipsRoute() {
   const memberships = useAppSelector(selectAgentMemberships)
   const pendingInvitations = useAppSelector(selectAgentPendingInvitations)
 
-  useMount({
-    actions: agentMembershipsActions,
-  })
+  useMount({ actions: agentMembershipsActions })
 
   return (
     <AsyncRoute data={[memberships, agent, pendingInvitations]}>
@@ -53,11 +51,9 @@ function WithData({
   const dispatch = useAppDispatch()
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { getPath } = useGetPath()
-  const handleBack = () => {
-    const path = getPath("agent")
-    navigate(path)
-  }
+  const getAgentRoute = useGetAgentRoute()
+  const handleBack = () => navigate(getAgentRoute())
+
   const cols = memberships.length === 0 ? 0 : 3
   const total = memberships.length
   const handleRevokeInvitation = (invitationId: string) => {

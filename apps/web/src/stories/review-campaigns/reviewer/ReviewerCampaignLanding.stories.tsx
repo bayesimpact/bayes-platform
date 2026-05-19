@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import { fn } from "storybook/test"
 import { withRouter } from "storybook-addon-remix-react-router"
 import { ReviewerCampaignLanding } from "@/reviewer/features/review-campaigns/components/ReviewerCampaignPage"
-import { withRedux } from "@/stories/decorators/with-redux"
+import { withRedux } from "@/stories/decorators"
 import { mockCampaignContext, mockReviewerSessions } from "./fixtures"
 
 const meta = {

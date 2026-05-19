@@ -6,7 +6,7 @@ import { useCallback, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import type { Agent } from "@/common/features/agents/agents.models"
-import { useBuildPath } from "@/common/hooks/use-build-path"
+import { useRoutesBuilder } from "@/common/routes/build-routes/context"
 import { useAppDispatch } from "@/common/store/hooks"
 import { createAgentSession } from "../base-agent-sessions.thunks"
 
@@ -22,13 +22,13 @@ export function BaseAgentSessionCreator({
   const navigate = useNavigate()
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
-  const { buildPath } = useBuildPath()
+  const { build } = useRoutesBuilder()
   const onSuccess = useCallback(
     (agentSessionId: string) => {
-      const path = buildPath("agentSession", { ...ids, agentSessionId })
+      const path = build.agentSessionRoute({ ...ids, agentSessionId })
       navigate(path)
     },
-    [buildPath, ids, navigate],
+    [build.agentSessionRoute, ids, navigate],
   )
 
   const handleClick = useMemo(

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { GridItem } from "@/common/components/grid/Grid"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
-import { useBuildPath } from "@/common/hooks/use-build-path"
+import { useRoutesBuilder } from "@/common/routes/build-routes/context"
 import { buildSince } from "@/common/utils/build-date"
 
 export function AgentItem({
@@ -21,9 +21,9 @@ export function AgentItem({
 }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { buildPath } = useBuildPath()
+  const { build } = useRoutesBuilder()
   const handleClick = () => {
-    const path = buildPath("agent", {
+    const path = build.agentRoute({
       organizationId,
       projectId,
       agentId: agent.id,

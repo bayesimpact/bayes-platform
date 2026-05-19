@@ -18,5 +18,5 @@ export function BackofficeGuard({ children }: { children: React.ReactNode }) {
     if (initDone) return <>{children}</>
     return <LoadingRoute />
   }
-  return <NotFoundRoute redirectToHome />
+  return <NotFoundRoute />
 }

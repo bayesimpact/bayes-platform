@@ -4,16 +4,21 @@ import { Grid, GridContent, GridHeader } from "@/common/components/grid/Grid"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import type { Project } from "@/common/features/projects/projects.models"
 import { RouteNames } from "@/common/routes/helpers"
+import type { DeskRoutes } from "@/desk/routes/helpers"
+import type { StudioRoutes } from "@/studio/routes/helpers"
 import { ProjectItem } from "./ProjectItem"
 
+type BuildProjectPath = typeof StudioRoutes.project.build | typeof DeskRoutes.project.build
 export function ProjectList({
   projects,
   organization,
   children,
+  buildProjectPath,
 }: {
   children?: React.ReactNode
   projects: Project[]
   organization: Organization
+  buildProjectPath: BuildProjectPath
 }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
@@ -36,6 +41,7 @@ export function ProjectList({
             key={project.id}
             organizationId={organization.id}
             project={project}
+            buildProjectPath={buildProjectPath}
           />
         ))}
 

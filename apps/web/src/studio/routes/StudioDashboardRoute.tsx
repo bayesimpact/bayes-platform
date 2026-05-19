@@ -11,6 +11,7 @@ import { useAppSelector } from "@/common/store/hooks"
 import { DotsBackground } from "@/studio/components/DotsBackground"
 import { SidebarAgentCreatorButton } from "@/studio/features/agents/components/AgentCreator"
 import { selectUploaderState } from "../features/documents/documents.selectors"
+import { StudioRoutes } from "./helpers"
 import { SidebarFooterChildren } from "./SidebarFooterChildren"
 
 export function StudioDashboardRoute({
@@ -38,6 +39,7 @@ export function StudioDashboardRoute({
       }
       user={{ name: user.name, email: user.email }}
       sidebarFooterChildren={project.value && <SidebarFooterChildren project={project.value} />}
+      routes={StudioRoutes}
     >
       <DotsBackground className="flex-1">
         <Wrap>{outlet ? outlet : <Navigate to={RouteNames.HOME} />}</Wrap>

@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom"
 import { CampaignReportPage } from "@/studio/features/review-campaigns/reports/components/CampaignReportPage"
-import { buildReviewerCampaignPath } from "./helpers"
+import { ReviewerRoutes } from "./helpers"
 
 type Params = {
   organizationId: string
@@ -13,11 +13,7 @@ export function ReviewerReportRoute() {
 
   return (
     <CampaignReportPage
-      backPath={buildReviewerCampaignPath({
-        organizationId: params.organizationId,
-        projectId: params.projectId,
-        reviewCampaignId: params.reviewCampaignId,
-      })}
+      backPath={ReviewerRoutes.campaign.build(params)}
       organizationId={params.organizationId}
       projectId={params.projectId}
       reviewCampaignId={params.reviewCampaignId}

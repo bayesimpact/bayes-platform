@@ -1,5 +1,6 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
 import { listAgents } from "@/common/features/agents/agents.thunks"
+import { fetchMe } from "@/common/features/me/me.thunks"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { createAgent, deleteAgent, updateAgent } from "@/studio/features/agents/agents.thunks"
@@ -65,6 +66,8 @@ function registerListeners() {
 
       const onSuccess = action.meta.arg.onSuccess
       onSuccess?.(action.payload)
+
+      listenerApi.dispatch(fetchMe()) // To update agent membership and then abilities
     },
   })
   listenerMiddleware.startListening({

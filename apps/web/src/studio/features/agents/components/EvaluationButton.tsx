@@ -7,7 +7,7 @@ import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useAppSelector } from "@/common/store/hooks"
-import { buildEvaluationPath } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 
 export function EvaluationButton({ index }: { index: number }) {
   const { t } = useTranslation()
@@ -15,7 +15,7 @@ export function EvaluationButton({ index }: { index: number }) {
   const organizationId = useAppSelector(selectCurrentOrganizationId)
   const projectId = useAppSelector(selectCurrentProjectId)
   if (!organizationId || !projectId) return null
-  const path = buildEvaluationPath({ organizationId, projectId })
+  const path = StudioRoutes.evaluation.build({ organizationId, projectId })
   const handleClick = () => {
     navigate(path)
   }

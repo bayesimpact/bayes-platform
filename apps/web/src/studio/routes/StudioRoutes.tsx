@@ -6,9 +6,9 @@ import { AgentSessionRoute } from "@/common/routes/agents/AgentSessionRoute"
 import { ConversationAgentRoute } from "@/common/routes/agents/ConversationAgentRoute"
 import { ExtractionAgentRoute } from "@/common/routes/agents/ExtractionAgentRoute"
 import { FormAgentRoute } from "@/common/routes/agents/FormAgentRoute"
+import { RoutesBuilderProvider } from "@/common/routes/build-routes/RoutesBuilderProvider"
 import { DashboardRoute } from "@/common/routes/DashboardRoute"
 import { ErrorRoute } from "@/common/routes/ErrorRoute"
-import { RouteNames } from "@/common/routes/helpers"
 import { ProjectRoute } from "@/common/routes/ProjectRoute"
 import { AgentCreatorButton } from "@/studio/features/agents/components/AgentCreator"
 import {
@@ -29,10 +29,11 @@ import { AgentMembershipsRoute } from "./AgentMembershipsRoute"
 import { DocumentsRoute } from "./DocumentsRoute"
 import { EvaluationRoute } from "./EvaluationRoute"
 import { FeedbackRoute } from "./FeedbackRoute"
-import { buildStudioPath, StudioRouteNames } from "./helpers"
+import { StudioRoutes } from "./helpers"
 import { ProjectAnalyticsRoute } from "./ProjectAnalyticsRoute"
 import { ProjectMembershipRoute } from "./ProjectMembershipRoute"
 import { ProjectMembershipsRoute } from "./ProjectMembershipsRoute"
+import { RestrictedAccess } from "./RestrictedAccess"
 import { ReviewCampaignReportRoute } from "./ReviewCampaignReportRoute"
 import { StudioAgentSessionRoute } from "./StudioAgentSessionRoute"
 import { StudioDashboardRoute } from "./StudioDashboardRoute"
@@ -48,21 +49,33 @@ const extraItems = [
 ]
 
 export const studioRoutes = {
-  path: StudioRouteNames.HOME,
-  element: <StudioRoute />,
+  path: StudioRoutes.home.path,
+  element: (
+    <RestrictedAccess ability="canAccessStudio">
+      <StudioRoute />
+    </RestrictedAccess>
+  ),
   children: [
     {
-      path: buildStudioPath(RouteNames.ORGANIZATION_DASHBOARD),
+      path: StudioRoutes.organization.path,
       element: (
-        <DashboardRoute>
-          {(user, _projects, organization) => (
-            <StudioDashboardRoute user={user} organization={organization} />
-          )}
-        </DashboardRoute>
+        <RoutesBuilderProvider
+          build={{
+            agentRoute: StudioRoutes.agent.build,
+            agentSessionRoute: StudioRoutes.agentSession.build,
+            projectRoute: StudioRoutes.project.build,
+          }}
+        >
+          <DashboardRoute>
+            {(user, _projects, organization) => (
+              <StudioDashboardRoute user={user} organization={organization} />
+            )}
+          </DashboardRoute>
+        </RoutesBuilderProvider>
       ),
       children: [
         {
-          path: buildStudioPath(RouteNames.PROJECT),
+          path: StudioRoutes.project.path,
           element: (
             <ProjectRoute>
               {(agents, project) => (
@@ -90,7 +103,7 @@ export const studioRoutes = {
           ),
           children: [
             {
-              path: buildStudioPath(StudioRouteNames.EVALUATION),
+              path: StudioRoutes.evaluation.path,
               element: (
                 <RestrictedFeature feature="evaluation">
                   <EvaluationRoute />
@@ -98,11 +111,11 @@ export const studioRoutes = {
               ),
             },
             {
-              path: buildStudioPath(StudioRouteNames.DOCUMENTS),
+              path: StudioRoutes.documents.path,
               element: <DocumentsRoute />,
             },
             {
-              path: buildStudioPath(StudioRouteNames.PROJECT_ANALYTICS),
+              path: StudioRoutes.projectAnalytics.path,
               element: (
                 <RestrictedFeature feature="project-analytics">
                   <ProjectAnalyticsRoute />
@@ -110,29 +123,29 @@ export const studioRoutes = {
               ),
             },
             {
-              path: buildStudioPath(StudioRouteNames.PROJECT_MEMBERSHIPS),
+              path: StudioRoutes.projectMemberships.path,
               element: <ProjectMembershipsRoute />,
               children: [
                 {
-                  path: buildStudioPath(StudioRouteNames.PROJECT_MEMBERSHIP),
+                  path: StudioRoutes.projectMembership.path,
                   element: <ProjectMembershipRoute />,
                 },
               ],
             },
             {
-              path: buildStudioPath(StudioRouteNames.REVIEW_CAMPAIGNS),
+              path: StudioRoutes.reviewCampaigns.path,
               element: <CampaignListPage />,
             },
             {
-              path: buildStudioPath(StudioRouteNames.REVIEW_CAMPAIGN_REPORT),
+              path: StudioRoutes.reviewCampaignReport.path,
               element: <ReviewCampaignReportRoute />,
             },
             {
-              path: buildStudioPath(RouteNames.AGENT),
+              path: StudioRoutes.agent.path,
               element: <AgentRoute>{(agent) => <AgentHandler agent={agent} />}</AgentRoute>,
               children: [
                 {
-                  path: buildStudioPath(RouteNames.AGENT_SESSION),
+                  path: StudioRoutes.agentSession.path,
                   element: (
                     <AgentSessionRoute>
                       {(agent, agentSession, messages) => (
@@ -146,20 +159,25 @@ export const studioRoutes = {
                   ),
                 },
                 {
-                  path: buildStudioPath(StudioRouteNames.AGENT_ANALYTICS),
-                  element: (
-                    <RestrictedFeature feature="project-analytics">
-                      <AgentAnalyticsRoute />
-                    </RestrictedFeature>
-                  ),
-                },
-                {
-                  path: buildStudioPath(StudioRouteNames.FEEDBACK),
-                  element: <FeedbackRoute />,
-                },
-                {
-                  path: buildStudioPath(StudioRouteNames.AGENT_MEMBERSHIPS),
-                  element: <AgentMembershipsRoute />,
+                  element: <RestrictedAccess ability="canManageAgent" />,
+                  children: [
+                    {
+                      path: StudioRoutes.agentAnalytics.path,
+                      element: (
+                        <RestrictedFeature feature="project-analytics">
+                          <AgentAnalyticsRoute />
+                        </RestrictedFeature>
+                      ),
+                    },
+                    {
+                      path: StudioRoutes.feedback.path,
+                      element: <FeedbackRoute />,
+                    },
+                    {
+                      path: StudioRoutes.agentMemberships.path,
+                      element: <AgentMembershipsRoute />,
+                    },
+                  ],
                 },
               ],
             },

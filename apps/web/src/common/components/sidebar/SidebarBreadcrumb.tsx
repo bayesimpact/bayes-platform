@@ -10,19 +10,30 @@ import { BreadcrumbProjectAnalytics } from "@/common/components/breadcrumb/Bread
 import { BreadcrumbProjectMembership } from "@/common/components/breadcrumb/BreadcrumbProjectMembership"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import { useBreakpoint } from "@/common/hooks/use-breakpoint"
+import type { DeskRoutes } from "@/desk/routes/helpers"
+import type { StudioRoutes } from "@/studio/routes/helpers"
 import { BreadcrumbReviewCampaigns } from "../breadcrumb/BreadcrumbReviewCampaigns"
 
-export function SidebarBreadcrumb({ organization }: { organization: Organization }) {
+export function SidebarBreadcrumb({
+  organization,
+  routes,
+}: {
+  organization: Organization
+  routes: typeof StudioRoutes | typeof DeskRoutes
+}) {
   const { isShortViewport } = useBreakpoint()
   if (isShortViewport) return null
   return (
     <Breadcrumb>
       <BreadcrumbList>
-        <BreadcrumbAgent organizationId={organization.id} />
+        <BreadcrumbAgent organizationId={organization.id} buildPath={routes.agent.build} />
 
         <BreadcrumbAgentAnalytics />
 
-        <BreadcrumbAgentSession organizationId={organization.id} />
+        <BreadcrumbAgentSession
+          organizationId={organization.id}
+          buildPath={routes.agentSession.build}
+        />
 
         <BreadcrumbEvaluations />
 

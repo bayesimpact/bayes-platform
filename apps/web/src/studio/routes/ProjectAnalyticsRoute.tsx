@@ -13,7 +13,7 @@ import type { DateRange } from "react-day-picker"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
-import { useGetPath } from "@/common/hooks/use-build-path"
+import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import type { AnalyticsCategoryDailyPoint } from "@/studio/features/analytics/project/analytics.models"
@@ -103,12 +103,9 @@ function WithData({
 }) {
   const { t } = useTranslation("analytics")
   const navigate = useNavigate()
-  const { getPath } = useGetPath()
+  const getProjectRoute = useGetProjectRoute()
 
-  const handleBack = () => {
-    const path = getPath("project")
-    navigate(path)
-  }
+  const handleBack = () => navigate(getProjectRoute())
 
   const onRangeChange = useCallback(
     (range: DateRange | undefined) => {
