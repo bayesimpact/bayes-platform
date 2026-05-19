@@ -1,10 +1,7 @@
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq"
 import { Logger } from "@nestjs/common"
 import type { Job } from "bullmq"
-import {
-  EVALUATION_EXTRACTION_RUN_QUEUE_NAME,
-  EVALUATION_EXTRACTION_RUN_RECORD_JOB_NAME,
-} from "./evaluation-extraction-run.constants"
+import { EVALUATION_EXTRACTION_RUN_QUEUE_NAME } from "./evaluation-extraction-run.constants"
 import type { ProcessEvaluationExtractionRunRecordJobPayload } from "./evaluation-extraction-run.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationExtractionRunProcessorService } from "./evaluation-extraction-run-processor.service"
@@ -20,10 +17,6 @@ export class EvaluationExtractionRunWorker extends WorkerHost {
   }
 
   async process(job: Job<ProcessEvaluationExtractionRunRecordJobPayload>): Promise<void> {
-    if (job.name !== EVALUATION_EXTRACTION_RUN_RECORD_JOB_NAME) {
-      return
-    }
-
     await this.processorService.processRunRecord(job.data)
   }
 
