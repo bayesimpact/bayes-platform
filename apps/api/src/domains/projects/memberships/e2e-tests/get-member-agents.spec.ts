@@ -77,7 +77,7 @@ describe("Project membership - getMemberAgents", () => {
     await repositories.agentMembershipRepository.save(
       agentMembershipFactory
         .transient({ agent: agentWithMembership, user })
-        .build({ role: "admin", status: "accepted" }),
+        .build({ role: "admin" }),
     )
 
     const response = await subject()
@@ -91,7 +91,6 @@ describe("Project membership - getMemberAgents", () => {
       agentName: "Agent A",
       agentType: "conversation",
       role: "admin",
-      status: "accepted",
     })
     expect(rowA?.membershipId).toBeTruthy()
 
@@ -99,7 +98,6 @@ describe("Project membership - getMemberAgents", () => {
     expect(rowB).toMatchObject({
       agentName: "Agent B",
       role: null,
-      status: null,
       membershipId: null,
     })
   })

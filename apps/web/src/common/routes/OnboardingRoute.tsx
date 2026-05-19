@@ -12,17 +12,16 @@ import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { DeskRoutes } from "@/desk/routes/helpers"
 import { EvalRoutes } from "@/eval/routes/helpers"
 import { ReviewerRoutes } from "@/reviewer/routes/helpers"
+import type {
+  PendingInvitationItem as PendingInvitationEntry,
+  PendingInvitations,
+} from "@/studio/features/invitations/invitations.models"
 import { acceptInvitation } from "@/studio/features/invitations/invitations.thunks"
 import { ProjectCreatorButton } from "@/studio/features/projects/components/ProjectCreator"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { TesterRoutes } from "@/tester/routes/helpers"
 import { Wrap } from "../components/layouts/Wrap"
-import type {
-  PendingAgentInvitation,
-  PendingInvitations,
-  PendingProjectInvitation,
-  User,
-} from "../features/me/me.models"
+import type { User } from "../features/me/me.models"
 import {
   selectMe,
   selectMyActiveReviewCampaignMemberships,
@@ -61,8 +60,7 @@ function WithData({
   invitations: PendingInvitations
 }) {
   const orgsCount = organizations.length
-  const hasPendingInvitations =
-    invitations.projectInvitations.length > 0 || invitations.agentInvitations.length > 0
+  const hasPendingInvitations = invitations.length > 0
   if (orgsCount === 0 && !hasPendingInvitations) return <OrganizationCreator />
 
   return (
@@ -93,8 +91,7 @@ function SidebarContent({
   useEffect(() => {
     setOpen(false)
   }, [setOpen])
-  const hasPendingInvitations =
-    invitations.projectInvitations.length > 0 || invitations.agentInvitations.length > 0
+  const hasPendingInvitations = invitations.length > 0
   return (
     <div className="flex flex-col">
       <Wrap>
@@ -120,35 +117,26 @@ function SidebarContent({
 
 function PendingInvitationList({ invitations }: { invitations: PendingInvitations }) {
   const { t } = useTranslation()
-  const { projectInvitations, agentInvitations } = invitations
-  const total = projectInvitations.length + agentInvitations.length
+  const total = invitations.length
   if (total === 0) return null
   return (
     <Grid cols={3} total={total}>
       <GridHeader title={t("me:invitations:title")} description={t("me:invitations:description")} />
 
       <GridContent>
-        {projectInvitations.map((invitation, index) => (
-          <PendingProjectInvitationItem key={invitation.id} invitation={invitation} index={index} />
-        ))}
-
-        {agentInvitations.map((invitation, index) => (
-          <PendingAgentInvitationItem
-            key={invitation.id}
-            invitation={invitation}
-            index={projectInvitations.length + index}
-          />
+        {invitations.map((invitation, index) => (
+          <PendingInvitationRow key={invitation.id} invitation={invitation} index={index} />
         ))}
       </GridContent>
     </Grid>
   )
 }
 
-function PendingProjectInvitationItem({
+function PendingInvitationRow({
   invitation,
   index,
 }: {
-  invitation: PendingProjectInvitation
+  invitation: PendingInvitationEntry
   index: number
 }) {
   const dispatch = useAppDispatch()
@@ -156,39 +144,25 @@ function PendingProjectInvitationItem({
   const handleClick = () => {
     dispatch(acceptInvitation({ ticketId: invitation.invitationToken }))
   }
-  return (
-    <GridItem
-      index={index}
-      badge={t("me:invitations:projectBadge")}
-      title={invitation.projectName}
-      description={`${invitation.organizationName} · ${t("me:invitations:roleLabel")}: ${invitation.role}`}
-      action={
-        <Button onClick={handleClick}>
-          {t("actions:accept")} <CheckCircleIcon />
-        </Button>
-      }
-    />
-  )
-}
 
-function PendingAgentInvitationItem({
-  invitation,
-  index,
-}: {
-  invitation: PendingAgentInvitation
-  index: number
-}) {
-  const dispatch = useAppDispatch()
-  const { t } = useTranslation()
-  const handleClick = () => {
-    dispatch(acceptInvitation({ ticketId: invitation.invitationToken }))
-  }
+  const badge =
+    invitation.targetType === "project"
+      ? t("me:invitations:projectBadge")
+      : invitation.targetType === "agent"
+        ? t("me:invitations:agentBadge")
+        : t("me:invitations:reviewCampaignBadge")
+
+  const description =
+    invitation.targetType === "project"
+      ? `${invitation.organizationName} · ${t("me:invitations:roleLabel")}: ${invitation.role}`
+      : `${invitation.organizationName} · ${invitation.projectName} · ${t("me:invitations:roleLabel")}: ${invitation.role}`
+
   return (
     <GridItem
       index={index}
-      badge={t("me:invitations:agentBadge")}
-      title={invitation.agentName}
-      description={`${invitation.organizationName} · ${invitation.projectName} · ${t("me:invitations:roleLabel")}: ${invitation.role}`}
+      badge={badge}
+      title={invitation.targetName}
+      description={description}
       action={
         <Button onClick={handleClick}>
           {t("actions:accept")} <CheckCircleIcon />

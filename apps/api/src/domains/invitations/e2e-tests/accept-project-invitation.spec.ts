@@ -7,16 +7,16 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { InvitationsModule } from "@/domains/agents/shared/memberships/invitations.module"
+import { InvitationsModule } from "@/domains/invitations/invitations.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import {
   mockAuth0EmailForSub,
   mockInvitationSender,
   setupUserGuardForTesting,
-} from "../../../../../test/e2e.helpers"
-import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
-import { ProjectsModule } from "../../projects.module"
-import { inviteUserToProject } from "../project-membership.factory"
+} from "../../../../test/e2e.helpers"
+import { expectResponse, type Requester, testRequester } from "../../../../test/request"
+import { inviteUserToProject } from "../../projects/memberships/project-membership.factory"
+import { ProjectsModule } from "../../projects/projects.module"
 
 describe("Invitations - acceptInvitation", () => {
   let app: INestApplication<App>
@@ -61,18 +61,28 @@ describe("Invitations - acceptInvitation", () => {
   const createInvitation = async () => {
     const { organization, project } = await createOrganizationWithProject(repositories)
 
-    const { membership } = await inviteUserToProject({
+    const { membership, invitedUser, invitationToken } = await inviteUserToProject({
       repositories,
       project,
       user: {
         email: mockAuth0EmailForSub(auth0Id),
       },
-      projectMembership: {
-        status: "sent",
-      },
+      projectMembership: {},
     })
-    const ticketId = membership.invitationToken
-    return { membership, ticketId, organization, project }
+    await repositories.invitationRepository.save({
+      organizationId: organization.id,
+      projectId: project.id,
+      targetType: "project",
+      targetId: project.id,
+      userId: invitedUser.id,
+      invitedEmail: invitedUser.email,
+      role: "admin",
+      invitationToken,
+      status: "pending",
+      invitedAt: membership.createdAt,
+      acceptedAt: null,
+    })
+    return { membership, ticketId: invitationToken, organization, project }
   }
 
   it("should accept an invitation and return success", async () => {
@@ -84,17 +94,18 @@ describe("Invitations - acceptInvitation", () => {
     expect(response.body.data).toEqual({ success: true })
   })
 
-  it("should update the membership status to accepted", async () => {
-    const { ticketId, membership } = await createInvitation()
+  it("should mark the invitation as accepted", async () => {
+    const { ticketId } = await createInvitation()
 
     await subject({ payload: { ticketId } })
 
-    const updatedMembership = await repositories.projectMembershipRepository.findOne({
-      where: { id: membership.id },
+    const updatedInvitation = await repositories.invitationRepository.findOne({
+      where: { invitationToken: ticketId },
     })
 
-    expect(updatedMembership).toBeDefined()
-    expect(updatedMembership!.status).toBe("accepted")
+    expect(updatedInvitation).toBeDefined()
+    expect(updatedInvitation!.status).toBe("accepted")
+    expect(updatedInvitation!.acceptedAt).not.toBeNull()
   })
 
   it("should create an organization membership for the invitee", async () => {

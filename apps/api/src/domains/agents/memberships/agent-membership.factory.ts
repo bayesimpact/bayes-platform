@@ -5,11 +5,7 @@ import type { AllRepositories } from "@/common/test/test-transaction-manager"
 import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import type { Agent } from "../agent.entity"
-import type {
-  AgentMembership,
-  AgentMembershipRole,
-  AgentMembershipStatus,
-} from "./agent-membership.entity"
+import type { AgentMembership, AgentMembershipRole } from "./agent-membership.entity"
 import { PLACEHOLDER_AUTH0_ID_PREFIX } from "./agent-memberships.service"
 
 type AgentMembershipTransientParams = {
@@ -45,8 +41,6 @@ export const agentMembershipFactory = AgentMembershipFactory.define(
       id: params.id || randomUUID(),
       agentId: transientParams.agent.id,
       userId: transientParams.user.id,
-      invitationToken: params.invitationToken || randomUUID(),
-      status: (params.status || "accepted") as AgentMembershipStatus,
       role: (params.role || "member") as AgentMembershipRole,
       createdAt: params.createdAt || now,
       updatedAt: params.updatedAt || now,
@@ -101,8 +95,9 @@ export const inviteUserToAgent = async ({
   const invitedUser = userFactory.build(user)
   await repositories.userRepository.save(invitedUser)
 
+  const invitationToken = randomUUID()
   const membership = agentMembershipFactory.transient({ agent, user: invitedUser }).build()
   await repositories.agentMembershipRepository.save(membership)
 
-  return { membership, invitedUser }
+  return { membership, invitedUser, invitationToken }
 }

@@ -98,23 +98,6 @@ export class ReviewCampaignsController {
     return { data: { success: true } }
   }
 
-  @Post(ReviewCampaignsRoutes.inviteMembers.path)
-  @AddContext("reviewCampaign")
-  @CheckPolicy((policy) => policy.canUpdate())
-  async inviteMembers(
-    @Req() request: EndpointRequestWithReviewCampaign,
-    @Body() { payload }: typeof ReviewCampaignsRoutes.inviteMembers.request,
-  ): Promise<typeof ReviewCampaignsRoutes.inviteMembers.response> {
-    const memberships = await this.reviewCampaignsService.inviteMembers({
-      connectScope: getRequiredConnectScope(request),
-      reviewCampaignId: request.reviewCampaign.id,
-      role: payload.role,
-      emails: payload.emails,
-      inviterName: request.user.name ?? request.user.email,
-    })
-    return { data: { memberships: memberships.map(toReviewCampaignMembershipDto) } }
-  }
-
   @Delete(ReviewCampaignsRoutes.revokeMembership.path)
   @AddContext("reviewCampaign")
   @CheckPolicy((policy) => policy.canUpdate())
@@ -159,7 +142,6 @@ function toReviewCampaignMembershipDto(
     userId: membership.userId,
     userEmail: membership.user?.email ?? "",
     role: membership.role,
-    invitedAt: membership.invitedAt.getTime(),
     acceptedAt: membership.acceptedAt ? membership.acceptedAt.getTime() : null,
   }
 }

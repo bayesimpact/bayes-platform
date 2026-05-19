@@ -125,7 +125,6 @@ export const mockMemberships: ReviewCampaignMembershipDto[] = [
     userId: "user-1",
     userEmail: "alice@example.com",
     role: "tester",
-    invitedAt: now - 5 * MS_PER_DAY,
     acceptedAt: now - 4 * MS_PER_DAY,
   }),
   reviewCampaignMembershipFactory.transient({ campaign: mockActiveCampaign }).build({
@@ -133,7 +132,6 @@ export const mockMemberships: ReviewCampaignMembershipDto[] = [
     userId: "user-2",
     userEmail: "bob@example.com",
     role: "tester",
-    invitedAt: now - 3 * MS_PER_DAY,
     acceptedAt: null,
   }),
   reviewCampaignMembershipFactory.transient({ campaign: mockActiveCampaign }).build({
@@ -141,7 +139,6 @@ export const mockMemberships: ReviewCampaignMembershipDto[] = [
     userId: "user-3",
     userEmail: "carol@example.com",
     role: "reviewer",
-    invitedAt: now - 2 * MS_PER_DAY,
     acceptedAt: now - 1 * MS_PER_DAY,
   }),
 ]

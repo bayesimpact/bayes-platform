@@ -1,6 +1,5 @@
 import type {
   CreateReviewCampaignRequestDto,
-  InviteReviewCampaignMembersRequestDto,
   UpdateReviewCampaignRequestDto,
 } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
@@ -10,7 +9,6 @@ import type {
   ReviewCampaign,
   ReviewCampaignDetail,
   ReviewCampaignListItem,
-  ReviewCampaignMembership,
 } from "./review-campaigns.models"
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
@@ -79,24 +77,6 @@ export const deleteReviewCampaign = createAsyncThunk<
   })
   await services.reviewCampaigns.deleteOne({ organizationId, projectId, reviewCampaignId })
 })
-
-export const inviteReviewCampaignMembers = createAsyncThunk<
-  ReviewCampaignMembership[],
-  { reviewCampaignId: string; fields: InviteReviewCampaignMembersRequestDto },
-  ThunkConfig
->(
-  "review-campaigns/invite",
-  async ({ reviewCampaignId, fields }, { extra: { services }, getState }) => {
-    const { organizationId, projectId } = getCurrentIds({
-      state: getState(),
-      wantedIds: ["organizationId", "projectId"],
-    })
-    return await services.reviewCampaigns.inviteMembers(
-      { organizationId, projectId, reviewCampaignId },
-      fields,
-    )
-  },
-)
 
 export const revokeReviewCampaignMembership = createAsyncThunk<
   void,

@@ -17,19 +17,6 @@ export const listProjectMemberships = createAsyncThunk<ProjectMembership[], void
   },
 )
 
-export const inviteProjectMembers = createAsyncThunk<
-  ProjectMembership[],
-  { emails: string[] },
-  ThunkConfig
->("projectMemberships/invite", async ({ emails }, { extra: { services }, getState }) => {
-  const state = getState()
-  const { organizationId, projectId } = getCurrentIds({
-    state,
-    wantedIds: ["organizationId", "projectId"],
-  })
-  return await services.projectMemberships.invite({ organizationId, projectId, emails })
-})
-
 export const removeProjectMembership = createAsyncThunk<
   void,
   { membershipId: string },

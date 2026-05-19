@@ -157,9 +157,7 @@ async function main(): Promise<void> {
           campaignId: campaign.id,
           userId: user.id,
           role: "tester",
-          invitedAt: new Date(),
           acceptedAt: new Date(),
-          invitationToken: null,
         }),
       )
       logger.log(`Created accepted tester membership for ${email}`)

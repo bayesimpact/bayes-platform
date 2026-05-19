@@ -1,32 +1,18 @@
-import { randomUUID } from "node:crypto"
 import {
   ConflictException,
   ForbiddenException,
-  Inject,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
 } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { DataSource } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "@/domains/agents/agent.entity"
-import {
-  INVITATION_SENDER,
-  type InvitationSender,
-} from "@/domains/auth/invitation-sender.interface"
-import { PLACEHOLDER_AUTH0_ID_PREFIX } from "@/domains/projects/memberships/project-memberships.service"
-import { User } from "@/domains/users/user.entity"
 import { ReviewCampaignMembership } from "./memberships/review-campaign-membership.entity"
 import { ReviewCampaign } from "./review-campaign.entity"
-import type {
-  ReviewCampaignMembershipRole,
-  ReviewCampaignQuestion,
-  ReviewCampaignStatus,
-} from "./review-campaigns.types"
+import type { ReviewCampaignQuestion, ReviewCampaignStatus } from "./review-campaigns.types"
 import type { CampaignAggregates } from "./tester/tester.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TesterService } from "./tester/tester.service"
@@ -60,9 +46,6 @@ export class ReviewCampaignsService {
     private readonly reviewCampaignMembershipRepository: Repository<ReviewCampaignMembership>,
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
-    @Inject(INVITATION_SENDER)
-    private readonly invitationSender: InvitationSender,
-    private readonly dataSource: DataSource,
     private readonly testerService: TesterService,
   ) {
     this.reviewCampaignConnectRepository = new ConnectRepository(
@@ -255,123 +238,6 @@ export class ReviewCampaignsService {
       connectScope,
       id: reviewCampaignId,
     })
-  }
-
-  async inviteMembers({
-    connectScope,
-    reviewCampaignId,
-    role,
-    emails,
-    inviterName,
-  }: {
-    connectScope: RequiredConnectScope
-    reviewCampaignId: string
-    role: ReviewCampaignMembershipRole
-    emails: string[]
-    inviterName: string
-  }): Promise<ReviewCampaignMembership[]> {
-    const campaign = await this.reviewCampaignConnectRepository.getOneById(
-      connectScope,
-      reviewCampaignId,
-    )
-    if (!campaign) {
-      throw new NotFoundException(`Review campaign ${reviewCampaignId} not found`)
-    }
-    if (campaign.status !== "active") {
-      // Block draft (invitee would accept and land on a campaign that doesn't
-      // appear in their listings) and closed (no point).
-      throw new ConflictException(
-        `Cannot invite members to a ${campaign.status} campaign — activate it first`,
-      )
-    }
-
-    return this.dataSource.transaction(async (manager) => {
-      const userRepo = manager.getRepository(User)
-      const membershipRepo = manager.getRepository(ReviewCampaignMembership)
-      const created: ReviewCampaignMembership[] = []
-
-      for (const email of emails) {
-        const membership = await this.inviteSingleMember({
-          campaign,
-          connectScope,
-          email,
-          role,
-          inviterName,
-          userRepo,
-          membershipRepo,
-        })
-        if (membership) created.push(membership)
-      }
-
-      return created
-    })
-  }
-
-  private async inviteSingleMember({
-    campaign,
-    connectScope,
-    email,
-    role,
-    inviterName,
-    userRepo,
-    membershipRepo,
-  }: {
-    campaign: ReviewCampaign
-    connectScope: RequiredConnectScope
-    email: string
-    role: ReviewCampaignMembershipRole
-    inviterName: string
-    userRepo: Repository<User>
-    membershipRepo: Repository<ReviewCampaignMembership>
-  }): Promise<ReviewCampaignMembership | null> {
-    const normalizedEmail = email.trim().toLowerCase()
-    if (!normalizedEmail) return null
-
-    const user = await this.findOrCreatePlaceholderUser({ userRepo, email: normalizedEmail })
-
-    const existing = await membershipRepo.findOne({
-      where: { campaignId: campaign.id, userId: user.id, role },
-    })
-    if (existing) return null
-
-    const { ticketId } = await this.invitationSender.sendInvitation({
-      inviteeEmail: normalizedEmail,
-      inviterName,
-    })
-
-    const membership = membershipRepo.create({
-      organizationId: connectScope.organizationId,
-      projectId: connectScope.projectId,
-      campaignId: campaign.id,
-      userId: user.id,
-      role,
-      invitationToken: ticketId,
-      invitedAt: new Date(),
-      acceptedAt: null,
-    })
-    const saved = await membershipRepo.save(membership)
-    saved.user = user
-    return saved
-  }
-
-  private async findOrCreatePlaceholderUser({
-    userRepo,
-    email,
-  }: {
-    userRepo: Repository<User>
-    email: string
-  }): Promise<User> {
-    const existing = await userRepo.findOne({ where: { email } })
-    if (existing) return existing
-
-    const placeholderAuth0Id = `${PLACEHOLDER_AUTH0_ID_PREFIX}${randomUUID().slice(-12)}`
-    const user = userRepo.create({
-      auth0Id: placeholderAuth0Id,
-      email,
-      name: null,
-      pictureUrl: null,
-    })
-    return userRepo.save(user)
   }
 
   async revokeMembership({

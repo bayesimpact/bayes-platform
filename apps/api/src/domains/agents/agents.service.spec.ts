@@ -132,7 +132,6 @@ describe("AgentsService", () => {
       const adminMembership = memberships.find((membership) => membership.userId === adminUser.id)
       expect(adminMembership).toBeDefined()
       expect(adminMembership?.role).toBe("admin")
-      expect(adminMembership?.status).toBe("accepted")
 
       // Member should NOT have an agent membership
       const memberMembership = memberships.find((membership) => membership.userId === memberUser.id)

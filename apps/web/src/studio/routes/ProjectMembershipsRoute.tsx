@@ -7,21 +7,32 @@ import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/gri
 import type { Project } from "@/common/features/projects/projects.models"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
-import { useAppSelector } from "@/common/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import { PendingInvitationsSection } from "@/studio/features/invitations/components/PendingInvitationsSection"
+import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
+import { revokeInvitation } from "@/studio/features/invitations/invitations.thunks"
 import { MembersCreator } from "@/studio/features/project-memberships/components/MembersCreator"
 import { ProjectMembershipItem } from "@/studio/features/project-memberships/components/ProjectMembershipItem"
 import type { ProjectMembership } from "@/studio/features/project-memberships/project-memberships.models"
-import { selectProjectMemberships } from "@/studio/features/project-memberships/project-memberships.selectors"
+import {
+  selectProjectMemberships,
+  selectProjectPendingInvitations,
+} from "@/studio/features/project-memberships/project-memberships.selectors"
 import { AsyncRoute } from "../../common/routes/AsyncRoute"
 
 export function ProjectMembershipsRoute() {
   const project = useAppSelector(selectCurrentProjectData)
   const memberships = useAppSelector(selectProjectMemberships)
+  const pendingInvitations = useAppSelector(selectProjectPendingInvitations)
 
   return (
-    <AsyncRoute data={[memberships, project]}>
-      {([membershipsValue, projectValue]) => (
-        <WithData memberships={membershipsValue} project={projectValue} />
+    <AsyncRoute data={[memberships, project, pendingInvitations]}>
+      {([membershipsValue, projectValue, pendingInvitationsValue]) => (
+        <WithData
+          memberships={membershipsValue}
+          project={projectValue}
+          pendingInvitations={pendingInvitationsValue}
+        />
       )}
     </AsyncRoute>
   )
@@ -30,11 +41,14 @@ export function ProjectMembershipsRoute() {
 function WithData({
   memberships,
   project,
+  pendingInvitations,
 }: {
   memberships: ProjectMembership[]
   project: Project
+  pendingInvitations: PendingInvitations
 }) {
   const outlet = useOutlet()
+  const dispatch = useAppDispatch()
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState("")
@@ -53,36 +67,52 @@ function WithData({
 
   const cols = filteredMemberships.length === 0 ? 0 : 3
   const total = filteredMemberships.length
+  const handleRevokeInvitation = (invitationId: string) => {
+    void dispatch(
+      revokeInvitation({
+        invitationId,
+        refreshTarget: { targetType: "project", targetId: project.id },
+      }),
+    )
+  }
 
   if (outlet) return outlet
   return (
-    <Grid cols={cols} total={total} extraItems={1}>
-      <GridHeader
-        onBack={handleBack}
-        title={t("projectMembership:list.title", { projectName: project.name })}
-        description={t("projectMembership:list.description")}
-        action={<Search value={searchQuery} onChange={setSearchQuery} />}
-      />
-
-      <GridContent>
-        {filteredMemberships.map((membership, index) => (
-          <ProjectMembershipItem
-            organizationId={project.organizationId}
-            index={index}
-            key={membership.id}
-            membership={membership}
-          />
-        ))}
-
-        <GridItem
-          index={total}
-          title={t("projectMembership:create.title")}
-          description={t("projectMembership:create.description")}
-          action={<MembersCreator />}
-          className="bg-muted/35"
+    <>
+      <Grid cols={cols} total={total} extraItems={1}>
+        <GridHeader
+          onBack={handleBack}
+          title={t("projectMembership:list.title", { projectName: project.name })}
+          description={t("projectMembership:list.description")}
+          action={<Search value={searchQuery} onChange={setSearchQuery} />}
         />
-      </GridContent>
-    </Grid>
+
+        <GridContent>
+          {filteredMemberships.map((membership, index) => (
+            <ProjectMembershipItem
+              organizationId={project.organizationId}
+              index={index}
+              key={membership.id}
+              membership={membership}
+            />
+          ))}
+
+          <GridItem
+            index={total}
+            title={t("projectMembership:create.title")}
+            description={t("projectMembership:create.description")}
+            action={<MembersCreator projectId={project.id} />}
+            className="bg-muted/35"
+          />
+        </GridContent>
+      </Grid>
+      <PendingInvitationsSection
+        invitations={pendingInvitations}
+        title={t("projectMembership:pendingInvitations.title")}
+        description={t("projectMembership:pendingInvitations.description")}
+        onRevoke={handleRevokeInvitation}
+      />
+    </>
   )
 }
 

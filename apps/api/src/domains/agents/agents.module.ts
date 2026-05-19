@@ -18,6 +18,7 @@ import { ProjectMembership } from "@/domains/projects/memberships/project-member
 import { Project } from "@/domains/projects/project.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { LlmModule } from "@/external/llm/llm.module"
+import { InvitationsModule } from "../invitations/invitations.module"
 import { ProjectsModule } from "../projects/projects.module"
 import { Agent } from "./agent.entity"
 import { AgentGuard } from "./agent.guard"
@@ -46,6 +47,7 @@ import { AgentMembershipsService } from "./memberships/agent-memberships.service
     LlmModule,
     OrganizationsModule,
     forwardRef(() => ProjectsModule),
+    forwardRef(() => InvitationsModule),
     UsersModule,
     AuthModule,
     forwardRef(() => DocumentsModule),

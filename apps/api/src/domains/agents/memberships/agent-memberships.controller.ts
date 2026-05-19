@@ -3,7 +3,7 @@ import {
   AgentMembershipRoutes,
   buildNameFromEmail,
 } from "@caseai-connect/api-contracts"
-import { Body, Controller, Delete, Get, Post, Req, UseGuards } from "@nestjs/common"
+import { Controller, Delete, Get, Req, UseGuards } from "@nestjs/common"
 import type {
   EndpointRequestWithAgent,
   EndpointRequestWithAgentMembership,
@@ -36,24 +36,6 @@ export class AgentMembershipsController {
     return { data: memberships.map(toDto) }
   }
 
-  @Post(AgentMembershipRoutes.createOne.path)
-  @CheckPolicy((policy) => policy.canCreate())
-  @TrackActivity({ action: "agentMembership.invite" })
-  async inviteAgentMembers(
-    @Req() request: EndpointRequestWithAgent,
-    @Body() { payload }: typeof AgentMembershipRoutes.createOne.request,
-  ): Promise<typeof AgentMembershipRoutes.createOne.response> {
-    const { agent, user } = request
-
-    const memberships = await this.agentMembershipsService.inviteAgentMembers({
-      agentId: agent.id,
-      emails: payload.emails,
-      inviterName: user.name ?? user.email,
-    })
-
-    return { data: memberships.map(toDto) }
-  }
-
   @Delete(AgentMembershipRoutes.deleteOne.path)
   @CheckPolicy((policy) => policy.canDelete())
   @AddContext("agentMembership")
@@ -81,7 +63,6 @@ function toDto(entity: AgentMembership): AgentMembershipDto {
     userName: entity.user.name ?? buildNameFromEmail(entity.user.email),
     userEmail: entity.user.email,
     role: entity.role,
-    status: entity.status,
     createdAt: entity.createdAt.getTime(),
   }
 }

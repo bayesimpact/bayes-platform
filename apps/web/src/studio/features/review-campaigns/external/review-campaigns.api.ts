@@ -48,19 +48,6 @@ const reviewCampaignsApi = {
     )
   },
 
-  inviteMembers: async ({ organizationId, projectId, reviewCampaignId }, payload) => {
-    const axios = getAxiosInstance()
-    const response = await axios.post<typeof ReviewCampaignsRoutes.inviteMembers.response>(
-      ReviewCampaignsRoutes.inviteMembers.getPath({
-        organizationId,
-        projectId,
-        reviewCampaignId,
-      }),
-      { payload },
-    )
-    return response.data.data.memberships
-  },
-
   revokeMembership: async ({ organizationId, projectId, reviewCampaignId, membershipId }) => {
     const axios = getAxiosInstance()
     await axios.delete(

@@ -7,7 +7,6 @@ export type ProjectMembershipDto = {
   userId: string
   userName: string | null
   userEmail: string
-  status: "sent" | "accepted"
   createdAt: TimeType
   role: ProjectMembershipRoleDto
 }

@@ -2,11 +2,6 @@ import type { ProjectMemberAgent, ProjectMembership } from "./project-membership
 
 export interface IProjectMembershipsSpi {
   getAll: (params: { organizationId: string; projectId: string }) => Promise<ProjectMembership[]>
-  invite: (params: {
-    organizationId: string
-    projectId: string
-    emails: string[]
-  }) => Promise<ProjectMembership[]>
   remove: (params: {
     organizationId: string
     projectId: string

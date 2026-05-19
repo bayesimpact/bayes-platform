@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto"
 import type { DataSource, Repository } from "typeorm"
 import type { InvitationSender } from "@/domains/auth/invitation-sender.interface"
+import { Invitation } from "@/domains/invitations/invitation.entity"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
@@ -107,13 +108,20 @@ export class WorkspaceInvitationService {
         inviterName: input.inviterName,
       })
 
-      await projectMembershipRepository.save(
-        projectMembershipRepository.create({
+      const invitationRepository = manager.getRepository(Invitation)
+      await invitationRepository.save(
+        invitationRepository.create({
+          organizationId: organization.id,
           projectId: project.id,
+          targetType: "project",
+          targetId: project.id,
           userId: user.id,
+          invitedEmail: user.email,
           invitationToken: ticketId,
-          status: "sent",
+          status: "pending",
           role: "admin",
+          invitedAt: new Date(),
+          acceptedAt: null,
         }),
       )
 

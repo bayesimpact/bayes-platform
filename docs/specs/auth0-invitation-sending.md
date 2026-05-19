@@ -405,7 +405,7 @@ Test cases:
 
 ### 6.3 E2E Test Considerations
 
-E2e tests (`invite-project-members.spec.ts`, `auth.spec.ts`) will use the mocked `InvitationSender`, so they don't make real Auth0 API calls. The mock is automatically provided by the test module setup.
+E2e tests (`create-for-target.spec.ts`, `auth.spec.ts`) will use the mocked `InvitationSender`, so they don't make real Auth0 API calls. The mock is automatically provided by the test module setup.
 
 ---
 

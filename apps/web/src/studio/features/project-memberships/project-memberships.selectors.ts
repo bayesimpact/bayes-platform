@@ -7,3 +7,6 @@ export const selectProjectMembershipsStatus = (state: RootState) =>
 
 export const selectProjectMemberAgents = (state: RootState) =>
   state.studio.projectMemberships.memberAgents
+
+export const selectProjectPendingInvitations = (state: RootState) =>
+  state.studio.projectMemberships.pendingInvitations
