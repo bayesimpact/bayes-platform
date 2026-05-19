@@ -43,17 +43,30 @@ export class BackofficeController {
   @Get(BackofficeRoutes.listOrganizations.path)
   async listOrganizations(
     @Req() request: EndpointRequest,
+    @Query("page") pageParam?: string,
+    @Query("limit") limitParam?: string,
+    @Query("search") search?: string,
   ): Promise<typeof BackofficeRoutes.listOrganizations.response> {
     const { user } = request
     const canListAll = isEmailBackofficeAuthorized(user.email)
-    const organizations = await this.backofficeService.listOrganizationsWithProjects({
+    const page = Math.max(0, Number(pageParam) || 0)
+    const limit = Math.min(100, Math.max(1, Number(limitParam) || 10))
+    const { organizations, total } = await this.backofficeService.listOrganizationsWithProjects({
       canListAll,
       userId: user.id,
+      page,
+      limit,
+      search,
     })
     return {
-      data: organizations.map((organization) =>
-        toBackofficeOrganizationDto({ ...organization, projects: organization.projects ?? [] }),
-      ),
+      data: {
+        organizations: organizations.map((organization) =>
+          toBackofficeOrganizationDto({ ...organization, projects: organization.projects ?? [] }),
+        ),
+        total,
+        page,
+        limit,
+      },
     }
   }
 

@@ -13,7 +13,7 @@ import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { RouteNames } from "@/common/routes/helpers"
 import { useAppSelector } from "@/common/store/hooks"
 import type {
-  BackofficeOrganization,
+  PaginatedBackofficeOrganizations,
   PaginatedBackofficeUsers,
   TermsDocuments,
 } from "../features/backoffice/backoffice.models"
@@ -60,7 +60,7 @@ function WithData({
   users,
   termsDocuments,
 }: {
-  organizations: BackofficeOrganization[]
+  organizations: PaginatedBackofficeOrganizations
   users: PaginatedBackofficeUsers
   termsDocuments: TermsDocuments | null
 }) {

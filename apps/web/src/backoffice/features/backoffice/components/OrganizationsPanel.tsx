@@ -25,21 +25,19 @@ import {
   TableHeader,
   TableRow,
 } from "@caseai-connect/ui/shad/table"
-import {
-  type ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  type SortingState,
-  useReactTable,
-} from "@tanstack/react-table"
-import { PlusIcon, XIcon } from "lucide-react"
-import { useMemo, useState } from "react"
-import { useAppDispatch } from "@/common/store/hooks"
-import type { BackofficeOrganization, BackofficeProjectAgentCategory } from "../backoffice.models"
+import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
+import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, XIcon } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import type {
+  BackofficeProjectAgentCategory,
+  PaginatedBackofficeOrganizations,
+} from "../backoffice.models"
+import { selectBackofficeOrganizationsQuery } from "../backoffice.selectors"
 import { backofficeActions } from "../backoffice.slice"
-import { SearchField, SortableHeader } from "./BackofficeTable"
+import { SearchField } from "./BackofficeTable"
+
+const DEFAULT_PAGE_SIZE = 10
 
 type OrganizationRow = {
   organizationId: string
@@ -50,14 +48,36 @@ type OrganizationRow = {
   agentCategories: BackofficeProjectAgentCategory[]
 }
 
-export function OrganizationsPanel({ organizations }: { organizations: BackofficeOrganization[] }) {
+export function OrganizationsPanel({
+  organizations,
+}: {
+  organizations: PaginatedBackofficeOrganizations
+}) {
   const dispatch = useAppDispatch()
-  const [sorting, setSorting] = useState<SortingState>([{ id: "organizationName", desc: false }])
-  const [globalFilter, setGlobalFilter] = useState("")
+  const query = useAppSelector(selectBackofficeOrganizationsQuery)
+  const [searchInput, setSearchInput] = useState(query.search)
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (searchInput === query.search) return
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+    debounceTimerRef.current = setTimeout(() => {
+      dispatch(
+        backofficeActions.listOrganizations({
+          page: 0,
+          limit: query.limit,
+          search: searchInput,
+        }),
+      )
+    }, 300)
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+    }
+  }, [searchInput, query.search, query.limit, dispatch])
 
   const rows = useMemo<OrganizationRow[]>(
     () =>
-      organizations.flatMap((organization): OrganizationRow[] => {
+      organizations.organizations.flatMap((organization): OrganizationRow[] => {
         if (organization.projects.length === 0) {
           return [
             {
@@ -79,19 +99,19 @@ export function OrganizationsPanel({ organizations }: { organizations: Backoffic
           agentCategories: project.agentCategories,
         }))
       }),
-    [organizations],
+    [organizations.organizations],
   )
 
   const columns = useMemo<ColumnDef<OrganizationRow>[]>(
     () => [
       {
         accessorKey: "organizationName",
-        header: ({ column }) => <SortableHeader column={column} label="Organization" />,
+        header: () => <span className="text-muted-foreground">Organization</span>,
         cell: ({ row }) => <span className="font-medium">{row.original.organizationName}</span>,
       },
       {
         accessorKey: "projectName",
-        header: ({ column }) => <SortableHeader column={column} label="Project" />,
+        header: () => <span className="text-muted-foreground">Project</span>,
         cell: ({ row }) =>
           row.original.projectId ? (
             row.original.projectName
@@ -101,8 +121,6 @@ export function OrganizationsPanel({ organizations }: { organizations: Backoffic
       },
       {
         id: "featureFlags",
-        accessorFn: (row) => row.featureFlags.join(" "),
-        enableSorting: false,
         header: () => <span className="text-muted-foreground">Feature flags</span>,
         cell: ({ row }) => {
           const { projectId, featureFlags } = row.original
@@ -122,8 +140,6 @@ export function OrganizationsPanel({ organizations }: { organizations: Backoffic
       },
       {
         id: "agentCategories",
-        accessorFn: (row) => row.agentCategories.map((category) => category.name).join(" "),
-        enableSorting: false,
         header: () => <span className="text-muted-foreground">Agent categories</span>,
         cell: ({ row }) => {
           const { projectId, agentCategories } = row.original
@@ -144,25 +160,38 @@ export function OrganizationsPanel({ organizations }: { organizations: Backoffic
     [dispatch],
   )
 
+  const pageSize = organizations.limit || DEFAULT_PAGE_SIZE
+  const pageCount = Math.max(1, Math.ceil(organizations.total / pageSize))
+
   const table = useReactTable({
     data: rows,
     columns,
-    state: { sorting, globalFilter },
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: "includesString",
+    manualPagination: true,
+    pageCount,
+    rowCount: organizations.total,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
   })
+
+  const goToPage = (nextPage: number) => {
+    dispatch(
+      backofficeActions.listOrganizations({
+        page: nextPage,
+        limit: pageSize,
+        search: query.search,
+      }),
+    )
+  }
+
+  const from = organizations.total === 0 ? 0 : organizations.page * pageSize + 1
+  const to = Math.min((organizations.page + 1) * pageSize, organizations.total)
 
   return (
     <>
       <div className="p-4 border-b">
         <SearchField
-          value={globalFilter}
-          onChange={setGlobalFilter}
-          placeholder="Search organizations, projects, or flags…"
+          value={searchInput}
+          onChange={setSearchInput}
+          placeholder="Search organizations or projects…"
         />
       </div>
       <Table>
@@ -202,6 +231,36 @@ export function OrganizationsPanel({ organizations }: { organizations: Backoffic
           )}
         </TableBody>
       </Table>
+      <div className="flex items-center justify-between p-4 border-t">
+        <span className="text-sm text-muted-foreground">
+          {organizations.total === 0
+            ? "No organizations"
+            : `${from}–${to} of ${organizations.total}`}
+        </span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={organizations.page <= 0}
+            onClick={() => goToPage(organizations.page - 1)}
+          >
+            <ChevronLeftIcon className="size-4" />
+            Previous
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            {organizations.page + 1} / {pageCount}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={organizations.page >= pageCount - 1}
+            onClick={() => goToPage(organizations.page + 1)}
+          >
+            Next
+            <ChevronRightIcon className="size-4" />
+          </Button>
+        </div>
+      </div>
     </>
   )
 }

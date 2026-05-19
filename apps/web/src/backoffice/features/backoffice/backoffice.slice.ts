@@ -1,31 +1,33 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type {
-  BackofficeOrganization,
+  PaginatedBackofficeOrganizations,
   PaginatedBackofficeUsers,
   TermsDocuments,
 } from "./backoffice.models"
 import { backofficeThunks } from "./backoffice.thunks"
 
-interface UsersQuery {
+interface ListQuery {
   page: number
   limit: number
   search: string
 }
 
 interface State {
-  organizations: AsyncData<BackofficeOrganization[]>
+  organizations: AsyncData<PaginatedBackofficeOrganizations>
+  organizationsQuery: ListQuery
   users: AsyncData<PaginatedBackofficeUsers>
-  usersQuery: UsersQuery
+  usersQuery: ListQuery
   termsDocuments: AsyncData<TermsDocuments>
 }
 
-const defaultUsersQuery: UsersQuery = { page: 0, limit: 10, search: "" }
+const defaultListQuery: ListQuery = { page: 0, limit: 10, search: "" }
 
 const initialState: State = {
   organizations: defaultAsyncData,
+  organizationsQuery: defaultListQuery,
   users: defaultAsyncData,
-  usersQuery: defaultUsersQuery,
+  usersQuery: defaultListQuery,
   termsDocuments: defaultAsyncData,
 }
 
@@ -39,11 +41,16 @@ const slice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(backofficeThunks.listOrganizations.pending, (state) => {
+      .addCase(backofficeThunks.listOrganizations.pending, (state, action) => {
         if (!ADS.isFulfilled(state.organizations)) {
           state.organizations.status = ADS.Loading
         }
         state.organizations.error = null
+        state.organizationsQuery = {
+          page: action.meta.arg?.page ?? state.organizationsQuery.page,
+          limit: action.meta.arg?.limit ?? state.organizationsQuery.limit,
+          search: action.meta.arg?.search ?? state.organizationsQuery.search,
+        }
       })
       .addCase(backofficeThunks.listOrganizations.fulfilled, (state, action) => {
         state.organizations = {
@@ -90,7 +97,7 @@ const slice = createSlice({
     builder.addCase(backofficeThunks.addFeatureFlag.fulfilled, (state, action) => {
       if (!ADS.isFulfilled(state.organizations)) return
       const { projectId, featureFlagKey } = action.payload
-      for (const organization of state.organizations.value) {
+      for (const organization of state.organizations.value.organizations) {
         const project = organization.projects.find((project) => project.id === projectId)
         if (project && !project.featureFlags.includes(featureFlagKey)) {
           project.featureFlags.push(featureFlagKey)
@@ -101,7 +108,7 @@ const slice = createSlice({
     builder.addCase(backofficeThunks.removeFeatureFlag.fulfilled, (state, action) => {
       if (!ADS.isFulfilled(state.organizations)) return
       const { projectId, featureFlagKey } = action.payload
-      for (const organization of state.organizations.value) {
+      for (const organization of state.organizations.value.organizations) {
         const project = organization.projects.find((project) => project.id === projectId)
         if (project) {
           project.featureFlags = project.featureFlags.filter((flag) => flag !== featureFlagKey)
@@ -112,7 +119,7 @@ const slice = createSlice({
     builder.addCase(backofficeThunks.replaceProjectAgentCategories.fulfilled, (state, action) => {
       if (!ADS.isFulfilled(state.organizations)) return
       const { projectId, categories } = action.payload
-      for (const organization of state.organizations.value) {
+      for (const organization of state.organizations.value.organizations) {
         const project = organization.projects.find((project) => project.id === projectId)
         if (project) {
           project.agentCategories = categories

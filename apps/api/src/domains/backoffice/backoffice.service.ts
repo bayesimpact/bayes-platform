@@ -52,41 +52,138 @@ export class BackofficeService {
   async listOrganizationsWithProjects({
     canListAll,
     userId,
+    page,
+    limit,
+    search,
   }: {
     canListAll: boolean
     userId: string
-  }): Promise<BackofficeOrganizationView[]> {
+    page: number
+    limit: number
+    search?: string
+  }): Promise<{ organizations: BackofficeOrganizationView[]; total: number }> {
+    let visibleOrganizationIds: Set<string> | null = null
+    let visibleProjectIds: Set<string> | null = null
+    if (!canListAll) {
+      const adminScope = await this.findAdminOrganizationAndProjectIds(userId)
+      visibleOrganizationIds = adminScope.organizationIds
+      visibleProjectIds = adminScope.projectIds
+      if (visibleOrganizationIds.size === 0 && visibleProjectIds.size === 0) {
+        return { organizations: [], total: 0 }
+      }
+    }
+
+    const idsQuery = this.organizationRepository
+      .createQueryBuilder("organization")
+      .select("organization.id", "id")
+      .orderBy("LOWER(organization.name)", "ASC")
+
+    if (visibleOrganizationIds !== null && visibleProjectIds !== null) {
+      const visibleOrganizationIdList = Array.from(visibleOrganizationIds)
+      const visibleProjectIdList = Array.from(visibleProjectIds)
+      if (visibleProjectIdList.length === 0) {
+        idsQuery.andWhere("organization.id IN (:...visibleOrganizationIds)", {
+          visibleOrganizationIds: visibleOrganizationIdList,
+        })
+      } else if (visibleOrganizationIdList.length === 0) {
+        idsQuery.andWhere(
+          `EXISTS (
+            SELECT 1 FROM "project" "scoped_project"
+            WHERE "scoped_project"."organization_id" = "organization"."id"
+              AND "scoped_project"."id" IN (:...visibleProjectIds)
+          )`,
+          { visibleProjectIds: visibleProjectIdList },
+        )
+      } else {
+        idsQuery.andWhere(
+          `(
+            "organization"."id" IN (:...visibleOrganizationIds)
+            OR EXISTS (
+              SELECT 1 FROM "project" "scoped_project"
+              WHERE "scoped_project"."organization_id" = "organization"."id"
+                AND "scoped_project"."id" IN (:...visibleProjectIds)
+            )
+          )`,
+          {
+            visibleOrganizationIds: visibleOrganizationIdList,
+            visibleProjectIds: visibleProjectIdList,
+          },
+        )
+      }
+    }
+
+    const trimmedSearch = search?.trim()
+    if (trimmedSearch) {
+      const searchPattern = `%${trimmedSearch.toLowerCase()}%`
+      idsQuery.andWhere(
+        `(
+          LOWER("organization"."name") LIKE :searchPattern
+          OR EXISTS (
+            SELECT 1 FROM "project" "searched_project"
+            WHERE "searched_project"."organization_id" = "organization"."id"
+              AND LOWER("searched_project"."name") LIKE :searchPattern
+          )
+        )`,
+        { searchPattern },
+      )
+    }
+
+    const total = await idsQuery.getCount()
+    const idRows = await idsQuery
+      .offset(page * limit)
+      .limit(limit)
+      .getRawMany<{ id: string }>()
+    const paginatedIds = idRows.map((row) => row.id)
+
+    if (paginatedIds.length === 0) {
+      return { organizations: [], total }
+    }
+
     const organizations = await this.organizationRepository.find({
+      where: { id: In(paginatedIds) },
       relations: {
         projects: { featureFlags: true },
       },
-      order: { createdAt: "DESC" },
     })
 
-    const visibleOrganizations = canListAll
-      ? organizations
-      : await this.filterOrganizationsForAdmin(organizations, userId)
+    const organizationsById = new Map(
+      organizations.map((organization) => [organization.id, organization]),
+    )
+    const orderedOrganizations = paginatedIds
+      .map((id) => organizationsById.get(id))
+      .filter((organization): organization is Organization => organization !== undefined)
 
-    const projects = visibleOrganizations.flatMap((organization) => organization.projects ?? [])
+    const scopedOrganizations =
+      visibleOrganizationIds !== null && visibleProjectIds !== null
+        ? this.scopeOrganizationProjects(
+            orderedOrganizations,
+            visibleOrganizationIds,
+            visibleProjectIds,
+          )
+        : orderedOrganizations
+
+    const projects = scopedOrganizations.flatMap((organization) => organization.projects ?? [])
     const categoriesByProjectId = await this.listProjectAgentCategoriesByProjectIds(
       projects.map((project) => project.id),
     )
 
-    return visibleOrganizations.map((organization) => ({
-      ...organization,
-      projects: (organization.projects ?? []).map(
-        (project): BackofficeProjectView => ({
-          ...project,
-          projectAgentCategories: categoriesByProjectId.get(project.id) ?? [],
-        }),
-      ),
-    }))
+    return {
+      organizations: scopedOrganizations.map((organization) => ({
+        ...organization,
+        projects: (organization.projects ?? []).map(
+          (project): BackofficeProjectView => ({
+            ...project,
+            projectAgentCategories: categoriesByProjectId.get(project.id) ?? [],
+          }),
+        ),
+      })),
+      total,
+    }
   }
 
-  private async filterOrganizationsForAdmin(
-    organizations: Organization[],
+  private async findAdminOrganizationAndProjectIds(
     userId: string,
-  ): Promise<Organization[]> {
+  ): Promise<{ organizationIds: Set<string>; projectIds: Set<string> }> {
     const [adminOrganizationMemberships, adminProjectMemberships] = await Promise.all([
       this.organizationMembershipRepository.find({
         where: { userId, role: adminRoles },
@@ -95,25 +192,26 @@ export class BackofficeService {
         where: { userId, role: adminRoles },
       }),
     ])
-    const adminOrganizationIds = new Set(
-      adminOrganizationMemberships.map((membership) => membership.organizationId),
-    )
-    const adminProjectIds = new Set(
-      adminProjectMemberships.map((membership) => membership.projectId),
-    )
-
-    const filteredOrganizations: Organization[] = []
-    for (const organization of organizations) {
-      const isAdminOfOrganization = adminOrganizationIds.has(organization.id)
-      const visibleProjects = (organization.projects ?? []).filter(
-        (project) => isAdminOfOrganization || adminProjectIds.has(project.id),
-      )
-      if (!isAdminOfOrganization && visibleProjects.length === 0) {
-        continue
-      }
-      filteredOrganizations.push({ ...organization, projects: visibleProjects })
+    return {
+      organizationIds: new Set(
+        adminOrganizationMemberships.map((membership) => membership.organizationId),
+      ),
+      projectIds: new Set(adminProjectMemberships.map((membership) => membership.projectId)),
     }
-    return filteredOrganizations
+  }
+
+  private scopeOrganizationProjects(
+    organizations: Organization[],
+    visibleOrganizationIds: Set<string>,
+    visibleProjectIds: Set<string>,
+  ): Organization[] {
+    return organizations.map((organization) => {
+      const isAdminOfOrganization = visibleOrganizationIds.has(organization.id)
+      const visibleProjects = (organization.projects ?? []).filter(
+        (project) => isAdminOfOrganization || visibleProjectIds.has(project.id),
+      )
+      return { ...organization, projects: visibleProjects }
+    })
   }
 
   async listUsersWithMemberships({
