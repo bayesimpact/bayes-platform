@@ -27,6 +27,7 @@ describe("Organizations - createOrganization", () => {
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
+    process.env.ORGANIZATION_CREATOR_EMAIL_DOMAIN = "@bayesimpact.org"
     setup = await setupE2eTestDatabase({
       additionalImports: [OrganizationsModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
@@ -45,6 +46,7 @@ describe("Organizations - createOrganization", () => {
   })
 
   afterAll(async () => {
+    delete process.env.ORGANIZATION_CREATOR_EMAIL_DOMAIN
     await teardownE2eTestDatabase(setup)
     await app.close()
   })
