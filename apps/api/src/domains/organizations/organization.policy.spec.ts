@@ -2,6 +2,14 @@ import { userFactory } from "@/domains/users/user.factory"
 import { OrganizationPolicy } from "./organization.policy"
 
 describe("OrganizationPolicy", () => {
+  beforeAll(() => {
+    process.env.ORGANIZATION_CREATOR_EMAIL_DOMAIN = "@bayesimpact.org"
+  })
+
+  afterAll(() => {
+    delete process.env.ORGANIZATION_CREATOR_EMAIL_DOMAIN
+  })
+
   describe("canCreate", () => {
     it("should return true for emails ending with @bayesimpact.org", () => {
       const user = userFactory.build({ email: "member@bayesimpact.org" })
