@@ -1,3 +1,8 @@
+import type {
+  BackofficeOrganization,
+  PaginatedBackofficeUsers,
+  TermsDocuments,
+} from "@/backoffice/features/backoffice/backoffice.models"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import type { ExtractionAgentSessionSummary } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
 import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
@@ -265,6 +270,27 @@ export const seed = {
       feedbacksByAgentId: Record<string, AgentMessageFeedback[]>,
     ): StoryPreloadedState {
       return { studio: { agentMessageFeedback: { data: ads.fulfilled(feedbacksByAgentId) } } }
+    },
+  },
+
+  backoffice: {
+    organizations(organizations: BackofficeOrganization[]): StoryPreloadedState {
+      return { backoffice: { backoffice: { organizations: ads.fulfilled(organizations) } } }
+    },
+
+    users(users: PaginatedBackofficeUsers): StoryPreloadedState {
+      return {
+        backoffice: {
+          backoffice: {
+            users: ads.fulfilled(users),
+            usersQuery: { page: users.page, limit: users.limit, search: "" },
+          },
+        },
+      }
+    },
+
+    termsDocuments(termsDocuments: TermsDocuments): StoryPreloadedState {
+      return { backoffice: { backoffice: { termsDocuments: ads.fulfilled(termsDocuments) } } }
     },
   },
 

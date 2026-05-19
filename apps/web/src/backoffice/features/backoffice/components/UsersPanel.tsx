@@ -1,4 +1,5 @@
 import { Badge } from "@caseai-connect/ui/shad/badge"
+import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Table,
   TableBody,
@@ -7,18 +8,16 @@ import {
   TableHeader,
   TableRow,
 } from "@caseai-connect/ui/shad/table"
-import {
-  type ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  type SortingState,
-  useReactTable,
-} from "@tanstack/react-table"
-import { useMemo, useState } from "react"
-import type { BackofficeUser } from "../backoffice.models"
-import { SearchField, SortableHeader } from "./BackofficeTable"
+import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import type { BackofficeUser, PaginatedBackofficeUsers } from "../backoffice.models"
+import { selectBackofficeUsersQuery } from "../backoffice.selectors"
+import { backofficeActions } from "../backoffice.slice"
+import { SearchField } from "./BackofficeTable"
+
+const DEFAULT_PAGE_SIZE = 10
 
 type UserRow = {
   id: string
@@ -27,47 +26,49 @@ type UserRow = {
   organizationMemberships: BackofficeUser["organizationMemberships"]
   projectMemberships: BackofficeUser["projectMemberships"]
   agentMemberships: BackofficeUser["agentMemberships"]
-  searchable: string
 }
 
-export function UsersPanel({ users }: { users: BackofficeUser[] }) {
-  const [sorting, setSorting] = useState<SortingState>([{ id: "email", desc: false }])
-  const [globalFilter, setGlobalFilter] = useState("")
+export function UsersPanel({ users }: { users: PaginatedBackofficeUsers }) {
+  const dispatch = useAppDispatch()
+  const query = useAppSelector(selectBackofficeUsersQuery)
+  const [searchInput, setSearchInput] = useState(query.search)
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (searchInput === query.search) return
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+    debounceTimerRef.current = setTimeout(() => {
+      dispatch(
+        backofficeActions.listUsers({
+          page: 0,
+          limit: query.limit,
+          search: searchInput,
+        }),
+      )
+    }, 300)
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
+    }
+  }, [searchInput, query.search, query.limit, dispatch])
 
   const rows = useMemo<UserRow[]>(
     () =>
-      users.map((user) => {
-        const searchable = [
-          user.email,
-          user.name ?? "",
-          ...user.organizationMemberships.map(
-            (membership) => `${membership.organizationName} ${membership.role}`,
-          ),
-          ...user.projectMemberships.map(
-            (membership) => `${membership.projectName} ${membership.role}`,
-          ),
-          ...user.agentMemberships.map(
-            (membership) => `${membership.agentName} ${membership.role}`,
-          ),
-        ].join(" ")
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name ?? "",
-          organizationMemberships: user.organizationMemberships,
-          projectMemberships: user.projectMemberships,
-          agentMemberships: user.agentMemberships,
-          searchable,
-        }
-      }),
-    [users],
+      users.users.map((user) => ({
+        id: user.id,
+        email: user.email,
+        name: user.name ?? "",
+        organizationMemberships: user.organizationMemberships,
+        projectMemberships: user.projectMemberships,
+        agentMemberships: user.agentMemberships,
+      })),
+    [users.users],
   )
 
   const columns = useMemo<ColumnDef<UserRow>[]>(
     () => [
       {
         accessorKey: "email",
-        header: ({ column }) => <SortableHeader column={column} label="User" />,
+        header: () => <span className="text-muted-foreground">User</span>,
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span className="font-medium">{row.original.email}</span>
@@ -79,11 +80,6 @@ export function UsersPanel({ users }: { users: BackofficeUser[] }) {
       },
       {
         id: "organizations",
-        enableSorting: false,
-        accessorFn: (row) =>
-          row.organizationMemberships
-            .map((membership) => `${membership.organizationName} ${membership.role}`)
-            .join(" "),
         header: () => <span className="text-muted-foreground">Organizations</span>,
         cell: ({ row }) => (
           <MembershipsCell
@@ -97,11 +93,6 @@ export function UsersPanel({ users }: { users: BackofficeUser[] }) {
       },
       {
         id: "projects",
-        enableSorting: false,
-        accessorFn: (row) =>
-          row.projectMemberships
-            .map((membership) => `${membership.projectName} ${membership.role}`)
-            .join(" "),
         header: () => <span className="text-muted-foreground">Projects</span>,
         cell: ({ row }) => (
           <MembershipsCell
@@ -115,11 +106,6 @@ export function UsersPanel({ users }: { users: BackofficeUser[] }) {
       },
       {
         id: "agents",
-        enableSorting: false,
-        accessorFn: (row) =>
-          row.agentMemberships
-            .map((membership) => `${membership.agentName} ${membership.role}`)
-            .join(" "),
         header: () => <span className="text-muted-foreground">Agents</span>,
         cell: ({ row }) => (
           <MembershipsCell
@@ -135,28 +121,37 @@ export function UsersPanel({ users }: { users: BackofficeUser[] }) {
     [],
   )
 
+  const pageSize = users.limit || DEFAULT_PAGE_SIZE
+  const pageCount = Math.max(1, Math.ceil(users.total / pageSize))
+
   const table = useReactTable({
     data: rows,
     columns,
-    state: { sorting, globalFilter },
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, _columnId, filterValue) => {
-      const query = String(filterValue).toLowerCase().trim()
-      if (!query) return true
-      return row.original.searchable.toLowerCase().includes(query)
-    },
+    manualPagination: true,
+    pageCount,
+    rowCount: users.total,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
   })
+
+  const goToPage = (nextPage: number) => {
+    dispatch(
+      backofficeActions.listUsers({
+        page: nextPage,
+        limit: pageSize,
+        search: query.search,
+      }),
+    )
+  }
+
+  const from = users.total === 0 ? 0 : users.page * pageSize + 1
+  const to = Math.min((users.page + 1) * pageSize, users.total)
 
   return (
     <>
       <div className="p-4 border-b">
         <SearchField
-          value={globalFilter}
-          onChange={setGlobalFilter}
+          value={searchInput}
+          onChange={setSearchInput}
           placeholder="Search users, organizations, projects, or agents…"
         />
       </div>
@@ -197,6 +192,34 @@ export function UsersPanel({ users }: { users: BackofficeUser[] }) {
           )}
         </TableBody>
       </Table>
+      <div className="flex items-center justify-between p-4 border-t">
+        <span className="text-sm text-muted-foreground">
+          {users.total === 0 ? "No users" : `${from}–${to} of ${users.total}`}
+        </span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={users.page <= 0}
+            onClick={() => goToPage(users.page - 1)}
+          >
+            <ChevronLeftIcon className="size-4" />
+            Previous
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            {users.page + 1} / {pageCount}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={users.page >= pageCount - 1}
+            onClick={() => goToPage(users.page + 1)}
+          >
+            Next
+            <ChevronRightIcon className="size-4" />
+          </Button>
+        </div>
+      </div>
     </>
   )
 }

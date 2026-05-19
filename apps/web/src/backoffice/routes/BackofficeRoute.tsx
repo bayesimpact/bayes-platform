@@ -14,7 +14,7 @@ import { RouteNames } from "@/common/routes/helpers"
 import { useAppSelector } from "@/common/store/hooks"
 import type {
   BackofficeOrganization,
-  BackofficeUser,
+  PaginatedBackofficeUsers,
   TermsDocuments,
 } from "../features/backoffice/backoffice.models"
 import { backofficeActions } from "../features/backoffice/backoffice.slice"
@@ -61,7 +61,7 @@ function WithData({
   termsDocuments,
 }: {
   organizations: BackofficeOrganization[]
-  users: BackofficeUser[]
+  users: PaginatedBackofficeUsers
   termsDocuments: TermsDocuments | null
 }) {
   const navigate = useNavigate()

@@ -4,8 +4,8 @@ import { defineRoute } from "../helpers"
 import type {
   BackofficeOrganizationDto,
   BackofficeProjectAgentCategoryDto,
-  BackofficeUserDto,
   ListTermsDocumentsResponseDto,
+  PaginatedBackofficeUsersDto,
   ReplaceBackofficeProjectAgentCategoriesDto,
   UpdateTermsDocumentsRequestDto,
 } from "./backoffice.dto"
@@ -15,7 +15,7 @@ export const BackofficeRoutes = {
     method: "get",
     path: "backoffice/organizations",
   }),
-  listUsers: defineRoute<ResponseData<BackofficeUserDto[]>>({
+  listUsers: defineRoute<ResponseData<PaginatedBackofficeUsersDto>>({
     method: "get",
     path: "backoffice/users",
   }),

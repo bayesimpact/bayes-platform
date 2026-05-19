@@ -1,17 +1,31 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
-import type { BackofficeOrganization, BackofficeUser, TermsDocuments } from "./backoffice.models"
+import type {
+  BackofficeOrganization,
+  PaginatedBackofficeUsers,
+  TermsDocuments,
+} from "./backoffice.models"
 import { backofficeThunks } from "./backoffice.thunks"
+
+interface UsersQuery {
+  page: number
+  limit: number
+  search: string
+}
 
 interface State {
   organizations: AsyncData<BackofficeOrganization[]>
-  users: AsyncData<BackofficeUser[]>
+  users: AsyncData<PaginatedBackofficeUsers>
+  usersQuery: UsersQuery
   termsDocuments: AsyncData<TermsDocuments>
 }
+
+const defaultUsersQuery: UsersQuery = { page: 0, limit: 10, search: "" }
 
 const initialState: State = {
   organizations: defaultAsyncData,
   users: defaultAsyncData,
+  usersQuery: defaultUsersQuery,
   termsDocuments: defaultAsyncData,
 }
 
@@ -47,11 +61,16 @@ const slice = createSlice({
       })
 
     builder
-      .addCase(backofficeThunks.listUsers.pending, (state) => {
+      .addCase(backofficeThunks.listUsers.pending, (state, action) => {
         if (!ADS.isFulfilled(state.users)) {
           state.users.status = ADS.Loading
         }
         state.users.error = null
+        state.usersQuery = {
+          page: action.meta.arg?.page ?? state.usersQuery.page,
+          limit: action.meta.arg?.limit ?? state.usersQuery.limit,
+          search: action.meta.arg?.search ?? state.usersQuery.search,
+        }
       })
       .addCase(backofficeThunks.listUsers.fulfilled, (state, action) => {
         state.users = {
