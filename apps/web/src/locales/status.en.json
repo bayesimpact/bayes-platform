@@ -9,10 +9,14 @@
     "pending": "Pending",
     "success": "Success",
     "thinking": "Thinking",
+    "asyncLoading": "Loading...",
+    "asyncError": "Error: {{statusCode}}",
+    "asyncUnknownError": "Unknown error occurred.",
     "notFound": {
       "title": "404 Not Found",
       "description": "The page you are looking for does not exist.",
-      "home": "Go Home"
+      "home": "Go Home",
+      "oops": "Oops!"
     }
   }
 }

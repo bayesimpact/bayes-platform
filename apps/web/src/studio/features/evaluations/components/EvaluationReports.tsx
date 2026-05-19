@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import type z from "zod"
 import { Loader } from "@/common/components/Loader"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -28,7 +29,8 @@ export function EvaluationReports({
 }
 
 function ErrorMessage() {
-  return <div className="text-red-500">Failed to load evaluation reports</div>
+  const { t } = useTranslation()
+  return <div className="text-red-500">{t("evaluation:failedToLoad")}</div>
 }
 
 function buildData({

@@ -92,24 +92,30 @@ export function FileUploader({
             case "file-invalid-type":
               showNotification(
                 "error",
-                `${rejection.file.name} has an invalid file type: ${rejection.file.type}`,
+                t("fileInvalidType", {
+                  fileName: rejection.file.name,
+                  fileType: rejection.file.type,
+                }),
               )
               break
 
             case "too-many-files":
-              showNotification("error", `You can only upload up to ${maxFiles} file(s).`)
+              showNotification("error", t("fileTooMany", { maxFiles }))
               break
 
             case "file-too-large":
-              showNotification("error", `${rejection.file.name} is too large.`)
+              showNotification("error", t("fileTooLarge", { fileName: rejection.file.name }))
               break
 
             case "file-too-small":
-              showNotification("error", `${rejection.file.name} is too small.`)
+              showNotification("error", t("fileTooSmall", { fileName: rejection.file.name }))
               break
 
             default:
-              showNotification("error", `Failed to upload ${rejection.file.name}. ${err.message}`)
+              showNotification(
+                "error",
+                t("fileUploadFailed", { fileName: rejection.file.name, errorMessage: err.message }),
+              )
               break
           }
         })

@@ -47,6 +47,14 @@
     "update": "Update",
     "upload": "Upload",
     "initialize": "Initialize",
-    "view": "View"
+    "view": "View",
+    "goToTester": "Test",
+    "goToReviewer": "Review",
+    "pagination": "{{from}}-{{to}} of {{total}}",
+    "fileInvalidType": "{{fileName}} has an invalid file type: {{fileType}}",
+    "fileTooMany": "You can only upload up to {{maxFiles}} file(s).",
+    "fileTooLarge": "{{fileName}} is too large.",
+    "fileTooSmall": "{{fileName}} is too small.",
+    "fileUploadFailed": "Failed to upload {{fileName}}. {{errorMessage}}"
   }
 }

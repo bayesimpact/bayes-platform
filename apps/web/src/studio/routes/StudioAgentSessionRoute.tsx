@@ -39,7 +39,7 @@ export function StudioAgentSessionRoute({
     <div className="flex flex-col h-full">
       <GridHeader
         onBack={handleBack}
-        title="Playground"
+        title={t("agent:playground")}
         description={
           <div className="flex items-center gap-2 flex-wrap">
             <span className="capitalize-first">{agent.name}</span> •
