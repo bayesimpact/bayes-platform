@@ -1,10 +1,7 @@
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq"
 import { Logger } from "@nestjs/common"
 import type { Job } from "bullmq"
-import {
-  DOCUMENT_EMBEDDINGS_STUCK_SWEEP_JOB_NAME,
-  DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME,
-} from "./document-embeddings-stuck.constants"
+import { DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME } from "./document-embeddings-stuck.constants"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentEmbeddingsStuckSweepService } from "./document-embeddings-stuck-sweep.service"
 
@@ -16,11 +13,7 @@ export class DocumentEmbeddingsStuckSweepWorker extends WorkerHost {
     super()
   }
 
-  async process(job: Job): Promise<void> {
-    if (job.name !== DOCUMENT_EMBEDDINGS_STUCK_SWEEP_JOB_NAME) {
-      return
-    }
-
+  async process(_job: Job): Promise<void> {
     const { timedOutCount } = await this.stuckSweepService.sweepStuckDocuments()
     this.logger.log(`Stuck embedding sweep finished (${timedOutCount} document(s) timed out).`)
   }
