@@ -21,11 +21,9 @@ export function bullBoardMountPath(): string {
   return `/${normalizedBullBoardRoute()}`
 }
 
-export function normalizedBullBoardAllowedEmailDomain(): string {
+export function normalizedBullBoardAllowedEmailDomain(): string | undefined {
   const raw = process.env.BULL_BOARD_ALLOWED_EMAIL_DOMAIN?.trim()
-  if (!raw) {
-    return "bayesimpact.org"
-  }
+  if (!raw) return undefined
   return raw.replace(/^@+/u, "").toLowerCase()
 }
 
@@ -36,6 +34,11 @@ export function normalizedBullBoardAuth0Organization(): string {
 export function buildBullBoardAccessMiddleware(): RequestHandler {
   const requireAuthentication = requiresAuth()
   const allowedEmailDomain = normalizedBullBoardAllowedEmailDomain()
+  if (!allowedEmailDomain) {
+    throw new Error(
+      "When BULL_BOARD_ENABLED=true, set BULL_BOARD_ALLOWED_EMAIL_DOMAIN to the email domain allowed to access the dashboard (e.g. example.com).",
+    )
+  }
   const allowedEmailSuffix = `@${allowedEmailDomain}`
 
   return (request, response, next) => {
