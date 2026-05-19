@@ -31,6 +31,13 @@ export type BackofficeOrganizationDto = {
   projects: BackofficeProjectDto[]
 }
 
+export type PaginatedBackofficeOrganizationsDto = {
+  organizations: BackofficeOrganizationDto[]
+  total: number
+  page: number
+  limit: number
+}
+
 export type BackofficeUserOrganizationMembershipDto = {
   organizationId: string
   organizationName: string

@@ -1,19 +1,25 @@
 import { BackofficeRoutes } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import {
-  toBackofficeOrganization,
   toBackofficeProjectAgentCategory,
+  toPaginatedBackofficeOrganizations,
   toPaginatedBackofficeUsers,
 } from "../backoffice.models"
 import type { IBackofficeSpi } from "../backoffice.spi"
 
 export default {
-  listOrganizations: async () => {
+  listOrganizations: async ({ page, limit, search }) => {
     const axios = getAxiosInstance()
+    const queryParams: Record<string, string> = {}
+    if (page !== undefined) queryParams.page = String(page)
+    if (limit !== undefined) queryParams.limit = String(limit)
+    if (search) queryParams.search = search
+
     const response = await axios.get<typeof BackofficeRoutes.listOrganizations.response>(
       BackofficeRoutes.listOrganizations.getPath(),
+      { params: queryParams },
     )
-    return response.data.data.map(toBackofficeOrganization)
+    return toPaginatedBackofficeOrganizations(response.data.data)
   },
   listUsers: async ({ page, limit, search }) => {
     const axios = getAxiosInstance()

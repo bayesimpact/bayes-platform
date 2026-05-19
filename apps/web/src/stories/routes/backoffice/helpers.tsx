@@ -5,12 +5,14 @@ import {
   backofficeUserFactory,
   backofficeUserOrganizationMembershipFactory,
   backofficeUserProjectMembershipFactory,
+  paginatedBackofficeOrganizationsFactory,
   paginatedBackofficeUsersFactory,
   termsDocumentsFactory,
 } from "@/backoffice/features/backoffice/backoffice.factory"
 import type {
   BackofficeOrganization,
   BackofficeUser,
+  PaginatedBackofficeOrganizations,
   PaginatedBackofficeUsers,
   TermsDocuments,
 } from "@/backoffice/features/backoffice/backoffice.models"
@@ -46,7 +48,7 @@ export const backofficeStoryArgTypes = {
 
 export function buildBackofficeData(args: BackofficeStoryArgs): {
   user: User
-  organizations: BackofficeOrganization[]
+  organizations: PaginatedBackofficeOrganizations
   users: PaginatedBackofficeUsers
   termsDocuments: TermsDocuments | null
   baseSeeds: StoryPreloadedState
@@ -56,9 +58,16 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
     isTermsManagementAuthorized: args.isTermsManagementAuthorized,
   })
 
-  const organizations: BackofficeOrganization[] = args.withOrganizations ? buildOrganizations() : []
+  const organizations: PaginatedBackofficeOrganizations = args.withOrganizations
+    ? buildOrganizationsPage()
+    : paginatedBackofficeOrganizationsFactory.build({
+        organizations: [],
+        total: 0,
+        page: 0,
+        limit: 10,
+      })
   const users: PaginatedBackofficeUsers = args.withUsers
-    ? buildUsersPage(organizations)
+    ? buildUsersPage(organizations.organizations)
     : paginatedBackofficeUsersFactory.build({ users: [], total: 0, page: 0, limit: 10 })
   const termsDocuments =
     args.isTermsManagementAuthorized && args.withTermsDocuments
@@ -78,11 +87,17 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
   }
 }
 
-function buildOrganizations(): BackofficeOrganization[] {
-  return Array.from({ length: 3 }).map(() => {
+function buildOrganizationsPage(): PaginatedBackofficeOrganizations {
+  const organizations: BackofficeOrganization[] = Array.from({ length: 3 }).map(() => {
     const organization = backofficeOrganizationFactory.build()
     const projects = backofficeProjectFactory.transient({ organization }).buildList(2)
     return { ...organization, projects }
+  })
+  return paginatedBackofficeOrganizationsFactory.build({
+    organizations,
+    total: organizations.length,
+    page: 0,
+    limit: 10,
   })
 }
 
@@ -109,11 +124,18 @@ function buildUsersPage(organizations: BackofficeOrganization[]): PaginatedBacko
 }
 
 export function buildMockBackofficeService(overrides: {
-  organizations?: BackofficeOrganization[]
+  organizations?: PaginatedBackofficeOrganizations
   users?: PaginatedBackofficeUsers
   termsDocuments?: TermsDocuments | null
 }): IBackofficeSpi {
-  const organizations = overrides.organizations ?? []
+  const organizations =
+    overrides.organizations ??
+    paginatedBackofficeOrganizationsFactory.build({
+      organizations: [],
+      total: 0,
+      page: 0,
+      limit: 10,
+    })
   const users =
     overrides.users ??
     paginatedBackofficeUsersFactory.build({ users: [], total: 0, page: 0, limit: 10 })

@@ -1,14 +1,18 @@
 import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
 import type {
-  BackofficeOrganization,
   BackofficeProjectAgentCategory,
+  PaginatedBackofficeOrganizations,
   PaginatedBackofficeUsers,
   TermsDocuments,
   UpdateTermsDocumentsInput,
 } from "./backoffice.models"
 
 export interface IBackofficeSpi {
-  listOrganizations: () => Promise<BackofficeOrganization[]>
+  listOrganizations: (params: {
+    page?: number
+    limit?: number
+    search?: string
+  }) => Promise<PaginatedBackofficeOrganizations>
   listUsers: (params: {
     page?: number
     limit?: number

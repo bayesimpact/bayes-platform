@@ -9,6 +9,7 @@ import type {
   BackofficeUserAgentMembership,
   BackofficeUserOrganizationMembership,
   BackofficeUserProjectMembership,
+  PaginatedBackofficeOrganizations,
   PaginatedBackofficeUsers,
   TermsDocuments,
 } from "./backoffice.models"
@@ -157,6 +158,19 @@ export const paginatedBackofficeUsersFactory = PaginatedBackofficeUsersFactory.d
     }
   },
 )
+
+class PaginatedBackofficeOrganizationsFactory extends Factory<PaginatedBackofficeOrganizations> {}
+
+export const paginatedBackofficeOrganizationsFactory =
+  PaginatedBackofficeOrganizationsFactory.define(({ params }) => {
+    const organizations = params.organizations ?? []
+    return {
+      organizations,
+      total: params.total ?? organizations.length,
+      page: params.page ?? 0,
+      limit: params.limit ?? 10,
+    }
+  })
 
 function termsDocument(type: TermsDocumentType) {
   return {

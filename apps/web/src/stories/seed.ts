@@ -1,5 +1,5 @@
 import type {
-  BackofficeOrganization,
+  PaginatedBackofficeOrganizations,
   PaginatedBackofficeUsers,
   TermsDocuments,
 } from "@/backoffice/features/backoffice/backoffice.models"
@@ -274,8 +274,19 @@ export const seed = {
   },
 
   backoffice: {
-    organizations(organizations: BackofficeOrganization[]): StoryPreloadedState {
-      return { backoffice: { backoffice: { organizations: ads.fulfilled(organizations) } } }
+    organizations(organizations: PaginatedBackofficeOrganizations): StoryPreloadedState {
+      return {
+        backoffice: {
+          backoffice: {
+            organizations: ads.fulfilled(organizations),
+            organizationsQuery: {
+              page: organizations.page,
+              limit: organizations.limit,
+              search: "",
+            },
+          },
+        },
+      }
     },
 
     users(users: PaginatedBackofficeUsers): StoryPreloadedState {

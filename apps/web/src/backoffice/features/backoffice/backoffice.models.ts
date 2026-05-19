@@ -10,6 +10,7 @@ import type {
   CurrentTermsDto,
   FeatureFlagKey,
   OrganizationMembershipRoleDto,
+  PaginatedBackofficeOrganizationsDto,
   PaginatedBackofficeUsersDto,
   ProjectMembershipRoleDto,
   TimeType,
@@ -91,6 +92,22 @@ export const toBackofficeOrganization = (
   name: dto.name,
   createdAt: dto.createdAt,
   projects: dto.projects.map(toBackofficeProject),
+})
+
+export type PaginatedBackofficeOrganizations = {
+  organizations: BackofficeOrganization[]
+  total: number
+  page: number
+  limit: number
+}
+
+export const toPaginatedBackofficeOrganizations = (
+  dto: PaginatedBackofficeOrganizationsDto,
+): PaginatedBackofficeOrganizations => ({
+  organizations: dto.organizations.map(toBackofficeOrganization),
+  total: dto.total,
+  page: dto.page,
+  limit: dto.limit,
 })
 
 const toBackofficeUserOrganizationMembership = (

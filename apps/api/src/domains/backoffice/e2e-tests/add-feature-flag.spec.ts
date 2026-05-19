@@ -185,7 +185,7 @@ describe("Backoffice - feature flag lifecycle", () => {
       token: "token",
     })
     expectResponse(response, 200)
-    const organizations = response.body.data
+    const organizations = response.body.data.organizations
     expect(organizations.length).toBeGreaterThanOrEqual(1)
     const organization = organizations.find((org) =>
       org.projects.some((proj) => proj.id === project.id),
@@ -307,7 +307,7 @@ describe("Backoffice - feature flag lifecycle", () => {
     })
 
     expectResponse(response, 200)
-    const organization = response.body.data.find((candidateOrganization) =>
+    const organization = response.body.data.organizations.find((candidateOrganization) =>
       candidateOrganization.projects.some((candidateProject) => candidateProject.id === project.id),
     )
     const returnedProject = organization?.projects.find(
