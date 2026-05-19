@@ -44,9 +44,6 @@ function buildMockReviewCampaignsService(
       throw new Error(`updateOne not implemented in mock service (${payload.name ?? ""})`)
     },
     async deleteOne() {},
-    async inviteMembers() {
-      return []
-    },
     async revokeMembership() {},
   }
 }

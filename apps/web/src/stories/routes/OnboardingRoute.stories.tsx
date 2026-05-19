@@ -2,9 +2,6 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import { agentFactory } from "@/common/features/agents/agent.factory"
 import {
   organizationMembershipFactory,
-  pendingAgentInvitationFactory,
-  pendingInvitationsFactory,
-  pendingProjectInvitationFactory,
   projectMembershipFactory,
   reviewCampaignMembershipFactory,
   userFactory,
@@ -16,6 +13,7 @@ import { RouteNames } from "@/common/routes/helpers"
 import { onboardingRoute } from "@/common/routes/Router"
 import { buildDecorator, render } from "@/stories/decorators"
 import { mergeSeeds, seed } from "@/stories/seed"
+import { pendingInvitationFactory } from "@/studio/features/invitations/invitations.factory"
 import { type BaseStoryArgs, baseStoryArgs, baseStoryArgTypes } from "../helpers"
 
 type StoryArgs = BaseStoryArgs & {
@@ -61,11 +59,12 @@ function buildData(args: StoryArgs) {
 
   const projectInvitations = withProjectInvitations
     ? [
-        pendingProjectInvitationFactory
+        pendingInvitationFactory
           .transient({
             project: projectFactory
               .transient({ organization: organizationFactory.build() })
               .build(),
+            targetType: "project",
           })
           .build({ role: "member" }),
       ]
@@ -78,15 +77,14 @@ function buildData(args: StoryArgs) {
           .build()
         const agent = agentFactory.transient({ project }).build()
         return [
-          pendingAgentInvitationFactory.transient({ agent, project }).build({ role: "member" }),
+          pendingInvitationFactory
+            .transient({ agent, project, targetType: "agent" })
+            .build({ role: "member" }),
         ]
       })()
     : []
 
-  const invitations = pendingInvitationsFactory.build({
-    projectInvitations,
-    agentInvitations,
-  })
+  const invitations = [...projectInvitations, ...agentInvitations]
 
   const reviewCampaignMemberships =
     (withReviewCampaignMembershipsAsTester || withReviewCampaignMembershipsAsReviewer) &&

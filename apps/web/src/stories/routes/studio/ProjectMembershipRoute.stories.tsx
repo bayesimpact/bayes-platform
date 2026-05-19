@@ -32,9 +32,6 @@ function buildMockProjectMembershipsService(
     async getAll() {
       return overrides.memberships ?? []
     },
-    async invite() {
-      return []
-    },
     async remove() {},
     async getMemberAgents() {
       return overrides.memberAgents ?? []
@@ -78,9 +75,7 @@ export const Default: Story = {
         ? agents.map((agent, index) =>
             projectMemberAgentFactory
               .transient({ agent, membership })
-              .build(
-                index === agents.length - 1 ? { membershipId: null, role: null, status: null } : {},
-              ),
+              .build(index === agents.length - 1 ? { membershipId: null, role: null } : {}),
           )
         : []
       const memberships = [membership, ...otherMemberships]

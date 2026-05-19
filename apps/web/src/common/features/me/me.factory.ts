@@ -9,12 +9,7 @@ import { Factory } from "fishery"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import type { Project } from "@/common/features/projects/projects.models"
-import type {
-  PendingAgentInvitation,
-  PendingInvitations,
-  PendingProjectInvitation,
-  User,
-} from "./me.models"
+import type { User } from "./me.models"
 
 type UserTransientParams = {
   organizationMemberships?: OrganizationMembershipDto[]
@@ -50,7 +45,7 @@ export const userFactory = UserFactory.define(({ params, transientParams }) => {
       reviewCampaignMemberships,
       ...params.memberships,
     },
-  }
+  } satisfies User
 })
 
 type OrganizationMembershipTransientParams = {
@@ -76,7 +71,7 @@ export const organizationMembershipFactory = OrganizationMembershipFactory.defin
       organizationId: organization.id,
       userId: params.userId ?? user?.id ?? faker.string.uuid(),
       role: params.role ?? "member",
-    }
+    } satisfies OrganizationMembershipDto
   },
 )
 
@@ -107,10 +102,9 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
         params.userEmail ??
         user?.email ??
         faker.internet.email({ firstName, lastName }).toLowerCase(),
-      status: params.status ?? "accepted",
       createdAt: params.createdAt ?? faker.date.past().getTime(),
       role: params.role ?? "member",
-    }
+    } satisfies ProjectMembershipDto
   },
 )
 
@@ -139,88 +133,10 @@ export const agentMembershipFactory = AgentMembershipFactory.define(
         user?.email ??
         faker.internet.email({ firstName, lastName }).toLowerCase(),
       role: params.role ?? "member",
-      status: params.status ?? "accepted",
       createdAt: params.createdAt ?? faker.date.past().getTime(),
-    }
+    } satisfies AgentMembershipDto
   },
 )
-
-type PendingProjectInvitationTransientParams = {
-  project: Project
-  organization?: Organization
-}
-
-class PendingProjectInvitationFactory extends Factory<
-  PendingProjectInvitation,
-  PendingProjectInvitationTransientParams
-> {}
-
-export const pendingProjectInvitationFactory = PendingProjectInvitationFactory.define(
-  ({ params, transientParams }) => {
-    const { project, organization } = transientParams
-    if (!project) {
-      throw new Error(
-        "Project must be provided in transient params to build a PendingProjectInvitation",
-      )
-    }
-    return {
-      id: params.id ?? faker.string.uuid(),
-      projectId: project.id,
-      projectName: params.projectName ?? project.name,
-      organizationId: params.organizationId ?? organization?.id ?? project.organizationId,
-      organizationName: params.organizationName ?? organization?.name ?? faker.company.name(),
-      role: params.role ?? "member",
-      invitationToken: params.invitationToken ?? faker.string.uuid(),
-      createdAt: params.createdAt ?? faker.date.recent().getTime(),
-    }
-  },
-)
-
-type PendingAgentInvitationTransientParams = {
-  agent: Agent
-  project: Project
-  organization?: Organization
-}
-
-class PendingAgentInvitationFactory extends Factory<
-  PendingAgentInvitation,
-  PendingAgentInvitationTransientParams
-> {}
-
-export const pendingAgentInvitationFactory = PendingAgentInvitationFactory.define(
-  ({ params, transientParams }) => {
-    const { agent, project, organization } = transientParams
-    if (!agent) {
-      throw new Error(
-        "Agent must be provided in transient params to build a PendingAgentInvitation",
-      )
-    }
-    if (!project) {
-      throw new Error(
-        "Project must be provided in transient params to build a PendingAgentInvitation",
-      )
-    }
-    return {
-      id: params.id ?? faker.string.uuid(),
-      agentId: agent.id,
-      agentName: params.agentName ?? agent.name,
-      projectId: project.id,
-      projectName: params.projectName ?? project.name,
-      organizationId: params.organizationId ?? organization?.id ?? project.organizationId,
-      organizationName: params.organizationName ?? organization?.name ?? faker.company.name(),
-      role: params.role ?? "member",
-      invitationToken: params.invitationToken ?? faker.string.uuid(),
-      createdAt: params.createdAt ?? faker.date.recent().getTime(),
-    }
-  },
-)
-
-class PendingInvitationsFactory extends Factory<PendingInvitations> {}
-
-export const pendingInvitationsFactory = PendingInvitationsFactory.define(({ params }) => ({
-  projectInvitations: params.projectInvitations ?? [],
-  agentInvitations: params.agentInvitations ?? [],
-}))
 
 type ReviewCampaignMembershipTransientParams = {
   project: Project
@@ -246,6 +162,6 @@ export const reviewCampaignMembershipFactory = ReviewCampaignMembershipFactory.d
       projectId: project.id,
       role: params.role ?? "reviewer",
       campaignStatus: params.campaignStatus ?? "active",
-    }
+    } satisfies ReviewCampaignMembershipForMeDto
   },
 )

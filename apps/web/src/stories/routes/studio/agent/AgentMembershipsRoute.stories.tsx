@@ -26,9 +26,6 @@ function buildMockAgentMembershipsService(
     async getAll() {
       return memberships
     },
-    async invite() {
-      return []
-    },
     async remove() {},
   }
 }
@@ -68,9 +65,7 @@ export const Default: Story = {
         ? [
             agentMembershipFactory.transient({ agent: currentAgent }).build({ role: "owner" }),
             agentMembershipFactory.transient({ agent: currentAgent }).build({ role: "member" }),
-            agentMembershipFactory
-              .transient({ agent: currentAgent })
-              .build({ role: "member", status: "sent" }),
+            agentMembershipFactory.transient({ agent: currentAgent }).build({ role: "member" }),
           ]
         : []
 

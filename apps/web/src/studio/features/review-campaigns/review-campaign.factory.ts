@@ -105,7 +105,6 @@ export const reviewCampaignMembershipFactory = ReviewCampaignMembershipFactory.d
       userId: params.userId ?? faker.string.uuid(),
       userEmail: params.userEmail ?? faker.internet.email().toLowerCase(),
       role: params.role ?? "tester",
-      invitedAt: params.invitedAt ?? faker.date.past().getTime(),
       acceptedAt: params.acceptedAt ?? null,
     }
   },

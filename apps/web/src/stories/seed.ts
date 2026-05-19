@@ -3,7 +3,7 @@ import type { ExtractionAgentSessionSummary } from "@/common/features/agents/age
 import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
 import type { AgentSessionMessage } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import type { Agent } from "@/common/features/agents/agents.models"
-import type { PendingInvitations, User } from "@/common/features/me/me.models"
+import type { User } from "@/common/features/me/me.models"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import type { Project } from "@/common/features/projects/projects.models"
@@ -18,6 +18,7 @@ import type { DocumentTag } from "@/studio/features/document-tags/document-tags.
 import type { Document } from "@/studio/features/documents/documents.models"
 import type { EvaluationReport } from "@/studio/features/evaluation-reports/evaluation-reports.models"
 import type { Evaluation } from "@/studio/features/evaluations/evaluations.models"
+import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import type {
   ProjectMemberAgent,
   ProjectMembership,

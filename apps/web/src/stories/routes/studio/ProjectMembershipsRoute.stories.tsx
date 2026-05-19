@@ -43,9 +43,7 @@ export const Default: Story = {
         ? [
             projectMembershipFactory.transient({ project }).build({ role: "owner" }),
             projectMembershipFactory.transient({ project }).build({ role: "admin" }),
-            projectMembershipFactory
-              .transient({ project })
-              .build({ role: "member", status: "sent" }),
+            projectMembershipFactory.transient({ project }).build({ role: "member" }),
           ]
         : []
       return {

@@ -26,10 +26,9 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
       userId: params.userId ?? faker.string.uuid(),
       userName: params.userName ?? `${firstName} ${lastName}`,
       userEmail: params.userEmail ?? faker.internet.email({ firstName, lastName }).toLowerCase(),
-      status: params.status ?? "accepted",
       createdAt: params.createdAt ?? faker.date.past().getTime(),
       role: params.role ?? "member",
-    }
+    } satisfies ProjectMembership
   },
 )
 
@@ -52,7 +51,6 @@ export const projectMemberAgentFactory = ProjectMemberAgentFactory.define(
       agentType: params.agentType ?? agent.type,
       membershipId: params.membershipId ?? membership?.id ?? null,
       role: params.role ?? "member",
-      status: params.status ?? "accepted",
-    }
+    } satisfies ProjectMemberAgent
   },
 )
