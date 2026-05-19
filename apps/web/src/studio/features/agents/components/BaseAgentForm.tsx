@@ -245,7 +245,7 @@ export function BaseAgentForm({
 
                 {hasAgentCategories && (
                   <Field>
-                    <FieldLabel>Agent categories</FieldLabel>
+                    <FieldLabel>{t("agent:props.agentCategories")}</FieldLabel>
                     <Controller
                       control={control}
                       name="projectAgentCategoryIds"
@@ -289,9 +289,7 @@ export function BaseAgentForm({
                         </FieldGroup>
                       )}
                     />
-                    <FieldDescription>
-                      Categories already used in this agent's conversations cannot be unchecked.
-                    </FieldDescription>
+                    <FieldDescription>{t("agent:props.agentCategoriesInUse")}</FieldDescription>
                   </Field>
                 )}
               </FieldGroup>

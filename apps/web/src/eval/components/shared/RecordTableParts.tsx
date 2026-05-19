@@ -135,7 +135,7 @@ export function PaginationControls({
   return (
     <div className="flex items-center justify-between pt-4">
       <span className="text-sm text-muted-foreground">
-        {from}-{to} of {total}
+        {t("actions:pagination", { from, to, total })}
       </span>
       <div className="flex items-center gap-2">
         <Button

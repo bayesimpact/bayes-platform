@@ -51,9 +51,7 @@ export function OrganizationCreator() {
 
   const isLoading = ADS.isLoading(status)
   if (!isPremiumUser) {
-    return (
-      <ErrorRoute error="You are not allowed to create an organization. Please contact support." />
-    )
+    return <ErrorRoute error={t("notAllowed")} />
   }
   return (
     <FullPageCenterLayout className="min-h-screen">

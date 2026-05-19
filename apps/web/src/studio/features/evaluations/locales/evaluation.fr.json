@@ -22,6 +22,7 @@
       "description": "Créez une nouvelle évaluation en fournissant les détails nécessaires."
     },
     "run": "Exécuter",
+    "failedToLoad": "Impossible de charger les rapports d'évaluation",
     "runAll": "Exécuter tout",
     "empty": {
       "title": "Aucune évaluation disponible",

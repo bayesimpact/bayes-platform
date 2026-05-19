@@ -307,6 +307,7 @@ function NavEvalButton({ organizationId, project }: { organizationId: string; pr
 }
 
 function NavTesterButton({ projectId }: { projectId: string }) {
+  const { t } = useTranslation()
   // Reads from /me — no extra round-trip on Onboarding.
   const memberships = useAppSelector(selectMyActiveReviewCampaignMemberships("tester"))
   const hasTesterCampaignInProject = memberships.some((m) => m.projectId === projectId)
@@ -319,12 +320,13 @@ function NavTesterButton({ projectId }: { projectId: string }) {
   if (!hasTesterCampaignInProject) return null
   return (
     <Button variant="outline" onClick={handleClick}>
-      Test
+      {t("actions:goToTester")}
     </Button>
   )
 }
 
 function NavReviewerButton({ projectId }: { projectId: string }) {
+  const { t } = useTranslation()
   const memberships = useAppSelector(selectMyActiveReviewCampaignMemberships("reviewer"))
   const hasReviewerCampaignInProject = memberships.some((m) => m.projectId === projectId)
 
@@ -336,7 +338,7 @@ function NavReviewerButton({ projectId }: { projectId: string }) {
   if (!hasReviewerCampaignInProject) return null
   return (
     <Button variant="outline" onClick={handleClick}>
-      Review
+      {t("actions:goToReviewer")}
     </Button>
   )
 }
