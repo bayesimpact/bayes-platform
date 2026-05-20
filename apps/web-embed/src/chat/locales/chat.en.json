@@ -1,0 +1,17 @@
+{
+  "chat": {
+    "header": {
+      "defaultAgentName": "Assistant",
+      "closeAriaLabel": "Close chat"
+    },
+    "input": {
+      "placeholder": "Type a message…",
+      "submitAriaLabel": "Send message"
+    },
+    "message": {
+      "thinking": "Thinking…",
+      "error": "Something went wrong. Please try again.",
+      "copyAriaLabel": "Copy to clipboard"
+    }
+  }
+}
