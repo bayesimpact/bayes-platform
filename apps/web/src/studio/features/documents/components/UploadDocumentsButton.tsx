@@ -10,8 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@caseai-connect/ui/shad/dialog"
-import { Field, FieldLabel } from "@caseai-connect/ui/shad/field"
-import { Input } from "@caseai-connect/ui/shad/input"
+import { FieldLabel } from "@caseai-connect/ui/shad/field"
 import { XIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -39,7 +38,6 @@ export function UploadDocumentsButton({
   const [open, setOpen] = useState(false)
   const [tagIds, setTagIds] = useState<string[]>([])
   const [filesCount, setFilesCount] = useState(0)
-  const [name, setName] = useState("")
   const hasAvailableTags = documentTags.length > 0
   const [startProcessingFiles, setStartProcessingFiles] = useState(!hasAvailableTags)
 
@@ -65,7 +63,6 @@ export function UploadDocumentsButton({
         files,
         sourceType: "project",
         tagIds: tagIds.length > 0 ? tagIds : undefined,
-        name: filesCount === 1 && name.trim() ? name.trim() : undefined,
       }),
     ).unwrap()
   }
@@ -83,7 +80,6 @@ export function UploadDocumentsButton({
     if (!open) {
       setTagIds([])
       setFilesCount(0)
-      setName("")
       setStartProcessingFiles(false)
     }
     return () => {
@@ -118,19 +114,6 @@ export function UploadDocumentsButton({
           <p className="text-foreground text-sm font-medium">
             {t("document:upload.tagDialog.fileCountSentence", { count: filesCount })}
           </p>
-          {filesCount === 1 && (
-            <Field>
-              <FieldLabel htmlFor="upload-name">
-                {t("document:upload.tagDialog.nameLabel")}
-              </FieldLabel>
-              <Input
-                id="upload-name"
-                type="text"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-              />
-            </Field>
-          )}
           <div className="flex flex-col gap-2">
             <FieldLabel>{t("document:props.tags")}</FieldLabel>
             <div className="flex flex-wrap items-center gap-2">

@@ -13,12 +13,12 @@ export function useFeatureFlags(project?: Project) {
   const p = useAppSelector(selectCurrentProjectData)
   if (project) {
     return {
-      hasFeature: (feature: FeatureFlagKey): boolean => check(project.featureFlags || [], feature)
+      hasFeature: (feature: FeatureFlagKey): boolean => check(project.featureFlags || [], feature),
     }
   } else {
     if (!ADS.isFulfilled(p)) return { hasFeature: () => false }
     return {
-      hasFeature: (feature: FeatureFlagKey): boolean => check(p.value.featureFlags || [], feature)
+      hasFeature: (feature: FeatureFlagKey): boolean => check(p.value.featureFlags || [], feature),
     }
   }
 }

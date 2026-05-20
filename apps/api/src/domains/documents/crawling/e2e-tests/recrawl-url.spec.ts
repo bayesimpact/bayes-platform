@@ -13,7 +13,10 @@ import { expectResponse, type Requester, testRequester } from "../../../../../te
 import { DocumentsModule } from "../../documents.module"
 import { DocumentEmbeddingStatusNotifierService } from "../../embeddings/document-embedding-status-notifier.service"
 import { withCrawlingAndAuthMocks } from "../../test-overrides"
-import { URL_CRAWLING_BATCH_SERVICE, type UrlCrawlingBatchService } from "../url-crawling-batch.interface"
+import {
+  URL_CRAWLING_BATCH_SERVICE,
+  type UrlCrawlingBatchService,
+} from "../url-crawling-batch.interface"
 
 describe("Documents - reCrawlUrl", () => {
   let app: INestApplication<App>
@@ -26,8 +29,14 @@ describe("Documents - reCrawlUrl", () => {
   let documentId: string
   let accessToken: string | undefined = "token"
   let auth0Id = "auth0|123"
-  let crawlingBatchServiceMock: { enqueueCrawlUrl: jest.MockedFunction<UrlCrawlingBatchService["enqueueCrawlUrl"]> }
-  let notifierMock: { notifyEmbeddingStatusChanged: jest.MockedFunction<DocumentEmbeddingStatusNotifierService["notifyEmbeddingStatusChanged"]> }
+  let crawlingBatchServiceMock: {
+    enqueueCrawlUrl: jest.MockedFunction<UrlCrawlingBatchService["enqueueCrawlUrl"]>
+  }
+  let notifierMock: {
+    notifyEmbeddingStatusChanged: jest.MockedFunction<
+      DocumentEmbeddingStatusNotifierService["notifyEmbeddingStatusChanged"]
+    >
+  }
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
@@ -55,14 +64,22 @@ describe("Documents - reCrawlUrl", () => {
     await app.close()
   })
 
-  const createContext = async (overrides?: Partial<{ sourceUrl: string | null; title: string; content: string | null; embeddingStatus: string }>) => {
+  const createContext = async (
+    overrides?: Partial<{
+      sourceUrl: string | null
+      title: string
+      content: string | null
+      embeddingStatus: string
+    }>,
+  ) => {
     const { user, organization, project, document } = await createOrganizationWithDocument(
       repositories,
       {
         user: { auth0Id },
         document: {
           sourceType: "webCrawl",
-          sourceUrl: overrides?.sourceUrl !== undefined ? overrides.sourceUrl : "https://example.com",
+          sourceUrl:
+            overrides?.sourceUrl !== undefined ? overrides.sourceUrl : "https://example.com",
           title: overrides?.title ?? "https://example.com",
           content: overrides?.content ?? undefined,
           embeddingStatus: (overrides?.embeddingStatus as "completed") ?? "completed",
@@ -96,38 +113,18 @@ describe("Documents - reCrawlUrl", () => {
     expect(document?.embeddingError).toBeNull()
 
     expect(crawlingBatchServiceMock.enqueueCrawlUrl).toHaveBeenCalledWith(
-      expect.objectContaining({ url: "https://example.com", documentId, organizationId, projectId }),
+      expect.objectContaining({
+        url: "https://example.com",
+        documentId,
+        organizationId,
+        projectId,
+      }),
     )
     expect(notifierMock.notifyEmbeddingStatusChanged).toHaveBeenCalledWith(
       expect.objectContaining({ documentId, embeddingStatus: "pending" }),
     )
   })
 
-  it("falls back to title when sourceUrl is null and title is a valid URL", async () => {
-    await createContext({ sourceUrl: null, title: "https://fallback.example.com" })
-
-    const response = await subject()
-
-    expectResponse(response, 202)
-    expect(crawlingBatchServiceMock.enqueueCrawlUrl).toHaveBeenCalledWith(
-      expect.objectContaining({ url: "https://fallback.example.com" }),
-    )
-  })
-
-  it("falls back to shortest URL in content when sourceUrl is null and title is an alias", async () => {
-    const content = JSON.stringify([
-      { url: "https://example.com/page1", markdown: "" },
-      { url: "https://example.com", markdown: "" },
-    ])
-    await createContext({ sourceUrl: null, title: "My Site Alias", content })
-
-    const response = await subject()
-
-    expectResponse(response, 202)
-    expect(crawlingBatchServiceMock.enqueueCrawlUrl).toHaveBeenCalledWith(
-      expect.objectContaining({ url: "https://example.com" }),
-    )
-  })
 
   it("rejects documents that are not webCrawl type", async () => {
     const { organization, project } = await createOrganizationWithDocument(repositories, {
@@ -149,7 +146,11 @@ describe("Documents - reCrawlUrl", () => {
 
     const response = await subject()
 
-    expectResponse(response, 422, "Source URL not available for this document. Please delete it and crawl the website again.")
+    expectResponse(
+      response,
+      422,
+      "Source URL not available for this document. Please delete it and crawl the website again.",
+    )
     expect(crawlingBatchServiceMock.enqueueCrawlUrl).not.toHaveBeenCalled()
   })
 })

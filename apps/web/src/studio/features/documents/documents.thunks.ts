@@ -54,11 +54,11 @@ export const uploadDocument = createAsyncThunk<
 
 export const uploadDocuments = createAsyncThunk<
   void,
-  { files: File[]; sourceType: DocumentSourceType; tagIds?: string[]; name?: string },
+  { files: File[]; sourceType: DocumentSourceType; tagIds?: string[] },
   ThunkConfig
 >(
   "documents/uploadMany",
-  async ({ files, sourceType, tagIds, name }, { extra: { services }, getState, dispatch }) => {
+  async ({ files, sourceType, tagIds }, { extra: { services }, getState, dispatch }) => {
     const state = getState()
     const { organizationId, projectId } = getCurrentIds({
       state,
@@ -70,7 +70,6 @@ export const uploadDocuments = createAsyncThunk<
       files,
       sourceType,
       tagIds,
-      name,
       onFileProcessed: (result) => {
         dispatch(documentsActions.setOneDocumentProcessed())
 

@@ -114,7 +114,10 @@ export class DocumentEmbeddingsProcessorService {
       }
       default: {
         const fileBuffer = await this.fileStorage.readFile(document.storageRelativePath)
-        const extractionResult = await this.textExtractorService.extract(fileBuffer, document.mimeType)
+        const extractionResult = await this.textExtractorService.extract(
+          fileBuffer,
+          document.mimeType,
+        )
         const chunks = extractionResult.chunks ?? this.splitTextForEmbeddings(extractionResult.text)
         this.logger.log(`Split document ${document.id} into ${chunks.length} chunks`)
         return {

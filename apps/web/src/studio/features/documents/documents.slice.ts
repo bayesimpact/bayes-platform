@@ -1,5 +1,5 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 import type { DocumentSourceType } from "@caseai-connect/api-contracts"
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { Document } from "./documents.models"
 import { listDocuments, uploadDocuments } from "./documents.thunks"
@@ -99,7 +99,10 @@ const slice = createSlice({
     setCurrentDocumentId: (state, action: PayloadAction<{ documentId: string | null }>) => {
       state.currentDocumentId = action.payload.documentId
     },
-    setCurrentSourceType: (state, action: PayloadAction<{ sourceType: DocumentSourceType | null }>) => {
+    setCurrentSourceType: (
+      state,
+      action: PayloadAction<{ sourceType: DocumentSourceType | null }>,
+    ) => {
       state.currentSourceType = action.payload.sourceType
     },
     startEmbeddingStatusStream: (state) => {

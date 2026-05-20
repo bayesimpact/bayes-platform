@@ -322,7 +322,10 @@ export class DocumentsController {
     @Request() req: EndpointRequestWithProject,
     @Param("sourceType") sourceType: DocumentSourceType,
   ): Promise<typeof DocumentsRoutes.getAll.response> {
-    const documents = await this.documentsService.listDocuments(getRequiredConnectScope(req), sourceType)
+    const documents = await this.documentsService.listDocuments(
+      getRequiredConnectScope(req),
+      sourceType,
+    )
     return { data: documents.map(toDocumentDto) }
   }
 
@@ -524,7 +527,6 @@ export class DocumentsController {
     )
   }
 }
-
 
 function parseCrawledPages(
   content: string | null,

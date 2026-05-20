@@ -71,7 +71,11 @@ export class DocumentsService {
     documentId: string
   }): Promise<void> {
     const result: UpdateResult = await this.documentRepository.update(
-      { id: documentId, organizationId: connectScope.organizationId, projectId: connectScope.projectId },
+      {
+        id: documentId,
+        organizationId: connectScope.organizationId,
+        projectId: connectScope.projectId,
+      },
       { uploadStatus: "uploaded" },
     )
     if (!result.affected) {
@@ -82,12 +86,13 @@ export class DocumentsService {
   private sortNewestFirst = (a: Document, b: Document) =>
     b.createdAt.getTime() - a.createdAt.getTime()
 
-  async listDocuments(connectScope: RequiredConnectScope, sourceType: Document["sourceType"]): Promise<Document[]> {
+  async listDocuments(
+    connectScope: RequiredConnectScope,
+    sourceType: Document["sourceType"],
+  ): Promise<Document[]> {
     return (
       await this.documentConnectRepository.find(connectScope, {
-        where: [
-          { sourceType, uploadStatus: "uploaded" }
-        ],
+        where: [{ sourceType, uploadStatus: "uploaded" }],
         relations: ["tags"],
       })
     )?.sort(this.sortNewestFirst)
@@ -187,7 +192,11 @@ export class DocumentsService {
     size: number
   }): Promise<void> {
     const result: UpdateResult = await this.documentRepository.update(
-      { id: documentId, organizationId: connectScope.organizationId, projectId: connectScope.projectId },
+      {
+        id: documentId,
+        organizationId: connectScope.organizationId,
+        projectId: connectScope.projectId,
+      },
       { content, size },
     )
     if (!result.affected) {
@@ -209,7 +218,11 @@ export class DocumentsService {
     status: Document["embeddingStatus"]
   }): Promise<void> {
     const result: UpdateResult = await this.documentRepository.update(
-      { id: documentId, organizationId: connectScope.organizationId, projectId: connectScope.projectId },
+      {
+        id: documentId,
+        organizationId: connectScope.organizationId,
+        projectId: connectScope.projectId,
+      },
       { embeddingStatus: status },
     )
     if (!result.affected) {
@@ -225,7 +238,11 @@ export class DocumentsService {
     documentId: string
   }): Promise<void> {
     const result: UpdateResult = await this.documentRepository.update(
-      { id: documentId, organizationId: connectScope.organizationId, projectId: connectScope.projectId },
+      {
+        id: documentId,
+        organizationId: connectScope.organizationId,
+        projectId: connectScope.projectId,
+      },
       { content: null as unknown as string, embeddingStatus: "pending", embeddingError: null },
     )
     if (!result.affected) {

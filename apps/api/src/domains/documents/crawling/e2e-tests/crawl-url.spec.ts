@@ -10,10 +10,13 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
-import { Document } from "../../document.entity"
+import type { Document } from "../../document.entity"
 import { DocumentsModule } from "../../documents.module"
 import { withCrawlingAndAuthMocks } from "../../test-overrides"
-import { URL_CRAWLING_BATCH_SERVICE, type UrlCrawlingBatchService } from "../url-crawling-batch.interface"
+import {
+  URL_CRAWLING_BATCH_SERVICE,
+  type UrlCrawlingBatchService,
+} from "../url-crawling-batch.interface"
 
 describe("Documents - crawlUrl", () => {
   let app: INestApplication<App>
@@ -26,7 +29,9 @@ describe("Documents - crawlUrl", () => {
   let userId: string
   let accessToken: string | undefined = "token"
   let auth0Id = "auth0|123"
-  let crawlingBatchServiceMock: { enqueueCrawlUrl: jest.MockedFunction<UrlCrawlingBatchService["enqueueCrawlUrl"]> }
+  let crawlingBatchServiceMock: {
+    enqueueCrawlUrl: jest.MockedFunction<UrlCrawlingBatchService["enqueueCrawlUrl"]>
+  }
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({

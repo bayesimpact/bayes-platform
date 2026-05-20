@@ -39,15 +39,7 @@ export default {
     )
     return toDocument(response.data.data)
   },
-  uploadMany: async ({
-    organizationId,
-    projectId,
-    files,
-    sourceType,
-    tagIds,
-    name,
-    onFileProcessed,
-  }) => {
+  uploadMany: async ({ organizationId, projectId, files, sourceType, tagIds, onFileProcessed }) => {
     const axios = getAxiosInstance()
 
     for (const file of files) {
@@ -59,7 +51,7 @@ export default {
             payload: {
               files: [
                 {
-                  fileName: name && files.length === 1 ? name : file.name,
+                  fileName: file.name,
                   mimeType: file.type as PresignFileRequestItemDto["mimeType"],
                   size: file.size,
                 },

@@ -7,7 +7,11 @@ import type {
 } from "./documents.models"
 
 export interface IDocumentsSpi {
-  getAll(params: { organizationId: string; projectId: string; sourceType: DocumentSourceType }): Promise<Document[]>
+  getAll(params: {
+    organizationId: string
+    projectId: string
+    sourceType: DocumentSourceType
+  }): Promise<Document[]>
   listMyExtractionDocuments(params: {
     organizationId: string
     projectId: string
@@ -25,7 +29,6 @@ export interface IDocumentsSpi {
     files: File[]
     sourceType: DocumentSourceType
     tagIds?: string[]
-    name?: string
     onFileProcessed: (
       result:
         | { file: File; status: "success"; document: Document }
