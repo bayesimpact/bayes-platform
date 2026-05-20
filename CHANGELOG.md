@@ -16,14 +16,12 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) Gemma 4 available for all Agents
 - (beta) Documents sidebar entry replaced by a Sources dropdown with separate Documents and Websites sections
 - (beta) Web sources crawling
-- (beta) Re-crawl a website from its action menu to refresh content and re-index all pages
 
 ### Changed
 
 ### Fixed
 - Recover stuck evaluation extraction worker jobs after rebooting
 - Langfuse trace
-- (beta) Re-crawl now works correctly for renamed web sources
 
 ### Security
 
