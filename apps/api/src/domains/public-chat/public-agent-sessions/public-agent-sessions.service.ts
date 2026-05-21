@@ -2,8 +2,8 @@ import crypto from "node:crypto"
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
-import type { Agent } from "@/domains/agents/agent.entity"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
+import type { AgentEmbedConfig } from "../agent-embed-configs/agent-embed-config.entity"
 import { PublicAgentSession } from "./public-agent-session.entity"
 
 const STREAM_TIMEOUT_MS = 5 * 60 * 1000
@@ -18,16 +18,17 @@ export class PublicAgentSessionsService {
   ) {}
 
   async createSession(
-    agent: Agent,
+    embedConfig: AgentEmbedConfig,
     externalVisitorId?: string,
   ): Promise<{ session: PublicAgentSession; sessionToken: string }> {
     const sessionToken = crypto.randomUUID()
     const sessionTokenHash = crypto.createHash("sha256").update(sessionToken).digest("hex")
 
     const session = this.publicAgentSessionRepository.create({
-      agentId: agent.id,
-      organizationId: agent.organizationId,
-      projectId: agent.projectId,
+      embedConfigId: embedConfig.id,
+      agentId: embedConfig.agentId,
+      organizationId: embedConfig.organizationId,
+      projectId: embedConfig.projectId,
       sessionTokenHash,
       externalVisitorId: externalVisitorId ?? null,
       lastActivityAt: new Date(),

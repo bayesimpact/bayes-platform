@@ -1,10 +1,10 @@
 import crypto, { randomUUID } from "node:crypto"
 import { Factory } from "fishery"
-import type { Agent } from "@/domains/agents/agent.entity"
+import type { AgentEmbedConfig } from "../agent-embed-configs/agent-embed-config.entity"
 import type { PublicAgentSession } from "./public-agent-session.entity"
 
 type PublicAgentSessionTransientParams = {
-  agent: Agent
+  embedConfig: AgentEmbedConfig
   /** Plaintext session token — will be hashed and stored in sessionTokenHash */
   sessionToken?: string
 }
@@ -23,17 +23,18 @@ export const publicAgentSessionFactory = PublicAgentSessionFactory.define(
 
     return {
       id: params.id ?? randomUUID(),
-      agentId: transientParams.agent?.id ?? params.agentId ?? randomUUID(),
+      embedConfigId: transientParams.embedConfig?.id ?? params.embedConfigId ?? randomUUID(),
+      agentId: transientParams.embedConfig?.agentId ?? params.agentId ?? randomUUID(),
       organizationId:
-        transientParams.agent?.organizationId ?? params.organizationId ?? randomUUID(),
-      projectId: transientParams.agent?.projectId ?? params.projectId ?? randomUUID(),
+        transientParams.embedConfig?.organizationId ?? params.organizationId ?? randomUUID(),
+      projectId: transientParams.embedConfig?.projectId ?? params.projectId ?? randomUUID(),
       sessionTokenHash: params.sessionTokenHash ?? sessionTokenHash,
       externalVisitorId: params.externalVisitorId ?? null,
       lastActivityAt: params.lastActivityAt ?? now,
       createdAt: params.createdAt ?? now,
       updatedAt: params.updatedAt ?? now,
       deletedAt: params.deletedAt ?? null,
-      agent: transientParams.agent ?? (params.agent as Agent),
+      embedConfig: transientParams.embedConfig ?? (params.embedConfig as AgentEmbedConfig),
     } satisfies PublicAgentSession
   },
 )

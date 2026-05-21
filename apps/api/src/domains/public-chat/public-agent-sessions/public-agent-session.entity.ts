@@ -1,10 +1,13 @@
 import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
-import { Agent } from "@/domains/agents/agent.entity"
+import { AgentEmbedConfig } from "../agent-embed-configs/agent-embed-config.entity"
 
 @Entity("public_agent_session")
 @Index(["sessionTokenHash"])
 export class PublicAgentSession extends Base4AllEntity {
+  @Column({ type: "uuid", name: "embed_config_id" })
+  embedConfigId!: string
+
   @Column({ type: "uuid", name: "agent_id" })
   agentId!: string
 
@@ -23,7 +26,7 @@ export class PublicAgentSession extends Base4AllEntity {
   @Column({ type: "timestamp", name: "last_activity_at", nullable: true })
   lastActivityAt!: Date | null
 
-  @ManyToOne(() => Agent, { onDelete: "CASCADE" })
-  @JoinColumn({ name: "agent_id" })
-  agent!: Agent
+  @ManyToOne(() => AgentEmbedConfig, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "embed_config_id" })
+  embedConfig!: AgentEmbedConfig
 }

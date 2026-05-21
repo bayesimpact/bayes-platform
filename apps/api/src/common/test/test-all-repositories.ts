@@ -27,6 +27,7 @@ import { OrganizationMembership } from "@/domains/organizations/memberships/orga
 import { Organization } from "@/domains/organizations/organization.entity"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
+import { AgentEmbedConfig } from "@/domains/public-chat/agent-embed-configs/agent-embed-config.entity"
 import { PublicAgentSession } from "@/domains/public-chat/public-agent-sessions/public-agent-session.entity"
 import { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
@@ -38,6 +39,7 @@ import { TermsDocument } from "@/domains/terms-compliance/terms-document.entity"
 import { User } from "@/domains/users/user.entity"
 
 export type AllRepositories = {
+  agentEmbedConfigRepository: Repository<AgentEmbedConfig>
   activityRepository: Repository<Activity>
   agentCategoryRepository: Repository<AgentCategory>
   agentMcpServerRepository: Repository<AgentMcpServer>
@@ -81,6 +83,7 @@ export function buildAllRepositories(
   getRepository: <T extends ObjectLiteral>(entity: new () => T) => Repository<T>,
 ): AllRepositories {
   return {
+    agentEmbedConfigRepository: getRepository(AgentEmbedConfig),
     activityRepository: getRepository(Activity),
     agentCategoryRepository: getRepository(AgentCategory),
     agentMcpServerRepository: getRepository(AgentMcpServer),

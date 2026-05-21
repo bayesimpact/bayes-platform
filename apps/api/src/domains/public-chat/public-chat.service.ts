@@ -1,13 +1,19 @@
 import type {
+  AgentEmbedConfigDto,
   PublicAgentSessionDto,
   PublicSessionMessageDto,
   StreamEvent,
 } from "@caseai-connect/api-contracts"
-import { Injectable } from "@nestjs/common"
-import type { Agent } from "@/domains/agents/agent.entity"
+import { Injectable, NotFoundException } from "@nestjs/common"
+import { InjectRepository } from "@nestjs/typeorm"
+import type { Repository } from "typeorm"
+import { Agent } from "@/domains/agents/agent.entity"
 import type { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { StreamingService } from "@/domains/agents/shared/agent-session-messages/streaming/streaming.service"
+import type { AgentEmbedConfig } from "./agent-embed-configs/agent-embed-config.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentEmbedConfigsService } from "./agent-embed-configs/agent-embed-configs.service"
 import type { PublicAgentSession } from "./public-agent-sessions/public-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PublicAgentSessionsService } from "./public-agent-sessions/public-agent-sessions.service"
@@ -15,16 +21,19 @@ import { PublicAgentSessionsService } from "./public-agent-sessions/public-agent
 @Injectable()
 export class PublicChatService {
   constructor(
+    @InjectRepository(Agent)
+    private readonly agentRepository: Repository<Agent>,
+    readonly agentEmbedConfigsService: AgentEmbedConfigsService,
     private readonly publicAgentSessionsService: PublicAgentSessionsService,
     private readonly streamingService: StreamingService,
   ) {}
 
   async createSession(
-    agent: Agent,
+    embedConfig: AgentEmbedConfig,
     externalVisitorId?: string,
   ): Promise<{ sessionId: string; sessionToken: string }> {
     const { session, sessionToken } = await this.publicAgentSessionsService.createSession(
-      agent,
+      embedConfig,
       externalVisitorId,
     )
     return { sessionId: session.id, sessionToken }
@@ -39,10 +48,14 @@ export class PublicChatService {
 
   async *streamResponse(
     publicSession: PublicAgentSession,
-    agent: Agent,
     userContent: string,
     notifyClient: (event: Extract<StreamEvent, { type: "notify_client" }>) => void,
   ): AsyncGenerator<StreamEvent, void, unknown> {
+    const agent = await this.agentRepository.findOne({
+      where: { id: publicSession.agentId },
+    })
+    if (!agent) throw new NotFoundException("Agent not found")
+
     await this.publicAgentSessionsService.updateLastActivity(publicSession.id)
 
     yield* this.streamingService.streamPublicAgentResponse({
@@ -55,6 +68,18 @@ export class PublicChatService {
       userContent,
       notifyClient,
     })
+  }
+
+  toEmbedConfigDto(embedConfig: AgentEmbedConfig): AgentEmbedConfigDto {
+    return {
+      id: embedConfig.id,
+      agentId: embedConfig.agentId,
+      embedToken: embedConfig.embedToken,
+      isEnabled: embedConfig.isEnabled,
+      allowedOrigins: embedConfig.allowedOrigins,
+      createdAt: embedConfig.createdAt.getTime(),
+      updatedAt: embedConfig.updatedAt.getTime(),
+    }
   }
 
   private toSessionDto(

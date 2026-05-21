@@ -7,14 +7,14 @@ import {
 } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
-import { Agent } from "@/domains/agents/agent.entity"
+import { AgentEmbedConfig } from "../agent-embed-configs/agent-embed-config.entity"
 import type { PublicChatRequest } from "../public-chat.request"
 
 @Injectable()
 export class EmbedTokenGuard implements CanActivate {
   constructor(
-    @InjectRepository(Agent)
-    private readonly agentRepository: Repository<Agent>,
+    @InjectRepository(AgentEmbedConfig)
+    private readonly agentEmbedConfigRepository: Repository<AgentEmbedConfig>,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -25,26 +25,28 @@ export class EmbedTokenGuard implements CanActivate {
       throw new UnauthorizedException("Missing embed token")
     }
 
-    const agent = await this.agentRepository.findOne({ where: { embedToken } })
+    const embedConfig = await this.agentEmbedConfigRepository.findOne({
+      where: { embedToken },
+    })
 
-    if (!agent) {
+    if (!embedConfig) {
       throw new UnauthorizedException("Invalid embed token")
     }
 
-    if (!agent.embedEnabled) {
+    if (!embedConfig.isEnabled) {
       throw new ForbiddenException("Embed access is disabled for this agent")
     }
 
     const origin = request.headers.origin
     if (
-      agent.embedAllowedOrigins.length > 0 &&
+      embedConfig.allowedOrigins.length > 0 &&
       origin &&
-      !agent.embedAllowedOrigins.includes(origin)
+      !embedConfig.allowedOrigins.includes(origin)
     ) {
       throw new ForbiddenException("Origin not allowed")
     }
 
-    request.agent = agent
+    request.embedConfig = embedConfig
     return true
   }
 }

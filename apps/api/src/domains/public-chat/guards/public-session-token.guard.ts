@@ -40,7 +40,7 @@ export class PublicSessionTokenGuard implements CanActivate {
       throw new UnauthorizedException("Invalid session token")
     }
 
-    if (publicSession.agentId !== request.agent.id) {
+    if (publicSession.embedConfigId !== request.embedConfig.id) {
       throw new UnauthorizedException("Session does not belong to this agent")
     }
 

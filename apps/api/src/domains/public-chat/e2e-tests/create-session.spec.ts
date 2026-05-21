@@ -12,6 +12,7 @@ import {
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
+import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
 import { PublicChatModule } from "../public-chat.module"
 
 describe("PublicChat - createSession", () => {
@@ -43,10 +44,14 @@ describe("PublicChat - createSession", () => {
 
   const createContext = async () => {
     const { organization, project } = await createOrganizationWithProject(repositories)
-    const agent = agentFactory.transient({ organization, project }).build({ embedEnabled: true })
+    const agent = agentFactory.transient({ organization, project }).build()
     await repositories.agentRepository.save(agent)
-    embedToken = agent.embedToken
-    return { organization, project, agent }
+    const embedConfig = agentEmbedConfigFactory
+      .transient({ organization, project, agent })
+      .build({ isEnabled: true })
+    await repositories.agentEmbedConfigRepository.save(embedConfig)
+    embedToken = embedConfig.embedToken
+    return { organization, project, agent, embedConfig }
   }
 
   const subject = (payload?: { externalVisitorId?: string }) =>

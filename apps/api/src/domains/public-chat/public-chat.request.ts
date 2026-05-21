@@ -1,9 +1,9 @@
 import type { Request } from "express"
-import type { Agent } from "@/domains/agents/agent.entity"
+import type { AgentEmbedConfig } from "./agent-embed-configs/agent-embed-config.entity"
 import type { PublicAgentSession } from "./public-agent-sessions/public-agent-session.entity"
 
 export interface PublicChatRequest extends Request {
-  agent: Agent
+  embedConfig: AgentEmbedConfig
 }
 
 export interface PublicChatSessionRequest extends PublicChatRequest {

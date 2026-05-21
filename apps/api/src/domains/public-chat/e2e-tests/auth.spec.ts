@@ -12,6 +12,7 @@ import {
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
+import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
 import { publicAgentSessionFactory } from "../public-agent-sessions/public-agent-session.factory"
 import { PublicChatModule } from "../public-chat.module"
 
@@ -48,18 +49,24 @@ describe("PublicChat - Auth", () => {
 
   const createContext = async () => {
     const { organization, project } = await createOrganizationWithProject(repositories)
-    const agent = agentFactory.transient({ organization, project }).build({ embedEnabled: true })
+    const agent = agentFactory.transient({ organization, project }).build()
     await repositories.agentRepository.save(agent)
+    const embedConfig = agentEmbedConfigFactory
+      .transient({ organization, project, agent })
+      .build({ isEnabled: true })
+    await repositories.agentEmbedConfigRepository.save(embedConfig)
 
     const knownToken = randomUUID()
-    const session = publicAgentSessionFactory.transient({ agent, sessionToken: knownToken }).build()
+    const session = publicAgentSessionFactory
+      .transient({ embedConfig, sessionToken: knownToken })
+      .build()
     await repositories.publicAgentSessionRepository.save(session)
 
-    embedToken = agent.embedToken
+    embedToken = embedConfig.embedToken
     sessionId = session.id
     sessionToken = knownToken
 
-    return { organization, project, agent, session }
+    return { organization, project, agent, embedConfig, session }
   }
 
   // ──────────────────────────────────────────────────
@@ -80,22 +87,28 @@ describe("PublicChat - Auth", () => {
 
     it("returns 403 when embed access is disabled", async () => {
       const { organization, project } = await createOrganizationWithProject(repositories)
-      const agent = agentFactory.transient({ organization, project }).build({ embedEnabled: false })
+      const agent = agentFactory.transient({ organization, project }).build()
       await repositories.agentRepository.save(agent)
+      const disabledConfig = agentEmbedConfigFactory
+        .transient({ organization, project, agent })
+        .build({ isEnabled: false })
+      await repositories.agentEmbedConfigRepository.save(disabledConfig)
 
-      embedToken = agent.embedToken
+      embedToken = disabledConfig.embedToken
       const response = await subject()
       expect(response.status).toBe(403)
     })
 
-    it("returns 403 when Origin is not in embedAllowedOrigins", async () => {
+    it("returns 403 when Origin is not in allowedOrigins", async () => {
       const { organization, project } = await createOrganizationWithProject(repositories)
-      const agent = agentFactory
-        .transient({ organization, project })
-        .build({ embedEnabled: true, embedAllowedOrigins: ["https://allowed.example.com"] })
+      const agent = agentFactory.transient({ organization, project }).build()
       await repositories.agentRepository.save(agent)
+      const restrictedConfig = agentEmbedConfigFactory
+        .transient({ organization, project, agent })
+        .build({ isEnabled: true, allowedOrigins: ["https://allowed.example.com"] })
+      await repositories.agentEmbedConfigRepository.save(restrictedConfig)
 
-      embedToken = agent.embedToken
+      embedToken = restrictedConfig.embedToken
       const response = await request(app.getHttpServer())
         .post(`/public/agents/${embedToken}/sessions`)
         .set("Connection", "close")
@@ -104,14 +117,16 @@ describe("PublicChat - Auth", () => {
       expect(response.status).toBe(403)
     })
 
-    it("returns 201 when Origin matches embedAllowedOrigins", async () => {
+    it("returns 201 when Origin matches allowedOrigins", async () => {
       const { organization, project } = await createOrganizationWithProject(repositories)
-      const agent = agentFactory
-        .transient({ organization, project })
-        .build({ embedEnabled: true, embedAllowedOrigins: ["https://allowed.example.com"] })
+      const agent = agentFactory.transient({ organization, project }).build()
       await repositories.agentRepository.save(agent)
+      const restrictedConfig = agentEmbedConfigFactory
+        .transient({ organization, project, agent })
+        .build({ isEnabled: true, allowedOrigins: ["https://allowed.example.com"] })
+      await repositories.agentEmbedConfigRepository.save(restrictedConfig)
 
-      embedToken = agent.embedToken
+      embedToken = restrictedConfig.embedToken
       const response = await request(app.getHttpServer())
         .post(`/public/agents/${embedToken}/sessions`)
         .set("Connection", "close")
@@ -153,15 +168,17 @@ describe("PublicChat - Auth", () => {
       expect(response.status).toBe(401)
     })
 
-    it("returns 401 when sessionId belongs to a different agent", async () => {
+    it("returns 401 when sessionId belongs to a different embed config", async () => {
       await createContext()
       const { organization, project } = await createOrganizationWithProject(repositories)
-      const otherAgent = agentFactory
-        .transient({ organization, project })
-        .build({ embedEnabled: true })
-      await repositories.agentRepository.save(otherAgent)
+      const agent2 = agentFactory.transient({ organization, project }).build()
+      await repositories.agentRepository.save(agent2)
+      const otherConfig = agentEmbedConfigFactory
+        .transient({ organization, project, agent: agent2 })
+        .build({ isEnabled: true })
+      await repositories.agentEmbedConfigRepository.save(otherConfig)
 
-      embedToken = otherAgent.embedToken
+      embedToken = otherConfig.embedToken
       const response = await subject()
       expect(response.status).toBe(401)
     })

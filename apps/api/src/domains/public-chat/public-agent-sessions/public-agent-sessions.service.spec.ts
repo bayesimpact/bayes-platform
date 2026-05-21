@@ -9,6 +9,7 @@ import {
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
+import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
 import { PublicChatModule } from "../public-chat.module"
 import { publicAgentSessionFactory } from "./public-agent-session.factory"
 import { PublicAgentSessionsService } from "./public-agent-sessions.service"
@@ -35,17 +36,21 @@ describe("PublicAgentSessionsService", () => {
     await sdk.shutdown()
   })
 
-  const buildAgent = async () => {
+  const buildEmbedConfig = async () => {
     const { organization, project } = await createOrganizationWithProject(repositories)
-    const agent = agentFactory.transient({ organization, project }).build({ embedEnabled: true })
+    const agent = agentFactory.transient({ organization, project }).build()
     await repositories.agentRepository.save(agent)
-    return { organization, project, agent }
+    const embedConfig = agentEmbedConfigFactory
+      .transient({ organization, project, agent })
+      .build({ isEnabled: true })
+    await repositories.agentEmbedConfigRepository.save(embedConfig)
+    return { organization, project, agent, embedConfig }
   }
 
   describe("createSession", () => {
     it("should create a session and return a plaintext session token", async () => {
-      const { agent } = await buildAgent()
-      const { session, sessionToken } = await service.createSession(agent)
+      const { embedConfig } = await buildEmbedConfig()
+      const { session, sessionToken } = await service.createSession(embedConfig)
 
       expect(session.id).toBeDefined()
       expect(sessionToken).toBeDefined()
@@ -54,42 +59,43 @@ describe("PublicAgentSessionsService", () => {
     })
 
     it("should store the SHA-256 hash of the token, not the plaintext", async () => {
-      const { agent } = await buildAgent()
-      const { session, sessionToken } = await service.createSession(agent)
+      const { embedConfig } = await buildEmbedConfig()
+      const { session, sessionToken } = await service.createSession(embedConfig)
 
       const expectedHash = crypto.createHash("sha256").update(sessionToken).digest("hex")
       expect(session.sessionTokenHash).toBe(expectedHash)
       expect(session.sessionTokenHash).not.toBe(sessionToken)
     })
 
-    it("should copy organizationId and projectId from the agent", async () => {
-      const { agent } = await buildAgent()
-      const { session } = await service.createSession(agent)
+    it("should copy organizationId, projectId, and agentId from the embed config", async () => {
+      const { embedConfig } = await buildEmbedConfig()
+      const { session } = await service.createSession(embedConfig)
 
-      expect(session.organizationId).toBe(agent.organizationId)
-      expect(session.projectId).toBe(agent.projectId)
-      expect(session.agentId).toBe(agent.id)
+      expect(session.organizationId).toBe(embedConfig.organizationId)
+      expect(session.projectId).toBe(embedConfig.projectId)
+      expect(session.agentId).toBe(embedConfig.agentId)
+      expect(session.embedConfigId).toBe(embedConfig.id)
     })
 
     it("should store externalVisitorId when provided", async () => {
-      const { agent } = await buildAgent()
+      const { embedConfig } = await buildEmbedConfig()
       const visitorId = "browser-fp-xyz"
-      const { session } = await service.createSession(agent, visitorId)
+      const { session } = await service.createSession(embedConfig, visitorId)
 
       expect(session.externalVisitorId).toBe(visitorId)
     })
 
     it("should set externalVisitorId to null when not provided", async () => {
-      const { agent } = await buildAgent()
-      const { session } = await service.createSession(agent)
+      const { embedConfig } = await buildEmbedConfig()
+      const { session } = await service.createSession(embedConfig)
 
       expect(session.externalVisitorId).toBeNull()
     })
 
     it("should set lastActivityAt", async () => {
-      const { agent } = await buildAgent()
+      const { embedConfig } = await buildEmbedConfig()
       const before = new Date()
-      const { session } = await service.createSession(agent)
+      const { session } = await service.createSession(embedConfig)
       const after = new Date()
 
       expect(session.lastActivityAt).not.toBeNull()
@@ -98,9 +104,9 @@ describe("PublicAgentSessionsService", () => {
     })
 
     it("each call produces a unique token and session", async () => {
-      const { agent } = await buildAgent()
-      const result1 = await service.createSession(agent)
-      const result2 = await service.createSession(agent)
+      const { embedConfig } = await buildEmbedConfig()
+      const result1 = await service.createSession(embedConfig)
+      const result2 = await service.createSession(embedConfig)
 
       expect(result1.sessionToken).not.toBe(result2.sessionToken)
       expect(result1.session.id).not.toBe(result2.session.id)
@@ -110,10 +116,10 @@ describe("PublicAgentSessionsService", () => {
 
   describe("findByTokenHash", () => {
     it("should find a session by its SHA-256 token hash", async () => {
-      const { agent } = await buildAgent()
+      const { embedConfig } = await buildEmbedConfig()
       const plainToken = randomUUID()
       const session = publicAgentSessionFactory
-        .transient({ agent, sessionToken: plainToken })
+        .transient({ embedConfig, sessionToken: plainToken })
         .build()
       await repositories.publicAgentSessionRepository.save(session)
 
@@ -133,8 +139,8 @@ describe("PublicAgentSessionsService", () => {
 
   describe("getSessionWithMessages", () => {
     it("should return the session with an empty messages array for a new session", async () => {
-      const { agent } = await buildAgent()
-      const { session } = await service.createSession(agent)
+      const { embedConfig } = await buildEmbedConfig()
+      const { session } = await service.createSession(embedConfig)
 
       const result = await service.getSessionWithMessages(session.id)
 
@@ -143,12 +149,12 @@ describe("PublicAgentSessionsService", () => {
     })
 
     it("should return messages belonging to the session in chronological order", async () => {
-      const { agent } = await buildAgent()
-      const { session } = await service.createSession(agent)
+      const { embedConfig } = await buildEmbedConfig()
+      const { session } = await service.createSession(embedConfig)
 
       const connectScope = {
-        organizationId: agent.organizationId,
-        projectId: agent.projectId,
+        organizationId: embedConfig.organizationId,
+        projectId: embedConfig.projectId,
       }
       await repositories.agentMessageRepository.save({
         id: randomUUID(),
@@ -191,12 +197,12 @@ describe("PublicAgentSessionsService", () => {
     })
 
     it("should mark streaming messages older than 5 minutes as aborted", async () => {
-      const { agent } = await buildAgent()
-      const { session } = await service.createSession(agent)
+      const { embedConfig } = await buildEmbedConfig()
+      const { session } = await service.createSession(embedConfig)
 
       const connectScope = {
-        organizationId: agent.organizationId,
-        projectId: agent.projectId,
+        organizationId: embedConfig.organizationId,
+        projectId: embedConfig.projectId,
       }
       const sixMinutesAgo = new Date(Date.now() - 6 * 60 * 1000)
       const stuckMessageId = randomUUID()
@@ -226,12 +232,12 @@ describe("PublicAgentSessionsService", () => {
     })
 
     it("should not mark recent streaming messages as aborted", async () => {
-      const { agent } = await buildAgent()
-      const { session } = await service.createSession(agent)
+      const { embedConfig } = await buildEmbedConfig()
+      const { session } = await service.createSession(embedConfig)
 
       const connectScope = {
-        organizationId: agent.organizationId,
-        projectId: agent.projectId,
+        organizationId: embedConfig.organizationId,
+        projectId: embedConfig.projectId,
       }
       const recentMessageId = randomUUID()
       await repositories.agentMessageRepository.save({
@@ -262,8 +268,8 @@ describe("PublicAgentSessionsService", () => {
 
   describe("updateLastActivity", () => {
     it("should update lastActivityAt to the current time", async () => {
-      const { agent } = await buildAgent()
-      const { session } = await service.createSession(agent)
+      const { embedConfig } = await buildEmbedConfig()
+      const { session } = await service.createSession(embedConfig)
 
       const before = new Date()
       await service.updateLastActivity(session.id)

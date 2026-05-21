@@ -30,7 +30,7 @@ export class PublicChatController {
     @Body() body: typeof PublicChatRoutes.createSession.request,
   ): Promise<typeof PublicChatRoutes.createSession.response> {
     const { sessionId, sessionToken } = await this.publicChatService.createSession(
-      request.agent,
+      request.embedConfig,
       body.payload?.externalVisitorId,
     )
     return { data: { sessionId, sessionToken } }
@@ -63,14 +63,13 @@ export class PublicChatController {
       throw new ForbiddenException("User content must not be empty")
     }
 
-    const { publicSession, agent } = request
+    const { publicSession } = request
 
     return new Observable<StreamEvent>((subscriber) => {
       void (async () => {
         try {
           const events = this.publicChatService.streamResponse(
             publicSession,
-            agent,
             userContent,
             (event) => subscriber.next(event),
           )
