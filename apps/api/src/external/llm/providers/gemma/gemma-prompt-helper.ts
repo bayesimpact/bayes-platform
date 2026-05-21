@@ -41,10 +41,33 @@ ${toolDocs.join("\n")}
         return `${inner} | null`
       }
     }
+    if (schema.type === "default") {
+      const defaultValue = schema.defaultValue
+      const inner = GemmaPromptHelper.jsonSchemaToArgumentString(schema.innerType)
+      return `${inner} (default: ${GemmaPromptHelper.formatDefault(defaultValue)})`
+    }
 
     if (schema.type === "string") return "string"
     if (schema.type === "number") return "number"
     if (schema.type === "boolean") return "boolean"
+
+    if (schema.type === "enum") {
+      let values: unknown[] = []
+      if (Array.isArray(schema.entries)) {
+        values = schema.entries
+      } else if (schema.entries && typeof schema.entries === "object") {
+        values = Object.values(schema.entries)
+      } else if (Array.isArray(schema.values)) {
+        values = schema.values
+      }
+      if (values.length === 0) return "unknown"
+      return values.map((v) => (typeof v === "string" ? `'${v}'` : String(v))).join(" | ")
+    }
+
+    if (schema.type === "array") {
+      const inner = GemmaPromptHelper.jsonSchemaToArgumentString(schema.element)
+      return /\s/.test(inner) ? `Array<${inner}>` : `${inner}[]`
+    }
 
     // object with shape
     if (schema.type === "object" && schema.shape) {
@@ -58,5 +81,12 @@ ${toolDocs.join("\n")}
     }
 
     return "unknown"
+  }
+
+  private static formatDefault<T>(value: T): string {
+    if (typeof value === "string") {
+      return `'${value.replace(/'/g, "\\'")}'`
+    }
+    return String(value)
   }
 }

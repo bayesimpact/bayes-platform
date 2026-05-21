@@ -7,6 +7,7 @@ import type { ToolSet } from "ai"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { GetAgentModelKeyFromValue } from "@/external/llm/agent-provider"
 import { AISDKLLMProviderBase, CallOrigin } from "@/external/llm/ai-sdk-llm-provider-base"
+import { GemmaPromptHelper } from "@/external/llm/providers/gemma/gemma-prompt-helper"
 import { CustomMedGemmaLanguageModel } from "@/external/llm/providers/medgemma/custom-med-gemma-language-model"
 
 @Injectable()
@@ -74,38 +75,8 @@ ${toolDocs.join("\n")}
     return Object.entries(tools).map(
       // biome-ignore lint/suspicious/noExplicitAny: custom unknown props
       ([name, tool]: any) =>
-        `- ${name}: ${tool.description}\n  Parameters: ${this.jsonSchemaToArgumentString(tool.inputSchema)}`,
+        `- ${name}: ${tool.description}\n  Parameters: ${GemmaPromptHelper.jsonSchemaToArgumentString(tool.inputSchema)}`,
     )
-  }
-  // biome-ignore lint/suspicious/noExplicitAny: custom
-  private jsonSchemaToArgumentString(schema: any): string {
-    if (!schema) return "unknown"
-
-    if (schema.def) {
-      return this.jsonSchemaToArgumentString(schema.def)
-    }
-
-    if (schema.type === "nullable") {
-      const inner = this.jsonSchemaToArgumentString(schema.innerType)
-      return `${inner} | null`
-    }
-
-    if (schema.type === "string") return "string"
-    if (schema.type === "number") return "number"
-    if (schema.type === "boolean") return "boolean"
-
-    // object with shape
-    if (schema.type === "object" && schema.shape) {
-      // biome-ignore lint/suspicious/noExplicitAny: custom
-      const props = Object.entries(schema.shape).map(([key, value]: [string, any]) => {
-        const typeStr = this.jsonSchemaToArgumentString(value)
-        return `${key}: ${typeStr}`
-      })
-
-      return `{ ${props.join("; ")} }`
-    }
-
-    return "unknown"
   }
 
   getOpenResponsesProvider(config: LLMConfig): LanguageModelV3 {
