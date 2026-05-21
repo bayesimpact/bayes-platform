@@ -1,4 +1,5 @@
 import {
+  type DocumentCrawlProgressChangedEventDto,
   type DocumentDto,
   type DocumentEmbeddingStatusChangedEventDto,
   type DocumentSourceType,
@@ -46,6 +47,12 @@ import type { MulterFile } from "@/common/types"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { DocumentCrawlProgressStreamService } from "./crawling/document-crawl-progress-stream.service"
+import {
+  URL_CRAWLING_BATCH_SERVICE,
+  type UrlCrawlingBatchService,
+} from "./crawling/url-crawling-batch.interface"
 import type { Document } from "./document.entity"
 import { DocumentsGuard } from "./documents.guard"
 import {
@@ -55,6 +62,8 @@ import {
 } from "./documents.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "./documents.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { DocumentEmbeddingStatusNotifierService } from "./embeddings/document-embedding-status-notifier.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentEmbeddingStatusStreamService } from "./embeddings/document-embedding-status-stream.service"
 import {
@@ -73,8 +82,12 @@ export class DocumentsController {
     private readonly fileStorageService: IFileStorage,
     @Inject(DOCUMENT_EMBEDDINGS_BATCH_SERVICE)
     private readonly documentEmbeddingsBatchService: DocumentEmbeddingsBatchService,
+    @Inject(URL_CRAWLING_BATCH_SERVICE)
+    private readonly urlCrawlingBatchService: UrlCrawlingBatchService,
     private readonly documentsService: DocumentsService,
     private readonly documentEmbeddingStatusStreamService: DocumentEmbeddingStatusStreamService,
+    private readonly documentCrawlProgressStreamService: DocumentCrawlProgressStreamService,
+    private readonly documentEmbeddingStatusNotifierService: DocumentEmbeddingStatusNotifierService,
   ) {}
 
   @CheckPolicy((policy) => policy.canCreate())
@@ -380,6 +393,108 @@ export class DocumentsController {
     return { data: { url } }
   }
 
+  @CheckPolicy((policy) => policy.canCreate())
+  @Post(DocumentsRoutes.crawlUrl.path)
+  @TrackActivity({ action: "document.crawlUrl" })
+  @HttpCode(HttpStatus.ACCEPTED)
+  async crawlUrl(
+    @Body() { payload }: typeof DocumentsRoutes.crawlUrl.request,
+    @Request() req: EndpointRequestWithProject,
+  ): Promise<typeof DocumentsRoutes.crawlUrl.response> {
+    try {
+      new URL(payload.url)
+    } catch {
+      throw new UnprocessableEntityException("Invalid URL.")
+    }
+
+    const connectScope = getRequiredConnectScope(req)
+
+    const documentId = v4()
+    await this.documentsService.createDocument({
+      connectScope,
+      documentId,
+      uploadStatus: "uploaded",
+      fields: {
+        title: payload.name ?? payload.url,
+        mimeType: "text/html",
+        sourceType: "webCrawl",
+        sourceUrl: payload.url,
+        size: 0,
+        fileName: null as unknown as string,
+        storageRelativePath: null as unknown as string,
+      },
+    })
+
+    await this.urlCrawlingBatchService.enqueueCrawlUrl({
+      documentId,
+      url: payload.url,
+      organizationId: connectScope.organizationId,
+      projectId: connectScope.projectId,
+      requestedByUserId: req.user.id,
+      currentTraceId: v4(),
+    })
+
+    return {
+      data: {
+        message: `Crawling ${payload.url}. Documents will appear as they are processed.`,
+      },
+    }
+  }
+
+  @CheckPolicy((policy) => policy.canUpdate())
+  @Post(DocumentsRoutes.reCrawlUrl.path)
+  @TrackActivity({ action: "document.reCrawlUrl", entityFrom: "document" })
+  @AddContext("document")
+  @HttpCode(HttpStatus.ACCEPTED)
+  async reCrawlUrl(
+    @Request() req: EndpointRequestWithDocument,
+  ): Promise<typeof DocumentsRoutes.reCrawlUrl.response> {
+    const document = req.document
+
+    if (document.sourceType !== "webCrawl") {
+      throw new UnprocessableEntityException("Document is not a web crawl source.")
+    }
+
+    if (!document.sourceUrl) {
+      throw new UnprocessableEntityException(
+        "Source URL not available for this document. Please delete it and crawl the website again.",
+      )
+    }
+
+    const urlToRecrawl = document.sourceUrl
+
+    const connectScope = getRequiredConnectScope(req)
+
+    await this.documentsService.resetForRecrawl({
+      connectScope,
+      documentId: document.id,
+    })
+
+    await this.documentEmbeddingStatusNotifierService.notifyEmbeddingStatusChanged({
+      documentId: document.id,
+      organizationId: document.organizationId,
+      projectId: document.projectId,
+      embeddingStatus: "pending",
+      embeddingError: null,
+      updatedAt: Date.now(),
+    })
+
+    await this.urlCrawlingBatchService.enqueueCrawlUrl({
+      documentId: document.id,
+      url: urlToRecrawl,
+      organizationId: connectScope.organizationId,
+      projectId: connectScope.projectId,
+      requestedByUserId: req.user.id,
+      currentTraceId: v4(),
+    })
+
+    return {
+      data: {
+        message: `Re-crawling ${urlToRecrawl}. Pages will be updated as they are processed.`,
+      },
+    }
+  }
+
   @CheckPolicy((policy) => policy.canList())
   @Sse(DocumentsRoutes.streamEmbeddingStatus.path, { method: 0 /* GET */ })
   streamEmbeddingStatus(
@@ -395,6 +510,37 @@ export class DocumentsController {
       map((event) => ({ ...event, data: JSON.stringify(event) })),
     )
   }
+
+  @CheckPolicy((policy) => policy.canList())
+  @Sse(DocumentsRoutes.streamCrawlProgress.path, { method: 0 /* GET */ })
+  streamCrawlProgress(
+    @Request() req: EndpointRequestWithProject,
+  ): Observable<DocumentCrawlProgressChangedEventDto> {
+    const connectScope = getRequiredConnectScope(req)
+    return this.documentCrawlProgressStreamService.events$.pipe(
+      filter(
+        (event) =>
+          event.organizationId === connectScope.organizationId &&
+          event.projectId === connectScope.projectId,
+      ),
+      map((event) => ({ ...event, data: JSON.stringify(event) })),
+    )
+  }
+}
+
+function parseCrawledPages(
+  content: string | null,
+): { url: string; markdown: string }[] | undefined {
+  if (!content) return undefined
+  try {
+    const parsed: unknown = JSON.parse(content)
+    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].url && parsed[0].markdown) {
+      return parsed as { url: string; markdown: string }[]
+    }
+  } catch {
+    // malformed content
+  }
+  return undefined
 }
 
 function parseCrawledPages(
