@@ -3,7 +3,7 @@ import { useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import { buildTesterSessionPath, buildTesterSurveyPath } from "@/tester/routes/helpers"
+import { TesterRoutes } from "@/tester/routes/helpers"
 import {
   selectMyLocalSessions,
   selectMySurveyForCampaign,
@@ -46,7 +46,7 @@ export function TesterCampaignLandingPage() {
       }),
     ).unwrap()
     navigate(
-      buildTesterSessionPath({
+      TesterRoutes.session.build({
         organizationId: params.organizationId,
         projectId: params.projectId,
         reviewCampaignId: params.reviewCampaignId,
@@ -83,7 +83,7 @@ export function TesterCampaignLandingPage() {
   const handleFinish = () => {
     setFinishOpen(false)
     navigate(
-      buildTesterSurveyPath({
+      TesterRoutes.survey.build({
         organizationId: params.organizationId,
         projectId: params.projectId,
         reviewCampaignId: params.reviewCampaignId,
@@ -102,7 +102,7 @@ export function TesterCampaignLandingPage() {
         onDeleteSession={handleDeleteSession}
         onResumeSession={(sessionId) =>
           navigate(
-            buildTesterSessionPath({
+            TesterRoutes.session.build({
               organizationId: params.organizationId,
               projectId: params.projectId,
               reviewCampaignId: params.reviewCampaignId,
@@ -114,7 +114,7 @@ export function TesterCampaignLandingPage() {
         onFinishParticipating={() => setFinishOpen(true)}
         onEditSurvey={() =>
           navigate(
-            buildTesterSurveyPath({
+            TesterRoutes.survey.build({
               organizationId: params.organizationId,
               projectId: params.projectId,
               reviewCampaignId: params.reviewCampaignId,

@@ -14,7 +14,8 @@ import {
 import { useNavigate } from "react-router-dom"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import { RouteNames } from "@/common/routes/helpers"
-import { isStudioInterface } from "@/studio/routes/helpers"
+import type { DeskRoutes } from "@/desk/routes/helpers"
+import { isStudioInterface, type StudioRoutes } from "@/studio/routes/helpers"
 import { Logo } from "../themes/Logo"
 import { NavUserMenuItems } from "./nav/NavUserMenuItems"
 import { SidebarBreadcrumb } from "./SidebarBreadcrumb"
@@ -26,6 +27,7 @@ export function SidebarLayout({
   sidebarContentChildren,
   sidebarFooterChildren,
   hideIcon,
+  routes,
 }: {
   user: User
   organization?: Organization
@@ -33,6 +35,7 @@ export function SidebarLayout({
   sidebarContentChildren?: React.ReactNode
   sidebarFooterChildren?: React.ReactNode
   hideIcon?: boolean
+  routes?: typeof StudioRoutes | typeof DeskRoutes
 }) {
   return (
     <SidebarProvider
@@ -66,7 +69,10 @@ export function SidebarLayout({
       <SidebarInset>
         <LayoutHeader
           hideIcon={hideIcon}
-          title={organization ? <SidebarBreadcrumb organization={organization} /> : ""}
+          title={
+            organization &&
+            routes && <SidebarBreadcrumb organization={organization} routes={routes} />
+          }
         />
 
         {children}

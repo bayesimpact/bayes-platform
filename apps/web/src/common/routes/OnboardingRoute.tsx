@@ -9,20 +9,19 @@ import { SidebarLayout } from "@/common/components/sidebar/SidebarLayout"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import { selectOrganizationsData } from "@/common/features/organizations/organizations.selectors"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import { DeskRouteNames } from "@/desk/routes/helpers"
-import { EvalRouteNames } from "@/eval/routes/helpers"
-import { buildReviewerHomePath } from "@/reviewer/routes/helpers"
+import { DeskRoutes } from "@/desk/routes/helpers"
+import { EvalRoutes } from "@/eval/routes/helpers"
+import { ReviewerRoutes } from "@/reviewer/routes/helpers"
+import type {
+  PendingInvitationItem as PendingInvitationEntry,
+  PendingInvitations,
+} from "@/studio/features/invitations/invitations.models"
 import { acceptInvitation } from "@/studio/features/invitations/invitations.thunks"
 import { ProjectCreatorButton } from "@/studio/features/projects/components/ProjectCreator"
-import { StudioRouteNames } from "@/studio/routes/helpers"
-import { buildTesterHomePath } from "@/tester/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
+import { TesterRoutes } from "@/tester/routes/helpers"
 import { Wrap } from "../components/layouts/Wrap"
-import type {
-  PendingAgentInvitation,
-  PendingInvitations,
-  PendingProjectInvitation,
-  User,
-} from "../features/me/me.models"
+import type { User } from "../features/me/me.models"
 import {
   selectMe,
   selectMyActiveReviewCampaignMemberships,
@@ -30,7 +29,6 @@ import {
 } from "../features/me/me.selectors"
 import type { Project } from "../features/projects/projects.models"
 import { useAbility } from "../hooks/use-ability"
-import { useBuildPath } from "../hooks/use-build-path"
 import { useFeatureFlags } from "../hooks/use-feature-flags"
 import { buildSince } from "../utils/build-date"
 import { AsyncRoute } from "./AsyncRoute"
@@ -62,8 +60,7 @@ function WithData({
   invitations: PendingInvitations
 }) {
   const orgsCount = organizations.length
-  const hasPendingInvitations =
-    invitations.projectInvitations.length > 0 || invitations.agentInvitations.length > 0
+  const hasPendingInvitations = invitations.length > 0
   if (orgsCount === 0 && !hasPendingInvitations) return <OrganizationCreator />
 
   return (
@@ -94,8 +91,7 @@ function SidebarContent({
   useEffect(() => {
     setOpen(false)
   }, [setOpen])
-  const hasPendingInvitations =
-    invitations.projectInvitations.length > 0 || invitations.agentInvitations.length > 0
+  const hasPendingInvitations = invitations.length > 0
   return (
     <div className="flex flex-col">
       <Wrap>
@@ -121,35 +117,26 @@ function SidebarContent({
 
 function PendingInvitationList({ invitations }: { invitations: PendingInvitations }) {
   const { t } = useTranslation()
-  const { projectInvitations, agentInvitations } = invitations
-  const total = projectInvitations.length + agentInvitations.length
+  const total = invitations.length
   if (total === 0) return null
   return (
     <Grid cols={3} total={total}>
       <GridHeader title={t("me:invitations:title")} description={t("me:invitations:description")} />
 
       <GridContent>
-        {projectInvitations.map((invitation, index) => (
-          <PendingProjectInvitationItem key={invitation.id} invitation={invitation} index={index} />
-        ))}
-
-        {agentInvitations.map((invitation, index) => (
-          <PendingAgentInvitationItem
-            key={invitation.id}
-            invitation={invitation}
-            index={projectInvitations.length + index}
-          />
+        {invitations.map((invitation, index) => (
+          <PendingInvitationRow key={invitation.id} invitation={invitation} index={index} />
         ))}
       </GridContent>
     </Grid>
   )
 }
 
-function PendingProjectInvitationItem({
+function PendingInvitationRow({
   invitation,
   index,
 }: {
-  invitation: PendingProjectInvitation
+  invitation: PendingInvitationEntry
   index: number
 }) {
   const dispatch = useAppDispatch()
@@ -157,39 +144,25 @@ function PendingProjectInvitationItem({
   const handleClick = () => {
     dispatch(acceptInvitation({ ticketId: invitation.invitationToken }))
   }
-  return (
-    <GridItem
-      index={index}
-      badge={t("me:invitations:projectBadge")}
-      title={invitation.projectName}
-      description={`${invitation.organizationName} · ${t("me:invitations:roleLabel")}: ${invitation.role}`}
-      action={
-        <Button onClick={handleClick}>
-          {t("actions:accept")} <CheckCircleIcon />
-        </Button>
-      }
-    />
-  )
-}
 
-function PendingAgentInvitationItem({
-  invitation,
-  index,
-}: {
-  invitation: PendingAgentInvitation
-  index: number
-}) {
-  const dispatch = useAppDispatch()
-  const { t } = useTranslation()
-  const handleClick = () => {
-    dispatch(acceptInvitation({ ticketId: invitation.invitationToken }))
-  }
+  const badge =
+    invitation.targetType === "project"
+      ? t("me:invitations:projectBadge")
+      : invitation.targetType === "agent"
+        ? t("me:invitations:agentBadge")
+        : t("me:invitations:reviewCampaignBadge")
+
+  const description =
+    invitation.targetType === "project"
+      ? `${invitation.organizationName} · ${t("me:invitations:roleLabel")}: ${invitation.role}`
+      : `${invitation.organizationName} · ${invitation.projectName} · ${t("me:invitations:roleLabel")}: ${invitation.role}`
+
   return (
     <GridItem
       index={index}
-      badge={t("me:invitations:agentBadge")}
-      title={invitation.agentName}
-      description={`${invitation.organizationName} · ${invitation.projectName} · ${t("me:invitations:roleLabel")}: ${invitation.role}`}
+      badge={badge}
+      title={invitation.targetName}
+      description={description}
       action={
         <Button onClick={handleClick}>
           {t("actions:accept")} <CheckCircleIcon />
@@ -206,7 +179,7 @@ function OrganizationItem({ organization, index }: { organization: Organization;
     organizationId: organization.id,
   })
   const extraItems = canCreateProject ? 1 : 0
-  if (organization.projects.length === 0) return
+  if (!canCreateProject && organization.projects.length === 0) return
   return (
     <GridItem
       className="bg-gray-50"
@@ -260,13 +233,11 @@ function NavAppButton({
   projectId: string
 }) {
   const { t } = useTranslation()
-  const { buildPath } = useBuildPath()
 
   const handleClick = () => {
-    const path = buildPath("project", {
+    const path = DeskRoutes.project.build({
       organizationId,
       projectId,
-      forceInterface: DeskRouteNames.HOME,
     })
     // NOTE: do not use navigate from react-router
     window.location.assign(path)
@@ -289,13 +260,11 @@ function NavStudioButton({
   const { t } = useTranslation()
   const { abilities } = useAbility()
   const canAccessStudio = abilities.canAccessStudio({ projectId })
-  const { buildPath } = useBuildPath()
 
   const handleClick = () => {
-    const path = buildPath("project", {
+    const path = StudioRoutes.project.build({
       organizationId,
       projectId,
-      forceInterface: StudioRouteNames.HOME,
     })
     // NOTE: do not use navigate from react-router
     window.location.assign(path)
@@ -312,13 +281,11 @@ function NavStudioButton({
 function NavEvalButton({ organizationId, project }: { organizationId: string; project: Project }) {
   const { t } = useTranslation()
   const { hasFeature } = useFeatureFlags(project)
-  const { buildPath } = useBuildPath()
 
   const handleClick = () => {
-    const path = buildPath("project", {
+    const path = EvalRoutes.project.build({
       organizationId,
       projectId: project.id,
-      forceInterface: EvalRouteNames.HOME,
     })
     // NOTE: do not use navigate from react-router
     window.location.assign(path)
@@ -333,36 +300,38 @@ function NavEvalButton({ organizationId, project }: { organizationId: string; pr
 }
 
 function NavTesterButton({ projectId }: { projectId: string }) {
+  const { t } = useTranslation()
   // Reads from /me — no extra round-trip on Onboarding.
   const memberships = useAppSelector(selectMyActiveReviewCampaignMemberships("tester"))
   const hasTesterCampaignInProject = memberships.some((m) => m.projectId === projectId)
 
   const handleClick = () => {
     // NOTE: do not use navigate from react-router — tester is its own route tree
-    window.location.assign(buildTesterHomePath())
+    window.location.assign(TesterRoutes.home.path)
   }
 
   if (!hasTesterCampaignInProject) return null
   return (
     <Button variant="outline" onClick={handleClick}>
-      Test
+      {t("actions:goToTester")}
     </Button>
   )
 }
 
 function NavReviewerButton({ projectId }: { projectId: string }) {
+  const { t } = useTranslation()
   const memberships = useAppSelector(selectMyActiveReviewCampaignMemberships("reviewer"))
   const hasReviewerCampaignInProject = memberships.some((m) => m.projectId === projectId)
 
   const handleClick = () => {
     // NOTE: do not use navigate from react-router — reviewer is its own route tree
-    window.location.assign(buildReviewerHomePath())
+    window.location.assign(ReviewerRoutes.home.path)
   }
 
   if (!hasReviewerCampaignInProject) return null
   return (
     <Button variant="outline" onClick={handleClick}>
-      Review
+      {t("actions:goToReviewer")}
     </Button>
   )
 }

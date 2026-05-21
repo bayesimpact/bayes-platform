@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
-import { useGetPath } from "@/common/hooks/use-build-path"
+import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import type { Evaluation } from "@/studio/features/evaluations/evaluations.models"
 import { selectEvaluationsData } from "@/studio/features/evaluations/evaluations.selectors"
@@ -33,7 +33,7 @@ function WithData({ agents, evaluations }: { agents: Agent[]; evaluations: Evalu
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { getPath } = useGetPath()
+  const getProjectRoute = useGetProjectRoute()
   const [idsToRun, setIdsToRun] = useState<string[]>([])
 
   const handleCreate = useCallback(
@@ -43,10 +43,8 @@ function WithData({ agents, evaluations }: { agents: Agent[]; evaluations: Evalu
     [dispatch],
   )
 
-  const handleBack = () => {
-    const path = getPath("project")
-    navigate(path)
-  }
+  const handleBack = () => navigate(getProjectRoute())
+
   return (
     <>
       <GridHeader

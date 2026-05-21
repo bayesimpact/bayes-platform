@@ -50,7 +50,7 @@ import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
 import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/MarkdownWrapper"
-import { useGetPath } from "@/common/hooks/use-build-path"
+import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { buildDate, buildSince } from "@/common/utils/build-date"
 import { generateId } from "@/common/utils/generate-id"
@@ -115,11 +115,8 @@ function WithData({
   const visibleDocuments = sourceFilter
     ? documents.filter((document) => document.sourceType === sourceFilter)
     : documents
-  const { getPath } = useGetPath()
-  const handleBack = () => {
-    const path = getPath("project")
-    navigate(path)
-  }
+  const getProjectRoute = useGetProjectRoute()
+  const handleBack = () => navigate(getProjectRoute())
 
   return (
     <UploadDocumentsButton className="w-full">

@@ -16,9 +16,9 @@ import { useForm, useWatch } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { z } from "zod"
 import { useAppDispatch } from "@/common/store/hooks"
-import { inviteProjectMembers } from "@/studio/features/project-memberships/project-memberships.thunks"
+import { createInvitationsForTarget } from "@/studio/features/invitations/invitations.thunks"
 
-export function MembersCreator() {
+export function MembersCreator({ projectId }: { projectId: string }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
 
@@ -39,13 +39,21 @@ export function MembersCreator() {
           <DialogTitle>{t("projectMembership:create.title")}</DialogTitle>
           <DialogDescription>{t("projectMembership:create.description")}</DialogDescription>
         </DialogHeader>
-        <CreateForm isOpen={open} onClose={() => setOpen(false)} />
+        <CreateForm isOpen={open} projectId={projectId} onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   )
 }
 
-function CreateForm({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function CreateForm({
+  isOpen,
+  projectId,
+  onClose,
+}: {
+  isOpen: boolean
+  projectId: string
+  onClose: () => void
+}) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const [inputEmail, setInputEmail] = useState("")
@@ -115,7 +123,14 @@ function CreateForm({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
 
   const handleFormSubmit = (data: FormValues) => {
     if (data.emails.length === 0) return
-    dispatch(inviteProjectMembers({ emails: data.emails }))
+    dispatch(
+      createInvitationsForTarget({
+        targetType: "project",
+        targetId: projectId,
+        emails: data.emails,
+        refreshTarget: { targetType: "project", targetId: projectId },
+      }),
+    )
     onClose()
   }
 

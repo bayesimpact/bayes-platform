@@ -20,7 +20,7 @@ export const listDocuments = createAsyncThunk<Document[], void, ThunkConfig>(
       wantedIds: ["organizationId", "projectId"],
     })
     const sourceType = state.studio.documents.currentSourceType
-    if (!sourceType) throw new Error("sourceType is required to list documents")
+    if (!sourceType) return []
     return await services.documents.getAll({ organizationId, projectId, sourceType })
   },
 )

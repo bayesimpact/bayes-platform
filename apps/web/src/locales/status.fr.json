@@ -9,10 +9,14 @@
     "pending": "En attente",
     "success": "Succès",
     "thinking": "En réflexion",
+    "asyncLoading": "Chargement...",
+    "asyncError": "Erreur : {{statusCode}}",
+    "asyncUnknownError": "Une erreur inconnue s'est produite.",
     "notFound": {
       "title": "404 Page introuvable",
       "description": "La page que vous recherchez n'existe pas.",
-      "home": "Aller à l'accueil"
+      "home": "Aller à l'accueil",
+      "oops": "Oups !"
     }
   }
 }

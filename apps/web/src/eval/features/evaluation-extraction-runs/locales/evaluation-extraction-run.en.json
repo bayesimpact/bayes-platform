@@ -48,12 +48,15 @@
       "retry": "Retry run",
       "remaining_one": "{{count}} record remaining",
       "remaining_other": "{{count}} records remaining",
-      "remaining_zero": "{{count}} record remaining"
+      "remaining_zero": "{{count}} record remaining",
+      "matchRate": "{{matchRate}}% match rate"
     },
     "history": {
       "title": "Run History",
       "empty": "No evaluation runs yet",
-      "description": "{{count}} runs"
+      "description": "{{count}} runs",
+      "matchRate": "{{matchRate}}% match",
+      "recordCount": "{{count}} records"
     }
   }
 }

@@ -4,22 +4,26 @@ import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { useAbility } from "@/common/hooks/use-ability"
-import { useGetPath } from "@/common/hooks/use-build-path"
-import { DeskRouteNames } from "@/desk/routes/helpers"
+import { DeskRoutes } from "@/desk/routes/helpers"
 import { AgentDeletorWithTrigger } from "@/studio/features/agents/components/AgentDeletor"
-import { buildAgentMembershipsPath } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 import { AgentEditorWithTrigger } from "./AgentEditor"
 
 export function AgentActions({ organizationId, agent }: { organizationId: string; agent: Agent }) {
   const { t } = useTranslation()
-  const { getPath } = useGetPath()
-  const path = getPath("agent", { forceInterface: DeskRouteNames.HOME })
+
+  const deskAgentPath = DeskRoutes.agent.build({
+    organizationId,
+    projectId: agent.projectId,
+    agentId: agent.id,
+  })
+
   const { abilities } = useAbility()
   const canManageAgent = abilities.canManageAgent({ agentId: agent.id })
   return (
     <>
       <Button variant="secondary" asChild>
-        <a target="_blank" rel="noopener noreferrer" href={path}>
+        <a target="_blank" rel="noopener noreferrer" href={deskAgentPath}>
           <ExternalLinkIcon />
           {t("actions:goToApp")}
         </a>
@@ -53,7 +57,7 @@ function NavAgentMemberships({
 }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const path = buildAgentMembershipsPath({ organizationId, projectId, agentId })
+  const path = StudioRoutes.agentMemberships.build({ organizationId, projectId, agentId })
   const handleClick = () => navigate(path)
   return (
     <Button variant="outline" size="lg" onClick={handleClick}>

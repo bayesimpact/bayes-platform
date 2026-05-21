@@ -22,6 +22,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Fixed
 - Recover stuck evaluation extraction worker jobs after rebooting
 - Langfuse trace
+- Paginate user list in Backoffice
+- Paginate organization list in Backoffice
 
 ### Security
 

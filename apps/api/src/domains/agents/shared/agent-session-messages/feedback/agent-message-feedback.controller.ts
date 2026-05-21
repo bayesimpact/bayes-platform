@@ -49,7 +49,7 @@ export class AgentMessageFeedbackController {
     return { data: { success: true } }
   }
 
-  @UseGuards(AgentGuard, DocumentsGuard) // FIXME: instead of AgentGuard, DocumentsGuard we need a dedicated guard
+  @UseGuards(AgentGuard, DocumentsGuard) // FIXME: create dedicated guard because a "member" of an agent should not have access to feedbacks
   @AddContext("agent")
   @CheckPolicy((policy) => policy.canList())
   @Get(AgentMessageFeedbackRoutes.getAll.path)

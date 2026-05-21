@@ -119,7 +119,7 @@ export class AgentsService {
   }): Promise<Agent[]> {
     return (
       await this.agentConnectRepository.find(connectScope, {
-        where: { agentMemberships: { userId, status: "accepted" } },
+        where: { agentMemberships: { userId } },
         relations: {
           documentTags: true,
           categories: { sessionCategories: true },

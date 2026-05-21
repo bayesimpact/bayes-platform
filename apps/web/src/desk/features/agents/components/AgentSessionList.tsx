@@ -14,7 +14,7 @@ import { ExtractionSessionCreator } from "@/common/features/agents/components/Ex
 import { ExtractionSessionItem } from "@/common/features/agents/components/ExtractionAgentSessionItem"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
-import { useGetPath } from "@/common/hooks/use-build-path"
+import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { ErrorRoute } from "@/common/routes/ErrorRoute"
 import { useAppSelector } from "@/common/store/hooks"
 import { AgentSessionListHeader } from "./AgentSessionListHeader"
@@ -118,16 +118,13 @@ export function ExtractionAgentSessionList({
 }) {
   const outlet = useOutlet()
   const navigate = useNavigate()
-  const { getPath } = useGetPath()
+  const getProjectRoute = useGetProjectRoute()
   const { t } = useTranslation()
   const isProcessingExecution = useAppSelector(selectIsProcessingExecution)
   const organizationId = useAppSelector(selectCurrentOrganizationId)
   const projectId = useAppSelector(selectCurrentProjectId)
 
-  const handleBack = () => {
-    const path = getPath("project")
-    navigate(path)
-  }
+  const handleBack = () => navigate(getProjectRoute())
 
   const Icon = getAgentIcon(agent.type)
 

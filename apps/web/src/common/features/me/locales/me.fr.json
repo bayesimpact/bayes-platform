@@ -17,6 +17,7 @@
       "description": "Invitations qui attendent votre acceptation.",
       "projectBadge": "Projet",
       "agentBadge": "Agent",
+      "reviewCampaignBadge": "Campagne de revue",
       "roleLabel": "Rôle"
     }
   },

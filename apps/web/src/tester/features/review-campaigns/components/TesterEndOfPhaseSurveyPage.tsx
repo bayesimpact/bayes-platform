@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next"
 import { useNavigate, useParams } from "react-router-dom"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import { buildTesterCampaignPath } from "@/tester/routes/helpers"
+import { TesterRoutes } from "@/tester/routes/helpers"
 import { selectMySurveyForCampaign, selectTesterContext } from "../tester.selectors"
 import { submitTesterSurvey, updateTesterSurvey } from "../tester.thunks"
 import { EndOfPhaseSurveyForm } from "./EndOfPhaseSurveyForm"
@@ -29,7 +29,7 @@ export function TesterEndOfPhaseSurveyPage() {
 
   const backToLanding = () => {
     navigate(
-      buildTesterCampaignPath({
+      TesterRoutes.campaign.build({
         organizationId: params.organizationId,
         projectId: params.projectId,
         reviewCampaignId: params.reviewCampaignId,

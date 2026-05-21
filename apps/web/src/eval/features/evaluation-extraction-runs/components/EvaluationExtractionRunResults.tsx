@@ -91,7 +91,7 @@ export function EvaluationExtractionRunSummary({ run }: { run: EvaluationExtract
               {t("evaluationExtractionRun:results.processing")}
             </span>
           ) : (
-            `${matchRate}% match rate`
+            t("evaluationExtractionRun:results.matchRate", { matchRate })
           )}
         </CardDescription>
       </CardHeader>

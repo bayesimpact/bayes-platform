@@ -5,7 +5,7 @@ import type { ConversationAgentSession } from "@/common/features/agents/agent-se
 import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
 import { deleteAgentSession } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.thunks"
 import type { Agent } from "@/common/features/agents/agents.models"
-import { useGetPath } from "@/common/hooks/use-build-path"
+import { useGetAgentRoute } from "@/common/hooks/use-get-path"
 import { useAppDispatch } from "@/common/store/hooks"
 import { TraceUrlOpener } from "@/studio/components/TraceUrlOpener"
 
@@ -19,9 +19,9 @@ export function AgentSessionActions({
 }) {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const { getPath } = useGetPath()
+  const getAgentRoute = useGetAgentRoute()
 
-  const handleSuccess = () => navigate(getPath("agent"))
+  const handleSuccess = () => navigate(getAgentRoute())
   const handleDelete = () => {
     dispatch(
       deleteAgentSession({

@@ -32,6 +32,10 @@
       "label": "Adresse email",
       "placeholder": "Entrez l'adresse email"
     },
+    "pendingInvitations": {
+      "title": "Invitations en attente",
+      "description": "Invitations déjà envoyées pour ce projet."
+    },
     "list": {
       "title": "Membres de {{projectName}}",
       "description": "Invitez des membres à rejoindre votre espace de travail pour collaborer ensemble.",
@@ -39,6 +43,13 @@
       "empty": {
         "title": "Aucun membre",
         "description": "Invitez des membres à rejoindre votre espace de travail pour collaborer ensemble."
+      }
+    },
+    "remove": {
+      "dialog": {
+        "title": "Retirer {{name}} ?",
+        "description": "Ce membre sera retiré du projet. Cette action est irréversible.",
+        "confirm": "Retirer"
       }
     }
   }

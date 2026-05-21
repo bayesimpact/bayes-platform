@@ -27,6 +27,7 @@ import { EvaluationExtractionRun } from "@/domains/evaluations/extraction/runs/e
 import { EvaluationExtractionRunRecord } from "@/domains/evaluations/extraction/runs/records/evaluation-extraction-run-record.entity"
 import { EvaluationReport } from "@/domains/evaluations/reports/evaluation-report.entity"
 import { FeatureFlag } from "@/domains/feature-flags/feature-flag.entity"
+import { Invitation } from "@/domains/invitations/invitation.entity"
 import { AgentMcpServer } from "@/domains/mcp-servers/agent-mcp-server.entity"
 import { McpServer } from "@/domains/mcp-servers/mcp-server.entity"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
@@ -69,6 +70,7 @@ export const ALL_ENTITIES = [
   ExtractionAgentSession,
   FeatureFlag,
   FormAgentSession,
+  Invitation,
   McpServer,
   Organization,
   OrganizationMembership,

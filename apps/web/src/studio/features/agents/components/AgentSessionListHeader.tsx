@@ -6,8 +6,8 @@ import { BaseAgentSessionCreator } from "@/common/features/agents/agent-sessions
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
 import { useAbility } from "@/common/hooks/use-ability"
-import { useGetPath } from "@/common/hooks/use-build-path"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
+import { useGetAgentRoute, useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { AgentActions } from "./AgentActions"
 import { AgentAnalyticsCard } from "./AgentAnalyticsCard"
 import { FeedbackButton } from "./FeedbackButton"
@@ -28,10 +28,11 @@ export function AgentSessionListHeader({
   const { t } = useTranslation()
   const { hasFeature } = useFeatureFlags()
   const navigate = useNavigate()
-  const { getPath } = useGetPath()
+  const getAgentRoute = useGetAgentRoute()
+  const getProjectRoute = useGetProjectRoute()
 
   const handleBack = () => {
-    const path = getPath(backTo)
+    const path = backTo === "agent" ? getAgentRoute() : getProjectRoute()
     navigate(path)
   }
 

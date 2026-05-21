@@ -47,6 +47,14 @@
     "submit": "Soumettre",
     "update": "Mettre à jour",
     "upload": "Téléverser",
-    "view": "Voir"
+    "view": "Voir",
+    "goToTester": "Test",
+    "goToReviewer": "Révision",
+    "pagination": "{{from}}-{{to}} sur {{total}}",
+    "fileInvalidType": "{{fileName}} a un type de fichier non valide : {{fileType}}",
+    "fileTooMany": "Vous ne pouvez téléverser que {{maxFiles}} fichier(s) au maximum.",
+    "fileTooLarge": "{{fileName}} est trop volumineux.",
+    "fileTooSmall": "{{fileName}} est trop petit.",
+    "fileUploadFailed": "Échec du téléversement de {{fileName}}. {{errorMessage}}"
   }
 }

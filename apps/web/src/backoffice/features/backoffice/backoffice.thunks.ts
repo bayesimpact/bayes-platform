@@ -3,28 +3,30 @@ import { createAsyncThunk } from "@reduxjs/toolkit"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 
 import type {
-  BackofficeOrganization,
   BackofficeProjectAgentCategory,
-  BackofficeUser,
+  PaginatedBackofficeOrganizations,
+  PaginatedBackofficeUsers,
   TermsDocuments,
   UpdateTermsDocumentsInput,
 } from "./backoffice.models"
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
 
-const listOrganizations = createAsyncThunk<BackofficeOrganization[], void, ThunkConfig>(
-  "backoffice/fetchOrganizations",
-  async (_, { extra: { services } }) => {
-    return services.backoffice.listOrganizations()
-  },
-)
+const listOrganizations = createAsyncThunk<
+  PaginatedBackofficeOrganizations,
+  { page?: number; limit?: number; search?: string } | undefined,
+  ThunkConfig
+>("backoffice/fetchOrganizations", async (params, { extra: { services } }) => {
+  return services.backoffice.listOrganizations(params ?? {})
+})
 
-const listUsers = createAsyncThunk<BackofficeUser[], void, ThunkConfig>(
-  "backoffice/fetchUsers",
-  async (_, { extra: { services } }) => {
-    return services.backoffice.listUsers()
-  },
-)
+const listUsers = createAsyncThunk<
+  PaginatedBackofficeUsers,
+  { page?: number; limit?: number; search?: string } | undefined,
+  ThunkConfig
+>("backoffice/fetchUsers", async (params, { extra: { services } }) => {
+  return services.backoffice.listUsers(params ?? {})
+})
 
 const addFeatureFlag = createAsyncThunk<
   { projectId: string; featureFlagKey: FeatureFlagKey },

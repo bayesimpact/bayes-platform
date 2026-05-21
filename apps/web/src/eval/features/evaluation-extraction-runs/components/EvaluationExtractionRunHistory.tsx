@@ -48,11 +48,15 @@ export function EvaluationExtractionRunHistory({ runs }: { runs: EvaluationExtra
                 </div>
                 <div className="flex items-center gap-3">
                   {matchRate !== null && (
-                    <span className="text-sm font-medium">{matchRate}% match</span>
+                    <span className="text-sm font-medium">
+                      {t("evaluationExtractionRun:history.matchRate", { matchRate })}
+                    </span>
                   )}
                   {run.summary && (
                     <span className="text-xs text-muted-foreground">
-                      {run.summary.total} records
+                      {t("evaluationExtractionRun:history.recordCount", {
+                        count: run.summary.total,
+                      })}
                     </span>
                   )}
                 </div>

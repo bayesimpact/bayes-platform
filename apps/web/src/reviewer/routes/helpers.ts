@@ -1,50 +1,11 @@
-export enum ReviewerRouteNames {
-  HOME = "/reviewer",
-  CAMPAIGN = "/reviewer/o/:organizationId/p/:projectId/review-campaigns/:reviewCampaignId",
-  REPORT = "/reviewer/o/:organizationId/p/:projectId/review-campaigns/:reviewCampaignId/report",
-  SESSION = "/reviewer/o/:organizationId/p/:projectId/review-campaigns/:reviewCampaignId/sessions/:sessionId",
-}
+import { defineRoute } from "@/common/routes/helpers"
 
-export const buildReviewerHomePath = () => ReviewerRouteNames.HOME
+const home = defineRoute("/reviewer")
+const campaignBase = home.extend(
+  "/o/:organizationId/p/:projectId/review-campaigns/:reviewCampaignId",
+)
+const campaign = campaignBase // alias for clarity at call sites
+const report = campaignBase.extend("/report")
+const session = campaignBase.extend("/sessions/:sessionId")
 
-export const buildReviewerCampaignPath = ({
-  organizationId,
-  projectId,
-  reviewCampaignId,
-}: {
-  organizationId: string
-  projectId: string
-  reviewCampaignId: string
-}) =>
-  ReviewerRouteNames.CAMPAIGN.replace(":organizationId", organizationId)
-    .replace(":projectId", projectId)
-    .replace(":reviewCampaignId", reviewCampaignId)
-
-export const buildReviewerSessionPath = ({
-  organizationId,
-  projectId,
-  reviewCampaignId,
-  sessionId,
-}: {
-  organizationId: string
-  projectId: string
-  reviewCampaignId: string
-  sessionId: string
-}) =>
-  ReviewerRouteNames.SESSION.replace(":organizationId", organizationId)
-    .replace(":projectId", projectId)
-    .replace(":reviewCampaignId", reviewCampaignId)
-    .replace(":sessionId", sessionId)
-
-export const buildReviewerReportPath = ({
-  organizationId,
-  projectId,
-  reviewCampaignId,
-}: {
-  organizationId: string
-  projectId: string
-  reviewCampaignId: string
-}) =>
-  ReviewerRouteNames.REPORT.replace(":organizationId", organizationId)
-    .replace(":projectId", projectId)
-    .replace(":reviewCampaignId", reviewCampaignId)
+export const ReviewerRoutes = { home, campaign, report, session }

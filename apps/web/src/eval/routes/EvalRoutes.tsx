@@ -1,11 +1,9 @@
 import { useEffect } from "react"
 import { Outlet, useParams } from "react-router-dom"
-import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
+import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import { useInitStore } from "@/common/hooks/use-init-store"
 import { DashboardRoute } from "@/common/routes/DashboardRoute"
-import { RouteNames } from "@/common/routes/helpers"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
-import { NotFoundRoute } from "@/common/routes/NotFoundRoute"
 import { ProjectRoute } from "@/common/routes/ProjectRoute"
 import { useAppDispatch } from "@/common/store/hooks"
 import { Dashboard } from "../components/Dashboard"
@@ -16,14 +14,14 @@ import { EvalDashboardRoute } from "./EvalDashboardRoute"
 import { EvaluationExtractionDatasetRoute } from "./EvaluationExtractionDatasetRoute"
 import { EvaluationExtractionDatasetsRoute } from "./EvaluationExtractionDatasetsRoute"
 import { EvaluationExtractionRunRoute } from "./EvaluationExtractionRunRoute"
-import { buildEvalPath, EvalRouteNames } from "./helpers"
+import { EvalRoutes } from "./helpers"
 
 export const evalRoutes = {
-  path: EvalRouteNames.HOME,
+  path: EvalRoutes.home.path,
   element: <Outlet />,
   children: [
     {
-      path: buildEvalPath(RouteNames.ORGANIZATION_DASHBOARD),
+      path: EvalRoutes.organization.path,
       element: (
         <DashboardRoute>
           {(user, _projects, _organization) => <EvalDashboardRoute user={user} />}
@@ -31,19 +29,27 @@ export const evalRoutes = {
       ),
       children: [
         {
-          path: buildEvalPath(RouteNames.PROJECT),
-          element: <ProjectRoute>{() => <ProjectRouteHandler />}</ProjectRoute>,
+          path: EvalRoutes.project.path,
+          element: (
+            <ProjectRoute>
+              {() => (
+                <RestrictedFeature feature="evaluation" returnNull={false}>
+                  <ProjectRouteHandler />
+                </RestrictedFeature>
+              )}
+            </ProjectRoute>
+          ),
           children: [
             {
-              path: buildEvalPath(EvalRouteNames.EXTRACTION),
+              path: EvalRoutes.extraction.path,
               element: <EvaluationExtractionDatasetsRoute />,
               children: [
                 {
-                  path: buildEvalPath(EvalRouteNames.EXTRACTION_DATASET),
+                  path: EvalRoutes.extractionDataset.path,
                   element: <EvaluationExtractionDatasetRoute />,
                   children: [
                     {
-                      path: buildEvalPath(EvalRouteNames.EVALUATION_RUN),
+                      path: EvalRoutes.evaluationRun.path,
                       element: <EvaluationExtractionRunRoute />,
                     },
                   ],
@@ -71,17 +77,12 @@ const useSetCurrentIds = () => {
 }
 
 function ProjectRouteHandler() {
-  const { hasFeature } = useFeatureFlags()
-  const isAllowed = hasFeature("evaluation")
   const { initDone } = useInitStore({
     inject: injectEvalSlices,
     reset: resetEvalSlices,
-    condition: isAllowed,
+    condition: true,
   })
   useSetCurrentIds()
-  if (isAllowed) {
-    if (initDone) return <Dashboard />
-    return <LoadingRoute />
-  }
-  return <NotFoundRoute redirectToHome />
+  if (initDone) return <Dashboard />
+  return <LoadingRoute />
 }

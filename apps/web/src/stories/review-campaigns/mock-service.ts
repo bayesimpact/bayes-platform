@@ -71,17 +71,6 @@ export function buildMockReviewCampaignsService(overrides: Overrides = {}): IRev
     async deleteOne() {
       return
     },
-    async inviteMembers({ reviewCampaignId }, payload) {
-      return payload.emails.map((email, index) => ({
-        id: `membership-new-${now()}-${index}`,
-        campaignId: reviewCampaignId,
-        userId: `user-new-${index}`,
-        userEmail: email,
-        role: payload.role,
-        invitedAt: now(),
-        acceptedAt: null,
-      }))
-    },
     async revokeMembership() {
       return
     },

@@ -4,7 +4,7 @@ import { MessageSquareWarningIcon, ThumbsDownIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridItem } from "@/common/components/grid/Grid"
-import { buildFeedbackPath } from "@/studio/routes/helpers"
+import { StudioRoutes } from "@/studio/routes/helpers"
 
 export function FeedbackButton({
   agentId,
@@ -22,7 +22,7 @@ export function FeedbackButton({
   const { t } = useTranslation()
   const navigate = useNavigate()
   const handleClick = () => {
-    const path = buildFeedbackPath({ organizationId, projectId, agentId })
+    const path = StudioRoutes.feedback.build({ organizationId, projectId, agentId })
     navigate(path)
   }
   return (

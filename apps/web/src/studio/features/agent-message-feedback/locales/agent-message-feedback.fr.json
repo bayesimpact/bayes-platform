@@ -4,6 +4,8 @@
     "props": {
       "agentMessageContent": "Contenu du message d'agent",
       "traceUrl": "URL de trace",
+      "sessionId": "ID de session :",
+      "messageId": "ID de message :",
       "content": "Contenu",
       "createdAt": "Créé le",
       "placeholders": {

@@ -8,11 +8,7 @@ import type { Organization } from "@/domains/organizations/organization.entity"
 import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import type { Project } from "../project.entity"
-import type {
-  ProjectMembership,
-  ProjectMembershipRole,
-  ProjectMembershipStatus,
-} from "./project-membership.entity"
+import type { ProjectMembership, ProjectMembershipRole } from "./project-membership.entity"
 import { PLACEHOLDER_AUTH0_ID_PREFIX } from "./project-memberships.service"
 
 type ProjectMembershipTransientParams = {
@@ -51,8 +47,6 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
       id: params.id || randomUUID(),
       projectId: transientParams.project.id,
       userId: transientParams.user.id,
-      invitationToken: params.invitationToken || randomUUID(),
-      status: (params.status || "accepted") as ProjectMembershipStatus,
       createdAt: params.createdAt || now,
       updatedAt: params.updatedAt || now,
       deletedAt: params.deletedAt || null,
@@ -121,10 +115,11 @@ export const inviteUserToProject = async ({
     )
   }
 
+  const invitationToken = randomUUID()
   const membership = projectMembershipFactory
     .transient({ project, user: invitedUser })
     .build(projectMembership)
   await repositories.projectMembershipRepository.save(membership)
 
-  return { membership, invitedUser }
+  return { membership, invitedUser, invitationToken }
 }

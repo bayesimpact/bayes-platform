@@ -55,8 +55,6 @@ export const reviewCampaignMembershipFactory = ReviewCampaignMembershipFactory.d
       userId: transientParams.user.id,
       user: transientParams.user,
       role: params.role || "tester",
-      invitationToken: params.invitationToken ?? null,
-      invitedAt: params.invitedAt || now,
       acceptedAt: params.acceptedAt ?? null,
     } satisfies ReviewCampaignMembership
   },

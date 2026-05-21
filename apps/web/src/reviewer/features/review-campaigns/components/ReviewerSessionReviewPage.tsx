@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next"
 import { useNavigate, useParams } from "react-router-dom"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import { buildReviewerCampaignPath } from "@/reviewer/routes/helpers"
+import { ReviewerRoutes } from "@/reviewer/routes/helpers"
 import { selectReviewerSessionDetail } from "../reviewer.selectors"
 import { getReviewerSession, submitReviewerReview, updateReviewerReview } from "../reviewer.thunks"
 import { ReviewerSessionReview } from "./ReviewerSessionReview"
@@ -76,15 +76,7 @@ export function ReviewerSessionReviewPage() {
       <button
         type="button"
         className="text-muted-foreground w-fit text-sm hover:underline"
-        onClick={() =>
-          navigate(
-            buildReviewerCampaignPath({
-              organizationId: params.organizationId,
-              projectId: params.projectId,
-              reviewCampaignId: params.reviewCampaignId,
-            }),
-          )
-        }
+        onClick={() => navigate(ReviewerRoutes.campaign.build(params))}
       >
         {t("reviewerCampaigns:sessionPage.back")}
       </button>

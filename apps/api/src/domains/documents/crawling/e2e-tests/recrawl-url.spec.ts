@@ -125,7 +125,6 @@ describe("Documents - reCrawlUrl", () => {
     )
   })
 
-
   it("rejects documents that are not webCrawl type", async () => {
     const { organization, project } = await createOrganizationWithDocument(repositories, {
       user: { auth0Id },

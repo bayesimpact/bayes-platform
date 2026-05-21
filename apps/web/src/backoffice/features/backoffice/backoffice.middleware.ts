@@ -10,8 +10,8 @@ function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: backofficeActions.mount,
     effect: async (_, listenerApi) => {
-      listenerApi.dispatch(backofficeActions.listOrganizations())
-      listenerApi.dispatch(backofficeActions.listUsers())
+      listenerApi.dispatch(backofficeActions.listOrganizations({ page: 0, limit: 10 }))
+      listenerApi.dispatch(backofficeActions.listUsers({ page: 0, limit: 10 }))
       if (selectIsTermsManagementAuthorized(listenerApi.getState()))
         listenerApi.dispatch(backofficeActions.listTermsDocuments())
     },

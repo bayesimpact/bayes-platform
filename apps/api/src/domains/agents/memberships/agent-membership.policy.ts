@@ -3,7 +3,7 @@ import type { AgentMembership } from "./agent-membership.entity"
 
 export class AgentMembershipPolicy extends ProjectScopedPolicy<AgentMembership> {
   canList(): boolean {
-    return this.canAccess() && this.isProjectAdminOrOwner()
+    return this.canAccess() && this.isProjectAdminOrOwner() // FIXME: should be isAgentAdminOrOwner
   }
 
   canCreate(): boolean {

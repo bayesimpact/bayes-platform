@@ -10,7 +10,6 @@ export type AgentMembershipDto = {
   userName: string
   userEmail: string
   role: AgentMembershipRoleDto
-  status: "sent" | "accepted"
   createdAt: TimeType
 }
 
@@ -20,5 +19,4 @@ export type ProjectMemberAgentDto = {
   agentType: AgentType
   membershipId: string | null
   role: AgentMembershipRoleDto | null
-  status: "sent" | "accepted" | null
 }

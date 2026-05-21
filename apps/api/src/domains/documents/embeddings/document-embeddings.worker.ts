@@ -1,10 +1,7 @@
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq"
 import { Logger } from "@nestjs/common"
 import type { Job } from "bullmq"
-import {
-  DOCUMENT_EMBEDDINGS_JOB_NAME,
-  DOCUMENT_EMBEDDINGS_QUEUE_NAME,
-} from "./document-embeddings.constants"
+import { DOCUMENT_EMBEDDINGS_QUEUE_NAME } from "./document-embeddings.constants"
 import type { CreateDocumentEmbeddingsJobPayload } from "./document-embeddings.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentEmbeddingsProcessorService } from "./document-embeddings-processor.service"
@@ -18,10 +15,6 @@ export class DocumentEmbeddingsWorker extends WorkerHost {
   }
 
   async process(job: Job<CreateDocumentEmbeddingsJobPayload>): Promise<void> {
-    if (job.name !== DOCUMENT_EMBEDDINGS_JOB_NAME) {
-      return
-    }
-
     await this.embeddingsProcessorService.processDocument(job.data)
   }
 

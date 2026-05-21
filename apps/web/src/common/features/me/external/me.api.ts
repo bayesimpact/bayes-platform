@@ -1,18 +1,7 @@
-import {
-  type MeResponseDto,
-  MeRoutes,
-  type PendingAgentInvitationDto,
-  type PendingInvitationsResponseDto,
-  type PendingProjectInvitationDto,
-} from "@caseai-connect/api-contracts"
+import { type MeResponseDto, MeRoutes } from "@caseai-connect/api-contracts"
 import { toOrganization } from "@/common/features/organizations/external/organizations.api"
 import { getAxiosInstance } from "@/external/axios"
-import type {
-  Me,
-  PendingAgentInvitation,
-  PendingInvitations,
-  PendingProjectInvitation,
-} from "../me.models"
+import type { Me } from "../me.models"
 import type { IMeSpi } from "../me.spi"
 
 export default {
@@ -20,13 +9,6 @@ export default {
     const axios = getAxiosInstance()
     const response = await axios.get<typeof MeRoutes.getMe.response>(MeRoutes.getMe.getPath())
     return toMe(response.data.data)
-  },
-  getPendingInvitations: async () => {
-    const axios = getAxiosInstance()
-    const response = await axios.get<typeof MeRoutes.getPendingInvitations.response>(
-      MeRoutes.getPendingInvitations.getPath(),
-    )
-    return toPendingInvitations(response.data.data)
   },
   acceptTerms: async ({ aiUsagePolicyAccepted }) => {
     const axios = getAxiosInstance()
@@ -48,35 +30,4 @@ const toMe = (dto: MeResponseDto): Me => ({
   },
   organizations: dto.organizations.map(toOrganization),
   currentTerms: dto.currentTerms,
-})
-
-const toPendingProjectInvitation = (
-  dto: PendingProjectInvitationDto,
-): PendingProjectInvitation => ({
-  id: dto.id,
-  projectId: dto.projectId,
-  projectName: dto.projectName,
-  organizationId: dto.organizationId,
-  organizationName: dto.organizationName,
-  role: dto.role,
-  invitationToken: dto.invitationToken,
-  createdAt: dto.createdAt,
-})
-
-const toPendingAgentInvitation = (dto: PendingAgentInvitationDto): PendingAgentInvitation => ({
-  id: dto.id,
-  agentId: dto.agentId,
-  agentName: dto.agentName,
-  projectId: dto.projectId,
-  projectName: dto.projectName,
-  organizationId: dto.organizationId,
-  organizationName: dto.organizationName,
-  role: dto.role,
-  invitationToken: dto.invitationToken,
-  createdAt: dto.createdAt,
-})
-
-const toPendingInvitations = (dto: PendingInvitationsResponseDto): PendingInvitations => ({
-  projectInvitations: dto.projectInvitations.map(toPendingProjectInvitation),
-  agentInvitations: dto.agentInvitations.map(toPendingAgentInvitation),
 })

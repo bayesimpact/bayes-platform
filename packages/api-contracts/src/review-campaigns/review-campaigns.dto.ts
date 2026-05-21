@@ -44,7 +44,6 @@ export type ReviewCampaignMembershipDto = {
   userId: string
   userEmail: string
   role: ReviewCampaignMembershipRole
-  invitedAt: TimeType
   acceptedAt: TimeType | null
 }
 
@@ -77,21 +76,12 @@ export type UpdateReviewCampaignRequestDto = {
   status?: ReviewCampaignStatus
 }
 
-export type InviteReviewCampaignMembersRequestDto = {
-  role: ReviewCampaignMembershipRole
-  emails: string[]
-}
-
 export type ReviewCampaignListItemDto = ReviewCampaignDto & {
   memberCount: number
 }
 
 export type ListReviewCampaignsResponseDto = {
   reviewCampaigns: ReviewCampaignListItemDto[]
-}
-
-export type InviteReviewCampaignMembersResponseDto = {
-  memberships: ReviewCampaignMembershipDto[]
 }
 
 // === Tester API ===

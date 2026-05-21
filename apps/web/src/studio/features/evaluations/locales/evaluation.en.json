@@ -22,6 +22,7 @@
       "description": "Create a new evaluation by providing the necessary details."
     },
     "run": "Run",
+    "failedToLoad": "Failed to load evaluation reports",
     "runAll": "Run All",
     "empty": {
       "title": "No evaluations available",

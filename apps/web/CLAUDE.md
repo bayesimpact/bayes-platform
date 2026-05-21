@@ -210,6 +210,35 @@ function isExpectedType(value: unknown): value is ExpectedType {
 
 ---
 
+## Factories Mirror Models, Stories Mirror Routes
+
+See [ADR 0010](../../docs/adr/0010-factory-per-model-and-story-per-route.md) for full rationale.
+
+### Every domain model MUST have a sibling factory
+
+**Rule**: when you create or rename `features/{domain}/{domain}.models.ts`, you MUST create the sibling factory file `features/{domain}/{domain}.factory.ts` (or `{domain}/{singular}.factory.ts` — match the existing siblings in the same folder) in the same commit. No model ships without a factory.
+
+- Pattern: [evaluations.factory.ts](src/studio/features/evaluations/evaluations.factory.ts) and [documents.factory.ts](src/studio/features/documents/documents.factory.ts) are canonical references.
+- Use `fishery`'s `Factory.define`. Transient params carry the parent scope (e.g. `{ project: Project }`, `{ evaluation: Evaluation, agent: Agent }`). Throw if a required transient param is missing — silent fallback defaults make seeded stories drift from real shapes.
+- Use `faker` for values. Keep samples **domain-neutral** (see the root CLAUDE.md "Neutral Sample Data" rule) — `faker.lorem.sentence()`, `faker.commerce.productName()`, never a vertical-specific term unless asked.
+- Every field on the model MUST be defaulted in the factory, with `params.X ?? <default>` so callers can override.
+
+### Every router route MUST have a sibling story
+
+**Rule**: when you add an entry to `{scope}/routes/{Scope}Routes.tsx` (e.g. `studioRoutes`, `testerRoutes`), you MUST create a matching story under `apps/web/src/stories/routes/{scope}/{RouteName}.stories.tsx` in the same commit. Pure redirects/aliases are exempt; anything that renders UI is not.
+
+- Pattern: [EvaluationRoute.stories.tsx](src/stories/routes/studio/EvaluationRoute.stories.tsx) and [DocumentsRoute.stories.tsx](src/stories/routes/studio/DocumentsRoute.stories.tsx) are canonical references.
+- The story must mount the **real** route tree (`createMemoryRouter([studioRoutes], { initialEntries: [path] })`), not just the leaf component. This catches breakage in route wrappers, `useMount`, `AsyncRoute`, and feature-flag gates.
+- Seed Redux via `buildMockStore` + `mergeSeeds(seed.X(...), ...)`. Use the feature factories — never inline literal fixtures. If the seed helper you need is missing, add it to [seed.ts](src/stories/seed.ts).
+- Expose toggles via `argTypes` for every data dependency the route reads (e.g. `withEvaluations`, `withEvaluationReports`) so the empty AND populated states are both reachable from the Storybook controls panel.
+- If the route is wrapped in `<RestrictedFeature feature="X">`, the seeded project MUST have `featureFlags: ["X"]` or the story renders blank.
+
+### When the seed helper is missing, add it
+
+`seed.ts` is the one place where slice-shape knowledge lives for stories. When you introduce a new slice, add a `seed.{scope}.{slice}()` helper that wraps the value in `ads.fulfilled(...)`. Stories should never reach into raw slice shape (`{ studio: { foo: { data: ... } } }`) — that knowledge belongs in `seed.ts`.
+
+---
+
 ## Storybook-First for Non-Trivial UI Slices
 
 When starting a new admin/studio UI slice with meaningful UX surface (list + editor + lifecycle actions), the preferred phasing is:

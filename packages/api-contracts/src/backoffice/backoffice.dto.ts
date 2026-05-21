@@ -31,6 +31,13 @@ export type BackofficeOrganizationDto = {
   projects: BackofficeProjectDto[]
 }
 
+export type PaginatedBackofficeOrganizationsDto = {
+  organizations: BackofficeOrganizationDto[]
+  total: number
+  page: number
+  limit: number
+}
+
 export type BackofficeUserOrganizationMembershipDto = {
   organizationId: string
   organizationName: string
@@ -57,6 +64,13 @@ export type BackofficeUserDto = {
   organizationMemberships: BackofficeUserOrganizationMembershipDto[]
   projectMemberships: BackofficeUserProjectMembershipDto[]
   agentMemberships: BackofficeUserAgentMembershipDto[]
+}
+
+export type PaginatedBackofficeUsersDto = {
+  users: BackofficeUserDto[]
+  total: number
+  page: number
+  limit: number
 }
 
 export const TERMS_DOCUMENT_TYPES = [

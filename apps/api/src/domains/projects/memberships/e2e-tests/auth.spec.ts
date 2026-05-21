@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { ProjectMembershipRoutes } from "@caseai-connect/api-contracts"
+import { InvitationsRoutes, ProjectMembershipRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
@@ -104,33 +104,54 @@ describe("Project Memberships - Auth", () => {
     })
   })
 
-  describe("ProjectMembershipRoutes.createOne", () => {
-    const subject = async (payload?: typeof ProjectMembershipRoutes.createOne.request) =>
+  describe("InvitationsRoutes.createForTarget (project)", () => {
+    const invitePayload = (): typeof InvitationsRoutes.createForTarget.request => ({
+      payload: {
+        targetType: "project",
+        targetId: projectId!,
+        emails: ["invitee@example.com"],
+      },
+    })
+
+    const subject = async (payload?: typeof InvitationsRoutes.createForTarget.request) =>
       request({
-        route: ProjectMembershipRoutes.createOne,
-        pathParams: removeNullish({ organizationId, projectId }),
+        route: InvitationsRoutes.createForTarget,
         token: accessToken ?? undefined,
-        request: payload,
+        request: payload ?? invitePayload(),
       })
 
     it("requires an authentication token", async () => {
+      await createContextForRole("owner")
       accessToken = null
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
-    it("requires a valid organization ID", async () => {
+    it("returns 400 for an invalid targetType", async () => {
       await createContextForRole("owner")
-      organizationId = null
-      expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+      const response = await subject({
+        payload: {
+          // @ts-expect-error deliberate invalid value for server validation
+          targetType: "not_a_valid_target",
+          targetId: projectId!,
+          emails: ["invitee@example.com"],
+        },
+      })
+      expectResponse(response, 400)
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
       auth0Id = mockForeignAuth0Id()
-      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+      expectResponse(await subject(), 403, "You do not have access to this organization")
     })
-    it("requires an existing project ID", async () => {
+    it("requires an existing project as targetId", async () => {
       await createContextForRole("owner")
-      projectId = randomUUID()
-      expectResponse(await subject(), 404)
+      const response = await subject({
+        payload: {
+          targetType: "project",
+          targetId: randomUUID(),
+          emails: ["invitee@example.com"],
+        },
+      })
+      expectResponse(response, 404)
     })
     it("doesn't allow a simple member to invite project members", async () => {
       await createContextForRole("member")

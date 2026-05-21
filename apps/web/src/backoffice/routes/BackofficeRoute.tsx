@@ -13,8 +13,8 @@ import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { RouteNames } from "@/common/routes/helpers"
 import { useAppSelector } from "@/common/store/hooks"
 import type {
-  BackofficeOrganization,
-  BackofficeUser,
+  PaginatedBackofficeOrganizations,
+  PaginatedBackofficeUsers,
   TermsDocuments,
 } from "../features/backoffice/backoffice.models"
 import { backofficeActions } from "../features/backoffice/backoffice.slice"
@@ -60,8 +60,8 @@ function WithData({
   users,
   termsDocuments,
 }: {
-  organizations: BackofficeOrganization[]
-  users: BackofficeUser[]
+  organizations: PaginatedBackofficeOrganizations
+  users: PaginatedBackofficeUsers
   termsDocuments: TermsDocuments | null
 }) {
   const navigate = useNavigate()
