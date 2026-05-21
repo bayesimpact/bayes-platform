@@ -80,3 +80,6 @@ llm-logs/
 __pycache__/
 *.pyc
 *.pyo
+
+# Storybook
+storybook-static
