@@ -12,6 +12,12 @@
       "thinking": "Thinking…",
       "error": "Something went wrong. Please try again.",
       "copyAriaLabel": "Copy to clipboard"
+    },
+    "status": {
+      "connecting": "Connecting…",
+      "errorAccessDisabled": "This chat widget is not available.",
+      "errorSessionFailed": "Unable to start a chat session. Please try again.",
+      "errorUnknown": "Unable to connect."
     }
   }
 }
