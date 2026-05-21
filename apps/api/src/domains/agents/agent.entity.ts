@@ -56,6 +56,15 @@ export class Agent extends ConnectEntityBase {
   @Column({ type: "jsonb", nullable: true, name: "output_json_schema" })
   outputJsonSchema!: Record<string, unknown> | null
 
+  @Column({ type: "uuid", name: "embed_token", unique: true, default: () => "uuid_generate_v4()" })
+  embedToken!: string
+
+  @Column({ type: "boolean", name: "embed_enabled", default: false })
+  embedEnabled!: boolean
+
+  @Column({ type: "jsonb", name: "embed_allowed_origins", default: () => "'[]'" })
+  embedAllowedOrigins!: string[]
+
   @OneToMany(
     () => ConversationAgentSession,
     (conversationAgentSession) => conversationAgentSession.agent,

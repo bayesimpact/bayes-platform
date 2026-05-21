@@ -27,6 +27,7 @@ import { OrganizationMembership } from "@/domains/organizations/memberships/orga
 import { Organization } from "@/domains/organizations/organization.entity"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
+import { PublicAgentSession } from "@/domains/public-chat/public-agent-sessions/public-agent-session.entity"
 import { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import { ReviewerSessionReview } from "@/domains/review-campaigns/reviewer-session-reviews/reviewer-session-review.entity"
@@ -65,6 +66,7 @@ export type AllRepositories = {
   projectMembershipRepository: Repository<ProjectMembership>
   projectAgentCategoryRepository: Repository<ProjectAgentCategory>
   projectRepository: Repository<Project>
+  publicAgentSessionRepository: Repository<PublicAgentSession>
   reviewCampaignMembershipRepository: Repository<ReviewCampaignMembership>
   reviewCampaignRepository: Repository<ReviewCampaign>
   reviewerSessionReviewRepository: Repository<ReviewerSessionReview>
@@ -109,6 +111,7 @@ export function buildAllRepositories(
     projectMembershipRepository: getRepository(ProjectMembership),
     projectAgentCategoryRepository: getRepository(ProjectAgentCategory),
     projectRepository: getRepository(Project),
+    publicAgentSessionRepository: getRepository(PublicAgentSession),
     reviewCampaignMembershipRepository: getRepository(ReviewCampaignMembership),
     reviewCampaignRepository: getRepository(ReviewCampaign),
     reviewerSessionReviewRepository: getRepository(ReviewerSessionReview),

@@ -546,7 +546,7 @@
       window.__VUE_DEVTOOLS_GLOBAL_HOOK__ = window.top.__VUE_DEVTOOLS_GLOBAL_HOOK__;
       window.top.__VUE_DEVTOOLS_CONTEXT__ = window.document;
     }
-  } catch (e) {
+  } catch (_e) {
     // eslint-disable-next-line no-console
     console.warn('unable to connect to top frame for connecting dev tools');
   }
@@ -681,7 +681,7 @@
     <div id="storybook-root"></div>
     <div id="storybook-docs"></div>
     <script>
-      function __onViteAppLoadingError(event) {
+      function __onViteAppLoadingError(_event) {
         const hostname = globalThis.location.hostname;
         if (hostname !== 'localhost' && globalThis.CONFIG_TYPE === 'DEVELOPMENT') {
           const message = `Failed to load the Storybook preview file 'vite-app.js':
