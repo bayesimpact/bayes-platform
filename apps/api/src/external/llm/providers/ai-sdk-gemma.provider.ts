@@ -34,13 +34,13 @@ export class AISDKGemmaProvider extends AISDKLLMProviderBase {
       case CallOrigin.streamChatResponse:
       case CallOrigin.generateStructuredOutput:
       case CallOrigin.streamChatResponse_withTools:
-        return this.getOpenAiProvider(config)
+        return this.getOpenAiCompatibilityModeProvider(config)
       default:
         throw new NotImplementedException(`DEV - Unknown callOrigin: ${callOrigin}`)
     }
   }
 
-  getOpenAiProvider(config: LLMConfig): LanguageModelV3 {
+  getOpenAiCompatibilityModeProvider(config: LLMConfig): LanguageModelV3 {
     const auth = new GoogleAuth({
       scopes: ["https://www.googleapis.com/auth/cloud-platform"],
     })
@@ -61,6 +61,22 @@ export class AISDKGemmaProvider extends AISDKLLMProviderBase {
       },
     }).chat(config.model)
   }
+  // getOpenResponsesProvider(config: LLMConfig): LanguageModelV3 {
+  //   const { url, apiKey } = this.getModelEnvSettings(config.model)
+  //   return createOpenResponses({
+  //     name: this.providerName,
+  //     url: new URL("v1/responses", url).toString(),
+  //     apiKey,
+  //   })(config.model)
+  // }
+  // getOpenAiProvider(config: LLMConfig): LanguageModelV3 {
+  //   const { url, apiKey } = this.getModelEnvSettings(config.model)
+  //   return createOpenAI({
+  //     name: this.providerName,
+  //     baseURL: new URL("v1", url).toString(),
+  //     apiKey,
+  //   })(config.model)
+  // }
 
   override applySpecificToSystemPrompt({
     config,

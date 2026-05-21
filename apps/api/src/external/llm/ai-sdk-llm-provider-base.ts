@@ -379,11 +379,12 @@ export enum CallOrigin {
 }
 
 export function extractThoughtAndAnswer(raw: string) {
-  const thoughtMatch = raw.match(/<unused\d+>thought([\s\S]*?)(?=<unused\d+>)/i)
-  if (!thoughtMatch) return { answer: raw }
-  // @ts-expect-error
-  const thought = thoughtMatch ? thoughtMatch[1].replace(/<unused\d+>/g, "").trim() : null
-  let answer = raw.replace(/<unused\d+>thought[\s\S]*?(?=<unused\d+>)/gi, "")
-  answer = answer.replace(/<unused\d+>/g, "").trim()
-  return { thought, answer }
+  return { answer: raw }
+  // const thoughtMatch = raw.match(/<unused\d+>thought([\s\S]*?)(?=<unused\d+>)/i)
+  // if (!thoughtMatch) return { answer: raw }
+  // // @ts-expect-error
+  // const thought = thoughtMatch ? thoughtMatch[1].replace(/<unused\d+>/g, "").trim() : null
+  // let answer = raw.replace(/<unused\d+>thought[\s\S]*?(?=<unused\d+>)/gi, "")
+  // answer = answer.replace(/<unused\d+>/g, "").trim()
+  // return { thought, answer }
 }
