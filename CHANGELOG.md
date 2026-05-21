@@ -14,7 +14,6 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Manage General Conditions of Service and Privacy Policy from the Backoffice
 - (beta) Medgemma 1.0 available for all Agents
 - (beta) Gemma 4 available for all Agents
-- (beta) Documents sidebar entry replaced by a Sources dropdown with separate Documents and Websites sections
 - (beta) Web sources crawling
 
 ### Changed
