@@ -415,6 +415,7 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
                     input: JSON.stringify(response.data.arguments),
                     providerMetadata: metadata,
                   })
+                  finishReason = { unified: "tool-calls", raw: undefined }
                 }
                 controller.enqueue({
                   type: "finish",
