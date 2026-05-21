@@ -120,6 +120,9 @@ export class DocumentChunkRetrievalService {
       .addSelect("document.file_name", "documentFileName")
       .addSelect("COALESCE(parent.chunk_index, chunk.chunk_index)", "chunkIndex")
       .addSelect("COALESCE(parent.content, chunk.content)", "content")
+      .addSelect("document.source_type", "documentSourceType")
+      .addSelect("chunk.chunk_index", "chunkIndex")
+      .addSelect("chunk.content", "content")
       .addSelect("embedding.model_name", "modelName")
       .addSelect("(embedding.embedding <=> :queryEmbedding::vector)", "distance")
       .addSelect("(parent.id IS NOT NULL)", "isParentChunk")
@@ -142,7 +145,9 @@ export class DocumentChunkRetrievalService {
       .andWhere("document.embedding_status = :embeddingStatus", {
         embeddingStatus: "completed",
       })
-      .andWhere("document.source_type = :projectSourceType", { projectSourceType: "project" })
+      .andWhere("document.source_type IN (:...allowedSourceTypes)", {
+        allowedSourceTypes: ["project", "webCrawl"],
+      })
       .andWhere("chunk.deleted_at IS NULL")
       .andWhere("embedding.deleted_at IS NULL")
       .andWhere("document.deleted_at IS NULL")

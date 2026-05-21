@@ -2,6 +2,7 @@
   "document": {
     "document": "Document",
     "documents": "Documents",
+    "sources": "Sources",
     "uploading": "Téléversement des documents... {{processed}} sur {{total}}",
     "props": {
       "createdAt": "Créé le",
@@ -19,11 +20,16 @@
         "queued": "En file",
         "processing": "En cours",
         "completed": "Prêt",
-        "failed": "Échoué"
+        "failed": "Échoué",
+        "crawling": "Exploration",
+        "crawlingWithCount": "Exploration — {{count}} pages",
+        "embedding": "Indexation",
+        "ready": "Prêt"
       },
       "size": "Taille",
       "storageRelativePath": "Chemin de stockage relatif",
-      "tags": "Tags"
+      "tags": "Tags",
+      "pages": "Pages"
     },
     "update": {
       "title": "Modifier {{documentTitle}}"
@@ -31,6 +37,16 @@
     "delete": {
       "title": "Supprimer {{documentTitle}}",
       "description": "Êtes-vous sûr de vouloir supprimer ce document ? Cette action est irréversible."
+    },
+    "recrawl": "Ré-explorer le site",
+    "crawl": {
+      "button": "Explorer un site web",
+      "title": "Explorer un site web",
+      "description": "Entrez une URL à explorer. L'intégralité du site sera indexée en arrière-plan.",
+      "urlLabel": "URL du site web",
+      "nameLabel": "Nom (optionnel)",
+      "namePlaceholder": "ex : Site de documentation",
+      "submit": "Lancer l'exploration"
     },
     "reprocess": {
       "cta": "Relancer le traitement"
@@ -42,12 +58,18 @@
         "description": "Téléversez votre premier document pour commencer."
       }
     },
+    "filter": {
+      "all": "Tous",
+      "uploaded": "Documents",
+      "webSources": "Sites web"
+    },
     "upload": {
       "tagDialog": {
         "title": "Tags pour cet envoi",
         "description": "Facultatif : choisissez des tags à appliquer à chaque fichier de cet envoi.",
         "fileCountSentence_one": "Vous allez téléverser un fichier.",
         "fileCountSentence_other": "Vous allez téléverser {{count}} fichiers.",
+        "nameLabel": "Nom (optionnel)",
         "confirm": "Téléverser"
       }
     }

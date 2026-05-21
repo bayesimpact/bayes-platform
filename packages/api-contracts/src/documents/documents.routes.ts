@@ -2,10 +2,13 @@ import type { DocumentTagsUpdateFieldsDto } from "../document-tags/document-tag.
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
 import type {
+  CrawlUrlRequestDto,
+  CrawlUrlResponseDto,
   DocumentDto,
   DocumentUploadOptionalTagFields,
   PresignFileRequestItemDto,
   PresignFileResponseItemDto,
+  ReCrawlUrlResponseDto,
 } from "./documents.dto"
 
 export const DocumentsRoutes = {
@@ -32,7 +35,7 @@ export const DocumentsRoutes = {
   }),
   getAll: defineRoute<ResponseData<DocumentDto[]>>({
     method: "get",
-    path: "organizations/:organizationId/projects/:projectId/documents",
+    path: "organizations/:organizationId/projects/:projectId/documents/:sourceType",
   }),
   listMyExtractionDocuments: defineRoute<ResponseData<DocumentDto[]>>({
     method: "get",
@@ -57,9 +60,21 @@ export const DocumentsRoutes = {
     method: "post",
     path: "organizations/:organizationId/projects/:projectId/documents/:documentId/reprocess",
   }),
+  crawlUrl: defineRoute<ResponseData<CrawlUrlResponseDto>, RequestPayload<CrawlUrlRequestDto>>({
+    method: "post",
+    path: "organizations/:organizationId/projects/:projectId/documents/crawl-url",
+  }),
+  reCrawlUrl: defineRoute<ResponseData<ReCrawlUrlResponseDto>>({
+    method: "post",
+    path: "organizations/:organizationId/projects/:projectId/documents/:documentId/recrawl",
+  }),
   // Streaming responses are sent as text/event-stream (SSE) and do not follow ResponseData<T>.
   streamEmbeddingStatus: defineRoute<ResponseData<unknown>>({
     method: "get",
     path: "organizations/:organizationId/projects/:projectId/documents/embedding-status/stream",
+  }),
+  streamCrawlProgress: defineRoute<ResponseData<unknown>>({
+    method: "get",
+    path: "organizations/:organizationId/projects/:projectId/documents/crawl-progress/stream",
   }),
 }

@@ -58,10 +58,10 @@ describe("Documents - getAll", () => {
     return { organization, project }
   }
 
-  const subject = async () =>
+  const subject = async (sourceType = "project") =>
     request({
       route: DocumentsRoutes.getAll,
-      pathParams: removeNullish({ organizationId, projectId }),
+      pathParams: removeNullish({ organizationId, projectId, sourceType }),
       token: accessToken,
     })
 

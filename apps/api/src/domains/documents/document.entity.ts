@@ -34,6 +34,9 @@ export class Document extends ConnectEntityBase {
   @Column({ name: "storage_relative_path", nullable: true })
   storageRelativePath!: string
 
+  @Column({ name: "source_url", type: "text", nullable: true })
+  sourceUrl!: string | null
+
   @Column({ name: "source_type", nullable: false })
   sourceType!:
     | "project"
@@ -41,6 +44,7 @@ export class Document extends ConnectEntityBase {
     | "extraction"
     | "evaluationExtractionDataset"
     | "evaluationExtractionRun"
+    | "webCrawl"
 
   @Column({ type: "uuid", name: "user_id", nullable: true })
   userId!: string | null

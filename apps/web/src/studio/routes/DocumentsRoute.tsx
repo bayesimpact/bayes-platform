@@ -1,6 +1,7 @@
 import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
+import { Collapsible, CollapsibleTrigger } from "@caseai-connect/ui/shad/collapsible"
 import {
   Dialog,
   DialogContent,
@@ -28,13 +29,17 @@ import {
   TableRow,
 } from "@caseai-connect/ui/shad/table"
 import {
+  ChevronDownIcon,
   ChevronRightIcon,
   CloudAlertIcon,
   EllipsisVerticalIcon,
+  ExternalLinkIcon,
   FileDownIcon,
+  GlobeIcon,
   InfoIcon,
   Loader2Icon,
   PencilIcon,
+  RefreshCwIcon,
   RotateCcwIcon,
   Trash2Icon,
   XIcon,
@@ -43,6 +48,7 @@ import { useEffect, useReducer, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
+import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/MarkdownWrapper"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
@@ -54,12 +60,14 @@ import {
 } from "@/studio/features/document-tags/document-tags.helpers"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import { selectDocumentTagsData } from "@/studio/features/document-tags/document-tags.selectors"
+import { CrawlUrlButton } from "@/studio/features/documents/components/CrawlUrlButton"
 import { DocumentTagPicker } from "@/studio/features/documents/components/DocumentTagPicker"
 import { EmbeddingStatusBadge } from "@/studio/features/documents/components/EmbeddingStatusBadge"
 import { EmptyDocument } from "@/studio/features/documents/components/EmptyDocument"
 import { UploadDocumentsButton } from "@/studio/features/documents/components/UploadDocumentsButton"
 import type { Document } from "@/studio/features/documents/documents.models"
 import {
+  selectCrawlProgressByDocumentId,
   selectDocumentsData,
   selectUploaderState,
 } from "@/studio/features/documents/documents.selectors"
@@ -67,6 +75,7 @@ import { documentsActions } from "@/studio/features/documents/documents.slice"
 import {
   deleteDocument,
   getDocumentTemporaryUrl,
+  reCrawlUrl,
   reprocessDocument,
   updateDocument,
 } from "@/studio/features/documents/documents.thunks"
@@ -74,14 +83,18 @@ import { AsyncRoute } from "../../common/routes/AsyncRoute"
 import { DocumentTagItem } from "../features/document-tags/components/DocumentTagItem"
 import { DocumentTagsSheet } from "../features/document-tags/components/DocumentTagsSheet"
 
-export function DocumentsRoute() {
-  useDocumentEmbeddingStatusStream()
+export function DocumentsRoute({ sourceFilter }: { sourceFilter?: "project" | "webCrawl" }) {
+  useDocumentEmbeddingStatusStream(sourceFilter)
   const documents = useAppSelector(selectDocumentsData)
   const documentTags = useAppSelector(selectDocumentTagsData)
   return (
     <AsyncRoute data={[documents, documentTags]}>
       {([documentsValue, documentTagsValue]) => (
-        <WithData documents={documentsValue} documentTags={documentTagsValue} />
+        <WithData
+          documents={documentsValue}
+          documentTags={documentTagsValue}
+          sourceFilter={sourceFilter}
+        />
       )}
     </AsyncRoute>
   )
@@ -90,12 +103,18 @@ export function DocumentsRoute() {
 function WithData({
   documents,
   documentTags,
+  sourceFilter,
 }: {
   documents: Document[]
   documentTags: DocumentTag[]
+  sourceFilter?: "project" | "webCrawl"
 }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
+
+  const visibleDocuments = sourceFilter
+    ? documents.filter((document) => document.sourceType === sourceFilter)
+    : documents
   const getProjectRoute = useGetProjectRoute()
   const handleBack = () => navigate(getProjectRoute())
 
@@ -106,8 +125,13 @@ function WithData({
         title={t("document:documents")}
         description={t("document:list.description")}
         action={
-          <div className="flex items-center flex-wrap gap-2">
-            <UploadDocumentsButton />
+          <div className="flex items-center gap-2">
+            {sourceFilter !== "project" && (
+              <RestrictedFeature feature="web_sources">
+                <CrawlUrlButton />
+              </RestrictedFeature>
+            )}
+            {sourceFilter !== "webCrawl" && <UploadDocumentsButton />}
             <DocumentTagsSheet documentTags={documentTags} />
           </div>
         }
@@ -115,7 +139,7 @@ function WithData({
 
       <div className="p-6 flex flex-col gap-6 bg-white">
         <UploaderStateComp />
-        {documents.length === 0 ? (
+        {visibleDocuments.length === 0 ? (
           <EmptyDocument />
         ) : (
           <Table>
@@ -124,6 +148,11 @@ function WithData({
                 <TableHead className="font-medium rounded-tl-lg bg-muted">
                   {t("document:props.title")}
                 </TableHead>
+                {sourceFilter === "webCrawl" && (
+                  <TableHead className="font-medium bg-muted">
+                    {t("document:props.pages")}
+                  </TableHead>
+                )}
                 <TableHead className="font-medium bg-muted">{t("document:props.tags")}</TableHead>
                 <TableHead className="font-medium bg-muted">
                   {t("document:props.embeddingStatus")}
@@ -135,8 +164,13 @@ function WithData({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {documents.map((document) => (
-                <DocumentRow key={document.id} document={document} documentTags={documentTags} />
+              {visibleDocuments.map((document) => (
+                <DocumentRow
+                  key={document.id}
+                  document={document}
+                  documentTags={documentTags}
+                  showPages={sourceFilter === "webCrawl"}
+                />
               ))}
             </TableBody>
           </Table>
@@ -149,32 +183,88 @@ function WithData({
 function DocumentRow({
   document,
   documentTags,
+  showPages,
 }: {
   document: Document
   documentTags: DocumentTag[]
+  showPages?: boolean
 }) {
   const date = buildSince(document.updatedAt)
+  const isWebCrawl = document.sourceType === "webCrawl"
+  const hasPages = document.pages && document.pages.length > 0
+  const pagesCrawled = useAppSelector(selectCrawlProgressByDocumentId)[document.id]
+
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <TableRow>
-      <TableCell>{document.title}</TableCell>
-      <TableCell>
-        <div className="flex flex-wrap gap-1">
-          {document.tagIds.map((tagId) => (
-            <Badge key={tagId} variant="secondary" className="text-xs">
-              {getTagFullPath(documentTags, tagId)}
-            </Badge>
-          ))}
-        </div>
-      </TableCell>
-      <TableCell>
-        <EmbeddingStatusBadge status={document.embeddingStatus} />
-      </TableCell>
-      <TableCell className="text-muted-foreground">{date}</TableCell>
-      <TableCell>
-        <DocumentActions document={document} documentTags={documentTags} />
-      </TableCell>
-    </TableRow>
+    <>
+      <TableRow>
+        <TableCell>
+          <div className="flex items-center gap-2">
+            {hasPages ? (
+              <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="icon" className="size-6 shrink-0">
+                    {isOpen ? (
+                      <ChevronDownIcon className="size-4" />
+                    ) : (
+                      <ChevronRightIcon className="size-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+              </Collapsible>
+            ) : null}
+            <div className="flex items-center gap-1.5">
+              {isWebCrawl ? <GlobeIcon className="size-4 text-muted-foreground shrink-0" /> : null}
+              <span className="truncate">{document.title}</span>
+            </div>
+          </div>
+        </TableCell>
+        {showPages && (
+          <TableCell className="text-muted-foreground">
+            {hasPages ? document.pages!.length : "—"}
+          </TableCell>
+        )}
+        <TableCell>
+          <div className="flex flex-wrap gap-1">
+            {document.tagIds.map((tagId) => (
+              <Badge key={tagId} variant="secondary" className="text-xs">
+                {getTagFullPath(documentTags, tagId)}
+              </Badge>
+            ))}
+          </div>
+        </TableCell>
+        <TableCell>
+          <EmbeddingStatusBadge
+            status={document.embeddingStatus}
+            sourceType={document.sourceType}
+            pagesCrawled={pagesCrawled}
+          />
+        </TableCell>
+        <TableCell className="text-muted-foreground">{date}</TableCell>
+        <TableCell>
+          <DocumentActions document={document} documentTags={documentTags} />
+        </TableCell>
+      </TableRow>
+      {document.pages && isOpen
+        ? document.pages.map((page) => (
+            <TableRow key={page.url} className="bg-muted/30">
+              <TableCell colSpan={5} className="pl-16 max-w-0">
+                <a
+                  href={page.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={page.url}
+                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors min-w-0"
+                >
+                  <ExternalLinkIcon className="size-3.5 shrink-0" />
+                  <span className="block truncate min-w-0 flex-1">{page.url}</span>
+                </a>
+              </TableCell>
+            </TableRow>
+          ))
+        : null}
+    </>
   )
 }
 
@@ -211,6 +301,7 @@ function DocumentActions({
   const dispatch = useAppDispatch()
   const { t } = useTranslation()
   const [activeAction, setActiveAction] = useState<"delete" | "edit" | "details" | null>(null)
+  const pagesCrawled = useAppSelector(selectCrawlProgressByDocumentId)[document.id]
 
   const handleDownload = async () => {
     const result = await dispatch(getDocumentTemporaryUrl({ documentId: document.id })).unwrap()
@@ -234,6 +325,10 @@ function DocumentActions({
     dispatch(reprocessDocument({ documentId: document.id }))
   }
 
+  const handleReCrawl = () => {
+    dispatch(reCrawlUrl({ documentId: document.id }))
+  }
+
   return (
     <>
       <DropdownMenu>
@@ -243,10 +338,12 @@ function DocumentActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={handleDownload}>
-            <FileDownIcon className="size-4" />
-            {t("actions:downloadDocument")}
-          </DropdownMenuItem>
+          {document.sourceType !== "webCrawl" && (
+            <DropdownMenuItem onSelect={handleDownload}>
+              <FileDownIcon className="size-4" />
+              {t("actions:downloadDocument")}
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onSelect={() => setActiveAction("details")}>
             <InfoIcon className="size-4" />
             {t("actions:view")}
@@ -259,6 +356,12 @@ function DocumentActions({
             <DropdownMenuItem onSelect={handleReprocess}>
               <RotateCcwIcon className="size-4" />
               {t("document:reprocess.cta")}
+            </DropdownMenuItem>
+          )}
+          {document.sourceType === "webCrawl" && (
+            <DropdownMenuItem onSelect={handleReCrawl}>
+              <RefreshCwIcon className="size-4" />
+              {t("document:recrawl")}
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
@@ -333,7 +436,11 @@ function DocumentActions({
               <MetaField label={t("document:props.mimeType")} value={document.mimeType} />
               <div className="flex flex-col gap-1">
                 <span className="font-medium">{t("document:props.embeddingStatus")}:</span>
-                <EmbeddingStatusBadge status={document.embeddingStatus} />
+                <EmbeddingStatusBadge
+                  status={document.embeddingStatus}
+                  sourceType={document.sourceType}
+                  pagesCrawled={pagesCrawled}
+                />
               </div>
               {document.embeddingError && (
                 <MetaField
@@ -466,15 +573,19 @@ function MetaField({ label, value }: { label: string; value?: string }) {
   )
 }
 
-function useDocumentEmbeddingStatusStream() {
+function useDocumentEmbeddingStatusStream(sourceFilter?: "project" | "webCrawl") {
   const dispatch = useAppDispatch()
 
   useEffect(() => {
+    dispatch(documentsActions.setCurrentSourceType({ sourceType: sourceFilter ?? null }))
     dispatch(documentsActions.startEmbeddingStatusStream())
+    dispatch(documentsActions.startCrawlProgressStream())
     return () => {
+      dispatch(documentsActions.setCurrentSourceType({ sourceType: null }))
       dispatch(documentsActions.stopEmbeddingStatusStream())
+      dispatch(documentsActions.stopCrawlProgressStream())
     }
-  }, [dispatch])
+  }, [dispatch, sourceFilter])
 }
 
 function UploaderStateComp() {

@@ -6,13 +6,13 @@ import {
 import { getAxiosInstance } from "@/external/axios"
 import type { Document } from "../documents.models"
 import type { IDocumentsSpi } from "../documents.spi"
-import { streamDocumentEmbeddingStatus } from "./documents-streaming"
+import { streamDocumentCrawlProgress, streamDocumentEmbeddingStatus } from "./documents-streaming"
 
 export default {
-  getAll: async ({ organizationId, projectId }) => {
+  getAll: async ({ organizationId, projectId, sourceType }) => {
     const axios = getAxiosInstance()
     const response = await axios.get<typeof DocumentsRoutes.getAll.response>(
-      DocumentsRoutes.getAll.getPath({ organizationId, projectId }),
+      DocumentsRoutes.getAll.getPath({ organizationId, projectId, sourceType }),
     )
     return response.data.data.map(toDocument)
   },
@@ -133,11 +133,35 @@ export default {
       onStatusChanged,
     })
   },
+  streamCrawlProgress: async ({ organizationId, projectId, signal, onProgressChanged }) => {
+    await streamDocumentCrawlProgress({
+      organizationId,
+      projectId,
+      signal,
+      onProgressChanged,
+    })
+  },
+  crawlUrl: async ({ organizationId, projectId, url, name }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<typeof DocumentsRoutes.crawlUrl.response>(
+      DocumentsRoutes.crawlUrl.getPath({ organizationId, projectId }),
+      { payload: { url, name } } satisfies typeof DocumentsRoutes.crawlUrl.request,
+    )
+    return response.data.data
+  },
+  reCrawlUrl: async ({ organizationId, projectId, documentId }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<typeof DocumentsRoutes.reCrawlUrl.response>(
+      DocumentsRoutes.reCrawlUrl.getPath({ organizationId, projectId, documentId }),
+    )
+    return response.data.data
+  },
 } satisfies IDocumentsSpi
 
 function toDocument(dto: DocumentDto): Document {
   return {
     content: dto.content,
+    pages: dto.pages,
     createdAt: dto.createdAt,
     deletedAt: dto.deletedAt,
     fileName: dto.fileName,
@@ -147,6 +171,8 @@ function toDocument(dto: DocumentDto): Document {
     projectId: dto.projectId,
     size: dto.size,
     storageRelativePath: dto.storageRelativePath,
+    sourceType: dto.sourceType,
+    sourceUrl: dto.sourceUrl,
     embeddingStatus: dto.embeddingStatus,
     embeddingError: dto.embeddingError ?? null,
     title: dto.title,

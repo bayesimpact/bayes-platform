@@ -20,6 +20,8 @@ import {
   ChevronRightIcon,
   CloudAlertIcon,
   DatabaseZapIcon,
+  FileIcon,
+  GlobeIcon,
   ListChecksIcon,
   Loader2Icon,
   MegaphoneIcon,
@@ -49,7 +51,7 @@ export function SidebarFooterChildren({ project }: { project: Project }) {
           <RestrictedFeature feature="project-analytics">
             <NavAnalytics organizationId={project.organizationId} projectId={project.id} />
           </RestrictedFeature>
-          <NavDocuments organizationId={project.organizationId} projectId={project.id} />
+          <NavSources organizationId={project.organizationId} projectId={project.id} />
           <NavProjectMemberships organizationId={project.organizationId} projectId={project.id} />
         </SidebarMenu>
       </SidebarGroupContent>
@@ -129,7 +131,32 @@ function NavAnalytics({
   )
 }
 
-function NavDocuments({
+function NavSources({ organizationId, projectId }: { organizationId: string; projectId: string }) {
+  const { t } = useTranslation()
+  return (
+    <Collapsible asChild className="group/sources">
+      <SidebarMenuItem>
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton>
+            <DatabaseZapIcon />
+            <span>{t("document:sources")}</span>
+            <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/sources:rotate-90" />
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SidebarMenuSub>
+            <NavDocumentsList organizationId={organizationId} projectId={projectId} />
+            <RestrictedFeature feature="web_sources">
+              <NavWebSources organizationId={organizationId} projectId={projectId} />
+            </RestrictedFeature>
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </SidebarMenuItem>
+    </Collapsible>
+  )
+}
+
+function NavDocumentsList({
   organizationId,
   projectId,
 }: {
@@ -141,19 +168,38 @@ function NavDocuments({
   const isActive = isRoute(StudioRoutes.documents.path)
   const path = StudioRoutes.documents.build({ organizationId, projectId })
   return (
-    <SidebarMenuItem>
-      <SidebarMenuButton isActive={isActive} asChild>
+    <SidebarMenuSubItem>
+      <SidebarMenuSubButton isActive={isActive} asChild>
         <Link to={path}>
-          <div className="flex flex-1 gap-2 items-center">
-            <DatabaseZapIcon className="size-4" />
-            <span className={cn(isActive && "font-semibold capitalize-first")}>
-              {t("document:documents")}
-            </span>
-          </div>
+          <FileIcon />
+          <span className="flex-1">{t("document:documents")}</span>
           <UploaderState />
         </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
+      </SidebarMenuSubButton>
+    </SidebarMenuSubItem>
+  )
+}
+
+function NavWebSources({
+  organizationId,
+  projectId,
+}: {
+  organizationId: string
+  projectId: string
+}) {
+  const { t } = useTranslation()
+  const { isRoute } = useIsRoute()
+  const isActive = isRoute(StudioRoutes.webSources.path)
+  const path = StudioRoutes.webSources.build({ organizationId, projectId })
+  return (
+    <SidebarMenuSubItem>
+      <SidebarMenuSubButton isActive={isActive} asChild>
+        <Link to={path}>
+          <GlobeIcon />
+          <span>{t("document:filter.webSources")}</span>
+        </Link>
+      </SidebarMenuSubButton>
+    </SidebarMenuSubItem>
   )
 }
 

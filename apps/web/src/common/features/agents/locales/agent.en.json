@@ -101,8 +101,8 @@
       "sources": "Sources"
     },
     "playground": "Playground",
-    "source_one": "Source",
-    "source_other": "Sources",
+    "source_one": "{{count}} source",
+    "source_other": "{{count}} sources",
     "source_zero": "No sources"
   }
 }

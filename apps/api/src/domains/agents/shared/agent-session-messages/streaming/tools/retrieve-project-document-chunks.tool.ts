@@ -30,6 +30,7 @@ const retrievedChunkSchema = z.object({
   documentId: z.string(),
   documentTitle: z.string(),
   documentFileName: z.string().nullable(),
+  documentSourceType: z.enum(["project", "webCrawl"]),
   chunkIndex: z.number().int(),
   content: z.string(),
   distance: z.number(),

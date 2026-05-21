@@ -5,6 +5,8 @@ import { TypeOrmModule } from "@nestjs/typeorm"
 import { getBullMqConnection } from "./bullmq.config"
 import { WorkersHealthModule } from "./common/workers-health/workers-health.module"
 import typeorm from "./config/typeorm"
+import { UrlCrawlingWorkersModule } from "./domains/documents/crawling/url-crawling-workers.module"
+import { WebSourceEmbeddingsWorkersModule } from "./domains/documents/crawling/web-source-embeddings-workers.module"
 import { DocumentEmbeddingsWorkersModule } from "./domains/documents/embeddings/document-embeddings-workers.module"
 import { StorageModule } from "./domains/documents/storage/storage.module"
 import { EvaluationExtractionRunWorkersModule } from "./domains/evaluations/extraction/runs/evaluation-extraction-run-workers.module"
@@ -28,6 +30,8 @@ import { EvaluationExtractionRunWorkersModule } from "./domains/evaluations/extr
     }),
     DocumentEmbeddingsWorkersModule,
     EvaluationExtractionRunWorkersModule,
+    UrlCrawlingWorkersModule,
+    WebSourceEmbeddingsWorkersModule,
     StorageModule,
     WorkersHealthModule,
   ],

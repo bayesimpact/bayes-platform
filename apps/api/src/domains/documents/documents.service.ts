@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import type { Repository } from "typeorm"
+import type { Repository, UpdateResult } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Document } from "./document.entity"
@@ -11,7 +11,7 @@ import type { DocumentTagsUpdateFields } from "./tags/document-tags.types"
 @Injectable()
 export class DocumentsService {
   constructor(
-    @InjectRepository(Document) documentRepository: Repository<Document>,
+    @InjectRepository(Document) private readonly documentRepository: Repository<Document>,
     private readonly documentTagsService: DocumentTagsService,
   ) {
     this.documentConnectRepository = new ConnectRepository(documentRepository, "documents")
@@ -32,7 +32,8 @@ export class DocumentsService {
     fields: Pick<
       Document,
       "fileName" | "mimeType" | "size" | "storageRelativePath" | "title" | "sourceType"
-    >
+    > &
+      Partial<Pick<Document, "content" | "sourceUrl">>
     uploadStatus: "pending" | "uploaded"
     tagIds?: string[]
   }): Promise<Document> {
@@ -44,6 +45,8 @@ export class DocumentsService {
       storageRelativePath: fields.storageRelativePath,
       title: fields.title ?? fields.fileName,
       sourceType: fields.sourceType,
+      sourceUrl: fields.sourceUrl ?? null,
+      content: fields.content,
       uploadStatus,
       userId: userId ?? null,
     })
@@ -66,22 +69,30 @@ export class DocumentsService {
   }: {
     connectScope: RequiredConnectScope
     documentId: string
-  }): Promise<Document> {
-    const document = await this.documentConnectRepository.getOneById(connectScope, documentId)
-    if (!document) {
+  }): Promise<void> {
+    const result: UpdateResult = await this.documentRepository.update(
+      {
+        id: documentId,
+        organizationId: connectScope.organizationId,
+        projectId: connectScope.projectId,
+      },
+      { uploadStatus: "uploaded" },
+    )
+    if (!result.affected) {
       throw new NotFoundException(`Document with id ${documentId} not found`)
     }
-    document.uploadStatus = "uploaded"
-    return this.documentConnectRepository.saveOne(document)
   }
 
   private sortNewestFirst = (a: Document, b: Document) =>
     b.createdAt.getTime() - a.createdAt.getTime()
 
-  async listDocuments(connectScope: RequiredConnectScope): Promise<Document[]> {
+  async listDocuments(
+    connectScope: RequiredConnectScope,
+    sourceType: Document["sourceType"],
+  ): Promise<Document[]> {
     return (
       await this.documentConnectRepository.find(connectScope, {
-        where: { sourceType: "project", uploadStatus: "uploaded" },
+        where: [{ sourceType, uploadStatus: "uploaded" }],
         relations: ["tags"],
       })
     )?.sort(this.sortNewestFirst)
@@ -169,8 +180,74 @@ export class DocumentsService {
     return this.documentConnectRepository.saveOne(document)
   }
 
+  async updateContent({
+    connectScope,
+    documentId,
+    content,
+    size,
+  }: {
+    connectScope: RequiredConnectScope
+    documentId: string
+    content: string
+    size: number
+  }): Promise<void> {
+    const result: UpdateResult = await this.documentRepository.update(
+      {
+        id: documentId,
+        organizationId: connectScope.organizationId,
+        projectId: connectScope.projectId,
+      },
+      { content, size },
+    )
+    if (!result.affected) {
+      throw new NotFoundException(`Document with id ${documentId} not found`)
+    }
+  }
+
   async saveOne(document: Document): Promise<Document> {
     return this.documentConnectRepository.saveOne(document)
+  }
+
+  async updateEmbeddingStatus({
+    connectScope,
+    documentId,
+    status,
+  }: {
+    connectScope: RequiredConnectScope
+    documentId: string
+    status: Document["embeddingStatus"]
+  }): Promise<void> {
+    const result: UpdateResult = await this.documentRepository.update(
+      {
+        id: documentId,
+        organizationId: connectScope.organizationId,
+        projectId: connectScope.projectId,
+      },
+      { embeddingStatus: status },
+    )
+    if (!result.affected) {
+      throw new NotFoundException(`Document with id ${documentId} not found`)
+    }
+  }
+
+  async resetForRecrawl({
+    connectScope,
+    documentId,
+  }: {
+    connectScope: RequiredConnectScope
+    documentId: string
+  }): Promise<void> {
+    const result: UpdateResult = await this.documentRepository.update(
+      {
+        id: documentId,
+        organizationId: connectScope.organizationId,
+        projectId: connectScope.projectId,
+      },
+      { content: null as unknown as string, embeddingStatus: "pending", embeddingError: null },
+    )
+    if (!result.affected) {
+      throw new NotFoundException(`Document with id ${documentId} not found`)
+    }
   }
 
   async deleteDocument({

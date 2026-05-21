@@ -14,11 +14,14 @@ import { ProjectMembership } from "@/domains/projects/memberships/project-member
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
 import { UsersModule } from "@/domains/users/users.module"
+import { DocumentCrawlProgressStreamService } from "./crawling/document-crawl-progress-stream.service"
+import { UrlCrawlingBatchModule } from "./crawling/url-crawling-batch.module"
 import { Document } from "./document.entity"
 import { DocumentsController } from "./documents.controller"
 import { DocumentsGuard } from "./documents.guard"
 import { DocumentsService } from "./documents.service"
 import { DocumentChunkRetrievalService } from "./embeddings/document-chunk-retrieval.service"
+import { DocumentEmbeddingStatusNotifierService } from "./embeddings/document-embedding-status-notifier.service"
 import { DocumentEmbeddingStatusStreamService } from "./embeddings/document-embedding-status-stream.service"
 import { DocumentEmbeddingsBatchModule } from "./embeddings/document-embeddings-batch.module"
 import { LocalPresignUploadController } from "./storage/local-presign-upload.controller"
@@ -55,10 +58,13 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
     AuthModule,
     StorageModule,
     DocumentEmbeddingsBatchModule,
+    UrlCrawlingBatchModule,
   ],
   providers: [
     DocumentsService,
     DocumentEmbeddingStatusStreamService,
+    DocumentEmbeddingStatusNotifierService,
+    DocumentCrawlProgressStreamService,
     DocumentChunkRetrievalService,
     DocumentsGuard,
     ResourceContextGuard,

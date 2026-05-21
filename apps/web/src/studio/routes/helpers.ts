@@ -7,6 +7,7 @@ const project = organization.extend("/p/:projectId")
 // PROJECT-LEVEL
 const agent = project.extend("/a/:agentId")
 const documents = project.extend("/d")
+const webSources = project.extend("/web-sources")
 const document = documents.extend("/:documentId")
 const projectAnalytics = project.extend("/analytics")
 const evaluation = project.extend("/eval")
@@ -38,6 +39,7 @@ export const StudioRoutes = {
   projectMemberships,
   reviewCampaignReport,
   reviewCampaigns,
+  webSources,
 }
 
 export const isStudioInterface = () => window.location.pathname.startsWith(StudioRoutes.home.path)

@@ -112,7 +112,15 @@ export const studioRoutes = {
             },
             {
               path: StudioRoutes.documents.path,
-              element: <DocumentsRoute />,
+              element: <DocumentsRoute sourceFilter="project" />,
+            },
+            {
+              path: StudioRoutes.webSources.path,
+              element: (
+                <RestrictedFeature feature="web_sources">
+                  <DocumentsRoute sourceFilter="webCrawl" />
+                </RestrictedFeature>
+              ),
             },
             {
               path: StudioRoutes.projectAnalytics.path,

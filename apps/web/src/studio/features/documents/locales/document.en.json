@@ -2,6 +2,7 @@
   "document": {
     "document": "Document",
     "documents": "Documents",
+    "sources": "Sources",
     "uploading": "Uploading documents... {{processed}} of {{total}}",
     "props": {
       "createdAt": "Created At",
@@ -19,11 +20,16 @@
         "queued": "Queued",
         "processing": "Processing",
         "completed": "Ready",
-        "failed": "Failed"
+        "failed": "Failed",
+        "crawling": "Crawling",
+        "crawlingWithCount": "Crawling — {{count}} pages",
+        "embedding": "Embedding",
+        "ready": "Ready"
       },
       "size": "Size",
       "storageRelativePath": "Storage Relative Path",
-      "tags": "Tags"
+      "tags": "Tags",
+      "pages": "Pages"
     },
     "update": {
       "title": "Edit {{documentTitle}}"
@@ -31,6 +37,16 @@
     "delete": {
       "title": "Delete {{documentTitle}}",
       "description": "Are you sure you want to delete this document? This action cannot be undone."
+    },
+    "recrawl": "Recrawl website",
+    "crawl": {
+      "button": "Crawl Website",
+      "title": "Crawl a Website",
+      "description": "Enter a URL to crawl. The entire website will be indexed in the background.",
+      "urlLabel": "Website URL",
+      "nameLabel": "Name (optional)",
+      "namePlaceholder": "e.g. Documentation site",
+      "submit": "Start Crawling"
     },
     "reprocess": {
       "cta": "Reprocess"
@@ -42,12 +58,18 @@
         "description": "Upload your first document to get started."
       }
     },
+    "filter": {
+      "all": "All",
+      "uploaded": "Documents",
+      "webSources": "Web sources"
+    },
     "upload": {
       "tagDialog": {
         "title": "Tags for this upload",
         "description": "Optional: choose tags to apply to every file in this upload.",
         "fileCountSentence_one": "You’re about to upload one file.",
         "fileCountSentence_other": "You’re about to upload {{count}} files.",
+        "nameLabel": "Name (optional)",
         "confirm": "Upload"
       }
     }

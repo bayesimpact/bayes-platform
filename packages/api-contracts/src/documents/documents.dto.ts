@@ -2,6 +2,7 @@ import type { DocumentTagDto } from "../document-tags/document-tag.dto"
 import type { TimeType } from "../generic"
 
 export const DOCUMENT_EMBEDDING_STATUS_CHANGED_CHANNEL_DTO = "document_embedding_status_changed"
+export const DOCUMENT_CRAWL_PROGRESS_CHANGED_CHANNEL_DTO = "document_crawl_progress_changed"
 
 export type DocumentSourceType =
   | "project"
@@ -9,6 +10,7 @@ export type DocumentSourceType =
   | "extraction"
   | "evaluationExtractionDataset"
   | "evaluationExtractionRun"
+  | "webCrawl"
 export type DocumentEmbeddingStatus = "pending" | "queued" | "processing" | "completed" | "failed"
 export type DocumentEmbeddingStatusChangedEventPayload = {
   type: typeof DOCUMENT_EMBEDDING_STATUS_CHANGED_CHANNEL_DTO
@@ -21,6 +23,17 @@ export type DocumentEmbeddingStatusChangedEventPayload = {
 }
 export type DocumentEmbeddingStatusChangedEventDto = MessageEvent &
   DocumentEmbeddingStatusChangedEventPayload
+
+export type DocumentCrawlProgressChangedEventPayload = {
+  type: typeof DOCUMENT_CRAWL_PROGRESS_CHANGED_CHANNEL_DTO
+  documentId: string
+  organizationId: string
+  projectId: string
+  pagesCrawled: number
+  updatedAt: TimeType
+}
+export type DocumentCrawlProgressChangedEventDto = MessageEvent &
+  DocumentCrawlProgressChangedEventPayload
 
 export type PresignFileRequestItemDto = {
   fileName: string
@@ -46,14 +59,30 @@ export type DocumentDto = {
   deletedAt?: TimeType
   title: string
   content?: string
+  pages?: { url: string; markdown: string }[]
   fileName?: string
   language: "en" | "fr"
   mimeType?: MimeTypes
   size?: number
   storageRelativePath?: string
+  sourceType: DocumentSourceType
+  sourceUrl?: string | null
   embeddingStatus: DocumentEmbeddingStatus
   embeddingError: string | null
   tagIds: DocumentTagDto["id"][]
+}
+
+export type CrawlUrlRequestDto = {
+  url: string
+  name?: string
+}
+
+export type CrawlUrlResponseDto = {
+  message: string
+}
+
+export type ReCrawlUrlResponseDto = {
+  message: string
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types

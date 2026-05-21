@@ -106,15 +106,27 @@ export class DocumentEmbeddingsProcessorService {
     doclingParentChunks?: DoclingParentChunk[]
     extractionEngine: DocumentExtractionEngine
   }> {
-    const fileBuffer = await this.fileStorage.readFile(document.storageRelativePath)
-    const extractionResult = await this.textExtractorService.extract(fileBuffer, document.mimeType)
-    const chunks = extractionResult.chunks ?? this.splitTextForEmbeddings(extractionResult.text)
-    this.logger.log(`Split document ${document.id} into ${chunks.length} chunks`)
-    return {
-      chunks,
-      doclingChunks: extractionResult.doclingChunks,
-      doclingParentChunks: extractionResult.doclingParentChunks,
-      extractionEngine: extractionResult.extractionEngine,
+    switch (document.sourceType) {
+      case "webCrawl": {
+        const chunks = this.splitWebCrawlContent(document.content ?? "")
+        this.logger.log(`Split document ${document.id} (from content) into ${chunks.length} chunks`)
+        return { chunks, extractionEngine: "web-crawl" }
+      }
+      default: {
+        const fileBuffer = await this.fileStorage.readFile(document.storageRelativePath)
+        const extractionResult = await this.textExtractorService.extract(
+          fileBuffer,
+          document.mimeType,
+        )
+        const chunks = extractionResult.chunks ?? this.splitTextForEmbeddings(extractionResult.text)
+        this.logger.log(`Split document ${document.id} into ${chunks.length} chunks`)
+        return {
+          chunks,
+          doclingChunks: extractionResult.doclingChunks,
+          doclingParentChunks: extractionResult.doclingParentChunks,
+          extractionEngine: extractionResult.extractionEngine,
+        }
+      }
     }
   }
 
@@ -128,6 +140,15 @@ export class DocumentEmbeddingsProcessorService {
       .getNodesFromDocuments([rootDocument])
       .map((textNode) => textNode.getContent(MetadataMode.NONE).trim())
       .filter((chunk) => chunk.length > 0)
+  }
+
+  private splitWebCrawlContent(content: string): string[] {
+    try {
+      const pages: { url: string; markdown: string }[] = JSON.parse(content)
+      return pages.flatMap((page) => this.splitTextForEmbeddings(page.markdown))
+    } catch {
+      return this.splitTextForEmbeddings(content)
+    }
   }
 
   private async generateEmbeddingsByModel(chunks: string[]): Promise<Map<string, number[][]>> {

@@ -1,6 +1,7 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import { hasProjectChanged } from "@/common/features/projects/projects.selectors"
+import { ADS } from "@/common/store/async-data-status"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
   createDocumentTag,
@@ -10,6 +11,7 @@ import {
 import { selectUploaderState } from "./documents.selectors"
 import { documentsActions } from "./documents.slice"
 import {
+  crawlUrl,
   deleteDocument,
   listDocuments,
   updateDocument,
@@ -18,7 +20,9 @@ import {
 } from "./documents.thunks"
 import {
   handleDocumentsContextChanged,
+  startDocumentCrawlProgressStream,
   startDocumentEmbeddingStatusStream,
+  stopDocumentCrawlProgressStream,
   stopDocumentEmbeddingStatusStream,
   syncDocumentEmbeddingStatusStreamWithDocuments,
 } from "./documents-stream-status"
@@ -37,6 +41,15 @@ function registerListeners() {
   })
 
   listenerMiddleware.startListening({
+    actionCreator: documentsActions.setCurrentSourceType,
+    effect: async (action, listenerApi) => {
+      if (action.payload.sourceType) {
+        listenerApi.dispatch(listDocuments())
+      }
+    },
+  })
+
+  listenerMiddleware.startListening({
     actionCreator: documentsActions.startEmbeddingStatusStream,
     effect: async (_, listenerApi) => {
       await startDocumentEmbeddingStatusStream(listenerApi)
@@ -51,9 +64,37 @@ function registerListeners() {
   })
 
   listenerMiddleware.startListening({
-    actionCreator: documentsActions.patchDocumentEmbeddingStatus,
+    actionCreator: documentsActions.startCrawlProgressStream,
     effect: async (_, listenerApi) => {
+      await startDocumentCrawlProgressStream(listenerApi)
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: documentsActions.stopCrawlProgressStream,
+    effect: async () => {
+      stopDocumentCrawlProgressStream()
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: documentsActions.patchDocumentEmbeddingStatus,
+    effect: async (action, listenerApi) => {
       syncDocumentEmbeddingStatusStreamWithDocuments(listenerApi)
+
+      // Refetch documents when a webCrawl document finishes embedding
+      // so the content (crawled pages) is available for the dropdown
+      if (action.payload.embeddingStatus === "completed") {
+        const state = listenerApi.getState()
+        if (ADS.isFulfilled(state.studio.documents.data)) {
+          const document = state.studio.documents.data.value.find(
+            (document) => document.id === action.payload.documentId,
+          )
+          if (document?.sourceType === "webCrawl") {
+            listenerApi.dispatch(listDocuments())
+          }
+        }
+      }
     },
   })
 
@@ -70,6 +111,7 @@ function registerListeners() {
       // Document changes
       uploadDocument.fulfilled,
       uploadDocuments.fulfilled,
+      crawlUrl.fulfilled,
       updateDocument.fulfilled,
       deleteDocument.fulfilled,
       // DocumentTag changes
@@ -195,6 +237,29 @@ function registerListeners() {
       listenerApi.dispatch(
         notificationsActions.show({
           title: "Document deletion failed",
+          type: "error",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: crawlUrl.fulfilled,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: action.payload.message,
+          type: "success",
+        }),
+      )
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: crawlUrl.rejected,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "Website crawl failed",
           type: "error",
         }),
       )

@@ -25,6 +25,7 @@ export const documentFactory = DocumentFactory.define(({ params, transientParams
     language: params.language ?? "en",
     mimeType: params.mimeType ?? MimeTypes.pdf,
     size: params.size ?? faker.number.int({ min: 1024, max: 5 * 1024 * 1024 }),
+    sourceType: params.sourceType ?? "project",
     embeddingStatus: params.embeddingStatus ?? "completed",
     embeddingError: params.embeddingError ?? null,
     tagIds: params.tagIds ?? [],

@@ -101,9 +101,9 @@ describe("DocumentChunkRetrievalService", () => {
     expect(outerQueryBuilder.limit).toHaveBeenCalledWith(3)
     expect(innerQueryBuilder.distinctOn).toHaveBeenCalledWith(["COALESCE(parent.id, chunk.id)"])
     expect(innerQueryBuilder.andWhere).toHaveBeenCalledWith(
-      "document.source_type = :projectSourceType",
+      "document.source_type IN (:...allowedSourceTypes)",
       {
-        projectSourceType: "project",
+        allowedSourceTypes: ["project", "webCrawl"],
       },
     )
     expect(innerQueryBuilder.andWhere).not.toHaveBeenCalledWith(

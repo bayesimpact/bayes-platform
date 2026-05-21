@@ -9,10 +9,12 @@ import {
 import { InfoIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/MarkdownWrapper"
+import { useAppSelector } from "@/common/store/hooks"
 import { buildDate } from "@/common/utils/build-date"
 import { DocumentTagItem } from "@/studio/features/document-tags/components/DocumentTagItem"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import type { Document } from "@/studio/features/documents/documents.models"
+import { selectCrawlProgressByDocumentId } from "@/studio/features/documents/documents.selectors"
 import { EmbeddingStatusBadge } from "./EmbeddingStatusBadge"
 
 export function DocumentDetailsSheet({
@@ -23,6 +25,7 @@ export function DocumentDetailsSheet({
   documentTags: DocumentTag[]
 }) {
   const { t } = useTranslation("document", { keyPrefix: "props" })
+  const pagesCrawled = useAppSelector(selectCrawlProgressByDocumentId)[document.id]
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -44,7 +47,11 @@ export function DocumentDetailsSheet({
             <MetaData label={t("mimeType")} value={document.mimeType} />
             <div className="flex flex-col gap-1">
               <span className="font-medium">{t("embeddingStatus")}:</span>
-              <EmbeddingStatusBadge status={document.embeddingStatus} />
+              <EmbeddingStatusBadge
+                status={document.embeddingStatus}
+                sourceType={document.sourceType}
+                pagesCrawled={pagesCrawled}
+              />
             </div>
             {document.embeddingError && (
               <MetaData label={t("embeddingError")} value={document.embeddingError} />

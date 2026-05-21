@@ -1,10 +1,16 @@
 import { createStreamStatusManager } from "@/common/sse/stream-status-manager"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
+  selectHasDocumentsCrawling,
   selectHasDocumentsInProgress,
+  selectIsCrawlProgressStreamActive,
   selectIsEmbeddingStatusStreamActive,
 } from "./documents.selectors"
-import { listDocuments, streamDocumentEmbeddingStatuses } from "./documents.thunks"
+import {
+  listDocuments,
+  streamDocumentCrawlProgresses,
+  streamDocumentEmbeddingStatuses,
+} from "./documents.thunks"
 
 type AbortableStreamTask = { abort: () => void; unwrap: () => Promise<void> }
 type StreamListenerApi = {
@@ -12,7 +18,7 @@ type StreamListenerApi = {
   getState: () => RootState
 }
 
-const manager = createStreamStatusManager({
+const embeddingManager = createStreamStatusManager({
   selectIsStreamActive: selectIsEmbeddingStatusStreamActive,
   selectHasItemsInProgress: selectHasDocumentsInProgress,
   dispatchStreamThunk: (listenerApi) =>
@@ -20,17 +26,31 @@ const manager = createStreamStatusManager({
   dispatchRefresh: (listenerApi) => listenerApi.dispatch(listDocuments()),
 })
 
+const crawlProgressManager = createStreamStatusManager({
+  selectIsStreamActive: selectIsCrawlProgressStreamActive,
+  selectHasItemsInProgress: selectHasDocumentsCrawling,
+  dispatchStreamThunk: (listenerApi) =>
+    listenerApi.dispatch(streamDocumentCrawlProgresses()) as unknown as AbortableStreamTask,
+  dispatchRefresh: (listenerApi) => listenerApi.dispatch(listDocuments()),
+})
+
 export function stopDocumentEmbeddingStatusStream() {
-  manager.stop()
+  embeddingManager.stop()
+}
+
+export function stopDocumentCrawlProgressStream() {
+  crawlProgressManager.stop()
 }
 
 export function syncDocumentEmbeddingStatusStreamWithDocuments(
   listenerApi: StreamListenerApi,
 ): void {
-  manager.sync(listenerApi)
+  embeddingManager.sync(listenerApi)
+  crawlProgressManager.sync(listenerApi)
 }
 
 export async function handleDocumentsContextChanged(listenerApi: StreamListenerApi): Promise<void> {
+  if (!listenerApi.getState().studio.documents.currentSourceType) return
   await listenerApi.dispatch(listDocuments())
   syncDocumentEmbeddingStatusStreamWithDocuments(listenerApi)
 }
@@ -38,5 +58,11 @@ export async function handleDocumentsContextChanged(listenerApi: StreamListenerA
 export async function startDocumentEmbeddingStatusStream(
   listenerApi: StreamListenerApi,
 ): Promise<void> {
-  await manager.start(listenerApi)
+  await embeddingManager.start(listenerApi)
+}
+
+export async function startDocumentCrawlProgressStream(
+  listenerApi: StreamListenerApi,
+): Promise<void> {
+  await crawlProgressManager.start(listenerApi)
 }

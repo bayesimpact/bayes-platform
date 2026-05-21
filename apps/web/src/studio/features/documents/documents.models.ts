@@ -9,3 +9,9 @@ export type DocumentEmbeddingStatusChangedEvent = {
   embeddingError: Document["embeddingError"]
   updatedAt: number
 }
+
+export type DocumentCrawlProgressEvent = {
+  documentId: string
+  pagesCrawled: number
+  updatedAt: number
+}
