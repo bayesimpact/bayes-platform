@@ -247,6 +247,24 @@ export class LangfuseIntegrationExporter implements SpanExporter {
       prompt: langfusePrompt,
     })
     this.checkErrors(span, generation)
+    this.emitLlmCallSpan(traceId, span)
+  }
+
+  private emitLlmCallSpan(traceId: string, span: ReadableSpan): void {
+    const rawResponse = span.attributes["ai.telemetry.metadata.rawLlmResponse"]
+    const rawRequest = span.attributes["ai.telemetry.metadata.rawLlmRequest"]
+    if ((rawResponse == null || rawResponse === "") && (rawRequest == null || rawRequest === ""))
+      return
+
+    this.langfuse.span({
+      traceId,
+      parentObservationId: span.spanContext().spanId,
+      name: "llm.call",
+      startTime: this.hrTimeToDate(span.startTime),
+      endTime: this.hrTimeToDate(span.endTime),
+      input: rawRequest,
+      output: rawResponse,
+    })
   }
 
   private checkErrors(span: ReadableSpan, generation: LangfuseGenerationClient) {
@@ -303,6 +321,10 @@ export class LangfuseIntegrationExporter implements SpanExporter {
 
       if (key.startsWith(metadataPrefix) && value != null) {
         const strippedKey = key.slice(metadataPrefix.length)
+        // rawLlmRequest and rawLlmResponse are surfaced as a dedicated
+        // child span ("llm.call") via emitLlmCallSpan — keep them out of
+        // the generation metadata so they aren't duplicated.
+        if (strippedKey === "rawLlmResponse" || strippedKey === "rawLlmRequest") return acc
         acc[strippedKey] = value
       }
 
