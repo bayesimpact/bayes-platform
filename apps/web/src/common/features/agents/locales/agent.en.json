@@ -98,7 +98,19 @@
       "model": "Model",
       "output": "Output",
       "form": "Form",
-      "sources": "Sources"
+      "sources": "Sources",
+      "embed": "Embed"
+    },
+    "embed": {
+      "loading": "Loading embed configuration…",
+      "loadError": "Failed to load embed configuration.",
+      "enabledLabel": "Enable embed",
+      "enabledDescription": "Allow {{name}} to be embedded on external websites via an iframe.",
+      "snippetLabel": "Embed snippet",
+      "snippetDescription": "Paste this <script> tag before the closing </body> tag on any page where you want the chat widget to appear.",
+      "allowedOriginsLabel": "Allowed origins",
+      "allowedOriginsDescription": "Comma-separated list of allowed origins (e.g. https://app.example.com). Leave empty to allow all origins.",
+      "allowedOriginsPlaceholder": "https://app.example.com, https://staging.example.com"
     },
     "playground": "Playground",
     "source_one": "{{count}} source",

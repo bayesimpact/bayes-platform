@@ -25,6 +25,7 @@ import { InvitationsModule } from "./domains/invitations/invitations.module"
 import { MeModule } from "./domains/me/me.module"
 import { OrganizationsModule } from "./domains/organizations/organizations.module"
 import { ProjectsModule } from "./domains/projects/projects.module"
+import { AgentEmbedConfigsManagementModule } from "./domains/public-chat/agent-embed-configs/agent-embed-configs-management.module"
 import { PublicChatModule } from "./domains/public-chat/public-chat.module"
 import { ReviewCampaignsModule } from "./domains/review-campaigns/review-campaigns.module"
 import { TermsComplianceModule } from "./domains/terms-compliance/terms-compliance.module"
@@ -45,6 +46,7 @@ import { UsersModule } from "./domains/users/users.module"
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => configService.get("typeorm")(),
     }),
+    AgentEmbedConfigsManagementModule,
     AgentMessageFeedbackModule,
     AgentsAnalyticsModule,
     AgentsModule,

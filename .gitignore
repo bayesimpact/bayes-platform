@@ -83,3 +83,6 @@ __pycache__/
 
 # Storybook
 storybook-static
+
+# Build
+apps/web-embed/dist-launcher/

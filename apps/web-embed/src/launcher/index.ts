@@ -8,18 +8,13 @@
  * Clicking the button toggles the iframe open/closed.
  */
 
-const EMBED_APP_ORIGIN = (globalThis as Record<string, unknown>).__EMBED_ORIGIN__ as
-  | string
-  | undefined
-
-function getCurrentScript(): HTMLOrSVGScriptElement | null {
-  return document.currentScript
-}
+// Capture currentScript synchronously at evaluation time — it becomes null after the
+// script finishes its initial execution, so we cannot read it inside init().
+const _currentScript = document.currentScript as HTMLScriptElement | null
 
 function init() {
-  const script = getCurrentScript()
-  const token = script?.getAttribute("data-token") ?? ""
-  const position = (script?.getAttribute("data-position") ?? "bottom-right") as
+  const token = _currentScript?.getAttribute("data-token") ?? ""
+  const position = (_currentScript?.getAttribute("data-position") ?? "bottom-right") as
     | "bottom-right"
     | "bottom-left"
 
@@ -28,8 +23,11 @@ function init() {
     return
   }
 
-  const origin = EMBED_APP_ORIGIN ?? "http://localhost:5175"
-  const iframeSrc = `${origin}/chat/${token}`
+  // Derive the embed app origin from this script's own src URL so the launcher
+  // works correctly regardless of environment (dev, staging, production).
+  const scriptSrc = _currentScript?.src ?? ""
+  const origin = scriptSrc ? new URL(scriptSrc).origin : "https://connect.localhost:5175"
+  const iframeSrc = `${origin}/?embedToken=${token}`
 
   injectWidget({ token, position, iframeSrc })
 }

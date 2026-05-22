@@ -98,7 +98,19 @@
       "model": "Modèle",
       "output": "Sortie",
       "form": "Formulaire",
-      "sources": "Sources"
+      "sources": "Sources",
+      "embed": "Intégration"
+    },
+    "embed": {
+      "loading": "Chargement de la configuration d'intégration…",
+      "loadError": "Impossible de charger la configuration d'intégration.",
+      "enabledLabel": "Activer l'intégration",
+      "enabledDescription": "Permettre à {{name}} d'être intégré sur des sites externes via un iframe.",
+      "snippetLabel": "Extrait d'intégration",
+      "snippetDescription": "Collez cette balise <script> avant la balise </body> fermante sur chaque page où vous souhaitez afficher le widget de chat.",
+      "allowedOriginsLabel": "Origines autorisées",
+      "allowedOriginsDescription": "Liste d'origines autorisées séparées par des virgules (ex. https://app.example.com). Laissez vide pour autoriser toutes les origines.",
+      "allowedOriginsPlaceholder": "https://app.example.com, https://staging.example.com"
     },
     "playground": "Playground",
     "source_one": "{{count}} source",

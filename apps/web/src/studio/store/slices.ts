@@ -8,6 +8,8 @@ import { baseAgentSessionsMiddleware } from "@/common/features/agents/agent-sess
 import { agentsMiddleware } from "@/common/features/agents/agents.middleware"
 import { agentsSlice } from "@/common/features/agents/agents.slice"
 import { projectsSlice } from "@/common/features/projects/projects.slice"
+import { agentEmbedConfigsMiddleware } from "@/studio/features/agent-embed-configs/agent-embed-configs.middleware"
+import { agentEmbedConfigsSlice } from "@/studio/features/agent-embed-configs/agent-embed-configs.slice"
 import { agentMembershipsMiddleware } from "@/studio/features/agent-memberships/agent-memberships.middleware"
 import { agentMembershipsSlice } from "@/studio/features/agent-memberships/agent-memberships.slice"
 import { agentMessageFeedbackMiddleware } from "@/studio/features/agent-message-feedback/agent-message-feedback.middleware"
@@ -37,6 +39,7 @@ import { currentIdsSlice } from "./currentIds.slice"
 
 const studioMiddlewareList = [
   agentAnalyticsMiddleware,
+  agentEmbedConfigsMiddleware,
   agentMembershipsMiddleware,
   agentMessageFeedbackMiddleware,
   agentSessionMessagesMiddleware,
@@ -57,6 +60,7 @@ const studioMiddlewareList = [
 
 export const studioSliceList = [
   agentAnalyticsSlice,
+  agentEmbedConfigsSlice,
   agentMembershipsSlice,
   agentMessageFeedbackSlice,
   agentSessionMessagesSlice,
