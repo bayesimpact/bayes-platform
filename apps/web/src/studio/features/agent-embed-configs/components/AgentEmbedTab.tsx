@@ -120,6 +120,7 @@ export function AgentEmbedTab({ agent }: { agent: Agent }) {
               {copied ? <CheckIcon className="size-4" /> : <CopyIcon className="size-4" />}
             </Button>
           </div>
+          <p className="text-xs text-muted-foreground mt-1">{t("agent:embed.snippetHint")}</p>
         </Field>
       )}
 

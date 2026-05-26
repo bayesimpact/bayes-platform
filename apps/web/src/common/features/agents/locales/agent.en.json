@@ -108,6 +108,7 @@
       "enabledDescription": "Allow {{name}} to be embedded on external websites via an iframe.",
       "snippetLabel": "Embed snippet",
       "snippetDescription": "Paste this <script> tag before the closing </body> tag on any page where you want the chat widget to appear.",
+      "snippetHint": "Optional attributes: data-color=\"#2563eb\" (button color), data-locale=\"fr\" (widget language).",
       "allowedOriginsLabel": "Allowed origins",
       "allowedOriginsDescription": "Comma-separated list of allowed origins (e.g. https://app.example.com). Leave empty to allow all origins.",
       "allowedOriginsPlaceholder": "https://app.example.com, https://staging.example.com",
