@@ -2,7 +2,7 @@
  * AgentStudio embed launcher.
  *
  * Drop this IIFE onto any host page via:
- *   <script src="https://…/launcher.js" data-token="<embedToken>" data-position="bottom-right"></script>
+ *   <script src="https://…/launcher.js" data-token="<embedToken>" data-position="bottom-right" data-color="#2563eb"></script>
  *
  * The script injects a floating action button and a hidden iframe.
  * Clicking the button toggles the iframe open/closed.
@@ -17,6 +17,7 @@ function init() {
   const position = (_currentScript?.getAttribute("data-position") ?? "bottom-right") as
     | "bottom-right"
     | "bottom-left"
+  const color = _currentScript?.getAttribute("data-color") ?? "#2563eb"
 
   if (!token) {
     console.warn("[AgentStudio] data-token attribute is required.")
@@ -29,16 +30,17 @@ function init() {
   const origin = scriptSrc ? new URL(scriptSrc).origin : "https://connect.localhost:5175"
   const iframeSrc = `${origin}/?embedToken=${token}`
 
-  injectWidget({ token, position, iframeSrc })
+  injectWidget({ token, position, color, iframeSrc })
 }
 
 interface WidgetOptions {
   token: string
   position: "bottom-right" | "bottom-left"
+  color: string
   iframeSrc: string
 }
 
-function injectWidget({ position, iframeSrc }: WidgetOptions) {
+function injectWidget({ position, color, iframeSrc }: WidgetOptions) {
   const isRight = position === "bottom-right"
 
   const container = document.createElement("div")
@@ -76,13 +78,13 @@ function injectWidget({ position, iframeSrc }: WidgetOptions) {
     "width: 56px",
     "height: 56px",
     "border-radius: 50%",
-    "background: #2563eb",
+    `background: ${color}`,
     "border: none",
     "cursor: pointer",
     "display: flex",
     "align-items: center",
     "justify-content: center",
-    "box-shadow: 0 4px 12px rgba(37,99,235,0.4)",
+    "box-shadow: 0 4px 12px rgba(0,0,0,0.25)",
     "transition: transform 0.15s ease",
   ].join(";")
   button.innerHTML = chatIconSvg()
