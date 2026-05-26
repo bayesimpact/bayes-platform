@@ -131,7 +131,7 @@ export function BaseAgentForm({
     return undefined
   })()
 
-  const hasEmbed = hasSources && !!editableAgent
+  const hasEmbed = hasSources && !!editableAgent && hasFeature("agent-embed")
 
   const [activeTab, setActiveTab] = useState<"general" | "model" | "output" | "sources" | "embed">(
     "general",
