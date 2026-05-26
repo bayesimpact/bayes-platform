@@ -8,6 +8,12 @@ export interface IAgentEmbedConfigsSpi {
   }) => Promise<AgentEmbedConfig>
   updateOne: (
     params: { organizationId: string; projectId: string; agentId: string },
-    payload: { isEnabled?: boolean; allowedOrigins?: string[] },
+    payload: {
+      isEnabled?: boolean
+      allowedOrigins?: string[]
+      title?: string | null
+      logoUrl?: string | null
+      primaryColor?: string | null
+    },
   ) => Promise<void>
 }

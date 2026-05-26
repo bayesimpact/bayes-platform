@@ -77,6 +77,9 @@ export class PublicChatService {
       embedToken: embedConfig.embedToken,
       isEnabled: embedConfig.isEnabled,
       allowedOrigins: embedConfig.allowedOrigins,
+      title: embedConfig.title,
+      logoUrl: embedConfig.logoUrl,
+      primaryColor: embedConfig.primaryColor,
       createdAt: embedConfig.createdAt.getTime(),
       updatedAt: embedConfig.updatedAt.getTime(),
     }

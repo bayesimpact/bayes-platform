@@ -1,6 +1,7 @@
-import type { AgentSessionMessageDto } from "@caseai-connect/api-contracts"
-import { useMemo, useState } from "react"
+import type { AgentSessionMessageDto, EmbedPublicConfigDto } from "@caseai-connect/api-contracts"
+import { useEffect, useMemo, useState } from "react"
 import { I18nextProvider, useTranslation } from "react-i18next"
+import { getEmbedConfig } from "./api/public-chat-api"
 import { shortConversation } from "./chat/chat.factory"
 import type { EmbedChatTheme } from "./chat/EmbedChat"
 import { EmbedChat } from "./chat/EmbedChat"
@@ -14,10 +15,6 @@ function readParam(key: string): string | undefined {
   return new URLSearchParams(window.location.search).get(key) ?? undefined
 }
 
-function readThemeFromUrl(): EmbedChatTheme {
-  return { primaryColor: readParam("primaryColor"), logoUrl: readParam("logoUrl") }
-}
-
 function readLocaleFromUrl(): SupportedLocale {
   return readParam("locale") === "fr" ? "fr" : "en"
 }
@@ -29,16 +26,14 @@ export function App() {
   const i18n = useMemo(() => createEmbedI18n(locale), [locale])
 
   const embedToken = readParam("embedToken")
-  const theme = readThemeFromUrl()
-  const agentName = readParam("agentName")
 
   return (
     <I18nextProvider i18n={i18n}>
       <div className="h-screen w-full">
         {embedToken ? (
-          <LiveChat embedToken={embedToken} theme={theme} locale={locale} agentName={agentName} />
+          <LiveChat embedToken={embedToken} locale={locale} />
         ) : (
-          <SimulatedChat theme={theme} locale={locale} agentName={agentName} />
+          <SimulatedChat locale={locale} />
         )}
       </div>
     </I18nextProvider>
@@ -47,17 +42,22 @@ export function App() {
 
 // ─── Live mode (real API) ──────────────────────────────────────────────────
 
-function LiveChat({
-  embedToken,
-  theme,
-  locale,
-  agentName,
-}: {
-  embedToken: string
-  theme: EmbedChatTheme
-  locale: SupportedLocale
-  agentName?: string
-}) {
+function LiveChat({ embedToken, locale }: { embedToken: string; locale: SupportedLocale }) {
+  const [remoteConfig, setRemoteConfig] = useState<EmbedPublicConfigDto | null>(null)
+
+  useEffect(() => {
+    getEmbedConfig(embedToken)
+      .then(setRemoteConfig)
+      .catch(() => {
+        // Config loading failed — we'll fall back to defaults in the chat UI
+      })
+  }, [embedToken])
+
+  const theme: EmbedChatTheme = {
+    primaryColor: remoteConfig?.primaryColor ?? undefined,
+    logoUrl: remoteConfig?.logoUrl ?? undefined,
+  }
+
   const { status, messages, isStreaming, errorKey, send } = usePublicChat(embedToken)
 
   if (status === "initializing") {
@@ -70,7 +70,7 @@ function LiveChat({
 
   return (
     <EmbedChat
-      agentName={agentName}
+      agentName={remoteConfig?.title ?? remoteConfig?.agentName}
       theme={theme}
       locale={locale}
       messages={messages}
@@ -82,15 +82,7 @@ function LiveChat({
 
 // ─── Simulation mode (no embedToken — Storybook / local dev) ──────────────
 
-function SimulatedChat({
-  theme,
-  locale,
-  agentName,
-}: {
-  theme: EmbedChatTheme
-  locale: SupportedLocale
-  agentName?: string
-}) {
+function SimulatedChat({ locale }: { locale: SupportedLocale }) {
   const [messages, setMessages] = useState<AgentSessionMessageDto[]>(shortConversation)
   const [isStreaming, setIsStreaming] = useState(false)
 
@@ -129,8 +121,7 @@ function SimulatedChat({
 
   return (
     <EmbedChat
-      agentName={agentName}
-      theme={theme}
+      agentName="Helpful Assistant"
       locale={locale}
       messages={messages}
       isStreaming={isStreaming}

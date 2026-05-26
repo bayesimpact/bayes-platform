@@ -1,4 +1,4 @@
-import type { StreamEvent } from "@caseai-connect/api-contracts"
+import type { EmbedPublicConfigDto, StreamEvent } from "@caseai-connect/api-contracts"
 import { PublicChatRoutes } from "@caseai-connect/api-contracts"
 import type { MessageEvent } from "@nestjs/common"
 import {
@@ -23,6 +23,19 @@ import { PublicChatService } from "./public-chat.service"
 @Controller()
 export class PublicChatController {
   constructor(private readonly publicChatService: PublicChatService) {}
+
+  @Get(PublicChatRoutes.getConfig.path)
+  getConfig(@Req() request: PublicChatRequest): typeof PublicChatRoutes.getConfig.response {
+    const { embedConfig } = request
+    return {
+      data: {
+        agentName: embedConfig.agent.name,
+        title: embedConfig.title,
+        logoUrl: embedConfig.logoUrl,
+        primaryColor: embedConfig.primaryColor,
+      } satisfies EmbedPublicConfigDto,
+    }
+  }
 
   @Post(PublicChatRoutes.createSession.path)
   async createSession(

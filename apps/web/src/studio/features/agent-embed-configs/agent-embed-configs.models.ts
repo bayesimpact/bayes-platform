@@ -6,6 +6,9 @@ export type AgentEmbedConfig = {
   embedToken: string
   isEnabled: boolean
   allowedOrigins: string[]
+  title: string | null
+  logoUrl: string | null
+  primaryColor: string | null
   createdAt: TimeType
   updatedAt: TimeType
 }

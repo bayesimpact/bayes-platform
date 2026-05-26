@@ -34,11 +34,17 @@ export function AgentEmbedTab({ agent }: { agent: Agent }) {
   const [allowedOriginsText, setAllowedOriginsText] = useState(
     config?.allowedOrigins.join(", ") ?? "",
   )
+  const [title, setTitle] = useState(config?.title ?? "")
+  const [logoUrl, setLogoUrl] = useState(config?.logoUrl ?? "")
+  const [primaryColor, setPrimaryColor] = useState(config?.primaryColor ?? "")
 
   useEffect(() => {
     if (config) {
       setIsEnabled(config.isEnabled)
       setAllowedOriginsText(config.allowedOrigins.join(", "))
+      setTitle(config.title ?? "")
+      setLogoUrl(config.logoUrl ?? "")
+      setPrimaryColor(config.primaryColor ?? "")
     }
   }, [config])
 
@@ -60,7 +66,15 @@ export function AgentEmbedTab({ agent }: { agent: Agent }) {
       .split(",")
       .map((origin) => origin.trim())
       .filter((origin) => origin.length > 0)
-    dispatch(agentEmbedConfigsActions.updateConfig({ isEnabled, allowedOrigins }))
+    dispatch(
+      agentEmbedConfigsActions.updateConfig({
+        isEnabled,
+        allowedOrigins,
+        title: title.trim() || null,
+        logoUrl: logoUrl.trim() || null,
+        primaryColor: primaryColor.trim() || null,
+      }),
+    )
   }
 
   if (ADS.isLoading(configData) || ADS.isUninitialized(configData)) {
@@ -118,6 +132,52 @@ export function AgentEmbedTab({ agent }: { agent: Agent }) {
           onChange={(e) => setAllowedOriginsText(e.target.value)}
           placeholder={t("agent:embed.allowedOriginsPlaceholder")}
         />
+      </Field>
+
+      <Field>
+        <FieldLabel htmlFor="embed-title">{t("agent:embed.titleLabel")}</FieldLabel>
+        <FieldDescription>
+          {t("agent:embed.titleDescription", { name: agent.name })}
+        </FieldDescription>
+        <Input
+          id="embed-title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder={agent.name}
+        />
+      </Field>
+
+      <Field>
+        <FieldLabel htmlFor="embed-logo-url">{t("agent:embed.logoUrlLabel")}</FieldLabel>
+        <FieldDescription>{t("agent:embed.logoUrlDescription")}</FieldDescription>
+        <Input
+          id="embed-logo-url"
+          type="url"
+          value={logoUrl}
+          onChange={(e) => setLogoUrl(e.target.value)}
+          placeholder={t("agent:embed.logoUrlPlaceholder")}
+        />
+      </Field>
+
+      <Field>
+        <FieldLabel htmlFor="embed-primary-color">{t("agent:embed.primaryColorLabel")}</FieldLabel>
+        <FieldDescription>{t("agent:embed.primaryColorDescription")}</FieldDescription>
+        <div className="flex items-center gap-2">
+          <input
+            id="embed-primary-color-picker"
+            type="color"
+            value={primaryColor || "#2563eb"}
+            onChange={(e) => setPrimaryColor(e.target.value)}
+            className="h-9 w-10 cursor-pointer rounded border border-input p-0.5"
+          />
+          <Input
+            id="embed-primary-color"
+            value={primaryColor}
+            onChange={(e) => setPrimaryColor(e.target.value)}
+            placeholder="#2563eb"
+            className="font-mono"
+          />
+        </div>
       </Field>
 
       <Field orientation="horizontal" className="justify-end">

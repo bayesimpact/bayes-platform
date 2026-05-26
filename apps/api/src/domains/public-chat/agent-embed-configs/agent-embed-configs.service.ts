@@ -46,7 +46,9 @@ export class AgentEmbedConfigsService {
 
   async update(
     agentId: string,
-    fields: Partial<Pick<AgentEmbedConfig, "isEnabled" | "allowedOrigins">>,
+    fields: Partial<
+      Pick<AgentEmbedConfig, "isEnabled" | "allowedOrigins" | "title" | "logoUrl" | "primaryColor">
+    >,
   ): Promise<AgentEmbedConfig> {
     const config = await this.findByAgentIdOrFail(agentId)
     Object.assign(config, fields)

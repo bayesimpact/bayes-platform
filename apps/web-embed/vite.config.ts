@@ -13,7 +13,7 @@ const certsDir = path.resolve(__dirname, "../api/.certs")
  * then the dev server will pick it up automatically.
  */
 function serveBuiltLauncher(): Plugin {
-  const launcherPath = path.resolve(__dirname, "dist-launcher/launcher.js")
+  // Keep path here for documentation; actual resolution uses candidates below
   return {
     name: "serve-built-launcher",
     configureServer(server) {

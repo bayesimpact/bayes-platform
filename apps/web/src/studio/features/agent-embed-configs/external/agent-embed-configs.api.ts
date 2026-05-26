@@ -26,6 +26,9 @@ const fromDto = (dto: AgentEmbedConfigDto): AgentEmbedConfig => ({
   embedToken: dto.embedToken,
   isEnabled: dto.isEnabled,
   allowedOrigins: dto.allowedOrigins,
+  title: dto.title,
+  logoUrl: dto.logoUrl,
+  primaryColor: dto.primaryColor,
   createdAt: dto.createdAt,
   updatedAt: dto.updatedAt,
 })

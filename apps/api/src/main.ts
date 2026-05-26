@@ -15,7 +15,7 @@ const isProduction = process.env.NODE_ENV === "production"
 
 async function bootstrap() {
   enableDbListeners()
-  const frontendUrls = parseFrontendUrls(process.env.FRONTEND_URL)
+  const _frontendUrls = parseFrontendUrls(process.env.FRONTEND_URL)
   const httpsOptions = loadHttpsCertificates()
   const logLevels = getLogLevels()
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {

@@ -40,7 +40,14 @@ export class AgentEmbedConfigsManagementController {
     @Req() request: EndpointRequestWithAgent,
     @Body() { payload }: typeof AgentEmbedConfigsRoutes.updateOne.request,
   ): Promise<typeof AgentEmbedConfigsRoutes.updateOne.response> {
-    await this.agentEmbedConfigsService.update(request.agent.id, payload ?? {})
+    const { isEnabled, allowedOrigins, title, logoUrl, primaryColor } = payload ?? {}
+    await this.agentEmbedConfigsService.update(request.agent.id, {
+      isEnabled,
+      allowedOrigins,
+      title,
+      logoUrl,
+      primaryColor,
+    })
     return { data: { success: true } }
   }
 }
@@ -52,6 +59,9 @@ function toAgentEmbedConfigDto(entity: AgentEmbedConfig): AgentEmbedConfigDto {
     embedToken: entity.embedToken,
     isEnabled: entity.isEnabled,
     allowedOrigins: entity.allowedOrigins,
+    title: entity.title,
+    logoUrl: entity.logoUrl,
+    primaryColor: entity.primaryColor,
     createdAt: entity.createdAt.getTime(),
     updatedAt: entity.updatedAt.getTime(),
   }

@@ -1,6 +1,19 @@
-import type { PublicAgentSessionDto, StreamEventPayload } from "@caseai-connect/api-contracts"
+import type {
+  EmbedPublicConfigDto,
+  PublicAgentSessionDto,
+  StreamEventPayload,
+} from "@caseai-connect/api-contracts"
 
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:3000"
+
+// ─── Public embed config ───────────────────────────────────────────────────
+
+export async function getEmbedConfig(embedToken: string): Promise<EmbedPublicConfigDto> {
+  const response = await fetch(`${API_BASE}/public/agents/${embedToken}/config`)
+  if (!response.ok) throw new ApiError(response.status, "Failed to load embed config")
+  const json = (await response.json()) as { data: EmbedPublicConfigDto }
+  return json.data
+}
 
 // ─── Session management ────────────────────────────────────────────────────
 

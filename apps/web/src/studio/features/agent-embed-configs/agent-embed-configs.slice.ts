@@ -39,10 +39,14 @@ const slice = createSlice({
 
     builder.addCase(agentEmbedConfigsThunks.updateConfig.fulfilled, (state, action) => {
       if (ADS.isFulfilled(state.data)) {
+        const { isEnabled, allowedOrigins, title, logoUrl, primaryColor } = action.meta.arg
         state.data.value = {
           ...state.data.value,
-          isEnabled: action.meta.arg.isEnabled,
-          allowedOrigins: action.meta.arg.allowedOrigins,
+          isEnabled,
+          allowedOrigins,
+          title: title !== undefined ? title : state.data.value.title,
+          logoUrl: logoUrl !== undefined ? logoUrl : state.data.value.logoUrl,
+          primaryColor: primaryColor !== undefined ? primaryColor : state.data.value.primaryColor,
         }
       }
     })

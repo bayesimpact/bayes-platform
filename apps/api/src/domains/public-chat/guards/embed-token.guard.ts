@@ -27,6 +27,7 @@ export class EmbedTokenGuard implements CanActivate {
 
     const embedConfig = await this.agentEmbedConfigRepository.findOne({
       where: { embedToken },
+      relations: ["agent"],
     })
 
     if (!embedConfig) {

@@ -1,3 +1,4 @@
+import type { EmbedPublicConfigDto } from "../agent-embed-configs/agent-embed-configs.dto"
 import type { RequestPayload, ResponseData } from "../generic"
 import { defineRoute } from "../helpers"
 import type {
@@ -13,6 +14,11 @@ const agentBasePath = "public/agents/:embedToken"
 const sessionBasePath = `${agentBasePath}/sessions/:sessionId`
 
 export const PublicChatRoutes = {
+  getConfig: defineRoute<ResponseData<EmbedPublicConfigDto>>({
+    method: "get",
+    path: `${agentBasePath}/config`,
+  }),
+
   createSession: defineRoute<
     ResponseData<CreatePublicSessionResponseDto>,
     RequestPayload<CreatePublicSessionRequestDto>
