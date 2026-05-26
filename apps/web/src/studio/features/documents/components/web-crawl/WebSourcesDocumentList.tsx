@@ -1,4 +1,3 @@
-import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Collapsible, CollapsibleTrigger } from "@caseai-connect/ui/shad/collapsible"
@@ -18,7 +17,6 @@ import {
 } from "@caseai-connect/ui/shad/dropdown-menu"
 import { Field, FieldGroup, FieldLabel, FieldSet } from "@caseai-connect/ui/shad/field"
 import { Input } from "@caseai-connect/ui/shad/input"
-import { Item } from "@caseai-connect/ui/shad/item"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@caseai-connect/ui/shad/sheet"
 import {
   Table,
@@ -28,16 +26,15 @@ import {
   TableHeader,
   TableRow,
 } from "@caseai-connect/ui/shad/table"
+import { cn } from "@caseai-connect/ui/utils"
 import {
   ChevronDownIcon,
   ChevronRightIcon,
-  CloudAlertIcon,
   EllipsisVerticalIcon,
   ExternalLinkIcon,
   FileDownIcon,
   GlobeIcon,
   InfoIcon,
-  Loader2Icon,
   PencilIcon,
   RefreshCwIcon,
   RotateCcwIcon,
@@ -65,13 +62,10 @@ import { selectDocumentTagsData } from "@/studio/features/document-tags/document
 import { CrawlUrlButton } from "@/studio/features/documents/components/CrawlUrlButton"
 import { DocumentTagPicker } from "@/studio/features/documents/components/DocumentTagPicker"
 import { EmbeddingStatusBadge } from "@/studio/features/documents/components/EmbeddingStatusBadge"
-import { EmptyDocument } from "@/studio/features/documents/components/EmptyDocument"
-import { UploadDocumentsButton } from "@/studio/features/documents/components/UploadDocumentsButton"
 import type { Document } from "@/studio/features/documents/documents.models"
 import {
   selectCrawlProgressByDocumentId,
   selectDocumentsData,
-  selectUploaderState,
 } from "@/studio/features/documents/documents.selectors"
 import {
   deleteDocument,
@@ -81,7 +75,7 @@ import {
   updateDocument,
 } from "@/studio/features/documents/documents.thunks"
 
-export function WebCrawlDocumentList() {
+export function WebSourcesDocumentList() {
   const documents = useValue(selectDocumentsData)
   const documentTags = useValue(selectDocumentTagsData)
   const navigate = useNavigate()
@@ -92,8 +86,10 @@ export function WebCrawlDocumentList() {
   const getProjectRoute = useGetProjectRoute()
   const handleBack = () => navigate(getProjectRoute)
 
+  const hasDocuments = visibleDocuments.length > 0
+
   return (
-    <UploadDocumentsButton className="w-full">
+    <div className="w-full">
       <GridHeader
         onBack={handleBack}
         title={t("document:documents")}
@@ -107,11 +103,8 @@ export function WebCrawlDocumentList() {
         }
       />
 
-      <div className="p-6 flex flex-col gap-6 bg-white">
-        <UploaderStateComp />
-        {visibleDocuments.length === 0 ? (
-          <EmptyDocument />
-        ) : (
+      <div className={cn("flex flex-col gap-6 bg-white", hasDocuments && "p-6")}>
+        {hasDocuments && (
           <Table>
             <TableHeader>
               <TableRow>
@@ -137,7 +130,7 @@ export function WebCrawlDocumentList() {
           </Table>
         )}
       </div>
-    </UploadDocumentsButton>
+    </div>
   )
 }
 
@@ -160,7 +153,7 @@ function DocumentRow({
       <TableRow>
         <TableCell>
           <div className="flex items-center gap-2">
-            {hasPages ? (
+            {hasPages && (
               <Collapsible open={isOpen} onOpenChange={setIsOpen}>
                 <CollapsibleTrigger asChild>
                   <Button variant="ghost" size="icon" className="size-6 shrink-0">
@@ -172,9 +165,9 @@ function DocumentRow({
                   </Button>
                 </CollapsibleTrigger>
               </Collapsible>
-            ) : null}
+            )}
             <div className="flex items-center gap-1.5">
-              {isWebCrawl ? <GlobeIcon className="size-4 text-muted-foreground shrink-0" /> : null}
+              {isWebCrawl && <GlobeIcon className="size-4 text-muted-foreground shrink-0" />}
               <span className="truncate">{document.title}</span>
             </div>
           </div>
@@ -528,34 +521,6 @@ function MetaField({ label, value }: { label: string; value?: string }) {
     <div className="flex flex-col gap-1">
       <span className="font-medium">{label}:</span>
       <span className="text-muted-foreground">{value}</span>
-    </div>
-  )
-}
-
-function UploaderStateComp() {
-  const { t } = useTranslation("document")
-  const uploaderState = useAppSelector(selectUploaderState)
-  return (
-    <div className="flex flex-col gap-4 items-center justify-center">
-      {uploaderState.status === "uploading" && (
-        <Item variant="muted" className="w-full">
-          <Loader2Icon className="animate-spin size-5" />
-          <span className="text-sm">
-            {t("uploading", {
-              processed: uploaderState.processed,
-              total: uploaderState.total,
-            })}
-          </span>
-        </Item>
-      )}
-
-      {uploaderState.errors?.map((error, index) => (
-        <Alert key={`${error.title.length}-${index}`} className="text-destructive">
-          <CloudAlertIcon />
-          <AlertTitle>{error.title}</AlertTitle>
-          <AlertDescription>{error.description}</AlertDescription>
-        </Alert>
-      ))}
     </div>
   )
 }
