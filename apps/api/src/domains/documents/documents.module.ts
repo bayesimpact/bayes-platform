@@ -14,6 +14,7 @@ import { ProjectMembership } from "@/domains/projects/memberships/project-member
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
 import { UsersModule } from "@/domains/users/users.module"
+import { CrawlingController } from "./crawling/crawling.controller"
 import { DocumentCrawlProgressStreamService } from "./crawling/document-crawl-progress-stream.service"
 import { UrlCrawlingBatchModule } from "./crawling/url-crawling-batch.module"
 import { Document } from "./document.entity"
@@ -74,6 +75,7 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
   ],
   controllers: [
     DocumentsController,
+    CrawlingController,
     ...(process.env.NODE_ENV !== "production" ? [LocalPresignUploadController] : []),
   ],
   exports: [DocumentsService, DocumentChunkRetrievalService],
