@@ -3,6 +3,7 @@ import { authMiddleware } from "@/common/features/auth/auth.middleware"
 import { meMiddleware } from "@/common/features/me/me.middleware"
 import { getServices } from "@/di/services"
 import { organizationsMiddleware } from "../features/organizations/organizations.middleware"
+import { projectsMiddleware } from "../features/projects/projects.middleware"
 import { dynamicMiddleware } from "./dynamic-middleware"
 import { rootSlices } from "./root-slices"
 import type { RootState, ThunkExtraArg } from "./types"
@@ -23,6 +24,7 @@ export const buildStore = () =>
         authMiddleware.middleware,
         meMiddleware.middleware,
         organizationsMiddleware.middleware,
+        projectsMiddleware.middleware,
       ),
   })
 export const store = buildStore()

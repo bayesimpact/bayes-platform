@@ -7,7 +7,6 @@ import { agentSessionMessagesSlice } from "@/common/features/agents/agent-sessio
 import { baseAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.middleware"
 import { agentsMiddleware } from "@/common/features/agents/agents.middleware"
 import { agentsSlice } from "@/common/features/agents/agents.slice"
-import { projectsMiddleware } from "@/common/features/projects/projects.middleware"
 import { projectsSlice } from "@/common/features/projects/projects.slice"
 import { agentMembershipsMiddleware } from "@/studio/features/agent-memberships/agent-memberships.middleware"
 import { agentMembershipsSlice } from "@/studio/features/agent-memberships/agent-memberships.slice"
@@ -50,7 +49,6 @@ const studioMiddlewareList = [
   extractionAgentSessionsMiddleware,
   projectAnalyticsMiddleware,
   projectMembershipsMiddleware,
-  projectsMiddleware,
   reviewCampaignsMiddleware,
   reviewCampaignsReportsMiddleware,
   studioAgentsMiddleware,
