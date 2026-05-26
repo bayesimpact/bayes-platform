@@ -1,5 +1,7 @@
+import type { LanguageModelV3 } from "@ai-sdk/provider"
 import { AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
 import { NotImplementedException } from "@nestjs/common"
+import { trace } from "@opentelemetry/api"
 import {
   type FilePart,
   generateText,
@@ -7,6 +9,7 @@ import {
   jsonSchema,
   Output,
   ToolLoopAgent,
+  wrapLanguageModel,
 } from "ai"
 import { type ZodObject, z } from "zod"
 import type {
@@ -18,7 +21,87 @@ import type {
 } from "@/common/interfaces/llm-provider.interface"
 import { removeNullish } from "@/common/utils/remove-nullish"
 
+// OTel attribute keys under which we publish the raw LLM request body and
+// response. The `ai.telemetry.metadata.` prefix is required so the AI SDK
+// accepts the attribute and so LangfuseIntegrationExporter picks it up.
+// The exporter recognises these specific keys and surfaces them together
+// as a dedicated child span (named "llm.call") under each generation,
+// with the request as input and the response as output, instead of
+// burying them in the metadata blob.
+export const RAW_LLM_REQUEST_ATTR = "ai.telemetry.metadata.rawLlmRequest"
+export const RAW_LLM_RESPONSE_ATTR = "ai.telemetry.metadata.rawLlmResponse"
+
 export abstract class AISDKLLMProviderBase implements LLMProvider {
+  protected getLanguageModelWithRawCapture(args: {
+    config: LLMConfig
+    callOrigin: CallOrigin
+  }): LanguageModelV3 {
+    const baseModel = this.getLanguageModel(args)
+    return wrapLanguageModel({
+      model: baseModel,
+      middleware: {
+        specificationVersion: "v3",
+        wrapGenerate: async ({ doGenerate }) => {
+          const result = await doGenerate()
+          try {
+            const activeSpan = trace.getActiveSpan()
+            const req = result.request?.body
+            if (req !== undefined) {
+              activeSpan?.setAttribute(
+                RAW_LLM_REQUEST_ATTR,
+                typeof req === "string" ? req : JSON.stringify(req),
+              )
+            }
+            const raw = result.response?.body ?? result.content
+            activeSpan?.setAttribute(
+              RAW_LLM_RESPONSE_ATTR,
+              typeof raw === "string" ? raw : JSON.stringify(raw),
+            )
+          } catch {
+            // never let telemetry capture break the generation
+          }
+          return result
+        },
+        wrapStream: async ({ doStream }) => {
+          const { stream, ...rest } = await doStream()
+          try {
+            const req = rest.request?.body
+            if (req !== undefined) {
+              trace
+                .getActiveSpan()
+                ?.setAttribute(
+                  RAW_LLM_REQUEST_ATTR,
+                  typeof req === "string" ? req : JSON.stringify(req),
+                )
+            }
+          } catch {
+            // never let telemetry capture break the stream
+          }
+          const rawChunks: unknown[] = []
+          const transformed = stream.pipeThrough(
+            new TransformStream({
+              transform(chunk, controller) {
+                rawChunks.push(chunk)
+                controller.enqueue(chunk)
+              },
+              flush() {
+                try {
+                  const grouped = groupStreamChunksForReadability(rawChunks)
+                  trace
+                    .getActiveSpan()
+                    ?.setAttribute(RAW_LLM_RESPONSE_ATTR, JSON.stringify(grouped))
+                } catch {
+                  // never let telemetry capture break the stream
+                }
+              },
+            }),
+          )
+          return { stream: transformed, ...rest }
+        },
+      },
+    })
+  }
+
   async *streamChatResponse({
     messages,
     config,
@@ -51,7 +134,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
     const systemMessage = messages.find((msg) => msg.role === "system")?.content
 
     const agent = new ToolLoopAgent({
-      model: this.getLanguageModel({ config, callOrigin }),
+      model: this.getLanguageModelWithRawCapture({ config, callOrigin }),
       temperature: config.temperature,
       tools: config.tools,
       experimental_telemetry: {
@@ -106,7 +189,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
     }
 
     const result = await generateText({
-      model: this.getLanguageModel({ config, callOrigin }),
+      model: this.getLanguageModelWithRawCapture({ config, callOrigin }),
       messages: aiSDKMessages,
       system: config.systemPrompt,
       temperature: config.temperature,
@@ -132,7 +215,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
   }): Promise<string> {
     const callOrigin = CallOrigin.generateText
     const { text } = await generateText({
-      model: this.getLanguageModel({ config, callOrigin }),
+      model: this.getLanguageModelWithRawCapture({ config, callOrigin }),
       system: config.systemPrompt,
       prompt,
       temperature: config.temperature,
@@ -164,7 +247,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
   }): Promise<z.infer<T>> {
     const callOrigin = CallOrigin.generateObject
     const res = await generateText({
-      model: this.getLanguageModel({ config, callOrigin }),
+      model: this.getLanguageModelWithRawCapture({ config, callOrigin }),
       system: config.systemPrompt,
       prompt,
       temperature: config.temperature,
@@ -253,7 +336,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
     }
 
     const result = await generateText({
-      model: this.getLanguageModel({ config, callOrigin }),
+      model: this.getLanguageModelWithRawCapture({ config, callOrigin }),
       messages: aiSDKMessages,
       system: config.systemPrompt,
       temperature: config.temperature,
@@ -376,6 +459,91 @@ export enum CallOrigin {
   generateText = "generateText",
   generateObject = "generateObject",
   generateStructuredOutput = "generateStructuredOutput",
+}
+
+function groupStreamChunksForReadability(chunks: unknown[]): unknown[] {
+  const grouped: unknown[] = []
+  type DeltaKind = "text" | "tool-input" | "reasoning"
+  type Buffer = {
+    kind: DeltaKind
+    id?: string
+    text: string
+    // biome-ignore lint/suspicious/noExplicitAny: passthrough metadata varies
+    extra?: Record<string, any>
+  }
+  let buffer: Buffer | null = null
+
+  const startedField: Record<DeltaKind, string> = {
+    text: "text",
+    "tool-input": "input",
+    reasoning: "text",
+  }
+
+  const flushBuffer = () => {
+    if (buffer !== null) {
+      grouped.push({
+        type: `${buffer.kind}-stream-collapsed`,
+        ...(buffer.id !== undefined ? { id: buffer.id } : {}),
+        ...buffer.extra,
+        [startedField[buffer.kind]]: buffer.text,
+      })
+      buffer = null
+    }
+  }
+
+  const startBuffer = (kind: DeltaKind, c: Record<string, unknown>) => {
+    flushBuffer()
+    const { type: _ignored, id, delta: _ignored2, ...extra } = c
+    buffer = { kind, id: typeof id === "string" ? id : undefined, text: "", extra }
+  }
+
+  const appendDelta = (kind: DeltaKind, c: Record<string, unknown>) => {
+    if (buffer === null || buffer.kind !== kind) {
+      startBuffer(kind, c)
+    }
+    if (buffer !== null && typeof c.delta === "string") {
+      buffer.text += c.delta
+    }
+  }
+
+  for (const chunk of chunks) {
+    // biome-ignore lint/suspicious/noExplicitAny: stream chunk shape varies by provider
+    const c = chunk as any
+    switch (c?.type) {
+      case "text-start":
+        startBuffer("text", c)
+        break
+      case "text-delta":
+        appendDelta("text", c)
+        break
+      case "text-end":
+        flushBuffer()
+        break
+      case "tool-input-start":
+        startBuffer("tool-input", c)
+        break
+      case "tool-input-delta":
+        appendDelta("tool-input", c)
+        break
+      case "tool-input-end":
+        flushBuffer()
+        break
+      case "reasoning-start":
+        startBuffer("reasoning", c)
+        break
+      case "reasoning-delta":
+        appendDelta("reasoning", c)
+        break
+      case "reasoning-end":
+        flushBuffer()
+        break
+      default:
+        flushBuffer()
+        grouped.push(chunk)
+    }
+  }
+  flushBuffer()
+  return grouped
 }
 
 export function extractThoughtAndAnswer(raw: string) {
