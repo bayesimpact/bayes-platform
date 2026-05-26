@@ -17,14 +17,14 @@ import {
 } from "@caseai-connect/ui/shad/table"
 import { InboxIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { buildDate } from "@/common/utils/build-date"
 
 type Props = {
   rows: CampaignReportSessionRowDto[]
 }
 
 const shortenId = (id: string) => `${id.slice(0, 8)}…`
-const formatDate = (millis: number) =>
-  new Date(millis).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
+
 const formatRating = (rating: number | null): string => (rating === null ? "—" : rating.toFixed(2))
 
 export function ReportSessionMatrix({ rows }: Props) {
@@ -75,7 +75,7 @@ export function ReportSessionMatrix({ rows }: Props) {
                 {row.sessionType}
               </Badge>
             </TableCell>
-            <TableCell>{formatDate(row.startedAt)}</TableCell>
+            <TableCell>{buildDate(row.startedAt)}</TableCell>
             <TableCell className="text-right tabular-nums">
               {formatRating(row.testerRating)}
             </TableCell>

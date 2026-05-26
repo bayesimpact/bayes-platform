@@ -10,7 +10,7 @@ const documents = project.extend("/d")
 const webSources = project.extend("/web-sources")
 const document = documents.extend("/:documentId")
 const projectAnalytics = project.extend("/analytics")
-const evaluation = project.extend("/eval")
+const evaluation = project.extend("/evaluation")
 const projectMemberships = project.extend("/members")
 const projectMembership = projectMemberships.extend("/:membershipId")
 const reviewCampaigns = project.extend("/review-campaigns")
@@ -42,4 +42,5 @@ export const StudioRoutes = {
   webSources,
 }
 
+// FIXME: to be removed (alexis)
 export const isStudioInterface = () => window.location.pathname.startsWith(StudioRoutes.home.path)

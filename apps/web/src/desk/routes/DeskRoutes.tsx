@@ -1,73 +1,60 @@
-import { Outlet } from "react-router-dom"
-import type { Agent } from "@/common/features/agents/agents.models"
-import { AgentList } from "@/common/features/agents/components/AgentList"
+import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
+import { useValue } from "@/common/hooks/use-value"
 import { AgentRoute } from "@/common/routes/AgentRoute"
 import { AgentSessionRoute } from "@/common/routes/agents/AgentSessionRoute"
 import { ConversationAgentRoute } from "@/common/routes/agents/ConversationAgentRoute"
 import { ExtractionAgentRoute } from "@/common/routes/agents/ExtractionAgentRoute"
 import { FormAgentRoute } from "@/common/routes/agents/FormAgentRoute"
 import { RoutesBuilderProvider } from "@/common/routes/build-routes/RoutesBuilderProvider"
-import { DashboardRoute } from "@/common/routes/DashboardRoute"
 import { ErrorRoute } from "@/common/routes/ErrorRoute"
+import { OrganizationRoute } from "@/common/routes/OrganizationRoute"
 import { ProjectRoute } from "@/common/routes/ProjectRoute"
+import { AgentList } from "../features/agents/components/AgentList"
 import {
   ConversationAgentSessionList,
   ExtractionAgentSessionList,
   FormAgentSessionList,
 } from "../features/agents/components/AgentSessionList"
 import { DeskAgentSessionRoute } from "./DeskAgentSessionRoute"
-import { DeskDashboardRoute } from "./DeskDashboardRoute"
+import { DeskLayout } from "./DeskLayout"
+import { DeskRoute } from "./DeskRoute"
 import { DeskRoutes } from "./helpers"
 
 export const deskRoutes = {
   path: DeskRoutes.home.path,
-  element: <Outlet />,
+  element: <DeskRoute />,
   children: [
     {
-      path: DeskRoutes.organization.path,
+      path: DeskRoutes.project.path,
       element: (
-        <RoutesBuilderProvider
-          build={{
-            agentRoute: DeskRoutes.agent.build,
-            agentSessionRoute: DeskRoutes.agentSession.build,
-            projectRoute: DeskRoutes.project.build,
-          }}
-        >
-          <DashboardRoute>
-            {(user, _projects, organization) => (
-              <DeskDashboardRoute user={user} organization={organization} />
-            )}
-          </DashboardRoute>
-        </RoutesBuilderProvider>
+        <OrganizationRoute>
+          <ProjectRoute>
+            <RoutesBuilderProvider
+              build={{
+                agentRoute: DeskRoutes.agent.build,
+                agentSessionRoute: DeskRoutes.agentSession.build,
+                projectRoute: DeskRoutes.project.build,
+              }}
+            >
+              <DeskLayout>
+                <AgentList />
+              </DeskLayout>
+            </RoutesBuilderProvider>
+          </ProjectRoute>
+        </OrganizationRoute>
       ),
       children: [
         {
-          path: DeskRoutes.project.path,
+          path: DeskRoutes.agent.path,
           element: (
-            <ProjectRoute>
-              {(agents, project) => <AgentList project={project} agents={agents} />}
-            </ProjectRoute>
+            <AgentRoute>
+              <AgentHandler />
+            </AgentRoute>
           ),
           children: [
             {
-              path: DeskRoutes.agent.path,
-              element: <AgentRoute>{(agent) => <AgentHandler agent={agent} />}</AgentRoute>,
-              children: [
-                {
-                  path: DeskRoutes.agentSession.path,
-                  element: (
-                    <AgentSessionRoute>
-                      {(agent, agentSession, messages) => (
-                        <DeskAgentSessionRoute
-                          agent={agent}
-                          agentSession={agentSession}
-                          messages={messages}
-                        />
-                      )}
-                    </AgentSessionRoute>
-                  ),
-                },
-              ],
+              path: DeskRoutes.agentSession.path,
+              element: <AgentSessionRoute Component={DeskAgentSessionRoute} />,
             },
           ],
         },
@@ -76,28 +63,25 @@ export const deskRoutes = {
   ],
 }
 
-function AgentHandler({ agent }: { agent: Agent }) {
+function AgentHandler() {
+  const agent = useValue(selectCurrentAgentData)
   switch (agent.type) {
     case "conversation":
       return (
         <ConversationAgentRoute>
-          {(agentSessions) => (
-            <ConversationAgentSessionList agentSessions={agentSessions} agent={agent} />
-          )}
+          <ConversationAgentSessionList />
         </ConversationAgentRoute>
       )
     case "form":
       return (
         <FormAgentRoute>
-          {(agentSessions) => <FormAgentSessionList agentSessions={agentSessions} agent={agent} />}
+          <FormAgentSessionList />
         </FormAgentRoute>
       )
     case "extraction":
       return (
         <ExtractionAgentRoute>
-          {(agentSessions) => (
-            <ExtractionAgentSessionList agentSessions={agentSessions} agent={agent} />
-          )}
+          <ExtractionAgentSessionList />
         </ExtractionAgentRoute>
       )
     default:

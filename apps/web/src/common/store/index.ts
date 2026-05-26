@@ -1,14 +1,8 @@
 import { configureStore, type Reducer } from "@reduxjs/toolkit"
-import { extractionAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.middleware"
-import { agentSessionMessagesMiddleware } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.middleware"
-import { baseAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.middleware"
-import { agentsMiddleware } from "@/common/features/agents/agents.middleware"
 import { authMiddleware } from "@/common/features/auth/auth.middleware"
 import { meMiddleware } from "@/common/features/me/me.middleware"
-import { organizationsMiddleware } from "@/common/features/organizations/organizations.middleware"
-import { projectsMiddleware } from "@/common/features/projects/projects.middleware"
 import { getServices } from "@/di/services"
-import { reviewCampaignsReportsMiddleware } from "@/studio/features/review-campaigns/reports/reports.middleware"
+import { organizationsMiddleware } from "../features/organizations/organizations.middleware"
 import { dynamicMiddleware } from "./dynamic-middleware"
 import { rootSlices } from "./root-slices"
 import type { RootState, ThunkExtraArg } from "./types"
@@ -26,15 +20,9 @@ export const buildStore = () =>
         },
       }).prepend(
         dynamicMiddleware.middleware,
-        agentSessionMessagesMiddleware.middleware,
-        agentsMiddleware.middleware,
         authMiddleware.middleware,
-        extractionAgentSessionsMiddleware.middleware,
-        baseAgentSessionsMiddleware.middleware,
         meMiddleware.middleware,
         organizationsMiddleware.middleware,
-        projectsMiddleware.middleware,
-        reviewCampaignsReportsMiddleware.middleware,
       ),
   })
 export const store = buildStore()

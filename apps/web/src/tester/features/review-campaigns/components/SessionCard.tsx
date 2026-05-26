@@ -3,6 +3,7 @@ import { Button } from "@caseai-connect/ui/shad/button"
 import { Item, ItemContent } from "@caseai-connect/ui/shad/item"
 import { CheckCircle2Icon, CircleAlertIcon, MessageSquareIcon, Trash2Icon } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { buildDate } from "@/common/utils/build-date"
 
 export type TesterSessionSummary = {
   id: string
@@ -29,12 +30,6 @@ const STATUS_CONFIG: Record<
   abandoned: { variant: "secondary", icon: CircleAlertIcon },
 }
 
-const formatDate = (millis: number): string =>
-  new Date(millis).toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  })
-
 export function SessionCard({ session, onOpenFeedback, onDelete, onResume }: Props) {
   const { t } = useTranslation()
   const status = STATUS_CONFIG[session.feedbackStatus]
@@ -44,7 +39,7 @@ export function SessionCard({ session, onOpenFeedback, onDelete, onResume }: Pro
       <ItemContent className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
           <MessageSquareIcon className="size-4 text-muted-foreground" />
-          <span className="text-sm font-medium">{formatDate(session.startedAt)}</span>
+          <span className="text-sm font-medium">{buildDate(session.startedAt)}</span>
         </div>
         <Badge variant={status.variant} className="w-fit gap-1">
           <StatusIcon className="size-3" />{" "}

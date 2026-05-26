@@ -17,6 +17,7 @@ import {
 } from "@caseai-connect/ui/shad/table"
 import { MegaphoneIcon, PencilIcon, Trash2Icon } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { buildDate } from "@/common/utils/build-date"
 import { CampaignStatusBadge } from "./CampaignStatusBadge"
 
 type Props = {
@@ -26,13 +27,6 @@ type Props = {
   onDelete: (campaignId: string) => void
   onCreate?: () => void
 }
-
-const formatDate = (millis: number): string =>
-  new Date(millis).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })
 
 export function CampaignListTable({
   campaigns,
@@ -80,8 +74,8 @@ export function CampaignListTable({
                 <CampaignStatusBadge status={campaign.status} />
               </TableCell>
               <TableCell>{membershipCountByCampaign[campaign.id] ?? 0}</TableCell>
-              <TableCell>{formatDate(campaign.createdAt)}</TableCell>
-              <TableCell>{formatDate(campaign.updatedAt)}</TableCell>
+              <TableCell>{buildDate(campaign.createdAt)}</TableCell>
+              <TableCell>{buildDate(campaign.updatedAt)}</TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-1">
                   <Button

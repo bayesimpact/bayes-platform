@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
-import { getCurrentIds } from "@/common/features/helpers"
+import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import type { AgentMessageFeedback } from "./agent-message-feedback.models"
 
@@ -10,10 +10,9 @@ export const listAgentMessageFeedbacks = createAsyncThunk<
   { agentId: string },
   ThunkConfig
 >("agentMessageFeedback/list", async (params, { extra: { services }, getState }) => {
-  const { organizationId, projectId } = getCurrentIds({
-    state: getState(),
-    wantedIds: ["organizationId", "projectId"],
-  })
+  const state = getState()
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
   return await services.agentMessageFeedback.getAll({ ...params, organizationId, projectId })
 })
 
@@ -24,10 +23,9 @@ export const createAgentMessageFeedback = createAsyncThunk<
 >(
   "agentMessageFeedback/create",
   async ({ agentMessageId, content }, { extra: { services }, getState }) => {
-    const { organizationId, projectId } = getCurrentIds({
-      state: getState(),
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
     await services.agentMessageFeedback.createOne({
       organizationId,
       projectId,

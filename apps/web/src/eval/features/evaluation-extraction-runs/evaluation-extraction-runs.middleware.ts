@@ -1,6 +1,7 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
+import { currentIdsActions } from "@/eval/store/currentIds.slice"
 import {
   selectCurrentRecordsQuery,
   selectCurrentRunId,
@@ -15,6 +16,13 @@ import {
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
 function registerListeners() {
+  listenerMiddleware.startListening({
+    actionCreator: currentIdsActions.setDatasetId,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(evaluationExtractionRunsActions.getAll())
+    },
+  })
+
   listenerMiddleware.startListening({
     actionCreator: evaluationExtractionRunsActions.mount,
     effect: async (_, listenerApi) => {

@@ -29,6 +29,7 @@ type Props = {
 }
 
 export function TesterFeedbackModal({ open, questions, onSubmit, onAbandon }: Props) {
+  // FIXME: use useForm
   const { t } = useTranslation()
   const [overallRating, setOverallRating] = useState<number | null>(null)
   const [comment, setComment] = useState("")

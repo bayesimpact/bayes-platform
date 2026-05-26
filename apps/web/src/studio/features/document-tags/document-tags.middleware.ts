@@ -1,6 +1,6 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
-import { hasProjectChanged } from "@/common/features/projects/projects.selectors"
+import { projectsActions } from "@/common/features/projects/projects.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
   createDocumentTag,
@@ -14,9 +14,7 @@ const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 function registerListeners() {
   // Refresh DocumentTags when current project or interface changes
   listenerMiddleware.startListening({
-    predicate(_, currentState, originalState) {
-      return hasProjectChanged(originalState, currentState)
-    },
+    actionCreator: projectsActions.mount,
     effect: async (_, listenerApi) => {
       await listenerApi.dispatch(listDocumentTags())
     },

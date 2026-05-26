@@ -5,7 +5,7 @@ import type { Project } from "./projects.models"
 
 export const selectProjectsData = (state: RootState) => state.projects.data
 
-export const selectCurrentProjectId = (state: RootState) => state.projects.currentProjectId
+export const selectCurrentProjectId = (state: RootState) => state.currentIds.projectId
 
 export const selectCurrentProjectData = createSelector(
   [selectProjectsData, selectCurrentProjectId],
@@ -22,8 +22,9 @@ export const selectCurrentProjectData = createSelector(
   },
 )
 
-export const hasProjectChanged = (prevState: RootState, nextState: RootState): boolean => {
-  const prev = selectCurrentProjectData(prevState)
-  const next = selectCurrentProjectData(nextState)
-  return prev.value?.id !== next.value?.id && !!next.value?.id
+export const hasProjectChanged = (prev: RootState, next: RootState): boolean => {
+  if (!prev.currentIds || !next.currentIds) return false
+  const prevData = selectCurrentProjectData(prev)
+  const nextData = selectCurrentProjectData(next)
+  return prevData.value?.id !== nextData.value?.id && !!nextData.value?.id
 }

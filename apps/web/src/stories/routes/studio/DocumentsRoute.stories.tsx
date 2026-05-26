@@ -63,3 +63,66 @@ export const Default: Story = {
     }),
   ],
 }
+
+export const WithData: Story = {
+  args: {
+    organizationMembershipRole: "owner",
+    projectMembershipRole: "owner",
+    agentMembershipRole: "owner",
+    featureFlags: [],
+    withAgents: true,
+    withDocuments: true,
+    withDocumentTags: true,
+  },
+
+  decorators: [
+    buildDecorator<StoryArgs>(({ withDocuments, withDocumentTags, ...args }) => {
+      const { baseSeeds, project } = buildStudioData(args)
+      const documents = withDocuments
+        ? [
+            documentFactory
+              .transient({
+                project,
+              })
+              .build(),
+            documentFactory
+              .transient({
+                project,
+              })
+              .build({
+                embeddingStatus: "pending",
+              }),
+            documentFactory
+              .transient({
+                project,
+              })
+              .build({
+                embeddingStatus: "processing",
+              }),
+            documentFactory
+              .transient({
+                project,
+              })
+              .build({
+                embeddingError: "Some error message",
+                embeddingStatus: "failed",
+              }),
+          ]
+        : []
+      const documentTags = withDocumentTags
+        ? documentTagFactory
+            .transient({
+              project,
+            })
+            .buildList(3)
+        : []
+      return {
+        state: mergeSeeds(
+          baseSeeds,
+          seed.studio.documents(documents),
+          seed.studio.documentTags(documentTags),
+        ),
+      }
+    }),
+  ],
+}

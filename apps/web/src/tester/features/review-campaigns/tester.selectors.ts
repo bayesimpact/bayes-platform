@@ -1,22 +1,28 @@
+import { createSelector } from "@reduxjs/toolkit"
+import { selectCurrentAgentSessionId } from "@/common/features/agents/agent-sessions/current-agent-session-id/current-agent-session-id.selectors"
 import type { RootState } from "@/common/store"
-import { defaultAsyncData } from "@/common/store/async-data-status"
+import { ADS, type AsyncData } from "@/common/store/async-data-status"
+import type { LocalSessionSummary } from "./tester.slice"
 
-// `state.tester` is dynamically injected by `injectTesterSlices` (see
-// apps/web/src/tester/store/slices.ts) and torn down by `resetTesterSlices`,
-// so it can be `undefined` outside the tester scope OR briefly during
-// scope mount/unmount. RootState types it as required, but at runtime it
-// isn't — keep these selectors defensive so subscribed components don't
-// crash if they read during the gap.
-const testerState = (state: RootState) => state.tester?.reviewCampaignsTester
+export const selectMyReviewCampaigns = (state: RootState) => state.reviewCampaignsTester.myCampaigns
 
-export const selectMyReviewCampaigns = (state: RootState) =>
-  testerState(state)?.myCampaigns ?? defaultAsyncData
+export const selectTesterContext = (state: RootState) => state.reviewCampaignsTester.testerContext
 
-export const selectTesterContext = (state: RootState) =>
-  testerState(state)?.selectedContext ?? defaultAsyncData
+export const selectCurrentCampaignId = (state: RootState) => state.currentIds.reviewCampaignId
 
-export const selectMyLocalSessions = (campaignId: string) => (state: RootState) =>
-  testerState(state)?.mySessionsByCampaignId[campaignId] ?? []
+export const selectCampaignSessions = (state: RootState) =>
+  state.reviewCampaignsTester.campaignSessions
 
-export const selectMySurveyForCampaign = (campaignId: string) => (state: RootState) =>
-  testerState(state)?.selectedSurveyByCampaignId[campaignId]
+export const selectCampaignSurvey = (state: RootState) => state.reviewCampaignsTester.campaignSurvey
+
+export const selectCurrentAgentSession = createSelector(
+  [selectCampaignSessions, selectCurrentAgentSessionId],
+  (sessions, sessionId): AsyncData<LocalSessionSummary> => {
+    if (!sessionId) return { status: ADS.Error, value: null, error: "No Session selected" }
+    if (!ADS.isFulfilled(sessions)) return { ...sessions }
+    const session = sessions.value.find((s) => s.id === sessionId)
+    if (!session)
+      return { status: ADS.Error, value: null, error: "Session not found in current project" }
+    return { status: ADS.Fulfilled, value: session, error: null }
+  },
+)

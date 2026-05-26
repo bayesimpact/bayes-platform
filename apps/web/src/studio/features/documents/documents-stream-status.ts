@@ -50,7 +50,7 @@ export function syncDocumentEmbeddingStatusStreamWithDocuments(
 }
 
 export async function handleDocumentsContextChanged(listenerApi: StreamListenerApi): Promise<void> {
-  if (!listenerApi.getState().studio.documents.currentSourceType) return
+  if (!listenerApi.getState().documents.currentSourceType) return
   await listenerApi.dispatch(listDocuments())
   syncDocumentEmbeddingStatusStreamWithDocuments(listenerApi)
 }

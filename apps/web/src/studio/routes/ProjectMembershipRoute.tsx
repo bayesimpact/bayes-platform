@@ -17,57 +17,48 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import { ArrowUpDownIcon } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { useNavigate, useParams } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
+import { useMount } from "@/common/hooks/use-mount"
+import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
-import { ErrorRoute } from "@/common/routes/ErrorRoute"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
-import { ADS } from "@/common/store/async-data-status"
-import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import { useAppSelector } from "@/common/store/hooks"
 import { BadgeWithIcon } from "@/studio/features/project-memberships/components/ProjectMembershipItem"
-import type {
-  ProjectMemberAgent,
-  ProjectMembership,
-} from "@/studio/features/project-memberships/project-memberships.models"
+import type { ProjectMemberAgent } from "@/studio/features/project-memberships/project-memberships.models"
 import {
+  selectCurrentProjectMembership,
+  selectCurrentProjectMembershipId,
   selectProjectMemberAgents,
   selectProjectMemberships,
 } from "@/studio/features/project-memberships/project-memberships.selectors"
-import { listProjectMemberAgents } from "@/studio/features/project-memberships/project-memberships.thunks"
+import { projectMembershipsActions } from "../features/project-memberships/project-memberships.slice"
 
 export function ProjectMembershipRoute() {
-  const { membershipId } = useParams<{ membershipId: string }>()
+  const membershipId = useAppSelector(selectCurrentProjectMembershipId)
   const memberships = useAppSelector(selectProjectMemberships)
   const project = useAppSelector(selectCurrentProjectData)
+  const memberAgents = useAppSelector(selectProjectMemberAgents)
 
+  useMount({ actions: projectMembershipsActions, condition: !!membershipId })
+
+  if (!membershipId) return <LoadingRoute />
   return (
-    <AsyncRoute data={[memberships, project]}>
-      {([membershipsValue, projectValue]) => {
-        const membership = membershipsValue.find((item) => item.id === membershipId)
-        if (!membership) return <ErrorRoute error="Membership not found" />
-        return <WithData membership={membership} projectName={projectValue.name} />
-      }}
+    <AsyncRoute data={[memberships, project, memberAgents]}>
+      <WithData />
     </AsyncRoute>
   )
 }
 
-function WithData({
-  membership,
-  projectName,
-}: {
-  membership: ProjectMembership
-  projectName: string
-}) {
+function WithData() {
+  const project = useValue(selectCurrentProjectData)
+  const projectName = project.name
+  const membership = useValue(selectCurrentProjectMembership)
+  const memberAgents = useValue(selectProjectMemberAgents)
   const navigate = useNavigate()
-  const dispatch = useAppDispatch()
-  const memberAgents = useAppSelector(selectProjectMemberAgents)
-
-  useEffect(() => {
-    dispatch(listProjectMemberAgents({ membershipId: membership.id }))
-  }, [dispatch, membership.id])
 
   const handleBack = () => {
     navigate(-1)
@@ -98,11 +89,7 @@ const ROLE_ORDER: Record<NonNullable<ProjectMemberAgent["role"]>, number> = {
   member: 2,
 }
 
-function MemberAgentsTable({
-  memberAgents,
-}: {
-  memberAgents: ReturnType<typeof selectProjectMemberAgents>
-}) {
+function MemberAgentsTable({ memberAgents }: { memberAgents: ProjectMemberAgent[] }) {
   const { t } = useTranslation()
   const [sorting, setSorting] = useState<SortingState>([])
 
@@ -136,13 +123,8 @@ function MemberAgentsTable({
     [t],
   )
 
-  const data = useMemo(
-    () => (ADS.isFulfilled(memberAgents) ? memberAgents.value : []),
-    [memberAgents],
-  )
-
   const table = useReactTable({
-    data,
+    data: memberAgents,
     columns,
     state: { sorting },
     onSortingChange: setSorting,
@@ -150,13 +132,6 @@ function MemberAgentsTable({
     getSortedRowModel: getSortedRowModel(),
     getRowId: (row) => row.agentId,
   })
-
-  if (ADS.isError(memberAgents)) {
-    return <ErrorRoute error={memberAgents.error || "Failed to load agents"} />
-  }
-  if (!ADS.isFulfilled(memberAgents)) {
-    return <LoadingRoute />
-  }
 
   return (
     <div className="w-full rounded-lg border overflow-hidden">

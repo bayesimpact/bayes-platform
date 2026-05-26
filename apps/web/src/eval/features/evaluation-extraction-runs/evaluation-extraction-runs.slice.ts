@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
+import { currentIdsActions } from "@/eval/store/currentIds.slice"
 import type {
   EvaluationExtractionRun,
   EvaluationExtractionRunStatus,
@@ -17,7 +18,8 @@ interface RecordsQuery {
 }
 
 interface State {
-  currentRunId: string | null
+  // Mirrors state.currentIds.runId; kept locally so reducers can guard stale responses.
+  currentRunId: string | null // FIXME:
   data: AsyncData<EvaluationExtractionRun[]>
   currentRun: AsyncData<EvaluationExtractionRun>
   currentRunRecords: AsyncData<PaginatedEvaluationExtractionRunRecords>
@@ -49,14 +51,6 @@ const slice = createSlice({
     mount: () => {},
     unmount: () => {},
     reset: () => initialState,
-    setCurrentRunId: (state, action: PayloadAction<{ runId: string | null }>) => {
-      if (state.currentRunId !== action.payload.runId) {
-        state.currentRunRecords = defaultAsyncData
-        state.currentRecordsQuery = defaultRecordsQuery
-        state.currentRun = defaultAsyncData
-      }
-      state.currentRunId = action.payload.runId
-    },
     startRunStatusStream: (state) => {
       state.runStatusStream.isActive = true
     },
@@ -96,6 +90,16 @@ const slice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    // Sync currentRunId from URL-driven currentIds slice and clear stale per-run state on change.
+    builder.addCase(currentIdsActions.setRunId, (state, action) => {
+      if (state.currentRunId !== action.payload) {
+        state.currentRunRecords = defaultAsyncData
+        state.currentRecordsQuery = defaultRecordsQuery
+        state.currentRun = defaultAsyncData
+        state.currentRunId = action.payload
+      }
+    })
+
     // getAll
     builder
       .addCase(evaluationExtractionRunsThunks.getAll.pending, (state) => {

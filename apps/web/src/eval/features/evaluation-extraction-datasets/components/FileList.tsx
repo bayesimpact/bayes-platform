@@ -22,7 +22,7 @@ import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
 import type { EvaluationExtractionDatasetFile } from "@/eval/features/evaluation-extraction-datasets/evaluation-extraction-datasets.models"
 import { selectFilesData } from "@/eval/features/evaluation-extraction-datasets/evaluation-extraction-datasets.selectors"
-import { evaluationExtractionDatasetsActions } from "@/eval/features/evaluation-extraction-datasets/evaluation-extraction-datasets.slice"
+import { currentIdsActions } from "@/eval/store/currentIds.slice"
 import { EmptyFile } from "./EmptyFile"
 import { UploadFile } from "./UploadFile"
 import { UploaderState } from "./UploadState"
@@ -91,7 +91,7 @@ function FileActions({ file }: { file: EvaluationExtractionDatasetFile }) {
   const dispatch = useAppDispatch()
   const { t } = useTranslation()
   const handleSelect = () => {
-    dispatch(evaluationExtractionDatasetsActions.setCurrentFileId({ fileId: file.id }))
+    dispatch(currentIdsActions.setFileId(file.id))
   }
   return (
     <div className="flex items-center gap-2">

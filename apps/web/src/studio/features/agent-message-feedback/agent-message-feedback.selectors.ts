@@ -5,13 +5,12 @@ import { ADS, type AsyncData } from "@/common/store/async-data-status"
 import type { AgentMessageFeedback } from "./agent-message-feedback.models"
 
 export const selectAgentMessageFeedbackStatus = (state: RootState) =>
-  state.studio.agentMessageFeedback.data.status
+  state.agentMessageFeedback.data.status
 
 export const selectAgentMessageFeedbackError = (state: RootState) =>
-  state.studio.agentMessageFeedback.data.error
+  state.agentMessageFeedback.data.error
 
-export const selectAgentMessageFeedbackData = (state: RootState) =>
-  state.studio.agentMessageFeedback.data
+export const selectAgentMessageFeedbackData = (state: RootState) => state.agentMessageFeedback.data
 
 const missingAgentId = { status: ADS.Error, value: null, error: "No agent selected" }
 const missingFeedbacks = { status: ADS.Error, value: null, error: "No feedbacks available" }
@@ -31,7 +30,7 @@ export const selectFeedbacksFromAgentId = (agentId?: string | null) =>
   )
 
 export const selectCurrentFeedbackId = (state: RootState) =>
-  state.studio.agentMessageFeedback.currentFeedbackId
+  state.agentMessageFeedback.currentFeedbackId
 
 export const selectCurrentAgentFeedbacksData = createSelector(
   [selectCurrentAgentId, selectAgentMessageFeedbackData],

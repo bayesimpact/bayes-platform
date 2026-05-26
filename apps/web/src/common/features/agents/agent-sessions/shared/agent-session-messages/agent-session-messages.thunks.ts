@@ -1,6 +1,6 @@
 import { ToolName } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
-import { getCurrentIds } from "@/common/features/helpers"
+import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import { generateId } from "@/common/utils/generate-id"
 import { refreshFormResultForCurrentAgentSession } from "../../form/form-agent-sessions.thunks"
@@ -15,10 +15,10 @@ export const listMessages = createAsyncThunk<AgentSessionMessage[], string, Thun
   "agentSessionMessages/listMessages",
   async (agentSessionId, { extra: { services }, getState }) => {
     const state = getState()
-    const params = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId", "agentId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const agentId = getCurrentId({ state, name: "agentId" })
+    const params = { organizationId, projectId, agentId }
     return services.agentSessionMessages.getAll({
       ...params,
       agentSessionId,
@@ -31,10 +31,11 @@ export const getMessage = createAsyncThunk<AgentSessionMessage, string, ThunkCon
   "agentSessionMessages/getMessage",
   async (messageId, { extra: { services }, getState }) => {
     const state = getState()
-    const params = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId", "agentId", "agentSessionId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const agentId = getCurrentId({ state, name: "agentId" })
+    const agentSessionId = getCurrentId({ state, name: "agentSessionId" })
+    const params = { organizationId, projectId, agentId, agentSessionId }
     return services.agentSessionMessages.getOne({
       ...params,
       messageId,
@@ -51,10 +52,11 @@ export const getAttachmentDocumentTemporaryUrl = createAsyncThunk<
   "agentSessionMessages/getAttachmentDocumentTemporaryUrl",
   async ({ attachmentDocumentId }, { extra: { services }, getState }) => {
     const state = getState()
-    const params = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId", "agentId", "agentSessionId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const agentId = getCurrentId({ state, name: "agentId" })
+    const agentSessionId = getCurrentId({ state, name: "agentSessionId" })
+    const params = { organizationId, projectId, agentId, agentSessionId }
     return services.agentSessionMessages.getAttachmentDocumentTemporaryUrl({
       ...params,
       attachmentDocumentId,
@@ -67,10 +69,10 @@ export const sendMessage = createAsyncThunk<void, { content: string; file?: File
   "agentSessionMessages/sendMessage",
   async ({ content, file }, { extra: { services }, dispatch, getState, signal }) => {
     const state = getState()
-    const { organizationId, projectId, agentId, agentSessionId } = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId", "agentId", "agentSessionId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const agentId = getCurrentId({ state, name: "agentId" })
+    const agentSessionId = getCurrentId({ state, name: "agentSessionId" })
 
     // Guard: don't allow sending if already streaming
     if (state.agentSessionMessages.isStreaming) {

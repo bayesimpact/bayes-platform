@@ -4,14 +4,12 @@ import type { AnalyticsCategoryDailyPoint, AnalyticsDailyPoint } from "./analyti
 
 export const selectAnalyticsConversationsPerDay = (
   state: RootState,
-): AsyncData<AnalyticsDailyPoint[]> => state.studio.projectAnalytics.conversationsPerDay
+): AsyncData<AnalyticsDailyPoint[]> => state.projectAnalytics.conversationsPerDay
 
 export const selectAnalyticsAvgUserQuestionsPerSessionPerDay = (
   state: RootState,
-): AsyncData<AnalyticsDailyPoint[]> =>
-  state.studio.projectAnalytics.avgUserQuestionsPerSessionPerDay
+): AsyncData<AnalyticsDailyPoint[]> => state.projectAnalytics.avgUserQuestionsPerSessionPerDay
 
 export const selectAnalyticsConversationsByCategoryPerDay = (
   state: RootState,
-): AsyncData<AnalyticsCategoryDailyPoint[]> =>
-  state.studio.projectAnalytics.conversationsByCategoryPerDay
+): AsyncData<AnalyticsCategoryDailyPoint[]> => state.projectAnalytics.conversationsByCategoryPerDay

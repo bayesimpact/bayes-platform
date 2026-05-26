@@ -1,4 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
+import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import type {
   ReviewerCampaign,
@@ -39,16 +40,28 @@ export const getReviewerSession = createAsyncThunk<
 
 export const submitReviewerReview = createAsyncThunk<
   ReviewerSessionReview,
-  SessionScopeArg & { fields: SubmitReviewerReviewFields },
+  { fields: SubmitReviewerReviewFields },
   ThunkConfig
->("reviewer/submitReview", async ({ fields, ...params }, { extra: { services } }) => {
-  return await services.reviewCampaignsReviewer.submitReview(params, fields)
+>("reviewer/submitReview", async ({ fields }, { getState, extra: { services } }) => {
+  const state = getState()
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  const reviewCampaignId = getCurrentId({ state, name: "reviewCampaignId" })
+  const sessionId = getCurrentId({ state, name: "agentSessionId" })
+  const scope = { organizationId, projectId, reviewCampaignId, sessionId }
+  return await services.reviewCampaignsReviewer.submitReview(scope, fields)
 })
 
 export const updateReviewerReview = createAsyncThunk<
   ReviewerSessionReview,
-  SessionScopeArg & { reviewId: string; fields: UpdateReviewerReviewFields },
+  { reviewId: string; fields: UpdateReviewerReviewFields },
   ThunkConfig
->("reviewer/updateReview", async ({ fields, ...params }, { extra: { services } }) => {
-  return await services.reviewCampaignsReviewer.updateReview(params, fields)
+>("reviewer/updateReview", async ({ fields, reviewId }, { getState, extra: { services } }) => {
+  const state = getState()
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  const reviewCampaignId = getCurrentId({ state, name: "reviewCampaignId" })
+  const sessionId = getCurrentId({ state, name: "agentSessionId" })
+  const scope = { organizationId, projectId, reviewCampaignId, sessionId, reviewId }
+  return await services.reviewCampaignsReviewer.updateReview(scope, fields)
 })

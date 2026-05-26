@@ -14,9 +14,8 @@ import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
-import { ADS } from "@/common/store/async-data-status"
+import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import type { AnalyticsCategoryDailyPoint } from "@/studio/features/analytics/project/analytics.models"
 import {
   selectAnalyticsAvgUserQuestionsPerSessionPerDay,
   selectAnalyticsConversationsByCategoryPerDay,
@@ -52,6 +51,7 @@ export function ProjectAnalyticsRoute() {
   const [bounds, setBounds] = useState(getInitialAnalyticsBounds)
   const [selectedAgentId, setSelectedAgentId] = useState<string>("all")
 
+  // FIXME: useMount
   useEffect(() => {
     void dispatch(
       loadProjectAnalytics({
@@ -65,47 +65,36 @@ export function ProjectAnalyticsRoute() {
   const avgQuestions = useAppSelector(selectAnalyticsAvgUserQuestionsPerSessionPerDay)
   const conversationsByCategoryPerDay = useAppSelector(selectAnalyticsConversationsByCategoryPerDay)
   const agentsData = useAppSelector(selectAgentsData)
-  const agents = ADS.isFulfilled(agentsData) ? agentsData.value : []
 
   return (
-    <AsyncRoute data={[conversations, avgQuestions, conversationsByCategoryPerDay]}>
-      {([conversationsPoints, avgQuestionsPoints, categoryPoints]) => (
-        <WithData
-          conversationsPoints={conversationsPoints}
-          avgQuestionsPoints={avgQuestionsPoints}
-          categoryPoints={categoryPoints}
-          onAnalyticsRangeChange={setBounds}
-          agents={agents}
-          selectedAgentId={selectedAgentId}
-          onAgentChange={setSelectedAgentId}
-        />
-      )}
+    <AsyncRoute data={[agentsData, conversations, avgQuestions, conversationsByCategoryPerDay]}>
+      <WithData
+        onAnalyticsRangeChange={setBounds}
+        selectedAgentId={selectedAgentId}
+        onAgentChange={setSelectedAgentId}
+      />
     </AsyncRoute>
   )
 }
 
 function WithData({
-  conversationsPoints,
-  avgQuestionsPoints,
-  categoryPoints,
   onAnalyticsRangeChange,
-  agents,
   selectedAgentId,
   onAgentChange,
 }: {
-  conversationsPoints: { date: string; value: number }[]
-  avgQuestionsPoints: { date: string; value: number }[]
-  categoryPoints: AnalyticsCategoryDailyPoint[]
   onAnalyticsRangeChange: (nextBounds: { startAt: number; endAt: number }) => void
-  agents: { id: string; name: string }[]
   selectedAgentId: string
   onAgentChange: (agentId: string) => void
 }) {
+  const agents = useValue(selectAgentsData)
+  const conversationsPoints = useValue(selectAnalyticsConversationsPerDay)
+  const avgQuestionsPoints = useValue(selectAnalyticsAvgUserQuestionsPerSessionPerDay)
+  const categoryPoints = useValue(selectAnalyticsConversationsByCategoryPerDay)
   const { t } = useTranslation("analytics")
   const navigate = useNavigate()
-  const getProjectRoute = useGetProjectRoute()
+  const projectRoute = useGetProjectRoute()
 
-  const handleBack = () => navigate(getProjectRoute())
+  const handleBack = () => navigate(projectRoute)
 
   const onRangeChange = useCallback(
     (range: DateRange | undefined) => {

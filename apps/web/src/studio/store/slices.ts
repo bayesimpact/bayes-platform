@@ -1,6 +1,14 @@
-import { combineReducers } from "@reduxjs/toolkit"
-import type { AppDispatch } from "@/common/store"
-import { rootSlices } from "@/common/store/root-slices"
+import { conversationAgentSessionsSlice } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.slice"
+import { extractionAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.middleware"
+import { extractionAgentSessionsSlice } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.slice"
+import { formAgentSessionsSlice } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.slice"
+import { agentSessionMessagesMiddleware } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.middleware"
+import { agentSessionMessagesSlice } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.slice"
+import { baseAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.middleware"
+import { agentsMiddleware } from "@/common/features/agents/agents.middleware"
+import { agentsSlice } from "@/common/features/agents/agents.slice"
+import { projectsMiddleware } from "@/common/features/projects/projects.middleware"
+import { projectsSlice } from "@/common/features/projects/projects.slice"
 import { agentMembershipsMiddleware } from "@/studio/features/agent-memberships/agent-memberships.middleware"
 import { agentMembershipsSlice } from "@/studio/features/agent-memberships/agent-memberships.slice"
 import { agentMessageFeedbackMiddleware } from "@/studio/features/agent-message-feedback/agent-message-feedback.middleware"
@@ -19,72 +27,59 @@ import { projectMembershipsMiddleware } from "@/studio/features/project-membersh
 import { projectMembershipsSlice } from "@/studio/features/project-memberships/project-memberships.slice"
 import { reviewCampaignsMiddleware } from "@/studio/features/review-campaigns/review-campaigns.middleware"
 import { reviewCampaignsSlice } from "@/studio/features/review-campaigns/review-campaigns.slice"
-import { dynamicMiddleware } from "../../common/store/dynamic-middleware"
+import { createSliceManager } from "../../common/store/dynamic-middleware"
 import { studioAgentsMiddleware } from "../features/agents/agents.middleware"
 import { documentsMiddleware } from "../features/documents/documents.middleware"
 import { documentsSlice } from "../features/documents/documents.slice"
 import { studioProjectsMiddleware } from "../features/projects/projects.middleware"
-import type { StudioState } from "./types"
-
-let middlewareInjected = false
+import { reviewCampaignsReportsMiddleware } from "../features/review-campaigns/reports/reports.middleware"
+import { reviewCampaignsReportsSlice } from "../features/review-campaigns/reports/reports.slice"
+import { currentIdsSlice } from "./currentIds.slice"
 
 const studioMiddlewareList = [
-  projectAnalyticsMiddleware,
   agentAnalyticsMiddleware,
   agentMembershipsMiddleware,
   agentMessageFeedbackMiddleware,
+  agentSessionMessagesMiddleware,
+  agentsMiddleware,
+  baseAgentSessionsMiddleware,
   documentsMiddleware,
   documentTagsMiddleware,
   evaluationReportsMiddleware,
   evaluationsMiddleware,
+  extractionAgentSessionsMiddleware,
+  projectAnalyticsMiddleware,
   projectMembershipsMiddleware,
+  projectsMiddleware,
   reviewCampaignsMiddleware,
-  studioProjectsMiddleware,
+  reviewCampaignsReportsMiddleware,
   studioAgentsMiddleware,
+  studioProjectsMiddleware,
 ]
 
 export const studioSliceList = [
-  projectAnalyticsSlice,
   agentAnalyticsSlice,
   agentMembershipsSlice,
   agentMessageFeedbackSlice,
+  agentSessionMessagesSlice,
+  agentsSlice,
+  conversationAgentSessionsSlice,
+  currentIdsSlice,
   documentsSlice,
   documentTagsSlice,
   evaluationReportsSlice,
   evaluationsSlice,
+  extractionAgentSessionsSlice,
+  formAgentSessionsSlice,
+  projectAnalyticsSlice,
   projectMembershipsSlice,
+  projectsSlice,
+  reviewCampaignsReportsSlice,
   reviewCampaignsSlice,
 ]
 
-const studioReducers = combineReducers(
-  Object.assign({}, ...studioSliceList.map((slice) => ({ [slice.name]: slice.reducer }))),
-)
-
-export function injectStudioSlices() {
-  const rr = rootSlices.withLazyLoadedSlices<StudioState>()
-  // Reducers: inject() is idempotent — safe to call on every mount
-  rr.inject({
-    reducerPath: "studio",
-    // @ts-expect-error - TypeScript cannot infer the type of the combined reducers, but it is correct
-    reducer: studioReducers,
+export const { injectSlices: injectStudioSlices, resetSlices: resetStudioSlices } =
+  createSliceManager({
+    middlewares: studioMiddlewareList,
+    slices: studioSliceList,
   })
-
-  // Middleware: addMiddleware is NOT idempotent — guard against duplicate registration
-  if (!middlewareInjected) {
-    middlewareInjected = true
-    studioMiddlewareList.forEach((m) => {
-      dynamicMiddleware.addMiddleware(m.listenerMiddleware.middleware)
-      m.registerListeners()
-    })
-  }
-}
-
-export function resetStudioSlices(dispatch: AppDispatch) {
-  middlewareInjected = false // reset the guard so middleware can be re-added
-  studioSliceList.forEach((slice) => {
-    dispatch(slice.actions.reset())
-  })
-  studioMiddlewareList.forEach((m) => {
-    m.listenerMiddleware.clearListeners()
-  })
-}

@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
-import { getCurrentIds } from "@/common/features/helpers"
+import { getCurrentId } from "@/common/features/helpers"
 import { hasFeatureOrThrow } from "@/common/hooks/use-feature-flags"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import type { Evaluation } from "./evaluations.models"
@@ -11,7 +11,9 @@ export const listEvaluations = createAsyncThunk<Evaluation[], void, ThunkConfig>
   async (_, { extra: { services }, getState }) => {
     const state = getState()
     hasFeatureOrThrow({ state, feature: "evaluation" })
-    const params = getCurrentIds({ state, wantedIds: ["organizationId", "projectId"] })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId }
     return await services.evaluations.getAll(params)
   },
 )
@@ -23,10 +25,8 @@ export const createEvaluation = createAsyncThunk<
 >("evaluations/create", async (payload, { extra: { services }, getState }) => {
   const state = getState()
   hasFeatureOrThrow({ state, feature: "evaluation" })
-  const { organizationId, projectId } = getCurrentIds({
-    state,
-    wantedIds: ["organizationId", "projectId"],
-  })
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
   return await services.evaluations.createOne(
     { organizationId, projectId },
     {
@@ -43,10 +43,8 @@ export const updateEvaluation = createAsyncThunk<
 >("evaluations/update", async ({ evaluationId, fields }, { extra: { services }, getState }) => {
   const state = getState()
   hasFeatureOrThrow({ state, feature: "evaluation" })
-  const { organizationId, projectId } = getCurrentIds({
-    state,
-    wantedIds: ["organizationId", "projectId"],
-  })
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
   await services.evaluations.updateOne({ organizationId, projectId, evaluationId }, fields)
 })
 
@@ -55,10 +53,8 @@ export const deleteEvaluation = createAsyncThunk<void, { evaluationId: string },
   async ({ evaluationId }, { extra: { services }, getState }) => {
     const state = getState()
     hasFeatureOrThrow({ state, feature: "evaluation" })
-    const { organizationId, projectId } = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
     return await services.evaluations.deleteOne({
       organizationId,
       projectId,

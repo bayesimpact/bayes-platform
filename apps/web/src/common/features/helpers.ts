@@ -1,49 +1,12 @@
 import type { RootState } from "@/common/store/types"
-import { selectCurrentAgentSessionId } from "./agents/agent-sessions/current-agent-session-id/current-agent-session-id.selectors"
-import { selectCurrentAgentId } from "./agents/agents.selectors"
-import { selectCurrentOrganizationId } from "./organizations/organizations.selectors"
-import { selectCurrentProjectId } from "./projects/projects.selectors"
+import { assert } from "../utils/assert"
 
-type IdKey = "organizationId" | "projectId" | "agentId" | "agentSessionId"
-type GetIdsResult<T extends readonly IdKey[]> = {
-  [K in T[number]]: string
-}
-
-export const getCurrentIds = <T extends readonly IdKey[]>({
-  state,
-  wantedIds,
-}: {
-  state: RootState
-  wantedIds: T
-}): GetIdsResult<T> => {
-  const result: Partial<Record<T[number], string>> = {}
-  const idLookups = {
-    organizationId: {
-      label: "Organization",
-      select: selectCurrentOrganizationId,
-    },
-    projectId: {
-      label: "Project",
-      select: selectCurrentProjectId,
-    },
-    agentId: {
-      label: "Agent",
-      select: selectCurrentAgentId,
-    },
-    agentSessionId: {
-      label: "Agent Session",
-      select: selectCurrentAgentSessionId,
-    },
-  } as const
-
-  for (const idKey of wantedIds) {
-    const { label, select } = idLookups[idKey]
-    const value = select(state)
-    if (!value) {
-      throw new Error(`No current ${label} ID found.`)
-    }
-    result[idKey as keyof typeof result] = value
+export function getCurrentId({ state, name }: { state: RootState; name: string }): string {
+  if (!name.endsWith("Id")) {
+    throw new Error(`Invalid ID name: ${name}. Expected to end with 'Id'.`)
   }
-
-  return result as GetIdsResult<T>
+  const currentIds = state.currentIds
+  const value = currentIds[name as keyof typeof currentIds]
+  assert(value, `No current ${name} found.`)
+  return value
 }

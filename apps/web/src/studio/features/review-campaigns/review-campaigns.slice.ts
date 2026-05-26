@@ -21,6 +21,8 @@ const slice = createSlice({
   name: "reviewCampaigns",
   initialState,
   reducers: {
+    mount: () => {},
+    unmount: () => {},
     reset: () => initialState,
     clearSelectedDetail: (state) => {
       state.selectedDetail = defaultAsyncData

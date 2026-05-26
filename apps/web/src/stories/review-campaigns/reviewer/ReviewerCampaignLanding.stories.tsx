@@ -1,43 +1,57 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { fn } from "storybook/test"
 import { withRouter } from "storybook-addon-remix-react-router"
-import { ReviewerCampaignLanding } from "@/reviewer/features/review-campaigns/components/ReviewerCampaignPage"
+import { CampaignSessionList } from "@/reviewer/features/review-campaigns/components/CampaignSessionList"
 import { withRedux } from "@/stories/decorators"
+import { ads, mergeSeeds, seed } from "@/stories/seed"
+import { mockProject } from "../fixtures"
 import { mockCampaignContext, mockReviewerSessions } from "./fixtures"
+
+const reviewerSessionsSeed = (sessions: typeof mockReviewerSessions) => ({
+  reviewCampaignsReviewer: { sessions: ads.fulfilled(sessions) },
+})
 
 const meta = {
   title: "review-campaigns/reviewer/ReviewerCampaignLanding",
-  component: ReviewerCampaignLanding,
+  component: CampaignSessionList,
   parameters: { layout: "fullscreen" },
-  args: {
-    context: mockCampaignContext,
-    onOpenSession: fn(),
-  },
   decorators: [withRouter],
-} satisfies Meta<typeof ReviewerCampaignLanding>
+} satisfies Meta<typeof CampaignSessionList>
 
 export default meta
 type Story = StoryObj<typeof meta>
 
 export const Empty: Story = {
-  args: { sessions: [], onOpenReport: fn(), context: mockCampaignContext, onOpenSession: fn() },
-  decorators: [withRedux()],
+  decorators: [
+    withRedux({
+      state: mergeSeeds(
+        seed.currentProject(mockProject),
+        seed.tester.context(mockCampaignContext),
+        reviewerSessionsSeed([]),
+      ),
+    }),
+  ],
 }
 
 export const WithMixedSessions: Story = {
-  args: {
-    sessions: mockReviewerSessions,
-    onOpenReport: fn(),
-    context: mockCampaignContext,
-    onOpenSession: fn(),
-  },
+  decorators: [
+    withRedux({
+      state: mergeSeeds(
+        seed.currentProject(mockProject),
+        seed.tester.context(mockCampaignContext),
+        reviewerSessionsSeed(mockReviewerSessions),
+      ),
+    }),
+  ],
 }
 
 export const SingleSession: Story = {
-  args: {
-    sessions: [mockReviewerSessions[0]!],
-    onOpenReport: fn(),
-    context: mockCampaignContext,
-    onOpenSession: fn(),
-  },
+  decorators: [
+    withRedux({
+      state: mergeSeeds(
+        seed.currentProject(mockProject),
+        seed.tester.context(mockCampaignContext),
+        reviewerSessionsSeed([mockReviewerSessions[0]!]),
+      ),
+    }),
+  ],
 }

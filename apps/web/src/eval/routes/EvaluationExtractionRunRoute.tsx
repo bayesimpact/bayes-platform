@@ -6,19 +6,16 @@ import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
 import { useMount } from "@/common/hooks/use-mount"
+import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
 import { DocumentOpener } from "@/studio/features/documents/components/DocumentOpener"
-import type { EvaluationExtractionDataset } from "../features/evaluation-extraction-datasets/evaluation-extraction-datasets.models"
 import { selectCurrentDatasetData } from "../features/evaluation-extraction-datasets/evaluation-extraction-datasets.selectors"
-import {
-  EvaluationExtractionRunRecordsTable,
-  EvaluationExtractionRunSummary,
-} from "../features/evaluation-extraction-runs/components/EvaluationExtractionRunResults"
+import { EvaluationExtractionRunRecordsTable } from "../features/evaluation-extraction-runs/components/EvaluationExtractionRunResults"
+import { EvaluationExtractionRunSummary } from "../features/evaluation-extraction-runs/components/EvaluationExtractionRunSummary"
 import { RunStatusBadge } from "../features/evaluation-extraction-runs/components/RunStatusBadge"
-import type { EvaluationExtractionRun } from "../features/evaluation-extraction-runs/evaluation-extraction-runs.models"
 import {
   selectCurrentRunData,
   selectCurrentRunId,
@@ -37,18 +34,14 @@ export function EvaluationExtractionRunRoute() {
   if (!runId) return <LoadingRoute />
   return (
     <AsyncRoute data={[runData, datasetData]}>
-      {([run, dataset]) => <WithData run={run} dataset={dataset} />}
+      <WithData />
     </AsyncRoute>
   )
 }
 
-function WithData({
-  run,
-  dataset,
-}: {
-  run: EvaluationExtractionRun
-  dataset: EvaluationExtractionDataset
-}) {
+function WithData() {
+  const run = useValue(selectCurrentRunData)
+  const dataset = useValue(selectCurrentDatasetData)
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { t } = useTranslation()

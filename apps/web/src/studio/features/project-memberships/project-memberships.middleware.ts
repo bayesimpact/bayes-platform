@@ -1,25 +1,27 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
+import { getCurrentId } from "@/common/features/helpers"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
-import {
-  hasProjectChanged,
-  selectCurrentProjectId,
-} from "@/common/features/projects/projects.selectors"
+import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
+import { projectsActions } from "@/common/features/projects/projects.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
   createInvitationsForTarget,
   listInvitationsForTarget,
   revokeInvitation,
 } from "@/studio/features/invitations/invitations.thunks"
-import { listProjectMemberships, removeProjectMembership } from "./project-memberships.thunks"
+import { projectMembershipsActions } from "./project-memberships.slice"
+import {
+  listProjectMemberAgents,
+  listProjectMemberships,
+  removeProjectMembership,
+} from "./project-memberships.thunks"
 
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
 function registerListeners() {
   // Refresh project memberships when current project changes
   listenerMiddleware.startListening({
-    predicate(_, currentState, originalState) {
-      return hasProjectChanged(originalState, currentState)
-    },
+    actionCreator: projectsActions.mount,
     effect: async (_, listenerApi) => {
       const projectId = selectCurrentProjectId(listenerApi.getState())
       if (!projectId) return
@@ -29,6 +31,15 @@ function registerListeners() {
           listInvitationsForTarget({ targetType: "project", targetId: projectId }),
         ),
       ])
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: projectMembershipsActions.mount,
+    effect: async (_, listenerApi) => {
+      const state = listenerApi.getState()
+      const membershipId = getCurrentId({ state, name: "membershipId" })
+      listenerApi.dispatch(listProjectMemberAgents({ membershipId }))
     },
   })
 

@@ -22,14 +22,11 @@ import { StudioRoutes } from "@/studio/routes/helpers"
 import { TesterRoutes } from "@/tester/routes/helpers"
 import { Wrap } from "../components/layouts/Wrap"
 import type { User } from "../features/me/me.models"
-import {
-  selectMe,
-  selectMyActiveReviewCampaignMemberships,
-  selectPendingInvitations,
-} from "../features/me/me.selectors"
+import { selectMe, selectPendingInvitations } from "../features/me/me.selectors"
 import type { Project } from "../features/projects/projects.models"
 import { useAbility } from "../hooks/use-ability"
 import { useFeatureFlags } from "../hooks/use-feature-flags"
+import { useValue } from "../hooks/use-value"
 import { buildSince } from "../utils/build-date"
 import { AsyncRoute } from "./AsyncRoute"
 
@@ -39,26 +36,15 @@ export function OnboardingRoute() {
   const invitations = useAppSelector(selectPendingInvitations)
   return (
     <AsyncRoute data={[user, organizations, invitations]}>
-      {([userValue, organizationsValue, invitationsValue]) => (
-        <WithData
-          user={userValue}
-          organizations={organizationsValue}
-          invitations={invitationsValue}
-        />
-      )}
+      <WithData />
     </AsyncRoute>
   )
 }
 
-function WithData({
-  user,
-  organizations,
-  invitations,
-}: {
-  user: User
-  organizations: Organization[]
-  invitations: PendingInvitations
-}) {
+function WithData() {
+  const user = useValue(selectMe)
+  const organizations = useValue(selectOrganizationsData)
+  const invitations = useValue(selectPendingInvitations)
   const orgsCount = organizations.length
   const hasPendingInvitations = invitations.length > 0
   if (orgsCount === 0 && !hasPendingInvitations) return <OrganizationCreator />
@@ -301,16 +287,15 @@ function NavEvalButton({ organizationId, project }: { organizationId: string; pr
 
 function NavTesterButton({ projectId }: { projectId: string }) {
   const { t } = useTranslation()
-  // Reads from /me — no extra round-trip on Onboarding.
-  const memberships = useAppSelector(selectMyActiveReviewCampaignMemberships("tester"))
-  const hasTesterCampaignInProject = memberships.some((m) => m.projectId === projectId)
+  const { abilities } = useAbility()
+  const canAccess = abilities.canAccessTester({ projectId })
 
   const handleClick = () => {
     // NOTE: do not use navigate from react-router — tester is its own route tree
     window.location.assign(TesterRoutes.home.path)
   }
 
-  if (!hasTesterCampaignInProject) return null
+  if (!canAccess) return null
   return (
     <Button variant="outline" onClick={handleClick}>
       {t("actions:goToTester")}
@@ -320,15 +305,15 @@ function NavTesterButton({ projectId }: { projectId: string }) {
 
 function NavReviewerButton({ projectId }: { projectId: string }) {
   const { t } = useTranslation()
-  const memberships = useAppSelector(selectMyActiveReviewCampaignMemberships("reviewer"))
-  const hasReviewerCampaignInProject = memberships.some((m) => m.projectId === projectId)
+  const { abilities } = useAbility()
+  const canAccess = abilities.canAccessReviewer({ projectId })
 
   const handleClick = () => {
     // NOTE: do not use navigate from react-router — reviewer is its own route tree
     window.location.assign(ReviewerRoutes.home.path)
   }
 
-  if (!hasReviewerCampaignInProject) return null
+  if (!canAccess) return null
   return (
     <Button variant="outline" onClick={handleClick}>
       {t("actions:goToReviewer")}

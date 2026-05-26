@@ -3,7 +3,7 @@ import type {
   UpdateReviewCampaignRequestDto,
 } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
-import { getCurrentIds } from "@/common/features/helpers"
+import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import type {
   ReviewCampaign,
@@ -16,10 +16,10 @@ type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
 export const listReviewCampaigns = createAsyncThunk<ReviewCampaignListItem[], void, ThunkConfig>(
   "review-campaigns/list",
   async (_, { extra: { services }, getState }) => {
-    const params = getCurrentIds({
-      state: getState(),
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId }
     return await services.reviewCampaigns.getAll(params)
   },
 )
@@ -29,10 +29,9 @@ export const getReviewCampaignDetail = createAsyncThunk<
   { reviewCampaignId: string },
   ThunkConfig
 >("review-campaigns/get", async ({ reviewCampaignId }, { extra: { services }, getState }) => {
-  const { organizationId, projectId } = getCurrentIds({
-    state: getState(),
-    wantedIds: ["organizationId", "projectId"],
-  })
+  const state = getState()
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
   return await services.reviewCampaigns.getOne({ organizationId, projectId, reviewCampaignId })
 })
 
@@ -41,10 +40,9 @@ export const createReviewCampaign = createAsyncThunk<
   { fields: CreateReviewCampaignRequestDto },
   ThunkConfig
 >("review-campaigns/create", async ({ fields }, { extra: { services }, getState }) => {
-  const { organizationId, projectId } = getCurrentIds({
-    state: getState(),
-    wantedIds: ["organizationId", "projectId"],
-  })
+  const state = getState()
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
   return await services.reviewCampaigns.createOne({ organizationId, projectId }, fields)
 })
 
@@ -55,10 +53,9 @@ export const updateReviewCampaign = createAsyncThunk<
 >(
   "review-campaigns/update",
   async ({ reviewCampaignId, fields }, { extra: { services }, getState }) => {
-    const { organizationId, projectId } = getCurrentIds({
-      state: getState(),
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
     return await services.reviewCampaigns.updateOne(
       { organizationId, projectId, reviewCampaignId },
       fields,
@@ -71,10 +68,9 @@ export const deleteReviewCampaign = createAsyncThunk<
   { reviewCampaignId: string },
   ThunkConfig
 >("review-campaigns/delete", async ({ reviewCampaignId }, { extra: { services }, getState }) => {
-  const { organizationId, projectId } = getCurrentIds({
-    state: getState(),
-    wantedIds: ["organizationId", "projectId"],
-  })
+  const state = getState()
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
   await services.reviewCampaigns.deleteOne({ organizationId, projectId, reviewCampaignId })
 })
 
@@ -85,10 +81,9 @@ export const revokeReviewCampaignMembership = createAsyncThunk<
 >(
   "review-campaigns/revoke",
   async ({ reviewCampaignId, membershipId }, { extra: { services }, getState }) => {
-    const { organizationId, projectId } = getCurrentIds({
-      state: getState(),
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
     await services.reviewCampaigns.revokeMembership({
       organizationId,
       projectId,

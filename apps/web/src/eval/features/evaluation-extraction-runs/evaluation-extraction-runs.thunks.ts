@@ -1,6 +1,6 @@
 import type { EvaluationExtractionRunKeyMappingEntryDto } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
-import { getCurrentIds } from "@/common/features/helpers"
+import { getCurrentId } from "@/common/features/helpers"
 import type { ThunkConfig } from "@/common/store/types"
 import type {
   EvaluationExtractionRun,
@@ -13,10 +13,10 @@ type ThunkConfigWithSignal = ThunkConfig & { serializedErrorType: Error }
 const getAll = createAsyncThunk<EvaluationExtractionRun[], void, ThunkConfig>(
   "evaluationExtractionRuns/getAll",
   async (_, { extra: { services }, getState }) => {
-    const params = getCurrentIds({
-      state: getState(),
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId }
     return await services.evaluationExtractionRuns.getAll(params)
   },
 )
@@ -28,11 +28,14 @@ const getOne = createAsyncThunk<
 >(
   "evaluationExtractionRuns/getOne",
   async ({ evaluationExtractionRunId }, { extra: { services }, getState }) => {
-    const params = getCurrentIds({
-      state: getState(),
-      wantedIds: ["organizationId", "projectId"],
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId }
+    return await services.evaluationExtractionRuns.getOne({
+      ...params,
+      evaluationExtractionRunId,
     })
-    return await services.evaluationExtractionRuns.getOne({ ...params, evaluationExtractionRunId })
   },
 )
 
@@ -53,12 +56,12 @@ const getRecords = createAsyncThunk<
     { evaluationExtractionRunId, page, limit, columnFilters, sortBy, sortOrder },
     { extra: { services }, getState },
   ) => {
-    const params = getCurrentIds({
-      state: getState(),
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
     return await services.evaluationExtractionRuns.getRecords({
-      ...params,
+      organizationId,
+      projectId,
       evaluationExtractionRunId,
       page,
       limit,
@@ -80,10 +83,11 @@ const createAndExecute = createAsyncThunk<
 >(
   "evaluationExtractionRuns/createAndExecute",
   async (payload, { extra: { services }, getState }) => {
-    const params = getCurrentIds({
-      state: getState(),
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId }
+
     const run = await services.evaluationExtractionRuns.createOne({ ...params, payload })
     await services.evaluationExtractionRuns.executeOne({
       ...params,
@@ -102,10 +106,10 @@ const retryOne = createAsyncThunk<
 >(
   "evaluationExtractionRuns/retryOne",
   async ({ evaluationExtractionRunId }, { extra: { services }, getState }) => {
-    const params = getCurrentIds({
-      state: getState(),
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId }
     return await services.evaluationExtractionRuns.retryOne({
       ...params,
       evaluationExtractionRunId,
@@ -120,10 +124,10 @@ const cancelOne = createAsyncThunk<
 >(
   "evaluationExtractionRuns/cancelOne",
   async ({ evaluationExtractionRunId }, { extra: { services }, getState }) => {
-    const params = getCurrentIds({
-      state: getState(),
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId }
     return await services.evaluationExtractionRuns.cancelOne({
       ...params,
       evaluationExtractionRunId,
@@ -134,10 +138,10 @@ const cancelOne = createAsyncThunk<
 const streamRunStatus = createAsyncThunk<void, void, ThunkConfigWithSignal>(
   "evaluationExtractionRuns/streamRunStatus",
   async (_, { extra: { services }, getState, dispatch, signal }) => {
-    const params = getCurrentIds({
-      state: getState(),
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId }
 
     await services.evaluationExtractionRuns.streamRunStatus({
       ...params,

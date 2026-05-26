@@ -92,3 +92,222 @@ export const Default: Story = {
     }),
   ],
 }
+
+export const AgentConvWithSessions: Story = {
+  args: {
+    organizationMembershipRole: "owner",
+    projectMembershipRole: "owner",
+    agentMembershipRole: "owner",
+    featureFlags: [],
+    withAgents: true,
+    agentType: "conversation",
+    withAgentSessions: true,
+  },
+
+  decorators: [
+    buildDecorator<StoryArgs>(({ agentType, withAgentSessions, ...args }) => {
+      const { baseSeeds, project, agents } = buildStudioData(args)
+      const [firstAgent, ...restAgents] = agents
+      const currentAgent = agentFactory
+        .transient({
+          project,
+        })
+        .build({
+          ...firstAgent,
+          type: agentType,
+        })
+
+      const conversationSessions =
+        withAgentSessions && agentType === "conversation"
+          ? conversationAgentSessionFactory
+              .transient({
+                agent: currentAgent,
+              })
+              .buildList(3)
+              .sort(sortRecentlyCreated)
+          : []
+      const formSessions =
+        withAgentSessions && agentType === "form"
+          ? formAgentSessionFactory
+              .transient({
+                agent: currentAgent,
+              })
+              .buildList(3)
+              .sort(sortRecentlyCreated)
+          : []
+      const extractionSessions =
+        withAgentSessions && agentType === "extraction"
+          ? extractionAgentSessionSummaryFactory
+              .transient({
+                agent: currentAgent,
+              })
+              .buildList(3)
+              .sort(sortRecentlyCreated)
+          : []
+
+      return {
+        state: mergeSeeds(
+          baseSeeds,
+          seed.agents([...restAgents, currentAgent], {
+            currentId: currentAgent.id,
+          }),
+          seed.conversationAgentSessions({
+            [currentAgent.id]: conversationSessions,
+          }),
+          seed.formAgentSessions({
+            [currentAgent.id]: formSessions,
+          }),
+          seed.extractionAgentSessions({
+            [currentAgent.id]: extractionSessions,
+          }),
+        ),
+      }
+    }),
+  ],
+}
+
+export const AgentExtractionWithData: Story = {
+  args: {
+    organizationMembershipRole: "owner",
+    projectMembershipRole: "owner",
+    agentMembershipRole: "owner",
+    featureFlags: [],
+    withAgents: true,
+    agentType: "extraction",
+    withAgentSessions: true,
+  },
+
+  decorators: [
+    buildDecorator<StoryArgs>(({ agentType, withAgentSessions, ...args }) => {
+      const { baseSeeds, project, agents } = buildStudioData(args)
+      const [firstAgent, ...restAgents] = agents
+      const currentAgent = agentFactory
+        .transient({
+          project,
+        })
+        .build({
+          ...firstAgent,
+          type: agentType,
+        })
+
+      const conversationSessions =
+        withAgentSessions && agentType === "conversation"
+          ? conversationAgentSessionFactory
+              .transient({
+                agent: currentAgent,
+              })
+              .buildList(3)
+              .sort(sortRecentlyCreated)
+          : []
+      const formSessions =
+        withAgentSessions && agentType === "form"
+          ? formAgentSessionFactory
+              .transient({
+                agent: currentAgent,
+              })
+              .buildList(3)
+              .sort(sortRecentlyCreated)
+          : []
+      const extractionSessions =
+        withAgentSessions && agentType === "extraction"
+          ? extractionAgentSessionSummaryFactory
+              .transient({
+                agent: currentAgent,
+              })
+              .buildList(3)
+              .sort(sortRecentlyCreated)
+          : []
+
+      return {
+        state: mergeSeeds(
+          baseSeeds,
+          seed.agents([...restAgents, currentAgent], {
+            currentId: currentAgent.id,
+          }),
+          seed.conversationAgentSessions({
+            [currentAgent.id]: conversationSessions,
+          }),
+          seed.formAgentSessions({
+            [currentAgent.id]: formSessions,
+          }),
+          seed.extractionAgentSessions({
+            [currentAgent.id]: extractionSessions,
+          }),
+        ),
+      }
+    }),
+  ],
+}
+
+export const AgentFormWithSessions: Story = {
+  args: {
+    organizationMembershipRole: "owner",
+    projectMembershipRole: "owner",
+    agentMembershipRole: "owner",
+    featureFlags: [],
+    withAgents: true,
+    agentType: "form",
+    withAgentSessions: true,
+  },
+
+  decorators: [
+    buildDecorator<StoryArgs>(({ agentType, withAgentSessions, ...args }) => {
+      const { baseSeeds, project, agents } = buildStudioData(args)
+      const [firstAgent, ...restAgents] = agents
+      const currentAgent = agentFactory
+        .transient({
+          project,
+        })
+        .build({
+          ...firstAgent,
+          type: agentType,
+        })
+
+      const conversationSessions =
+        withAgentSessions && agentType === "conversation"
+          ? conversationAgentSessionFactory
+              .transient({
+                agent: currentAgent,
+              })
+              .buildList(3)
+              .sort(sortRecentlyCreated)
+          : []
+      const formSessions =
+        withAgentSessions && agentType === "form"
+          ? formAgentSessionFactory
+              .transient({
+                agent: currentAgent,
+              })
+              .buildList(3)
+              .sort(sortRecentlyCreated)
+          : []
+      const extractionSessions =
+        withAgentSessions && agentType === "extraction"
+          ? extractionAgentSessionSummaryFactory
+              .transient({
+                agent: currentAgent,
+              })
+              .buildList(3)
+              .sort(sortRecentlyCreated)
+          : []
+
+      return {
+        state: mergeSeeds(
+          baseSeeds,
+          seed.agents([...restAgents, currentAgent], {
+            currentId: currentAgent.id,
+          }),
+          seed.conversationAgentSessions({
+            [currentAgent.id]: conversationSessions,
+          }),
+          seed.formAgentSessions({
+            [currentAgent.id]: formSessions,
+          }),
+          seed.extractionAgentSessions({
+            [currentAgent.id]: extractionSessions,
+          }),
+        ),
+      }
+    }),
+  ],
+}

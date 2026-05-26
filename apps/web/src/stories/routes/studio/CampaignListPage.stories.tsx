@@ -105,3 +105,66 @@ export const Default: Story = {
     }),
   ],
 }
+
+export const WithData: Story = {
+  args: {
+    organizationMembershipRole: "owner",
+    projectMembershipRole: "owner",
+    agentMembershipRole: "owner",
+    featureFlags: [],
+    withAgents: true,
+    withCampaigns: true,
+  },
+
+  decorators: [
+    buildDecorator<StoryArgs>(({ withCampaigns, ...args }) => {
+      const { baseSeeds, project, agents } = buildStudioData(args)
+      const campaigns: ReviewCampaignListItem[] = withCampaigns
+        ? [
+            toListItem(
+              reviewCampaignFactory
+                .transient({
+                  project,
+                  agent: agents[0],
+                })
+                .build({
+                  status: "draft",
+                }),
+              0,
+            ),
+            toListItem(
+              reviewCampaignFactory
+                .transient({
+                  project,
+                  agent: agents[1],
+                })
+                .build({
+                  status: "active",
+                }),
+              4,
+            ),
+            toListItem(
+              reviewCampaignFactory
+                .transient({
+                  project,
+                  agent: agents[2],
+                })
+                .build({
+                  status: "closed",
+                }),
+              6,
+            ),
+          ]
+        : []
+      return {
+        state: mergeSeeds(baseSeeds, seed.studio.reviewCampaigns(campaigns)),
+
+        services: {
+          reviewCampaigns: buildMockReviewCampaignsService({
+            campaigns,
+          }),
+        },
+      }
+    }),
+  ],
+}

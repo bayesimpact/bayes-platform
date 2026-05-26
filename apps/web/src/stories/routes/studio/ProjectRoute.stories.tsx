@@ -37,3 +37,41 @@ export const Default: Story = {
     }),
   ],
 }
+
+export const WithAgents: Story = {
+  args: {
+    organizationMembershipRole: "owner",
+    projectMembershipRole: "owner",
+    agentMembershipRole: "owner",
+    featureFlags: [],
+    withAgents: true,
+  },
+
+  decorators: [
+    buildDecorator<StoryArgs>((args) => {
+      const { baseSeeds } = buildStudioData(args)
+      return {
+        state: mergeSeeds(baseSeeds),
+      }
+    }),
+  ],
+}
+
+export const WithAllFeatures: Story = {
+  args: {
+    organizationMembershipRole: "owner",
+    projectMembershipRole: "owner",
+    agentMembershipRole: "owner",
+    featureFlags: ["evaluation", "project-analytics"],
+    withAgents: true,
+  },
+
+  decorators: [
+    buildDecorator<StoryArgs>((args) => {
+      const { baseSeeds } = buildStudioData(args)
+      return {
+        state: mergeSeeds(baseSeeds),
+      }
+    }),
+  ],
+}

@@ -41,6 +41,7 @@ export function UpdateCampaignForm({ campaign, agents, onSuccess, onDeleted }: P
     ? pendingInvitationsData.value
     : []
 
+  // FIXME: should be moved in middleware when .mount
   useEffect(() => {
     dispatch(listInvitationsForTarget({ targetType: "review_campaign", targetId: campaign.id }))
   }, [campaign.id, dispatch])
