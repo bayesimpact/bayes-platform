@@ -3,6 +3,14 @@
     "document": "Document",
     "documents": "Documents",
     "sources": "Sources",
+    "webSources": {
+      "title": "Web Sources",
+      "description": "Crawl websites to index their content and enhance your agents' knowledge.",
+      "empty": {
+        "title": "No websites crawled yet",
+        "description": "Enter a URL to start crawling a website and indexing its content."
+      }
+    },
     "uploading": "Uploading documents... {{processed}} of {{total}}",
     "props": {
       "createdAt": "Created At",

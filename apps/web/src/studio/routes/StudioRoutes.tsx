@@ -38,6 +38,7 @@ import { ReviewCampaignReportRoute } from "./ReviewCampaignReportRoute"
 import { StudioAgentSessionRoute } from "./StudioAgentSessionRoute"
 import { StudioDashboardRoute } from "./StudioDashboardRoute"
 import { StudioRoute } from "./StudioRoute"
+import { WebSourcesRoute } from "./WebSourcesRoute"
 
 const extraItems = [
   AgentCreatorButton,
@@ -112,13 +113,13 @@ export const studioRoutes = {
             },
             {
               path: StudioRoutes.documents.path,
-              element: <DocumentsRoute sourceFilter="project" />,
+              element: <DocumentsRoute />,
             },
             {
               path: StudioRoutes.webSources.path,
               element: (
                 <RestrictedFeature feature="web_sources">
-                  <DocumentsRoute sourceFilter="webCrawl" />
+                  <WebSourcesRoute />
                 </RestrictedFeature>
               ),
             },
