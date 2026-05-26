@@ -2,7 +2,7 @@
  * AgentStudio embed launcher.
  *
  * Drop this IIFE onto any host page via:
- *   <script src="https://…/launcher.js" data-token="<embedToken>" data-position="bottom-right" data-color="#2563eb"></script>
+ *   <script src="https://…/launcher.js" data-token="<embedToken>" data-position="bottom-right" data-color="#2563eb" data-locale="fr"></script>
  *
  * The script injects a floating action button and a hidden iframe.
  * Clicking the button toggles the iframe open/closed.
@@ -18,6 +18,7 @@ function init() {
     | "bottom-right"
     | "bottom-left"
   const color = _currentScript?.getAttribute("data-color") ?? "#2563eb"
+  const locale = _currentScript?.getAttribute("data-locale") ?? ""
 
   if (!token) {
     console.warn("[AgentStudio] data-token attribute is required.")
@@ -28,7 +29,8 @@ function init() {
   // works correctly regardless of environment (dev, staging, production).
   const scriptSrc = _currentScript?.src ?? ""
   const origin = scriptSrc ? new URL(scriptSrc).origin : "https://connect.localhost:5175"
-  const iframeSrc = `${origin}/?embedToken=${token}`
+  const localeParam = locale ? `&locale=${encodeURIComponent(locale)}` : ""
+  const iframeSrc = `${origin}/?embedToken=${token}${localeParam}`
 
   injectWidget({ token, position, color, iframeSrc })
 }
