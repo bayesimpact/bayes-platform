@@ -5,7 +5,7 @@ import { selectDocumentsData } from "@/studio/features/documents/documents.selec
 import { documentsActions } from "@/studio/features/documents/documents.slice"
 import { AsyncRoute } from "../../common/routes/AsyncRoute"
 import { DocumentList } from "../features/documents/components/DocumentList"
-import { WebCrawlDocumentList } from "../features/documents/components/web-crawl/WebCrawlDocumentList"
+import { WebSourcesDocumentList } from "../features/documents/components/web-crawl/WebSourcesDocumentList"
 
 export function ProjectDocumentsRoute() {
   const documents = useAppSelector(selectDocumentsData)
@@ -34,7 +34,7 @@ export function WebSourcesDocumentsRoute() {
   })
   return (
     <AsyncRoute data={[documents, documentTags]}>
-      <WebCrawlDocumentList />
+      <WebSourcesDocumentList />
     </AsyncRoute>
   )
 }
