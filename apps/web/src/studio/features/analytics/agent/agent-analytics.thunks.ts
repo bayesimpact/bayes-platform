@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
-import { getCurrentIds } from "@/common/features/helpers"
+import { getCurrentId } from "@/common/features/helpers"
 import { hasFeatureOrThrow } from "@/common/hooks/use-feature-flags"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import type { AnalyticsCategoryDailyPoint, AnalyticsDailyPoint } from "../project/analytics.models"
@@ -17,10 +17,9 @@ export const loadAgentAnalytics = createAsyncThunk<
 >("agentAnalytics/load", async ({ startAt, endAt }, { extra: { services }, getState }) => {
   const state = getState()
   hasFeatureOrThrow({ state, feature: "project-analytics" })
-  const { organizationId, projectId, agentId } = getCurrentIds({
-    state,
-    wantedIds: ["organizationId", "projectId", "agentId"],
-  })
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  const agentId = getCurrentId({ state, name: "agentId" })
   const [conversationsPerDay, avgUserQuestionsPerSessionPerDay, conversationsByCategoryPerDay] =
     await Promise.all([
       services.agentAnalytics.getConversationsPerDay({

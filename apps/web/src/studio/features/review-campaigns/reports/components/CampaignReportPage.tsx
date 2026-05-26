@@ -6,37 +6,29 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
+import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
+import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
+import { selectCurrentReviewCampaignId } from "@/common/features/review-campaigns/current-review-campaign-id/current-review-campaign-id.selectors"
 import { useMount } from "@/common/hooks/use-mount"
+import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
 import { getServices } from "@/di/services"
-import type { CampaignReport as CampaignReportType } from "../reports.models"
-import { selectCampaignReport } from "../reports.selectors"
+import { selectCurrentCampaignReport } from "../reports.selectors"
 import { reviewCampaignsReportsActions } from "../reports.slice"
 import { CampaignReport } from "./CampaignReport"
 
 type Props = {
   backPath: string
-  organizationId: string
-  projectId: string
-  reviewCampaignId: string
 }
 
-export function CampaignReportPage({
-  backPath,
-  organizationId,
-  projectId,
-  reviewCampaignId,
-}: Props) {
+export function CampaignReportPage({ backPath }: Props) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const report = useAppSelector(selectCampaignReport(reviewCampaignId))
+  const report = useAppSelector(selectCurrentCampaignReport)
 
-  useMount({
-    actions: reviewCampaignsReportsActions,
-    condition: !!reviewCampaignId,
-  })
+  useMount({ actions: reviewCampaignsReportsActions })
 
   const handleBack = () => {
     navigate(backPath)
@@ -46,40 +38,28 @@ export function CampaignReportPage({
       <GridHeader
         onBack={handleBack}
         title={t("reviewCampaigns:report.title")}
-        action={
-          ADS.isFulfilled(report) && (
-            <DownloadCsvButton
-              organizationId={organizationId}
-              projectId={projectId}
-              reviewCampaignId={reviewCampaignId}
-            />
-          )
-        }
+        action={ADS.isFulfilled(report) && <DownloadCsvButton />}
       />
 
-      <div className="flex flex-col gap-6 p-6">
+      <div className="flex flex-col gap-6 p-6 bg-white">
         <AsyncRoute data={[report]}>
-          {([reportValue]) => <WithData report={reportValue} />}
+          <WithData />
         </AsyncRoute>
       </div>
     </>
   )
 }
 
-function WithData({ report }: { report: CampaignReportType }) {
+function WithData() {
+  const report = useValue(selectCurrentCampaignReport)
   return <CampaignReport report={report} />
 }
 
-function DownloadCsvButton({
-  reviewCampaignId,
-  organizationId,
-  projectId,
-}: {
-  reviewCampaignId: string
-  organizationId: string
-  projectId: string
-}) {
+function DownloadCsvButton() {
   const { t } = useTranslation()
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
+  const reviewCampaignId = useCurrentId(selectCurrentReviewCampaignId)
   const [isDownloading, setIsDownloading] = useState(false)
 
   const handleDownloadCsv = async () => {

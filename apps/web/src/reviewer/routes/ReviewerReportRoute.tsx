@@ -1,22 +1,17 @@
-import { useParams } from "react-router-dom"
+import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
+import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
+import { selectCurrentReviewCampaignId } from "@/common/features/review-campaigns/current-review-campaign-id/current-review-campaign-id.selectors"
+import { useCurrentId } from "@/common/hooks/use-value"
 import { CampaignReportPage } from "@/studio/features/review-campaigns/reports/components/CampaignReportPage"
 import { ReviewerRoutes } from "./helpers"
 
-type Params = {
-  organizationId: string
-  projectId: string
-  reviewCampaignId: string
-}
-
 export function ReviewerReportRoute() {
-  const params = useParams<Params>() as Params
-
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
+  const reviewCampaignId = useCurrentId(selectCurrentReviewCampaignId)
   return (
     <CampaignReportPage
-      backPath={ReviewerRoutes.campaign.build(params)}
-      organizationId={params.organizationId}
-      projectId={params.projectId}
-      reviewCampaignId={params.reviewCampaignId}
+      backPath={ReviewerRoutes.campaign.build({ organizationId, projectId, reviewCampaignId })}
     />
   )
 }

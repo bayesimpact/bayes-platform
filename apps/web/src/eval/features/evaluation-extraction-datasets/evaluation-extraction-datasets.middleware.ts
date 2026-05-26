@@ -16,6 +16,14 @@ function registerListeners() {
     },
   })
 
+  // Clear stale records when the URL-driven currentIds.datasetId changes.
+  listenerMiddleware.startListening({
+    actionCreator: evaluationExtractionDatasetsActions.unmount,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(evaluationExtractionDatasetsActions.resetRecords())
+    },
+  })
+
   listenerMiddleware.startListening({
     matcher: isAnyOf(
       evaluationExtractionDatasetsActions.createOne.fulfilled,

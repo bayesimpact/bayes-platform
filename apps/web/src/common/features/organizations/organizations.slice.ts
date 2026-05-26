@@ -1,16 +1,14 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
+import { createSlice } from "@reduxjs/toolkit"
 import { fetchMe } from "@/common/features/me/me.thunks"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { Organization } from "./organizations.models"
 import { createOrganization } from "./organizations.thunks"
 
 interface State {
-  currentOrganizationId: string | null
   data: AsyncData<Organization[]>
 }
 
 const initialState: State = {
-  currentOrganizationId: null,
   data: defaultAsyncData,
 }
 
@@ -18,9 +16,8 @@ const slice = createSlice({
   name: "organizations",
   initialState,
   reducers: {
-    setCurrentOrganizationId: (state, action: PayloadAction<{ organizationId: string | null }>) => {
-      state.currentOrganizationId = action.payload.organizationId
-    },
+    mount: () => {},
+    unmount: () => {},
     reset: () => initialState,
   },
   extraReducers: (builder) => {
@@ -50,7 +47,5 @@ const slice = createSlice({
   },
 })
 
-export type { State as OrganizationsState }
-export const organizationsInitialState = initialState
 export const organizationsActions = { ...slice.actions }
 export const organizationsSlice = slice

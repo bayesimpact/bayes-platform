@@ -2,7 +2,6 @@ import {
   type Action,
   createDynamicMiddleware,
   type ListenerMiddlewareInstance,
-  type Reducer,
 } from "@reduxjs/toolkit"
 import { rootSlices } from "./root-slices"
 import type { AppDispatch, RootState } from "./types"
@@ -21,26 +20,20 @@ type FeatureSlice = {
   }
 }
 
-export const createSliceManager = <State>({
-  reducerPath,
+export const createSliceManager = ({
   middlewares,
-  reducer,
   slices,
 }: {
-  reducerPath: string
-  reducer: Reducer<State>
   middlewares: FeatureMiddleware[]
   slices: FeatureSlice[]
 }) => {
   let middlewareInjected = false
 
   function injectSlices() {
-    const rr = rootSlices.withLazyLoadedSlices<State>()
-    // Reducers: inject() is idempotent — safe to call on every mount
-    // @ts-expect-error - reducerPath is a generic string, not a known key of State; combineReducers output is widened
-    rr.inject({
-      reducerPath,
-      reducer,
+    const rr = rootSlices.withLazyLoadedSlices()
+    slices.forEach((slice) => {
+      // @ts-expect-error — slice.name not statically known in RootState
+      rr.inject(slice, { overrideExisting: true })
     })
 
     // Middleware: addMiddleware is NOT idempotent — guard against duplicate registration

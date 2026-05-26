@@ -3,8 +3,11 @@ import { Button } from "@caseai-connect/ui/shad/button"
 import { Input } from "@caseai-connect/ui/shad/input"
 import { Label } from "@caseai-connect/ui/shad/label"
 import { useMemo, useState } from "react"
-import { useAppDispatch } from "@/common/store/hooks"
+import { useValue } from "@/common/hooks/use-value"
+import { AsyncRoute } from "@/common/routes/AsyncRoute"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import type { TermsDocuments } from "../backoffice.models"
+import { selectTermsDocuments } from "../backoffice.selectors"
 import { backofficeActions } from "../backoffice.slice"
 
 type FormState = {
@@ -21,7 +24,18 @@ const DOCUMENT_LABELS: Record<DocumentKey, string> = {
   aiUsagePolicy: "AI Systems Usage Policy",
 }
 
-export function TermsDocumentsPanel({ documents }: { documents: TermsDocuments }) {
+export function TermsDocumentsPanel() {
+  const termsDocuments = useAppSelector(selectTermsDocuments)
+
+  return (
+    <AsyncRoute data={[termsDocuments]}>
+      <WithData />
+    </AsyncRoute>
+  )
+}
+
+function WithData() {
+  const documents = useValue(selectTermsDocuments)
   const dispatch = useAppDispatch()
 
   const initialState = useMemo<FormState>(

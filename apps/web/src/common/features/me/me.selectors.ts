@@ -33,6 +33,9 @@ export const selectProjectMemberships = (state: RootState) =>
 export const selectAgentMemberships = (state: RootState) =>
   state.me.data.value?.memberships.agentMemberships
 
+export const selectReviewCampaignMemberships = (state: RootState) =>
+  state.me.data.value?.memberships.reviewCampaignMemberships
+
 export const selectCanAccessStudioForOrganizationId =
   (organizationId: string) =>
   (state: RootState): boolean => {

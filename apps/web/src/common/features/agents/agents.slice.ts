@@ -1,15 +1,13 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
+import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { Agent } from "./agents.models"
 import { listAgents } from "./agents.thunks"
 
 interface State {
-  currentAgentId: string | null
   data: AsyncData<Agent[]>
 }
 
 const initialState: State = {
-  currentAgentId: null,
   data: defaultAsyncData,
 }
 
@@ -18,9 +16,6 @@ const slice = createSlice({
   initialState,
   reducers: {
     reset: () => initialState,
-    setCurrentAgentId: (state, action: PayloadAction<{ agentId: string | null }>) => {
-      state.currentAgentId = action.payload.agentId
-    },
   },
   extraReducers: (builder) => {
     builder

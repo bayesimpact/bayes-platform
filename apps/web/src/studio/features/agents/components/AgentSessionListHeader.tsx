@@ -5,9 +5,11 @@ import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/gri
 import { BaseAgentSessionCreator } from "@/common/features/agents/agent-sessions/shared/base-agent-session/components/BaseAgentSessionCreator"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
+import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useAbility } from "@/common/hooks/use-ability"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useGetAgentRoute, useGetProjectRoute } from "@/common/hooks/use-get-path"
+import { useValue } from "@/common/hooks/use-value"
 import { AgentActions } from "./AgentActions"
 import { AgentAnalyticsCard } from "./AgentAnalyticsCard"
 import { FeedbackButton } from "./FeedbackButton"
@@ -26,13 +28,14 @@ export function AgentSessionListHeader({
   backTo: "agent" | "project"
 }) {
   const { t } = useTranslation()
-  const { hasFeature } = useFeatureFlags()
+  const project = useValue(selectCurrentProjectData)
+  const { hasFeature } = useFeatureFlags(project)
   const navigate = useNavigate()
-  const getAgentRoute = useGetAgentRoute()
-  const getProjectRoute = useGetProjectRoute()
+  const agentRoute = useGetAgentRoute()
+  const projectRoute = useGetProjectRoute()
 
   const handleBack = () => {
-    const path = backTo === "agent" ? getAgentRoute() : getProjectRoute()
+    const path = backTo === "agent" ? agentRoute : projectRoute
     navigate(path)
   }
 

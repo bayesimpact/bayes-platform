@@ -11,9 +11,11 @@ import {
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useValue } from "@/common/hooks/use-value"
+import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import type { BackofficeUser, PaginatedBackofficeUsers } from "../backoffice.models"
-import { selectBackofficeUsersQuery } from "../backoffice.selectors"
+import type { BackofficeUser } from "../backoffice.models"
+import { selectBackofficeUsers, selectBackofficeUsersQuery } from "../backoffice.selectors"
 import { backofficeActions } from "../backoffice.slice"
 import { SearchField } from "./BackofficeTable"
 
@@ -28,7 +30,17 @@ type UserRow = {
   agentMemberships: BackofficeUser["agentMemberships"]
 }
 
-export function UsersPanel({ users }: { users: PaginatedBackofficeUsers }) {
+export function UsersPanel() {
+  const users = useAppSelector(selectBackofficeUsers)
+  return (
+    <AsyncRoute data={[users]}>
+      <WithData />
+    </AsyncRoute>
+  )
+}
+
+function WithData() {
+  const users = useValue(selectBackofficeUsers)
   const dispatch = useAppDispatch()
   const query = useAppSelector(selectBackofficeUsersQuery)
   const [searchInput, setSearchInput] = useState(query.search)

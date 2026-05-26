@@ -1,4 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
+import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import type {
   MyReviewCampaign,
@@ -34,10 +35,21 @@ export const getTesterContext = createAsyncThunk<TesterContext, CampaignScopeArg
 
 export const startTesterSession = createAsyncThunk<
   StartTesterSessionResult,
-  CampaignScopeArg & { type: "playground" | "live" },
+  { onSuccess?: (sessionId: string) => void },
   ThunkConfig
->("tester/startSession", async ({ type, ...params }, { extra: { services } }) => {
-  return await services.reviewCampaignsTester.startSession(params, { type })
+>("tester/startSession", async (_, { getState, extra: { services }, dispatch }) => {
+  const state = getState()
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  const reviewCampaignId = getCurrentId({ state, name: "reviewCampaignId" })
+
+  const params = { organizationId, projectId, reviewCampaignId }
+  const type = "live"
+  const result = await services.reviewCampaignsTester.startSession(params, { type })
+
+  // Refresh sessions after starting a new one
+  dispatch(listMyTesterSessions(params))
+  return result
 })
 
 export const listMyTesterSessions = createAsyncThunk<
@@ -50,12 +62,25 @@ export const listMyTesterSessions = createAsyncThunk<
 
 export const submitTesterFeedback = createAsyncThunk<
   TesterSessionFeedback,
-  SessionScopeArg & { fields: SubmitTesterFeedbackFields },
+  { fields: SubmitTesterFeedbackFields; sessionId: string },
   ThunkConfig
->("tester/submitFeedback", async ({ fields, ...params }, { extra: { services } }) => {
-  return await services.reviewCampaignsTester.submitFeedback(params, fields)
-})
+>(
+  "tester/submitFeedback",
+  async ({ fields, sessionId }, { getState, dispatch, extra: { services } }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const reviewCampaignId = getCurrentId({ state, name: "reviewCampaignId" })
 
+    const params = { organizationId, projectId, sessionId }
+    const feedback = await services.reviewCampaignsTester.submitFeedback(params, fields)
+
+    await dispatch(listMyTesterSessions({ organizationId, projectId, reviewCampaignId }))
+    return feedback
+  },
+)
+
+// FIXME: is it used somewhere?
 export const updateTesterFeedback = createAsyncThunk<
   TesterSessionFeedback,
   SessionScopeArg & { fields: UpdateTesterFeedbackFields },
@@ -66,32 +91,57 @@ export const updateTesterFeedback = createAsyncThunk<
 
 export const submitTesterSurvey = createAsyncThunk<
   TesterCampaignSurvey,
-  CampaignScopeArg & { fields: SubmitTesterSurveyFields },
+  { fields: SubmitTesterSurveyFields },
   ThunkConfig
->("tester/submitSurvey", async ({ fields, ...params }, { extra: { services } }) => {
-  return await services.reviewCampaignsTester.submitSurvey(params, fields)
+>("tester/submitSurvey", async ({ fields }, { getState, dispatch, extra: { services } }) => {
+  const state = getState()
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  const reviewCampaignId = getCurrentId({ state, name: "reviewCampaignId" })
+
+  const params = { organizationId, projectId, reviewCampaignId }
+  const data = await services.reviewCampaignsTester.submitSurvey(params, fields)
+
+  await dispatch(getMyTesterSurvey())
+  return data
 })
 
 export const updateTesterSurvey = createAsyncThunk<
   TesterCampaignSurvey,
-  CampaignScopeArg & { fields: UpdateTesterSurveyFields },
+  { fields: UpdateTesterSurveyFields },
   ThunkConfig
->("tester/updateSurvey", async ({ fields, ...params }, { extra: { services } }) => {
+>("tester/updateSurvey", async ({ fields }, { getState, extra: { services } }) => {
+  const state = getState()
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  const reviewCampaignId = getCurrentId({ state, name: "reviewCampaignId" })
+
+  const params = { organizationId, projectId, reviewCampaignId }
   return await services.reviewCampaignsTester.updateSurvey(params, fields)
 })
 
-export const getMyTesterSurvey = createAsyncThunk<
-  TesterCampaignSurvey | null,
-  CampaignScopeArg,
-  ThunkConfig
->("tester/getMyTesterSurvey", async (params, { extra: { services } }) => {
-  return await services.reviewCampaignsTester.getMyTesterSurvey(params)
-})
+export const getMyTesterSurvey = createAsyncThunk<TesterCampaignSurvey | null, void, ThunkConfig>(
+  "tester/getMyTesterSurvey",
+  async (_, { getState, extra: { services } }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const reviewCampaignId = getCurrentId({ state, name: "reviewCampaignId" })
+    const scope = { organizationId, projectId, reviewCampaignId }
+    return await services.reviewCampaignsTester.getMyTesterSurvey(scope)
+  },
+)
 
-export const deleteTesterSession = createAsyncThunk<
-  void,
-  SessionScopeArg & { reviewCampaignId: string },
-  ThunkConfig
->("tester/deleteSession", async ({ reviewCampaignId: _, ...params }, { extra: { services } }) => {
-  await services.reviewCampaignsTester.deleteSession(params)
-})
+export const deleteTesterSession = createAsyncThunk<void, { sessionId: string }, ThunkConfig>(
+  "tester/deleteSession",
+  async ({ sessionId }, { extra: { services }, dispatch, getState }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const reviewCampaignId = getCurrentId({ state, name: "reviewCampaignId" })
+
+    const scope = { organizationId, projectId, reviewCampaignId, sessionId }
+    await services.reviewCampaignsTester.deleteSession(scope)
+    await dispatch(listMyTesterSessions(scope))
+  },
+)

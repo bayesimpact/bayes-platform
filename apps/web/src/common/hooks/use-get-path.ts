@@ -1,55 +1,36 @@
-import { useCallback } from "react"
-import { useParams } from "react-router-dom"
+import { selectCurrentAgentSessionId } from "../features/agents/agent-sessions/current-agent-session-id/current-agent-session-id.selectors"
+import { selectCurrentAgentId } from "../features/agents/agents.selectors"
+import { selectCurrentOrganizationId } from "../features/organizations/organizations.selectors"
+import { selectCurrentProjectId } from "../features/projects/projects.selectors"
 import { useRoutesBuilder } from "../routes/build-routes/context"
-import { assert } from "../utils/assert"
+import { useCurrentId } from "./use-value"
 
 export function useGetProjectRoute() {
-  const { organizationId, projectId } = useParams<{
-    organizationId: string
-    projectId: string
-  }>()
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
 
   const { build } = useRoutesBuilder()
 
-  return useCallback((): string => {
-    assert(organizationId, "organizationId is required")
-    assert(projectId, "projectId is required")
-    return build.projectRoute({ organizationId, projectId })
-  }, [organizationId, projectId, build.projectRoute])
+  return build.projectRoute({ organizationId, projectId })
 }
 
 export function useGetAgentRoute() {
-  const { organizationId, projectId, agentId } = useParams<{
-    organizationId: string
-    projectId: string
-    agentId: string
-  }>()
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
+  const agentId = useCurrentId(selectCurrentAgentId)
 
   const { build } = useRoutesBuilder()
 
-  return useCallback((): string => {
-    assert(organizationId, "organizationId is required")
-    assert(projectId, "projectId is required")
-    assert(agentId, "agentId is required")
-    return build.agentRoute({ organizationId, projectId, agentId })
-  }, [organizationId, projectId, agentId, build.agentRoute])
+  return build.agentRoute({ organizationId, projectId, agentId })
 }
 
 export function useGetAgentSessionRoute() {
-  const { organizationId, projectId, agentId, agentSessionId } = useParams<{
-    organizationId: string
-    projectId: string
-    agentId: string
-    agentSessionId: string
-  }>()
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
+  const agentId = useCurrentId(selectCurrentAgentId)
+  const agentSessionId = useCurrentId(selectCurrentAgentSessionId)
 
   const { build } = useRoutesBuilder()
 
-  return useCallback((): string => {
-    assert(organizationId, "organizationId is required")
-    assert(projectId, "projectId is required")
-    assert(agentId, "agentId is required")
-    assert(agentSessionId, "agentSessionId is required")
-    return build.agentSessionRoute({ organizationId, projectId, agentId, agentSessionId })
-  }, [organizationId, projectId, agentId, agentSessionId, build.agentSessionRoute])
+  return build.agentSessionRoute({ organizationId, projectId, agentId, agentSessionId })
 }

@@ -1,6 +1,6 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
-import { hasProjectChanged } from "@/common/features/projects/projects.selectors"
+import { projectsActions } from "@/common/features/projects/projects.slice"
 import { ADS } from "@/common/store/async-data-status"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
@@ -8,7 +8,7 @@ import {
   deleteDocumentTag,
   updateDocumentTag,
 } from "@/studio/features/document-tags/document-tags.thunks"
-import { selectUploaderState } from "./documents.selectors"
+import { selectDocumentsData, selectUploaderState } from "./documents.selectors"
 import { documentsActions } from "./documents.slice"
 import {
   crawlUrl,
@@ -30,11 +30,39 @@ import {
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
 function registerListeners() {
+  listenerMiddleware.startListening({
+    actionCreator: documentsActions.projectMount,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(documentsActions.setCurrentSourceType({ sourceType: "project" }))
+      listenerApi.dispatch(documentsActions.startEmbeddingStatusStream())
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: documentsActions.projectUnmount,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(documentsActions.stopEmbeddingStatusStream())
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: documentsActions.webSourcesMount,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(documentsActions.setCurrentSourceType({ sourceType: "webCrawl" }))
+      listenerApi.dispatch(documentsActions.startEmbeddingStatusStream())
+      listenerApi.dispatch(documentsActions.startCrawlProgressStream())
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: documentsActions.webSourcesUnmount,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(documentsActions.stopEmbeddingStatusStream())
+      listenerApi.dispatch(documentsActions.stopCrawlProgressStream())
+    },
+  })
+
   // Refresh documents when current project or interface changes
   listenerMiddleware.startListening({
-    predicate(_, currentState, originalState) {
-      return hasProjectChanged(originalState, currentState)
-    },
+    actionCreator: projectsActions.mount,
     effect: async (_, listenerApi) => {
       await handleDocumentsContextChanged(listenerApi)
     },
@@ -42,10 +70,8 @@ function registerListeners() {
 
   listenerMiddleware.startListening({
     actionCreator: documentsActions.setCurrentSourceType,
-    effect: async (action, listenerApi) => {
-      if (action.payload.sourceType) {
-        listenerApi.dispatch(listDocuments())
-      }
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(listDocuments())
     },
   })
 
@@ -82,18 +108,17 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       syncDocumentEmbeddingStatusStreamWithDocuments(listenerApi)
 
+      if (action.payload.embeddingStatus !== "completed") return
+
       // Refetch documents when a webCrawl document finishes embedding
       // so the content (crawled pages) is available for the dropdown
-      if (action.payload.embeddingStatus === "completed") {
-        const state = listenerApi.getState()
-        if (ADS.isFulfilled(state.studio.documents.data)) {
-          const document = state.studio.documents.data.value.find(
-            (document) => document.id === action.payload.documentId,
-          )
-          if (document?.sourceType === "webCrawl") {
-            listenerApi.dispatch(listDocuments())
-          }
-        }
+      const state = listenerApi.getState()
+      const documents = selectDocumentsData(state)
+      if (!ADS.isFulfilled(documents)) return
+      const document = documents.value.find((document) => document.id === action.payload.documentId)
+      if (document?.sourceType === "webCrawl") {
+        // FIXME: potentially refetching the entire list is inefficient, consider only refetching the updated document
+        listenerApi.dispatch(listDocuments())
       }
     },
   })
@@ -126,7 +151,7 @@ function registerListeners() {
 
   listenerMiddleware.startListening({
     predicate(_, currentState) {
-      return currentState.studio.documents.data.value
+      return currentState.documents.data.value
         ? selectUploaderState(currentState).status === "completed"
         : false
     },

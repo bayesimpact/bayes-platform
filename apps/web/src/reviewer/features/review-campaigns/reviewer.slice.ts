@@ -9,20 +9,18 @@ import {
   getReviewerSession,
   listMyReviewerCampaigns,
   listReviewerSessions,
-  submitReviewerReview,
-  updateReviewerReview,
 } from "./reviewer.thunks"
 
 interface State {
-  myCampaigns: AsyncData<ReviewerCampaign[]>
-  sessionsByCampaignId: Record<string, AsyncData<ReviewerSessionListItem[]>>
-  sessionDetailBySessionId: Record<string, AsyncData<ReviewerSessionDetail>>
+  campaigns: AsyncData<ReviewerCampaign[]>
+  sessions: AsyncData<ReviewerSessionListItem[]>
+  sessionDetail: AsyncData<ReviewerSessionDetail>
 }
 
 const initialState: State = {
-  myCampaigns: defaultAsyncData,
-  sessionsByCampaignId: {},
-  sessionDetailBySessionId: {},
+  campaigns: defaultAsyncData,
+  sessions: defaultAsyncData,
+  sessionDetail: defaultAsyncData,
 }
 
 const slice = createSlice({
@@ -30,79 +28,68 @@ const slice = createSlice({
   initialState,
   reducers: {
     reset: () => initialState,
-    clearSessionDetail: (state, action: { payload: { sessionId: string } }) => {
-      delete state.sessionDetailBySessionId[action.payload.sessionId]
-    },
     mount: () => {},
     unmount: () => {},
+    campaignMount: () => {},
+    campaignUnmount: () => {},
     sessionMount: () => {},
     sessionUnmount: () => {},
   },
   extraReducers: (builder) => {
     builder
       .addCase(listMyReviewerCampaigns.pending, (state) => {
-        if (!ADS.isFulfilled(state.myCampaigns)) state.myCampaigns.status = ADS.Loading
-        state.myCampaigns.error = null
+        if (!ADS.isFulfilled(state.campaigns)) state.campaigns.status = ADS.Loading
+        state.campaigns.error = null
       })
       .addCase(listMyReviewerCampaigns.fulfilled, (state, action) => {
-        state.myCampaigns = { status: ADS.Fulfilled, error: null, value: action.payload }
+        state.campaigns = { status: ADS.Fulfilled, error: null, value: action.payload }
       })
       .addCase(listMyReviewerCampaigns.rejected, (state, action) => {
-        state.myCampaigns.status = ADS.Error
-        state.myCampaigns.error = action.error.message || "Failed to list campaigns"
+        state.campaigns.status = ADS.Error
+        state.campaigns.error = action.error.message || "Failed to list campaigns"
       })
 
-      .addCase(listReviewerSessions.pending, (state, action) => {
-        state.sessionsByCampaignId[action.meta.arg.reviewCampaignId] = {
-          status: ADS.Loading,
-          error: null,
-          value: null,
-        }
+    builder
+      .addCase(listReviewerSessions.pending, (state) => {
+        state.sessions.status = ADS.Loading
+        state.sessions.error = null
       })
       .addCase(listReviewerSessions.fulfilled, (state, action) => {
-        state.sessionsByCampaignId[action.meta.arg.reviewCampaignId] = {
+        state.sessions = {
           status: ADS.Fulfilled,
           error: null,
           value: action.payload,
         }
       })
       .addCase(listReviewerSessions.rejected, (state, action) => {
-        state.sessionsByCampaignId[action.meta.arg.reviewCampaignId] = {
+        state.sessions = {
           status: ADS.Error,
           error: action.error.message || "Failed to list sessions",
           value: null,
         }
       })
 
-      .addCase(getReviewerSession.pending, (state, action) => {
-        state.sessionDetailBySessionId[action.meta.arg.sessionId] = {
+    builder
+      .addCase(getReviewerSession.pending, (state) => {
+        state.sessionDetail = {
           status: ADS.Loading,
           error: null,
           value: null,
         }
       })
       .addCase(getReviewerSession.fulfilled, (state, action) => {
-        state.sessionDetailBySessionId[action.meta.arg.sessionId] = {
+        state.sessionDetail = {
           status: ADS.Fulfilled,
           error: null,
           value: action.payload,
         }
       })
       .addCase(getReviewerSession.rejected, (state, action) => {
-        state.sessionDetailBySessionId[action.meta.arg.sessionId] = {
+        state.sessionDetail = {
           status: ADS.Error,
           error: action.error.message || "Failed to load session",
           value: null,
         }
-      })
-
-      // On submit/update, invalidate the session detail so the next GET returns
-      // the fresh "full" (non-blind) payload.
-      .addCase(submitReviewerReview.fulfilled, (state, action) => {
-        delete state.sessionDetailBySessionId[action.meta.arg.sessionId]
-      })
-      .addCase(updateReviewerReview.fulfilled, (state, action) => {
-        delete state.sessionDetailBySessionId[action.meta.arg.sessionId]
       })
   },
 })

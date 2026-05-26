@@ -24,6 +24,7 @@ import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
+import { buildDate } from "@/common/utils/build-date"
 import { PendingInvitationsSection } from "@/studio/features/invitations/components/PendingInvitationsSection"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 
@@ -35,13 +36,6 @@ type Props = {
   onRevokeInvitation: (invitationId: string) => void
   disabled?: boolean
 }
-
-const formatDate = (millis: number): string =>
-  new Date(millis).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })
 
 const parseEmails = (raw: string): string[] =>
   raw
@@ -151,7 +145,7 @@ export function ParticipantsList({
                   </TableCell>
                   <TableCell>
                     {membership.acceptedAt ? (
-                      formatDate(membership.acceptedAt)
+                      buildDate(membership.acceptedAt)
                     ) : (
                       <span className="text-muted-foreground text-sm italic">
                         {t("reviewCampaigns:participants.pending")}

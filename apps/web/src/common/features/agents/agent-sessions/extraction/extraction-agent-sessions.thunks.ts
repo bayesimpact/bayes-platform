@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
-import { getCurrentIds } from "@/common/features/helpers"
+import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import type { Document } from "@/studio/features/documents/documents.models"
 import { uploadDocument } from "@/studio/features/documents/documents.thunks"
@@ -15,10 +15,8 @@ export const listMyDocuments = createAsyncThunk<Document[], void, ThunkConfig>(
   "extractionAgentSessions/listMyDocuments",
   async (_, { extra: { services }, getState }) => {
     const state = getState()
-    const { organizationId, projectId } = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
     return await services.documents.listMyExtractionDocuments({ organizationId, projectId })
   },
 )
@@ -43,10 +41,9 @@ const executeOne = createAsyncThunk<
           ).unwrap()
         : params.document
 
-    const { organizationId, projectId, agentId } = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId", "agentId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const agentId = getCurrentId({ state, name: "agentId" })
 
     return await services.extractionAgentSessions.executeOne({
       organizationId,
@@ -63,10 +60,10 @@ const getOne = createAsyncThunk<ExtractionAgentSession, { agentSessionId: string
   async ({ agentSessionId }, { extra: { services }, getState }) => {
     const state = getState()
     const isStudio = isStudioInterface()
-    const params = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId", "agentId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const agentId = getCurrentId({ state, name: "agentId" })
+    const params = { organizationId, projectId, agentId }
     return await services.extractionAgentSessions.getOne({
       ...params,
       agentSessionId,

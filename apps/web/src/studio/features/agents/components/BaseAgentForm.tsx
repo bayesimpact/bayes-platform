@@ -38,7 +38,9 @@ import { useTranslation } from "react-i18next"
 import type { z } from "zod"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { ProjectAgentCategory } from "@/common/features/projects/projects.models"
+import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { type HasFeature, useFeatureFlags } from "@/common/hooks/use-feature-flags"
+import { useValue } from "@/common/hooks/use-value"
 import { getTagNameById } from "@/studio/features/document-tags/document-tags.helpers"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import { DocumentTagPicker } from "@/studio/features/documents/components/DocumentTagPicker"
@@ -79,7 +81,8 @@ export function BaseAgentForm({
   editableAgent?: Agent
   onSubmit: (values: AgentFormData) => Promise<void> | void
 }) {
-  const { hasFeature } = useFeatureFlags()
+  const project = useValue(selectCurrentProjectData)
+  const { hasFeature } = useFeatureFlags(project)
   const { t, i18n } = useTranslation()
 
   const hasOutputJsonSchema = agentType !== "conversation"

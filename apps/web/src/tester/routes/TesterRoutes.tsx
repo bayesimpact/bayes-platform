@@ -1,38 +1,37 @@
-import { TesterAgentSessionPage } from "@/tester/features/review-campaigns/components/TesterAgentSessionPage"
-import { TesterCampaignLandingPage } from "@/tester/features/review-campaigns/components/TesterCampaignLandingPage"
-import { TesterEndOfPhaseSurveyPage } from "@/tester/features/review-campaigns/components/TesterEndOfPhaseSurveyPage"
-import { TesterMyCampaignsPage } from "@/tester/features/review-campaigns/components/TesterMyCampaignsPage"
+import { RestrictedAccess } from "@/studio/routes/RestrictedAccess"
+import { TesterAgentSession } from "../features/review-campaigns/components/TesterAgentSession"
+import { CampaignRoute } from "./CampaignRoute"
 import { TesterRoutes } from "./helpers"
-import { TesterCampaignRoute } from "./TesterCampaignRoute"
+import { SessionRoute } from "./SessionRoute"
+import { SessionsRoute } from "./SessionsRoute"
+import { TesterEndOfPhaseSurveyRoute } from "./TesterEndOfPhaseSurveyRoute"
 import { TesterRoute } from "./TesterRoute"
-import { TesterSessionRoute } from "./TesterSessionRoute"
 
 export const testerRoutes = {
+  path: TesterRoutes.home.path,
   element: <TesterRoute />,
   children: [
     {
-      path: TesterRoutes.home.path,
-      element: <TesterMyCampaignsPage />,
-    },
-    {
-      element: <TesterCampaignRoute />,
+      path: TesterRoutes.campaign.path,
+      element: (
+        <CampaignRoute>
+          <RestrictedAccess ability="canAccessTester">
+            <SessionsRoute />
+          </RestrictedAccess>
+        </CampaignRoute>
+      ),
       children: [
         {
-          path: TesterRoutes.campaign.path,
-          element: <TesterCampaignLandingPage />,
-        },
-        {
-          element: <TesterSessionRoute />,
-          children: [
-            {
-              path: TesterRoutes.session.path,
-              element: <TesterAgentSessionPage />,
-            },
-          ],
+          path: TesterRoutes.session.path,
+          element: (
+            <SessionRoute>
+              <TesterAgentSession />
+            </SessionRoute>
+          ),
         },
         {
           path: TesterRoutes.survey.path,
-          element: <TesterEndOfPhaseSurveyPage />,
+          element: <TesterEndOfPhaseSurveyRoute />,
         },
       ],
     },

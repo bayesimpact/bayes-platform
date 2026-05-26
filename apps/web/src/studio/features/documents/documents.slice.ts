@@ -18,8 +18,7 @@ type CrawlProgressStreamState = {
   isActive: boolean
 }
 interface State {
-  currentDocumentId: string | null
-  currentSourceType: DocumentSourceType | null
+  currentSourceType: DocumentSourceType
   data: AsyncData<Document[]>
   uploader: UploaderState
   embeddingStatusStream: EmbeddingStatusStreamState
@@ -28,8 +27,7 @@ interface State {
 }
 
 const initialState: State = {
-  currentDocumentId: null,
-  currentSourceType: null,
+  currentSourceType: "project",
   data: defaultAsyncData,
   uploader: {
     status: "idle",
@@ -70,6 +68,10 @@ const slice = createSlice({
   name: "documents",
   initialState,
   reducers: {
+    projectMount: () => {},
+    projectUnmount: () => {},
+    webSourcesMount: () => {},
+    webSourcesUnmount: () => {},
     reset: () => initialState,
     resetUploaderCounters: (state) => {
       state.uploader.total = 0
@@ -96,13 +98,7 @@ const slice = createSlice({
         state.uploader.status = "completed"
       }
     },
-    setCurrentDocumentId: (state, action: PayloadAction<{ documentId: string | null }>) => {
-      state.currentDocumentId = action.payload.documentId
-    },
-    setCurrentSourceType: (
-      state,
-      action: PayloadAction<{ sourceType: DocumentSourceType | null }>,
-    ) => {
+    setCurrentSourceType: (state, action: PayloadAction<{ sourceType: DocumentSourceType }>) => {
       state.currentSourceType = action.payload.sourceType
     },
     startEmbeddingStatusStream: (state) => {
@@ -198,7 +194,5 @@ const slice = createSlice({
   },
 })
 
-export type { State as DocumentsState }
-export const documentsInitialState = initialState
 export const documentsActions = { ...slice.actions }
 export const documentsSlice = slice

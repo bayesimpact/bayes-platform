@@ -15,6 +15,8 @@ const slice = createSlice({
   name: "evaluations",
   initialState,
   reducers: {
+    mount: () => {},
+    unmount: () => {},
     reset: () => initialState,
   },
   extraReducers: (builder) => {
@@ -39,7 +41,5 @@ const slice = createSlice({
   },
 })
 
-export type { State as EvaluationsState }
-export const evaluationsInitialState = initialState
 export const evaluationsActions = { ...slice.actions }
 export const evaluationsSlice = slice

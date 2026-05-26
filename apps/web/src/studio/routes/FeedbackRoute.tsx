@@ -1,16 +1,15 @@
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
-import type { Agent } from "@/common/features/agents/agents.models"
 import {
   selectCurrentAgentData,
   selectCurrentAgentId,
 } from "@/common/features/agents/agents.selectors"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
 import { useGetAgentRoute } from "@/common/hooks/use-get-path"
+import { useValue } from "@/common/hooks/use-value"
 import { useAppSelector } from "@/common/store/hooks"
-import type { AgentMessageFeedback } from "@/studio/features/agent-message-feedback/agent-message-feedback.models"
-import { selectFeedbacksFromAgentId } from "@/studio/features/agent-message-feedback/agent-message-feedback.selectors"
+import { selectCurrentAgentFeedbacksData } from "@/studio/features/agent-message-feedback/agent-message-feedback.selectors"
 import { AsyncRoute } from "../../common/routes/AsyncRoute"
 import { ErrorRoute } from "../../common/routes/ErrorRoute"
 import { EmptyFeedback } from "../features/agent-message-feedback/components/EmptyFeedback"
@@ -19,22 +18,24 @@ import { FeedbackItem } from "../features/agent-message-feedback/components/Feed
 export function FeedbackRoute() {
   const agentId = useAppSelector(selectCurrentAgentId)
   const agent = useAppSelector(selectCurrentAgentData)
-  const feedbacks = useAppSelector(selectFeedbacksFromAgentId(agentId))
+  const feedbacks = useAppSelector(selectCurrentAgentFeedbacksData)
 
   if (!agentId) return <ErrorRoute error="Missing valid agent ID" />
   return (
     <AsyncRoute data={[agent, feedbacks]}>
-      {([agentValue, feedbacksValue]) => <WithData agent={agentValue} feedbacks={feedbacksValue} />}
+      <WithData />
     </AsyncRoute>
   )
 }
 
-function WithData({ feedbacks, agent }: { feedbacks: AgentMessageFeedback[]; agent: Agent }) {
+function WithData() {
+  const agent = useValue(selectCurrentAgentData)
+  const feedbacks = useValue(selectCurrentAgentFeedbacksData)
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const getAgentRoute = useGetAgentRoute()
+  const agentRoute = useGetAgentRoute()
 
-  const handleBack = () => navigate(getAgentRoute())
+  const handleBack = () => navigate(agentRoute)
 
   const Icon = getAgentIcon(agent.type)
   return (

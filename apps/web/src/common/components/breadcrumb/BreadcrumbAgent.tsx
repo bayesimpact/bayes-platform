@@ -13,6 +13,7 @@ import { Link } from "react-router-dom"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectAgentsData, selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
+import { useValue } from "@/common/hooks/use-value"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
 import type { DeskRoutes } from "@/desk/routes/helpers"
@@ -25,18 +26,20 @@ export function BreadcrumbAgent({
   organizationId: string
   buildPath: (typeof StudioRoutes)["agent"]["build"] | (typeof DeskRoutes)["agent"]["build"]
 }) {
-  const agents = useAppSelector(selectAgentsData)
+  const agents = useValue(selectAgentsData)
   const agent = useAppSelector(selectCurrentAgentData)
-  if (!ADS.isFulfilled(agents) || !ADS.isFulfilled(agent)) return null
+
+  // perhaps agents is an empty array then current agent is not fulfilled
+  if (!ADS.isFulfilled(agent)) return null
 
   const handleClick = (agentId: string) => () => {
-    const nextAgent = agents.value.find((candidateAgent) => candidateAgent.id === agentId)
+    const nextAgent = agents.find((candidateAgent) => candidateAgent.id === agentId)
     if (!nextAgent) return
     const path = buildPath({ organizationId, projectId: agent.value.projectId, agentId })
     window.location.assign(path)
   }
 
-  if (agents.value.length === 1)
+  if (agents.length === 1)
     return (
       <CurrentAgentButton
         agent={agent.value}
@@ -60,7 +63,7 @@ export function BreadcrumbAgent({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
             <DropdownMenuGroup>
-              {agents.value.map((a) => (
+              {agents.map((a) => (
                 <AgentItem
                   key={a.id}
                   agent={a}

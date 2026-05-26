@@ -63,3 +63,48 @@ export const Default: Story = {
     }),
   ],
 }
+
+export const WithData: Story = {
+  args: {
+    organizationMembershipRole: "owner",
+    projectMembershipRole: "owner",
+    agentMembershipRole: "owner",
+    featureFlags: ["evaluation"],
+    withAgents: false,
+    withEvaluations: true,
+    withEvaluationReports: true,
+  },
+
+  decorators: [
+    buildDecorator<StoryArgs>(({ withEvaluations, withEvaluationReports, ...args }) => {
+      const { baseSeeds, project, agents } = buildStudioData(args)
+      const evaluations = withEvaluations
+        ? evaluationFactory
+            .transient({
+              project,
+            })
+            .buildList(3)
+        : []
+      const reportsByEvaluationId = withEvaluationReports
+        ? evaluations.reduce<Record<string, EvaluationReport[]>>((acc, evaluation) => {
+            acc[evaluation.id] = agents.map((agent) =>
+              evaluationReportFactory
+                .transient({
+                  evaluation,
+                  agent,
+                })
+                .build(),
+            )
+            return acc
+          }, {})
+        : {}
+      return {
+        state: mergeSeeds(
+          baseSeeds,
+          seed.studio.evaluations(evaluations),
+          seed.studio.evaluationReports(reportsByEvaluationId),
+        ),
+      }
+    }),
+  ],
+}

@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import type { RootState, ThunkExtraArg } from "@/common/store"
-import { getCurrentIds } from "../../../common/features/helpers"
+import { getCurrentId } from "../../../common/features/helpers"
 import type { Project } from "../../../common/features/projects/projects.models"
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
@@ -22,20 +22,20 @@ export const updateProject = createAsyncThunk<
   { payload: Pick<Project, "name"> },
   ThunkConfig
 >("projects/update", async ({ payload }, { extra: { services }, getState }) => {
-  const params = getCurrentIds({
-    state: getState(),
-    wantedIds: ["organizationId", "projectId"],
-  })
+  const state = getState()
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  const params = { organizationId, projectId }
   await services.projects.updateOne(params, payload)
 })
 
 export const deleteProject = createAsyncThunk<void, { onSuccess?: () => void }, ThunkConfig>(
   "projects/delete",
   async ({ onSuccess }, { extra: { services }, getState }) => {
-    const params = getCurrentIds({
-      state: getState(),
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId }
     await services.projects.deleteOne(params)
     if (onSuccess) onSuccess()
   },

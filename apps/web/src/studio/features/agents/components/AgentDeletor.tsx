@@ -93,7 +93,8 @@ function Content({
   const dispatch = useAppDispatch()
 
   const handleDelete = () => {
-    dispatch(deleteAgent({ agentId: agent.id, onSuccess }))
+    dispatch(deleteAgent({ agentId: agent.id }))
+    onSuccess()
   }
 
   return (

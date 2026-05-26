@@ -112,21 +112,19 @@ export const seed = {
     organizations: Organization[],
     options: { currentId?: string | null } = {},
   ): StoryPreloadedState {
-    return {
-      organizations: {
-        data: ads.fulfilled(organizations),
-        currentOrganizationId: options.currentId ?? organizations[0]?.id ?? null,
-      },
-    }
+    const currentId = options.currentId ?? organizations[0]?.id ?? null
+    return mergeSeeds(
+      { organizations: { data: ads.fulfilled(organizations) } },
+      { currentIds: { organizationId: currentId } },
+    )
   },
 
   projects(projects: Project[], options: { currentId?: string | null } = {}): StoryPreloadedState {
-    return {
-      projects: {
-        data: ads.fulfilled(projects),
-        currentProjectId: options.currentId ?? projects[0]?.id ?? null,
-      },
-    }
+    const currentId = options.currentId ?? projects[0]?.id ?? null
+    return mergeSeeds(
+      { projects: { data: ads.fulfilled(projects) } },
+      { currentIds: { projectId: currentId } },
+    )
   },
 
   /**
@@ -149,24 +147,23 @@ export const seed = {
   },
 
   agents(agents: Agent[], options: { currentId?: string | null } = {}): StoryPreloadedState {
-    return {
-      agents: {
-        data: ads.fulfilled(agents),
-        currentAgentId: options.currentId ?? null,
-      },
-    }
+    const currentId = options.currentId ?? null
+    return mergeSeeds(
+      { agents: { data: ads.fulfilled(agents) } },
+      { currentIds: { agentId: currentId } },
+    )
   },
 
   currentReviewCampaignId(id: string | null): StoryPreloadedState {
-    return { currentReviewCampaignId: { value: id } }
+    return { currentIds: { reviewCampaignId: id } }
   },
 
-  campaignReport(reviewCampaignId: string, report: CampaignReport): StoryPreloadedState {
-    return {
-      reviewCampaignsReports: {
-        reportByCampaignId: { [reviewCampaignId]: ads.fulfilled(report) },
-      },
-    }
+  currentMembershipId(id: string | null): StoryPreloadedState {
+    return { currentIds: { membershipId: id } }
+  },
+
+  campaignReport(report: CampaignReport): StoryPreloadedState {
+    return { reviewCampaignsReports: { report: ads.fulfilled(report) } }
   },
 
   conversationAgentSessions(
@@ -186,7 +183,7 @@ export const seed = {
   },
 
   currentAgentSessionId(id: string | null): StoryPreloadedState {
-    return { currentAgentSessionId: { value: id } }
+    return { currentIds: { agentSessionId: id } }
   },
 
   agentSessionMessages(messages: AgentSessionMessage[]): StoryPreloadedState {
@@ -195,21 +192,21 @@ export const seed = {
 
   studio: {
     documents(documents: Document[]): StoryPreloadedState {
-      return { studio: { documents: { data: ads.fulfilled(documents) } } }
+      return { documents: { data: ads.fulfilled(documents) } }
     },
 
     documentTags(documentTags: DocumentTag[]): StoryPreloadedState {
-      return { studio: { documentTags: { data: ads.fulfilled(documentTags) } } }
+      return { documentTags: { data: ads.fulfilled(documentTags) } }
     },
 
     evaluations(evaluations: Evaluation[]): StoryPreloadedState {
-      return { studio: { evaluations: { data: ads.fulfilled(evaluations) } } }
+      return { evaluations: { data: ads.fulfilled(evaluations) } }
     },
 
     evaluationReports(
       reportsByEvaluationId: Record<string, EvaluationReport[]>,
     ): StoryPreloadedState {
-      return { studio: { evaluationReports: { data: ads.fulfilled(reportsByEvaluationId) } } }
+      return { evaluationReports: { data: ads.fulfilled(reportsByEvaluationId) } }
     },
 
     projectAnalytics(value: {
@@ -218,12 +215,10 @@ export const seed = {
       conversationsByCategoryPerDay: AnalyticsCategoryDailyPoint[]
     }): StoryPreloadedState {
       return {
-        studio: {
-          projectAnalytics: {
-            conversationsPerDay: ads.fulfilled(value.conversationsPerDay),
-            avgUserQuestionsPerSessionPerDay: ads.fulfilled(value.avgUserQuestionsPerSessionPerDay),
-            conversationsByCategoryPerDay: ads.fulfilled(value.conversationsByCategoryPerDay),
-          },
+        projectAnalytics: {
+          conversationsPerDay: ads.fulfilled(value.conversationsPerDay),
+          avgUserQuestionsPerSessionPerDay: ads.fulfilled(value.avgUserQuestionsPerSessionPerDay),
+          conversationsByCategoryPerDay: ads.fulfilled(value.conversationsByCategoryPerDay),
         },
       }
     },
@@ -234,42 +229,42 @@ export const seed = {
       conversationsByCategoryPerDay: AnalyticsCategoryDailyPoint[]
     }): StoryPreloadedState {
       return {
-        studio: {
-          agentAnalytics: {
-            conversationsPerDay: ads.fulfilled(value.conversationsPerDay),
-            avgUserQuestionsPerSessionPerDay: ads.fulfilled(value.avgUserQuestionsPerSessionPerDay),
-            conversationsByCategoryPerDay: ads.fulfilled(value.conversationsByCategoryPerDay),
-          },
+        agentAnalytics: {
+          conversationsPerDay: ads.fulfilled(value.conversationsPerDay),
+          avgUserQuestionsPerSessionPerDay: ads.fulfilled(value.avgUserQuestionsPerSessionPerDay),
+          conversationsByCategoryPerDay: ads.fulfilled(value.conversationsByCategoryPerDay),
         },
       }
     },
 
     reviewCampaigns(campaigns: ReviewCampaign[]): StoryPreloadedState {
-      return { studio: { reviewCampaigns: { data: ads.fulfilled(campaigns) } } }
+      return { reviewCampaigns: { data: ads.fulfilled(campaigns) } }
     },
 
     selectedReviewCampaignDetail(detail: ReviewCampaignDetail): StoryPreloadedState {
-      return { studio: { reviewCampaigns: { selectedDetail: ads.fulfilled(detail) } } }
+      return { reviewCampaigns: { selectedDetail: ads.fulfilled(detail) } }
     },
 
     agentMemberships(memberships: AgentMembership[]): StoryPreloadedState {
-      return { studio: { agentMemberships: { data: ads.fulfilled(memberships) } } }
+      return { agentMemberships: { data: ads.fulfilled(memberships) } }
     },
 
     projectMemberships(memberships: ProjectMembership[]): StoryPreloadedState {
-      return { studio: { projectMemberships: { data: ads.fulfilled(memberships) } } }
+      return { projectMemberships: { data: ads.fulfilled(memberships) } }
+    },
+
+    pendingInvitations(invitations: PendingInvitations): StoryPreloadedState {
+      return { projectMemberships: { pendingInvitations: ads.fulfilled(invitations) } }
     },
 
     projectMemberAgents(memberAgents: ProjectMemberAgent[]): StoryPreloadedState {
-      return {
-        studio: { projectMemberships: { memberAgents: ads.fulfilled(memberAgents) } },
-      }
+      return { projectMemberships: { memberAgents: ads.fulfilled(memberAgents) } }
     },
 
     agentMessageFeedbacks(
       feedbacksByAgentId: Record<string, AgentMessageFeedback[]>,
     ): StoryPreloadedState {
-      return { studio: { agentMessageFeedback: { data: ads.fulfilled(feedbacksByAgentId) } } }
+      return { agentMessageFeedback: { data: ads.fulfilled(feedbacksByAgentId) } }
     },
   },
 
@@ -277,13 +272,11 @@ export const seed = {
     organizations(organizations: PaginatedBackofficeOrganizations): StoryPreloadedState {
       return {
         backoffice: {
-          backoffice: {
-            organizations: ads.fulfilled(organizations),
-            organizationsQuery: {
-              page: organizations.page,
-              limit: organizations.limit,
-              search: "",
-            },
+          organizations: ads.fulfilled(organizations),
+          organizationsQuery: {
+            page: organizations.page,
+            limit: organizations.limit,
+            search: "",
           },
         },
       }
@@ -292,38 +285,32 @@ export const seed = {
     users(users: PaginatedBackofficeUsers): StoryPreloadedState {
       return {
         backoffice: {
-          backoffice: {
-            users: ads.fulfilled(users),
-            usersQuery: { page: users.page, limit: users.limit, search: "" },
-          },
+          users: ads.fulfilled(users),
+          usersQuery: { page: users.page, limit: users.limit, search: "" },
         },
       }
     },
 
     termsDocuments(termsDocuments: TermsDocuments): StoryPreloadedState {
-      return { backoffice: { backoffice: { termsDocuments: ads.fulfilled(termsDocuments) } } }
+      return { backoffice: { termsDocuments: ads.fulfilled(termsDocuments) } }
     },
   },
 
   tester: {
     myCampaigns(campaigns: MyReviewCampaign[]): StoryPreloadedState {
-      return { tester: { reviewCampaignsTester: { myCampaigns: ads.fulfilled(campaigns) } } }
+      return { reviewCampaignsTester: { myCampaigns: ads.fulfilled(campaigns) } }
     },
 
     context(context: TesterContext): StoryPreloadedState {
-      return { tester: { reviewCampaignsTester: { selectedContext: ads.fulfilled(context) } } }
+      return { reviewCampaignsTester: { testerContext: ads.fulfilled(context) } }
     },
 
-    surveyByCampaignId(byCampaignId: Record<string, TesterCampaignSurvey>): StoryPreloadedState {
-      return {
-        tester: { reviewCampaignsTester: { selectedSurveyByCampaignId: byCampaignId } },
-      }
+    campaignSurvey(survey: TesterCampaignSurvey | null): StoryPreloadedState {
+      return { reviewCampaignsTester: { campaignSurvey: ads.fulfilled(survey) } }
     },
 
-    localSessionsByCampaignId(
-      byCampaignId: Record<string, LocalSessionSummary[]>,
-    ): StoryPreloadedState {
-      return { tester: { reviewCampaignsTester: { mySessionsByCampaignId: byCampaignId } } }
+    campaignSessions(sessions: LocalSessionSummary[]): StoryPreloadedState {
+      return { reviewCampaignsTester: { campaignSessions: ads.fulfilled(sessions) } }
     },
   },
 }

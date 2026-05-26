@@ -140,7 +140,7 @@ export const Default: Story = {
         state: mergeSeeds(
           baseSeeds,
           seed.currentReviewCampaignId(FIXED_CAMPAIGN_ID),
-          seed.campaignReport(FIXED_CAMPAIGN_ID, report),
+          seed.campaignReport(report),
         ),
         services: {
           reviewCampaignsReports: buildMockReportsService({ report }),

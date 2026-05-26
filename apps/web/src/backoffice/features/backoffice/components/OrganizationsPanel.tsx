@@ -28,12 +28,14 @@ import {
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, XIcon } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useValue } from "@/common/hooks/use-value"
+import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import type {
-  BackofficeProjectAgentCategory,
-  PaginatedBackofficeOrganizations,
-} from "../backoffice.models"
-import { selectBackofficeOrganizationsQuery } from "../backoffice.selectors"
+import type { BackofficeProjectAgentCategory } from "../backoffice.models"
+import {
+  selectBackofficeOrganizations,
+  selectBackofficeOrganizationsQuery,
+} from "../backoffice.selectors"
 import { backofficeActions } from "../backoffice.slice"
 import { SearchField } from "./BackofficeTable"
 
@@ -48,11 +50,17 @@ type OrganizationRow = {
   agentCategories: BackofficeProjectAgentCategory[]
 }
 
-export function OrganizationsPanel({
-  organizations,
-}: {
-  organizations: PaginatedBackofficeOrganizations
-}) {
+export function OrganizationsPanel() {
+  const organizations = useAppSelector(selectBackofficeOrganizations)
+  return (
+    <AsyncRoute data={[organizations]}>
+      <WithData />
+    </AsyncRoute>
+  )
+}
+
+function WithData() {
+  const organizations = useValue(selectBackofficeOrganizations)
   const dispatch = useAppDispatch()
   const query = useAppSelector(selectBackofficeOrganizationsQuery)
   const [searchInput, setSearchInput] = useState(query.search)

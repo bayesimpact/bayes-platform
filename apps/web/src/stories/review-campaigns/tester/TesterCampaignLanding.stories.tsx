@@ -1,6 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { fn } from "storybook/test"
+import { withRouter } from "storybook-addon-remix-react-router"
+import { withRedux } from "@/stories/decorators"
+import { mergeSeeds, seed } from "@/stories/seed"
 import { CampaignLanding } from "@/tester/features/review-campaigns/components/CampaignLanding"
+import { mockProject } from "../fixtures"
 import { mockSessions, mockTesterContext } from "./fixtures"
 
 const meta = {
@@ -9,12 +13,17 @@ const meta = {
   parameters: { layout: "fullscreen" },
   args: {
     context: mockTesterContext,
-    onStartSession: fn(),
     onOpenFeedback: fn(),
     onResumeSession: fn(),
     onFinishParticipating: fn(),
     onEditSurvey: fn(),
   },
+  decorators: [
+    withRouter,
+    withRedux({
+      state: mergeSeeds(seed.currentProject(mockProject), seed.tester.context(mockTesterContext)),
+    }),
+  ],
 } satisfies Meta<typeof CampaignLanding>
 
 export default meta

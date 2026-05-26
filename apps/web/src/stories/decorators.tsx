@@ -37,20 +37,23 @@ export type WithReduxConfig = {
 
 type Slice = { name: string; reducer: Reducer }
 
-function combineSliceList(slices: ReadonlyArray<Slice>): Reducer {
-  return combineReducers(
-    Object.assign({}, ...slices.map((slice) => ({ [slice.name]: slice.reducer }))),
-  )
-}
+const allMockSlices: ReadonlyArray<Slice> = [
+  ...rootSliceList,
+  ...studioSliceList,
+  ...testerSliceList,
+  ...reviewerSliceList,
+  ...evalSliceList,
+  ...backofficeSliceList,
+]
 
-const mockRootReducer = combineReducers({
-  ...Object.assign({}, ...rootSliceList.map((slice) => ({ [slice.name]: slice.reducer }))),
-  studio: combineSliceList(studioSliceList),
-  tester: combineSliceList(testerSliceList),
-  reviewer: combineSliceList(reviewerSliceList),
-  evaluation: combineSliceList(evalSliceList),
-  backoffice: combineSliceList(backofficeSliceList),
-}) as unknown as Reducer<RootState>
+// Scope-specific slices share names (e.g. every scope has a `currentIds` slice). Later entries
+// win, but reducers handling identical action types make the behavior equivalent at runtime.
+const mockReducerMap = Object.assign(
+  {},
+  ...allMockSlices.map((slice) => ({ [slice.name]: slice.reducer })),
+)
+
+const mockRootReducer = combineReducers(mockReducerMap) as unknown as Reducer<RootState>
 
 const defaultInitialState = mockRootReducer(undefined, { type: "@@INIT" })
 

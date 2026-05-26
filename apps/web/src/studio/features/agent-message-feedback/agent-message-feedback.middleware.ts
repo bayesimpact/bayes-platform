@@ -1,6 +1,6 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
 import { listAgents } from "@/common/features/agents/agents.thunks"
-import { getCurrentIds } from "@/common/features/helpers"
+import { getCurrentId } from "@/common/features/helpers"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
@@ -37,7 +37,7 @@ function registerListeners() {
       )
 
       const state = listenerApi.getState()
-      const { agentId } = getCurrentIds({ state, wantedIds: ["agentId"] })
+      const agentId = getCurrentId({ state, name: "agentId" })
       await listenerApi.dispatch(listAgentMessageFeedbacks({ agentId }))
     },
   })

@@ -3,13 +3,9 @@ import type { RootState } from "@/common/store"
 import { ADS, type AsyncData } from "@/common/store/async-data-status"
 import type { Agent } from "./agents.models"
 
-export const selectAgentsStatus = (state: RootState) => state.agents.data.status
-
-export const selectAgentsError = (state: RootState) => state.agents.data.error
-
 export const selectAgentsData = (state: RootState) => state.agents.data
 
-export const selectCurrentAgentId = (state: RootState) => state.agents.currentAgentId
+export const selectCurrentAgentId = (state: RootState) => state.currentIds.agentId
 
 export const selectCurrentAgentData = createSelector(
   [selectAgentsData, selectCurrentAgentId],
@@ -23,8 +19,9 @@ export const selectCurrentAgentData = createSelector(
   },
 )
 
-export const hasAgentChanged = (originalState: RootState, currentState: RootState) => {
-  const prevId = selectCurrentAgentId(originalState)
-  const nextId = selectCurrentAgentId(currentState)
+export const hasAgentChanged = (prev: RootState, next: RootState) => {
+  if (!prev.currentIds || !next.currentIds) return false
+  const prevId = selectCurrentAgentId(prev)
+  const nextId = selectCurrentAgentId(next)
   return prevId !== nextId && !!nextId
 }

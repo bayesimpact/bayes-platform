@@ -1,7 +1,7 @@
 import type { SuccessResponseDTO } from "@caseai-connect/api-contracts"
 import { createAsyncThunk, type ListenerEffectAPI } from "@reduxjs/toolkit"
 import type { Agent } from "@/common/features/agents/agents.models"
-import { getCurrentIds } from "@/common/features/helpers"
+import { getCurrentId } from "@/common/features/helpers"
 import type { AppDispatch, RootState, ThunkExtraArg } from "@/common/store"
 import { isStudioInterface } from "@/studio/routes/helpers"
 import type { ConversationAgentSession } from "../../conversation/conversation-agent-sessions.models"
@@ -25,10 +25,9 @@ export const listAgentSessionsForAgents = createAsyncThunk<
       extraction: services.extractionAgentSessions,
     }
     const state = getState()
-    const params = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId }
     return Promise.all(
       agentIds.map(async (agentId) => {
         return {
@@ -60,10 +59,9 @@ export const createAgentSession = createAsyncThunk<
       extraction: services.extractionAgentSessions,
     }
     const state = getState()
-    const params = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId }
     return map[agentType].createOne({
       ...params,
       agentId,
@@ -85,10 +83,9 @@ export const deleteAgentSession = createAsyncThunk<
       extraction: services.extractionAgentSessions,
     }
     const state = getState()
-    const params = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId }
     return map[agentType].deleteOne({
       ...params,
       agentId,

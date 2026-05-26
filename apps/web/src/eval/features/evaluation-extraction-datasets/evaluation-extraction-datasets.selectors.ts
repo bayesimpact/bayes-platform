@@ -4,7 +4,7 @@ import { ADS, type AsyncData } from "@/common/store/async-data-status"
 import type { EvaluationExtractionDatasetFile } from "./evaluation-extraction-datasets.models"
 
 // FILES
-export const selectFilesData = (state: RootState) => state.evaluation.extractionDatasets.files
+export const selectFilesData = (state: RootState) => state.extractionDatasets.files
 export const selectLastFileData = (state: RootState) => {
   const uploaderState = selectUploaderState(state)
   switch (uploaderState.status) {
@@ -16,18 +16,17 @@ export const selectLastFileData = (state: RootState) => {
       break
   }
 
-  if (ADS.isFulfilled(state.evaluation.extractionDatasets.files)) {
-    const files = state.evaluation.extractionDatasets.files.value
+  if (ADS.isFulfilled(state.extractionDatasets.files)) {
+    const files = state.extractionDatasets.files.value
     const lastFile = files[files.length - 1]
     if (!lastFile) {
       return { status: ADS.Error, error: "No file found", value: null }
     }
     return { status: ADS.Fulfilled, error: null, value: lastFile }
   }
-  return state.evaluation.extractionDatasets.files
+  return state.extractionDatasets.files
 }
-export const selectCurrentFileId = (state: RootState) =>
-  state.evaluation.extractionDatasets.currentFileId
+export const selectCurrentFileId = (state: RootState) => state.currentIds.fileId
 export const selectCurrentFileData = createSelector(
   [selectFilesData, selectCurrentFileId],
   (filesData, fileId): AsyncData<EvaluationExtractionDatasetFile> => {
@@ -42,18 +41,15 @@ export const selectCurrentFileData = createSelector(
     return filesData
   },
 )
-export const selectFileColumnsData = (state: RootState) =>
-  state.evaluation.extractionDatasets.fileColumns
-export const selectUploaderState = (state: RootState) =>
-  state.evaluation.extractionDatasets.uploader
+export const selectFileColumnsData = (state: RootState) => state.extractionDatasets.fileColumns
+export const selectUploaderState = (state: RootState) => state.extractionDatasets.uploader
 
 // RECORDS
-export const selectRecordsData = (state: RootState) => state.evaluation.extractionDatasets.records
+export const selectRecordsData = (state: RootState) => state.extractionDatasets.records
 
 // DATASETS
-export const selectDatasetsData = (state: RootState) => state.evaluation.extractionDatasets.data
-export const selectCurrentDatasetId = (state: RootState) =>
-  state.evaluation.extractionDatasets.currentDatasetId
+export const selectDatasetsData = (state: RootState) => state.extractionDatasets.data
+export const selectCurrentDatasetId = (state: RootState) => state.currentIds.datasetId
 export const selectCurrentDatasetData = createSelector(
   [selectDatasetsData, selectCurrentDatasetId],
   (datasetsData, datasetId) => {
@@ -69,4 +65,4 @@ export const selectCurrentDatasetData = createSelector(
   },
 )
 export const selectIsUpdatingDataset = (state: RootState) =>
-  state.evaluation.extractionDatasets.isUpdatingDataset
+  state.extractionDatasets.isUpdatingDataset

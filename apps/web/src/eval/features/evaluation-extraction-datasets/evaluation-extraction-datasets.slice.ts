@@ -17,8 +17,6 @@ type UploaderState = {
 }
 
 interface State {
-  currentDatasetId: string | null
-  currentFileId: string | null
   data: AsyncData<EvaluationExtractionDataset[]>
   records: AsyncData<PaginatedEvaluationExtractionDatasetRecords>
   files: AsyncData<EvaluationExtractionDatasetFile[]>
@@ -28,8 +26,6 @@ interface State {
 }
 
 const initialState: State = {
-  currentDatasetId: null,
-  currentFileId: null,
   data: defaultAsyncData,
   records: defaultAsyncData,
   files: defaultAsyncData,
@@ -50,12 +46,8 @@ const slice = createSlice({
     reset: () => initialState,
     mount: () => {},
     unmount: () => {},
-    setCurrentDatasetId: (state, action: PayloadAction<{ datasetId: string | null }>) => {
-      state.currentDatasetId = action.payload.datasetId
+    resetRecords: (state) => {
       state.records = defaultAsyncData
-    },
-    setCurrentFileId: (state, action: PayloadAction<{ fileId: string | null }>) => {
-      state.currentFileId = action.payload.fileId
     },
     resetUploaderCounters: (state) => {
       state.uploader.total = 0
