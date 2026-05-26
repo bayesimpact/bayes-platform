@@ -1,15 +1,14 @@
 name: CI
 
 on:
-  pull_request:
+  push:
     branches:
-      - main
+      - 'chore/changelog-v*'
     paths:
       - CHANGELOG.md
 
 jobs:
   tests:
-    if: startsWith(github.head_ref, 'chore/changelog-v')
     runs-on: ubuntu-latest
     steps:
       - run: echo "Changelog-only PR — skipping tests"
