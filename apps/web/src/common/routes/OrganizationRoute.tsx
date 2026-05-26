@@ -13,7 +13,7 @@ export function OrganizationRoute({ children }: { children: React.ReactNode }) {
   const projects = useAppSelector(selectProjectsData)
 
   useMount({ actions: organizationsActions })
-  useMount({ actions: projectsActions })
+  useMount({ actions: projectsActions, condition: !!organization.value })
 
   return <AsyncRoute data={[user, projects, organization]}>{children}</AsyncRoute>
 }
