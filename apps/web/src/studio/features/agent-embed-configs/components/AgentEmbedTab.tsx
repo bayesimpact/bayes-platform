@@ -49,7 +49,7 @@ export function AgentEmbedTab({ agent }: { agent: Agent }) {
   }, [config])
 
   const embedBaseUrl =
-    (import.meta.env.VITE_EMBED_URL as string | undefined) ?? window.location.origin
+    (import.meta.env.VITE_AGENT_EMBED_URL as string | undefined) ?? window.location.origin
   const embedSnippet = config
     ? `<script src="${embedBaseUrl}/launcher.js" data-token="${config.embedToken}"></script>`
     : ""
