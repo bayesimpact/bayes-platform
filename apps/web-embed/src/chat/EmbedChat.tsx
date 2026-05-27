@@ -73,12 +73,9 @@ function EmbedChatInner({
   const scrollToEndInstant = useScrollToEnd(chatEndRef, "instant")
   const scrollToEndSmooth = useScrollToEnd(chatEndRef, "smooth")
 
-  // Scroll instantly on mount and whenever the message list changes (new user
-  // message, streaming chunk, or session restore). Use smooth during streaming.
-  useEffect(() => {
-    scrollToEndInstant()
-  }, [scrollToEndInstant])
-
+  // Scroll whenever the message list changes (new user message, streaming chunk,
+  // or session restore). Use smooth during streaming, instant otherwise.
+  // requestAnimationFrame inside useScrollToEnd ensures the DOM is painted first.
   useEffect(() => {
     if (isStreaming) {
       scrollToEndSmooth()
