@@ -45,6 +45,19 @@ import { retrieveProjectDocumentChunksTool } from "./tools/retrieve-project-docu
 import { sourcesTool } from "./tools/sources.tool"
 import type { ToolExecutionLog } from "./tools/tool-execution-log"
 
+type NotifyClient = (event: Extract<StreamEvent, { type: "notify_client" }>) => void
+
+/**
+ * Minimal session context for public/anonymous sessions that have no
+ * corresponding ConversationAgentSession or FormAgentSession row.
+ */
+type PublicStreamingSessionProxy = {
+  id: string
+  traceId: string
+  organizationId: string
+  messages: AgentMessage[]
+}
+
 @Injectable()
 export class StreamingService extends ServiceWithLLM {
   private readonly logger = new Logger(StreamingService.name)
@@ -178,6 +191,116 @@ export class StreamingService extends ServiceWithLLM {
     }
   }
 
+  /**
+   * Streams an agent response for a public (anonymous) session.
+   * Bypasses the ConversationAgentSession / FormAgentSession lookup and works
+   * directly with the public_agent_session row and agent_message table.
+   */
+  async *streamPublicAgentResponse({
+    connectScope,
+    publicSessionId,
+    agent,
+    userContent,
+    notifyClient,
+  }: {
+    connectScope: RequiredConnectScope
+    publicSessionId: string
+    agent: Agent
+    userContent: string
+    notifyClient: NotifyClient
+  }): AsyncGenerator<StreamEvent, void, unknown> {
+    await this.recoverAbortedStreams(publicSessionId)
+
+    await this.agentMessageConnectRepository.createAndSave(connectScope, {
+      sessionId: publicSessionId,
+      role: "user",
+      content: userContent,
+      status: null,
+      startedAt: null,
+      completedAt: null,
+      toolCalls: null,
+      attachmentDocumentId: null,
+    })
+
+    const assistantMessageId = v4()
+    await this.agentMessageConnectRepository.createAndSave(connectScope, {
+      id: assistantMessageId,
+      sessionId: publicSessionId,
+      role: "assistant",
+      content: "",
+      status: "streaming",
+      startedAt: new Date(),
+      completedAt: null,
+      toolCalls: null,
+    })
+
+    yield this.sseEvent({ type: "start", messageId: assistantMessageId })
+
+    const messages = await this.agentMessageRepository.find({
+      where: { sessionId: publicSessionId },
+      order: { createdAt: "ASC" },
+    })
+
+    const sessionProxy: PublicStreamingSessionProxy = {
+      id: publicSessionId,
+      traceId: publicSessionId,
+      organizationId: connectScope.organizationId,
+      messages,
+    }
+
+    let fullContent = ""
+    let mcpClose: (() => Promise<void>) | undefined
+
+    try {
+      const llmRequest = await this.buildLLMRequest({
+        agent,
+        sessionId: publicSessionId,
+        notifyClient,
+        session: sessionProxy,
+        connectScope,
+        assistantMessageId,
+      })
+      mcpClose = llmRequest.mcpClose
+
+      const chunks = this.getProviderForModel(llmRequest.config.model).streamChatResponse(
+        llmRequest,
+      )
+      for await (const chunk of chunks) {
+        fullContent += chunk
+        yield this.sseEvent({ type: "chunk", content: chunk, messageId: assistantMessageId })
+      }
+
+      const assistantMessage = await this.agentMessageRepository.findOne({
+        where: { id: assistantMessageId, sessionId: publicSessionId },
+      })
+      if (assistantMessage) {
+        assistantMessage.status = "completed"
+        assistantMessage.content = fullContent
+        assistantMessage.completedAt = new Date()
+        await this.agentMessageRepository.save(assistantMessage)
+      }
+
+      yield this.sseEvent({ type: "end", messageId: assistantMessageId, fullContent })
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
+
+      const assistantMessage = await this.agentMessageRepository.findOne({
+        where: { id: assistantMessageId, sessionId: publicSessionId },
+      })
+      if (assistantMessage) {
+        assistantMessage.status = "error"
+        assistantMessage.content = errorMessage
+        assistantMessage.completedAt = new Date()
+        await this.agentMessageRepository.save(assistantMessage)
+      }
+
+      yield this.sseEvent({ type: "error", messageId: assistantMessageId, error: errorMessage })
+      throw error
+    } finally {
+      await mcpClose?.()
+    }
+  }
+
   private sseEvent<T extends StreamEventPayload["type"]>(
     payload: Extract<StreamEventPayload, { type: T }>,
   ): Extract<StreamEvent, { type: T }> {
@@ -197,7 +320,7 @@ export class StreamingService extends ServiceWithLLM {
     agent: Agent
     sessionId: string
     notifyClient: NotifyClient
-    session: ConversationAgentSession | FormAgentSession
+    session: ConversationAgentSession | FormAgentSession | PublicStreamingSessionProxy
     attachmentDocumentId?: string
     connectScope: RequiredConnectScope
   }) {
@@ -781,5 +904,3 @@ export class StreamingService extends ServiceWithLLM {
     notifyClient(this.sseEvent({ type: "notify_client", toolName: toolExecution.toolName }))
   }
 }
-
-type NotifyClient = (event: Extract<StreamEvent, { type: "notify_client" }>) => void

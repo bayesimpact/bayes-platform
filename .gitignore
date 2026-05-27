@@ -80,3 +80,9 @@ llm-logs/
 __pycache__/
 *.pyc
 *.pyo
+
+# Storybook
+storybook-static
+
+# Build
+apps/web-embed/dist-launcher/

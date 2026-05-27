@@ -1,3 +1,7 @@
+// Agent Embed Configs
+export type * from "./agent-embed-configs/agent-embed-configs.dto"
+export { AgentEmbedConfigsRoutes } from "./agent-embed-configs/agent-embed-configs.routes"
+
 // Agent Membership
 export type * from "./agent-membership/agent-membership.dto"
 export { AgentMembershipRoutes } from "./agent-membership/agent-membership.routes"
@@ -68,6 +72,9 @@ export { ProjectMembershipRoutes } from "./project-membership/project-membership
 // Projects
 export type * from "./projects/projects.dto"
 export { ProjectsRoutes } from "./projects/projects.routes"
+// Public Chat (anonymous embed access)
+export type * from "./public-chat/public-chat.dto"
+export { PublicChatRoutes } from "./public-chat/public-chat.routes"
 // Review Campaigns
 export type * from "./review-campaigns/review-campaigns.dto"
 export { ReviewCampaignsRoutes } from "./review-campaigns/review-campaigns.routes"

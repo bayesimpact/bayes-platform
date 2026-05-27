@@ -10,6 +10,7 @@ import projects from "@/common/features/projects/external/projects.api"
 import evaluationExtractionDatasets from "@/eval/features/evaluation-extraction-datasets/external/evaluation-extraction-datasets.api"
 import evaluationExtractionRuns from "@/eval/features/evaluation-extraction-runs/external/evaluation-extraction-runs.api"
 import reviewCampaignsReviewer from "@/reviewer/features/review-campaigns/external/reviewer.api"
+import agentEmbedConfigs from "@/studio/features/agent-embed-configs/external/agent-embed-configs.api"
 import agentMemberships from "@/studio/features/agent-memberships/external/agent-memberships.api"
 import agentMessageFeedback from "@/studio/features/agent-message-feedback/external/agent-message-feedback.api"
 import agentAnalytics from "@/studio/features/analytics/agent/external/agent-analytics.api"
@@ -26,6 +27,7 @@ import reviewCampaignsTester from "@/tester/features/review-campaigns/external/t
 
 export const services = {
   agentAnalytics,
+  agentEmbedConfigs,
   agentMemberships,
   agentMessageFeedback,
   agents,

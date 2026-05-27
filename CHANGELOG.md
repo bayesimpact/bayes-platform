@@ -15,6 +15,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) Medgemma 1.0 available for all Agents
 - (beta) Gemma 4 available for all Agents
 - (beta) Web sources crawling
+- (beta) Embed a conversation agent as a chat widget on any external website
 
 ### Changed
 

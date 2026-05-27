@@ -15,7 +15,7 @@ const isProduction = process.env.NODE_ENV === "production"
 
 async function bootstrap() {
   enableDbListeners()
-  const frontendUrls = parseFrontendUrls(process.env.FRONTEND_URL)
+  const _frontendUrls = parseFrontendUrls(process.env.FRONTEND_URL)
   const httpsOptions = loadHttpsCertificates()
   const logLevels = getLogLevels()
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -36,12 +36,18 @@ async function bootstrap() {
     }),
   )
   app.useGlobalFilters(new StackTraceLoggingExceptionFilter(app.getHttpAdapter()))
-  // CORS origins come exclusively from `FRONTEND_URL` (comma-separated).
-  // For local dev, set e.g.
-  //   FRONTEND_URL="https://connect.localhost:5173,https://connect.localhost:5174"
-  // (5173 = `vite dev`, 5174 = `vite preview` — see apps/web/vite.config.ts).
+  // CORS strategy:
+  // - Authenticated endpoints are secured by JWT — the real security layer.
+  //   No cookies are used (Auth0 Bearer tokens), so reflecting back the request
+  //   origin is safe: a cross-origin attacker cannot inject the Bearer token.
+  // - Public embed endpoints (/public/*) are designed to be called from arbitrary
+  //   host pages. Their security is enforced by EmbedTokenGuard (embed token +
+  //   per-config allowedOrigins check), not by CORS.
+  // Reflecting the origin (instead of using '*') is required because the embed
+  // widget's fetch calls don't use `credentials: 'include'`, but some browsers
+  // are stricter with '*' when custom headers (X-Session-Token) are present.
   app.enableCors({
-    origin: frontendUrls,
+    origin: (origin, callback) => callback(null, origin ?? true),
     credentials: true,
   })
   const protocol = httpsOptions ? "https" : "http"

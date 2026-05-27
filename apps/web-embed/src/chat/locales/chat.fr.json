@@ -1,0 +1,23 @@
+{
+  "chat": {
+    "header": {
+      "defaultAgentName": "Assistant",
+      "closeAriaLabel": "Fermer le chat"
+    },
+    "input": {
+      "placeholder": "Écrivez un message…",
+      "submitAriaLabel": "Envoyer le message"
+    },
+    "message": {
+      "thinking": "Réflexion en cours…",
+      "error": "Une erreur s'est produite. Veuillez réessayer.",
+      "copyAriaLabel": "Copier dans le presse-papiers"
+    },
+    "status": {
+      "connecting": "Connexion en cours…",
+      "errorAccessDisabled": "Ce widget de chat n'est pas disponible.",
+      "errorSessionFailed": "Impossible de démarrer une session. Veuillez réessayer.",
+      "errorUnknown": "Impossible de se connecter."
+    }
+  }
+}

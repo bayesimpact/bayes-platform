@@ -11,6 +11,7 @@ import type { IEvaluationExtractionDatasetsSpi } from "@/eval/features/evaluatio
 import type { IEvaluationExtractionRunsSpi } from "@/eval/features/evaluation-extraction-runs/evaluation-extraction-runs.spi"
 import { services } from "@/external/axios.services"
 import type { IReviewerSpi } from "@/reviewer/features/review-campaigns/reviewer.spi"
+import type { IAgentEmbedConfigsSpi } from "@/studio/features/agent-embed-configs/agent-embed-configs.spi"
 import type { IAgentMembershipsSpi } from "@/studio/features/agent-memberships/agent-memberships.spi"
 import type { IAgentMessageFeedbackSpi } from "@/studio/features/agent-message-feedback/agent-message-feedback.spi"
 import type { IAgentAnalyticsSpi } from "@/studio/features/analytics/agent/agent-analytics.spi"
@@ -27,6 +28,7 @@ import type { ITesterSpi } from "@/tester/features/review-campaigns/tester.spi"
 
 export type Services = {
   agentAnalytics: IAgentAnalyticsSpi
+  agentEmbedConfigs: IAgentEmbedConfigsSpi
   agentMemberships: IAgentMembershipsSpi
   agentMessageFeedback: IAgentMessageFeedbackSpi
   agents: IAgentsSpi
