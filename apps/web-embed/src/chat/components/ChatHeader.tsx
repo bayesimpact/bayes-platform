@@ -25,7 +25,7 @@ export function ChatHeader({
       {...props}
     >
       {logoUrl ? (
-        <img src={logoUrl} alt={displayName} className="size-9 rounded-full object-cover" />
+        <img src={logoUrl} alt={displayName} className="h-9 max-w-[120px] object-contain" />
       ) : (
         <div className="flex size-9 items-center justify-center rounded-full border border-white/30">
           <SparklesIcon className="size-5" />
