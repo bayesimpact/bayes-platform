@@ -5,6 +5,7 @@ import { DataSource } from "typeorm"
 import { AppModule } from "@/app.module"
 import type { InvitationSender } from "@/domains/auth/invitation-sender.interface"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
+import { Invitation, type InvitationTargetType } from "@/domains/invitations/invitation.entity"
 import { ask, confirmDatabaseTarget } from "@/scripts/script-bootstrap"
 
 const PLACEHOLDER_AUTH0_ID_PREFIX = "00000000-0000-0000-0000-"
@@ -14,57 +15,92 @@ const logger = new Logger("ManageInvitations")
 type PendingInvitation = {
   index: number
   invitationId: string
-  membershipId: string
   email: string
   userName: string | null
-  auth0Id: string
+  auth0Id: string | null
   hasAccount: boolean
+  targetType: InvitationTargetType
+  targetName: string
   projectName: string
   organizationName: string
   role: string
   sentAt: Date
 }
 
+function resolveTargetName(row: Record<string, unknown>): string {
+  const targetType = row.targetType as InvitationTargetType
+  if (targetType === "project") return (row.projectName as string | null) ?? ""
+  if (targetType === "agent") return (row.agentName as string | null) ?? ""
+  if (targetType === "review_campaign") return (row.reviewCampaignName as string | null) ?? ""
+  return ""
+}
+
 async function listPendingInvitations(dataSource: DataSource): Promise<PendingInvitation[]> {
   const rows = await dataSource
     .createQueryBuilder()
     .select("inv.id", "invitationId")
-    .addSelect("pm.id", "membershipId")
-    .addSelect("u.email", "email")
+    .addSelect("COALESCE(inv.invited_email, u.email)", "email")
     .addSelect("u.name", "userName")
     .addSelect("u.auth0_id", "auth0Id")
+    .addSelect("inv.target_type", "targetType")
     .addSelect("p.name", "projectName")
     .addSelect("o.name", "organizationName")
+    .addSelect("a.name", "agentName")
+    .addSelect("rc.name", "reviewCampaignName")
     .addSelect("inv.role", "role")
     .addSelect("inv.invited_at", "sentAt")
     .from("invitation", "inv")
-    .innerJoin("user", "u", "inv.user_id = u.id")
-    .innerJoin("project", "p", "inv.target_id = p.id AND inv.target_type = 'project'")
-    .innerJoin("organization", "o", "p.organization_id = o.id")
-    .innerJoin(
+    .leftJoin("user", "u", "inv.user_id = u.id")
+    .innerJoin("project", "p", "inv.project_id = p.id")
+    .innerJoin("organization", "o", "inv.organization_id = o.id")
+    .leftJoin("agent", "a", "inv.target_type = 'agent' AND inv.target_id = a.id")
+    .leftJoin(
+      "review_campaign",
+      "rc",
+      "inv.target_type = 'review_campaign' AND inv.target_id = rc.id",
+    )
+    .leftJoin(
       "project_membership",
       "pm",
-      "pm.project_id = inv.target_id AND pm.user_id = inv.user_id",
+      "inv.target_type = 'project' AND pm.project_id = inv.target_id AND pm.user_id = inv.user_id",
+    )
+    .leftJoin(
+      "agent_membership",
+      "am",
+      "inv.target_type = 'agent' AND am.agent_id = inv.target_id AND am.user_id = inv.user_id",
+    )
+    .leftJoin(
+      "review_campaign_membership",
+      "rcm",
+      "inv.target_type = 'review_campaign' AND rcm.campaign_id = inv.target_id AND rcm.user_id = inv.user_id AND rcm.role = inv.role",
     )
     .where("inv.status = :status", { status: "pending" })
+    .andWhere("inv.deleted_at IS NULL")
+    .andWhere("inv.accepted_at IS NULL")
+    .andWhere("(inv.target_type <> 'project' OR pm.id IS NULL)")
+    .andWhere("(inv.target_type <> 'agent' OR am.id IS NULL)")
+    .andWhere("(inv.target_type <> 'review_campaign' OR rcm.id IS NULL)")
     .orderBy("o.name", "ASC")
+    .addOrderBy("p.name", "ASC")
+    .addOrderBy("inv.target_type", "ASC")
     .addOrderBy("inv.invited_at", "ASC")
     .getRawMany()
 
   return rows.map((row: Record<string, unknown>, index: number) => {
-    const auth0Id = row.auth0Id as string
+    const auth0Id = row.auth0Id as string | null
     return {
       index: index + 1,
       invitationId: row.invitationId as string,
-      membershipId: row.membershipId as string,
-      email: row.email,
-      userName: row.userName,
+      email: row.email as string,
+      userName: row.userName as string | null,
       auth0Id,
-      hasAccount: !auth0Id.startsWith(PLACEHOLDER_AUTH0_ID_PREFIX),
-      projectName: row.projectName,
-      organizationName: row.organizationName,
-      role: row.role,
-      sentAt: row.sentAt,
+      hasAccount: !!auth0Id && !auth0Id.startsWith(PLACEHOLDER_AUTH0_ID_PREFIX),
+      targetType: row.targetType as InvitationTargetType,
+      targetName: resolveTargetName(row),
+      projectName: row.projectName as string,
+      organizationName: row.organizationName as string,
+      role: row.role as string,
+      sentAt: row.sentAt as Date,
     } as PendingInvitation
   })
 }
@@ -79,8 +115,12 @@ function printInvitations(invitations: PendingInvitation[]): void {
   logger.log("")
   for (const invitation of invitations) {
     const accountStatus = invitation.hasAccount ? "has account" : "no account"
+    const targetLabel =
+      invitation.targetType === "project"
+        ? invitation.projectName
+        : `${invitation.projectName} / ${invitation.targetType}: ${invitation.targetName}`
     logger.log(
-      `  [${invitation.index}] ${invitation.email} — ${invitation.organizationName} / ${invitation.projectName} (${invitation.role}) — ${accountStatus} — sent ${invitation.sentAt.toISOString()}`,
+      `  [${invitation.index}] ${invitation.email} — ${invitation.organizationName} / ${targetLabel} (${invitation.role}) — ${accountStatus} — sent ${invitation.sentAt.toISOString()}`,
     )
   }
   logger.log("")
@@ -99,14 +139,7 @@ async function resendInvitation(
 
   await dataSource
     .createQueryBuilder()
-    .update("project_membership")
-    .set({ invitationToken: ticketId })
-    .where("id = :id", { id: invitation.membershipId })
-    .execute()
-
-  await dataSource
-    .createQueryBuilder()
-    .update("invitation")
+    .update(Invitation)
     .set({ invitationToken: ticketId })
     .where("id = :id", { id: invitation.invitationId })
     .execute()
@@ -142,13 +175,16 @@ async function bootstrapCli(): Promise<void> {
     }
 
     if (selection.toLowerCase() === "export") {
-      const header = "email,userName,organizationName,projectName,role,hasAccount,sentAt"
+      const header =
+        "email,userName,organizationName,projectName,targetType,targetName,role,hasAccount,sentAt"
       const rows = invitations.map((invitation) =>
         [
           invitation.email,
           invitation.userName ?? "",
           invitation.organizationName,
           invitation.projectName,
+          invitation.targetType,
+          invitation.targetName,
           invitation.role,
           invitation.hasAccount ? "yes" : "no",
           invitation.sentAt.toISOString(),
