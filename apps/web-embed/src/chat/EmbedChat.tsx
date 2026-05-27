@@ -70,15 +70,22 @@ function EmbedChatInner({
 }: EmbedChatProps) {
   const { t } = useTranslation("chat")
   const chatEndRef = useRef<HTMLDivElement>(null)
-  const scrollToEnd = useScrollToEnd(chatEndRef)
+  const scrollToEndInstant = useScrollToEnd(chatEndRef, "instant")
+  const scrollToEndSmooth = useScrollToEnd(chatEndRef, "smooth")
+
+  // Scroll instantly on mount and whenever the message list changes (new user
+  // message, streaming chunk, or session restore). Use smooth during streaming.
+  useEffect(() => {
+    scrollToEndInstant()
+  }, [scrollToEndInstant])
 
   useEffect(() => {
-    if (!isStreaming) scrollToEnd()
-  }, [isStreaming, scrollToEnd])
-
-  useEffect(() => {
-    scrollToEnd()
-  }, [scrollToEnd])
+    if (isStreaming) {
+      scrollToEndSmooth()
+    } else {
+      scrollToEndInstant()
+    }
+  }, [isStreaming, scrollToEndInstant, scrollToEndSmooth])
 
   const handleSendMessage = (content: string) => {
     const trimmed = content.trim()
