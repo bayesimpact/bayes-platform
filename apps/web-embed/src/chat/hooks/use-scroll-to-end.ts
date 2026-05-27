@@ -5,7 +5,11 @@ export function useScrollToEnd<T extends HTMLElement | null>(
   behavior: ScrollBehavior = "instant",
 ) {
   return useCallback(() => {
-    if (!containerRef.current) return
-    containerRef.current.scrollIntoView({ behavior, block: "end" })
+    // Defer one animation frame so the browser has painted the new content
+    // before we try to scroll to it.
+    requestAnimationFrame(() => {
+      if (!containerRef.current) return
+      containerRef.current.scrollIntoView({ behavior, block: "end" })
+    })
   }, [containerRef, behavior])
 }
