@@ -157,9 +157,13 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
       messages: [...systemMessagePart, ...aiSDKMessages],
     })
 
+    const stripper = createChannelStripper()
     for await (const chunk of (await streamer).textStream) {
-      yield chunk
+      const clean = stripper.feed(chunk)
+      if (clean) yield clean
     }
+    const tail = stripper.flush()
+    if (tail) yield tail
   }
   async generateChatResponse({
     message,
@@ -546,13 +550,97 @@ function groupStreamChunksForReadability(chunks: unknown[]): unknown[] {
   return grouped
 }
 
+// Channel-name keywords that Gemma 4 / GPT-OSS-style models emit as the name
+// inside `<|channel>name<channel|>` openers. When such a name appears as a
+// bare standalone line (between two marker pairs, after the opener has been
+// stripped), we treat it as leaked-marker content and drop it too.
+const CHANNEL_KEYWORDS = "thought|analysis|reasoning|finalize|commentary|final"
+
+// Composite removals that need a full self-contained match. Safe to run on a
+// partial streaming buffer because they only fire once both ends are present.
+function stripPairedChannelMarkers(text: string): string {
+  return (
+    text
+      // <|channel>thought<channel|> ... <channel|> (eats nested openers too)
+      .replace(new RegExp(`<\\|channel>(?:${CHANNEL_KEYWORDS})[\\s\\S]*?<channel\\|>`, "gi"), "")
+      // Gemma 3 legacy: <unused N>thought ... <unused N>
+      .replace(/<unused\d+>thought[\s\S]*?(?=<unused\d+>)/gi, "")
+      // Bare keyword lines left behind between paired markers
+      // (e.g. "thought\n" sitting between two stripped `<|channel>...<channel|>`).
+      .replace(new RegExp(`^(?:${CHANNEL_KEYWORDS})\\s*\\n`, "gim"), "")
+  )
+}
+
+// Single-token removals. DANGEROUS to run on a partial streaming buffer
+// because they would consume one half of a marker that is still being
+// streamed (e.g. removing `<|channel>` before `<channel|>` arrives leaves
+// the channel name as visible content). Apply only to text we are
+// committing to emit / at flush time.
+function stripStrayChannelTokens(text: string): string {
+  return text
+    .replace(/<\|"\|>/g, "")
+    .replace(/<\|[a-z0-9_-]*>/gi, "")
+    .replace(/<[a-z0-9_-]*\|>/gi, "")
+    .replace(/<unused\d+>/g, "")
+}
+
 export function extractThoughtAndAnswer(raw: string) {
-  return { answer: raw }
-  // const thoughtMatch = raw.match(/<unused\d+>thought([\s\S]*?)(?=<unused\d+>)/i)
-  // if (!thoughtMatch) return { answer: raw }
-  // // @ts-expect-error
-  // const thought = thoughtMatch ? thoughtMatch[1].replace(/<unused\d+>/g, "").trim() : null
-  // let answer = raw.replace(/<unused\d+>thought[\s\S]*?(?=<unused\d+>)/gi, "")
-  // answer = answer.replace(/<unused\d+>/g, "").trim()
-  // return { thought, answer }
+  let answer = stripPairedChannelMarkers(raw)
+  answer = stripStrayChannelTokens(answer)
+  return { answer: answer.trim() }
+}
+/**
+ * Streaming-safe stripper for Gemma channel markers. A marker like
+ * `<|channel>thought<channel|>` can be split across multiple stream deltas
+ * (`<|`, `channel`, `>thought`, `<channel`, `|>`), so we cannot regex each
+ * delta in isolation. This holds back a small tail of the most recent text
+ * until we are confident no marker is still mid-emission, then emits the
+ * cleaned prefix. Call `flush()` at end of stream.
+ */
+export function createChannelStripper() {
+  let pending = ""
+  // How many trailing characters to hold back from emission. Must be longer
+  // than the longest marker we might want to recognise once its closer
+  // arrives, so an in-progress marker is never split across two emits.
+  const HOLD_TAIL = 64
+  // Upper bound on the length of any single marker (`<|channel>thought<channel|>`
+  // ≈ 30). When the planned cut point falls within this many characters of an
+  // earlier `<`, we MUST pull the cut back to that `<`: otherwise we would
+  // emit a partial marker (e.g. just `<`) and orphan its tail (`|"|>` etc.),
+  // which subsequent regex passes can no longer match.
+  const MAX_MARKER_LEN = 32
+
+  return {
+    feed(chunk: string): string {
+      pending += chunk
+      // Step 1: strip any FULLY PAIRED markers from the buffer.
+      // Safe mid-stream: paired regexes only fire once both ends are present.
+      pending = stripPairedChannelMarkers(pending)
+
+      // Step 2: decide what is safe to emit.
+      let safeUntil = pending.length - HOLD_TAIL
+      if (safeUntil <= 0) return ""
+      // If a `<` exists within MAX_MARKER_LEN chars before the planned cut,
+      // it could be the start of a marker straddling the cut. Pull the cut
+      // back to that `<` so the marker stays whole in `pending` for the
+      // next feed (or for flush).
+      const ltBeforeCut = pending.lastIndexOf("<", safeUntil - 1)
+      if (ltBeforeCut !== -1 && safeUntil - ltBeforeCut < MAX_MARKER_LEN) {
+        safeUntil = ltBeforeCut
+      }
+      if (safeUntil <= 0) return ""
+
+      // Step 3: only the slice we are about to emit gets the stray-token
+      // pass — by construction it cannot contain a partial marker now, so
+      // any `<|...>` / `<...|>` fragments inside are definitively orphaned.
+      const emit = stripStrayChannelTokens(pending.slice(0, safeUntil))
+      pending = pending.slice(safeUntil)
+      return emit
+    },
+    flush(): string {
+      const tail = stripStrayChannelTokens(stripPairedChannelMarkers(pending))
+      pending = ""
+      return tail
+    },
+  }
 }
