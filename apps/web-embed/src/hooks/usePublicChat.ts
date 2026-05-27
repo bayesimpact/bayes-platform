@@ -112,7 +112,11 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
         if (cancelled) return
         sessionRef.current = newSession
         saveSession(embedToken, newSession)
-        const sessionData = await getSession(embedToken, newSession.sessionId, newSession.sessionToken)
+        const sessionData = await getSession(
+          embedToken,
+          newSession.sessionId,
+          newSession.sessionToken,
+        )
         if (cancelled) return
         setMessages(sessionData.messages.map(toDisplayMessage))
         setStatus("ready")
