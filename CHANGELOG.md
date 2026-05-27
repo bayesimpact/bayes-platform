@@ -8,6 +8,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.05.2] - 2026-05-27
+
+### Added
 - Display evaluation extraction run metrics in Bull Board
 - Retry failed evaluation extraction runs from the UI
 - Require users to accept General Conditions of Service and Privacy Policy before accessing the app
