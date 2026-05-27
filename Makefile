@@ -175,7 +175,7 @@ deploy-web-embed:
 	@echo "→ Building launcher..."
 	cd apps/web-embed && npm run build:launcher
 	@echo "→ Uploading hashed assets (1 year cache)..."
-	gsutil -m -h "Cache-Control:public, max-age=31536000" cp -r apps/web-embed/dist/assets gs://$(WEB_EMBED_BUCKET)/assets
+	gsutil -m -h "Cache-Control:public, max-age=31536000" cp -r apps/web-embed/dist/assets/* gs://$(WEB_EMBED_BUCKET)/assets/
 	@echo "→ Uploading launcher.js (5 min cache)..."
 	gsutil -h "Cache-Control:public, max-age=300" cp apps/web-embed/dist-launcher/launcher.iife.js gs://$(WEB_EMBED_BUCKET)/launcher.js
 	@echo "→ Uploading index.html (no cache)..."

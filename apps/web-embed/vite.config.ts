@@ -39,6 +39,7 @@ function serveBuiltLauncher(): Plugin {
 
 // SPA build — served inside the iframe
 export default defineConfig({
+  base: "./",
   plugins: [
     react({
       babel: {

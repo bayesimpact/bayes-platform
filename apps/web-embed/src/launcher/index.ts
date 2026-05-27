@@ -34,7 +34,7 @@ function init() {
   const scriptSrc = _currentScript?.src ?? ""
   const base = scriptSrc.slice(0, scriptSrc.lastIndexOf("/"))
   const localeParam = locale ? `&locale=${encodeURIComponent(locale)}` : ""
-  const iframeSrc = `${base}/?embedToken=${token}${localeParam}`
+  const iframeSrc = `${base}/index.html?embedToken=${token}${localeParam}`
 
   injectWidget({ token, position, color, iframeSrc })
 }
