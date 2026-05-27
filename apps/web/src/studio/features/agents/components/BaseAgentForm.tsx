@@ -38,7 +38,10 @@ import { useTranslation } from "react-i18next"
 import type { z } from "zod"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { ProjectAgentCategory } from "@/common/features/projects/projects.models"
+import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { type HasFeature, useFeatureFlags } from "@/common/hooks/use-feature-flags"
+import { useValue } from "@/common/hooks/use-value"
+import { AgentEmbedTab } from "@/studio/features/agent-embed-configs/components/AgentEmbedTab"
 import { getTagNameById } from "@/studio/features/document-tags/document-tags.helpers"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import { DocumentTagPicker } from "@/studio/features/documents/components/DocumentTagPicker"
@@ -79,7 +82,8 @@ export function BaseAgentForm({
   editableAgent?: Agent
   onSubmit: (values: AgentFormData) => Promise<void> | void
 }) {
-  const { hasFeature } = useFeatureFlags()
+  const project = useValue(selectCurrentProjectData)
+  const { hasFeature } = useFeatureFlags(project)
   const { t, i18n } = useTranslation()
 
   const hasOutputJsonSchema = agentType !== "conversation"
@@ -127,7 +131,11 @@ export function BaseAgentForm({
     return undefined
   })()
 
-  const [activeTab, setActiveTab] = useState<"general" | "model" | "output" | "sources">("general")
+  const hasEmbed = hasSources && !!editableAgent && hasFeature("agent-embed")
+
+  const [activeTab, setActiveTab] = useState<"general" | "model" | "output" | "sources" | "embed">(
+    "general",
+  )
 
   const handleFormSubmit = async (data: FormValues) => {
     await onSubmit(data as AgentFormData)
@@ -158,6 +166,7 @@ export function BaseAgentForm({
                 </TabsTrigger>
               )}
               {hasSources && <TabsTrigger value="sources">{t("agent:tabs.sources")}</TabsTrigger>}
+              {hasEmbed && <TabsTrigger value="embed">{t("agent:tabs.embed")}</TabsTrigger>}
             </TabsList>
 
             <TabsContent value="general">
@@ -479,13 +488,20 @@ export function BaseAgentForm({
                 </FieldGroup>
               </TabsContent>
             )}
+            {hasEmbed && editableAgent && (
+              <TabsContent value="embed">
+                <AgentEmbedTab agent={editableAgent} />
+              </TabsContent>
+            )}
           </Tabs>
 
-          <Field orientation="horizontal" className="justify-end">
-            <Button type="submit" className="w-fit">
-              {editableAgent ? t("actions:update") : t("actions:create")}
-            </Button>
-          </Field>
+          {activeTab !== "embed" && (
+            <Field orientation="horizontal" className="justify-end">
+              <Button type="submit" className="w-fit">
+                {editableAgent ? t("actions:update") : t("actions:create")}
+              </Button>
+            </Field>
+          )}
         </FieldSet>
       </FieldGroup>
     </form>

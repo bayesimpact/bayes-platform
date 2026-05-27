@@ -9,14 +9,13 @@ export const selectOrganizationsStatus = (state: RootState) => state.organizatio
 
 export const selectOrganizationsError = (state: RootState) => state.organizations.data.error
 
-export const selectCurrentOrganizationId = (state: RootState) =>
-  state.organizations.currentOrganizationId
+export const selectCurrentOrganizationId = (state: RootState) => state.currentIds.organizationId
 
 export const selectCurrentOrganization = createSelector(
   [selectOrganizationsData, selectCurrentOrganizationId],
   (organizationsData, organizationId): AsyncData<Organization> => {
     if (!organizationId) {
-      // Return laoding on purpose
+      // Return loading on purpose
       return { status: ADS.Loading, value: null, error: null }
     }
 

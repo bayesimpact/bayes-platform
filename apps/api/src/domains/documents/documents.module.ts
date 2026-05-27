@@ -60,10 +60,13 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
     StorageModule,
     DocumentEmbeddingsBatchModule,
     UrlCrawlingBatchModule,
+    UrlCrawlingBatchModule,
   ],
   providers: [
     DocumentsService,
     DocumentEmbeddingStatusStreamService,
+    DocumentEmbeddingStatusNotifierService,
+    DocumentCrawlProgressStreamService,
     DocumentEmbeddingStatusNotifierService,
     DocumentCrawlProgressStreamService,
     DocumentChunkRetrievalService,

@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
-import { getCurrentIds } from "@/common/features/helpers"
+import { getCurrentId } from "@/common/features/helpers"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { ThunkConfig } from "@/common/store/types"
 import type {
@@ -15,10 +15,9 @@ const listFiles = createAsyncThunk<EvaluationExtractionDatasetFile[], void, Thun
   "datasets/listFiles",
   async (_, { extra: { services }, getState }) => {
     const state = getState()
-    const params = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId }
     return await services.evaluationExtractionDatasets.getAllFiles(params)
   },
 )
@@ -27,10 +26,9 @@ const listDatasets = createAsyncThunk<EvaluationExtractionDataset[], void, Thunk
   "datasets/listDatasets",
   async (_, { extra: { services }, getState }) => {
     const state = getState()
-    const params = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId }
     return await services.evaluationExtractionDatasets.getAll(params)
   },
 )
@@ -48,10 +46,9 @@ const listRecords = createAsyncThunk<
   ThunkConfig
 >("datasets/listRecords", async (args, { extra: { services }, getState }) => {
   const state = getState()
-  const params = getCurrentIds({
-    state,
-    wantedIds: ["organizationId", "projectId"],
-  })
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  const params = { organizationId, projectId }
   return await services.evaluationExtractionDatasets.getRecords({ ...params, ...args })
 })
 
@@ -61,10 +58,9 @@ const getFileColumns = createAsyncThunk<
   ThunkConfig
 >("datasets/getColumns", async ({ documentId }, { extra: { services }, getState }) => {
   const state = getState()
-  const params = getCurrentIds({
-    state,
-    wantedIds: ["organizationId", "projectId"],
-  })
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  const params = { organizationId, projectId }
   return await services.evaluationExtractionDatasets.getFileColumns({ ...params, documentId })
 })
 
@@ -72,10 +68,9 @@ const createOne = createAsyncThunk<{ success: true }, { name: string }, ThunkCon
   "datasets/createOne",
   async (payload, { extra: { services }, getState }) => {
     const state = getState()
-    const params = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId }
     return await services.evaluationExtractionDatasets.createOne({ ...params, payload })
   },
 )
@@ -93,10 +88,8 @@ const updateOne = createAsyncThunk<
   "datasets/updateOne",
   async ({ datasetId, documentId, name, columns }, { extra: { services }, getState }) => {
     const state = getState()
-    const { organizationId, projectId } = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
     const params = { organizationId, projectId, datasetId, documentId }
     const payload = { name, columns }
     return await services.evaluationExtractionDatasets.updateOne({ ...params, payload })
@@ -107,10 +100,9 @@ const uploadFile = createAsyncThunk<void, { file: File }, ThunkConfig>(
   "datasets/uploadFile",
   async ({ file }, { extra: { services }, getState, dispatch }) => {
     const state = getState()
-    const params = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId }
     await services.documents.uploadMany({
       ...params,
       files: [file],
@@ -140,10 +132,8 @@ const deleteFile = createAsyncThunk<void, { fileId: string }, ThunkConfig>(
   "datasets/deleteFile",
   async ({ fileId }, { extra: { services }, getState }) => {
     const state = getState()
-    const { organizationId, projectId } = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
     await services.documents.deleteOne({
       organizationId,
       projectId,

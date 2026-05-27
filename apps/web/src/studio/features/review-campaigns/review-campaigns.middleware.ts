@@ -1,7 +1,5 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
-import { hasOrganizationChanged } from "@/common/features/organizations/organizations.selectors"
-import { hasProjectChanged } from "@/common/features/projects/projects.selectors"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
   createInvitationsForTarget,
@@ -23,12 +21,7 @@ const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 function registerListeners() {
   // Refresh list when project or organization changes
   listenerMiddleware.startListening({
-    predicate(_, currentState, originalState) {
-      return (
-        hasProjectChanged(originalState, currentState) ||
-        hasOrganizationChanged(originalState, currentState)
-      )
-    },
+    actionCreator: reviewCampaignsActions.mount,
     effect: async (_, listenerApi) => {
       await listenerApi.dispatch(listReviewCampaigns())
     },

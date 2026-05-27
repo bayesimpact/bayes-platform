@@ -27,26 +27,29 @@ function getPathPieces(pathname: string) {
   return pathname
     .split("/")
     .filter(Boolean)
-    .filter((piece) => !idParamRegex.test(piece) && !interfaceHomePieces.has(piece))
+    .filter((piece) => !idParamRegex.test(piece) && !appNames.has(piece))
     .toString()
 }
 
-const interfaceHomePieces = new Set(
+const appNames = new Set(
   [DeskRoutes, StudioRoutes, EvalRoutes, TesterRoutes, ReviewerRoutes].map((routes) =>
     routes.home.path.slice(1),
   ),
 )
 function getRoutePieces(routeName: string) {
   let result = routeName
-  for (const piece of interfaceHomePieces) {
+  for (const appName of appNames) {
     // Remove all interface home pieces from the route, so that we can match routes regardless of which interface we're in. For example, "/studio/documents" and "/desk/documents" should both match "documents".
-    result = result.replace(piece, "")
+    if (result.startsWith(`/${appName}`)) {
+      result = result.replace(new RegExp(`^/${appName}`, "g"), "")
+    }
   }
-  return result
+  const clean = result
     .split("/")
     .filter(Boolean)
     .filter((piece) => !piece.startsWith(":"))
     .toString()
+  return clean
 }
 
 // 6b40119c-5c06-47ce-b28b-138c22e48c92

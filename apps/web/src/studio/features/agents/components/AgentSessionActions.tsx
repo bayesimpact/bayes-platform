@@ -19,9 +19,9 @@ export function AgentSessionActions({
 }) {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const getAgentRoute = useGetAgentRoute()
+  const agentRoute = useGetAgentRoute()
 
-  const handleSuccess = () => navigate(getAgentRoute())
+  const handleSuccess = () => navigate(agentRoute)
   const handleDelete = () => {
     dispatch(
       deleteAgentSession({

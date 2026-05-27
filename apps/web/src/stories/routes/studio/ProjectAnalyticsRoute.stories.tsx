@@ -96,3 +96,34 @@ export const Default: Story = {
     }),
   ],
 }
+
+export const WithData: Story = {
+  args: {
+    organizationMembershipRole: "owner",
+    projectMembershipRole: "owner",
+    agentMembershipRole: "owner",
+    featureFlags: ["project-analytics"],
+    withAgents: true,
+    withAnalytics: true,
+  },
+
+  decorators: [
+    buildDecorator<StoryArgs>(({ withAnalytics, ...args }) => {
+      const { baseSeeds, agents } = buildStudioData(args)
+      const analytics = withAnalytics
+        ? buildAnalytics(agents)
+        : {
+            conversationsPerDay: [],
+            avgUserQuestionsPerSessionPerDay: [],
+            conversationsByCategoryPerDay: [],
+          }
+      return {
+        state: mergeSeeds(baseSeeds, seed.studio.projectAnalytics(analytics)),
+
+        services: {
+          projectAnalytics: buildMockProjectAnalyticsService(analytics),
+        },
+      }
+    }),
+  ],
+}

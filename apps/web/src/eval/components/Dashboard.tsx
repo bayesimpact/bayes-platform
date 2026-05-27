@@ -20,7 +20,6 @@ export function Dashboard() {
         title={t("evaluation:dashboard.title")}
         description={t("evaluation:dashboard.description")}
       />
-
       <GridContent>
         <GridItem
           index={1}

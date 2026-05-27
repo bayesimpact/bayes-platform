@@ -1,8 +1,7 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
-import { hasOrganizationChanged } from "@/common/features/organizations/organizations.selectors"
-import { hasProjectChanged } from "@/common/features/projects/projects.selectors"
 import type { AppDispatch, RootState } from "@/common/store/types"
+import { evaluationsActions } from "./evaluations.slice"
 import {
   createEvaluation,
   deleteEvaluation,
@@ -15,12 +14,7 @@ const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 function registerListeners() {
   // Refresh evaluations when current project changes or when user changes organization
   listenerMiddleware.startListening({
-    predicate(_, currentState, originalState) {
-      return (
-        hasProjectChanged(originalState, currentState) ||
-        hasOrganizationChanged(originalState, currentState)
-      )
-    },
+    actionCreator: evaluationsActions.mount,
     effect: async (_, listenerApi) => {
       await listenerApi.dispatch(listEvaluations())
     },

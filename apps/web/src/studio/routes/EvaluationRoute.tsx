@@ -2,9 +2,10 @@ import { Button } from "@caseai-connect/ui/shad/button"
 import { useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import type { Agent } from "@/common/features/agents/agents.models"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
+import { useMount } from "@/common/hooks/use-mount"
+import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import type { Evaluation } from "@/studio/features/evaluations/evaluations.models"
 import { selectEvaluationsData } from "@/studio/features/evaluations/evaluations.selectors"
@@ -15,25 +16,26 @@ import { EmptyEvaluation } from "../features/evaluations/components/EmptyEvaluat
 import { EvaluationCreator } from "../features/evaluations/components/EvaluationCreator"
 import { EvaluationExtractionRunner } from "../features/evaluations/components/EvaluationExtractionRunner"
 import { EvaluationItem } from "../features/evaluations/components/EvaluationItem"
+import { evaluationsActions } from "../features/evaluations/evaluations.slice"
 
 export function EvaluationRoute() {
   const evaluations = useAppSelector(selectEvaluationsData)
   const agents = useAppSelector(selectAgentsData)
-
+  useMount({ actions: evaluationsActions })
   return (
     <AsyncRoute data={[agents, evaluations]}>
-      {([agentsValue, evaluationsValue]) => (
-        <WithData agents={agentsValue} evaluations={evaluationsValue} />
-      )}
+      <WithData />
     </AsyncRoute>
   )
 }
 
-function WithData({ agents, evaluations }: { agents: Agent[]; evaluations: Evaluation[] }) {
+function WithData() {
+  const agents = useValue(selectAgentsData)
+  const evaluations = useValue(selectEvaluationsData)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const getProjectRoute = useGetProjectRoute()
+  const projectRoute = useGetProjectRoute()
   const [idsToRun, setIdsToRun] = useState<string[]>([])
 
   const handleCreate = useCallback(
@@ -43,7 +45,7 @@ function WithData({ agents, evaluations }: { agents: Agent[]; evaluations: Evalu
     [dispatch],
   )
 
-  const handleBack = () => navigate(getProjectRoute())
+  const handleBack = () => navigate(projectRoute)
 
   return (
     <>

@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
-import { getCurrentIds } from "@/common/features/helpers"
+import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import type { EvaluationReport } from "./evaluation-reports.models"
 
@@ -10,10 +10,9 @@ export const listEvaluationReports = createAsyncThunk<
   { evaluationId: string },
   ThunkConfig
 >("evaluationReports/list", async (params, { extra: { services }, getState }) => {
-  const { organizationId, projectId } = getCurrentIds({
-    state: getState(),
-    wantedIds: ["organizationId", "projectId"],
-  })
+  const state = getState()
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
   return await services.evaluationReports.getAll({ ...params, organizationId, projectId })
 })
 
@@ -25,10 +24,8 @@ export const createEvaluationReport = createAsyncThunk<
   "evaluationReports/create",
   async ({ agentId, evaluationId }, { extra: { services }, getState }) => {
     const state = getState()
-    const { organizationId, projectId } = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
     return await services.evaluationReports.createOne({
       organizationId,
       projectId,

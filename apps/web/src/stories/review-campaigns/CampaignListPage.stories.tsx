@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { withRouter } from "storybook-addon-remix-react-router"
 import type { Agent } from "@/common/features/agents/agents.models"
-import { CampaignListPage } from "@/studio/features/review-campaigns/components/CampaignListPage"
+import { CampaignsRoute } from "@/studio/routes/CampaignsRoute"
 import { withRedux } from "../decorators"
 import { mergeSeeds, seed } from "../seed"
 import {
@@ -14,11 +14,11 @@ import {
 import { buildMockReviewCampaignsService } from "./mock-service"
 
 const meta = {
-  title: "review-campaigns/CampaignListPage",
-  component: CampaignListPage,
+  title: "review-campaigns/CampaignsRoute",
+  component: CampaignsRoute,
   parameters: { layout: "fullscreen" },
   decorators: [withRouter],
-} satisfies Meta<typeof CampaignListPage>
+} satisfies Meta<typeof CampaignsRoute>
 
 export default meta
 type Story = StoryObj<typeof meta>

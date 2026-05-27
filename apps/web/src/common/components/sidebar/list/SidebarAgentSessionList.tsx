@@ -138,8 +138,8 @@ function OptionsMenu({
   const dispatch = useAppDispatch()
   const { isMobile } = useSidebar()
   const { t } = useTranslation()
-  const getAgentRoute = useGetAgentRoute()
-  const handleSuccess = () => navigate(getAgentRoute())
+  const agentRoute = useGetAgentRoute()
+  const handleSuccess = () => navigate(agentRoute)
   const handleDelete = () => {
     dispatch(deleteAgentSession({ agentType, agentId, agentSessionId, onSuccess: handleSuccess }))
   }

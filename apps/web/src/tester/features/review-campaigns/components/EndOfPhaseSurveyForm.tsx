@@ -8,6 +8,7 @@ import { Field, FieldLabel } from "@caseai-connect/ui/shad/field"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { GridHeader } from "@/common/components/grid/Grid"
 import { DynamicQuestionField } from "./DynamicQuestionField"
 import { StarRatingInput } from "./StarRatingInput"
 
@@ -23,10 +24,11 @@ type Props = {
   questions: ReviewCampaignQuestionDto[]
   defaults?: EndOfPhaseSurveyDefaults
   onSubmit: (payload: SubmitTesterCampaignSurveyRequestDto) => void
-  onCancel?: () => void
+  onCancel: () => void
   submitLabel?: string
 }
 
+// FIXME: use useForm
 export function EndOfPhaseSurveyForm({
   questions,
   defaults,
@@ -66,62 +68,57 @@ export function EndOfPhaseSurveyForm({
 
   return (
     <form
-      className="flex flex-col gap-4 p-6"
       onSubmit={(event) => {
         event.preventDefault()
         if (canSubmit) handleSubmit()
       }}
     >
-      <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold">{t("testerCampaigns:endOfPhaseForm.title")}</h1>
-        <p className="text-muted-foreground text-sm">
-          {t("testerCampaigns:endOfPhaseForm.description")}
-        </p>
-      </header>
+      <GridHeader
+        onBack={onCancel}
+        title={t("testerCampaigns:endOfPhaseForm.title")}
+        description={t("testerCampaigns:endOfPhaseForm.description")}
+      />
 
-      <Field>
-        <FieldLabel>
-          {t("testerCampaigns:endOfPhaseForm.overallRating")}{" "}
-          <span className="text-destructive ml-1">*</span>
-        </FieldLabel>
-        <StarRatingInput
-          value={overallRating}
-          onChange={setOverallRating}
-          aria-label={t("testerCampaigns:endOfPhaseForm.overallRatingAriaLabel")}
-        />
-      </Field>
+      <div className="flex flex-col gap-6 p-6">
+        <Field>
+          <FieldLabel>
+            {t("testerCampaigns:endOfPhaseForm.overallRating")}{" "}
+            <span className="text-destructive ml-1">*</span>
+          </FieldLabel>
+          <StarRatingInput
+            value={overallRating}
+            onChange={setOverallRating}
+            aria-label={t("testerCampaigns:endOfPhaseForm.overallRatingAriaLabel")}
+          />
+        </Field>
 
-      <Field>
-        <FieldLabel htmlFor="survey-comment">
-          {t("testerCampaigns:endOfPhaseForm.comment")}
-        </FieldLabel>
-        <Textarea
-          id="survey-comment"
-          rows={4}
-          value={comment}
-          onChange={(event) => setComment(event.target.value)}
-          placeholder={t("testerCampaigns:endOfPhaseForm.commentPlaceholder")}
-        />
-      </Field>
+        <Field>
+          <FieldLabel htmlFor="survey-comment">
+            {t("testerCampaigns:endOfPhaseForm.comment")}
+          </FieldLabel>
+          <Textarea
+            id="survey-comment"
+            rows={4}
+            value={comment}
+            onChange={(event) => setComment(event.target.value)}
+            placeholder={t("testerCampaigns:endOfPhaseForm.commentPlaceholder")}
+          />
+        </Field>
 
-      {questions.map((question) => (
-        <DynamicQuestionField
-          key={question.id}
-          question={question}
-          value={answers[question.id] ?? null}
-          onChange={(value) => setAnswers((previous) => ({ ...previous, [question.id]: value }))}
-        />
-      ))}
+        {questions.map((question) => (
+          <DynamicQuestionField
+            key={question.id}
+            question={question}
+            value={answers[question.id] ?? null}
+            onChange={(value) => setAnswers((previous) => ({ ...previous, [question.id]: value }))}
+          />
+        ))}
 
-      <div className="flex items-center justify-end gap-2">
-        {onCancel && (
-          <Button type="button" variant="ghost" onClick={onCancel}>
-            {t("testerCampaigns:endOfPhaseForm.cancel")}
+        <div className="flex items-center justify-end gap-2">
+          <Button type="submit" disabled={!canSubmit}>
+            {submitLabel ?? t("testerCampaigns:endOfPhaseForm.submit")}
           </Button>
-        )}
-        <Button type="submit" disabled={!canSubmit}>
-          {submitLabel ?? t("testerCampaigns:endOfPhaseForm.submit")}
-        </Button>
+        </div>
       </div>
     </form>
   )

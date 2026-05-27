@@ -1,9 +1,6 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
+import { getCurrentId } from "@/common/features/helpers"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
-import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
-import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
-import { selectCurrentReviewCampaignId } from "@/common/features/review-campaigns/current-review-campaign-id/current-review-campaign-id.selectors"
-import { selectCurrentReviewerSessionId } from "@/common/features/review-campaigns/current-reviewer-session-id/current-reviewer-session-id.selectors"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { getTesterContext } from "@/tester/features/review-campaigns/tester.thunks"
 import { reviewCampaignsReviewerActions } from "./reviewer.slice"
@@ -21,18 +18,21 @@ function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: reviewCampaignsReviewerActions.mount,
     effect: async (_, listenerApi) => {
-      const state = listenerApi.getState()
-      const organizationId = selectCurrentOrganizationId(state)
-      const projectId = selectCurrentProjectId(state)
-      const reviewCampaignId = selectCurrentReviewCampaignId(state)
-
       listenerApi.dispatch(listMyReviewerCampaigns())
+    },
+  })
 
-      if (organizationId && projectId && reviewCampaignId) {
-        const scope = { organizationId, projectId, reviewCampaignId }
-        listenerApi.dispatch(getTesterContext(scope))
-        listenerApi.dispatch(listReviewerSessions(scope))
-      }
+  listenerMiddleware.startListening({
+    actionCreator: reviewCampaignsReviewerActions.campaignMount,
+    effect: async (_, listenerApi) => {
+      const state = listenerApi.getState()
+      const organizationId = getCurrentId({ state, name: "organizationId" })
+      const projectId = getCurrentId({ state, name: "projectId" })
+      const reviewCampaignId = getCurrentId({ state, name: "reviewCampaignId" })
+
+      const scope = { organizationId, projectId, reviewCampaignId }
+      listenerApi.dispatch(getTesterContext(scope))
+      listenerApi.dispatch(listReviewerSessions(scope))
     },
   })
 
@@ -40,14 +40,13 @@ function registerListeners() {
     actionCreator: reviewCampaignsReviewerActions.sessionMount,
     effect: async (_, listenerApi) => {
       const state = listenerApi.getState()
-      const organizationId = selectCurrentOrganizationId(state)
-      const projectId = selectCurrentProjectId(state)
-      const reviewCampaignId = selectCurrentReviewCampaignId(state)
-      const sessionId = selectCurrentReviewerSessionId(state)
-      if (!organizationId || !projectId || !reviewCampaignId || !sessionId) return
-      listenerApi.dispatch(
-        getReviewerSession({ organizationId, projectId, reviewCampaignId, sessionId }),
-      )
+      const organizationId = getCurrentId({ state, name: "organizationId" })
+      const projectId = getCurrentId({ state, name: "projectId" })
+      const reviewCampaignId = getCurrentId({ state, name: "reviewCampaignId" })
+      const sessionId = getCurrentId({ state, name: "agentSessionId" })
+
+      const scope = { organizationId, projectId, reviewCampaignId, sessionId }
+      listenerApi.dispatch(getReviewerSession(scope))
     },
   })
 
@@ -67,6 +66,17 @@ function registerListeners() {
           type: "error",
         }),
       )
+
+      const state = listenerApi.getState()
+      const organizationId = getCurrentId({ state, name: "organizationId" })
+      const projectId = getCurrentId({ state, name: "projectId" })
+      const reviewCampaignId = getCurrentId({ state, name: "reviewCampaignId" })
+      const sessionId = getCurrentId({ state, name: "agentSessionId" })
+
+      const scope = { organizationId, projectId, reviewCampaignId, sessionId }
+      listenerApi.dispatch(getTesterContext(scope))
+      listenerApi.dispatch(listReviewerSessions(scope))
+      listenerApi.dispatch(getReviewerSession(scope))
     },
   })
 }

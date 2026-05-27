@@ -5,14 +5,19 @@ import { listAgents } from "./agents.thunks"
 
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
-// Refresh Agents when current project changes
-listenerMiddleware.startListening({
-  predicate(_, currentState, originalState) {
-    return hasProjectChanged(originalState, currentState)
-  },
-  effect: async (_, listenerApi) => {
-    await listenerApi.dispatch(listAgents())
-  },
-})
+function registerListeners() {
+  // Refresh Agents when current project changes
+  listenerMiddleware.startListening({
+    predicate(_, currentState, originalState) {
+      return hasProjectChanged(originalState, currentState)
+    },
+    effect: async (_, listenerApi) => {
+      await listenerApi.dispatch(listAgents())
+    },
+  })
+}
 
-export { listenerMiddleware as agentsMiddleware }
+export const agentsMiddleware = {
+  listenerMiddleware,
+  registerListeners,
+}

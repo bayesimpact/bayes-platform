@@ -1,38 +1,37 @@
-import { ReviewerCampaignPage } from "@/reviewer/features/review-campaigns/components/ReviewerCampaignPage"
-import { ReviewerSessionReviewPage } from "@/reviewer/features/review-campaigns/components/ReviewerSessionReviewPage"
-import { ReviewerCampaignRoute } from "@/reviewer/routes/ReviewerCampaignRoute"
+import { RestrictedAccess } from "@/studio/routes/RestrictedAccess"
+import { ReviewerAgentSession } from "../features/review-campaigns/components/ReviewerAgentSession"
+import { CampaignRoute } from "./CampaignRoute"
 import { ReviewerRoutes } from "./helpers"
-import { ReviewerCampaignsRoute } from "./ReviewerCampaignsRoute"
 import { ReviewerReportRoute } from "./ReviewerReportRoute"
 import { ReviewerRoute } from "./ReviewerRoute"
-import { ReviewerSessionRoute } from "./ReviewerSessionRoute"
+import { SessionRoute } from "./SessionRoute"
+import { SessionsRoute } from "./SessionsRoute"
 
 export const reviewerRoutes = {
+  path: ReviewerRoutes.home.path,
   element: <ReviewerRoute />,
   children: [
     {
-      path: ReviewerRoutes.home.path,
-      element: <ReviewerCampaignsRoute />,
-    },
-    {
-      element: <ReviewerCampaignRoute />,
+      path: ReviewerRoutes.campaign.path,
+      element: (
+        <CampaignRoute>
+          <RestrictedAccess ability="canAccessReviewer">
+            <SessionsRoute />
+          </RestrictedAccess>
+        </CampaignRoute>
+      ),
       children: [
         {
-          path: ReviewerRoutes.campaign.path,
-          element: <ReviewerCampaignPage />,
+          path: ReviewerRoutes.session.path,
+          element: (
+            <SessionRoute>
+              <ReviewerAgentSession />,
+            </SessionRoute>
+          ),
         },
         {
           path: ReviewerRoutes.report.path,
           element: <ReviewerReportRoute />,
-        },
-        {
-          element: <ReviewerSessionRoute />,
-          children: [
-            {
-              path: ReviewerRoutes.session.path,
-              element: <ReviewerSessionReviewPage />,
-            },
-          ],
         },
       ],
     },

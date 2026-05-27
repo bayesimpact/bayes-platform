@@ -18,18 +18,32 @@ import {
 } from "@caseai-connect/ui/shad/table"
 import { CheckCircle2Icon, CircleIcon, InboxIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
-
-type Props = {
-  sessions: ReviewerSessionListItemDto[]
-  onOpen: (sessionId: string) => void
-}
+import { useNavigate } from "react-router-dom"
+import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
+import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
+import { selectCurrentReviewCampaignId } from "@/common/features/review-campaigns/current-review-campaign-id/current-review-campaign-id.selectors"
+import { useCurrentId } from "@/common/hooks/use-value"
+import { buildDate } from "@/common/utils/build-date"
+import { ReviewerRoutes } from "@/reviewer/routes/helpers"
 
 const shortenId = (id: string) => `${id.slice(0, 8)}…`
-const formatDate = (millis: number) =>
-  new Date(millis).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
 
-export function ReviewerSessionsTable({ sessions, onOpen }: Props) {
+export function ReviewerSessionsTable({ sessions }: { sessions: ReviewerSessionListItemDto[] }) {
+  const navigate = useNavigate()
   const { t } = useTranslation()
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
+  const reviewCampaignId = useCurrentId(selectCurrentReviewCampaignId)
+  const handleOpen = (agentSessionId: string) => {
+    navigate(
+      ReviewerRoutes.session.build({
+        organizationId,
+        projectId,
+        reviewCampaignId,
+        agentSessionId,
+      }),
+    )
+  }
   if (sessions.length === 0) {
     return (
       <Empty>
@@ -78,7 +92,7 @@ export function ReviewerSessionsTable({ sessions, onOpen }: Props) {
                 )}
               </div>
             </TableCell>
-            <TableCell>{formatDate(session.startedAt)}</TableCell>
+            <TableCell>{buildDate(session.startedAt)}</TableCell>
             <TableCell className="text-right">{session.messageCount}</TableCell>
             <TableCell className="text-right">{session.reviewerCount}</TableCell>
             <TableCell>
@@ -98,7 +112,7 @@ export function ReviewerSessionsTable({ sessions, onOpen }: Props) {
                 size="sm"
                 variant={session.callerIsSessionOwner ? "ghost" : "outline"}
                 disabled={session.callerIsSessionOwner}
-                onClick={() => onOpen(session.sessionId)}
+                onClick={() => handleOpen(session.sessionId)}
               >
                 {session.callerHasReviewed
                   ? t("reviewerCampaigns:sessionsTable.view")

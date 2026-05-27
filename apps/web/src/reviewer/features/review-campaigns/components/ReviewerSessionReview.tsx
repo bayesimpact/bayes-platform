@@ -9,7 +9,6 @@ import { FactualAnswersPanel } from "./FactualAnswersPanel"
 import { FormResultPanel } from "./FormResultPanel"
 import { OtherReviewersPanel } from "./OtherReviewersPanel"
 import { ReviewerReviewForm } from "./ReviewerReviewForm"
-import { ReviewerSessionMetadata } from "./ReviewerSessionMetadata"
 import { ReviewerSessionTranscript } from "./ReviewerSessionTranscript"
 import { TesterFeedbackPanel } from "./TesterFeedbackPanel"
 
@@ -28,14 +27,9 @@ type Props = {
 export function ReviewerSessionReview({ session, onSubmitReview, onUpdateReview }: Props) {
   const { t } = useTranslation()
   return (
-    <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
+    <div className="grid gap-6 lg:grid-cols-[3fr_2fr] p-6">
       {/* Left pane: transcript + session context */}
       <div className="flex flex-col gap-4">
-        <ReviewerSessionMetadata
-          startedAt={session.startedAt}
-          agent={session.agent}
-          testerUserId={session.testerUserId}
-        />
         {session.blind ? (
           <FactualAnswersPanel
             questions={session.factualTesterQuestions}

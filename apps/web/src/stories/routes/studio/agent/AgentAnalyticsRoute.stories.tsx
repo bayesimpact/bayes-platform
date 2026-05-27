@@ -111,3 +111,56 @@ export const Default: Story = {
     }),
   ],
 }
+
+export const WithData: Story = {
+  args: {
+    organizationMembershipRole: "owner",
+    projectMembershipRole: "owner",
+    agentMembershipRole: "owner",
+    featureFlags: ["project-analytics"],
+    withAgents: true,
+    withAnalytics: true,
+    withCategories: true,
+  },
+
+  decorators: [
+    buildDecorator<StoryArgs>(({ withAnalytics, withCategories, ...args }) => {
+      const { baseSeeds, project, agents } = buildStudioData(args)
+      const [firstAgent, ...restAgents] = agents
+      const currentAgent = agentFactory
+        .transient({
+          project,
+        })
+        .build({
+          ...firstAgent,
+          type: "conversation",
+          hasCategories: withCategories,
+        })
+
+      const analytics = withAnalytics
+        ? buildAnalytics(currentAgent)
+        : {
+            conversationsPerDay: [],
+            avgUserQuestionsPerSessionPerDay: [],
+            conversationsByCategoryPerDay: [],
+          }
+
+      return {
+        state: mergeSeeds(
+          baseSeeds,
+          seed.agents([...restAgents, currentAgent], {
+            currentId: currentAgent.id,
+          }),
+          seed.conversationAgentSessions({
+            [currentAgent.id]: [],
+          }),
+          seed.studio.agentAnalytics(analytics),
+        ),
+
+        services: {
+          agentAnalytics: buildMockAgentAnalyticsService(analytics),
+        },
+      }
+    }),
+  ],
+}

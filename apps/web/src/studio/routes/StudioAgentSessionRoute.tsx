@@ -4,33 +4,29 @@ import { GridHeader } from "@/common/components/grid/Grid"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import { FormResult } from "@/common/features/agents/agent-sessions/form/components/FormResult"
 import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
-import type { AgentSessionMessage } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
+import { selectCurrentMessagesData } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.selectors"
 import { AgentSessionMessages } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/AgentSessionMessages"
-import type { Agent } from "@/common/features/agents/agents.models"
+import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
 import { useGetAgentRoute } from "@/common/hooks/use-get-path"
+import { useValue } from "@/common/hooks/use-value"
 import { buildSince } from "@/common/utils/build-date"
 import { AgentSessionActions } from "../features/agents/components/AgentSessionActions"
 
 type AgentSession = ConversationAgentSession | FormAgentSession
-export function StudioAgentSessionRoute({
-  agent,
-  agentSession,
-  messages,
-}: {
-  agent: Agent
-  agentSession: AgentSession
-  messages: AgentSessionMessage[]
-}) {
+export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentSession }) {
+  const agent = useValue(selectCurrentAgentData)
+  const messages = useValue(selectCurrentMessagesData)
+
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const getAgentRoute = useGetAgentRoute()
+  const agentRoute = useGetAgentRoute()
 
   const Icon = getAgentIcon(agent.type)
 
   const date = buildSince(agentSession.updatedAt)
 
-  const handleBack = () => navigate(getAgentRoute())
+  const handleBack = () => navigate(agentRoute)
 
   return (
     <div className="flex flex-col h-full">

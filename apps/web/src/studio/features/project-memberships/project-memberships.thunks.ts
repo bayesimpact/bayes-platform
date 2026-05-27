@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
-import { getCurrentIds } from "@/common/features/helpers"
+import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import type { ProjectMemberAgent, ProjectMembership } from "./project-memberships.models"
 
@@ -9,10 +9,8 @@ export const listProjectMemberships = createAsyncThunk<ProjectMembership[], void
   "projectMemberships/list",
   async (_, { extra: { services }, getState }) => {
     const state = getState()
-    const { organizationId, projectId } = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
     return await services.projectMemberships.getAll({ organizationId, projectId })
   },
 )
@@ -23,10 +21,8 @@ export const removeProjectMembership = createAsyncThunk<
   ThunkConfig
 >("projectMemberships/remove", async ({ membershipId }, { extra: { services }, getState }) => {
   const state = getState()
-  const { organizationId, projectId } = getCurrentIds({
-    state,
-    wantedIds: ["organizationId", "projectId"],
-  })
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
   return await services.projectMemberships.remove({ organizationId, projectId, membershipId })
 })
 
@@ -38,10 +34,8 @@ export const listProjectMemberAgents = createAsyncThunk<
   "projectMemberships/listMemberAgents",
   async ({ membershipId }, { extra: { services }, getState }) => {
     const state = getState()
-    const { organizationId, projectId } = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
     return await services.projectMemberships.getMemberAgents({
       organizationId,
       projectId,

@@ -4,12 +4,11 @@ import { ADS, type AsyncData } from "@/common/store/async-data-status"
 import type { EvaluationReport } from "./evaluation-reports.models"
 
 export const selectEvaluationReportsStatus = (state: RootState) =>
-  state.studio.evaluationReports.data.status
+  state.evaluationReports.data.status
 
-export const selectEvaluationReportsError = (state: RootState) =>
-  state.studio.evaluationReports.data.error
+export const selectEvaluationReportsError = (state: RootState) => state.evaluationReports.data.error
 
-export const selectEvaluationReportsData = (state: RootState) => state.studio.evaluationReports.data
+export const selectEvaluationReportsData = (state: RootState) => state.evaluationReports.data
 
 const missingEvaluationId = {
   status: ADS.Error,

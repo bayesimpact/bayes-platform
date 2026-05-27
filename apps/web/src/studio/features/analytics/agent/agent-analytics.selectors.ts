@@ -4,13 +4,12 @@ import type { AnalyticsCategoryDailyPoint, AnalyticsDailyPoint } from "../projec
 
 export const selectAgentAnalyticsConversationsPerDay = (
   state: RootState,
-): AsyncData<AnalyticsDailyPoint[]> => state.studio.agentAnalytics.conversationsPerDay
+): AsyncData<AnalyticsDailyPoint[]> => state.agentAnalytics.conversationsPerDay
 
 export const selectAgentAnalyticsAvgUserQuestionsPerSessionPerDay = (
   state: RootState,
-): AsyncData<AnalyticsDailyPoint[]> => state.studio.agentAnalytics.avgUserQuestionsPerSessionPerDay
+): AsyncData<AnalyticsDailyPoint[]> => state.agentAnalytics.avgUserQuestionsPerSessionPerDay
 
 export const selectAgentAnalyticsConversationsByCategoryPerDay = (
   state: RootState,
-): AsyncData<AnalyticsCategoryDailyPoint[]> =>
-  state.studio.agentAnalytics.conversationsByCategoryPerDay
+): AsyncData<AnalyticsCategoryDailyPoint[]> => state.agentAnalytics.conversationsByCategoryPerDay

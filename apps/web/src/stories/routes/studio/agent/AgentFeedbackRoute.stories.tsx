@@ -69,3 +69,57 @@ export const Default: Story = {
     }),
   ],
 }
+
+export const WithData: Story = {
+  args: {
+    organizationMembershipRole: "owner",
+    projectMembershipRole: "owner",
+    agentMembershipRole: "owner",
+    featureFlags: [],
+    withAgents: true,
+    agentType: "conversation",
+    withFeedbacks: true,
+  },
+
+  decorators: [
+    buildDecorator<StoryArgs>(({ agentType, withFeedbacks, ...args }) => {
+      const { baseSeeds, project, agents } = buildStudioData(args)
+      const [firstAgent, ...restAgents] = agents
+      const currentAgent = agentFactory
+        .transient({
+          project,
+        })
+        .build({
+          ...firstAgent,
+          type: agentType,
+        })
+
+      const feedbacks = withFeedbacks
+        ? agentMessageFeedbackFactory
+            .transient({
+              agent: currentAgent,
+              project,
+            })
+            .buildList(3)
+        : []
+
+      return {
+        state: mergeSeeds(
+          baseSeeds,
+          seed.agents([...restAgents, currentAgent], {
+            currentId: currentAgent.id,
+          }),
+          seed.conversationAgentSessions({
+            [currentAgent.id]: [],
+          }),
+          seed.formAgentSessions({
+            [currentAgent.id]: [],
+          }),
+          seed.studio.agentMessageFeedbacks({
+            [currentAgent.id]: feedbacks,
+          }),
+        ),
+      }
+    }),
+  ],
+}

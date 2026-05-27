@@ -6,13 +6,13 @@ import type { DateRange } from "react-day-picker"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
-import type { Agent } from "@/common/features/agents/agents.models"
 import {
   selectCurrentAgentData,
   selectCurrentAgentId,
 } from "@/common/features/agents/agents.selectors"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
 import { useGetAgentRoute } from "@/common/hooks/use-get-path"
+import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import {
   selectAgentAnalyticsAvgUserQuestionsPerSessionPerDay,
@@ -20,7 +20,6 @@ import {
   selectAgentAnalyticsConversationsPerDay,
 } from "@/studio/features/analytics/agent/agent-analytics.selectors"
 import { loadAgentAnalytics } from "@/studio/features/analytics/agent/agent-analytics.thunks"
-import type { AnalyticsCategoryDailyPoint } from "@/studio/features/analytics/project/analytics.models"
 import { dateRangeToAnalyticsQueryBounds } from "@/studio/features/analytics/project/analytics-date-range"
 import { ProjectCategoryChartCard } from "@/studio/features/analytics/project/components/ProjectCategoryChartCard"
 import { AsyncRoute } from "../../common/routes/AsyncRoute"
@@ -47,61 +46,43 @@ function getInitialAnalyticsBounds() {
 
 export function AgentAnalyticsRoute() {
   const agentId = useAppSelector(selectCurrentAgentId)
-  const agent = useAppSelector(selectCurrentAgentData)
-
-  if (!agentId) return <ErrorRoute error="Missing valid agent ID" />
-  return (
-    <AsyncRoute data={[agent]}>{([agentValue]) => <WithAgent agent={agentValue} />}</AsyncRoute>
-  )
-}
-
-function WithAgent({ agent }: { agent: Agent }) {
   const dispatch = useAppDispatch()
   const [bounds, setBounds] = useState(getInitialAnalyticsBounds)
 
+  // FIXME: useMount
   useEffect(() => {
     void dispatch(loadAgentAnalytics(bounds))
   }, [dispatch, bounds])
 
+  const agent = useAppSelector(selectCurrentAgentData)
   const conversations = useAppSelector(selectAgentAnalyticsConversationsPerDay)
   const avgQuestions = useAppSelector(selectAgentAnalyticsAvgUserQuestionsPerSessionPerDay)
   const conversationsByCategoryPerDay = useAppSelector(
     selectAgentAnalyticsConversationsByCategoryPerDay,
   )
 
+  if (!agentId) return <ErrorRoute error="Missing valid agent ID" />
   return (
-    <AsyncRoute data={[conversations, avgQuestions, conversationsByCategoryPerDay]}>
-      {([conversationsPoints, avgQuestionsPoints, categoryPoints]) => (
-        <WithData
-          agent={agent}
-          conversationsPoints={conversationsPoints}
-          avgQuestionsPoints={avgQuestionsPoints}
-          categoryPoints={categoryPoints}
-          onAnalyticsRangeChange={setBounds}
-        />
-      )}
+    <AsyncRoute data={[agent, conversations, avgQuestions, conversationsByCategoryPerDay]}>
+      <WithData onAnalyticsRangeChange={setBounds} />
     </AsyncRoute>
   )
 }
 
 function WithData({
-  agent,
-  conversationsPoints,
-  avgQuestionsPoints,
-  categoryPoints,
   onAnalyticsRangeChange,
 }: {
-  agent: Agent
-  conversationsPoints: { date: string; value: number }[]
-  avgQuestionsPoints: { date: string; value: number }[]
-  categoryPoints: AnalyticsCategoryDailyPoint[]
   onAnalyticsRangeChange: (nextBounds: { startAt: number; endAt: number }) => void
 }) {
+  const agent = useValue(selectCurrentAgentData)
+  const conversationsPoints = useValue(selectAgentAnalyticsConversationsPerDay)
+  const avgQuestionsPoints = useValue(selectAgentAnalyticsAvgUserQuestionsPerSessionPerDay)
+  const categoryPoints = useValue(selectAgentAnalyticsConversationsByCategoryPerDay)
   const { t } = useTranslation("agentAnalytics")
   const navigate = useNavigate()
-  const getAgentRoute = useGetAgentRoute()
+  const agentRoute = useGetAgentRoute()
 
-  const handleBack = () => navigate(getAgentRoute())
+  const handleBack = () => navigate(agentRoute)
 
   const onRangeChange = useCallback(
     (range: DateRange | undefined) => {

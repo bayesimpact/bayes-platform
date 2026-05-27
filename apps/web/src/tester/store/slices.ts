@@ -1,46 +1,28 @@
-import { combineReducers } from "@reduxjs/toolkit"
-import type { AppDispatch } from "@/common/store"
-import { dynamicMiddleware } from "@/common/store/dynamic-middleware"
-import { rootSlices } from "@/common/store/root-slices"
+import { conversationAgentSessionsSlice } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.slice"
+import { formAgentSessionsSlice } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.slice"
+import { agentSessionMessagesMiddleware } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.middleware"
+import { agentSessionMessagesSlice } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.slice"
+import { agentsSlice } from "@/common/features/agents/agents.slice"
+import { projectsSlice } from "@/common/features/projects/projects.slice"
+import { createSliceManager } from "@/common/store/dynamic-middleware"
 import { reviewCampaignsTesterMiddleware } from "../features/review-campaigns/tester.middleware"
 import { reviewCampaignsTesterSlice } from "../features/review-campaigns/tester.slice"
-import type { TesterState } from "./types"
+import { currentIdsSlice } from "./currentIds.slice"
 
-let middlewareInjected = false
+const testerMiddlewareList = [agentSessionMessagesMiddleware, reviewCampaignsTesterMiddleware]
 
-const testerMiddlewareList = [reviewCampaignsTesterMiddleware]
+export const testerSliceList = [
+  agentSessionMessagesSlice,
+  agentsSlice,
+  conversationAgentSessionsSlice,
+  currentIdsSlice,
+  formAgentSessionsSlice,
+  reviewCampaignsTesterSlice,
+  projectsSlice,
+]
 
-export const testerSliceList = [reviewCampaignsTesterSlice]
-
-const testerReducers = combineReducers(
-  Object.assign({}, ...testerSliceList.map((slice) => ({ [slice.name]: slice.reducer }))),
-)
-
-export function injectTesterSlices() {
-  const rr = rootSlices.withLazyLoadedSlices<TesterState>()
-  // Reducers: inject() is idempotent — safe to call on every mount
-  rr.inject({
-    reducerPath: "tester",
-    // @ts-expect-error - TypeScript cannot infer the type of the combined reducers, but it is correct
-    reducer: testerReducers,
+export const { injectSlices: injectTesterSlices, resetSlices: resetTesterSlices } =
+  createSliceManager({
+    middlewares: testerMiddlewareList,
+    slices: testerSliceList,
   })
-
-  // Middleware: addMiddleware is NOT idempotent — guard against duplicate registration
-  if (!middlewareInjected) {
-    middlewareInjected = true
-    testerMiddlewareList.forEach((m) => {
-      dynamicMiddleware.addMiddleware(m.listenerMiddleware.middleware)
-      m.registerListeners()
-    })
-  }
-}
-
-export function resetTesterSlices(dispatch: AppDispatch) {
-  middlewareInjected = false // reset the guard so middleware can be re-added
-  testerSliceList.forEach((slice) => {
-    dispatch(slice.actions.reset())
-  })
-  testerMiddlewareList.forEach((m) => {
-    m.listenerMiddleware.clearListeners()
-  })
-}

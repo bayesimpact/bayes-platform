@@ -3,26 +3,24 @@ import type { RootState } from "@/common/store"
 import { ADS, type AsyncData } from "@/common/store/async-data-status"
 import type { EvaluationExtractionRun } from "./evaluation-extraction-runs.models"
 
-export const selectEvaluationExtractionRunsData = (state: RootState) =>
-  state.evaluation.extractionRuns.data
+export const selectEvaluationExtractionRunsData = (state: RootState) => state.extractionRuns.data
 
-export const selectCurrentRunId = (state: RootState) => state.evaluation.extractionRuns.currentRunId
+export const selectCurrentRunId = (state: RootState) => state.currentIds.runId
 
-export const selectCurrentRunData = (state: RootState) => state.evaluation.extractionRuns.currentRun
+export const selectCurrentRunData = (state: RootState) => state.extractionRuns.currentRun
 
-export const selectCurrentRunRecords = (state: RootState) =>
-  state.evaluation.extractionRuns.currentRunRecords
+export const selectCurrentRunRecords = (state: RootState) => state.extractionRuns.currentRunRecords
 
-export const selectIsExecuting = (state: RootState) => state.evaluation.extractionRuns.isExecuting
+export const selectIsExecuting = (state: RootState) => state.extractionRuns.isExecuting
 
-export const selectIsCancelling = (state: RootState) => state.evaluation.extractionRuns.isCancelling
-export const selectIsRetrying = (state: RootState) => state.evaluation.extractionRuns.isRetrying
+export const selectIsCancelling = (state: RootState) => state.extractionRuns.isCancelling
+export const selectIsRetrying = (state: RootState) => state.extractionRuns.isRetrying
 
 export const selectCurrentRecordsQuery = (state: RootState) =>
-  state.evaluation.extractionRuns.currentRecordsQuery
+  state.extractionRuns.currentRecordsQuery
 
 export const selectIsRunStatusStreamActive = (state: RootState) =>
-  state.evaluation.extractionRuns.runStatusStream.isActive
+  state.extractionRuns.runStatusStream.isActive
 
 export const selectHasRunsInProgress = createSelector(
   [selectEvaluationExtractionRunsData, selectCurrentRunData],

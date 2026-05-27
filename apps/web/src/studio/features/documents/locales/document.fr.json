@@ -3,14 +3,6 @@
     "document": "Document",
     "documents": "Documents",
     "sources": "Sources",
-    "webSources": {
-      "title": "Sources web",
-      "description": "Explorez des sites web pour indexer leur contenu et enrichir les connaissances de vos agents.",
-      "empty": {
-        "title": "Aucun site web exploré pour le moment",
-        "description": "Entrez une URL pour commencer à explorer un site web et indexer son contenu."
-      }
-    },
     "uploading": "Téléversement des documents... {{processed}} sur {{total}}",
     "props": {
       "createdAt": "Créé le",

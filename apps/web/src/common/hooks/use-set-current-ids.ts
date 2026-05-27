@@ -1,47 +1,40 @@
+import type { ActionCreatorWithPayload } from "@reduxjs/toolkit"
 import { useEffect } from "react"
 import { useParams } from "react-router-dom"
-import { currentAgentSessionIdActions } from "@/common/features/agents/agent-sessions/current-agent-session-id/current-agent-session-id.slice"
-import { agentsActions } from "@/common/features/agents/agents.slice"
-import { organizationsActions } from "@/common/features/organizations/organizations.slice"
-import { projectsActions } from "@/common/features/projects/projects.slice"
-import { currentReviewCampaignIdActions } from "@/common/features/review-campaigns/current-review-campaign-id/current-review-campaign-id.slice"
-import { currentReviewerSessionIdActions } from "@/common/features/review-campaigns/current-reviewer-session-id/current-reviewer-session-id.slice"
 import { useAppDispatch } from "@/common/store/hooks"
 
-export const useSetCurrentIds = () => {
+type Action = ActionCreatorWithPayload<string | null, string>
+type Actions = Record<string, Action | (() => void) | undefined>
+
+export const useSetCurrentIds = (storeActions: Actions) => {
   const dispatch = useAppDispatch()
   const params = useParams()
+
   useEffect(() => {
-    const { organizationId, projectId, agentId, agentSessionId, reviewCampaignId, sessionId } =
-      params
+    Object.entries(storeActions).forEach(([key, action]) => {
+      if (isValidAction(action, key)) {
+        return
+      }
 
-    dispatch(
-      organizationsActions.setCurrentOrganizationId({ organizationId: organizationId || null }),
-    )
+      const paramKey = formatKey(key)
+      const paramValue = params[paramKey] ?? null
 
-    dispatch(projectsActions.setCurrentProjectId({ projectId: projectId || null }))
+      if (action) {
+        const result = action(paramValue)
+        if (result !== undefined) {
+          dispatch(result)
+        }
+      }
+    })
+  }, [dispatch, params, storeActions])
+}
 
-    dispatch(agentsActions.setCurrentAgentId({ agentId: agentId || null }))
+function isValidAction(action: Action | (() => void) | undefined, key: string) {
+  // Skip if action is not a function or key doesn't match pattern "set*Id"
+  return !action || typeof action !== "function" || !key.startsWith("set") || !key.endsWith("Id")
+}
 
-    dispatch(
-      currentAgentSessionIdActions.setCurrentAgentSessionId({
-        agentSessionId: agentSessionId || null,
-      }),
-    )
-
-    dispatch(
-      currentReviewCampaignIdActions.setCurrentReviewCampaignId({
-        reviewCampaignId: reviewCampaignId || null,
-      }),
-    )
-
-    // Reviewer URL exposes the agent session id under :sessionId (no :agentId).
-    // Reuse the same Redux slot regardless of whether you hit the tester
-    // (:agentSessionId) or reviewer (:sessionId) param.
-    dispatch(
-      currentReviewerSessionIdActions.setCurrentReviewerSessionId({
-        reviewerSessionId: sessionId || null,
-      }),
-    )
-  }, [dispatch, params])
+function formatKey(key: string) {
+  // Convert "setFooId" -> "foo" to match param key
+  return key.charAt(3).toLowerCase() + key.slice(4)
 }

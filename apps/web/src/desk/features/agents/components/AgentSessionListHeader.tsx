@@ -22,11 +22,11 @@ export function AgentSessionListHeader({
 }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const getProjectRoute = useGetProjectRoute()
-  const getAgentRoute = useGetAgentRoute()
+  const projectRoute = useGetProjectRoute()
+  const agentRoute = useGetAgentRoute()
 
   const handleBack = () => {
-    const path = backTo === "agent" ? getAgentRoute() : getProjectRoute()
+    const path = backTo === "agent" ? agentRoute : projectRoute
     navigate(path)
   }
 

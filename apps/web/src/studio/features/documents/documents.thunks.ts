@@ -1,11 +1,12 @@
 import type { DocumentSourceType } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
-import { getCurrentIds } from "@/common/features/helpers"
+import { getCurrentId } from "@/common/features/helpers"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import { ADS } from "@/common/store/async-data-status"
 import type { DocumentTagsUpdateFields } from "@/studio/features/document-tags/document-tags.models"
 import type { Document } from "./documents.models"
+import { selectDocumentSourceType } from "./documents.selectors"
 import { documentsActions } from "./documents.slice"
 import { shouldTriggerResyncForUnknownDocumentEvent } from "./documents-stream-events"
 
@@ -15,12 +16,9 @@ export const listDocuments = createAsyncThunk<Document[], void, ThunkConfig>(
   "documents/list",
   async (_, { extra: { services }, getState }) => {
     const state = getState()
-    const { organizationId, projectId } = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
-    const sourceType = state.studio.documents.currentSourceType
-    if (!sourceType) return []
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const sourceType = selectDocumentSourceType(state)
     return await services.documents.getAll({ organizationId, projectId, sourceType })
   },
 )
@@ -38,10 +36,8 @@ export const uploadDocument = createAsyncThunk<
   "documents/uploadOne",
   async ({ file, sourceType, tagIds }, { extra: { services }, getState }) => {
     const state = getState()
-    const { organizationId, projectId } = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
     return await services.documents.uploadOne({
       organizationId,
       projectId,
@@ -60,10 +56,8 @@ export const uploadDocuments = createAsyncThunk<
   "documents/uploadMany",
   async ({ files, sourceType, tagIds }, { extra: { services }, getState, dispatch }) => {
     const state = getState()
-    const { organizationId, projectId } = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
     await services.documents.uploadMany({
       organizationId,
       projectId,
@@ -99,10 +93,8 @@ export const updateDocument = createAsyncThunk<
   ThunkConfig
 >("documents/update", async ({ documentId, fields }, { extra: { services }, getState }) => {
   const state = getState()
-  const { organizationId, projectId } = getCurrentIds({
-    state,
-    wantedIds: ["organizationId", "projectId"],
-  })
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
   return await services.documents.updateOne({
     organizationId,
     projectId,
@@ -117,10 +109,8 @@ export const deleteDocument = createAsyncThunk<
   ThunkConfig
 >("documents/delete", async ({ documentId }, { extra: { services }, getState }) => {
   const state = getState()
-  const { organizationId, projectId } = getCurrentIds({
-    state,
-    wantedIds: ["organizationId", "projectId"],
-  })
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
   return await services.documents.deleteOne({ organizationId, projectId, documentId })
 })
 
@@ -128,10 +118,8 @@ export const reprocessDocument = createAsyncThunk<void, { documentId: string }, 
   "documents/reprocess",
   async ({ documentId }, { extra: { services }, getState, dispatch }) => {
     const state = getState()
-    const { organizationId, projectId } = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
     await services.documents.reprocessOne({ organizationId, projectId, documentId })
     dispatch(
       documentsActions.patchDocumentEmbeddingStatus({
@@ -150,10 +138,9 @@ export const getDocumentTemporaryUrl = createAsyncThunk<
   ThunkConfig
 >("documents/getTemporaryUrl", async ({ documentId }, { extra: { services }, getState }) => {
   const state = getState()
-  const { organizationId, projectId } = getCurrentIds({
-    state,
-    wantedIds: ["organizationId", "projectId"],
-  })
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+
   return await services.documents.getTemporaryUrl({ organizationId, projectId, documentId })
 })
 
@@ -163,10 +150,8 @@ export const crawlUrl = createAsyncThunk<
   ThunkConfig
 >("documents/crawlUrl", async ({ url, name }, { extra: { services }, getState }) => {
   const state = getState()
-  const { organizationId, projectId } = getCurrentIds({
-    state,
-    wantedIds: ["organizationId", "projectId"],
-  })
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
   return await services.documents.crawlUrl({ organizationId, projectId, url, name })
 })
 
@@ -176,10 +161,8 @@ export const reCrawlUrl = createAsyncThunk<
   ThunkConfig
 >("documents/reCrawlUrl", async ({ documentId }, { extra: { services }, getState }) => {
   const state = getState()
-  const { organizationId, projectId } = getCurrentIds({
-    state,
-    wantedIds: ["organizationId", "projectId"],
-  })
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
   return await services.documents.reCrawlUrl({ organizationId, projectId, documentId })
 })
 
@@ -187,10 +170,8 @@ export const streamDocumentCrawlProgresses = createAsyncThunk<void, void, ThunkC
   "documents/streamCrawlProgress",
   async (_, { extra: { services }, getState, dispatch, signal }) => {
     const state = getState()
-    const { organizationId, projectId } = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
 
     await services.documents.streamCrawlProgress({
       organizationId,
@@ -212,10 +193,8 @@ export const streamDocumentEmbeddingStatuses = createAsyncThunk<void, void, Thun
   "documents/streamEmbeddingStatus",
   async (_, { extra: { services }, getState, dispatch, signal }) => {
     const state = getState()
-    const { organizationId, projectId } = getCurrentIds({
-      state,
-      wantedIds: ["organizationId", "projectId"],
-    })
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
     let hasTriggeredUnknownDocumentResync = false
 
     await services.documents.streamEmbeddingStatus({
@@ -223,7 +202,7 @@ export const streamDocumentEmbeddingStatuses = createAsyncThunk<void, void, Thun
       projectId,
       signal,
       onStatusChanged: ({ documentId, embeddingStatus, embeddingError, updatedAt }) => {
-        const state = getState().studio
+        const state = getState()
         if (
           shouldTriggerResyncForUnknownDocumentEvent({
             documentsData: state.documents.data,

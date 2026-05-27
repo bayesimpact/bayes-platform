@@ -31,6 +31,7 @@ import {
   selectFileColumnsData,
 } from "@/eval/features/evaluation-extraction-datasets/evaluation-extraction-datasets.selectors"
 import { evaluationExtractionDatasetsActions } from "@/eval/features/evaluation-extraction-datasets/evaluation-extraction-datasets.slice"
+import { currentIdsActions } from "@/eval/store/currentIds.slice"
 
 export function EvaluationExtractionDatasetInitializer({
   dataset,
@@ -42,7 +43,7 @@ export function EvaluationExtractionDatasetInitializer({
 
   useEffect(() => {
     return () => {
-      dispatch(evaluationExtractionDatasetsActions.setCurrentFileId({ fileId: null }))
+      dispatch(currentIdsActions.setFileId(null))
     }
   }, [dispatch])
 

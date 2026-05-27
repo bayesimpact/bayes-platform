@@ -12,12 +12,8 @@ import {
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
 function registerListeners() {
-  // Refresh Agents when one is created, updated or deleted
   listenerMiddleware.startListening({
     matcher: isAnyOf(
-      deleteAgent.fulfilled,
-      createAgent.fulfilled,
-      updateAgent.fulfilled,
       // DocumentTag changes
       updateDocumentTag.fulfilled,
       deleteDocumentTag.fulfilled,
@@ -29,17 +25,13 @@ function registerListeners() {
 
   listenerMiddleware.startListening({
     actionCreator: deleteAgent.fulfilled,
-    effect: async (action, listenerApi) => {
+    effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
           title: "Agent deleted successfully",
           type: "success",
         }),
       )
-
-      const onSuccess = action.meta.arg.onSuccess
-      const id = action.meta.arg.agentId
-      onSuccess?.(id)
     },
   })
   listenerMiddleware.startListening({

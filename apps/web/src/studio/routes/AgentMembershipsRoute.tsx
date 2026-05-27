@@ -1,13 +1,12 @@
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/grid/Grid"
-import type { Agent } from "@/common/features/agents/agents.models"
 import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
 import { useGetAgentRoute } from "@/common/hooks/use-get-path"
 import { useMount } from "@/common/hooks/use-mount"
+import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import type { AgentMembership } from "@/studio/features/agent-memberships/agent-memberships.models"
 import {
   selectAgentMemberships,
   selectAgentPendingInvitations,
@@ -15,7 +14,6 @@ import {
 import { AgentMembershipItem } from "@/studio/features/agent-memberships/components/AgentMembershipItem"
 import { MembersCreator } from "@/studio/features/agent-memberships/components/MembersCreator"
 import { PendingInvitationsSection } from "@/studio/features/invitations/components/PendingInvitationsSection"
-import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import { revokeInvitation } from "@/studio/features/invitations/invitations.thunks"
 import { agentMembershipsActions } from "../features/agent-memberships/agent-memberships.slice"
 
@@ -28,31 +26,20 @@ export function AgentMembershipsRoute() {
 
   return (
     <AsyncRoute data={[memberships, agent, pendingInvitations]}>
-      {([membershipsValue, agentValue, pendingInvitationsValue]) => (
-        <WithData
-          memberships={membershipsValue}
-          agent={agentValue}
-          pendingInvitations={pendingInvitationsValue}
-        />
-      )}
+      <WithData />
     </AsyncRoute>
   )
 }
 
-function WithData({
-  memberships,
-  agent,
-  pendingInvitations,
-}: {
-  memberships: AgentMembership[]
-  agent: Agent
-  pendingInvitations: PendingInvitations
-}) {
+function WithData() {
+  const memberships = useValue(selectAgentMemberships)
+  const agent = useValue(selectCurrentAgentData)
+  const pendingInvitations = useValue(selectAgentPendingInvitations)
   const dispatch = useAppDispatch()
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const getAgentRoute = useGetAgentRoute()
-  const handleBack = () => navigate(getAgentRoute())
+  const agentRoute = useGetAgentRoute()
+  const handleBack = () => navigate(agentRoute)
 
   const cols = memberships.length === 0 ? 0 : 3
   const total = memberships.length

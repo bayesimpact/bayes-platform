@@ -17,22 +17,23 @@ import {
 } from "@tanstack/react-table"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { Loader } from "@/common/components/Loader"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import {
+  DEFAULT_PAGE_SIZE,
+  PaginationControls,
+  SortableFilterableHeader,
+  TruncatedCell,
+} from "@/eval/components/shared/RecordTableParts"
 import type {
   EvaluationExtractionDataset,
   EvaluationExtractionDatasetRecordRow,
 } from "@/eval/features/evaluation-extraction-datasets/evaluation-extraction-datasets.models"
 import { selectRecordsData } from "@/eval/features/evaluation-extraction-datasets/evaluation-extraction-datasets.selectors"
 import { evaluationExtractionDatasetsActions } from "@/eval/features/evaluation-extraction-datasets/evaluation-extraction-datasets.slice"
-import {
-  DEFAULT_PAGE_SIZE,
-  PaginationControls,
-  SortableFilterableHeader,
-  TruncatedCell,
-} from "../../../components/shared/RecordTableParts"
 
-export function EvaluationExtractionDatasetRecords({
+export function EvaluationExtractionDatasetRecordList({
   dataset,
 }: {
   dataset: EvaluationExtractionDataset
@@ -49,19 +50,6 @@ export function EvaluationExtractionDatasetRecords({
     pageSize: DEFAULT_PAGE_SIZE,
   })
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const schemaColumns = useMemo(
-    () =>
-      Object.values(dataset.schemaMapping).sort(
-        (columnA, columnB) => columnA.index - columnB.index,
-      ),
-    [dataset.schemaMapping],
-  )
-
-  const records = ADS.isFulfilled(recordsData) ? recordsData.value.records : []
-  const total = ADS.isFulfilled(recordsData) ? recordsData.value.total : 0
-  const totalPages = Math.max(1, Math.ceil(total / DEFAULT_PAGE_SIZE))
-  const isLoading = ADS.isLoading(recordsData)
 
   const fetchRecords = useCallback(
     (params: { page: number; columnFilters: ColumnFiltersState; sorting: SortingState }) => {
@@ -111,12 +99,76 @@ export function EvaluationExtractionDatasetRecords({
   )
 
   const handleSortingChange: OnChangeFn<SortingState> = useCallback((updaterOrValue) => {
-    setSorting((prev) => {
-      const next = typeof updaterOrValue === "function" ? updaterOrValue(prev) : updaterOrValue
-      return next
-    })
+    setSorting((prev) =>
+      typeof updaterOrValue === "function" ? updaterOrValue(prev) : updaterOrValue,
+    )
     setPagination((prev) => ({ ...prev, pageIndex: 0 }))
   }, [])
+
+  const records = ADS.isFulfilled(recordsData) ? recordsData.value.records : []
+  const total = ADS.isFulfilled(recordsData) ? recordsData.value.total : 0
+  const isLoading = ADS.isLoading(recordsData)
+
+  return (
+    <Card className="border-0 shadow-none">
+      <CardHeader>
+        <CardTitle>{t("evaluation:dataset.records.view.title")}</CardTitle>
+        <CardDescription>
+          {t("evaluation:dataset.records.view.description", { count: total })}
+        </CardDescription>
+      </CardHeader>
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <RecordsTable
+          dataset={dataset}
+          records={records}
+          total={total}
+          sorting={sorting}
+          columnFilters={columnFilters}
+          pagination={pagination}
+          onSortingChange={handleSortingChange}
+          onColumnFiltersChange={handleColumnFiltersChange}
+          onPaginationChange={setPagination}
+        />
+      )}
+    </Card>
+  )
+}
+
+type RecordsTableProps = {
+  dataset: EvaluationExtractionDataset
+  records: EvaluationExtractionDatasetRecordRow[]
+  total: number
+  sorting: SortingState
+  columnFilters: ColumnFiltersState
+  pagination: PaginationState
+  onSortingChange: OnChangeFn<SortingState>
+  onColumnFiltersChange: OnChangeFn<ColumnFiltersState>
+  onPaginationChange: OnChangeFn<PaginationState>
+}
+
+function RecordsTable({
+  dataset,
+  records,
+  total,
+  sorting,
+  columnFilters,
+  pagination,
+  onSortingChange,
+  onColumnFiltersChange,
+  onPaginationChange,
+}: RecordsTableProps) {
+  const { t } = useTranslation()
+  const totalPages = Math.max(1, Math.ceil(total / DEFAULT_PAGE_SIZE))
+
+  const schemaColumns = useMemo(
+    () =>
+      Object.values(dataset.schemaMapping).sort(
+        (columnA, columnB) => columnA.index - columnB.index,
+      ),
+    [dataset.schemaMapping],
+  )
 
   const columns = useMemo<ColumnDef<EvaluationExtractionDatasetRecordRow>[]>(
     () => [
@@ -161,9 +213,9 @@ export function EvaluationExtractionDatasetRecords({
       columnFilters,
       pagination,
     },
-    onSortingChange: handleSortingChange,
-    onColumnFiltersChange: handleColumnFiltersChange,
-    onPaginationChange: setPagination,
+    onSortingChange,
+    onColumnFiltersChange,
+    onPaginationChange,
     manualPagination: true,
     manualSorting: true,
     manualFiltering: true,
@@ -179,90 +231,69 @@ export function EvaluationExtractionDatasetRecords({
   const showPagination = totalPages > 1 || hasFilters
 
   return (
-    <Card className="border-0 shadow-none">
-      <CardHeader>
-        <CardTitle>{t("evaluation:dataset.records.view.title")}</CardTitle>
-        <CardDescription>
-          {t("evaluation:dataset.records.view.description", { count: total })}
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent>
-        <div className="rounded-lg border overflow-x-auto">
-          <table className="w-full caption-bottom text-sm">
-            <thead className="bg-muted/50 sticky top-0 z-10 [&_tr]:border-b">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id} className="border-b transition-colors">
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className="text-foreground h-auto px-2 py-2 text-left align-bottom font-medium whitespace-nowrap"
+    <CardContent>
+      <div className="rounded-lg border overflow-x-auto">
+        <table className="w-full caption-bottom text-sm">
+          <thead className="bg-muted/50 sticky top-0 z-10 [&_tr]:border-b">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id} className="border-b transition-colors">
+                {headerGroup.headers.map((header) => (
+                  <th
+                    key={header.id}
+                    className="text-foreground h-auto px-2 py-2 text-left align-bottom font-medium whitespace-nowrap"
+                    style={
+                      header.column.id === "__index"
+                        ? { width: 48 }
+                        : { width: 200, minWidth: 120, maxWidth: 400 }
+                    }
+                  >
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {records.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length} className="h-24 text-center text-muted-foreground p-2">
+                  {t("status:noResults")}
+                </td>
+              </tr>
+            ) : (
+              table.getRowModel().rows.map((row) => (
+                <tr
+                  key={row.id}
+                  className={`border-b transition-colors hover:bg-muted/50 ${row.index % 2 !== 0 ? "bg-muted/30" : ""}`}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <td
+                      key={cell.id}
+                      className="p-2 align-middle whitespace-nowrap"
                       style={
-                        header.column.id === "__index"
-                          ? { width: 48 }
-                          : { width: 200, minWidth: 120, maxWidth: 400 }
+                        cell.column.id === "__index" ? undefined : { width: 200, maxWidth: 400 }
                       }
                     >
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
                   ))}
                 </tr>
-              ))}
-            </thead>
-            <tbody>
-              {isLoading && records.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={columns.length}
-                    className="h-24 text-center text-muted-foreground p-2"
-                  >
-                    {t("status:loading")}
-                  </td>
-                </tr>
-              ) : records.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={columns.length}
-                    className="h-24 text-center text-muted-foreground p-2"
-                  >
-                    {t("status:noResults")}
-                  </td>
-                </tr>
-              ) : (
-                table.getRowModel().rows.map((row) => (
-                  <tr
-                    key={row.id}
-                    className={`border-b transition-colors hover:bg-muted/50 ${row.index % 2 !== 0 ? "bg-muted/30" : ""}`}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <td
-                        key={cell.id}
-                        className="p-2 align-middle whitespace-nowrap"
-                        style={
-                          cell.column.id === "__index" ? undefined : { width: 200, maxWidth: 400 }
-                        }
-                      >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
-        {showPagination && (
-          <PaginationControls
-            pageIndex={pagination.pageIndex}
-            pageCount={totalPages}
-            total={total}
-            onPageChange={(newPageIndex) =>
-              setPagination((prev) => ({ ...prev, pageIndex: newPageIndex }))
-            }
-          />
-        )}
-      </CardContent>
-    </Card>
+      {showPagination && (
+        <PaginationControls
+          pageIndex={pagination.pageIndex}
+          pageCount={totalPages}
+          total={total}
+          onPageChange={(newPageIndex) =>
+            onPaginationChange((prev) => ({ ...prev, pageIndex: newPageIndex }))
+          }
+        />
+      )}
+    </CardContent>
   )
 }

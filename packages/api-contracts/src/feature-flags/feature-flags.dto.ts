@@ -24,6 +24,10 @@ export const FeatureFlags = [
     key: "web_sources",
     description: "Crawl a website and index its pages as documents.",
   },
+  {
+    key: "agent-embed",
+    description: "Embed conversation agents as a chat widget on external websites.",
+  },
 ] as const
 export type FeatureFlagKey = (typeof FeatureFlags)[number]["key"]
 export type FeatureFlagsDto = FeatureFlagKey[]
