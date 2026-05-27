@@ -6,11 +6,10 @@ import { getBullMqConnection } from "@/bullmq.config"
 import { ALL_ENTITIES } from "@/common/all-entities"
 import { DocumentsService } from "../documents.service"
 import { DocumentEmbeddingStatusNotifierService } from "../embeddings/document-embedding-status-notifier.service"
-import { DocumentEmbeddingsProcessorService } from "../embeddings/document-embeddings-processor.service"
-import { DocumentTextExtractorService } from "../embeddings/document-text-extractor.service"
-import { StorageModule } from "../storage/storage.module"
+import { DocumentEmbeddingsSharedService } from "../embeddings/document-embeddings-shared.service"
 import { DocumentTagsService } from "../tags/document-tags.service"
 import { WEB_SOURCE_EMBEDDINGS_QUEUE_NAME } from "./web-source-embeddings.constants"
+import { WebPageEmbeddingsProcessorService } from "./web-page-embeddings-processor.service"
 import { WebSourceEmbeddingsWorker } from "./web-source-embeddings.worker"
 
 @Module({
@@ -25,13 +24,12 @@ import { WebSourceEmbeddingsWorker } from "./web-source-embeddings.worker"
       name: WEB_SOURCE_EMBEDDINGS_QUEUE_NAME,
     }),
     TypeOrmModule.forFeature(ALL_ENTITIES),
-    StorageModule,
   ],
   providers: [
     WebSourceEmbeddingsWorker,
-    DocumentEmbeddingsProcessorService,
+    WebPageEmbeddingsProcessorService,
+    DocumentEmbeddingsSharedService,
     DocumentEmbeddingStatusNotifierService,
-    DocumentTextExtractorService,
     DocumentsService,
     DocumentTagsService,
   ],

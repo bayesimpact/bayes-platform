@@ -3,7 +3,7 @@ import { Logger } from "@nestjs/common"
 import type { Job } from "bullmq"
 import type { CreateDocumentEmbeddingsJobPayload } from "../embeddings/document-embeddings.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { DocumentEmbeddingsProcessorService } from "../embeddings/document-embeddings-processor.service"
+import { WebPageEmbeddingsProcessorService } from "./web-page-embeddings-processor.service"
 import {
   WEB_SOURCE_EMBEDDINGS_JOB_NAME,
   WEB_SOURCE_EMBEDDINGS_QUEUE_NAME,
@@ -13,7 +13,7 @@ import {
 export class WebSourceEmbeddingsWorker extends WorkerHost {
   private readonly logger = new Logger(WebSourceEmbeddingsWorker.name)
 
-  constructor(private readonly embeddingsProcessorService: DocumentEmbeddingsProcessorService) {
+  constructor(private readonly embeddingsProcessorService: WebPageEmbeddingsProcessorService) {
     super()
   }
 
