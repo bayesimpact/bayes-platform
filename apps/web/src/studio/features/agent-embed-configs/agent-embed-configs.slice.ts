@@ -36,20 +36,6 @@ const slice = createSlice({
         state.data.status = ADS.Error
         state.data.error = action.error.message || "Failed to load embed config"
       })
-
-    builder.addCase(agentEmbedConfigsThunks.updateConfig.fulfilled, (state, action) => {
-      if (ADS.isFulfilled(state.data)) {
-        const { isEnabled, allowedOrigins, title, logoUrl, primaryColor } = action.meta.arg
-        state.data.value = {
-          ...state.data.value,
-          isEnabled,
-          allowedOrigins,
-          title: title !== undefined ? title : state.data.value.title,
-          logoUrl: logoUrl !== undefined ? logoUrl : state.data.value.logoUrl,
-          primaryColor: primaryColor !== undefined ? primaryColor : state.data.value.primaryColor,
-        }
-      }
-    })
   },
 })
 
