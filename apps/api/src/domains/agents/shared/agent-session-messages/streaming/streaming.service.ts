@@ -770,7 +770,7 @@ export class StreamingService extends ServiceWithLLM {
   }): Promise<{ tools: ToolSet | undefined; mcpClose?: () => Promise<void> }> {
     const hasSourcesTool = await this.projectsService.hasFeature({
       connectScope,
-      feature: "sources_tool",
+      feature: "sources-tool",
     })
     const mcpCloseFns: (() => Promise<void>)[] = []
     const mcpTools: ToolSet = {}
