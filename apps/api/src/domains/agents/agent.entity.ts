@@ -16,7 +16,11 @@ import { EvaluationReport } from "../evaluations/reports/evaluation-report.entit
 import { AgentMcpServer } from "../mcp-servers/agent-mcp-server.entity"
 import { ExtractionAgentSession } from "./extraction-agent-sessions/extraction-agent-session.entity"
 import { AgentMembership } from "./memberships/agent-membership.entity"
-import { AgentSubAgent } from "./sub-agents/agent-sub-agent.entity"
+
+type AgentSubAgentRelation = {
+  parentAgent: Agent
+  childAgent: Agent
+}
 
 @ConnectEntity("agent")
 export class Agent extends ConnectEntityBase {
@@ -107,15 +111,9 @@ export class Agent extends ConnectEntityBase {
   )
   categories!: AgentCategory[]
 
-  @OneToMany(
-    () => AgentSubAgent,
-    (agentSubAgent) => agentSubAgent.parentAgent,
-  )
-  childSubAgents!: AgentSubAgent[]
+  @OneToMany("AgentSubAgent", (agentSubAgent: AgentSubAgentRelation) => agentSubAgent.parentAgent)
+  childSubAgents!: AgentSubAgentRelation[]
 
-  @OneToMany(
-    () => AgentSubAgent,
-    (agentSubAgent) => agentSubAgent.childAgent,
-  )
-  parentSubAgents!: AgentSubAgent[]
+  @OneToMany("AgentSubAgent", (agentSubAgent: AgentSubAgentRelation) => agentSubAgent.childAgent)
+  parentSubAgents!: AgentSubAgentRelation[]
 }

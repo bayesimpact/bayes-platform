@@ -1,6 +1,7 @@
 import { afterAll } from "@jest/globals"
 import type { Repository } from "typeorm"
 import {
+  type AllRepositories,
   clearTestDatabase,
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
@@ -9,7 +10,6 @@ import { Agent } from "@/domains/agents/agent.entity"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { AgentCategory } from "@/domains/agents/categories/agent-category.entity"
 import { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
-import { FeatureFlag } from "@/domains/feature-flags/feature-flag.entity"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { organizationFactory } from "@/domains/organizations/organization.factory"
@@ -34,7 +34,7 @@ export function agentSessionControllerTestSetup() {
   let agentCategoryRepository: Repository<AgentCategory>
   let agentSubAgentRepository: Repository<AgentSubAgent>
   let agentMessageRepository: Repository<AgentMessage>
-  let featureFlagRepository: Repository<FeatureFlag>
+  let featureFlagRepository: AllRepositories["featureFlagRepository"]
   let userRepository: Repository<User>
   let organizationRepository: Repository<Organization>
   let projectRepository: Repository<Project>
@@ -71,7 +71,7 @@ export function agentSessionControllerTestSetup() {
     agentCategoryRepository = setup.getRepository(AgentCategory)
     agentSubAgentRepository = setup.getRepository(AgentSubAgent)
     userRepository = setup.getRepository(User)
-    featureFlagRepository = setup.getRepository(FeatureFlag)
+    featureFlagRepository = setup.getAllRepositories().featureFlagRepository
     organizationRepository = setup.getRepository(Organization)
     projectRepository = setup.getRepository(Project)
     organizationMembershipRepository = setup.getRepository(OrganizationMembership)
