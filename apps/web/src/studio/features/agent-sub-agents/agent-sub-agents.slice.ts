@@ -40,13 +40,6 @@ const slice = createSlice({
         state.data.status = ADS.Error
         state.data.error = action.error.message || "Failed to load sub-agents"
       })
-      .addCase(agentSubAgentsThunks.updateAll.fulfilled, (state, action) => {
-        state.data = {
-          status: ADS.Fulfilled,
-          error: null,
-          value: action.payload,
-        }
-      })
   },
 })
 

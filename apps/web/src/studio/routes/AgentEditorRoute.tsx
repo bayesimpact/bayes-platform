@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { Grid, GridHeader } from "@/common/components/grid/Grid"
-import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
+import { selectAgentsData, selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useGetAgentRoute } from "@/common/hooks/use-get-path"
 import { useMount } from "@/common/hooks/use-mount"
@@ -11,10 +11,14 @@ import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
 import { selectAgentSubAgentsData } from "@/studio/features/agent-sub-agents/agent-sub-agents.selectors"
 import { agentSubAgentsActions } from "@/studio/features/agent-sub-agents/agent-sub-agents.slice"
-import { AgentEditor } from "@/studio/features/agents/components/AgentEditor"
+import {
+  AgentEditor,
+  type AgentEditorOrchestration,
+} from "@/studio/features/agents/components/AgentEditor"
 
 export function AgentEditorRoute() {
   const agent = useAppSelector(selectCurrentAgentData)
+  const agents = useAppSelector(selectAgentsData)
   const project = useAppSelector(selectCurrentProjectData)
   const subAgents = useAppSelector(selectAgentSubAgentsData)
   const hasOrchestration =
@@ -27,8 +31,8 @@ export function AgentEditorRoute() {
 
   if (hasOrchestration) {
     return (
-      <AsyncRoute data={[agent, subAgents]}>
-        <WithData />
+      <AsyncRoute data={[agent, agents, subAgents]}>
+        <WithOrchestrationData />
       </AsyncRoute>
     )
   }
@@ -40,7 +44,13 @@ export function AgentEditorRoute() {
   )
 }
 
-function WithData() {
+function WithOrchestrationData() {
+  const agents = useValue(selectAgentsData)
+  const subAgents = useValue(selectAgentSubAgentsData)
+  return <WithData orchestration={{ agents, subAgents }} />
+}
+
+function WithData({ orchestration }: { orchestration?: AgentEditorOrchestration }) {
   const agent = useValue(selectCurrentAgentData)
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -54,7 +64,12 @@ function WithData() {
         title={t(`agent:update.${agent.type}.title`)}
         description={t(`agent:update.${agent.type}.description`)}
       />
-      <AgentEditor key={agent.id} agent={agent} className="bg-white p-6" />
+      <AgentEditor
+        key={agent.id}
+        agent={agent}
+        className="bg-white p-6"
+        orchestration={orchestration}
+      />
     </Grid>
   )
 }

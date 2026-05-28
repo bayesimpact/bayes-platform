@@ -8,18 +8,21 @@ import {
 } from "@caseai-connect/ui/shad/sheet"
 import { useTranslation } from "react-i18next"
 import type { Agent } from "@/common/features/agents/agents.models"
-import { selectAgentsData } from "@/common/features/agents/agents.selectors"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useValue } from "@/common/hooks/use-value.ts"
 import { useAppDispatch } from "@/common/store/hooks"
 import type { AgentSubAgent } from "@/studio/features/agent-sub-agents/agent-sub-agents.models"
-import { selectAgentSubAgentsData } from "@/studio/features/agent-sub-agents/agent-sub-agents.selectors"
 import { agentSubAgentsActions } from "@/studio/features/agent-sub-agents/agent-sub-agents.slice"
 import { useDocumentTags } from "@/studio/features/document-tags/document-tags.helpers"
 import { updateAgent } from "../agents.thunks"
 import type { AgentSubAgentFormValue } from "./AgentSubAgentsTab"
 import type { AgentFormData } from "./agent-form.shared"
 import { BaseAgentForm } from "./BaseAgentForm"
+
+export type AgentEditorOrchestration = {
+  agents: Agent[]
+  subAgents: AgentSubAgent[]
+}
 
 export function AgentEditorWithoutTrigger({
   agent,
@@ -60,19 +63,33 @@ function Content({ agent, onSuccess }: { agent: Agent; onSuccess: () => void }) 
   )
 }
 
-export function AgentEditor({ agent, className }: { agent: Agent; className?: string }) {
+export function AgentEditor({
+  agent,
+  className,
+  orchestration,
+}: {
+  agent: Agent
+  className?: string
+  orchestration?: AgentEditorOrchestration
+}) {
   return (
     <div className={className}>
-      <UpdateForm agent={agent} />
+      <UpdateForm agent={agent} orchestration={orchestration} />
     </div>
   )
 }
 
-function UpdateForm({ agent, onSuccess }: { agent: Agent; onSuccess?: () => void }) {
+function UpdateForm({
+  agent,
+  onSuccess,
+  orchestration,
+}: {
+  agent: Agent
+  onSuccess?: () => void
+  orchestration?: AgentEditorOrchestration
+}) {
   const dispatch = useAppDispatch()
   const currentProject = useValue(selectCurrentProjectData)
-  const agents = useValue(selectAgentsData)
-  const subAgents = useValue(selectAgentSubAgentsData).map(toSubAgentFormValue)
   const { documentTags } = useDocumentTags()
 
   const handleSubmit = (fields: AgentFormData) => {
@@ -123,9 +140,9 @@ function UpdateForm({ agent, onSuccess }: { agent: Agent; onSuccess?: () => void
       onSubmit={handleSubmit}
       documentTags={documentTags}
       projectAgentCategories={currentProject.agentCategories}
-      availableAgents={agents}
-      subAgents={subAgents}
-      onSubAgentsSubmit={handleSubAgentsSubmit}
+      availableAgents={orchestration?.agents}
+      subAgents={orchestration?.subAgents.map(toSubAgentFormValue)}
+      onSubAgentsSubmit={orchestration ? handleSubAgentsSubmit : undefined}
     />
   )
 }

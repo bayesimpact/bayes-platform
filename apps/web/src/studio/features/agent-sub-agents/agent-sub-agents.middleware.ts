@@ -35,6 +35,13 @@ function registerListeners() {
 
   listenerMiddleware.startListening({
     actionCreator: agentSubAgentsActions.updateAll.fulfilled,
+    effect: async (_, listenerApi) => {
+      await listenerApi.dispatch(agentSubAgentsActions.list())
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: agentSubAgentsActions.updateAll.fulfilled,
     effect: (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({

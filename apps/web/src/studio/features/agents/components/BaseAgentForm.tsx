@@ -153,7 +153,8 @@ export function BaseAgentForm({
   })()
 
   const hasEmbed = hasSources && !!editableAgent && hasFeature("agent-embed")
-  const hasOrchestration = hasSources && !!editableAgent && hasFeature("agent-orchestration")
+  const hasOrchestration =
+    hasSources && !!editableAgent && hasFeature("agent-orchestration") && !!onSubAgentsSubmit
 
   const [activeTab, setActiveTab] = useState<
     "general" | "model" | "output" | "sources" | "orchestration" | "embed"
