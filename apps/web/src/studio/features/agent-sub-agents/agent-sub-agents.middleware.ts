@@ -24,7 +24,9 @@ function registerListeners() {
 
   listenerMiddleware.startListening({
     predicate(_, currentState, originalState) {
-      return selectAgentSubAgentsMounted(currentState) && hasAgentChanged(originalState, currentState)
+      return (
+        selectAgentSubAgentsMounted(currentState) && hasAgentChanged(originalState, currentState)
+      )
     },
     effect: async (_, listenerApi) => {
       await listenerApi.dispatch(agentSubAgentsActions.list())

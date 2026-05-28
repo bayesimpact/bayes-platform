@@ -1,4 +1,4 @@
-import { AgentSubAgentsRoutes, type AgentSubAgentDto } from "@caseai-connect/api-contracts"
+import { type AgentSubAgentDto, AgentSubAgentsRoutes } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { AgentSubAgent } from "../agent-sub-agents.models"
 import type { IAgentSubAgentsSpi } from "../agent-sub-agents.spi"

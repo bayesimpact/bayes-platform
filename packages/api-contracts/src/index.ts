@@ -13,8 +13,6 @@ export { AgentMessageFeedbackRoutes } from "./agent-message-feedback/agent-messa
 // Agent
 export * from "./agents/agents.dto"
 export { AgentsRoutes } from "./agents/agents.routes"
-// Agent Sub-Agents
-export { AgentSubAgentsRoutes } from "./agents/sub-agents/agent-sub-agents.routes"
 // Conversation Agent Sessions
 export type * from "./agents/conversation-agent-sessions/conversation-agent-sessions.dto"
 export { ConversationAgentSessionsRoutes } from "./agents/conversation-agent-sessions/conversation-agent-sessions.routes"
@@ -27,6 +25,8 @@ export { FormAgentSessionsRoutes } from "./agents/form-agent-sessions/form-agent
 // Agent Session Messages
 export * from "./agents/shared/agent-session-messages/agent-session-messages.dto"
 export { AgentSessionMessagesRoutes } from "./agents/shared/agent-session-messages/agent-session-messages.routes"
+// Agent Sub-Agents
+export { AgentSubAgentsRoutes } from "./agents/sub-agents/agent-sub-agents.routes"
 // Analytics
 export type * from "./analytics/analytics.dto"
 export { AgentAnalyticsRoutes, AnalyticsRoutes } from "./analytics/analytics.routes"

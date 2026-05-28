@@ -1,7 +1,7 @@
 import {
   type AgentDto,
-  AgentSubAgentsRoutes,
   type AgentSubAgentDto,
+  AgentSubAgentsRoutes,
   AgentsRoutes,
   createAgentSchema,
   replaceAgentSubAgentsSchema,

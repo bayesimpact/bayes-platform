@@ -22,19 +22,16 @@ const updateAll = createAsyncThunk<
   AgentSubAgent[],
   { subAgents: ReplaceAgentSubAgent[] },
   ThunkConfig
->(
-  "agentSubAgents/updateAll",
-  async ({ subAgents }, { extra: { services }, getState }) => {
-    const state = getState()
-    hasFeatureOrThrow({ state, feature: "agent-orchestration" })
-    const organizationId = getCurrentId({ state, name: "organizationId" })
-    const projectId = getCurrentId({ state, name: "projectId" })
-    const agentId = getCurrentId({ state, name: "agentId" })
-    return await services.agentSubAgents.updateAll(
-      { organizationId, projectId, agentId },
-      { subAgents },
-    )
-  },
-)
+>("agentSubAgents/updateAll", async ({ subAgents }, { extra: { services }, getState }) => {
+  const state = getState()
+  hasFeatureOrThrow({ state, feature: "agent-orchestration" })
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  const agentId = getCurrentId({ state, name: "agentId" })
+  return await services.agentSubAgents.updateAll(
+    { organizationId, projectId, agentId },
+    { subAgents },
+  )
+})
 
 export const agentSubAgentsThunks = { list, updateAll }

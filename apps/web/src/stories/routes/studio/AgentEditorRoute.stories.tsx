@@ -55,12 +55,10 @@ export const ConversationAgent: Story = {
       const subAgents =
         withSubAgents && childAgents[0]
           ? [
-              agentSubAgentFactory
-                .transient({ parentAgent, childAgent: childAgents[0] })
-                .build({
-                  toolName: "ask_research_agent",
-                  description: "Use for research and source discovery questions.",
-                }),
+              agentSubAgentFactory.transient({ parentAgent, childAgent: childAgents[0] }).build({
+                toolName: "ask_research_agent",
+                description: "Use for research and source discovery questions.",
+              }),
             ]
           : []
 

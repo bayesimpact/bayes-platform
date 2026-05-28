@@ -4,7 +4,7 @@ import {
   documentTagSchema,
   updateDocumentTagsSchema,
 } from "../document-tags/document-tag.dto"
-import { timeTypeSchema, type TimeType } from "../generic"
+import { type TimeType, timeTypeSchema } from "../generic"
 
 export enum AgentModel {
   Gemini25Flash = "gemini-2.5-flash",

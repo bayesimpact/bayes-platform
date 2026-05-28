@@ -10,33 +10,31 @@ type AgentSubAgentTransientParams = {
 
 class AgentSubAgentFactory extends Factory<AgentSubAgent, AgentSubAgentTransientParams> {}
 
-export const agentSubAgentFactory = AgentSubAgentFactory.define(
-  ({ params, transientParams }) => {
-    const { parentAgent, childAgent } = transientParams
-    if (!parentAgent) {
-      throw new Error("Parent agent must be provided in transient params to build an AgentSubAgent")
-    }
-    if (!childAgent) {
-      throw new Error("Child agent must be provided in transient params to build an AgentSubAgent")
-    }
+export const agentSubAgentFactory = AgentSubAgentFactory.define(({ params, transientParams }) => {
+  const { parentAgent, childAgent } = transientParams
+  if (!parentAgent) {
+    throw new Error("Parent agent must be provided in transient params to build an AgentSubAgent")
+  }
+  if (!childAgent) {
+    throw new Error("Child agent must be provided in transient params to build an AgentSubAgent")
+  }
 
-    return {
-      id: params.id ?? faker.string.uuid(),
-      parentAgentId: params.parentAgentId ?? parentAgent.id,
-      childAgentId: params.childAgentId ?? childAgent.id,
-      toolName: params.toolName ?? buildDefaultToolName(childAgent.name),
-      description: params.description ?? faker.lorem.sentence(),
-      enabled: params.enabled ?? true,
-      childAgent: {
-        id: params.childAgent?.id ?? childAgent.id,
-        name: params.childAgent?.name ?? childAgent.name,
-        type: params.childAgent?.type ?? childAgent.type,
-      },
-      createdAt: params.createdAt ?? faker.date.past().getTime(),
-      updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
-    }
-  },
-)
+  return {
+    id: params.id ?? faker.string.uuid(),
+    parentAgentId: params.parentAgentId ?? parentAgent.id,
+    childAgentId: params.childAgentId ?? childAgent.id,
+    toolName: params.toolName ?? buildDefaultToolName(childAgent.name),
+    description: params.description ?? faker.lorem.sentence(),
+    enabled: params.enabled ?? true,
+    childAgent: {
+      id: params.childAgent?.id ?? childAgent.id,
+      name: params.childAgent?.name ?? childAgent.name,
+      type: params.childAgent?.type ?? childAgent.type,
+    },
+    createdAt: params.createdAt ?? faker.date.past().getTime(),
+    updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
+  }
+})
 
 function buildDefaultToolName(agentName: string): string {
   const slug = agentName

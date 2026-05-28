@@ -43,8 +43,8 @@ import { AgentEmbedTab } from "@/studio/features/agent-embed-configs/components/
 import { getTagNameById } from "@/studio/features/document-tags/document-tags.helpers"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import { DocumentTagPicker } from "@/studio/features/documents/components/DocumentTagPicker"
-import { type AgentFormData, getDefaultFormValues } from "./agent-form.shared"
 import { type AgentSubAgentFormValue, AgentSubAgentsTab } from "./AgentSubAgentsTab"
+import { type AgentFormData, getDefaultFormValues } from "./agent-form.shared"
 
 const EMPTY_SUB_AGENTS: AgentSubAgentFormValue[] = []
 
@@ -543,11 +543,7 @@ export function BaseAgentForm({
 
           {activeTab === "orchestration" && hasOrchestration && (
             <Field orientation="horizontal" className="justify-end">
-              <Button
-                type="button"
-                className="w-fit"
-                onClick={handleOrchestrationSubmit}
-              >
+              <Button type="button" className="w-fit" onClick={handleOrchestrationSubmit}>
                 {t("actions:update")}
               </Button>
             </Field>
