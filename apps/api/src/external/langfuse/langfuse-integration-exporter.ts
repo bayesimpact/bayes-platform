@@ -246,28 +246,55 @@ export class LangfuseIntegrationExporter implements SpanExporter {
       metadata: this.parseSpanMetadata(span),
       prompt: langfusePrompt,
     })
-    this.checkErrors(span, generation)
-    this.emitLlmCallSpan(traceId, span)
+    this.checkErrors({ span, generation })
+    this.emitLlmCallSpan({ traceId, span, generation })
   }
 
-  private emitLlmCallSpan(traceId: string, span: ReadableSpan): void {
+  private emitLlmCallSpan({
+    traceId,
+    span,
+    generation,
+  }: {
+    traceId: string
+    span: ReadableSpan
+    generation: LangfuseGenerationClient
+  }): void {
     const rawResponse = span.attributes["ai.telemetry.metadata.rawLlmResponse"]
+    const rawResponseStripped = span.attributes["ai.telemetry.metadata.rawLlmResponseStripped"]
     const rawRequest = span.attributes["ai.telemetry.metadata.rawLlmRequest"]
     if ((rawResponse == null || rawResponse === "") && (rawRequest == null || rawRequest === ""))
       return
 
+    const hasTransformation = rawResponseStripped != null && rawResponseStripped !== ""
+
     this.langfuse.span({
       traceId,
       parentObservationId: span.spanContext().spanId,
-      name: "llm.call",
+      name: hasTransformation ? "llm.call.with.transformation" : "llm.call",
       startTime: this.hrTimeToDate(span.startTime),
       endTime: this.hrTimeToDate(span.endTime),
       input: rawRequest,
       output: rawResponse,
+      metadata: hasTransformation ? { transformed: rawResponseStripped } : undefined,
+      level: hasTransformation ? "ERROR" : undefined,
+      statusMessage: hasTransformation ? "LLM response required transformation" : undefined,
     })
+
+    if (hasTransformation) {
+      generation.update({
+        level: "ERROR",
+        statusMessage: "LLM response required transformation",
+      })
+    }
   }
 
-  private checkErrors(span: ReadableSpan, generation: LangfuseGenerationClient) {
+  private checkErrors({
+    span,
+    generation,
+  }: {
+    span: ReadableSpan
+    generation: LangfuseGenerationClient
+  }) {
     if (span.events && span.events.length > 0) {
       if (span.events[0]?.name === "exception") {
         const event = span.events[0]
@@ -321,10 +348,15 @@ export class LangfuseIntegrationExporter implements SpanExporter {
 
       if (key.startsWith(metadataPrefix) && value != null) {
         const strippedKey = key.slice(metadataPrefix.length)
-        // rawLlmRequest and rawLlmResponse are surfaced as a dedicated
-        // child span ("llm.call") via emitLlmCallSpan — keep them out of
-        // the generation metadata so they aren't duplicated.
-        if (strippedKey === "rawLlmResponse" || strippedKey === "rawLlmRequest") return acc
+        // rawLlmRequest, rawLlmResponse and rawLlmResponseStripped are surfaced
+        // as a dedicated child span ("llm.call") via emitLlmCallSpan — keep them
+        // out of the generation metadata so they aren't duplicated.
+        if (
+          strippedKey === "rawLlmResponse" ||
+          strippedKey === "rawLlmResponseStripped" ||
+          strippedKey === "rawLlmRequest"
+        )
+          return acc
         acc[strippedKey] = value
       }
 
