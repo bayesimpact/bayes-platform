@@ -1,5 +1,5 @@
 import { Button } from "@caseai-connect/ui/shad/button"
-import { ExternalLinkIcon, UsersIcon } from "lucide-react"
+import { ExternalLinkIcon, PenLineIcon, UsersIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -7,7 +7,6 @@ import { useAbility } from "@/common/hooks/use-ability"
 import { DeskRoutes } from "@/desk/routes/helpers"
 import { AgentDeletorWithTrigger } from "@/studio/features/agents/components/AgentDeletor"
 import { StudioRoutes } from "@/studio/routes/helpers"
-import { AgentEditorWithTrigger } from "./AgentEditor"
 
 export function AgentActions({ organizationId, agent }: { organizationId: string; agent: Agent }) {
   const { t } = useTranslation()
@@ -20,6 +19,12 @@ export function AgentActions({ organizationId, agent }: { organizationId: string
 
   const { abilities } = useAbility()
   const canManageAgent = abilities.canManageAgent({ agentId: agent.id })
+  const editPath = StudioRoutes.agentEdit.build({
+    organizationId,
+    projectId: agent.projectId,
+    agentId: agent.id,
+  })
+  const navigate = useNavigate()
   return (
     <>
       <Button variant="secondary" asChild>
@@ -37,7 +42,12 @@ export function AgentActions({ organizationId, agent }: { organizationId: string
             agentId={agent.id}
           />
 
-          {agent.type !== "extraction" && <AgentEditorWithTrigger agent={agent} />}
+          {agent.type !== "extraction" && (
+            <Button variant="outline" onClick={() => navigate(editPath)}>
+              <PenLineIcon />
+              {t("actions:edit")}
+            </Button>
+          )}
 
           <AgentDeletorWithTrigger organizationId={organizationId} agent={agent} />
         </>

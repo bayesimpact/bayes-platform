@@ -1,6 +1,7 @@
 import { afterAll } from "@jest/globals"
 import type { Repository } from "typeorm"
 import {
+  type AllRepositories,
   clearTestDatabase,
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
@@ -8,6 +9,7 @@ import {
 import { Agent } from "@/domains/agents/agent.entity"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { AgentCategory } from "@/domains/agents/categories/agent-category.entity"
+import { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { organizationFactory } from "@/domains/organizations/organization.factory"
@@ -30,7 +32,9 @@ export function agentSessionControllerTestSetup() {
   let conversationAgentSessionCategoryRepository: Repository<ConversationAgentSessionCategory>
   let agentRepository: Repository<Agent>
   let agentCategoryRepository: Repository<AgentCategory>
+  let agentSubAgentRepository: Repository<AgentSubAgent>
   let agentMessageRepository: Repository<AgentMessage>
+  let featureFlagRepository: AllRepositories["featureFlagRepository"]
   let userRepository: Repository<User>
   let organizationRepository: Repository<Organization>
   let projectRepository: Repository<Project>
@@ -65,7 +69,9 @@ export function agentSessionControllerTestSetup() {
     agentMessageRepository = setup.getRepository(AgentMessage)
     agentRepository = setup.getRepository(Agent)
     agentCategoryRepository = setup.getRepository(AgentCategory)
+    agentSubAgentRepository = setup.getRepository(AgentSubAgent)
     userRepository = setup.getRepository(User)
+    featureFlagRepository = setup.getAllRepositories().featureFlagRepository
     organizationRepository = setup.getRepository(Organization)
     projectRepository = setup.getRepository(Project)
     organizationMembershipRepository = setup.getRepository(OrganizationMembership)
@@ -108,8 +114,10 @@ export function agentSessionControllerTestSetup() {
     return {
       agentRepository,
       agentCategoryRepository,
+      agentSubAgentRepository,
       conversationAgentSessionRepository,
       conversationAgentSessionCategoryRepository,
+      featureFlagRepository,
       agentMessageRepository,
       organizationMembershipRepository,
       organizationRepository,

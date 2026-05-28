@@ -1,6 +1,3 @@
-"use client"
-
-import { Button } from "@caseai-connect/ui/shad/button"
 import { ScrollArea } from "@caseai-connect/ui/shad/scroll-area"
 import {
   Sheet,
@@ -8,41 +5,23 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@caseai-connect/ui/shad/sheet"
-import { PenLineIcon } from "lucide-react"
-import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
-import { ADS } from "@/common/store/async-data-status"
-import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import { useValue } from "@/common/hooks/use-value.ts"
+import { useAppDispatch } from "@/common/store/hooks"
+import type { AgentSubAgent } from "@/studio/features/agent-sub-agents/agent-sub-agents.models"
+import { agentSubAgentsActions } from "@/studio/features/agent-sub-agents/agent-sub-agents.slice"
 import { useDocumentTags } from "@/studio/features/document-tags/document-tags.helpers"
 import { updateAgent } from "../agents.thunks"
+import type { AgentSubAgentFormValue } from "./AgentSubAgentsTab"
 import type { AgentFormData } from "./agent-form.shared"
 import { BaseAgentForm } from "./BaseAgentForm"
 
-export function AgentEditorWithTrigger({ agent }: { agent: Agent }) {
-  const [open, setOpen] = useState(false)
-  const { t } = useTranslation()
-
-  const handleSuccess = () => {
-    setOpen(false)
-  }
-
-  if (!agent) return null
-  return (
-    <Sheet modal open={open} onOpenChange={(open: boolean) => setOpen(open)}>
-      <SheetTrigger asChild>
-        <Button variant="outline">
-          <PenLineIcon />
-          {t("actions:edit")}
-        </Button>
-      </SheetTrigger>
-
-      <Content agent={agent} onSuccess={handleSuccess} />
-    </Sheet>
-  )
+export type AgentEditorOrchestration = {
+  agents: Agent[]
+  subAgents: AgentSubAgent[]
 }
 
 export function AgentEditorWithoutTrigger({
@@ -84,21 +63,34 @@ function Content({ agent, onSuccess }: { agent: Agent; onSuccess: () => void }) 
   )
 }
 
-export function AgentEditor({ agent, className }: { agent: Agent; className?: string }) {
+export function AgentEditor({
+  agent,
+  className,
+  orchestration,
+}: {
+  agent: Agent
+  className?: string
+  orchestration?: AgentEditorOrchestration
+}) {
   return (
     <div className={className}>
-      <UpdateForm agent={agent} />
+      <UpdateForm agent={agent} orchestration={orchestration} />
     </div>
   )
 }
 
-function UpdateForm({ agent, onSuccess }: { agent: Agent; onSuccess?: () => void }) {
+function UpdateForm({
+  agent,
+  onSuccess,
+  orchestration,
+}: {
+  agent: Agent
+  onSuccess?: () => void
+  orchestration?: AgentEditorOrchestration
+}) {
   const dispatch = useAppDispatch()
-  const currentProject = useAppSelector(selectCurrentProjectData)
+  const currentProject = useValue(selectCurrentProjectData)
   const { documentTags } = useDocumentTags()
-  const projectAgentCategories = ADS.isFulfilled(currentProject)
-    ? currentProject.value.agentCategories
-    : []
 
   const handleSubmit = (fields: AgentFormData) => {
     if (!("documentTagIds" in fields)) {
@@ -128,13 +120,39 @@ function UpdateForm({ agent, onSuccess }: { agent: Agent; onSuccess?: () => void
     onSuccess?.()
   }
 
+  const handleSubAgentsSubmit = (values: AgentSubAgentFormValue[]) => {
+    dispatch(
+      agentSubAgentsActions.updateAll({
+        subAgents: values.map((subAgent) => ({
+          childAgentId: subAgent.agentId,
+          toolName: subAgent.toolName,
+          description: subAgent.description,
+          enabled: subAgent.enabled,
+        })),
+      }),
+    )
+  }
+
   return (
     <BaseAgentForm
       agentType={agent.type}
       editableAgent={agent}
       onSubmit={handleSubmit}
       documentTags={documentTags}
-      projectAgentCategories={projectAgentCategories}
+      projectAgentCategories={currentProject.agentCategories}
+      availableAgents={orchestration?.agents}
+      subAgents={orchestration?.subAgents.map(toSubAgentFormValue)}
+      onSubAgentsSubmit={orchestration ? handleSubAgentsSubmit : undefined}
     />
   )
+}
+
+function toSubAgentFormValue(subAgent: AgentSubAgent): AgentSubAgentFormValue {
+  return {
+    id: subAgent.id,
+    agentId: subAgent.childAgentId,
+    toolName: subAgent.toolName,
+    description: subAgent.description,
+    enabled: subAgent.enabled,
+  }
 }

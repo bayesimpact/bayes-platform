@@ -18,6 +18,10 @@ const supportCategory = projectAgentCategoryFactory.build({ name: "Support" })
 const project = projectFactory
   .transient({ organization })
   .build({ agentCategories: [billingCategory, supportCategory] })
+const projectWithOrchestration = {
+  ...project,
+  featureFlags: ["agent-orchestration" as const],
+}
 
 const productTag = documentTagFactory.transient({ project }).build({ name: "Product" })
 const pricingTag = documentTagFactory.transient({ project }).build({ name: "Pricing" })
@@ -33,6 +37,20 @@ const conversationAgent = agentFactory.transient({ project }).build({
   projectAgentCategoryIds: [billingCategory.id],
   usedProjectAgentCategoryIds: [billingCategory.id],
   greetingMessage: "Hi! How can I help you today?",
+})
+
+const resourceAgent = agentFactory.transient({ project }).build({
+  type: "conversation",
+  name: "Resource Navigator",
+  defaultPrompt: "Find relevant services, contacts, and eligibility details.",
+  documentsRagMode: DocumentsRagMode.None,
+})
+
+const policyAgent = agentFactory.transient({ project }).build({
+  type: "conversation",
+  name: "Policy Analyst",
+  defaultPrompt: "Interpret policy documents and summarize operational constraints.",
+  documentsRagMode: DocumentsRagMode.Tags,
 })
 
 const extractionAgent = agentFactory.transient({ project }).build({
@@ -69,6 +87,15 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const ConversationEdit: Story = {
+  decorators: [
+    withRedux({
+      state: mergeSeeds(
+        seed.currentProject(projectWithOrchestration),
+        seed.studio.documentTags(documentTags),
+        seed.agents([conversationAgent, resourceAgent, policyAgent]),
+      ),
+    }),
+  ],
   args: {
     agent: conversationAgent,
   },

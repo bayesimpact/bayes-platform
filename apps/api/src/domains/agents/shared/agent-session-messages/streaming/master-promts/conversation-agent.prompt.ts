@@ -1,13 +1,14 @@
-import type { ToolName } from "@caseai-connect/api-contracts"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { promptHelpers } from "./helpers"
 
 export function buildConversationAgentPrompt({
   agent,
+  toolDescriptions,
   toolNames,
 }: {
   agent: Agent
-  toolNames: ToolName[]
+  toolDescriptions?: Record<string, string>
+  toolNames: string[]
 }): string {
   return `${promptHelpers.now()}
 
@@ -16,7 +17,7 @@ You are **${agent.name}**, a conversational AI assistant.
 
 ${agent.defaultPrompt}
 
-${promptHelpers.tools(toolNames)}
+${promptHelpers.tools(toolNames, toolDescriptions)}
 
 ${promptHelpers.language(agent.locale)}`
 }

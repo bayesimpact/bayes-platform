@@ -32,12 +32,15 @@ import { AgentMembership } from "./memberships/agent-membership.entity"
 import { AgentMembershipsController } from "./memberships/agent-memberships.controller"
 import { AgentMembershipsGuard } from "./memberships/agent-memberships.guard"
 import { AgentMembershipsService } from "./memberships/agent-memberships.service"
+import { AgentSubAgent } from "./sub-agents/agent-sub-agent.entity"
+import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Agent,
       AgentCategory,
+      AgentSubAgent,
       ProjectAgentCategory,
       AgentMembership,
       Project,
@@ -60,6 +63,7 @@ import { AgentMembershipsService } from "./memberships/agent-memberships.service
   providers: [
     AgentsService,
     AgentCategoriesService,
+    AgentSubAgentsService,
     BaseAgentSessionsService,
     AgentMembershipsService,
     AgentGuard,
@@ -71,6 +75,6 @@ import { AgentMembershipsService } from "./memberships/agent-memberships.service
     AgentMembershipContextResolver,
   ],
   controllers: [AgentsController, AgentMembershipsController],
-  exports: [AgentsService, AgentCategoriesService, AgentMembershipsService],
+  exports: [AgentsService, AgentCategoriesService, AgentMembershipsService, AgentSubAgentsService],
 })
 export class AgentsModule {}

@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## Project Structure
 
@@ -47,14 +47,14 @@ All commands should be run from the root directory using Turbo (via npm scripts)
 - Main module: `apps/api/src/app.module.ts`
 - Modular structure with feature-based modules under `apps/api/src/domains/`
 - Uses dependency injection and decorators pattern
-- See `apps/api/CLAUDE.md` for detailed API rules
+- See `apps/api/AGENTS.md` for detailed API rules
 
 ### Web Application
 - Vite + React (SPA) with React Compiler enabled via `babel-plugin-react-compiler`
 - Redux for state management with feature-based slices/thunks/selectors
 - Integrates with shared UI component library from `@caseai-connect/ui`
 - Entry point: `apps/web/src/main.tsx`
-- See `apps/web/CLAUDE.md` for detailed web rules
+- See `apps/web/AGENTS.md` for detailed web rules
 
 ### Shared Packages
 - `api-contracts`: DTOs and route definitions shared between API and web

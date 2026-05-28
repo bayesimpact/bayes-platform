@@ -15,6 +15,7 @@ import type { Project } from "@/common/features/projects/projects.models"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { AgentMembership } from "@/studio/features/agent-memberships/agent-memberships.models"
 import type { AgentMessageFeedback } from "@/studio/features/agent-message-feedback/agent-message-feedback.models"
+import type { AgentSubAgent } from "@/studio/features/agent-sub-agents/agent-sub-agents.models"
 import type {
   AnalyticsCategoryDailyPoint,
   AnalyticsDailyPoint,
@@ -265,6 +266,10 @@ export const seed = {
       feedbacksByAgentId: Record<string, AgentMessageFeedback[]>,
     ): StoryPreloadedState {
       return { agentMessageFeedback: { data: ads.fulfilled(feedbacksByAgentId) } }
+    },
+
+    agentSubAgents(subAgents: AgentSubAgent[]): StoryPreloadedState {
+      return { agentSubAgents: { data: ads.fulfilled(subAgents) } }
     },
   },
 
