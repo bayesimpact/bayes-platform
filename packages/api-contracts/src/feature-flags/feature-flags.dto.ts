@@ -5,7 +5,7 @@ export const FeatureFlags = [
       "Evaluate the performance of your agents with a set of pre-defined evaluation tasks",
   },
   {
-    key: "sources_tool",
+    key: "sources-tool",
     description: "Access and utilize the sources tool.",
   },
   {
@@ -21,7 +21,7 @@ export const FeatureFlags = [
     description: "View project-level analytics and usage charts in the studio.",
   },
   {
-    key: "web_sources",
+    key: "web-sources",
     description: "Crawl a website and index its pages as documents.",
   },
   {

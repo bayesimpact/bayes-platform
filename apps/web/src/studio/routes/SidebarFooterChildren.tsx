@@ -146,7 +146,7 @@ function NavSources({ organizationId, projectId }: { organizationId: string; pro
         <CollapsibleContent>
           <SidebarMenuSub>
             <NavDocumentsList organizationId={organizationId} projectId={projectId} />
-            <RestrictedFeature feature="web_sources">
+            <RestrictedFeature feature="web-sources">
               <NavWebSources organizationId={organizationId} projectId={projectId} />
             </RestrictedFeature>
           </SidebarMenuSub>
