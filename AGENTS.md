@@ -70,6 +70,11 @@ All commands should be run from the root directory using Turbo (via npm scripts)
 - Private packages with internal dependencies using `*` version specifier
 - Engines requirement: Node.js >= 18
 
+## Git
+
+- Use semantic commit messages consistent with the repo history: `feat: ...`, `fix: ...`, `chore: ...`.
+- Use scoped variants only when they match existing history and add clarity.
+
 ## Code Style
 
 ### Descriptive Variable Names in Loops

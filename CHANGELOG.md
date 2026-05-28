@@ -8,10 +8,12 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- (beta) Agent orchestration: configure conversation agents with sub-agents and delegate runtime tasks to them as tools
 
 ### Changed
 
 ### Fixed
+- Allow entering commas in comma-separated form fields
 
 ### Security
 
