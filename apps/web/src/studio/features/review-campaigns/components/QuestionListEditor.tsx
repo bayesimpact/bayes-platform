@@ -14,6 +14,7 @@ import {
 } from "@caseai-connect/ui/shad/select"
 import { Switch } from "@caseai-connect/ui/shad/switch"
 import { ArrowDownIcon, ArrowUpIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
 const QUESTION_TYPES: ReviewCampaignQuestionType[] = ["rating", "single-choice", "free-text"]
@@ -41,6 +42,14 @@ const makeEmptyQuestion = (): ReviewCampaignQuestionDto => ({
   required: false,
 })
 
+const formatOptions = (options: string[] | undefined): string => (options ?? []).join(", ")
+
+export const parseOptionsText = (optionsText: string): string[] =>
+  optionsText
+    .split(",")
+    .map((option) => option.trim())
+    .filter(Boolean)
+
 export function QuestionListEditor({
   label,
   description,
@@ -50,6 +59,7 @@ export function QuestionListEditor({
   showFactualToggle = false,
 }: Props) {
   const { t } = useTranslation()
+  const [optionsTextByQuestionId, setOptionsTextByQuestionId] = useState<Record<string, string>>({})
 
   const update = (index: number, patch: Partial<ReviewCampaignQuestionDto>) => {
     onChange(
@@ -143,17 +153,19 @@ export function QuestionListEditor({
                 </FieldLabel>
                 <Input
                   id={`options-${question.id}`}
-                  value={(question.options ?? []).join(", ")}
+                  value={optionsTextByQuestionId[question.id] ?? formatOptions(question.options)}
                   disabled={disabled}
                   placeholder={t("reviewCampaigns:questions.optionsPlaceholder")}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    const optionsText = event.target.value
+                    setOptionsTextByQuestionId((previous) => ({
+                      ...previous,
+                      [question.id]: optionsText,
+                    }))
                     update(index, {
-                      options: event.target.value
-                        .split(",")
-                        .map((option) => option.trim())
-                        .filter(Boolean),
+                      options: parseOptionsText(optionsText),
                     })
-                  }
+                  }}
                 />
               </Field>
             )}
