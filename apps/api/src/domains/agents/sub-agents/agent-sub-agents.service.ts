@@ -28,7 +28,12 @@ export class AgentSubAgentsService {
 
     return this.agentSubAgentRepository.find({
       where: { parentAgentId: parentAgent.id },
-      relations: { childAgent: true },
+      relations: {
+        childAgent: {
+          categories: true,
+          documentTags: true,
+        },
+      },
       order: { createdAt: "ASC" },
     })
   }

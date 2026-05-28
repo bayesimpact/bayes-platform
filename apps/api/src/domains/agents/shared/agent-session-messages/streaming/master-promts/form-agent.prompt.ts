@@ -1,13 +1,14 @@
-import type { ToolName } from "@caseai-connect/api-contracts"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { promptHelpers } from "./helpers"
 
 export function buildFormAgentPrompt({
   agent,
+  toolDescriptions,
   toolNames,
 }: {
   agent: Agent
-  toolNames: ToolName[]
+  toolDescriptions?: Record<string, string>
+  toolNames: string[]
 }): string {
   return `${promptHelpers.now()}
 
@@ -21,7 +22,7 @@ ${Object.entries(agent.outputJsonSchema?.properties ?? {})
   )
   .join("\n")}
 
-${promptHelpers.tools(toolNames)}
+${promptHelpers.tools(toolNames, toolDescriptions)}
 
 ${promptHelpers.language(agent.locale)}`
 }

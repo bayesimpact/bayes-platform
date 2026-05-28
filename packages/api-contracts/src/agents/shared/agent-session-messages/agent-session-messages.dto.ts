@@ -7,6 +7,8 @@ export enum ToolName {
   McpSmartSearch = "smart_search",
 }
 
+export type AgentSessionToolName = ToolName | (string & {})
+
 export type AgentSessionMessageDto = {
   id: string
   role: "user" | "assistant" | "tool"
@@ -18,7 +20,7 @@ export type AgentSessionMessageDto = {
   completedAt?: string
   toolCalls?: Array<{
     id: string
-    name: ToolName
+    name: AgentSessionToolName
     arguments: Record<string, unknown>
   }>
 }
@@ -47,7 +49,7 @@ export type PresignAgentSessionMessageAttachmentDocumentResponseDto = {
 export type StreamEventPayload =
   | { type: "start"; messageId: string }
   | { type: "chunk"; content: string; messageId: string }
-  | { type: "notify_client"; toolName: ToolName }
+  | { type: "notify_client"; toolName: AgentSessionToolName }
   | { type: "end"; messageId: string; fullContent: string }
   | { type: "error"; messageId: string; error: string }
 
