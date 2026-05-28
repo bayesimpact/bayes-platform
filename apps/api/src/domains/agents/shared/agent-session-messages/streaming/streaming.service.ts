@@ -40,7 +40,8 @@ import { AgentMessage } from "../agent-message.entity"
 import { AgentMessageAttachmentDocumentsService } from "../agent-message-attachment-documents.service"
 import { buildConversationAgentPrompt } from "./master-promts/conversation-agent.prompt"
 import { buildFormAgentPrompt } from "./master-promts/form-agent.prompt"
-import { type BuiltTools, buildSubAgentTools, type StreamingSession } from "./sub-agent-tools"
+import type { PublicStreamingSessionProxy, StreamingSession } from "./streaming-session.types"
+import { type BuiltTools, buildSubAgentTools } from "./sub-agent-tools"
 import { fillFormTool } from "./tools/fill-form.tool"
 import { recalculateConversationSessionMetadataTool } from "./tools/recalculate-conversation-session-metadata.tool"
 import { retrieveProjectDocumentChunksTool } from "./tools/retrieve-project-document-chunks.tool"
@@ -234,7 +235,7 @@ export class StreamingService extends ServiceWithLLM {
       order: { createdAt: "ASC" },
     })
 
-    const sessionProxy: StreamingSession = {
+    const sessionProxy: PublicStreamingSessionProxy = {
       id: publicSessionId,
       traceId: publicSessionId,
       organizationId: connectScope.organizationId,

@@ -6,30 +6,12 @@ import type {
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
-import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
-import type { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import type { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
 import type { AgentSubAgentsService } from "@/domains/agents/sub-agents/agent-sub-agents.service"
 import type { ProjectsService } from "@/domains/projects/projects.service"
-import type { AgentMessage } from "../agent-message.entity"
+import type { StreamingSession } from "./streaming-session.types"
 import { type SubAgentToolInput, subAgentTool } from "./tools/sub-agent.tool"
 import type { ToolExecutionLog } from "./tools/tool-execution-log"
-
-/**
- * Minimal session context for public/anonymous sessions that have no
- * corresponding ConversationAgentSession or FormAgentSession row.
- */
-type PublicStreamingSessionProxy = {
-  id: string
-  traceId: string
-  organizationId: string
-  messages: AgentMessage[]
-}
-
-export type StreamingSession =
-  | ConversationAgentSession
-  | FormAgentSession
-  | PublicStreamingSessionProxy
 
 export type BuiltTools = {
   tools: ToolSet | undefined
