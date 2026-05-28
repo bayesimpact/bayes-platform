@@ -1,5 +1,3 @@
-"use client"
-
 import {
   AgentLocale,
   AgentModel,
@@ -32,7 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@caseai-connect/ui/sha
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { XIcon } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Controller, type FieldErrors, useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import type { z } from "zod"
@@ -46,6 +44,9 @@ import { getTagNameById } from "@/studio/features/document-tags/document-tags.he
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import { DocumentTagPicker } from "@/studio/features/documents/components/DocumentTagPicker"
 import { type AgentFormData, getDefaultFormValues } from "./agent-form.shared"
+import { type AgentSubAgentFormValue, AgentSubAgentsTab } from "./AgentSubAgentsTab"
+
+const EMPTY_SUB_AGENTS: AgentSubAgentFormValue[] = []
 
 function extractModelListFromAgentType(
   _agentType: "conversation" | "extraction" | "form",
@@ -75,11 +76,19 @@ export function BaseAgentForm({
   agentType,
   documentTags,
   projectAgentCategories,
+  availableAgents = [],
+  subAgents = EMPTY_SUB_AGENTS,
+  onSubAgentsSubmit,
+  defaultActiveTab = "general",
 }: {
   documentTags: DocumentTag[]
   projectAgentCategories: ProjectAgentCategory[]
   agentType: Agent["type"]
   editableAgent?: Agent
+  availableAgents?: Agent[]
+  subAgents?: AgentSubAgentFormValue[]
+  onSubAgentsSubmit?: (value: AgentSubAgentFormValue[]) => Promise<void> | void
+  defaultActiveTab?: "general" | "model" | "output" | "sources" | "orchestration" | "embed"
   onSubmit: (values: AgentFormData) => Promise<void> | void
 }) {
   const project = useValue(selectCurrentProjectData)
@@ -114,12 +123,24 @@ export function BaseAgentForm({
     control,
     handleSubmit,
     formState: { errors },
-    reset,
+    reset: resetAgentForm,
     watch,
   } = useForm<FormValues>({
     resolver: zodResolver(agentSchema),
     defaultValues,
   })
+
+  const {
+    control: subAgentsControl,
+    handleSubmit: handleSubAgentsFormSubmit,
+    reset: resetSubAgentsForm,
+  } = useForm<{ subAgents: AgentSubAgentFormValue[] }>({
+    defaultValues: { subAgents },
+  })
+
+  useEffect(() => {
+    resetSubAgentsForm({ subAgents })
+  }, [resetSubAgentsForm, subAgents])
   const documentsRagMode = watch("documentsRagMode")
   const documentTagErrorMessage = (() => {
     if (editableAgent && "documentTagIds" in errors) {
@@ -132,15 +153,21 @@ export function BaseAgentForm({
   })()
 
   const hasEmbed = hasSources && !!editableAgent && hasFeature("agent-embed")
+  const hasOrchestration = hasSources && !!editableAgent && hasFeature("agent-orchestration")
 
-  const [activeTab, setActiveTab] = useState<"general" | "model" | "output" | "sources" | "embed">(
-    "general",
-  )
+  const [activeTab, setActiveTab] = useState<
+    "general" | "model" | "output" | "sources" | "orchestration" | "embed"
+  >(defaultActiveTab)
 
   const handleFormSubmit = async (data: FormValues) => {
     await onSubmit(data as AgentFormData)
-    reset(data)
+    resetAgentForm(data)
   }
+
+  const handleOrchestrationSubmit = handleSubAgentsFormSubmit(async (data) => {
+    onSubAgentsSubmit?.(data.subAgents)
+    resetSubAgentsForm(data)
+  })
 
   const handleInvalidSubmit = (formErrors: FieldErrors<FormValues>) => {
     const firstErrorTab = pickTabForErrors(formErrors as Record<string, unknown>)
@@ -166,6 +193,9 @@ export function BaseAgentForm({
                 </TabsTrigger>
               )}
               {hasSources && <TabsTrigger value="sources">{t("agent:tabs.sources")}</TabsTrigger>}
+              {hasOrchestration && (
+                <TabsTrigger value="orchestration">{t("agent:tabs.orchestration")}</TabsTrigger>
+              )}
               {hasEmbed && <TabsTrigger value="embed">{t("agent:tabs.embed")}</TabsTrigger>}
             </TabsList>
 
@@ -493,9 +523,37 @@ export function BaseAgentForm({
                 <AgentEmbedTab agent={editableAgent} />
               </TabsContent>
             )}
+            {hasOrchestration && editableAgent && (
+              <TabsContent value="orchestration">
+                <Controller
+                  control={subAgentsControl}
+                  name="subAgents"
+                  render={({ field }) => (
+                    <AgentSubAgentsTab
+                      parentAgentId={editableAgent.id}
+                      agents={availableAgents}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  )}
+                />
+              </TabsContent>
+            )}
           </Tabs>
 
-          {activeTab !== "embed" && (
+          {activeTab === "orchestration" && hasOrchestration && (
+            <Field orientation="horizontal" className="justify-end">
+              <Button
+                type="button"
+                className="w-fit"
+                onClick={handleOrchestrationSubmit}
+              >
+                {t("actions:update")}
+              </Button>
+            </Field>
+          )}
+
+          {activeTab !== "embed" && activeTab !== "orchestration" && (
             <Field orientation="horizontal" className="justify-end">
               <Button type="submit" className="w-fit">
                 {editableAgent ? t("actions:update") : t("actions:create")}

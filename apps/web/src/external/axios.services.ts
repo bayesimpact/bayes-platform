@@ -13,6 +13,7 @@ import reviewCampaignsReviewer from "@/reviewer/features/review-campaigns/extern
 import agentEmbedConfigs from "@/studio/features/agent-embed-configs/external/agent-embed-configs.api"
 import agentMemberships from "@/studio/features/agent-memberships/external/agent-memberships.api"
 import agentMessageFeedback from "@/studio/features/agent-message-feedback/external/agent-message-feedback.api"
+import agentSubAgents from "@/studio/features/agent-sub-agents/external/agent-sub-agents.api"
 import agentAnalytics from "@/studio/features/analytics/agent/external/agent-analytics.api"
 import projectAnalytics from "@/studio/features/analytics/project/external/analytics.api"
 import documentTags from "@/studio/features/document-tags/external/document-tags.api"
@@ -30,6 +31,7 @@ export const services = {
   agentEmbedConfigs,
   agentMemberships,
   agentMessageFeedback,
+  agentSubAgents,
   agents,
   agentSessionMessages,
   backoffice,

@@ -19,6 +19,7 @@ import { CampaignsRoute } from "@/studio/routes/CampaignsRoute"
 import { StudioLayout } from "../components/StudioLayout"
 import { AgentList } from "../features/analytics/agent/components/AgentList"
 import { AgentAnalyticsRoute } from "./AgentAnalyticsRoute"
+import { AgentEditorRoute } from "./AgentEditorRoute"
 import { AgentMembershipsRoute } from "./AgentMembershipsRoute"
 import { ProjectDocumentsRoute, WebSourcesDocumentsRoute } from "./DocumentsRoute"
 import { EvaluationRoute } from "./EvaluationRoute"
@@ -117,6 +118,10 @@ export const studioRoutes = {
             {
               element: <RestrictedAccess ability="canManageAgent" />,
               children: [
+                {
+                  path: StudioRoutes.agentEdit.path,
+                  element: <AgentEditorRoute />,
+                },
                 {
                   path: StudioRoutes.agentAnalytics.path,
                   element: (

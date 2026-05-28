@@ -18,6 +18,7 @@ const reviewCampaignReport = reviewCampaigns.extend("/:reviewCampaignId/report")
 
 // AGENT-LEVEL
 const agentSession = agent.extend("/as/:agentSessionId")
+const agentEdit = agent.extend("/edit")
 const feedback = agent.extend("/f")
 const agentMemberships = agent.extend("/members")
 const agentAnalytics = agent.extend("/analytics")
@@ -25,6 +26,7 @@ const agentAnalytics = agent.extend("/analytics")
 export const StudioRoutes = {
   agent,
   agentAnalytics,
+  agentEdit,
   agentMemberships,
   agentSession,
   document,
