@@ -14,6 +14,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 - Allow entering commas in comma-separated form fields
+- Remove Gemma 4 thought tokens
 
 ### Security
 
