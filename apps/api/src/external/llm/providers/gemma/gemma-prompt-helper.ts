@@ -40,6 +40,10 @@ ${toolDocs.join("\n")}
         )
         return `${inner} | null`
       }
+      if (schema.innerType?.def) {
+        const inner = GemmaPromptHelper.jsonSchemaToArgumentString(schema.innerType?.def)
+        return `${inner} | null`
+      }
     }
     if (schema.type === "default") {
       const defaultValue = schema.defaultValue
