@@ -5,7 +5,6 @@ import { selectDocumentsData } from "@/studio/features/documents/documents.selec
 import { documentsActions } from "@/studio/features/documents/documents.slice"
 import { AsyncRoute } from "../../common/routes/AsyncRoute"
 import { DocumentList } from "../features/documents/components/DocumentList"
-import { WebSourcesDocumentList } from "../features/documents/components/web-crawl/WebSourcesDocumentList"
 
 export function ProjectDocumentsRoute() {
   const documents = useAppSelector(selectDocumentsData)
@@ -19,22 +18,6 @@ export function ProjectDocumentsRoute() {
   return (
     <AsyncRoute data={[documents, documentTags]}>
       <DocumentList />
-    </AsyncRoute>
-  )
-}
-
-export function WebSourcesDocumentsRoute() {
-  const documents = useAppSelector(selectDocumentsData)
-  const documentTags = useAppSelector(selectDocumentTagsData)
-  useMount({
-    actions: {
-      mount: documentsActions.webSourcesMount,
-      unmount: documentsActions.webSourcesUnmount,
-    },
-  })
-  return (
-    <AsyncRoute data={[documents, documentTags]}>
-      <WebSourcesDocumentList />
     </AsyncRoute>
   )
 }

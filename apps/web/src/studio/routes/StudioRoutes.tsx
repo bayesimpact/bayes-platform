@@ -20,7 +20,7 @@ import { StudioLayout } from "../components/StudioLayout"
 import { AgentList } from "../features/analytics/agent/components/AgentList"
 import { AgentAnalyticsRoute } from "./AgentAnalyticsRoute"
 import { AgentMembershipsRoute } from "./AgentMembershipsRoute"
-import { ProjectDocumentsRoute, WebSourcesDocumentsRoute } from "./DocumentsRoute"
+import { ProjectDocumentsRoute } from "./DocumentsRoute"
 import { EvaluationRoute } from "./EvaluationRoute"
 import { FeedbackRoute } from "./FeedbackRoute"
 import { StudioRoutes } from "./helpers"
@@ -31,6 +31,7 @@ import { RestrictedAccess } from "./RestrictedAccess"
 import { ReviewCampaignReportRoute } from "./ReviewCampaignReportRoute"
 import { StudioAgentSessionRoute } from "./StudioAgentSessionRoute"
 import { StudioRoute } from "./StudioRoute"
+import { WebSourcesRoute } from "./WebSourcesRoute"
 
 export const studioRoutes = {
   path: StudioRoutes.home.path,
@@ -72,7 +73,7 @@ export const studioRoutes = {
           path: StudioRoutes.webSources.path,
           element: (
             <RestrictedFeature feature="web_sources">
-              <WebSourcesDocumentsRoute />
+              <WebSourcesRoute />
             </RestrictedFeature>
           ),
         },
