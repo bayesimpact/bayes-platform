@@ -8,6 +8,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.05.3] - 2026-05-29
+
+### Added
 - (beta) Agent orchestration: configure conversation agents with sub-agents and delegate runtime tasks to them as tools
 
 ### Changed
