@@ -46,14 +46,20 @@ export const deleteProject = createAsyncThunk<void, { onSuccess?: () => void }, 
 
 export const addProjectAgentCategory = createAsyncThunk<
   ProjectAgentCategory,
-  { name: string },
+  { name: string; assignToAllConversationalAgents: boolean },
   ThunkConfig
->("projects/addProjectAgentCategory", async ({ name }, { extra: { services }, getState }) => {
-  const state = getState()
-  const organizationId = getCurrentId({ state, name: "organizationId" })
-  const projectId = getCurrentId({ state, name: "projectId" })
-  return await services.projects.addProjectAgentCategory({ organizationId, projectId }, { name })
-})
+>(
+  "projects/addProjectAgentCategory",
+  async ({ name, assignToAllConversationalAgents }, { extra: { services }, getState }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    return await services.projects.addProjectAgentCategory(
+      { organizationId, projectId },
+      { name, assignToAllConversationalAgents },
+    )
+  },
+)
 
 export const deleteProjectAgentCategory = createAsyncThunk<
   void,

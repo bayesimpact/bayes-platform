@@ -20,6 +20,7 @@
       "categoryNamePlaceholder": "Category name",
       "empty": "No categories yet.",
       "removeCategory": "Remove {{name}}",
+      "assignToAllConversationalAgents": "Also assign to all existing conversational agents",
       "removeDialogTitle": "Remove agent category?",
       "removeDialogDescription": "This will remove \"{{name}}\" from the workspace category list."
     }

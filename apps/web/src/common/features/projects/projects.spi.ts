@@ -18,7 +18,7 @@ export interface IProjectsSpi {
   deleteOne: (params: { organizationId: string; projectId: string }) => Promise<void>
   addProjectAgentCategory: (
     params: { organizationId: string; projectId: string },
-    payload: { name: string },
+    payload: { name: string; assignToAllConversationalAgents: boolean },
   ) => Promise<ProjectAgentCategory>
   deleteProjectAgentCategory: (params: {
     organizationId: string

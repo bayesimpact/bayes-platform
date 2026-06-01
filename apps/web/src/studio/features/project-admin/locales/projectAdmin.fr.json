@@ -20,6 +20,7 @@
       "categoryNamePlaceholder": "Nom de la catégorie",
       "empty": "Aucune catégorie pour l'instant.",
       "removeCategory": "Supprimer {{name}}",
+      "assignToAllConversationalAgents": "Assigner également à tous les agents conversationnels existants",
       "removeDialogTitle": "Supprimer la catégorie d'agent ?",
       "removeDialogDescription": "Cela supprimera \"{{name}}\" de la liste des catégories de l'espace de travail."
     }

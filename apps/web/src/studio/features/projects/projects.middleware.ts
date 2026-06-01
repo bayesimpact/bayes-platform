@@ -1,4 +1,5 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
+import { listAgents } from "@/common/features/agents/agents.thunks"
 import { fetchMe } from "@/common/features/me/me.thunks"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import { listProjects } from "@/common/features/projects/projects.thunks"
@@ -26,6 +27,14 @@ function registerListeners() {
     matcher: isAnyOf(addProjectAgentCategory.fulfilled, deleteProjectAgentCategory.fulfilled),
     effect: async (_, listenerApi) => {
       await listenerApi.dispatch(listProjects())
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: addProjectAgentCategory.fulfilled,
+    effect: async (action, listenerApi) => {
+      if (action.meta.arg.assignToAllConversationalAgents) {
+        await listenerApi.dispatch(listAgents())
+      }
     },
   })
   listenerMiddleware.startListening({

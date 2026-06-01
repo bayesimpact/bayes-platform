@@ -28,6 +28,7 @@ export class ProjectAgentCategoriesController {
     const category = await this.projectAgentCategoriesService.addProjectAgentCategory(
       request.project!.id,
       body.payload.name,
+      body.payload.assignToAllConversationalAgents,
     )
     return { data: { id: category.id, name: category.name } }
   }

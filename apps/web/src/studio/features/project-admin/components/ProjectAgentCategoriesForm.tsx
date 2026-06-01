@@ -1,5 +1,6 @@
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
+import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -24,13 +25,15 @@ export function ProjectAgentCategoriesForm({ categories }: { categories: Project
   const dispatch = useAppDispatch()
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState("")
+  const [assignToAllConversationalAgents, setAssignToAllConversationalAgents] = useState(false)
   const [categoryToRemove, setCategoryToRemove] = useState<ProjectAgentCategory | null>(null)
 
   const handleAddCategory = async () => {
     const trimmedName = newCategoryName.trim()
     if (!trimmedName) return
-    await dispatch(addProjectAgentCategory({ name: trimmedName }))
+    await dispatch(addProjectAgentCategory({ name: trimmedName, assignToAllConversationalAgents }))
     setNewCategoryName("")
+    setAssignToAllConversationalAgents(false)
     setIsAddDialogOpen(false)
   }
 
@@ -80,7 +83,16 @@ export function ProjectAgentCategoriesForm({ categories }: { categories: Project
         {t("projectAdmin:agentCategories.addCategory")}
       </Button>
 
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+      <Dialog
+        open={isAddDialogOpen}
+        onOpenChange={(open) => {
+          setIsAddDialogOpen(open)
+          if (!open) {
+            setNewCategoryName("")
+            setAssignToAllConversationalAgents(false)
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("projectAdmin:agentCategories.addDialogTitle")}</DialogTitle>
@@ -94,6 +106,14 @@ export function ProjectAgentCategoriesForm({ categories }: { categories: Project
             }}
             autoFocus
           />
+          <label htmlFor="assign-to-all" className="flex items-center gap-2 text-sm cursor-pointer">
+            <Checkbox
+              id="assign-to-all"
+              checked={assignToAllConversationalAgents}
+              onCheckedChange={(checked) => setAssignToAllConversationalAgents(checked === true)}
+            />
+            {t("projectAdmin:agentCategories.assignToAllConversationalAgents")}
+          </label>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
               {t("actions:cancel")}

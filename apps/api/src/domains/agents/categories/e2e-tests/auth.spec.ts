@@ -86,14 +86,14 @@ describe("ProjectAgentCategories - Auth", () => {
     it("requires a valid project ID", async () => {
       await createContextForRole("owner")
       projectId = randomUUID()
-      expectResponse(await subject({ payload: { name: "Support" } }), 404)
+      expectResponse(await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } }), 404)
     })
 
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
       auth0Id = mockForeignAuth0Id()
       expectResponse(
-        await subject({ payload: { name: "Support" } }),
+        await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } }),
         401,
         AUTH_ERRORS.NOT_MEMBER_OF_ORG,
       )
@@ -102,7 +102,7 @@ describe("ProjectAgentCategories - Auth", () => {
     it("does not allow a simple member to create a category", async () => {
       await createContextForRole("member")
       expectResponse(
-        await subject({ payload: { name: "Support" } }),
+        await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } }),
         403,
         AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
       )
@@ -110,12 +110,12 @@ describe("ProjectAgentCategories - Auth", () => {
 
     it("allows an admin to create a category", async () => {
       await createContextForRole("admin")
-      expectResponse(await subject({ payload: { name: "Support" } }), 201)
+      expectResponse(await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } }), 201)
     })
 
     it("allows an owner to create a category", async () => {
       await createContextForRole("owner")
-      expectResponse(await subject({ payload: { name: "Support" } }), 201)
+      expectResponse(await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } }), 201)
     })
   })
 
