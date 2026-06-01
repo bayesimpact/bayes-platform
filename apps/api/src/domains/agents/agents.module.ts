@@ -27,6 +27,9 @@ import { AgentsService } from "./agents.service"
 import { BaseAgentSessionsService } from "./base-agent-sessions/base-agent-sessions.service"
 import { AgentCategoriesService } from "./categories/agent-categories.service"
 import { AgentCategory } from "./categories/agent-category.entity"
+import { ProjectAgentCategoriesController } from "./categories/project-agent-categories.controller"
+import { ProjectAgentCategoriesGuard } from "./categories/project-agent-categories.guard"
+import { ProjectAgentCategoriesService } from "./categories/project-agent-categories.service"
 import { ProjectAgentCategory } from "./categories/project-agent-category.entity"
 import { AgentMembership } from "./memberships/agent-membership.entity"
 import { AgentMembershipsController } from "./memberships/agent-memberships.controller"
@@ -64,17 +67,19 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
     AgentsService,
     AgentCategoriesService,
     AgentSubAgentsService,
+    ProjectAgentCategoriesService,
     BaseAgentSessionsService,
     AgentMembershipsService,
     AgentGuard,
     AgentMembershipsGuard,
+    ProjectAgentCategoriesGuard,
     ResourceContextGuard,
     OrganizationContextResolver,
     ProjectContextResolver,
     AgentContextResolver,
     AgentMembershipContextResolver,
   ],
-  controllers: [AgentsController, AgentMembershipsController],
+  controllers: [AgentsController, AgentMembershipsController, ProjectAgentCategoriesController],
   exports: [AgentsService, AgentCategoriesService, AgentMembershipsService, AgentSubAgentsService],
 })
 export class AgentsModule {}

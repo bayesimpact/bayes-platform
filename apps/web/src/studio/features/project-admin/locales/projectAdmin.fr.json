@@ -1,0 +1,27 @@
+{
+  "projectAdmin": {
+    "navLabel": "Admin",
+    "title": "Admin",
+    "description": "Gérez les paramètres de votre espace de travail.",
+    "tabs": {
+      "general": "Général",
+      "agentCategories": "Catégories d'agents"
+    },
+    "general": {
+      "title": "Général",
+      "description": "Mettez à jour les paramètres généraux de cet espace de travail.",
+      "workspaceName": "Nom de l'espace de travail"
+    },
+    "agentCategories": {
+      "title": "Catégories d'agents",
+      "description": "Gérez les catégories disponibles lors de l'assignation des agents aux conversations.",
+      "addCategory": "Ajouter une catégorie",
+      "addDialogTitle": "Ajouter une catégorie d'agent",
+      "categoryNamePlaceholder": "Nom de la catégorie",
+      "empty": "Aucune catégorie pour l'instant.",
+      "removeCategory": "Supprimer {{name}}",
+      "removeDialogTitle": "Supprimer la catégorie d'agent ?",
+      "removeDialogDescription": "Cela supprimera \"{{name}}\" de la liste des catégories de l'espace de travail."
+    }
+  }
+}

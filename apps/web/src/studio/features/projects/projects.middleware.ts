@@ -3,7 +3,12 @@ import { fetchMe } from "@/common/features/me/me.thunks"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import { listProjects } from "@/common/features/projects/projects.thunks"
 import type { AppDispatch, RootState } from "@/common/store/types"
-import { deleteProject, updateProject } from "./projects.thunks"
+import {
+  addProjectAgentCategory,
+  deleteProject,
+  deleteProjectAgentCategory,
+  updateProject,
+} from "./projects.thunks"
 
 // Create typed listener middleware
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
@@ -14,6 +19,24 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       await listenerApi.dispatch(fetchMe())
       await listenerApi.dispatch(listProjects())
+    },
+  })
+
+  listenerMiddleware.startListening({
+    matcher: isAnyOf(addProjectAgentCategory.fulfilled, deleteProjectAgentCategory.fulfilled),
+    effect: async (_, listenerApi) => {
+      await listenerApi.dispatch(listProjects())
+    },
+  })
+  listenerMiddleware.startListening({
+    matcher: isAnyOf(addProjectAgentCategory.rejected, deleteProjectAgentCategory.rejected),
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "Failed to update agent categories",
+          type: "error",
+        }),
+      )
     },
   })
 

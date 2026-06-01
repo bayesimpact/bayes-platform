@@ -113,9 +113,12 @@ export function BaseAgentForm({
       } as FormValues
     }
 
-    // Creation
+    // Creation — pre-select all project categories
     const language = i18n.language.startsWith("fr") ? AgentLocale.FR : AgentLocale.EN
-    return getDefaultFormValues({ agentType, language })
+    return {
+      ...getDefaultFormValues({ agentType, language }),
+      projectAgentCategoryIds: projectAgentCategories.map((category) => category.id),
+    }
   })()
 
   const {
