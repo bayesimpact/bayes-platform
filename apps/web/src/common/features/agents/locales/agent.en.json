@@ -99,6 +99,7 @@
       "output": "Output",
       "form": "Form",
       "sources": "Sources",
+      "categories": "Categories",
       "orchestration": "Orchestration",
       "embed": "Embed"
     },

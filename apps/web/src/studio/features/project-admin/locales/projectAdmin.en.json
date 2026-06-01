@@ -1,0 +1,28 @@
+{
+  "projectAdmin": {
+    "navLabel": "Admin",
+    "title": "Admin",
+    "description": "Manage your workspace settings.",
+    "tabs": {
+      "general": "General",
+      "agentCategories": "Agent Categories"
+    },
+    "general": {
+      "title": "General",
+      "description": "Update the general settings for this workspace.",
+      "workspaceName": "Workspace name"
+    },
+    "agentCategories": {
+      "title": "Agent Categories",
+      "description": "Manage the categories available when assigning agents to conversations.",
+      "addCategory": "Add category",
+      "addDialogTitle": "Add agent category",
+      "categoryNamePlaceholder": "Category name",
+      "empty": "No categories yet.",
+      "removeCategory": "Remove {{name}}",
+      "assignToAllConversationalAgents": "Also assign to all existing conversational agents",
+      "removeDialogTitle": "Remove agent category?",
+      "removeDialogDescription": "This will remove \"{{name}}\" from the workspace category list."
+    }
+  }
+}

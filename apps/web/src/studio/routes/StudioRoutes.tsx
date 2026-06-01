@@ -16,6 +16,7 @@ import {
   FormAgentSessionList,
 } from "@/studio/features/agents/components/AgentSessionList"
 import { CampaignsRoute } from "@/studio/routes/CampaignsRoute"
+import { ProjectAdminRoute } from "@/studio/routes/ProjectAdminRoute"
 import { StudioLayout } from "../components/StudioLayout"
 import { AgentList } from "../features/analytics/agent/components/AgentList"
 import { AgentAnalyticsRoute } from "./AgentAnalyticsRoute"
@@ -94,6 +95,10 @@ export const studioRoutes = {
               element: <ProjectMembershipRoute />,
             },
           ],
+        },
+        {
+          path: StudioRoutes.projectAdmin.path,
+          element: <ProjectAdminRoute />,
         },
         {
           path: StudioRoutes.reviewCampaigns.path,

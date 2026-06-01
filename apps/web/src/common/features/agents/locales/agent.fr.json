@@ -99,6 +99,7 @@
       "output": "Sortie",
       "form": "Formulaire",
       "sources": "Sources",
+      "categories": "Catégories",
       "orchestration": "Orchestration",
       "embed": "Intégration"
     },
