@@ -59,9 +59,9 @@ import {
 } from "@/studio/features/document-tags/document-tags.helpers"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import { selectDocumentTagsData } from "@/studio/features/document-tags/document-tags.selectors"
+import { CrawlingStatusBadge } from "@/studio/features/documents/components/CrawlingStatusBadge"
 import { CrawlUrlButton } from "@/studio/features/documents/components/CrawlUrlButton"
 import { DocumentTagPicker } from "@/studio/features/documents/components/DocumentTagPicker"
-import { EmbeddingStatusBadge } from "@/studio/features/documents/components/EmbeddingStatusBadge"
 import type { Document } from "@/studio/features/documents/documents.models"
 import {
   selectCrawlProgressByDocumentId,
@@ -187,11 +187,7 @@ function DocumentRow({
           </div>
         </TableCell>
         <TableCell>
-          <EmbeddingStatusBadge
-            status={document.embeddingStatus}
-            sourceType={document.sourceType}
-            pagesCrawled={pagesCrawled}
-          />
+          <CrawlingStatusBadge status={document.embeddingStatus} pagesCrawled={pagesCrawled} />
         </TableCell>
         <TableCell className="text-muted-foreground">{date}</TableCell>
         <TableCell>
@@ -388,9 +384,8 @@ function DocumentActions({
               <MetaField label={t("document:props.mimeType")} value={document.mimeType} />
               <div className="flex flex-col gap-1">
                 <span className="font-medium">{t("document:props.embeddingStatus")}:</span>
-                <EmbeddingStatusBadge
+                <CrawlingStatusBadge
                   status={document.embeddingStatus}
-                  sourceType={document.sourceType}
                   pagesCrawled={pagesCrawled}
                 />
               </div>

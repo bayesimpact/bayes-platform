@@ -15,6 +15,7 @@ import { DocumentTagItem } from "@/studio/features/document-tags/components/Docu
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import type { Document } from "@/studio/features/documents/documents.models"
 import { selectCrawlProgressByDocumentId } from "@/studio/features/documents/documents.selectors"
+import { CrawlingStatusBadge } from "./CrawlingStatusBadge"
 import { EmbeddingStatusBadge } from "./EmbeddingStatusBadge"
 
 export function DocumentDetailsSheet({
@@ -47,11 +48,14 @@ export function DocumentDetailsSheet({
             <MetaData label={t("mimeType")} value={document.mimeType} />
             <div className="flex flex-col gap-1">
               <span className="font-medium">{t("embeddingStatus")}:</span>
-              <EmbeddingStatusBadge
-                status={document.embeddingStatus}
-                sourceType={document.sourceType}
-                pagesCrawled={pagesCrawled}
-              />
+              {document.sourceType === "webCrawl" ? (
+                <CrawlingStatusBadge
+                  status={document.embeddingStatus}
+                  pagesCrawled={pagesCrawled}
+                />
+              ) : (
+                <EmbeddingStatusBadge status={document.embeddingStatus} />
+              )}
             </div>
             {document.embeddingError && (
               <MetaData label={t("embeddingError")} value={document.embeddingError} />

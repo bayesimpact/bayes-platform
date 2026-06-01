@@ -30,6 +30,7 @@ import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { buildDate } from "@/common/utils/build-date"
 import { DocumentTagItem } from "@/studio/features/document-tags/components/DocumentTagItem"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
+import { CrawlingStatusBadge } from "@/studio/features/documents/components/CrawlingStatusBadge"
 import { EmbeddingStatusBadge } from "@/studio/features/documents/components/EmbeddingStatusBadge"
 import type { Document } from "@/studio/features/documents/documents.models"
 import { selectCrawlProgressByDocumentId } from "@/studio/features/documents/documents.selectors"
@@ -284,11 +285,14 @@ function DocumentDialogs({
               <DocumentMetaField label={t("document:props.mimeType")} value={document.mimeType} />
               <div className="flex flex-col gap-1">
                 <span className="font-medium">{t("document:props.embeddingStatus")}:</span>
-                <EmbeddingStatusBadge
-                  status={document.embeddingStatus}
-                  sourceType={document.sourceType}
-                  pagesCrawled={pagesCrawled}
-                />
+                {document.sourceType === "webCrawl" ? (
+                  <CrawlingStatusBadge
+                    status={document.embeddingStatus}
+                    pagesCrawled={pagesCrawled}
+                  />
+                ) : (
+                  <EmbeddingStatusBadge status={document.embeddingStatus} />
+                )}
               </div>
               {document.embeddingError && (
                 <DocumentMetaField
