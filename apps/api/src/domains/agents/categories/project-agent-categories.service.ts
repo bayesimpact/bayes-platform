@@ -56,6 +56,9 @@ export class ProjectAgentCategoriesService {
   }
 
   async deleteProjectAgentCategory(projectId: string, categoryId: string): Promise<void> {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(categoryId)) return
+
     const category = await this.projectAgentCategoryRepository.findOne({
       where: { id: categoryId, projectId },
       relations: { sessionCategories: true, agentCategories: { sessionCategories: true } },
