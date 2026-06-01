@@ -88,7 +88,14 @@ export function BaseAgentForm({
   availableAgents?: Agent[]
   subAgents?: AgentSubAgentFormValue[]
   onSubAgentsSubmit?: (value: AgentSubAgentFormValue[]) => Promise<void> | void
-  defaultActiveTab?: "general" | "model" | "output" | "sources" | "orchestration" | "embed"
+  defaultActiveTab?:
+    | "general"
+    | "model"
+    | "output"
+    | "sources"
+    | "categories"
+    | "orchestration"
+    | "embed"
   onSubmit: (values: AgentFormData) => Promise<void> | void
 }) {
   const project = useValue(selectCurrentProjectData)
@@ -160,7 +167,7 @@ export function BaseAgentForm({
     hasSources && !!editableAgent && hasFeature("agent-orchestration") && !!onSubAgentsSubmit
 
   const [activeTab, setActiveTab] = useState<
-    "general" | "model" | "output" | "sources" | "orchestration" | "embed"
+    "general" | "model" | "output" | "sources" | "categories" | "orchestration" | "embed"
   >(defaultActiveTab)
 
   const handleFormSubmit = async (data: FormValues) => {
@@ -197,6 +204,9 @@ export function BaseAgentForm({
                 </TabsTrigger>
               )}
               {hasSources && <TabsTrigger value="sources">{t("agent:tabs.sources")}</TabsTrigger>}
+              {hasAgentCategories && (
+                <TabsTrigger value="categories">{t("agent:tabs.categories")}</TabsTrigger>
+              )}
               {hasOrchestration && (
                 <TabsTrigger value="orchestration">{t("agent:tabs.orchestration")}</TabsTrigger>
               )}
@@ -285,56 +295,6 @@ export function BaseAgentForm({
                     <p className="text-sm text-destructive">{errors.defaultPrompt.message}</p>
                   )}
                 </Field>
-
-                {hasAgentCategories && (
-                  <Field>
-                    <FieldLabel>{t("agent:props.agentCategories")}</FieldLabel>
-                    <Controller
-                      control={control}
-                      name="projectAgentCategoryIds"
-                      render={({ field }) => (
-                        <FieldGroup data-slot="checkbox-group">
-                          {projectAgentCategories.map((projectAgentCategory) => {
-                            const isChecked = field.value.includes(projectAgentCategory.id)
-                            const isDisabled =
-                              editableAgent?.usedProjectAgentCategoryIds.includes(
-                                projectAgentCategory.id,
-                              ) ?? false
-                            const checkboxId = `agent-category-${projectAgentCategory.id}`
-                            return (
-                              <Field
-                                key={projectAgentCategory.id}
-                                orientation="horizontal"
-                                data-disabled={isDisabled ? true : undefined}
-                              >
-                                <Checkbox
-                                  id={checkboxId}
-                                  checked={isChecked}
-                                  disabled={isDisabled}
-                                  onCheckedChange={(checked) => {
-                                    if (checked) {
-                                      field.onChange([...field.value, projectAgentCategory.id])
-                                      return
-                                    }
-                                    field.onChange(
-                                      field.value.filter(
-                                        (categoryId) => categoryId !== projectAgentCategory.id,
-                                      ),
-                                    )
-                                  }}
-                                />
-                                <FieldLabel htmlFor={checkboxId}>
-                                  {projectAgentCategory.name}
-                                </FieldLabel>
-                              </Field>
-                            )
-                          })}
-                        </FieldGroup>
-                      )}
-                    />
-                    <FieldDescription>{t("agent:props.agentCategoriesInUse")}</FieldDescription>
-                  </Field>
-                )}
               </FieldGroup>
             </TabsContent>
 
@@ -522,6 +482,72 @@ export function BaseAgentForm({
                 </FieldGroup>
               </TabsContent>
             )}
+            {hasAgentCategories && (
+              <TabsContent value="categories">
+                <Controller
+                  control={control}
+                  name="projectAgentCategoryIds"
+                  render={({ field }) => (
+                    <FieldGroup>
+                      <FieldGroup data-slot="checkbox-group">
+                        {projectAgentCategories.map((projectAgentCategory) => {
+                          const isChecked = field.value.includes(projectAgentCategory.id)
+                          const isDisabled =
+                            editableAgent?.usedProjectAgentCategoryIds.includes(
+                              projectAgentCategory.id,
+                            ) ?? false
+                          const checkboxId = `agent-category-${projectAgentCategory.id}`
+                          return (
+                            <Field
+                              key={projectAgentCategory.id}
+                              orientation="horizontal"
+                              data-disabled={isDisabled ? true : undefined}
+                            >
+                              <Checkbox
+                                id={checkboxId}
+                                checked={isChecked}
+                                disabled={isDisabled}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    field.onChange([...field.value, projectAgentCategory.id])
+                                    return
+                                  }
+                                  field.onChange(
+                                    field.value.filter(
+                                      (categoryId) => categoryId !== projectAgentCategory.id,
+                                    ),
+                                  )
+                                }}
+                              />
+                              <FieldLabel htmlFor={checkboxId}>
+                                {projectAgentCategory.name}
+                              </FieldLabel>
+                            </Field>
+                          )
+                        })}
+                      </FieldGroup>
+                      {projectAgentCategories.length > 1 &&
+                        !projectAgentCategories.every((category) =>
+                          field.value.includes(category.id),
+                        ) && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="self-start"
+                            onClick={() =>
+                              field.onChange(projectAgentCategories.map((category) => category.id))
+                            }
+                          >
+                            {t("actions:selectAll")}
+                          </Button>
+                        )}
+                      <FieldDescription>{t("agent:props.agentCategoriesInUse")}</FieldDescription>
+                    </FieldGroup>
+                  )}
+                />
+              </TabsContent>
+            )}
             {hasEmbed && editableAgent && (
               <TabsContent value="embed">
                 <AgentEmbedTab agent={editableAgent} />
@@ -566,12 +592,12 @@ export function BaseAgentForm({
   )
 }
 
-const FIELD_TO_TAB: Record<string, "general" | "model" | "output" | "sources"> = {
+const FIELD_TO_TAB: Record<string, "general" | "model" | "output" | "sources" | "categories"> = {
   name: "general",
   locale: "general",
   defaultPrompt: "general",
   greetingMessage: "general",
-  projectAgentCategoryIds: "general",
+  projectAgentCategoryIds: "categories",
   model: "model",
   temperature: "model",
   outputJsonSchema: "output",
@@ -583,8 +609,8 @@ const FIELD_TO_TAB: Record<string, "general" | "model" | "output" | "sources"> =
 
 function pickTabForErrors(
   errors: Record<string, unknown>,
-): "general" | "model" | "output" | "sources" | null {
-  for (const tab of ["general", "model", "output", "sources"] as const) {
+): "general" | "model" | "output" | "sources" | "categories" | null {
+  for (const tab of ["general", "model", "output", "sources", "categories"] as const) {
     const hasErrorOnTab = Object.keys(errors).some((field) => FIELD_TO_TAB[field] === tab)
     if (hasErrorOnTab) return tab
   }

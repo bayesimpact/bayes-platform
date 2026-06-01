@@ -69,7 +69,9 @@ describe("ProjectAgentCategories", () => {
     it("should create a new category and return it", async () => {
       await createContext()
 
-      const response = await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } })
+      const response = await subject({
+        payload: { name: "Support", assignToAllConversationalAgents: false },
+      })
 
       expectResponse(response, 201)
       expect(response.body.data.name).toBe("Support")
@@ -81,7 +83,9 @@ describe("ProjectAgentCategories", () => {
     it("should restore a previously soft-deleted category", async () => {
       await createContext()
 
-      const first = await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } })
+      const first = await subject({
+        payload: { name: "Support", assignToAllConversationalAgents: false },
+      })
       const categoryId = first.body.data.id
 
       await request({
@@ -90,7 +94,9 @@ describe("ProjectAgentCategories", () => {
         token: accessToken,
       })
 
-      const restored = await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } })
+      const restored = await subject({
+        payload: { name: "Support", assignToAllConversationalAgents: false },
+      })
 
       expectResponse(restored, 201)
       expect(restored.body.data.id).toBe(categoryId)
@@ -100,7 +106,9 @@ describe("ProjectAgentCategories", () => {
     it("should trim whitespace from category name", async () => {
       await createContext()
 
-      const response = await subject({ payload: { name: "  Support  ", assignToAllConversationalAgents: false } })
+      const response = await subject({
+        payload: { name: "  Support  ", assignToAllConversationalAgents: false },
+      })
 
       expectResponse(response, 201)
       expect(response.body.data.name).toBe("Support")
@@ -110,7 +118,9 @@ describe("ProjectAgentCategories", () => {
       await createContext()
       accessToken = undefined
 
-      const response = await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } })
+      const response = await subject({
+        payload: { name: "Support", assignToAllConversationalAgents: false },
+      })
       expectResponse(response, 401)
     })
   })

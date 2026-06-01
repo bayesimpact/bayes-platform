@@ -86,7 +86,10 @@ describe("ProjectAgentCategories - Auth", () => {
     it("requires a valid project ID", async () => {
       await createContextForRole("owner")
       projectId = randomUUID()
-      expectResponse(await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } }), 404)
+      expectResponse(
+        await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } }),
+        404,
+      )
     })
 
     it("requires the user to be a member of the organization", async () => {
@@ -110,12 +113,18 @@ describe("ProjectAgentCategories - Auth", () => {
 
     it("allows an admin to create a category", async () => {
       await createContextForRole("admin")
-      expectResponse(await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } }), 201)
+      expectResponse(
+        await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } }),
+        201,
+      )
     })
 
     it("allows an owner to create a category", async () => {
       await createContextForRole("owner")
-      expectResponse(await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } }), 201)
+      expectResponse(
+        await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } }),
+        201,
+      )
     })
   })
 
