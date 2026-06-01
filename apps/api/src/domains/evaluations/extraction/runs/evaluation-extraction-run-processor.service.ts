@@ -16,7 +16,7 @@ import type {
   LLMMetadata,
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
-import type { Agent } from "@/domains/agents/agent.entity"
+import type { AgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.types"
 import { ServiceWithLLM } from "@/external/llm"
 import type {
   DatasetSchemaColumn,
@@ -86,7 +86,7 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
   }
 
   async processRunRecord(payload: ProcessEvaluationExtractionRunRecordJobPayload): Promise<void> {
-    const { connectScope, evaluationExtractionRun, runRecordId, agent } = payload
+    const { connectScope, evaluationExtractionRun, runRecordId, agentWithSettings } = payload
 
     const runRecord = await this.runRecordConnectRepository.getOneById(connectScope, runRecordId, {
       relations: ["evaluationExtractionDatasetRecord"],
@@ -128,7 +128,7 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
       runRecord,
       datasetRecord: runRecord.evaluationExtractionDatasetRecord,
       schemaMapping: payload.schemaMapping,
-      agent,
+      agentWithSettings,
       evaluationExtractionRun,
       connectScope,
     })
@@ -288,14 +288,14 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
     runRecord,
     datasetRecord,
     schemaMapping,
-    agent,
+    agentWithSettings,
     evaluationExtractionRun,
     connectScope,
   }: {
     runRecord: EvaluationExtractionRunRecord
     datasetRecord: EvaluationExtractionDatasetRecord
     schemaMapping: EvaluationExtractionDatasetSchemaMapping
-    agent: Agent
+    agentWithSettings: AgentWithSettingsRunJobPayload
     evaluationExtractionRun: EvaluationExtractionRun
     connectScope: RequiredConnectScope
   }): Promise<void> {
@@ -306,7 +306,7 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
       })
 
       const { output: agentOutput, traceId } = await this.invokeAgent({
-        agent,
+        agentWithSettings,
         inputText,
         connectScope,
       })
@@ -386,17 +386,17 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
   }
 
   private async invokeAgent({
-    agent,
+    agentWithSettings,
     inputText,
     connectScope,
   }: {
-    agent: Agent
+    agentWithSettings: AgentWithSettingsRunJobPayload
     inputText: string
     connectScope: RequiredConnectScope
   }): Promise<{ output: Record<string, unknown>; traceId: string }> {
-    if (!agent.outputJsonSchema) {
+    if (!agentWithSettings.outputJsonSchema) {
       throw new UnprocessableEntityException(
-        "Agent must have an outputJsonSchema for evaluation runs",
+        "AgentSettings for Agent must have an outputJsonSchema for evaluation runs",
       )
     }
 
@@ -406,12 +406,12 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
       content: [{ type: "text", text: inputText }],
     }
 
-    const systemPrompt = `${agent.defaultPrompt}\n\nToday's date: ${new Date().toLocaleDateString()}`
+    const systemPrompt = `${agentWithSettings.instructions}\n\nToday's date: ${new Date().toLocaleDateString()}`
 
     const llmConfig = this.buildLLMConfig({
       systemPrompt,
-      model: agent.model,
-      temperature: agent.temperature,
+      model: agentWithSettings.model,
+      temperature: agentWithSettings.temperature,
     })
 
     const llmMetadata: LLMMetadata = {
@@ -419,17 +419,24 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
       agentSessionId: traceId,
       currentTurn: 1,
       organizationId: connectScope.organizationId,
-      agentId: agent.id,
+      agentId: agentWithSettings.id,
+      revision: agentWithSettings.revision,
       projectId: connectScope.projectId,
-      tags: [agent.name, "evaluation-extraction-run"],
+      tags: [
+        agentWithSettings.name,
+        "evaluation-extraction-run",
+        `rev-${agentWithSettings.revision}`,
+      ],
     }
 
-    const output = await this.getProviderForModel(agent.model).generateStructuredOutput({
-      message: llmMessage,
-      schema: agent.outputJsonSchema,
-      config: llmConfig,
-      metadata: llmMetadata,
-    })
+    const output = await this.getProviderForModel(agentWithSettings.model).generateStructuredOutput(
+      {
+        message: llmMessage,
+        schema: agentWithSettings.outputJsonSchema,
+        config: llmConfig,
+        metadata: llmMetadata,
+      },
+    )
 
     return { output, traceId }
   }

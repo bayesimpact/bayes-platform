@@ -5,6 +5,7 @@ import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
 import { FormAgentSessionsService } from "@/domains/agents/form-agent-sessions/form-agent-sessions.service"
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { AgentSubAgentsService } from "@/domains/agents/sub-agents/agent-sub-agents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentChunkRetrievalService } from "@/domains/documents/embeddings/document-chunk-retrieval.service"
@@ -53,6 +54,8 @@ export class ToolsService extends ServiceWithLLM {
     private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
     @Inject(AgentSubAgentsService)
     private readonly agentSubAgentsService: AgentSubAgentsService,
+    @Inject(AgentSettingsService)
+    private readonly agentSettingsService: AgentSettingsService,
     @Inject(ProjectsService)
     private readonly projectsService: ProjectsService,
 
@@ -186,7 +189,7 @@ export class ToolsService extends ServiceWithLLM {
     mcp: McpToolset
     onExecute: OnExecute
   }): Promise<BuiltTools> {
-    const { agent, connectScope, session } = agentSessionScope
+    const { agent, agentSettings, connectScope, session } = agentSessionScope
     const [
       hasSourcesTool,
       currentCategoryNames,
@@ -212,6 +215,7 @@ export class ToolsService extends ServiceWithLLM {
             buildTools: (params) => this.buildTools(params),
             conversationAgentSessionsService: this.conversationAgentSessionsService,
             formAgentSessionsService: this.formAgentSessionsService,
+            agentSettingsService: this.agentSettingsService,
             generateMasterPrompt,
             getProviderForModel: (model) => this.getProviderForModel(model),
             onExecute,
@@ -225,13 +229,13 @@ export class ToolsService extends ServiceWithLLM {
 
     const tools: ToolSet = {
       // Add the document retrieval tool if the agent has a RAG mode enabled
-      ...(agent.documentsRagMode === DocumentsRagMode.None
+      ...(agentSettings.documentsRagMode === DocumentsRagMode.None
         ? {}
         : {
             [ToolName.RetrieveProjectDocumentChunks]: retrieveProjectDocumentChunksTool({
               connectScope,
               documentTagIds:
-                agent.documentsRagMode === DocumentsRagMode.Tags
+                agentSettings.documentsRagMode === DocumentsRagMode.Tags
                   ? (agent.documentTags?.map((documentTag) => documentTag.id) ?? [])
                   : [],
               retrievalService: this.documentChunkRetrievalService,

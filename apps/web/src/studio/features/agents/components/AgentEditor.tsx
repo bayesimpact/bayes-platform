@@ -98,7 +98,7 @@ function UpdateForm({
         agentId: agent.id,
         fields: {
           name: fields.name,
-          defaultPrompt: fields.defaultPrompt,
+          instructions: fields.instructions,
           greetingMessage: fields.greetingMessage,
           documentsRagMode: fields.documentsRagMode,
           model: fields.model,

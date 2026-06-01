@@ -11,7 +11,10 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithProject,
+} from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { ReviewCampaignsModule } from "../review-campaigns.module"
@@ -57,11 +60,9 @@ describe("ReviewCampaigns - createOne", () => {
   })
 
   const createContext = async () => {
-    const { organization, project } = await createOrganizationWithProject(repositories, {
+    const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
       user: { auth0Id },
     })
-    const agent = agentFactory.transient({ organization, project }).build()
-    await repositories.agentRepository.save(agent)
     organizationId = organization.id
     projectId = project.id
     return { organization, project, agent }

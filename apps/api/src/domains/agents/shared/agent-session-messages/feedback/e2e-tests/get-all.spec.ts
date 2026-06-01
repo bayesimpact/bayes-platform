@@ -11,6 +11,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithAgentMessage } from "@/domains/organizations/organization.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { setupUserGuardForTesting } from "../../../../../../../test/e2e.helpers"
@@ -55,13 +56,13 @@ describe("AgentMessageFeedbackRoutes.getAll", () => {
   })
 
   const createContext = async () => {
-    const { user, organization, project, agent, agentMessage, agentSession } =
+    const { user, organization, project, agent, agentSettings, agentMessage, agentSession } =
       await createOrganizationWithAgentMessage({ repositories, agentType: "conversation" })
     organizationId = organization.id
     projectId = project.id
     agentId = agent.id
     auth0Id = user.auth0Id
-    return { user, organization, project, agentMessage, agentSession }
+    return { user, organization, project, agentMessage, agentSession, agentSettings }
   }
 
   const subject = async () =>
@@ -90,9 +91,12 @@ describe("AgentMessageFeedbackRoutes.getAll", () => {
 
     const agentX = agentFactory.transient({ organization, project }).build({
       name: "Agent X",
-      defaultPrompt: "Prompt X",
     })
-    await repositories.agentRepository.save([agentX])
+    await repositories.agentRepository.save(agentX)
+    const agentSettingsX = agentSettingsFactory
+      .transient({ organization, project, agent: agentX })
+      .build()
+    await repositories.agentSettingsRepository.save(agentSettingsX)
 
     const sessionX = conversationAgentSessionFactory
       .transient({ organization, project, agent: agentX, user })
@@ -103,7 +107,7 @@ describe("AgentMessageFeedbackRoutes.getAll", () => {
     await repositories.conversationAgentSessionRepository.save([sessionX])
 
     const agentMessageX = agentMessageFactory
-      .transient({ organization, project, session: sessionX })
+      .transient({ organization, project, session: sessionX, agentSettings: agentSettingsX })
       .build()
     await repositories.agentMessageRepository.save([agentMessageX])
 

@@ -10,6 +10,7 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
@@ -71,13 +72,20 @@ describe("Agents - getAll", () => {
 
     const agent1 = agentFactory.transient({ organization, project }).build({
       name: "Agent 1",
-      defaultPrompt: "Prompt 1",
     })
     const agent2 = agentFactory.transient({ organization, project }).build({
       name: "Agent 2",
-      defaultPrompt: "Prompt 2",
     })
     await repositories.agentRepository.save([agent1, agent2])
+
+    const agentSettings1 = agentSettingsFactory
+      .transient({ organization, project, agent: agent1 })
+      .build()
+    const agentSettings2 = agentSettingsFactory
+      .transient({ organization, project, agent: agent2 })
+      .build()
+    await repositories.agentSettingsRepository.save([agentSettings1, agentSettings2])
+
     await addUserToAgent({ repositories, agent: agent1, user })
     await addUserToAgent({ repositories, agent: agent2, user })
 

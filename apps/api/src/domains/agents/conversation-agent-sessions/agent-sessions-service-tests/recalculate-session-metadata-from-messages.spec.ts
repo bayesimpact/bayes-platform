@@ -7,6 +7,7 @@ describe("recalculateSessionMetadataFromMessages", () => {
     const {
       service,
       testAgent,
+      testAgentSettings,
       testOrganization,
       testProject,
       testUser,
@@ -21,7 +22,7 @@ describe("recalculateSessionMetadataFromMessages", () => {
 
     const session = await service.createSession({
       connectScope,
-      agentId: testAgent.id,
+      agentSettingsId: testAgentSettings.id,
       userId: testUser.id,
       type: "playground",
     })
@@ -63,7 +64,7 @@ describe("recalculateSessionMetadataFromMessages", () => {
   })
 
   it("should persist suggested title when provided", async () => {
-    const { service, testAgent, testOrganization, testProject, testUser } = getTestContext()
+    const { service, testAgentSettings, testOrganization, testProject, testUser } = getTestContext()
 
     const connectScope = {
       organizationId: testOrganization.id,
@@ -72,7 +73,7 @@ describe("recalculateSessionMetadataFromMessages", () => {
 
     const session = await service.createSession({
       connectScope,
-      agentId: testAgent.id,
+      agentSettingsId: testAgentSettings.id,
       userId: testUser.id,
       type: "playground",
     })

@@ -28,6 +28,9 @@ import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { Agent } from "./agent.entity"
@@ -44,6 +47,7 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
 export class AgentsController {
   constructor(
     private readonly agentsService: AgentsService,
+    private readonly agentSettingsService: AgentSettingsService,
     private readonly agentSubAgentsService: AgentSubAgentsService,
   ) {}
 
@@ -55,13 +59,13 @@ export class AgentsController {
     @Req() request: EndpointRequestWithProject,
     @Body() { payload }: typeof AgentsRoutes.createOne.request,
   ): Promise<typeof AgentsRoutes.createOne.response> {
-    const agent = await this.agentsService.createAgent({
+    const { agent, agentSettings } = await this.agentsService.createAgent({
       connectScope: getRequiredConnectScope(request),
       fields: payload,
       userId: request.user.id,
     })
 
-    return { data: toAgentDto(agent) }
+    return { data: toAgentDto({ agent, agentSettings }) }
   }
 
   @Get(AgentsRoutes.getAll.path)
@@ -69,12 +73,21 @@ export class AgentsController {
   async getAll(
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof AgentsRoutes.getAll.response> {
+    const connectScope = getRequiredConnectScope(request)
     const agents = await this.agentsService.listAgents({
       userId: request.user.id,
-      connectScope: getRequiredConnectScope(request),
+      connectScope,
     })
-
-    return { data: agents.map(toAgentDto) }
+    const results = await Promise.all(
+      agents.map(async (agent) => {
+        const agentSettings = await this.agentSettingsService.getLast({
+          connectScope,
+          agentId: agent.id,
+        })
+        return toAgentDto({ agent, agentSettings })
+      }),
+    )
+    return { data: results }
   }
 
   @Patch(AgentsRoutes.updateOne.path)
@@ -99,6 +112,7 @@ export class AgentsController {
     return { data: { success: true } }
   }
 
+  //fixme DOO ajouter getAll history
   @Get(AgentSubAgentsRoutes.getAll.path)
   @CheckPolicy((policy) => policy.canUpdate())
   @AddContext("agent")
@@ -163,31 +177,37 @@ function toAgentSubAgentDto(entity: AgentSubAgent): AgentSubAgentDto {
   }
 }
 
-function toAgentDto(entity: Agent): AgentDto {
+function toAgentDto({
+  agent,
+  agentSettings,
+}: {
+  agent: Agent
+  agentSettings: AgentSettings
+}): AgentDto {
   return {
-    createdAt: entity.createdAt.getTime(),
-    greetingMessage: entity.greetingMessage ?? undefined,
-    defaultPrompt: entity.defaultPrompt,
-    hasCategories: (entity.sessionCategories?.length ?? 0) > 0,
-    id: entity.id,
-    locale: entity.locale,
-    model: entity.model,
-    name: entity.name,
-    outputJsonSchema: (entity.outputJsonSchema as AgentDto["outputJsonSchema"]) ?? undefined,
-    projectId: entity.projectId,
-    temperature: Number(entity.temperature),
-    type: entity.type,
-    updatedAt: entity.updatedAt.getTime(),
-    documentTagIds: entity.documentTags?.map((tag) => tag.id) || [],
-    resourceLibraryIds: entity.resourceLibraries?.map((library) => library.id) || [],
-    documentsRagMode: entity.documentsRagMode,
-    projectAgentSessionCategoryIds: (entity.sessionCategories ?? [])
+    createdAt: agent.createdAt.getTime(),
+    greetingMessage: agentSettings.greetingMessage ?? undefined,
+    instructions: agentSettings.instructions,
+    hasCategories: (agent.sessionCategories?.length ?? 0) > 0,
+    id: agent.id,
+    locale: agentSettings.locale,
+    model: agentSettings.model,
+    name: agent.name,
+    outputJsonSchema: (agentSettings.outputJsonSchema as AgentDto["outputJsonSchema"]) ?? undefined,
+    projectId: agent.projectId,
+    temperature: Number(agentSettings.temperature),
+    type: agent.type,
+    updatedAt: agentSettings.updatedAt.getTime(),
+    documentTagIds: agent.documentTags?.map((tag) => tag.id) || [],
+    resourceLibraryIds: agent.resourceLibraries?.map((library) => library.id) || [],
+    documentsRagMode: agentSettings.documentsRagMode,
+    projectAgentSessionCategoryIds: (agent.sessionCategories ?? [])
       .map((category) => category.projectAgentSessionCategoryId)
       .filter(
         (projectAgentSessionCategoryId): projectAgentSessionCategoryId is string =>
           projectAgentSessionCategoryId !== null,
       ),
-    usedProjectAgentSessionCategoryIds: (entity.sessionCategories ?? [])
+    usedProjectAgentSessionCategoryIds: (agent.sessionCategories ?? [])
       .filter((category) => (category.conversationSessionCategories?.length ?? 0) > 0)
       .map((category) => category.projectAgentSessionCategoryId)
       .filter(

@@ -1,6 +1,7 @@
 import {
   ConflictException,
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
@@ -10,6 +11,8 @@ import type { Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "@/domains/agents/agent.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { ReviewCampaignMembership } from "./memberships/review-campaign-membership.entity"
 import { ReviewCampaign } from "./review-campaign.entity"
 import type { ReviewCampaignQuestion, ReviewCampaignStatus } from "./review-campaigns.types"
@@ -46,6 +49,8 @@ export class ReviewCampaignsService {
     private readonly reviewCampaignMembershipRepository: Repository<ReviewCampaignMembership>,
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
+    @Inject()
+    private readonly agentSettingsService: AgentSettingsService,
     private readonly testerService: TesterService,
   ) {
     this.reviewCampaignConnectRepository = new ConnectRepository(
@@ -75,9 +80,14 @@ export class ReviewCampaignsService {
     if (!agent) {
       throw new UnprocessableEntityException(`Agent ${fields.agentId} not found in this project`)
     }
+    const agentSettings = await this.agentSettingsService.getLast({
+      connectScope,
+      agentId: agent.id,
+    })
 
     return this.reviewCampaignConnectRepository.createAndSave(connectScope, {
       agentId: fields.agentId,
+      agentSettingsId: agentSettings.id,
       name: fields.name.trim(),
       description: fields.description ?? null,
       status: "draft",

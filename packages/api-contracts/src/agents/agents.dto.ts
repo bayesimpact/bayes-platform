@@ -57,7 +57,7 @@ export enum DocumentsRagMode {
 export type AgentDto = {
   createdAt: TimeType
   greetingMessage?: string
-  defaultPrompt: string
+  instructions: string
   hasCategories?: boolean
   id: string
   locale: AgentLocale
@@ -96,7 +96,7 @@ export const outputJsonSchemaSchema = z
 
 const agentValidationSchema = z.object({
   greetingMessage: z.string().max(2000).optional(),
-  defaultPrompt: z.string(),
+  instructions: z.string(),
   documentTagIds: z.array(documentTagSchema.shape.id),
   documentsRagMode: z.enum(DocumentsRagMode),
   locale: z.enum(AgentLocale),
@@ -195,7 +195,7 @@ const hasRequiredDocumentTags = (data: {
 export const createAgentSchema = agentValidationSchema
   .pick({
     greetingMessage: true,
-    defaultPrompt: true,
+    instructions: true,
     documentsRagMode: true,
     locale: true,
     model: true,
@@ -219,7 +219,7 @@ export const createAgentSchema = agentValidationSchema
 export const updateAgentSchema = agentValidationSchema
   .pick({
     greetingMessage: true,
-    defaultPrompt: true,
+    instructions: true,
     documentTagIds: true,
     documentsRagMode: true,
     locale: true,

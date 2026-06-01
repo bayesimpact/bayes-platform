@@ -12,6 +12,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { formAgentSessionFactory } from "@/domains/agents/form-agent-sessions/form-agent-session.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
@@ -73,10 +74,12 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
     } = await createOrganizationWithProject(repositories, { user: { auth0Id } })
     const agent = agentFactory.transient({ organization, project }).build({ type: "conversation" })
     await repositories.agentRepository.save(agent)
+    const agentSettings = agentSettingsFactory.transient({ organization, project, agent }).build()
+    await repositories.agentSettingsRepository.save(agentSettings)
     const factory =
       campaignStatus === "closed" ? reviewCampaignFactory.closed() : reviewCampaignFactory.active()
     const campaign = await repositories.reviewCampaignRepository.save(
-      factory.transient({ organization, project, agent }).build(),
+      factory.transient({ organization, project, agent, agentSettings }).build(),
     )
     await saveReviewCampaignMembership({
       repositories,
@@ -89,7 +92,7 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
     organizationId = organization.id
     projectId = project.id
     reviewCampaignId = campaign.id
-    return { organization, project, agent, campaign, reviewer }
+    return { organization, project, agent, agentSettings, campaign, reviewer }
   }
 
   const subject = async () =>
@@ -130,7 +133,8 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
   })
 
   it("does not leak sessions from other campaigns", async () => {
-    const { organization, project, agent, campaign } = await seedCampaignWithReviewer()
+    const { organization, project, agent, agentSettings, campaign } =
+      await seedCampaignWithReviewer()
     const tester = await repositories.userRepository.save(
       userFactory.build({ email: `tester-leak-${randomUUID()}@example.com` }),
     )
@@ -139,7 +143,10 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
       .build({ campaignId: campaign.id })
     await repositories.conversationAgentSessionRepository.save(inScope)
     const otherCampaign = await repositories.reviewCampaignRepository.save(
-      reviewCampaignFactory.active().transient({ organization, project, agent }).build(),
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
     )
     const outOfScope = conversationAgentSessionFactory
       .transient({ organization, project, agent, user: tester })
@@ -153,7 +160,8 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
   })
 
   it("computes messageCount, reviewerCount, and callerHasReviewed", async () => {
-    const { organization, project, agent, campaign, reviewer } = await seedCampaignWithReviewer()
+    const { organization, project, agent, agentSettings, campaign, reviewer } =
+      await seedCampaignWithReviewer()
     const tester = await repositories.userRepository.save(
       userFactory.build({ email: `tester-counts-${randomUUID()}@example.com` }),
     )
@@ -167,6 +175,7 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
         organizationId: organization.id,
         projectId: project.id,
         sessionId: session.id,
+        agentSettingsId: agentSettings.id,
         role: "user",
         content: `hello ${index}`,
       })

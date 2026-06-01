@@ -51,7 +51,7 @@ export const agentFactory = AgentFactory.define(({ params, transientParams }) =>
   const type = faker.helpers.arrayElement(types)
   return {
     createdAt: params.createdAt ?? faker.date.past().getTime(),
-    defaultPrompt: params.defaultPrompt ?? faker.lorem.paragraph(),
+    instructions: params.instructions ?? faker.lorem.paragraph(),
     documentsRagMode: params.documentsRagMode ?? DocumentsRagMode.None,
     documentTagIds: params.documentTagIds ?? [],
     resourceLibraryIds: params.resourceLibraryIds ?? [],

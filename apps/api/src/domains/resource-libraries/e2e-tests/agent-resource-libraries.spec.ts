@@ -74,7 +74,7 @@ describe("Agents - resource library selection", () => {
 
   const baseAgentPayload = {
     name: "Helpful Assistant",
-    defaultPrompt: "You are helpful",
+    instructions: "You are helpful",
     documentsRagMode: DocumentsRagMode.All,
     model: AgentModel.Gemini25Flash,
     temperature: 0,

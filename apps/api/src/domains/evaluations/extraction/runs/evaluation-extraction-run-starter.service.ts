@@ -6,6 +6,7 @@ import type { Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "@/domains/agents/agent.entity"
+import { toAgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.helper"
 import { EvaluationExtractionDataset } from "../datasets/evaluation-extraction-dataset.entity"
 import { EvaluationExtractionDatasetRecord } from "../datasets/records/evaluation-extraction-dataset-record.entity"
 import {
@@ -121,7 +122,10 @@ export class EvaluationExtractionRunStarterService {
                 runRecordId: runRecord.id,
                 connectScope,
                 schemaMapping: dataset.schemaMapping,
-                agent,
+                agentWithSettings: toAgentWithSettingsRunJobPayload({
+                  agent,
+                  agentSettings: run.agentSettings,
+                }),
               },
               opts: { jobId: runRecord.id },
             })),

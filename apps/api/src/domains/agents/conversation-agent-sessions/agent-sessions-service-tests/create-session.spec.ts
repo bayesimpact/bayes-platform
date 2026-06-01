@@ -1,6 +1,7 @@
 import { afterAll } from "@jest/globals"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { agentFactory } from "@/domains/agents/agent.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { organizationMembershipFactory } from "@/domains/organizations/memberships/organization-membership.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { agentSessionControllerTestSetup } from "./test-setup"
@@ -15,6 +16,7 @@ describe("createSession", () => {
     const {
       service,
       testAgent,
+      testAgentSettings,
       testUser,
       testOrganization,
       organizationMembershipRepository,
@@ -33,7 +35,7 @@ describe("createSession", () => {
 
     const session = await service.createSession({
       connectScope,
-      agentId: testAgent.id,
+      agentSettingsId: testAgentSettings.id,
       userId: testUser.id,
       type: "live",
     })
@@ -50,6 +52,7 @@ describe("createSession", () => {
     const {
       service,
       testAgent,
+      testAgentSettings,
       testUser,
       testOrganization,
       organizationMembershipRepository,
@@ -68,7 +71,7 @@ describe("createSession", () => {
 
     const session = await service.createSession({
       connectScope,
-      agentId: testAgent.id,
+      agentSettingsId: testAgentSettings.id,
       userId: testUser.id,
       type: "playground",
     })
@@ -89,6 +92,7 @@ describe("createSession", () => {
       testOrganization,
       testProject,
       agentRepository,
+      agentSettingsRepository,
       agentMessageRepository,
       organizationMembershipRepository,
     } = getTestContext()
@@ -106,15 +110,24 @@ describe("createSession", () => {
     const greeting = "Hi! How can I help you today?"
     const agentWithGreeting = await agentRepository.save(
       agentRepository.create(
-        agentFactory
-          .transient({ organization: testOrganization, project: testProject })
+        agentFactory.transient({ organization: testOrganization, project: testProject }).build(),
+      ),
+    )
+    const agentSettingsWithGreeting = await agentSettingsRepository.save(
+      agentSettingsRepository.create(
+        agentSettingsFactory
+          .transient({
+            organization: testOrganization,
+            project: testProject,
+            agent: agentWithGreeting,
+          })
           .build({ greetingMessage: greeting }),
       ),
     )
 
     const session = await service.createSession({
       connectScope,
-      agentId: agentWithGreeting.id,
+      agentSettingsId: agentSettingsWithGreeting.id,
       userId: testUser.id,
       type: "live",
     })
@@ -130,7 +143,7 @@ describe("createSession", () => {
   it("should not seed any message when the agent has no greetingMessage", async () => {
     const {
       service,
-      testAgent,
+      testAgentSettings,
       testUser,
       testOrganization,
       testProject,
@@ -150,7 +163,7 @@ describe("createSession", () => {
 
     const session = await service.createSession({
       connectScope,
-      agentId: testAgent.id,
+      agentSettingsId: testAgentSettings.id,
       userId: testUser.id,
       type: "live",
     })
@@ -166,6 +179,7 @@ describe("createSession", () => {
       testOrganization,
       testProject,
       agentRepository,
+      agentSettingsRepository,
       agentMessageRepository,
       organizationMembershipRepository,
     } = getTestContext()
@@ -182,15 +196,24 @@ describe("createSession", () => {
 
     const whitespaceAgent = await agentRepository.save(
       agentRepository.create(
-        agentFactory
-          .transient({ organization: testOrganization, project: testProject })
+        agentFactory.transient({ organization: testOrganization, project: testProject }).build(),
+      ),
+    )
+    const whitespaceAgentSettings = await agentSettingsRepository.save(
+      agentSettingsRepository.create(
+        agentSettingsFactory
+          .transient({
+            organization: testOrganization,
+            project: testProject,
+            agent: whitespaceAgent,
+          })
           .build({ greetingMessage: "   \n   " }),
       ),
     )
 
     const session = await service.createSession({
       connectScope,
-      agentId: whitespaceAgent.id,
+      agentSettingsId: whitespaceAgentSettings.id,
       userId: testUser.id,
       type: "live",
     })

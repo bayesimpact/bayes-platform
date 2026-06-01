@@ -11,6 +11,7 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 import { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
+import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type {
@@ -84,6 +85,8 @@ export class ReviewerService {
     private readonly agentMessageRepository: Repository<AgentMessage>,
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
+    @InjectRepository(AgentSettings)
+    private readonly agentSettingsRepository: Repository<AgentSettings>,
     @InjectRepository(TesterSessionFeedback)
     private readonly testerFeedbackRepository: Repository<TesterSessionFeedback>,
   ) {}
@@ -179,24 +182,39 @@ export class ReviewerService {
     sessionOwnerUserId: string
     reviewerUserId: string
   }): Promise<ReviewerSessionViewResult> {
+	const agent = await this.agentRepository.findOne({
+      where: {
+        id: campaign.agentId,
+        organizationId: campaign.organizationId,
+        projectId: campaign.projectId,
+      },
+    })
+    if (!agent) {
+      throw new Error(`Agent ${campaign.agentId} not found for campaign ${campaign.id}`)
+    }
+    const agentSettings = await this.agentSettingsRepository.findOne({
+      where: {
+        agentId: campaign.agentId,
+        organizationId: campaign.organizationId,
+        projectId: campaign.projectId,
+      },
+      order: { revision: "DESC" }, //findOne + order DESC to get last revision
+    })
+    if (!agentSettings) {
+      throw new Error(
+        `AgentSettings for Agent ${campaign.agentId} not found for campaign ${campaign.id}`,
+      )
+    }
     // Loads everything we need in parallel. Redaction happens below based on
     // whether the caller has already reviewed.
     const [
-      agent,
       transcript,
       callerReview,
       allReviews,
       testerFeedback,
       sessionStartedAt,
       formSession,
-    ] = await Promise.all([
-      this.agentRepository.findOne({
-        where: {
-          id: campaign.agentId,
-          organizationId: campaign.organizationId,
-          projectId: campaign.projectId,
-        },
-      }),
+    ] = await Promise.all([     
       this.agentMessageRepository.find({
         where: { sessionId, role: In(["user", "assistant"]) },
         order: { createdAt: "ASC" },
@@ -213,15 +231,12 @@ export class ReviewerService {
         : Promise.resolve(null),
     ])
 
-    if (!agent) {
-      throw new Error(`Agent ${campaign.agentId} not found for campaign ${campaign.id}`)
-    }
-
+  
     const otherReviews = allReviews.filter((review) => review.reviewerUserId !== reviewerUserId)
     const formResult: ReviewerFormResult | null =
       agentType === "form"
         ? {
-            schema: agent.outputJsonSchema ?? {},
+            schema: agentSettings.outputJsonSchema ?? {},
             value: formSession?.result ?? null,
           }
         : null

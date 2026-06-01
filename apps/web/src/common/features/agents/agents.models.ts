@@ -6,7 +6,7 @@ export type Agent = AgentDto
 export const agentSchema = z
   .object({
     createdAt: z.number(),
-    defaultPrompt: z.string(),
+    instructions: z.string(),
     documentsRagMode: z.enum(["all", "none", "tags"]),
     hasCategories: z.boolean().optional(),
     id: z.string(),

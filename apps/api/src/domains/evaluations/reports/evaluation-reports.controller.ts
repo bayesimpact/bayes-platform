@@ -10,6 +10,8 @@ import { AddContext, RequireContext } from "@/common/context/require-context.dec
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
@@ -22,7 +24,10 @@ import { EvaluationReportsService } from "./evaluation-reports.service"
 @RequireContext("organization", "project", "evaluation")
 @Controller()
 export class EvaluationReportsController {
-  constructor(private readonly reportsService: EvaluationReportsService) {}
+  constructor(
+    private readonly reportsService: EvaluationReportsService,
+    private readonly agentSettingsService: AgentSettingsService,
+  ) {}
 
   @Post(EvaluationReportsRoutes.createOne.path)
   @AddContext("agent")
@@ -32,11 +37,16 @@ export class EvaluationReportsController {
     @Req() request: EndpointRequestWithEvaluation & EndpointRequestWithAgent,
   ): Promise<typeof EvaluationReportsRoutes.createOne.response> {
     const connectScope = getRequiredConnectScope(request)
+    const agentSettings = await this.agentSettingsService.getLast({
+      connectScope: getRequiredConnectScope(request),
+      agentId: request.agent.id,
+    })
     const report = await this.reportsService.createReport({
       connectScope,
       evaluationId: request.evaluation.id,
       fields: {
         agentId: request.agent.id,
+        agentSettingsId: agentSettings.id,
         traceId: v4(),
         output: "",
         score: "",
@@ -47,6 +57,7 @@ export class EvaluationReportsController {
       evaluation: request.evaluation,
       evaluationReport: report,
       agent: request.agent,
+      agentSettings,
     })
     await this.reportsService.updateReport({
       connectScope,
@@ -59,6 +70,7 @@ export class EvaluationReportsController {
       expectedValue: request.evaluation.expectedOutput,
       generatedValue: result,
       generatorAgent: request.agent,
+      generatorAgentSettings: agentSettings,
     })
     const reportUpdated = await this.reportsService.updateReport({
       connectScope,

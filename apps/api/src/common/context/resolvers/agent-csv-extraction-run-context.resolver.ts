@@ -34,6 +34,7 @@ export class AgentCsvExtractionRunContextResolver implements ContextResolver {
           organizationId: requestWithProject.organizationId,
           projectId: requestWithProject.project.id,
         },
+        relations: { agentSettings: true },
       })) ?? undefined
     if (!agentCsvExtractionRun) throw new NotFoundException()
 

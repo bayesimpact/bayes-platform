@@ -62,9 +62,12 @@ describe("Agents Analytics - getAvgUserQuestionsPerSessionPerDay", () => {
   })
 
   const createContext = async () => {
-    const { organization, project, user, agent } = await createOrganizationWithAgent(repositories, {
-      user: { auth0Id },
-    })
+    const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        user: { auth0Id },
+      },
+    )
     organizationId = organization.id
     projectId = project.id
     agentId = agent.id
@@ -88,16 +91,16 @@ describe("Agents Analytics - getAvgUserQuestionsPerSessionPerDay", () => {
     await repositories.agentMessageRepository.save([
       agentMessageFactory
         .user()
-        .transient({ organization, project, session: session1Day1 })
+        .transient({ organization, project, session: session1Day1, agentSettings })
         .build({ createdAt: new Date(day1Start.getTime() + 10 * 60 * 1000) }),
       agentMessageFactory
         .user()
-        .transient({ organization, project, session: session1Day1 })
+        .transient({ organization, project, session: session1Day1, agentSettings })
         .build({ createdAt: new Date(day1Start.getTime() + 20 * 60 * 1000) }),
       ...Array.from({ length: 4 }, (_value, messageIndex) =>
         agentMessageFactory
           .user()
-          .transient({ organization, project, session: session3Day2 })
+          .transient({ organization, project, session: session3Day2, agentSettings })
           .build({
             createdAt: new Date(day2Start.getTime() + (messageIndex + 1) * 5 * 60 * 1000),
           }),

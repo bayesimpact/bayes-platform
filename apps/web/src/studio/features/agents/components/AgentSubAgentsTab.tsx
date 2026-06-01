@@ -124,7 +124,7 @@ export function AgentSubAgentsTab({
                   </ItemMedia>
                   <ItemContent>
                     <ItemTitle>{agent.name}</ItemTitle>
-                    <ItemDescription>{agent.defaultPrompt}</ItemDescription>
+                    <ItemDescription>{agent.instructions}</ItemDescription>
                   </ItemContent>
                   <ItemActions>
                     <Button

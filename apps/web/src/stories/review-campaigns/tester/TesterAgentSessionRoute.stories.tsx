@@ -18,7 +18,7 @@ const mockConversationAgent = agentFactory.transient({ project: mockProject }).b
   id: "agent-1",
   name: "Helpful Assistant",
   type: "conversation",
-  defaultPrompt: "You are a helpful assistant.",
+  instructions: "You are a helpful assistant.",
   greetingMessage: "Hi! Ask me anything about your account.",
   locale: AgentLocale.EN,
   model: AgentModel.Gemini25Flash,
