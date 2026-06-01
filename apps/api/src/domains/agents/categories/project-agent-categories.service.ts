@@ -10,10 +10,7 @@ export class ProjectAgentCategoriesService {
     private readonly projectAgentCategoryRepository: Repository<ProjectAgentCategory>,
   ) {}
 
-  async addProjectAgentCategory(
-    projectId: string,
-    name: string,
-  ): Promise<ProjectAgentCategory> {
+  async addProjectAgentCategory(projectId: string, name: string): Promise<ProjectAgentCategory> {
     const normalizedName = name.trim()
 
     const existing = await this.projectAgentCategoryRepository.findOne({
@@ -42,9 +39,7 @@ export class ProjectAgentCategoriesService {
 
     const isUsedInConversation =
       category.sessionCategories.length > 0 ||
-      category.agentCategories.some(
-        (agentCategory) => agentCategory.sessionCategories.length > 0,
-      )
+      category.agentCategories.some((agentCategory) => agentCategory.sessionCategories.length > 0)
 
     if (isUsedInConversation) {
       throw new BadRequestException(

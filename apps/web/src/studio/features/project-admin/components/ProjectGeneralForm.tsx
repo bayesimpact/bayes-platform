@@ -1,4 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { FieldGroup } from "@caseai-connect/ui/shad/field"
 import {
@@ -10,6 +9,7 @@ import {
   FormMessage,
 } from "@caseai-connect/ui/shad/form"
 import { Input } from "@caseai-connect/ui/shad/input"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
@@ -61,10 +61,7 @@ export function ProjectGeneralForm({ project }: { project: Project }) {
             />
           </div>
           <div className="flex justify-end">
-            <Button
-              type="submit"
-              disabled={form.formState.isSubmitting || !form.formState.isDirty}
-            >
+            <Button type="submit" disabled={form.formState.isSubmitting || !form.formState.isDirty}>
               {t("actions:save")}
             </Button>
           </div>

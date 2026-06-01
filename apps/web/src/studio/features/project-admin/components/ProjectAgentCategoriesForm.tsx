@@ -69,7 +69,13 @@ export function ProjectAgentCategoriesForm({ categories }: { categories: Project
         </div>
       </Field>
 
-      <Button type="button" variant="outline" size="sm" className="self-start" onClick={() => setIsAddDialogOpen(true)}>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="self-start"
+        onClick={() => setIsAddDialogOpen(true)}
+      >
         <PlusIcon className="mr-2 h-4 w-4" />
         {t("projectAdmin:agentCategories.addCategory")}
       </Button>

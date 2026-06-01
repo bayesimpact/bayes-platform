@@ -33,19 +33,11 @@ export function ProjectAdminPage() {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent
-                value="general"
-                forceMount
-                className="data-[state=inactive]:hidden"
-              >
+              <TabsContent value="general" forceMount className="data-[state=inactive]:hidden">
                 <ProjectGeneralForm project={project} />
               </TabsContent>
 
-              <TabsContent
-                value="categories"
-                forceMount
-                className="data-[state=inactive]:hidden"
-              >
+              <TabsContent value="categories" forceMount className="data-[state=inactive]:hidden">
                 <ProjectAgentCategoriesForm categories={project.agentCategories} />
               </TabsContent>
             </Tabs>

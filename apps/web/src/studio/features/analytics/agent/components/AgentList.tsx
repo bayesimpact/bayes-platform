@@ -13,8 +13,8 @@ import { DocumentsButton } from "@/studio/features/agents/components/DocumentsBu
 import { EvaluationButton } from "@/studio/features/agents/components/EvaluationButton"
 import { MembersButton } from "@/studio/features/agents/components/MembersButton"
 import { ProjectDeletor } from "@/studio/features/projects/components/ProjectDeletor"
-import { StudioRoutes } from "@/studio/routes/helpers"
 import { ReviewCampaignsButton } from "@/studio/features/review-campaigns/components/ReviewCampaignsButton"
+import { StudioRoutes } from "@/studio/routes/helpers"
 
 const extraItems = [
   AgentCreatorButton,

@@ -68,12 +68,12 @@ export { MeRoutes } from "./me/me.routes"
 // Organizations
 export type * from "./organizations/organizations.dto"
 export { OrganizationsRoutes } from "./organizations/organizations.routes"
-// Project Membership
-export type * from "./project-membership/project-membership.dto"
-export { ProjectMembershipRoutes } from "./project-membership/project-membership.routes"
 // Project Agent Categories
 export type * from "./project-agent-categories/project-agent-categories.dto"
 export { ProjectAgentCategoriesRoutes } from "./project-agent-categories/project-agent-categories.routes"
+// Project Membership
+export type * from "./project-membership/project-membership.dto"
+export { ProjectMembershipRoutes } from "./project-membership/project-membership.routes"
 // Projects
 export type * from "./projects/projects.dto"
 export { ProjectsRoutes } from "./projects/projects.routes"
