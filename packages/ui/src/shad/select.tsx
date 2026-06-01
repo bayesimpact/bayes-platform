@@ -1,5 +1,3 @@
-"use client"
-
 import { cn } from "@caseai-connect/ui/utils"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"

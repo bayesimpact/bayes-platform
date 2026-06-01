@@ -1,5 +1,3 @@
-"use client"
-
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {

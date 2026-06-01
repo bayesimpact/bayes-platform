@@ -1,5 +1,3 @@
-"use client"
-
 import { cn } from "@caseai-connect/ui/utils"
 import * as TabsPrimitive from "@radix-ui/react-tabs"
 import type * as React from "react"

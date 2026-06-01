@@ -1,5 +1,3 @@
-"use client"
-
 import { ScrollArea } from "@caseai-connect/ui/shad/scroll-area"
 import {
   Sheet,

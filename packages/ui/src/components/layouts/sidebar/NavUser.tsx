@@ -1,5 +1,3 @@
-"use client"
-
 import { Avatar, AvatarFallback, AvatarImage } from "@caseai-connect/ui/shad/avatar"
 import {
   DropdownMenu,

@@ -1,5 +1,3 @@
-"use client"
-
 import { allowedDocumentUploadMimeTypesForFileUploader } from "@caseai-connect/api-contracts"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
