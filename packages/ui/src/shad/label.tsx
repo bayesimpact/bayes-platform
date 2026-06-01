@@ -1,5 +1,3 @@
-"use client"
-
 import { cn } from "@caseai-connect/ui/utils"
 import * as LabelPrimitive from "@radix-ui/react-label"
 import type * as React from "react"

@@ -1,5 +1,3 @@
-"use client"
-
 import type { DayPickerProps } from "react-day-picker"
 import { DayPicker, getDefaultClassNames } from "react-day-picker"
 

@@ -1,5 +1,3 @@
-"use client"
-
 import { SidebarMenuButton, SidebarMenuItem } from "@caseai-connect/ui/shad/sidebar"
 import { cn } from "@caseai-connect/ui/utils"
 import { Link } from "react-router-dom"

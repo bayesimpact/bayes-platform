@@ -1,5 +1,3 @@
-"use client"
-
 import { cn } from "@caseai-connect/ui/utils"
 import * as AvatarPrimitive from "@radix-ui/react-avatar"
 import type * as React from "react"

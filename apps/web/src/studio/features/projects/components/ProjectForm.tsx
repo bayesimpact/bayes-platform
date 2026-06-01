@@ -1,5 +1,3 @@
-"use client"
-
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Field, FieldGroup, FieldLabel, FieldSet } from "@caseai-connect/ui/shad/field"
 import { Input } from "@caseai-connect/ui/shad/input"

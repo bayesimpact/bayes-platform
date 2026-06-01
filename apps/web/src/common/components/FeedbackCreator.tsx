@@ -1,5 +1,3 @@
-"use client"
-
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Dialog,
