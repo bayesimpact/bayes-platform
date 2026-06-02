@@ -17,6 +17,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Evaluation extraction datasets can now be deleted from the dataset list
 
 ### Changed
+- Evaluation extraction dataset column roles can now be assigned in bulk: select multiple columns and apply a role (target / input / reference / ignore) to all of them at once
 - Evaluation extraction run CSV results are now available for download even when the run is cancelled
 - Workspace name can now be edited from the new Admin page instead of a dialog in the header
 - Agent categories management moved from the Backoffice to the workspace Admin page

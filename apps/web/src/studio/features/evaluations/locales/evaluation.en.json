@@ -94,6 +94,9 @@
         "preview": "Preview",
         "roles": {
           "title": "Column Roles",
+          "selectAll": "Select all",
+          "selectedCount": "{{count}} selected",
+          "bulkApply": "Apply a role to selection",
           "target": "Target",
           "input": "Input",
           "reference": "Reference",

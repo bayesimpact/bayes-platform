@@ -94,6 +94,9 @@
         "preview": "Aperçu",
         "roles": {
           "title": "Rôles des colonnes",
+          "selectAll": "Tout sélectionner",
+          "selectedCount": "{{count}} sélectionnée(s)",
+          "bulkApply": "Appliquer un rôle à la sélection",
           "target": "Cible",
           "input": "Entrée",
           "reference": "Référence",
