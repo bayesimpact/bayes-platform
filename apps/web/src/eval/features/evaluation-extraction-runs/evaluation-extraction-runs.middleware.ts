@@ -100,6 +100,14 @@ function registerListeners() {
         evaluationExtractionRunsActions.getRecords({ evaluationExtractionRunId, ...query }),
       )
 
+      // Refresh the full run so fields not carried by the SSE payload (e.g. csvExportDocumentId,
+      // which is only populated once the run terminates) stay in sync without a manual page reload.
+      if (evaluationExtractionRunId === selectCurrentRunId(state)) {
+        await listenerApi.dispatch(
+          evaluationExtractionRunsActions.getOne({ evaluationExtractionRunId }),
+        )
+      }
+
       switch (status) {
         case "completed":
           {
@@ -125,13 +133,27 @@ function registerListeners() {
           break
 
         default:
-          await listenerApi.dispatch(
-            evaluationExtractionRunsActions.getOne({ evaluationExtractionRunId }),
-          )
           break
       }
 
       syncRunStatusStreamWithRuns(listenerApi)
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: evaluationExtractionRunsActions.deleteOne.fulfilled,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(evaluationExtractionRunsActions.getAll())
+      listenerApi.dispatch(notificationsActions.show({ title: "Run deleted", type: "success" }))
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: evaluationExtractionRunsActions.deleteOne.rejected,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({ title: "Failed to delete run", type: "error" }),
+      )
     },
   })
 }

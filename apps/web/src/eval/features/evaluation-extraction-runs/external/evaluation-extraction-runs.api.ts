@@ -94,6 +94,10 @@ export default {
   streamRunStatus: async (params) => {
     await streamEvaluationExtractionRunStatus(params)
   },
+  deleteOne: async (params) => {
+    const axios = getAxiosInstance()
+    await axios.delete(EvaluationExtractionRunsRoutes.deleteOne.getPath(params))
+  },
 } satisfies IEvaluationExtractionRunsSpi
 
 function toEvaluationExtractionRun(dto: EvaluationExtractionRunDto): EvaluationExtractionRun {

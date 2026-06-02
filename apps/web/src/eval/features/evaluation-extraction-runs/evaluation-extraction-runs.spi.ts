@@ -46,4 +46,5 @@ export interface IEvaluationExtractionRunsSpi {
     signal?: AbortSignal
     onStatusChanged: (event: EvaluationExtractionRunStatusChangedEvent) => void
   }): Promise<void>
+  deleteOne(params: BaseParams & { evaluationExtractionRunId: string }): Promise<void>
 }

@@ -439,6 +439,38 @@ export class EvaluationExtractionRunsService {
     }
   }
 
+  async deleteRun({
+    connectScope,
+    evaluationExtractionRunId,
+  }: {
+    connectScope: RequiredConnectScope
+    evaluationExtractionRunId: string
+  }): Promise<void> {
+    try {
+      await this.removePendingJobsForRun({ connectScope, evaluationExtractionRunId })
+    } catch {
+      // Best-effort: proceed with delete even if job cleanup fails
+    }
+
+    await this.runRecordConnectRepository.deleteManyBy({
+      connectScope,
+      where: { evaluationExtractionRunId },
+      softDelete: false,
+    })
+
+    const isDeleted = await this.runConnectRepository.deleteOneById({
+      connectScope,
+      id: evaluationExtractionRunId,
+      softDelete: false,
+    })
+
+    if (!isDeleted) {
+      throw new NotFoundException(
+        `Evaluation extraction run with id ${evaluationExtractionRunId} not found`,
+      )
+    }
+  }
+
   private async createRunRecords({
     connectScope,
     run,

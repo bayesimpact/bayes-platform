@@ -10,6 +10,8 @@ import { useNavigate } from "react-router-dom"
 import { buildSince } from "@/common/utils/build-date"
 import type { EvaluationExtractionRun } from "@/eval/features/evaluation-extraction-runs/evaluation-extraction-runs.models"
 import { useEvaluationExtractionRunPath } from "@/eval/hooks/use-evaluation-extraction-run-path"
+import { AgentMetadataDialog } from "./AgentMetadataDialog"
+import { DeleteEvaluationExtractionRunButton } from "./DeleteEvaluationExtractionRunButton"
 import { RunStatusBadge } from "./RunStatusBadge"
 
 export function EvaluationExtractionRunHistory({ runs }: { runs: EvaluationExtractionRun[] }) {
@@ -36,31 +38,45 @@ export function EvaluationExtractionRunHistory({ runs }: { runs: EvaluationExtra
                 : null
 
             return (
-              <button
-                type="button"
+              <div
                 key={run.id}
-                className={`flex w-full items-center justify-between px-4 py-3 text-left hover:bg-muted/50 transition-colors ${index > 0 ? "border-t" : ""}`}
-                onClick={() => navigate(buildRunPath({ runId: run.id }))}
+                className={`flex w-full items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors ${index > 0 ? "border-t" : ""}`}
               >
-                <div className="flex items-center gap-3">
-                  <RunStatusBadge status={run.status} />
-                  <span className="text-sm text-muted-foreground">{buildSince(run.createdAt)}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  {matchRate !== null && (
-                    <span className="text-sm font-medium">
-                      {t("evaluationExtractionRun:history.matchRate", { matchRate })}
+                <button
+                  type="button"
+                  className="flex flex-1 items-center gap-3 text-left"
+                  onClick={() => navigate(buildRunPath({ runId: run.id }))}
+                >
+                  <div className="flex items-center gap-3">
+                    <RunStatusBadge status={run.status} />
+                    <span className="text-sm text-muted-foreground">
+                      {buildSince(run.createdAt)}
                     </span>
-                  )}
-                  {run.summary && (
-                    <span className="text-xs text-muted-foreground">
-                      {t("evaluationExtractionRun:history.recordCount", {
-                        count: run.summary.total,
-                      })}
-                    </span>
-                  )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {matchRate !== null && (
+                      <span className="text-sm font-medium">
+                        {t("evaluationExtractionRun:history.matchRate", { matchRate })}
+                      </span>
+                    )}
+                    {run.summary && (
+                      <span className="text-xs text-muted-foreground">
+                        {t("evaluationExtractionRun:history.recordCount", {
+                          count: run.summary.total,
+                        })}
+                      </span>
+                    )}
+                  </div>
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <AgentMetadataDialog agentId={run.agentId} />
+                  <DeleteEvaluationExtractionRunButton
+                    buttonProps={{ variant: "outline", size: "sm" }}
+                    runId={run.id}
+                  />
                 </div>
-              </button>
+              </div>
             )
           })}
         </div>

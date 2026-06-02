@@ -61,7 +61,15 @@
       "empty": "Aucune exécution d'évaluation",
       "description": "{{count}} exécutions",
       "matchRate": "{{matchRate}}% de correspondance",
-      "recordCount": "{{count}} enregistrements"
+      "recordCount": "{{count}} enregistrements",
+      "delete": {
+        "button": "Supprimer l'exécution",
+        "confirm": {
+          "title": "Supprimer l'exécution",
+          "description": "Cette action est irréversible. Tous les enregistrements de l'exécution seront définitivement supprimés.",
+          "submit": "Supprimer"
+        }
+      }
     },
     "agentMetadata": {
       "title": "Configuration de l'agent",

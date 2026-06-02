@@ -1,4 +1,4 @@
-import type { RequestPayload, ResponseData } from "../generic"
+import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
 import type {
   CreateEvaluationExtractionRunRequestDto,
@@ -48,5 +48,9 @@ export const EvaluationExtractionRunsRoutes = {
   streamRunStatus: defineRoute<EvaluationExtractionRunStatusChangedEventDto>({
     method: "get",
     path: `${prefix}/status/stream`,
+  }),
+  deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
+    method: "delete",
+    path: `${prefix}/:evaluationExtractionRunId`,
   }),
 }

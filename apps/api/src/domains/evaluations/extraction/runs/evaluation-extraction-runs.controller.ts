@@ -4,7 +4,18 @@ import {
   type EvaluationExtractionRunStatusChangedEventDto,
   EvaluationExtractionRunsRoutes,
 } from "@caseai-connect/api-contracts"
-import { Body, Controller, Get, Logger, Post, Query, Req, Sse, UseGuards } from "@nestjs/common"
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Logger,
+  Post,
+  Query,
+  Req,
+  Sse,
+  UseGuards,
+} from "@nestjs/common"
 import type { Observable } from "rxjs"
 import { filter, map } from "rxjs/operators"
 import type {
@@ -200,6 +211,20 @@ export class EvaluationExtractionRunsController {
         limit,
       },
     }
+  }
+
+  @Delete(EvaluationExtractionRunsRoutes.deleteOne.path)
+  @AddContext("evaluationExtractionRun")
+  @CheckPolicy((policy) => policy.canDelete())
+  @TrackActivity({ action: "evaluationExtractionRun.delete" })
+  async deleteOne(
+    @Req() request: EndpointRequestWithEvaluationExtractionRun,
+  ): Promise<typeof EvaluationExtractionRunsRoutes.deleteOne.response> {
+    await this.evaluationExtractionRunsService.deleteRun({
+      connectScope: getRequiredConnectScope(request),
+      evaluationExtractionRunId: request.evaluationExtractionRun.id,
+    })
+    return { data: { success: true } }
   }
 
   @CheckPolicy((policy) => policy.canList())

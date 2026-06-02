@@ -5,8 +5,10 @@ import { AlertCircleIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
+import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
+import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useMount } from "@/common/hooks/use-mount"
-import { useValue } from "@/common/hooks/use-value"
+import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
@@ -14,6 +16,7 @@ import { buildSince } from "@/common/utils/build-date"
 import { DocumentOpener } from "@/studio/features/documents/components/DocumentOpener"
 import { selectCurrentDatasetData } from "../features/evaluation-extraction-datasets/evaluation-extraction-datasets.selectors"
 import { AgentMetadataDialog } from "../features/evaluation-extraction-runs/components/AgentMetadataDialog"
+import { DeleteEvaluationExtractionRunButton } from "../features/evaluation-extraction-runs/components/DeleteEvaluationExtractionRunButton"
 import { EvaluationExtractionRunRecordsTable } from "../features/evaluation-extraction-runs/components/EvaluationExtractionRunResults"
 import { EvaluationExtractionRunSummary } from "../features/evaluation-extraction-runs/components/EvaluationExtractionRunSummary"
 import { RunStatusBadge } from "../features/evaluation-extraction-runs/components/RunStatusBadge"
@@ -24,6 +27,7 @@ import {
   selectIsRetrying,
 } from "../features/evaluation-extraction-runs/evaluation-extraction-runs.selectors"
 import { evaluationExtractionRunsActions } from "../features/evaluation-extraction-runs/evaluation-extraction-runs.slice"
+import { EvalRoutes } from "./helpers"
 
 export function EvaluationExtractionRunRoute() {
   const runId = useAppSelector(selectCurrentRunId)
@@ -43,13 +47,19 @@ export function EvaluationExtractionRunRoute() {
 function WithData() {
   const run = useValue(selectCurrentRunData)
   const dataset = useValue(selectCurrentDatasetData)
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { t } = useTranslation()
   const isCancelling = useAppSelector(selectIsCancelling)
   const isRetrying = useAppSelector(selectIsRetrying)
 
-  const handleBack = () => navigate(-1)
+  const handleBack = () =>
+    navigate(
+      EvalRoutes.extractionDataset.build({ organizationId, projectId, datasetId: dataset.id }),
+    )
+
   const canCancel = run.status === "pending" || run.status === "running"
   const canRetry = run.status === "failed"
   const handleCancel = () => {
@@ -94,6 +104,12 @@ function WithData() {
                 {t("evaluationExtractionRun:results.retry")}
               </Button>
             ) : null}
+
+            <DeleteEvaluationExtractionRunButton
+              buttonProps={{ variant: "secondary", size: "icon" }}
+              runId={run.id}
+              onDelete={handleBack}
+            />
           </>
         }
       />

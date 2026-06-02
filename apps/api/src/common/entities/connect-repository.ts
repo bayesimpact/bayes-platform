@@ -1,4 +1,4 @@
-import type { FindManyOptions, Repository, SelectQueryBuilder } from "typeorm"
+import type { FindManyOptions, FindOptionsWhere, Repository, SelectQueryBuilder } from "typeorm"
 import type { DeepPartial } from "typeorm/common/DeepPartial"
 import type { ConnectEntityBase } from "@/common/entities/connect-entity"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
@@ -92,13 +92,15 @@ export class ConnectRepository<T extends ConnectEntityBase> {
   public async deleteOneById({
     connectScope,
     id,
+    softDelete = true,
   }: {
     connectScope: RequiredConnectScope
     id: string
+    softDelete?: boolean
   }): Promise<boolean> {
     const query = this.repository
       .createQueryBuilder()
-      .softDelete()
+      [softDelete ? "softDelete" : "delete"]()
       .andWhere(`organization_id = :organizationId`, {
         organizationId: connectScope.organizationId,
       })
@@ -108,6 +110,23 @@ export class ConnectRepository<T extends ConnectEntityBase> {
       .andWhere(`id = :id`, { id })
     const res = await query.execute()
     return res?.affected === 1
+  }
+
+  public async deleteManyBy({
+    connectScope,
+    where,
+    softDelete = true,
+  }: {
+    connectScope: RequiredConnectScope
+    where: FindOptionsWhere<T>
+    softDelete?: boolean
+  }): Promise<number> {
+    const res = await this.repository[softDelete ? "softDelete" : "delete"]({
+      ...where,
+      organizationId: connectScope.organizationId,
+      projectId: connectScope.projectId,
+    } as FindOptionsWhere<T>)
+    return res.affected ?? 0
   }
 
   public async createAndSave(
