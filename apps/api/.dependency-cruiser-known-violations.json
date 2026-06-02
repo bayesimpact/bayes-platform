@@ -4396,6 +4396,15 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/me/me.controller.ts",
+    "to": "src/domains/users/users.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/organizations/provisioning/workspace-invitation.service.ts",
     "to": "src/domains/projects/memberships/project-memberships.service.ts",
     "rule": {

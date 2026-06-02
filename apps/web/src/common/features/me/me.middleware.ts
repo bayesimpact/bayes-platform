@@ -3,7 +3,7 @@ import { notificationsActions } from "@/common/features/notifications/notificati
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { logoutAuth0 } from "@/external/auth0Client"
 import { acceptInvitation } from "@/studio/features/invitations/invitations.thunks"
-import { acceptTerms, fetchMe, fetchPendingInvitations } from "./me.thunks"
+import { acceptTerms, fetchMe, fetchPendingInvitations, updateMe } from "./me.thunks"
 
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
@@ -36,6 +36,13 @@ listenerMiddleware.startListening({
         type: "error",
       }),
     )
+  },
+})
+
+listenerMiddleware.startListening({
+  actionCreator: updateMe.fulfilled,
+  effect: (_, listenerApi) => {
+    listenerApi.dispatch(notificationsActions.show({ title: "Profile updated", type: "success" }))
   },
 })
 

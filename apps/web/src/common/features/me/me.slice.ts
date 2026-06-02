@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import type { CurrentTerms, User } from "./me.models"
-import { fetchMe, fetchPendingInvitations } from "./me.thunks"
+import { fetchMe, fetchPendingInvitations, updateMe } from "./me.thunks"
 
 interface State {
   data: AsyncData<User>
@@ -40,6 +40,12 @@ const slice = createSlice({
         state.data.status = ADS.Error
         state.data.error = action.error.message || "Failed to fetch user data"
       })
+
+    builder.addCase(updateMe.fulfilled, (state, action) => {
+      if (ADS.isFulfilled(state.data)) {
+        state.data.value = action.payload
+      }
+    })
 
     builder
       .addCase(fetchPendingInvitations.pending, (state) => {

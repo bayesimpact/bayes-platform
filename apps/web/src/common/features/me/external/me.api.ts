@@ -1,7 +1,7 @@
-import { type MeResponseDto, MeRoutes } from "@caseai-connect/api-contracts"
+import { type MeResponseDto, MeRoutes, type UserDto } from "@caseai-connect/api-contracts"
 import { toOrganization } from "@/common/features/organizations/external/organizations.api"
 import { getAxiosInstance } from "@/external/axios"
-import type { Me } from "../me.models"
+import type { Me, User } from "../me.models"
 import type { IMeSpi } from "../me.spi"
 
 export default {
@@ -9,6 +9,14 @@ export default {
     const axios = getAxiosInstance()
     const response = await axios.get<typeof MeRoutes.getMe.response>(MeRoutes.getMe.getPath())
     return toMe(response.data.data)
+  },
+  updateMe: async ({ name }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.patch<typeof MeRoutes.patchMe.response>(
+      MeRoutes.patchMe.getPath(),
+      { payload: { name } } satisfies typeof MeRoutes.patchMe.request,
+    )
+    return toUser(response.data.data.user)
   },
   acceptTerms: async ({ aiUsagePolicyAccepted }) => {
     const axios = getAxiosInstance()
@@ -18,16 +26,18 @@ export default {
   },
 } satisfies IMeSpi
 
+const toUser = (dto: UserDto): User => ({
+  id: dto.id,
+  email: dto.email,
+  name: dto.name,
+  memberships: dto.memberships,
+  isBackofficeAuthorized: dto.isBackofficeAuthorized,
+  isTermsManagementAuthorized: dto.isTermsManagementAuthorized,
+  termsAccepted: dto.termsAccepted,
+})
+
 const toMe = (dto: MeResponseDto): Me => ({
-  user: {
-    id: dto.user.id,
-    email: dto.user.email,
-    name: dto.user.name,
-    memberships: dto.user.memberships,
-    isBackofficeAuthorized: dto.user.isBackofficeAuthorized,
-    isTermsManagementAuthorized: dto.user.isTermsManagementAuthorized,
-    termsAccepted: dto.user.termsAccepted,
-  },
+  user: toUser(dto.user),
   organizations: dto.organizations.map(toOrganization),
   currentTerms: dto.currentTerms,
 })
