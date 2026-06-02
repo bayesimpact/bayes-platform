@@ -81,17 +81,13 @@ describe("MeController (e2e)", () => {
       expectResponse(await patchMeSubject("New Name"), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
 
-    it("updates the user name and returns the updated user", async () => {
+    it("updates the user name and returns success", async () => {
       const { user } = await createContext()
 
       const response = await patchMeSubject("Updated Name")
 
       expectResponse(response, 200)
-      expect(response.body.data.user).toMatchObject({
-        id: user.id,
-        email: user.email,
-        name: "Updated Name",
-      })
+      expect(response.body.data).toEqual({ success: true })
 
       const updatedUser = await repositories.userRepository.findOne({ where: { id: user.id } })
       expect(updatedUser?.name).toBe("Updated Name")

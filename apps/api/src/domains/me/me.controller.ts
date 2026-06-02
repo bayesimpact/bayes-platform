@@ -43,17 +43,8 @@ export class MeController {
     @Body() body: typeof MeRoutes.patchMe.request,
   ): Promise<typeof MeRoutes.patchMe.response> {
     const { name } = body.payload
-    const [updatedUser, memberships, termsDocuments, latestAcceptance] = await Promise.all([
-      this.usersService.updateUser(request.user.id, name),
-      this.meService.getUserMemberships(request.user.id),
-      this.termsComplianceService.listTermsDocuments(),
-      this.termsComplianceService.getLatestAcceptanceForUser(request.user.id),
-    ])
-    return {
-      data: {
-        user: toUserDto({ user: updatedUser, memberships, termsDocuments, latestAcceptance }),
-      },
-    }
+    await this.usersService.updateUser(request.user.id, name)
+    return { data: { success: true } }
   }
 
   @Get(MeRoutes.getMe.path)

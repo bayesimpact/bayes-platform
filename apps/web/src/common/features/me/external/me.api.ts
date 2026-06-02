@@ -12,11 +12,9 @@ export default {
   },
   updateMe: async ({ name }) => {
     const axios = getAxiosInstance()
-    const response = await axios.patch<typeof MeRoutes.patchMe.response>(
-      MeRoutes.patchMe.getPath(),
-      { payload: { name } } satisfies typeof MeRoutes.patchMe.request,
-    )
-    return toUser(response.data.data.user)
+    await axios.patch<typeof MeRoutes.patchMe.response>(MeRoutes.patchMe.getPath(), {
+      payload: { name },
+    } satisfies typeof MeRoutes.patchMe.request)
   },
   acceptTerms: async ({ aiUsagePolicyAccepted }) => {
     const axios = getAxiosInstance()

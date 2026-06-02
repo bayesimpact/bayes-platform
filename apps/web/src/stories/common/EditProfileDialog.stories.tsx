@@ -30,7 +30,7 @@ const meta = {
       state: seed.me(user),
       services: {
         me: buildMockMeService({
-          updateMe: async ({ name }) => ({ ...user, name }),
+          updateMe: async () => {},
         }),
       },
     })),
@@ -53,7 +53,7 @@ export const LongName: Story = {
         state: seed.me(longNameUser),
         services: {
           me: buildMockMeService({
-            updateMe: async ({ name }) => ({ ...longNameUser, name }),
+            updateMe: async () => {},
           }),
         },
       }

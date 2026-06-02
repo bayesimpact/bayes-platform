@@ -63,7 +63,3 @@ export const updateMeSchema = z.object({
 })
 
 export type UpdateMeRequestDto = z.infer<typeof updateMeSchema>
-
-export type UpdateMeResponseDto = {
-  user: UserDto
-}

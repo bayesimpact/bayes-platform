@@ -42,6 +42,7 @@ listenerMiddleware.startListening({
 listenerMiddleware.startListening({
   actionCreator: updateMe.fulfilled,
   effect: (_, listenerApi) => {
+    listenerApi.dispatch(fetchMe())
     listenerApi.dispatch(notificationsActions.show({ title: "Profile updated", type: "success" }))
   },
 })
