@@ -13,6 +13,26 @@ import {
 
 export type AgentFormData = CreateAgentDto | UpdateAgentDto
 
+/**
+ * Wide form values type covering all possible fields from both create and update schemas.
+ * Used as the generic for useFormContext in tab components so they can access any field.
+ */
+export type AgentFormValues = {
+  name: string
+  locale: AgentLocale
+  defaultPrompt: string
+  greetingMessage?: string | null
+  model: AgentModel
+  temperature: number
+  outputJsonSchema?: Record<string, unknown>
+  documentsRagMode: DocumentsRagMode
+  projectAgentCategoryIds: string[]
+  tagsToAdd: string[]
+  tagsToRemove?: string[]
+  documentTagIds?: string[]
+  type?: "conversation" | "extraction" | "form"
+}
+
 export interface AgentFormBaseProps {
   defaultValues?: AgentFormData
   isLoading: boolean
