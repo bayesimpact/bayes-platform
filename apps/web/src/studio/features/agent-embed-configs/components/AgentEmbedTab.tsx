@@ -6,9 +6,10 @@ import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { CheckIcon, CopyIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { Agent } from "@/common/features/agents/agents.models"
+import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
 import { useMount } from "@/common/hooks/use-mount"
-import { ADS } from "@/common/store/async-data-status"
+import { useValue } from "@/common/hooks/use-value"
+import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import type { AgentEmbedConfig } from "../agent-embed-configs.models"
 import { selectAgentEmbedConfig } from "../agent-embed-configs.selectors"
@@ -39,18 +40,26 @@ const emptyFormState: EmbedFormState = {
   logoUrl: "",
   primaryColor: "",
 }
-
-export function AgentEmbedTab({ agent }: { agent: Agent }) {
-  const { t } = useTranslation()
-  const dispatch = useAppDispatch()
-  const configData = useAppSelector(selectAgentEmbedConfig)
+export function AgentEmbedTab() {
+  const config = useAppSelector(selectAgentEmbedConfig)
 
   useMount({ actions: agentEmbedConfigsActions })
 
+  return (
+    <AsyncRoute data={[config]}>
+      <WithData />
+    </AsyncRoute>
+  )
+}
+
+function WithData() {
+  const { t } = useTranslation()
+  const dispatch = useAppDispatch()
+  const agent = useValue(selectCurrentAgentData)
+  const config = useValue(selectAgentEmbedConfig)
+
   const [copied, setCopied] = useState(false)
   const [form, setForm] = useState<EmbedFormState>(emptyFormState)
-
-  const config = ADS.isFulfilled(configData) ? configData.value : null
 
   useEffect(() => {
     if (config) setForm(toFormState(config))
@@ -82,22 +91,6 @@ export function AgentEmbedTab({ agent }: { agent: Agent }) {
         logoUrl: form.logoUrl.trim() || null,
         primaryColor: form.primaryColor.trim() || null,
       }),
-    )
-  }
-
-  if (ADS.isLoading(configData) || ADS.isUninitialized(configData)) {
-    return (
-      <FieldGroup>
-        <p className="text-sm text-muted-foreground">{t("agent:embed.loading")}</p>
-      </FieldGroup>
-    )
-  }
-
-  if (ADS.isError(configData)) {
-    return (
-      <FieldGroup>
-        <p className="text-sm text-destructive">{t("agent:embed.loadError")}</p>
-      </FieldGroup>
     )
   }
 

@@ -23,7 +23,6 @@ import { GridItem } from "@/common/components/grid/Grid"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { Project } from "@/common/features/projects/projects.models"
 import { useAppDispatch } from "@/common/store/hooks"
-import { useDocumentTags } from "@/studio/features/document-tags/document-tags.helpers"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { createAgent } from "../agents.thunks"
 import type { AgentFormData } from "./agent-form.shared"
@@ -214,11 +213,7 @@ function AgentCreation({
             <SheetDescription>{sheetDescription}</SheetDescription>
           </SheetHeader>
           <div className="px-4 pb-4">
-            <CreateForm
-              agentType={selectedType}
-              projectAgentCategories={project.agentCategories}
-              onSuccess={handleSuccess}
-            />
+            <CreateForm agentType={selectedType} onSuccess={handleSuccess} />
           </div>
         </ScrollArea>
       </SheetContent>
@@ -228,15 +223,12 @@ function AgentCreation({
 
 function CreateForm({
   agentType,
-  projectAgentCategories,
   onSuccess,
 }: {
   agentType: Agent["type"]
-  projectAgentCategories: Project["agentCategories"]
   onSuccess: (agent: Agent) => void
 }) {
   const dispatch = useAppDispatch()
-  const { documentTags } = useDocumentTags()
 
   const handleCreate = async (fields: AgentFormData) => {
     await dispatch(
@@ -259,12 +251,5 @@ function CreateForm({
     )
   }
 
-  return (
-    <BaseAgentForm
-      agentType={agentType}
-      onSubmit={handleCreate}
-      documentTags={documentTags}
-      projectAgentCategories={projectAgentCategories}
-    />
-  )
+  return <BaseAgentForm agentType={agentType} onSubmit={handleCreate} />
 }
