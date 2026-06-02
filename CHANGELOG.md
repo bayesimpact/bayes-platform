@@ -23,6 +23,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Workspace name can be edited from the new Admin page instead of a dialog in the header
 - Agent categories management moved from the Backoffice to the workspace Admin page
 - New agents have all project categories pre-selected by default
+- Evaluation extraction run records are indexed by run and status, speeding up queries for large runs
 
 ### Fixed
 
