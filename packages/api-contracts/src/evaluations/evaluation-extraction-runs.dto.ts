@@ -68,6 +68,10 @@ export type CreateEvaluationExtractionRunRequestDto = {
   keyMapping: EvaluationExtractionRunKeyMappingEntryDto[]
 }
 
+export type ExecuteEvaluationExtractionRunRequestDto = {
+  recordLimit: number | null
+}
+
 // Paginated response
 export type PaginatedEvaluationExtractionRunRecordsDto = {
   records: EvaluationExtractionRunRecordDto[]

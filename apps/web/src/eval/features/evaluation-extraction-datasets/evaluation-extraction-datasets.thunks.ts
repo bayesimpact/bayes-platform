@@ -49,7 +49,10 @@ const listRecords = createAsyncThunk<
   const organizationId = getCurrentId({ state, name: "organizationId" })
   const projectId = getCurrentId({ state, name: "projectId" })
   const params = { organizationId, projectId }
-  return await services.evaluationExtractionDatasets.getRecords({ ...params, ...args })
+  return await services.evaluationExtractionDatasets.getRecords({
+    ...params,
+    ...args,
+  })
 })
 
 const getFileColumns = createAsyncThunk<
@@ -61,7 +64,10 @@ const getFileColumns = createAsyncThunk<
   const organizationId = getCurrentId({ state, name: "organizationId" })
   const projectId = getCurrentId({ state, name: "projectId" })
   const params = { organizationId, projectId }
-  return await services.evaluationExtractionDatasets.getFileColumns({ ...params, documentId })
+  return await services.evaluationExtractionDatasets.getFileColumns({
+    ...params,
+    documentId,
+  })
 })
 
 const createOne = createAsyncThunk<{ success: true }, { name: string }, ThunkConfig>(
@@ -71,7 +77,10 @@ const createOne = createAsyncThunk<{ success: true }, { name: string }, ThunkCon
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
     const params = { organizationId, projectId }
-    return await services.evaluationExtractionDatasets.createOne({ ...params, payload })
+    return await services.evaluationExtractionDatasets.createOne({
+      ...params,
+      payload,
+    })
   },
 )
 
@@ -92,7 +101,10 @@ const updateOne = createAsyncThunk<
     const projectId = getCurrentId({ state, name: "projectId" })
     const params = { organizationId, projectId, datasetId, documentId }
     const payload = { name, columns }
-    return await services.evaluationExtractionDatasets.updateOne({ ...params, payload })
+    return await services.evaluationExtractionDatasets.updateOne({
+      ...params,
+      payload,
+    })
   },
 )
 
@@ -120,7 +132,9 @@ const uploadFile = createAsyncThunk<void, { file: File }, ThunkConfig>(
             }),
           )
           dispatch(
-            evaluationExtractionDatasetsActions.setFileError({ error: { title, description } }),
+            evaluationExtractionDatasetsActions.setFileError({
+              error: { title, description },
+            }),
           )
         }
       },
@@ -142,11 +156,38 @@ const deleteFile = createAsyncThunk<void, { fileId: string }, ThunkConfig>(
   },
 )
 
+const renameOne = createAsyncThunk<
+  { success: true },
+  { datasetId: string; name: string },
+  ThunkConfig
+>("datasets/renameOne", async ({ datasetId, name }, { extra: { services }, getState }) => {
+  const state = getState()
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  const params = { organizationId, projectId, datasetId }
+  return await services.evaluationExtractionDatasets.renameOne({
+    ...params,
+    payload: { name },
+  })
+})
+
+const deleteOne = createAsyncThunk<void, { datasetId: string }, ThunkConfig>(
+  "datasets/deleteOne",
+  async ({ datasetId }, { extra: { services }, getState }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    await services.evaluationExtractionDatasets.deleteOne({ organizationId, projectId, datasetId })
+  },
+)
+
 export const evaluationExtractionDatasetsThunks = {
   listDatasets,
   listRecords,
   listFiles,
   createOne,
+  renameOne,
+  deleteOne,
   getFileColumns,
   uploadFile,
   updateOne,

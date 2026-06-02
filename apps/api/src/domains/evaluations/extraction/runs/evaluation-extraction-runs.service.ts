@@ -278,18 +278,23 @@ export class EvaluationExtractionRunsService {
   async executeRun({
     evaluationExtractionRun,
     connectScope,
+    recordLimit,
   }: {
     evaluationExtractionRun: EvaluationExtractionRun
     connectScope: RequiredConnectScope
+    recordLimit?: number | null
   }): Promise<void> {
     const dataset = await this.getDataset({
       id: evaluationExtractionRun.evaluationExtractionDatasetId,
       connectScope,
     })
 
-    const datasetRecords = await this.datasetRecordConnectRepository.find(connectScope, {
+    const allDatasetRecords = await this.datasetRecordConnectRepository.find(connectScope, {
       where: { evaluationExtractionDatasetId: dataset.id },
     })
+
+    const datasetRecords =
+      recordLimit != null ? allDatasetRecords.slice(0, recordLimit) : allDatasetRecords
 
     const batches = batchArray(datasetRecords, BATCH_SIZE)
 
@@ -430,6 +435,38 @@ export class EvaluationExtractionRunsService {
     } catch (error) {
       throw new UnprocessableEntityException(
         `Failed to remove pending jobs for the run ${evaluationExtractionRunId}. Error: ${error instanceof Error ? error.message : "No error message"}`,
+      )
+    }
+  }
+
+  async deleteRun({
+    connectScope,
+    evaluationExtractionRunId,
+  }: {
+    connectScope: RequiredConnectScope
+    evaluationExtractionRunId: string
+  }): Promise<void> {
+    try {
+      await this.removePendingJobsForRun({ connectScope, evaluationExtractionRunId })
+    } catch {
+      // Best-effort: proceed with delete even if job cleanup fails
+    }
+
+    await this.runRecordConnectRepository.deleteManyBy({
+      connectScope,
+      where: { evaluationExtractionRunId },
+      softDelete: false,
+    })
+
+    const isDeleted = await this.runConnectRepository.deleteOneById({
+      connectScope,
+      id: evaluationExtractionRunId,
+      softDelete: false,
+    })
+
+    if (!isDeleted) {
+      throw new NotFoundException(
+        `Evaluation extraction run with id ${evaluationExtractionRunId} not found`,
       )
     }
   }

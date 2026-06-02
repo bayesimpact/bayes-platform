@@ -19,14 +19,11 @@ export class EvaluationExtractionDatasetContextResolver implements ContextResolv
 
   async resolve(request: ResolvableRequest): Promise<void> {
     const requestWithParams = request as ResolvableRequest & {
-      params: { evaluationExtractionDatasetId?: string }
+      params: { datasetId?: string }
     }
-    const evaluationExtractionDatasetId = requestWithParams.params?.evaluationExtractionDatasetId
+    const evaluationExtractionDatasetId = requestWithParams.params?.datasetId
 
-    if (
-      !evaluationExtractionDatasetId ||
-      evaluationExtractionDatasetId === ":evaluationExtractionDatasetId"
-    )
+    if (!evaluationExtractionDatasetId || evaluationExtractionDatasetId === ":datasetId")
       throw new NotFoundException()
 
     const requestWithProject = request as EndpointRequestWithProject

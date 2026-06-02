@@ -1,4 +1,4 @@
-import { AgentModel, EvaluationExtractionRunsRoutes } from "@caseai-connect/api-contracts"
+import { EvaluationExtractionRunsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
@@ -15,9 +15,12 @@ import { createOrganizationWithProject } from "@/domains/organizations/organizat
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { EvaluationsModule } from "../../../evaluations.module"
+import { EvaluationExtractionRun } from "../evaluation-extraction-run.entity"
+import { EvaluationExtractionRunRecord } from "../records/evaluation-extraction-run-record.entity"
+import { evaluationExtractionRunRecordFactory } from "../records/evaluation-extraction-run-record.factory"
 import { createRunWithCsvDataset } from "./csv-dataset.helpers"
 
-describe("EvaluationExtractionRuns - executeOne", () => {
+describe("EvaluationExtractionRuns - deleteOne", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupTransactionalTestDatabase>>
@@ -53,23 +56,15 @@ describe("EvaluationExtractionRuns - executeOne", () => {
     await app.close()
   })
 
-  const createContext = async ({ agentOutputKey = "answer" }: { agentOutputKey?: string } = {}) => {
+  const createContext = async () => {
     const { user, organization, project } = await createOrganizationWithProject(repositories)
     organizationId = organization.id
     projectId = project.id
     auth0Id = user.auth0Id
 
-    const agent = agentFactory.transient({ organization, project }).build({
-      type: "extraction",
-      outputJsonSchema: {
-        type: "object",
-        properties: {
-          answer: { type: "string" },
-        },
-      },
-      model: AgentModel._MockGenerateStructuredOutput,
-      defaultPrompt: "Extract the answer from the input",
-    })
+    const agent = agentFactory
+      .transient({ organization, project })
+      .build({ type: "extraction", outputJsonSchema: { type: "object" } })
     await repositories.agentRepository.save(agent)
 
     const { dataset, datasetRecords, run } = await createRunWithCsvDataset({
@@ -77,58 +72,66 @@ describe("EvaluationExtractionRuns - executeOne", () => {
       organization,
       project,
       agent,
-      keyMapping: [{ agentOutputKey, datasetColumnId: "col-answer", mode: "scored" }],
+      keyMapping: [{ agentOutputKey: "answer", datasetColumnId: "col-answer", mode: "scored" }],
     })
     evaluationExtractionRunId = run.id
-
-    return { organization, project, agent, dataset, datasetRecords, run }
+    return { organization, project, run, dataset, datasetRecords, agent }
   }
 
-  const subject = async (recordLimit: number | null) =>
+  const subject = async () =>
     request({
-      route: EvaluationExtractionRunsRoutes.executeOne,
+      route: EvaluationExtractionRunsRoutes.deleteOne,
       pathParams: removeNullish({ organizationId, projectId, evaluationExtractionRunId }),
       token: accessToken,
-      request: { payload: { recordLimit } },
     })
 
-  it("creates run records, enqueues per-record jobs, and returns the run as pending", async () => {
+  it("deletes the run and returns success", async () => {
     await createContext()
 
-    const res = await subject(null)
+    const res = await subject()
 
-    expectResponse(res, 201)
-    expect(res.body.data.status).toBe("pending")
-    expect(res.body.data.summary).toBeNull()
+    expectResponse(res, 200)
+    expect(res.body.data.success).toBe(true)
 
-    await expectActivityCreated("evaluationExtractionRun.execute")
+    const run = await setup
+      .getRepository(EvaluationExtractionRun)
+      .findOneBy({ id: evaluationExtractionRunId })
+    expect(run).toBeNull()
+
+    await expectActivityCreated("evaluationExtractionRun.delete")
   })
 
-  it("accepts a recordLimit in the request body and returns the run as pending", async () => {
-    await createContext()
+  it("cascades delete to run records", async () => {
+    const { organization, project, run, datasetRecords } = await createContext()
 
-    const res = await subject(2)
+    const runRecord = evaluationExtractionRunRecordFactory
+      .transient({
+        organization,
+        project,
+        evaluationExtractionRun: run,
+        evaluationExtractionDatasetRecord: datasetRecords[0],
+      })
+      .build()
+    await setup.getRepository(EvaluationExtractionRunRecord).save(runRecord)
 
-    expectResponse(res, 201)
-    expect(res.body.data.status).toBe("pending")
-    expect(res.body.data.summary).toBeNull()
+    const recordsBefore = await setup
+      .getRepository(EvaluationExtractionRunRecord)
+      .findBy({ evaluationExtractionRunId })
+    expect(recordsBefore.length).toBeGreaterThan(0)
+
+    await subject()
+
+    const recordsAfter = await setup
+      .getRepository(EvaluationExtractionRunRecord)
+      .findBy({ evaluationExtractionRunId })
+    expect(recordsAfter).toHaveLength(0)
   })
 
-  it("accepts recordLimit: null (entire dataset) and returns the run as pending", async () => {
-    await createContext()
-
-    const res = await subject(null)
-
-    expectResponse(res, 201)
-    expect(res.body.data.status).toBe("pending")
-    expect(res.body.data.summary).toBeNull()
-  })
-
-  it("should return 404 for a non-existent run", async () => {
+  it("returns 404 for a non-existent run", async () => {
     await createContext()
     evaluationExtractionRunId = "00000000-0000-0000-0000-000000000000"
 
-    const res = await subject(null)
+    const res = await subject()
 
     expectResponse(res, 404)
   })

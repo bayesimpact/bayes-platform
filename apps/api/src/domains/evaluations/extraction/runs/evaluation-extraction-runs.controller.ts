@@ -4,7 +4,18 @@ import {
   type EvaluationExtractionRunStatusChangedEventDto,
   EvaluationExtractionRunsRoutes,
 } from "@caseai-connect/api-contracts"
-import { Body, Controller, Get, Post, Query, Req, Sse, UseGuards } from "@nestjs/common"
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Logger,
+  Post,
+  Query,
+  Req,
+  Sse,
+  UseGuards,
+} from "@nestjs/common"
 import type { Observable } from "rxjs"
 import { filter, map } from "rxjs/operators"
 import type {
@@ -22,6 +33,8 @@ import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
 import type { EvaluationExtractionRun } from "./evaluation-extraction-run.entity"
 import { EvaluationExtractionRunGuard } from "./evaluation-extraction-run.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { EvaluationExtractionRunCsvExportService } from "./evaluation-extraction-run-csv-export.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationExtractionRunStatusNotifierService } from "./evaluation-extraction-run-status-notifier.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationExtractionRunStatusStreamService } from "./evaluation-extraction-run-status-stream.service"
@@ -33,8 +46,11 @@ import type { EvaluationExtractionRunRecord } from "./records/evaluation-extract
 @RequireContext("organization", "project")
 @Controller()
 export class EvaluationExtractionRunsController {
+  private readonly logger = new Logger(EvaluationExtractionRunsController.name)
+
   constructor(
     private readonly evaluationExtractionRunsService: EvaluationExtractionRunsService,
+    private readonly csvExportService: EvaluationExtractionRunCsvExportService,
     private readonly runStatusStreamService: EvaluationExtractionRunStatusStreamService,
     private readonly statusNotifierService: EvaluationExtractionRunStatusNotifierService,
   ) {}
@@ -63,11 +79,16 @@ export class EvaluationExtractionRunsController {
   @TrackActivity({ action: "evaluationExtractionRun.execute" })
   async executeOne(
     @Req() request: EndpointRequestWithEvaluationExtractionRun,
+    @Body() { payload }: typeof EvaluationExtractionRunsRoutes.executeOne.request,
   ): Promise<typeof EvaluationExtractionRunsRoutes.executeOne.response> {
     const connectScope = getRequiredConnectScope(request)
     const { evaluationExtractionRun } = request
 
-    this.evaluationExtractionRunsService.executeRun({ evaluationExtractionRun, connectScope })
+    this.evaluationExtractionRunsService.executeRun({
+      evaluationExtractionRun,
+      connectScope,
+      recordLimit: payload?.recordLimit ?? null,
+    })
 
     return { data: toEvaluationExtractionRunDto(evaluationExtractionRun) }
   }
@@ -106,6 +127,15 @@ export class EvaluationExtractionRunsController {
       evaluationExtractionRun: request.evaluationExtractionRun,
       connectScope,
     })
+
+    try {
+      await this.csvExportService.generateAndStoreDocument(run)
+    } catch (error) {
+      this.logger.error(
+        `Failed to generate CSV export for cancelled run ${run.id}: ${(error as Error).message}`,
+        (error as Error).stack,
+      )
+    }
 
     await this.statusNotifierService.notifyRunStatusChanged({
       evaluationExtractionRunId: run.id,
@@ -181,6 +211,20 @@ export class EvaluationExtractionRunsController {
         limit,
       },
     }
+  }
+
+  @Delete(EvaluationExtractionRunsRoutes.deleteOne.path)
+  @AddContext("evaluationExtractionRun")
+  @CheckPolicy((policy) => policy.canDelete())
+  @TrackActivity({ action: "evaluationExtractionRun.delete" })
+  async deleteOne(
+    @Req() request: EndpointRequestWithEvaluationExtractionRun,
+  ): Promise<typeof EvaluationExtractionRunsRoutes.deleteOne.response> {
+    await this.evaluationExtractionRunsService.deleteRun({
+      connectScope: getRequiredConnectScope(request),
+      evaluationExtractionRunId: request.evaluationExtractionRun.id,
+    })
+    return { data: { success: true } }
   }
 
   @CheckPolicy((policy) => policy.canList())

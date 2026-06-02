@@ -95,9 +95,11 @@ export function GridItem({
       )}
 
       <div className="py-2 px-1 w-full">
-        <h2 className="text-xl font-medium capitalize flex items-center gap-2">{title}</h2>
+        <h2 className="text-xl font-medium capitalize-first flex items-center gap-2">{title}</h2>
 
-        <h3 className="text-base text-muted-foreground leading-snug mt-1 mb-4">{description}</h3>
+        <h3 className="text-base text-muted-foreground leading-snug mt-1 mb-4 capitalize-first">
+          {description}
+        </h3>
 
         {"action" in props ? (
           props.action

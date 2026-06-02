@@ -1,9 +1,10 @@
-import type { RequestPayload, ResponseData } from "../generic"
+import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
 import type {
   CreateEvaluationExtractionRunRequestDto,
   EvaluationExtractionRunDto,
   EvaluationExtractionRunStatusChangedEventDto,
+  ExecuteEvaluationExtractionRunRequestDto,
   PaginatedEvaluationExtractionRunRecordsDto,
 } from "./evaluation-extraction-runs.dto"
 
@@ -17,7 +18,10 @@ export const EvaluationExtractionRunsRoutes = {
     method: "post",
     path: prefix,
   }),
-  executeOne: defineRoute<ResponseData<EvaluationExtractionRunDto>>({
+  executeOne: defineRoute<
+    ResponseData<EvaluationExtractionRunDto>,
+    RequestPayload<ExecuteEvaluationExtractionRunRequestDto>
+  >({
     method: "post",
     path: `${prefix}/:evaluationExtractionRunId/execute`,
   }),
@@ -44,5 +48,9 @@ export const EvaluationExtractionRunsRoutes = {
   streamRunStatus: defineRoute<EvaluationExtractionRunStatusChangedEventDto>({
     method: "get",
     path: `${prefix}/status/stream`,
+  }),
+  deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
+    method: "delete",
+    path: `${prefix}/:evaluationExtractionRunId`,
   }),
 }
