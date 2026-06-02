@@ -16,7 +16,8 @@ import { useTranslation } from "react-i18next"
 import type { z } from "zod"
 import { selectMe } from "@/common/features/me/me.selectors"
 import { updateMe } from "@/common/features/me/me.thunks"
-import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import { useValue } from "@/common/hooks/use-value"
+import { useAppDispatch } from "@/common/store/hooks"
 
 type FormValues = z.infer<typeof updateMeSchema>
 
@@ -28,7 +29,7 @@ type Props = {
 export function EditProfileDialog({ open, onClose }: Props) {
   const { t } = useTranslation("user")
   const dispatch = useAppDispatch()
-  const user = useAppSelector(selectMe).value
+  const user = useValue(selectMe)
 
   const {
     register,
