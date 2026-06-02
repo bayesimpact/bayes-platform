@@ -11,25 +11,27 @@ import {
 import { XIcon } from "lucide-react"
 import { Controller, useFormContext } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import type { Agent } from "@/common/features/agents/agents.models"
-import { getTagNameById } from "@/studio/features/document-tags/document-tags.helpers"
-import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
+import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
+import { ADS } from "@/common/store/async-data-status"
+import { useAppSelector } from "@/common/store/hooks"
+import {
+  getTagNameById,
+  useDocumentTags,
+} from "@/studio/features/document-tags/document-tags.helpers"
 import { DocumentTagPicker } from "@/studio/features/documents/components/DocumentTagPicker"
 import type { AgentFormValues } from "./agent-form.shared"
 
-export function AgentSourcesTab({
-  documentTags,
-  editableAgent,
-}: {
-  documentTags: DocumentTag[]
-  editableAgent?: Agent
-}) {
+export function AgentSourcesTab() {
   const { t } = useTranslation()
   const {
     control,
     watch,
     formState: { errors },
   } = useFormContext<AgentFormValues>()
+
+  const { documentTags } = useDocumentTags()
+  const agentData = useAppSelector(selectCurrentAgentData)
+  const editableAgent = ADS.isFulfilled(agentData) ? agentData.value : undefined
 
   const documentsRagMode = watch("documentsRagMode")
 

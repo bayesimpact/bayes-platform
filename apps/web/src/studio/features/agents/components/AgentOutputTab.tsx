@@ -3,15 +3,16 @@ import { Field, FieldGroup, FieldLabel } from "@caseai-connect/ui/shad/field"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { Controller, type FieldError, useFormContext } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import type { Agent } from "@/common/features/agents/agents.models"
-import type { AgentFormValues } from "./agent-form.shared"
+import { type AgentFormValues, useAgentType } from "./agent-form.shared"
 
-export function AgentOutputTab({ agentType }: { agentType: Agent["type"] }) {
+export function AgentOutputTab() {
   const { t } = useTranslation()
   const {
     control,
     formState: { errors },
   } = useFormContext<AgentFormValues>()
+
+  const agentType = useAgentType()
   // outputJsonSchema is an object field; cast to FieldError to access .message from top-level refine errors
   const outputJsonSchemaError = errors.outputJsonSchema as FieldError | undefined
 

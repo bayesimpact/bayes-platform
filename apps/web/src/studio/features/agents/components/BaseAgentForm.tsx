@@ -9,12 +9,10 @@ import { Controller, type FieldErrors, FormProvider, useForm } from "react-hook-
 import { useTranslation } from "react-i18next"
 import type { z } from "zod"
 import type { Agent } from "@/common/features/agents/agents.models"
-import type { ProjectAgentCategory } from "@/common/features/projects/projects.models"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useValue } from "@/common/hooks/use-value"
 import { AgentEmbedTab } from "@/studio/features/agent-embed-configs/components/AgentEmbedTab"
-import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import { AgentCategoriesTab } from "./AgentCategoriesTab"
 import { AgentGeneralTab } from "./AgentGeneralTab"
 import { AgentModelTab } from "./AgentModelTab"
@@ -38,15 +36,11 @@ export function BaseAgentForm({
   editableAgent,
   onSubmit,
   agentType,
-  documentTags,
-  projectAgentCategories,
   availableAgents = [],
   subAgents = EMPTY_SUB_AGENTS,
   onSubAgentsSubmit,
   defaultActiveTab = "general",
 }: {
-  documentTags: DocumentTag[]
-  projectAgentCategories: ProjectAgentCategory[]
   agentType: Agent["type"]
   editableAgent?: Agent
   availableAgents?: Agent[]
@@ -61,8 +55,7 @@ export function BaseAgentForm({
 
   const hasOutputJsonSchema = agentType !== "conversation"
   const hasSources = agentType === "conversation"
-  const hasGreetingMessage = agentType === "conversation" || agentType === "form"
-  const hasAgentCategories = agentType === "conversation" && projectAgentCategories.length > 0
+  const hasAgentCategories = agentType === "conversation" && project.agentCategories.length > 0
 
   const agentSchema = editableAgent ? updateAgentSchema : createAgentSchema
   type FormValues = z.infer<typeof agentSchema>
@@ -79,7 +72,7 @@ export function BaseAgentForm({
     const language = i18n.language.startsWith("fr") ? AgentLocale.FR : AgentLocale.EN
     return {
       ...getDefaultFormValues({ agentType, language }),
-      projectAgentCategoryIds: projectAgentCategories.map((category) => category.id),
+      projectAgentCategoryIds: project.agentCategories.map((category) => category.id),
     }
   })()
 
@@ -149,31 +142,28 @@ export function BaseAgentForm({
               </TabsList>
 
               <TabsContent value="general">
-                <AgentGeneralTab hasGreetingMessage={hasGreetingMessage} />
+                <AgentGeneralTab />
               </TabsContent>
 
               <TabsContent value="model">
-                <AgentModelTab agentType={agentType} hasFeature={hasFeature} />
+                <AgentModelTab />
               </TabsContent>
 
               {hasOutputJsonSchema && (
                 <TabsContent value="output">
-                  <AgentOutputTab agentType={agentType} />
+                  <AgentOutputTab />
                 </TabsContent>
               )}
 
               {hasSources && (
                 <TabsContent value="sources">
-                  <AgentSourcesTab documentTags={documentTags} editableAgent={editableAgent} />
+                  <AgentSourcesTab />
                 </TabsContent>
               )}
 
               {hasAgentCategories && (
                 <TabsContent value="categories">
-                  <AgentCategoriesTab
-                    projectAgentCategories={projectAgentCategories}
-                    editableAgent={editableAgent}
-                  />
+                  <AgentCategoriesTab />
                 </TabsContent>
               )}
 

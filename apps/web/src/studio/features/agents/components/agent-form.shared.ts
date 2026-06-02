@@ -5,7 +5,11 @@ import {
   DocumentsRagMode,
   type UpdateAgentDto,
 } from "@caseai-connect/api-contracts"
+import { useFormContext } from "react-hook-form"
 import type { Agent } from "@/common/features/agents/agents.models"
+import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
+import { ADS } from "@/common/store/async-data-status"
+import { useAppSelector } from "@/common/store/hooks"
 import {
   agentDefaultOutputJsonSchemaMap,
   agentDefaultPromptMap,
@@ -77,4 +81,14 @@ export function isValidJsonObject(rawJson: string): boolean {
   } catch {
     return false
   }
+}
+
+/**
+ * Returns the agent type from the form context (create mode, where "type" is part of the schema)
+ * or from the Redux store (edit mode, where the current agent is already loaded).
+ */
+export function useAgentType(): Agent["type"] | undefined {
+  const { watch } = useFormContext<AgentFormValues>()
+  const agentData = useAppSelector(selectCurrentAgentData)
+  return watch("type") ?? (ADS.isFulfilled(agentData) ? agentData.value.type : undefined)
 }

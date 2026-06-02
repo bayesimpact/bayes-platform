@@ -11,15 +11,18 @@ import {
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { Controller, useFormContext } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import type { AgentFormValues } from "./agent-form.shared"
+import { type AgentFormValues, useAgentType } from "./agent-form.shared"
 
-export function AgentGeneralTab({ hasGreetingMessage }: { hasGreetingMessage: boolean }) {
+export function AgentGeneralTab() {
   const { t } = useTranslation()
   const {
     register,
     control,
     formState: { errors },
   } = useFormContext<AgentFormValues>()
+
+  const agentType = useAgentType()
+  const hasGreetingMessage = agentType === "conversation" || agentType === "form"
 
   return (
     <FieldGroup>

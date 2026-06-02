@@ -3,19 +3,22 @@ import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@caseai-connect/ui/shad/field"
 import { Controller, useFormContext } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import type { Agent } from "@/common/features/agents/agents.models"
-import type { ProjectAgentCategory } from "@/common/features/projects/projects.models"
+import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
+import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
+import { useValue } from "@/common/hooks/use-value"
+import { ADS } from "@/common/store/async-data-status"
+import { useAppSelector } from "@/common/store/hooks"
 import type { AgentFormValues } from "./agent-form.shared"
 
-export function AgentCategoriesTab({
-  projectAgentCategories,
-  editableAgent,
-}: {
-  projectAgentCategories: ProjectAgentCategory[]
-  editableAgent?: Agent
-}) {
+export function AgentCategoriesTab() {
   const { t } = useTranslation()
   const { control } = useFormContext<AgentFormValues>()
+
+  const project = useValue(selectCurrentProjectData)
+  const projectAgentCategories = project.agentCategories
+
+  const agentData = useAppSelector(selectCurrentAgentData)
+  const editableAgent = ADS.isFulfilled(agentData) ? agentData.value : undefined
 
   return (
     <Controller

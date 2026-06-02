@@ -10,13 +10,13 @@ import {
 } from "@caseai-connect/ui/shad/select"
 import { Controller, useFormContext } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import type { Agent } from "@/common/features/agents/agents.models"
-import type { HasFeature } from "@/common/hooks/use-feature-flags"
+import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
+import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
+import { useValue } from "@/common/hooks/use-value"
 import type { AgentFormValues } from "./agent-form.shared"
 
-function extractModelListFromAgentType(
-  _agentType: Agent["type"],
-  hasFeature: HasFeature,
+function extractModelList(
+  hasFeature: ReturnType<typeof useFeatureFlags>["hasFeature"],
 ): [string, AgentModel][] {
   const defaultModels = Object.entries(AgentModel).filter(
     ([_key, value]) => AgentModelToAgentProvider[value] === AgentProvider.Vertex,
@@ -36,13 +36,7 @@ function extractModelListFromAgentType(
   return [...defaultModels, ...medGemmaModels, ...gemmaModels]
 }
 
-export function AgentModelTab({
-  agentType,
-  hasFeature,
-}: {
-  agentType: Agent["type"]
-  hasFeature: HasFeature
-}) {
+export function AgentModelTab() {
   const { t } = useTranslation()
   const {
     register,
@@ -50,7 +44,9 @@ export function AgentModelTab({
     formState: { errors },
   } = useFormContext<AgentFormValues>()
 
-  const models = extractModelListFromAgentType(agentType, hasFeature)
+  const project = useValue(selectCurrentProjectData)
+  const { hasFeature } = useFeatureFlags(project)
+  const models = extractModelList(hasFeature)
 
   return (
     <FieldGroup>

@@ -8,12 +8,9 @@ import {
 } from "@caseai-connect/ui/shad/sheet"
 import { useTranslation } from "react-i18next"
 import type { Agent } from "@/common/features/agents/agents.models"
-import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
-import { useValue } from "@/common/hooks/use-value.ts"
 import { useAppDispatch } from "@/common/store/hooks"
 import type { AgentSubAgent } from "@/studio/features/agent-sub-agents/agent-sub-agents.models"
 import { agentSubAgentsActions } from "@/studio/features/agent-sub-agents/agent-sub-agents.slice"
-import { useDocumentTags } from "@/studio/features/document-tags/document-tags.helpers"
 import { updateAgent } from "../agents.thunks"
 import type { AgentSubAgentFormValue } from "./AgentSubAgentsTab"
 import type { AgentFormData } from "./agent-form.shared"
@@ -89,8 +86,6 @@ function UpdateForm({
   orchestration?: AgentEditorOrchestration
 }) {
   const dispatch = useAppDispatch()
-  const currentProject = useValue(selectCurrentProjectData)
-  const { documentTags } = useDocumentTags()
 
   const handleSubmit = (fields: AgentFormData) => {
     if (!("documentTagIds" in fields)) {
@@ -138,8 +133,6 @@ function UpdateForm({
       agentType={agent.type}
       editableAgent={agent}
       onSubmit={handleSubmit}
-      documentTags={documentTags}
-      projectAgentCategories={currentProject.agentCategories}
       availableAgents={orchestration?.agents}
       subAgents={orchestration?.subAgents.map(toSubAgentFormValue)}
       onSubAgentsSubmit={orchestration ? handleSubAgentsSubmit : undefined}
