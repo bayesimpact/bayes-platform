@@ -6,9 +6,21 @@ import {
   EvaluationExtractionDatasetsRoutes,
   type PaginatedEvaluationExtractionDatasetRecordsDto,
 } from "@caseai-connect/api-contracts"
-import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common"
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from "@nestjs/common"
 import type {
   EndpointRequestWithDocument,
+  EndpointRequestWithEvaluationExtractionDataset,
   EndpointRequestWithProject,
 } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
@@ -183,6 +195,20 @@ export class EvaluationExtractionDatasetsController {
       name,
     })
 
+    return { data: { success: true } }
+  }
+
+  @Delete(EvaluationExtractionDatasetsRoutes.deleteOne.path)
+  @AddContext("evaluationExtractionDataset")
+  @CheckPolicy((policy) => policy.canDelete())
+  @TrackActivity({ action: "evaluationExtractionDataset.delete" })
+  async deleteOne(
+    @Req() request: EndpointRequestWithEvaluationExtractionDataset,
+  ): Promise<typeof EvaluationExtractionDatasetsRoutes.deleteOne.response> {
+    await this.evaluationExtractionDatasetsService.deleteDataset({
+      connectScope: getRequiredConnectScope(request),
+      datasetId: request.evaluationExtractionDataset.id,
+    })
     return { data: { success: true } }
   }
 }

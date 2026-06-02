@@ -104,6 +104,23 @@ function registerListeners() {
     },
   })
 
+  listenerMiddleware.startListening({
+    actionCreator: evaluationExtractionDatasetsActions.deleteOne.fulfilled,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(evaluationExtractionDatasetsActions.listDatasets())
+      listenerApi.dispatch(notificationsActions.show({ title: "Dataset deleted", type: "success" }))
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: evaluationExtractionDatasetsActions.deleteOne.rejected,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({ title: "Failed to delete dataset", type: "error" }),
+      )
+    },
+  })
+
   registerFileListeners()
 }
 

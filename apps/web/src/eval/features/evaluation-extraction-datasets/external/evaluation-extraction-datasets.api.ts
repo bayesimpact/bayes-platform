@@ -83,6 +83,12 @@ export default {
     >(EvaluationExtractionDatasetsRoutes.getFileColumns.getPath(params))
     return response.data.data.map(toEvaluationExtractionDatasetFileColumn)
   },
+  deleteOne: async ({ datasetId, ...params }) => {
+    const axios = getAxiosInstance()
+    await axios.delete(
+      EvaluationExtractionDatasetsRoutes.deleteOne.getPath({ ...params, datasetId }),
+    )
+  },
 } satisfies IEvaluationExtractionDatasetsSpi
 
 function toEvaluationExtractionDatasetFile(

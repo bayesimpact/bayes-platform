@@ -44,4 +44,8 @@ export const EvaluationExtractionDatasetsRoutes = {
     method: "patch",
     path: `${prefix}/:datasetId/rename`,
   }),
+  deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
+    method: "delete",
+    path: `${prefix}/:datasetId`,
+  }),
 }

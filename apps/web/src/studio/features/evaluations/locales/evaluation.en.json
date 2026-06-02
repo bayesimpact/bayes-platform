@@ -62,6 +62,14 @@
         "title": "Rename dataset",
         "submit": "Rename"
       },
+      "delete": {
+        "button": "Delete dataset",
+        "confirm": {
+          "title": "Delete dataset",
+          "description": "This action cannot be undone. All records, files and runs of this dataset will be permanently deleted.",
+          "submit": "Delete"
+        }
+      },
       "props": {
         "name": "Dataset Name",
         "createdAt": "Created At",

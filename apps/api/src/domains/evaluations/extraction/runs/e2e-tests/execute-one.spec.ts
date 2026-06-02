@@ -84,20 +84,18 @@ describe("EvaluationExtractionRuns - executeOne", () => {
     return { organization, project, agent, dataset, datasetRecords, run }
   }
 
-  const subject = async (recordLimit?: number | null) =>
+  const subject = async (recordLimit: number | null) =>
     request({
       route: EvaluationExtractionRunsRoutes.executeOne,
       pathParams: removeNullish({ organizationId, projectId, evaluationExtractionRunId }),
       token: accessToken,
-      ...(recordLimit !== undefined && {
-        request: { payload: { recordLimit } },
-      }),
+      request: { payload: { recordLimit } },
     })
 
   it("creates run records, enqueues per-record jobs, and returns the run as pending", async () => {
     await createContext()
 
-    const res = await subject()
+    const res = await subject(null)
 
     expectResponse(res, 201)
     expect(res.body.data.status).toBe("pending")
@@ -130,7 +128,7 @@ describe("EvaluationExtractionRuns - executeOne", () => {
     await createContext()
     evaluationExtractionRunId = "00000000-0000-0000-0000-000000000000"
 
-    const res = await subject()
+    const res = await subject(null)
 
     expectResponse(res, 404)
   })

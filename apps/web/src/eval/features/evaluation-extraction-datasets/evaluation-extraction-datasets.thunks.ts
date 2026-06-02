@@ -171,12 +171,23 @@ const renameOne = createAsyncThunk<
   })
 })
 
+const deleteOne = createAsyncThunk<void, { datasetId: string }, ThunkConfig>(
+  "datasets/deleteOne",
+  async ({ datasetId }, { extra: { services }, getState }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    await services.evaluationExtractionDatasets.deleteOne({ organizationId, projectId, datasetId })
+  },
+)
+
 export const evaluationExtractionDatasetsThunks = {
   listDatasets,
   listRecords,
   listFiles,
   createOne,
   renameOne,
+  deleteOne,
   getFileColumns,
   uploadFile,
   updateOne,

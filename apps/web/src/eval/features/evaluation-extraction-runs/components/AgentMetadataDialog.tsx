@@ -17,7 +17,16 @@ import { useAbility } from "@/common/hooks/use-ability"
 import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { StudioRoutes } from "@/studio/routes/helpers"
 
-export function AgentMetadataDialog({ agentId }: { agentId: string }) {
+export function AgentMetadataDialog({
+  agentId,
+  buttonProps = {
+    variant: "outline",
+    size: "sm",
+  },
+}: {
+  agentId: string
+  buttonProps?: React.ComponentProps<typeof Button>
+}) {
   const { t } = useTranslation()
   const agentsData = useValue(selectAgentsData)
   const organizationId = useCurrentId(selectCurrentOrganizationId)
@@ -34,7 +43,7 @@ export function AgentMetadataDialog({ agentId }: { agentId: string }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button {...buttonProps}>
           <InfoIcon className="size-4" />
           {t("evaluationExtractionRun:agentMetadata.viewAgent")}
         </Button>

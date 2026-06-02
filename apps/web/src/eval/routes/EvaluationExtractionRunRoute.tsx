@@ -92,7 +92,6 @@ function WithData() {
         onBack={handleBack}
         action={
           <>
-            <AgentMetadataDialog agentId={run.agentId} />
             {canCancel ? (
               <Button variant="outline" onClick={handleCancel} disabled={isCancelling}>
                 {t("evaluationExtractionRun:results.cancel")}
@@ -105,6 +104,10 @@ function WithData() {
               </Button>
             ) : null}
 
+            <AgentMetadataDialog
+              buttonProps={{ variant: "outline", size: "sm" }}
+              agentId={run.agentId}
+            />
             <DeleteEvaluationExtractionRunButton
               buttonProps={{ variant: "secondary", size: "icon" }}
               runId={run.id}

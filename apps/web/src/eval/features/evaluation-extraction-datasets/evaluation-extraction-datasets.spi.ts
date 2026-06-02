@@ -38,4 +38,5 @@ export interface IEvaluationExtractionDatasetsSpi {
   getFileColumns(
     params: BaseParams & { documentId: string },
   ): Promise<EvaluationExtractionDatasetFileColumn[]>
+  deleteOne(params: BaseParams & { datasetId: string }): Promise<void>
 }

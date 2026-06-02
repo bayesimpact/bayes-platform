@@ -13,6 +13,8 @@ import {
   FILE_STORAGE_SERVICE,
   type IFileStorage,
 } from "@/domains/documents/storage/file-storage.interface"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { EvaluationExtractionRunsService } from "../runs/evaluation-extraction-runs.service"
 import {
   type DatasetSchemaColumn,
   EvaluationExtractionDataset,
@@ -46,6 +48,7 @@ export class EvaluationExtractionDatasetsService {
     private readonly documentsService: DocumentsService,
     @Inject(FILE_STORAGE_SERVICE)
     private readonly fileStorageService: IFileStorage,
+    private readonly evaluationExtractionRunsService: EvaluationExtractionRunsService,
   ) {
     this.datasetConnectRepository = new ConnectRepository(
       evaluationExtractionDatasetRepository,
@@ -336,20 +339,27 @@ export class EvaluationExtractionDatasetsService {
     connectScope: RequiredConnectScope
     datasetId: string
   }): Promise<void> {
-    // Soft-delete all records belonging to this dataset
-    const records = await this.recordConnectRepository.find(connectScope, {
-      where: { evaluationExtractionDatasetId: datasetId },
-    })
-    for (const record of records) {
-      await this.recordConnectRepository.deleteOneById({
-        connectScope,
-        id: record.id,
-      })
-    }
+    const runs = await this.evaluationExtractionRunsService.listRuns({ connectScope })
+    await Promise.all(
+      runs
+        .filter((run) => run.evaluationExtractionDatasetId === datasetId)
+        .map((run) =>
+          this.evaluationExtractionRunsService.deleteRun({
+            connectScope,
+            evaluationExtractionRunId: run.id,
+          }),
+        ),
+    )
 
+    await this.evaluationExtractionDatasetDocumentRepository.delete({
+      evaluationExtractionDatasetId: datasetId,
+    })
+
+    // Dataset records are removed via the ON DELETE CASCADE FK when the dataset row is deleted.
     const isDeleted = await this.datasetConnectRepository.deleteOneById({
       connectScope,
       id: datasetId,
+      softDelete: false,
     })
 
     if (!isDeleted) {

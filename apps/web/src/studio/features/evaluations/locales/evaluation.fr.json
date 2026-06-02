@@ -62,6 +62,14 @@
         "title": "Renommer le dataset",
         "submit": "Renommer"
       },
+      "delete": {
+        "button": "Supprimer le dataset",
+        "confirm": {
+          "title": "Supprimer le dataset",
+          "description": "Cette action est irréversible. Tous les enregistrements, fichiers et exécutions de ce dataset seront définitivement supprimés.",
+          "submit": "Supprimer"
+        }
+      },
       "props": {
         "name": "Nom du dataset",
         "createdAt": "Créé le",

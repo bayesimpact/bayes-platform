@@ -14,6 +14,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Evaluation extraction datasets can now be renamed after creation via a dialog
 - Evaluation extraction run detail page now has a "View Agent" button showing the agent's model, temperature, language, document search mode, system prompt, and output schema
 - Evaluation extraction runs can now be deleted from the run history
+- Evaluation extraction datasets can now be deleted from the dataset list
 
 ### Changed
 - Evaluation extraction run CSV results are now available for download even when the run is cancelled
