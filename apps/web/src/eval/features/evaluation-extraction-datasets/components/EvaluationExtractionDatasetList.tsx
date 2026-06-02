@@ -54,7 +54,7 @@ export function EvaluationExtractionDatasetList({
 function Item({ dataset, index }: { dataset: EvaluationExtractionDataset; index: number }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const date = buildSince(dataset.createdAt)
+  const date = buildSince(dataset.updatedAt)
   const { buildEvaluationExtractionDatasetPath } = useEvaluationExtractionDatasetPath()
 
   const handleClick = () => {

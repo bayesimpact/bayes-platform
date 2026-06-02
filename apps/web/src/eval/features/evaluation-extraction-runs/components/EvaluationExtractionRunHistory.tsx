@@ -83,7 +83,7 @@ function RunItem({
       >
         <div className="flex items-center gap-3">
           <RunStatusBadge status={run.status} />
-          <span className="text-sm text-muted-foreground">{buildSince(run.createdAt)}</span>
+          <span className="text-sm text-muted-foreground">{buildSince(run.updatedAt)}</span>
         </div>
         <div className="flex items-center gap-3">
           {matchRate !== null && (
