@@ -9,7 +9,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@caseai-connect/ui/shad/dialog"
+import { Input } from "@caseai-connect/ui/shad/input"
 import { Label } from "@caseai-connect/ui/shad/label"
+import { RadioGroup, RadioGroupItem } from "@caseai-connect/ui/shad/radio-group"
 import {
   Select,
   SelectContent,
@@ -53,6 +55,8 @@ export function RunEvaluationExtractionDialog({
   const [open, setOpen] = useState(false)
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
   const [keyMapping, setKeyMapping] = useState<KeyMappingEntry[]>([])
+  const [runScope, setRunScope] = useState<"all" | "limited">("all")
+  const [limitedCount, setLimitedCount] = useState(1)
 
   const extractionAgents = useMemo(() => {
     if (!ADS.isFulfilled(agentsData)) return []
@@ -126,11 +130,23 @@ export function RunEvaluationExtractionDialog({
     )
   }, [])
 
+  const handleLimitedCountChange = useCallback(
+    (value: string) => {
+      const parsed = Number.parseInt(value, 10)
+      if (!Number.isNaN(parsed)) {
+        setLimitedCount(Math.min(Math.max(1, parsed), dataset.recordCount))
+      }
+    },
+    [dataset.recordCount],
+  )
+
   const isValid = useMemo(() => {
     if (!selectedAgentId) return false
     if (keyMapping.length === 0) return false
+    if (runScope === "limited" && (limitedCount < 1 || limitedCount > dataset.recordCount))
+      return false
     return keyMapping.every((entry) => entry.mode === "fyi" || entry.datasetColumnId !== "")
-  }, [selectedAgentId, keyMapping])
+  }, [selectedAgentId, keyMapping, runScope, limitedCount, dataset.recordCount])
 
   const handleRun = async () => {
     if (!selectedAgentId || !isValid) return
@@ -145,6 +161,7 @@ export function RunEvaluationExtractionDialog({
         evaluationExtractionDatasetId: dataset.id,
         agentId: selectedAgentId,
         keyMapping: validMapping,
+        recordLimit: runScope === "limited" ? limitedCount : null,
       }),
     ).unwrap()
 
@@ -190,6 +207,14 @@ export function RunEvaluationExtractionDialog({
               {t("evaluationExtractionRun:keyMapping.noOutputSchema")}
             </p>
           )}
+
+          <RunScopeSelector
+            recordCount={dataset.recordCount}
+            runScope={runScope}
+            limitedCount={limitedCount}
+            onRunScopeChange={setRunScope}
+            onLimitedCountChange={handleLimitedCountChange}
+          />
         </div>
 
         <DialogFooter>
@@ -228,6 +253,56 @@ function AgentSelector({
           ))}
         </SelectContent>
       </Select>
+    </div>
+  )
+}
+
+function RunScopeSelector({
+  recordCount,
+  runScope,
+  limitedCount,
+  onRunScopeChange,
+  onLimitedCountChange,
+}: {
+  recordCount: number
+  runScope: "all" | "limited"
+  limitedCount: number
+  onRunScopeChange: (scope: "all" | "limited") => void
+  onLimitedCountChange: (value: string) => void
+}) {
+  const { t } = useTranslation()
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Label>{t("evaluationExtractionRun:scope.title")}</Label>
+      <RadioGroup
+        value={runScope}
+        onValueChange={(value) => onRunScopeChange(value as "all" | "limited")}
+        className="flex flex-col gap-2"
+      >
+        <div className="flex items-center gap-2">
+          <RadioGroupItem value="all" id="scope-all" />
+          <Label htmlFor="scope-all" className="cursor-pointer font-normal">
+            {t("evaluationExtractionRun:scope.all", { count: recordCount })}
+          </Label>
+        </div>
+        <div className="flex items-center gap-2">
+          <RadioGroupItem value="limited" id="scope-limited" />
+          <Label htmlFor="scope-limited" className="cursor-pointer font-normal">
+            {t("evaluationExtractionRun:scope.limited")}
+          </Label>
+          {runScope === "limited" && (
+            <Input
+              type="number"
+              min={1}
+              max={recordCount}
+              value={limitedCount}
+              onChange={(event) => onLimitedCountChange(event.target.value)}
+              className="w-24"
+            />
+          )}
+        </div>
+      </RadioGroup>
     </div>
   )
 }

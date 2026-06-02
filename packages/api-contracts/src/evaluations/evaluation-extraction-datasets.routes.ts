@@ -40,4 +40,8 @@ export const EvaluationExtractionDatasetsRoutes = {
     method: "get",
     path: `${prefix}/file/:documentId/columns`,
   }),
+  renameOne: defineRoute<ResponseData<SuccessResponseDTO>, RequestPayload<{ name: string }>>({
+    method: "patch",
+    path: `${prefix}/:datasetId/rename`,
+  }),
 }

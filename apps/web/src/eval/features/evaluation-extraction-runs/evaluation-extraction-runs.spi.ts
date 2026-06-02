@@ -18,7 +18,7 @@ export interface IEvaluationExtractionRunsSpi {
     },
   ): Promise<EvaluationExtractionRun>
   executeOne(
-    params: BaseParams & { evaluationExtractionRunId: string },
+    params: BaseParams & { evaluationExtractionRunId: string; recordLimit: number | null },
   ): Promise<EvaluationExtractionRun>
   retryOne(
     params: BaseParams & { evaluationExtractionRunId: string },

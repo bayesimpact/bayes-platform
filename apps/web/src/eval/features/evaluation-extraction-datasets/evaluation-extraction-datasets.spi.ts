@@ -24,6 +24,9 @@ export interface IEvaluationExtractionDatasetsSpi {
     },
   ): Promise<PaginatedEvaluationExtractionDatasetRecords>
   createOne(params: BaseParams & { payload: { name: string } }): Promise<SuccessResponseDTO>
+  renameOne(
+    params: BaseParams & { datasetId: string } & { payload: { name: string } },
+  ): Promise<SuccessResponseDTO>
   updateOne(
     params: BaseParams & { datasetId: string; documentId: string } & {
       payload: {

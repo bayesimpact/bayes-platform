@@ -7,6 +7,11 @@
     "selectAgentDescription": "Choisissez l'agent d'extraction à évaluer sur ce dataset.",
     "agent": "Agent",
     "agentPlaceholder": "Sélectionner un agent",
+    "scope": {
+      "title": "Enregistrements à exécuter",
+      "all": "Exécuter le dataset entier ({{count}} enregistrements)",
+      "limited": "Exécuter un sous-ensemble d'enregistrements"
+    },
     "keyMapping": {
       "title": "Mapping des clés",
       "description": "Associez les champs de sortie de l'agent aux colonnes du dataset pour comparaison.",
@@ -57,6 +62,17 @@
       "description": "{{count}} exécutions",
       "matchRate": "{{matchRate}}% de correspondance",
       "recordCount": "{{count}} enregistrements"
+    },
+    "agentMetadata": {
+      "title": "Configuration de l'agent",
+      "viewAgent": "Voir l'agent",
+      "notFound": "Agent introuvable",
+      "model": "Modèle",
+      "temperature": "Température",
+      "locale": "Langue",
+      "documentsRagMode": "Mode de recherche documentaire",
+      "prompt": "Prompt système",
+      "outputSchema": "Schéma de sortie"
     }
   }
 }

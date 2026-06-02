@@ -278,18 +278,23 @@ export class EvaluationExtractionRunsService {
   async executeRun({
     evaluationExtractionRun,
     connectScope,
+    recordLimit,
   }: {
     evaluationExtractionRun: EvaluationExtractionRun
     connectScope: RequiredConnectScope
+    recordLimit?: number | null
   }): Promise<void> {
     const dataset = await this.getDataset({
       id: evaluationExtractionRun.evaluationExtractionDatasetId,
       connectScope,
     })
 
-    const datasetRecords = await this.datasetRecordConnectRepository.find(connectScope, {
+    const allDatasetRecords = await this.datasetRecordConnectRepository.find(connectScope, {
       where: { evaluationExtractionDatasetId: dataset.id },
     })
+
+    const datasetRecords =
+      recordLimit != null ? allDatasetRecords.slice(0, recordLimit) : allDatasetRecords
 
     const batches = batchArray(datasetRecords, BATCH_SIZE)
 

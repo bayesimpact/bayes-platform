@@ -7,6 +7,11 @@
     "selectAgentDescription": "Choose which extraction agent to evaluate against this dataset.",
     "agent": "Agent",
     "agentPlaceholder": "Select an agent",
+    "scope": {
+      "title": "Records to run",
+      "all": "Run entire dataset ({{count}} records)",
+      "limited": "Run a subset of records"
+    },
     "keyMapping": {
       "title": "Key Mapping",
       "description": "Map agent output fields to dataset columns for comparison.",
@@ -57,6 +62,18 @@
       "description": "{{count}} runs",
       "matchRate": "{{matchRate}}% match",
       "recordCount": "{{count}} records"
+    },
+    "agentMetadata": {
+      "title": "Agent Configuration",
+      "viewAgent": "View Agent",
+      "openInStudio": "Open in Studio",
+      "notFound": "Agent not found",
+      "model": "Model",
+      "temperature": "Temperature",
+      "locale": "Language",
+      "documentsRagMode": "Document search",
+      "prompt": "System prompt",
+      "outputSchema": "Output schema"
     }
   }
 }

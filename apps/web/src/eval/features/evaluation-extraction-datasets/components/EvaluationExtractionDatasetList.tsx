@@ -6,6 +6,7 @@ import type { EvaluationExtractionDataset } from "@/eval/features/evaluation-ext
 import { useEvaluationExtractionDatasetPath } from "@/eval/hooks/use-evaluation-extraction-dataset-path"
 import { EmptyEvaluationExtractionDataset } from "./EmptyEvaluationExtractionDataset"
 import { EvaluationExtractionDatasetCreator } from "./EvaluationExtractionDatasetCreator"
+import { RenameEvaluationExtractionDatasetDialog } from "./RenameEvaluationExtractionDatasetDialog"
 
 export function EvaluationExtractionDatasetList({
   datasets,
@@ -53,6 +54,7 @@ function Item({ dataset, index }: { dataset: EvaluationExtractionDataset; index:
     const path = buildEvaluationExtractionDatasetPath({ datasetId: dataset.id })
     navigate(path)
   }
+
   return (
     <GridItem
       badge={t("evaluation:dataset.dataset")}
@@ -60,6 +62,7 @@ function Item({ dataset, index }: { dataset: EvaluationExtractionDataset; index:
       description={date}
       index={index}
       onClick={handleClick}
+      topAction={<RenameEvaluationExtractionDatasetDialog dataset={dataset} />}
     />
   )
 }

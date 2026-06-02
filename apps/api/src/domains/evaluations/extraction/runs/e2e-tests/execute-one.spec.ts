@@ -84,11 +84,14 @@ describe("EvaluationExtractionRuns - executeOne", () => {
     return { organization, project, agent, dataset, datasetRecords, run }
   }
 
-  const subject = async () =>
+  const subject = async (recordLimit?: number | null) =>
     request({
       route: EvaluationExtractionRunsRoutes.executeOne,
       pathParams: removeNullish({ organizationId, projectId, evaluationExtractionRunId }),
       token: accessToken,
+      ...(recordLimit !== undefined && {
+        request: { payload: { recordLimit } },
+      }),
     })
 
   it("creates run records, enqueues per-record jobs, and returns the run as pending", async () => {
@@ -101,6 +104,26 @@ describe("EvaluationExtractionRuns - executeOne", () => {
     expect(res.body.data.summary).toBeNull()
 
     await expectActivityCreated("evaluationExtractionRun.execute")
+  })
+
+  it("accepts a recordLimit in the request body and returns the run as pending", async () => {
+    await createContext()
+
+    const res = await subject(2)
+
+    expectResponse(res, 201)
+    expect(res.body.data.status).toBe("pending")
+    expect(res.body.data.summary).toBeNull()
+  })
+
+  it("accepts recordLimit: null (entire dataset) and returns the run as pending", async () => {
+    await createContext()
+
+    const res = await subject(null)
+
+    expectResponse(res, 201)
+    expect(res.body.data.status).toBe("pending")
+    expect(res.body.data.summary).toBeNull()
   })
 
   it("should return 404 for a non-existent run", async () => {

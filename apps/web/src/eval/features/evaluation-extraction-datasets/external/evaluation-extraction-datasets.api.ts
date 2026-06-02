@@ -31,7 +31,10 @@ export default {
     if (sortOrder) queryParams.sortOrder = sortOrder
 
     const response = await axios.get<typeof EvaluationExtractionDatasetsRoutes.getRecords.response>(
-      EvaluationExtractionDatasetsRoutes.getRecords.getPath({ ...params, datasetId }),
+      EvaluationExtractionDatasetsRoutes.getRecords.getPath({
+        ...params,
+        datasetId,
+      }),
       {
         params: queryParams,
       },
@@ -49,8 +52,19 @@ export default {
     const axios = getAxiosInstance()
     const response = await axios.post<typeof EvaluationExtractionDatasetsRoutes.createOne.response>(
       EvaluationExtractionDatasetsRoutes.createOne.getPath(params),
-      { payload } satisfies typeof EvaluationExtractionDatasetsRoutes.createOne.request,
+      {
+        payload,
+      } satisfies typeof EvaluationExtractionDatasetsRoutes.createOne.request,
     )
+    return response.data.data
+  },
+  renameOne: async ({ payload, ...params }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.patch<
+      typeof EvaluationExtractionDatasetsRoutes.renameOne.response
+    >(EvaluationExtractionDatasetsRoutes.renameOne.getPath(params), {
+      payload,
+    } satisfies typeof EvaluationExtractionDatasetsRoutes.renameOne.request)
     return response.data.data
   },
   updateOne: async ({ payload, ...params }) => {

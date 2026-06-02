@@ -58,6 +58,10 @@
         "title": "Initialiser le dataset  {{datasetName}}",
         "description": "Configurez les colonnes et les rôles du dataset pour préparer l'évaluation."
       },
+      "rename": {
+        "title": "Renommer le dataset",
+        "submit": "Renommer"
+      },
       "props": {
         "name": "Nom du dataset",
         "createdAt": "Créé le",

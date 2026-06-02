@@ -13,6 +13,7 @@ import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
 import { DocumentOpener } from "@/studio/features/documents/components/DocumentOpener"
 import { selectCurrentDatasetData } from "../features/evaluation-extraction-datasets/evaluation-extraction-datasets.selectors"
+import { AgentMetadataDialog } from "../features/evaluation-extraction-runs/components/AgentMetadataDialog"
 import { EvaluationExtractionRunRecordsTable } from "../features/evaluation-extraction-runs/components/EvaluationExtractionRunResults"
 import { EvaluationExtractionRunSummary } from "../features/evaluation-extraction-runs/components/EvaluationExtractionRunSummary"
 import { RunStatusBadge } from "../features/evaluation-extraction-runs/components/RunStatusBadge"
@@ -80,17 +81,20 @@ function WithData() {
         }
         onBack={handleBack}
         action={
-          canCancel ? (
-            <Button variant="outline" onClick={handleCancel} disabled={isCancelling}>
-              {t("evaluationExtractionRun:results.cancel")}
-            </Button>
-          ) : run.csvExportDocumentId ? (
-            <DocumentOpener documentId={run.csvExportDocumentId} />
-          ) : canRetry ? (
-            <Button variant="outline" onClick={handleRetry} disabled={isRetrying}>
-              {t("evaluationExtractionRun:results.retry")}
-            </Button>
-          ) : null
+          <>
+            <AgentMetadataDialog agentId={run.agentId} />
+            {canCancel ? (
+              <Button variant="outline" onClick={handleCancel} disabled={isCancelling}>
+                {t("evaluationExtractionRun:results.cancel")}
+              </Button>
+            ) : run.csvExportDocumentId ? (
+              <DocumentOpener documentId={run.csvExportDocumentId} />
+            ) : canRetry ? (
+              <Button variant="outline" onClick={handleRetry} disabled={isRetrying}>
+                {t("evaluationExtractionRun:results.retry")}
+              </Button>
+            ) : null}
+          </>
         }
       />
       <div className="p-6 flex flex-col gap-6">

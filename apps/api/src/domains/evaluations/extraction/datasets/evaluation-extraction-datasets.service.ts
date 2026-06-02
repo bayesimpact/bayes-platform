@@ -79,7 +79,10 @@ export class EvaluationExtractionDatasetsService {
       skipEmptyLines: boolean
     }
   }): Promise<EvaluationExtractionDatasetFileColumn[]> {
-    const document = await this.documentsService.findById({ connectScope, documentId })
+    const document = await this.documentsService.findById({
+      connectScope,
+      documentId,
+    })
     if (!document) {
       throw new NotFoundException(`Document with id ${documentId} not found`)
     }
@@ -220,7 +223,10 @@ export class EvaluationExtractionDatasetsService {
       throw new NotFoundException(`Evaluation dataset with id ${datasetId} not found`)
     }
 
-    const document = await this.documentsService.findById({ connectScope, documentId })
+    const document = await this.documentsService.findById({
+      connectScope,
+      documentId,
+    })
     if (!document) {
       throw new NotFoundException(`Document with id ${documentId} not found`)
     }
@@ -266,7 +272,10 @@ export class EvaluationExtractionDatasetsService {
       throw new NotFoundException(`Document with id ${documentId} not found`)
     }
 
-    const rows = await this.parseCsvRows({ schemaMapping: dataset.schemaMapping, document })
+    const rows = await this.parseCsvRows({
+      schemaMapping: dataset.schemaMapping,
+      document,
+    })
 
     const records: EvaluationExtractionDatasetRecord[] = []
     for (const row of rows) {
@@ -294,6 +303,30 @@ export class EvaluationExtractionDatasetsService {
       }
     }
     return schemaMapping
+  }
+
+  async renameDataset({
+    connectScope,
+    datasetId,
+    name,
+  }: {
+    connectScope: RequiredConnectScope
+    datasetId: string
+    name: string
+  }): Promise<EvaluationExtractionDataset> {
+    if (!name.trim()) {
+      throw new UnprocessableEntityException("Dataset name is required")
+    }
+
+    const dataset = await this.datasetConnectRepository.getOneById(connectScope, datasetId)
+    if (!dataset) {
+      throw new NotFoundException(`Evaluation dataset with id ${datasetId} not found`)
+    }
+
+    dataset.name = name
+    await this.datasetConnectRepository.saveOne(dataset)
+
+    return dataset
   }
 
   async deleteDataset({

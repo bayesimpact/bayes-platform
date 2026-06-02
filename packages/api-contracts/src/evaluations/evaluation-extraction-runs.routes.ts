@@ -4,6 +4,7 @@ import type {
   CreateEvaluationExtractionRunRequestDto,
   EvaluationExtractionRunDto,
   EvaluationExtractionRunStatusChangedEventDto,
+  ExecuteEvaluationExtractionRunRequestDto,
   PaginatedEvaluationExtractionRunRecordsDto,
 } from "./evaluation-extraction-runs.dto"
 
@@ -17,7 +18,10 @@ export const EvaluationExtractionRunsRoutes = {
     method: "post",
     path: prefix,
   }),
-  executeOne: defineRoute<ResponseData<EvaluationExtractionRunDto>>({
+  executeOne: defineRoute<
+    ResponseData<EvaluationExtractionRunDto>,
+    RequestPayload<ExecuteEvaluationExtractionRunRequestDto>
+  >({
     method: "post",
     path: `${prefix}/:evaluationExtractionRunId/execute`,
   }),

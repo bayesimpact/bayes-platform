@@ -23,6 +23,7 @@ interface State {
   fileColumns: AsyncData<EvaluationExtractionDatasetFileColumn[]>
   uploader: UploaderState
   isUpdatingDataset: boolean
+  isRenamingDataset: boolean
 }
 
 const initialState: State = {
@@ -37,6 +38,7 @@ const initialState: State = {
     errors: null,
   },
   isUpdatingDataset: false,
+  isRenamingDataset: false,
 }
 
 const slice = createSlice({
@@ -157,6 +159,17 @@ const slice = createSlice({
       })
       .addCase(evaluationExtractionDatasetsThunks.updateOne.rejected, (state) => {
         state.isUpdatingDataset = false
+      })
+
+    builder
+      .addCase(evaluationExtractionDatasetsThunks.renameOne.pending, (state) => {
+        state.isRenamingDataset = true
+      })
+      .addCase(evaluationExtractionDatasetsThunks.renameOne.fulfilled, (state) => {
+        state.isRenamingDataset = false
+      })
+      .addCase(evaluationExtractionDatasetsThunks.renameOne.rejected, (state) => {
+        state.isRenamingDataset = false
       })
   },
 })

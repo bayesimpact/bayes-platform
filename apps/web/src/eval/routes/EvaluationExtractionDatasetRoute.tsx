@@ -9,6 +9,7 @@ import { useAppSelector } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
 import { EvaluationExtractionDatasetInitializer } from "../features/evaluation-extraction-datasets/components/EvaluationExtractionDatasetInitializer"
 import { EvaluationExtractionDatasetRecordList } from "../features/evaluation-extraction-datasets/components/EvaluationExtractionDatasetRecordList"
+import { RenameEvaluationExtractionDatasetDialog } from "../features/evaluation-extraction-datasets/components/RenameEvaluationExtractionDatasetDialog"
 import {
   selectCurrentDatasetData,
   selectCurrentDatasetId,
@@ -52,7 +53,16 @@ function WithData() {
         title={title}
         description={description}
         onBack={handleBack}
-        action={!isDatasetEmpty ? <RunEvaluationExtractionDialog dataset={dataset} /> : undefined}
+        action={
+          <>
+            {!isDatasetEmpty ? <RunEvaluationExtractionDialog dataset={dataset} /> : undefined}
+
+            <RenameEvaluationExtractionDatasetDialog
+              dataset={dataset}
+              buttonProps={{ variant: "outline", size: "icon" }}
+            />
+          </>
+        }
       />
 
       <div className="p-6">
