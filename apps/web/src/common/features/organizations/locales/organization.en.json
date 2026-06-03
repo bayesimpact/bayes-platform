@@ -21,6 +21,13 @@
     "list": {
       "title": "Welcome, {{name}}!",
       "description": "Select an organization."
+    },
+    "editDialog": {
+      "title": "Edit organization",
+      "buttonLabel": "Edit",
+      "namePlaceholder": "Enter organization name",
+      "cancel": "Cancel",
+      "save": "Save"
     }
   }
 }

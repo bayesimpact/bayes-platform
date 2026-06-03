@@ -66,7 +66,7 @@ export { InvitationsRoutes } from "./invitations/invitations.routes"
 export * from "./me/me.dto"
 export { MeRoutes } from "./me/me.routes"
 // Organizations
-export type * from "./organizations/organizations.dto"
+export * from "./organizations/organizations.dto"
 export { OrganizationsRoutes } from "./organizations/organizations.routes"
 // Project Agent Categories
 export type * from "./project-agent-categories/project-agent-categories.dto"

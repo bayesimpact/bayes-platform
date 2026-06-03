@@ -8,6 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- Organization owners and admins can now rename their organization directly from the onboarding page
 - Workspace administration page (general settings + agent categories management)
 - Manage agent categories per workspace directly from the Studio (add / delete)
 - Evaluation extraction runs can now be scoped to a subset of dataset records: choose to run against the entire dataset or a specific number of records (1 to N)

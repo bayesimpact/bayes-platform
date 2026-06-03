@@ -13,6 +13,12 @@ export default {
     )
     return toOrganization(response.data.data)
   },
+  updateOne: async (params, payload) => {
+    const axios = getAxiosInstance()
+    await axios.patch(OrganizationsRoutes.updateOrganization.getPath(params), {
+      payload,
+    } satisfies typeof OrganizationsRoutes.updateOrganization.request)
+  },
 } satisfies IOrganizationsSpi
 
 export const toOrganization = (dto: OrganizationDto): Organization => ({
