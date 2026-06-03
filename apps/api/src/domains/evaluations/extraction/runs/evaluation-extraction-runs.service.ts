@@ -5,11 +5,9 @@ import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "@/domains/agents/agent.entity"
 import { EvaluationExtractionDataset } from "../datasets/evaluation-extraction-dataset.entity"
-import { EvaluationExtractionDatasetRecord } from "../datasets/records/evaluation-extraction-dataset-record.entity"
 import {
   EvaluationExtractionRun,
   type EvaluationExtractionRunKeyMapping,
-  type EvaluationExtractionRunSummary,
 } from "./evaluation-extraction-run.entity"
 import {
   EVALUATION_EXTRACTION_RUN_BATCH_SERVICE,
@@ -24,7 +22,6 @@ export class EvaluationExtractionRunsService {
   private readonly runConnectRepository: ConnectRepository<EvaluationExtractionRun>
   private readonly runRecordConnectRepository: ConnectRepository<EvaluationExtractionRunRecord>
   private readonly datasetConnectRepository: ConnectRepository<EvaluationExtractionDataset>
-  private readonly datasetRecordConnectRepository: ConnectRepository<EvaluationExtractionDatasetRecord>
   private readonly agentConnectRepository: ConnectRepository<Agent>
 
   constructor(
@@ -34,8 +31,6 @@ export class EvaluationExtractionRunsService {
     evaluationExtractionRunRecordRepository: Repository<EvaluationExtractionRunRecord>,
     @InjectRepository(EvaluationExtractionDataset)
     evaluationExtractionDatasetRepository: Repository<EvaluationExtractionDataset>,
-    @InjectRepository(EvaluationExtractionDatasetRecord)
-    evaluationExtractionDatasetRecordRepository: Repository<EvaluationExtractionDatasetRecord>,
     @InjectRepository(Agent)
     agentRepository: Repository<Agent>,
     @Inject(EVALUATION_EXTRACTION_RUN_BATCH_SERVICE)
@@ -52,10 +47,6 @@ export class EvaluationExtractionRunsService {
     this.datasetConnectRepository = new ConnectRepository(
       evaluationExtractionDatasetRepository,
       "evaluationExtractionDataset",
-    )
-    this.datasetRecordConnectRepository = new ConnectRepository(
-      evaluationExtractionDatasetRecordRepository,
-      "evaluationExtractionDatasetRecord",
     )
     this.agentConnectRepository = new ConnectRepository(agentRepository, "agent")
   }
@@ -275,7 +266,7 @@ export class EvaluationExtractionRunsService {
     return { records, total }
   }
 
-  async executeRun({
+  async enqueueExecuteRun({
     evaluationExtractionRun,
     connectScope,
     recordLimit,
@@ -284,67 +275,12 @@ export class EvaluationExtractionRunsService {
     connectScope: RequiredConnectScope
     recordLimit?: number | null
   }): Promise<void> {
-    const dataset = await this.getDataset({
-      id: evaluationExtractionRun.evaluationExtractionDatasetId,
-      connectScope,
+    await this.batchService.enqueueExecuteRun({
+      evaluationExtractionRunId: evaluationExtractionRun.id,
+      organizationId: connectScope.organizationId,
+      projectId: connectScope.projectId,
+      recordLimit: recordLimit ?? null,
     })
-
-    const allDatasetRecords = await this.datasetRecordConnectRepository.find(connectScope, {
-      where: { evaluationExtractionDatasetId: dataset.id },
-    })
-
-    const datasetRecords =
-      recordLimit != null ? allDatasetRecords.slice(0, recordLimit) : allDatasetRecords
-
-    const batches = batchArray(datasetRecords, BATCH_SIZE)
-
-    const agent = await this.getAgent({ connectScope, agentId: evaluationExtractionRun.agentId })
-
-    const runRecords: EvaluationExtractionRunRecord[] = []
-
-    try {
-      await Promise.all(
-        batches.map(async (batch) => {
-          const { runRecords: batchRunRecords } = await this.createRunRecords({
-            connectScope,
-            run: evaluationExtractionRun,
-            datasetRecords: batch,
-          })
-          runRecords.push(...batchRunRecords)
-
-          await this.batchService.enqueueRunRecords(
-            batchRunRecords.map((runRecord) => ({
-              agent,
-              connectScope,
-              evaluationExtractionRun,
-              runRecordId: runRecord.id,
-              schemaMapping: dataset.schemaMapping,
-            })),
-          )
-        }),
-      )
-    } catch (error) {
-      // If enqueueing fails, mark the run as failed and set all records to error to avoid leaving them in a limbo state
-      evaluationExtractionRun.status = "failed"
-      await this.runConnectRepository.saveOne(evaluationExtractionRun)
-
-      await Promise.all(
-        runRecords.map((runRecord) => {
-          runRecord.status = "error"
-          return this.runRecordConnectRepository.saveOne(runRecord)
-        }),
-      )
-
-      throw new UnprocessableEntityException(
-        `Failed to enqueue jobs for the evaluation run ${evaluationExtractionRun.id}. Error: ${error instanceof Error ? error.message : "No error message"}`,
-      )
-    }
-
-    evaluationExtractionRun.summary = this.createInitialSummary({
-      recordCount: runRecords.length,
-    })
-    evaluationExtractionRun.status = "running"
-    await this.runConnectRepository.saveOne(evaluationExtractionRun)
   }
 
   private async getAgent({
@@ -468,44 +404,6 @@ export class EvaluationExtractionRunsService {
       throw new NotFoundException(
         `Evaluation extraction run with id ${evaluationExtractionRunId} not found`,
       )
-    }
-  }
-
-  private async createRunRecords({
-    connectScope,
-    run,
-    datasetRecords,
-  }: {
-    datasetRecords: EvaluationExtractionDatasetRecord[]
-    connectScope: RequiredConnectScope
-    run: EvaluationExtractionRun
-  }) {
-    const runRecords = await this.runRecordConnectRepository.createAndSaveMany({
-      connectScope,
-      entities: datasetRecords.map((datasetRecord) => ({
-        evaluationExtractionRunId: run.id,
-        evaluationExtractionDatasetRecordId: datasetRecord.id,
-        status: "running",
-        errorDetails: null,
-        traceId: null,
-      })),
-      chunkSize: BATCH_SIZE,
-    })
-
-    return { runRecords }
-  }
-
-  private createInitialSummary({
-    recordCount,
-  }: {
-    recordCount: number
-  }): EvaluationExtractionRunSummary {
-    return {
-      total: recordCount,
-      perfectMatches: 0,
-      mismatches: 0,
-      errors: 0,
-      running: recordCount,
     }
   }
 }
