@@ -25,6 +25,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - New agents have all project categories pre-selected by default
 
 ### Fixed
+- Agent deletion reliably soft-deletes all related records within the transaction
+- Project deletion reliably soft-deletes all related records within the transaction
 
 ### Security
 
