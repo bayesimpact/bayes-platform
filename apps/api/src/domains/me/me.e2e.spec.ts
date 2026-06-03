@@ -67,6 +67,33 @@ describe("MeController (e2e)", () => {
       token: accessToken,
     })
 
+  const patchMeSubject = async (name: string) =>
+    request({
+      route: MeRoutes.patchMe,
+      token: accessToken,
+      request: { payload: { name } },
+    })
+
+  describe("MeRoutes.patchMe", () => {
+    it("requires an authentication token", async () => {
+      await createContext()
+      accessToken = undefined
+      expectResponse(await patchMeSubject("New Name"), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+
+    it("updates the user name and returns success", async () => {
+      const { user } = await createContext()
+
+      const response = await patchMeSubject("Updated Name")
+
+      expectResponse(response, 200)
+      expect(response.body.data).toEqual({ success: true })
+
+      const updatedUser = await repositories.userRepository.findOne({ where: { id: user.id } })
+      expect(updatedUser?.name).toBe("Updated Name")
+    })
+  })
+
   describe("MeRoutes.getMe", () => {
     it("requires an authentication token", async () => {
       accessToken = undefined

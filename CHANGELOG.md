@@ -16,6 +16,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Evaluation extraction runs can be deleted from the run history
 - Evaluation extraction datasets can be deleted from the dataset list
 - Evaluation extraction run detail page shows how long a finished run took
+- Users can now edit their display name from the user menu
 
 ### Changed
 - Evaluation extraction dataset column roles can be assigned in bulk: select multiple columns and apply a role (target / input / reference / ignore) to all of them at once

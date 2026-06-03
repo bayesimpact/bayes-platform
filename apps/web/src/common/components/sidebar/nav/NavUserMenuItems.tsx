@@ -1,11 +1,17 @@
 import { DropdownMenuItem, DropdownMenuSeparator } from "@caseai-connect/ui/shad/dropdown-menu"
-import { ExternalLinkIcon, LogOutIcon } from "lucide-react"
+import { ExternalLinkIcon, LogOutIcon, UserPenIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useAuthHandler } from "@/common/hooks/use-auth-handler"
 
-export function NavUserMenuItems() {
+type Props = {
+  onEditProfile: () => void
+}
+
+export function NavUserMenuItems({ onEditProfile }: Props) {
   return (
     <>
+      <EditProfileMenuItem onOpen={onEditProfile} />
+
       <HelpCenter />
 
       <LanguageSelector />
@@ -14,6 +20,16 @@ export function NavUserMenuItems() {
 
       <LogOutButton />
     </>
+  )
+}
+
+function EditProfileMenuItem({ onOpen }: { onOpen: () => void }) {
+  const { t } = useTranslation("user")
+  return (
+    <DropdownMenuItem onSelect={onOpen}>
+      <UserPenIcon />
+      {t("editProfile")}
+    </DropdownMenuItem>
   )
 }
 
