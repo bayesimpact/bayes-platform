@@ -1,7 +1,8 @@
-import { buildNameFromEmail, MeRoutes } from "@caseai-connect/api-contracts"
-import type { UserMembershipsDto } from "@caseai-connect/api-contracts/src/me/me.dto"
-import { Controller, Get, Req, UseGuards } from "@nestjs/common"
+import { buildNameFromEmail, MeRoutes, updateMeSchema } from "@caseai-connect/api-contracts"
+import type { UserDto, UserMembershipsDto } from "@caseai-connect/api-contracts/src/me/me.dto"
+import { Body, Controller, Get, Patch, Req, UseGuards, UsePipes } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
+import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import {
   isDomainBackofficeAuthorized,
@@ -16,6 +17,8 @@ import {
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TermsComplianceService } from "@/domains/terms-compliance/terms-compliance.service"
 import { UserGuard } from "@/domains/users/user.guard"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { UsersService } from "@/domains/users/users.service"
 import { toDto as toOrganizationDto } from "../organizations/organization.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectsService } from "../projects/projects.service"
@@ -30,7 +33,19 @@ export class MeController {
     private readonly meService: MeService,
     private readonly projectsService: ProjectsService,
     private readonly termsComplianceService: TermsComplianceService,
+    private readonly usersService: UsersService,
   ) {}
+
+  @Patch(MeRoutes.patchMe.path)
+  @UsePipes(new ZodValidationPipe(updateMeSchema))
+  async patchMe(
+    @Req() request: EndpointRequest,
+    @Body() body: typeof MeRoutes.patchMe.request,
+  ): Promise<typeof MeRoutes.patchMe.response> {
+    const { name } = body.payload
+    await this.usersService.updateUser(request.user.id, name)
+    return { data: { success: true } }
+  }
 
   @Get(MeRoutes.getMe.path)
   async getMe(@Req() request: EndpointRequest): Promise<typeof MeRoutes.getMe.response> {
@@ -55,19 +70,33 @@ export class MeController {
     )
     return {
       data: {
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name ?? buildNameFromEmail(user.email),
-          memberships: toUserMembershipDto(memberships),
-          isBackofficeAuthorized: isDomainBackofficeAuthorized(user.email),
-          isTermsManagementAuthorized: isEmailBackofficeAuthorized(user.email),
-          termsAccepted: isAcceptanceUpToDate(latestAcceptance, termsDocuments),
-        },
+        user: toUserDto({ user, memberships, termsDocuments, latestAcceptance }),
         organizations: organizationsWithProjects.map(toOrganizationDto),
         currentTerms: toCurrentTermsDto(termsDocuments),
       },
     }
+  }
+}
+
+function toUserDto({
+  user,
+  memberships,
+  termsDocuments,
+  latestAcceptance,
+}: {
+  user: { id: string; email: string; name: string | null }
+  memberships: Awaited<ReturnType<MeService["getUserMemberships"]>>
+  termsDocuments: Awaited<ReturnType<TermsComplianceService["listTermsDocuments"]>>
+  latestAcceptance: Awaited<ReturnType<TermsComplianceService["getLatestAcceptanceForUser"]>>
+}): UserDto {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name ?? buildNameFromEmail(user.email),
+    memberships: toUserMembershipDto(memberships),
+    isBackofficeAuthorized: isDomainBackofficeAuthorized(user.email),
+    isTermsManagementAuthorized: isEmailBackofficeAuthorized(user.email),
+    termsAccepted: isAcceptanceUpToDate(latestAcceptance, termsDocuments),
   }
 }
 

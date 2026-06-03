@@ -3,6 +3,13 @@ import type { Agent } from "@/domains/agents/agent.entity"
 import type { EvaluationExtractionDatasetSchemaMapping } from "../datasets/evaluation-extraction-dataset.entity"
 import type { EvaluationExtractionRun } from "./evaluation-extraction-run.entity"
 
+export type ExecuteEvaluationExtractionRunJobPayload = {
+  evaluationExtractionRunId: string
+  organizationId: string
+  projectId: string
+  recordLimit: number | null
+}
+
 export type ProcessEvaluationExtractionRunRecordJobPayload = {
   evaluationExtractionRun: EvaluationExtractionRun
   runRecordId: string

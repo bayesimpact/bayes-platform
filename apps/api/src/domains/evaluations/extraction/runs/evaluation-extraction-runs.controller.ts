@@ -84,7 +84,7 @@ export class EvaluationExtractionRunsController {
     const connectScope = getRequiredConnectScope(request)
     const { evaluationExtractionRun } = request
 
-    this.evaluationExtractionRunsService.executeRun({
+    await this.evaluationExtractionRunsService.enqueueExecuteRun({
       evaluationExtractionRun,
       connectScope,
       recordLimit: payload?.recordLimit ?? null,

@@ -5,7 +5,14 @@
       "name": "Name"
     },
     "logout": "Log out",
-    "helpCenter": "Help Center"
+    "helpCenter": "Help Center",
+    "editProfile": "Edit profile",
+    "editProfileDialog": {
+      "title": "Edit profile",
+      "namePlaceholder": "Your name",
+      "save": "Save",
+      "cancel": "Cancel"
+    }
   },
   "me": {
     "props": {

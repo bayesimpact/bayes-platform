@@ -42,6 +42,13 @@ export const fetchPendingInvitations = createAsyncThunk<PendingInvitations, void
   },
 )
 
+export const updateMe = createAsyncThunk<void, { name: string }, ThunkConfig>(
+  "me/update",
+  async (params, { extra: { services } }) => {
+    await services.me.updateMe(params)
+  },
+)
+
 export const acceptTerms = createAsyncThunk<void, { aiUsagePolicyAccepted: boolean }, ThunkConfig>(
   "termsAcceptance/accept",
   async (params, { extra: { services } }) => {
