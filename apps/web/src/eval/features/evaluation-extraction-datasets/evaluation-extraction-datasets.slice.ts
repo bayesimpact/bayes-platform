@@ -158,6 +158,13 @@ const slice = createSlice({
       .addCase(evaluationExtractionDatasetsThunks.updateOne.rejected, (state) => {
         state.isUpdatingDataset = false
       })
+
+    builder.addCase(evaluationExtractionDatasetsThunks.deleteOne.pending, (state, action) => {
+      // Optimistically remove the dataset from the list while the request is in-flight
+      // because it can take some time to complete and we want to provide immediate feedback to the user.
+      const datasetId = action.meta.arg.datasetId
+      state.data.value = state.data.value?.filter((dataset) => dataset.id !== datasetId) || null
+    })
   },
 })
 
