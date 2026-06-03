@@ -24,6 +24,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - New agents have all project categories pre-selected by default
 
 ### Fixed
+- Importing large evaluation extraction datasets no longer times out: records are now inserted in bulk instead of one row at a time
 
 ### Security
 

@@ -261,7 +261,6 @@ export class EvaluationExtractionDatasetsService {
     documentId: string
     datasetId: string
   }): Promise<EvaluationExtractionDatasetRecord[]> {
-    // TODO: transaction
     const dataset = await this.datasetConnectRepository.getOneById(connectScope, datasetId)
     if (!dataset) {
       throw new NotFoundException(`Evaluation dataset with id ${datasetId} not found`)
@@ -280,16 +279,15 @@ export class EvaluationExtractionDatasetsService {
       document,
     })
 
-    const records: EvaluationExtractionDatasetRecord[] = []
-    for (const row of rows) {
-      const record = await this.recordConnectRepository.createAndSave(connectScope, {
+    // Bulk insert in chunks instead of one INSERT per row: a 10k+ row dataset
+    // otherwise issues 10k+ sequential round-trips and times out the request.
+    return this.recordConnectRepository.createAndSaveMany({
+      connectScope,
+      entities: rows.map((row) => ({
         evaluationExtractionDatasetId: datasetId,
         data: row,
-      })
-      records.push(record)
-    }
-
-    return records
+      })),
+    })
   }
 
   private buildSchemaMapping(
