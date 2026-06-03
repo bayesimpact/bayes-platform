@@ -15,6 +15,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Evaluation extraction run detail page now has a "View Agent" button showing the agent's model, temperature, language, document search mode, system prompt, and output schema
 - Evaluation extraction runs can now be deleted from the run history
 - Evaluation extraction datasets can now be deleted from the dataset list
+- Users can now edit their display name from the user menu
 
 ### Changed
 - Evaluation extraction dataset column roles can now be assigned in bulk: select multiple columns and apply a role (target / input / reference / ignore) to all of them at once

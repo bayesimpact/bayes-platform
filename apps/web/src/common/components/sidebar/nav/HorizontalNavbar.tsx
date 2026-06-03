@@ -1,9 +1,11 @@
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { NavUser } from "@/common/components/sidebar/nav/NavUser"
-import { NavUserMenuItems } from "@/common/components/sidebar/nav/NavUserMenuItems"
 import { Logo } from "@/common/components/themes/Logo"
 import type { User } from "@/common/features/me/me.models"
 import { RouteNames } from "@/common/routes/helpers"
+import { EditProfileDialog } from "./EditProfileDialog"
+import { NavUserMenuItems } from "./NavUserMenuItems"
 
 export function HorizontalNavbar({
   user,
@@ -15,6 +17,7 @@ export function HorizontalNavbar({
   appName: string
 }) {
   const navigate = useNavigate()
+  const [editProfileOpen, setEditProfileOpen] = useState(false)
   const goHome = () => navigate(homePath ?? RouteNames.HOME)
   return (
     <div className="w-full h-16 bg-white border-b flex items-center justify-between px-4 gap-2">
@@ -30,8 +33,9 @@ export function HorizontalNavbar({
 
       <div>
         <NavUser user={user}>
-          <NavUserMenuItems />
+          <NavUserMenuItems onEditProfile={() => setEditProfileOpen(true)} />
         </NavUser>
+        <EditProfileDialog open={editProfileOpen} onClose={() => setEditProfileOpen(false)} />
       </div>
     </div>
   )

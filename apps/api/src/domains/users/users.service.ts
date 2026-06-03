@@ -39,6 +39,13 @@ export class UsersService {
     return this.userRepository.save(user)
   }
 
+  async updateUser(userId: string, name: string): Promise<User> {
+    await this.userRepository.update(userId, { name })
+    const updated = await this.findById(userId)
+    if (!updated) throw new Error(`User ${userId} not found after update`)
+    return updated
+  }
+
   async findOrCreate({
     sub,
     getUserInfo,

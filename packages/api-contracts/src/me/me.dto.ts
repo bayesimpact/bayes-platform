@@ -1,3 +1,4 @@
+import { z } from "zod"
 import type { AgentMembershipDto } from "../agent-membership/agent-membership.dto"
 import type { CurrentTermsDto } from "../backoffice/backoffice.dto"
 import type { TimeType } from "../generic"
@@ -56,3 +57,9 @@ export type TermsAcceptanceDto = {
 export type AcceptTermsRequestDto = {
   aiUsagePolicyAccepted: boolean
 }
+
+export const updateMeSchema = z.object({
+  name: z.string().min(1).max(100).trim(),
+})
+
+export type UpdateMeRequestDto = z.infer<typeof updateMeSchema>
