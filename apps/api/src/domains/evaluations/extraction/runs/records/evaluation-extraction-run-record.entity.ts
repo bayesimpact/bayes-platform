@@ -25,7 +25,9 @@ export const EVALUATION_EXTRACTION_RUN_RECORD_STATUSES = [
 export type EvaluationExtractionRunRecordStatus =
   (typeof EVALUATION_EXTRACTION_RUN_RECORD_STATUSES)[number]
 
-@ConnectEntity("evaluation_extraction_run_record")
+// The extended index fields keep the per-record summary recompute
+// (filter on the run id, group by status) cheap on large runs.
+@ConnectEntity("evaluation_extraction_run_record", "evaluationExtractionRunId", "status")
 export class EvaluationExtractionRunRecord extends ConnectEntityBase {
   @Column({ type: "uuid", name: "evaluation_extraction_run_id", nullable: false })
   evaluationExtractionRunId!: string

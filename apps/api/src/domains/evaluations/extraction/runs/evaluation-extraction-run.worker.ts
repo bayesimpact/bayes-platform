@@ -1,13 +1,17 @@
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq"
 import { Logger } from "@nestjs/common"
 import type { Job } from "bullmq"
-import { EVALUATION_EXTRACTION_RUN_QUEUE_NAME } from "./evaluation-extraction-run.constants"
+import {
+  EVALUATION_EXTRACTION_RUN_CONCURRENCY,
+  EVALUATION_EXTRACTION_RUN_QUEUE_NAME,
+} from "./evaluation-extraction-run.constants"
 import type { ProcessEvaluationExtractionRunRecordJobPayload } from "./evaluation-extraction-run.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationExtractionRunProcessorService } from "./evaluation-extraction-run-processor.service"
 
 @Processor(EVALUATION_EXTRACTION_RUN_QUEUE_NAME, {
   maxStalledCount: 3, // Allow up to 3 stalls before giving up on the job
+  concurrency: EVALUATION_EXTRACTION_RUN_CONCURRENCY,
 })
 export class EvaluationExtractionRunWorker extends WorkerHost {
   private readonly logger = new Logger(EvaluationExtractionRunWorker.name)

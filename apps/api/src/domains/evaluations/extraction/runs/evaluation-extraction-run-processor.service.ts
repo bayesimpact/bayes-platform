@@ -6,7 +6,8 @@ import {
   UnprocessableEntityException,
 } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import type { Repository } from "typeorm"
+// biome-ignore lint/style/useImportType: DataSource required at runtime for NestJS DI
+import { DataSource, type Repository } from "typeorm"
 import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
@@ -22,7 +23,10 @@ import type {
   EvaluationExtractionDatasetSchemaMapping,
 } from "../datasets/evaluation-extraction-dataset.entity"
 import type { EvaluationExtractionDatasetRecord } from "../datasets/records/evaluation-extraction-dataset-record.entity"
-import { EvaluationExtractionRun } from "./evaluation-extraction-run.entity"
+import {
+  EvaluationExtractionRun,
+  type EvaluationExtractionRunSummary,
+} from "./evaluation-extraction-run.entity"
 import type { ProcessEvaluationExtractionRunRecordJobPayload } from "./evaluation-extraction-run.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationExtractionRunCsvExportService } from "./evaluation-extraction-run-csv-export.service"
@@ -30,7 +34,10 @@ import { EvaluationExtractionRunCsvExportService } from "./evaluation-extraction
 import { EvaluationExtractionRunGraderService } from "./evaluation-extraction-run-grader.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationExtractionRunStatusNotifierService } from "./evaluation-extraction-run-status-notifier.service"
-import { EvaluationExtractionRunRecord } from "./records/evaluation-extraction-run-record.entity"
+import {
+  EvaluationExtractionRunRecord,
+  type EvaluationExtractionRunRecordStatus,
+} from "./records/evaluation-extraction-run-record.entity"
 
 @Injectable()
 export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
@@ -54,6 +61,7 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
     medGemmaLlmProvider: LLMProvider,
     @Inject("GemmaLLMProvider")
     gemmaLlmProvider: LLMProvider,
+    private readonly dataSource: DataSource,
   ) {
     super({ mockLlmProvider, vertexLlmProvider, medGemmaLlmProvider, gemmaLlmProvider })
     this.evaluationExtractionRunConnectRepository = new ConnectRepository(
@@ -108,88 +116,109 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
     })
   }
 
-  private async incrementSummary({
+  /**
+   * Recomputes the run summary from the run-record table and, when the run reaches a
+   * terminal state, transitions its status and triggers the one-off side effects.
+   *
+   * This is safe to call concurrently from multiple workers: a pessimistic lock on the
+   * run row serializes summary updates per run, and the counts are derived from the
+   * records table rather than mutated in place, so the result is idempotent even when a
+   * record job is retried. Terminal transitions are guarded by `status = 'running'` so
+   * they (and the CSV export) fire exactly once.
+   */
+  private async recomputeSummaryAndMaybeComplete({
     connectScope,
     evaluationExtractionRunId,
-    runRecord,
   }: {
     connectScope: RequiredConnectScope
     evaluationExtractionRunId: string
-    runRecord: EvaluationExtractionRunRecord
   }): Promise<void> {
-    const run = await this.getEvaluationExtractionRun({
-      id: evaluationExtractionRunId,
-      connectScope,
+    const shouldGenerateCsv = await this.dataSource.transaction(async (entityManager) => {
+      const runRepository = entityManager.getRepository(EvaluationExtractionRun)
+      const runRecordRepository = entityManager.getRepository(EvaluationExtractionRunRecord)
+
+      // Serialize summary updates for this run across concurrent record jobs. The last
+      // job to acquire the lock therefore observes every committed record status.
+      const run = await runRepository
+        .createQueryBuilder("run")
+        .setLock("pessimistic_write")
+        .where("run.id = :id", { id: evaluationExtractionRunId })
+        .andWhere("run.organization_id = :organizationId", {
+          organizationId: connectScope.organizationId,
+        })
+        .andWhere("run.project_id = :projectId", { projectId: connectScope.projectId })
+        .getOne()
+
+      if (!run || !run.summary) {
+        throw new Error(`Run ${evaluationExtractionRunId} has no summary to update`)
+      }
+
+      const rows = await runRecordRepository
+        .createQueryBuilder("record")
+        .select("record.status", "status")
+        .addSelect("COUNT(*)", "count")
+        .where("record.evaluation_extraction_run_id = :runId", {
+          runId: evaluationExtractionRunId,
+        })
+        .andWhere("record.organization_id = :organizationId", {
+          organizationId: connectScope.organizationId,
+        })
+        .andWhere("record.project_id = :projectId", { projectId: connectScope.projectId })
+        .groupBy("record.status")
+        .getRawMany<{ status: EvaluationExtractionRunRecordStatus; count: string }>()
+
+      const countByStatus = (status: EvaluationExtractionRunRecordStatus): number =>
+        Number(rows.find((row) => row.status === status)?.count ?? 0)
+
+      const summary: EvaluationExtractionRunSummary = {
+        total: run.summary.total,
+        perfectMatches: countByStatus("match"),
+        mismatches: countByStatus("mismatch"),
+        errors: countByStatus("error"),
+        running: countByStatus("running"),
+      }
+
+      await runRepository.update({ id: evaluationExtractionRunId }, { summary })
+
+      if (summary.errors > 0) {
+        // Preserve existing behaviour: any error fails the whole run immediately, and a
+        // failed run never produces a CSV export.
+        await runRepository
+          .createQueryBuilder()
+          .update()
+          .set({ status: "failed" })
+          .where("id = :id", { id: evaluationExtractionRunId })
+          .andWhere("status = :running", { running: "running" })
+          .execute()
+        return false
+      }
+
+      const isCompleted =
+        summary.running === 0 && summary.perfectMatches + summary.mismatches === summary.total
+      if (isCompleted) {
+        const result = await runRepository
+          .createQueryBuilder()
+          .update()
+          .set({ status: "completed" })
+          .where("id = :id", { id: evaluationExtractionRunId })
+          .andWhere("status = :running", { running: "running" })
+          .execute()
+        // Only the worker that actually transitioned the run owns the one-off CSV export.
+        return result.affected === 1
+      }
+
+      return false
     })
-    const summary = run.summary
-    if (!summary) {
-      throw new Error(`Run ${evaluationExtractionRunId} has no summary to increment`)
-    }
-
-    const stopRunning = () => {
-      summary.running -= 1
-    }
-
-    switch (runRecord.status) {
-      case "match":
-        summary.perfectMatches += 1
-        stopRunning()
-        break
-      case "mismatch":
-        summary.mismatches += 1
-        stopRunning()
-        break
-      case "error":
-        summary.errors += 1
-        stopRunning()
-        break
-      case "running":
-        summary.running += 1
-        break
-    }
-
-    async function updateRunStatus({
-      status,
-      evaluationExtractionRunConnectRepository,
-    }: {
-      status: EvaluationExtractionRun["status"]
-      evaluationExtractionRunConnectRepository: ConnectRepository<EvaluationExtractionRun>
-    }) {
-      await evaluationExtractionRunConnectRepository.updateOneById({
-        connectScope,
-        id: evaluationExtractionRunId,
-        fields: { status },
-      })
-    }
-
-    await this.evaluationExtractionRunConnectRepository.updateOneById({
-      connectScope,
-      id: evaluationExtractionRunId,
-      fields: { summary },
-    })
-
-    if (summary.errors > 0) {
-      await updateRunStatus({
-        status: "failed",
-        evaluationExtractionRunConnectRepository: this.evaluationExtractionRunConnectRepository,
-      })
-    }
-
-    const isCompleted =
-      summary.running === 0 && summary.mismatches + summary.perfectMatches === summary.total
-    if (isCompleted) {
-      await updateRunStatus({
-        status: "completed",
-        evaluationExtractionRunConnectRepository: this.evaluationExtractionRunConnectRepository,
-      })
-
-      await this.generateCsv(run)
-    }
 
     const updatedRun = await this.getEvaluationExtractionRun({
       id: evaluationExtractionRunId,
       connectScope,
     })
+    // Generated outside the transaction so the run-row lock is not held during the
+    // (potentially slow) export.
+    if (shouldGenerateCsv) {
+      await this.generateCsv(updatedRun)
+    }
     await this.notifyStatusChanged(updatedRun)
   }
 
@@ -217,10 +246,9 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
     runRecord.traceId = null
     await this.runRecordConnectRepository.saveOne(runRecord)
 
-    await this.incrementSummary({
+    await this.recomputeSummaryAndMaybeComplete({
       connectScope,
       evaluationExtractionRunId: evaluationExtractionRun.id,
-      runRecord,
     })
   }
 
@@ -289,10 +317,9 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
       await this.runRecordConnectRepository.saveOne(runRecord)
     }
 
-    await this.incrementSummary({
+    await this.recomputeSummaryAndMaybeComplete({
       connectScope,
       evaluationExtractionRunId: evaluationExtractionRun.id,
-      runRecord,
     })
   }
 

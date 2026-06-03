@@ -6,9 +6,15 @@ import { DataSource, type DataSourceOptions } from "typeorm"
 
 dotenvConfig({ path: ".env" })
 
-let extra = {}
+// Cap the pg connection pool explicitly (node-postgres defaults to 10). Workers process
+// extraction record jobs concurrently, so keep this >= EVALUATION_EXTRACTION_RUN_CONCURRENCY
+// plus headroom.
+let extra: Record<string, unknown> = {
+  max: Number(process.env.DATABASE_POOL_MAX) || 10,
+}
 if (process.env.DATABASE_HOST?.startsWith("/cloudsql")) {
   extra = {
+    ...extra,
     socketPath: process.env.DATABASE_HOST,
   }
 }
