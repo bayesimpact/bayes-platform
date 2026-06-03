@@ -27,6 +27,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Evaluation extraction run records are indexed by run and status, speeding up queries for large runs
 
 ### Fixed
+- Agent deletion reliably soft-deletes all related records within the transaction
+- Project deletion reliably soft-deletes all related records within the transaction
 
 ### Security
 

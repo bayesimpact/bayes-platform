@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, UnprocessableEntityException } from "@ne
 import { InjectRepository } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: DataSource required at runtime for NestJS DI
 import { DataSource, In, type Repository } from "typeorm"
+import { ALL_ENTITIES } from "@/common/all-entities"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -9,11 +10,8 @@ import { DocumentTagsService } from "../documents/tags/document-tags.service"
 import type { DocumentTagsUpdateFields } from "../documents/tags/document-tags.types"
 import { Agent } from "./agent.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { BaseAgentSessionsService } from "./base-agent-sessions/base-agent-sessions.service"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentCategoriesService } from "./categories/agent-categories.service"
 import { ProjectAgentCategory } from "./categories/project-agent-category.entity"
-import { AgentMembership } from "./memberships/agent-membership.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "./memberships/agent-memberships.service"
 
@@ -33,7 +31,6 @@ export class AgentsService {
     private readonly documentTagsService: DocumentTagsService,
     private readonly agentCategoriesService: AgentCategoriesService,
     private readonly agentMembershipsService: AgentMembershipsService,
-    private readonly baseAgentSessionsService: BaseAgentSessionsService,
     private readonly dataSource: DataSource,
   ) {
     this.agentConnectRepository = new ConnectRepository(agentRepository, "agents")
@@ -247,17 +244,18 @@ export class AgentsService {
 
   async deleteAgent(agent: Agent): Promise<void> {
     await this.dataSource.transaction(async (entityManager) => {
-      await this.baseAgentSessionsService.deleteAgentSessions({
-        entityManager,
-        agentId: agent.id,
-        agentType: agent.type,
-      })
+      const agentId = agent.id
+      // Sweep everything directly scoped by agentId
+      for (const entity of ALL_ENTITIES) {
+        const hasAgentId = entityManager.connection
+          .getMetadata(entity)
+          .columns.some((column) => column.propertyName === "agentId")
+        if (hasAgentId) {
+          await entityManager.softDelete(entity, { agentId })
+        }
+      }
 
-      // Delete memberships
-      await entityManager.delete(AgentMembership, { agentId: agent.id })
-
-      // Delete agent
-      await entityManager.delete(Agent, { id: agent.id })
+      await entityManager.softDelete(Agent, { id: agent.id })
     })
   }
 
