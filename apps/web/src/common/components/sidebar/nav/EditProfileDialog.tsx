@@ -38,12 +38,12 @@ export function EditProfileDialog({ open, onClose }: Props) {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(updateMeSchema),
-    defaultValues: { name: user?.name ?? "" },
+    defaultValues: { name: user.name },
   })
 
   useEffect(() => {
-    if (open) reset({ name: user?.name ?? "" })
-  }, [open, user?.name, reset])
+    if (open) reset({ name: user.name })
+  }, [open, user.name, reset])
 
   const onSubmit = async ({ name }: FormValues) => {
     await dispatch(updateMe({ name })).unwrap()
