@@ -18,7 +18,6 @@ import {
   SettingsIcon,
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { Link } from "react-router-dom"
 import { GridCard } from "@/common/components/grid/Grid"
 import { selectMyActiveReviewCampaignMemberships } from "@/common/features/me/me.selectors"
 import type { Organization } from "@/common/features/organizations/organizations.models"
@@ -103,10 +102,8 @@ function OpenButton({ apps }: { apps: AppData[] }) {
         <DropdownMenuGroup>
           {filteredApps.map((app) => {
             return (
-              <DropdownMenuItem key={app.id} asChild>
-                <Link to={app.path}>
-                  {app.icon} {app.name}
-                </Link>
+              <DropdownMenuItem key={app.id} onClick={() => window.location.assign(app.path)}>
+                {app.icon} {app.name}
               </DropdownMenuItem>
             )
           })}
