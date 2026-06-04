@@ -8,6 +8,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.06.0] - 2026-06-04
+
+### Added
 - Organization owners and admins can now rename their organization directly from the onboarding page
 - Workspace administration page (general settings + agent categories management)
 - Manage agent categories per workspace directly from the Studio (add / delete)
