@@ -1,34 +1,31 @@
+import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
-import { useSidebar } from "@caseai-connect/ui/shad/sidebar"
-import { CheckCircleIcon, PencilIcon } from "lucide-react"
-import { useEffect, useState } from "react"
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@caseai-connect/ui/shad/card"
+import { LayoutGridIcon, PencilIcon } from "lucide-react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/grid/Grid"
+import { Grid, GridContent, GridHeader } from "@/common/components/grid/Grid"
 import { EditOrganizationDialog } from "@/common/components/organization/EditOrganizationDialog"
 import { OrganizationCreator } from "@/common/components/organization/OrganizationCreator"
 import { SidebarLayout } from "@/common/components/sidebar/SidebarLayout"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import { selectOrganizationsData } from "@/common/features/organizations/organizations.selectors"
-import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import { DeskRoutes } from "@/desk/routes/helpers"
-import { EvalRoutes } from "@/eval/routes/helpers"
-import { ReviewerRoutes } from "@/reviewer/routes/helpers"
-import type {
-  PendingInvitationItem as PendingInvitationEntry,
-  PendingInvitations,
-} from "@/studio/features/invitations/invitations.models"
-import { acceptInvitation } from "@/studio/features/invitations/invitations.thunks"
+import { useAppSelector } from "@/common/store/hooks"
+import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import { ProjectCreatorButton } from "@/studio/features/projects/components/ProjectCreator"
-import { StudioRoutes } from "@/studio/routes/helpers"
-import { TesterRoutes } from "@/tester/routes/helpers"
+import { PendingInvitationList } from "../components/home/PendingInvitationList"
+import {
+  SearchWorkspaces,
+  SearchWorkspacesInput,
+  SearchWorkspacesResults,
+} from "../components/home/SearchWorkspaces"
+import { WorkspaceItem } from "../components/home/WorkspaceItem"
 import { Wrap } from "../components/layouts/Wrap"
+import { Logo } from "../components/themes/Logo"
 import type { User } from "../features/me/me.models"
 import { selectMe, selectPendingInvitations } from "../features/me/me.selectors"
-import type { Project } from "../features/projects/projects.models"
 import { useAbility } from "../hooks/use-ability"
-import { useFeatureFlags } from "../hooks/use-feature-flags"
 import { useValue } from "../hooks/use-value"
-import { buildSince } from "../utils/build-date"
 import { AsyncRoute } from "./AsyncRoute"
 
 export function OnboardingRoute() {
@@ -51,8 +48,8 @@ function WithData() {
   if (orgsCount === 0 && !hasPendingInvitations) return <OrganizationCreator />
 
   return (
-    <SidebarLayout hideIcon user={{ name: user.name, email: user.email }}>
-      <SidebarContent
+    <SidebarLayout defaultOpen={false} hideIcon user={{ name: user.name, email: user.email }}>
+      <Main
         organizations={organizations}
         user={user}
         orgsCount={orgsCount}
@@ -62,10 +59,10 @@ function WithData() {
   )
 }
 
-function SidebarContent({
+function Main({
   organizations,
   user,
-  orgsCount,
+  orgsCount: _orgsCount,
   invitations,
 }: {
   organizations: Organization[]
@@ -74,276 +71,100 @@ function SidebarContent({
   invitations: PendingInvitations
 }) {
   const { t } = useTranslation()
-  const { setOpen } = useSidebar()
-  useEffect(() => {
-    setOpen(false)
-  }, [setOpen])
+
   const hasPendingInvitations = invitations.length > 0
-  return (
-    <div className="flex flex-col">
-      <Wrap>
-        <Grid cols={1} total={orgsCount}>
-          <GridHeader title={t("organization:list:title", { name: user.name })} />
 
-          {hasPendingInvitations && (
-            <div className="m-6 border rounded-2xl overflow-hidden">
-              <PendingInvitationList invitations={invitations} />
-            </div>
+  return (
+    <SearchWorkspaces organizations={organizations}>
+      <div className="flex flex-col">
+        <Wrap className="mb-0 md:mb-0">
+          <GridHeader
+            className="border-none"
+            title={
+              <div className="flex items-center gap-4">
+                <div className="size-8">
+                  <Logo />
+                </div>
+                {t("organization:list:title", { name: user.name })}
+              </div>
+            }
+            action={<SearchWorkspacesInput />}
+          />
+        </Wrap>
+
+        {hasPendingInvitations && (
+          <Wrap className="mb-0 md:mb-0">
+            <PendingInvitationList invitations={invitations} />
+          </Wrap>
+        )}
+
+        <SearchWorkspacesResults>
+          {(filteredOrganizations) => (
+            <Wrap className="border-none md:border-none overflow-visible flex flex-col gap-12">
+              {filteredOrganizations.map((organization) => (
+                <OrganizationItem key={organization.id} organization={organization} />
+              ))}
+            </Wrap>
           )}
-
-          <GridContent>
-            {organizations.map((organization, index) => (
-              <OrganizationItem key={organization.id} organization={organization} index={index} />
-            ))}
-          </GridContent>
-        </Grid>
-      </Wrap>
-    </div>
+        </SearchWorkspacesResults>
+      </div>
+    </SearchWorkspaces>
   )
 }
 
-function PendingInvitationList({ invitations }: { invitations: PendingInvitations }) {
-  const { t } = useTranslation()
-  const total = invitations.length
-  if (total === 0) return null
-  return (
-    <Grid cols={3} total={total}>
-      <GridHeader title={t("me:invitations:title")} description={t("me:invitations:description")} />
-
-      <GridContent>
-        {invitations.map((invitation, index) => (
-          <PendingInvitationRow key={invitation.id} invitation={invitation} index={index} />
-        ))}
-      </GridContent>
-    </Grid>
-  )
-}
-
-function PendingInvitationRow({
-  invitation,
-  index,
-}: {
-  invitation: PendingInvitationEntry
-  index: number
-}) {
-  const dispatch = useAppDispatch()
-  const { t } = useTranslation()
-  const handleClick = () => {
-    dispatch(acceptInvitation({ ticketId: invitation.invitationToken }))
-  }
-
-  const badge =
-    invitation.targetType === "project"
-      ? t("me:invitations:projectBadge")
-      : invitation.targetType === "agent"
-        ? t("me:invitations:agentBadge")
-        : t("me:invitations:reviewCampaignBadge")
-
-  const description =
-    invitation.targetType === "project"
-      ? `${invitation.organizationName} · ${t("me:invitations:roleLabel")}: ${invitation.role}`
-      : `${invitation.organizationName} · ${invitation.projectName} · ${t("me:invitations:roleLabel")}: ${invitation.role}`
-
-  return (
-    <GridItem
-      index={index}
-      badge={badge}
-      title={invitation.targetName}
-      description={description}
-      action={
-        <Button onClick={handleClick}>
-          {t("actions:accept")} <CheckCircleIcon />
-        </Button>
-      }
-    />
-  )
-}
-
-function OrganizationItem({ organization, index }: { organization: Organization; index: number }) {
-  const { t } = useTranslation()
+function OrganizationItem({ organization }: { organization: Organization }) {
   const { abilities } = useAbility()
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
   const canCreateProject = abilities.canCreateProject({
     organizationId: organization.id,
   })
   const canRename = abilities.canRenameOrganization({ organizationId: organization.id })
-  const extraItems = canCreateProject ? 1 : 0
-  if (!canCreateProject && organization.projects.length === 0) return
+
+  if (!canCreateProject && organization.projects.length === 0) return null
   return (
-    <>
-      <GridItem
-        className="bg-gray-50"
-        index={index}
-        title={
-          <>
+    <Card className="shadow-none bg-muted/20">
+      <CardHeader className="mx-2">
+        <CardTitle>
+          <div className="flex items-center gap-2">
             {organization.name}
             {canRename && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsRenameDialogOpen(true)}
-                className="ml-4"
-              >
-                <PencilIcon className="h-4 w-4" />
-                {t("organization:editDialog.buttonLabel")}
+              <Button variant="ghost" size="icon-sm" onClick={() => setIsRenameDialogOpen(true)}>
+                <PencilIcon className="size-4" />
               </Button>
             )}
-          </>
-        }
-        description={t("organization:organization")}
-        action={
-          <Grid cols={2} total={organization.projects.length} extraItems={extraItems}>
-            <GridContent className="bg-white rounded-2xl border">
-              {organization.projects.map((project, projectIndex) => (
-                <GridItem
-                  badge={t("project:project")}
-                  key={project.id}
-                  index={projectIndex}
-                  title={project.name}
-                  description={buildSince(project.createdAt)}
-                  action={
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <NavAppButton organizationId={organization.id} projectId={project.id} />
+          </div>
+        </CardTitle>
+        <CardAction>
+          {organization.projects.length > 1 && (
+            <div className="flex gap-2 ">
+              <Badge variant="outline" className="rounded-full">
+                {organization.projects.length}
+              </Badge>
+              <LayoutGridIcon className="text-muted-foreground" />
+            </div>
+          )}
+        </CardAction>
+      </CardHeader>
 
-                      <NavStudioButton organizationId={organization.id} projectId={project.id} />
+      <CardContent>
+        <Grid cols={2}>
+          <GridContent className="bg-white rounded-2xl border">
+            {organization.projects.map((project) => (
+              <WorkspaceItem key={project.id} organization={organization} project={project} />
+            ))}
 
-                      <NavEvalButton organizationId={organization.id} project={project} />
+            {canCreateProject && <ProjectCreatorButton organization={organization} />}
+          </GridContent>
+        </Grid>
 
-                      <NavTesterButton projectId={project.id} />
-
-                      <NavReviewerButton projectId={project.id} />
-                    </div>
-                  }
-                />
-              ))}
-
-              {canCreateProject && (
-                <ProjectCreatorButton
-                  index={organization.projects.length}
-                  organization={organization}
-                />
-              )}
-            </GridContent>
-          </Grid>
-        }
-      />
-      {canRename && (
-        <EditOrganizationDialog
-          open={isRenameDialogOpen}
-          onClose={() => setIsRenameDialogOpen(false)}
-          organization={organization}
-        />
-      )}
-    </>
-  )
-}
-
-function NavAppButton({
-  organizationId,
-  projectId,
-}: {
-  organizationId: string
-  projectId: string
-}) {
-  const { t } = useTranslation()
-
-  const handleClick = () => {
-    const path = DeskRoutes.project.build({
-      organizationId,
-      projectId,
-    })
-    // NOTE: do not use navigate from react-router
-    window.location.assign(path)
-  }
-
-  return (
-    <Button variant="outline" onClick={handleClick}>
-      {t("actions:goToApp")}
-    </Button>
-  )
-}
-
-function NavStudioButton({
-  organizationId,
-  projectId,
-}: {
-  organizationId: string
-  projectId: string
-}) {
-  const { t } = useTranslation()
-  const { abilities } = useAbility()
-  const canAccessStudio = abilities.canAccessStudio({ projectId })
-
-  const handleClick = () => {
-    const path = StudioRoutes.project.build({
-      organizationId,
-      projectId,
-    })
-    // NOTE: do not use navigate from react-router
-    window.location.assign(path)
-  }
-
-  if (!canAccessStudio) return null
-  return (
-    <Button variant="outline" onClick={handleClick}>
-      {t("actions:goToStudio")}
-    </Button>
-  )
-}
-
-function NavEvalButton({ organizationId, project }: { organizationId: string; project: Project }) {
-  const { t } = useTranslation()
-  const { hasFeature } = useFeatureFlags(project)
-
-  const handleClick = () => {
-    const path = EvalRoutes.project.build({
-      organizationId,
-      projectId: project.id,
-    })
-    // NOTE: do not use navigate from react-router
-    window.location.assign(path)
-  }
-
-  if (!hasFeature("evaluation")) return null
-  return (
-    <Button variant={"outline"} onClick={handleClick}>
-      {t("actions:goToEval")}
-    </Button>
-  )
-}
-
-function NavTesterButton({ projectId }: { projectId: string }) {
-  const { t } = useTranslation()
-  const { abilities } = useAbility()
-  const canAccess = abilities.canAccessTester({ projectId })
-
-  const handleClick = () => {
-    // NOTE: do not use navigate from react-router — tester is its own route tree
-    window.location.assign(TesterRoutes.home.path)
-  }
-
-  if (!canAccess) return null
-  return (
-    <Button variant="outline" onClick={handleClick}>
-      {t("actions:goToTester")}
-    </Button>
-  )
-}
-
-function NavReviewerButton({ projectId }: { projectId: string }) {
-  const { t } = useTranslation()
-  const { abilities } = useAbility()
-  const canAccess = abilities.canAccessReviewer({ projectId })
-
-  const handleClick = () => {
-    // NOTE: do not use navigate from react-router — reviewer is its own route tree
-    window.location.assign(ReviewerRoutes.home.path)
-  }
-
-  if (!canAccess) return null
-  return (
-    <Button variant="outline" onClick={handleClick}>
-      {t("actions:goToReviewer")}
-    </Button>
+        {canRename && (
+          <EditOrganizationDialog
+            open={isRenameDialogOpen}
+            onClose={() => setIsRenameDialogOpen(false)}
+            organization={organization}
+          />
+        )}
+      </CardContent>
+    </Card>
   )
 }

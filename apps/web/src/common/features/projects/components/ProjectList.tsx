@@ -27,7 +27,7 @@ export function ProjectList({
   }
   const cols = projects.length === 1 ? 2 : 3
   return (
-    <Grid cols={cols} total={projects.length} extraItems={children ? 1 : 0}>
+    <Grid cols={cols}>
       <GridHeader
         title={organization.name}
         description={t("project:list.title")}
@@ -35,9 +35,8 @@ export function ProjectList({
       />
 
       <GridContent>
-        {projects.map((project, index) => (
+        {projects.map((project) => (
           <ProjectItem
-            index={index}
             key={project.id}
             organizationId={organization.id}
             project={project}

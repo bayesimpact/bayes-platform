@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { useNavigate, useOutlet } from "react-router-dom"
-import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/grid/Grid"
+import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/grid/Grid"
 import { useExtractionPath } from "../hooks/use-extraction-path"
 
 export function Dashboard() {
@@ -15,19 +15,20 @@ export function Dashboard() {
   }
   if (outlet) return outlet
   return (
-    <Grid cols={2} total={2}>
+    <Grid cols={2}>
       <GridHeader
         title={t("evaluation:dashboard.title")}
         description={t("evaluation:dashboard.description")}
       />
       <GridContent>
-        <GridItem
-          index={1}
-          badge={t(`agent:create.typeDialog.extraction`)}
-          title={t("evaluation:dashboard.evaluateExtractionAgent")}
-          description={t("evaluation:dashboard.manageDatasets")}
-          onClick={goToExtraction}
-        />
+        <GridCard>
+          <GridCard.Badge>{t(`agent:create.typeDialog.extraction`)}</GridCard.Badge>
+          <GridCard.Body>
+            <GridCard.Title>{t("evaluation:dashboard.evaluateExtractionAgent")}</GridCard.Title>
+            <GridCard.Description>{t("evaluation:dashboard.manageDatasets")}</GridCard.Description>
+            <GridCard.GoButton onClick={goToExtraction} />
+          </GridCard.Body>
+        </GridCard>
       </GridContent>
     </Grid>
   )

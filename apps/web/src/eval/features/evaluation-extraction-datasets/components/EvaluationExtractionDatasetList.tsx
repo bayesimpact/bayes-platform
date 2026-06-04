@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/grid/Grid"
+import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/grid/Grid"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useCurrentId } from "@/common/hooks/use-value"
@@ -27,7 +27,7 @@ export function EvaluationExtractionDatasetList({
   }
   if (datasets.length === 0) return <EmptyEvaluationExtractionDataset />
   return (
-    <Grid cols={3} total={datasets.length} extraItems={1}>
+    <Grid cols={3}>
       <GridHeader
         title={t("evaluation:dataset.title")}
         description={t("evaluation:dataset.description")}
@@ -35,23 +35,25 @@ export function EvaluationExtractionDatasetList({
       />
 
       <GridContent>
-        <GridItem
-          className="bg-muted/35"
-          title={t("evaluation:dataset.create.title")}
-          description={t("evaluation:dataset.create.description")}
-          index={0}
-          action={<EvaluationExtractionDatasetCreator />}
-        />
+        <GridCard className="bg-muted/35">
+          <GridCard.Body>
+            <GridCard.Title>{t("evaluation:dataset.create.title")}</GridCard.Title>
+            <GridCard.Description>
+              {t("evaluation:dataset.create.description")}
+            </GridCard.Description>
+            <EvaluationExtractionDatasetCreator />
+          </GridCard.Body>
+        </GridCard>
 
-        {datasets.map((dataset, index) => (
-          <Item key={dataset.id} dataset={dataset} index={index + 1} />
+        {datasets.map((dataset) => (
+          <Item key={dataset.id} dataset={dataset} />
         ))}
       </GridContent>
     </Grid>
   )
 }
 
-function Item({ dataset, index }: { dataset: EvaluationExtractionDataset; index: number }) {
+function Item({ dataset }: { dataset: EvaluationExtractionDataset }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const date = buildSince(dataset.updatedAt)
@@ -63,18 +65,17 @@ function Item({ dataset, index }: { dataset: EvaluationExtractionDataset; index:
   }
 
   return (
-    <GridItem
-      badge={t("evaluation:dataset.dataset")}
-      title={dataset.name}
-      description={date}
-      index={index}
-      onClick={handleClick}
-      topAction={
-        <>
-          <RenameEvaluationExtractionDatasetDialog dataset={dataset} />
-          <DeleteEvaluationExtractionDatasetButton datasetId={dataset.id} />
-        </>
-      }
-    />
+    <GridCard>
+      <GridCard.TopAction>
+        <RenameEvaluationExtractionDatasetDialog dataset={dataset} />
+        <DeleteEvaluationExtractionDatasetButton datasetId={dataset.id} />
+      </GridCard.TopAction>
+      <GridCard.Badge>{t("evaluation:dataset.dataset")}</GridCard.Badge>
+      <GridCard.Body>
+        <GridCard.Title>{dataset.name}</GridCard.Title>
+        <GridCard.Description>{date}</GridCard.Description>
+        <GridCard.GoButton onClick={handleClick} />
+      </GridCard.Body>
+    </GridCard>
   )
 }

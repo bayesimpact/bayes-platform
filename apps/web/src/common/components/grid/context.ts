@@ -11,7 +11,6 @@ export const gridClass = {
 
 interface GridContextValue {
   cols: keyof typeof gridClass
-  total: number
 }
 
 export const GridContext = createContext<GridContextValue | null>(null)

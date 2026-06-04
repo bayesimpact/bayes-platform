@@ -10,7 +10,7 @@ import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { Trash2Icon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { GridItem } from "@/common/components/grid/Grid"
+import { GridCard } from "@/common/components/grid/Grid"
 import { Loader } from "@/common/components/Loader"
 import type { ExtractionAgentSessionSummary } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
 import { deleteAgentSession } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.thunks"
@@ -34,15 +34,16 @@ export function ExtractionSessionItem({
   const badge = isSuccess ? buildDate(agentSession.updatedAt) : t(`status:${agentSession.status}`)
   const date = buildSince(agentSession.updatedAt)
   return (
-    <GridItem
-      index={0}
-      className={className}
-      badge={badge}
-      badgeVariant={isSuccess ? "secondary" : "destructive"}
-      title={date}
-      description={agentSession.documentFileName ?? agentSession.documentId}
-      action={<Actions canDelete={canDelete} agentSession={agentSession} isSuccess={isSuccess} />}
-    />
+    <GridCard className={className}>
+      <GridCard.Badge variant={isSuccess ? "secondary" : "destructive"}>{badge}</GridCard.Badge>
+      <GridCard.Body>
+        <GridCard.Title>{date}</GridCard.Title>
+        <GridCard.Description>
+          {agentSession.documentFileName ?? agentSession.documentId}
+        </GridCard.Description>
+        <Actions canDelete={canDelete} agentSession={agentSession} isSuccess={isSuccess} />
+      </GridCard.Body>
+    </GridCard>
   )
 }
 

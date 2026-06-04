@@ -4,7 +4,7 @@ import {
   CollapsibleTrigger,
 } from "@caseai-connect/ui/shad/collapsible"
 import { ChevronRight } from "lucide-react"
-import { Grid } from "@/common/components/grid/Grid"
+import { Grid, GridContent } from "@/common/components/grid/Grid"
 import type { DocumentTag, TagNode } from "@/studio/features/document-tags/document-tags.models"
 import type { Document } from "@/studio/features/documents/documents.models"
 import { DocumentItem } from "./DocumentItem"
@@ -40,24 +40,21 @@ export function DocumentTagTreeNode({
         className="flex flex-col gap-3 pt-2"
         style={{ paddingLeft: `${(depth + 1) * 1.25}rem` }}
       >
-        <Grid cols={3} total={tagDocuments.length}>
-          {tagDocuments.map((document, index) => (
-            <DocumentItem
-              key={document.id}
-              index={index}
-              document={document}
-              documentTags={documentTags}
-            />
-          ))}
-          {tag.children.map((child) => (
-            <DocumentTagTreeNode
-              key={child.id}
-              tag={child}
-              documents={documents}
-              depth={depth + 1}
-              documentTags={documentTags}
-            />
-          ))}
+        <Grid cols={3}>
+          <GridContent>
+            {tagDocuments.map((document) => (
+              <DocumentItem key={document.id} document={document} documentTags={documentTags} />
+            ))}
+            {tag.children.map((child) => (
+              <DocumentTagTreeNode
+                key={child.id}
+                tag={child}
+                documents={documents}
+                depth={depth + 1}
+                documentTags={documentTags}
+              />
+            ))}
+          </GridContent>
         </Grid>
       </CollapsibleContent>
     </Collapsible>

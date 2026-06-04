@@ -11,7 +11,7 @@ import { cn } from "@caseai-connect/ui/utils"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate, useOutlet } from "react-router-dom"
-import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/grid/Grid"
+import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/grid/Grid"
 import { selectCurrentConversationAgentSessionsData } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.selectors"
 import type { ExtractionAgentSessionSummary } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
 import { selectCurrentExtractionAgentSessionsData } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.selectors"
@@ -53,11 +53,10 @@ export function ConversationAgentSessionList() {
         projectId={projectId}
       />
 
-      <Grid cols={3} total={agentSessions.length}>
+      <Grid cols={3}>
         <GridContent>
-          {agentSessions.map((session, index) => (
+          {agentSessions.map((session) => (
             <AgentSessionItem
-              index={index}
               key={session.id}
               organizationId={organizationId}
               projectId={projectId}
@@ -93,11 +92,10 @@ export function FormAgentSessionList() {
         projectId={projectId}
       />
 
-      <Grid cols={3} total={agentSessions.length}>
+      <Grid cols={3}>
         <GridContent>
-          {agentSessions.map((session, index) => (
+          {agentSessions.map((session) => (
             <AgentSessionItem
-              index={index}
               key={session.id}
               organizationId={organizationId}
               projectId={projectId}
@@ -133,7 +131,7 @@ export function ExtractionAgentSessionList() {
 
   if (outlet) return outlet
   return (
-    <Grid cols={0} total={0}>
+    <Grid cols={0}>
       <GridHeader
         onBack={handleBack}
         title={t("extractionAgentSession:playground.title")}
@@ -141,17 +139,20 @@ export function ExtractionAgentSessionList() {
         action={<AgentActions agent={agent} organizationId={organizationId} />}
       />
 
-      <GridItem
+      <GridCard
         className={cn("bg-muted/35 border-r-0 col-span-full", canManageAgent && "border-b")}
-        title={t("extractionAgentSession:create.title")}
-        description={t("extractionAgentSession:create.description")}
-        action={
+      >
+        <GridCard.Body>
+          <GridCard.Title>{t("extractionAgentSession:create.title")}</GridCard.Title>
+          <GridCard.Description>
+            {t("extractionAgentSession:create.description")}
+          </GridCard.Description>
           <div className="flex items-center gap-2">
             <History agentSessions={agentSessions} />
             <ExtractionSessionCreatorWithLastSession buttonText={t("actions:test")} />
           </div>
-        }
-      />
+        </GridCard.Body>
+      </GridCard>
 
       {canManageAgent && <AgentEditor key={agent.id} agent={agent} className="bg-white p-6" />}
     </Grid>
@@ -176,7 +177,7 @@ function History({ agentSessions }: { agentSessions: ExtractionAgentSessionSumma
         </DialogHeader>
 
         <div className="min-h-0 max-h-[60vh] overflow-y-auto">
-          <Grid cols={0} total={0}>
+          <Grid cols={0}>
             {agentSessions.map((session, index) => (
               <ExtractionSessionItem
                 className={cn("px-0", index !== agentSessions.length - 1 && "border-b")}

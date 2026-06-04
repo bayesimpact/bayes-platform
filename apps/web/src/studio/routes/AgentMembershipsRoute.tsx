@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/grid/Grid"
+import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/grid/Grid"
 import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
 import { useGetAgentRoute } from "@/common/hooks/use-get-path"
 import { useMount } from "@/common/hooks/use-mount"
@@ -42,7 +42,6 @@ function WithData() {
   const handleBack = () => navigate(agentRoute)
 
   const cols = memberships.length === 0 ? 0 : 3
-  const total = memberships.length
   const handleRevokeInvitation = (invitationId: string) => {
     void dispatch(
       revokeInvitation({
@@ -54,7 +53,7 @@ function WithData() {
 
   return (
     <>
-      <Grid cols={cols} total={total} extraItems={1}>
+      <Grid cols={cols}>
         <GridHeader
           onBack={handleBack}
           title={t("agentMembership:list.title", { agentName: agent.name })}
@@ -62,17 +61,17 @@ function WithData() {
         />
 
         <GridContent>
-          {memberships.map((membership, index) => (
-            <AgentMembershipItem index={index} key={membership.id} membership={membership} />
+          {memberships.map((membership) => (
+            <AgentMembershipItem key={membership.id} membership={membership} />
           ))}
 
-          <GridItem
-            index={total}
-            title={t("agentMembership:create.title")}
-            description={t("agentMembership:create.description")}
-            action={<MembersCreator agentId={agent.id} />}
-            className="bg-muted/35"
-          />
+          <GridCard className="bg-muted/35">
+            <GridCard.Body>
+              <GridCard.Title>{t("agentMembership:create.title")}</GridCard.Title>
+              <GridCard.Description>{t("agentMembership:create.description")}</GridCard.Description>
+              <MembersCreator agentId={agent.id} />
+            </GridCard.Body>
+          </GridCard>
         </GridContent>
       </Grid>
       <PendingInvitationsSection

@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { GridItem } from "@/common/components/grid/Grid"
+import { GridCard } from "@/common/components/grid/Grid"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
 import { useRoutesBuilder } from "@/common/routes/build-routes/context"
@@ -11,9 +11,7 @@ export function AgentItem({
   organizationId,
   projectId,
   className,
-  index,
 }: {
-  index: number
   className?: string
   agent: Agent
   organizationId: string
@@ -35,18 +33,16 @@ export function AgentItem({
 
   const date = buildSince(agent.updatedAt)
   return (
-    <GridItem
-      className={className}
-      badge={t(`agent:create.typeDialog.${agent.type}`)}
-      onClick={handleClick}
-      title={
-        <>
+    <GridCard className={className}>
+      <GridCard.Badge>{t(`agent:create.typeDialog.${agent.type}`)}</GridCard.Badge>
+      <GridCard.Body>
+        <GridCard.Title>
           <Icon />
           {agent.name}
-        </>
-      }
-      description={date}
-      index={index}
-    />
+        </GridCard.Title>
+        <GridCard.Description>{date}</GridCard.Description>
+        <GridCard.GoButton onClick={handleClick} />
+      </GridCard.Body>
+    </GridCard>
   )
 }

@@ -19,26 +19,23 @@ function WithData({
   agents,
   children,
   action,
-  extraItems,
 }: {
   project: Project
   agents: Agent[]
   children?: React.ReactNode
   action?: React.ReactNode
-  extraItems?: number
 }) {
   const { t } = useTranslation()
   const outlet = useOutlet()
 
   if (outlet) return outlet
   return (
-    <Grid cols={3} total={agents.length} extraItems={extraItems}>
+    <Grid cols={3}>
       <GridHeader title={project.name} description={t("project:project")} action={action} />
 
       <GridContent>
-        {agents.map((agent, index) => (
+        {agents.map((agent) => (
           <AgentItem
-            index={index}
             key={agent.id}
             organizationId={project.organizationId}
             projectId={agent.projectId}
