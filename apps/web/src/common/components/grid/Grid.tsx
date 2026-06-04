@@ -46,6 +46,18 @@ export function GridContent({
   return <div className={cn("grid", gridClass[cols], className)}>{children}</div>
 }
 
+type GridItemProps = {
+  className?: string
+  title: React.ReactNode
+  description?: React.ReactNode
+  index?: number
+  footer?: React.ReactNode
+  badge?: React.ReactNode
+  badgeVariant?: BadgeVariant
+  topAction?: React.ReactNode
+  middleAction?: React.ReactNode
+} & ({ onClick: () => void } | { action: React.ReactNode })
+
 export function GridItem({
   className,
   title,
@@ -55,29 +67,34 @@ export function GridItem({
   badgeVariant = "secondary",
   index = -1,
   topAction,
+  middleAction,
   ...props
-}: {
-  className?: string
-  title: React.ReactNode
-  description: React.ReactNode
-  index?: number
-  footer?: React.ReactNode
-  badge?: React.ReactNode
-  badgeVariant?: BadgeVariant
-  topAction?: React.ReactNode
-} & (
-  | {
-      onClick: () => void
-    }
-  | { action: React.ReactNode }
-)) {
+}: GridItemProps) {
   const { cols, total } = useGrid()
+
+  const action =
+    "action" in props ? (
+      props.action
+    ) : (
+      <Button onClick={props.onClick} className="rounded-full" size="icon" variant="outline">
+        <ArrowRightIcon className="size-4" />
+      </Button>
+    )
+
+  const renderedBadge =
+    typeof badge === "string" ? (
+      <Badge variant={badgeVariant} className="capitalize">
+        {badge}
+      </Badge>
+    ) : (
+      badge
+    )
 
   return (
     <div
       className={cn(
         "relative p-4 flex flex-col items-start justify-center",
-        footer ? "pb-0" : "",
+        footer && "pb-0",
         className,
         getGridItemClassName({ index: index + 1, total, cols }),
       )}
@@ -86,28 +103,25 @@ export function GridItem({
         <div className="absolute top-3 right-3 flex items-center gap-1">{topAction}</div>
       )}
 
-      {badge && typeof badge === "string" ? (
-        <Badge variant={badgeVariant} className="capitalize">
-          {badge}
-        </Badge>
-      ) : (
-        badge
-      )}
+      {renderedBadge}
 
       <div className="py-2 px-1 w-full">
-        <h2 className="text-xl font-medium capitalize-first flex items-center gap-2">{title}</h2>
+        <div className="flex justify-between items-center">
+          <div className="flex flex-col">
+            <h2 className="text-xl font-medium capitalize-first flex items-center gap-2">
+              {title}
+            </h2>
 
-        <h3 className="text-base text-muted-foreground leading-snug mt-1 mb-4 capitalize-first">
-          {description}
-        </h3>
+            {description && (
+              <h3 className="text-base text-muted-foreground leading-snug mt-1 mb-4 capitalize-first">
+                {description}
+              </h3>
+            )}
+          </div>
+          {middleAction && <div>{middleAction}</div>}
+        </div>
 
-        {"action" in props ? (
-          props.action
-        ) : (
-          <Button onClick={props.onClick} className="rounded-full" size="icon" variant="outline">
-            <ArrowRightIcon className="size-4" />
-          </Button>
-        )}
+        {action}
       </div>
 
       {footer && <div className="w-full mt-auto">{footer}</div>}

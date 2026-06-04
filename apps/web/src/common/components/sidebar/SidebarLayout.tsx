@@ -30,6 +30,7 @@ export function SidebarLayout({
   sidebarFooterChildren,
   hideIcon,
   routes,
+  defaultOpen = true,
 }: {
   user: User
   organization?: Organization
@@ -38,6 +39,7 @@ export function SidebarLayout({
   sidebarFooterChildren?: React.ReactNode
   hideIcon?: boolean
   routes?: typeof StudioRoutes | typeof DeskRoutes
+  defaultOpen?: boolean
 }) {
   const [editProfileOpen, setEditProfileOpen] = useState(false)
 
@@ -49,6 +51,7 @@ export function SidebarLayout({
           "--header-height": "calc(var(--spacing) * 12)",
         } as React.CSSProperties
       }
+      defaultOpen={defaultOpen}
     >
       <Sidebar variant="inset" collapsible="offcanvas">
         <SidebarHeader>

@@ -22,7 +22,7 @@ export function ProjectAdminPage() {
         title={t("projectAdmin:title")}
         description={t("projectAdmin:description")}
       />
-      <div className="p-4">
+      <div className="p-4 bg-white">
         <FieldGroup>
           <FieldSet>
             <Tabs defaultValue="general">
@@ -33,13 +33,15 @@ export function ProjectAdminPage() {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="general" forceMount className="data-[state=inactive]:hidden">
-                <ProjectGeneralForm project={project} />
-              </TabsContent>
+              <div className="p-2">
+                <TabsContent value="general" forceMount className="data-[state=inactive]:hidden">
+                  <ProjectGeneralForm project={project} />
+                </TabsContent>
 
-              <TabsContent value="categories" forceMount className="data-[state=inactive]:hidden">
-                <ProjectAgentCategoriesForm categories={project.agentCategories} />
-              </TabsContent>
+                <TabsContent value="categories" forceMount className="data-[state=inactive]:hidden">
+                  <ProjectAgentCategoriesForm categories={project.agentCategories} />
+                </TabsContent>
+              </div>
             </Tabs>
           </FieldSet>
         </FieldGroup>

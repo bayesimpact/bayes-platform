@@ -167,4 +167,83 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {}
+export const Default: Story = {
+  args: {
+    projectsPerOrganization: 2,
+  },
+}
+
+export const Empty: Story = {
+  args: {
+    organizationMembershipRole: "member",
+    projectMembershipRole: "member",
+    agentMembershipRole: "owner",
+    featureFlags: [],
+    organizationCount: 0,
+    projectsPerOrganization: 0,
+    withProjectInvitations: false,
+    withAgentInvitations: false,
+    withReviewCampaignMembershipsAsTester: false,
+    withReviewCampaignMembershipsAsReviewer: false,
+  },
+}
+
+export const Single: Story = {
+  args: {
+    organizationMembershipRole: "member",
+    projectMembershipRole: "member",
+    agentMembershipRole: "owner",
+    featureFlags: [],
+    organizationCount: 1,
+    projectsPerOrganization: 1,
+    withProjectInvitations: false,
+    withAgentInvitations: false,
+    withReviewCampaignMembershipsAsTester: false,
+    withReviewCampaignMembershipsAsReviewer: false
+  }
+};
+
+export const SingleWithInvitations: Story = {
+  args: {
+    organizationMembershipRole: "member",
+    projectMembershipRole: "member",
+    agentMembershipRole: "owner",
+    featureFlags: [],
+    organizationCount: 1,
+    projectsPerOrganization: 1,
+    withProjectInvitations: true,
+    withAgentInvitations: true,
+    withReviewCampaignMembershipsAsTester: false,
+    withReviewCampaignMembershipsAsReviewer: false
+  }
+};
+
+export const SingleWithStudioAccess: Story = {
+  args: {
+    organizationMembershipRole: "member",
+    projectMembershipRole: "admin",
+    agentMembershipRole: "owner",
+    featureFlags: ["evaluation"],
+    organizationCount: 1,
+    projectsPerOrganization: 1,
+    withProjectInvitations: false,
+    withAgentInvitations: false,
+    withReviewCampaignMembershipsAsTester: true,
+    withReviewCampaignMembershipsAsReviewer: true
+  }
+};
+
+export const Multi: Story = {
+  args: {
+    organizationMembershipRole: "owner",
+    projectMembershipRole: "admin",
+    agentMembershipRole: "owner",
+    featureFlags: [],
+    organizationCount: 2,
+    projectsPerOrganization: 3,
+    withProjectInvitations: false,
+    withAgentInvitations: false,
+    withReviewCampaignMembershipsAsTester: true,
+    withReviewCampaignMembershipsAsReviewer: true
+  }
+};
