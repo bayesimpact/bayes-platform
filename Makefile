@@ -186,7 +186,6 @@ ci-checks:
 	npm ci && npm run biome:ci && npm run typecheck && npm run check:boundaries
 
 db-tests:
-	docker compose -f infra/database/docker-compose.yaml down -v
 	docker compose -f infra/database/docker-compose.yaml up -d
 
 tests: db-tests ci-checks
