@@ -6,6 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@caseai-connect/ui/shad/dropdown-menu"
+import { cn } from "@caseai-connect/ui/utils"
 import type { TFunction } from "i18next"
 import {
   ArrowRightIcon,
@@ -18,7 +19,7 @@ import {
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
-import { GridItem } from "@/common/components/grid/Grid"
+import { GridCard } from "@/common/components/grid/Grid"
 import { selectMyActiveReviewCampaignMemberships } from "@/common/features/me/me.selectors"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import type { Project } from "@/common/features/projects/projects.models"
@@ -34,31 +35,22 @@ import { TesterRoutes } from "@/tester/routes/helpers"
 export function WorkspaceItem({
   organization,
   project,
-  index,
 }: {
   organization: Organization
   project: Project
-  index: number
 }) {
   const apps = useAvailableApps({ organizationId: organization.id, project })
-  if (organization.projects.length === 1)
-    return (
-      <GridItem
-        key={project.id}
-        index={index}
-        title={project.name}
-        action
-        middleAction={<OpenButton apps={apps} />}
-      />
-    )
+  const singleProject = organization.projects.length === 1
   return (
-    <GridItem
-      description
-      key={project.id}
-      index={index}
-      title={project.name}
-      action={<OpenButton apps={apps} />}
-    />
+    <GridCard key={project.id}>
+      <GridCard.Body>
+        <div className="flex justify-between items-center">
+          <GridCard.Title className={cn(!singleProject && "pb-4")}>{project.name}</GridCard.Title>
+          {singleProject && <OpenButton apps={apps} />}
+        </div>
+        {!singleProject && <OpenButton apps={apps} />}
+      </GridCard.Body>
+    </GridCard>
   )
 }
 
@@ -93,18 +85,20 @@ function OpenButton({ apps }: { apps: AppData[] }) {
   if (!firstApp) return null
   return (
     <DropdownMenu>
-      <Button
-        variant="outline"
-        onClick={() => window.location.assign(firstApp.path)}
-        className="rounded-r-none "
-      >
-        {firstApp.icon} {firstApp.name} <div className="w-2" />
-      </Button>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="select-none rounded-l-none border-l-0">
-          <ChevronDownIcon />
+      <div>
+        <Button
+          variant="outline"
+          onClick={() => window.location.assign(firstApp.path)}
+          className="rounded-r-none"
+        >
+          {firstApp.icon} {firstApp.name} <div className="w-2" />
         </Button>
-      </DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="select-none rounded-l-none border-l-0">
+            <ChevronDownIcon />
+          </Button>
+        </DropdownMenuTrigger>
+      </div>
       <DropdownMenuContent align="start" className="w-40">
         <DropdownMenuGroup>
           {filteredApps.map((app) => {

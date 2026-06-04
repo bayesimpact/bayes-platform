@@ -20,7 +20,7 @@ export function PendingInvitationsSection({
   if (invitations.length === 0) return null
 
   return (
-    <section className="border-t px-6 py-5">
+    <section className="border-t px-6 py-5 bg-muted/35">
       <div className="mb-4">
         <h2 className="text-lg font-medium">{title}</h2>
         <p className="text-sm text-muted-foreground">{description}</p>
@@ -51,7 +51,7 @@ function PendingInvitationCard({
   }
 
   return (
-    <div className="flex items-start gap-3 rounded-xl border bg-muted/10 p-4">
+    <div className="flex items-start gap-3 rounded-xl border bg-white p-4">
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium" title={label}>
           {label}

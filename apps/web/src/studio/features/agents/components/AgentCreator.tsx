@@ -19,7 +19,7 @@ import { PlusCircleIcon, PlusIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { GridItem } from "@/common/components/grid/Grid"
+import { GridCard } from "@/common/components/grid/Grid"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { Project } from "@/common/features/projects/projects.models"
 import { useAppDispatch } from "@/common/store/hooks"
@@ -31,25 +31,21 @@ import { BaseAgentForm } from "./BaseAgentForm"
 const defaultStep = "typeSelection"
 const defaultType = "conversation"
 
-export function AgentCreatorButton({ project, index }: { project: Project; index: number }) {
+export function AgentCreatorButton({ project }: { project: Project }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   return (
-    <GridItem
-      className="bg-muted/35"
-      index={index}
-      title={t("agent:create.title")}
-      description={t("agent:create.description")}
-      action={
-        <>
-          <Button size="lg" className="text-base" onClick={() => setOpen(true)}>
-            {t("actions:create")}
-            <PlusCircleIcon className="ml-2 size-5" />
-          </Button>
-          <AgentCreator project={project} open={open} onOpenChange={setOpen} />
-        </>
-      }
-    />
+    <GridCard className="bg-muted/35">
+      <GridCard.Body>
+        <GridCard.Title>{t("agent:create.title")}</GridCard.Title>
+        <GridCard.Description>{t("agent:create.description")}</GridCard.Description>
+        <Button size="lg" className="text-base" onClick={() => setOpen(true)}>
+          {t("actions:create")}
+          <PlusCircleIcon className="ml-2 size-5" />
+        </Button>
+        <AgentCreator project={project} open={open} onOpenChange={setOpen} />
+      </GridCard.Body>
+    </GridCard>
   )
 }
 

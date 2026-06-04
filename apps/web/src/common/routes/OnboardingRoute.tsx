@@ -119,7 +119,6 @@ function OrganizationItem({ organization }: { organization: Organization }) {
     organizationId: organization.id,
   })
   const canRename = abilities.canRenameOrganization({ organizationId: organization.id })
-  const extraItems = canCreateProject ? 1 : 0
 
   if (!canCreateProject && organization.projects.length === 0) return null
   return (
@@ -148,33 +147,23 @@ function OrganizationItem({ organization }: { organization: Organization }) {
       </CardHeader>
 
       <CardContent>
-        <Grid cols={2} total={organization.projects.length} extraItems={extraItems}>
+        <Grid cols={2}>
           <GridContent className="bg-white rounded-2xl border">
-            {organization.projects.map((project, index) => (
-              <WorkspaceItem
-                key={project.id}
-                organization={organization}
-                project={project}
-                index={index}
-              />
+            {organization.projects.map((project) => (
+              <WorkspaceItem key={project.id} organization={organization} project={project} />
             ))}
 
-            {canCreateProject && (
-              <ProjectCreatorButton
-                index={organization.projects.length}
-                organization={organization}
-              />
-            )}
-
-            {canRename && (
-              <EditOrganizationDialog
-                open={isRenameDialogOpen}
-                onClose={() => setIsRenameDialogOpen(false)}
-                organization={organization}
-              />
-            )}
+            {canCreateProject && <ProjectCreatorButton organization={organization} />}
           </GridContent>
         </Grid>
+
+        {canRename && (
+          <EditOrganizationDialog
+            open={isRenameDialogOpen}
+            onClose={() => setIsRenameDialogOpen(false)}
+            organization={organization}
+          />
+        )}
       </CardContent>
     </Card>
   )

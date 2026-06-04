@@ -3,7 +3,7 @@ import { cn } from "@caseai-connect/ui/utils"
 import { MessageSquareWarningIcon, ThumbsDownIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { GridItem } from "@/common/components/grid/Grid"
+import { GridCard } from "@/common/components/grid/Grid"
 import { StudioRoutes } from "@/studio/routes/helpers"
 
 export function FeedbackButton({
@@ -11,9 +11,7 @@ export function FeedbackButton({
   organizationId,
   projectId,
   withBorderBottom,
-  index,
 }: {
-  index: number
   agentId: string
   organizationId: string
   projectId: string
@@ -26,13 +24,13 @@ export function FeedbackButton({
     navigate(path)
   }
   return (
-    <GridItem
-      className={cn("bg-white", withBorderBottom && "border-b")}
-      index={index}
-      title={t("agentMessageFeedback:feedback")}
-      description={t("agentMessageFeedback:list.description")}
-      onClick={handleClick}
-      footer={
+    <GridCard className={cn("bg-white", withBorderBottom && "border-b")}>
+      <GridCard.Body>
+        <GridCard.Title>{t("agentMessageFeedback:feedback")}</GridCard.Title>
+        <GridCard.Description>{t("agentMessageFeedback:list.description")}</GridCard.Description>
+        <GridCard.GoButton onClick={handleClick} />
+      </GridCard.Body>
+      <GridCard.Footer>
         <div className="mt-4 flex items-center flex-col max-h-20 overflow-hidden bg-white max-w-full">
           <Item
             variant="outline"
@@ -48,7 +46,7 @@ export function FeedbackButton({
             </div>
           </Item>
         </div>
-      }
-    />
+      </GridCard.Footer>
+    </GridCard>
   )
 }

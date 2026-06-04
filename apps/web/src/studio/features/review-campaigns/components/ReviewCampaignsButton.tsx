@@ -2,13 +2,13 @@ import { Item } from "@caseai-connect/ui/shad/item"
 import { MegaphoneIcon, UsersIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { GridItem } from "@/common/components/grid/Grid"
+import { GridCard } from "@/common/components/grid/Grid"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useAppSelector } from "@/common/store/hooks"
 import { StudioRoutes } from "@/studio/routes/helpers"
 
-export function ReviewCampaignsButton({ index }: { index: number }) {
+export function ReviewCampaignsButton() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const organizationId = useAppSelector(selectCurrentOrganizationId)
@@ -19,13 +19,15 @@ export function ReviewCampaignsButton({ index }: { index: number }) {
     navigate(path)
   }
   return (
-    <GridItem
-      index={index}
-      className="bg-white"
-      title={t("reviewCampaigns:dashboardCard.title")}
-      description={t("reviewCampaigns:dashboardCard.description")}
-      onClick={handleClick}
-      footer={
+    <GridCard className="bg-white">
+      <GridCard.Body>
+        <GridCard.Title>{t("reviewCampaigns:dashboardCard.title")}</GridCard.Title>
+        <GridCard.Description>
+          {t("reviewCampaigns:dashboardCard.description")}
+        </GridCard.Description>
+        <GridCard.GoButton onClick={handleClick} />
+      </GridCard.Body>
+      <GridCard.Footer>
         <div className="mt-4 flex items-center flex-col max-h-20 overflow-hidden bg-white max-w-full">
           <Item
             variant="outline"
@@ -41,7 +43,7 @@ export function ReviewCampaignsButton({ index }: { index: number }) {
             </div>
           </Item>
         </div>
-      }
-    />
+      </GridCard.Footer>
+    </GridCard>
   )
 }

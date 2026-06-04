@@ -1,4 +1,4 @@
-import { GridItem } from "@/common/components/grid/Grid"
+import { GridCard } from "@/common/components/grid/Grid"
 import { useAppSelector } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
@@ -13,9 +13,7 @@ import { EmbeddingStatusBadge } from "./EmbeddingStatusBadge"
 export function DocumentItem({
   document,
   documentTags,
-  index,
 }: {
-  index: number
   document: Document
   documentTags: DocumentTag[]
 }) {
@@ -23,25 +21,26 @@ export function DocumentItem({
   const pagesCrawled = useAppSelector(selectCrawlProgressByDocumentId)[document.id]
 
   return (
-    <GridItem
-      index={index}
-      badge={
+    <GridCard>
+      <GridCard.Badge>
         <EmbeddingStatusBadge
           status={document.embeddingStatus}
           sourceType={document.sourceType}
           pagesCrawled={pagesCrawled}
         />
-      }
-      title={<div className="wrap-anywhere">{document.title}</div>}
-      description={date}
-      action={
+      </GridCard.Badge>
+      <GridCard.Body>
+        <GridCard.Title>
+          <div className="wrap-anywhere">{document.title}</div>
+        </GridCard.Title>
+        <GridCard.Description>{date}</GridCard.Description>
         <div className="flex gap-2 items-center">
           <DocumentOpener noText documentId={document.id} />
           <DocumentDetailsSheet document={document} documentTags={documentTags} />
           <DocumentEditor document={document} />
           <DocumentDeletor document={document} />
         </div>
-      }
-    />
+      </GridCard.Body>
+    </GridCard>
   )
 }

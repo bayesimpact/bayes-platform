@@ -16,15 +16,6 @@ import { ProjectDeletor } from "@/studio/features/projects/components/ProjectDel
 import { ReviewCampaignsButton } from "@/studio/features/review-campaigns/components/ReviewCampaignsButton"
 import { StudioRoutes } from "@/studio/routes/helpers"
 
-const extraItems = [
-  AgentCreatorButton,
-  DocumentsButton,
-  MembersButton,
-  ReviewCampaignsButton,
-  AnalyticsButton,
-  EvaluationButton,
-]
-
 export function AgentList() {
   const project = useValue(selectCurrentProjectData)
   const agents = useValue(selectAgentsData)
@@ -33,7 +24,7 @@ export function AgentList() {
 
   if (outlet) return outlet
   return (
-    <Grid cols={3} total={agents.length} extraItems={extraItems.length}>
+    <Grid cols={3}>
       <GridHeader
         title={project.name}
         description={t("project:project")}
@@ -56,9 +47,8 @@ export function AgentList() {
       />
 
       <GridContent>
-        {agents.map((agent, index) => (
+        {agents.map((agent) => (
           <AgentItem
-            index={index}
             key={agent.id}
             organizationId={project.organizationId}
             projectId={agent.projectId}
@@ -66,13 +56,12 @@ export function AgentList() {
           />
         ))}
 
-        {extraItems.map((Component, index) => (
-          <Component
-            key={`${Component.name}-${index}`}
-            project={project}
-            index={agents.length + index}
-          />
-        ))}
+        <AgentCreatorButton project={project} />
+        <DocumentsButton />
+        <MembersButton />
+        <ReviewCampaignsButton />
+        <AnalyticsButton />
+        <EvaluationButton />
       </GridContent>
     </Grid>
   )

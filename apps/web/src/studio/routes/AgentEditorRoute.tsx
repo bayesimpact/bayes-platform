@@ -58,7 +58,7 @@ function WithData({ orchestration }: { orchestration?: AgentEditorOrchestration 
   const handleBack = () => navigate(agentRoute)
 
   return (
-    <Grid cols={0} total={0}>
+    <Grid cols={0}>
       <GridHeader
         onBack={handleBack}
         title={t(`agent:update.${agent.type}.title`)}

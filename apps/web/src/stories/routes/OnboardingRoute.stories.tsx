@@ -199,9 +199,9 @@ export const Single: Story = {
     withProjectInvitations: false,
     withAgentInvitations: false,
     withReviewCampaignMembershipsAsTester: false,
-    withReviewCampaignMembershipsAsReviewer: false
-  }
-};
+    withReviewCampaignMembershipsAsReviewer: false,
+  },
+}
 
 export const SingleWithInvitations: Story = {
   args: {
@@ -214,9 +214,9 @@ export const SingleWithInvitations: Story = {
     withProjectInvitations: true,
     withAgentInvitations: true,
     withReviewCampaignMembershipsAsTester: false,
-    withReviewCampaignMembershipsAsReviewer: false
-  }
-};
+    withReviewCampaignMembershipsAsReviewer: false,
+  },
+}
 
 export const SingleWithStudioAccess: Story = {
   args: {
@@ -229,9 +229,9 @@ export const SingleWithStudioAccess: Story = {
     withProjectInvitations: false,
     withAgentInvitations: false,
     withReviewCampaignMembershipsAsTester: true,
-    withReviewCampaignMembershipsAsReviewer: true
-  }
-};
+    withReviewCampaignMembershipsAsReviewer: true,
+  },
+}
 
 export const Multi: Story = {
   args: {
@@ -244,6 +244,6 @@ export const Multi: Story = {
     withProjectInvitations: false,
     withAgentInvitations: false,
     withReviewCampaignMembershipsAsTester: true,
-    withReviewCampaignMembershipsAsReviewer: true
-  }
-};
+    withReviewCampaignMembershipsAsReviewer: true,
+  },
+}

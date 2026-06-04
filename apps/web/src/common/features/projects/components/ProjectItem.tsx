@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { GridItem } from "@/common/components/grid/Grid"
+import { GridCard } from "@/common/components/grid/Grid"
 import type { Project } from "@/common/features/projects/projects.models"
 import { buildSince } from "@/common/utils/build-date"
 import type { DeskRoutes } from "@/desk/routes/helpers"
@@ -10,10 +10,8 @@ type BuildProjectPath = typeof StudioRoutes.project.build | typeof DeskRoutes.pr
 export function ProjectItem({
   project,
   organizationId,
-  index,
   buildProjectPath,
 }: {
-  index: number
   project: Project
   organizationId: string
   buildProjectPath: BuildProjectPath
@@ -28,12 +26,13 @@ export function ProjectItem({
 
   // TODO: footer show agent icons based on type
   return (
-    <GridItem
-      index={index}
-      badge={t("project:project")}
-      onClick={handleClick}
-      title={project.name}
-      description={description}
-    />
+    <GridCard>
+      <GridCard.Badge>{t("project:project")}</GridCard.Badge>
+      <GridCard.Body>
+        <GridCard.Title>{project.name}</GridCard.Title>
+        <GridCard.Description>{description}</GridCard.Description>
+        <GridCard.GoButton onClick={handleClick} />
+      </GridCard.Body>
+    </GridCard>
   )
 }

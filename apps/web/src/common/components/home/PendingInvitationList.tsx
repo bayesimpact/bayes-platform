@@ -2,7 +2,7 @@ import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { CheckCircleIcon, InboxIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/grid/Grid"
+import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/grid/Grid"
 import { useAppDispatch } from "@/common/store/hooks"
 import type {
   PendingInvitationItem as PendingInvitationEntry,
@@ -15,7 +15,7 @@ export function PendingInvitationList({ invitations }: { invitations: PendingInv
   const total = invitations.length
   if (total === 0) return null
   return (
-    <Grid cols={3} total={total}>
+    <Grid cols={3}>
       <GridHeader
         className="bg-gray-50"
         title={t("me:invitations:title")}
@@ -29,21 +29,15 @@ export function PendingInvitationList({ invitations }: { invitations: PendingInv
       />
 
       <GridContent>
-        {invitations.map((invitation, index) => (
-          <PendingInvitationRow key={invitation.id} invitation={invitation} index={index} />
+        {invitations.map((invitation) => (
+          <PendingInvitationRow key={invitation.id} invitation={invitation} />
         ))}
       </GridContent>
     </Grid>
   )
 }
 
-function PendingInvitationRow({
-  invitation,
-  index,
-}: {
-  invitation: PendingInvitationEntry
-  index: number
-}) {
+function PendingInvitationRow({ invitation }: { invitation: PendingInvitationEntry }) {
   const dispatch = useAppDispatch()
   const { t } = useTranslation()
   const handleClick = () => {
@@ -63,16 +57,15 @@ function PendingInvitationRow({
       : `${invitation.organizationName} · ${invitation.projectName} · ${t("me:invitations:roleLabel")}: ${invitation.role}`
 
   return (
-    <GridItem
-      index={index}
-      badge={badge}
-      title={invitation.targetName}
-      description={description}
-      action={
+    <GridCard>
+      <GridCard.Badge>{badge}</GridCard.Badge>
+      <GridCard.Body>
+        <GridCard.Title>{invitation.targetName}</GridCard.Title>
+        <GridCard.Description>{description}</GridCard.Description>
         <Button onClick={handleClick}>
           {t("actions:accept")} <CheckCircleIcon />
         </Button>
-      }
-    />
+      </GridCard.Body>
+    </GridCard>
   )
 }

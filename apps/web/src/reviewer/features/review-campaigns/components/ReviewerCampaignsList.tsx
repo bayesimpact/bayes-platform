@@ -8,17 +8,17 @@ import {
 import { ClipboardCheckIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { Grid, GridContent, GridItem } from "@/common/components/grid/Grid"
+import { Grid, GridCard, GridContent } from "@/common/components/grid/Grid"
 import { ReviewerRoutes } from "@/reviewer/routes/helpers"
 import type { ReviewerCampaign } from "../reviewer.models"
 
 export function ReviewerCampaignsList({ campaigns }: { campaigns: ReviewerCampaign[] }) {
   if (campaigns.length === 0) return <EmptyCampaigns />
   return (
-    <Grid cols={3} total={campaigns.length}>
+    <Grid cols={3}>
       <GridContent>
-        {campaigns.map((campaign, index) => (
-          <CampaignItem key={campaign.id} campaign={campaign} index={index} />
+        {campaigns.map((campaign) => (
+          <CampaignItem key={campaign.id} campaign={campaign} />
         ))}
       </GridContent>
     </Grid>
@@ -40,7 +40,7 @@ function EmptyCampaigns() {
   )
 }
 
-function CampaignItem({ campaign, index }: { campaign: ReviewerCampaign; index: number }) {
+function CampaignItem({ campaign }: { campaign: ReviewerCampaign }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const handleClick = () => {
@@ -53,17 +53,17 @@ function CampaignItem({ campaign, index }: { campaign: ReviewerCampaign; index: 
   }
 
   return (
-    <GridItem
-      key={campaign.id}
-      title={campaign.name}
-      description={
-        <div className="flex flex-col">
-          <span>{campaign.description}</span>
-          <span className="mt-2">{t("reviewerCampaigns:myCampaigns.card.description")}</span>
-        </div>
-      }
-      onClick={handleClick}
-      index={index}
-    />
+    <GridCard>
+      <GridCard.Body>
+        <GridCard.Title>{campaign.name}</GridCard.Title>
+        <GridCard.Description>
+          <div className="flex flex-col">
+            <span>{campaign.description}</span>
+            <span className="mt-2">{t("reviewerCampaigns:myCampaigns.card.description")}</span>
+          </div>
+        </GridCard.Description>
+        <GridCard.GoButton onClick={handleClick} />
+      </GridCard.Body>
+    </GridCard>
   )
 }

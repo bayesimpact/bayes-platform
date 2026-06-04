@@ -6,7 +6,7 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
-import { GridItem } from "@/common/components/grid/Grid"
+import { GridCard } from "@/common/components/grid/Grid"
 import { SUPER_ROLES } from "@/common/features/me/me.models"
 import { selectMe } from "@/common/features/me/me.selectors"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
@@ -16,12 +16,10 @@ import { StudioRoutes } from "@/studio/routes/helpers"
 
 export function ProjectMembershipItem({
   membership,
-  index,
   organizationId,
 }: {
   organizationId: string
   membership: ProjectMembership
-  index: number
 }) {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -48,20 +46,23 @@ export function ProjectMembershipItem({
 
   return (
     <>
-      <GridItem
-        index={index}
-        title={membership.userName}
-        description={membership.userEmail}
-        badge={BadgeWithIcon({ role: membership.role })}
-        onClick={handleClick}
-        topAction={
-          !disabled ? (
+      <GridCard>
+        {!disabled && (
+          <GridCard.TopAction>
             <Button variant="outline" size="icon-sm" onClick={() => setConfirmOpen(true)}>
               <Trash2Icon className="size-3.5" />
             </Button>
-          ) : undefined
-        }
-      />
+          </GridCard.TopAction>
+        )}
+        <GridCard.Badge>
+          <BadgeWithIcon role={membership.role} />
+        </GridCard.Badge>
+        <GridCard.Body>
+          <GridCard.Title>{membership.userName}</GridCard.Title>
+          <GridCard.Description>{membership.userEmail}</GridCard.Description>
+          <GridCard.GoButton onClick={handleClick} />
+        </GridCard.Body>
+      </GridCard>
       <ConfirmDialog
         open={confirmOpen}
         title={t("projectMembership:remove.dialog.title", { name: membership.userName })}
