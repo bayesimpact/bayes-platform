@@ -12,7 +12,7 @@ import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import { buildSince } from "@/common/utils/build-date"
+import { buildDuration, buildSince } from "@/common/utils/build-date"
 import { DocumentOpener } from "@/studio/features/documents/components/DocumentOpener"
 import { selectCurrentDatasetData } from "../features/evaluation-extraction-datasets/evaluation-extraction-datasets.selectors"
 import { AgentMetadataDialog } from "../features/evaluation-extraction-runs/components/AgentMetadataDialog"
@@ -62,6 +62,8 @@ function WithData() {
 
   const canCancel = run.status === "pending" || run.status === "running"
   const canRetry = run.status === "failed"
+  const isFinished =
+    run.status === "completed" || run.status === "failed" || run.status === "cancelled"
   const handleCancel = () => {
     dispatch(evaluationExtractionRunsActions.cancelOne({ evaluationExtractionRunId: run.id }))
   }
@@ -75,10 +77,17 @@ function WithData() {
         title={t("evaluationExtractionRun:results.title")}
         description={
           <div className="flex flex-col gap-2">
-            {buildSince(run.createdAt)}
+            {buildSince(run.updatedAt)}
 
             <div className="flex gap-2">
               <RunStatusBadge status={run.status} />
+              {isFinished && (
+                <Badge variant="secondary">
+                  {t("evaluationExtractionRun:results.duration", {
+                    duration: buildDuration(run.createdAt, run.updatedAt),
+                  })}
+                </Badge>
+              )}
 
               {run.summary && run.summary.running > 0 && (
                 <Badge variant="secondary">

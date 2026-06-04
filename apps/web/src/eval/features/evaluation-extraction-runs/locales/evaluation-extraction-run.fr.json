@@ -54,7 +54,8 @@
       "remaining_one": "{{count}} enregistrement restant",
       "remaining_other": "{{count}} enregistrements restants",
       "remaining_zero": "{{count}} enregistrement restant",
-      "matchRate": "{{matchRate}}% de taux de correspondance"
+      "matchRate": "{{matchRate}}% de taux de correspondance",
+      "duration": "Durée : {{duration}}"
     },
     "history": {
       "title": "Historique des exécutions",

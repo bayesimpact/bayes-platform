@@ -11,19 +11,21 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Organization owners and admins can now rename their organization directly from the onboarding page
 - Workspace administration page (general settings + agent categories management)
 - Manage agent categories per workspace directly from the Studio (add / delete)
-- Evaluation extraction runs can now be scoped to a subset of dataset records: choose to run against the entire dataset or a specific number of records (1 to N)
-- Evaluation extraction datasets can now be renamed after creation via a dialog
-- Evaluation extraction run detail page now has a "View Agent" button showing the agent's model, temperature, language, document search mode, system prompt, and output schema
-- Evaluation extraction runs can now be deleted from the run history
-- Evaluation extraction datasets can now be deleted from the dataset list
+- Evaluation extraction runs can be scoped to a subset of dataset records: choose to run against the entire dataset or a specific number of records (1 to N)
+- Evaluation extraction datasets can be renamed after creation via a dialog
+- Evaluation extraction run detail page has a "View Agent" button showing the agent's model, temperature, language, document search mode, system prompt, and output schema
+- Evaluation extraction runs can be deleted from the run history
+- Evaluation extraction datasets can be deleted from the dataset list
+- Evaluation extraction run detail page shows how long a finished run took
 - Users can now edit their display name from the user menu
 
 ### Changed
-- Evaluation extraction dataset column roles can now be assigned in bulk: select multiple columns and apply a role (target / input / reference / ignore) to all of them at once
-- Evaluation extraction run CSV results are now available for download even when the run is cancelled
-- Workspace name can now be edited from the new Admin page instead of a dialog in the header
+- Evaluation extraction dataset column roles can be assigned in bulk: select multiple columns and apply a role (target / input / reference / ignore) to all of them at once
+- Evaluation extraction run CSV results are available for download even when the run is cancelled
+- Workspace name can be edited from the new Admin page instead of a dialog in the header
 - Agent categories management moved from the Backoffice to the workspace Admin page
 - New agents have all project categories pre-selected by default
+- Evaluation extraction run records are indexed by run and status, speeding up queries for large runs
 
 ### Fixed
 - Importing large evaluation extraction datasets no longer times out: records are now inserted in bulk instead of one row at a time

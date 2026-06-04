@@ -54,7 +54,8 @@
       "remaining_one": "{{count}} record remaining",
       "remaining_other": "{{count}} records remaining",
       "remaining_zero": "{{count}} record remaining",
-      "matchRate": "{{matchRate}}% match rate"
+      "matchRate": "{{matchRate}}% match rate",
+      "duration": "Took {{duration}}"
     },
     "history": {
       "title": "Run History",
