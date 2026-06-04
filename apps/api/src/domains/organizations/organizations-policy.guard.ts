@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { Reflector } from "@nestjs/core"
-import type { EndpointRequest } from "@/common/context/request.interface"
+import type { EndpointRequestWithOrganizationMembership } from "@/common/context/request.interface"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import { CHECK_POLICY_KEY } from "@/common/policies/check-policy.decorator"
 import { OrganizationPolicy } from "./organization.policy"
@@ -16,8 +16,8 @@ export class OrganizationsPolicyGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest() as EndpointRequest
-    const policy = new OrganizationPolicy(request.user)
+    const request = context.switchToHttp().getRequest() as EndpointRequestWithOrganizationMembership
+    const policy = new OrganizationPolicy(request.user, request.organizationMembership ?? null)
 
     const policyHandler = this.reflector.getAllAndOverride<
       ((policy: OrganizationPolicy) => boolean) | undefined

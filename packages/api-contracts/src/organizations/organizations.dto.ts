@@ -1,3 +1,4 @@
+import { z } from "zod"
 import type { TimeType } from "../generic"
 import type { ProjectDto } from "../projects/projects.dto"
 
@@ -16,3 +17,11 @@ export type OrganizationDto = {
   createdAt: TimeType
   projects: ProjectDto[]
 }
+
+export const updateOrganizationSchema = z
+  .object({
+    name: z.string().min(3).max(100).trim(),
+  })
+  .strict()
+
+export type UpdateOrganizationRequestDto = z.infer<typeof updateOrganizationSchema>

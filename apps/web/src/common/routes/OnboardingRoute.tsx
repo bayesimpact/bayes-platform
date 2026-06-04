@@ -1,9 +1,10 @@
 import { Button } from "@caseai-connect/ui/shad/button"
 import { useSidebar } from "@caseai-connect/ui/shad/sidebar"
-import { CheckCircleIcon } from "lucide-react"
-import { useEffect } from "react"
+import { CheckCircleIcon, PencilIcon } from "lucide-react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/grid/Grid"
+import { EditOrganizationDialog } from "@/common/components/organization/EditOrganizationDialog"
 import { OrganizationCreator } from "@/common/components/organization/OrganizationCreator"
 import { SidebarLayout } from "@/common/components/sidebar/SidebarLayout"
 import type { Organization } from "@/common/features/organizations/organizations.models"
@@ -161,53 +162,79 @@ function PendingInvitationRow({
 function OrganizationItem({ organization, index }: { organization: Organization; index: number }) {
   const { t } = useTranslation()
   const { abilities } = useAbility()
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
   const canCreateProject = abilities.canCreateProject({
     organizationId: organization.id,
   })
+  const canRename = abilities.canRenameOrganization({ organizationId: organization.id })
   const extraItems = canCreateProject ? 1 : 0
   if (!canCreateProject && organization.projects.length === 0) return
   return (
-    <GridItem
-      className="bg-gray-50"
-      index={index}
-      title={organization.name}
-      description={t("organization:organization")}
-      action={
-        <Grid cols={2} total={organization.projects.length} extraItems={extraItems}>
-          <GridContent className="bg-white rounded-2xl border">
-            {organization.projects.map((project, index) => (
-              <GridItem
-                badge={t("project:project")}
-                key={project.id}
-                index={index}
-                title={project.name}
-                description={buildSince(project.createdAt)}
-                action={
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <NavAppButton organizationId={organization.id} projectId={project.id} />
-
-                    <NavStudioButton organizationId={organization.id} projectId={project.id} />
-
-                    <NavEvalButton organizationId={organization.id} project={project} />
-
-                    <NavTesterButton projectId={project.id} />
-
-                    <NavReviewerButton projectId={project.id} />
-                  </div>
-                }
-              />
-            ))}
-
-            {canCreateProject && (
-              <ProjectCreatorButton
-                index={organization.projects.length}
-                organization={organization}
-              />
+    <>
+      <GridItem
+        className="bg-gray-50"
+        index={index}
+        title={
+          <>
+            {organization.name}
+            {canRename && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsRenameDialogOpen(true)}
+                className="ml-4"
+              >
+                <PencilIcon className="h-4 w-4" />
+                {t("organization:editDialog.buttonLabel")}
+              </Button>
             )}
-          </GridContent>
-        </Grid>
-      }
-    />
+          </>
+        }
+        description={t("organization:organization")}
+        action={
+          <Grid cols={2} total={organization.projects.length} extraItems={extraItems}>
+            <GridContent className="bg-white rounded-2xl border">
+              {organization.projects.map((project, projectIndex) => (
+                <GridItem
+                  badge={t("project:project")}
+                  key={project.id}
+                  index={projectIndex}
+                  title={project.name}
+                  description={buildSince(project.createdAt)}
+                  action={
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <NavAppButton organizationId={organization.id} projectId={project.id} />
+
+                      <NavStudioButton organizationId={organization.id} projectId={project.id} />
+
+                      <NavEvalButton organizationId={organization.id} project={project} />
+
+                      <NavTesterButton projectId={project.id} />
+
+                      <NavReviewerButton projectId={project.id} />
+                    </div>
+                  }
+                />
+              ))}
+
+              {canCreateProject && (
+                <ProjectCreatorButton
+                  index={organization.projects.length}
+                  organization={organization}
+                />
+              )}
+            </GridContent>
+          </Grid>
+        }
+      />
+      {canRename && (
+        <EditOrganizationDialog
+          open={isRenameDialogOpen}
+          onClose={() => setIsRenameDialogOpen(false)}
+          organization={organization}
+        />
+      )}
+    </>
   )
 }
 

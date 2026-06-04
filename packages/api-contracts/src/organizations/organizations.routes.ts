@@ -1,6 +1,6 @@
-import type { RequestPayload, ResponseData } from "../generic"
+import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
-import type { OrganizationDto } from "./organizations.dto"
+import type { OrganizationDto, UpdateOrganizationRequestDto } from "./organizations.dto"
 
 export const OrganizationsRoutes = {
   createOrganization: defineRoute<
@@ -9,5 +9,12 @@ export const OrganizationsRoutes = {
   >({
     method: "post",
     path: "organizations",
+  }),
+  updateOrganization: defineRoute<
+    ResponseData<SuccessResponseDTO>,
+    RequestPayload<UpdateOrganizationRequestDto>
+  >({
+    method: "patch",
+    path: "organizations/:organizationId",
   }),
 }

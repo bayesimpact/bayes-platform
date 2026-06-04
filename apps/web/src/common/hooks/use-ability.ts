@@ -28,6 +28,17 @@ export function useAbility() {
     [organizationMemberships],
   )
 
+  const canRenameOrganization = useCallback(
+    ({ organizationId }: { organizationId: string | null }) => {
+      if (!organizationId) return false
+      return [...(organizationMemberships ?? [])].some(
+        (membership) =>
+          membership.organizationId === organizationId && SUPER_ROLES.includes(membership.role),
+      )
+    },
+    [organizationMemberships],
+  )
+
   const canAccessStudio = useCallback(
     ({ projectId }: { projectId: string | null }) => {
       const isProjectOwnerOrAdmin = [...(projectMemberships ?? [])].some(
@@ -73,6 +84,7 @@ export function useAbility() {
         canManageAgent,
         canAccessTester,
         canAccessReviewer,
+        canRenameOrganization,
       },
       isPremiumMember,
     }),
@@ -82,6 +94,7 @@ export function useAbility() {
       canManageAgent,
       canAccessTester,
       canAccessReviewer,
+      canRenameOrganization,
       isPremiumMember,
     ],
   )
