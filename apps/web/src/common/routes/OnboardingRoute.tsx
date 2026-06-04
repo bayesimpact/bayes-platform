@@ -82,7 +82,7 @@ function Main({
             className="border-none"
             title={
               <div className="flex items-center gap-4">
-                <div className="size-8">
+                <div className="size-9">
                   <Logo />
                 </div>
                 {t("organization:list:title", { name: user.name })}
