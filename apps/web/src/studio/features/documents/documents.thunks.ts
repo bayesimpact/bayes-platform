@@ -166,6 +166,16 @@ export const reCrawlUrl = createAsyncThunk<
   return await services.documents.reCrawlUrl({ organizationId, projectId, documentId })
 })
 
+export const cancelCrawl = createAsyncThunk<void, { documentId: string }, ThunkConfig>(
+  "documents/cancelCrawl",
+  async ({ documentId }, { extra: { services }, getState }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    await services.documents.cancelCrawl({ organizationId, projectId, documentId })
+  },
+)
+
 export const streamDocumentCrawlProgresses = createAsyncThunk<void, void, ThunkConfig>(
   "documents/streamCrawlProgress",
   async (_, { extra: { services }, getState, dispatch, signal }) => {

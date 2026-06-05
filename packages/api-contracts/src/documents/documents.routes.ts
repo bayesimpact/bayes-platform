@@ -68,6 +68,10 @@ export const DocumentsRoutes = {
     method: "post",
     path: "organizations/:organizationId/projects/:projectId/documents/:documentId/recrawl",
   }),
+  cancelCrawl: defineRoute<ResponseData<SuccessResponseDTO>>({
+    method: "post",
+    path: "organizations/:organizationId/projects/:projectId/documents/:documentId/cancel-crawl",
+  }),
   // Streaming responses are sent as text/event-stream (SSE) and do not follow ResponseData<T>.
   streamEmbeddingStatus: defineRoute<ResponseData<unknown>>({
     method: "get",

@@ -59,9 +59,7 @@ export class UrlCrawlingProcessorService {
               updatedAt: Date.now(),
             })
             .catch((error) => {
-              this.logger.error(
-                `${tag} Failed to emit crawl progress: ${(error as Error).message}`,
-              )
+              this.logger.error(`${tag} Failed to emit crawl progress: ${(error as Error).message}`)
             })
         },
       })
@@ -70,6 +68,15 @@ export class UrlCrawlingProcessorService {
       this.logger.log(
         `${tag} Crawl complete: ${pages.length} pages in ${durationSeconds}s — storing content`,
       )
+
+      const latestDoc = await this.documentsService.findById({
+        connectScope,
+        documentId: payload.documentId,
+      })
+      if (latestDoc?.embeddingStatus === "failed") {
+        this.logger.log(`${tag} Crawl was cancelled — skipping content save`)
+        return
+      }
 
       const contentPages = pages.map((page) => ({
         url: page.url,

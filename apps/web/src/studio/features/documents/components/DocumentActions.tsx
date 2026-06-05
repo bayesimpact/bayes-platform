@@ -21,6 +21,7 @@ import {
   PencilIcon,
   RefreshCwIcon,
   RotateCcwIcon,
+  SquareIcon,
   Trash2Icon,
 } from "lucide-react"
 import { useState } from "react"
@@ -35,6 +36,7 @@ import { EmbeddingStatusBadge } from "@/studio/features/documents/components/Emb
 import type { Document } from "@/studio/features/documents/documents.models"
 import { selectCrawlProgressByDocumentId } from "@/studio/features/documents/documents.selectors"
 import {
+  cancelCrawl,
   deleteDocument,
   getDocumentTemporaryUrl,
   reCrawlUrl,
@@ -152,6 +154,12 @@ export function WebSourceDocumentActions({
     dispatch(reCrawlUrl({ documentId: document.id }))
   }
 
+  const handleStopCrawl = () => {
+    dispatch(cancelCrawl({ documentId: document.id }))
+  }
+
+  const isCrawling = document.embeddingStatus === "pending" || document.embeddingStatus === "queued"
+
   return (
     <>
       <DropdownMenu>
@@ -175,10 +183,18 @@ export function WebSourceDocumentActions({
               {t("document:reprocess.cta")}
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem onSelect={handleReCrawl}>
-            <RefreshCwIcon className="size-4" />
-            {t("document:recrawl")}
-          </DropdownMenuItem>
+          {isCrawling && (
+            <DropdownMenuItem onSelect={handleStopCrawl}>
+              <SquareIcon className="size-4" />
+              {t("document:stopCrawl")}
+            </DropdownMenuItem>
+          )}
+          {!isCrawling && (
+            <DropdownMenuItem onSelect={handleReCrawl}>
+              <RefreshCwIcon className="size-4" />
+              {t("document:recrawl")}
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onSelect={() => setActiveAction("delete")}>
             <Trash2Icon className="size-4" />

@@ -156,6 +156,12 @@ export default {
     )
     return response.data.data
   },
+  cancelCrawl: async ({ organizationId, projectId, documentId }) => {
+    const axios = getAxiosInstance()
+    await axios.post<typeof DocumentsRoutes.cancelCrawl.response>(
+      DocumentsRoutes.cancelCrawl.getPath({ organizationId, projectId, documentId }),
+    )
+  },
 } satisfies IDocumentsSpi
 
 function toDocument(dto: DocumentDto): Document {

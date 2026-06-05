@@ -39,6 +39,7 @@
       "description": "Êtes-vous sûr de vouloir supprimer ce document ? Cette action est irréversible."
     },
     "recrawl": "Ré-explorer le site",
+    "stopCrawl": "Arrêter l'exploration",
     "crawl": {
       "button": "Explorer un site web",
       "title": "Explorer un site web",

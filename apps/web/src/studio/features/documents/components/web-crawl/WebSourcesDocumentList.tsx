@@ -38,6 +38,7 @@ import {
   PencilIcon,
   RefreshCwIcon,
   RotateCcwIcon,
+  SquareIcon,
   Trash2Icon,
   XIcon,
 } from "lucide-react"
@@ -68,6 +69,7 @@ import {
   selectDocumentsData,
 } from "@/studio/features/documents/documents.selectors"
 import {
+  cancelCrawl,
   deleteDocument,
   getDocumentTemporaryUrl,
   reCrawlUrl,
@@ -277,6 +279,12 @@ function DocumentActions({
     dispatch(reCrawlUrl({ documentId: document.id }))
   }
 
+  const handleStopCrawl = () => {
+    dispatch(cancelCrawl({ documentId: document.id }))
+  }
+
+  const isCrawling = document.embeddingStatus === "pending" || document.embeddingStatus === "queued"
+
   return (
     <>
       <DropdownMenu>
@@ -306,7 +314,13 @@ function DocumentActions({
               {t("document:reprocess.cta")}
             </DropdownMenuItem>
           )}
-          {document.sourceType === "webCrawl" && (
+          {isCrawling && (
+            <DropdownMenuItem onSelect={handleStopCrawl}>
+              <SquareIcon className="size-4" />
+              {t("document:stopCrawl")}
+            </DropdownMenuItem>
+          )}
+          {document.sourceType === "webCrawl" && !isCrawling && (
             <DropdownMenuItem onSelect={handleReCrawl}>
               <RefreshCwIcon className="size-4" />
               {t("document:recrawl")}

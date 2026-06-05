@@ -154,6 +154,36 @@ export class CrawlingController {
     }
   }
 
+  @CheckPolicy((policy) => policy.canUpdate())
+  @Post(DocumentsRoutes.cancelCrawl.path)
+  @AddContext("document")
+  @HttpCode(HttpStatus.OK)
+  async cancelCrawl(
+    @Request() req: EndpointRequestWithDocument,
+  ): Promise<typeof DocumentsRoutes.cancelCrawl.response> {
+    const document = req.document
+    const connectScope = getRequiredConnectScope(req)
+
+    await this.documentsService.updateEmbeddingStatus({
+      connectScope,
+      documentId: document.id,
+      status: "failed",
+    })
+
+    await this.documentEmbeddingStatusNotifierService.notifyEmbeddingStatusChanged({
+      documentId: document.id,
+      organizationId: document.organizationId,
+      projectId: document.projectId,
+      embeddingStatus: "failed",
+      embeddingError: null,
+      updatedAt: Date.now(),
+    })
+
+    await this.urlCrawlingBatchService.cancelCrawlUrl({ documentId: document.id })
+
+    return { data: { success: true } }
+  }
+
   @CheckPolicy((policy) => policy.canList())
   @Sse(DocumentsRoutes.streamCrawlProgress.path, { method: 0 /* GET */ })
   streamCrawlProgress(

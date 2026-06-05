@@ -79,4 +79,9 @@ export interface IDocumentsSpi {
     projectId: string
     documentId: string
   }): Promise<{ message: string }>
+  cancelCrawl(params: {
+    organizationId: string
+    projectId: string
+    documentId: string
+  }): Promise<void>
 }

@@ -39,6 +39,7 @@
       "description": "Are you sure you want to delete this document? This action cannot be undone."
     },
     "recrawl": "Recrawl website",
+    "stopCrawl": "Stop crawl",
     "crawl": {
       "button": "Crawl Website",
       "title": "Crawl a Website",
