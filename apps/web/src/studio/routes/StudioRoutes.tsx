@@ -16,9 +16,11 @@ import {
   FormAgentSessionList,
 } from "@/studio/features/agents/components/AgentSessionList"
 import { CampaignsRoute } from "@/studio/routes/CampaignsRoute"
+import { ProjectAdminRoute } from "@/studio/routes/ProjectAdminRoute"
 import { StudioLayout } from "../components/StudioLayout"
 import { AgentList } from "../features/analytics/agent/components/AgentList"
 import { AgentAnalyticsRoute } from "./AgentAnalyticsRoute"
+import { AgentEditorRoute } from "./AgentEditorRoute"
 import { AgentMembershipsRoute } from "./AgentMembershipsRoute"
 import { ProjectDocumentsRoute } from "./DocumentsRoute"
 import { EvaluationRoute } from "./EvaluationRoute"
@@ -96,6 +98,10 @@ export const studioRoutes = {
           ],
         },
         {
+          path: StudioRoutes.projectAdmin.path,
+          element: <ProjectAdminRoute />,
+        },
+        {
           path: StudioRoutes.reviewCampaigns.path,
           element: <CampaignsRoute />,
         },
@@ -118,6 +124,10 @@ export const studioRoutes = {
             {
               element: <RestrictedAccess ability="canManageAgent" />,
               children: [
+                {
+                  path: StudioRoutes.agentEdit.path,
+                  element: <AgentEditorRoute />,
+                },
                 {
                   path: StudioRoutes.agentAnalytics.path,
                   element: (

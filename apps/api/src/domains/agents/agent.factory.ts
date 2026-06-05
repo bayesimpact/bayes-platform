@@ -43,5 +43,7 @@ export const agentFactory = AgentFactory.define(({ sequence, params, transientPa
     agentMcpServers: params.agentMcpServers || [],
     reviewCampaigns: params.reviewCampaigns || [],
     categories: params.categories || [],
+    childSubAgents: params.childSubAgents || [],
+    parentSubAgents: params.parentSubAgents || [],
   } satisfies Agent
 })

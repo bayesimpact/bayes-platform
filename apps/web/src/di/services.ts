@@ -14,6 +14,7 @@ import type { IReviewerSpi } from "@/reviewer/features/review-campaigns/reviewer
 import type { IAgentEmbedConfigsSpi } from "@/studio/features/agent-embed-configs/agent-embed-configs.spi"
 import type { IAgentMembershipsSpi } from "@/studio/features/agent-memberships/agent-memberships.spi"
 import type { IAgentMessageFeedbackSpi } from "@/studio/features/agent-message-feedback/agent-message-feedback.spi"
+import type { IAgentSubAgentsSpi } from "@/studio/features/agent-sub-agents/agent-sub-agents.spi"
 import type { IAgentAnalyticsSpi } from "@/studio/features/analytics/agent/agent-analytics.spi"
 import type { IProjectAnalyticsSpi } from "@/studio/features/analytics/project/analytics.spi"
 import type { IDocumentTagsSpi } from "@/studio/features/document-tags/document-tags.spi"
@@ -31,6 +32,7 @@ export type Services = {
   agentEmbedConfigs: IAgentEmbedConfigsSpi
   agentMemberships: IAgentMembershipsSpi
   agentMessageFeedback: IAgentMessageFeedbackSpi
+  agentSubAgents: IAgentSubAgentsSpi
   agents: IAgentsSpi
   agentSessionMessages: IAgentSessionMessagesSpi
   backoffice: IBackofficeSpi

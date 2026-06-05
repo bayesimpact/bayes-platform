@@ -4,7 +4,7 @@ import {
   documentTagSchema,
   updateDocumentTagsSchema,
 } from "../document-tags/document-tag.dto"
-import type { TimeType } from "../generic"
+import { type TimeType, timeTypeSchema } from "../generic"
 
 export enum AgentModel {
   Gemini25Flash = "gemini-2.5-flash",
@@ -109,6 +109,48 @@ const agentValidationSchema = z.object({
 
 export type AgentType = z.infer<typeof agentValidationSchema.shape.type>
 export type AgentTemperature = z.infer<typeof agentValidationSchema.shape.temperature>
+
+const agentSubAgentToolNameSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(64)
+  .regex(/^[a-zA-Z0-9_-]+$/, {
+    message: "Tool name can only contain letters, numbers, underscores, and hyphens",
+  })
+
+const replaceAgentSubAgentSchema = z.object({
+  childAgentId: z.string().uuid(),
+  toolName: agentSubAgentToolNameSchema,
+  description: z.string().trim().max(2000).default(""),
+  enabled: z.boolean(),
+})
+
+export const replaceAgentSubAgentsSchema = z.object({
+  subAgents: z.array(replaceAgentSubAgentSchema).max(20),
+})
+
+export const agentSubAgentSchema = z.object({
+  id: z.string().uuid(),
+  parentAgentId: z.string().uuid(),
+  childAgentId: z.string().uuid(),
+  toolName: z.string(),
+  description: z.string(),
+  enabled: z.boolean(),
+  childAgent: z
+    .object({
+      id: z.string().uuid(),
+      name: z.string(),
+      type: agentValidationSchema.shape.type,
+    })
+    .optional(),
+  createdAt: timeTypeSchema,
+  updatedAt: timeTypeSchema,
+})
+
+export type ReplaceAgentSubAgentDto = z.infer<typeof replaceAgentSubAgentSchema>
+export type ReplaceAgentSubAgentsDto = z.infer<typeof replaceAgentSubAgentsSchema>
+export type AgentSubAgentDto = z.infer<typeof agentSubAgentSchema>
 
 const refineOutputJsonSchema = {
   fn: (data: Partial<AgentDto>) =>

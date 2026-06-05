@@ -128,6 +128,27 @@ describe("UsersService", () => {
     })
   })
 
+  describe("updateUser", () => {
+    it("should update the user name and return the updated user", async () => {
+      const user = userFactory.build({ name: "Original Name" })
+      await repository.save(user)
+
+      const updated = await service.updateUser(user.id, "Updated Name")
+
+      expect(updated.id).toBe(user.id)
+      expect(updated.name).toBe("Updated Name")
+
+      const persisted = await repository.findOne({ where: { id: user.id } })
+      expect(persisted?.name).toBe("Updated Name")
+    })
+
+    it("should throw when user does not exist", async () => {
+      await expect(
+        service.updateUser("00000000-0000-0000-0000-000000000000", "New Name"),
+      ).rejects.toThrow("User 00000000-0000-0000-0000-000000000000 not found after update")
+    })
+  })
+
   describe("findOrCreate", () => {
     it("should create user when it does not exist", async () => {
       const auth0UserInfo = {

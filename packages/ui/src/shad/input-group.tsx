@@ -1,5 +1,3 @@
-"use client"
-
 import { cn } from "@caseai-connect/ui/utils"
 import { cva, type VariantProps } from "class-variance-authority"
 import type * as React from "react"

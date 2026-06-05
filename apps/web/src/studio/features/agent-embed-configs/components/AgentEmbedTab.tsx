@@ -1,5 +1,3 @@
-"use client"
-
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@caseai-connect/ui/shad/field"
 import { Input } from "@caseai-connect/ui/shad/input"
@@ -8,48 +6,67 @@ import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { CheckIcon, CopyIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { Agent } from "@/common/features/agents/agents.models"
-import { ADS } from "@/common/store/async-data-status"
+import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
+import { useMount } from "@/common/hooks/use-mount"
+import { useValue } from "@/common/hooks/use-value"
+import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import type { AgentEmbedConfig } from "../agent-embed-configs.models"
 import { selectAgentEmbedConfig } from "../agent-embed-configs.selectors"
 import { agentEmbedConfigsActions } from "../agent-embed-configs.slice"
 
-export function AgentEmbedTab({ agent }: { agent: Agent }) {
+type EmbedFormState = {
+  isEnabled: boolean
+  allowedOriginsText: string
+  title: string
+  logoUrl: string
+  primaryColor: string
+}
+
+function toFormState(config: AgentEmbedConfig): EmbedFormState {
+  return {
+    isEnabled: config.isEnabled,
+    allowedOriginsText: config.allowedOrigins.join(", "),
+    title: config.title ?? "",
+    logoUrl: config.logoUrl ?? "",
+    primaryColor: config.primaryColor ?? "",
+  }
+}
+
+const emptyFormState: EmbedFormState = {
+  isEnabled: false,
+  allowedOriginsText: "",
+  title: "",
+  logoUrl: "",
+  primaryColor: "",
+}
+export function AgentEmbedTab() {
+  const config = useAppSelector(selectAgentEmbedConfig)
+
+  useMount({ actions: agentEmbedConfigsActions })
+
+  return (
+    <AsyncRoute data={[config]}>
+      <WithData />
+    </AsyncRoute>
+  )
+}
+
+function WithData() {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
-  const configData = useAppSelector(selectAgentEmbedConfig)
+  const agent = useValue(selectCurrentAgentData)
+  const config = useValue(selectAgentEmbedConfig)
 
   const [copied, setCopied] = useState(false)
+  const [form, setForm] = useState<EmbedFormState>(emptyFormState)
 
   useEffect(() => {
-    dispatch(agentEmbedConfigsActions.mount())
-    return () => {
-      dispatch(agentEmbedConfigsActions.unmount())
-    }
-  }, [dispatch])
-
-  const config = ADS.isFulfilled(configData) ? configData.value : null
-
-  const [isEnabled, setIsEnabled] = useState(config?.isEnabled ?? false)
-  const [allowedOriginsText, setAllowedOriginsText] = useState(
-    config?.allowedOrigins.join(", ") ?? "",
-  )
-  const [title, setTitle] = useState(config?.title ?? "")
-  const [logoUrl, setLogoUrl] = useState(config?.logoUrl ?? "")
-  const [primaryColor, setPrimaryColor] = useState(config?.primaryColor ?? "")
-
-  useEffect(() => {
-    if (config) {
-      setIsEnabled(config.isEnabled)
-      setAllowedOriginsText(config.allowedOrigins.join(", "))
-      setTitle(config.title ?? "")
-      setLogoUrl(config.logoUrl ?? "")
-      setPrimaryColor(config.primaryColor ?? "")
-    }
+    if (config) setForm(toFormState(config))
   }, [config])
 
   const embedBaseUrl =
-    (import.meta.env.VITE_EMBED_URL as string | undefined) ?? window.location.origin
+    (import.meta.env.VITE_AGENT_EMBED_URL as string | undefined) ?? window.location.origin
   const embedSnippet = config
     ? `<script src="${embedBaseUrl}/launcher.js" data-token="${config.embedToken}"></script>`
     : ""
@@ -62,34 +79,18 @@ export function AgentEmbedTab({ agent }: { agent: Agent }) {
   }
 
   const handleUpdate = () => {
-    const allowedOrigins = allowedOriginsText
+    const allowedOrigins = form.allowedOriginsText
       .split(",")
       .map((origin) => origin.trim())
       .filter((origin) => origin.length > 0)
     dispatch(
       agentEmbedConfigsActions.updateConfig({
-        isEnabled,
+        isEnabled: form.isEnabled,
         allowedOrigins,
-        title: title.trim() || null,
-        logoUrl: logoUrl.trim() || null,
-        primaryColor: primaryColor.trim() || null,
+        title: form.title.trim() || null,
+        logoUrl: form.logoUrl.trim() || null,
+        primaryColor: form.primaryColor.trim() || null,
       }),
-    )
-  }
-
-  if (ADS.isLoading(configData) || ADS.isUninitialized(configData)) {
-    return (
-      <FieldGroup>
-        <p className="text-sm text-muted-foreground">{t("agent:embed.loading")}</p>
-      </FieldGroup>
-    )
-  }
-
-  if (ADS.isError(configData)) {
-    return (
-      <FieldGroup>
-        <p className="text-sm text-destructive">{t("agent:embed.loadError")}</p>
-      </FieldGroup>
     )
   }
 
@@ -102,7 +103,11 @@ export function AgentEmbedTab({ agent }: { agent: Agent }) {
             {t("agent:embed.enabledDescription", { name: agent.name })}
           </FieldDescription>
         </div>
-        <Switch id="embed-enabled" checked={isEnabled} onCheckedChange={setIsEnabled} />
+        <Switch
+          id="embed-enabled"
+          checked={form.isEnabled}
+          onCheckedChange={(isEnabled) => setForm((prev) => ({ ...prev, isEnabled }))}
+        />
       </Field>
 
       {config && (
@@ -129,8 +134,8 @@ export function AgentEmbedTab({ agent }: { agent: Agent }) {
         <FieldDescription>{t("agent:embed.allowedOriginsDescription")}</FieldDescription>
         <Input
           id="allowed-origins"
-          value={allowedOriginsText}
-          onChange={(e) => setAllowedOriginsText(e.target.value)}
+          value={form.allowedOriginsText}
+          onChange={(e) => setForm((prev) => ({ ...prev, allowedOriginsText: e.target.value }))}
           placeholder={t("agent:embed.allowedOriginsPlaceholder")}
         />
       </Field>
@@ -142,8 +147,8 @@ export function AgentEmbedTab({ agent }: { agent: Agent }) {
         </FieldDescription>
         <Input
           id="embed-title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          value={form.title}
+          onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
           placeholder={agent.name}
         />
       </Field>
@@ -154,8 +159,8 @@ export function AgentEmbedTab({ agent }: { agent: Agent }) {
         <Input
           id="embed-logo-url"
           type="url"
-          value={logoUrl}
-          onChange={(e) => setLogoUrl(e.target.value)}
+          value={form.logoUrl}
+          onChange={(e) => setForm((prev) => ({ ...prev, logoUrl: e.target.value }))}
           placeholder={t("agent:embed.logoUrlPlaceholder")}
         />
       </Field>
@@ -167,14 +172,14 @@ export function AgentEmbedTab({ agent }: { agent: Agent }) {
           <input
             id="embed-primary-color-picker"
             type="color"
-            value={primaryColor || "#2563eb"}
-            onChange={(e) => setPrimaryColor(e.target.value)}
+            value={form.primaryColor || "#2563eb"}
+            onChange={(e) => setForm((prev) => ({ ...prev, primaryColor: e.target.value }))}
             className="h-9 w-10 cursor-pointer rounded border border-input p-0.5"
           />
           <Input
             id="embed-primary-color"
-            value={primaryColor}
-            onChange={(e) => setPrimaryColor(e.target.value)}
+            value={form.primaryColor}
+            onChange={(e) => setForm((prev) => ({ ...prev, primaryColor: e.target.value }))}
             placeholder="#2563eb"
             className="font-mono"
           />

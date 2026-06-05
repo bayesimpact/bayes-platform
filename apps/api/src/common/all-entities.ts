@@ -14,6 +14,7 @@ import { AgentMembership } from "@/domains/agents/memberships/agent-membership.e
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import { AgentMessageAttachmentDocument } from "@/domains/agents/shared/agent-session-messages/agent-message-attachment-document.entity"
 import { AgentMessageFeedback } from "@/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity"
+import { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
 import { Document } from "@/domains/documents/document.entity"
 import { DocumentChunk } from "@/domains/documents/embeddings/document-chunk.entity"
 import { DocumentChunkEmbedding } from "@/domains/documents/embeddings/document-chunk-embedding.entity"
@@ -55,6 +56,7 @@ export const ALL_ENTITIES = [
   AgentMessage,
   AgentMessageAttachmentDocument,
   AgentMessageFeedback,
+  AgentSubAgent,
   ConversationAgentSession,
   ConversationAgentSessionCategory,
   Document,

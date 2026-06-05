@@ -123,14 +123,14 @@ describe("ProjectsService", () => {
       await repositories.featureFlagRepository.save(
         repositories.featureFlagRepository.create({
           projectId: project.id,
-          featureFlagKey: "sources_tool",
+          featureFlagKey: "sources-tool",
           enabled: true,
         }),
       )
 
       const result = await service.hasFeature({
         connectScope: { organizationId: organization.id, projectId: project.id },
-        feature: "sources_tool",
+        feature: "sources-tool",
       })
 
       expect(result).toBe(true)

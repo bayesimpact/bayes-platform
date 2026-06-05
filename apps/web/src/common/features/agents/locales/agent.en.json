@@ -99,7 +99,25 @@
       "output": "Output",
       "form": "Form",
       "sources": "Sources",
+      "categories": "Categories",
+      "orchestration": "Orchestration",
       "embed": "Embed"
+    },
+    "orchestration": {
+      "selectedTitle": "Sub-agents",
+      "availableTitle": "Available conversation agents",
+      "emptyTitle": "No sub-agents",
+      "emptyDescription": "This agent answers directly without delegating to another agent.",
+      "noAvailableAgents": "No other conversation agents are available.",
+      "missingAgent": "Missing agent",
+      "add": "Add",
+      "remove": "Remove",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "toolName": "Tool name",
+      "toolNamePlaceholder": "ask_specialist_agent",
+      "description": "Tool description",
+      "defaultDescription": "Route specialized requests to {{name}}."
     },
     "embed": {
       "loading": "Loading embed configuration…",

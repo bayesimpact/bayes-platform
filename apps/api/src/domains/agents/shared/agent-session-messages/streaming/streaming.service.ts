@@ -22,6 +22,7 @@ import { ConversationAgentSession } from "@/domains/agents/conversation-agent-se
 import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
 import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import { FormAgentSessionsService } from "@/domains/agents/form-agent-sessions/form-agent-sessions.service"
+import { AgentSubAgentsService } from "@/domains/agents/sub-agents/agent-sub-agents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentChunkRetrievalService } from "@/domains/documents/embeddings/document-chunk-retrieval.service"
 import {
@@ -39,6 +40,8 @@ import { AgentMessage } from "../agent-message.entity"
 import { AgentMessageAttachmentDocumentsService } from "../agent-message-attachment-documents.service"
 import { buildConversationAgentPrompt } from "./master-promts/conversation-agent.prompt"
 import { buildFormAgentPrompt } from "./master-promts/form-agent.prompt"
+import type { PublicStreamingSessionProxy, StreamingSession } from "./streaming-session.types"
+import { type BuiltTools, buildSubAgentTools } from "./sub-agent-tools"
 import { fillFormTool } from "./tools/fill-form.tool"
 import { recalculateConversationSessionMetadataTool } from "./tools/recalculate-conversation-session-metadata.tool"
 import { retrieveProjectDocumentChunksTool } from "./tools/retrieve-project-document-chunks.tool"
@@ -46,17 +49,6 @@ import { sourcesTool } from "./tools/sources.tool"
 import type { ToolExecutionLog } from "./tools/tool-execution-log"
 
 type NotifyClient = (event: Extract<StreamEvent, { type: "notify_client" }>) => void
-
-/**
- * Minimal session context for public/anonymous sessions that have no
- * corresponding ConversationAgentSession or FormAgentSession row.
- */
-type PublicStreamingSessionProxy = {
-  id: string
-  traceId: string
-  organizationId: string
-  messages: AgentMessage[]
-}
 
 @Injectable()
 export class StreamingService extends ServiceWithLLM {
@@ -76,6 +68,8 @@ export class StreamingService extends ServiceWithLLM {
     private readonly formAgentSessionsService: FormAgentSessionsService,
     @Inject(ConversationAgentSessionsService)
     private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
+    @Inject(AgentSubAgentsService)
+    private readonly agentSubAgentsService: AgentSubAgentsService,
     @Inject(ProjectsService)
     private readonly projectsService: ProjectsService,
 
@@ -320,13 +314,14 @@ export class StreamingService extends ServiceWithLLM {
     agent: Agent
     sessionId: string
     notifyClient: NotifyClient
-    session: ConversationAgentSession | FormAgentSession | PublicStreamingSessionProxy
+    session: StreamingSession
     attachmentDocumentId?: string
     connectScope: RequiredConnectScope
   }) {
-    const { tools, mcpClose } = await this.buildTools({
+    const { tools, mcpClose, toolDescriptions } = await this.buildTools({
       agent,
       sessionId,
+      session,
       connectScope,
       onExecute: async (toolExecution) =>
         await this.persistToolExecutionAndNotifyClient({
@@ -338,9 +333,9 @@ export class StreamingService extends ServiceWithLLM {
         }),
     })
 
-    const toolNames = tools ? (Object.keys(tools) as ToolName[]) : []
+    const toolNames = tools ? Object.keys(tools) : []
     const config = this.buildLLMConfig({
-      systemPrompt: this.generateMasterPrompt({ agent, toolNames }),
+      systemPrompt: this.generateMasterPrompt({ agent, toolNames, toolDescriptions }),
       model: agent.model,
       temperature: agent.temperature,
       tools,
@@ -473,7 +468,11 @@ export class StreamingService extends ServiceWithLLM {
     return llmMessages
   }
 
-  private generateMasterPrompt(params: { agent: Agent; toolNames: ToolName[] }): string {
+  private generateMasterPrompt(params: {
+    agent: Agent
+    toolDescriptions?: Record<string, string>
+    toolNames: string[]
+  }): string {
     const agentType = params.agent.type
     switch (agentType) {
       case "form":
@@ -704,20 +703,38 @@ export class StreamingService extends ServiceWithLLM {
     connectScope,
     currentCategoryNames,
     hasSourcesTool,
+    includeSessionMetadataTools,
     mcpTools,
     onExecute,
+    subAgentTools,
   }: {
     agent: Agent
     sessionId: string
     connectScope: RequiredConnectScope
     currentCategoryNames: string[]
     hasSourcesTool: boolean
+    includeSessionMetadataTools: boolean
     mcpTools: ToolSet
     onExecute: (toolExecution: ToolExecutionLog) => void
+    subAgentTools: ToolSet
   }): ToolSet {
-    const hasRecalculateConversationSessionMetadataTool = (agent.categories?.length ?? 0) > 0
+    const hasRecalculateConversationSessionMetadataTool =
+      includeSessionMetadataTools && (agent.categories?.length ?? 0) > 0
 
     const tools: ToolSet = {
+      ...(agent.documentsRagMode === DocumentsRagMode.None
+        ? {}
+        : {
+            [ToolName.RetrieveProjectDocumentChunks]: retrieveProjectDocumentChunksTool({
+              connectScope,
+              documentTagIds:
+                agent.documentsRagMode === DocumentsRagMode.Tags
+                  ? (agent.documentTags?.map((documentTag) => documentTag.id) ?? [])
+                  : [],
+              retrievalService: this.documentChunkRetrievalService,
+              onExecute,
+            }),
+          }),
       ...(hasSourcesTool ? { [ToolName.Sources]: sourcesTool({ onExecute }) } : {}),
       ...(hasRecalculateConversationSessionMetadataTool
         ? {
@@ -736,44 +753,41 @@ export class StreamingService extends ServiceWithLLM {
               }),
           }
         : {}),
-      ...mcpTools,
     }
 
-    if (agent.documentsRagMode === DocumentsRagMode.None) {
-      return tools
-    }
-
-    return {
-      [ToolName.RetrieveProjectDocumentChunks]: retrieveProjectDocumentChunksTool({
-        connectScope,
-        documentTagIds:
-          agent.documentsRagMode === DocumentsRagMode.Tags
-            ? (agent.documentTags?.map((documentTag) => documentTag.id) ?? [])
-            : [],
-        retrievalService: this.documentChunkRetrievalService,
-        onExecute,
-      }),
-      ...tools,
-    }
+    this.addToolsWithoutCollisions({ target: tools, source: mcpTools, sourceLabel: "MCP" })
+    this.addToolsWithoutCollisions({
+      target: tools,
+      source: subAgentTools,
+      sourceLabel: "sub-agent",
+    })
+    return tools
   }
 
   private async buildTools({
     agent,
     sessionId,
+    session,
     connectScope,
+    includeSessionMetadataTools = true,
+    includeSubAgentTools = true,
     onExecute,
   }: {
     agent: Agent
     sessionId: string
+    session?: StreamingSession
     connectScope: RequiredConnectScope
+    includeSessionMetadataTools?: boolean
+    includeSubAgentTools?: boolean
     onExecute: (toolExecution: ToolExecutionLog) => void
-  }): Promise<{ tools: ToolSet | undefined; mcpClose?: () => Promise<void> }> {
+  }): Promise<BuiltTools> {
     const hasSourcesTool = await this.projectsService.hasFeature({
       connectScope,
-      feature: "sources_tool",
+      feature: "sources-tool",
     })
     const mcpCloseFns: (() => Promise<void>)[] = []
     const mcpTools: ToolSet = {}
+    const mcpToolDescriptions: Record<string, string> = {}
 
     const serverConfigs = await this.mcpServersService.getEnabledServersForAgent(agent.id)
     for (const serverConfig of serverConfigs) {
@@ -782,6 +796,8 @@ export class StreamingService extends ServiceWithLLM {
       for (const [toolName, toolDef] of Object.entries(mcpSession.tools)) {
         const originalExecute = toolDef.execute
         if (!originalExecute) continue
+        const description = this.getToolDescription(toolDef)
+        if (description) mcpToolDescriptions[toolName] = description
         mcpTools[toolName] = {
           ...toolDef,
           execute: (async (...executeArgs: Parameters<typeof originalExecute>) => {
@@ -789,7 +805,7 @@ export class StreamingService extends ServiceWithLLM {
               `[MCP] Calling tool "${toolName}" with args: ${JSON.stringify(executeArgs[0])}`,
             )
             onExecute({
-              toolName: toolName as ToolName,
+              toolName,
               arguments: (executeArgs[0] ?? {}) as Record<string, unknown>,
             })
             try {
@@ -815,23 +831,46 @@ export class StreamingService extends ServiceWithLLM {
     switch (agent.type) {
       case "conversation": {
         const currentCategoryNames =
-          (agent.categories?.length ?? 0) > 0
+          includeSessionMetadataTools && (agent.categories?.length ?? 0) > 0
             ? await this.conversationAgentSessionsService.getCurrentCategoryNamesForSession({
                 connectScope,
                 sessionId,
               })
             : []
+        const { tools: subAgentTools, toolDescriptions: subAgentToolDescriptions } =
+          includeSubAgentTools
+            ? await buildSubAgentTools({
+                agent,
+                agentSubAgentsService: this.agentSubAgentsService,
+                buildLLMConfig: (params) => this.buildLLMConfig(params),
+                buildTools: (params) => this.buildTools(params),
+                connectScope,
+                generateMasterPrompt: (params) => this.generateMasterPrompt(params),
+                getProviderForModel: (model) => this.getProviderForModel(model),
+                onExecute,
+                projectsService: this.projectsService,
+                session,
+                sessionId,
+              })
+            : { tools: {}, toolDescriptions: {} }
+        const tools = this.buildConversationTools({
+          agent,
+          sessionId,
+          connectScope,
+          currentCategoryNames,
+          hasSourcesTool,
+          includeSessionMetadataTools,
+          mcpTools,
+          onExecute,
+          subAgentTools,
+        })
 
         return {
           mcpClose,
-          tools: this.buildConversationTools({
-            agent,
-            sessionId,
-            connectScope,
-            currentCategoryNames,
-            hasSourcesTool,
-            mcpTools,
-            onExecute,
+          tools,
+          toolDescriptions: this.filterToolDescriptions({
+            descriptions: { ...mcpToolDescriptions, ...subAgentToolDescriptions },
+            tools,
           }),
         }
       }
@@ -839,6 +878,7 @@ export class StreamingService extends ServiceWithLLM {
       case "form":
         return {
           mcpClose,
+          toolDescriptions: {},
           tools: {
             [ToolName.FillForm]: fillFormTool({
               connectScope,
@@ -851,8 +891,55 @@ export class StreamingService extends ServiceWithLLM {
         }
 
       default:
-        return { mcpClose, tools: undefined }
+        return { mcpClose, toolDescriptions: {}, tools: undefined }
     }
+  }
+
+  private addToolsWithoutCollisions({
+    source,
+    sourceLabel,
+    target,
+  }: {
+    source: ToolSet
+    sourceLabel: string
+    target: ToolSet
+  }) {
+    for (const [toolName, toolDef] of Object.entries(source)) {
+      if (target[toolName]) {
+        this.logger.warn(
+          `Skipping ${sourceLabel} tool "${toolName}" because another tool with the same name is already registered.`,
+        )
+        continue
+      }
+      target[toolName] = toolDef
+    }
+  }
+
+  private filterToolDescriptions({
+    descriptions,
+    tools,
+  }: {
+    descriptions: Record<string, string>
+    tools: ToolSet | undefined
+  }): Record<string, string> {
+    if (!tools) return {}
+
+    return Object.fromEntries(
+      Object.keys(tools)
+        .map((toolName) => [toolName, descriptions[toolName]] as const)
+        .filter((entry): entry is readonly [string, string] => entry[1] !== undefined),
+    )
+  }
+
+  private getToolDescription(toolDef: unknown): string | undefined {
+    if (!toolDef || typeof toolDef !== "object" || !("description" in toolDef)) {
+      return undefined
+    }
+
+    const description = (toolDef as { description?: unknown }).description
+    return typeof description === "string" && description.trim().length > 0
+      ? description
+      : undefined
   }
 
   private async persistToolExecutionAndNotifyClient({

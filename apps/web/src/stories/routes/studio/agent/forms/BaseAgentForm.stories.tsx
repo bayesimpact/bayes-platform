@@ -70,8 +70,6 @@ const meta = {
   ],
   parameters: { layout: "padded" },
   args: {
-    documentTags,
-    projectAgentCategories: project.agentCategories,
     onSubmit: fn(),
   },
 } satisfies Meta<typeof BaseAgentForm>
@@ -102,7 +100,6 @@ export const ConversationEditWithoutProjectCategories: Story = {
       projectAgentCategoryIds: [],
       usedProjectAgentCategoryIds: [],
     },
-    projectAgentCategories: [],
   },
 }
 

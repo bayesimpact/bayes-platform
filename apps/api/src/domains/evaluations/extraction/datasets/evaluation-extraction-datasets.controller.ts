@@ -6,9 +6,21 @@ import {
   EvaluationExtractionDatasetsRoutes,
   type PaginatedEvaluationExtractionDatasetRecordsDto,
 } from "@caseai-connect/api-contracts"
-import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from "@nestjs/common"
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from "@nestjs/common"
 import type {
   EndpointRequestWithDocument,
+  EndpointRequestWithEvaluationExtractionDataset,
   EndpointRequestWithProject,
 } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
@@ -42,7 +54,9 @@ export class EvaluationExtractionDatasetsController {
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof EvaluationExtractionDatasetsRoutes.getAll.response> {
     const connectScope = getRequiredConnectScope(request)
-    const datasets = await this.evaluationExtractionDatasetsService.listDatasets({ connectScope })
+    const datasets = await this.evaluationExtractionDatasetsService.listDatasets({
+      connectScope,
+    })
     const results: EvaluationExtractionDatasetDto[] = []
     for (const dataset of datasets) {
       const recordCount = await this.evaluationExtractionDatasetsService.countDatasetRecords({
@@ -127,7 +141,8 @@ export class EvaluationExtractionDatasetsController {
   @TrackActivity({ action: "evaluationExtractionDataset.create" })
   async createOne(
     @Req() request: EndpointRequestWithProject,
-    @Body() { payload }: typeof EvaluationExtractionDatasetsRoutes.createOne.request,
+    @Body()
+    { payload }: typeof EvaluationExtractionDatasetsRoutes.createOne.request,
   ): Promise<typeof EvaluationExtractionDatasetsRoutes.createOne.response> {
     await this.evaluationExtractionDatasetsService.createDataset({
       connectScope: getRequiredConnectScope(request),
@@ -143,9 +158,8 @@ export class EvaluationExtractionDatasetsController {
   @TrackActivity({ action: "evaluationExtractionDataset.update" })
   async updateOne(
     @Req() request: EndpointRequestWithDocument,
-    @Body() {
-      payload: { name, columns },
-    }: typeof EvaluationExtractionDatasetsRoutes.updateOne.request,
+    @Body()
+    { payload: { name, columns } }: typeof EvaluationExtractionDatasetsRoutes.updateOne.request,
     @Param("datasetId") datasetId: string, // FIXME: should be in request context
   ): Promise<typeof EvaluationExtractionDatasetsRoutes.updateOne.response> {
     const connectScope = getRequiredConnectScope(request)
@@ -163,6 +177,38 @@ export class EvaluationExtractionDatasetsController {
       documentId,
     })
 
+    return { data: { success: true } }
+  }
+
+  @Patch(EvaluationExtractionDatasetsRoutes.renameOne.path)
+  @CheckPolicy((policy) => policy.canCreate())
+  @TrackActivity({ action: "evaluationExtractionDataset.rename" })
+  async renameOne(
+    @Req() request: EndpointRequestWithProject,
+    @Body()
+    { payload: { name } }: typeof EvaluationExtractionDatasetsRoutes.renameOne.request,
+    @Param("datasetId") datasetId: string,
+  ): Promise<typeof EvaluationExtractionDatasetsRoutes.renameOne.response> {
+    await this.evaluationExtractionDatasetsService.renameDataset({
+      connectScope: getRequiredConnectScope(request),
+      datasetId,
+      name,
+    })
+
+    return { data: { success: true } }
+  }
+
+  @Delete(EvaluationExtractionDatasetsRoutes.deleteOne.path)
+  @AddContext("evaluationExtractionDataset")
+  @CheckPolicy((policy) => policy.canDelete())
+  @TrackActivity({ action: "evaluationExtractionDataset.delete" })
+  async deleteOne(
+    @Req() request: EndpointRequestWithEvaluationExtractionDataset,
+  ): Promise<typeof EvaluationExtractionDatasetsRoutes.deleteOne.response> {
+    await this.evaluationExtractionDatasetsService.deleteDataset({
+      connectScope: getRequiredConnectScope(request),
+      datasetId: request.evaluationExtractionDataset.id,
+    })
     return { data: { success: true } }
   }
 }

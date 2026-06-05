@@ -20,10 +20,13 @@ export default {
     )
     return toEvaluationExtractionRun(response.data.data)
   },
-  executeOne: async (params) => {
+  executeOne: async ({ recordLimit, ...params }) => {
     const axios = getAxiosInstance()
     const response = await axios.post<typeof EvaluationExtractionRunsRoutes.executeOne.response>(
       EvaluationExtractionRunsRoutes.executeOne.getPath(params),
+      {
+        payload: { recordLimit },
+      } satisfies typeof EvaluationExtractionRunsRoutes.executeOne.request,
     )
     return toEvaluationExtractionRun(response.data.data)
   },
@@ -90,6 +93,10 @@ export default {
   },
   streamRunStatus: async (params) => {
     await streamEvaluationExtractionRunStatus(params)
+  },
+  deleteOne: async (params) => {
+    const axios = getAxiosInstance()
+    await axios.delete(EvaluationExtractionRunsRoutes.deleteOne.getPath(params))
   },
 } satisfies IEvaluationExtractionRunsSpi
 

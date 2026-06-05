@@ -8,7 +8,7 @@ export const promptHelpers = {
 Always answer in ${locale === "en" ? "English" : locale === "fr" ? "French" : "user's language"}.
       `.trim(),
 
-  tools: (names: ToolName[]) =>
+  tools: (names: string[], descriptions: Record<string, string> = {}) =>
     names.length === 0
       ? ""
       : `## Tools:
@@ -34,6 +34,7 @@ ${names
         return `[${name}]: AI-powered search across multiple workforce and social sources. Rewrites the query for better results and reranks by relevance. Use this when the user's question spans multiple resource types or when you want the best results across all sources.`
 
       default:
+        if (descriptions[name]) return `[${name}]: ${descriptions[name]}`
         return `[${name}]: No specific instructions for this tool.`
     }
   })

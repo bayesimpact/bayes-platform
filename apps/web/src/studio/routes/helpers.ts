@@ -15,9 +15,11 @@ const projectMemberships = project.extend("/members")
 const projectMembership = projectMemberships.extend("/:membershipId")
 const reviewCampaigns = project.extend("/review-campaigns")
 const reviewCampaignReport = reviewCampaigns.extend("/:reviewCampaignId/report")
+const projectAdmin = project.extend("/admin")
 
 // AGENT-LEVEL
 const agentSession = agent.extend("/as/:agentSessionId")
+const agentEdit = agent.extend("/edit")
 const feedback = agent.extend("/f")
 const agentMemberships = agent.extend("/members")
 const agentAnalytics = agent.extend("/analytics")
@@ -25,6 +27,7 @@ const agentAnalytics = agent.extend("/analytics")
 export const StudioRoutes = {
   agent,
   agentAnalytics,
+  agentEdit,
   agentMemberships,
   agentSession,
   document,
@@ -34,6 +37,7 @@ export const StudioRoutes = {
   home,
   organization,
   project,
+  projectAdmin,
   projectAnalytics,
   projectMembership,
   projectMemberships,

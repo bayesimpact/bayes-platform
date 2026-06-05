@@ -11,12 +11,14 @@ import {
   SidebarMenuItem,
   SidebarProvider,
 } from "@caseai-connect/ui/shad/sidebar"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import { RouteNames } from "@/common/routes/helpers"
 import type { DeskRoutes } from "@/desk/routes/helpers"
 import { isStudioInterface, type StudioRoutes } from "@/studio/routes/helpers"
 import { Logo } from "../themes/Logo"
+import { EditProfileDialog } from "./nav/EditProfileDialog"
 import { NavUserMenuItems } from "./nav/NavUserMenuItems"
 import { SidebarBreadcrumb } from "./SidebarBreadcrumb"
 
@@ -28,6 +30,7 @@ export function SidebarLayout({
   sidebarFooterChildren,
   hideIcon,
   routes,
+  defaultOpen = true,
 }: {
   user: User
   organization?: Organization
@@ -36,7 +39,10 @@ export function SidebarLayout({
   sidebarFooterChildren?: React.ReactNode
   hideIcon?: boolean
   routes?: typeof StudioRoutes | typeof DeskRoutes
+  defaultOpen?: boolean
 }) {
+  const [editProfileOpen, setEditProfileOpen] = useState(false)
+
   return (
     <SidebarProvider
       style={
@@ -45,6 +51,7 @@ export function SidebarLayout({
           "--header-height": "calc(var(--spacing) * 12)",
         } as React.CSSProperties
       }
+      defaultOpen={defaultOpen}
     >
       <Sidebar variant="inset" collapsible="offcanvas">
         <SidebarHeader>
@@ -61,8 +68,9 @@ export function SidebarLayout({
 
         <SidebarFooter>
           <NavUser user={user}>
-            <NavUserMenuItems />
+            <NavUserMenuItems onEditProfile={() => setEditProfileOpen(true)} />
           </NavUser>
+          <EditProfileDialog open={editProfileOpen} onClose={() => setEditProfileOpen(false)} />
         </SidebarFooter>
       </Sidebar>
 

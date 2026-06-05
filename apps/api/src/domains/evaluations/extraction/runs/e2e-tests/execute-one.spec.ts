@@ -15,6 +15,7 @@ import { createOrganizationWithProject } from "@/domains/organizations/organizat
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { EvaluationsModule } from "../../../evaluations.module"
+import { EVALUATION_EXTRACTION_RUN_BATCH_SERVICE } from "../evaluation-extraction-run-batch.interface"
 import { createRunWithCsvDataset } from "./csv-dataset.helpers"
 
 describe("EvaluationExtractionRuns - executeOne", () => {
@@ -30,10 +31,20 @@ describe("EvaluationExtractionRuns - executeOne", () => {
   let accessToken: string | undefined = "token"
   let auth0Id = "auth0|123"
 
+  const mockEnqueueExecuteRun = jest.fn().mockResolvedValue(undefined)
+
   beforeAll(async () => {
     setup = await setupTransactionalTestDatabase({
       additionalImports: [EvaluationsModule, ActivitiesModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) =>
+        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
+          .overrideProvider(EVALUATION_EXTRACTION_RUN_BATCH_SERVICE)
+          .useValue({
+            enqueueExecuteRun: mockEnqueueExecuteRun,
+            enqueueRunRecords: jest.fn().mockResolvedValue(undefined),
+            retryRunRecords: jest.fn().mockResolvedValue(undefined),
+            removePendingRunRecords: jest.fn().mockResolvedValue(undefined),
+          }),
     })
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
@@ -44,6 +55,7 @@ describe("EvaluationExtractionRuns - executeOne", () => {
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
+    mockEnqueueExecuteRun.mockClear()
     accessToken = "token"
     auth0Id = "auth0|123"
   })
@@ -84,30 +96,54 @@ describe("EvaluationExtractionRuns - executeOne", () => {
     return { organization, project, agent, dataset, datasetRecords, run }
   }
 
-  const subject = async () =>
+  const subject = async (recordLimit: number | null) =>
     request({
       route: EvaluationExtractionRunsRoutes.executeOne,
       pathParams: removeNullish({ organizationId, projectId, evaluationExtractionRunId }),
       token: accessToken,
+      request: { payload: { recordLimit } },
     })
 
-  it("creates run records, enqueues per-record jobs, and returns the run as pending", async () => {
+  it("enqueues an execute-run job and returns the run as pending", async () => {
     await createContext()
 
-    const res = await subject()
+    const res = await subject(null)
 
     expectResponse(res, 201)
     expect(res.body.data.status).toBe("pending")
     expect(res.body.data.summary).toBeNull()
+    expect(mockEnqueueExecuteRun).toHaveBeenCalledTimes(1)
+    expect(mockEnqueueExecuteRun).toHaveBeenCalledWith({
+      evaluationExtractionRunId,
+      organizationId,
+      projectId,
+      recordLimit: null,
+    })
 
     await expectActivityCreated("evaluationExtractionRun.execute")
+  })
+
+  it("forwards recordLimit to the enqueued job", async () => {
+    await createContext()
+
+    const res = await subject(2)
+
+    expectResponse(res, 201)
+    expect(res.body.data.status).toBe("pending")
+    expect(mockEnqueueExecuteRun).toHaveBeenCalledTimes(1)
+    expect(mockEnqueueExecuteRun).toHaveBeenCalledWith({
+      evaluationExtractionRunId,
+      organizationId,
+      projectId,
+      recordLimit: 2,
+    })
   })
 
   it("should return 404 for a non-existent run", async () => {
     await createContext()
     evaluationExtractionRunId = "00000000-0000-0000-0000-000000000000"
 
-    const res = await subject()
+    const res = await subject(null)
 
     expectResponse(res, 404)
   })

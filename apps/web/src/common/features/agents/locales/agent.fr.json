@@ -99,7 +99,25 @@
       "output": "Sortie",
       "form": "Formulaire",
       "sources": "Sources",
+      "categories": "Catégories",
+      "orchestration": "Orchestration",
       "embed": "Intégration"
+    },
+    "orchestration": {
+      "selectedTitle": "Sous-agents",
+      "availableTitle": "Agents conversationnels disponibles",
+      "emptyTitle": "Aucun sous-agent",
+      "emptyDescription": "Cet agent répond directement sans déléguer à un autre agent.",
+      "noAvailableAgents": "Aucun autre agent conversationnel n'est disponible.",
+      "missingAgent": "Agent manquant",
+      "add": "Ajouter",
+      "remove": "Retirer",
+      "enabled": "Activé",
+      "disabled": "Désactivé",
+      "toolName": "Nom de l'outil",
+      "toolNamePlaceholder": "ask_specialist_agent",
+      "description": "Description de l'outil",
+      "defaultDescription": "Transmettre les demandes spécialisées à {{name}}."
     },
     "embed": {
       "loading": "Chargement de la configuration d'intégration…",

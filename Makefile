@@ -163,6 +163,25 @@ docker-smoke-check: docker-smoke-up
 docker-smoke-down:
 	API_IMAGE=${localApiImage} WORKERS_IMAGE=${localWorkersImage} docker compose -f ${smokeComposeFile} down -v
 
+# ==============================================================================
+# Web-embed deployment
+# ==============================================================================
+
+WEB_EMBED_BUCKET ?= eu-connect-agent-embed
+
+deploy-web-embed:
+	@echo "→ Building web-embed SPA..."
+	cd apps/web-embed && npm run build
+	@echo "→ Building launcher..."
+	cd apps/web-embed && npm run build:launcher
+	@echo "→ Uploading hashed assets (1 year cache)..."
+	gsutil -m -h "Cache-Control:public, max-age=31536000" cp -r apps/web-embed/dist/assets/* gs://$(WEB_EMBED_BUCKET)/assets/
+	@echo "→ Uploading launcher.js (5 min cache)..."
+	gsutil -h "Cache-Control:public, max-age=300" cp apps/web-embed/dist-launcher/launcher.iife.js gs://$(WEB_EMBED_BUCKET)/launcher.js
+	@echo "→ Uploading index.html (no cache)..."
+	gsutil -h "Cache-Control:no-cache" cp apps/web-embed/dist/index.html gs://$(WEB_EMBED_BUCKET)/index.html
+	@echo "✓ web-embed deployed to https://storage.googleapis.com/$(WEB_EMBED_BUCKET)/"
+
 ci-checks:
 	npm ci && npm run biome:ci && npm run typecheck && npm run check:boundaries
 

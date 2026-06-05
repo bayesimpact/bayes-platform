@@ -1,6 +1,4 @@
-import type { ToolName } from "@caseai-connect/api-contracts"
-
 export type ToolExecutionLog = {
-  toolName: ToolName
+  toolName: string
   arguments: Record<string, unknown>
 }

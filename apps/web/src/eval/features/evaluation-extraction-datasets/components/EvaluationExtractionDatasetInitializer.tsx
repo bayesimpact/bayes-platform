@@ -1,5 +1,6 @@
 import { EVALUATION_EXTRACTION_DATASET_SCHEMA_COLUMN_ROLES } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
+import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
 import { DialogFooter } from "@caseai-connect/ui/shad/dialog"
 import { Field, FieldGroup, FieldLabel, FieldSet } from "@caseai-connect/ui/shad/field"
 import { Input } from "@caseai-connect/ui/shad/input"
@@ -11,7 +12,7 @@ import {
   SelectValue,
 } from "@caseai-connect/ui/shad/select"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Fragment, useEffect } from "react"
+import { Fragment, useEffect, useState } from "react"
 import { useFieldArray, useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import z from "zod"
@@ -126,7 +127,37 @@ function FormEdition({
     },
   })
 
-  const { fields, update } = useFieldArray({ control, name: "columns" })
+  const { fields, update, replace } = useFieldArray({ control, name: "columns" })
+
+  const [selectedIndices, setSelectedIndices] = useState<ReadonlySet<number>>(new Set())
+  const [bulkRole, setBulkRole] = useState<EvaluationExtractionDatasetSchemaColumnRole | "">("")
+
+  const allSelected = fields.length > 0 && selectedIndices.size === fields.length
+  const someSelected = selectedIndices.size > 0 && !allSelected
+
+  const toggleRow = (index: number) => {
+    setSelectedIndices((previous) => {
+      const next = new Set(previous)
+      if (next.has(index)) {
+        next.delete(index)
+      } else {
+        next.add(index)
+      }
+      return next
+    })
+  }
+
+  const toggleAll = () => {
+    setSelectedIndices(allSelected ? new Set() : new Set(fields.map((_, index) => index)))
+  }
+
+  const applyRoleToSelection = (role: EvaluationExtractionDatasetSchemaColumnRole) => {
+    replace(
+      getValues("columns").map((column, index) =>
+        selectedIndices.has(index) ? { ...column, role } : column,
+      ),
+    )
+  }
 
   const handleFormSubmit = (data: FormData) => {
     dispatch(
@@ -174,9 +205,47 @@ function FormEdition({
 
             <FieldSet>
               <FieldLabel>{t("evaluation:dataset.columns.roles.title")}</FieldLabel>
-              <div className="grid grid-cols-[auto_auto_1fr_auto] items-center gap-x-4 gap-y-2 border rounded-md p-4">
+              <div className="flex items-center justify-between gap-4 rounded-md border px-4 py-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground select-none">
+                  <Checkbox
+                    checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                    onCheckedChange={toggleAll}
+                    aria-label={t("evaluation:dataset.columns.roles.selectAll")}
+                  />
+                  {selectedIndices.size > 0
+                    ? t("evaluation:dataset.columns.roles.selectedCount", {
+                        count: selectedIndices.size,
+                      })
+                    : t("evaluation:dataset.columns.roles.selectAll")}
+                </div>
+                <Select
+                  value={bulkRole}
+                  disabled={selectedIndices.size === 0}
+                  onValueChange={(value) => {
+                    applyRoleToSelection(value as EvaluationExtractionDatasetSchemaColumnRole)
+                    setBulkRole("")
+                  }}
+                >
+                  <SelectTrigger size="sm" className="w-56">
+                    <SelectValue placeholder={t("evaluation:dataset.columns.roles.bulkApply")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EVALUATION_EXTRACTION_DATASET_SCHEMA_COLUMN_ROLES.map((role) => (
+                      <SelectItem key={role} value={role}>
+                        {t(`evaluation:dataset.columns.roles.${role}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-[auto_auto_auto_1fr_auto] items-center gap-x-4 gap-y-2 border rounded-md p-4">
                 {fields.map((field, fieldIndex) => (
                   <Fragment key={field.id}>
+                    <Checkbox
+                      checked={selectedIndices.has(fieldIndex)}
+                      onCheckedChange={() => toggleRow(fieldIndex)}
+                      aria-label={field.originalName}
+                    />
                     <span className="truncate text-sm text-muted-foreground">{fieldIndex + 1}</span>
                     <span className="truncate text-sm text-muted-foreground">
                       {field.originalName}

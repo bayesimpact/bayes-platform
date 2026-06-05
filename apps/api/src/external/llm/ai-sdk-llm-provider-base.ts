@@ -20,6 +20,8 @@ import type {
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { ResponseHelper } from "@/external/llm/response-helper"
+import { ThoughtTokensHelper } from "@/external/llm/thought-tokens-helper"
 
 // OTel attribute keys under which we publish the raw LLM request body and
 // response. The `ai.telemetry.metadata.` prefix is required so the AI SDK
@@ -30,6 +32,36 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 // burying them in the metadata blob.
 export const RAW_LLM_REQUEST_ATTR = "ai.telemetry.metadata.rawLlmRequest"
 export const RAW_LLM_RESPONSE_ATTR = "ai.telemetry.metadata.rawLlmResponse"
+export const RAW_LLM_RESPONSE_STRIPPED_ATTR = "ai.telemetry.metadata.rawLlmResponseStripped"
+
+function extractTextFromContent(content: unknown): string {
+  if (!Array.isArray(content)) return ""
+  return content
+    .filter(
+      (part): part is { type: "text"; text: string } =>
+        typeof part === "object" &&
+        part !== null &&
+        (part as { type?: unknown }).type === "text" &&
+        typeof (part as { text?: unknown }).text === "string",
+    )
+    .map((part) => part.text)
+    .join("")
+}
+
+function extractTextFromStreamChunks(chunks: unknown[]): string {
+  let text = ""
+  for (const chunk of chunks) {
+    if (
+      typeof chunk === "object" &&
+      chunk !== null &&
+      (chunk as { type?: unknown }).type === "text-delta" &&
+      typeof (chunk as { delta?: unknown }).delta === "string"
+    ) {
+      text += (chunk as { delta: string }).delta
+    }
+  }
+  return text
+}
 
 export abstract class AISDKLLMProviderBase implements LLMProvider {
   protected getLanguageModelWithRawCapture(args: {
@@ -53,12 +85,38 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
               )
             }
             const raw = result.response?.body ?? result.content
-            activeSpan?.setAttribute(
-              RAW_LLM_RESPONSE_ATTR,
-              typeof raw === "string" ? raw : JSON.stringify(raw),
-            )
+            const rawStr = typeof raw === "string" ? raw : JSON.stringify(raw)
+            activeSpan?.setAttribute(RAW_LLM_RESPONSE_ATTR, rawStr)
+            const originalText = extractTextFromContent(result.content)
+            if (originalText !== "") {
+              const strippedText = ThoughtTokensHelper.removeThoughtTokens(originalText)
+              if (strippedText !== originalText) {
+                activeSpan?.setAttribute(RAW_LLM_RESPONSE_STRIPPED_ATTR, strippedText)
+              }
+            }
           } catch {
             // never let telemetry capture break the generation
+          }
+          // Apply thought-token stripping to text parts so downstream code
+          // (ai-sdk consumers, our wrapper methods) sees cleaned content.
+          try {
+            if (Array.isArray(result.content)) {
+              // biome-ignore lint/suspicious/noExplicitAny: content shape varies by provider
+              ;(result as any).content = result.content.map((part: unknown) => {
+                if (
+                  typeof part === "object" &&
+                  part !== null &&
+                  (part as { type?: unknown }).type === "text" &&
+                  typeof (part as { text?: unknown }).text === "string"
+                ) {
+                  const original = (part as { text: string }).text
+                  return { ...part, text: ThoughtTokensHelper.removeThoughtTokens(original) }
+                }
+                return part
+              })
+            }
+          } catch {
+            // never let token stripping break the generation
           }
           return result
         },
@@ -78,18 +136,68 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
             // never let telemetry capture break the stream
           }
           const rawChunks: unknown[] = []
+          let stripper: ReturnType<typeof ThoughtTokensHelper.createStripper> | null = null
+          let currentTextId: string | undefined
           const transformed = stream.pipeThrough(
             new TransformStream({
               transform(chunk, controller) {
+                // biome-ignore lint/suspicious/noExplicitAny: stream chunk shape varies by provider
+                const c = chunk as any
                 rawChunks.push(chunk)
-                controller.enqueue(chunk)
+                if (c?.type === "text-start") {
+                  stripper = ThoughtTokensHelper.createStripper()
+                  currentTextId = typeof c.id === "string" ? c.id : undefined
+                  controller.enqueue(chunk)
+                } else if (
+                  c?.type === "text-delta" &&
+                  typeof c.delta === "string" &&
+                  stripper !== null
+                ) {
+                  const cleaned = stripper.feed(c.delta)
+                  if (cleaned) controller.enqueue({ ...c, delta: cleaned })
+                } else if (c?.type === "text-end") {
+                  if (stripper !== null) {
+                    const tail = stripper.flush()
+                    if (tail) {
+                      controller.enqueue(
+                        currentTextId !== undefined
+                          ? { type: "text-delta", id: currentTextId, delta: tail }
+                          : { type: "text-delta", delta: tail },
+                      )
+                    }
+                    stripper = null
+                    currentTextId = undefined
+                  }
+                  controller.enqueue(chunk)
+                } else {
+                  controller.enqueue(chunk)
+                }
               },
-              flush() {
+              flush(controller) {
+                if (stripper !== null) {
+                  const tail = stripper.flush()
+                  if (tail) {
+                    controller.enqueue(
+                      currentTextId !== undefined
+                        ? { type: "text-delta", id: currentTextId, delta: tail }
+                        : { type: "text-delta", delta: tail },
+                    )
+                  }
+                  stripper = null
+                  currentTextId = undefined
+                }
                 try {
-                  const grouped = groupStreamChunksForReadability(rawChunks)
-                  trace
-                    .getActiveSpan()
-                    ?.setAttribute(RAW_LLM_RESPONSE_ATTR, JSON.stringify(grouped))
+                  const grouped = ResponseHelper.groupStreamChunksForReadability(rawChunks)
+                  const groupedStr = JSON.stringify(grouped)
+                  const activeSpan = trace.getActiveSpan()
+                  activeSpan?.setAttribute(RAW_LLM_RESPONSE_ATTR, groupedStr)
+                  const originalText = extractTextFromStreamChunks(rawChunks)
+                  if (originalText !== "") {
+                    const strippedText = ThoughtTokensHelper.removeThoughtTokens(originalText)
+                    if (strippedText !== originalText) {
+                      activeSpan?.setAttribute(RAW_LLM_RESPONSE_STRIPPED_ATTR, strippedText)
+                    }
+                  }
                 } catch {
                   // never let telemetry capture break the stream
                 }
@@ -228,8 +336,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
         custom: { callOrigin, metadata: this.buildMetadata({ config, metadata }) },
       },
     })
-    const { answer } = extractThoughtAndAnswer(text)
-    return answer
+    return text
   }
 
   // biome-ignore lint/suspicious/noExplicitAny: @did : une idée
@@ -459,100 +566,4 @@ export enum CallOrigin {
   generateText = "generateText",
   generateObject = "generateObject",
   generateStructuredOutput = "generateStructuredOutput",
-}
-
-function groupStreamChunksForReadability(chunks: unknown[]): unknown[] {
-  const grouped: unknown[] = []
-  type DeltaKind = "text" | "tool-input" | "reasoning"
-  type Buffer = {
-    kind: DeltaKind
-    id?: string
-    text: string
-    // biome-ignore lint/suspicious/noExplicitAny: passthrough metadata varies
-    extra?: Record<string, any>
-  }
-  let buffer: Buffer | null = null
-
-  const startedField: Record<DeltaKind, string> = {
-    text: "text",
-    "tool-input": "input",
-    reasoning: "text",
-  }
-
-  const flushBuffer = () => {
-    if (buffer !== null) {
-      grouped.push({
-        type: `${buffer.kind}-stream-collapsed`,
-        ...(buffer.id !== undefined ? { id: buffer.id } : {}),
-        ...buffer.extra,
-        [startedField[buffer.kind]]: buffer.text,
-      })
-      buffer = null
-    }
-  }
-
-  const startBuffer = (kind: DeltaKind, c: Record<string, unknown>) => {
-    flushBuffer()
-    const { type: _ignored, id, delta: _ignored2, ...extra } = c
-    buffer = { kind, id: typeof id === "string" ? id : undefined, text: "", extra }
-  }
-
-  const appendDelta = (kind: DeltaKind, c: Record<string, unknown>) => {
-    if (buffer === null || buffer.kind !== kind) {
-      startBuffer(kind, c)
-    }
-    if (buffer !== null && typeof c.delta === "string") {
-      buffer.text += c.delta
-    }
-  }
-
-  for (const chunk of chunks) {
-    // biome-ignore lint/suspicious/noExplicitAny: stream chunk shape varies by provider
-    const c = chunk as any
-    switch (c?.type) {
-      case "text-start":
-        startBuffer("text", c)
-        break
-      case "text-delta":
-        appendDelta("text", c)
-        break
-      case "text-end":
-        flushBuffer()
-        break
-      case "tool-input-start":
-        startBuffer("tool-input", c)
-        break
-      case "tool-input-delta":
-        appendDelta("tool-input", c)
-        break
-      case "tool-input-end":
-        flushBuffer()
-        break
-      case "reasoning-start":
-        startBuffer("reasoning", c)
-        break
-      case "reasoning-delta":
-        appendDelta("reasoning", c)
-        break
-      case "reasoning-end":
-        flushBuffer()
-        break
-      default:
-        flushBuffer()
-        grouped.push(chunk)
-    }
-  }
-  flushBuffer()
-  return grouped
-}
-
-export function extractThoughtAndAnswer(raw: string) {
-  return { answer: raw }
-  // const thoughtMatch = raw.match(/<unused\d+>thought([\s\S]*?)(?=<unused\d+>)/i)
-  // if (!thoughtMatch) return { answer: raw }
-  // // @ts-expect-error
-  // const thought = thoughtMatch ? thoughtMatch[1].replace(/<unused\d+>/g, "").trim() : null
-  // let answer = raw.replace(/<unused\d+>thought[\s\S]*?(?=<unused\d+>)/gi, "")
-  // answer = answer.replace(/<unused\d+>/g, "").trim()
-  // return { thought, answer }
 }

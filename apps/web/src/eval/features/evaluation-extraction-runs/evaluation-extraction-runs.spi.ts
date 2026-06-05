@@ -18,7 +18,7 @@ export interface IEvaluationExtractionRunsSpi {
     },
   ): Promise<EvaluationExtractionRun>
   executeOne(
-    params: BaseParams & { evaluationExtractionRunId: string },
+    params: BaseParams & { evaluationExtractionRunId: string; recordLimit: number | null },
   ): Promise<EvaluationExtractionRun>
   retryOne(
     params: BaseParams & { evaluationExtractionRunId: string },
@@ -46,4 +46,5 @@ export interface IEvaluationExtractionRunsSpi {
     signal?: AbortSignal
     onStatusChanged: (event: EvaluationExtractionRunStatusChangedEvent) => void
   }): Promise<void>
+  deleteOne(params: BaseParams & { evaluationExtractionRunId: string }): Promise<void>
 }

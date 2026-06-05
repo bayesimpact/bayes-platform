@@ -2,7 +2,7 @@ import { cn } from "@caseai-connect/ui/utils"
 import { Loader2Icon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate, useOutlet } from "react-router-dom"
-import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/grid/Grid"
+import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/grid/Grid"
 import { selectCurrentConversationAgentSessionsData } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.selectors"
 import {
   selectCurrentExtractionAgentSessionsData,
@@ -44,11 +44,10 @@ export function ConversationAgentSessionList() {
         backTo={outlet ? "agent" : "project"}
       />
 
-      <Grid cols={3} total={agentSessions.length}>
+      <Grid cols={3}>
         <GridContent>
-          {agentSessions.map((session, index) => (
+          {agentSessions.map((session) => (
             <AgentSessionItem
-              index={index}
               key={session.id}
               organizationId={organizationId}
               projectId={projectId}
@@ -85,11 +84,10 @@ export function FormAgentSessionList() {
         backTo={outlet ? "agent" : "project"}
       />
 
-      <Grid cols={3} total={agentSessions.length}>
+      <Grid cols={3}>
         <GridContent>
-          {agentSessions.map((session, index) => (
+          {agentSessions.map((session) => (
             <AgentSessionItem
-              index={index}
               key={session.id}
               organizationId={organizationId}
               projectId={projectId}
@@ -124,7 +122,7 @@ export function ExtractionAgentSessionList() {
 
   if (outlet) return outlet
   return (
-    <Grid cols={0} total={0}>
+    <Grid cols={0}>
       <GridHeader
         onBack={handleBack}
         title={agent.name}
@@ -142,21 +140,24 @@ export function ExtractionAgentSessionList() {
         }
       />
       <div className="flex flex-col">
-        <GridItem
+        <GridCard
           className={cn(
             "bg-muted/35 border-r-0 col-span-full",
             agentSessions.length > 0 && "border-b",
           )}
-          title={t("extractionAgentSession:create.title")}
-          description={t("extractionAgentSession:create.description")}
-          action={
+        >
+          <GridCard.Body>
+            <GridCard.Title>{t("extractionAgentSession:create.title")}</GridCard.Title>
+            <GridCard.Description>
+              {t("extractionAgentSession:create.description")}
+            </GridCard.Description>
             <ExtractionSessionCreator
               buttonText={t("actions:run")}
               onSuccess={() => {}}
               disabled={isProcessingExecution}
             />
-          }
-        />
+          </GridCard.Body>
+        </GridCard>
 
         {agentSessions.map((session, index) => (
           <ExtractionSessionItem

@@ -2,14 +2,14 @@ import { Item } from "@caseai-connect/ui/shad/item"
 import { StarIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { GridItem } from "@/common/components/grid/Grid"
+import { GridCard } from "@/common/components/grid/Grid"
 import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useAppSelector } from "@/common/store/hooks"
 import { StudioRoutes } from "@/studio/routes/helpers"
 
-export function EvaluationButton({ index }: { index: number }) {
+export function EvaluationButton() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const organizationId = useAppSelector(selectCurrentOrganizationId)
@@ -21,13 +21,13 @@ export function EvaluationButton({ index }: { index: number }) {
   }
   return (
     <RestrictedFeature feature="evaluation">
-      <GridItem
-        index={index}
-        className="bg-white"
-        title={t("evaluation:evaluations")}
-        description={t("evaluation:list.description")}
-        onClick={handleClick}
-        footer={
+      <GridCard className="bg-white">
+        <GridCard.Body>
+          <GridCard.Title>{t("evaluation:evaluations")}</GridCard.Title>
+          <GridCard.Description>{t("evaluation:list.description")}</GridCard.Description>
+          <GridCard.GoButton onClick={handleClick} />
+        </GridCard.Body>
+        <GridCard.Footer>
           <div className="mt-4 flex items-center flex-col max-h-20 overflow-hidden bg-white max-w-full">
             <Item
               variant="outline"
@@ -55,8 +55,8 @@ export function EvaluationButton({ index }: { index: number }) {
               </div>
             </Item>
           </div>
-        }
-      />
+        </GridCard.Footer>
+      </GridCard>
     </RestrictedFeature>
   )
 }

@@ -3,7 +3,7 @@ import { SearchIcon } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate, useOutlet } from "react-router-dom"
-import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/grid/Grid"
+import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/grid/Grid"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useValue } from "@/common/hooks/use-value"
@@ -42,7 +42,6 @@ export function ProjectMembershipList() {
   }, [memberships, searchQuery])
 
   const cols = filteredMemberships.length === 0 ? 0 : 3
-  const total = filteredMemberships.length
   const handleRevokeInvitation = (invitationId: string) => {
     void dispatch(
       revokeInvitation({
@@ -55,7 +54,7 @@ export function ProjectMembershipList() {
   if (outlet) return outlet
   return (
     <>
-      <Grid cols={cols} total={total} extraItems={1}>
+      <Grid cols={cols}>
         <GridHeader
           onBack={handleBack}
           title={t("projectMembership:list.title", { projectName: project.name })}
@@ -64,22 +63,23 @@ export function ProjectMembershipList() {
         />
 
         <GridContent>
-          {filteredMemberships.map((membership, index) => (
+          {filteredMemberships.map((membership) => (
             <ProjectMembershipItem
               organizationId={project.organizationId}
-              index={index}
               key={membership.id}
               membership={membership}
             />
           ))}
 
-          <GridItem
-            index={total}
-            title={t("projectMembership:create.title")}
-            description={t("projectMembership:create.description")}
-            action={<MembersCreator projectId={project.id} />}
-            className="bg-muted/35"
-          />
+          <GridCard className="bg-muted/35">
+            <GridCard.Body>
+              <GridCard.Title>{t("projectMembership:create.title")}</GridCard.Title>
+              <GridCard.Description>
+                {t("projectMembership:create.description")}
+              </GridCard.Description>
+              <MembersCreator projectId={project.id} />
+            </GridCard.Body>
+          </GridCard>
         </GridContent>
       </Grid>
       <PendingInvitationsSection

@@ -24,7 +24,7 @@ const handleGridItemBorder = ({
 }
 // Tailwind cannot detect dynamically constructed classes like `col-span-${n}`,
 // so we use a static lookup to ensure the CSS is generated.
-const colSpanClasses: Record<number, string> = {
+export const colSpanClasses: Record<number, string> = {
   1: "col-span-1",
   2: "col-span-2",
   3: "col-span-3",

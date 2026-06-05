@@ -57,7 +57,7 @@ function validateCliOptions(options: CliOptions): void {
     }
   }
 }
-// FIXME:
+
 async function bootstrapCli(): Promise<void> {
   const options = parseCliOptions(process.argv.slice(2))
   validateCliOptions(options)

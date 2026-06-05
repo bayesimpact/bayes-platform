@@ -2,13 +2,13 @@ import { Item } from "@caseai-connect/ui/shad/item"
 import { SendIcon, Trash2Icon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { GridItem } from "@/common/components/grid/Grid"
+import { GridCard } from "@/common/components/grid/Grid"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useAppSelector } from "@/common/store/hooks"
 import { StudioRoutes } from "@/studio/routes/helpers"
 
-export function MembersButton({ index }: { index: number }) {
+export function MembersButton() {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const organizationId = useAppSelector(selectCurrentOrganizationId)
@@ -19,13 +19,13 @@ export function MembersButton({ index }: { index: number }) {
     navigate(path)
   }
   return (
-    <GridItem
-      index={index}
-      className="bg-white"
-      title={t("projectMembership:members")}
-      description={t("projectMembership:list.empty.description")}
-      onClick={handleClick}
-      footer={
+    <GridCard className="bg-white">
+      <GridCard.Body>
+        <GridCard.Title>{t("projectMembership:members")}</GridCard.Title>
+        <GridCard.Description>{t("projectMembership:list.empty.description")}</GridCard.Description>
+        <GridCard.GoButton onClick={handleClick} />
+      </GridCard.Body>
+      <GridCard.Footer>
         <div className="mt-4 max-h-20 overflow-hidden flex items-center gap-2 flex-col bg-white max-w-full">
           <Item variant="outline" className="border-b-0 rounded-b-none flex-col w-full flex-1">
             <div className="flex flex-1 w-full items-center gap-2">
@@ -55,7 +55,7 @@ export function MembersButton({ index }: { index: number }) {
             </div>
           </Item>
         </div>
-      }
-    />
+      </GridCard.Footer>
+    </GridCard>
   )
 }

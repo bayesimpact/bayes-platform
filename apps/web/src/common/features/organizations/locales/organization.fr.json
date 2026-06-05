@@ -21,6 +21,13 @@
     "list": {
       "title": "Bienvenue, {{name}} !",
       "description": "Sélectionnez une organisation."
+    },
+    "editDialog": {
+      "title": "Modifier l'organisation",
+      "buttonLabel": "Modifier",
+      "namePlaceholder": "Saisissez le nom de l'organisation",
+      "cancel": "Annuler",
+      "save": "Enregistrer"
     }
   }
 }

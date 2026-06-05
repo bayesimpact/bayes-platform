@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto"
 import { EvaluationExtractionDatasetsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
+import type { Repository } from "typeorm"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import { clearTestDatabase } from "@/common/test/test-database"
 import {
@@ -16,12 +17,15 @@ import { projectFactory } from "@/domains/projects/project.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { EvaluationsModule } from "../../../evaluations.module"
+import { EvaluationExtractionDataset } from "../evaluation-extraction-dataset.entity"
+import { evaluationExtractionDatasetFactory } from "../evaluation-extraction-dataset.factory"
 
 describe("EvaluationExtractionDatasets - Auth", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupTransactionalTestDatabase>>
   let repositories: AllRepositories
+  let datasetRepository: Repository<EvaluationExtractionDataset>
 
   // Variables for the tests
   let organizationId: string | null = randomUUID()
@@ -37,6 +41,7 @@ describe("EvaluationExtractionDatasets - Auth", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
     repositories = setup.getAllRepositories()
+    datasetRepository = setup.getRepository(EvaluationExtractionDataset)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -60,7 +65,9 @@ describe("EvaluationExtractionDatasets - Auth", () => {
   const createContextForRole = async (role: ProjectMembershipRole = "owner") => {
     const { user, organization, project, document } = await createOrganizationWithDocument(
       repositories,
-      { projectMembership: { role } },
+      {
+        projectMembership: { role },
+      },
     )
     organizationId = organization.id
     projectId = project.id
@@ -255,7 +262,12 @@ describe("EvaluationExtractionDatasets - Auth", () => {
     ) =>
       request({
         route: EvaluationExtractionDatasetsRoutes.updateOne,
-        pathParams: removeNullish({ organizationId, projectId, datasetId, documentId }),
+        pathParams: removeNullish({
+          organizationId,
+          projectId,
+          datasetId,
+          documentId,
+        }),
         token: accessToken ?? undefined,
         request: requestPayload,
       })
@@ -289,6 +301,82 @@ describe("EvaluationExtractionDatasets - Auth", () => {
     it("doesn't allow a simple member to update a dataset", async () => {
       await createContextForRole("member")
       expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
+  describe("EvaluationExtractionDatasetsRoutes.renameOne", () => {
+    const payload: typeof EvaluationExtractionDatasetsRoutes.renameOne.request = {
+      payload: { name: "Renamed Dataset" },
+    }
+
+    const subject = async (
+      requestPayload?: typeof EvaluationExtractionDatasetsRoutes.renameOne.request,
+    ) =>
+      request({
+        route: EvaluationExtractionDatasetsRoutes.renameOne,
+        pathParams: removeNullish({ organizationId, projectId, datasetId }),
+        token: accessToken ?? undefined,
+        request: requestPayload,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(payload), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("requires a valid organization ID", async () => {
+      organizationId = null
+      expectResponse(await subject(payload), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    })
+    it("requires a valid project ID", async () => {
+      await createContextForRole("owner")
+      projectId = null
+      expectResponse(await subject(payload), 404)
+    })
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("owner")
+      auth0Id = "another-auth0-id"
+      expectResponse(await subject(payload), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+    it("doesn't allow a simple member to rename a dataset", async () => {
+      await createContextForRole("member")
+      expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
+  describe("EvaluationExtractionDatasetsRoutes.deleteOne", () => {
+    const subject = async () =>
+      request({
+        route: EvaluationExtractionDatasetsRoutes.deleteOne,
+        pathParams: removeNullish({ organizationId, projectId, datasetId }),
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("requires a valid organization ID", async () => {
+      organizationId = null
+      expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    })
+    it("requires a valid project ID", async () => {
+      await createContextForRole("owner")
+      projectId = null
+      expectResponse(await subject(), 404)
+    })
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("owner")
+      auth0Id = "another-auth0-id"
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+    it("doesn't allow a simple member to delete a dataset", async () => {
+      const { organization, project } = await createContextForRole("member")
+      const dataset = evaluationExtractionDatasetFactory
+        .transient({ organization, project })
+        .build()
+      await datasetRepository.save(dataset)
+      datasetId = dataset.id
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
 })

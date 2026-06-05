@@ -32,6 +32,13 @@ function registerListeners() {
 
   listenerMiddleware.startListening({
     actionCreator: agentEmbedConfigsActions.updateConfig.fulfilled,
+    effect: async (_, listenerApi) => {
+      await listenerApi.dispatch(agentEmbedConfigsActions.fetchConfig())
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: agentEmbedConfigsActions.updateConfig.fulfilled,
     effect: (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({

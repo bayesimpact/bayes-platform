@@ -1,5 +1,3 @@
-"use client"
-
 import { Button } from "@caseai-connect/ui/shad/button"
 import { DownloadIcon } from "lucide-react"
 import { useState } from "react"

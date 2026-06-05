@@ -1,4 +1,4 @@
-import { GridItem } from "@/common/components/grid/Grid"
+import { GridCard } from "@/common/components/grid/Grid"
 import { useAppSelector } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
@@ -14,9 +14,7 @@ import { EmbeddingStatusBadge } from "./EmbeddingStatusBadge"
 export function DocumentItem({
   document,
   documentTags,
-  index,
 }: {
-  index: number
   document: Document
   documentTags: DocumentTag[]
 }) {
@@ -42,7 +40,7 @@ export function DocumentItem({
           <DocumentEditor document={document} />
           <DocumentDeletor document={document} />
         </div>
-      }
-    />
+      </GridCard.Body>
+    </GridCard>
   )
 }

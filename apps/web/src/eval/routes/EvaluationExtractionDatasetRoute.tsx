@@ -2,13 +2,17 @@ import { useTranslation } from "react-i18next"
 import { useNavigate, useOutlet } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
 import { Loader } from "@/common/components/Loader"
-import { useValue } from "@/common/hooks/use-value"
+import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
+import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
+import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { useAppSelector } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
+import { DeleteEvaluationExtractionDatasetButton } from "../features/evaluation-extraction-datasets/components/DeleteEvaluationExtractionDatasetButton"
 import { EvaluationExtractionDatasetInitializer } from "../features/evaluation-extraction-datasets/components/EvaluationExtractionDatasetInitializer"
 import { EvaluationExtractionDatasetRecordList } from "../features/evaluation-extraction-datasets/components/EvaluationExtractionDatasetRecordList"
+import { RenameEvaluationExtractionDatasetDialog } from "../features/evaluation-extraction-datasets/components/RenameEvaluationExtractionDatasetDialog"
 import {
   selectCurrentDatasetData,
   selectCurrentDatasetId,
@@ -17,6 +21,7 @@ import {
 import { EvaluationExtractionRunHistory } from "../features/evaluation-extraction-runs/components/EvaluationExtractionRunHistory"
 import { RunEvaluationExtractionDialog } from "../features/evaluation-extraction-runs/components/RunEvaluationExtractionDialog"
 import { selectEvaluationExtractionRunsData } from "../features/evaluation-extraction-runs/evaluation-extraction-runs.selectors"
+import { EvalRoutes } from "./helpers"
 
 export function EvaluationExtractionDatasetRoute() {
   const datasetId = useAppSelector(selectCurrentDatasetId)
@@ -29,6 +34,8 @@ export function EvaluationExtractionDatasetRoute() {
 }
 
 function WithData() {
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
   const dataset = useValue(selectCurrentDatasetData)
   const navigate = useNavigate()
 
@@ -36,7 +43,7 @@ function WithData() {
   const isUpdatingDataset = useAppSelector(selectIsUpdatingDataset)
   const isDatasetEmpty = Object.values(dataset.schemaMapping).length === 0
 
-  const handleBack = () => navigate(-1)
+  const handleBack = () => navigate(EvalRoutes.extraction.build({ organizationId, projectId }))
 
   const title = isDatasetEmpty
     ? t("evaluation:dataset.update.title", { datasetName: dataset.name })
@@ -52,7 +59,22 @@ function WithData() {
         title={title}
         description={description}
         onBack={handleBack}
-        action={!isDatasetEmpty ? <RunEvaluationExtractionDialog dataset={dataset} /> : undefined}
+        action={
+          <>
+            {!isDatasetEmpty ? <RunEvaluationExtractionDialog dataset={dataset} /> : undefined}
+
+            <RenameEvaluationExtractionDatasetDialog
+              dataset={dataset}
+              buttonProps={{ variant: "outline", size: "icon" }}
+            />
+
+            <DeleteEvaluationExtractionDatasetButton
+              datasetId={dataset.id}
+              buttonProps={{ variant: "secondary", size: "icon" }}
+              onDelete={handleBack}
+            />
+          </>
+        }
       />
 
       <div className="p-6">

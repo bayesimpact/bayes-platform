@@ -1,4 +1,3 @@
-import { Badge, type BadgeVariant } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Card,
@@ -8,26 +7,25 @@ import {
   CardTitle,
 } from "@caseai-connect/ui/shad/card"
 import { cn } from "@caseai-connect/ui/utils"
-import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react"
+import { ArrowLeftIcon } from "lucide-react"
+import { Children, isValidElement } from "react"
 import { useBreakpoint } from "@/common/hooks/use-breakpoint"
 import { GridContext, gridClass, useGrid } from "./context"
-import { getGridItemClassName } from "./GridItem.helpers"
+import { GridCellContext } from "./grid-cell-context"
+
+export { GridCard } from "./GridCard"
 
 export function Grid({
   children,
   cols,
-  total,
-  extraItems = 0,
   ...props
 }: React.ComponentProps<"div"> & {
   cols: keyof typeof gridClass
-  total: number
-  extraItems?: number
 }) {
   const { isShortViewport } = useBreakpoint()
   const adjustedCols = isShortViewport ? 1 : cols
   return (
-    <GridContext.Provider value={{ cols: adjustedCols, total: total + extraItems }}>
+    <GridContext.Provider value={{ cols: adjustedCols }}>
       <div data-slot="grid" {...props}>
         {children}
       </div>
@@ -43,72 +41,22 @@ export function GridContent({
   className?: string
 }) {
   const { cols } = useGrid()
-  return <div className={cn("grid", gridClass[cols], className)}>{children}</div>
-}
-
-export function GridItem({
-  className,
-  title,
-  description,
-  footer,
-  badge,
-  badgeVariant = "secondary",
-  index = -1,
-  topAction,
-  ...props
-}: {
-  className?: string
-  title: React.ReactNode
-  description: React.ReactNode
-  index?: number
-  footer?: React.ReactNode
-  badge?: React.ReactNode
-  badgeVariant?: BadgeVariant
-  topAction?: React.ReactNode
-} & (
-  | {
-      onClick: () => void
-    }
-  | { action: React.ReactNode }
-)) {
-  const { cols, total } = useGrid()
-
+  // Position/total are derived from the rendered children so call sites never
+  // thread an `index`. Children.toArray drops falsy children, so conditional
+  // cells (`{cond && <GridCard/>}`) are skipped automatically. The context
+  // providers emit no DOM, so the grid's direct children are the cells.
+  const cells = Children.toArray(children)
+  const total = cells.length
   return (
-    <div
-      className={cn(
-        "relative p-4 flex flex-col items-start justify-center",
-        footer ? "pb-0" : "",
-        className,
-        getGridItemClassName({ index: index + 1, total, cols }),
-      )}
-    >
-      {topAction && (
-        <div className="absolute top-3 right-3 flex items-center gap-1">{topAction}</div>
-      )}
-
-      {badge && typeof badge === "string" ? (
-        <Badge variant={badgeVariant} className="capitalize">
-          {badge}
-        </Badge>
-      ) : (
-        badge
-      )}
-
-      <div className="py-2 px-1 w-full">
-        <h2 className="text-xl font-medium capitalize flex items-center gap-2">{title}</h2>
-
-        <h3 className="text-base text-muted-foreground leading-snug mt-1 mb-4">{description}</h3>
-
-        {"action" in props ? (
-          props.action
-        ) : (
-          <Button onClick={props.onClick} className="rounded-full" size="icon" variant="outline">
-            <ArrowRightIcon className="size-4" />
-          </Button>
-        )}
-      </div>
-
-      {footer && <div className="w-full mt-auto">{footer}</div>}
+    <div data-slot="grid-content" className={cn("grid", gridClass[cols], className)}>
+      {cells.map((child, index) => (
+        <GridCellContext.Provider
+          key={(isValidElement(child) ? child.key : null) ?? index}
+          value={{ index, total }}
+        >
+          {child}
+        </GridCellContext.Provider>
+      ))}
     </div>
   )
 }

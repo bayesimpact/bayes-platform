@@ -10,29 +10,25 @@ import {
 import { PlusCircleIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { GridItem } from "@/common/components/grid/Grid"
+import { GridCard } from "@/common/components/grid/Grid"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import { useAppDispatch } from "@/common/store/hooks"
 import { ProjectForm } from "@/studio/features/projects/components/ProjectForm"
 import { createProject } from "@/studio/features/projects/projects.thunks"
 import { StudioRoutes } from "@/studio/routes/helpers"
 
-export function ProjectCreatorButton({
-  organization,
-  index,
-}: {
-  index: number
-  organization: Organization
-}) {
+export function ProjectCreatorButton({ organization }: { organization: Organization }) {
   const { t } = useTranslation()
   return (
-    <GridItem
-      index={index}
-      className="bg-muted/35"
-      title={t("project:create.title")}
-      description={t("project:create.description", { organizationName: organization.name })}
-      action={<ProjectCreator organization={organization} />}
-    />
+    <GridCard className="bg-muted/35">
+      <GridCard.Body>
+        <GridCard.Title>{t("project:create.title")}</GridCard.Title>
+        <GridCard.Description>
+          {t("project:create.description", { organizationName: organization.name })}
+        </GridCard.Description>
+        <ProjectCreator organization={organization} />
+      </GridCard.Body>
+    </GridCard>
   )
 }
 

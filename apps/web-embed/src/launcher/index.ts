@@ -27,10 +27,14 @@ function init() {
 
   // Derive the embed app origin from this script's own src URL so the launcher
   // works correctly regardless of environment (dev, staging, production).
+  // Derive the embed app base URL from this script's own src, stripping the
+  // filename so we get the directory. This works for both CDN paths
+  // (https://storage.googleapis.com/my-bucket/launcher.js → …/my-bucket)
+  // and local dev (https://connect.localhost:5175/launcher.js → …:5175).
   const scriptSrc = _currentScript?.src ?? ""
-  const origin = scriptSrc ? new URL(scriptSrc).origin : "https://connect.localhost:5175"
+  const base = scriptSrc.slice(0, scriptSrc.lastIndexOf("/"))
   const localeParam = locale ? `&locale=${encodeURIComponent(locale)}` : ""
-  const iframeSrc = `${origin}/?embedToken=${token}${localeParam}`
+  const iframeSrc = `${base}/index.html?embedToken=${token}${localeParam}`
 
   injectWidget({ token, position, color, iframeSrc })
 }

@@ -3,15 +3,9 @@ import { Injectable } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: DataSource required at runtime for NestJS DI
 import { DataSource, type Repository } from "typeorm"
+import { ALL_ENTITIES } from "@/common/all-entities"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import { Agent } from "../agents/agent.entity"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { AgentsService } from "../agents/agents.service"
-import { Document } from "../documents/document.entity"
-import { Evaluation } from "../evaluations/evaluation.entity"
-import { EvaluationReport } from "../evaluations/reports/evaluation-report.entity"
 import { FeatureFlag } from "../feature-flags/feature-flag.entity"
-import { ProjectMembership } from "./memberships/project-membership.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipsService } from "./memberships/project-memberships.service"
 import { Project } from "./project.entity"
@@ -22,7 +16,6 @@ export class ProjectsService {
     @InjectRepository(Project) private readonly projectRepository: Repository<Project>,
     @InjectRepository(FeatureFlag) private readonly featureFlagRepository: Repository<FeatureFlag>,
     private readonly projectMembershipsService: ProjectMembershipsService,
-    private readonly agentsService: AgentsService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -71,23 +64,17 @@ export class ProjectsService {
   async deleteProject(project: Project): Promise<void> {
     await this.dataSource.transaction(async (entityManager) => {
       const projectId = project.id
-
-      const agents = await entityManager.find(Agent, { where: { projectId }, select: { id: true } })
-      for (const agent of agents) {
-        await this.agentsService.deleteAgent(agent)
+      // Sweep everything directly scoped by projectId
+      for (const entity of ALL_ENTITIES) {
+        const hasProjectId = entityManager.connection
+          .getMetadata(entity)
+          .columns.some((column) => column.propertyName === "projectId")
+        if (hasProjectId) {
+          await entityManager.softDelete(entity, { projectId })
+        }
       }
 
-      // Evaluations
-      await entityManager.delete(EvaluationReport, { projectId })
-      await entityManager.delete(Evaluation, { projectId })
-
-      // Documents
-      await entityManager.delete(Document, { projectId })
-
-      // Project memberships
-      await entityManager.delete(ProjectMembership, { projectId })
-
-      await entityManager.delete(Project, { id: projectId })
+      await entityManager.softDelete(Project, { id: projectId })
     })
   }
 

@@ -2,9 +2,15 @@ import { InjectQueue } from "@nestjs/bullmq"
 import { Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from "@nestjs/common"
 import { metrics } from "@opentelemetry/api"
 import type { Queue } from "bullmq"
-import { DEFAULT_EVALUATION_EXTRACTION_RUN_QUEUE_NAME } from "./evaluation-extraction-run.constants"
+import {
+  EVALUATION_EXTRACTION_RUN_EXECUTE_QUEUE_NAME,
+  EVALUATION_EXTRACTION_RUN_QUEUE_NAME,
+} from "./evaluation-extraction-run.constants"
+
+type QueueCounts = { waiting: number; active: number; completed: number; failed: number }
 
 const QUEUE_METRICS_INTERVAL_MS = 30_000
+const EMPTY_COUNTS: QueueCounts = { waiting: 0, active: 0, completed: 0, failed: 0 }
 
 @Injectable()
 export class QueueMetricsService implements OnModuleInit, OnModuleDestroy {
@@ -25,21 +31,37 @@ export class QueueMetricsService implements OnModuleInit, OnModuleDestroy {
     description: "Number of failed jobs in the queue",
   })
 
-  private lastCounts: Record<string, number> = { waiting: 0, active: 0, completed: 0, failed: 0 }
+  private lastCountsByQueue: Map<string, QueueCounts> = new Map([
+    [EVALUATION_EXTRACTION_RUN_EXECUTE_QUEUE_NAME, { ...EMPTY_COUNTS }],
+    [EVALUATION_EXTRACTION_RUN_QUEUE_NAME, { ...EMPTY_COUNTS }],
+  ])
 
   constructor(
-    @InjectQueue(DEFAULT_EVALUATION_EXTRACTION_RUN_QUEUE_NAME)
-    private readonly evaluationExtractionRunQueue: Queue,
+    @InjectQueue(EVALUATION_EXTRACTION_RUN_EXECUTE_QUEUE_NAME)
+    private readonly executeQueue: Queue,
+    @InjectQueue(EVALUATION_EXTRACTION_RUN_QUEUE_NAME)
+    private readonly recordQueue: Queue,
   ) {
-    const queueAttr = { queue: DEFAULT_EVALUATION_EXTRACTION_RUN_QUEUE_NAME }
-    this.waitingGauge.addCallback((result) =>
-      result.observe(this.lastCounts.waiting ?? 0, queueAttr),
-    )
-    this.activeGauge.addCallback((result) => result.observe(this.lastCounts.active ?? 0, queueAttr))
-    this.completedGauge.addCallback((result) =>
-      result.observe(this.lastCounts.completed ?? 0, queueAttr),
-    )
-    this.failedGauge.addCallback((result) => result.observe(this.lastCounts.failed ?? 0, queueAttr))
+    this.waitingGauge.addCallback((result) => {
+      for (const [queueName, counts] of this.lastCountsByQueue) {
+        result.observe(counts.waiting, { queue: queueName })
+      }
+    })
+    this.activeGauge.addCallback((result) => {
+      for (const [queueName, counts] of this.lastCountsByQueue) {
+        result.observe(counts.active, { queue: queueName })
+      }
+    })
+    this.completedGauge.addCallback((result) => {
+      for (const [queueName, counts] of this.lastCountsByQueue) {
+        result.observe(counts.completed, { queue: queueName })
+      }
+    })
+    this.failedGauge.addCallback((result) => {
+      for (const [queueName, counts] of this.lastCountsByQueue) {
+        result.observe(counts.failed, { queue: queueName })
+      }
+    })
   }
 
   onModuleInit() {
@@ -56,15 +78,25 @@ export class QueueMetricsService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async collectQueueMetrics(): Promise<void> {
-    try {
-      this.lastCounts = await this.evaluationExtractionRunQueue.getJobCounts()
-      this.logger.debug(
-        `queue_metrics queue=${DEFAULT_EVALUATION_EXTRACTION_RUN_QUEUE_NAME} waiting=${this.lastCounts.waiting} active=${this.lastCounts.active} completed=${this.lastCounts.completed} failed=${this.lastCounts.failed}`,
-      )
-    } catch (error) {
-      this.logger.error(
-        `Failed to collect queue metrics: ${error instanceof Error ? error.message : String(error)}`,
-      )
-    }
+    const queues: Array<[string, Queue]> = [
+      [EVALUATION_EXTRACTION_RUN_EXECUTE_QUEUE_NAME, this.executeQueue],
+      [EVALUATION_EXTRACTION_RUN_QUEUE_NAME, this.recordQueue],
+    ]
+
+    await Promise.all(
+      queues.map(async ([queueName, queue]) => {
+        try {
+          const counts = await queue.getJobCounts()
+          this.lastCountsByQueue.set(queueName, counts as QueueCounts)
+          this.logger.debug(
+            `queue_metrics queue=${queueName} waiting=${counts.waiting} active=${counts.active} completed=${counts.completed} failed=${counts.failed}`,
+          )
+        } catch (error) {
+          this.logger.error(
+            `Failed to collect queue metrics for ${queueName}: ${error instanceof Error ? error.message : String(error)}`,
+          )
+        }
+      }),
+    )
   }
 }

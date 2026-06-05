@@ -16,7 +16,7 @@ import type { JSONSchema7 } from "ai"
 import { z } from "zod"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { castToolInputParameters, objectToRecord } from "@/common/zod-helper"
-import { CallOrigin, extractThoughtAndAnswer } from "@/external/llm/ai-sdk-llm-provider-base"
+import { CallOrigin } from "@/external/llm/ai-sdk-llm-provider-base"
 
 class LanguageModelV3Prompt {}
 
@@ -113,10 +113,11 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
     if (data.choices && data.choices.length > 0) {
       finishReason = data.choices?.[0]?.finish_reason ?? null
       if (data.choices[0].message.content) {
-        const { answer } = extractThoughtAndAnswer(data.choices[0].message.content)
+        // Thought-token stripping is handled by the wrapping middleware
+        // (see AISDKLLMProviderBase.getLanguageModelWithRawCapture).
         content.push({
           type: "text",
-          text: answer
+          text: data.choices[0].message.content
             .replace(/```json/gi, "")
             .replace(/```/g, "")
             .replace(/'''json/gi, "")

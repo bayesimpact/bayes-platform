@@ -1,5 +1,3 @@
-"use client"
-
 import { Avatar, AvatarFallback } from "@caseai-connect/ui/shad/avatar"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {

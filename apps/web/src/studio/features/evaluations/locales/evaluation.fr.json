@@ -58,6 +58,18 @@
         "title": "Initialiser le dataset  {{datasetName}}",
         "description": "Configurez les colonnes et les rôles du dataset pour préparer l'évaluation."
       },
+      "rename": {
+        "title": "Renommer le dataset",
+        "submit": "Renommer"
+      },
+      "delete": {
+        "button": "Supprimer le dataset",
+        "confirm": {
+          "title": "Supprimer le dataset",
+          "description": "Cette action est irréversible. Tous les enregistrements, fichiers et exécutions de ce dataset seront définitivement supprimés.",
+          "submit": "Supprimer"
+        }
+      },
       "props": {
         "name": "Nom du dataset",
         "createdAt": "Créé le",
@@ -82,6 +94,9 @@
         "preview": "Aperçu",
         "roles": {
           "title": "Rôles des colonnes",
+          "selectAll": "Tout sélectionner",
+          "selectedCount": "{{count}} sélectionnée(s)",
+          "bulkApply": "Appliquer un rôle à la sélection",
           "target": "Cible",
           "input": "Entrée",
           "reference": "Référence",

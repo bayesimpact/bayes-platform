@@ -25,6 +25,8 @@ export { FormAgentSessionsRoutes } from "./agents/form-agent-sessions/form-agent
 // Agent Session Messages
 export * from "./agents/shared/agent-session-messages/agent-session-messages.dto"
 export { AgentSessionMessagesRoutes } from "./agents/shared/agent-session-messages/agent-session-messages.routes"
+// Agent Sub-Agents
+export { AgentSubAgentsRoutes } from "./agents/sub-agents/agent-sub-agents.routes"
 // Analytics
 export type * from "./analytics/analytics.dto"
 export { AgentAnalyticsRoutes, AnalyticsRoutes } from "./analytics/analytics.routes"
@@ -64,8 +66,11 @@ export { InvitationsRoutes } from "./invitations/invitations.routes"
 export * from "./me/me.dto"
 export { MeRoutes } from "./me/me.routes"
 // Organizations
-export type * from "./organizations/organizations.dto"
+export * from "./organizations/organizations.dto"
 export { OrganizationsRoutes } from "./organizations/organizations.routes"
+// Project Agent Categories
+export type * from "./project-agent-categories/project-agent-categories.dto"
+export { ProjectAgentCategoriesRoutes } from "./project-agent-categories/project-agent-categories.routes"
 // Project Membership
 export type * from "./project-membership/project-membership.dto"
 export { ProjectMembershipRoutes } from "./project-membership/project-membership.routes"

@@ -1,7 +1,7 @@
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Trash2Icon } from "lucide-react"
 import { useNavigate } from "react-router-dom"
-import { GridItem } from "@/common/components/grid/Grid"
+import { GridCard } from "@/common/components/grid/Grid"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import type { ExtractionAgentSession } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
 import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
@@ -19,10 +19,8 @@ export function AgentSessionItem({
   agentId,
   projectId,
   className,
-  index,
   agentType,
 }: {
-  index: number
   className?: string
   agentSession: AgentSession
   organizationId: string
@@ -56,21 +54,18 @@ export function AgentSessionItem({
     )
   }
   return (
-    <GridItem
-      index={index}
-      className={className}
-      badge={badge}
-      onClick={handleClick}
-      title={title}
-      // FIXME: show last message
-      description=""
-      footer={
-        <div className="justify-end flex pb-4">
-          <Button variant="outline" size="icon-sm" onClick={handleDelete}>
+    <GridCard className={className}>
+      <GridCard.Badge>{badge}</GridCard.Badge>
+      <GridCard.Body>
+        {/* FIXME: show last message as description */}
+        <GridCard.Title className="pb-4">{title}</GridCard.Title>
+        <GridCard.GoButton onClick={handleClick} />
+        <GridCard.TopAction>
+          <Button variant="ghost" size="icon-sm" onClick={handleDelete}>
             <Trash2Icon className="size-3.5" />
           </Button>
-        </div>
-      }
-    />
+        </GridCard.TopAction>
+      </GridCard.Body>
+    </GridCard>
   )
 }

@@ -1,5 +1,7 @@
+import { Button } from "@caseai-connect/ui/shad/button"
+import { Settings2Icon } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { useOutlet } from "react-router-dom"
+import { Link, useOutlet } from "react-router-dom"
 import { Grid, GridContent, GridHeader } from "@/common/components/grid/Grid"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
 import { AgentItem } from "@/common/features/agents/components/AgentItem"
@@ -11,17 +13,8 @@ import { DocumentsButton } from "@/studio/features/agents/components/DocumentsBu
 import { EvaluationButton } from "@/studio/features/agents/components/EvaluationButton"
 import { MembersButton } from "@/studio/features/agents/components/MembersButton"
 import { ProjectDeletor } from "@/studio/features/projects/components/ProjectDeletor"
-import { ProjectEditor } from "@/studio/features/projects/components/ProjectEditor"
 import { ReviewCampaignsButton } from "@/studio/features/review-campaigns/components/ReviewCampaignsButton"
-
-const extraItems = [
-  AgentCreatorButton,
-  DocumentsButton,
-  MembersButton,
-  ReviewCampaignsButton,
-  AnalyticsButton,
-  EvaluationButton,
-]
+import { StudioRoutes } from "@/studio/routes/helpers"
 
 export function AgentList() {
   const project = useValue(selectCurrentProjectData)
@@ -31,22 +24,31 @@ export function AgentList() {
 
   if (outlet) return outlet
   return (
-    <Grid cols={3} total={agents.length} extraItems={extraItems.length}>
+    <Grid cols={3}>
       <GridHeader
         title={project.name}
         description={t("project:project")}
         action={
           <>
-            <ProjectEditor project={project} />
+            <Button variant="outline" asChild>
+              <Link
+                to={StudioRoutes.projectAdmin.build({
+                  organizationId: project.organizationId,
+                  projectId: project.id,
+                })}
+              >
+                <Settings2Icon />
+                {t("actions:edit")}
+              </Link>
+            </Button>
             <ProjectDeletor project={project} />
           </>
         }
       />
 
       <GridContent>
-        {agents.map((agent, index) => (
+        {agents.map((agent) => (
           <AgentItem
-            index={index}
             key={agent.id}
             organizationId={project.organizationId}
             projectId={agent.projectId}
@@ -54,13 +56,12 @@ export function AgentList() {
           />
         ))}
 
-        {extraItems.map((Component, index) => (
-          <Component
-            key={`${Component.name}-${index}`}
-            project={project}
-            index={agents.length + index}
-          />
-        ))}
+        <AgentCreatorButton project={project} />
+        <DocumentsButton />
+        <MembersButton />
+        <ReviewCampaignsButton />
+        <AnalyticsButton />
+        <EvaluationButton />
       </GridContent>
     </Grid>
   )

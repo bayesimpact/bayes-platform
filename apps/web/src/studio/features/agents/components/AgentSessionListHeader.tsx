@@ -1,7 +1,7 @@
 import { cn } from "@caseai-connect/ui/utils"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/grid/Grid"
+import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/grid/Grid"
 import { BaseAgentSessionCreator } from "@/common/features/agents/agent-sessions/shared/base-agent-session/components/BaseAgentSessionCreator"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
@@ -51,7 +51,7 @@ export function AgentSessionListHeader({
     (showAgentAnalytics ? 1 : 0) +
     (canManageAgent ? 1 : 0)) as 1 | 2 | 3
   return (
-    <Grid cols={headerCardCount} total={headerCardCount}>
+    <Grid cols={headerCardCount}>
       <GridHeader
         onBack={handleBack}
         title={agent.name}
@@ -68,7 +68,6 @@ export function AgentSessionListHeader({
 
       <GridContent>
         <CreateSessionButton
-          index={0}
           agent={agent}
           organizationId={organizationId}
           projectId={projectId}
@@ -78,7 +77,6 @@ export function AgentSessionListHeader({
         {showAgentAnalytics && (
           <AgentAnalyticsCard
             agentId={agent.id}
-            index={1}
             organizationId={organizationId}
             projectId={projectId}
             withBorderBottom={withBorderBottom}
@@ -87,7 +85,6 @@ export function AgentSessionListHeader({
 
         {canManageAgent && (
           <FeedbackButton
-            index={showAgentAnalytics ? 2 : 1}
             agentId={agent.id}
             organizationId={organizationId}
             projectId={projectId}
@@ -104,9 +101,7 @@ function CreateSessionButton({
   organizationId,
   projectId,
   withBorderBottom,
-  index,
 }: {
-  index: number
   agent: Agent
   organizationId: string
   projectId: string
@@ -115,18 +110,16 @@ function CreateSessionButton({
   const { t } = useTranslation()
   const prefix = `${agent.type}AgentSession`
   return (
-    <GridItem
-      className={cn("bg-muted/35", withBorderBottom && "border-b")}
-      index={index}
-      title={t(`${prefix}:create.title`)}
-      description={t(`${prefix}:create.description`)}
-      action={
+    <GridCard className={cn("bg-muted/35", withBorderBottom && "border-b")}>
+      <GridCard.Body>
+        <GridCard.Title>{t(`${prefix}:create.title`)}</GridCard.Title>
+        <GridCard.Description>{t(`${prefix}:create.description`)}</GridCard.Description>
         <BaseAgentSessionCreator
           agentType={agent.type}
           type="button"
           ids={{ organizationId, projectId, agentId: agent.id }}
         />
-      }
-    />
+      </GridCard.Body>
+    </GridCard>
   )
 }

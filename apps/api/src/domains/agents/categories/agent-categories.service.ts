@@ -19,6 +19,30 @@ export class AgentCategoriesService {
     private readonly agentCategoryRepository: Repository<AgentCategory>,
   ) {}
 
+  async addCategoryToAgent(
+    agentId: string,
+    projectAgentCategory: SelectedProjectAgentCategory,
+  ): Promise<void> {
+    const existing = await this.agentCategoryRepository.findOne({
+      where: { agentId, projectAgentCategoryId: projectAgentCategory.id },
+      withDeleted: true,
+    })
+
+    if (existing) {
+      if (existing.deletedAt !== null) {
+        await this.agentCategoryRepository.recover(existing)
+      }
+      return
+    }
+
+    const agentCategory = this.agentCategoryRepository.create({
+      agentId,
+      projectAgentCategoryId: projectAgentCategory.id,
+      name: projectAgentCategory.name,
+    })
+    await this.agentCategoryRepository.save(agentCategory)
+  }
+
   async listActiveCategoryNamesForAgent(agentId: string): Promise<string[]> {
     const activeCategories = await this.agentCategoryRepository.find({
       where: { agentId },

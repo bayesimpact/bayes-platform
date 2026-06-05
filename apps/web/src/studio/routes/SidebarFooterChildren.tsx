@@ -25,6 +25,7 @@ import {
   ListChecksIcon,
   Loader2Icon,
   MegaphoneIcon,
+  Settings2Icon,
   UsersIcon,
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
@@ -53,6 +54,7 @@ export function SidebarFooterChildren({ project }: { project: Project }) {
           </RestrictedFeature>
           <NavSources organizationId={project.organizationId} projectId={project.id} />
           <NavProjectMemberships organizationId={project.organizationId} projectId={project.id} />
+          <NavAdmin organizationId={project.organizationId} projectId={project.id} />
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
@@ -146,7 +148,7 @@ function NavSources({ organizationId, projectId }: { organizationId: string; pro
         <CollapsibleContent>
           <SidebarMenuSub>
             <NavDocumentsList organizationId={organizationId} projectId={projectId} />
-            <RestrictedFeature feature="web_sources">
+            <RestrictedFeature feature="web-sources">
               <NavWebSources organizationId={organizationId} projectId={projectId} />
             </RestrictedFeature>
           </SidebarMenuSub>
@@ -220,6 +222,25 @@ function UploaderState() {
         <CloudAlertIcon className="text-destructive size-5 animate-pulse" />
       )}
     </div>
+  )
+}
+
+function NavAdmin({ organizationId, projectId }: { organizationId: string; projectId: string }) {
+  const { t } = useTranslation()
+  const { isRoute } = useIsRoute()
+  const isActive = isRoute(StudioRoutes.projectAdmin.path)
+  const path = StudioRoutes.projectAdmin.build({ organizationId, projectId })
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton isActive={isActive} asChild>
+        <Link to={path}>
+          <Settings2Icon />
+          <span className={cn(isActive && "font-semibold capitalize-first")}>
+            {t("projectAdmin:navLabel")}
+          </span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
   )
 }
 

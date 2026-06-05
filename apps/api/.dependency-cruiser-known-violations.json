@@ -2650,6 +2650,60 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/agents/agents.service.ts",
+    "to": "src/domains/evaluations/extraction/runs/evaluation-extraction-run.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/agents/agents.service.ts",
+    "to": "src/domains/evaluations/reports/evaluation-report.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/agents/agents.service.ts",
+    "to": "src/domains/mcp-servers/agent-mcp-server.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/agents/agents.service.ts",
+    "to": "src/domains/public-chat/agent-embed-configs/agent-embed-config.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/agents/agents.service.ts",
+    "to": "src/domains/public-chat/public-agent-sessions/public-agent-session.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/agents/agents.service.ts",
+    "to": "src/domains/review-campaigns/review-campaign.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/agents/base-agent-sessions/base-agent-sessions-module.helpers.ts",
     "to": "src/domains/documents/document.entity.ts",
     "rule": {
@@ -3379,6 +3433,15 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-run-starter.service.ts",
+    "to": "src/domains/agents/agent.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-run.types.ts",
     "to": "src/domains/agents/agent.entity.ts",
     "rule": {
@@ -3983,6 +4046,15 @@
   {
     "type": "dependency",
     "from": "src/domains/public-chat/public-agent-sessions/public-agent-sessions.service.ts",
+    "to": "src/domains/agents/agent.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/public-chat/public-agent-sessions/public-agent-sessions.service.ts",
     "to": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
     "rule": {
       "severity": "error",
@@ -4297,6 +4369,15 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/agents/shared/agent-session-messages/streaming/sub-agent-tools.ts",
+    "to": "src/domains/projects/projects.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/agents/shared/agent-session-messages/streaming/tools/retrieve-project-document-chunks.tool.ts",
     "to": "src/domains/documents/embeddings/document-chunk-retrieval.service.ts",
     "rule": {
@@ -4362,6 +4443,15 @@
     "type": "dependency",
     "from": "src/domains/me/me.controller.ts",
     "to": "src/domains/terms-compliance/terms-compliance.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/me/me.controller.ts",
+    "to": "src/domains/users/users.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"

@@ -13,7 +13,10 @@ type BuildToolsArgs = {
 }
 
 type BuildToolsAccessor = {
-  buildTools: (args: BuildToolsArgs) => Promise<{ tools: Record<string, unknown> | undefined }>
+  buildTools: (args: BuildToolsArgs) => Promise<{
+    toolDescriptions: Record<string, string>
+    tools: Record<string, unknown> | undefined
+  }>
 }
 
 describe("buildTools", () => {
@@ -111,5 +114,111 @@ describe("buildTools", () => {
     })
 
     expect(tools?.[ToolName.RecalculateConversationSessionMetadata]).toBeDefined()
+  })
+
+  it("should omit configured sub-agent tools when orchestration feature is disabled", async () => {
+    const {
+      agentRepository,
+      agentSubAgentRepository,
+      streamingService,
+      testAgent,
+      testOrganization,
+      testProject,
+    } = getTestContext()
+    const connectScope: RequiredConnectScope = {
+      organizationId: testOrganization.id,
+      projectId: testProject.id,
+    }
+    const childAgent = await agentRepository.save(
+      agentRepository.create({
+        organizationId: testOrganization.id,
+        projectId: testProject.id,
+        name: "Benefits Specialist",
+        defaultPrompt: "Answer benefits questions",
+        model: testAgent.model,
+        temperature: testAgent.temperature,
+        locale: testAgent.locale,
+        type: "conversation",
+        documentsRagMode: DocumentsRagMode.None,
+      }),
+    )
+    await agentSubAgentRepository.save(
+      agentSubAgentRepository.create({
+        parentAgentId: testAgent.id,
+        childAgentId: childAgent.id,
+        toolName: "benefits_specialist",
+        description: "Answer benefit eligibility questions.",
+        enabled: true,
+      }),
+    )
+
+    const { tools, toolDescriptions } = await (
+      streamingService as unknown as BuildToolsAccessor
+    ).buildTools({
+      agent: { ...testAgent, documentsRagMode: DocumentsRagMode.None },
+      sessionId: "session-id",
+      connectScope,
+      onExecute: () => undefined,
+    })
+
+    expect(tools?.benefits_specialist).toBeUndefined()
+    expect(toolDescriptions.benefits_specialist).toBeUndefined()
+  })
+
+  it("should expose enabled sub-agent tools when orchestration feature is enabled", async () => {
+    const {
+      agentRepository,
+      agentSubAgentRepository,
+      featureFlagRepository,
+      streamingService,
+      testAgent,
+      testOrganization,
+      testProject,
+    } = getTestContext()
+    const connectScope: RequiredConnectScope = {
+      organizationId: testOrganization.id,
+      projectId: testProject.id,
+    }
+    await featureFlagRepository.save(
+      featureFlagRepository.create({
+        projectId: testProject.id,
+        featureFlagKey: "agent-orchestration",
+        enabled: true,
+      }),
+    )
+    const childAgent = await agentRepository.save(
+      agentRepository.create({
+        organizationId: testOrganization.id,
+        projectId: testProject.id,
+        name: "Benefits Specialist",
+        defaultPrompt: "Answer benefits questions",
+        model: testAgent.model,
+        temperature: testAgent.temperature,
+        locale: testAgent.locale,
+        type: "conversation",
+        documentsRagMode: DocumentsRagMode.None,
+      }),
+    )
+    await agentSubAgentRepository.save(
+      agentSubAgentRepository.create({
+        parentAgentId: testAgent.id,
+        childAgentId: childAgent.id,
+        toolName: "benefits_specialist",
+        description: "Answer benefit eligibility questions.",
+        enabled: true,
+      }),
+    )
+
+    const { tools, toolDescriptions } = await (
+      streamingService as unknown as BuildToolsAccessor
+    ).buildTools({
+      agent: { ...testAgent, documentsRagMode: DocumentsRagMode.None },
+      sessionId: "session-id",
+      connectScope,
+      onExecute: () => undefined,
+    })
+
+    expect(tools?.benefits_specialist).toBeDefined()
+    expect(toolDescriptions.benefits_specialist).toBe("Answer benefit eligibility questions.")
   })
 })

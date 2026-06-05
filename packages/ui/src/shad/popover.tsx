@@ -1,5 +1,3 @@
-"use client"
-
 import { cn } from "@caseai-connect/ui/utils"
 import * as PopoverPrimitive from "@radix-ui/react-popover"
 import type * as React from "react"

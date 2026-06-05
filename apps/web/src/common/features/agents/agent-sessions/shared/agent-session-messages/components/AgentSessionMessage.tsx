@@ -39,7 +39,7 @@ export function AgentSessionMessage({ message }: { message: AgentSessionMessageT
 
                 <CopyToClipboard content={message.content} />
 
-                <RestrictedFeature feature="sources_tool">
+                <RestrictedFeature feature="sources-tool">
                   {sourcesTool && <SourcesTool toolCall={sourcesTool} />}
                 </RestrictedFeature>
               </div>

@@ -1,5 +1,3 @@
-"use client"
-
 import { CalendarDays } from "lucide-react"
 import { useCallback, useState } from "react"
 import type { DateRange } from "react-day-picker"

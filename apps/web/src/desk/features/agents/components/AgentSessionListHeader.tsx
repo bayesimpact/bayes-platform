@@ -1,7 +1,7 @@
 import { cn } from "@caseai-connect/ui/utils"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { Grid, GridContent, GridHeader, GridItem } from "@/common/components/grid/Grid"
+import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/grid/Grid"
 import { BaseAgentSessionCreator } from "@/common/features/agents/agent-sessions/shared/base-agent-session/components/BaseAgentSessionCreator"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
@@ -33,7 +33,7 @@ export function AgentSessionListHeader({
   const Icon = getAgentIcon(agent.type)
 
   return (
-    <Grid cols={1} total={1}>
+    <Grid cols={1}>
       <GridHeader
         onBack={handleBack}
         title={agent.name}
@@ -47,7 +47,6 @@ export function AgentSessionListHeader({
 
       <GridContent>
         <CreateButton
-          index={0}
           agent={agent}
           organizationId={organizationId}
           projectId={projectId}
@@ -63,9 +62,7 @@ function CreateButton({
   organizationId,
   projectId,
   withBorderBottom,
-  index,
 }: {
-  index: number
   agent: Agent
   organizationId: string
   projectId: string
@@ -74,18 +71,16 @@ function CreateButton({
   const { t } = useTranslation()
   const prefix = `${agent.type}AgentSession`
   return (
-    <GridItem
-      className={cn("bg-muted/35", withBorderBottom && "border-b")}
-      index={index}
-      title={t(`${prefix}:create.title`)}
-      description={t(`${prefix}:create.description`)}
-      action={
+    <GridCard className={cn("bg-muted/35", withBorderBottom && "border-b")}>
+      <GridCard.Body>
+        <GridCard.Title>{t(`${prefix}:create.title`)}</GridCard.Title>
+        <GridCard.Description>{t(`${prefix}:create.description`)}</GridCard.Description>
         <BaseAgentSessionCreator
           agentType={agent.type}
           type="button"
           ids={{ organizationId, projectId, agentId: agent.id }}
         />
-      }
-    />
+      </GridCard.Body>
+    </GridCard>
   )
 }
