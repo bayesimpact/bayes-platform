@@ -144,7 +144,11 @@ async function runSubAgentTool({
     connectScope,
     includeSessionMetadataTools: false,
     includeSubAgentTools: false,
-    onExecute,
+    onExecute: (toolExecution) =>
+      onExecute({
+        ...toolExecution,
+        notifyToolName: subAgent.toolName,
+      }),
   })
 
   try {
