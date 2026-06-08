@@ -140,6 +140,15 @@ VITE_AUTH0_CLIENT_ID=XXX
 VITE_AUTH0_AUDIENCE=https://your-tenant.auth0.com/api/v2/
 ```
 
+**Optional — in-platform help chat:**
+
+Set these two variables to embed a floating help chat bubble inside the Studio. The bubble uses the AgentStudio embed widget, so the target agent must have its embed config enabled and `VITE_AGENT_EMBED_URL`'s origin listed in `allowedOrigins`.
+
+| Variable | Description |
+|---|---|
+| `VITE_HELP_AGENT_EMBED_TOKEN` | Embed token of the help agent (found in the agent's Embed tab in the Studio). When absent, no bubble is shown. |
+| `VITE_HELP_AGENT_EMBED_COLOR` | Optional hex color for the launcher button (e.g. `#f18c6e`). Falls back to the launcher's default when not set. |
+
 ### 3.1 Install Docling for Worker Extraction (macOS, Linux, Windows)
 
 The embedding worker uses Docling in-process for document extraction.

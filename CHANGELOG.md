@@ -8,6 +8,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- Embed widget display mode: configure each agent's chat widget to appear as a floating bubble (modal, default) or a side drawer, set per embed config from the Studio
+- In-platform help chat: set `VITE_HELP_AGENT_EMBED_TOKEN` to inject the embed launcher into the Studio — a floating chat bubble lets users ask questions about the platform directly from within the app
 
 ### Changed
 
