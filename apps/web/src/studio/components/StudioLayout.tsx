@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { Wrap } from "@/common/components/layouts/Wrap"
 import { SidebarAgentList } from "@/common/components/sidebar/list/SidebarAgentList"
 import { SidebarLayout } from "@/common/components/sidebar/SidebarLayout"
@@ -13,6 +14,8 @@ import { selectUploaderState } from "../features/documents/documents.selectors"
 import { StudioRoutes } from "../routes/helpers"
 import { SidebarFooterChildren } from "../routes/SidebarFooterChildren"
 
+const HELP_SCRIPT_ID = "agentstudio-help-launcher"
+
 export function StudioLayout({ children }: { children: React.ReactNode }) {
   const user = useValue(selectMe)
   const organization = useValue(selectCurrentOrganization)
@@ -20,6 +23,20 @@ export function StudioLayout({ children }: { children: React.ReactNode }) {
 
   const uploaderState = useAppSelector(selectUploaderState)
   usePreventLeave(uploaderState.status === "uploading")
+
+  useEffect(() => {
+    const token = import.meta.env.VITE_HELP_AGENT_EMBED_TOKEN as string | undefined
+    if (!token || document.getElementById(HELP_SCRIPT_ID)) return
+    const embedBaseUrl =
+      (import.meta.env.VITE_AGENT_EMBED_URL as string | undefined) ?? window.location.origin
+    const script = document.createElement("script")
+    script.id = HELP_SCRIPT_ID
+    script.src = `${embedBaseUrl}/launcher.js`
+    const color = import.meta.env.VITE_HELP_AGENT_EMBED_COLOR as string | undefined
+    if (color) script.dataset.color = color
+    script.dataset.token = token
+    document.body.appendChild(script)
+  }, [])
 
   return (
     <SidebarLayout
