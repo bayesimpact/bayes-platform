@@ -1,5 +1,6 @@
 import type { TimeType } from "../generic"
 
+/** How the chat widget is rendered on the host page. Controlled via the data-display-mode attribute on the launcher script tag. */
 export type EmbedDisplayMode = "modal" | "drawer"
 
 export type AgentEmbedConfigDto = {
@@ -11,7 +12,6 @@ export type AgentEmbedConfigDto = {
   title: string | null
   logoUrl: string | null
   primaryColor: string | null
-  displayMode: EmbedDisplayMode
   createdAt: TimeType
   updatedAt: TimeType
 }
@@ -22,7 +22,6 @@ export type UpdateAgentEmbedConfigDto = {
   title?: string | null
   logoUrl?: string | null
   primaryColor?: string | null
-  displayMode?: EmbedDisplayMode
 }
 
 /** Returned by the public (unauthenticated) config endpoint — branding only, no secrets. */
@@ -31,5 +30,4 @@ export type EmbedPublicConfigDto = {
   title: string | null
   logoUrl: string | null
   primaryColor: string | null
-  displayMode: EmbedDisplayMode
 }

@@ -1,4 +1,3 @@
-import type { EmbedDisplayMode } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
@@ -23,13 +22,12 @@ type UpdateConfigPayload = {
   title?: string | null
   logoUrl?: string | null
   primaryColor?: string | null
-  displayMode?: EmbedDisplayMode
 }
 
 const updateConfig = createAsyncThunk<void, UpdateConfigPayload, ThunkConfig>(
   "agentEmbedConfigs/updateConfig",
   async (
-    { isEnabled, allowedOrigins, title, logoUrl, primaryColor, displayMode },
+    { isEnabled, allowedOrigins, title, logoUrl, primaryColor },
     { extra: { services }, getState },
   ) => {
     const state = getState()
@@ -38,7 +36,7 @@ const updateConfig = createAsyncThunk<void, UpdateConfigPayload, ThunkConfig>(
     const agentId = getCurrentId({ state, name: "agentId" })
     await services.agentEmbedConfigs.updateOne(
       { organizationId, projectId, agentId },
-      { isEnabled, allowedOrigins, title, logoUrl, primaryColor, displayMode },
+      { isEnabled, allowedOrigins, title, logoUrl, primaryColor },
     )
   },
 )

@@ -1,4 +1,3 @@
-import type { EmbedDisplayMode } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -26,7 +25,6 @@ export const agentEmbedConfigFactory = AgentEmbedConfigFactory.define(
       title: params.title ?? null,
       logoUrl: params.logoUrl ?? null,
       primaryColor: params.primaryColor ?? null,
-      displayMode: (params.displayMode ?? "modal") as EmbedDisplayMode,
       createdAt: params.createdAt ?? faker.date.past().getTime(),
       updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
     }

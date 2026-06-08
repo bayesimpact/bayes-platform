@@ -1,14 +1,6 @@
-import type { EmbedDisplayMode } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@caseai-connect/ui/shad/field"
 import { Input } from "@caseai-connect/ui/shad/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@caseai-connect/ui/shad/select"
 import { Switch } from "@caseai-connect/ui/shad/switch"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { CheckIcon, CopyIcon } from "lucide-react"
@@ -29,7 +21,6 @@ type EmbedFormState = {
   title: string
   logoUrl: string
   primaryColor: string
-  displayMode: EmbedDisplayMode
 }
 
 function toFormState(config: AgentEmbedConfig): EmbedFormState {
@@ -39,7 +30,6 @@ function toFormState(config: AgentEmbedConfig): EmbedFormState {
     title: config.title ?? "",
     logoUrl: config.logoUrl ?? "",
     primaryColor: config.primaryColor ?? "",
-    displayMode: config.displayMode,
   }
 }
 
@@ -49,8 +39,8 @@ const emptyFormState: EmbedFormState = {
   title: "",
   logoUrl: "",
   primaryColor: "",
-  displayMode: "modal",
 }
+
 export function AgentEmbedTab() {
   const config = useAppSelector(selectAgentEmbedConfig)
 
@@ -101,7 +91,6 @@ function WithData() {
         title: form.title.trim() || null,
         logoUrl: form.logoUrl.trim() || null,
         primaryColor: form.primaryColor.trim() || null,
-        displayMode: form.displayMode,
       }),
     )
   }
@@ -196,25 +185,6 @@ function WithData() {
             className="font-mono"
           />
         </div>
-      </Field>
-
-      <Field>
-        <FieldLabel htmlFor="embed-display-mode">{t("agent:embed.displayModeLabel")}</FieldLabel>
-        <FieldDescription>{t("agent:embed.displayModeDescription")}</FieldDescription>
-        <Select
-          value={form.displayMode}
-          onValueChange={(value) =>
-            setForm((prev) => ({ ...prev, displayMode: value as EmbedDisplayMode }))
-          }
-        >
-          <SelectTrigger id="embed-display-mode">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="modal">{t("agent:embed.displayModeOptions.modal")}</SelectItem>
-            <SelectItem value="drawer">{t("agent:embed.displayModeOptions.drawer")}</SelectItem>
-          </SelectContent>
-        </Select>
       </Field>
 
       <Field orientation="horizontal" className="justify-end">

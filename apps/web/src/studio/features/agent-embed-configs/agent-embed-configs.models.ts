@@ -1,4 +1,4 @@
-import type { EmbedDisplayMode, TimeType } from "@caseai-connect/api-contracts"
+import type { TimeType } from "@caseai-connect/api-contracts"
 
 export type AgentEmbedConfig = {
   id: string
@@ -9,7 +9,6 @@ export type AgentEmbedConfig = {
   title: string | null
   logoUrl: string | null
   primaryColor: string | null
-  displayMode: EmbedDisplayMode
   createdAt: TimeType
   updatedAt: TimeType
 }

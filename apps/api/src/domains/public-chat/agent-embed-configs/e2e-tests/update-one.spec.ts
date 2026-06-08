@@ -104,21 +104,6 @@ describe("AgentEmbedConfigs Management - PATCH one", () => {
     expect(updated.allowedOrigins).toEqual(origins)
   })
 
-  it("updates displayMode", async () => {
-    const response = await request({
-      route: AgentEmbedConfigsRoutes.updateOne,
-      pathParams: { organizationId, projectId, agentId },
-      token: "token",
-      request: { payload: { displayMode: "drawer" } },
-    })
-
-    expectResponse(response, 200)
-    const updated = await setup
-      .getRepository(AgentEmbedConfig)
-      .findOneOrFail({ where: { agentId } })
-    expect(updated.displayMode).toBe("drawer")
-  })
-
   it("only updates specified fields (partial update)", async () => {
     await request({
       route: AgentEmbedConfigsRoutes.updateOne,

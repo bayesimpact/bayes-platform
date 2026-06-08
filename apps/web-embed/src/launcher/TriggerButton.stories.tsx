@@ -69,9 +69,11 @@ export const Interactive: Story = {
 function FullWidget({
   primaryColor = "#2563eb",
   position = "bottom-right" as const,
+  displayMode = "modal" as const,
 }: {
   primaryColor?: string
   position?: "bottom-right" | "bottom-left"
+  displayMode?: "modal" | "drawer"
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState(shortConversation)
@@ -97,30 +99,64 @@ function FullWidget({
     }, 1200)
   }
 
+  const isDrawer = displayMode === "drawer"
+  const isRight = position !== "bottom-left"
+
   return (
-    <div
-      className="fixed bottom-6 flex flex-col gap-3"
-      style={position === "bottom-right" ? { right: 24 } : { left: 24 }}
-    >
-      {isOpen && (
-        <div className="h-[560px] w-[380px] overflow-hidden rounded-2xl shadow-2xl">
+    <>
+      {isDrawer ? (
+        <div
+          className="fixed top-0 h-full w-[400px] shadow-2xl transition-transform duration-300"
+          style={{
+            [isRight ? "right" : "left"]: 0,
+            transform: isOpen
+              ? "translateX(0)"
+              : isRight
+                ? "translateX(100%)"
+                : "translateX(-100%)",
+          }}
+        >
           <EmbedChat
             agentName="Support Assistant"
             theme={{ primaryColor }}
+            displayMode="drawer"
             messages={messages}
             isStreaming={isStreaming}
             onSendMessage={handleSend}
             onClose={() => setIsOpen(false)}
           />
         </div>
+      ) : (
+        isOpen && (
+          <div
+            className="fixed flex flex-col gap-3"
+            style={{
+              bottom: 88,
+              ...(isRight ? { right: 24 } : { left: 24 }),
+            }}
+          >
+            <div className="h-[560px] w-[380px] overflow-hidden rounded-2xl shadow-2xl">
+              <EmbedChat
+                agentName="Support Assistant"
+                theme={{ primaryColor }}
+                messages={messages}
+                isStreaming={isStreaming}
+                onSendMessage={handleSend}
+                onClose={() => setIsOpen(false)}
+              />
+            </div>
+          </div>
+        )
       )}
-      <TriggerButton
-        isOpen={isOpen}
-        onClick={() => setIsOpen((prev) => !prev)}
-        primaryColor={primaryColor}
-        position={position}
-      />
-    </div>
+      <div className="fixed bottom-6" style={isRight ? { right: 24 } : { left: 24 }}>
+        <TriggerButton
+          isOpen={isOpen}
+          onClick={() => setIsOpen((prev) => !prev)}
+          primaryColor={primaryColor}
+          position={position}
+        />
+      </div>
+    </>
   )
 }
 
@@ -154,6 +190,97 @@ export const FullWidgetGreen: Story = {
       <FullWidget primaryColor="#16a34a" />
     </div>
   ),
+}
+
+// ---------------------------------------------------------------------------
+// Drawer mode — self-contained interactive demos (start open to show the panel)
+// ---------------------------------------------------------------------------
+
+function DrawerDemo({
+  primaryColor = "#2563eb",
+  position = "bottom-right" as const,
+}: {
+  primaryColor?: string
+  position?: "bottom-right" | "bottom-left"
+}) {
+  const [isOpen, setIsOpen] = useState(true)
+  const [messages, setMessages] = useState(shortConversation)
+  const [isStreaming, setIsStreaming] = useState(false)
+  const isRight = position !== "bottom-left"
+
+  const handleSend = (content: string) => {
+    setMessages((prev) => [
+      ...prev,
+      { id: `u-${Date.now()}`, role: "user" as const, content, status: "completed" as const },
+    ])
+    setIsStreaming(true)
+    setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `a-${Date.now()}`,
+          role: "assistant" as const,
+          content: "Thanks for your message! This is a Storybook demo response.",
+          status: "completed" as const,
+        },
+      ])
+      setIsStreaming(false)
+    }, 1200)
+  }
+
+  return (
+    <div className="relative h-screen w-full overflow-hidden bg-gray-100">
+      {/* Host page placeholder */}
+      <div className="p-10">
+        <p className="mb-2 text-base font-semibold text-gray-700">Host page content</p>
+        <p className="text-sm text-gray-400">
+          Click the FAB button to toggle the drawer open / closed.
+        </p>
+      </div>
+
+      {/* Drawer panel — slides in from the edge */}
+      <div
+        className="absolute top-0 h-full w-[400px] shadow-2xl"
+        style={{
+          [isRight ? "right" : "left"]: 0,
+          transform: isOpen ? "translateX(0)" : isRight ? "translateX(100%)" : "translateX(-100%)",
+          transition: "transform 0.3s ease",
+        }}
+      >
+        <EmbedChat
+          agentName="Support Assistant"
+          theme={{ primaryColor }}
+          displayMode="drawer"
+          messages={messages}
+          isStreaming={isStreaming}
+          onSendMessage={handleSend}
+          onClose={() => setIsOpen(false)}
+        />
+      </div>
+
+      {/* FAB button */}
+      <div className="absolute bottom-6" style={isRight ? { right: 24 } : { left: 24 }}>
+        <TriggerButton
+          isOpen={isOpen}
+          onClick={() => setIsOpen((prev) => !prev)}
+          primaryColor={primaryColor}
+          position={position}
+        />
+      </div>
+    </div>
+  )
+}
+
+export const DrawerRight: Story = {
+  name: "Drawer — Right (starts open)",
+  parameters: { layout: "fullscreen" },
+  render: () => <DrawerDemo primaryColor="#2563eb" position="bottom-right" />,
+}
+
+export const DrawerLeft: Story = {
+  name: "Drawer — Left (starts open)",
+  parameters: { layout: "fullscreen" },
+  render: () => <DrawerDemo primaryColor="#7c3aed" position="bottom-left" />,
 }
 
 export const FullWidgetLongConversation: Story = {

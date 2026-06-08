@@ -80,7 +80,6 @@ export class PublicChatService {
       title: embedConfig.title,
       logoUrl: embedConfig.logoUrl,
       primaryColor: embedConfig.primaryColor,
-      displayMode: embedConfig.displayMode,
       createdAt: embedConfig.createdAt.getTime(),
       updatedAt: embedConfig.updatedAt.getTime(),
     }
