@@ -2,9 +2,11 @@ import { selectCurrentAgentData } from "@/common/features/agents/agents.selector
 import { useValue } from "@/common/hooks/use-value"
 import { AgentRoute } from "@/common/routes/AgentRoute"
 import { AgentSessionRoute } from "@/common/routes/agents/AgentSessionRoute"
-import { ConversationAgentRoute } from "@/common/routes/agents/ConversationAgentRoute"
-import { ExtractionAgentRoute } from "@/common/routes/agents/ExtractionAgentRoute"
-import { FormAgentRoute } from "@/common/routes/agents/FormAgentRoute"
+import { ConversationAgentSessionsRoute } from "@/common/routes/agents/ConversationAgentSessionsRoute"
+import { ExtractionAgentSessionsRoute } from "@/common/routes/agents/ExtractionAgentSessionsRoute"
+import { AgentCsvExtractionRunRoute } from "@/common/routes/agents/extraction/AgentCsvExtractionRunRoute"
+import { AgentExtractionRoute } from "@/common/routes/agents/extraction/AgentExtractionRoute"
+import { FormAgentSessionsRoute } from "@/common/routes/agents/FormAgentSessionsRoute"
 import { RoutesBuilderProvider } from "@/common/routes/build-routes/RoutesBuilderProvider"
 import { ErrorRoute } from "@/common/routes/ErrorRoute"
 import { OrganizationRoute } from "@/common/routes/OrganizationRoute"
@@ -48,13 +50,26 @@ export const deskRoutes = {
           path: DeskRoutes.agent.path,
           element: (
             <AgentRoute>
-              <AgentHandler />
+              <AgentSessionsHandler />
             </AgentRoute>
           ),
           children: [
             {
               path: DeskRoutes.agentSession.path,
               element: <AgentSessionRoute Component={DeskAgentSessionRoute} />,
+            },
+
+            {
+              path: DeskRoutes.agentExtraction.path,
+              element: (
+                <AgentExtractionRoute buildCsvRunPath={DeskRoutes.agentExtractionCsvRun.build} />
+              ),
+              children: [
+                {
+                  path: DeskRoutes.agentExtractionCsvRun.path,
+                  element: <AgentCsvExtractionRunRoute />,
+                },
+              ],
             },
           ],
         },
@@ -63,26 +78,26 @@ export const deskRoutes = {
   ],
 }
 
-function AgentHandler() {
+function AgentSessionsHandler() {
   const agent = useValue(selectCurrentAgentData)
   switch (agent.type) {
     case "conversation":
       return (
-        <ConversationAgentRoute>
+        <ConversationAgentSessionsRoute>
           <ConversationAgentSessionList />
-        </ConversationAgentRoute>
+        </ConversationAgentSessionsRoute>
       )
     case "form":
       return (
-        <FormAgentRoute>
+        <FormAgentSessionsRoute>
           <FormAgentSessionList />
-        </FormAgentRoute>
+        </FormAgentSessionsRoute>
       )
     case "extraction":
       return (
-        <ExtractionAgentRoute>
+        <ExtractionAgentSessionsRoute>
           <ExtractionAgentSessionList />
-        </ExtractionAgentRoute>
+        </ExtractionAgentSessionsRoute>
       )
     default:
       return <ErrorRoute error={"Unknown agent type"} />

@@ -9,6 +9,7 @@ import { RequestLoggerMiddleware } from "./common/middleware/request-logger.midd
 import typeorm from "./config/typeorm"
 import { AgentsModule } from "./domains/agents/agents.module"
 import { ConversationAgentSessionsModule } from "./domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
+import { AgentCsvExtractionRunsModule } from "./domains/agents/csv-extraction-runs/agent-csv-extraction-runs.module"
 import { ExtractionAgentSessionsModule } from "./domains/agents/extraction-agent-sessions/extraction-agent-sessions.module"
 import { FormAgentSessionsModule } from "./domains/agents/form-agent-sessions/form-agent-sessions.module"
 import { AgentMessageFeedbackModule } from "./domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.module"
@@ -49,6 +50,7 @@ import { UsersModule } from "./domains/users/users.module"
     AgentEmbedConfigsManagementModule,
     AgentMessageFeedbackModule,
     AgentsAnalyticsModule,
+    AgentCsvExtractionRunsModule,
     AgentsModule,
     AuthModule,
     BackofficeModule,

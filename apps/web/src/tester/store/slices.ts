@@ -1,7 +1,9 @@
+import { conversationAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.middleware"
 import { conversationAgentSessionsSlice } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.slice"
+import { formAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.middleware"
 import { formAgentSessionsSlice } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.slice"
-import { agentSessionMessagesMiddleware } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.middleware"
 import { agentSessionMessagesSlice } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.slice"
+import { baseAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.middleware"
 import { agentsSlice } from "@/common/features/agents/agents.slice"
 import { projectsSlice } from "@/common/features/projects/projects.slice"
 import { createSliceManager } from "@/common/store/dynamic-middleware"
@@ -9,7 +11,12 @@ import { reviewCampaignsTesterMiddleware } from "../features/review-campaigns/te
 import { reviewCampaignsTesterSlice } from "../features/review-campaigns/tester.slice"
 import { currentIdsSlice } from "./currentIds.slice"
 
-const testerMiddlewareList = [agentSessionMessagesMiddleware, reviewCampaignsTesterMiddleware]
+const testerMiddlewareList = [
+  baseAgentSessionsMiddleware,
+  conversationAgentSessionsMiddleware,
+  formAgentSessionsMiddleware,
+  reviewCampaignsTesterMiddleware,
+]
 
 export const testerSliceList = [
   agentSessionMessagesSlice,

@@ -1,38 +1,32 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
-import { listAgents } from "@/common/features/agents/agents.thunks"
 import type { AppDispatch, RootState } from "@/common/store"
-import {
-  createAgentSession,
-  deleteAgentSession,
-  listAgentSessionsForAgents,
-  loadAgentSessionsForAllAgents,
-} from "./base-agent-sessions.thunks"
+import { conversationAgentSessionsActions } from "../../conversation/conversation-agent-sessions.slice"
+import { formAgentSessionsActions } from "../../form/form-agent-sessions.slice"
+import { createAgentChatSession, deleteAgentSession } from "./base-agent-sessions.thunks"
 
 // Create typed listener middleware
 export const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 function registerListeners() {
-  // Refresh agent sessions when Agents are loaded
-  listenerMiddleware.startListening({
-    actionCreator: listAgents.fulfilled,
-    effect: async ({ payload: agents }, listenerApi) => {
-      await loadAgentSessionsForAllAgents({ agentType: "conversation", agents, listenerApi })
-      await loadAgentSessionsForAllAgents({ agentType: "form", agents, listenerApi })
-      await loadAgentSessionsForAllAgents({ agentType: "extraction", agents, listenerApi })
-    },
-  })
-
   // Refresh Agent sessions when one is created or deleted
   listenerMiddleware.startListening({
-    matcher: isAnyOf(createAgentSession.fulfilled, deleteAgentSession.fulfilled),
+    matcher: isAnyOf(createAgentChatSession.fulfilled, deleteAgentSession.fulfilled),
     effect: async (action, listenerApi) => {
       // @ts-expect-error
       const { agentId, agentType } = action.meta.arg
-      await listenerApi.dispatch(listAgentSessionsForAgents({ agentType, agentIds: [agentId] }))
+      switch (agentType) {
+        case "conversation":
+          await listenerApi.dispatch(conversationAgentSessionsActions.getAll({ agentId }))
+          break
+
+        case "form":
+          await listenerApi.dispatch(formAgentSessionsActions.getAll({ agentId }))
+          break
+      }
     },
   })
 
   listenerMiddleware.startListening({
-    actionCreator: createAgentSession.fulfilled,
+    actionCreator: createAgentChatSession.fulfilled,
     effect: async (action) => {
       const { id } = action.payload
       const onSuccess = action.meta.arg.onSuccess

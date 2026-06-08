@@ -5,12 +5,14 @@ import { useAppDispatch } from "../store/hooks"
 export function useMount({
   actions: { mount, unmount },
   condition,
+  refreshOn,
 }: {
   actions: {
     mount: ActionCreatorWithoutPayload
     unmount: ActionCreatorWithoutPayload
   }
-  condition?: boolean
+  condition?: boolean // Optional condition to control mounting; if false, mount/unmount actions won't be dispatched
+  refreshOn?: (string | null)[] // Optional array of dependencies to refresh the effect when they change
 }) {
   const dispatch = useAppDispatch()
   useEffect(() => {
@@ -19,5 +21,5 @@ export function useMount({
     return () => {
       dispatch(unmount())
     }
-  }, [condition, dispatch, mount, unmount])
+  }, [condition, dispatch, mount, unmount, ...(refreshOn || [])])
 }

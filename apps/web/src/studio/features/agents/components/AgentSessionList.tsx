@@ -8,25 +8,38 @@ import {
   DialogTrigger,
 } from "@caseai-connect/ui/shad/dialog"
 import { cn } from "@caseai-connect/ui/utils"
+import { PlusCircleIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate, useOutlet } from "react-router-dom"
 import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/grid/Grid"
 import { selectCurrentConversationAgentSessionsData } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.selectors"
-import type { ExtractionAgentSessionSummary } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
-import { selectCurrentExtractionAgentSessionsData } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.selectors"
+import type {
+  ExtractionAgentSessionSummary,
+  ExtractionAgentSessions,
+} from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
+import {
+  selectCurrentExtractionAgentSessionsData,
+  selectIsExtracting,
+} from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.selectors"
 import { selectCurrentFormAgentSessionsData } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.selectors"
-import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
+import {
+  selectCurrentAgentData,
+  selectCurrentAgentId,
+} from "@/common/features/agents/agents.selectors"
 import { AgentSessionItem } from "@/common/features/agents/components/AgentSessionItem"
-import { ExtractionSessionCreatorWithLastSession } from "@/common/features/agents/components/ExtractionAgentSessionCreator"
-import { ExtractionSessionItem } from "@/common/features/agents/components/ExtractionAgentSessionItem"
+import {
+  CsvExtractionSessionItem,
+  ExtractionSessionItem,
+} from "@/common/features/agents/components/ExtractionAgentSessionItem"
+import type { AgentCsvExtractionRun } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.models"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useAbility } from "@/common/hooks/use-ability"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
-import { useValue } from "@/common/hooks/use-value"
-import { ErrorRoute } from "@/common/routes/ErrorRoute"
+import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { useAppSelector } from "@/common/store/hooks"
+import { StudioRoutes } from "@/studio/routes/helpers"
 import { AgentActions } from "./AgentActions"
 import { AgentEditor } from "./AgentEditor"
 import { AgentSessionListHeader } from "./AgentSessionListHeader"
@@ -35,14 +48,10 @@ export function ConversationAgentSessionList() {
   const agent = useValue(selectCurrentAgentData)
   const agentSessions = useValue(selectCurrentConversationAgentSessionsData)
   const outlet = useOutlet()
-  const organizationId = useAppSelector(selectCurrentOrganizationId)
-  const projectId = useAppSelector(selectCurrentProjectId)
-
-  if (!organizationId || !projectId)
-    return <ErrorRoute error={"Missing organization or project ID"} />
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
 
   if (outlet) return outlet
-
   return (
     <>
       <AgentSessionListHeader
@@ -75,11 +84,8 @@ export function FormAgentSessionList() {
   const agent = useValue(selectCurrentAgentData)
   const agentSessions = useValue(selectCurrentFormAgentSessionsData)
   const outlet = useOutlet()
-  const organizationId = useAppSelector(selectCurrentOrganizationId)
-  const projectId = useAppSelector(selectCurrentProjectId)
-
-  if (!organizationId || !projectId)
-    return <ErrorRoute error={"Missing organization or project ID"} />
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
 
   if (outlet) return outlet
   return (
@@ -117,17 +123,13 @@ export function ExtractionAgentSessionList() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const projectRoute = useGetProjectRoute()
-
-  const organizationId = useAppSelector(selectCurrentOrganizationId)
-  const projectId = useAppSelector(selectCurrentProjectId)
+  const isExtracting = useAppSelector(selectIsExtracting)
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
 
   const { abilities } = useAbility()
   const canManageAgent = abilities.canManageAgent({ agentId: agent.id })
 
   const handleBack = () => navigate(projectRoute)
-
-  if (!organizationId || !projectId)
-    return <ErrorRoute error={"Missing organization or project ID"} />
 
   if (outlet) return outlet
   return (
@@ -149,7 +151,7 @@ export function ExtractionAgentSessionList() {
           </GridCard.Description>
           <div className="flex items-center gap-2">
             <History agentSessions={agentSessions} />
-            <ExtractionSessionCreatorWithLastSession buttonText={t("actions:test")} />
+            <ExtractionButton disabled={isExtracting} />
           </div>
         </GridCard.Body>
       </GridCard>
@@ -159,10 +161,44 @@ export function ExtractionAgentSessionList() {
   )
 }
 
-function History({ agentSessions }: { agentSessions: ExtractionAgentSessionSummary[] }) {
+function ExtractionButton({ disabled }: { disabled: boolean }) {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
+  const agentId = useCurrentId(selectCurrentAgentId)
+
+  const handleClick = () => {
+    navigate(StudioRoutes.agentExtraction.build({ organizationId, projectId, agentId }))
+  }
+  return (
+    <Button size="lg" className="text-base" disabled={disabled} onClick={handleClick}>
+      {t("actions:run")}
+      <PlusCircleIcon className="ml-2 size-5" />
+    </Button>
+  )
+}
+
+type MergedExtractionSession =
+  | { kind: "session"; session: ExtractionAgentSessionSummary }
+  | { kind: "csv"; session: AgentCsvExtractionRun }
+
+function mergeExtractionSessions({
+  csvSessions,
+  others,
+}: ExtractionAgentSessions): MergedExtractionSession[] {
+  const merged: MergedExtractionSession[] = [
+    ...others.map((session) => ({ kind: "session" as const, session })),
+    ...csvSessions.map((session) => ({ kind: "csv" as const, session })),
+  ]
+  return merged.sort((first, second) => second.session.updatedAt - first.session.updatedAt)
+}
+
+function History({ agentSessions }: { agentSessions: ExtractionAgentSessions }) {
   const [open, setOpen] = useState(false)
   const { t } = useTranslation()
-  if (agentSessions.length === 0) return null
+  const items = mergeExtractionSessions(agentSessions)
+  if (items.length === 0) return null
   return (
     <Dialog modal open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -178,13 +214,22 @@ function History({ agentSessions }: { agentSessions: ExtractionAgentSessionSumma
 
         <div className="min-h-0 max-h-[60vh] overflow-y-auto">
           <Grid cols={0}>
-            {agentSessions.map((session, index) => (
-              <ExtractionSessionItem
-                className={cn("px-0", index !== agentSessions.length - 1 && "border-b")}
-                key={session.id}
-                agentSession={session}
-              />
-            ))}
+            {items.map((item, index) => {
+              const itemClassName = cn("px-0", index !== items.length - 1 && "border-b")
+              return item.kind === "csv" ? (
+                <CsvExtractionSessionItem
+                  className={itemClassName}
+                  key={item.session.id}
+                  agentSession={item.session}
+                />
+              ) : (
+                <ExtractionSessionItem
+                  className={itemClassName}
+                  key={item.session.id}
+                  agentSession={item.session}
+                />
+              )
+            })}
           </Grid>
         </div>
       </DialogContent>

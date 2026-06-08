@@ -86,7 +86,9 @@ export const Default: Story = {
           seed.agents([...restAgents, currentAgent], { currentId: currentAgent.id }),
           seed.conversationAgentSessions({ [currentAgent.id]: conversationSessions }),
           seed.formAgentSessions({ [currentAgent.id]: formSessions }),
-          seed.extractionAgentSessions({ [currentAgent.id]: extractionSessions }),
+          seed.extractionAgentSessions({
+            [currentAgent.id]: { csvSessions: [], others: extractionSessions },
+          }),
         ),
       }
     }),
@@ -158,7 +160,7 @@ export const AgentConvWithSessions: Story = {
             [currentAgent.id]: formSessions,
           }),
           seed.extractionAgentSessions({
-            [currentAgent.id]: extractionSessions,
+            [currentAgent.id]: { csvSessions: [], others: extractionSessions },
           }),
         ),
       }
@@ -231,7 +233,7 @@ export const AgentExtractionWithData: Story = {
             [currentAgent.id]: formSessions,
           }),
           seed.extractionAgentSessions({
-            [currentAgent.id]: extractionSessions,
+            [currentAgent.id]: { csvSessions: [], others: extractionSessions },
           }),
         ),
       }
@@ -304,7 +306,7 @@ export const AgentFormWithSessions: Story = {
             [currentAgent.id]: formSessions,
           }),
           seed.extractionAgentSessions({
-            [currentAgent.id]: extractionSessions,
+            [currentAgent.id]: { csvSessions: [], others: extractionSessions },
           }),
         ),
       }

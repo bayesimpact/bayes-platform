@@ -1,5 +1,6 @@
 import type { Agent } from "@/domains/agents/agent.entity"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
+import type { AgentCsvExtractionRun } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run.entity"
 import type { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
 import type { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import type { AgentMembership } from "@/domains/agents/memberships/agent-membership.entity"
@@ -84,6 +85,10 @@ export interface EndpointRequestWithEvaluationReport extends EndpointRequestWith
 
 export interface EndpointRequestWithEvaluationExtractionRun extends EndpointRequestWithProject {
   evaluationExtractionRun: EvaluationExtractionRun
+}
+
+export interface EndpointRequestWithAgentCsvExtractionRun extends EndpointRequestWithProject {
+  agentCsvExtractionRun: AgentCsvExtractionRun
 }
 
 export interface EndpointRequestWithReviewCampaign extends EndpointRequestWithProject {
