@@ -33,6 +33,7 @@ export class PublicChatController {
         title: embedConfig.title,
         logoUrl: embedConfig.logoUrl,
         primaryColor: embedConfig.primaryColor,
+        displayMode: embedConfig.displayMode,
       } satisfies EmbedPublicConfigDto,
     }
   }

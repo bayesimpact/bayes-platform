@@ -1,3 +1,4 @@
+import type { EmbedDisplayMode } from "@caseai-connect/api-contracts"
 import type { AgentEmbedConfig } from "./agent-embed-configs.models"
 
 export interface IAgentEmbedConfigsSpi {
@@ -14,6 +15,7 @@ export interface IAgentEmbedConfigsSpi {
       title?: string | null
       logoUrl?: string | null
       primaryColor?: string | null
+      displayMode?: EmbedDisplayMode
     },
   ) => Promise<void>
 }

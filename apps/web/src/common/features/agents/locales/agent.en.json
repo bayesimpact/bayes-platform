@@ -136,7 +136,13 @@
       "logoUrlDescription": "URL of the logo image shown in the chat header.",
       "logoUrlPlaceholder": "https://example.com/logo.png",
       "primaryColorLabel": "Brand color",
-      "primaryColorDescription": "Primary color used in the chat widget header. Enter a hex value (e.g. #2563eb)."
+      "primaryColorDescription": "Primary color used in the chat widget header. Enter a hex value (e.g. #2563eb).",
+      "displayModeLabel": "Display mode",
+      "displayModeDescription": "How the chat widget appears on the page when the user opens it.",
+      "displayModeOptions": {
+        "modal": "Modal (floating bubble)",
+        "drawer": "Drawer (side panel)"
+      }
     },
     "playground": "Playground",
     "source_one": "{{count}} source",

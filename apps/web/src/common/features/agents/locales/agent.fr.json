@@ -136,7 +136,13 @@
       "logoUrlDescription": "URL de l'image du logo affichée dans l'en-tête du chat.",
       "logoUrlPlaceholder": "https://example.com/logo.png",
       "primaryColorLabel": "Couleur principale",
-      "primaryColorDescription": "Couleur principale utilisée dans l'en-tête du widget de chat. Saisissez une valeur hexadécimale (ex. #2563eb)."
+      "primaryColorDescription": "Couleur principale utilisée dans l'en-tête du widget de chat. Saisissez une valeur hexadécimale (ex. #2563eb).",
+      "displayModeLabel": "Mode d'affichage",
+      "displayModeDescription": "Comment le widget de chat s'affiche sur la page lorsque l'utilisateur l'ouvre.",
+      "displayModeOptions": {
+        "modal": "Modal (bulle flottante)",
+        "drawer": "Tiroir (panneau latéral)"
+      }
     },
     "playground": "Playground",
     "source_one": "{{count}} source",
