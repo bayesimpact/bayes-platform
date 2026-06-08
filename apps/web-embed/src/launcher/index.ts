@@ -88,7 +88,7 @@ function injectModalWidget({ position, color, iframeSrc }: WidgetOptions) {
     "display: none",
     "background: white",
   ].join(";")
-  iframe.setAttribute("allow", "microphone")
+  iframe.setAttribute("allow", "microphone; clipboard-write")
   iframe.setAttribute("title", "Chat")
 
   const button = makeFabButton(color)
@@ -153,7 +153,7 @@ function injectDrawerWidget({ position, color, iframeSrc }: WidgetOptions) {
     "background: white",
     "pointer-events: auto",
   ].join(";")
-  iframe.setAttribute("allow", "microphone")
+  iframe.setAttribute("allow", "microphone; clipboard-write")
   iframe.setAttribute("title", "Chat")
 
   overlay.appendChild(iframe)
