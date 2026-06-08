@@ -16,13 +16,17 @@ import {
 } from "@/common/features/agents/agents.selectors"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
 import { AgentSessionItem } from "@/common/features/agents/components/AgentSessionItem"
-import { ExtractionSessionItem } from "@/common/features/agents/components/ExtractionAgentSessionItem"
+import {
+  CsvExtractionSessionItem,
+  ExtractionSessionItem,
+} from "@/common/features/agents/components/ExtractionAgentSessionItem"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { useAppSelector } from "@/common/store/hooks"
 import { DeskRoutes } from "@/desk/routes/helpers"
+import { mergeExtractionSessions } from "@/studio/features/agents/components/AgentSessionList"
 import { AgentSessionListHeader } from "./AgentSessionListHeader"
 
 export function ConversationAgentSessionList() {
@@ -108,7 +112,7 @@ export function ExtractionAgentSessionList() {
 
   const Icon = getAgentIcon(agent.type)
 
-  const length = agentSessions.csvSessions.length + agentSessions.others.length
+  const items = mergeExtractionSessions(agentSessions)
 
   if (outlet) return outlet
   return (
@@ -130,7 +134,9 @@ export function ExtractionAgentSessionList() {
         }
       />
       <div className="flex flex-col">
-        <GridCard className={cn("bg-muted/35 border-r-0 col-span-full", length > 0 && "border-b")}>
+        <GridCard
+          className={cn("bg-muted/35 border-r-0 col-span-full", items.length > 0 && "border-b")}
+        >
           <GridCard.Body>
             <GridCard.Title>{t("extractionAgentSession:create.title")}</GridCard.Title>
             <GridCard.Description>
@@ -141,13 +147,22 @@ export function ExtractionAgentSessionList() {
           </GridCard.Body>
         </GridCard>
 
-        {agentSessions.others.map((session, index) => (
-          <ExtractionSessionItem
-            className={cn(index === agentSessions.others.length - 1 ? "" : "border-b")}
-            key={session.id}
-            agentSession={session}
-          />
-        ))}
+        {items.map((item, index) => {
+          const itemClassName = cn("", index !== items.length - 1 && "border-b")
+          return item.kind === "csv" ? (
+            <CsvExtractionSessionItem
+              className={itemClassName}
+              key={item.session.id}
+              agentSession={item.session}
+            />
+          ) : (
+            <ExtractionSessionItem
+              className={itemClassName}
+              key={item.session.id}
+              agentSession={item.session}
+            />
+          )
+        })}
       </div>
     </Grid>
   )

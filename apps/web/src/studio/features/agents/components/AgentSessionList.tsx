@@ -183,7 +183,7 @@ type MergedExtractionSession =
   | { kind: "session"; session: ExtractionAgentSessionSummary }
   | { kind: "csv"; session: AgentCsvExtractionRun }
 
-function mergeExtractionSessions({
+export function mergeExtractionSessions({
   csvSessions,
   others,
 }: ExtractionAgentSessions): MergedExtractionSession[] {
