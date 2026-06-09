@@ -1,4 +1,8 @@
-import type { AgentSessionMessageDto, EmbedPublicConfigDto } from "@caseai-connect/api-contracts"
+import type {
+  AgentSessionMessageDto,
+  EmbedDisplayMode,
+  EmbedPublicConfigDto,
+} from "@caseai-connect/api-contracts"
 import { useEffect, useMemo, useState } from "react"
 import { I18nextProvider, useTranslation } from "react-i18next"
 import { getEmbedConfig } from "./api/public-chat-api"
@@ -19,6 +23,10 @@ function readLocaleFromUrl(): SupportedLocale {
   return readParam("locale") === "fr" ? "fr" : "en"
 }
 
+function readDisplayModeFromUrl(): EmbedDisplayMode {
+  return readParam("displayMode") === "drawer" ? "drawer" : "modal"
+}
+
 // ─── Root ──────────────────────────────────────────────────────────────────
 
 export function App() {
@@ -26,14 +34,24 @@ export function App() {
   const i18n = useMemo(() => createEmbedI18n(locale), [locale])
 
   const embedToken = readParam("embedToken")
+  const displayMode = readDisplayModeFromUrl()
+
+  const handleClose = () => {
+    window.parent.postMessage({ type: "agent-studio:close" }, "*")
+  }
 
   return (
     <I18nextProvider i18n={i18n}>
       <div className="h-screen w-full">
         {embedToken ? (
-          <LiveChat embedToken={embedToken} locale={locale} />
+          <LiveChat
+            embedToken={embedToken}
+            locale={locale}
+            displayMode={displayMode}
+            onClose={handleClose}
+          />
         ) : (
-          <SimulatedChat locale={locale} />
+          <SimulatedChat locale={locale} displayMode={displayMode} onClose={handleClose} />
         )}
       </div>
     </I18nextProvider>
@@ -42,7 +60,17 @@ export function App() {
 
 // ─── Live mode (real API) ──────────────────────────────────────────────────
 
-function LiveChat({ embedToken, locale }: { embedToken: string; locale: SupportedLocale }) {
+function LiveChat({
+  embedToken,
+  locale,
+  displayMode,
+  onClose,
+}: {
+  embedToken: string
+  locale: SupportedLocale
+  displayMode: EmbedDisplayMode
+  onClose: () => void
+}) {
   const [remoteConfig, setRemoteConfig] = useState<EmbedPublicConfigDto | null>(null)
 
   useEffect(() => {
@@ -73,16 +101,26 @@ function LiveChat({ embedToken, locale }: { embedToken: string; locale: Supporte
       agentName={remoteConfig?.title ?? remoteConfig?.agentName}
       theme={theme}
       locale={locale}
+      displayMode={displayMode}
       messages={messages}
       isStreaming={isStreaming}
       onSendMessage={send}
+      onClose={onClose}
     />
   )
 }
 
 // ─── Simulation mode (no embedToken — Storybook / local dev) ──────────────
 
-function SimulatedChat({ locale }: { locale: SupportedLocale }) {
+function SimulatedChat({
+  locale,
+  displayMode,
+  onClose,
+}: {
+  locale: SupportedLocale
+  displayMode: EmbedDisplayMode
+  onClose: () => void
+}) {
   const [messages, setMessages] = useState<AgentSessionMessageDto[]>(shortConversation)
   const [isStreaming, setIsStreaming] = useState(false)
 
@@ -123,9 +161,11 @@ function SimulatedChat({ locale }: { locale: SupportedLocale }) {
     <EmbedChat
       agentName="Helpful Assistant"
       locale={locale}
+      displayMode={displayMode}
       messages={messages}
       isStreaming={isStreaming}
       onSendMessage={handleSendMessage}
+      onClose={onClose}
     />
   )
 }

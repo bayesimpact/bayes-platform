@@ -1,8 +1,39 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { longConversation, shortConversation } from "../chat/chat.factory"
 import { EmbedChat } from "../chat/EmbedChat"
 import { TriggerButton } from "./TriggerButton"
+
+// ─── Hint bubble ────────────────────────────────────────────────────────────
+// Mirrors the vanilla-JS bubble created by makeFabRow in launcher/index.ts.
+
+function HintBubble({
+  text,
+  isRight,
+  hovered,
+}: {
+  text: string
+  isRight: boolean
+  hovered: boolean
+}) {
+  const [autoVisible, setAutoVisible] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setAutoVisible(false), 5000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  const visible = autoVisible || hovered
+
+  return (
+    <div
+      className="pointer-events-none select-none whitespace-nowrap rounded-[10px] bg-white px-[14px] py-2 text-[13px] leading-snug text-gray-700 shadow-[0_2px_16px_rgba(0,0,0,0.14)] transition-opacity duration-[250ms]"
+      style={{ opacity: visible ? 1 : 0, order: isRight ? -1 : 1 }}
+    >
+      {text}
+    </div>
+  )
+}
 
 const meta = {
   title: "Launcher/TriggerButton",
@@ -69,13 +100,18 @@ export const Interactive: Story = {
 function FullWidget({
   primaryColor = "#2563eb",
   position = "bottom-right" as const,
+  displayMode = "modal" as const,
+  hint,
 }: {
   primaryColor?: string
   position?: "bottom-right" | "bottom-left"
+  displayMode?: "modal" | "drawer"
+  hint?: string
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState(shortConversation)
   const [isStreaming, setIsStreaming] = useState(false)
+  const [buttonHovered, setButtonHovered] = useState(false)
 
   const handleSend = (content: string) => {
     setMessages((prev) => [
@@ -97,30 +133,71 @@ function FullWidget({
     }, 1200)
   }
 
+  const isDrawer = displayMode === "drawer"
+  const isRight = position !== "bottom-left"
+
   return (
-    <div
-      className="fixed bottom-6 flex flex-col gap-3"
-      style={position === "bottom-right" ? { right: 24 } : { left: 24 }}
-    >
-      {isOpen && (
-        <div className="h-[560px] w-[380px] overflow-hidden rounded-2xl shadow-2xl">
+    <>
+      {isDrawer ? (
+        <div
+          className="fixed top-0 h-full w-[400px] shadow-2xl transition-transform duration-300"
+          style={{
+            [isRight ? "right" : "left"]: 0,
+            transform: isOpen
+              ? "translateX(0)"
+              : isRight
+                ? "translateX(100%)"
+                : "translateX(-100%)",
+          }}
+        >
           <EmbedChat
             agentName="Support Assistant"
             theme={{ primaryColor }}
+            displayMode="drawer"
             messages={messages}
             isStreaming={isStreaming}
             onSendMessage={handleSend}
             onClose={() => setIsOpen(false)}
           />
         </div>
+      ) : (
+        isOpen && (
+          <div
+            className="fixed flex flex-col gap-3"
+            style={{
+              bottom: 88,
+              ...(isRight ? { right: 24 } : { left: 24 }),
+            }}
+          >
+            <div className="h-[560px] w-[380px] overflow-hidden rounded-2xl shadow-2xl">
+              <EmbedChat
+                agentName="Support Assistant"
+                theme={{ primaryColor }}
+                messages={messages}
+                isStreaming={isStreaming}
+                onSendMessage={handleSend}
+                onClose={() => setIsOpen(false)}
+              />
+            </div>
+          </div>
+        )
       )}
-      <TriggerButton
-        isOpen={isOpen}
-        onClick={() => setIsOpen((prev) => !prev)}
-        primaryColor={primaryColor}
-        position={position}
-      />
-    </div>
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: hover-only listeners for hint bubble visibility */}
+      <div
+        className="fixed bottom-6 flex items-center gap-[10px]"
+        style={isRight ? { right: 24 } : { left: 24 }}
+        onMouseEnter={() => setButtonHovered(true)}
+        onMouseLeave={() => setButtonHovered(false)}
+      >
+        {hint && <HintBubble text={hint} isRight={isRight} hovered={buttonHovered} />}
+        <TriggerButton
+          isOpen={isOpen}
+          onClick={() => setIsOpen((prev) => !prev)}
+          primaryColor={primaryColor}
+          position={position}
+        />
+      </div>
+    </>
   )
 }
 
@@ -153,6 +230,140 @@ export const FullWidgetGreen: Story = {
     <div className="h-screen w-full bg-gray-100 p-8">
       <FullWidget primaryColor="#16a34a" />
     </div>
+  ),
+}
+
+// ---------------------------------------------------------------------------
+// Drawer mode — self-contained interactive demos (start open to show the panel)
+// ---------------------------------------------------------------------------
+
+function DrawerDemo({
+  primaryColor = "#2563eb",
+  position = "bottom-right" as const,
+  hint,
+}: {
+  primaryColor?: string
+  position?: "bottom-right" | "bottom-left"
+  hint?: string
+}) {
+  const [isOpen, setIsOpen] = useState(true)
+  const [messages, setMessages] = useState(shortConversation)
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [buttonHovered, setButtonHovered] = useState(false)
+  const isRight = position !== "bottom-left"
+
+  const handleSend = (content: string) => {
+    setMessages((prev) => [
+      ...prev,
+      { id: `u-${Date.now()}`, role: "user" as const, content, status: "completed" as const },
+    ])
+    setIsStreaming(true)
+    setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `a-${Date.now()}`,
+          role: "assistant" as const,
+          content: "Thanks for your message! This is a Storybook demo response.",
+          status: "completed" as const,
+        },
+      ])
+      setIsStreaming(false)
+    }, 1200)
+  }
+
+  return (
+    <div className="relative h-screen w-full overflow-hidden bg-gray-100">
+      {/* Host page placeholder */}
+      <div className="p-10">
+        <p className="mb-2 text-base font-semibold text-gray-700">Host page content</p>
+        <p className="text-sm text-gray-400">
+          Click the FAB button to toggle the drawer open / closed.
+        </p>
+      </div>
+
+      {/* Drawer panel — slides in from the edge */}
+      <div
+        className="absolute top-0 h-full w-[400px] shadow-2xl"
+        style={{
+          [isRight ? "right" : "left"]: 0,
+          transform: isOpen ? "translateX(0)" : isRight ? "translateX(100%)" : "translateX(-100%)",
+          transition: "transform 0.3s ease",
+        }}
+      >
+        <EmbedChat
+          agentName="Support Assistant"
+          theme={{ primaryColor }}
+          displayMode="drawer"
+          messages={messages}
+          isStreaming={isStreaming}
+          onSendMessage={handleSend}
+          onClose={() => setIsOpen(false)}
+        />
+      </div>
+
+      {/* FAB button */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: hover-only listeners for hint bubble visibility */}
+      <div
+        className="absolute bottom-6 flex items-center gap-[10px]"
+        style={isRight ? { right: 24 } : { left: 24 }}
+        onMouseEnter={() => setButtonHovered(true)}
+        onMouseLeave={() => setButtonHovered(false)}
+      >
+        {hint && !isOpen && <HintBubble text={hint} isRight={isRight} hovered={buttonHovered} />}
+        <TriggerButton
+          isOpen={isOpen}
+          onClick={() => setIsOpen((prev) => !prev)}
+          primaryColor={primaryColor}
+          position={position}
+        />
+      </div>
+    </div>
+  )
+}
+
+export const DrawerRight: Story = {
+  name: "Drawer — Right (starts open)",
+  parameters: { layout: "fullscreen" },
+  render: () => <DrawerDemo primaryColor="#2563eb" position="bottom-right" />,
+}
+
+export const DrawerLeft: Story = {
+  name: "Drawer — Left (starts open)",
+  parameters: { layout: "fullscreen" },
+  render: () => <DrawerDemo primaryColor="#7c3aed" position="bottom-left" />,
+}
+
+// ---------------------------------------------------------------------------
+// Hint — auto-shows for 5 s then reappears on hover
+// ---------------------------------------------------------------------------
+
+export const HintModal: Story = {
+  name: "Hint — Modal (auto-show + hover)",
+  parameters: { layout: "fullscreen" },
+  render: () => (
+    <div className="h-screen w-full bg-gray-100 p-8">
+      <p className="text-sm text-gray-500">Hint appears for 5 s then on hover.</p>
+      <FullWidget primaryColor="#2563eb" position="bottom-right" hint="Need help? Ask us!" />
+    </div>
+  ),
+}
+
+export const HintModalLeft: Story = {
+  name: "Hint — Modal (bottom-left)",
+  parameters: { layout: "fullscreen" },
+  render: () => (
+    <div className="h-screen w-full bg-gray-100 p-8">
+      <FullWidget primaryColor="#7c3aed" position="bottom-left" hint="Need help? Ask us!" />
+    </div>
+  ),
+}
+
+export const HintDrawer: Story = {
+  name: "Hint — Drawer (auto-show + hover)",
+  parameters: { layout: "fullscreen" },
+  render: () => (
+    <DrawerDemo primaryColor="#2563eb" position="bottom-right" hint="Need help? Ask us!" />
   ),
 }
 
