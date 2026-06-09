@@ -2,7 +2,7 @@
  * AgentStudio embed launcher.
  *
  * Drop this IIFE onto any host page via:
- *   <script src="https://…/launcher.js" data-token="<embedToken>" data-position="bottom-right" data-color="#2563eb" data-locale="fr" data-display-mode="modal"></script>
+ *   <script src="https://…/launcher.js" data-token="<embedToken>" data-position="bottom-right" data-color="#2563eb" data-locale="fr" data-display-mode="modal" data-hint="Need help?"></script>
  *
  * The script injects a floating action button and a chat iframe.
  * Clicking the button toggles the iframe open/closed.
@@ -10,6 +10,10 @@
  * data-display-mode:
  *   "modal"  (default) — floating bubble above the FAB button
  *   "drawer"           — full-height side panel sliding in from the edge
+ *
+ * data-hint:
+ *   Optional short text shown next to the FAB for 5 seconds on page load
+ *   and again whenever the user hovers the button.
  */
 
 // Capture currentScript synchronously at evaluation time — it becomes null after the
@@ -26,6 +30,7 @@ function init() {
   const displayMode = (_currentScript?.getAttribute("data-display-mode") ?? "modal") as
     | "modal"
     | "drawer"
+  const hint = _currentScript?.getAttribute("data-hint") ?? undefined
 
   if (!token) {
     console.warn("[AgentStudio] data-token attribute is required.")
@@ -44,9 +49,9 @@ function init() {
   const iframeSrc = `${base}/index.html?embedToken=${token}${localeParam}&displayMode=${displayMode}`
 
   if (displayMode === "drawer") {
-    injectDrawerWidget({ token, position, color, iframeSrc })
+    injectDrawerWidget({ token, position, color, iframeSrc, hint })
   } else {
-    injectModalWidget({ token, position, color, iframeSrc })
+    injectModalWidget({ token, position, color, iframeSrc, hint })
   }
 }
 
@@ -55,11 +60,12 @@ interface WidgetOptions {
   position: "bottom-right" | "bottom-left"
   color: string
   iframeSrc: string
+  hint?: string
 }
 
 // ─── Modal (floating bubble) ───────────────────────────────────────────────
 
-function injectModalWidget({ position, color, iframeSrc }: WidgetOptions) {
+function injectModalWidget({ position, color, iframeSrc, hint }: WidgetOptions) {
   const isRight = position === "bottom-right"
 
   const container = document.createElement("div")
@@ -92,6 +98,7 @@ function injectModalWidget({ position, color, iframeSrc }: WidgetOptions) {
   iframe.setAttribute("title", "Chat")
 
   const button = makeFabButton(color)
+  const { row } = makeFabRow(button, hint, isRight)
 
   let isOpen = false
 
@@ -111,13 +118,13 @@ function injectModalWidget({ position, color, iframeSrc }: WidgetOptions) {
   })
 
   container.appendChild(iframe)
-  container.appendChild(button)
+  container.appendChild(row)
   document.body.appendChild(container)
 }
 
 // ─── Drawer (full-height side panel) ──────────────────────────────────────
 
-function injectDrawerWidget({ position, color, iframeSrc }: WidgetOptions) {
+function injectDrawerWidget({ position, color, iframeSrc, hint }: WidgetOptions) {
   const isRight = position !== "bottom-left"
   const translateOut = isRight ? "translateX(100%)" : "translateX(-100%)"
 
@@ -159,12 +166,15 @@ function injectDrawerWidget({ position, color, iframeSrc }: WidgetOptions) {
   overlay.appendChild(iframe)
 
   const button = makeFabButton(color)
-  button.style.cssText += [
+  const { row } = makeFabRow(button, hint, isRight)
+
+  // The row owns the fixed positioning for the drawer FAB area.
+  row.style.cssText += [
     ";position: fixed",
     "bottom: 24px",
     isRight ? "right: 24px" : "left: 24px",
     "z-index: 2147483647",
-    "transition: transform 0.15s ease, opacity 0.2s ease",
+    "transition: opacity 0.2s ease",
   ].join(";")
 
   let isOpen = false
@@ -173,8 +183,8 @@ function injectDrawerWidget({ position, color, iframeSrc }: WidgetOptions) {
 
   const open = () => {
     iframe.style.transform = "translateX(0)"
-    button.style.opacity = "0"
-    button.style.pointerEvents = "none"
+    row.style.opacity = "0"
+    row.style.pointerEvents = "none"
     // Lock host-page scroll and compensate for scrollbar disappearing to avoid layout shift.
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
     savedBodyOverflow = document.body.style.overflow
@@ -188,8 +198,8 @@ function injectDrawerWidget({ position, color, iframeSrc }: WidgetOptions) {
 
   const close = () => {
     iframe.style.transform = translateOut
-    button.style.opacity = "1"
-    button.style.pointerEvents = "auto"
+    row.style.opacity = "1"
+    row.style.pointerEvents = "auto"
     document.body.style.overflow = savedBodyOverflow
     document.body.style.paddingRight = savedBodyPaddingRight
     isOpen = false
@@ -205,10 +215,79 @@ function injectDrawerWidget({ position, color, iframeSrc }: WidgetOptions) {
   })
 
   document.body.appendChild(overlay)
-  document.body.appendChild(button)
+  document.body.appendChild(row)
 }
 
 // ─── Shared helpers ────────────────────────────────────────────────────────
+
+/**
+ * Wraps the FAB button (and an optional hint bubble) in a flex row.
+ * When hint is provided the bubble auto-shows for 5 s on page load
+ * and reappears whenever the button is hovered.
+ */
+function makeFabRow(
+  button: HTMLButtonElement,
+  hint: string | undefined,
+  isRight: boolean,
+): { row: HTMLDivElement } {
+  const row = document.createElement("div")
+  row.style.cssText = ["display: flex", "align-items: center", "gap: 10px"].join(";")
+
+  if (hint) {
+    const bubble = document.createElement("div")
+    bubble.textContent = hint
+    bubble.style.cssText = [
+      "background: white",
+      "color: #374151",
+      "font-size: 13px",
+      "line-height: 1.4",
+      "font-family: sans-serif",
+      "padding: 8px 14px",
+      "border-radius: 10px",
+      "box-shadow: 0 2px 16px rgba(0,0,0,0.14)",
+      "white-space: nowrap",
+      "opacity: 0",
+      "transition: opacity 0.25s ease",
+      "pointer-events: none",
+      "user-select: none",
+    ].join(";")
+
+    // Hint sits to the left of the button when on the right edge, and vice-versa.
+    if (isRight) {
+      row.appendChild(bubble)
+      row.appendChild(button)
+    } else {
+      row.appendChild(button)
+      row.appendChild(bubble)
+    }
+
+    let autoHideTimer: ReturnType<typeof setTimeout> | null = null
+
+    const showHint = () => {
+      bubble.style.opacity = "1"
+    }
+    const hideHint = () => {
+      bubble.style.opacity = "0"
+    }
+
+    // Auto-show for 5 seconds on page load.
+    showHint()
+    autoHideTimer = setTimeout(hideHint, 5000)
+
+    button.addEventListener("mouseenter", () => {
+      if (autoHideTimer) {
+        clearTimeout(autoHideTimer)
+        autoHideTimer = null
+      }
+      showHint()
+    })
+    button.addEventListener("mouseleave", hideHint)
+  } else {
+    row.appendChild(button)
+  }
+
+  return { row }
+}
 
 function makeFabButton(color: string): HTMLButtonElement {
   const button = document.createElement("button")

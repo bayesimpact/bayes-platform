@@ -1,8 +1,39 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { longConversation, shortConversation } from "../chat/chat.factory"
 import { EmbedChat } from "../chat/EmbedChat"
 import { TriggerButton } from "./TriggerButton"
+
+// ─── Hint bubble ────────────────────────────────────────────────────────────
+// Mirrors the vanilla-JS bubble created by makeFabRow in launcher/index.ts.
+
+function HintBubble({
+  text,
+  isRight,
+  hovered,
+}: {
+  text: string
+  isRight: boolean
+  hovered: boolean
+}) {
+  const [autoVisible, setAutoVisible] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setAutoVisible(false), 5000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  const visible = autoVisible || hovered
+
+  return (
+    <div
+      className="pointer-events-none select-none whitespace-nowrap rounded-[10px] bg-white px-[14px] py-2 text-[13px] leading-snug text-gray-700 shadow-[0_2px_16px_rgba(0,0,0,0.14)] transition-opacity duration-[250ms]"
+      style={{ opacity: visible ? 1 : 0, order: isRight ? -1 : 1 }}
+    >
+      {text}
+    </div>
+  )
+}
 
 const meta = {
   title: "Launcher/TriggerButton",
@@ -70,14 +101,17 @@ function FullWidget({
   primaryColor = "#2563eb",
   position = "bottom-right" as const,
   displayMode = "modal" as const,
+  hint,
 }: {
   primaryColor?: string
   position?: "bottom-right" | "bottom-left"
   displayMode?: "modal" | "drawer"
+  hint?: string
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState(shortConversation)
   const [isStreaming, setIsStreaming] = useState(false)
+  const [buttonHovered, setButtonHovered] = useState(false)
 
   const handleSend = (content: string) => {
     setMessages((prev) => [
@@ -148,7 +182,14 @@ function FullWidget({
           </div>
         )
       )}
-      <div className="fixed bottom-6" style={isRight ? { right: 24 } : { left: 24 }}>
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: hover-only listeners for hint bubble visibility */}
+      <div
+        className="fixed bottom-6 flex items-center gap-[10px]"
+        style={isRight ? { right: 24 } : { left: 24 }}
+        onMouseEnter={() => setButtonHovered(true)}
+        onMouseLeave={() => setButtonHovered(false)}
+      >
+        {hint && <HintBubble text={hint} isRight={isRight} hovered={buttonHovered} />}
         <TriggerButton
           isOpen={isOpen}
           onClick={() => setIsOpen((prev) => !prev)}
@@ -199,13 +240,16 @@ export const FullWidgetGreen: Story = {
 function DrawerDemo({
   primaryColor = "#2563eb",
   position = "bottom-right" as const,
+  hint,
 }: {
   primaryColor?: string
   position?: "bottom-right" | "bottom-left"
+  hint?: string
 }) {
   const [isOpen, setIsOpen] = useState(true)
   const [messages, setMessages] = useState(shortConversation)
   const [isStreaming, setIsStreaming] = useState(false)
+  const [buttonHovered, setButtonHovered] = useState(false)
   const isRight = position !== "bottom-left"
 
   const handleSend = (content: string) => {
@@ -259,7 +303,14 @@ function DrawerDemo({
       </div>
 
       {/* FAB button */}
-      <div className="absolute bottom-6" style={isRight ? { right: 24 } : { left: 24 }}>
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: hover-only listeners for hint bubble visibility */}
+      <div
+        className="absolute bottom-6 flex items-center gap-[10px]"
+        style={isRight ? { right: 24 } : { left: 24 }}
+        onMouseEnter={() => setButtonHovered(true)}
+        onMouseLeave={() => setButtonHovered(false)}
+      >
+        {hint && !isOpen && <HintBubble text={hint} isRight={isRight} hovered={buttonHovered} />}
         <TriggerButton
           isOpen={isOpen}
           onClick={() => setIsOpen((prev) => !prev)}
@@ -281,6 +332,39 @@ export const DrawerLeft: Story = {
   name: "Drawer — Left (starts open)",
   parameters: { layout: "fullscreen" },
   render: () => <DrawerDemo primaryColor="#7c3aed" position="bottom-left" />,
+}
+
+// ---------------------------------------------------------------------------
+// Hint — auto-shows for 5 s then reappears on hover
+// ---------------------------------------------------------------------------
+
+export const HintModal: Story = {
+  name: "Hint — Modal (auto-show + hover)",
+  parameters: { layout: "fullscreen" },
+  render: () => (
+    <div className="h-screen w-full bg-gray-100 p-8">
+      <p className="text-sm text-gray-500">Hint appears for 5 s then on hover.</p>
+      <FullWidget primaryColor="#2563eb" position="bottom-right" hint="Need help? Ask us!" />
+    </div>
+  ),
+}
+
+export const HintModalLeft: Story = {
+  name: "Hint — Modal (bottom-left)",
+  parameters: { layout: "fullscreen" },
+  render: () => (
+    <div className="h-screen w-full bg-gray-100 p-8">
+      <FullWidget primaryColor="#7c3aed" position="bottom-left" hint="Need help? Ask us!" />
+    </div>
+  ),
+}
+
+export const HintDrawer: Story = {
+  name: "Hint — Drawer (auto-show + hover)",
+  parameters: { layout: "fullscreen" },
+  render: () => (
+    <DrawerDemo primaryColor="#2563eb" position="bottom-right" hint="Need help? Ask us!" />
+  ),
 }
 
 export const FullWidgetLongConversation: Story = {

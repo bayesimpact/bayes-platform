@@ -126,7 +126,7 @@
       "enabledDescription": "Permettre à {{name}} d'être intégré sur des sites externes via un iframe.",
       "snippetLabel": "Extrait d'intégration",
       "snippetDescription": "Collez cette balise <script> avant la balise </body> fermante sur chaque page où vous souhaitez afficher le widget de chat.",
-      "snippetHint": "Attributs optionnels : data-color=\"#2563eb\" (couleur du bouton), data-locale=\"fr\" (langue du widget), data-display-mode=\"drawer\" (panneau latéral au lieu d'une bulle).",
+      "snippetHint": "Attributs optionnels : data-color=\"#2563eb\" (couleur du bouton), data-locale=\"fr\" (langue du widget), data-display-mode=\"drawer\" (panneau latéral au lieu d'une bulle), data-hint=\"Besoin d'aide ?\" (infobulle affichée au chargement et au survol).",
       "allowedOriginsLabel": "Origines autorisées",
       "allowedOriginsDescription": "Liste d'origines autorisées séparées par des virgules (ex. https://app.example.com). Laissez vide pour autoriser toutes les origines.",
       "allowedOriginsPlaceholder": "https://app.example.com, https://staging.example.com",

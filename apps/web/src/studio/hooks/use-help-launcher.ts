@@ -15,6 +15,7 @@ export function useHelpLauncher() {
     if (color) script.dataset.color = color
     script.dataset.displayMode = "drawer"
     script.dataset.token = token
+    script.dataset.hint = "Need help? Ask us!"
     document.body.appendChild(script)
   }, [])
 }
