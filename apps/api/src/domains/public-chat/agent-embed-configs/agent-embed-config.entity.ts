@@ -25,9 +25,6 @@ export class AgentEmbedConfig extends ConnectEntityBase {
   @Column({ type: "varchar", name: "primary_color", length: 20, nullable: true, default: null })
   primaryColor!: string | null
 
-  @Column({ type: "varchar", name: "display_mode", length: 20, default: "modal" })
-  displayMode!: "modal" | "drawer"
-
   @ManyToOne(() => Agent, { onDelete: "CASCADE" })
   @JoinColumn({ name: "agent_id" })
   agent!: Agent
