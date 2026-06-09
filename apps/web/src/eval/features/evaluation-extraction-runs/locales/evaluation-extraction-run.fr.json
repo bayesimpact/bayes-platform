@@ -10,6 +10,7 @@
     "scope": {
       "title": "Enregistrements à exécuter",
       "all": "Exécuter le dataset entier ({{count}} enregistrements)",
+      "allUnknown": "Exécuter le dataset entier",
       "limited": "Exécuter un sous-ensemble d'enregistrements"
     },
     "keyMapping": {

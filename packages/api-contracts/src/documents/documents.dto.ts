@@ -10,6 +10,7 @@ export type DocumentSourceType =
   | "extraction"
   | "evaluationExtractionDataset"
   | "evaluationExtractionRun"
+  | "agentCsvExtractionRun"
   | "webCrawl"
 export type DocumentEmbeddingStatus = "pending" | "queued" | "processing" | "completed" | "failed"
 export type DocumentEmbeddingStatusChangedEventPayload = {

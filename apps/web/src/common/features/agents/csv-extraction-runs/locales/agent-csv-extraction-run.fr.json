@@ -1,0 +1,59 @@
+{
+  "agentCsvExtractionRun": {
+    "dialog": {
+      "title": "Lancer l'extraction CSV",
+      "description": "Exécutez chaque enregistrement via l'agent.",
+      "uploadStep": "Téléverser le CSV",
+      "columnsStep": "Configurer les colonnes",
+      "scopeStep": "Paramètres d'exécution",
+      "upload": "Téléverser un fichier CSV",
+      "selectFile": "Sélectionner un fichier",
+      "run": "Lancer",
+      "cancel": "Annuler",
+      "back": "Retour",
+      "next": "Suivant"
+    },
+    "columns": {
+      "title": "Configurer les rôles des colonnes",
+      "description": "Sélectionnez le rôle de chaque colonne de votre fichier CSV.",
+      "roles": {
+        "input": "Entrée",
+        "reference": "Référence",
+        "ignore": "Ignorer"
+      },
+      "selectAll": "Tout sélectionner",
+      "selectedCount": "{{count}} sélectionnés",
+      "bulkApply": "Appliquer le rôle aux sélectionnés",
+      "columnHeader": "Colonne",
+      "roleHeader": "Rôle"
+    },
+    "results": {
+      "title": "Résultats de l'extraction CSV",
+      "summary": "Résumé",
+      "processing": "Traitement des enregistrements…",
+      "total": "Total",
+      "processed": "Traités",
+      "errors": "Erreurs",
+      "remaining_one": "{{count}} restant",
+      "remaining_other": "{{count}} restants",
+      "remaining_zero": "{{count}} restant",
+      "duration": "Durée : {{duration}}",
+      "cancel": "Annuler",
+      "retry": "Réessayer",
+      "exportCsv": "Exporter le CSV",
+      "running": "En cours",
+      "success": "Succès",
+      "error": "Erreur",
+      "pending": "En attente",
+      "completed": "Terminé",
+      "failed": "Échoué",
+      "cancelled": "Annulé",
+      "index": "#",
+      "status": "Statut",
+      "output": "Sortie",
+      "errorDetails": "Détails de l'erreur",
+      "noRecords": "Aucun enregistrement trouvé",
+      "processingDescription": "{{processed}} sur {{total}} enregistrements traités."
+    }
+  }
+}

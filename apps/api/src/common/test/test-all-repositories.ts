@@ -5,6 +5,8 @@ import { AgentCategory } from "@/domains/agents/categories/agent-category.entity
 import { ProjectAgentCategory } from "@/domains/agents/categories/project-agent-category.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ConversationAgentSessionCategory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity"
+import { AgentCsvExtractionRun } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run.entity"
+import { AgentCsvExtractionRunRecord } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run-record.entity"
 import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
 import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import { AgentMembership } from "@/domains/agents/memberships/agent-membership.entity"
@@ -52,6 +54,8 @@ export type AllRepositories = {
   agentSubAgentRepository: Repository<AgentSubAgent>
   conversationAgentSessionRepository: Repository<ConversationAgentSession>
   conversationAgentSessionCategoryRepository: Repository<ConversationAgentSessionCategory>
+  agentCsvExtractionRunRepository: Repository<AgentCsvExtractionRun>
+  agentCsvExtractionRunRecordRepository: Repository<AgentCsvExtractionRunRecord>
   documentRepository: Repository<Document>
   evaluationExtractionDatasetDocumentRepository: Repository<EvaluationExtractionDatasetDocument>
   evaluationExtractionDatasetRecordRepository: Repository<EvaluationExtractionDatasetRecord>
@@ -97,6 +101,8 @@ export function buildAllRepositories(
     agentSubAgentRepository: getRepository(AgentSubAgent),
     conversationAgentSessionRepository: getRepository(ConversationAgentSession),
     conversationAgentSessionCategoryRepository: getRepository(ConversationAgentSessionCategory),
+    agentCsvExtractionRunRepository: getRepository(AgentCsvExtractionRun),
+    agentCsvExtractionRunRecordRepository: getRepository(AgentCsvExtractionRunRecord),
     documentRepository: getRepository(Document),
     evaluationExtractionDatasetDocumentRepository: getRepository(
       EvaluationExtractionDatasetDocument,

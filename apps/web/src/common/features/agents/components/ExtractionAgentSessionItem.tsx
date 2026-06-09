@@ -19,6 +19,8 @@ import { buildDate, buildSince } from "@/common/utils/build-date"
 import { TraceUrlOpener } from "@/studio/components/TraceUrlOpener"
 import { DocumentOpener } from "@/studio/features/documents/components/DocumentOpener"
 import { extractionAgentSessionsActions } from "../agent-sessions/extraction/extraction-agent-sessions.slice"
+import type { AgentCsvExtractionRun } from "../csv-extraction-runs/agent-csv-extraction-runs.models"
+import { agentCsvExtractionRunsActions } from "../csv-extraction-runs/agent-csv-extraction-runs.slice"
 
 export function ExtractionSessionItem({
   agentSession,
@@ -35,7 +37,11 @@ export function ExtractionSessionItem({
   const date = buildSince(agentSession.updatedAt)
   return (
     <GridCard className={className}>
-      <GridCard.Badge variant={isSuccess ? "secondary" : "destructive"}>{badge}</GridCard.Badge>
+      <div className="flex gap-2">
+        <GridCard.Badge variant="outline">PDF / Image</GridCard.Badge>
+        <GridCard.Badge variant={isSuccess ? "secondary" : "destructive"}>{badge}</GridCard.Badge>
+      </div>
+
       <GridCard.Body>
         <GridCard.Title>{date}</GridCard.Title>
         <GridCard.Description>
@@ -46,8 +52,62 @@ export function ExtractionSessionItem({
     </GridCard>
   )
 }
+export function CsvExtractionSessionItem({
+  agentSession,
+  className,
+  canDelete = true,
+}: {
+  agentSession: AgentCsvExtractionRun
+  className?: string
+  canDelete?: boolean
+}) {
+  const { t } = useTranslation()
+  const dispatch = useAppDispatch()
+  const isSuccess = agentSession.status === "completed"
+  const badge = isSuccess
+    ? buildDate(agentSession.updatedAt)
+    : t(`agentCsvExtractionRun:results.${agentSession.status}`)
+  const date = buildSince(agentSession.updatedAt)
 
-function Actions({
+  const handleDelete = () => {
+    dispatch(agentCsvExtractionRunsActions.deleteOne({ agentCsvExtractionRunId: agentSession.id }))
+  }
+
+  return (
+    <GridCard className={className}>
+      <div className="flex gap-2">
+        <GridCard.Badge variant="outline">CSV</GridCard.Badge>
+        <GridCard.Badge variant={isSuccess ? "secondary" : "destructive"}>{badge}</GridCard.Badge>
+      </div>
+      <GridCard.Body>
+        <GridCard.Title>{date}</GridCard.Title>
+        {agentSession.summary && (
+          <GridCard.Description>
+            {t("agentCsvExtractionRun:results.processingDescription", {
+              processed: agentSession.summary.processed,
+              total: agentSession.summary.total,
+            })}
+          </GridCard.Description>
+        )}
+        <div className="flex items-center gap-2">
+          {agentSession.csvExportDocumentId && (
+            <DocumentOpener
+              buttonProps={{ size: "sm" }}
+              documentId={agentSession.csvExportDocumentId}
+            />
+          )}
+          {canDelete && (
+            <Button variant="outline" size="sm" onClick={handleDelete}>
+              <Trash2Icon />
+            </Button>
+          )}
+        </div>
+      </GridCard.Body>
+    </GridCard>
+  )
+}
+
+export function Actions({
   agentSession,
   isSuccess,
   canDelete = true,

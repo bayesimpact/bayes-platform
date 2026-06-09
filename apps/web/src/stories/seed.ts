@@ -4,7 +4,7 @@ import type {
   TermsDocuments,
 } from "@/backoffice/features/backoffice/backoffice.models"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
-import type { ExtractionAgentSessionSummary } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
+import type { ExtractionAgentSessions } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
 import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
 import type { AgentSessionMessage } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -170,17 +170,35 @@ export const seed = {
   conversationAgentSessions(
     sessionsByAgentId: Record<string, ConversationAgentSession[]>,
   ): StoryPreloadedState {
-    return { conversationAgentSessions: { data: ads.fulfilled(sessionsByAgentId) } }
+    const data = Object.fromEntries(
+      Object.entries(sessionsByAgentId).map(([agentId, sessions]) => [
+        agentId,
+        ads.fulfilled(sessions),
+      ]),
+    )
+    return { conversationAgentSessions: { data } }
   },
 
   formAgentSessions(sessionsByAgentId: Record<string, FormAgentSession[]>): StoryPreloadedState {
-    return { formAgentSessions: { data: ads.fulfilled(sessionsByAgentId) } }
+    const data = Object.fromEntries(
+      Object.entries(sessionsByAgentId).map(([agentId, sessions]) => [
+        agentId,
+        ads.fulfilled(sessions),
+      ]),
+    )
+    return { formAgentSessions: { data } }
   },
 
   extractionAgentSessions(
-    sessionsByAgentId: Record<string, ExtractionAgentSessionSummary[]>,
+    sessionsByAgentId: Record<string, ExtractionAgentSessions>,
   ): StoryPreloadedState {
-    return { extractionAgentSessions: { data: ads.fulfilled(sessionsByAgentId) } }
+    const data = Object.fromEntries(
+      Object.entries(sessionsByAgentId).map(([agentId, sessions]) => [
+        agentId,
+        { isExtracting: false, sessions: ads.fulfilled(sessions) },
+      ]),
+    )
+    return { extractionAgentSessions: { data } }
   },
 
   currentAgentSessionId(id: string | null): StoryPreloadedState {

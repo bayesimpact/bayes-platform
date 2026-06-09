@@ -9,9 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@caseai-connect/ui/shad/dialog"
-import { Input } from "@caseai-connect/ui/shad/input"
 import { Label } from "@caseai-connect/ui/shad/label"
-import { RadioGroup, RadioGroupItem } from "@caseai-connect/ui/shad/radio-group"
 import {
   Select,
   SelectContent,
@@ -23,6 +21,7 @@ import { PlayIcon } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
+import { RunScopeSelector } from "@/common/components/shared/RunScopeSelector"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
 import { ADS } from "@/common/store/async-data-status"
@@ -253,56 +252,6 @@ function AgentSelector({
           ))}
         </SelectContent>
       </Select>
-    </div>
-  )
-}
-
-function RunScopeSelector({
-  recordCount,
-  runScope,
-  limitedCount,
-  onRunScopeChange,
-  onLimitedCountChange,
-}: {
-  recordCount: number
-  runScope: "all" | "limited"
-  limitedCount: number
-  onRunScopeChange: (scope: "all" | "limited") => void
-  onLimitedCountChange: (value: string) => void
-}) {
-  const { t } = useTranslation()
-
-  return (
-    <div className="flex flex-col gap-2">
-      <Label>{t("evaluationExtractionRun:scope.title")}</Label>
-      <RadioGroup
-        value={runScope}
-        onValueChange={(value) => onRunScopeChange(value as "all" | "limited")}
-        className="flex flex-col gap-2"
-      >
-        <div className="flex items-center gap-2">
-          <RadioGroupItem value="all" id="scope-all" />
-          <Label htmlFor="scope-all" className="cursor-pointer font-normal">
-            {t("evaluationExtractionRun:scope.all", { count: recordCount })}
-          </Label>
-        </div>
-        <div className="flex items-center gap-2">
-          <RadioGroupItem value="limited" id="scope-limited" />
-          <Label htmlFor="scope-limited" className="cursor-pointer font-normal">
-            {t("evaluationExtractionRun:scope.limited")}
-          </Label>
-          {runScope === "limited" && (
-            <Input
-              type="number"
-              min={1}
-              max={recordCount}
-              value={limitedCount}
-              onChange={(event) => onLimitedCountChange(event.target.value)}
-              className="w-24"
-            />
-          )}
-        </div>
-      </RadioGroup>
     </div>
   )
 }

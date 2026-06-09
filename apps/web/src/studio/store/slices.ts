@@ -1,12 +1,15 @@
+import { conversationAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.middleware"
 import { conversationAgentSessionsSlice } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.slice"
 import { extractionAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.middleware"
 import { extractionAgentSessionsSlice } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.slice"
+import { formAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.middleware"
 import { formAgentSessionsSlice } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.slice"
-import { agentSessionMessagesMiddleware } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.middleware"
 import { agentSessionMessagesSlice } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.slice"
 import { baseAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.middleware"
 import { agentsMiddleware } from "@/common/features/agents/agents.middleware"
 import { agentsSlice } from "@/common/features/agents/agents.slice"
+import { agentCsvExtractionRunsMiddleware } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.middleware"
+import { agentCsvExtractionRunsSlice } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.slice"
 import { projectsSlice } from "@/common/features/projects/projects.slice"
 import { agentEmbedConfigsMiddleware } from "@/studio/features/agent-embed-configs/agent-embed-configs.middleware"
 import { agentEmbedConfigsSlice } from "@/studio/features/agent-embed-configs/agent-embed-configs.slice"
@@ -41,18 +44,20 @@ import { currentIdsSlice } from "./currentIds.slice"
 
 const studioMiddlewareList = [
   agentAnalyticsMiddleware,
+  agentCsvExtractionRunsMiddleware,
   agentEmbedConfigsMiddleware,
   agentMembershipsMiddleware,
   agentMessageFeedbackMiddleware,
-  agentSubAgentsMiddleware,
-  agentSessionMessagesMiddleware,
   agentsMiddleware,
+  agentSubAgentsMiddleware,
   baseAgentSessionsMiddleware,
+  conversationAgentSessionsMiddleware,
   documentsMiddleware,
   documentTagsMiddleware,
   evaluationReportsMiddleware,
   evaluationsMiddleware,
   extractionAgentSessionsMiddleware,
+  formAgentSessionsMiddleware,
   projectAnalyticsMiddleware,
   projectMembershipsMiddleware,
   reviewCampaignsMiddleware,
@@ -63,6 +68,7 @@ const studioMiddlewareList = [
 
 export const studioSliceList = [
   agentAnalyticsSlice,
+  agentCsvExtractionRunsSlice,
   agentEmbedConfigsSlice,
   agentMembershipsSlice,
   agentMessageFeedbackSlice,

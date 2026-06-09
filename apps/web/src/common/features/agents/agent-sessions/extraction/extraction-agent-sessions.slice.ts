@@ -2,21 +2,49 @@ import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { Document } from "@/studio/features/documents/documents.models"
 import type { Agent } from "../../agents.models"
-import { listAgentSessionsForAgents } from "../shared/base-agent-session/base-agent-sessions.thunks"
-import type { ExtractionAgentSessionSummary } from "./extraction-agent-sessions.models"
-import { extractionAgentSessionThunks } from "./extraction-agent-sessions.thunks"
+import { listAgents } from "../../agents.thunks"
+import { patchRunStatus } from "../../csv-extraction-runs/agent-csv-extraction-runs.actions"
+import type { AgentCsvExtractionRun } from "../../csv-extraction-runs/agent-csv-extraction-runs.models"
+import { agentCsvExtractionRunsThunks } from "../../csv-extraction-runs/agent-csv-extraction-runs.thunks"
+import type { ExtractionAgentSessions } from "./extraction-agent-sessions.models"
+import { extractionAgentSessionsThunks } from "./extraction-agent-sessions.thunks"
 
-type DataType = Record<Agent["id"], ExtractionAgentSessionSummary[]>
+type DataType = Record<
+  Agent["id"],
+  {
+    isExtracting: boolean
+    sessions: AsyncData<ExtractionAgentSessions>
+  }
+>
 interface State {
-  data: AsyncData<DataType>
+  data: DataType
   documents: AsyncData<Document[]>
-  isProcesssingExecution: boolean
 }
 
 const initialState: State = {
-  data: defaultAsyncData,
+  data: {},
   documents: defaultAsyncData,
-  isProcesssingExecution: false,
+}
+
+function ensureAgentSlot(state: State, agentId: string): DataType[string] {
+  if (!state.data[agentId]) {
+    // Fresh copy, never the shared frozen `defaultAsyncData` singleton (Immer
+    // does not draft freshly-assigned objects).
+    state.data[agentId] = { isExtracting: false, sessions: { ...defaultAsyncData } }
+  }
+  return state.data[agentId]
+}
+
+// Insert or replace a CSV run inside its agent's `csvSessions` list.
+function upsertCsvRun(state: State, run: AgentCsvExtractionRun) {
+  const slot = state.data[run.agentId]
+  if (!slot || !ADS.isFulfilled(slot.sessions)) return
+  const index = slot.sessions.value.csvSessions.findIndex((session) => session.id === run.id)
+  if (index === -1) {
+    slot.sessions.value.csvSessions.unshift(run)
+  } else {
+    slot.sessions.value.csvSessions[index] = run
+  }
 }
 
 const slice = createSlice({
@@ -25,63 +53,110 @@ const slice = createSlice({
   reducers: {
     mount: () => {},
     unmount: () => {},
+    sessionMount: () => {},
+    sessionUnmount: () => {},
     reset: () => initialState,
   },
   extraReducers: (builder) => {
+    builder.addCase(listAgents.fulfilled, (state, action) => {
+      const extractionAgents = action.payload.filter((agent) => agent.type === "extraction")
+      const agentIds = extractionAgents.map((agent) => agent.id)
+
+      // Remove any agent sessions that don't have a corresponding agent anymore
+      Object.keys(state.data).forEach((agentId) => {
+        if (!agentIds.includes(agentId)) {
+          delete state.data[agentId]
+        }
+      })
+
+      // Initialize state for any new extraction agents
+      state.data = extractionAgents.reduce((acc, agent) => {
+        acc[agent.id] = state.data[agent.id] || {
+          isExtracting: false,
+          sessions: { ...defaultAsyncData },
+        }
+        return acc
+      }, {} as DataType)
+    })
+
     builder
-      .addCase(extractionAgentSessionThunks.executeOne.pending, (state) => {
-        state.isProcesssingExecution = true
+      .addCase(extractionAgentSessionsThunks.executeOne.pending, (state, action) => {
+        ensureAgentSlot(state, action.meta.arg.agentId).isExtracting = true
       })
-      .addCase(extractionAgentSessionThunks.executeOne.fulfilled, (state) => {
-        state.isProcesssingExecution = false
+      .addCase(extractionAgentSessionsThunks.executeOne.fulfilled, (state, action) => {
+        ensureAgentSlot(state, action.meta.arg.agentId).isExtracting = false
       })
-      .addCase(extractionAgentSessionThunks.executeOne.rejected, (state) => {
-        state.isProcesssingExecution = false
+      .addCase(extractionAgentSessionsThunks.executeOne.rejected, (state, action) => {
+        ensureAgentSlot(state, action.meta.arg.agentId).isExtracting = false
       })
 
     builder
-      .addCase(extractionAgentSessionThunks.listMyDocuments.pending, (state) => {
+      .addCase(extractionAgentSessionsThunks.listMyDocuments.pending, (state) => {
         state.documents.status = ADS.Loading
         state.documents.error = null
       })
-      .addCase(extractionAgentSessionThunks.listMyDocuments.fulfilled, (state, action) => {
+      .addCase(extractionAgentSessionsThunks.listMyDocuments.fulfilled, (state, action) => {
         state.documents.status = ADS.Fulfilled
         state.documents.value = action.payload
       })
-      .addCase(extractionAgentSessionThunks.listMyDocuments.rejected, (state, action) => {
+      .addCase(extractionAgentSessionsThunks.listMyDocuments.rejected, (state, action) => {
         state.documents.status = ADS.Error
         state.documents.error = action.error.message || "Failed to load documents"
       })
 
     builder
-      .addCase(listAgentSessionsForAgents.pending, (state, action) => {
-        if (action.meta.arg.agentType !== "extraction") return
-        if (!ADS.isFulfilled(state.data)) state.data.status = ADS.Loading
-        state.data.error = null
+      .addCase(extractionAgentSessionsThunks.getAll.pending, (state, action) => {
+        const slot = ensureAgentSlot(state, action.meta.arg.agentId)
+        if (ADS.isFulfilled(slot.sessions)) return
+        slot.sessions = { status: ADS.Loading, value: null, error: null }
       })
-      .addCase(listAgentSessionsForAgents.fulfilled, (state, action) => {
-        if (action.meta.arg.agentType !== "extraction") return
-        const sessionsByAgentId = action.payload.reduce((acc, curr) => {
-          return Object.assign(acc, curr)
-        }, {}) as DataType
-        state.data = {
-          value: {
-            ...state.data.value,
-            ...sessionsByAgentId,
-          },
+      .addCase(extractionAgentSessionsThunks.getAll.fulfilled, (state, action) => {
+        ensureAgentSlot(state, action.meta.arg.agentId).sessions = {
           status: ADS.Fulfilled,
+          value: action.payload,
           error: null,
         }
       })
-      .addCase(listAgentSessionsForAgents.rejected, (state, action) => {
-        if (action.meta.arg.agentType !== "extraction") return
-        state.data.status = ADS.Error
-        state.data.error = action.error.message || "Failed to load sessions"
+      .addCase(extractionAgentSessionsThunks.getAll.rejected, (state, action) => {
+        ensureAgentSlot(state, action.meta.arg.agentId).sessions = {
+          status: ADS.Error,
+          value: null,
+          error: action.error.message || "Failed to load extraction sessions",
+        }
+      })
+
+    // Keep the CSV run list in sync with live status updates and run lifecycle
+    // actions (the run object is owned by this slice via `csvSessions`).
+    builder.addCase(patchRunStatus, (state, action) => {
+      const { agentCsvExtractionRunId, status, summary, updatedAt } = action.payload
+      for (const slot of Object.values(state.data)) {
+        if (!ADS.isFulfilled(slot.sessions)) continue
+        const run = slot.sessions.value.csvSessions.find(
+          (session) => session.id === agentCsvExtractionRunId,
+        )
+        if (run) {
+          run.status = status
+          run.summary = summary
+          run.updatedAt = updatedAt
+          break
+        }
+      }
+    })
+
+    builder
+      .addCase(agentCsvExtractionRunsThunks.createAndExecute.fulfilled, (state, action) => {
+        upsertCsvRun(state, action.payload)
+      })
+      .addCase(agentCsvExtractionRunsThunks.cancelOne.fulfilled, (state, action) => {
+        upsertCsvRun(state, action.payload)
+      })
+      .addCase(agentCsvExtractionRunsThunks.retryOne.fulfilled, (state, action) => {
+        upsertCsvRun(state, action.payload)
       })
   },
 })
 
 export type { State as ExtractionAgentSessionsState }
 export const extractionAgentSessionsInitialState = initialState
-export const extractionAgentSessionsActions = { ...slice.actions, ...extractionAgentSessionThunks }
+export const extractionAgentSessionsActions = { ...slice.actions, ...extractionAgentSessionsThunks }
 export const extractionAgentSessionsSlice = slice

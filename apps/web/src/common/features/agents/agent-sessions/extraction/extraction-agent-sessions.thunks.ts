@@ -4,14 +4,40 @@ import type { RootState, ThunkExtraArg } from "@/common/store"
 import type { Document } from "@/studio/features/documents/documents.models"
 import { uploadDocument } from "@/studio/features/documents/documents.thunks"
 import { isStudioInterface } from "@/studio/routes/helpers"
+import type { AgentCsvExtractionRun } from "../../csv-extraction-runs/agent-csv-extraction-runs.models"
+import { buildType } from "../shared/base-agent-session/base-agent-sessions.thunks"
 import type {
   ExtractionAgentSession,
   ExtractionAgentSessionResult,
+  ExtractionAgentSessionSummary,
 } from "./extraction-agent-sessions.models"
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
 
-export const listMyDocuments = createAsyncThunk<Document[], void, ThunkConfig>(
+const getAll = createAsyncThunk<
+  {
+    csvSessions: AgentCsvExtractionRun[]
+    others: ExtractionAgentSessionSummary[]
+  },
+  { agentId: string },
+  ThunkConfig
+>("extractionAgentSessions/getAll", async ({ agentId }, { extra: { services }, getState }) => {
+  const state = getState()
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  const params = { organizationId, projectId, agentId }
+
+  const others = await services.extractionAgentSessions.getAll({
+    ...params,
+    type: buildType(),
+  })
+
+  const csvSessions = await services.agentCsvExtractionRuns.getAll(params)
+
+  return { csvSessions, others }
+})
+
+const listMyDocuments = createAsyncThunk<Document[], void, ThunkConfig>(
   "extractionAgentSessions/listMyDocuments",
   async (_, { extra: { services }, getState }) => {
     const state = getState()
@@ -23,7 +49,7 @@ export const listMyDocuments = createAsyncThunk<Document[], void, ThunkConfig>(
 
 const executeOne = createAsyncThunk<
   ExtractionAgentSessionResult,
-  { onSuccess: () => void } & ({ file: File } | { document: Document }),
+  { agentId: string; onSuccess: () => void } & ({ file: File } | { document: Document }),
   ThunkConfig
 >(
   "extractionAgentSessions/executeOne",
@@ -72,8 +98,9 @@ const getOne = createAsyncThunk<ExtractionAgentSession, { agentSessionId: string
   },
 )
 
-export const extractionAgentSessionThunks = {
+export const extractionAgentSessionsThunks = {
   getOne,
   executeOne,
   listMyDocuments,
+  getAll,
 }

@@ -16,6 +16,8 @@ import {
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentContextResolver } from "./resolvers/agent-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentCsvExtractionRunContextResolver } from "./resolvers/agent-csv-extraction-run-context.resolver"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipContextResolver } from "./resolvers/agent-membership-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSessionContextResolver } from "./resolvers/agent-session-context.resolver"
@@ -51,6 +53,7 @@ const RESOLUTION_ORDER: ContextResource[] = [
   "agent",
   "agentMembership",
   "agentSession",
+  "agentCsvExtractionRun",
   "document",
   "documentTag",
   "evaluation",
@@ -74,6 +77,7 @@ export class ResourceContextGuard implements CanActivate {
     @Optional() agentContextResolver?: AgentContextResolver,
     @Optional() agentMembershipContextResolver?: AgentMembershipContextResolver,
     @Optional() agentSessionContextResolver?: AgentSessionContextResolver,
+    @Optional() agentCsvExtractionRunContextResolver?: AgentCsvExtractionRunContextResolver,
     @Optional() documentContextResolver?: DocumentContextResolver,
     @Optional() documentTagContextResolver?: DocumentTagContextResolver,
     @Optional() evaluationContextResolver?: EvaluationContextResolver,
@@ -112,6 +116,12 @@ export class ResourceContextGuard implements CanActivate {
     }
     if (agentSessionContextResolver) {
       resolverEntries.push([agentSessionContextResolver.resource, agentSessionContextResolver])
+    }
+    if (agentCsvExtractionRunContextResolver) {
+      resolverEntries.push([
+        agentCsvExtractionRunContextResolver.resource,
+        agentCsvExtractionRunContextResolver,
+      ])
     }
     if (documentContextResolver) {
       resolverEntries.push([documentContextResolver.resource, documentContextResolver])

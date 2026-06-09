@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom"
 import { GridCard } from "@/common/components/grid/Grid"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
+import { useCurrentId } from "@/common/hooks/use-value"
 import { useAppSelector } from "@/common/store/hooks"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { selectUploaderState } from "../../documents/documents.selectors"
@@ -12,9 +13,8 @@ import { selectUploaderState } from "../../documents/documents.selectors"
 export function DocumentsButton() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const organizationId = useAppSelector(selectCurrentOrganizationId)
-  const projectId = useAppSelector(selectCurrentProjectId)
-  if (!organizationId || !projectId) return null
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
   const path = StudioRoutes.documents.build({ organizationId, projectId })
   const handleClick = () => {
     navigate(path)
