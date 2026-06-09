@@ -59,9 +59,16 @@ FROM runtime-base AS api-runtime
 CMD ["node", "--enable-source-maps", "/app/apps/api/dist/main.js"]
 
 #
-# 🚀 Workers Runtime (Docling enabled)
+# 🚀 CPU Workers Runtime (no Docling — extraction-run + URL-crawling jobs)
 #
-FROM runtime-base AS workers-runtime
+FROM runtime-base AS cpu-workers-runtime
+
+CMD ["node", "--enable-source-maps", "/app/apps/api/dist/cpu-workers-main.js"]
+
+#
+# 🚀 GPU Workers Runtime (Docling enabled)
+#
+FROM runtime-base AS gpu-workers-runtime
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   python3 python3-pip python3-venv \
@@ -94,4 +101,4 @@ RUN python3 -m venv /opt/docling-venv \
     --max-nodes 1 \
   && ln -s /opt/docling-venv/bin/docling /usr/local/bin/docling
 
-CMD ["node", "--enable-source-maps", "/app/apps/api/dist/workers-main.js"]
+CMD ["node", "--enable-source-maps", "/app/apps/api/dist/gpu-workers-main.js"]

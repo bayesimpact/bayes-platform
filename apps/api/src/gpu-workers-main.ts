@@ -2,6 +2,7 @@ import "./external/llm/open-telemetry-init" // must be first — patches http/pg
 import { Logger } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 import { getLogLevels, StructuredLogger } from "@/common/logger/structured-logger"
+import { getWorkerHealthPort } from "@/common/worker-health-port"
 import {
   getDoclingTimeoutMs,
   getDoclingVersion,
@@ -9,10 +10,9 @@ import {
   isDoclingEnabled,
 } from "@/external/docling/docling.cli"
 import { runDoclingSelfTestIfEnabled } from "@/external/docling/docling.self-test"
-import { WorkersAppModule } from "./workers-app.module"
+import { GpuWorkersAppModule } from "./gpu-workers-app.module"
 
 const DEFAULT_WORKER_DOCLING_HEALTH_CHECK_TIMEOUT_MS = 30_000
-const DEFAULT_WORKER_HEALTH_PORT = 8080
 
 function getWorkerDoclingHealthCheckTimeoutMs(): number {
   const timeoutValue = process.env.WORKER_DOCLING_HEALTH_CHECK_TIMEOUT_MS
@@ -26,23 +26,13 @@ function getWorkerDoclingHealthCheckTimeoutMs(): number {
     : parsedTimeout
 }
 
-function getWorkerHealthPort(): number {
-  const portValue = process.env.WORKER_HEALTH_PORT ?? process.env.PORT
-  if (!portValue) {
-    return DEFAULT_WORKER_HEALTH_PORT
-  }
-
-  const parsedPort = Number.parseInt(portValue, 10)
-  return Number.isNaN(parsedPort) ? DEFAULT_WORKER_HEALTH_PORT : parsedPort
-}
-
 async function bootstrapWorkersMain() {
   const healthCheckTimeoutMs = getWorkerDoclingHealthCheckTimeoutMs()
   await ensureDoclingIsReadyForWorkers(healthCheckTimeoutMs)
   await runDoclingSelfTestIfEnabled(healthCheckTimeoutMs)
   const isProduction = process.env.NODE_ENV === "production"
   const logLevels = getLogLevels()
-  const app = await NestFactory.create(WorkersAppModule, {
+  const app = await NestFactory.create(GpuWorkersAppModule, {
     logger: isProduction ? new StructuredLogger(logLevels) : logLevels,
   })
   const port = getWorkerHealthPort()

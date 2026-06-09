@@ -154,7 +154,7 @@ Set these two variables to embed a floating help chat bubble inside the Studio. 
 The embedding worker uses Docling in-process for document extraction.
 
 - Extraction logic: `apps/api/src/domains/documents/embeddings/document-text-extractor.service.ts`
-- Worker startup health check: `apps/api/src/workers-main.ts`
+- GPU worker startup + Docling health check: `apps/api/src/gpu-workers-main.ts`
 - Shared Docling helpers: `apps/api/src/external/docling`
 
 Install Docling on your machine so `docling` is available in `PATH`.
@@ -355,7 +355,7 @@ make docker-smoke-down PROJECT=connect REGION=eu
 Notes:
 
 - The smoke stack is defined in `infra/docker-compose.api-workers-smoke.yaml`.
-- API uses Docker target `api-runtime`; workers use `workers-runtime`.
+- API uses Docker target `api-runtime`; GPU workers (embeddings) use `gpu-workers-runtime`; CPU workers (extraction runs + crawling) use `cpu-workers-runtime`.
 - Smoke stack ports:
   - API: `http://localhost:3003`
   - Postgres: `localhost:55432`

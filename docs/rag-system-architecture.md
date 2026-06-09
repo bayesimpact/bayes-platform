@@ -34,7 +34,7 @@ At a high level, the system has two flows:
 - **Embedding worker (consumer)**
   - `apps/api/src/domains/documents/embeddings/document-embeddings.worker.ts`
   - `apps/api/src/domains/documents/embeddings/document-embeddings-processor.service.ts`
-  - `apps/api/src/workers-main.ts`
+  - `apps/api/src/gpu-workers-main.ts`
 - **Text extraction**
   - `apps/api/src/domains/documents/embeddings/document-text-extractor.service.ts`
   - `apps/api/src/external/docling/docling.cli.ts`
@@ -84,7 +84,7 @@ This happens in:
 
 ### 3) Worker processing
 
-A separate workers process (`workers-main.ts`) consumes embedding jobs.
+A separate GPU workers process (`gpu-workers-main.ts`) consumes embedding jobs.
 At startup, workers run a Docling health check (`document_chunker --docling-version`) when Docling extraction is enabled.
 
 For each job, `DocumentEmbeddingsProcessorService.processDocument(...)`:
@@ -234,7 +234,7 @@ Document uploads do **not** synchronously compute embeddings. If the worker proc
 
 In deployment, workers are started separately with:
 
-- `node /app/apps/api/dist/workers-main.js`
+- `node /app/apps/api/dist/gpu-workers-main.js`
 
 When Docling extraction is enabled, workers fail fast at startup if the Docling CLI health check fails.
 

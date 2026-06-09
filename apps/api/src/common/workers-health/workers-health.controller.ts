@@ -1,9 +1,13 @@
-import { InjectQueue } from "@nestjs/bullmq"
-import { Controller, Get, HttpException, HttpStatus, Logger } from "@nestjs/common"
+import { Controller, Get, HttpException, HttpStatus, Inject, Logger } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
 import type { Queue } from "bullmq"
 import type { DataSource } from "typeorm"
-import { DOCUMENT_EMBEDDINGS_QUEUE_NAME } from "@/domains/documents/embeddings/document-embeddings.constants"
+
+/**
+ * Injection token for the BullMQ queue the health check pings for Redis
+ * readiness. WorkersHealthModule.forRoot() aliases it to a pool-specific queue.
+ */
+export const WORKERS_HEALTH_QUEUE = "WORKERS_HEALTH_QUEUE"
 
 type CheckResult = { ok: true } | { ok: false; error: string }
 
@@ -13,7 +17,7 @@ export class WorkersHealthController {
 
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
-    @InjectQueue(DOCUMENT_EMBEDDINGS_QUEUE_NAME) private readonly bullmqQueue: Queue,
+    @Inject(WORKERS_HEALTH_QUEUE) private readonly bullmqQueue: Queue,
   ) {}
 
   @Get()

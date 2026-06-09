@@ -56,7 +56,7 @@ Source maps are already generated (`sourceMap: true` in tsconfig). No build chan
 - `apps/api/src/common/filters/stack-trace-logging-exception.filter.ts` — structured error output
 - `apps/api/src/domains/documents/storage/storage.module.ts` — replace console.log
 - `apps/api/src/domains/documents/embeddings/bull-mq-document-embeddings-batch.service.ts` — replace console.log
-- `apps/api/src/workers-main.ts` — replace console.log
+- `apps/api/src/gpu-workers-main.ts` — replace console.log
 
 **No GCP SDK needed.** Cloud Run picks up structured JSON from stdout natively.
 

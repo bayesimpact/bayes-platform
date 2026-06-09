@@ -13,6 +13,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - In-platform help chat: set `VITE_HELP_AGENT_EMBED_TOKEN` to inject the embed launcher into the Studio — a floating chat bubble lets users ask questions about the platform directly from within the app
 
 ### Changed
+- Background workers are split into two pools: a lightweight CPU pool (extraction-run and URL-crawling jobs) running without GPU or Docling, and a GPU pool (document and web-source embeddings) — reducing cost and GPU contention
 
 ### Fixed
 

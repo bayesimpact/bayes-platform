@@ -3,7 +3,7 @@
 * **Status**: Proposed
 * **Date**: 2026-04-21
 * **Deciders**: Jérémie
-* **Scope**: `apps/api` (API + workers are assembled from the same codebase via `app.module.ts` / `workers-app.module.ts`)
+* **Scope**: `apps/api` (API + workers are assembled from the same codebase via `app.module.ts` / `gpu-workers-app.module.ts`)
 
 ---
 

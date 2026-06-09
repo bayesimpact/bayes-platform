@@ -1,11 +1,9 @@
-import { getQueueToken } from "@nestjs/bullmq"
 import type { INestApplication } from "@nestjs/common"
 import { Test } from "@nestjs/testing"
 import { getDataSourceToken } from "@nestjs/typeorm"
 import request from "supertest"
 import type { App } from "supertest/types"
-import { DOCUMENT_EMBEDDINGS_QUEUE_NAME } from "@/domains/documents/embeddings/document-embeddings.constants"
-import { WorkersHealthController } from "./workers-health.controller"
+import { WORKERS_HEALTH_QUEUE, WorkersHealthController } from "./workers-health.controller"
 
 describe("WorkersHealthController", () => {
   let app: INestApplication<App>
@@ -22,7 +20,7 @@ describe("WorkersHealthController", () => {
       controllers: [WorkersHealthController],
       providers: [
         { provide: getDataSourceToken(), useValue: dataSource },
-        { provide: getQueueToken(DOCUMENT_EMBEDDINGS_QUEUE_NAME), useValue: queue },
+        { provide: WORKERS_HEALTH_QUEUE, useValue: queue },
       ],
     }).compile()
     app = module.createNestApplication()

@@ -8,7 +8,8 @@ TEST_MCP_ENCRYPTION_KEY ?= 00000000000000000000000000000000000000000000000000000
 
 # Local image tags (no GCP references)
 localApiImage = caseai-connect/api:local
-localWorkersImage = caseai-connect/workers:local
+localGpuWorkersImage = caseai-connect/gpu-workers:local
+localCpuWorkersImage = caseai-connect/cpu-workers:local
 smokeComposeFile = infra/docker-compose.api-workers-smoke.yaml
 
 # ==============================================================================
@@ -64,15 +65,19 @@ check-web-changes:
 
 trivy-scan: docker-build
 	trivy image --ignore-unfixed --pkg-types os,library --severity CRITICAL,HIGH --ignorefile .trivyignore.yaml ${localApiImage}
-	trivy image --ignore-unfixed --pkg-types os,library --severity CRITICAL,HIGH --ignorefile .trivyignore.yaml ${localWorkersImage}
+	trivy image --ignore-unfixed --pkg-types os,library --severity CRITICAL,HIGH --ignorefile .trivyignore.yaml ${localGpuWorkersImage}
+	trivy image --ignore-unfixed --pkg-types os,library --severity CRITICAL,HIGH --ignorefile .trivyignore.yaml ${localCpuWorkersImage}
 
-docker-build: docker-build-api docker-build-workers
+docker-build: docker-build-api docker-build-gpu-workers docker-build-cpu-workers
 
 docker-build-api:
 	docker build --platform=linux/amd64 --target api-runtime -t ${localApiImage} -f apps/api/Dockerfile .
 
-docker-build-workers:
-	docker build --platform=linux/amd64 --target workers-runtime -t ${localWorkersImage} -f apps/api/Dockerfile .
+docker-build-gpu-workers:
+	docker build --platform=linux/amd64 --target gpu-workers-runtime -t ${localGpuWorkersImage} -f apps/api/Dockerfile .
+
+docker-build-cpu-workers:
+	docker build --platform=linux/amd64 --target cpu-workers-runtime -t ${localCpuWorkersImage} -f apps/api/Dockerfile .
 
 docker-check: docker-build-api
 	@echo "Starting docker container and checking for successful startup..."
@@ -95,12 +100,12 @@ docker-check: docker-build-api
 	docker kill $$CONTAINER_ID >/dev/null 2>&1; \
 	exit 1
 
-docker-workers-check: docker-build-workers
-	@echo "Starting docker workers with smoke dependencies and checking for successful startup..."
-	@API_IMAGE=${localApiImage} WORKERS_IMAGE=${localWorkersImage} docker compose -f ${smokeComposeFile} up -d postgres redis workers; \
-	CONTAINER_ID=$$(API_IMAGE=${localApiImage} WORKERS_IMAGE=${localWorkersImage} docker compose -f ${smokeComposeFile} ps -q workers); \
+docker-gpu-workers-check: docker-build-gpu-workers
+	@echo "Starting docker GPU workers with smoke dependencies and checking for successful startup..."
+	@API_IMAGE=${localApiImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} docker compose -f ${smokeComposeFile} up -d postgres redis gpu-workers; \
+	CONTAINER_ID=$$(API_IMAGE=${localApiImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} docker compose -f ${smokeComposeFile} ps -q gpu-workers); \
 	echo "Container ID: $$CONTAINER_ID"; \
-	echo "Verifying Docling CLI in workers container..."; \
+	echo "Verifying Docling CLI in GPU workers container..."; \
 	j=1; \
 	DOC_VERSION=""; \
 	while [ $$j -le 15 ]; do \
@@ -112,7 +117,7 @@ docker-workers-check: docker-build-workers
 		if ! docker ps -q --no-trunc | grep -q "$$CONTAINER_ID"; then \
 			echo "✗ Workers container exited before Docling CLI check completed"; \
 			docker logs $$CONTAINER_ID 2>&1; \
-			API_IMAGE=${localApiImage} WORKERS_IMAGE=${localWorkersImage} docker compose -f ${smokeComposeFile} down -v >/dev/null 2>&1; \
+			API_IMAGE=${localApiImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} docker compose -f ${smokeComposeFile} down -v >/dev/null 2>&1; \
 			exit 1; \
 		fi; \
 		sleep 1; \
@@ -121,7 +126,7 @@ docker-workers-check: docker-build-workers
 	if [ -z "$$DOC_VERSION" ]; then \
 		echo "✗ Docling CLI check failed in workers container"; \
 		docker logs $$CONTAINER_ID 2>&1; \
-		API_IMAGE=${localApiImage} WORKERS_IMAGE=${localWorkersImage} docker compose -f ${smokeComposeFile} down -v >/dev/null 2>&1; \
+		API_IMAGE=${localApiImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} docker compose -f ${smokeComposeFile} down -v >/dev/null 2>&1; \
 		exit 1; \
 	fi; \
 	i=1; \
@@ -131,37 +136,65 @@ docker-workers-check: docker-build-workers
 		echo "$$LOGS"; \
 		if echo "$$LOGS" | grep -q "Workers app started"; then \
 			echo "✓ Docker workers container started successfully"; \
-			API_IMAGE=${localApiImage} WORKERS_IMAGE=${localWorkersImage} docker compose -f ${smokeComposeFile} down -v >/dev/null 2>&1; \
+			API_IMAGE=${localApiImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} docker compose -f ${smokeComposeFile} down -v >/dev/null 2>&1; \
 			exit 0; \
 		fi; \
 		sleep 1; \
 		i=$$((i + 1)); \
 	done; \
 	echo "✗ Failed to find 'Workers app started' in docker logs"; \
-	API_IMAGE=${localApiImage} WORKERS_IMAGE=${localWorkersImage} docker compose -f ${smokeComposeFile} down -v >/dev/null 2>&1; \
+	API_IMAGE=${localApiImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} docker compose -f ${smokeComposeFile} down -v >/dev/null 2>&1; \
+	exit 1
+
+docker-cpu-workers-check: docker-build-cpu-workers
+	@echo "Starting docker CPU workers with smoke dependencies and checking for successful startup..."
+	@API_IMAGE=${localApiImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} docker compose -f ${smokeComposeFile} up -d postgres redis cpu-workers; \
+	CONTAINER_ID=$$(API_IMAGE=${localApiImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} docker compose -f ${smokeComposeFile} ps -q cpu-workers); \
+	echo "Container ID: $$CONTAINER_ID"; \
+	i=1; \
+	while [ $$i -le 45 ]; do \
+		echo "Checking logs (attempt $$i/45)..."; \
+		LOGS=$$(docker logs $$CONTAINER_ID 2>&1); \
+		echo "$$LOGS"; \
+		if echo "$$LOGS" | grep -q "CPU workers app started"; then \
+			echo "✓ Docker CPU workers container started successfully"; \
+			API_IMAGE=${localApiImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} docker compose -f ${smokeComposeFile} down -v >/dev/null 2>&1; \
+			exit 0; \
+		fi; \
+		if ! docker ps -q --no-trunc | grep -q "$$CONTAINER_ID"; then \
+			echo "✗ CPU workers container exited before startup completed"; \
+			docker logs $$CONTAINER_ID 2>&1; \
+			API_IMAGE=${localApiImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} docker compose -f ${smokeComposeFile} down -v >/dev/null 2>&1; \
+			exit 1; \
+		fi; \
+		sleep 1; \
+		i=$$((i + 1)); \
+	done; \
+	echo "✗ Failed to find 'CPU workers app started' in docker logs"; \
+	API_IMAGE=${localApiImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} docker compose -f ${smokeComposeFile} down -v >/dev/null 2>&1; \
 	exit 1
 
 docker-smoke-up: docker-build
-	API_IMAGE=${localApiImage} WORKERS_IMAGE=${localWorkersImage} docker compose -f ${smokeComposeFile} up -d --build
+	API_IMAGE=${localApiImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} docker compose -f ${smokeComposeFile} up -d --build
 
 docker-smoke-ps:
-	API_IMAGE=${localApiImage} WORKERS_IMAGE=${localWorkersImage} docker compose -f ${smokeComposeFile} ps
+	API_IMAGE=${localApiImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} docker compose -f ${smokeComposeFile} ps
 
 docker-smoke-logs:
-	API_IMAGE=${localApiImage} WORKERS_IMAGE=${localWorkersImage} docker compose -f ${smokeComposeFile} logs --tail=200 api workers postgres redis
+	API_IMAGE=${localApiImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} docker compose -f ${smokeComposeFile} logs --tail=200 api gpu-workers cpu-workers postgres redis
 
 docker-smoke-check: docker-smoke-up
 	@echo "Waiting for services to settle..."
 	@sleep 8
-	@API_IMAGE=${localApiImage} WORKERS_IMAGE=${localWorkersImage} docker compose -f ${smokeComposeFile} ps
-	@if API_IMAGE=${localApiImage} WORKERS_IMAGE=${localWorkersImage} docker compose -f ${smokeComposeFile} ps --status exited | grep -Eq "api|workers"; then \
+	@API_IMAGE=${localApiImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} docker compose -f ${smokeComposeFile} ps
+	@if API_IMAGE=${localApiImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} docker compose -f ${smokeComposeFile} ps --status exited | grep -Eq "api|gpu-workers|cpu-workers"; then \
 		echo "✗ API or workers exited unexpectedly. Check logs with: make docker-smoke-logs"; \
 		exit 1; \
 	fi
 	@echo "✓ API and workers are still running"
 
 docker-smoke-down:
-	API_IMAGE=${localApiImage} WORKERS_IMAGE=${localWorkersImage} docker compose -f ${smokeComposeFile} down -v
+	API_IMAGE=${localApiImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} docker compose -f ${smokeComposeFile} down -v
 
 # ==============================================================================
 # Web-embed deployment

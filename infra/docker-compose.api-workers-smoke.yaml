@@ -60,12 +60,12 @@ services:
       - "3003:3000"
     restart: "no"
 
-  workers:
-    image: ${WORKERS_IMAGE:-agentstudio-workers-smoke:latest}
+  gpu-workers:
+    image: ${GPU_WORKERS_IMAGE:-agentstudio-gpu-workers-smoke:latest}
     build:
       context: ..
       dockerfile: apps/api/Dockerfile
-      target: workers-runtime
+      target: gpu-workers-runtime
     depends_on:
       postgres:
         condition: service_healthy
@@ -88,6 +88,38 @@ services:
       DOCUMENT_EMBEDDING_STUCK_THRESHOLD_SECONDS: 3600
       DOCUMENT_EMBEDDING_STUCK_SWEEP_INTERVAL_SECONDS: 60
       DOCUMENT_EXTRACTOR_DOCLING_ENABLED: "true"
+      LOCAL_STORAGE_SERVER_BASE_URL: http://api:3000
+      MCP_ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+    restart: "no"
+
+  cpu-workers:
+    image: ${CPU_WORKERS_IMAGE:-agentstudio-cpu-workers-smoke:latest}
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+      target: cpu-workers-runtime
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://connect_admin:passpass@postgres:5432/connect
+      BULLMQ_REDIS_URL: redis://redis:6379
+      AUTH0_ISSUER_URL: https://example.auth0.com/
+      AUTH0_AUDIENCE: https://example.auth0.com/api/v2/
+      AUTH0_ORGANIZATION_ID: org_example
+      AUTH0_CLIENT_ID: example_client_id
+      AUTH0_M2M_CLIENT_ID: example_m2m_client_id
+      AUTH0_M2M_CLIENT_SECRET: example_m2m_client_secret
+      AUTH0_DB_CONNECTION_NAME: Username-Password-Authentication
+      GOOGLE_VERTEX_PROJECT: example-project
+      GOOGLE_VERTEX_LOCATION: europe-west1
+      DOCUMENT_EMBEDDING_MODELS: gemini-embedding-001
+      DOCUMENT_EMBEDDING_STUCK_THRESHOLD_SECONDS: 3600
+      DOCUMENT_EMBEDDING_STUCK_SWEEP_INTERVAL_SECONDS: 60
+      DOCUMENT_EXTRACTOR_DOCLING_ENABLED: "false"
       LOCAL_STORAGE_SERVER_BASE_URL: http://api:3000
       MCP_ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
     restart: "no"

@@ -24,5 +24,8 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Run workers startup smoke check
-        run: make docker-workers-check
+      - name: Run GPU workers startup smoke check
+        run: make docker-gpu-workers-check
+
+      - name: Run CPU workers startup smoke check
+        run: make docker-cpu-workers-check
