@@ -10,6 +10,7 @@ import { useAppSelector } from "@/common/store/hooks"
 import { DotsBackground } from "@/studio/components/DotsBackground"
 import { SidebarAgentCreatorButton } from "@/studio/features/agents/components/AgentCreator"
 import { selectUploaderState } from "../features/documents/documents.selectors"
+import { useHelpLauncher } from "../hooks/use-help-launcher"
 import { StudioRoutes } from "../routes/helpers"
 import { SidebarFooterChildren } from "../routes/SidebarFooterChildren"
 
@@ -20,6 +21,7 @@ export function StudioLayout({ children }: { children: React.ReactNode }) {
 
   const uploaderState = useAppSelector(selectUploaderState)
   usePreventLeave(uploaderState.status === "uploading")
+  useHelpLauncher()
 
   return (
     <SidebarLayout

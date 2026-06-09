@@ -36,7 +36,7 @@ export function ChatInput({
         onKeyDown={handleKeyDown}
         disabled={input.disabled || props.disabled}
         className={cn(
-          "w-full resize-none bg-transparent px-4 pt-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+          "field-sizing-content w-full resize-none bg-transparent px-4 pt-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
           className,
         )}
         {...props}

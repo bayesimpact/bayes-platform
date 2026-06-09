@@ -33,12 +33,14 @@ GET /public/agents/:embedToken/config
     "agentName": "Support Bot",
     "title": "Help Center",
     "logoUrl": "https://example.com/logo.png",
-    "primaryColor": "#2563eb"
+    "primaryColor": "#2563eb",
+    "displayMode": "modal"
   }
 }
 ```
 
-`title`, `logoUrl`, and `primaryColor` are `null` when not configured — fall back to your own defaults.
+`title`, `logoUrl`, and `primaryColor` are `null` when not configured — fall back to your own defaults.  
+`displayMode` is `"modal"` (floating bubble, default) or `"drawer"` (side panel) — use it to adapt how your custom UI presents the chat window.
 
 ---
 

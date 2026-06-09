@@ -1,5 +1,8 @@
 import type { TimeType } from "../generic"
 
+/** How the chat widget is rendered on the host page. Controlled via the data-display-mode attribute on the launcher script tag. */
+export type EmbedDisplayMode = "modal" | "drawer"
+
 export type AgentEmbedConfigDto = {
   id: string
   agentId: string
