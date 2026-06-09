@@ -27,8 +27,7 @@ function resolveHint(raw: string, locale: string): string {
       const map = parsed as Record<string, string>
       return map[locale] ?? map.en ?? (Object.values(map)[0] as string) ?? raw
     }
-  } catch (error) {
-    console.error("Failed to parse hint JSON:", error)
+  } catch {
     // Not JSON — use the raw string as-is.
   }
   return raw
