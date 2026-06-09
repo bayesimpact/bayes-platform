@@ -23,7 +23,7 @@ if [[ -z "${PYTHON_BIN}" || ! -x "${PYTHON_BIN}" ]]; then
   echo "Looked for:" >&2
   echo "  - ${PYTHON_BIN_DOCKER}" >&2
   echo "  - ${PYTHON_BIN_REPO}" >&2
-  echo "Create the repo venv (.venv) locally, or run inside the Docker workers-runtime image." >&2
+  echo "Create the repo venv (.venv) locally, or run inside the Docker gpu-workers-runtime image." >&2
   exit 1
 fi
 

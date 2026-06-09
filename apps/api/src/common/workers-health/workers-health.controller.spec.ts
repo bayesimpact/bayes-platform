@@ -4,7 +4,7 @@ import { Test } from "@nestjs/testing"
 import { getDataSourceToken } from "@nestjs/typeorm"
 import request from "supertest"
 import type { App } from "supertest/types"
-import { DOCUMENT_EMBEDDINGS_QUEUE_NAME } from "@/domains/documents/embeddings/document-embeddings.constants"
+import { WORKERS_HEALTH_QUEUE_NAME } from "./workers-health.constants"
 import { WorkersHealthController } from "./workers-health.controller"
 
 describe("WorkersHealthController", () => {
@@ -22,7 +22,7 @@ describe("WorkersHealthController", () => {
       controllers: [WorkersHealthController],
       providers: [
         { provide: getDataSourceToken(), useValue: dataSource },
-        { provide: getQueueToken(DOCUMENT_EMBEDDINGS_QUEUE_NAME), useValue: queue },
+        { provide: getQueueToken(WORKERS_HEALTH_QUEUE_NAME), useValue: queue },
       ],
     }).compile()
     app = module.createNestApplication()

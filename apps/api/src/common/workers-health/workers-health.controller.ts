@@ -3,7 +3,7 @@ import { Controller, Get, HttpException, HttpStatus, Logger } from "@nestjs/comm
 import { InjectDataSource } from "@nestjs/typeorm"
 import type { Queue } from "bullmq"
 import type { DataSource } from "typeorm"
-import { DOCUMENT_EMBEDDINGS_QUEUE_NAME } from "@/domains/documents/embeddings/document-embeddings.constants"
+import { WORKERS_HEALTH_QUEUE_NAME } from "./workers-health.constants"
 
 type CheckResult = { ok: true } | { ok: false; error: string }
 
@@ -13,7 +13,7 @@ export class WorkersHealthController {
 
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
-    @InjectQueue(DOCUMENT_EMBEDDINGS_QUEUE_NAME) private readonly bullmqQueue: Queue,
+    @InjectQueue(WORKERS_HEALTH_QUEUE_NAME) private readonly bullmqQueue: Queue,
   ) {}
 
   @Get()

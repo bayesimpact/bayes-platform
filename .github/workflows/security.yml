@@ -43,18 +43,31 @@ jobs:
           trivyignores: '.trivyignore.yaml'
           output: 'trivy-api-results.txt'
 
-      - name: Run Trivy vulnerability scanner on Workers
+      - name: Run Trivy vulnerability scanner on CPU Workers
         if: always()
         uses: aquasecurity/trivy-action@0.35.0
         with:
-          image-ref: 'caseai-connect/workers:local'
+          image-ref: 'caseai-connect/cpu-workers:local'
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
           pkg-types: 'os,library'
           severity: 'CRITICAL,HIGH'
           trivyignores: '.trivyignore.yaml'
-          output: 'trivy-workers-results.txt'
+          output: 'trivy-cpu-workers-results.txt'
+
+      - name: Run Trivy vulnerability scanner on GPU Workers
+        if: always()
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          image-ref: 'caseai-connect/gpu-workers:local'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          pkg-types: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          trivyignores: '.trivyignore.yaml'
+          output: 'trivy-gpu-workers-results.txt'
 
       - name: Trivy scan summary
         if: always()
@@ -78,5 +91,6 @@ jobs:
           {
             echo "## Trivy Vulnerability Scan Results"
             print_report "API Image" trivy-api-results.txt
-            print_report "Workers Image" trivy-workers-results.txt
+            print_report "CPU Workers Image" trivy-cpu-workers-results.txt
+            print_report "GPU Workers Image" trivy-gpu-workers-results.txt
           } >> $GITHUB_STEP_SUMMARY

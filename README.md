@@ -355,7 +355,7 @@ make docker-smoke-down PROJECT=connect REGION=eu
 Notes:
 
 - The smoke stack is defined in `infra/docker-compose.api-workers-smoke.yaml`.
-- API uses Docker target `api-runtime`; workers use `workers-runtime`.
+- API uses Docker target `api-runtime`; workers ship as two images — `cpu-workers-runtime` (no Docling) and `gpu-workers-runtime` (Docling). Both run the same entrypoint; queue selection is per-instance via `WORKER_QUEUE_NAMES`.
 - Smoke stack ports:
   - API: `http://localhost:3003`
   - Postgres: `localhost:55432`
