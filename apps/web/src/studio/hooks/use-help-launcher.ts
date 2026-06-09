@@ -1,5 +1,12 @@
 import { useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import i18n from "@/i18n"
+
+declare global {
+  interface Window {
+    __agentStudioSetHint?: (text: string) => void
+  }
+}
 
 const HELP_SCRIPT_ID = "agentstudio-help-launcher"
 
@@ -28,6 +35,10 @@ function resolveHint(raw: string, locale: string): string {
 }
 
 export function useHelpLauncher() {
+  // Reactive i18n reference — triggers a re-render when the user changes language.
+  const { i18n: reactiveI18n } = useTranslation()
+
+  // Inject the launcher script once on mount.
   useEffect(() => {
     const token = import.meta.env.VITE_HELP_AGENT_EMBED_TOKEN as string | undefined
     if (!token || document.getElementById(HELP_SCRIPT_ID)) return
@@ -50,4 +61,12 @@ export function useHelpLauncher() {
 
     document.body.appendChild(script)
   }, [])
+
+  // Update the hint bubble text in-place when the user changes language.
+  // Skipped on the first render (the injection effect above already set it).
+  useEffect(() => {
+    const hintRaw = import.meta.env.VITE_HELP_AGENT_EMBED_HINT as string | undefined
+    if (!hintRaw) return
+    window.__agentStudioSetHint?.(resolveHint(hintRaw, reactiveI18n.language))
+  }, [reactiveI18n.language])
 }

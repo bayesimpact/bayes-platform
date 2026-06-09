@@ -16,6 +16,17 @@
  *   and again whenever the user hovers the button.
  */
 
+declare global {
+  interface Window {
+    /**
+     * Updates the hint bubble text in-place without restarting the launcher.
+     * Exposed by the launcher when a data-hint attribute is present.
+     * No-op if called before the launcher has initialised.
+     */
+    __agentStudioSetHint?: (text: string) => void
+  }
+}
+
 // Capture currentScript synchronously at evaluation time — it becomes null after the
 // script finishes its initial execution, so we cannot read it inside init().
 const _currentScript = document.currentScript as HTMLScriptElement | null
@@ -282,6 +293,12 @@ function makeFabRow(
       showHint()
     })
     button.addEventListener("mouseleave", hideHint)
+
+    // Allow the host page (e.g. the Studio app) to update the hint text
+    // in-place when the user's locale changes, without restarting the launcher.
+    window.__agentStudioSetHint = (text: string) => {
+      bubble.textContent = text
+    }
   } else {
     row.appendChild(button)
   }
