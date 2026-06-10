@@ -17,6 +17,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Workers ship as two Docker images — a CPU image (no Docling) and a GPU image (Docling/Torch included) — built from the `cpu-workers-runtime` and `gpu-workers-runtime` targets
 
 ### Fixed
+- Chat responses no longer display partially or crash the app when the browser's auto-translate feature is active: browser translation is disabled on the Studio and the embed widget, and the page language now matches the selected locale
 
 ### Security
 
