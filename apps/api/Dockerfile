@@ -88,17 +88,16 @@ COPY --from=build /app/apps/api/bin /app/apps/api/bin
 COPY --from=build /app/apps/api/test/fixtures/sample.pdf /app/apps/api/bin/sample.pdf
 
 RUN chmod +x /app/apps/api/bin/document_chunker || true
+
+# Python dependencies are pinned in the requirements files (single source of
+# truth for both this image and local testing). Torch must be installed first
+# from the CUDA index, see requirements-torch.txt.
+COPY apps/api/requirements-torch.txt apps/api/requirements-docling.txt /app/apps/api/
+
 RUN python3 -m venv /opt/docling-venv \
   && /opt/docling-venv/bin/pip install --no-cache-dir --upgrade pip \
-  && /opt/docling-venv/bin/pip install --no-cache-dir \
-    --index-url https://download.pytorch.org/whl/cu121 \
-    torch==2.5.1 \
-    torchvision==0.20.1 \
-  && /opt/docling-venv/bin/pip install --no-cache-dir docling "transformers>=4.34.0,<5.0.0" \
-  && /opt/docling-venv/bin/pip install --no-cache-dir \
-    llama-index-core \
-    llama-index-readers-docling \
-    llama-index-node-parser-docling \
+  && /opt/docling-venv/bin/pip install --no-cache-dir -r /app/apps/api/requirements-torch.txt \
+  && /opt/docling-venv/bin/pip install --no-cache-dir -r /app/apps/api/requirements-docling.txt \
   && /opt/docling-venv/bin/python /app/apps/api/bin/document_chunker.py \
     --doc-path /app/apps/api/bin/sample.pdf \
     --output-json /tmp/docling-prewarm.json \

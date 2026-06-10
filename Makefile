@@ -24,6 +24,8 @@ API_PATHS := \
 	apps/api/nest-cli.json \
 	apps/api/tsconfig.json \
 	apps/api/Dockerfile \
+	apps/api/requirements-torch.txt \
+	apps/api/requirements-docling.txt \
 	packages/api-contracts \
 	package.json \
 	package-lock.json \

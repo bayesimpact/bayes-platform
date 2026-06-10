@@ -1,0 +1,12 @@
+# Docling + LlamaIndex dependencies for the document_chunker CLI
+# (apps/api/bin/document_chunker.py), installed in the GPU workers image.
+# Install requirements-torch.txt first so docling reuses the CUDA torch build
+# instead of pulling the default PyPI one.
+
+docling
+transformers>=4.34.0,<5.0.0
+# rapidocr 3.8.2 ships a broken wheel (missing pytorch/networks/arch_config.yaml); pin until fixed upstream
+rapidocr==3.8.1
+llama-index-core
+llama-index-readers-docling
+llama-index-node-parser-docling
