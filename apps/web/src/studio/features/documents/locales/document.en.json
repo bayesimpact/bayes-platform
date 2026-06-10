@@ -52,6 +52,14 @@
     "reprocess": {
       "cta": "Reprocess"
     },
+    "webSources": {
+      "title": "Web Sources",
+      "description": "Crawl websites and automatically index their content to expand what your agents know.",
+      "empty": {
+        "title": "No websites crawled yet",
+        "description": "Enter a URL to start crawling a website and indexing its content."
+      }
+    },
     "list": {
       "description": "Enhance your agents' knowledge and capabilities by adding documents.",
       "empty": {

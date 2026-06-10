@@ -62,6 +62,7 @@ import type { DocumentTag } from "@/studio/features/document-tags/document-tags.
 import { selectDocumentTagsData } from "@/studio/features/document-tags/document-tags.selectors"
 import { CrawlingStatusBadge } from "@/studio/features/documents/components/CrawlingStatusBadge"
 import { CrawlUrlButton } from "@/studio/features/documents/components/CrawlUrlButton"
+import { EmptyWebSources } from "@/studio/features/documents/components/EmptyWebSources"
 import { DocumentTagPicker } from "@/studio/features/documents/components/DocumentTagPicker"
 import type { Document } from "@/studio/features/documents/documents.models"
 import {
@@ -94,8 +95,8 @@ export function WebSourcesDocumentList() {
     <div className="w-full">
       <GridHeader
         onBack={handleBack}
-        title={t("document:documents")}
-        description={t("document:list.description")}
+        title={t("document:webSources.title")}
+        description={t("document:webSources.description")}
         action={
           <div className="flex items-center gap-2">
             <CrawlUrlButton />
@@ -106,6 +107,7 @@ export function WebSourcesDocumentList() {
       />
 
       <div className={cn("flex flex-col gap-6 bg-white", hasDocuments && "p-6")}>
+        {!hasDocuments && <EmptyWebSources />}
         {hasDocuments && (
           <Table>
             <TableHeader>

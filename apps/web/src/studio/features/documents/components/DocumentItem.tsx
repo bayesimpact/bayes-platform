@@ -22,24 +22,25 @@ export function DocumentItem({
   const pagesCrawled = useAppSelector(selectCrawlProgressByDocumentId)[document.id]
 
   return (
-    <GridItem
-      index={index}
-      badge={
-        document.sourceType === "webCrawl" ? (
-          <CrawlingStatusBadge status={document.embeddingStatus} pagesCrawled={pagesCrawled} />
-        ) : (
-          <EmbeddingStatusBadge status={document.embeddingStatus} />
-        )
-      }
-      title={<div className="wrap-anywhere">{document.title}</div>}
-      description={date}
-      action={
-        <div className="flex gap-2 items-center">
+    <GridCard>
+      <GridCard.TopAction>
+        <div className="flex gap-1 items-center">
           <DocumentOpener noText documentId={document.id} />
           <DocumentDetailsSheet document={document} documentTags={documentTags} />
           <DocumentEditor document={document} />
           <DocumentDeletor document={document} />
         </div>
+      </GridCard.TopAction>
+      <GridCard.Badge>
+        {document.sourceType === "webCrawl" ? (
+          <CrawlingStatusBadge status={document.embeddingStatus} pagesCrawled={pagesCrawled} />
+        ) : (
+          <EmbeddingStatusBadge status={document.embeddingStatus} />
+        )}
+      </GridCard.Badge>
+      <GridCard.Body>
+        <GridCard.Title>{document.title}</GridCard.Title>
+        <GridCard.Description>{date}</GridCard.Description>
       </GridCard.Body>
     </GridCard>
   )

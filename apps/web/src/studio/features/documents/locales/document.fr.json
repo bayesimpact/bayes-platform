@@ -52,6 +52,14 @@
     "reprocess": {
       "cta": "Relancer le traitement"
     },
+    "webSources": {
+      "title": "Sources web",
+      "description": "Explorez des sites web et indexez automatiquement leur contenu pour enrichir les connaissances de vos agents.",
+      "empty": {
+        "title": "Aucun site web exploré pour le moment",
+        "description": "Entrez une URL pour commencer à explorer un site web et indexer son contenu."
+      }
+    },
     "list": {
       "description": "Améliorez les connaissances et les capacités de vos agents en ajoutant des documents.",
       "empty": {
