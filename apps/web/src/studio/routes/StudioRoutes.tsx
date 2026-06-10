@@ -74,7 +74,7 @@ export const studioRoutes = {
         {
           path: StudioRoutes.webSources.path,
           element: (
-            <RestrictedFeature feature="web_sources">
+            <RestrictedFeature feature="web-sources">
               <WebSourcesRoute />
             </RestrictedFeature>
           ),

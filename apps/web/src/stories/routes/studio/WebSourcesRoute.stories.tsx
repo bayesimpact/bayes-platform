@@ -27,7 +27,7 @@ const meta = {
   },
   args: {
     ...studioStoryArgs,
-    featureFlags: ["web_sources"],
+    featureFlags: ["web-sources"],
     withDocuments: false,
     withDocumentTags: false,
   },
