@@ -94,7 +94,8 @@ RUN python3 -m venv /opt/docling-venv \
     --index-url https://download.pytorch.org/whl/cu121 \
     torch==2.5.1 \
     torchvision==0.20.1 \
-  && /opt/docling-venv/bin/pip install --no-cache-dir docling "transformers>=4.34.0,<5.0.0" \
+  # rapidocr 3.8.2 ships a broken wheel (missing pytorch/networks/arch_config.yaml); pin until fixed upstream
+  && /opt/docling-venv/bin/pip install --no-cache-dir docling "transformers>=4.34.0,<5.0.0" "rapidocr==3.8.1" \
   && /opt/docling-venv/bin/pip install --no-cache-dir \
     llama-index-core \
     llama-index-readers-docling \
