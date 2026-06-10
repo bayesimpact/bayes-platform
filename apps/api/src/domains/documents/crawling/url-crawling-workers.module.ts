@@ -12,6 +12,7 @@ import { DocumentCrawlProgressNotifierService } from "./document-crawl-progress-
 import { URL_CRAWLING_QUEUE_NAME } from "./url-crawling.constants"
 import { UrlCrawlingWorker } from "./url-crawling.worker"
 import { UrlCrawlingProcessorService } from "./url-crawling-processor.service"
+import { UrlCrawlingQueueMetricsService } from "./url-crawling-queue-metrics.service"
 import { WebSourceEmbeddingsBatchModule } from "./web-source-embeddings-batch.module"
 
 @Module({
@@ -36,6 +37,7 @@ import { WebSourceEmbeddingsBatchModule } from "./web-source-embeddings-batch.mo
     DocumentTagsService,
     DocumentEmbeddingStatusNotifierService,
     DocumentCrawlProgressNotifierService,
+    UrlCrawlingQueueMetricsService,
   ],
 })
 export class UrlCrawlingWorkersModule {}
