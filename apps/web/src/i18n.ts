@@ -25,4 +25,11 @@ i18n
     resources: await loadLocales(),
   })
 
+// Keep the document language in sync with the detected locale so browsers
+// don't see an "English" page full of French content and offer to translate.
+i18n.on("languageChanged", (language) => {
+  document.documentElement.lang = language
+})
+document.documentElement.lang = i18n.language
+
 export default i18n
