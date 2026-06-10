@@ -1,6 +1,6 @@
 ---
 name: security-check
-description: Run Trivy vulnerability scan on Docker images (API and Workers). Builds images, scans for CRITICAL/HIGH CVEs, and reports findings.
+description: Run Trivy vulnerability scan on Docker images (API, CPU workers, GPU workers). Builds images, scans for CRITICAL/HIGH CVEs, and reports findings.
 user_invocable: true
 ---
 
@@ -9,8 +9,8 @@ Run a local Trivy security scan matching the CI pipeline configuration.
 ## Steps
 
 1. Run `make trivy-scan` from the repo root using the Bash tool. This will:
-   - Build the Docker images (`caseai-connect/api:local` and `caseai-connect/workers:local`)
-   - Scan both images with Trivy for CRITICAL and HIGH vulnerabilities
+   - Build the Docker images (`caseai-connect/api:local`, `caseai-connect/cpu-workers:local`, and `caseai-connect/gpu-workers:local`)
+   - Scan all three images with Trivy for CRITICAL and HIGH vulnerabilities
    - Apply `.trivyignore.yaml` exclusions
 
 2. If the scan **passes** (exit code 0): report that no unignored CRITICAL/HIGH vulnerabilities were found.

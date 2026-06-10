@@ -29,7 +29,7 @@ if (-not $PythonBin) {
     [Console]::Error.WriteLine("  - $PythonBinDocker")
     [Console]::Error.WriteLine("  - $PythonBinRepoWin")
     [Console]::Error.WriteLine("  - $PythonBinRepoUnix")
-    [Console]::Error.WriteLine("Create the repo venv (.venv) locally, or run inside the Docker workers-runtime image.")
+    [Console]::Error.WriteLine("Create the repo venv (.venv) locally, or run inside the Docker gpu-workers-runtime image.")
     exit 1
 }
 

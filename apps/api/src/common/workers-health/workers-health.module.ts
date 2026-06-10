@@ -1,12 +1,12 @@
 import { BullModule } from "@nestjs/bullmq"
 import { Module } from "@nestjs/common"
-import { DOCUMENT_EMBEDDINGS_QUEUE_NAME } from "@/domains/documents/embeddings/document-embeddings.constants"
+import { WORKERS_HEALTH_QUEUE_NAME } from "./workers-health.constants"
 import { WorkersHealthController } from "./workers-health.controller"
 
 @Module({
   imports: [
     BullModule.registerQueue({
-      name: DOCUMENT_EMBEDDINGS_QUEUE_NAME,
+      name: WORKERS_HEALTH_QUEUE_NAME,
     }),
   ],
   controllers: [WorkersHealthController],

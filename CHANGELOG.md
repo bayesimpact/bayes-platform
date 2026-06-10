@@ -13,6 +13,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - In-platform help chat: set `VITE_HELP_AGENT_EMBED_TOKEN` to inject the embed launcher into the Studio — a floating chat bubble lets users ask questions about the platform directly from within the app
 
 ### Changed
+- Workers can run as separate CPU and GPU pools: each worker instance now selects which queues it consumes via the required `WORKER_QUEUE_NAMES` env var (fails fast if unset or unknown), instead of every instance consuming all queues
+- Workers ship as two Docker images — a CPU image (no Docling) and a GPU image (Docling/Torch included) — built from the `cpu-workers-runtime` and `gpu-workers-runtime` targets
 
 ### Fixed
 

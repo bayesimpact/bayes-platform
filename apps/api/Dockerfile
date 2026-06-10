@@ -59,9 +59,20 @@ FROM runtime-base AS api-runtime
 CMD ["node", "--enable-source-maps", "/app/apps/api/dist/main.js"]
 
 #
-# 🚀 Workers Runtime (Docling enabled)
+# 🚀 CPU Workers Runtime (no Docling)
 #
-FROM runtime-base AS workers-runtime
+# Runs the same workers entrypoint as the GPU image; which queues it consumes is
+# selected at runtime via WORKER_QUEUE_NAMES, and Docling is left disabled
+# (DOCUMENT_EXTRACTOR_DOCLING_ENABLED=false). No Python/Torch/Docling layers.
+#
+FROM runtime-base AS cpu-workers-runtime
+
+CMD ["node", "--enable-source-maps", "/app/apps/api/dist/workers-main.js"]
+
+#
+# 🚀 GPU Workers Runtime (Docling enabled)
+#
+FROM runtime-base AS gpu-workers-runtime
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   python3 python3-pip python3-venv \
