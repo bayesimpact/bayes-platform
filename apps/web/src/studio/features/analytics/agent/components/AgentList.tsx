@@ -10,6 +10,7 @@ import { useValue } from "@/common/hooks/use-value"
 import { AgentCreatorButton } from "@/studio/features/agents/components/AgentCreator"
 import { AnalyticsButton } from "@/studio/features/agents/components/AnalyticsButton"
 import { DocumentsButton } from "@/studio/features/agents/components/DocumentsButton"
+import { WebSourcesButton } from "@/studio/features/agents/components/WebSourcesButton"
 import { EvaluationButton } from "@/studio/features/agents/components/EvaluationButton"
 import { MembersButton } from "@/studio/features/agents/components/MembersButton"
 import { ProjectDeletor } from "@/studio/features/projects/components/ProjectDeletor"
@@ -58,6 +59,7 @@ export function AgentList() {
 
         <AgentCreatorButton project={project} />
         <DocumentsButton />
+        <WebSourcesButton />
         <MembersButton />
         <ReviewCampaignsButton />
         <AnalyticsButton />
