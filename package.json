@@ -33,6 +33,9 @@
     "apps/*",
     "packages/*"
   ],
+  "overrides": {
+    "typeorm": "^0.3.29"
+  },
   "dependencies": {
     "@ai-sdk/open-responses": "^1.0.4",
     "@ai-sdk/openai": "^3.0.41",

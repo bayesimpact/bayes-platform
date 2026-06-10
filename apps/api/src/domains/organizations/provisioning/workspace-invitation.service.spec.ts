@@ -1,4 +1,3 @@
-import { DataSource } from "typeorm"
 import { clearTestDatabase } from "@/common/test/test-database"
 import {
   setupTransactionalTestDatabase,
@@ -46,8 +45,7 @@ describe("WorkspaceInvitationService", () => {
     projectRepository = repositories.projectRepository
     projectMembershipRepository = repositories.projectMembershipRepository
     invitationRepository = repositories.invitationRepository
-    const dataSource = setup.module.get(DataSource)
-    service = new WorkspaceInvitationService(mockInvitationSender, dataSource)
+    service = new WorkspaceInvitationService(mockInvitationSender, setup.dataSource)
   })
 
   beforeEach(async () => {

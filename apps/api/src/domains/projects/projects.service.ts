@@ -1,6 +1,6 @@
 import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
 import { Injectable } from "@nestjs/common"
-import { InjectRepository } from "@nestjs/typeorm"
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: DataSource required at runtime for NestJS DI
 import { DataSource, type Repository } from "typeorm"
 import { ALL_ENTITIES } from "@/common/all-entities"
@@ -16,7 +16,7 @@ export class ProjectsService {
     @InjectRepository(Project) private readonly projectRepository: Repository<Project>,
     @InjectRepository(FeatureFlag) private readonly featureFlagRepository: Repository<FeatureFlag>,
     private readonly projectMembershipsService: ProjectMembershipsService,
-    private readonly dataSource: DataSource,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async createProject(params: {

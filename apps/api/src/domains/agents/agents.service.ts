@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
-import { InjectRepository } from "@nestjs/typeorm"
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: DataSource required at runtime for NestJS DI
 import { DataSource, In, type Repository } from "typeorm"
 import { ALL_ENTITIES } from "@/common/all-entities"
@@ -31,7 +31,7 @@ export class AgentsService {
     private readonly documentTagsService: DocumentTagsService,
     private readonly agentCategoriesService: AgentCategoriesService,
     private readonly agentMembershipsService: AgentMembershipsService,
-    private readonly dataSource: DataSource,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {
     this.agentConnectRepository = new ConnectRepository(agentRepository, "agents")
   }
