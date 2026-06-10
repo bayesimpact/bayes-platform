@@ -16,6 +16,7 @@ import { WEB_SOURCE_EMBEDDINGS_QUEUE_NAME } from "./domains/documents/crawling/w
 import { WebSourceEmbeddingsWorkersModule } from "./domains/documents/crawling/web-source-embeddings-workers.module"
 import { DOCUMENT_EMBEDDINGS_QUEUE_NAME } from "./domains/documents/embeddings/document-embeddings.constants"
 import { DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME } from "./domains/documents/embeddings/document-embeddings-stuck.constants"
+import { DocumentEmbeddingsStuckSweepWorkersModule } from "./domains/documents/embeddings/document-embeddings-stuck-sweep-workers.module"
 import { DocumentEmbeddingsWorkersModule } from "./domains/documents/embeddings/document-embeddings-workers.module"
 import { StorageModule } from "./domains/documents/storage/storage.module"
 import {
@@ -46,7 +47,11 @@ const WORKER_MODULE_REGISTRY: { module: Type<unknown>; queues: string[] }[] = [
   },
   {
     module: DocumentEmbeddingsWorkersModule,
-    queues: [DOCUMENT_EMBEDDINGS_QUEUE_NAME, DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME],
+    queues: [DOCUMENT_EMBEDDINGS_QUEUE_NAME],
+  },
+  {
+    module: DocumentEmbeddingsStuckSweepWorkersModule,
+    queues: [DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME],
   },
   {
     module: WebSourceEmbeddingsWorkersModule,

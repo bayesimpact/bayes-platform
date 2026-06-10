@@ -9,10 +9,6 @@ import { DocumentEmbeddingStatusNotifierService } from "./document-embedding-sta
 import { DOCUMENT_EMBEDDINGS_QUEUE_NAME } from "./document-embeddings.constants"
 import { DocumentEmbeddingsWorker } from "./document-embeddings.worker"
 import { DocumentEmbeddingsProcessorService } from "./document-embeddings-processor.service"
-import { DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME } from "./document-embeddings-stuck.constants"
-import { DocumentEmbeddingsStuckSweepService } from "./document-embeddings-stuck-sweep.service"
-import { DocumentEmbeddingsStuckSweepWorker } from "./document-embeddings-stuck-sweep.worker"
-import { DocumentEmbeddingsStuckSweepSchedulerService } from "./document-embeddings-stuck-sweep-scheduler.service"
 import { DocumentTextExtractorService } from "./document-text-extractor.service"
 import { QueueMetricsService } from "./queue-metrics.service"
 
@@ -20,9 +16,6 @@ import { QueueMetricsService } from "./queue-metrics.service"
   imports: [
     BullModule.registerQueue({
       name: DOCUMENT_EMBEDDINGS_QUEUE_NAME,
-    }),
-    BullModule.registerQueue({
-      name: DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME,
     }),
     TypeOrmModule.forFeature(ALL_ENTITIES),
     StorageModule,
@@ -35,9 +28,6 @@ import { QueueMetricsService } from "./queue-metrics.service"
     DocumentsService,
     DocumentTagsService,
     QueueMetricsService,
-    DocumentEmbeddingsStuckSweepService,
-    DocumentEmbeddingsStuckSweepWorker,
-    DocumentEmbeddingsStuckSweepSchedulerService,
   ],
 })
 export class DocumentEmbeddingsWorkersModule {}
