@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common"
-import { InjectRepository } from "@nestjs/typeorm"
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource, In, type Repository } from "typeorm"
 import { AgentMembership } from "../agents/memberships/agent-membership.entity"
@@ -46,7 +46,7 @@ export class BackofficeService {
     private readonly projectMembershipRepository: Repository<ProjectMembership>,
     @InjectRepository(AgentMembership)
     private readonly agentMembershipRepository: Repository<AgentMembership>,
-    private readonly dataSource: DataSource,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async listOrganizationsWithProjects({

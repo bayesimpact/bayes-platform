@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common"
-import { InjectRepository } from "@nestjs/typeorm"
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource } from "typeorm"
@@ -35,6 +35,7 @@ export class OrganizationAccountProvisioningService {
     private readonly organizationMembershipRepository: Repository<OrganizationMembership>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectDataSource()
     private readonly dataSource: DataSource,
   ) {}
 

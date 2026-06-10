@@ -1,6 +1,6 @@
 import type { ReplaceAgentSubAgentDto } from "@caseai-connect/api-contracts"
 import { Injectable, UnprocessableEntityException } from "@nestjs/common"
-import { InjectRepository } from "@nestjs/typeorm"
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: DataSource required at runtime for NestJS DI
 import { DataSource, In, type Repository } from "typeorm"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
@@ -14,7 +14,7 @@ export class AgentSubAgentsService {
     private readonly agentSubAgentRepository: Repository<AgentSubAgent>,
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
-    private readonly dataSource: DataSource,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async listSubAgents({
