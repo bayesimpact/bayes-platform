@@ -1,5 +1,7 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
+import { createSlice, isAnyOf, type PayloadAction } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
+import { conversationAgentSessionsActions } from "../../conversation/conversation-agent-sessions.slice"
+import { formAgentSessionsActions } from "../../form/form-agent-sessions.slice"
 import type { AgentSessionMessage } from "./agent-session-messages.models"
 import { getMessage, listMessages } from "./agent-session-messages.thunks"
 
@@ -112,6 +114,15 @@ const slice = createSlice({
         state.data.value[messageIndex] = updatedMessage
       }
     })
+
+    // Reset messages state when an agent session is unmounted
+    builder.addMatcher(
+      isAnyOf(
+        conversationAgentSessionsActions.sessionUnmount,
+        formAgentSessionsActions.sessionUnmount,
+      ),
+      () => initialState,
+    )
   },
 })
 

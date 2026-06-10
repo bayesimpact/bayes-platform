@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { useRoutesBuilder } from "@/common/routes/build-routes/context"
 import { useAppDispatch } from "@/common/store/hooks"
-import { createAgentSession } from "../base-agent-sessions.thunks"
+import { createAgentChatSession } from "../base-agent-sessions.thunks"
 
 export function BaseAgentSessionCreator({
   agentType,
@@ -35,7 +35,7 @@ export function BaseAgentSessionCreator({
     () =>
       throttle(
         () => {
-          dispatch(createAgentSession({ agentType, agentId: ids.agentId, onSuccess }))
+          dispatch(createAgentChatSession({ agentType, agentId: ids.agentId, onSuccess }))
         },
         2000,
         { trailing: false },

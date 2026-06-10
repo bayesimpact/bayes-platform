@@ -10,6 +10,7 @@
     "scope": {
       "title": "Records to run",
       "all": "Run entire dataset ({{count}} records)",
+      "allUnknown": "Run entire dataset",
       "limited": "Run a subset of records"
     },
     "keyMapping": {

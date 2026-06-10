@@ -137,7 +137,7 @@ listenerMiddleware.startListening({
 
 - **`useSetCurrentIds` MUST be at the same level as `useInitStore`** — the `initDone` gate ensures IDs are set before children mount. Putting `useSetCurrentIds` in a child creates a race condition (React fires child effects before parent effects).
 - **Page/leaf components MUST NOT dispatch data loading** — all loading is in route wrappers + middleware. Leaf components assume data is available.
-- **Use `useMount` hook, not raw `useEffect`** for mount/unmount — `useMount` standardizes the pattern and prevents mistakes.
+- **Use `useMount` hook, not raw `useEffect`** for mount/unmount — `useMount` standardizes the pattern and prevents mistakes. It accepts `{ actions, condition?, refreshOn? }`. Pass `refreshOn: (string | null)[]` when the route stays mounted but must re-fetch as a current ID changes (e.g. `refreshOn: [agentSessionId]` re-runs `unmount` then `mount` when the session switches in place). Without it the effect only fires once on mount.
 - **Conditions come from Redux selectors, not `useParams`** — the route reads `useAppSelector(selectCurrentXxxId)` to match the eval pattern.
 - **Each sub-route level needing its own data gets its own `mount`/`unmount` actions** — allows dedicated middleware listeners and avoids overloading a single `mount` action.
 

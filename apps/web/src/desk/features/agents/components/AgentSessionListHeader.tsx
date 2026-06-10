@@ -5,17 +5,16 @@ import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/gri
 import { BaseAgentSessionCreator } from "@/common/features/agents/agent-sessions/shared/base-agent-session/components/BaseAgentSessionCreator"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
+import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
+import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useGetAgentRoute, useGetProjectRoute } from "@/common/hooks/use-get-path"
+import { useCurrentId } from "@/common/hooks/use-value"
 
 export function AgentSessionListHeader({
   agent,
   withBorderBottom,
   backTo,
-  projectId,
-  organizationId,
 }: {
-  projectId: string
-  organizationId: string
   agent: Agent
   withBorderBottom: boolean
   backTo: "agent" | "project"
@@ -46,30 +45,17 @@ export function AgentSessionListHeader({
       />
 
       <GridContent>
-        <CreateButton
-          agent={agent}
-          organizationId={organizationId}
-          projectId={projectId}
-          withBorderBottom={withBorderBottom}
-        />
+        <CreateButton agent={agent} withBorderBottom={withBorderBottom} />
       </GridContent>
     </Grid>
   )
 }
 
-function CreateButton({
-  agent,
-  organizationId,
-  projectId,
-  withBorderBottom,
-}: {
-  agent: Agent
-  organizationId: string
-  projectId: string
-  withBorderBottom?: boolean
-}) {
+function CreateButton({ agent, withBorderBottom }: { agent: Agent; withBorderBottom?: boolean }) {
   const { t } = useTranslation()
   const prefix = `${agent.type}AgentSession`
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
   return (
     <GridCard className={cn("bg-muted/35", withBorderBottom && "border-b")}>
       <GridCard.Body>

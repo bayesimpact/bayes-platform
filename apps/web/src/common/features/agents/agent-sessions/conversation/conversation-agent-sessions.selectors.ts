@@ -17,45 +17,39 @@ const missingAgentSessions = {
 
 export const selectCurrentConversationAgentSessionsData = createSelector(
   [selectCurrentAgentData, selectConversationAgentSessionsData],
-  (agentData, sessionsData): AsyncData<ConversationAgentSession[]> => {
-    if (!ADS.isFulfilled(agentData)) return { ...agentData }
-
-    if (!ADS.isFulfilled(sessionsData)) return { ...sessionsData }
-
-    const value = sessionsData.value[agentData.value.id]
-    if (!value) return missingAgentSessions
-
-    return { status: ADS.Fulfilled, value, error: null }
+  (agent, data): AsyncData<ConversationAgentSession[]> => {
+    if (!ADS.isFulfilled(agent)) return { ...agent }
+    const currentAgentSessions = data[agent.value.id]
+    if (!currentAgentSessions) return missingAgentSessions
+    return currentAgentSessions
   },
 )
 
 export const selectCurrentConversationAgentSessionsDataFromAgentId = (agentId?: string | null) =>
   createSelector(
     [selectConversationAgentSessionsData],
-    (conversationAgentSessionsData): AsyncData<ConversationAgentSession[]> => {
+    (data): AsyncData<ConversationAgentSession[]> => {
       if (!agentId) return missingAgentId
+      if (!data[agentId]) return missingAgentSessions
 
-      if (!ADS.isFulfilled(conversationAgentSessionsData))
-        return { ...conversationAgentSessionsData }
-
-      const agentSessions = conversationAgentSessionsData.value[agentId]
+      const agentSessions = data[agentId]
       if (!agentSessions) return missingAgentSessions
 
-      return { status: ADS.Fulfilled, value: agentSessions, error: null }
+      return agentSessions
     },
   )
 
 export const selectCurrentConversationAgentSessionData = createSelector(
   [selectCurrentConversationAgentSessionsData, selectCurrentAgentSessionId],
-  (conversationAgentSessionsData, agentSessionId): AsyncData<ConversationAgentSession> => {
-    if (!ADS.isFulfilled(conversationAgentSessionsData)) return { ...conversationAgentSessionsData }
+  (sessions, agentSessionId): AsyncData<ConversationAgentSession> => {
+    if (!ADS.isFulfilled(sessions)) return { ...sessions }
 
     if (!agentSessionId) {
-      // Return laoding on purpose
+      // Return loading on purpose
       return { status: ADS.Loading, value: null, error: null }
     }
 
-    const agentSession = conversationAgentSessionsData.value.find((cs) => cs.id === agentSessionId)
+    const agentSession = sessions.value.find((cs) => cs.id === agentSessionId)
 
     if (!agentSession)
       return {

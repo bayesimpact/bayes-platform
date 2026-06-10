@@ -1,0 +1,59 @@
+{
+  "agentCsvExtractionRun": {
+    "dialog": {
+      "title": "Run CSV Extraction",
+      "description": "Run each record through the agent.",
+      "uploadStep": "Upload CSV",
+      "columnsStep": "Configure Columns",
+      "scopeStep": "Run Settings",
+      "upload": "Upload a CSV file",
+      "selectFile": "Select file",
+      "run": "Run",
+      "cancel": "Cancel",
+      "back": "Back",
+      "next": "Next"
+    },
+    "columns": {
+      "title": "Configure column roles",
+      "description": "Select the role for each column in your CSV file.",
+      "roles": {
+        "input": "Input",
+        "reference": "Reference",
+        "ignore": "Ignore"
+      },
+      "selectAll": "Select all",
+      "selectedCount": "{{count}} selected",
+      "bulkApply": "Apply role to selected",
+      "columnHeader": "Column",
+      "roleHeader": "Role"
+    },
+    "results": {
+      "title": "CSV Extraction Results",
+      "summary": "Summary",
+      "processing": "Processing records...",
+      "total": "Total",
+      "processed": "Processed",
+      "errors": "Errors",
+      "remaining_one": "{{count}} remaining",
+      "remaining_other": "{{count}} remaining",
+      "remaining_zero": "{{count}} remaining",
+      "duration": "Duration: {{duration}}",
+      "cancel": "Cancel",
+      "retry": "Retry",
+      "exportCsv": "Export CSV",
+      "running": "Running",
+      "success": "Success",
+      "error": "Error",
+      "pending": "Pending",
+      "completed": "Completed",
+      "failed": "Failed",
+      "cancelled": "Cancelled",
+      "index": "#",
+      "status": "Status",
+      "output": "Output",
+      "errorDetails": "Error Details",
+      "noRecords": "No records found",
+      "processingDescription": "{{processed}} of {{total}} records processed."
+    }
+  }
+}

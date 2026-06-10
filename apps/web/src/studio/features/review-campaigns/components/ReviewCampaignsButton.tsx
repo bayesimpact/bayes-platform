@@ -5,15 +5,14 @@ import { useNavigate } from "react-router-dom"
 import { GridCard } from "@/common/components/grid/Grid"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
-import { useAppSelector } from "@/common/store/hooks"
+import { useCurrentId } from "@/common/hooks/use-value"
 import { StudioRoutes } from "@/studio/routes/helpers"
 
 export function ReviewCampaignsButton() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const organizationId = useAppSelector(selectCurrentOrganizationId)
-  const projectId = useAppSelector(selectCurrentProjectId)
-  if (!organizationId || !projectId) return null
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
   const path = StudioRoutes.reviewCampaigns.build({ organizationId, projectId })
   const handleClick = () => {
     navigate(path)

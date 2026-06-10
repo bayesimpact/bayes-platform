@@ -6,23 +6,20 @@ import type { FormAgentSession } from "./form-agent-sessions.models"
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
 
-export const refreshFormResultForCurrentAgentSession = createAsyncThunk<
-  FormAgentSession[],
-  { agentId: string },
-  ThunkConfig
->(
-  "formAgentSession/refreshFormResultForCurrentAgentSession",
+const getAll = createAsyncThunk<FormAgentSession[], { agentId: string }, ThunkConfig>(
+  "formAgentSessions/getAll",
   async ({ agentId }, { extra: { services }, getState }) => {
     const state = getState()
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
-    const params = { organizationId, projectId }
-    // NOTE: this is a proxy of listFormAgentSessions because middleware listener causes a bug on messages.
-    // TODO: need a dedicated endpoint
+
     return services.formAgentSessions.getAll({
-      ...params,
+      organizationId,
+      projectId,
       agentId,
       type: buildType(),
     })
   },
 )
+
+export const formAgentSessionsThunks = { getAll }

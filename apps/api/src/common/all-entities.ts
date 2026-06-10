@@ -8,6 +8,8 @@ import { AgentCategory } from "@/domains/agents/categories/agent-category.entity
 import { ProjectAgentCategory } from "@/domains/agents/categories/project-agent-category.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ConversationAgentSessionCategory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity"
+import { AgentCsvExtractionRun } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run.entity"
+import { AgentCsvExtractionRunRecord } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run-record.entity"
 import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
 import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import { AgentMembership } from "@/domains/agents/memberships/agent-membership.entity"
@@ -57,6 +59,8 @@ export const ALL_ENTITIES = [
   AgentMessageAttachmentDocument,
   AgentMessageFeedback,
   AgentSubAgent,
+  AgentCsvExtractionRun,
+  AgentCsvExtractionRunRecord,
   ConversationAgentSession,
   ConversationAgentSessionCategory,
   Document,

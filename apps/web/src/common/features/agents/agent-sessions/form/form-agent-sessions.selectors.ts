@@ -16,44 +16,36 @@ const missingAgentSessions = {
 
 export const selectCurrentFormAgentSessionsData = createSelector(
   [selectCurrentAgentData, selectFormAgentSessionsData],
-  (agentData, sessionsData): AsyncData<FormAgentSession[]> => {
-    if (!ADS.isFulfilled(agentData)) return { ...agentData }
-
-    if (!ADS.isFulfilled(sessionsData)) return { ...sessionsData }
-
-    const value = sessionsData.value[agentData.value.id]
-    if (!value) return missingAgentSessions
-
-    return { status: ADS.Fulfilled, value, error: null }
+  (agent, data): AsyncData<FormAgentSession[]> => {
+    if (!ADS.isFulfilled(agent)) return { ...agent }
+    const currentAgentSessions = data[agent.value.id]
+    if (!currentAgentSessions) return missingAgentSessions
+    return currentAgentSessions
   },
 )
 
 export const selectCurrentFormAgentSessionsDataFromAgentId = (agentId?: string | null) =>
-  createSelector(
-    [selectFormAgentSessionsData],
-    (formAgentSessionsData): AsyncData<FormAgentSession[]> => {
-      if (!agentId) return missingAgentId
+  createSelector([selectFormAgentSessionsData], (data): AsyncData<FormAgentSession[]> => {
+    if (!agentId) return missingAgentId
+    if (!data[agentId]) return missingAgentSessions
 
-      if (!ADS.isFulfilled(formAgentSessionsData)) return { ...formAgentSessionsData }
+    const agentSessions = data[agentId]
+    if (!agentSessions) return missingAgentSessions
 
-      const agentSessions = formAgentSessionsData.value[agentId]
-      if (!agentSessions) return missingAgentSessions
-
-      return { status: ADS.Fulfilled, value: agentSessions, error: null }
-    },
-  )
+    return agentSessions
+  })
 
 export const selectCurrentFormAgentSessionData = createSelector(
   [selectCurrentFormAgentSessionsData, selectCurrentAgentSessionId],
-  (formAgentSessionsData, agentSessionId): AsyncData<FormAgentSession> => {
-    if (!ADS.isFulfilled(formAgentSessionsData)) return { ...formAgentSessionsData }
+  (sessions, agentSessionId): AsyncData<FormAgentSession> => {
+    if (!ADS.isFulfilled(sessions)) return { ...sessions }
 
     if (!agentSessionId) {
-      // Return laoding on purpose
+      // Return loading on purpose
       return { status: ADS.Loading, value: null, error: null }
     }
 
-    const agentSession = formAgentSessionsData.value.find((cs) => cs.id === agentSessionId)
+    const agentSession = sessions.value.find((cs) => cs.id === agentSessionId)
 
     if (!agentSession)
       return {

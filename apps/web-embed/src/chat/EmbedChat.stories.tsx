@@ -173,3 +173,18 @@ export const CustomLogo: Story = {
     },
   },
 }
+
+export const DisplayModeDrawer: Story = {
+  name: "Display mode — Drawer",
+  decorators: [
+    (Story) => (
+      <div className="h-screen w-[400px] overflow-hidden shadow-xl">
+        <Story />
+      </div>
+    ),
+  ],
+  args: {
+    messages: shortConversation,
+    displayMode: "drawer",
+  },
+}

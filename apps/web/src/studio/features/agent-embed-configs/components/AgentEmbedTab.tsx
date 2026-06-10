@@ -40,6 +40,7 @@ const emptyFormState: EmbedFormState = {
   logoUrl: "",
   primaryColor: "",
 }
+
 export function AgentEmbedTab() {
   const config = useAppSelector(selectAgentEmbedConfig)
 

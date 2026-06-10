@@ -7,6 +7,9 @@ type BuildAgentRoute = typeof StudioRoutes.agent.build | typeof DeskRoutes.agent
 type BuildAgentSessionRoute =
   | typeof StudioRoutes.agentSession.build
   | typeof DeskRoutes.agentSession.build
+export type BuildAgentExtractionCsvRunRoute =
+  | typeof StudioRoutes.agentExtractionCsvRun.build
+  | typeof DeskRoutes.agentExtractionCsvRun.build
 
 export interface UseBuildRoutesContextValue {
   build: {

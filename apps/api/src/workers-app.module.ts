@@ -5,6 +5,7 @@ import { TypeOrmModule } from "@nestjs/typeorm"
 import { getBullMqConnection } from "./bullmq.config"
 import { WorkersHealthModule } from "./common/workers-health/workers-health.module"
 import typeorm from "./config/typeorm"
+import { AgentCsvExtractionRunWorkersModule } from "./domains/agents/csv-extraction-runs/agent-csv-extraction-run-workers.module"
 import { UrlCrawlingWorkersModule } from "./domains/documents/crawling/url-crawling-workers.module"
 import { WebSourceEmbeddingsWorkersModule } from "./domains/documents/crawling/web-source-embeddings-workers.module"
 import { DocumentEmbeddingsWorkersModule } from "./domains/documents/embeddings/document-embeddings-workers.module"
@@ -29,6 +30,7 @@ import { EvaluationExtractionRunWorkersModule } from "./domains/evaluations/extr
       }),
     }),
     DocumentEmbeddingsWorkersModule,
+    AgentCsvExtractionRunWorkersModule,
     EvaluationExtractionRunWorkersModule,
     UrlCrawlingWorkersModule,
     WebSourceEmbeddingsWorkersModule,

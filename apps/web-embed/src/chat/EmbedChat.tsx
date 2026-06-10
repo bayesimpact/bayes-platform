@@ -1,4 +1,4 @@
-import type { AgentSessionMessageDto } from "@caseai-connect/api-contracts"
+import type { AgentSessionMessageDto, EmbedDisplayMode } from "@caseai-connect/api-contracts"
 import { useEffect, useMemo, useRef } from "react"
 import { I18nextProvider, useTranslation } from "react-i18next"
 import type { SupportedLocale } from "../i18n"
@@ -29,6 +29,8 @@ export type EmbedChatProps = {
   theme?: EmbedChatTheme
   /** UI language. Defaults to "en". */
   locale?: SupportedLocale
+  /** Controls how the chat container is presented. "modal" uses rounded corners; "drawer" fills its container edge-to-edge. */
+  displayMode?: EmbedDisplayMode
   /** All messages to display, in order */
   messages: AgentSessionMessageDto[]
   /** Whether the assistant is currently streaming a response */
@@ -62,6 +64,7 @@ export function EmbedChat(props: EmbedChatProps) {
 function EmbedChatInner({
   agentName,
   theme,
+  displayMode = "modal",
   messages,
   isStreaming,
   onSendMessage,
@@ -91,7 +94,7 @@ function EmbedChatInner({
   }
 
   return (
-    <Chat primaryColor={theme?.primaryColor}>
+    <Chat primaryColor={theme?.primaryColor} displayMode={displayMode}>
       <ChatHeader agentName={agentName} logoUrl={theme?.logoUrl} onClose={onClose} />
 
       <ChatContent>

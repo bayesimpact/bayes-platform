@@ -786,6 +786,25 @@
   },
   {
     "type": "cycle",
+    "from": "src/domains/agents/csv-extraction-runs/agent-csv-extraction-run-record.entity.ts",
+    "to": "src/domains/agents/csv-extraction-runs/agent-csv-extraction-run.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/domains/agents/csv-extraction-runs/agent-csv-extraction-run.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/csv-extraction-runs/agent-csv-extraction-run-record.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
     "from": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
     "to": "src/domains/documents/document.entity.ts",
     "rule": {
@@ -2650,60 +2669,6 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/agents/agents.service.ts",
-    "to": "src/domains/evaluations/extraction/runs/evaluation-extraction-run.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/agents.service.ts",
-    "to": "src/domains/evaluations/reports/evaluation-report.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/agents.service.ts",
-    "to": "src/domains/mcp-servers/agent-mcp-server.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/agents.service.ts",
-    "to": "src/domains/public-chat/agent-embed-configs/agent-embed-config.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/agents.service.ts",
-    "to": "src/domains/public-chat/public-agent-sessions/public-agent-session.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/agents.service.ts",
-    "to": "src/domains/review-campaigns/review-campaign.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
     "from": "src/domains/agents/base-agent-sessions/base-agent-sessions-module.helpers.ts",
     "to": "src/domains/documents/document.entity.ts",
     "rule": {
@@ -2778,6 +2743,42 @@
     "type": "dependency",
     "from": "src/domains/agents/conversation-agent-sessions/agent-sessions-service-tests/test-setup.ts",
     "to": "src/domains/users/user.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/agents/csv-extraction-runs/agent-csv-extraction-runs.module.ts",
+    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/agents/csv-extraction-runs/agent-csv-extraction-runs.module.ts",
+    "to": "src/domains/organizations/organization.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/agents/csv-extraction-runs/agent-csv-extraction-runs.module.ts",
+    "to": "src/domains/projects/memberships/project-membership.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/agents/csv-extraction-runs/agent-csv-extraction-runs.module.ts",
+    "to": "src/domains/projects/project.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3956,42 +3957,6 @@
   {
     "type": "dependency",
     "from": "src/domains/projects/projects.service.ts",
-    "to": "src/domains/agents/agent.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/projects/projects.service.ts",
-    "to": "src/domains/documents/document.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/projects/projects.service.ts",
-    "to": "src/domains/evaluations/evaluation.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/projects/projects.service.ts",
-    "to": "src/domains/evaluations/reports/evaluation-report.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/projects/projects.service.ts",
     "to": "src/domains/feature-flags/feature-flag.entity.ts",
     "rule": {
       "severity": "error",
@@ -4333,6 +4298,24 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/agents/csv-extraction-runs/agent-csv-extraction-run-csv-export.service.ts",
+    "to": "src/domains/documents/documents.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/agents/csv-extraction-runs/agent-csv-extraction-runs.controller.ts",
+    "to": "src/domains/documents/documents.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/agents/extraction-agent-sessions/extraction-agent-sessions.service.ts",
     "to": "src/domains/documents/documents.service.ts",
     "rule": {
@@ -4470,15 +4453,6 @@
     "type": "dependency",
     "from": "src/domains/projects/memberships/project-memberships.service.ts",
     "to": "src/domains/agents/memberships/agent-memberships.service.ts",
-    "rule": {
-      "severity": "warn",
-      "name": "no-cross-domain-service-reach"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/projects/projects.service.ts",
-    "to": "src/domains/agents/agents.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"
