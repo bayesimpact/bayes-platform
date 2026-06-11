@@ -176,27 +176,4 @@ describe("Backoffice - Auth", () => {
       expectResponse(await subject(randomUUID()), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
-
-  describe("BackofficeRoutes.replaceProjectSessionCategories", () => {
-    const subject = async (projectId: string) =>
-      request({
-        route: BackofficeRoutes.replaceProjectSessionCategories,
-        pathParams: { projectId },
-        token: accessToken ?? undefined,
-        request: { payload: { categoryNames: ["Billing"] } },
-      })
-
-    it("requires an authentication token", async () => {
-      accessToken = null
-      expectResponse(await subject(randomUUID()), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
-    })
-
-    it("rejects unauthorized users", async () => {
-      await createOrganizationWithOwner(repositories, {
-        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
-      })
-      process.env.BACKOFFICE_AUTHORIZED_DOMAIN = "@other-domain.test"
-      expectResponse(await subject(randomUUID()), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-    })
-  })
 })

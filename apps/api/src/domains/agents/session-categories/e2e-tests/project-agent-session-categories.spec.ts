@@ -1,4 +1,4 @@
-import { ProjectSessionCategoriesRoutes } from "@caseai-connect/api-contracts"
+import { ProjectAgentSessionCategoriesRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
@@ -14,7 +14,7 @@ import { createOrganizationWithProject } from "@/domains/organizations/organizat
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 
-describe("ProjectSessionCategories", () => {
+describe("ProjectAgentSessionCategories", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
@@ -58,9 +58,11 @@ describe("ProjectSessionCategories", () => {
   }
 
   describe("createOne", () => {
-    const subject = async (payload?: typeof ProjectSessionCategoriesRoutes.createOne.request) =>
+    const subject = async (
+      payload?: typeof ProjectAgentSessionCategoriesRoutes.createOne.request,
+    ) =>
       request({
-        route: ProjectSessionCategoriesRoutes.createOne,
+        route: ProjectAgentSessionCategoriesRoutes.createOne,
         pathParams: removeNullish({ organizationId, projectId }),
         token: accessToken,
         request: payload,
@@ -89,7 +91,7 @@ describe("ProjectSessionCategories", () => {
       const categoryId = first.body.data.id
 
       await request({
-        route: ProjectSessionCategoriesRoutes.deleteOne,
+        route: ProjectAgentSessionCategoriesRoutes.deleteOne,
         pathParams: removeNullish({ organizationId, projectId, categoryId }),
         token: accessToken,
       })
@@ -128,7 +130,7 @@ describe("ProjectSessionCategories", () => {
   describe("deleteOne", () => {
     const subject = async (categoryId: string) =>
       request({
-        route: ProjectSessionCategoriesRoutes.deleteOne,
+        route: ProjectAgentSessionCategoriesRoutes.deleteOne,
         pathParams: removeNullish({ organizationId, projectId, categoryId }),
         token: accessToken,
       })
@@ -137,7 +139,7 @@ describe("ProjectSessionCategories", () => {
       await createContext()
 
       const created = await request({
-        route: ProjectSessionCategoriesRoutes.createOne,
+        route: ProjectAgentSessionCategoriesRoutes.createOne,
         pathParams: removeNullish({ organizationId, projectId }),
         token: accessToken,
         request: { payload: { name: "Support", assignToAllConversationalAgents: false } },

@@ -1,4 +1,4 @@
-export type CreateProjectSessionCategoryDto = {
+export type CreateProjectAgentSessionCategoryDto = {
   name: string
   assignToAllConversationalAgents: boolean
 }

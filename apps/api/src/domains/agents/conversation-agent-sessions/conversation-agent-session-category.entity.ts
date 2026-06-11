@@ -9,7 +9,7 @@ import {
   UpdateDateColumn,
 } from "typeorm"
 import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
-import { ProjectSessionCategory } from "@/domains/agents/session-categories/project-session-category.entity"
+import { ProjectAgentSessionCategory } from "@/domains/agents/session-categories/project-agent-session-category.entity"
 import { ConversationAgentSession } from "./conversation-agent-session.entity"
 
 @Entity("conversation_agent_session_category")
@@ -24,8 +24,8 @@ export class ConversationAgentSessionCategory {
   @Column({ type: "uuid", name: "agent_session_category_id" })
   agentSessionCategoryId!: string
 
-  @Column({ type: "uuid", name: "project_session_category_id", nullable: true })
-  projectSessionCategoryId!: string | null
+  @Column({ type: "uuid", name: "project_agent_session_category_id", nullable: true })
+  projectAgentSessionCategoryId!: string | null
 
   @CreateDateColumn({ name: "created_at" })
   createdAt!: Date
@@ -50,10 +50,10 @@ export class ConversationAgentSessionCategory {
   agentSessionCategory!: AgentSessionCategory
 
   @ManyToOne(
-    () => ProjectSessionCategory,
-    (projectSessionCategory) => projectSessionCategory.conversationSessionCategories,
+    () => ProjectAgentSessionCategory,
+    (projectAgentSessionCategory) => projectAgentSessionCategory.conversationSessionCategories,
     { onDelete: "CASCADE", nullable: true },
   )
-  @JoinColumn({ name: "project_session_category_id" })
-  projectSessionCategory!: ProjectSessionCategory | null
+  @JoinColumn({ name: "project_agent_session_category_id" })
+  projectAgentSessionCategory!: ProjectAgentSessionCategory | null
 }

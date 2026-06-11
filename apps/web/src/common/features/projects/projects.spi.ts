@@ -1,4 +1,4 @@
-import type { Project, ProjectSessionCategory } from "./projects.models"
+import type { Project, ProjectAgentSessionCategory } from "./projects.models"
 
 export interface IProjectsSpi {
   createOne: (
@@ -16,11 +16,11 @@ export interface IProjectsSpi {
     payload: Pick<Project, "name">,
   ) => Promise<void>
   deleteOne: (params: { organizationId: string; projectId: string }) => Promise<void>
-  addProjectSessionCategory: (
+  addProjectAgentSessionCategory: (
     params: { organizationId: string; projectId: string },
     payload: { name: string; assignToAllConversationalAgents: boolean },
-  ) => Promise<ProjectSessionCategory>
-  deleteProjectSessionCategory: (params: {
+  ) => Promise<ProjectAgentSessionCategory>
+  deleteProjectAgentSessionCategory: (params: {
     organizationId: string
     projectId: string
     categoryId: string

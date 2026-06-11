@@ -13,38 +13,38 @@ import { Input } from "@caseai-connect/ui/shad/input"
 import { PlusIcon, XIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { ProjectSessionCategory } from "@/common/features/projects/projects.models"
+import type { ProjectAgentSessionCategory } from "@/common/features/projects/projects.models"
 import { useAppDispatch } from "@/common/store/hooks"
 import {
-  addProjectSessionCategory,
-  deleteProjectSessionCategory,
+  addProjectAgentSessionCategory,
+  deleteProjectAgentSessionCategory,
 } from "@/studio/features/projects/projects.thunks"
 
-export function ProjectSessionCategoriesForm({
+export function ProjectAgentSessionCategoriesForm({
   categories,
 }: {
-  categories: ProjectSessionCategory[]
+  categories: ProjectAgentSessionCategory[]
 }) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState("")
   const [assignToAllConversationalAgents, setAssignToAllConversationalAgents] = useState(false)
-  const [categoryToRemove, setCategoryToRemove] = useState<ProjectSessionCategory | null>(null)
+  const [categoryToRemove, setCategoryToRemove] = useState<ProjectAgentSessionCategory | null>(null)
 
   const handleAddCategory = async () => {
     const trimmedName = newCategoryName.trim()
     if (!trimmedName) return
     await dispatch(
-      addProjectSessionCategory({ name: trimmedName, assignToAllConversationalAgents }),
+      addProjectAgentSessionCategory({ name: trimmedName, assignToAllConversationalAgents }),
     )
     setNewCategoryName("")
     setAssignToAllConversationalAgents(false)
     setIsAddDialogOpen(false)
   }
 
-  const handleRemoveCategory = async (categoryToDelete: ProjectSessionCategory) => {
-    await dispatch(deleteProjectSessionCategory({ categoryId: categoryToDelete.id }))
+  const handleRemoveCategory = async (categoryToDelete: ProjectAgentSessionCategory) => {
+    await dispatch(deleteProjectAgentSessionCategory({ categoryId: categoryToDelete.id }))
     setCategoryToRemove(null)
   }
 

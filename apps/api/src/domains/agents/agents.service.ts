@@ -13,10 +13,10 @@ import { Agent } from "./agent.entity"
 import { AgentMembershipsService } from "./memberships/agent-memberships.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSessionCategoriesService } from "./session-categories/agent-session-categories.service"
-import { ProjectSessionCategory } from "./session-categories/project-session-category.entity"
+import { ProjectAgentSessionCategory } from "./session-categories/project-agent-session-category.entity"
 
 type AgentProjectCategoriesUpdateFields = {
-  projectSessionCategoryIds?: string[]
+  projectAgentSessionCategoryIds?: string[]
 }
 
 @Injectable()
@@ -26,8 +26,8 @@ export class AgentsService {
   constructor(
     @InjectRepository(Agent)
     agentRepository: Repository<Agent>,
-    @InjectRepository(ProjectSessionCategory)
-    private readonly projectSessionCategoryRepository: Repository<ProjectSessionCategory>,
+    @InjectRepository(ProjectAgentSessionCategory)
+    private readonly projectAgentSessionCategoryRepository: Repository<ProjectAgentSessionCategory>,
     private readonly documentTagsService: DocumentTagsService,
     private readonly agentSessionCategoriesService: AgentSessionCategoriesService,
     private readonly agentMembershipsService: AgentMembershipsService,
@@ -62,7 +62,7 @@ export class AgentsService {
 
     const greetingMessage = normalizeGreetingMessage(fields.greetingMessage)
 
-    const { tagsToAdd, projectSessionCategoryIds, ...agentFields } = fields
+    const { tagsToAdd, projectAgentSessionCategoryIds, ...agentFields } = fields
     const documentTags = await this.resolveDocumentTags({
       currentTags: [],
       tagsToAdd,
@@ -77,10 +77,10 @@ export class AgentsService {
       documentTags,
     })
 
-    if (projectSessionCategoryIds !== undefined) {
-      const selectedProjectCategories = await this.resolveProjectSessionCategories({
+    if (projectAgentSessionCategoryIds !== undefined) {
+      const selectedProjectCategories = await this.resolveProjectAgentSessionCategories({
         projectId: connectScope.projectId,
-        projectSessionCategoryIds,
+        projectAgentSessionCategoryIds,
         withDeleted: false,
       })
       await this.agentSessionCategoriesService.replaceActiveCategoriesForAgent(
@@ -207,10 +207,10 @@ export class AgentsService {
       })
     }
 
-    if (fieldsToUpdate.projectSessionCategoryIds !== undefined) {
-      const selectedProjectCategories = await this.resolveProjectSessionCategories({
+    if (fieldsToUpdate.projectAgentSessionCategoryIds !== undefined) {
+      const selectedProjectCategories = await this.resolveProjectAgentSessionCategories({
         projectId: connectScope.projectId,
-        projectSessionCategoryIds: fieldsToUpdate.projectSessionCategoryIds,
+        projectAgentSessionCategoryIds: fieldsToUpdate.projectAgentSessionCategoryIds,
         withDeleted: true,
       })
       await this.agentSessionCategoriesService.replaceActiveCategoriesForAgent(
@@ -293,30 +293,30 @@ export class AgentsService {
     })
   }
 
-  private async resolveProjectSessionCategories({
+  private async resolveProjectAgentSessionCategories({
     projectId,
-    projectSessionCategoryIds,
+    projectAgentSessionCategoryIds,
     withDeleted,
   }: {
     projectId: string
-    projectSessionCategoryIds: string[]
+    projectAgentSessionCategoryIds: string[]
     withDeleted: boolean
-  }): Promise<Array<Pick<ProjectSessionCategory, "id" | "name">>> {
-    if (projectSessionCategoryIds.length === 0) {
+  }): Promise<Array<Pick<ProjectAgentSessionCategory, "id" | "name">>> {
+    if (projectAgentSessionCategoryIds.length === 0) {
       return []
     }
 
-    const uniqueProjectSessionCategoryIds = [...new Set(projectSessionCategoryIds)]
-    const projectCategories = await this.projectSessionCategoryRepository.find({
+    const uniqueProjectAgentSessionCategoryIds = [...new Set(projectAgentSessionCategoryIds)]
+    const projectCategories = await this.projectAgentSessionCategoryRepository.find({
       where: {
-        id: In(uniqueProjectSessionCategoryIds),
+        id: In(uniqueProjectAgentSessionCategoryIds),
         projectId,
       },
       withDeleted,
       order: { name: "ASC" },
     })
 
-    if (projectCategories.length !== uniqueProjectSessionCategoryIds.length) {
+    if (projectCategories.length !== uniqueProjectAgentSessionCategoryIds.length) {
       throw new UnprocessableEntityException("One or more session categories do not exist")
     }
 

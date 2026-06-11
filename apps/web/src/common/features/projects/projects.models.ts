@@ -7,10 +7,10 @@ export type Project = {
   createdAt: TimeType
   updatedAt: TimeType
   featureFlags: FeatureFlagsDto
-  agentSessionCategories: ProjectSessionCategory[]
+  agentSessionCategories: ProjectAgentSessionCategory[]
 }
 
-export type ProjectSessionCategory = {
+export type ProjectAgentSessionCategory = {
   id: string
   name: string
 }

@@ -2,7 +2,6 @@ import type {
   AgentMembershipRoleDto,
   BackofficeOrganizationDto,
   BackofficeProjectDto,
-  BackofficeProjectSessionCategoryDto,
   BackofficeUserAgentMembershipDto,
   BackofficeUserDto,
   BackofficeUserOrganizationMembershipDto,
@@ -23,13 +22,6 @@ export type BackofficeProject = {
   createdAt: TimeType
   updatedAt: TimeType
   featureFlags: FeatureFlagKey[]
-  agentSessionCategories: BackofficeProjectSessionCategory[]
-}
-
-export type BackofficeProjectSessionCategory = {
-  id: string
-  name: string
-  isUsedInConversation: boolean
 }
 
 export type BackofficeOrganization = {
@@ -74,15 +66,6 @@ export const toBackofficeProject = (dto: BackofficeProjectDto): BackofficeProjec
   createdAt: dto.createdAt,
   updatedAt: dto.updatedAt,
   featureFlags: dto.featureFlags,
-  agentSessionCategories: dto.agentSessionCategories.map(toBackofficeProjectSessionCategory),
-})
-
-export const toBackofficeProjectSessionCategory = (
-  dto: BackofficeProjectSessionCategoryDto,
-): BackofficeProjectSessionCategory => ({
-  id: dto.id,
-  name: dto.name,
-  isUsedInConversation: dto.isUsedInConversation,
 })
 
 export const toBackofficeOrganization = (

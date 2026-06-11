@@ -27,7 +27,6 @@ function registerListeners() {
     matcher: isAnyOf(
       backofficeActions.addFeatureFlag.fulfilled,
       backofficeActions.removeFeatureFlag.fulfilled,
-      backofficeActions.replaceProjectSessionCategories.fulfilled,
     ),
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
@@ -43,7 +42,6 @@ function registerListeners() {
     matcher: isAnyOf(
       backofficeActions.addFeatureFlag.rejected,
       backofficeActions.removeFeatureFlag.rejected,
-      backofficeActions.replaceProjectSessionCategories.rejected,
     ),
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(

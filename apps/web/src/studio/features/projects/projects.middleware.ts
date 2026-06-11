@@ -5,9 +5,9 @@ import { notificationsActions } from "@/common/features/notifications/notificati
 import { listProjects } from "@/common/features/projects/projects.thunks"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
-  addProjectSessionCategory,
+  addProjectAgentSessionCategory,
   deleteProject,
-  deleteProjectSessionCategory,
+  deleteProjectAgentSessionCategory,
   updateProject,
 } from "./projects.thunks"
 
@@ -24,13 +24,16 @@ function registerListeners() {
   })
 
   listenerMiddleware.startListening({
-    matcher: isAnyOf(addProjectSessionCategory.fulfilled, deleteProjectSessionCategory.fulfilled),
+    matcher: isAnyOf(
+      addProjectAgentSessionCategory.fulfilled,
+      deleteProjectAgentSessionCategory.fulfilled,
+    ),
     effect: async (_, listenerApi) => {
       await listenerApi.dispatch(listProjects())
     },
   })
   listenerMiddleware.startListening({
-    actionCreator: addProjectSessionCategory.fulfilled,
+    actionCreator: addProjectAgentSessionCategory.fulfilled,
     effect: async (action, listenerApi) => {
       if (action.meta.arg.assignToAllConversationalAgents) {
         await listenerApi.dispatch(listAgents())
@@ -38,7 +41,10 @@ function registerListeners() {
     },
   })
   listenerMiddleware.startListening({
-    matcher: isAnyOf(addProjectSessionCategory.rejected, deleteProjectSessionCategory.rejected),
+    matcher: isAnyOf(
+      addProjectAgentSessionCategory.rejected,
+      deleteProjectAgentSessionCategory.rejected,
+    ),
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({

@@ -36,7 +36,7 @@
     "seed:review-campaign-tester": "ts-node -r tsconfig-paths/register src/scripts/seed-review-campaign-tester.ts",
     "mcp:link-to-project": "ts-node -r tsconfig-paths/register src/scripts/link-mcp-to-project.ts",
     "agent:set-session-categories": "ts-node -r tsconfig-paths/register src/scripts/set-agent-session-categories.ts",
-    "project:set-session-categories": "ts-node -r tsconfig-paths/register src/scripts/set-project-session-categories.ts",
+    "project:set-agent-session-categories": "ts-node -r tsconfig-paths/register src/scripts/set-project-agent-session-categories.ts",
     "invite:organization-owners": "ts-node -r tsconfig-paths/register src/scripts/invite-organization-owners.ts",
     "invite:manage": "ts-node -r tsconfig-paths/register src/scripts/manage-invitations.ts"
   },

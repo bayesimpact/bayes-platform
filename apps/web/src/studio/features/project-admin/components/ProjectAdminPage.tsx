@@ -6,8 +6,8 @@ import { GridHeader } from "@/common/components/grid/Grid"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useValue } from "@/common/hooks/use-value"
+import { ProjectAgentSessionCategoriesForm } from "./ProjectAgentSessionCategoriesForm"
 import { ProjectGeneralForm } from "./ProjectGeneralForm"
-import { ProjectSessionCategoriesForm } from "./ProjectSessionCategoriesForm"
 
 export function ProjectAdminPage() {
   const { t } = useTranslation()
@@ -39,7 +39,7 @@ export function ProjectAdminPage() {
                 </TabsContent>
 
                 <TabsContent value="categories" forceMount className="data-[state=inactive]:hidden">
-                  <ProjectSessionCategoriesForm categories={project.agentSessionCategories} />
+                  <ProjectAgentSessionCategoriesForm categories={project.agentSessionCategories} />
                 </TabsContent>
               </div>
             </Tabs>

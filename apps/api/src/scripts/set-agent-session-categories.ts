@@ -11,7 +11,7 @@ import {
 } from "@/domains/agents/session-categories/agent-default-session-category-names"
 import { AgentSessionCategoriesService } from "@/domains/agents/session-categories/agent-session-categories.service"
 import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
-import { ProjectSessionCategory } from "@/domains/agents/session-categories/project-session-category.entity"
+import { ProjectAgentSessionCategory } from "@/domains/agents/session-categories/project-agent-session-category.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { ask, confirmDatabaseTarget } from "@/scripts/script-bootstrap"
@@ -37,7 +37,7 @@ type CliOptions = {
       Organization,
       Project,
       Agent,
-      ProjectSessionCategory,
+      ProjectAgentSessionCategory,
       AgentSessionCategory,
     ]),
   ],
@@ -171,8 +171,8 @@ async function selectManyFromList<T>(params: {
 
 function resolveCliSelectedProjectCategories(params: {
   cliOptions: CliOptions
-  availableProjectCategories: ProjectSessionCategory[]
-}): ProjectSessionCategory[] {
+  availableProjectCategories: ProjectAgentSessionCategory[]
+}): ProjectAgentSessionCategory[] {
   if (!params.cliOptions.categoryNames || params.cliOptions.categoryNames.length === 0) {
     return []
   }
@@ -190,7 +190,8 @@ function resolveCliSelectedProjectCategories(params: {
   return requestedCategoryNames
     .map((requestedCategoryName) => categoryByName.get(requestedCategoryName))
     .filter(
-      (projectCategory): projectCategory is ProjectSessionCategory => projectCategory !== undefined,
+      (projectCategory): projectCategory is ProjectAgentSessionCategory =>
+        projectCategory !== undefined,
     )
 }
 
@@ -209,8 +210,8 @@ async function bootstrapCli(): Promise<void> {
     )
     const projectRepository = app.get<Repository<Project>>(getRepositoryToken(Project))
     const agentRepository = app.get<Repository<Agent>>(getRepositoryToken(Agent))
-    const projectSessionCategoryRepository = app.get<Repository<ProjectSessionCategory>>(
-      getRepositoryToken(ProjectSessionCategory),
+    const projectAgentSessionCategoryRepository = app.get<Repository<ProjectAgentSessionCategory>>(
+      getRepositoryToken(ProjectAgentSessionCategory),
     )
 
     const organizations = await organizationRepository.find({ order: { name: "ASC" } })
@@ -258,13 +259,13 @@ async function bootstrapCli(): Promise<void> {
       toLine: (agent) => `${agent.name} (${agent.type}) - ${agent.id}`,
     })
 
-    const availableProjectCategories = await projectSessionCategoryRepository.find({
+    const availableProjectCategories = await projectAgentSessionCategoryRepository.find({
       where: { projectId: selectedProject.id },
       order: { name: "ASC" },
     })
     if (availableProjectCategories.length === 0) {
       logger.log(
-        `No project categories found in workspace "${selectedProject.name}". Run project:set-session-categories first.`,
+        `No project categories found in workspace "${selectedProject.name}". Run project:set-agent-session-categories first.`,
       )
       return
     }

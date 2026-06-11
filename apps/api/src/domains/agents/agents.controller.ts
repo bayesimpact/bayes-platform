@@ -180,18 +180,18 @@ function toAgentDto(entity: Agent): AgentDto {
     updatedAt: entity.updatedAt.getTime(),
     documentTagIds: entity.documentTags?.map((tag) => tag.id) || [],
     documentsRagMode: entity.documentsRagMode,
-    projectSessionCategoryIds: (entity.sessionCategories ?? [])
-      .map((category) => category.projectSessionCategoryId)
+    projectAgentSessionCategoryIds: (entity.sessionCategories ?? [])
+      .map((category) => category.projectAgentSessionCategoryId)
       .filter(
-        (projectSessionCategoryId): projectSessionCategoryId is string =>
-          projectSessionCategoryId !== null,
+        (projectAgentSessionCategoryId): projectAgentSessionCategoryId is string =>
+          projectAgentSessionCategoryId !== null,
       ),
-    usedProjectSessionCategoryIds: (entity.sessionCategories ?? [])
+    usedProjectAgentSessionCategoryIds: (entity.sessionCategories ?? [])
       .filter((category) => (category.conversationSessionCategories?.length ?? 0) > 0)
-      .map((category) => category.projectSessionCategoryId)
+      .map((category) => category.projectAgentSessionCategoryId)
       .filter(
-        (projectSessionCategoryId): projectSessionCategoryId is string =>
-          projectSessionCategoryId !== null,
+        (projectAgentSessionCategoryId): projectAgentSessionCategoryId is string =>
+          projectAgentSessionCategoryId !== null,
       ),
   }
 }

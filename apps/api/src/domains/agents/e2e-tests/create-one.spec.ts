@@ -90,7 +90,7 @@ describe("Agents - createOne", () => {
         temperature: 0,
         locale: AgentLocale.EN,
         tagsToAdd: [],
-        projectSessionCategoryIds: [],
+        projectAgentSessionCategoryIds: [],
       },
     })
 
@@ -126,7 +126,7 @@ describe("Agents - createOne", () => {
         temperature: 0,
         locale: AgentLocale.EN,
         tagsToAdd: [],
-        projectSessionCategoryIds: [],
+        projectAgentSessionCategoryIds: [],
       },
     })
 
@@ -152,7 +152,7 @@ describe("Agents - createOne", () => {
         temperature: 0,
         locale: AgentLocale.EN,
         tagsToAdd: [],
-        projectSessionCategoryIds: [],
+        projectAgentSessionCategoryIds: [],
       },
     })
 
@@ -180,7 +180,7 @@ describe("Agents - createOne", () => {
         temperature: 0,
         locale: AgentLocale.EN,
         tagsToAdd: [documentTag.id],
-        projectSessionCategoryIds: [],
+        projectAgentSessionCategoryIds: [],
       },
     })
 
@@ -191,8 +191,8 @@ describe("Agents - createOne", () => {
 
   it("should create an agent with selected project categories", async () => {
     const { project } = await createContext()
-    const projectCategory = await repositories.projectSessionCategoryRepository.save(
-      repositories.projectSessionCategoryRepository.create({
+    const projectCategory = await repositories.projectAgentSessionCategoryRepository.save(
+      repositories.projectAgentSessionCategoryRepository.create({
         projectId: project.id,
         name: "Billing",
       }),
@@ -208,17 +208,17 @@ describe("Agents - createOne", () => {
         temperature: 0,
         locale: AgentLocale.EN,
         tagsToAdd: [],
-        projectSessionCategoryIds: [projectCategory.id],
+        projectAgentSessionCategoryIds: [projectCategory.id],
       },
     })
 
     expectResponse(response, 201)
-    expect(response.body.data.projectSessionCategoryIds).toEqual([projectCategory.id])
+    expect(response.body.data.projectAgentSessionCategoryIds).toEqual([projectCategory.id])
 
     const agentSessionCategories = await repositories.agentSessionCategoryRepository.find({
       where: { agentId: response.body.data.id },
     })
     expect(agentSessionCategories).toHaveLength(1)
-    expect(agentSessionCategories[0]?.projectSessionCategoryId).toBe(projectCategory.id)
+    expect(agentSessionCategories[0]?.projectAgentSessionCategoryId).toBe(projectCategory.id)
   })
 })

@@ -4,8 +4,8 @@ import { fn } from "storybook/test"
 import { agentFactory, agentOutputJsonSchemaFactory } from "@/common/features/agents/agent.factory"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import {
+  projectAgentSessionCategoryFactory,
   projectFactory,
-  projectSessionCategoryFactory,
 } from "@/common/features/projects/projects.factory"
 import { withRedux } from "@/stories/decorators"
 import { mergeSeeds, seed } from "@/stories/seed"
@@ -13,8 +13,8 @@ import { BaseAgentForm } from "@/studio/features/agents/components/BaseAgentForm
 import { documentTagFactory } from "@/studio/features/document-tags/document-tags.factory"
 
 const organization = organizationFactory.build()
-const billingCategory = projectSessionCategoryFactory.build({ name: "Billing" })
-const supportCategory = projectSessionCategoryFactory.build({ name: "Support" })
+const billingCategory = projectAgentSessionCategoryFactory.build({ name: "Billing" })
+const supportCategory = projectAgentSessionCategoryFactory.build({ name: "Support" })
 const agentSessionCategories = [billingCategory, supportCategory]
 const project = projectFactory.transient({ organization }).build({ agentSessionCategories })
 const projectWithoutAgentSessionCategories = projectFactory
@@ -39,8 +39,8 @@ const conversationAgent = agentFactory.transient({ project }).build({
   name: "Helpful Assistant",
   documentTagIds: [productTag.id],
   documentsRagMode: DocumentsRagMode.Tags,
-  projectSessionCategoryIds: [billingCategory.id],
-  usedProjectSessionCategoryIds: [billingCategory.id],
+  projectAgentSessionCategoryIds: [billingCategory.id],
+  usedProjectAgentSessionCategoryIds: [billingCategory.id],
   greetingMessage: "Hi! How can I help you today?",
 })
 
@@ -97,8 +97,8 @@ export const ConversationEditWithoutProjectCategories: Story = {
     agentType: "conversation",
     editableAgent: {
       ...conversationAgent,
-      projectSessionCategoryIds: [],
-      usedProjectSessionCategoryIds: [],
+      projectAgentSessionCategoryIds: [],
+      usedProjectAgentSessionCategoryIds: [],
     },
   },
 }

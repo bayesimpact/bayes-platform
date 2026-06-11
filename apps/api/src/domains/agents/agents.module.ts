@@ -31,10 +31,10 @@ import { AgentMembershipsGuard } from "./memberships/agent-memberships.guard"
 import { AgentMembershipsService } from "./memberships/agent-memberships.service"
 import { AgentSessionCategoriesService } from "./session-categories/agent-session-categories.service"
 import { AgentSessionCategory } from "./session-categories/agent-session-category.entity"
-import { ProjectSessionCategoriesController } from "./session-categories/project-session-categories.controller"
-import { ProjectSessionCategoriesGuard } from "./session-categories/project-session-categories.guard"
-import { ProjectSessionCategoriesService } from "./session-categories/project-session-categories.service"
-import { ProjectSessionCategory } from "./session-categories/project-session-category.entity"
+import { ProjectAgentSessionCategoriesController } from "./session-categories/project-agent-session-categories.controller"
+import { ProjectAgentSessionCategoriesGuard } from "./session-categories/project-agent-session-categories.guard"
+import { ProjectAgentSessionCategoriesService } from "./session-categories/project-agent-session-categories.service"
+import { ProjectAgentSessionCategory } from "./session-categories/project-agent-session-category.entity"
 import { AgentSubAgent } from "./sub-agents/agent-sub-agent.entity"
 import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
 
@@ -44,7 +44,7 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
       Agent,
       AgentSessionCategory,
       AgentSubAgent,
-      ProjectSessionCategory,
+      ProjectAgentSessionCategory,
       AgentMembership,
       Project,
       OrganizationMembership,
@@ -67,19 +67,23 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
     AgentsService,
     AgentSessionCategoriesService,
     AgentSubAgentsService,
-    ProjectSessionCategoriesService,
+    ProjectAgentSessionCategoriesService,
     BaseAgentSessionsService,
     AgentMembershipsService,
     AgentGuard,
     AgentMembershipsGuard,
-    ProjectSessionCategoriesGuard,
+    ProjectAgentSessionCategoriesGuard,
     ResourceContextGuard,
     OrganizationContextResolver,
     ProjectContextResolver,
     AgentContextResolver,
     AgentMembershipContextResolver,
   ],
-  controllers: [AgentsController, AgentMembershipsController, ProjectSessionCategoriesController],
+  controllers: [
+    AgentsController,
+    AgentMembershipsController,
+    ProjectAgentSessionCategoriesController,
+  ],
   exports: [
     AgentsService,
     AgentSessionCategoriesService,

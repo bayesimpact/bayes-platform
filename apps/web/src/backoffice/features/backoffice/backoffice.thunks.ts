@@ -3,7 +3,6 @@ import { createAsyncThunk } from "@reduxjs/toolkit"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 
 import type {
-  BackofficeProjectSessionCategory,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeUsers,
   TermsDocuments,
@@ -46,15 +45,6 @@ const removeFeatureFlag = createAsyncThunk<
   return params
 })
 
-const replaceProjectSessionCategories = createAsyncThunk<
-  { projectId: string; categories: BackofficeProjectSessionCategory[] },
-  { projectId: string; categoryNames: string[] },
-  ThunkConfig
->("backoffice/replaceProjectSessionCategories", async (params, { extra: { services } }) => {
-  const categories = await services.backoffice.replaceProjectSessionCategories(params)
-  return { projectId: params.projectId, categories }
-})
-
 const listTermsDocuments = createAsyncThunk<TermsDocuments, void, ThunkConfig>(
   "backoffice/listTermsDocuments",
   async (_, { extra: { services } }) => services.backoffice.listTermsDocuments(),
@@ -73,7 +63,6 @@ export const backofficeThunks = {
   listUsers,
   addFeatureFlag,
   removeFeatureFlag,
-  replaceProjectSessionCategories,
   listTermsDocuments,
   updateTermsDocuments,
 }

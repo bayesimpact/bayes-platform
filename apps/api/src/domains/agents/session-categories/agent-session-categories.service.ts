@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import { AgentSessionCategory } from "./agent-session-category.entity"
-import type { ProjectSessionCategory } from "./project-session-category.entity"
+import type { ProjectAgentSessionCategory } from "./project-agent-session-category.entity"
 
 export type ReplaceAgentSessionCategoriesResult = {
   createdCount: number
@@ -10,7 +10,7 @@ export type ReplaceAgentSessionCategoriesResult = {
   deletedCount: number
 }
 
-type SelectedProjectSessionCategory = Pick<ProjectSessionCategory, "id" | "name">
+type SelectedProjectAgentSessionCategory = Pick<ProjectAgentSessionCategory, "id" | "name">
 
 @Injectable()
 export class AgentSessionCategoriesService {
@@ -21,10 +21,10 @@ export class AgentSessionCategoriesService {
 
   async addCategoryToAgent(
     agentId: string,
-    projectSessionCategory: SelectedProjectSessionCategory,
+    projectAgentSessionCategory: SelectedProjectAgentSessionCategory,
   ): Promise<void> {
     const existing = await this.agentSessionCategoryRepository.findOne({
-      where: { agentId, projectSessionCategoryId: projectSessionCategory.id },
+      where: { agentId, projectAgentSessionCategoryId: projectAgentSessionCategory.id },
       withDeleted: true,
     })
 
@@ -37,8 +37,8 @@ export class AgentSessionCategoriesService {
 
     const agentSessionCategory = this.agentSessionCategoryRepository.create({
       agentId,
-      projectSessionCategoryId: projectSessionCategory.id,
-      name: projectSessionCategory.name,
+      projectAgentSessionCategoryId: projectAgentSessionCategory.id,
+      name: projectAgentSessionCategory.name,
     })
     await this.agentSessionCategoryRepository.save(agentSessionCategory)
   }
@@ -65,7 +65,7 @@ export class AgentSessionCategoriesService {
    */
   async replaceActiveCategoriesForAgent(
     agentId: string,
-    selectedProjectCategories: SelectedProjectSessionCategory[],
+    selectedProjectCategories: SelectedProjectAgentSessionCategory[],
   ): Promise<ReplaceAgentSessionCategoriesResult> {
     const existingAgentSessionCategories = await this.agentSessionCategoryRepository.find({
       where: { agentId },
@@ -79,7 +79,7 @@ export class AgentSessionCategoriesService {
     )
     const existingCategoryByProjectCategoryId = new Map(
       existingAgentSessionCategories.map((existingAgentSessionCategory) => [
-        existingAgentSessionCategory.projectSessionCategoryId,
+        existingAgentSessionCategory.projectAgentSessionCategoryId,
         existingAgentSessionCategory,
       ]),
     )
@@ -95,7 +95,7 @@ export class AgentSessionCategoriesService {
       if (!existingAgentSessionCategory) {
         const createdAgentSessionCategory = this.agentSessionCategoryRepository.create({
           agentId,
-          projectSessionCategoryId: selectedProjectCategory.id,
+          projectAgentSessionCategoryId: selectedProjectCategory.id,
           name: selectedProjectCategory.name,
         })
         await this.agentSessionCategoryRepository.save(createdAgentSessionCategory)
@@ -111,8 +111,8 @@ export class AgentSessionCategoriesService {
 
     for (const existingAgentSessionCategory of existingAgentSessionCategories) {
       const shouldStayActive =
-        existingAgentSessionCategory.projectSessionCategoryId !== null &&
-        desiredProjectCategoryIds.has(existingAgentSessionCategory.projectSessionCategoryId)
+        existingAgentSessionCategory.projectAgentSessionCategoryId !== null &&
+        desiredProjectCategoryIds.has(existingAgentSessionCategory.projectAgentSessionCategoryId)
       const isCurrentlyActive = existingAgentSessionCategory.deletedAt === null
       const isUsedInConversation =
         (existingAgentSessionCategory.conversationSessionCategories?.length ?? 0) > 0

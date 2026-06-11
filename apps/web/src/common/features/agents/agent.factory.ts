@@ -59,11 +59,11 @@ export const agentFactory = AgentFactory.define(({ params, transientParams }) =>
     locale: params.locale ?? AgentLocale.EN,
     model: params.model ?? AgentModel.Gemini25Flash,
     name: params.name ?? faker.helpers.arrayElement(AGENT_NAMES),
-    projectSessionCategoryIds: params.projectSessionCategoryIds ?? [],
+    projectAgentSessionCategoryIds: params.projectAgentSessionCategoryIds ?? [],
     projectId: project.id,
     temperature: params.temperature ?? 0.7,
     type: params.type ?? type,
     updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
-    usedProjectSessionCategoryIds: params.usedProjectSessionCategoryIds ?? [],
+    usedProjectAgentSessionCategoryIds: params.usedProjectAgentSessionCategoryIds ?? [],
   }
 })

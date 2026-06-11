@@ -1,7 +1,6 @@
 import type {
   BackofficeOrganizationDto,
   BackofficeProjectDto,
-  BackofficeProjectSessionCategoryDto,
   BackofficeUserDto,
   FeatureFlagKey,
   FeatureFlagsDto,
@@ -12,18 +11,8 @@ import type { Organization } from "@/domains/organizations/organization.entity"
 import type { Project } from "@/domains/projects/project.entity"
 import type { User } from "@/domains/users/user.entity"
 
-export type BackofficeProjectSessionCategoryView = {
-  id: string
-  name: string
-  isUsedInConversation: boolean
-}
-
-export type BackofficeProjectView = Omit<Project, "projectSessionCategories"> & {
-  projectSessionCategories?: BackofficeProjectSessionCategoryView[]
-}
-
 export type BackofficeOrganizationView = Omit<Organization, "projects"> & {
-  projects: BackofficeProjectView[]
+  projects: Project[]
 }
 
 function toFeatureFlagsDto(featureFlags: FeatureFlag[] | undefined): FeatureFlagsDto {
@@ -34,17 +23,7 @@ function toFeatureFlagsDto(featureFlags: FeatureFlag[] | undefined): FeatureFlag
   )
 }
 
-export function toBackofficeProjectSessionCategoryDto(
-  projectSessionCategory: BackofficeProjectSessionCategoryView,
-): BackofficeProjectSessionCategoryDto {
-  return {
-    id: projectSessionCategory.id,
-    name: projectSessionCategory.name,
-    isUsedInConversation: projectSessionCategory.isUsedInConversation,
-  }
-}
-
-export function toBackofficeProjectDto(project: BackofficeProjectView): BackofficeProjectDto {
+export function toBackofficeProjectDto(project: Project): BackofficeProjectDto {
   return {
     id: project.id,
     name: project.name,
@@ -52,9 +31,6 @@ export function toBackofficeProjectDto(project: BackofficeProjectView): Backoffi
     createdAt: project.createdAt.getTime() as TimeType,
     updatedAt: project.updatedAt.getTime() as TimeType,
     featureFlags: toFeatureFlagsDto(project.featureFlags),
-    agentSessionCategories: (project.projectSessionCategories ?? []).map(
-      toBackofficeProjectSessionCategoryDto,
-    ),
   }
 }
 

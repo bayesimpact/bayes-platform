@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { projectSessionCategoryFactory } from "@/common/features/projects/projects.factory"
-import type { ProjectSessionCategory } from "@/common/features/projects/projects.models"
+import { projectAgentSessionCategoryFactory } from "@/common/features/projects/projects.factory"
+import type { ProjectAgentSessionCategory } from "@/common/features/projects/projects.models"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -40,11 +40,11 @@ export const Default: Story = {
   decorators: [
     buildDecorator<StoryArgs>(({ withAgentSessionCategories, ...args }) => {
       const { baseSeeds, project } = buildStudioData(args)
-      const categories: ProjectSessionCategory[] = withAgentSessionCategories
+      const categories: ProjectAgentSessionCategory[] = withAgentSessionCategories
         ? [
-            projectSessionCategoryFactory.build({ name: "Support" }),
-            projectSessionCategoryFactory.build({ name: "Sales" }),
-            projectSessionCategoryFactory.build({ name: "Onboarding" }),
+            projectAgentSessionCategoryFactory.build({ name: "Support" }),
+            projectAgentSessionCategoryFactory.build({ name: "Sales" }),
+            projectAgentSessionCategoryFactory.build({ name: "Onboarding" }),
           ]
         : []
       const seededProject = { ...project, agentSessionCategories: categories }
@@ -66,11 +66,11 @@ export const WithCategories: Story = {
   decorators: [
     buildDecorator<StoryArgs>(({ withAgentSessionCategories, ...args }) => {
       const { baseSeeds, project } = buildStudioData(args)
-      const categories: ProjectSessionCategory[] = withAgentSessionCategories
+      const categories: ProjectAgentSessionCategory[] = withAgentSessionCategories
         ? [
-            projectSessionCategoryFactory.build({ name: "Support" }),
-            projectSessionCategoryFactory.build({ name: "Sales" }),
-            projectSessionCategoryFactory.build({ name: "Onboarding" }),
+            projectAgentSessionCategoryFactory.build({ name: "Support" }),
+            projectAgentSessionCategoryFactory.build({ name: "Sales" }),
+            projectAgentSessionCategoryFactory.build({ name: "Onboarding" }),
           ]
         : []
       const seededProject = { ...project, agentSessionCategories: categories }

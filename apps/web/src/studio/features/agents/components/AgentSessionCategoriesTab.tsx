@@ -15,7 +15,7 @@ export function AgentSessionCategoriesTab() {
   const { control } = useFormContext<AgentFormValues>()
 
   const project = useValue(selectCurrentProjectData)
-  const projectSessionCategories = project.agentSessionCategories
+  const projectAgentSessionCategories = project.agentSessionCategories
 
   const agentData = useAppSelector(selectCurrentAgentData)
   const editableAgent = ADS.isFulfilled(agentData) ? agentData.value : undefined
@@ -23,19 +23,20 @@ export function AgentSessionCategoriesTab() {
   return (
     <Controller
       control={control}
-      name="projectSessionCategoryIds"
+      name="projectAgentSessionCategoryIds"
       render={({ field }) => (
         <FieldGroup>
           <FieldGroup data-slot="checkbox-group">
-            {projectSessionCategories.map((projectSessionCategory) => {
-              const isChecked = field.value.includes(projectSessionCategory.id)
+            {projectAgentSessionCategories.map((projectAgentSessionCategory) => {
+              const isChecked = field.value.includes(projectAgentSessionCategory.id)
               const isDisabled =
-                editableAgent?.usedProjectSessionCategoryIds.includes(projectSessionCategory.id) ??
-                false
-              const checkboxId = `agent-session-category-${projectSessionCategory.id}`
+                editableAgent?.usedProjectAgentSessionCategoryIds.includes(
+                  projectAgentSessionCategory.id,
+                ) ?? false
+              const checkboxId = `agent-session-category-${projectAgentSessionCategory.id}`
               return (
                 <Field
-                  key={projectSessionCategory.id}
+                  key={projectAgentSessionCategory.id}
                   orientation="horizontal"
                   data-disabled={isDisabled ? true : undefined}
                 >
@@ -45,30 +46,32 @@ export function AgentSessionCategoriesTab() {
                     disabled={isDisabled}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        field.onChange([...field.value, projectSessionCategory.id])
+                        field.onChange([...field.value, projectAgentSessionCategory.id])
                         return
                       }
                       field.onChange(
                         field.value.filter(
-                          (categoryId) => categoryId !== projectSessionCategory.id,
+                          (categoryId) => categoryId !== projectAgentSessionCategory.id,
                         ),
                       )
                     }}
                   />
-                  <FieldLabel htmlFor={checkboxId}>{projectSessionCategory.name}</FieldLabel>
+                  <FieldLabel htmlFor={checkboxId}>{projectAgentSessionCategory.name}</FieldLabel>
                 </Field>
               )
             })}
           </FieldGroup>
-          {projectSessionCategories.length > 1 &&
-            !projectSessionCategories.every((category) => field.value.includes(category.id)) && (
+          {projectAgentSessionCategories.length > 1 &&
+            !projectAgentSessionCategories.every((category) =>
+              field.value.includes(category.id),
+            ) && (
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 className="self-start"
                 onClick={() =>
-                  field.onChange(projectSessionCategories.map((category) => category.id))
+                  field.onChange(projectAgentSessionCategories.map((category) => category.id))
                 }
               >
                 {t("actions:selectAll")}

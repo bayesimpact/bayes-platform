@@ -1,11 +1,11 @@
 import {
+  ProjectAgentSessionCategoriesRoutes,
+  type ProjectAgentSessionCategoryDto,
   type ProjectDto,
-  ProjectSessionCategoriesRoutes,
-  type ProjectSessionCategoryDto,
   ProjectsRoutes,
 } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
-import type { Project, ProjectSessionCategory } from "../projects.models"
+import type { Project, ProjectAgentSessionCategory } from "../projects.models"
 import type { IProjectsSpi } from "../projects.spi"
 
 export default {
@@ -34,23 +34,24 @@ export default {
     const axios = getAxiosInstance()
     await axios.delete(ProjectsRoutes.deleteOne.getPath(params))
   },
-  addProjectSessionCategory: async (params, payload) => {
+  addProjectAgentSessionCategory: async (params, payload) => {
     const axios = getAxiosInstance()
-    const response = await axios.post<typeof ProjectSessionCategoriesRoutes.createOne.response>(
-      ProjectSessionCategoriesRoutes.createOne.getPath(params),
-      { payload } satisfies typeof ProjectSessionCategoriesRoutes.createOne.request,
-    )
-    return toProjectSessionCategory(response.data.data)
+    const response = await axios.post<
+      typeof ProjectAgentSessionCategoriesRoutes.createOne.response
+    >(ProjectAgentSessionCategoriesRoutes.createOne.getPath(params), {
+      payload,
+    } satisfies typeof ProjectAgentSessionCategoriesRoutes.createOne.request)
+    return toProjectAgentSessionCategory(response.data.data)
   },
-  deleteProjectSessionCategory: async (params) => {
+  deleteProjectAgentSessionCategory: async (params) => {
     const axios = getAxiosInstance()
-    await axios.delete(ProjectSessionCategoriesRoutes.deleteOne.getPath(params))
+    await axios.delete(ProjectAgentSessionCategoriesRoutes.deleteOne.getPath(params))
   },
 } satisfies IProjectsSpi
 
-export const toProjectSessionCategory = (
-  dto: ProjectSessionCategoryDto,
-): ProjectSessionCategory => ({
+export const toProjectAgentSessionCategory = (
+  dto: ProjectAgentSessionCategoryDto,
+): ProjectAgentSessionCategory => ({
   id: dto.id,
   name: dto.name,
 })

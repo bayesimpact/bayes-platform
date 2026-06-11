@@ -1,4 +1,4 @@
-import { ProjectSessionCategoriesRoutes } from "@caseai-connect/api-contracts"
+import { ProjectAgentSessionCategoriesRoutes } from "@caseai-connect/api-contracts"
 import { Body, Controller, Delete, Param, Post, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequestWithProject } from "@/common/context/request.interface"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
@@ -7,25 +7,27 @@ import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
-import { ProjectSessionCategoriesGuard } from "./project-session-categories.guard"
+import { ProjectAgentSessionCategoriesGuard } from "./project-agent-session-categories.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { ProjectSessionCategoriesService } from "./project-session-categories.service"
+import { ProjectAgentSessionCategoriesService } from "./project-agent-session-categories.service"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, ProjectSessionCategoriesGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, ProjectAgentSessionCategoriesGuard)
 @RequireContext("organization")
 @Controller()
-export class ProjectSessionCategoriesController {
-  constructor(private readonly projectSessionCategoriesService: ProjectSessionCategoriesService) {}
+export class ProjectAgentSessionCategoriesController {
+  constructor(
+    private readonly projectAgentSessionCategoriesService: ProjectAgentSessionCategoriesService,
+  ) {}
 
-  @Post(ProjectSessionCategoriesRoutes.createOne.path)
+  @Post(ProjectAgentSessionCategoriesRoutes.createOne.path)
   @CheckPolicy((policy) => policy.canCreate())
   @AddContext("project")
   @TrackActivity({ action: "project.add_agent_session_category", entityFrom: "project" })
   async createOne(
     @Req() request: EndpointRequestWithProject,
-    @Body() body: typeof ProjectSessionCategoriesRoutes.createOne.request,
-  ): Promise<typeof ProjectSessionCategoriesRoutes.createOne.response> {
-    const category = await this.projectSessionCategoriesService.addProjectSessionCategory(
+    @Body() body: typeof ProjectAgentSessionCategoriesRoutes.createOne.request,
+  ): Promise<typeof ProjectAgentSessionCategoriesRoutes.createOne.response> {
+    const category = await this.projectAgentSessionCategoriesService.addProjectAgentSessionCategory(
       request.project!.id,
       body.payload.name,
       body.payload.assignToAllConversationalAgents,
@@ -33,15 +35,15 @@ export class ProjectSessionCategoriesController {
     return { data: { id: category.id, name: category.name } }
   }
 
-  @Delete(ProjectSessionCategoriesRoutes.deleteOne.path)
+  @Delete(ProjectAgentSessionCategoriesRoutes.deleteOne.path)
   @CheckPolicy((policy) => policy.canDelete())
   @AddContext("project")
   @TrackActivity({ action: "project.delete_agent_session_category", entityFrom: "project" })
   async deleteOne(
     @Req() request: EndpointRequestWithProject,
     @Param("categoryId") categoryId: string,
-  ): Promise<typeof ProjectSessionCategoriesRoutes.deleteOne.response> {
-    await this.projectSessionCategoriesService.deleteProjectSessionCategory(
+  ): Promise<typeof ProjectAgentSessionCategoriesRoutes.deleteOne.response> {
+    await this.projectAgentSessionCategoriesService.deleteProjectAgentSessionCategory(
       request.project!.id,
       categoryId,
     )

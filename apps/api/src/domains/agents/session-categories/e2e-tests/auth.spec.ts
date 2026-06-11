@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { ProjectSessionCategoriesRoutes } from "@caseai-connect/api-contracts"
+import { ProjectAgentSessionCategoriesRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
@@ -16,7 +16,7 @@ import { createOrganizationWithProject } from "@/domains/organizations/organizat
 import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 
-describe("ProjectSessionCategories - Auth", () => {
+describe("ProjectAgentSessionCategories - Auth", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
@@ -64,10 +64,12 @@ describe("ProjectSessionCategories - Auth", () => {
     return { organization, project }
   }
 
-  describe("ProjectSessionCategoriesRoutes.createOne", () => {
-    const subject = async (payload?: typeof ProjectSessionCategoriesRoutes.createOne.request) =>
+  describe("ProjectAgentSessionCategoriesRoutes.createOne", () => {
+    const subject = async (
+      payload?: typeof ProjectAgentSessionCategoriesRoutes.createOne.request,
+    ) =>
       request({
-        route: ProjectSessionCategoriesRoutes.createOne,
+        route: ProjectAgentSessionCategoriesRoutes.createOne,
         pathParams: removeNullish({ organizationId, projectId }),
         token: accessToken ?? undefined,
         request: payload,
@@ -128,10 +130,10 @@ describe("ProjectSessionCategories - Auth", () => {
     })
   })
 
-  describe("ProjectSessionCategoriesRoutes.deleteOne", () => {
+  describe("ProjectAgentSessionCategoriesRoutes.deleteOne", () => {
     const subject = async () =>
       request({
-        route: ProjectSessionCategoriesRoutes.deleteOne,
+        route: ProjectAgentSessionCategoriesRoutes.deleteOne,
         pathParams: removeNullish({ organizationId, projectId, categoryId }),
         token: accessToken ?? undefined,
       })

@@ -12,7 +12,7 @@ import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessio
 import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import { AgentMembership } from "@/domains/agents/memberships/agent-membership.entity"
 import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
-import { ProjectSessionCategory } from "@/domains/agents/session-categories/project-session-category.entity"
+import { ProjectAgentSessionCategory } from "@/domains/agents/session-categories/project-agent-session-category.entity"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import { AgentMessageAttachmentDocument } from "@/domains/agents/shared/agent-session-messages/agent-message-attachment-document.entity"
 import { AgentMessageFeedback } from "@/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity"
@@ -52,7 +52,7 @@ export const ALL_ENTITIES = [
   Activity,
   Agent,
   AgentSessionCategory,
-  ProjectSessionCategory,
+  ProjectAgentSessionCategory,
   AgentMcpServer,
   AgentMembership,
   AgentMessage,

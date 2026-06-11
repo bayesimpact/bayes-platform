@@ -4,7 +4,6 @@ import { Factory } from "fishery"
 import type {
   BackofficeOrganization,
   BackofficeProject,
-  BackofficeProjectSessionCategory,
   BackofficeUser,
   BackofficeUserAgentMembership,
   BackofficeUserOrganizationMembership,
@@ -13,15 +12,6 @@ import type {
   PaginatedBackofficeUsers,
   TermsDocuments,
 } from "./backoffice.models"
-
-class BackofficeProjectSessionCategoryFactory extends Factory<BackofficeProjectSessionCategory> {}
-
-export const backofficeProjectSessionCategoryFactory =
-  BackofficeProjectSessionCategoryFactory.define(({ params }) => ({
-    id: params.id ?? faker.string.uuid(),
-    name: params.name ?? faker.commerce.department(),
-    isUsedInConversation: params.isUsedInConversation ?? false,
-  }))
 
 type BackofficeProjectTransientParams = {
   organization: BackofficeOrganization
@@ -47,7 +37,6 @@ export const backofficeProjectFactory = BackofficeProjectFactory.define(
       createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
       updatedAt: (params.updatedAt ?? faker.date.recent().getTime()) as TimeType,
       featureFlags: params.featureFlags ?? [],
-      agentSessionCategories: params.agentSessionCategories ?? [],
     }
   },
 )

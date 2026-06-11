@@ -4,9 +4,9 @@ import { ConversationAgentSessionCategory } from "@/domains/agents/conversation-
 import { Project } from "@/domains/projects/project.entity"
 import { AgentSessionCategory } from "./agent-session-category.entity"
 
-@Entity("project_session_category")
+@Entity("project_agent_session_category")
 @Unique(["projectId", "name"])
-export class ProjectSessionCategory extends Base4AllEntity {
+export class ProjectAgentSessionCategory extends Base4AllEntity {
   @Column({ type: "uuid", name: "project_id" })
   projectId!: string
 
@@ -15,7 +15,7 @@ export class ProjectSessionCategory extends Base4AllEntity {
 
   @ManyToOne(
     () => Project,
-    (project) => project.projectSessionCategories,
+    (project) => project.projectAgentSessionCategories,
     { onDelete: "CASCADE" },
   )
   @JoinColumn({ name: "project_id" })
@@ -23,13 +23,14 @@ export class ProjectSessionCategory extends Base4AllEntity {
 
   @OneToMany(
     () => AgentSessionCategory,
-    (agentSessionCategory) => agentSessionCategory.projectSessionCategory,
+    (agentSessionCategory) => agentSessionCategory.projectAgentSessionCategory,
   )
   agentSessionCategories!: AgentSessionCategory[]
 
   @OneToMany(
     () => ConversationAgentSessionCategory,
-    (conversationAgentSessionCategory) => conversationAgentSessionCategory.projectSessionCategory,
+    (conversationAgentSessionCategory) =>
+      conversationAgentSessionCategory.projectAgentSessionCategory,
   )
   conversationSessionCategories!: ConversationAgentSessionCategory[]
 }

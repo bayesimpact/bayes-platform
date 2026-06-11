@@ -73,7 +73,7 @@ export function BaseAgentForm({
     const language = i18n.language.startsWith("fr") ? AgentLocale.FR : AgentLocale.EN
     return {
       ...getDefaultFormValues({ agentType, language }),
-      projectSessionCategoryIds: project.agentSessionCategories.map((category) => category.id),
+      projectAgentSessionCategoryIds: project.agentSessionCategories.map((category) => category.id),
     }
   })()
 
@@ -219,7 +219,7 @@ const FIELD_TO_TAB: Record<string, "general" | "model" | "output" | "sources" | 
   locale: "general",
   defaultPrompt: "general",
   greetingMessage: "general",
-  projectSessionCategoryIds: "categories",
+  projectAgentSessionCategoryIds: "categories",
   model: "model",
   temperature: "model",
   outputJsonSchema: "output",

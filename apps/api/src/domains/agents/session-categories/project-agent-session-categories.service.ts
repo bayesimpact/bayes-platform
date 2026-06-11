@@ -4,42 +4,42 @@ import type { Repository } from "typeorm"
 import { Agent } from "@/domains/agents/agent.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSessionCategoriesService } from "./agent-session-categories.service"
-import { ProjectSessionCategory } from "./project-session-category.entity"
+import { ProjectAgentSessionCategory } from "./project-agent-session-category.entity"
 
 @Injectable()
-export class ProjectSessionCategoriesService {
+export class ProjectAgentSessionCategoriesService {
   constructor(
-    @InjectRepository(ProjectSessionCategory)
-    private readonly projectSessionCategoryRepository: Repository<ProjectSessionCategory>,
+    @InjectRepository(ProjectAgentSessionCategory)
+    private readonly projectAgentSessionCategoryRepository: Repository<ProjectAgentSessionCategory>,
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
     private readonly agentSessionCategoriesService: AgentSessionCategoriesService,
   ) {}
 
-  async addProjectSessionCategory(
+  async addProjectAgentSessionCategory(
     projectId: string,
     name: string,
     assignToAllConversationalAgents: boolean,
-  ): Promise<ProjectSessionCategory> {
+  ): Promise<ProjectAgentSessionCategory> {
     const normalizedName = name.trim()
 
-    const existing = await this.projectSessionCategoryRepository.findOne({
+    const existing = await this.projectAgentSessionCategoryRepository.findOne({
       where: { projectId, name: normalizedName },
       withDeleted: true,
     })
 
-    let category: ProjectSessionCategory
+    let category: ProjectAgentSessionCategory
     if (existing) {
       if (existing.deletedAt !== null) {
-        await this.projectSessionCategoryRepository.recover(existing)
+        await this.projectAgentSessionCategoryRepository.recover(existing)
       }
       category = existing
     } else {
-      const created = this.projectSessionCategoryRepository.create({
+      const created = this.projectAgentSessionCategoryRepository.create({
         projectId,
         name: normalizedName,
       })
-      category = await this.projectSessionCategoryRepository.save(created)
+      category = await this.projectAgentSessionCategoryRepository.save(created)
     }
 
     if (assignToAllConversationalAgents) {
@@ -55,11 +55,11 @@ export class ProjectSessionCategoriesService {
     return category
   }
 
-  async deleteProjectSessionCategory(projectId: string, categoryId: string): Promise<void> {
+  async deleteProjectAgentSessionCategory(projectId: string, categoryId: string): Promise<void> {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     if (!uuidRegex.test(categoryId)) return
 
-    const category = await this.projectSessionCategoryRepository.findOne({
+    const category = await this.projectAgentSessionCategoryRepository.findOne({
       where: { id: categoryId, projectId },
       relations: {
         conversationSessionCategories: true,
@@ -81,6 +81,6 @@ export class ProjectSessionCategoriesService {
       )
     }
 
-    await this.projectSessionCategoryRepository.softDelete(categoryId)
+    await this.projectAgentSessionCategoryRepository.softDelete(categoryId)
   }
 }

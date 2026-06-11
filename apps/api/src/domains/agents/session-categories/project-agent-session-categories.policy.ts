@@ -1,6 +1,6 @@
 import { ProjectScopedPolicy } from "@/common/policies/project-scoped-policy"
 
-export class ProjectSessionCategoriesPolicy extends ProjectScopedPolicy<never> {
+export class ProjectAgentSessionCategoriesPolicy extends ProjectScopedPolicy<never> {
   canCreate(): boolean {
     return this.canAccess() && this.isProjectAdminOrOwner()
   }

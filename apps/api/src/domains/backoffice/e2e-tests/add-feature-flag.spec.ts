@@ -8,10 +8,7 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import {
-  createOrganizationWithAgentSession,
-  createOrganizationWithProject,
-} from "@/domains/organizations/organization.factory"
+import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { mockAuth0EmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { BackofficeModule } from "../backoffice.module"
@@ -67,20 +64,6 @@ describe("Backoffice - feature flag lifecycle", () => {
     const email = mockAuth0EmailForSub(auth0Id)
     const context = await createOrganizationWithProject(repositories, {
       user: { auth0Id, email },
-    })
-    process.env.BACKOFFICE_AUTHORIZED_DOMAIN = "@example.com"
-    process.env.BACKOFFICE_AUTHORIZED_EMAILS = email
-    return context
-  }
-
-  const createAuthorizedConversationContext = async () => {
-    const email = mockAuth0EmailForSub(auth0Id)
-    const context = await createOrganizationWithAgentSession({
-      repositories,
-      agentType: "conversation",
-      params: {
-        user: { auth0Id, email },
-      },
     })
     process.env.BACKOFFICE_AUTHORIZED_DOMAIN = "@example.com"
     process.env.BACKOFFICE_AUTHORIZED_EMAILS = email
@@ -193,132 +176,5 @@ describe("Backoffice - feature flag lifecycle", () => {
     expect(organization).toBeDefined()
     const returnedProject = organization?.projects.find((proj) => proj.id === project.id)
     expect(returnedProject?.featureFlags).toContain("evaluation")
-  })
-
-  it("replaces project session categories", async () => {
-    const { project } = await createAuthorizedContext()
-    const response = await request({
-      route: BackofficeRoutes.replaceProjectSessionCategories,
-      pathParams: { projectId: project.id },
-      token: "token",
-      request: {
-        payload: {
-          categoryNames: ["Billing", " Support ", "Billing"],
-        },
-      },
-    })
-
-    expectResponse(response, 200)
-    expect(response.body.data.map((category) => category.name)).toEqual(["Billing", "Support"])
-
-    const categories = await repositories.projectSessionCategoryRepository.find({
-      where: { projectId: project.id },
-      order: { name: "ASC" },
-    })
-    expect(categories.map((category) => category.name)).toEqual(["Billing", "Support"])
-  })
-
-  it("soft-deletes unused project session categories", async () => {
-    const { project } = await createAuthorizedContext()
-    const category = await repositories.projectSessionCategoryRepository.save(
-      repositories.projectSessionCategoryRepository.create({
-        projectId: project.id,
-        name: "Billing",
-      }),
-    )
-
-    const response = await request({
-      route: BackofficeRoutes.replaceProjectSessionCategories,
-      pathParams: { projectId: project.id },
-      token: "token",
-      request: { payload: { categoryNames: [] } },
-    })
-
-    expectResponse(response, 200)
-    const deletedCategory = await repositories.projectSessionCategoryRepository.findOne({
-      where: { id: category.id },
-      withDeleted: true,
-    })
-    expect(deletedCategory?.deletedAt).not.toBeNull()
-  })
-
-  it("rejects removing project session categories already used by a conversation", async () => {
-    const { project, agent, agentSession } = await createAuthorizedConversationContext()
-    const projectCategory = await repositories.projectSessionCategoryRepository.save(
-      repositories.projectSessionCategoryRepository.create({
-        projectId: project.id,
-        name: "Billing",
-      }),
-    )
-    const agentSessionCategory = await repositories.agentSessionCategoryRepository.save(
-      repositories.agentSessionCategoryRepository.create({
-        agentId: agent.id,
-        projectSessionCategoryId: projectCategory.id,
-        name: projectCategory.name,
-      }),
-    )
-    await repositories.conversationAgentSessionCategoryRepository.save(
-      repositories.conversationAgentSessionCategoryRepository.create({
-        conversationAgentSessionId: agentSession.id,
-        agentSessionCategoryId: agentSessionCategory.id,
-      }),
-    )
-
-    const response = await request({
-      route: BackofficeRoutes.replaceProjectSessionCategories,
-      pathParams: { projectId: project.id },
-      token: "token",
-      request: { payload: { categoryNames: [] } },
-    })
-
-    expectResponse(response, 400)
-
-    const activeCategory = await repositories.projectSessionCategoryRepository.findOne({
-      where: { id: projectCategory.id },
-    })
-    expect(activeCategory).not.toBeNull()
-  })
-
-  it("lists project session categories with conversation usage", async () => {
-    const { project, agent, agentSession } = await createAuthorizedConversationContext()
-    const projectCategory = await repositories.projectSessionCategoryRepository.save(
-      repositories.projectSessionCategoryRepository.create({
-        projectId: project.id,
-        name: "Billing",
-      }),
-    )
-    const agentSessionCategory = await repositories.agentSessionCategoryRepository.save(
-      repositories.agentSessionCategoryRepository.create({
-        agentId: agent.id,
-        projectSessionCategoryId: projectCategory.id,
-        name: projectCategory.name,
-      }),
-    )
-    await repositories.conversationAgentSessionCategoryRepository.save(
-      repositories.conversationAgentSessionCategoryRepository.create({
-        conversationAgentSessionId: agentSession.id,
-        agentSessionCategoryId: agentSessionCategory.id,
-      }),
-    )
-
-    const response = await request({
-      route: BackofficeRoutes.listOrganizations,
-      token: "token",
-    })
-
-    expectResponse(response, 200)
-    const organization = response.body.data.organizations.find((candidateOrganization) =>
-      candidateOrganization.projects.some((candidateProject) => candidateProject.id === project.id),
-    )
-    const returnedProject = organization?.projects.find(
-      (candidateProject) => candidateProject.id === project.id,
-    )
-    expect(returnedProject?.agentSessionCategories).toEqual([
-      {
-        id: projectCategory.id,
-        name: "Billing",
-        isUsedInConversation: true,
-      },
-    ])
   })
 })

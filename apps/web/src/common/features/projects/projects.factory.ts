@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { Organization } from "@/common/features/organizations/organizations.models"
-import type { Project, ProjectSessionCategory } from "./projects.models"
+import type { Project, ProjectAgentSessionCategory } from "./projects.models"
 
 type ProjectTransientParams = {
   organization: Organization
@@ -36,9 +36,11 @@ const AGENT_SESSION_CATEGORY_NAMES = [
   "Research",
 ]
 
-class ProjectSessionCategoryFactory extends Factory<ProjectSessionCategory> {}
+class ProjectAgentSessionCategoryFactory extends Factory<ProjectAgentSessionCategory> {}
 
-export const projectSessionCategoryFactory = ProjectSessionCategoryFactory.define(({ params }) => ({
-  id: params.id ?? faker.string.uuid(),
-  name: params.name ?? faker.helpers.arrayElement(AGENT_SESSION_CATEGORY_NAMES),
-}))
+export const projectAgentSessionCategoryFactory = ProjectAgentSessionCategoryFactory.define(
+  ({ params }) => ({
+    id: params.id ?? faker.string.uuid(),
+    name: params.name ?? faker.helpers.arrayElement(AGENT_SESSION_CATEGORY_NAMES),
+  }),
+)
