@@ -1,6 +1,6 @@
 import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
 import type {
-  BackofficeProjectAgentCategory,
+  BackofficeProjectSessionCategory,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeUsers,
   TermsDocuments,
@@ -23,10 +23,10 @@ export interface IBackofficeSpi {
     projectId: string
     featureFlagKey: FeatureFlagKey
   }) => Promise<void>
-  replaceProjectAgentCategories: (params: {
+  replaceProjectSessionCategories: (params: {
     projectId: string
     categoryNames: string[]
-  }) => Promise<BackofficeProjectAgentCategory[]>
+  }) => Promise<BackofficeProjectSessionCategory[]>
 
   listTermsDocuments: () => Promise<TermsDocuments>
   updateTermsDocuments: (input: UpdateTermsDocumentsInput) => Promise<TermsDocuments>

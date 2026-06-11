@@ -2,11 +2,11 @@ import type { FeatureFlagKey } from "../feature-flags/feature-flags.dto"
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
 import type {
-  BackofficeProjectAgentCategoryDto,
+  BackofficeProjectSessionCategoryDto,
   ListTermsDocumentsResponseDto,
   PaginatedBackofficeOrganizationsDto,
   PaginatedBackofficeUsersDto,
-  ReplaceBackofficeProjectAgentCategoriesDto,
+  ReplaceBackofficeProjectSessionCategoriesDto,
   UpdateTermsDocumentsRequestDto,
 } from "./backoffice.dto"
 
@@ -30,12 +30,12 @@ export const BackofficeRoutes = {
     method: "delete",
     path: "backoffice/projects/:projectId/feature-flags/:featureFlagKey",
   }),
-  replaceProjectAgentCategories: defineRoute<
-    ResponseData<BackofficeProjectAgentCategoryDto[]>,
-    RequestPayload<ReplaceBackofficeProjectAgentCategoriesDto>
+  replaceProjectSessionCategories: defineRoute<
+    ResponseData<BackofficeProjectSessionCategoryDto[]>,
+    RequestPayload<ReplaceBackofficeProjectSessionCategoriesDto>
   >({
     method: "patch",
-    path: "backoffice/projects/:projectId/agent-categories",
+    path: "backoffice/projects/:projectId/session-categories",
   }),
 
   listTermsDocuments: defineRoute<ResponseData<ListTermsDocumentsResponseDto>>({

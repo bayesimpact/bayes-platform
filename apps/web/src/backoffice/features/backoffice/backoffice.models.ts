@@ -1,8 +1,8 @@
 import type {
   AgentMembershipRoleDto,
   BackofficeOrganizationDto,
-  BackofficeProjectAgentCategoryDto,
   BackofficeProjectDto,
+  BackofficeProjectSessionCategoryDto,
   BackofficeUserAgentMembershipDto,
   BackofficeUserDto,
   BackofficeUserOrganizationMembershipDto,
@@ -23,10 +23,10 @@ export type BackofficeProject = {
   createdAt: TimeType
   updatedAt: TimeType
   featureFlags: FeatureFlagKey[]
-  agentCategories: BackofficeProjectAgentCategory[]
+  agentSessionCategories: BackofficeProjectSessionCategory[]
 }
 
-export type BackofficeProjectAgentCategory = {
+export type BackofficeProjectSessionCategory = {
   id: string
   name: string
   isUsedInConversation: boolean
@@ -74,12 +74,12 @@ export const toBackofficeProject = (dto: BackofficeProjectDto): BackofficeProjec
   createdAt: dto.createdAt,
   updatedAt: dto.updatedAt,
   featureFlags: dto.featureFlags,
-  agentCategories: dto.agentCategories.map(toBackofficeProjectAgentCategory),
+  agentSessionCategories: dto.agentSessionCategories.map(toBackofficeProjectSessionCategory),
 })
 
-export const toBackofficeProjectAgentCategory = (
-  dto: BackofficeProjectAgentCategoryDto,
-): BackofficeProjectAgentCategory => ({
+export const toBackofficeProjectSessionCategory = (
+  dto: BackofficeProjectSessionCategoryDto,
+): BackofficeProjectSessionCategory => ({
   id: dto.id,
   name: dto.name,
   isUsedInConversation: dto.isUsedInConversation,

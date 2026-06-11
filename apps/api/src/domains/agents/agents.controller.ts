@@ -168,7 +168,7 @@ function toAgentDto(entity: Agent): AgentDto {
     createdAt: entity.createdAt.getTime(),
     greetingMessage: entity.greetingMessage ?? undefined,
     defaultPrompt: entity.defaultPrompt,
-    hasCategories: (entity.categories?.length ?? 0) > 0,
+    hasCategories: (entity.sessionCategories?.length ?? 0) > 0,
     id: entity.id,
     locale: entity.locale,
     model: entity.model,
@@ -180,18 +180,18 @@ function toAgentDto(entity: Agent): AgentDto {
     updatedAt: entity.updatedAt.getTime(),
     documentTagIds: entity.documentTags?.map((tag) => tag.id) || [],
     documentsRagMode: entity.documentsRagMode,
-    projectAgentCategoryIds: (entity.categories ?? [])
-      .map((category) => category.projectAgentCategoryId)
+    projectSessionCategoryIds: (entity.sessionCategories ?? [])
+      .map((category) => category.projectSessionCategoryId)
       .filter(
-        (projectAgentCategoryId): projectAgentCategoryId is string =>
-          projectAgentCategoryId !== null,
+        (projectSessionCategoryId): projectSessionCategoryId is string =>
+          projectSessionCategoryId !== null,
       ),
-    usedProjectAgentCategoryIds: (entity.categories ?? [])
-      .filter((category) => (category.sessionCategories?.length ?? 0) > 0)
-      .map((category) => category.projectAgentCategoryId)
+    usedProjectSessionCategoryIds: (entity.sessionCategories ?? [])
+      .filter((category) => (category.conversationSessionCategories?.length ?? 0) > 0)
+      .map((category) => category.projectSessionCategoryId)
       .filter(
-        (projectAgentCategoryId): projectAgentCategoryId is string =>
-          projectAgentCategoryId !== null,
+        (projectSessionCategoryId): projectSessionCategoryId is string =>
+          projectSessionCategoryId !== null,
       ),
   }
 }

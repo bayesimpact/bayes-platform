@@ -10,9 +10,9 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
-import { AgentCategory } from "@/domains/agents/categories/agent-category.entity"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { ConversationAgentSessionCategory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity"
+import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -72,10 +72,10 @@ describe("Projects Analytics - getConversationsByCategoryPerDay", () => {
     supportAgentId = supportAgent.id
 
     const billingCategory = await setup
-      .getRepository(AgentCategory)
+      .getRepository(AgentSessionCategory)
       .save({ agentId: supportAgent.id, name: "billing" })
     const onboardingCategory = await setup
-      .getRepository(AgentCategory)
+      .getRepository(AgentSessionCategory)
       .save({ agentId: salesAgent.id, name: "onboarding" })
 
     const supportDay1 = conversationAgentSessionFactory
@@ -104,8 +104,8 @@ describe("Projects Analytics - getConversationsByCategoryPerDay", () => {
     ])
 
     await setup.getRepository(ConversationAgentSessionCategory).save([
-      { conversationAgentSessionId: supportDay1.id, agentCategoryId: billingCategory.id },
-      { conversationAgentSessionId: salesDay2.id, agentCategoryId: onboardingCategory.id },
+      { conversationAgentSessionId: supportDay1.id, agentSessionCategoryId: billingCategory.id },
+      { conversationAgentSessionId: salesDay2.id, agentSessionCategoryId: onboardingCategory.id },
     ])
   }
 

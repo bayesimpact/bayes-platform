@@ -1,11 +1,11 @@
 import {
-  ProjectAgentCategoriesRoutes,
-  type ProjectAgentCategoryDto,
   type ProjectDto,
+  ProjectSessionCategoriesRoutes,
+  type ProjectSessionCategoryDto,
   ProjectsRoutes,
 } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
-import type { Project, ProjectAgentCategory } from "../projects.models"
+import type { Project, ProjectSessionCategory } from "../projects.models"
 import type { IProjectsSpi } from "../projects.spi"
 
 export default {
@@ -34,21 +34,23 @@ export default {
     const axios = getAxiosInstance()
     await axios.delete(ProjectsRoutes.deleteOne.getPath(params))
   },
-  addProjectAgentCategory: async (params, payload) => {
+  addProjectSessionCategory: async (params, payload) => {
     const axios = getAxiosInstance()
-    const response = await axios.post<typeof ProjectAgentCategoriesRoutes.createOne.response>(
-      ProjectAgentCategoriesRoutes.createOne.getPath(params),
-      { payload } satisfies typeof ProjectAgentCategoriesRoutes.createOne.request,
+    const response = await axios.post<typeof ProjectSessionCategoriesRoutes.createOne.response>(
+      ProjectSessionCategoriesRoutes.createOne.getPath(params),
+      { payload } satisfies typeof ProjectSessionCategoriesRoutes.createOne.request,
     )
-    return toProjectAgentCategory(response.data.data)
+    return toProjectSessionCategory(response.data.data)
   },
-  deleteProjectAgentCategory: async (params) => {
+  deleteProjectSessionCategory: async (params) => {
     const axios = getAxiosInstance()
-    await axios.delete(ProjectAgentCategoriesRoutes.deleteOne.getPath(params))
+    await axios.delete(ProjectSessionCategoriesRoutes.deleteOne.getPath(params))
   },
 } satisfies IProjectsSpi
 
-export const toProjectAgentCategory = (dto: ProjectAgentCategoryDto): ProjectAgentCategory => ({
+export const toProjectSessionCategory = (
+  dto: ProjectSessionCategoryDto,
+): ProjectSessionCategory => ({
   id: dto.id,
   name: dto.name,
 })
@@ -60,5 +62,5 @@ export const toProject = (dto: ProjectDto): Project => ({
   createdAt: dto.createdAt,
   updatedAt: dto.updatedAt,
   featureFlags: dto.featureFlags,
-  agentCategories: dto.agentCategories,
+  agentSessionCategories: dto.agentSessionCategories,
 })

@@ -7,8 +7,8 @@ import type {
 } from "@caseai-connect/api-contracts"
 import { Column, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
-import { AgentCategory } from "@/domains/agents/categories/agent-category.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
+import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import type { DocumentTag } from "../documents/tags/document-tag.entity"
@@ -106,10 +106,10 @@ export class Agent extends ConnectEntityBase {
   reviewCampaigns!: ReviewCampaign[]
 
   @OneToMany(
-    () => AgentCategory,
-    (agentCategory) => agentCategory.agent,
+    () => AgentSessionCategory,
+    (agentSessionCategory) => agentSessionCategory.agent,
   )
-  categories!: AgentCategory[]
+  sessionCategories!: AgentSessionCategory[]
 
   @OneToMany("AgentSubAgent", (agentSubAgent: AgentSubAgentRelation) => agentSubAgent.parentAgent)
   childSubAgents!: AgentSubAgentRelation[]

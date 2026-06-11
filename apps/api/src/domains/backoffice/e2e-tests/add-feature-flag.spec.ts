@@ -195,10 +195,10 @@ describe("Backoffice - feature flag lifecycle", () => {
     expect(returnedProject?.featureFlags).toContain("evaluation")
   })
 
-  it("replaces project agent categories", async () => {
+  it("replaces project session categories", async () => {
     const { project } = await createAuthorizedContext()
     const response = await request({
-      route: BackofficeRoutes.replaceProjectAgentCategories,
+      route: BackofficeRoutes.replaceProjectSessionCategories,
       pathParams: { projectId: project.id },
       token: "token",
       request: {
@@ -211,61 +211,61 @@ describe("Backoffice - feature flag lifecycle", () => {
     expectResponse(response, 200)
     expect(response.body.data.map((category) => category.name)).toEqual(["Billing", "Support"])
 
-    const categories = await repositories.projectAgentCategoryRepository.find({
+    const categories = await repositories.projectSessionCategoryRepository.find({
       where: { projectId: project.id },
       order: { name: "ASC" },
     })
     expect(categories.map((category) => category.name)).toEqual(["Billing", "Support"])
   })
 
-  it("soft-deletes unused project agent categories", async () => {
+  it("soft-deletes unused project session categories", async () => {
     const { project } = await createAuthorizedContext()
-    const category = await repositories.projectAgentCategoryRepository.save(
-      repositories.projectAgentCategoryRepository.create({
+    const category = await repositories.projectSessionCategoryRepository.save(
+      repositories.projectSessionCategoryRepository.create({
         projectId: project.id,
         name: "Billing",
       }),
     )
 
     const response = await request({
-      route: BackofficeRoutes.replaceProjectAgentCategories,
+      route: BackofficeRoutes.replaceProjectSessionCategories,
       pathParams: { projectId: project.id },
       token: "token",
       request: { payload: { categoryNames: [] } },
     })
 
     expectResponse(response, 200)
-    const deletedCategory = await repositories.projectAgentCategoryRepository.findOne({
+    const deletedCategory = await repositories.projectSessionCategoryRepository.findOne({
       where: { id: category.id },
       withDeleted: true,
     })
     expect(deletedCategory?.deletedAt).not.toBeNull()
   })
 
-  it("rejects removing project agent categories already used by a conversation", async () => {
+  it("rejects removing project session categories already used by a conversation", async () => {
     const { project, agent, agentSession } = await createAuthorizedConversationContext()
-    const projectCategory = await repositories.projectAgentCategoryRepository.save(
-      repositories.projectAgentCategoryRepository.create({
+    const projectCategory = await repositories.projectSessionCategoryRepository.save(
+      repositories.projectSessionCategoryRepository.create({
         projectId: project.id,
         name: "Billing",
       }),
     )
-    const agentCategory = await repositories.agentCategoryRepository.save(
-      repositories.agentCategoryRepository.create({
+    const agentSessionCategory = await repositories.agentSessionCategoryRepository.save(
+      repositories.agentSessionCategoryRepository.create({
         agentId: agent.id,
-        projectAgentCategoryId: projectCategory.id,
+        projectSessionCategoryId: projectCategory.id,
         name: projectCategory.name,
       }),
     )
     await repositories.conversationAgentSessionCategoryRepository.save(
       repositories.conversationAgentSessionCategoryRepository.create({
         conversationAgentSessionId: agentSession.id,
-        agentCategoryId: agentCategory.id,
+        agentSessionCategoryId: agentSessionCategory.id,
       }),
     )
 
     const response = await request({
-      route: BackofficeRoutes.replaceProjectAgentCategories,
+      route: BackofficeRoutes.replaceProjectSessionCategories,
       pathParams: { projectId: project.id },
       token: "token",
       request: { payload: { categoryNames: [] } },
@@ -273,31 +273,31 @@ describe("Backoffice - feature flag lifecycle", () => {
 
     expectResponse(response, 400)
 
-    const activeCategory = await repositories.projectAgentCategoryRepository.findOne({
+    const activeCategory = await repositories.projectSessionCategoryRepository.findOne({
       where: { id: projectCategory.id },
     })
     expect(activeCategory).not.toBeNull()
   })
 
-  it("lists project agent categories with conversation usage", async () => {
+  it("lists project session categories with conversation usage", async () => {
     const { project, agent, agentSession } = await createAuthorizedConversationContext()
-    const projectCategory = await repositories.projectAgentCategoryRepository.save(
-      repositories.projectAgentCategoryRepository.create({
+    const projectCategory = await repositories.projectSessionCategoryRepository.save(
+      repositories.projectSessionCategoryRepository.create({
         projectId: project.id,
         name: "Billing",
       }),
     )
-    const agentCategory = await repositories.agentCategoryRepository.save(
-      repositories.agentCategoryRepository.create({
+    const agentSessionCategory = await repositories.agentSessionCategoryRepository.save(
+      repositories.agentSessionCategoryRepository.create({
         agentId: agent.id,
-        projectAgentCategoryId: projectCategory.id,
+        projectSessionCategoryId: projectCategory.id,
         name: projectCategory.name,
       }),
     )
     await repositories.conversationAgentSessionCategoryRepository.save(
       repositories.conversationAgentSessionCategoryRepository.create({
         conversationAgentSessionId: agentSession.id,
-        agentCategoryId: agentCategory.id,
+        agentSessionCategoryId: agentSessionCategory.id,
       }),
     )
 
@@ -313,7 +313,7 @@ describe("Backoffice - feature flag lifecycle", () => {
     const returnedProject = organization?.projects.find(
       (candidateProject) => candidateProject.id === project.id,
     )
-    expect(returnedProject?.agentCategories).toEqual([
+    expect(returnedProject?.agentSessionCategories).toEqual([
       {
         id: projectCategory.id,
         name: "Billing",

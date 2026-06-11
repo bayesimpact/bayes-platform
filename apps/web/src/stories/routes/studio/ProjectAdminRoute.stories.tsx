@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { projectAgentCategoryFactory } from "@/common/features/projects/projects.factory"
-import type { ProjectAgentCategory } from "@/common/features/projects/projects.models"
+import { projectSessionCategoryFactory } from "@/common/features/projects/projects.factory"
+import type { ProjectSessionCategory } from "@/common/features/projects/projects.models"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -13,7 +13,7 @@ import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
-  withAgentCategories?: boolean
+  withAgentSessionCategories?: boolean
 }
 
 const meta = {
@@ -21,11 +21,11 @@ const meta = {
   parameters: { layout: "fullscreen" },
   argTypes: {
     ...studioStoryArgTypes,
-    withAgentCategories: { control: "boolean" },
+    withAgentSessionCategories: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
-    withAgentCategories: false,
+    withAgentSessionCategories: false,
   },
   render: render({
     routes: studioRoutes,
@@ -38,16 +38,16 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   decorators: [
-    buildDecorator<StoryArgs>(({ withAgentCategories, ...args }) => {
+    buildDecorator<StoryArgs>(({ withAgentSessionCategories, ...args }) => {
       const { baseSeeds, project } = buildStudioData(args)
-      const categories: ProjectAgentCategory[] = withAgentCategories
+      const categories: ProjectSessionCategory[] = withAgentSessionCategories
         ? [
-            projectAgentCategoryFactory.build({ name: "Support" }),
-            projectAgentCategoryFactory.build({ name: "Sales" }),
-            projectAgentCategoryFactory.build({ name: "Onboarding" }),
+            projectSessionCategoryFactory.build({ name: "Support" }),
+            projectSessionCategoryFactory.build({ name: "Sales" }),
+            projectSessionCategoryFactory.build({ name: "Onboarding" }),
           ]
         : []
-      const seededProject = { ...project, agentCategories: categories }
+      const seededProject = { ...project, agentSessionCategories: categories }
       return {
         state: mergeSeeds(
           baseSeeds,
@@ -61,19 +61,19 @@ export const Default: Story = {
 export const WithCategories: Story = {
   args: {
     ...studioStoryArgs,
-    withAgentCategories: true,
+    withAgentSessionCategories: true,
   },
   decorators: [
-    buildDecorator<StoryArgs>(({ withAgentCategories, ...args }) => {
+    buildDecorator<StoryArgs>(({ withAgentSessionCategories, ...args }) => {
       const { baseSeeds, project } = buildStudioData(args)
-      const categories: ProjectAgentCategory[] = withAgentCategories
+      const categories: ProjectSessionCategory[] = withAgentSessionCategories
         ? [
-            projectAgentCategoryFactory.build({ name: "Support" }),
-            projectAgentCategoryFactory.build({ name: "Sales" }),
-            projectAgentCategoryFactory.build({ name: "Onboarding" }),
+            projectSessionCategoryFactory.build({ name: "Support" }),
+            projectSessionCategoryFactory.build({ name: "Sales" }),
+            projectSessionCategoryFactory.build({ name: "Onboarding" }),
           ]
         : []
-      const seededProject = { ...project, agentCategories: categories }
+      const seededProject = { ...project, agentSessionCategories: categories }
       return {
         state: mergeSeeds(
           baseSeeds,

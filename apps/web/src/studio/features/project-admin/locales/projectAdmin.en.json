@@ -5,23 +5,23 @@
     "description": "Manage your workspace settings.",
     "tabs": {
       "general": "General",
-      "agentCategories": "Agent Categories"
+      "agentSessionCategories": "Conversation categories"
     },
     "general": {
       "title": "General",
       "description": "Update the general settings for this workspace.",
       "workspaceName": "Workspace name"
     },
-    "agentCategories": {
-      "title": "Agent Categories",
-      "description": "Manage the categories available when assigning agents to conversations.",
+    "agentSessionCategories": {
+      "title": "Conversation categories",
+      "description": "Manage the categories used to automatically classify this workspace's conversations.",
       "addCategory": "Add category",
-      "addDialogTitle": "Add agent category",
+      "addDialogTitle": "Add conversation category",
       "categoryNamePlaceholder": "Category name",
       "empty": "No categories yet.",
       "removeCategory": "Remove {{name}}",
-      "assignToAllConversationalAgents": "Also assign to all existing conversational agents",
-      "removeDialogTitle": "Remove agent category?",
+      "assignToAllConversationalAgents": "Also enable for all existing conversation agents",
+      "removeDialogTitle": "Remove conversation category?",
       "removeDialogDescription": "This will remove \"{{name}}\" from the workspace category list."
     }
   }

@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
 import { Agent } from "@/domains/agents/agent.entity"
-import { ProjectAgentCategory } from "@/domains/agents/categories/project-agent-category.entity"
+import { ProjectSessionCategory } from "@/domains/agents/session-categories/project-session-category.entity"
 import { Document } from "@/domains/documents/document.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { AgentMessageFeedback } from "../agents/shared/agent-session-messages/feedback/agent-message-feedback.entity"
@@ -32,10 +32,10 @@ export class Project extends Base4AllEntity {
   agents!: Agent[]
 
   @OneToMany(
-    () => ProjectAgentCategory,
-    (projectAgentCategory) => projectAgentCategory.project,
+    () => ProjectSessionCategory,
+    (projectSessionCategory) => projectSessionCategory.project,
   )
-  projectAgentCategories!: ProjectAgentCategory[]
+  projectSessionCategories!: ProjectSessionCategory[]
 
   @OneToMany(
     () => Document,

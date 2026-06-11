@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { ProjectAgentCategoriesRoutes } from "@caseai-connect/api-contracts"
+import { ProjectSessionCategoriesRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
@@ -16,7 +16,7 @@ import { createOrganizationWithProject } from "@/domains/organizations/organizat
 import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 
-describe("ProjectAgentCategories - Auth", () => {
+describe("ProjectSessionCategories - Auth", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
@@ -64,10 +64,10 @@ describe("ProjectAgentCategories - Auth", () => {
     return { organization, project }
   }
 
-  describe("ProjectAgentCategoriesRoutes.createOne", () => {
-    const subject = async (payload?: typeof ProjectAgentCategoriesRoutes.createOne.request) =>
+  describe("ProjectSessionCategoriesRoutes.createOne", () => {
+    const subject = async (payload?: typeof ProjectSessionCategoriesRoutes.createOne.request) =>
       request({
-        route: ProjectAgentCategoriesRoutes.createOne,
+        route: ProjectSessionCategoriesRoutes.createOne,
         pathParams: removeNullish({ organizationId, projectId }),
         token: accessToken ?? undefined,
         request: payload,
@@ -128,10 +128,10 @@ describe("ProjectAgentCategories - Auth", () => {
     })
   })
 
-  describe("ProjectAgentCategoriesRoutes.deleteOne", () => {
+  describe("ProjectSessionCategoriesRoutes.deleteOne", () => {
     const subject = async () =>
       request({
-        route: ProjectAgentCategoriesRoutes.deleteOne,
+        route: ProjectSessionCategoriesRoutes.deleteOne,
         pathParams: removeNullish({ organizationId, projectId, categoryId }),
         token: accessToken ?? undefined,
       })

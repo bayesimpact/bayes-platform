@@ -86,7 +86,7 @@ describe("Agents - updateOne", () => {
         outputJsonSchema: undefined,
         tagsToAdd: [],
         tagsToRemove: [],
-        projectAgentCategoryIds: [],
+        projectSessionCategoryIds: [],
       },
     })
 
@@ -115,7 +115,7 @@ describe("Agents - updateOne", () => {
         outputJsonSchema: undefined,
         tagsToAdd: [],
         tagsToRemove: [],
-        projectAgentCategoryIds: [],
+        projectSessionCategoryIds: [],
       },
     })
 
@@ -140,7 +140,7 @@ describe("Agents - updateOne", () => {
         outputJsonSchema: undefined,
         tagsToAdd: [],
         tagsToRemove: [],
-        projectAgentCategoryIds: [],
+        projectSessionCategoryIds: [],
       },
     })
     expectResponse(setResponse, 200)
@@ -157,7 +157,7 @@ describe("Agents - updateOne", () => {
         outputJsonSchema: undefined,
         tagsToAdd: [],
         tagsToRemove: [],
-        projectAgentCategoryIds: [],
+        projectSessionCategoryIds: [],
       },
     })
     expectResponse(clearResponse, 200)
@@ -187,7 +187,7 @@ describe("Agents - updateOne", () => {
         outputJsonSchema: undefined,
         tagsToAdd: [],
         tagsToRemove: [],
-        projectAgentCategoryIds: [],
+        projectSessionCategoryIds: [],
       },
     })
 
@@ -203,8 +203,8 @@ describe("Agents - updateOne", () => {
 
   it("should update selected project categories", async () => {
     const { project, agent } = await createContext()
-    const projectCategory = await repositories.projectAgentCategoryRepository.save(
-      repositories.projectAgentCategoryRepository.create({
+    const projectCategory = await repositories.projectSessionCategoryRepository.save(
+      repositories.projectSessionCategoryRepository.create({
         projectId: project.id,
         name: "Billing",
       }),
@@ -218,40 +218,40 @@ describe("Agents - updateOne", () => {
         outputJsonSchema: undefined,
         tagsToAdd: [],
         tagsToRemove: [],
-        projectAgentCategoryIds: [projectCategory.id],
+        projectSessionCategoryIds: [projectCategory.id],
       },
     })
 
     expectResponse(response, 200)
-    const agentCategories = await repositories.agentCategoryRepository.find({
+    const agentSessionCategories = await repositories.agentSessionCategoryRepository.find({
       where: { agentId },
     })
-    expect(agentCategories).toHaveLength(1)
-    expect(agentCategories[0]?.projectAgentCategoryId).toBe(projectCategory.id)
+    expect(agentSessionCategories).toHaveLength(1)
+    expect(agentSessionCategories[0]?.projectSessionCategoryId).toBe(projectCategory.id)
   })
 
   it("should preserve an existing soft-deleted project category while adding a new category", async () => {
     const { project, agent } = await createContext()
-    const legacyProjectCategory = await repositories.projectAgentCategoryRepository.save(
-      repositories.projectAgentCategoryRepository.create({
+    const legacyProjectCategory = await repositories.projectSessionCategoryRepository.save(
+      repositories.projectSessionCategoryRepository.create({
         projectId: project.id,
         name: "Legacy",
       }),
     )
-    const newProjectCategory = await repositories.projectAgentCategoryRepository.save(
-      repositories.projectAgentCategoryRepository.create({
+    const newProjectCategory = await repositories.projectSessionCategoryRepository.save(
+      repositories.projectSessionCategoryRepository.create({
         projectId: project.id,
         name: "New",
       }),
     )
-    await repositories.agentCategoryRepository.save(
-      repositories.agentCategoryRepository.create({
+    await repositories.agentSessionCategoryRepository.save(
+      repositories.agentSessionCategoryRepository.create({
         agentId: agent.id,
-        projectAgentCategoryId: legacyProjectCategory.id,
+        projectSessionCategoryId: legacyProjectCategory.id,
         name: legacyProjectCategory.name,
       }),
     )
-    await repositories.projectAgentCategoryRepository.softDelete(legacyProjectCategory.id)
+    await repositories.projectSessionCategoryRepository.softDelete(legacyProjectCategory.id)
 
     const response = await subject({
       payload: {
@@ -261,16 +261,16 @@ describe("Agents - updateOne", () => {
         outputJsonSchema: undefined,
         tagsToAdd: [],
         tagsToRemove: [],
-        projectAgentCategoryIds: [legacyProjectCategory.id, newProjectCategory.id],
+        projectSessionCategoryIds: [legacyProjectCategory.id, newProjectCategory.id],
       },
     })
 
     expectResponse(response, 200)
-    const agentCategories = await repositories.agentCategoryRepository.find({
+    const agentSessionCategories = await repositories.agentSessionCategoryRepository.find({
       where: { agentId },
       order: { name: "ASC" },
     })
-    expect(agentCategories.map((category) => category.projectAgentCategoryId)).toEqual([
+    expect(agentSessionCategories.map((category) => category.projectSessionCategoryId)).toEqual([
       legacyProjectCategory.id,
       newProjectCategory.id,
     ])
@@ -278,16 +278,16 @@ describe("Agents - updateOne", () => {
 
   it("should reject removing a category already used by a conversation", async () => {
     const { organization, project, agent, user } = await createContext()
-    const projectCategory = await repositories.projectAgentCategoryRepository.save(
-      repositories.projectAgentCategoryRepository.create({
+    const projectCategory = await repositories.projectSessionCategoryRepository.save(
+      repositories.projectSessionCategoryRepository.create({
         projectId: project.id,
         name: "Billing",
       }),
     )
-    const agentCategory = await repositories.agentCategoryRepository.save(
-      repositories.agentCategoryRepository.create({
+    const agentSessionCategory = await repositories.agentSessionCategoryRepository.save(
+      repositories.agentSessionCategoryRepository.create({
         agentId: agent.id,
-        projectAgentCategoryId: projectCategory.id,
+        projectSessionCategoryId: projectCategory.id,
         name: projectCategory.name,
       }),
     )
@@ -303,7 +303,7 @@ describe("Agents - updateOne", () => {
     await repositories.conversationAgentSessionCategoryRepository.save(
       repositories.conversationAgentSessionCategoryRepository.create({
         conversationAgentSessionId: session.id,
-        agentCategoryId: agentCategory.id,
+        agentSessionCategoryId: agentSessionCategory.id,
       }),
     )
 
@@ -315,13 +315,13 @@ describe("Agents - updateOne", () => {
         outputJsonSchema: undefined,
         tagsToAdd: [],
         tagsToRemove: [],
-        projectAgentCategoryIds: [],
+        projectSessionCategoryIds: [],
       },
     })
 
     expectResponse(response, 400)
-    const activeCategory = await repositories.agentCategoryRepository.findOne({
-      where: { id: agentCategory.id },
+    const activeCategory = await repositories.agentSessionCategoryRepository.findOne({
+      where: { id: agentSessionCategory.id },
     })
     expect(activeCategory).not.toBeNull()
   })

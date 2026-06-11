@@ -116,13 +116,13 @@ const slice = createSlice({
       }
     })
 
-    builder.addCase(backofficeThunks.replaceProjectAgentCategories.fulfilled, (state, action) => {
+    builder.addCase(backofficeThunks.replaceProjectSessionCategories.fulfilled, (state, action) => {
       if (!ADS.isFulfilled(state.organizations)) return
       const { projectId, categories } = action.payload
       for (const organization of state.organizations.value.organizations) {
         const project = organization.projects.find((project) => project.id === projectId)
         if (project) {
-          project.agentCategories = categories
+          project.agentSessionCategories = categories
         }
       }
     })

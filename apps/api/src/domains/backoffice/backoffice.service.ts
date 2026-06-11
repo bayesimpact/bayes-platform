@@ -17,11 +17,11 @@ import { Project } from "../projects/project.entity"
 import { User } from "../users/user.entity"
 import type {
   BackofficeOrganizationView,
-  BackofficeProjectAgentCategoryView,
+  BackofficeProjectSessionCategoryView,
   BackofficeProjectView,
 } from "./backoffice.helpers"
 
-type ProjectAgentCategoryRow = {
+type ProjectSessionCategoryRow = {
   id: string
   projectId: string
   name: string
@@ -163,7 +163,7 @@ export class BackofficeService {
         : orderedOrganizations
 
     const projects = scopedOrganizations.flatMap((organization) => organization.projects ?? [])
-    const categoriesByProjectId = await this.listProjectAgentCategoriesByProjectIds(
+    const categoriesByProjectId = await this.listProjectSessionCategoriesByProjectIds(
       projects.map((project) => project.id),
     )
 
@@ -173,7 +173,7 @@ export class BackofficeService {
         projects: (organization.projects ?? []).map(
           (project): BackofficeProjectView => ({
             ...project,
-            projectAgentCategories: categoriesByProjectId.get(project.id) ?? [],
+            projectSessionCategories: categoriesByProjectId.get(project.id) ?? [],
           }),
         ),
       })),
@@ -392,7 +392,7 @@ export class BackofficeService {
     await this.featureFlagRepository.delete({ projectId, featureFlagKey })
   }
 
-  async replaceProjectAgentCategories({
+  async replaceProjectSessionCategories({
     projectId,
     categoryNames,
     canListAll,
@@ -402,22 +402,22 @@ export class BackofficeService {
     categoryNames: string[]
     canListAll: boolean
     userId: string
-  }): Promise<BackofficeProjectAgentCategoryView[]> {
+  }): Promise<BackofficeProjectSessionCategoryView[]> {
     await this.assertProjectEditable({ canListAll, userId, projectId })
 
     const normalizedCategoryNames = normalizeCategoryNames(categoryNames)
-    const existingProjectAgentCategories =
-      await this.listProjectAgentCategoryRowsIncludingDeleted(projectId)
+    const existingProjectSessionCategories =
+      await this.listProjectSessionCategoryRowsIncludingDeleted(projectId)
 
     const desiredCategoryNames = new Set(normalizedCategoryNames)
     const existingCategoryByName = new Map(
-      existingProjectAgentCategories.map((existingCategory) => [
+      existingProjectSessionCategories.map((existingCategory) => [
         existingCategory.name,
         existingCategory,
       ]),
     )
 
-    for (const existingCategory of existingProjectAgentCategories) {
+    for (const existingCategory of existingProjectSessionCategories) {
       const shouldRemove = !desiredCategoryNames.has(existingCategory.name)
       const isActive = existingCategory.deletedAt === null
       const isUsedInConversation = existingCategory.usageCount > 0
@@ -433,7 +433,7 @@ export class BackofficeService {
       const existingCategory = existingCategoryByName.get(categoryName)
       if (!existingCategory) {
         await this.dataSource.query(
-          `INSERT INTO "project_agent_category" ("project_id", "name") VALUES ($1, $2)`,
+          `INSERT INTO "project_session_category" ("project_id", "name") VALUES ($1, $2)`,
           [projectId, categoryName],
         )
         continue
@@ -441,63 +441,63 @@ export class BackofficeService {
 
       if (existingCategory.deletedAt !== null) {
         await this.dataSource.query(
-          `UPDATE "project_agent_category" SET "deleted_at" = NULL, "updated_at" = now() WHERE "id" = $1`,
+          `UPDATE "project_session_category" SET "deleted_at" = NULL, "updated_at" = now() WHERE "id" = $1`,
           [existingCategory.id],
         )
       }
     }
 
-    for (const existingCategory of existingProjectAgentCategories) {
+    for (const existingCategory of existingProjectSessionCategories) {
       const shouldStayActive = desiredCategoryNames.has(existingCategory.name)
       const isActive = existingCategory.deletedAt === null
       if (!shouldStayActive && isActive) {
         await this.dataSource.query(
-          `UPDATE "project_agent_category" SET "deleted_at" = now(), "updated_at" = now() WHERE "id" = $1`,
+          `UPDATE "project_session_category" SET "deleted_at" = now(), "updated_at" = now() WHERE "id" = $1`,
           [existingCategory.id],
         )
       }
     }
 
-    return this.listProjectAgentCategories(projectId)
+    return this.listProjectSessionCategories(projectId)
   }
 
-  private async listProjectAgentCategories(
+  private async listProjectSessionCategories(
     projectId: string,
-  ): Promise<BackofficeProjectAgentCategoryView[]> {
-    const categoriesByProjectId = await this.listProjectAgentCategoriesByProjectIds([projectId])
+  ): Promise<BackofficeProjectSessionCategoryView[]> {
+    const categoriesByProjectId = await this.listProjectSessionCategoriesByProjectIds([projectId])
     return categoriesByProjectId.get(projectId) ?? []
   }
 
-  private async listProjectAgentCategoriesByProjectIds(
+  private async listProjectSessionCategoriesByProjectIds(
     projectIds: string[],
-  ): Promise<Map<string, BackofficeProjectAgentCategoryView[]>> {
-    const categoriesByProjectId = new Map<string, BackofficeProjectAgentCategoryView[]>()
+  ): Promise<Map<string, BackofficeProjectSessionCategoryView[]>> {
+    const categoriesByProjectId = new Map<string, BackofficeProjectSessionCategoryView[]>()
     if (projectIds.length === 0) {
       return categoriesByProjectId
     }
 
-    const rows = await this.dataSource.query<ProjectAgentCategoryRow[]>(
+    const rows = await this.dataSource.query<ProjectSessionCategoryRow[]>(
       `
         SELECT
-          "project_agent_category"."id" AS "id",
-          "project_agent_category"."project_id" AS "projectId",
-          "project_agent_category"."name" AS "name",
-          "project_agent_category"."deleted_at" AS "deletedAt",
+          "project_session_category"."id" AS "id",
+          "project_session_category"."project_id" AS "projectId",
+          "project_session_category"."name" AS "name",
+          "project_session_category"."deleted_at" AS "deletedAt",
           COUNT(DISTINCT "conversation_agent_session_category"."id")::int AS "usageCount"
-        FROM "project_agent_category"
-        LEFT JOIN "agent_category"
-          ON "agent_category"."project_agent_category_id" = "project_agent_category"."id"
+        FROM "project_session_category"
+        LEFT JOIN "agent_session_category"
+          ON "agent_session_category"."project_session_category_id" = "project_session_category"."id"
         LEFT JOIN "conversation_agent_session_category"
-          ON "conversation_agent_session_category"."project_agent_category_id" = "project_agent_category"."id"
-          OR "conversation_agent_session_category"."agent_category_id" = "agent_category"."id"
-        WHERE "project_agent_category"."project_id" = ANY($1::uuid[])
-          AND "project_agent_category"."deleted_at" IS NULL
+          ON "conversation_agent_session_category"."project_session_category_id" = "project_session_category"."id"
+          OR "conversation_agent_session_category"."agent_session_category_id" = "agent_session_category"."id"
+        WHERE "project_session_category"."project_id" = ANY($1::uuid[])
+          AND "project_session_category"."deleted_at" IS NULL
         GROUP BY
-          "project_agent_category"."id",
-          "project_agent_category"."project_id",
-          "project_agent_category"."name",
-          "project_agent_category"."deleted_at"
-        ORDER BY "project_agent_category"."name" ASC
+          "project_session_category"."id",
+          "project_session_category"."project_id",
+          "project_session_category"."name",
+          "project_session_category"."deleted_at"
+        ORDER BY "project_session_category"."name" ASC
       `,
       [projectIds],
     )
@@ -515,30 +515,30 @@ export class BackofficeService {
     return categoriesByProjectId
   }
 
-  private async listProjectAgentCategoryRowsIncludingDeleted(
+  private async listProjectSessionCategoryRowsIncludingDeleted(
     projectId: string,
-  ): Promise<ProjectAgentCategoryRow[]> {
-    return this.dataSource.query<ProjectAgentCategoryRow[]>(
+  ): Promise<ProjectSessionCategoryRow[]> {
+    return this.dataSource.query<ProjectSessionCategoryRow[]>(
       `
         SELECT
-          "project_agent_category"."id" AS "id",
-          "project_agent_category"."project_id" AS "projectId",
-          "project_agent_category"."name" AS "name",
-          "project_agent_category"."deleted_at" AS "deletedAt",
+          "project_session_category"."id" AS "id",
+          "project_session_category"."project_id" AS "projectId",
+          "project_session_category"."name" AS "name",
+          "project_session_category"."deleted_at" AS "deletedAt",
           COUNT(DISTINCT "conversation_agent_session_category"."id")::int AS "usageCount"
-        FROM "project_agent_category"
-        LEFT JOIN "agent_category"
-          ON "agent_category"."project_agent_category_id" = "project_agent_category"."id"
+        FROM "project_session_category"
+        LEFT JOIN "agent_session_category"
+          ON "agent_session_category"."project_session_category_id" = "project_session_category"."id"
         LEFT JOIN "conversation_agent_session_category"
-          ON "conversation_agent_session_category"."project_agent_category_id" = "project_agent_category"."id"
-          OR "conversation_agent_session_category"."agent_category_id" = "agent_category"."id"
-        WHERE "project_agent_category"."project_id" = $1
+          ON "conversation_agent_session_category"."project_session_category_id" = "project_session_category"."id"
+          OR "conversation_agent_session_category"."agent_session_category_id" = "agent_session_category"."id"
+        WHERE "project_session_category"."project_id" = $1
         GROUP BY
-          "project_agent_category"."id",
-          "project_agent_category"."project_id",
-          "project_agent_category"."name",
-          "project_agent_category"."deleted_at"
-        ORDER BY "project_agent_category"."name" ASC
+          "project_session_category"."id",
+          "project_session_category"."project_id",
+          "project_session_category"."name",
+          "project_session_category"."deleted_at"
+        ORDER BY "project_session_category"."name" ASC
       `,
       [projectId],
     )

@@ -10,16 +10,16 @@ import type { EndpointRequestWithProject } from "@/common/context/request.interf
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import { CHECK_POLICY_KEY, type PolicyHandler } from "@/common/policies/check-policy.decorator"
 import { requestToProjectPolicyContext } from "@/domains/projects/helpers"
-import { ProjectAgentCategoriesPolicy } from "./project-agent-categories.policy"
+import { ProjectSessionCategoriesPolicy } from "./project-session-categories.policy"
 
 @Injectable()
-export class ProjectAgentCategoriesGuard implements CanActivate {
+export class ProjectSessionCategoriesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest() as EndpointRequestWithProject
 
-    const policy = new ProjectAgentCategoriesPolicy(requestToProjectPolicyContext(request))
+    const policy = new ProjectSessionCategoriesPolicy(requestToProjectPolicyContext(request))
 
     const policyHandler = this.reflector.getAllAndOverride<PolicyHandler>(CHECK_POLICY_KEY, [
       context.getHandler(),

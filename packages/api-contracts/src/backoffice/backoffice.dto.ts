@@ -11,16 +11,16 @@ export type BackofficeProjectDto = {
   createdAt: TimeType
   updatedAt: TimeType
   featureFlags: FeatureFlagsDto
-  agentCategories: BackofficeProjectAgentCategoryDto[]
+  agentSessionCategories: BackofficeProjectSessionCategoryDto[]
 }
 
-export type BackofficeProjectAgentCategoryDto = {
+export type BackofficeProjectSessionCategoryDto = {
   id: string
   name: string
   isUsedInConversation: boolean
 }
 
-export type ReplaceBackofficeProjectAgentCategoriesDto = {
+export type ReplaceBackofficeProjectSessionCategoriesDto = {
   categoryNames: string[]
 }
 

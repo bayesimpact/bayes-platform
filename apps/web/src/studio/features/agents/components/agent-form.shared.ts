@@ -30,7 +30,7 @@ export type AgentFormValues = {
   temperature: number
   outputJsonSchema?: Record<string, unknown>
   documentsRagMode: DocumentsRagMode
-  projectAgentCategoryIds: string[]
+  projectSessionCategoryIds: string[]
   tagsToAdd: string[]
   tagsToRemove?: string[]
   documentTagIds?: string[]
@@ -63,7 +63,7 @@ export function getDefaultFormValues({
     temperature: 0.0,
     locale: language,
     tagsToAdd: [],
-    projectAgentCategoryIds: [],
+    projectSessionCategoryIds: [],
   }
 
   if (["form", "extraction"].includes(agentType)) {

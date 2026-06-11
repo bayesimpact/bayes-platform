@@ -177,10 +177,10 @@ describe("Backoffice - Auth", () => {
     })
   })
 
-  describe("BackofficeRoutes.replaceProjectAgentCategories", () => {
+  describe("BackofficeRoutes.replaceProjectSessionCategories", () => {
     const subject = async (projectId: string) =>
       request({
-        route: BackofficeRoutes.replaceProjectAgentCategories,
+        route: BackofficeRoutes.replaceProjectSessionCategories,
         pathParams: { projectId },
         token: accessToken ?? undefined,
         request: { payload: { categoryNames: ["Billing"] } },

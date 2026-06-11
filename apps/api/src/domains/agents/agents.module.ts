@@ -25,16 +25,16 @@ import { AgentGuard } from "./agent.guard"
 import { AgentsController } from "./agents.controller"
 import { AgentsService } from "./agents.service"
 import { BaseAgentSessionsService } from "./base-agent-sessions/base-agent-sessions.service"
-import { AgentCategoriesService } from "./categories/agent-categories.service"
-import { AgentCategory } from "./categories/agent-category.entity"
-import { ProjectAgentCategoriesController } from "./categories/project-agent-categories.controller"
-import { ProjectAgentCategoriesGuard } from "./categories/project-agent-categories.guard"
-import { ProjectAgentCategoriesService } from "./categories/project-agent-categories.service"
-import { ProjectAgentCategory } from "./categories/project-agent-category.entity"
 import { AgentMembership } from "./memberships/agent-membership.entity"
 import { AgentMembershipsController } from "./memberships/agent-memberships.controller"
 import { AgentMembershipsGuard } from "./memberships/agent-memberships.guard"
 import { AgentMembershipsService } from "./memberships/agent-memberships.service"
+import { AgentSessionCategoriesService } from "./session-categories/agent-session-categories.service"
+import { AgentSessionCategory } from "./session-categories/agent-session-category.entity"
+import { ProjectSessionCategoriesController } from "./session-categories/project-session-categories.controller"
+import { ProjectSessionCategoriesGuard } from "./session-categories/project-session-categories.guard"
+import { ProjectSessionCategoriesService } from "./session-categories/project-session-categories.service"
+import { ProjectSessionCategory } from "./session-categories/project-session-category.entity"
 import { AgentSubAgent } from "./sub-agents/agent-sub-agent.entity"
 import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
 
@@ -42,9 +42,9 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
   imports: [
     TypeOrmModule.forFeature([
       Agent,
-      AgentCategory,
+      AgentSessionCategory,
       AgentSubAgent,
-      ProjectAgentCategory,
+      ProjectSessionCategory,
       AgentMembership,
       Project,
       OrganizationMembership,
@@ -65,21 +65,26 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
   ],
   providers: [
     AgentsService,
-    AgentCategoriesService,
+    AgentSessionCategoriesService,
     AgentSubAgentsService,
-    ProjectAgentCategoriesService,
+    ProjectSessionCategoriesService,
     BaseAgentSessionsService,
     AgentMembershipsService,
     AgentGuard,
     AgentMembershipsGuard,
-    ProjectAgentCategoriesGuard,
+    ProjectSessionCategoriesGuard,
     ResourceContextGuard,
     OrganizationContextResolver,
     ProjectContextResolver,
     AgentContextResolver,
     AgentMembershipContextResolver,
   ],
-  controllers: [AgentsController, AgentMembershipsController, ProjectAgentCategoriesController],
-  exports: [AgentsService, AgentCategoriesService, AgentMembershipsService, AgentSubAgentsService],
+  controllers: [AgentsController, AgentMembershipsController, ProjectSessionCategoriesController],
+  exports: [
+    AgentsService,
+    AgentSessionCategoriesService,
+    AgentMembershipsService,
+    AgentSubAgentsService,
+  ],
 })
 export class AgentsModule {}

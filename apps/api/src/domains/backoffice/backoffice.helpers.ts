@@ -1,7 +1,7 @@
 import type {
   BackofficeOrganizationDto,
-  BackofficeProjectAgentCategoryDto,
   BackofficeProjectDto,
+  BackofficeProjectSessionCategoryDto,
   BackofficeUserDto,
   FeatureFlagKey,
   FeatureFlagsDto,
@@ -12,14 +12,14 @@ import type { Organization } from "@/domains/organizations/organization.entity"
 import type { Project } from "@/domains/projects/project.entity"
 import type { User } from "@/domains/users/user.entity"
 
-export type BackofficeProjectAgentCategoryView = {
+export type BackofficeProjectSessionCategoryView = {
   id: string
   name: string
   isUsedInConversation: boolean
 }
 
-export type BackofficeProjectView = Omit<Project, "projectAgentCategories"> & {
-  projectAgentCategories?: BackofficeProjectAgentCategoryView[]
+export type BackofficeProjectView = Omit<Project, "projectSessionCategories"> & {
+  projectSessionCategories?: BackofficeProjectSessionCategoryView[]
 }
 
 export type BackofficeOrganizationView = Omit<Organization, "projects"> & {
@@ -34,13 +34,13 @@ function toFeatureFlagsDto(featureFlags: FeatureFlag[] | undefined): FeatureFlag
   )
 }
 
-export function toBackofficeProjectAgentCategoryDto(
-  projectAgentCategory: BackofficeProjectAgentCategoryView,
-): BackofficeProjectAgentCategoryDto {
+export function toBackofficeProjectSessionCategoryDto(
+  projectSessionCategory: BackofficeProjectSessionCategoryView,
+): BackofficeProjectSessionCategoryDto {
   return {
-    id: projectAgentCategory.id,
-    name: projectAgentCategory.name,
-    isUsedInConversation: projectAgentCategory.isUsedInConversation,
+    id: projectSessionCategory.id,
+    name: projectSessionCategory.name,
+    isUsedInConversation: projectSessionCategory.isUsedInConversation,
   }
 }
 
@@ -52,8 +52,8 @@ export function toBackofficeProjectDto(project: BackofficeProjectView): Backoffi
     createdAt: project.createdAt.getTime() as TimeType,
     updatedAt: project.updatedAt.getTime() as TimeType,
     featureFlags: toFeatureFlagsDto(project.featureFlags),
-    agentCategories: (project.projectAgentCategories ?? []).map(
-      toBackofficeProjectAgentCategoryDto,
+    agentSessionCategories: (project.projectSessionCategories ?? []).map(
+      toBackofficeProjectSessionCategoryDto,
     ),
   }
 }

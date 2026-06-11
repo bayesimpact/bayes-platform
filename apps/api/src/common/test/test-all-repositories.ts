@@ -1,8 +1,6 @@
 import type { ObjectLiteral, Repository } from "typeorm"
 import { Activity } from "@/domains/activities/activity.entity"
 import { Agent } from "@/domains/agents/agent.entity"
-import { AgentCategory } from "@/domains/agents/categories/agent-category.entity"
-import { ProjectAgentCategory } from "@/domains/agents/categories/project-agent-category.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ConversationAgentSessionCategory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity"
 import { AgentCsvExtractionRun } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run.entity"
@@ -10,6 +8,8 @@ import { AgentCsvExtractionRunRecord } from "@/domains/agents/csv-extraction-run
 import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
 import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import { AgentMembership } from "@/domains/agents/memberships/agent-membership.entity"
+import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
+import { ProjectSessionCategory } from "@/domains/agents/session-categories/project-session-category.entity"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import { AgentMessageAttachmentDocument } from "@/domains/agents/shared/agent-session-messages/agent-message-attachment-document.entity"
 import { AgentMessageFeedback } from "@/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity"
@@ -44,7 +44,7 @@ import { User } from "@/domains/users/user.entity"
 export type AllRepositories = {
   agentEmbedConfigRepository: Repository<AgentEmbedConfig>
   activityRepository: Repository<Activity>
-  agentCategoryRepository: Repository<AgentCategory>
+  agentSessionCategoryRepository: Repository<AgentSessionCategory>
   agentMcpServerRepository: Repository<AgentMcpServer>
   agentMembershipRepository: Repository<AgentMembership>
   agentMessageAttachmentDocumentRepository: Repository<AgentMessageAttachmentDocument>
@@ -72,7 +72,7 @@ export type AllRepositories = {
   organizationMembershipRepository: Repository<OrganizationMembership>
   organizationRepository: Repository<Organization>
   projectMembershipRepository: Repository<ProjectMembership>
-  projectAgentCategoryRepository: Repository<ProjectAgentCategory>
+  projectSessionCategoryRepository: Repository<ProjectSessionCategory>
   projectRepository: Repository<Project>
   publicAgentSessionRepository: Repository<PublicAgentSession>
   reviewCampaignMembershipRepository: Repository<ReviewCampaignMembership>
@@ -91,7 +91,7 @@ export function buildAllRepositories(
   return {
     agentEmbedConfigRepository: getRepository(AgentEmbedConfig),
     activityRepository: getRepository(Activity),
-    agentCategoryRepository: getRepository(AgentCategory),
+    agentSessionCategoryRepository: getRepository(AgentSessionCategory),
     agentMcpServerRepository: getRepository(AgentMcpServer),
     agentMembershipRepository: getRepository(AgentMembership),
     agentMessageAttachmentDocumentRepository: getRepository(AgentMessageAttachmentDocument),
@@ -121,7 +121,7 @@ export function buildAllRepositories(
     organizationMembershipRepository: getRepository(OrganizationMembership),
     organizationRepository: getRepository(Organization),
     projectMembershipRepository: getRepository(ProjectMembership),
-    projectAgentCategoryRepository: getRepository(ProjectAgentCategory),
+    projectSessionCategoryRepository: getRepository(ProjectSessionCategory),
     projectRepository: getRepository(Project),
     publicAgentSessionRepository: getRepository(PublicAgentSession),
     reviewCampaignMembershipRepository: getRepository(ReviewCampaignMembership),

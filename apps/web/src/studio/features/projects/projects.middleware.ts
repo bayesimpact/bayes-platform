@@ -5,9 +5,9 @@ import { notificationsActions } from "@/common/features/notifications/notificati
 import { listProjects } from "@/common/features/projects/projects.thunks"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
-  addProjectAgentCategory,
+  addProjectSessionCategory,
   deleteProject,
-  deleteProjectAgentCategory,
+  deleteProjectSessionCategory,
   updateProject,
 } from "./projects.thunks"
 
@@ -24,13 +24,13 @@ function registerListeners() {
   })
 
   listenerMiddleware.startListening({
-    matcher: isAnyOf(addProjectAgentCategory.fulfilled, deleteProjectAgentCategory.fulfilled),
+    matcher: isAnyOf(addProjectSessionCategory.fulfilled, deleteProjectSessionCategory.fulfilled),
     effect: async (_, listenerApi) => {
       await listenerApi.dispatch(listProjects())
     },
   })
   listenerMiddleware.startListening({
-    actionCreator: addProjectAgentCategory.fulfilled,
+    actionCreator: addProjectSessionCategory.fulfilled,
     effect: async (action, listenerApi) => {
       if (action.meta.arg.assignToAllConversationalAgents) {
         await listenerApi.dispatch(listAgents())
@@ -38,11 +38,11 @@ function registerListeners() {
     },
   })
   listenerMiddleware.startListening({
-    matcher: isAnyOf(addProjectAgentCategory.rejected, deleteProjectAgentCategory.rejected),
+    matcher: isAnyOf(addProjectSessionCategory.rejected, deleteProjectSessionCategory.rejected),
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to update agent categories",
+          title: "Failed to update conversation categories",
           type: "error",
         }),
       )

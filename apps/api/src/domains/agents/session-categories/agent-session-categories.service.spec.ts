@@ -8,11 +8,11 @@ import {
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { AgentsModule } from "../agents.module"
-import { AgentCategoriesService } from "./agent-categories.service"
-import { ProjectAgentCategory } from "./project-agent-category.entity"
+import { AgentSessionCategoriesService } from "./agent-session-categories.service"
+import { ProjectSessionCategory } from "./project-session-category.entity"
 
-describe("AgentCategoriesService", () => {
-  let service: AgentCategoriesService
+describe("AgentSessionCategoriesService", () => {
+  let service: AgentSessionCategoriesService
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
 
@@ -29,7 +29,7 @@ describe("AgentCategoriesService", () => {
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    service = setup.module.get<AgentCategoriesService>(AgentCategoriesService)
+    service = setup.module.get<AgentSessionCategoriesService>(AgentSessionCategoriesService)
     repositories = setup.getAllRepositories()
   })
 
@@ -37,10 +37,10 @@ describe("AgentCategoriesService", () => {
     it("should create categories and list them", async () => {
       const { agent, project } = await createOrganizationWithAgent(repositories)
       const alphaCategory = await setup
-        .getRepository(ProjectAgentCategory)
+        .getRepository(ProjectSessionCategory)
         .save({ projectId: project.id, name: "alpha" })
       const betaCategory = await setup
-        .getRepository(ProjectAgentCategory)
+        .getRepository(ProjectSessionCategory)
         .save({ projectId: project.id, name: "beta" })
 
       const result = await service.replaceActiveCategoriesForAgent(agent.id, [
@@ -59,10 +59,10 @@ describe("AgentCategoriesService", () => {
     it("should soft-delete categories not in the replacement set", async () => {
       const { agent, project } = await createOrganizationWithAgent(repositories)
       const keepCategory = await setup
-        .getRepository(ProjectAgentCategory)
+        .getRepository(ProjectSessionCategory)
         .save({ projectId: project.id, name: "keep" })
       const removeMeCategory = await setup
-        .getRepository(ProjectAgentCategory)
+        .getRepository(ProjectSessionCategory)
         .save({ projectId: project.id, name: "remove-me" })
 
       await service.replaceActiveCategoriesForAgent(agent.id, [keepCategory, removeMeCategory])
@@ -76,10 +76,10 @@ describe("AgentCategoriesService", () => {
     it("should restore a soft-deleted category when it is included again", async () => {
       const { agent, project } = await createOrganizationWithAgent(repositories)
       const restoredCategory = await setup
-        .getRepository(ProjectAgentCategory)
+        .getRepository(ProjectSessionCategory)
         .save({ projectId: project.id, name: "restored" })
       const goneCategory = await setup
-        .getRepository(ProjectAgentCategory)
+        .getRepository(ProjectSessionCategory)
         .save({ projectId: project.id, name: "gone" })
 
       await service.replaceActiveCategoriesForAgent(agent.id, [restoredCategory, goneCategory])

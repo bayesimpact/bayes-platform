@@ -3,7 +3,7 @@ import type { RootState, ThunkExtraArg } from "@/common/store"
 import { getCurrentId } from "../../../common/features/helpers"
 import type {
   Project,
-  ProjectAgentCategory,
+  ProjectSessionCategory,
 } from "../../../common/features/projects/projects.models"
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
@@ -44,33 +44,33 @@ export const deleteProject = createAsyncThunk<void, { onSuccess?: () => void }, 
   },
 )
 
-export const addProjectAgentCategory = createAsyncThunk<
-  ProjectAgentCategory,
+export const addProjectSessionCategory = createAsyncThunk<
+  ProjectSessionCategory,
   { name: string; assignToAllConversationalAgents: boolean },
   ThunkConfig
 >(
-  "projects/addProjectAgentCategory",
+  "projects/addProjectSessionCategory",
   async ({ name, assignToAllConversationalAgents }, { extra: { services }, getState }) => {
     const state = getState()
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
-    return await services.projects.addProjectAgentCategory(
+    return await services.projects.addProjectSessionCategory(
       { organizationId, projectId },
       { name, assignToAllConversationalAgents },
     )
   },
 )
 
-export const deleteProjectAgentCategory = createAsyncThunk<
+export const deleteProjectSessionCategory = createAsyncThunk<
   void,
   { categoryId: string },
   ThunkConfig
 >(
-  "projects/deleteProjectAgentCategory",
+  "projects/deleteProjectSessionCategory",
   async ({ categoryId }, { extra: { services }, getState }) => {
     const state = getState()
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
-    await services.projects.deleteProjectAgentCategory({ organizationId, projectId, categoryId })
+    await services.projects.deleteProjectSessionCategory({ organizationId, projectId, categoryId })
   },
 )

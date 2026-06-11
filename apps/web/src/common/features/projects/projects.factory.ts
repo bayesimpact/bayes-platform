@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { Organization } from "@/common/features/organizations/organizations.models"
-import type { Project, ProjectAgentCategory } from "./projects.models"
+import type { Project, ProjectSessionCategory } from "./projects.models"
 
 type ProjectTransientParams = {
   organization: Organization
@@ -23,15 +23,22 @@ export const projectFactory = ProjectFactory.define(({ params, transientParams }
     createdAt: params.createdAt ?? faker.date.past().getTime(),
     updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
     featureFlags: params.featureFlags ?? [],
-    agentCategories: params.agentCategories ?? [],
+    agentSessionCategories: params.agentSessionCategories ?? [],
   }
 })
 
-const AGENT_CATEGORY_NAMES = ["Billing", "Support", "Onboarding", "Sales", "Operations", "Research"]
+const AGENT_SESSION_CATEGORY_NAMES = [
+  "Billing",
+  "Support",
+  "Onboarding",
+  "Sales",
+  "Operations",
+  "Research",
+]
 
-class ProjectAgentCategoryFactory extends Factory<ProjectAgentCategory> {}
+class ProjectSessionCategoryFactory extends Factory<ProjectSessionCategory> {}
 
-export const projectAgentCategoryFactory = ProjectAgentCategoryFactory.define(({ params }) => ({
+export const projectSessionCategoryFactory = ProjectSessionCategoryFactory.define(({ params }) => ({
   id: params.id ?? faker.string.uuid(),
-  name: params.name ?? faker.helpers.arrayElement(AGENT_CATEGORY_NAMES),
+  name: params.name ?? faker.helpers.arrayElement(AGENT_SESSION_CATEGORY_NAMES),
 }))

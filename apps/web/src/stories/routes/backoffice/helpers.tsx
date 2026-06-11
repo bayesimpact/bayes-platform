@@ -149,7 +149,7 @@ export function buildMockBackofficeService(overrides: {
     },
     async addFeatureFlag() {},
     async removeFeatureFlag() {},
-    async replaceProjectAgentCategories() {
+    async replaceProjectSessionCategories() {
       return []
     },
     async listTermsDocuments() {

@@ -7,11 +7,11 @@ import {
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { AgentsModule } from "../agents.module"
-import { ProjectAgentCategoriesService } from "./project-agent-categories.service"
-import { ProjectAgentCategory } from "./project-agent-category.entity"
+import { ProjectSessionCategoriesService } from "./project-session-categories.service"
+import { ProjectSessionCategory } from "./project-session-category.entity"
 
-describe("ProjectAgentCategoriesService", () => {
-  let service: ProjectAgentCategoriesService
+describe("ProjectSessionCategoriesService", () => {
+  let service: ProjectSessionCategoriesService
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
 
   beforeAll(async () => {
@@ -27,14 +27,14 @@ describe("ProjectAgentCategoriesService", () => {
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    service = setup.module.get<ProjectAgentCategoriesService>(ProjectAgentCategoriesService)
+    service = setup.module.get<ProjectSessionCategoriesService>(ProjectSessionCategoriesService)
   })
 
-  describe("addProjectAgentCategory", () => {
+  describe("addProjectSessionCategory", () => {
     it("should create a new category", async () => {
       const { project } = await createOrganizationWithProject(setup.getAllRepositories())
 
-      const category = await service.addProjectAgentCategory(project.id, "Support", false)
+      const category = await service.addProjectSessionCategory(project.id, "Support", false)
 
       expect(category.name).toBe("Support")
       expect(category.id).toBeDefined()
@@ -43,7 +43,7 @@ describe("ProjectAgentCategoriesService", () => {
     it("should trim whitespace from the category name", async () => {
       const { project } = await createOrganizationWithProject(setup.getAllRepositories())
 
-      const category = await service.addProjectAgentCategory(project.id, "  Sales  ", false)
+      const category = await service.addProjectSessionCategory(project.id, "  Sales  ", false)
 
       expect(category.name).toBe("Sales")
     })
@@ -51,10 +51,10 @@ describe("ProjectAgentCategoriesService", () => {
     it("should restore a previously soft-deleted category instead of creating a duplicate", async () => {
       const { project } = await createOrganizationWithProject(setup.getAllRepositories())
 
-      const created = await service.addProjectAgentCategory(project.id, "Support", false)
-      await service.deleteProjectAgentCategory(project.id, created.id)
+      const created = await service.addProjectSessionCategory(project.id, "Support", false)
+      await service.deleteProjectSessionCategory(project.id, created.id)
 
-      const restored = await service.addProjectAgentCategory(project.id, "Support", false)
+      const restored = await service.addProjectSessionCategory(project.id, "Support", false)
 
       expect(restored.id).toBe(created.id)
       expect(restored.name).toBe("Support")
@@ -63,22 +63,22 @@ describe("ProjectAgentCategoriesService", () => {
     it("should return the existing active category if already exists", async () => {
       const { project } = await createOrganizationWithProject(setup.getAllRepositories())
 
-      const first = await service.addProjectAgentCategory(project.id, "Support", false)
-      const second = await service.addProjectAgentCategory(project.id, "Support", false)
+      const first = await service.addProjectSessionCategory(project.id, "Support", false)
+      const second = await service.addProjectSessionCategory(project.id, "Support", false)
 
       expect(second.id).toBe(first.id)
     })
   })
 
-  describe("deleteProjectAgentCategory", () => {
+  describe("deleteProjectSessionCategory", () => {
     it("should soft-delete a category", async () => {
       const { project } = await createOrganizationWithProject(setup.getAllRepositories())
 
-      const category = await service.addProjectAgentCategory(project.id, "Support", false)
-      await service.deleteProjectAgentCategory(project.id, category.id)
+      const category = await service.addProjectSessionCategory(project.id, "Support", false)
+      await service.deleteProjectSessionCategory(project.id, category.id)
 
       const deleted = await setup
-        .getRepository(ProjectAgentCategory)
+        .getRepository(ProjectSessionCategory)
         .findOne({ where: { id: category.id }, withDeleted: true })
       expect(deleted?.deletedAt).not.toBeNull()
     })
@@ -87,7 +87,7 @@ describe("ProjectAgentCategoriesService", () => {
       const { project } = await createOrganizationWithProject(setup.getAllRepositories())
 
       await expect(
-        service.deleteProjectAgentCategory(project.id, "non-existent-id"),
+        service.deleteProjectSessionCategory(project.id, "non-existent-id"),
       ).resolves.not.toThrow()
     })
   })

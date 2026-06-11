@@ -1,4 +1,4 @@
-import { ProjectAgentCategoriesRoutes } from "@caseai-connect/api-contracts"
+import { ProjectSessionCategoriesRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
@@ -14,7 +14,7 @@ import { createOrganizationWithProject } from "@/domains/organizations/organizat
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 
-describe("ProjectAgentCategories", () => {
+describe("ProjectSessionCategories", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
@@ -58,9 +58,9 @@ describe("ProjectAgentCategories", () => {
   }
 
   describe("createOne", () => {
-    const subject = async (payload?: typeof ProjectAgentCategoriesRoutes.createOne.request) =>
+    const subject = async (payload?: typeof ProjectSessionCategoriesRoutes.createOne.request) =>
       request({
-        route: ProjectAgentCategoriesRoutes.createOne,
+        route: ProjectSessionCategoriesRoutes.createOne,
         pathParams: removeNullish({ organizationId, projectId }),
         token: accessToken,
         request: payload,
@@ -77,7 +77,7 @@ describe("ProjectAgentCategories", () => {
       expect(response.body.data.name).toBe("Support")
       expect(response.body.data.id).toBeDefined()
 
-      await expectActivityCreated("project.add_agent_category")
+      await expectActivityCreated("project.add_agent_session_category")
     })
 
     it("should restore a previously soft-deleted category", async () => {
@@ -89,7 +89,7 @@ describe("ProjectAgentCategories", () => {
       const categoryId = first.body.data.id
 
       await request({
-        route: ProjectAgentCategoriesRoutes.deleteOne,
+        route: ProjectSessionCategoriesRoutes.deleteOne,
         pathParams: removeNullish({ organizationId, projectId, categoryId }),
         token: accessToken,
       })
@@ -128,7 +128,7 @@ describe("ProjectAgentCategories", () => {
   describe("deleteOne", () => {
     const subject = async (categoryId: string) =>
       request({
-        route: ProjectAgentCategoriesRoutes.deleteOne,
+        route: ProjectSessionCategoriesRoutes.deleteOne,
         pathParams: removeNullish({ organizationId, projectId, categoryId }),
         token: accessToken,
       })
@@ -137,7 +137,7 @@ describe("ProjectAgentCategories", () => {
       await createContext()
 
       const created = await request({
-        route: ProjectAgentCategoriesRoutes.createOne,
+        route: ProjectSessionCategoriesRoutes.createOne,
         pathParams: removeNullish({ organizationId, projectId }),
         token: accessToken,
         request: { payload: { name: "Support", assignToAllConversationalAgents: false } },
@@ -149,7 +149,7 @@ describe("ProjectAgentCategories", () => {
       expectResponse(response, 200)
       expect(response.body.data.success).toBe(true)
 
-      await expectActivityCreated("project.delete_agent_category")
+      await expectActivityCreated("project.delete_agent_session_category")
     })
 
     it("should return 401 when not authenticated", async () => {

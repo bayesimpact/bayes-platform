@@ -29,7 +29,7 @@ export const projectFactory = ProjectFactory.define(({ sequence, params, transie
     projectMemberships: params.projectMemberships || [],
     evaluations: params.evaluations || [],
     featureFlags: params.featureFlags || [],
-    projectAgentCategories: params.projectAgentCategories || [],
+    projectSessionCategories: params.projectSessionCategories || [],
     reviewCampaigns: params.reviewCampaigns || [],
   } satisfies Project
 })

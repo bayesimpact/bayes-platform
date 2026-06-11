@@ -13,40 +13,46 @@ import { Input } from "@caseai-connect/ui/shad/input"
 import { PlusIcon, XIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { ProjectAgentCategory } from "@/common/features/projects/projects.models"
+import type { ProjectSessionCategory } from "@/common/features/projects/projects.models"
 import { useAppDispatch } from "@/common/store/hooks"
 import {
-  addProjectAgentCategory,
-  deleteProjectAgentCategory,
+  addProjectSessionCategory,
+  deleteProjectSessionCategory,
 } from "@/studio/features/projects/projects.thunks"
 
-export function ProjectAgentCategoriesForm({ categories }: { categories: ProjectAgentCategory[] }) {
+export function ProjectSessionCategoriesForm({
+  categories,
+}: {
+  categories: ProjectSessionCategory[]
+}) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState("")
   const [assignToAllConversationalAgents, setAssignToAllConversationalAgents] = useState(false)
-  const [categoryToRemove, setCategoryToRemove] = useState<ProjectAgentCategory | null>(null)
+  const [categoryToRemove, setCategoryToRemove] = useState<ProjectSessionCategory | null>(null)
 
   const handleAddCategory = async () => {
     const trimmedName = newCategoryName.trim()
     if (!trimmedName) return
-    await dispatch(addProjectAgentCategory({ name: trimmedName, assignToAllConversationalAgents }))
+    await dispatch(
+      addProjectSessionCategory({ name: trimmedName, assignToAllConversationalAgents }),
+    )
     setNewCategoryName("")
     setAssignToAllConversationalAgents(false)
     setIsAddDialogOpen(false)
   }
 
-  const handleRemoveCategory = async (categoryToDelete: ProjectAgentCategory) => {
-    await dispatch(deleteProjectAgentCategory({ categoryId: categoryToDelete.id }))
+  const handleRemoveCategory = async (categoryToDelete: ProjectSessionCategory) => {
+    await dispatch(deleteProjectSessionCategory({ categoryId: categoryToDelete.id }))
     setCategoryToRemove(null)
   }
 
   return (
     <FieldGroup>
       <Field>
-        <FieldLabel>{t("projectAdmin:agentCategories.title")}</FieldLabel>
-        <FieldDescription>{t("projectAdmin:agentCategories.description")}</FieldDescription>
+        <FieldLabel>{t("projectAdmin:agentSessionCategories.title")}</FieldLabel>
+        <FieldDescription>{t("projectAdmin:agentSessionCategories.description")}</FieldDescription>
 
         <div className="flex flex-wrap gap-2 mt-2">
           {categories.map((category) => (
@@ -56,7 +62,7 @@ export function ProjectAgentCategoriesForm({ categories }: { categories: Project
                 type="button"
                 onClick={() => setCategoryToRemove(category)}
                 className="rounded-full p-0.5 hover:bg-muted-foreground/20"
-                aria-label={t("projectAdmin:agentCategories.removeCategory", {
+                aria-label={t("projectAdmin:agentSessionCategories.removeCategory", {
                   name: category.name,
                 })}
               >
@@ -66,7 +72,7 @@ export function ProjectAgentCategoriesForm({ categories }: { categories: Project
           ))}
           {categories.length === 0 && (
             <p className="text-sm text-muted-foreground">
-              {t("projectAdmin:agentCategories.empty")}
+              {t("projectAdmin:agentSessionCategories.empty")}
             </p>
           )}
         </div>
@@ -80,7 +86,7 @@ export function ProjectAgentCategoriesForm({ categories }: { categories: Project
         onClick={() => setIsAddDialogOpen(true)}
       >
         <PlusIcon className="mr-2 h-4 w-4" />
-        {t("projectAdmin:agentCategories.addCategory")}
+        {t("projectAdmin:agentSessionCategories.addCategory")}
       </Button>
 
       <Dialog
@@ -95,12 +101,12 @@ export function ProjectAgentCategoriesForm({ categories }: { categories: Project
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("projectAdmin:agentCategories.addDialogTitle")}</DialogTitle>
+            <DialogTitle>{t("projectAdmin:agentSessionCategories.addDialogTitle")}</DialogTitle>
           </DialogHeader>
           <Input
             value={newCategoryName}
             onChange={(event) => setNewCategoryName(event.target.value)}
-            placeholder={t("projectAdmin:agentCategories.categoryNamePlaceholder")}
+            placeholder={t("projectAdmin:agentSessionCategories.categoryNamePlaceholder")}
             onKeyDown={(event) => {
               if (event.key === "Enter") handleAddCategory()
             }}
@@ -112,7 +118,7 @@ export function ProjectAgentCategoriesForm({ categories }: { categories: Project
               checked={assignToAllConversationalAgents}
               onCheckedChange={(checked) => setAssignToAllConversationalAgents(checked === true)}
             />
-            {t("projectAdmin:agentCategories.assignToAllConversationalAgents")}
+            {t("projectAdmin:agentSessionCategories.assignToAllConversationalAgents")}
           </label>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
@@ -128,10 +134,10 @@ export function ProjectAgentCategoriesForm({ categories }: { categories: Project
       <Dialog open={categoryToRemove !== null} onOpenChange={() => setCategoryToRemove(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("projectAdmin:agentCategories.removeDialogTitle")}</DialogTitle>
+            <DialogTitle>{t("projectAdmin:agentSessionCategories.removeDialogTitle")}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            {t("projectAdmin:agentCategories.removeDialogDescription", {
+            {t("projectAdmin:agentSessionCategories.removeDialogDescription", {
               name: categoryToRemove?.name,
             })}
           </p>

@@ -9,9 +9,9 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { AgentCategory } from "@/domains/agents/categories/agent-category.entity"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { ConversationAgentSessionCategory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity"
+import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -64,7 +64,7 @@ describe("Agents Analytics - getConversationsByCategoryPerDay", () => {
     agentId = agent.id
 
     const billingCategory = await setup
-      .getRepository(AgentCategory)
+      .getRepository(AgentSessionCategory)
       .save({ agentId: agent.id, name: "billing" })
 
     const day1CategorySession = conversationAgentSessionFactory
@@ -84,11 +84,12 @@ describe("Agents Analytics - getConversationsByCategoryPerDay", () => {
       day2UncategorizedSession,
     ])
 
-    await setup
-      .getRepository(ConversationAgentSessionCategory)
-      .save([
-        { conversationAgentSessionId: day1CategorySession.id, agentCategoryId: billingCategory.id },
-      ])
+    await setup.getRepository(ConversationAgentSessionCategory).save([
+      {
+        conversationAgentSessionId: day1CategorySession.id,
+        agentSessionCategoryId: billingCategory.id,
+      },
+    ])
   }
 
   const subject = async () =>
