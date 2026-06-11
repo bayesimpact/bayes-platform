@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@caseai-connect/ui/shad/select"
 import { XIcon } from "lucide-react"
-import { Controller, useFormContext } from "react-hook-form"
+import { Controller, useFormContext, useWatch } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
 import { ADS } from "@/common/store/async-data-status"
@@ -25,7 +25,6 @@ export function AgentSourcesTab() {
   const { t } = useTranslation()
   const {
     control,
-    watch,
     formState: { errors },
   } = useFormContext<AgentFormValues>()
 
@@ -33,7 +32,10 @@ export function AgentSourcesTab() {
   const agentData = useAppSelector(selectCurrentAgentData)
   const editableAgent = ADS.isFulfilled(agentData) ? agentData.value : undefined
 
-  const documentsRagMode = watch("documentsRagMode")
+  // useWatch (not watch) so this child component re-renders on changes:
+  // watch() only notifies the form root, and the React Compiler memoizes
+  // this tab so the root re-render never reaches it.
+  const documentsRagMode = useWatch({ control, name: "documentsRagMode" })
 
   const documentTagErrorMessage = (() => {
     if (editableAgent && "documentTagIds" in errors) {
