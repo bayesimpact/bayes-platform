@@ -17,7 +17,7 @@ jest.mock("ai", () => ({
 }))
 
 type DocumentEmbeddingsProcessorInternals = {
-  findDocumentOrThrow: (payload: Record<string, string>) => Promise<Document>
+  findDocument: (payload: Record<string, string>) => Promise<Document | null>
   extractDocumentChunks: (
     document: Document,
   ) => Promise<{ chunks: string[]; extractionEngine: Document["extractionEngine"] }>
@@ -59,7 +59,7 @@ describe("DocumentEmbeddingsProcessorService", () => {
     }> = []
     const serviceInternals = service as unknown as DocumentEmbeddingsProcessorInternals
 
-    jest.spyOn(serviceInternals, "findDocumentOrThrow").mockResolvedValue(document)
+    jest.spyOn(serviceInternals, "findDocument").mockResolvedValue(document)
     jest.spyOn(serviceInternals, "extractDocumentChunks").mockResolvedValue({
       chunks: ["chunk content"],
       extractionEngine: "docling@2.51.0",
@@ -125,7 +125,7 @@ describe("DocumentEmbeddingsProcessorService", () => {
       "Docling produced no embed_text chunks for MIME type: image/png",
     )
 
-    jest.spyOn(serviceInternals, "findDocumentOrThrow").mockResolvedValue(document)
+    jest.spyOn(serviceInternals, "findDocument").mockResolvedValue(document)
     jest.spyOn(serviceInternals, "extractDocumentChunks").mockRejectedValue(extractionError)
     jest.spyOn(serviceInternals, "generateEmbeddingsByModel")
     jest.spyOn(serviceInternals, "insertChunks")
