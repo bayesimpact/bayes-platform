@@ -49,7 +49,7 @@ const extractionAgent = agentFactory.transient({ project }).build({
   name: "Document Extractor",
   documentsRagMode: DocumentsRagMode.None,
   outputJsonSchema: mockOutputJsonSchema,
-  greetingMessage: null,
+  greetingMessage: undefined,
 })
 
 const formAgent = agentFactory.transient({ project }).build({

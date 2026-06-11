@@ -97,7 +97,7 @@ export const mockEndOfPhaseDistributions = [
 export const mockSessionMatrix = [
   campaignReportSessionRowFactory.build({
     sessionId: "session-4f7a2c8e-3b1d-4e5f-9a6c-8d2b1c3e4f5a",
-    sessionType: "conversation",
+    agentType: "conversation",
     testerUserId: "user-alice",
     startedAt: now - 2 * MS_PER_HOUR,
     testerRating: 5,
@@ -108,7 +108,7 @@ export const mockSessionMatrix = [
   }),
   campaignReportSessionRowFactory.build({
     sessionId: "session-1a2b3c4d-5e6f-7890-abcd-ef1234567890",
-    sessionType: "conversation",
+    agentType: "conversation",
     testerUserId: "user-bob",
     startedAt: now - 5 * MS_PER_HOUR,
     testerRating: 2,
@@ -119,7 +119,7 @@ export const mockSessionMatrix = [
   }),
   campaignReportSessionRowFactory.build({
     sessionId: "session-form-8c3b1d5f-2a6e-4c7d-9b0a-1e2f3a4b5c6d",
-    sessionType: "form",
+    agentType: "form",
     testerUserId: "user-carol",
     startedAt: now - 26 * MS_PER_HOUR,
     testerRating: null,

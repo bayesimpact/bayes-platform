@@ -2,7 +2,7 @@ export type ReviewCampaignStatus = "draft" | "active" | "closed"
 
 export type ReviewCampaignMembershipRole = "tester" | "reviewer"
 
-export type ReviewCampaignSessionType = "conversation" | "extraction" | "form"
+export type ReviewCampaignAgentType = "conversation" | "form"
 
 export type ReviewCampaignQuestionType = "rating" | "single-choice" | "free-text"
 

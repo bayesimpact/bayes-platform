@@ -1,6 +1,7 @@
 import type {
   ListMyReviewCampaignsResponseDto,
   MyTesterSessionSummaryDto,
+  ReviewCampaignAgentType,
   ReviewCampaignQuestionDto,
   ReviewCampaignTesterContextDto,
   ReviewCampaignTesterFeedbackAnswerDto,
@@ -27,7 +28,7 @@ export const testerAgentSnapshotFactory = TesterAgentSnapshotFactory.define(({ p
   id: params.id ?? faker.string.uuid(),
   name: params.name ?? faker.helpers.arrayElement(AGENT_NAMES),
   type: params.type ?? "conversation",
-  greetingMessage: params.greetingMessage ?? null,
+  greetingMessage: params.greetingMessage ?? undefined,
 }))
 
 type TesterContextTransientParams = {
@@ -114,16 +115,23 @@ export const testerCampaignSurveyFactory = TesterCampaignSurveyFactory.define(
 
 class MyTesterSessionSummaryFactory extends Factory<MyTesterSessionSummaryDto> {}
 
-export const myTesterSessionSummaryFactory = MyTesterSessionSummaryFactory.define(({ params }) => ({
-  sessionId: params.sessionId ?? faker.string.uuid(),
-  sessionType: params.sessionType ?? "conversation",
-  startedAt: params.startedAt ?? faker.date.recent().getTime(),
-  feedbackStatus: params.feedbackStatus ?? "pending",
-}))
+export const myTesterSessionSummaryFactory = MyTesterSessionSummaryFactory.define(({ params }) => {
+  const time = faker.date.recent().getTime()
+  return {
+    id: params.id ?? faker.string.uuid(),
+    agentType: params.agentType ?? "conversation",
+    feedbackStatus: params.feedbackStatus ?? "pending",
+    result: params.result ?? undefined,
+    type: params.type ?? "live",
+    agentId: params.agentId ?? faker.string.uuid(),
+    createdAt: params.createdAt ?? time,
+    updatedAt: params.updatedAt ?? time,
+  }
+})
 
 type FeedbackTransientParams = {
   campaign: { id: string }
-  session?: { id: string; type?: "conversation" | "extraction" | "form" }
+  session?: { id: string; type?: ReviewCampaignAgentType }
   answers?: ReviewCampaignTesterFeedbackAnswerDto[]
 }
 
@@ -145,7 +153,7 @@ export const testerSessionFeedbackFactory = TesterSessionFeedbackFactory.define(
       id: params.id ?? faker.string.uuid(),
       campaignId: campaign.id,
       sessionId: params.sessionId ?? session?.id ?? faker.string.uuid(),
-      sessionType: params.sessionType ?? session?.type ?? "conversation",
+      agentType: params.agentType ?? session?.type ?? "conversation",
       overallRating: params.overallRating ?? 4,
       comment: params.comment ?? null,
       answers: params.answers ?? answers ?? [],

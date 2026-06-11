@@ -161,11 +161,11 @@ export class TesterSessionFeedbackController {
       EndpointRequestWithReviewCampaignMembership,
     @Body() { payload }: typeof ReviewCampaignsRoutes.submitTesterFeedback.request,
   ): Promise<typeof ReviewCampaignsRoutes.submitTesterFeedback.response> {
-    const { sessionId, sessionType, userId } = request.agentSessionInCampaign
+    const { sessionId, agentType, userId } = request.agentSessionInCampaign
     const feedback = await this.testerService.submitFeedback({
       connectScope: getRequiredConnectScope(request),
       sessionId,
-      sessionType,
+      agentType,
       sessionOwnerUserId: userId,
       campaign: request.reviewCampaign,
       callerUserId: request.user.id,
@@ -197,10 +197,10 @@ export class TesterSessionFeedbackController {
     @Req() request: EndpointRequestWithAgentSessionInCampaign &
       EndpointRequestWithReviewCampaignMembership,
   ): Promise<typeof ReviewCampaignsRoutes.deleteTesterSession.response> {
-    const { sessionId, sessionType, userId } = request.agentSessionInCampaign
+    const { sessionId, agentType, userId } = request.agentSessionInCampaign
     await this.testerService.deleteTesterSession({
       sessionId,
-      sessionType,
+      agentType,
       sessionOwnerUserId: userId,
       callerUserId: request.user.id,
     })
@@ -236,7 +236,8 @@ function toTesterContextDto(
       id: agent.id,
       name: agent.name,
       type: agent.type,
-      greetingMessage: agent.greetingMessage ?? null,
+      greetingMessage: agent.greetingMessage ?? undefined,
+      outputJsonSchema: agent.outputJsonSchema ?? undefined,
     },
     testerPerSessionQuestions: campaign.testerPerSessionQuestions,
     testerEndOfPhaseQuestions: campaign.testerEndOfPhaseQuestions,
@@ -245,10 +246,14 @@ function toTesterContextDto(
 
 function toMyTesterSessionSummaryDto(summary: MyTesterSessionSummary): MyTesterSessionSummaryDto {
   return {
-    sessionId: summary.sessionId,
-    sessionType: summary.sessionType,
-    startedAt: summary.startedAt.getTime(),
+    id: summary.id,
+    agentType: summary.agentType,
+    createdAt: summary.createdAt.getTime(),
+    updatedAt: summary.updatedAt.getTime(),
     feedbackStatus: summary.feedbackStatus,
+    result: summary.result ?? undefined,
+    agentId: summary.agentId,
+    type: summary.type,
   }
 }
 
@@ -257,7 +262,7 @@ function toFeedbackDto(feedback: TesterSessionFeedback): TesterSessionFeedbackDt
     id: feedback.id,
     campaignId: feedback.campaignId,
     sessionId: feedback.sessionId,
-    sessionType: feedback.sessionType,
+    agentType: feedback.agentType,
     overallRating: feedback.overallRating,
     comment: feedback.comment,
     answers: feedback.answers,

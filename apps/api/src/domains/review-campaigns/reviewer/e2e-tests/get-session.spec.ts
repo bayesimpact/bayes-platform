@@ -153,7 +153,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
       projectId: project.id,
       campaignId: campaign.id,
       sessionId: session.id,
-      sessionType: "conversation",
+      agentType: "conversation",
       overallRating: 2,
       comment: "not great",
       answers: [
@@ -216,7 +216,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
       projectId: project.id,
       campaignId: campaign.id,
       sessionId: session.id,
-      sessionType: "conversation",
+      agentType: "conversation",
       reviewerUserId: otherReviewer.id,
       overallRating: 4,
       comment: "their hidden comment",
@@ -308,7 +308,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
       projectId: project.id,
       campaignId: campaign.id,
       sessionId: session.id,
-      sessionType: "conversation",
+      agentType: "conversation",
       overallRating: 3,
       comment: null,
       answers: [{ questionId: "q-factual-text", value: "tool calls" }],
@@ -377,16 +377,13 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
 
     const response = await subject()
     expectResponse(response, 200)
-    const data = response.body.data as {
-      sessionType: string
-      formResult: { schema: Record<string, unknown>; value: Record<string, unknown> | null }
-    }
-    expect(data.sessionType).toBe("form")
-    expect(data.formResult.schema).toMatchObject({
+    const data = response.body.data
+    expect(data.agentType).toBe("form")
+    expect(data.formResult?.schema).toMatchObject({
       type: "object",
       properties: { fullName: { title: "Full name" } },
     })
-    expect(data.formResult.value).toEqual({
+    expect(data.formResult?.value).toEqual({
       fullName: "Jane Doe",
       email: "jane@example.com",
     })

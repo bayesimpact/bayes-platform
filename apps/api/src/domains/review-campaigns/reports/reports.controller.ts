@@ -54,7 +54,7 @@ function toCampaignReportDto(report: CampaignReport): CampaignReportDto {
 function toSessionRowDto(row: CampaignReportSessionRow): CampaignReportSessionRowDto {
   return {
     sessionId: row.sessionId,
-    sessionType: row.sessionType,
+    agentType: row.agentType,
     testerUserId: row.testerUserId,
     startedAt: row.startedAt.getTime(),
     testerRating: row.testerRating,

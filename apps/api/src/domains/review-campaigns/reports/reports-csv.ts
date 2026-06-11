@@ -2,7 +2,7 @@ import type { CampaignReport, CampaignReportSessionRow } from "./reports.service
 
 const SESSION_MATRIX_HEADER = [
   "sessionId",
-  "sessionType",
+  "agentType",
   "testerUserId",
   "startedAt",
   "testerRating",
@@ -32,7 +32,7 @@ export function buildSessionMatrixCsv(report: CampaignReport): string {
 function sessionRowToCsvCells(row: CampaignReportSessionRow): string[] {
   return [
     row.sessionId,
-    row.sessionType,
+    row.agentType,
     row.testerUserId,
     row.startedAt.toISOString(),
     formatNullableNumber(row.testerRating),

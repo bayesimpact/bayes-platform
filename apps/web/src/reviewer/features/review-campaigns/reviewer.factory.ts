@@ -1,4 +1,5 @@
 import type {
+  ReviewCampaignAgentType,
   ReviewCampaignQuestionDto,
   ReviewCampaignTesterFeedbackAnswerDto,
   ReviewerAgentSnapshotDto,
@@ -41,7 +42,7 @@ export const reviewerSessionTranscriptMessageFactory =
 
 type ReviewerSessionReviewTransientParams = {
   campaign: { id: string }
-  session?: { id: string; type?: "conversation" | "extraction" | "form" }
+  session?: { id: string; type?: ReviewCampaignAgentType }
   user?: { id: string }
   answers?: ReviewCampaignTesterFeedbackAnswerDto[]
 }
@@ -64,7 +65,7 @@ export const reviewerSessionReviewFactory = ReviewerSessionReviewFactory.define(
       id: params.id ?? faker.string.uuid(),
       campaignId: campaign.id,
       sessionId: params.sessionId ?? session?.id ?? faker.string.uuid(),
-      sessionType: params.sessionType ?? session?.type ?? "conversation",
+      agentType: params.agentType ?? session?.type ?? "conversation",
       reviewerUserId: params.reviewerUserId ?? user?.id ?? faker.string.uuid(),
       overallRating: params.overallRating ?? 4,
       comment: params.comment ?? null,
@@ -81,7 +82,7 @@ class ReviewerSessionListItemFactory extends Factory<ReviewerSessionListItemDto>
 export const reviewerSessionListItemFactory = ReviewerSessionListItemFactory.define(
   ({ params }) => ({
     sessionId: params.sessionId ?? faker.string.uuid(),
-    sessionType: params.sessionType ?? "conversation",
+    agentType: params.agentType ?? "conversation",
     testerUserId: params.testerUserId ?? faker.string.uuid(),
     startedAt: params.startedAt ?? faker.date.recent().getTime(),
     messageCount: params.messageCount ?? 0,
@@ -109,7 +110,7 @@ class ReviewerSessionBlindFactory extends Factory<
 export const reviewerSessionBlindFactory = ReviewerSessionBlindFactory.define(
   ({ params, transientParams }): ReviewerSessionBlindDto => ({
     sessionId: params.sessionId ?? faker.string.uuid(),
-    sessionType: params.sessionType ?? "conversation",
+    agentType: params.agentType ?? "conversation",
     testerUserId: params.testerUserId ?? faker.string.uuid(),
     startedAt: params.startedAt ?? faker.date.recent().getTime(),
     agent: transientParams.agent ?? reviewerAgentSnapshotFactory.build(),
@@ -138,16 +139,16 @@ class ReviewerSessionFullFactory extends Factory<
 export const reviewerSessionFullFactory = ReviewerSessionFullFactory.define(
   ({ params, transientParams }): ReviewerSessionFullDto => {
     const sessionId = params.sessionId ?? faker.string.uuid()
-    const sessionType = params.sessionType ?? "conversation"
+    const agentType = params.agentType ?? "conversation"
     const campaign = transientParams.campaign ?? { id: faker.string.uuid() }
     const myReview =
       transientParams.myReview ??
       reviewerSessionReviewFactory
-        .transient({ campaign, session: { id: sessionId, type: sessionType } })
+        .transient({ campaign, session: { id: sessionId, type: agentType } })
         .build()
     return {
       sessionId,
-      sessionType,
+      agentType,
       testerUserId: params.testerUserId ?? faker.string.uuid(),
       startedAt: params.startedAt ?? faker.date.recent().getTime(),
       agent: transientParams.agent ?? reviewerAgentSnapshotFactory.build(),

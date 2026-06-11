@@ -4,6 +4,7 @@ import { Separator } from "@caseai-connect/ui/shad/separator"
 import { useTranslation } from "react-i18next"
 import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
 import type { Agent } from "@/common/features/agents/agents.models"
+import { assert } from "@/common/utils/assert"
 
 export function FormResult({
   agent,
@@ -53,6 +54,9 @@ export function FormResult({
 }
 
 function buildForm({ agent, agentSession }: { agent: Agent; agentSession: FormAgentSession }) {
+  assert(agent.type === "form", `BuildForm: Unsupported agent type: ${agent.type}`)
+  assert(agent.outputJsonSchema, "BuildForm: Missing outputJsonSchema for form agent")
+
   const properties = Object.fromEntries(
     Object.entries(agent.outputJsonSchema?.properties ?? {}).map(([key]) => [key, ""]),
   )

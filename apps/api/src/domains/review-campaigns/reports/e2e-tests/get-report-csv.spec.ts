@@ -104,7 +104,7 @@ describe("ReviewCampaigns - Report CSV", () => {
       projectId: project.id,
       campaignId: campaign.id,
       sessionId: session.id,
-      sessionType: "conversation",
+      agentType: "conversation",
       overallRating: 4,
       comment: null,
       answers: [],
@@ -114,7 +114,7 @@ describe("ReviewCampaigns - Report CSV", () => {
       projectId: project.id,
       campaignId: campaign.id,
       sessionId: session.id,
-      sessionType: "conversation",
+      agentType: "conversation",
       reviewerUserId: reviewer.id,
       overallRating: 3,
       comment: null,
@@ -147,7 +147,7 @@ describe("ReviewCampaigns - Report CSV", () => {
     const lines = body.split("\r\n")
     expect(lines).toHaveLength(2)
     expect(lines[0]).toBe(
-      "sessionId,sessionType,testerUserId,startedAt,testerRating,reviewerCount,meanReviewerRating,reviewerRatingSpread,reviewerRatings",
+      "sessionId,agentType,testerUserId,startedAt,testerRating,reviewerCount,meanReviewerRating,reviewerRatingSpread,reviewerRatings",
     )
     expect(lines[1]).toContain(session.id)
     expect(lines[1]).toContain("conversation")
@@ -176,7 +176,7 @@ describe("ReviewCampaigns - Report CSV", () => {
     const response = await subject()
     expectResponse(response, 200)
     expect(response.text).toBe(
-      "sessionId,sessionType,testerUserId,startedAt,testerRating,reviewerCount,meanReviewerRating,reviewerRatingSpread,reviewerRatings",
+      "sessionId,agentType,testerUserId,startedAt,testerRating,reviewerCount,meanReviewerRating,reviewerRatingSpread,reviewerRatings",
     )
   })
 

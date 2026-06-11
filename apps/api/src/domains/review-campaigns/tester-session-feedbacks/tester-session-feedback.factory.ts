@@ -5,13 +5,13 @@ import type { ConversationAgentSession } from "@/domains/agents/conversation-age
 import type { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
 import type { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import type { ReviewCampaign } from "../review-campaign.entity"
-import type { ReviewCampaignSessionType } from "../review-campaigns.types"
+import type { ReviewCampaignAgentType } from "../review-campaigns.types"
 import type { TesterSessionFeedback } from "./tester-session-feedback.entity"
 
 type TesterSessionFeedbackTransientParams = RequiredScopeTransientParams & {
   campaign: ReviewCampaign
   session: ConversationAgentSession | ExtractionAgentSession | FormAgentSession
-  sessionType: ReviewCampaignSessionType
+  agentType: ReviewCampaignAgentType
 }
 
 class TesterSessionFeedbackFactory extends Factory<
@@ -33,17 +33,15 @@ export const testerSessionFeedbackFactory = TesterSessionFeedbackFactory.define(
     if (!transientParams.session) {
       throw new Error("session transient is required")
     }
-    if (!transientParams.sessionType) {
-      throw new Error("sessionType transient is required")
+    if (!transientParams.agentType) {
+      throw new Error("agentType transient is required")
     }
 
-    const sessionType = transientParams.sessionType
+    const agentType = transientParams.agentType
     const conversationAgentSession =
-      sessionType === "conversation" ? (transientParams.session as ConversationAgentSession) : null
-    const extractionAgentSession =
-      sessionType === "extraction" ? (transientParams.session as ExtractionAgentSession) : null
+      agentType === "conversation" ? (transientParams.session as ConversationAgentSession) : null
     const formAgentSession =
-      sessionType === "form" ? (transientParams.session as FormAgentSession) : null
+      agentType === "form" ? (transientParams.session as FormAgentSession) : null
 
     const now = new Date()
     return {
@@ -56,9 +54,8 @@ export const testerSessionFeedbackFactory = TesterSessionFeedbackFactory.define(
       campaignId: transientParams.campaign.id,
       campaign: transientParams.campaign,
       sessionId: transientParams.session.id,
-      sessionType,
+      agentType,
       conversationAgentSession,
-      extractionAgentSession,
       formAgentSession,
       overallRating: params.overallRating ?? 5,
       comment: params.comment ?? null,

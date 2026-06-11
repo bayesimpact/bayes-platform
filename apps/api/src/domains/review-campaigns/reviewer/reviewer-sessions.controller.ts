@@ -36,7 +36,7 @@ export class ReviewerSessionsController {
 function toReviewerSessionListItemDto(summary: ReviewerSessionSummary): ReviewerSessionListItemDto {
   return {
     sessionId: summary.sessionId,
-    sessionType: summary.sessionType,
+    agentType: summary.agentType,
     testerUserId: summary.testerUserId,
     startedAt: summary.startedAt.getTime(),
     messageCount: summary.messageCount,

@@ -36,10 +36,10 @@ import type {
 } from "@/studio/features/review-campaigns/review-campaigns.models"
 import type {
   MyReviewCampaign,
+  MyTesterSessionSummary,
   TesterCampaignSurvey,
   TesterContext,
 } from "@/tester/features/review-campaigns/tester.models"
-import type { LocalSessionSummary } from "@/tester/features/review-campaigns/tester.slice"
 import type { StoryPreloadedState } from "./decorators"
 
 /**
@@ -332,7 +332,7 @@ export const seed = {
       return { reviewCampaignsTester: { campaignSurvey: ads.fulfilled(survey) } }
     },
 
-    campaignSessions(sessions: LocalSessionSummary[]): StoryPreloadedState {
+    campaignSessions(sessions: MyTesterSessionSummary[]): StoryPreloadedState {
       return { reviewCampaignsTester: { campaignSessions: ads.fulfilled(sessions) } }
     },
   },

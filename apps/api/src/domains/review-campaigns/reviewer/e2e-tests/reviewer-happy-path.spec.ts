@@ -268,7 +268,7 @@ describe("ReviewCampaigns - Reviewer happy path", () => {
       projectId: project.id,
       campaignId: campaign.id,
       sessionId: session.id,
-      sessionType: "conversation",
+      agentType: "conversation",
       reviewerUserId: otherReviewer.id,
       overallRating: 3,
       comment: null,

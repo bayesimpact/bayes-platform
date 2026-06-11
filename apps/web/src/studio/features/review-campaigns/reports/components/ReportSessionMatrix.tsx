@@ -72,7 +72,7 @@ export function ReportSessionMatrix({ rows }: Props) {
             <TableCell className="flex flex-col gap-1">
               <span className="font-mono text-xs">{shortenId(row.sessionId)}</span>
               <Badge variant="outline" className="w-fit text-xs">
-                {row.sessionType}
+                {row.agentType}
               </Badge>
             </TableCell>
             <TableCell>{buildDate(row.startedAt)}</TableCell>

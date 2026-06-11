@@ -14,9 +14,9 @@ import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agen
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type {
+  ReviewCampaignAgentType,
   ReviewCampaignAnswer,
   ReviewCampaignQuestion,
-  ReviewCampaignSessionType,
 } from "../review-campaigns.types"
 import { ReviewerSessionReview } from "../reviewer-session-reviews/reviewer-session-review.entity"
 import { TesterSessionFeedback } from "../tester-session-feedbacks/tester-session-feedback.entity"
@@ -31,7 +31,7 @@ export type UpdateReviewerReviewFields = Partial<SubmitReviewerReviewFields>
 
 export type ReviewerSessionSummary = {
   sessionId: string
-  sessionType: "conversation" | "form"
+  agentType: ReviewCampaignAgentType
   testerUserId: string
   startedAt: Date
   messageCount: number
@@ -47,10 +47,10 @@ export type ReviewerFormResult = {
 
 type ReviewerSessionMetaResult = {
   sessionId: string
-  sessionType: ReviewCampaignSessionType
+  agentType: ReviewCampaignAgentType
   testerUserId: string
   startedAt: Date
-  agent: { id: string; name: string; type: "conversation" | "extraction" | "form" }
+  agent: Pick<Agent, "id" | "name" | "type">
   transcript: AgentMessage[]
   reviewerQuestions: ReviewCampaignQuestion[]
   otherReviewerCount: number
@@ -108,18 +108,18 @@ export class ReviewerService {
 
     type BaseSummary = Pick<
       ReviewerSessionSummary,
-      "sessionId" | "sessionType" | "testerUserId" | "startedAt"
+      "sessionId" | "agentType" | "testerUserId" | "startedAt"
     >
     const sessions: BaseSummary[] = [
       ...conversationSessions.map((session) => ({
         sessionId: session.id,
-        sessionType: "conversation" as const,
+        agentType: "conversation" as const,
         testerUserId: session.userId,
         startedAt: session.createdAt,
       })),
       ...formSessions.map((session) => ({
         sessionId: session.id,
-        sessionType: "form" as const,
+        agentType: "form" as const,
         testerUserId: session.userId,
         startedAt: session.createdAt,
       })),
@@ -169,13 +169,13 @@ export class ReviewerService {
   async getSessionForReview({
     campaign,
     sessionId,
-    sessionType,
+    agentType,
     sessionOwnerUserId,
     reviewerUserId,
   }: {
     campaign: ReviewCampaign
     sessionId: string
-    sessionType: ReviewCampaignSessionType
+    agentType: ReviewCampaignAgentType
     sessionOwnerUserId: string
     reviewerUserId: string
   }): Promise<ReviewerSessionViewResult> {
@@ -204,8 +204,8 @@ export class ReviewerService {
       this.reviewRepository.findOne({ where: { sessionId, reviewerUserId } }),
       this.reviewRepository.find({ where: { sessionId } }),
       this.testerFeedbackRepository.findOne({ where: { sessionId } }),
-      this.resolveSessionStartedAt(sessionId, sessionType),
-      sessionType === "form"
+      this.resolveSessionStartedAt(sessionId, agentType),
+      agentType === "form"
         ? this.formSessionRepository.findOne({
             where: { id: sessionId },
             select: { id: true, result: true },
@@ -219,7 +219,7 @@ export class ReviewerService {
 
     const otherReviews = allReviews.filter((review) => review.reviewerUserId !== reviewerUserId)
     const formResult: ReviewerFormResult | null =
-      sessionType === "form"
+      agentType === "form"
         ? {
             schema: agent.outputJsonSchema ?? {},
             value: formSession?.result ?? null,
@@ -227,7 +227,7 @@ export class ReviewerService {
         : null
     const meta: ReviewerSessionMetaResult = {
       sessionId,
-      sessionType,
+      agentType,
       testerUserId: sessionOwnerUserId,
       startedAt: sessionStartedAt,
       agent: { id: agent.id, name: agent.name, type: agent.type },
@@ -261,34 +261,37 @@ export class ReviewerService {
 
   private async resolveSessionStartedAt(
     sessionId: string,
-    sessionType: ReviewCampaignSessionType,
+    agentType: ReviewCampaignAgentType,
   ): Promise<Date> {
-    if (sessionType === "conversation") {
-      const session = await this.conversationSessionRepository.findOne({
-        where: { id: sessionId },
-        select: { id: true, createdAt: true },
-      })
-      if (!session) throw new Error(`Conversation session ${sessionId} not found`)
-      return session.createdAt
+    switch (agentType) {
+      case "conversation": {
+        const session = await this.conversationSessionRepository.findOne({
+          where: { id: sessionId },
+          select: { id: true, createdAt: true },
+        })
+        if (!session) throw new Error(`Conversation session ${sessionId} not found`)
+        return session.createdAt
+      }
+      case "form": {
+        const session = await this.formSessionRepository.findOne({
+          where: { id: sessionId },
+          select: { id: true, createdAt: true },
+        })
+        if (!session) throw new Error(`Form session ${sessionId} not found`)
+        return session.createdAt
+      }
+      default:
+        // extraction is not supported as a review target today; caller shouldn't
+        // hit this branch because tester sessions start as conversation or form.
+        throw new Error(`Unsupported session type: ${agentType}`)
     }
-    if (sessionType === "form") {
-      const session = await this.formSessionRepository.findOne({
-        where: { id: sessionId },
-        select: { id: true, createdAt: true },
-      })
-      if (!session) throw new Error(`Form session ${sessionId} not found`)
-      return session.createdAt
-    }
-    // extraction is not supported as a review target today; caller shouldn't
-    // hit this branch because tester sessions start as conversation or form.
-    throw new Error(`Unsupported session type: ${sessionType}`)
   }
 
   async submitReview({
     connectScope,
     campaign,
     sessionId,
-    sessionType,
+    agentType,
     sessionOwnerUserId,
     reviewerUserId,
     fields,
@@ -296,7 +299,7 @@ export class ReviewerService {
     connectScope: RequiredConnectScope
     campaign: ReviewCampaign
     sessionId: string
-    sessionType: ReviewCampaignSessionType
+    agentType: ReviewCampaignAgentType
     sessionOwnerUserId: string
     reviewerUserId: string
     fields: SubmitReviewerReviewFields
@@ -319,7 +322,7 @@ export class ReviewerService {
       projectId: connectScope.projectId,
       campaignId: campaign.id,
       sessionId,
-      sessionType,
+      agentType,
       reviewerUserId,
       overallRating: fields.overallRating,
       comment: fields.comment ?? null,

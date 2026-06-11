@@ -2,10 +2,10 @@ import { Injectable, NotFoundException, UnprocessableEntityException } from "@ne
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
-import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
+import type { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
 import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
-import type { ReviewCampaignSessionType } from "@/domains/review-campaigns/review-campaigns.types"
+import type { ReviewCampaignAgentType } from "@/domains/review-campaigns/review-campaigns.types"
 import type { ContextResolver, ResolvableRequest } from "../context-resolver.interface"
 import type {
   EndpointRequestWithAgentSessionInCampaign,
@@ -21,8 +21,6 @@ export class AgentSessionInCampaignContextResolver implements ContextResolver {
     private readonly conversationRepository: Repository<ConversationAgentSession>,
     @InjectRepository(FormAgentSession)
     private readonly formRepository: Repository<FormAgentSession>,
-    @InjectRepository(ExtractionAgentSession)
-    private readonly extractionRepository: Repository<ExtractionAgentSession>,
     @InjectRepository(ReviewCampaign)
     private readonly reviewCampaignRepository: Repository<ReviewCampaign>,
   ) {}
@@ -41,7 +39,7 @@ export class AgentSessionInCampaignContextResolver implements ContextResolver {
 
     const found = await this.findSession(scope)
     if (!found) throw new NotFoundException(`Agent session ${sessionId} not found`)
-    const { session, sessionType } = found
+    const { session, agentType } = found
 
     if (!session.campaignId) {
       throw new UnprocessableEntityException(
@@ -62,7 +60,7 @@ export class AgentSessionInCampaignContextResolver implements ContextResolver {
     enriched.reviewCampaign = campaign
     enriched.agentSessionInCampaign = {
       sessionId: session.id,
-      sessionType,
+      agentType,
       userId: session.userId,
     }
   }
@@ -73,16 +71,13 @@ export class AgentSessionInCampaignContextResolver implements ContextResolver {
     projectId: string
   }): Promise<{
     session: ConversationAgentSession | FormAgentSession | ExtractionAgentSession
-    sessionType: ReviewCampaignSessionType
+    agentType: ReviewCampaignAgentType
   } | null> {
     const conversation = await this.conversationRepository.findOne({ where: scope })
-    if (conversation) return { session: conversation, sessionType: "conversation" }
+    if (conversation) return { session: conversation, agentType: "conversation" }
 
     const form = await this.formRepository.findOne({ where: scope })
-    if (form) return { session: form, sessionType: "form" }
-
-    const extraction = await this.extractionRepository.findOne({ where: scope })
-    if (extraction) return { session: extraction, sessionType: "extraction" }
+    if (form) return { session: form, agentType: "form" }
 
     return null
   }

@@ -16,6 +16,7 @@ export function CampaignRoute({ children }: { children: React.ReactNode }) {
       unmount: reviewCampaignsReviewerActions.campaignUnmount,
     },
     condition: !!reviewCampaignId,
+    refreshOn: [reviewCampaignId],
   })
 
   if (!reviewCampaignId) return <LoadingRoute />

@@ -14,6 +14,14 @@ import {
 
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
+const getCampaignScope = (state: RootState) => {
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  const reviewCampaignId = getCurrentId({ state, name: "reviewCampaignId" })
+
+  return { organizationId, projectId, reviewCampaignId }
+}
+
 function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: reviewCampaignsReviewerActions.mount,
@@ -26,11 +34,8 @@ function registerListeners() {
     actionCreator: reviewCampaignsReviewerActions.campaignMount,
     effect: async (_, listenerApi) => {
       const state = listenerApi.getState()
-      const organizationId = getCurrentId({ state, name: "organizationId" })
-      const projectId = getCurrentId({ state, name: "projectId" })
-      const reviewCampaignId = getCurrentId({ state, name: "reviewCampaignId" })
+      const scope = getCampaignScope(state)
 
-      const scope = { organizationId, projectId, reviewCampaignId }
       listenerApi.dispatch(getTesterContext(scope))
       listenerApi.dispatch(listReviewerSessions(scope))
     },
@@ -40,13 +45,9 @@ function registerListeners() {
     actionCreator: reviewCampaignsReviewerActions.sessionMount,
     effect: async (_, listenerApi) => {
       const state = listenerApi.getState()
-      const organizationId = getCurrentId({ state, name: "organizationId" })
-      const projectId = getCurrentId({ state, name: "projectId" })
-      const reviewCampaignId = getCurrentId({ state, name: "reviewCampaignId" })
+      const scope = getCampaignScope(state)
       const sessionId = getCurrentId({ state, name: "agentSessionId" })
-
-      const scope = { organizationId, projectId, reviewCampaignId, sessionId }
-      listenerApi.dispatch(getReviewerSession(scope))
+      listenerApi.dispatch(getReviewerSession({ ...scope, sessionId }))
     },
   })
 
@@ -54,6 +55,11 @@ function registerListeners() {
     matcher: isAnyOf(submitReviewerReview.fulfilled, updateReviewerReview.fulfilled),
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(notificationsActions.show({ title: "Review saved", type: "success" }))
+
+      const state = listenerApi.getState()
+      const scope = getCampaignScope(state)
+      listenerApi.dispatch(getTesterContext(scope))
+      listenerApi.dispatch(listReviewerSessions(scope))
     },
   })
   listenerMiddleware.startListening({
@@ -68,15 +74,11 @@ function registerListeners() {
       )
 
       const state = listenerApi.getState()
-      const organizationId = getCurrentId({ state, name: "organizationId" })
-      const projectId = getCurrentId({ state, name: "projectId" })
-      const reviewCampaignId = getCurrentId({ state, name: "reviewCampaignId" })
+      const scope = getCampaignScope(state)
       const sessionId = getCurrentId({ state, name: "agentSessionId" })
-
-      const scope = { organizationId, projectId, reviewCampaignId, sessionId }
       listenerApi.dispatch(getTesterContext(scope))
       listenerApi.dispatch(listReviewerSessions(scope))
-      listenerApi.dispatch(getReviewerSession(scope))
+      listenerApi.dispatch(getReviewerSession({ ...scope, sessionId }))
     },
   })
 }

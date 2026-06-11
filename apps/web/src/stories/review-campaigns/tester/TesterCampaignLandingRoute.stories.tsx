@@ -5,7 +5,7 @@ import { mergeSeeds, seed } from "@/stories/seed"
 import { TesterRoutes } from "@/tester/routes/helpers"
 import { SessionsRoute } from "@/tester/routes/SessionsRoute"
 import { mockProject } from "../fixtures"
-import { mockSessionSummaries, mockSessions, mockSurvey, mockTesterContext } from "./fixtures"
+import { mockSessionSummaries, mockSurvey, mockTesterContext } from "./fixtures"
 import { buildMockTesterService } from "./mock-service"
 
 const pathParams = {
@@ -50,7 +50,7 @@ export const WithPastSessions: Story = {
       state: mergeSeeds(
         seed.currentProject(mockProject),
         seed.tester.context(mockTesterContext),
-        seed.tester.campaignSessions(mockSessions),
+        seed.tester.campaignSessions(mockSessionSummaries),
         seed.tester.campaignSurvey(null),
       ),
       services: {
@@ -68,7 +68,7 @@ export const ParticipationFinished: Story = {
       state: mergeSeeds(
         seed.currentProject(mockProject),
         seed.tester.context(mockTesterContext),
-        seed.tester.campaignSessions(mockSessions),
+        seed.tester.campaignSessions(mockSessionSummaries),
         seed.tester.campaignSurvey(mockSurvey),
       ),
       services: {

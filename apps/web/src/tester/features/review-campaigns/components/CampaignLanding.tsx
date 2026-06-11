@@ -19,13 +19,14 @@ import { selectCurrentReviewCampaignId } from "@/common/features/review-campaign
 import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
 import { TesterRoutes } from "@/tester/routes/helpers"
+import type { MyTesterSessionSummary } from "../tester.models"
 import { selectTesterContext } from "../tester.selectors"
 import { startTesterSession } from "../tester.thunks"
-import { SessionCard, type TesterSessionSummary } from "./SessionCard"
+import { SessionCard } from "./SessionCard"
 
 type Props = {
   context: ReviewCampaignTesterContextDto
-  sessions: TesterSessionSummary[]
+  sessions: MyTesterSessionSummary[]
   participationFinished: boolean
   onOpenFeedback: (sessionId: string) => void
   onDeleteSession?: (sessionId: string) => void
@@ -79,7 +80,7 @@ function Sessions({
   onDeleteSession,
   onResumeSession,
 }: {
-  sessions: TesterSessionSummary[]
+  sessions: MyTesterSessionSummary[]
   onOpenFeedback: (sessionId: string) => void
   onDeleteSession?: (sessionId: string) => void
   onResumeSession: (sessionId: string) => void
