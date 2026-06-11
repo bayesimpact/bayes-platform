@@ -24,8 +24,5 @@
     "domains/projects/projects.module.ts",
     "domains/invitations/invitations.module.ts"
   ],
-  [
-    "domains/projects/projects.module.ts",
-    "domains/invitations/invitations.module.ts"
-  ]
+  ["domains/projects/projects.module.ts", "domains/invitations/invitations.module.ts"]
 ]
