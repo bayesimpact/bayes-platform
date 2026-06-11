@@ -68,9 +68,11 @@ export function AgentSourcesTab() {
                   <SelectItem value={DocumentsRagMode.All}>
                     {t("agent:props.documentsRagModeOptions.all")}
                   </SelectItem>
-                  <SelectItem value={DocumentsRagMode.Tags}>
-                    {t("agent:props.documentsRagModeOptions.tags")}
-                  </SelectItem>
+                  {(documentTags.length > 0 || field.value === DocumentsRagMode.Tags) && (
+                    <SelectItem value={DocumentsRagMode.Tags}>
+                      {t("agent:props.documentsRagModeOptions.tags")}
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             )}
