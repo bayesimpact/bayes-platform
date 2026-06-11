@@ -30,7 +30,7 @@ export class AgentSubAgentsService {
       where: { parentAgentId: parentAgent.id },
       relations: {
         childAgent: {
-          categories: true,
+          sessionCategories: true,
           documentTags: true,
         },
       },

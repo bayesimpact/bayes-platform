@@ -5,18 +5,18 @@ import { getRepositoryToken, TypeOrmModule } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import typeorm from "@/config/typeorm"
 import { Agent } from "@/domains/agents/agent.entity"
-import { AgentCategoriesService } from "@/domains/agents/categories/agent-categories.service"
-import { AgentCategory } from "@/domains/agents/categories/agent-category.entity"
 import {
   parseUniqueCommaSeparatedCategoryNames,
-  resolveConfiguredDefaultAgentCategoryNames,
-} from "@/domains/agents/categories/agent-default-category-names"
-import { ProjectAgentCategory } from "@/domains/agents/categories/project-agent-category.entity"
+  resolveConfiguredDefaultAgentSessionCategoryNames,
+} from "@/domains/agents/session-categories/agent-default-session-category-names"
+import { AgentSessionCategoriesService } from "@/domains/agents/session-categories/agent-session-categories.service"
+import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
+import { ProjectAgentSessionCategory } from "@/domains/agents/session-categories/project-agent-session-category.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { ask, confirmDatabaseTarget } from "@/scripts/script-bootstrap"
 
-const logger = new Logger("SetAgentCategories")
+const logger = new Logger("SetAgentSessionCategories")
 
 type CliOptions = {
   categoryNames?: string[]
@@ -33,11 +33,17 @@ type CliOptions = {
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => configService.get("typeorm")(),
     }),
-    TypeOrmModule.forFeature([Organization, Project, Agent, ProjectAgentCategory, AgentCategory]),
+    TypeOrmModule.forFeature([
+      Organization,
+      Project,
+      Agent,
+      ProjectAgentSessionCategory,
+      AgentSessionCategory,
+    ]),
   ],
-  providers: [AgentCategoriesService],
+  providers: [AgentSessionCategoriesService],
 })
-class SetAgentCategoriesCliModule {}
+class SetAgentSessionCategoriesCliModule {}
 
 function parseCliOptions(argv: string[]): CliOptions {
   const categoriesIndex = argv.indexOf("--categories")
@@ -165,8 +171,8 @@ async function selectManyFromList<T>(params: {
 
 function resolveCliSelectedProjectCategories(params: {
   cliOptions: CliOptions
-  availableProjectCategories: ProjectAgentCategory[]
-}): ProjectAgentCategory[] {
+  availableProjectCategories: ProjectAgentSessionCategory[]
+}): ProjectAgentSessionCategory[] {
   if (!params.cliOptions.categoryNames || params.cliOptions.categoryNames.length === 0) {
     return []
   }
@@ -178,13 +184,14 @@ function resolveCliSelectedProjectCategories(params: {
     ]),
   )
   const requestedCategoryNames = mergeCategoryNameLists(
-    resolveConfiguredDefaultAgentCategoryNames(),
+    resolveConfiguredDefaultAgentSessionCategoryNames(),
     params.cliOptions.categoryNames,
   )
   return requestedCategoryNames
     .map((requestedCategoryName) => categoryByName.get(requestedCategoryName))
     .filter(
-      (projectCategory): projectCategory is ProjectAgentCategory => projectCategory !== undefined,
+      (projectCategory): projectCategory is ProjectAgentSessionCategory =>
+        projectCategory !== undefined,
     )
 }
 
@@ -192,19 +199,19 @@ async function bootstrapCli(): Promise<void> {
   const options = parseCliOptions(process.argv.slice(2))
   await confirmDatabaseTarget(logger)
 
-  const app = await NestFactory.createApplicationContext(SetAgentCategoriesCliModule, {
+  const app = await NestFactory.createApplicationContext(SetAgentSessionCategoriesCliModule, {
     logger: ["error", "warn", "log"],
   })
 
   try {
-    const agentCategoriesService = app.get(AgentCategoriesService)
+    const agentSessionCategoriesService = app.get(AgentSessionCategoriesService)
     const organizationRepository = app.get<Repository<Organization>>(
       getRepositoryToken(Organization),
     )
     const projectRepository = app.get<Repository<Project>>(getRepositoryToken(Project))
     const agentRepository = app.get<Repository<Agent>>(getRepositoryToken(Agent))
-    const projectAgentCategoryRepository = app.get<Repository<ProjectAgentCategory>>(
-      getRepositoryToken(ProjectAgentCategory),
+    const projectAgentSessionCategoryRepository = app.get<Repository<ProjectAgentSessionCategory>>(
+      getRepositoryToken(ProjectAgentSessionCategory),
     )
 
     const organizations = await organizationRepository.find({ order: { name: "ASC" } })
@@ -252,19 +259,19 @@ async function bootstrapCli(): Promise<void> {
       toLine: (agent) => `${agent.name} (${agent.type}) - ${agent.id}`,
     })
 
-    const availableProjectCategories = await projectAgentCategoryRepository.find({
+    const availableProjectCategories = await projectAgentSessionCategoryRepository.find({
       where: { projectId: selectedProject.id },
       order: { name: "ASC" },
     })
     if (availableProjectCategories.length === 0) {
       logger.log(
-        `No project categories found in workspace "${selectedProject.name}". Run project:set-agent-categories first.`,
+        `No project categories found in workspace "${selectedProject.name}". Run project:set-agent-session-categories first.`,
       )
       return
     }
 
     const activeCategoryNamesBeforeUpdate =
-      await agentCategoriesService.listActiveCategoryNamesForAgent(selectedAgent.id)
+      await agentSessionCategoriesService.listActiveCategoryNamesForAgent(selectedAgent.id)
     logger.log(
       `\nCurrent active categories: ${activeCategoryNamesBeforeUpdate.length > 0 ? activeCategoryNamesBeforeUpdate.join(", ") : "(none)"}`,
     )
@@ -300,7 +307,7 @@ async function bootstrapCli(): Promise<void> {
       return
     }
 
-    const result = await agentCategoriesService.replaceActiveCategoriesForAgent(
+    const result = await agentSessionCategoriesService.replaceActiveCategoriesForAgent(
       selectedAgent.id,
       selectedProjectCategories.map((projectCategory) => ({
         id: projectCategory.id,
@@ -309,7 +316,7 @@ async function bootstrapCli(): Promise<void> {
     )
 
     const activeCategoriesAfterUpdate =
-      await agentCategoriesService.listActiveCategoryNamesForAgent(selectedAgent.id)
+      await agentSessionCategoriesService.listActiveCategoryNamesForAgent(selectedAgent.id)
 
     logger.log(
       `\nUpdated categories for agent "${selectedAgent.name}" (${selectedAgent.id}): ${activeCategoriesAfterUpdate.join(", ")}`,

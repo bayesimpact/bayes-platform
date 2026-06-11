@@ -10,7 +10,7 @@ describe("recalculateSessionMetadataFromMessages", () => {
       testOrganization,
       testProject,
       testUser,
-      agentCategoryRepository,
+      agentSessionCategoryRepository,
       conversationAgentSessionCategoryRepository,
     } = getTestContext()
 
@@ -26,14 +26,14 @@ describe("recalculateSessionMetadataFromMessages", () => {
       type: "playground",
     })
 
-    const billingCategory = await agentCategoryRepository.save(
-      agentCategoryRepository.create({
+    const billingCategory = await agentSessionCategoryRepository.save(
+      agentSessionCategoryRepository.create({
         agentId: testAgent.id,
         name: "billing support",
       }),
     )
-    await agentCategoryRepository.save(
-      agentCategoryRepository.create({
+    await agentSessionCategoryRepository.save(
+      agentSessionCategoryRepository.create({
         agentId: testAgent.id,
         name: "technical bug",
       }),
@@ -58,7 +58,7 @@ describe("recalculateSessionMetadataFromMessages", () => {
     })
 
     expect(sessionCategories).toHaveLength(1)
-    expect(sessionCategories[0]?.agentCategoryId).toBe(billingCategory.id)
+    expect(sessionCategories[0]?.agentSessionCategoryId).toBe(billingCategory.id)
     expect(updatedSession?.title).toBeNull()
   })
 

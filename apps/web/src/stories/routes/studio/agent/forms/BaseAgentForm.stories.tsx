@@ -4,7 +4,7 @@ import { fn } from "storybook/test"
 import { agentFactory, agentOutputJsonSchemaFactory } from "@/common/features/agents/agent.factory"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import {
-  projectAgentCategoryFactory,
+  projectAgentSessionCategoryFactory,
   projectFactory,
 } from "@/common/features/projects/projects.factory"
 import { withRedux } from "@/stories/decorators"
@@ -13,13 +13,13 @@ import { BaseAgentForm } from "@/studio/features/agents/components/BaseAgentForm
 import { documentTagFactory } from "@/studio/features/document-tags/document-tags.factory"
 
 const organization = organizationFactory.build()
-const billingCategory = projectAgentCategoryFactory.build({ name: "Billing" })
-const supportCategory = projectAgentCategoryFactory.build({ name: "Support" })
-const agentCategories = [billingCategory, supportCategory]
-const project = projectFactory.transient({ organization }).build({ agentCategories })
-const projectWithoutAgentCategories = projectFactory
+const billingCategory = projectAgentSessionCategoryFactory.build({ name: "Billing" })
+const supportCategory = projectAgentSessionCategoryFactory.build({ name: "Support" })
+const agentSessionCategories = [billingCategory, supportCategory]
+const project = projectFactory.transient({ organization }).build({ agentSessionCategories })
+const projectWithoutAgentSessionCategories = projectFactory
   .transient({ organization })
-  .build({ agentCategories: [] })
+  .build({ agentSessionCategories: [] })
 
 const productTag = documentTagFactory.transient({ project }).build({ name: "Product" })
 const pricingTag = documentTagFactory.transient({ project }).build({ name: "Pricing" })
@@ -39,8 +39,8 @@ const conversationAgent = agentFactory.transient({ project }).build({
   name: "Helpful Assistant",
   documentTagIds: [productTag.id],
   documentsRagMode: DocumentsRagMode.Tags,
-  projectAgentCategoryIds: [billingCategory.id],
-  usedProjectAgentCategoryIds: [billingCategory.id],
+  projectAgentSessionCategoryIds: [billingCategory.id],
+  usedProjectAgentSessionCategoryIds: [billingCategory.id],
   greetingMessage: "Hi! How can I help you today?",
 })
 
@@ -88,7 +88,7 @@ export const ConversationEditWithoutProjectCategories: Story = {
   decorators: [
     withRedux({
       state: mergeSeeds(
-        seed.currentProject(projectWithoutAgentCategories),
+        seed.currentProject(projectWithoutAgentSessionCategories),
         seed.studio.documentTags(documentTags),
       ),
     }),
@@ -97,8 +97,8 @@ export const ConversationEditWithoutProjectCategories: Story = {
     agentType: "conversation",
     editableAgent: {
       ...conversationAgent,
-      projectAgentCategoryIds: [],
-      usedProjectAgentCategoryIds: [],
+      projectAgentSessionCategoryIds: [],
+      usedProjectAgentSessionCategoryIds: [],
     },
   },
 }

@@ -719,7 +719,7 @@ export class StreamingService extends ServiceWithLLM {
     subAgentTools: ToolSet
   }): ToolSet {
     const hasRecalculateConversationSessionMetadataTool =
-      includeSessionMetadataTools && (agent.categories?.length ?? 0) > 0
+      includeSessionMetadataTools && (agent.sessionCategories?.length ?? 0) > 0
 
     const tools: ToolSet = {
       ...(agent.documentsRagMode === DocumentsRagMode.None
@@ -742,8 +742,8 @@ export class StreamingService extends ServiceWithLLM {
               recalculateConversationSessionMetadataTool({
                 connectScope,
                 sessionId,
-                availableCategoryNames: (agent.categories ?? [])
-                  .map((agentCategory) => agentCategory.name)
+                availableCategoryNames: (agent.sessionCategories ?? [])
+                  .map((agentSessionCategory) => agentSessionCategory.name)
                   .sort((leftCategoryName, rightCategoryName) =>
                     leftCategoryName.localeCompare(rightCategoryName),
                   ),
@@ -831,7 +831,7 @@ export class StreamingService extends ServiceWithLLM {
     switch (agent.type) {
       case "conversation": {
         const currentCategoryNames =
-          includeSessionMetadataTools && (agent.categories?.length ?? 0) > 0
+          includeSessionMetadataTools && (agent.sessionCategories?.length ?? 0) > 0
             ? await this.conversationAgentSessionsService.getCurrentCategoryNamesForSession({
                 connectScope,
                 sessionId,

@@ -7,14 +7,14 @@ import typeorm from "@/config/typeorm"
 import {
   AGENT_DEFAULT_CATEGORIES_ENV,
   parseUniqueCommaSeparatedCategoryNames,
-  resolveConfiguredDefaultAgentCategoryNames,
-} from "@/domains/agents/categories/agent-default-category-names"
-import { ProjectAgentCategory } from "@/domains/agents/categories/project-agent-category.entity"
+  resolveConfiguredDefaultAgentSessionCategoryNames,
+} from "@/domains/agents/session-categories/agent-default-session-category-names"
+import { ProjectAgentSessionCategory } from "@/domains/agents/session-categories/project-agent-session-category.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { ask, confirmDatabaseTarget } from "@/scripts/script-bootstrap"
 
-const logger = new Logger("SetProjectAgentCategories")
+const logger = new Logger("SetProjectAgentSessionCategories")
 
 type CliOptions = {
   categoryNames?: string[]
@@ -37,10 +37,10 @@ type ReplaceProjectCategoriesResult = {
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => configService.get("typeorm")(),
     }),
-    TypeOrmModule.forFeature([Organization, Project, ProjectAgentCategory]),
+    TypeOrmModule.forFeature([Organization, Project, ProjectAgentSessionCategory]),
   ],
 })
-class ProjectAgentCategoriesCliModule {}
+class ProjectAgentSessionCategoriesCliModule {}
 
 function parseCliOptions(argv: string[]): CliOptions {
   const categoriesIndex = argv.indexOf("--categories")
@@ -153,17 +153,18 @@ async function resolveFinalCategoryNames(params: {
 async function replaceActiveProjectCategories(params: {
   projectId: string
   categoryNames: string[]
-  projectAgentCategoryRepository: Repository<ProjectAgentCategory>
+  projectAgentSessionCategoryRepository: Repository<ProjectAgentSessionCategory>
 }): Promise<ReplaceProjectCategoriesResult> {
-  const existingProjectAgentCategories = await params.projectAgentCategoryRepository.find({
-    where: { projectId: params.projectId },
-    withDeleted: true,
-    order: { name: "ASC" },
-  })
+  const existingProjectAgentSessionCategories =
+    await params.projectAgentSessionCategoryRepository.find({
+      where: { projectId: params.projectId },
+      withDeleted: true,
+      order: { name: "ASC" },
+    })
 
   const desiredCategoryNames = new Set(params.categoryNames)
   const existingCategoryByName = new Map(
-    existingProjectAgentCategories.map((existingCategory) => [
+    existingProjectAgentSessionCategories.map((existingCategory) => [
       existingCategory.name,
       existingCategory,
     ]),
@@ -176,26 +177,26 @@ async function replaceActiveProjectCategories(params: {
   for (const categoryName of params.categoryNames) {
     const existingCategory = existingCategoryByName.get(categoryName)
     if (!existingCategory) {
-      const createdCategory = params.projectAgentCategoryRepository.create({
+      const createdCategory = params.projectAgentSessionCategoryRepository.create({
         projectId: params.projectId,
         name: categoryName,
       })
-      await params.projectAgentCategoryRepository.save(createdCategory)
+      await params.projectAgentSessionCategoryRepository.save(createdCategory)
       createdCount += 1
       continue
     }
 
     if (existingCategory.deletedAt !== null) {
-      await params.projectAgentCategoryRepository.recover(existingCategory)
+      await params.projectAgentSessionCategoryRepository.recover(existingCategory)
       restoredCount += 1
     }
   }
 
-  for (const existingCategory of existingProjectAgentCategories) {
+  for (const existingCategory of existingProjectAgentSessionCategories) {
     const shouldStayActive = desiredCategoryNames.has(existingCategory.name)
     const isCurrentlyActive = existingCategory.deletedAt === null
     if (!shouldStayActive && isCurrentlyActive) {
-      await params.projectAgentCategoryRepository.softDelete(existingCategory.id)
+      await params.projectAgentSessionCategoryRepository.softDelete(existingCategory.id)
       deletedCount += 1
     }
   }
@@ -211,7 +212,7 @@ async function bootstrapCli(): Promise<void> {
   const options = parseCliOptions(process.argv.slice(2))
   await confirmDatabaseTarget(logger)
 
-  const app = await NestFactory.createApplicationContext(ProjectAgentCategoriesCliModule, {
+  const app = await NestFactory.createApplicationContext(ProjectAgentSessionCategoriesCliModule, {
     logger: ["error", "warn", "log"],
   })
 
@@ -220,8 +221,8 @@ async function bootstrapCli(): Promise<void> {
       getRepositoryToken(Organization),
     )
     const projectRepository = app.get<Repository<Project>>(getRepositoryToken(Project))
-    const projectAgentCategoryRepository = app.get<Repository<ProjectAgentCategory>>(
-      getRepositoryToken(ProjectAgentCategory),
+    const projectAgentSessionCategoryRepository = app.get<Repository<ProjectAgentSessionCategory>>(
+      getRepositoryToken(ProjectAgentSessionCategory),
     )
 
     const organizations = await organizationRepository.find({ order: { name: "ASC" } })
@@ -251,7 +252,7 @@ async function bootstrapCli(): Promise<void> {
       toLine: (project) => `${project.name} (${project.id})`,
     })
 
-    const activeCategoriesBeforeUpdate = await projectAgentCategoryRepository.find({
+    const activeCategoriesBeforeUpdate = await projectAgentSessionCategoryRepository.find({
       where: { projectId: selectedProject.id },
       order: { name: "ASC" },
     })
@@ -263,7 +264,7 @@ async function bootstrapCli(): Promise<void> {
       }`,
     )
 
-    const configuredDefaults = resolveConfiguredDefaultAgentCategoryNames()
+    const configuredDefaults = resolveConfiguredDefaultAgentSessionCategoryNames()
     const includeDefaults = await askIncludeDefaultCategories(configuredDefaults)
 
     let categoryNames = await resolveFinalCategoryNames({
@@ -293,10 +294,10 @@ async function bootstrapCli(): Promise<void> {
     const result = await replaceActiveProjectCategories({
       projectId: selectedProject.id,
       categoryNames,
-      projectAgentCategoryRepository,
+      projectAgentSessionCategoryRepository,
     })
 
-    const activeCategoriesAfterUpdate = await projectAgentCategoryRepository.find({
+    const activeCategoriesAfterUpdate = await projectAgentSessionCategoryRepository.find({
       where: { projectId: selectedProject.id },
       order: { name: "ASC" },
     })

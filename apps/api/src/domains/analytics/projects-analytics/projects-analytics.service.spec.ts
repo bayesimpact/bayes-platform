@@ -6,9 +6,9 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { agentFactory } from "@/domains/agents/agent.factory"
-import { AgentCategory } from "@/domains/agents/categories/agent-category.entity"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { ConversationAgentSessionCategory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity"
+import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
 import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messages/agent-messages.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { ProjectsAnalyticsModule } from "./projects-analytics.module"
@@ -275,10 +275,10 @@ describe("ProjectsAnalyticsService", () => {
     await repositories.agentRepository.save([supportAgent, salesAgent])
 
     const billingCategory = await setup
-      .getRepository(AgentCategory)
+      .getRepository(AgentSessionCategory)
       .save({ agentId: supportAgent.id, name: "billing" })
     const onboardingCategory = await setup
-      .getRepository(AgentCategory)
+      .getRepository(AgentSessionCategory)
       .save({ agentId: salesAgent.id, name: "onboarding" })
 
     const supportDay1 = conversationAgentSessionFactory
@@ -297,8 +297,8 @@ describe("ProjectsAnalyticsService", () => {
     ])
 
     await setup.getRepository(ConversationAgentSessionCategory).save([
-      { conversationAgentSessionId: supportDay1.id, agentCategoryId: billingCategory.id },
-      { conversationAgentSessionId: salesDay2.id, agentCategoryId: onboardingCategory.id },
+      { conversationAgentSessionId: supportDay1.id, agentSessionCategoryId: billingCategory.id },
+      { conversationAgentSessionId: salesDay2.id, agentSessionCategoryId: onboardingCategory.id },
     ])
 
     const connectScope = { organizationId: organization.id, projectId: project.id, userId: user.id }

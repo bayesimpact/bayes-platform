@@ -8,7 +8,7 @@ import {
 } from "@/common/test/test-database"
 import { Agent } from "@/domains/agents/agent.entity"
 import { agentFactory } from "@/domains/agents/agent.factory"
-import { AgentCategory } from "@/domains/agents/categories/agent-category.entity"
+import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
 import { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
@@ -31,7 +31,7 @@ export function agentSessionControllerTestSetup() {
   let conversationAgentSessionRepository: Repository<ConversationAgentSession>
   let conversationAgentSessionCategoryRepository: Repository<ConversationAgentSessionCategory>
   let agentRepository: Repository<Agent>
-  let agentCategoryRepository: Repository<AgentCategory>
+  let agentSessionCategoryRepository: Repository<AgentSessionCategory>
   let agentSubAgentRepository: Repository<AgentSubAgent>
   let agentMessageRepository: Repository<AgentMessage>
   let featureFlagRepository: AllRepositories["featureFlagRepository"]
@@ -68,7 +68,7 @@ export function agentSessionControllerTestSetup() {
     )
     agentMessageRepository = setup.getRepository(AgentMessage)
     agentRepository = setup.getRepository(Agent)
-    agentCategoryRepository = setup.getRepository(AgentCategory)
+    agentSessionCategoryRepository = setup.getRepository(AgentSessionCategory)
     agentSubAgentRepository = setup.getRepository(AgentSubAgent)
     userRepository = setup.getRepository(User)
     featureFlagRepository = setup.getAllRepositories().featureFlagRepository
@@ -113,7 +113,7 @@ export function agentSessionControllerTestSetup() {
   return () => {
     return {
       agentRepository,
-      agentCategoryRepository,
+      agentSessionCategoryRepository,
       agentSubAgentRepository,
       conversationAgentSessionRepository,
       conversationAgentSessionCategoryRepository,

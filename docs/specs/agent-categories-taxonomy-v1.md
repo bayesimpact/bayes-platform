@@ -1,5 +1,13 @@
 # Feature Specification: Agent Categories Taxonomy (v1)
 
+> **Naming note (2026-06)**: this concept was renamed to **agent session categories** to make it
+> clear that categories classify agent *sessions* (conversations), not agents themselves. Current
+> names: `project_agent_session_category` / `ProjectAgentSessionCategory`,
+> `agent_session_category` / `AgentSessionCategory`, route `.../agent-session-categories`, CLI
+> `project:set-agent-session-categories` and `agent:set-session-categories`, UI label
+> "Conversation categories". The back-office management endpoint described below was removed.
+> The historical names below are kept as written for v1.
+
 ## Overview
 
 This feature introduces a project-level category taxonomy for conversational agent sessions.

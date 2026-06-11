@@ -7,9 +7,9 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { agentFactory } from "@/domains/agents/agent.factory"
-import { AgentCategory } from "@/domains/agents/categories/agent-category.entity"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { ConversationAgentSessionCategory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity"
+import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
 import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messages/agent-messages.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { AgentsAnalyticsModule } from "./agents-analytics.module"
@@ -188,7 +188,7 @@ describe("AgentsAnalyticsService", () => {
     await repositories.agentRepository.save(agent)
 
     const billingCategory = await setup
-      .getRepository(AgentCategory)
+      .getRepository(AgentSessionCategory)
       .save({ agentId: agent.id, name: "billing" })
 
     const categorizedSession = conversationAgentSessionFactory
@@ -202,11 +202,12 @@ describe("AgentsAnalyticsService", () => {
       uncategorizedSession,
     ])
 
-    await setup
-      .getRepository(ConversationAgentSessionCategory)
-      .save([
-        { conversationAgentSessionId: categorizedSession.id, agentCategoryId: billingCategory.id },
-      ])
+    await setup.getRepository(ConversationAgentSessionCategory).save([
+      {
+        conversationAgentSessionId: categorizedSession.id,
+        agentSessionCategoryId: billingCategory.id,
+      },
+    ])
 
     const connectScope = { organizationId: organization.id, projectId: project.id, userId: user.id }
 

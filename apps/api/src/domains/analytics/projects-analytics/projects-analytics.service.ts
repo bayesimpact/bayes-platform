@@ -5,9 +5,9 @@ import type { Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "@/domains/agents/agent.entity"
-import { AgentCategory } from "@/domains/agents/categories/agent-category.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ConversationAgentSessionCategory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity"
+import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import {
   getDayKeySql,
@@ -154,9 +154,9 @@ export class ProjectsAnalyticsService {
       .addSelect(getQualifiedColumnSql(this.categoryAlias, "name"), "category_name")
       .from(ConversationAgentSessionCategory, this.sessionCategoryAlias)
       .innerJoin(
-        AgentCategory,
+        AgentSessionCategory,
         this.categoryAlias,
-        `${getQualifiedColumnSql(this.categoryAlias, "id")} = ${getQualifiedColumnSql(this.sessionCategoryAlias, "agent_category_id")} AND ${getQualifiedColumnSql(this.categoryAlias, "deleted_at")} IS NULL`,
+        `${getQualifiedColumnSql(this.categoryAlias, "id")} = ${getQualifiedColumnSql(this.sessionCategoryAlias, "agent_session_category_id")} AND ${getQualifiedColumnSql(this.categoryAlias, "deleted_at")} IS NULL`,
       )
       .getQuery()
 
@@ -224,9 +224,9 @@ export class ProjectsAnalyticsService {
           .select("1")
           .from(ConversationAgentSessionCategory, this.sessionCategoryAlias)
           .innerJoin(
-            AgentCategory,
+            AgentSessionCategory,
             this.categoryAlias,
-            `${getQualifiedColumnSql(this.categoryAlias, "id")} = ${getQualifiedColumnSql(this.sessionCategoryAlias, "agent_category_id")} AND ${getQualifiedColumnSql(this.categoryAlias, "deleted_at")} IS NULL`,
+            `${getQualifiedColumnSql(this.categoryAlias, "id")} = ${getQualifiedColumnSql(this.sessionCategoryAlias, "agent_session_category_id")} AND ${getQualifiedColumnSql(this.categoryAlias, "deleted_at")} IS NULL`,
           )
           .where(
             `${getQualifiedColumnSql(this.sessionCategoryAlias, "conversation_agent_session_id")} = ${sessionIdCol}`,

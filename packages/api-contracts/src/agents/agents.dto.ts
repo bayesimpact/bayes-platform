@@ -62,8 +62,8 @@ export type AgentDto = {
   updatedAt: TimeType
   documentTagIds: DocumentTagDto["id"][]
   documentsRagMode: DocumentsRagMode
-  projectAgentCategoryIds: string[]
-  usedProjectAgentCategoryIds: string[]
+  projectAgentSessionCategoryIds: string[]
+  usedProjectAgentSessionCategoryIds: string[]
 }
 
 export const outputJsonSchemaSchema = z
@@ -94,7 +94,7 @@ const agentValidationSchema = z.object({
   model: z.enum(AgentModel),
   name: z.string().trim().min(3),
   outputJsonSchema: outputJsonSchemaSchema.optional(),
-  projectAgentCategoryIds: z.array(z.string().uuid()),
+  projectAgentSessionCategoryIds: z.array(z.string().uuid()),
   temperature: z
     .float32()
     .min(0)
@@ -180,7 +180,7 @@ export const createAgentSchema = agentValidationSchema
     model: true,
     name: true,
     outputJsonSchema: true,
-    projectAgentCategoryIds: true,
+    projectAgentSessionCategoryIds: true,
     temperature: true,
     type: true,
   })
@@ -203,7 +203,7 @@ export const updateAgentSchema = agentValidationSchema
     model: true,
     name: true,
     outputJsonSchema: true,
-    projectAgentCategoryIds: true,
+    projectAgentSessionCategoryIds: true,
     temperature: true,
   })
   .extend({

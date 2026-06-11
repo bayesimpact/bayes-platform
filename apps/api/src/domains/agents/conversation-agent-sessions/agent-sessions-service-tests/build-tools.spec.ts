@@ -82,15 +82,15 @@ describe("buildTools", () => {
       testOrganization,
       testProject,
       testUser,
-      agentCategoryRepository,
+      agentSessionCategoryRepository,
     } = getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
       projectId: testProject.id,
     }
 
-    const savedCategory = await agentCategoryRepository.save(
-      agentCategoryRepository.create({
+    const savedCategory = await agentSessionCategoryRepository.save(
+      agentSessionCategoryRepository.create({
         agentId: testAgent.id,
         name: "billing",
       }),
@@ -105,7 +105,7 @@ describe("buildTools", () => {
     const { tools } = await (streamingService as unknown as BuildToolsAccessor).buildTools({
       agent: {
         ...testAgent,
-        categories: [savedCategory],
+        sessionCategories: [savedCategory],
         documentsRagMode: DocumentsRagMode.None,
       },
       sessionId: session.id,

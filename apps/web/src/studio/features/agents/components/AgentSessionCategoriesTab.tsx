@@ -10,12 +10,12 @@ import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
 import type { AgentFormValues } from "./agent-form.shared"
 
-export function AgentCategoriesTab() {
+export function AgentSessionCategoriesTab() {
   const { t } = useTranslation()
   const { control } = useFormContext<AgentFormValues>()
 
   const project = useValue(selectCurrentProjectData)
-  const projectAgentCategories = project.agentCategories
+  const projectAgentSessionCategories = project.agentSessionCategories
 
   const agentData = useAppSelector(selectCurrentAgentData)
   const editableAgent = ADS.isFulfilled(agentData) ? agentData.value : undefined
@@ -23,19 +23,20 @@ export function AgentCategoriesTab() {
   return (
     <Controller
       control={control}
-      name="projectAgentCategoryIds"
+      name="projectAgentSessionCategoryIds"
       render={({ field }) => (
         <FieldGroup>
           <FieldGroup data-slot="checkbox-group">
-            {projectAgentCategories.map((projectAgentCategory) => {
-              const isChecked = field.value.includes(projectAgentCategory.id)
+            {projectAgentSessionCategories.map((projectAgentSessionCategory) => {
+              const isChecked = field.value.includes(projectAgentSessionCategory.id)
               const isDisabled =
-                editableAgent?.usedProjectAgentCategoryIds.includes(projectAgentCategory.id) ??
-                false
-              const checkboxId = `agent-category-${projectAgentCategory.id}`
+                editableAgent?.usedProjectAgentSessionCategoryIds.includes(
+                  projectAgentSessionCategory.id,
+                ) ?? false
+              const checkboxId = `agent-session-category-${projectAgentSessionCategory.id}`
               return (
                 <Field
-                  key={projectAgentCategory.id}
+                  key={projectAgentSessionCategory.id}
                   orientation="horizontal"
                   data-disabled={isDisabled ? true : undefined}
                 >
@@ -45,34 +46,38 @@ export function AgentCategoriesTab() {
                     disabled={isDisabled}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        field.onChange([...field.value, projectAgentCategory.id])
+                        field.onChange([...field.value, projectAgentSessionCategory.id])
                         return
                       }
                       field.onChange(
-                        field.value.filter((categoryId) => categoryId !== projectAgentCategory.id),
+                        field.value.filter(
+                          (categoryId) => categoryId !== projectAgentSessionCategory.id,
+                        ),
                       )
                     }}
                   />
-                  <FieldLabel htmlFor={checkboxId}>{projectAgentCategory.name}</FieldLabel>
+                  <FieldLabel htmlFor={checkboxId}>{projectAgentSessionCategory.name}</FieldLabel>
                 </Field>
               )
             })}
           </FieldGroup>
-          {projectAgentCategories.length > 1 &&
-            !projectAgentCategories.every((category) => field.value.includes(category.id)) && (
+          {projectAgentSessionCategories.length > 1 &&
+            !projectAgentSessionCategories.every((category) =>
+              field.value.includes(category.id),
+            ) && (
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 className="self-start"
                 onClick={() =>
-                  field.onChange(projectAgentCategories.map((category) => category.id))
+                  field.onChange(projectAgentSessionCategories.map((category) => category.id))
                 }
               >
                 {t("actions:selectAll")}
               </Button>
             )}
-          <FieldDescription>{t("agent:props.agentCategoriesInUse")}</FieldDescription>
+          <FieldDescription>{t("agent:props.agentSessionCategoriesInUse")}</FieldDescription>
         </FieldGroup>
       )}
     />
