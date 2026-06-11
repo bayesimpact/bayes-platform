@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
 import { createVertex } from "@ai-sdk/google-vertex"
-import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common"
+import { Inject, Injectable, Logger } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
 import { embedMany } from "ai"
 import { Document as LlamaDocument, MetadataMode, SentenceSplitter } from "llamaindex"
@@ -45,9 +45,12 @@ export class DocumentEmbeddingsProcessorService {
   ) {}
 
   async processDocument(payload: CreateDocumentEmbeddingsJobPayload): Promise<void> {
-    const document = await this.findDocumentOrThrow(payload)
+    const document = await this.findDocument(payload)
+    if (!document) {
+      this.logger.warn("Unable to find document", payload)
+      return
+    }
     await this.markDocumentStatus(document, "processing")
-
     try {
       const extractionResult = await this.extractDocumentChunks(document)
       const embeddingsByModelName = await this.generateEmbeddingsByModel(extractionResult.chunks)
@@ -75,9 +78,9 @@ export class DocumentEmbeddingsProcessorService {
     }
   }
 
-  private async findDocumentOrThrow(
+  private async findDocument(
     payload: CreateDocumentEmbeddingsJobPayload,
-  ): Promise<Document> {
+  ): Promise<Document | null> {
     const connectScope = {
       organizationId: payload.organizationId,
       projectId: payload.projectId,
@@ -87,10 +90,6 @@ export class DocumentEmbeddingsProcessorService {
       connectScope,
       documentId: payload.documentId,
     })
-    if (!document) {
-      throw new NotFoundException(`Document ${payload.documentId} not found`)
-    }
-
     return document
   }
 
