@@ -87,6 +87,7 @@ describe("Agents - updateOne", () => {
         tagsToAdd: [],
         tagsToRemove: [],
         projectAgentSessionCategoryIds: [],
+        greetingMessage: undefined,
       },
     })
 
@@ -116,6 +117,7 @@ describe("Agents - updateOne", () => {
         tagsToAdd: [],
         tagsToRemove: [],
         projectAgentSessionCategoryIds: [],
+        greetingMessage: undefined,
       },
     })
 
@@ -188,6 +190,7 @@ describe("Agents - updateOne", () => {
         tagsToAdd: [],
         tagsToRemove: [],
         projectAgentSessionCategoryIds: [],
+        greetingMessage: undefined,
       },
     })
 
@@ -219,6 +222,7 @@ describe("Agents - updateOne", () => {
         tagsToAdd: [],
         tagsToRemove: [],
         projectAgentSessionCategoryIds: [projectCategory.id],
+        greetingMessage: undefined,
       },
     })
 
@@ -262,6 +266,7 @@ describe("Agents - updateOne", () => {
         tagsToAdd: [],
         tagsToRemove: [],
         projectAgentSessionCategoryIds: [legacyProjectCategory.id, newProjectCategory.id],
+        greetingMessage: undefined,
       },
     })
 
@@ -315,6 +320,7 @@ describe("Agents - updateOne", () => {
         tagsToAdd: [],
         tagsToRemove: [],
         projectAgentSessionCategoryIds: [],
+        greetingMessage: undefined,
       },
     })
 

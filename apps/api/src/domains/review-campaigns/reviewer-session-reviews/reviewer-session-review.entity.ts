@@ -5,7 +5,7 @@ import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessio
 import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import { User } from "@/domains/users/user.entity"
 import { ReviewCampaign } from "../review-campaign.entity"
-import type { ReviewCampaignAnswer, ReviewCampaignSessionType } from "../review-campaigns.types"
+import type { ReviewCampaignAgentType, ReviewCampaignAnswer } from "../review-campaigns.types"
 
 @ConnectEntity("reviewer_session_review", "campaignId", "sessionId")
 @Unique(["sessionId", "reviewerUserId"])
@@ -24,8 +24,8 @@ export class ReviewerSessionReview extends ConnectEntityBase {
   @Column({ type: "uuid", name: "session_id" })
   sessionId!: string
 
-  @Column({ type: "varchar", name: "session_type" })
-  sessionType!: ReviewCampaignSessionType
+  @Column({ type: "varchar", name: "agent_type" })
+  agentType!: ReviewCampaignAgentType
 
   @ManyToOne(() => ConversationAgentSession, { nullable: true, createForeignKeyConstraints: false })
   @JoinColumn({ name: "session_id" })

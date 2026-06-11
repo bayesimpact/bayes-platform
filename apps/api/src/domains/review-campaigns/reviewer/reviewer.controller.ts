@@ -28,12 +28,12 @@ export class ReviewerSessionReviewController {
       EndpointRequestWithReviewCampaignMembership,
     @Body() { payload }: typeof ReviewCampaignsRoutes.submitReviewerSessionReview.request,
   ): Promise<typeof ReviewCampaignsRoutes.submitReviewerSessionReview.response> {
-    const { sessionId, sessionType, userId } = request.agentSessionInCampaign
+    const { sessionId, agentType, userId } = request.agentSessionInCampaign
     const review = await this.reviewerService.submitReview({
       connectScope: getRequiredConnectScope(request),
       campaign: request.reviewCampaign,
       sessionId,
-      sessionType,
+      agentType,
       sessionOwnerUserId: userId,
       reviewerUserId: request.user.id,
       fields: payload,
@@ -66,7 +66,7 @@ function toReviewerSessionReviewDto(review: ReviewerSessionReview): ReviewerSess
     id: review.id,
     campaignId: review.campaignId,
     sessionId: review.sessionId,
-    sessionType: review.sessionType,
+    agentType: review.agentType,
     reviewerUserId: review.reviewerUserId,
     overallRating: review.overallRating,
     comment: review.comment,

@@ -17,16 +17,14 @@ import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agen
 import { FormAgentSessionsService } from "@/domains/agents/form-agent-sessions/form-agent-sessions.service"
 import { ReviewCampaignMembership } from "../memberships/review-campaign-membership.entity"
 import type { ReviewCampaign } from "../review-campaign.entity"
-import type { ReviewCampaignAnswer, ReviewCampaignSessionType } from "../review-campaigns.types"
+import type { ReviewCampaignAgentType, ReviewCampaignAnswer } from "../review-campaigns.types"
 import { TesterCampaignSurvey } from "../tester-campaign-surveys/tester-campaign-survey.entity"
 import { TesterSessionFeedback } from "../tester-session-feedbacks/tester-session-feedback.entity"
 
 export type MyTesterSessionSummary = {
-  sessionId: string
-  sessionType: "conversation" | "form"
-  startedAt: Date
-  feedbackStatus: "submitted" | "pending"
-}
+  agentType: ReviewCampaignAgentType
+  feedbackStatus: "submitted" | "pending" | "abandoned"
+} & {} & Pick<FormAgentSession, "id" | "result" | "createdAt" | "updatedAt" | "agentId" | "type">
 
 export type CampaignAggregates = {
   meanTesterRating: number | null
@@ -102,11 +100,18 @@ export class TesterService {
     const [conversationSessions, formSessions] = await Promise.all([
       this.conversationSessionRepository.find({
         where: { userId, campaignId },
-        select: { id: true, createdAt: true },
+        select: { id: true, createdAt: true, updatedAt: true, agentId: true, type: true },
       }),
       this.formSessionRepository.find({
         where: { userId, campaignId },
-        select: { id: true, createdAt: true },
+        select: {
+          id: true,
+          createdAt: true,
+          updatedAt: true,
+          agentId: true,
+          type: true,
+          result: true,
+        },
       }),
     ])
 
@@ -126,23 +131,31 @@ export class TesterService {
 
     const summaries: MyTesterSessionSummary[] = [
       ...conversationSessions.map((session) => ({
-        sessionId: session.id,
-        sessionType: "conversation" as const,
-        startedAt: session.createdAt,
+        id: session.id,
+        agentType: "conversation" as const,
         feedbackStatus: feedbackBySessionId.has(session.id)
           ? ("submitted" as const)
           : ("pending" as const),
+        result: null,
+        updatedAt: session.createdAt,
+        createdAt: session.createdAt,
+        agentId: session.agentId,
+        type: session.type,
       })),
       ...formSessions.map((session) => ({
-        sessionId: session.id,
-        sessionType: "form" as const,
-        startedAt: session.createdAt,
+        id: session.id,
+        agentType: "form" as const,
         feedbackStatus: feedbackBySessionId.has(session.id)
           ? ("submitted" as const)
           : ("pending" as const),
+        result: session.result,
+        updatedAt: session.updatedAt,
+        createdAt: session.createdAt,
+        agentId: session.agentId,
+        type: session.type,
       })),
     ]
-    return summaries.sort((left, right) => right.startedAt.getTime() - left.startedAt.getTime())
+    return summaries.sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
   }
 
   async startSession({
@@ -155,46 +168,43 @@ export class TesterService {
     campaign: ReviewCampaign
     userId: string
     type: BaseAgentSessionType
-  }): Promise<{ sessionId: string; sessionType: "conversation" | "form" }> {
+  }): Promise<{ id: string; agentType: ReviewCampaignAgentType }> {
     const agent = await this.getAgentForCampaign({ connectScope, campaign })
 
-    if (agent.type === "extraction") {
-      throw new UnprocessableEntityException(
-        "Extraction agents cannot be started directly from a tester campaign yet",
-      )
-    }
+    switch (agent.type) {
+      case "conversation": {
+        const session = await this.conversationAgentSessionsService.createSession({
+          connectScope,
+          agentId: agent.id,
+          userId,
+          type,
+        })
+        session.campaignId = campaign.id
+        await this.conversationSessionRepository.save(session)
+        return { id: session.id, agentType: "conversation" }
+      }
 
-    if (agent.type === "conversation") {
-      const session = await this.conversationAgentSessionsService.createSession({
-        connectScope,
-        agentId: agent.id,
-        userId,
-        type,
-      })
-      session.campaignId = campaign.id
-      await this.conversationSessionRepository.save(session)
-      return { sessionId: session.id, sessionType: "conversation" }
-    }
+      case "form": {
+        const session = await this.formAgentSessionsService.createSession({
+          connectScope,
+          agentId: agent.id,
+          userId,
+          type,
+        })
+        session.campaignId = campaign.id
+        await this.formSessionRepository.save(session)
+        return { id: session.id, agentType: "form" }
+      }
 
-    if (agent.type === "form") {
-      const session = await this.formAgentSessionsService.createSession({
-        connectScope,
-        agentId: agent.id,
-        userId,
-        type,
-      })
-      session.campaignId = campaign.id
-      await this.formSessionRepository.save(session)
-      return { sessionId: session.id, sessionType: "form" }
+      default:
+        throw new UnprocessableEntityException(`Unsupported agent type: ${agent.type}`)
     }
-
-    throw new UnprocessableEntityException(`Unsupported agent type: ${agent.type}`)
   }
 
   async submitFeedback({
     connectScope,
     sessionId,
-    sessionType,
+    agentType,
     sessionOwnerUserId,
     campaign,
     callerUserId,
@@ -202,7 +212,7 @@ export class TesterService {
   }: {
     connectScope: RequiredConnectScope
     sessionId: string
-    sessionType: ReviewCampaignSessionType
+    agentType: ReviewCampaignAgentType
     sessionOwnerUserId: string
     campaign: ReviewCampaign
     callerUserId: string
@@ -223,7 +233,7 @@ export class TesterService {
       projectId: connectScope.projectId,
       campaignId: campaign.id,
       sessionId,
-      sessionType,
+      agentType,
       overallRating: fields.overallRating,
       comment: fields.comment ?? null,
       answers: fields.answers ?? [],
@@ -287,12 +297,12 @@ export class TesterService {
 
   async deleteTesterSession({
     sessionId,
-    sessionType,
+    agentType,
     sessionOwnerUserId,
     callerUserId,
   }: {
     sessionId: string
-    sessionType: ReviewCampaignSessionType
+    agentType: ReviewCampaignAgentType
     sessionOwnerUserId: string
     callerUserId: string
   }): Promise<void> {
@@ -305,10 +315,18 @@ export class TesterService {
       )
     }
 
-    if (sessionType === "conversation") {
-      await this.conversationSessionRepository.delete({ id: sessionId })
-    } else {
-      await this.formSessionRepository.delete({ id: sessionId })
+    switch (agentType) {
+      case "conversation": {
+        await this.conversationSessionRepository.delete({ id: sessionId })
+        break
+      }
+      case "form": {
+        await this.formSessionRepository.delete({ id: sessionId })
+        break
+      }
+      default: {
+        throw new UnprocessableEntityException(`Unsupported agent type: ${agentType}`)
+      }
     }
   }
 

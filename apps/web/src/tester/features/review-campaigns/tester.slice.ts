@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type {
   MyReviewCampaign,
+  MyTesterSessionSummary,
   TesterCampaignSurvey,
   TesterContext,
   TesterSessionFeedback,
@@ -11,20 +12,13 @@ import {
   getTesterContext,
   listMyReviewCampaigns,
   listMyTesterSessions,
-  startTesterSession,
 } from "./tester.thunks"
-
-export type LocalSessionSummary = {
-  id: string
-  startedAt: number
-  feedbackStatus: "submitted" | "pending" | "abandoned"
-}
 
 interface State {
   myCampaigns: AsyncData<MyReviewCampaign[]>
   testerContext: AsyncData<TesterContext>
   campaignSurvey: AsyncData<TesterCampaignSurvey | null>
-  campaignSessions: AsyncData<LocalSessionSummary[]>
+  campaignSessions: AsyncData<MyTesterSessionSummary[]>
   campaignSessionFeedback: AsyncData<TesterSessionFeedback>
 }
 
@@ -98,11 +92,7 @@ const slice = createSlice({
         state.campaignSessions = {
           status: ADS.Fulfilled,
           error: null,
-          value: action.payload.map((summary) => ({
-            id: summary.sessionId,
-            startedAt: summary.startedAt,
-            feedbackStatus: summary.feedbackStatus,
-          })),
+          value: action.payload,
         }
       })
       .addCase(listMyTesterSessions.rejected, (state, action) => {
@@ -112,27 +102,6 @@ const slice = createSlice({
           value: null,
         }
       })
-
-    builder.addCase(startTesterSession.fulfilled, (state, action) => {
-      const newSession = {
-        id: action.payload.sessionId,
-        startedAt: Date.now(),
-        feedbackStatus: "pending",
-      } satisfies LocalSessionSummary
-      const sessions = state.campaignSessions
-      if (!sessions || !ADS.isFulfilled(sessions)) {
-        state.campaignSessions = {
-          value: [newSession],
-          status: ADS.Fulfilled,
-          error: null,
-        }
-      } else {
-        state.campaignSessions = {
-          ...sessions,
-          value: [...sessions.value, newSession],
-        }
-      }
-    })
 
     builder
       .addCase(getMyTesterSurvey.pending, (state) => {

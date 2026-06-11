@@ -28,7 +28,6 @@ export class AgentMessage extends ConnectEntityBase {
   @Column({ type: "timestamp", nullable: true, name: "completed_at" })
   completedAt!: Date | null
 
-  // FIXME: remove thise
   @Column({ type: "jsonb", nullable: true, name: "tool_calls" })
   toolCalls!: Array<{
     id: string
@@ -53,12 +52,14 @@ export class AgentMessage extends ConnectEntityBase {
   formAgentSession?: FormAgentSession
 
   session(agentType: string): ConversationAgentSession | FormAgentSession | undefined {
-    if (agentType === "conversation") {
-      return this.conversationAgentSession
-    } else if (agentType === "form") {
-      return this.formAgentSession
+    switch (agentType) {
+      case "conversation":
+        return this.conversationAgentSession
+      case "form":
+        return this.formAgentSession
+      default:
+        return undefined
     }
-    return undefined
   }
 
   @Column({ type: "uuid", name: "document_id", nullable: true })

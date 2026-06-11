@@ -19,6 +19,13 @@ import {
 
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
+const getScope = (state: RootState) => {
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  const reviewCampaignId = getCurrentId({ state, name: "reviewCampaignId" })
+  return { organizationId, projectId, reviewCampaignId }
+}
+
 function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: reviewCampaignsTesterActions.campaignsMount,
@@ -31,10 +38,7 @@ function registerListeners() {
     actionCreator: reviewCampaignsTesterActions.campaignMount,
     effect: async (_, listenerApi) => {
       const state = listenerApi.getState()
-      const organizationId = getCurrentId({ state, name: "organizationId" })
-      const projectId = getCurrentId({ state, name: "projectId" })
-      const reviewCampaignId = getCurrentId({ state, name: "reviewCampaignId" })
-      const scope = { organizationId, projectId, reviewCampaignId }
+      const scope = getScope(state)
       listenerApi.dispatch(getTesterContext(scope))
       listenerApi.dispatch(listMyTesterSessions(scope))
       listenerApi.dispatch(getMyTesterSurvey())
@@ -59,20 +63,24 @@ function registerListeners() {
     actionCreator: startTesterSession.fulfilled,
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(notificationsActions.show({ title: "Session started", type: "success" }))
-
-      action.meta.arg.onSuccess?.(action.payload.sessionId)
+      const scope = getScope(listenerApi.getState())
+      listenerApi.dispatch(listMyTesterSessions(scope))
+      action.meta.arg.onSuccess?.(action.payload.id)
     },
   })
   listenerMiddleware.startListening({
     matcher: isAnyOf(submitTesterFeedback.fulfilled, updateTesterFeedback.fulfilled),
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(notificationsActions.show({ title: "Feedback saved", type: "success" }))
+      const scope = getScope(listenerApi.getState())
+      listenerApi.dispatch(listMyTesterSessions(scope))
     },
   })
   listenerMiddleware.startListening({
     matcher: isAnyOf(submitTesterSurvey.fulfilled, updateTesterSurvey.fulfilled),
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(notificationsActions.show({ title: "Survey saved", type: "success" }))
+      listenerApi.dispatch(getMyTesterSurvey())
     },
   })
   // FIXME:

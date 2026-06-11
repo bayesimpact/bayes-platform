@@ -120,12 +120,9 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
 
     const response = await subject()
     expectResponse(response, 200)
-    const sessions = response.body.data.sessions as Array<{
-      sessionId: string
-      sessionType: "conversation" | "form"
-    }>
+    const sessions = response.body.data.sessions
     expect(sessions).toHaveLength(2)
-    expect(sessions.map((session) => session.sessionType).sort()).toEqual(["conversation", "form"])
+    expect(sessions.map((session) => session.agentType).sort()).toEqual(["conversation", "form"])
   })
 
   it("does not leak sessions from other campaigns", async () => {
@@ -179,7 +176,7 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
       projectId: project.id,
       campaignId: campaign.id,
       sessionId: session.id,
-      sessionType: "conversation",
+      agentType: "conversation",
       reviewerUserId: otherReviewer.id,
       overallRating: 4,
       comment: null,
@@ -192,7 +189,7 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
       projectId: project.id,
       campaignId: campaign.id,
       sessionId: session.id,
-      sessionType: "conversation",
+      agentType: "conversation",
       reviewerUserId: reviewer.id,
       overallRating: 5,
       comment: "mine",
@@ -202,12 +199,7 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
 
     const response = await subject()
     expectResponse(response, 200)
-    const [row] = response.body.data.sessions as Array<{
-      messageCount: number
-      reviewerCount: number
-      callerHasReviewed: boolean
-      callerIsSessionOwner: boolean
-    }>
+    const [row] = response.body.data.sessions
     expect(row?.messageCount).toBe(3)
     expect(row?.reviewerCount).toBe(2)
     expect(row?.callerHasReviewed).toBe(true)

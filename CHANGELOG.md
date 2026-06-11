@@ -20,6 +20,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Chat responses no longer display partially or crash the app when the browser's auto-translate feature is active: browser translation is disabled on the Studio and the embed widget, and the page language now matches the selected locale
 - Agent Sources tab now reacts correctly to rag mode changes: switched from `watch` to `useWatch` so the React-Compiler-memoized tab re-renders when the selection changes
 - The "Tags" rag mode option is now hidden in the dropdown when the project has no document tags
+- Tester review-campaign sessions now show the actual submitted result for form-based agents instead of an empty placeholder, and the session list refreshes automatically when a form is submitted
+- Testers no longer get stuck on an endless loading screen after starting or opening a session in a review campaign
 
 ### Security
 

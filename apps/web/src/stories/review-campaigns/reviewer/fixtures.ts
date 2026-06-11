@@ -191,7 +191,7 @@ const formTesterUserId = "user-form-8c3b1d5f-2a6e-4c7d-9b0a-1e2f3a4b5c6d"
 
 export const mockBlindSession = reviewerSessionBlindFactory.build({
   sessionId: baseSessionId,
-  sessionType: "conversation",
+  agentType: "conversation",
   testerUserId: baseTesterUserId,
   startedAt: baseStartedAt,
   agent: mockAgent,
@@ -211,7 +211,7 @@ const mockMyReview = reviewerSessionReviewFactory
   .build({
     id: "review-mine",
     sessionId: baseSessionId,
-    sessionType: "conversation",
+    agentType: "conversation",
     reviewerUserId: "user-mine",
     overallRating: 4,
     comment: "Close but could be more concise.",
@@ -229,7 +229,7 @@ const mockOtherReview = reviewerSessionReviewFactory
   .build({
     id: "review-other",
     sessionId: baseSessionId,
-    sessionType: "conversation",
+    agentType: "conversation",
     reviewerUserId: "user-1a2b3c4d-5e6f-7890-abcd-ef1234567890",
     overallRating: 3,
     comment: "Agent misinterpreted the plan context.",
@@ -245,7 +245,7 @@ const mockOtherReview = reviewerSessionReviewFactory
 
 export const mockFullSession: ReviewerSessionFullDto = reviewerSessionFullFactory.build({
   sessionId: baseSessionId,
-  sessionType: "conversation",
+  agentType: "conversation",
   testerUserId: baseTesterUserId,
   startedAt: baseStartedAt,
   agent: mockAgent,
@@ -274,7 +274,7 @@ export const mockFullSessionNoTesterFeedback = reviewerSessionFullFactory.build(
 
 export const mockBlindFormSession = reviewerSessionBlindFactory.build({
   sessionId: formSessionId,
-  sessionType: "form",
+  agentType: "form",
   testerUserId: formTesterUserId,
   startedAt: baseStartedAt,
   agent: mockFormAgent,
@@ -294,7 +294,7 @@ export const mockBlindFormSession = reviewerSessionBlindFactory.build({
 
 export const mockFullFormSession = reviewerSessionFullFactory.build({
   sessionId: formSessionId,
-  sessionType: "form",
+  agentType: "form",
   testerUserId: formTesterUserId,
   startedAt: baseStartedAt,
   agent: mockFormAgent,
@@ -314,7 +314,7 @@ export const mockFullFormSession = reviewerSessionFullFactory.build({
     comment: "Agent captured most fields cleanly.",
     answers: mockAllTesterAnswers,
   },
-  myReview: { ...mockMyReview, sessionId: formSessionId, sessionType: "form" },
+  myReview: { ...mockMyReview, sessionId: formSessionId, agentType: "form" },
   otherReviews: [],
 })
 
@@ -346,7 +346,7 @@ export const mockCampaignContext = testerContextFactory.build({
 export const mockReviewerSessions = [
   reviewerSessionListItemFactory.build({
     sessionId: "session-4f7a2c8e-3b1d-4e5f-9a6c-8d2b1c3e4f5a",
-    sessionType: "conversation",
+    agentType: "conversation",
     testerUserId: "user-alice",
     startedAt: now - 2 * MS_PER_HOUR,
     messageCount: 12,
@@ -355,14 +355,14 @@ export const mockReviewerSessions = [
   }),
   reviewerSessionListItemFactory.build({
     sessionId: "session-1a2b3c4d-5e6f-7890-abcd-ef1234567890",
-    sessionType: "conversation",
+    agentType: "conversation",
     testerUserId: "user-bob",
     startedAt: now - 5 * MS_PER_HOUR,
     messageCount: 8,
   }),
   reviewerSessionListItemFactory.build({
     sessionId: "session-form-8c3b1d5f-2a6e-4c7d-9b0a-1e2f3a4b5c6d",
-    sessionType: "form",
+    agentType: "form",
     testerUserId: "user-carol",
     startedAt: now - 26 * MS_PER_HOUR,
     messageCount: 18,
@@ -370,7 +370,7 @@ export const mockReviewerSessions = [
   }),
   reviewerSessionListItemFactory.build({
     sessionId: "session-mine-9b0a1e2f3a4b5c6d7e8f9a0b1c2d3e4f",
-    sessionType: "conversation",
+    agentType: "conversation",
     testerUserId: "user-mine",
     startedAt: now - 48 * MS_PER_HOUR,
     messageCount: 6,

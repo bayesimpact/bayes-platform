@@ -12,7 +12,6 @@ import type { ReviewCampaignDetail } from "../review-campaigns.models"
 import { selectReviewCampaignPendingInvitations } from "../review-campaigns.selectors"
 import {
   deleteReviewCampaign,
-  getReviewCampaignDetail,
   revokeReviewCampaignMembership,
   updateReviewCampaign,
 } from "../review-campaigns.thunks"
@@ -110,11 +109,8 @@ export function UpdateCampaignForm({ campaign, agents, onSuccess, onDeleted }: P
     )
   }
 
-  const handleRevoke = async (membershipId: string) => {
-    await dispatch(
-      revokeReviewCampaignMembership({ reviewCampaignId: campaign.id, membershipId }),
-    ).unwrap()
-    dispatch(getReviewCampaignDetail({ reviewCampaignId: campaign.id }))
+  const handleRevoke = (membershipId: string) => {
+    dispatch(revokeReviewCampaignMembership({ reviewCampaignId: campaign.id, membershipId }))
   }
 
   const handleRevokeInvitation = (invitationId: string) => {

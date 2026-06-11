@@ -1,10 +1,13 @@
+import type { AgentDto } from "../agents/agents.dto"
+import type { FormAgentSessionDto } from "../agents/form-agent-sessions/form-agent-sessions.dto"
 import type { TimeType } from "../generic"
 
 export type ReviewCampaignStatus = "draft" | "active" | "closed"
-
 export type ReviewCampaignMembershipRole = "tester" | "reviewer"
-
 export type ReviewCampaignQuestionType = "rating" | "single-choice" | "free-text"
+export type ReviewCampaignAgentType = "conversation" | "form"
+export type ReviewCampaignSessionType = "live"
+export type ReviewCampaignFeedbackStatus = "submitted" | "pending" | "abandoned"
 
 export type ReviewCampaignQuestionDto = {
   id: string
@@ -86,12 +89,10 @@ export type ListReviewCampaignsResponseDto = {
 
 // === Tester API ===
 
-export type TesterAgentSnapshotDto = {
-  id: string
-  name: string
-  type: "conversation" | "extraction" | "form"
-  greetingMessage: string | null
-}
+export type TesterAgentSnapshotDto = Pick<
+  AgentDto,
+  "id" | "name" | "type" | "greetingMessage" | "outputJsonSchema"
+>
 
 export type ReviewCampaignTesterContextDto = {
   id: string
@@ -121,7 +122,7 @@ export type TesterSessionFeedbackDto = {
   id: string
   campaignId: string
   sessionId: string
-  sessionType: "conversation" | "extraction" | "form"
+  agentType: ReviewCampaignAgentType
   overallRating: number
   comment: string | null
   answers: ReviewCampaignTesterFeedbackAnswerDto[]
@@ -158,20 +159,18 @@ export type SubmitTesterCampaignSurveyRequestDto = {
 export type UpdateTesterCampaignSurveyRequestDto = Partial<SubmitTesterCampaignSurveyRequestDto>
 
 export type StartTesterSessionRequestDto = {
-  type: "playground" | "live"
+  type: ReviewCampaignSessionType
 }
 
 export type StartTesterSessionResponseDto = {
-  sessionId: string
-  sessionType: "conversation" | "form"
+  id: string
+  agentType: ReviewCampaignAgentType
 }
 
 export type MyTesterSessionSummaryDto = {
-  sessionId: string
-  sessionType: "conversation" | "form"
-  startedAt: TimeType
-  feedbackStatus: "submitted" | "pending"
-}
+  agentType: ReviewCampaignAgentType
+  feedbackStatus: ReviewCampaignFeedbackStatus
+} & Pick<FormAgentSessionDto, "id" | "result" | "createdAt" | "updatedAt" | "agentId" | "type">
 
 export type ListMyTesterSessionsResponseDto = {
   sessions: MyTesterSessionSummaryDto[]
@@ -187,7 +186,7 @@ export type ReviewerSessionReviewDto = {
   id: string
   campaignId: string
   sessionId: string
-  sessionType: "conversation" | "extraction" | "form"
+  agentType: ReviewCampaignAgentType
   reviewerUserId: string
   overallRating: number
   comment: string | null
@@ -207,7 +206,7 @@ export type UpdateReviewerSessionReviewRequestDto = Partial<SubmitReviewerSessio
 
 export type ReviewerSessionListItemDto = {
   sessionId: string
-  sessionType: "conversation" | "form"
+  agentType: ReviewCampaignAgentType
   testerUserId: string
   startedAt: TimeType
   messageCount: number
@@ -227,11 +226,7 @@ export type ReviewerSessionTranscriptMessageDto = {
   createdAt: TimeType
 }
 
-export type ReviewerAgentSnapshotDto = {
-  id: string
-  name: string
-  type: "conversation" | "extraction" | "form"
-}
+export type ReviewerAgentSnapshotDto = Pick<AgentDto, "id" | "name" | "type">
 
 export type ReviewerFormResultDto = {
   /** The agent's outputJsonSchema (JSON Schema object) describing the form fields. */
@@ -242,14 +237,14 @@ export type ReviewerFormResultDto = {
 
 type ReviewerSessionMetaDto = {
   sessionId: string
-  sessionType: "conversation" | "extraction" | "form"
+  agentType: ReviewCampaignAgentType
   testerUserId: string
   startedAt: TimeType
   agent: ReviewerAgentSnapshotDto
   transcript: ReviewerSessionTranscriptMessageDto[]
   reviewerQuestions: ReviewCampaignQuestionDto[]
   otherReviewerCount: number
-  /** Populated only for `sessionType === "form"` sessions. */
+  /** Populated only for `agentType === "form"` sessions. */
   formResult: ReviewerFormResultDto | null
 }
 
@@ -301,7 +296,7 @@ export type CampaignReportQuestionDistributionDto = {
 
 export type CampaignReportSessionRowDto = {
   sessionId: string
-  sessionType: "conversation" | "form"
+  agentType: ReviewCampaignAgentType
   testerUserId: string
   startedAt: TimeType
   testerRating: number | null

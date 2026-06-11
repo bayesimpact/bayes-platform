@@ -2,7 +2,7 @@ import { createSelector } from "@reduxjs/toolkit"
 import { selectCurrentAgentSessionId } from "@/common/features/agents/agent-sessions/current-agent-session-id/current-agent-session-id.selectors"
 import type { RootState } from "@/common/store"
 import { ADS, type AsyncData } from "@/common/store/async-data-status"
-import type { LocalSessionSummary } from "./tester.slice"
+import type { MyTesterSessionSummary } from "./tester.models"
 
 export const selectMyReviewCampaigns = (state: RootState) => state.reviewCampaignsTester.myCampaigns
 
@@ -17,7 +17,7 @@ export const selectCampaignSurvey = (state: RootState) => state.reviewCampaignsT
 
 export const selectCurrentAgentSession = createSelector(
   [selectCampaignSessions, selectCurrentAgentSessionId],
-  (sessions, sessionId): AsyncData<LocalSessionSummary> => {
+  (sessions, sessionId): AsyncData<MyTesterSessionSummary> => {
     if (!sessionId) return { status: ADS.Error, value: null, error: "No Session selected" }
     if (!ADS.isFulfilled(sessions)) return { ...sessions }
     const session = sessions.value.find((s) => s.id === sessionId)

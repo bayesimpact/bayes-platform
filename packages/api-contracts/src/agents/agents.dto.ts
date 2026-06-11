@@ -48,7 +48,7 @@ export enum DocumentsRagMode {
 
 export type AgentDto = {
   createdAt: TimeType
-  greetingMessage?: string | null
+  greetingMessage?: string
   defaultPrompt: string
   hasCategories?: boolean
   id: string
@@ -86,7 +86,7 @@ export const outputJsonSchemaSchema = z
   }, "All required keys must be defined in properties")
 
 const agentValidationSchema = z.object({
-  greetingMessage: z.string().max(2000).nullable().optional(),
+  greetingMessage: z.string().max(2000).optional(),
   defaultPrompt: z.string(),
   documentTagIds: z.array(documentTagSchema.shape.id),
   documentsRagMode: z.enum(DocumentsRagMode),

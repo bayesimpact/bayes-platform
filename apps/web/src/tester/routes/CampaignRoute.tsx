@@ -13,7 +13,7 @@ export function CampaignRoute({ children }: { children: React.ReactNode }) {
   const reviewCampaignId = useAppSelector(selectCurrentReviewCampaignId)
   const testerContext = useAppSelector(selectTesterContext)
 
-  useMount({ actions: projectsActions })
+  useMount({ actions: projectsActions, refreshOn: [reviewCampaignId] })
 
   useMount({
     actions: {
@@ -21,6 +21,7 @@ export function CampaignRoute({ children }: { children: React.ReactNode }) {
       unmount: reviewCampaignsTesterActions.campaignUnmount,
     },
     condition: !!reviewCampaignId,
+    refreshOn: [reviewCampaignId],
   })
 
   if (!reviewCampaignId) return <LoadingRoute />

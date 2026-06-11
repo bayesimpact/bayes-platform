@@ -57,7 +57,7 @@ export function getDefaultFormValues({
     type: agentType,
     name: "",
     defaultPrompt: agentDefaultPromptMap[agentType],
-    greetingMessage: null,
+    greetingMessage: undefined,
     documentsRagMode: DocumentsRagMode.All,
     model: AgentModel.Gemini25Flash,
     temperature: 0.0,
