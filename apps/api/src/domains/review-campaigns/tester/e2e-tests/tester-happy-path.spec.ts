@@ -164,6 +164,55 @@ describe("ReviewCampaigns - Tester happy path", () => {
     expect(reviewerResponse.body.data.reviewCampaigns[0]?.id).toBe(reviewerCampaign.id)
   })
 
+  it("getMyReviewCampaigns includes closed campaigns for reviewers only", async () => {
+    const { organization, project } = await seedActiveCampaignWithTester()
+    const reviewerAgent = agentFactory.transient({ organization, project }).build()
+    await repositories.agentRepository.save(reviewerAgent)
+    const callerUser = await repositories.userRepository.findOneByOrFail({ auth0Id })
+    const closedCampaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory
+        .closed()
+        .transient({ organization, project, agent: reviewerAgent })
+        .build(),
+    )
+    const draftCampaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory.transient({ organization, project, agent: reviewerAgent }).build(),
+    )
+    await repositories.reviewCampaignMembershipRepository.save([
+      reviewCampaignMembershipFactory
+        .reviewer()
+        .accepted()
+        .transient({ organization, project, campaign: closedCampaign, user: callerUser })
+        .build(),
+      reviewCampaignMembershipFactory
+        .reviewer()
+        .accepted()
+        .transient({ organization, project, campaign: draftCampaign, user: callerUser })
+        .build(),
+    ])
+
+    const reviewerResponse = await request({
+      route: ReviewCampaignsRoutes.getMyReviewCampaigns,
+      token: accessToken,
+      query: { role: "reviewer" },
+    })
+    expectResponse(reviewerResponse, 200)
+    const campaignIds = reviewerResponse.body.data.reviewCampaigns.map(
+      (campaign: { id: string }) => campaign.id,
+    )
+    expect(campaignIds).toContain(closedCampaign.id)
+    expect(campaignIds).not.toContain(draftCampaign.id)
+
+    const testerResponse = await request({
+      route: ReviewCampaignsRoutes.getMyReviewCampaigns,
+      token: accessToken,
+    })
+    expectResponse(testerResponse, 200)
+    expect(
+      testerResponse.body.data.reviewCampaigns.map((campaign: { id: string }) => campaign.id),
+    ).toEqual([reviewCampaignId])
+  })
+
   it("getMyReviewCampaigns rejects an unknown role filter (400)", async () => {
     await seedActiveCampaignWithTester()
     const response = await request({

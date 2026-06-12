@@ -48,14 +48,17 @@ export const selectCanAccessStudioForOrganizationId =
   }
 
 /**
- * Active review-campaign memberships filtered by role. Mirrors the
- * `listMyCampaigns` server filter (status === "active") so the home page and
- * sidebar links can show "Test" / "Review" affordances using only the data
- * already loaded by `/me`.
+ * Review-campaign memberships available from the app switcher. Mirrors the
+ * `listMyCampaigns` server filter: testers only see active campaigns, while
+ * reviewers keep read access on closed campaigns.
  */
-export const selectMyActiveReviewCampaignMemberships =
+export const selectMyAccessibleReviewCampaignMemberships =
   (role: "tester" | "reviewer") => (state: RootState) => {
     const memberships = state.me.data.value?.memberships.reviewCampaignMemberships
     if (!memberships) return []
-    return memberships.filter((m) => m.role === role && m.campaignStatus === "active")
+    return memberships.filter((membership) => {
+      if (membership.role !== role) return false
+      if (role === "reviewer") return membership.campaignStatus !== "draft"
+      return membership.campaignStatus === "active"
+    })
   }

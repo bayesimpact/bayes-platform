@@ -69,7 +69,11 @@ export class TesterService {
     })
     return memberships
       .map((membership) => membership.campaign)
-      .filter((campaign): campaign is ReviewCampaign => !!campaign && campaign.status === "active")
+      .filter((campaign): campaign is ReviewCampaign => {
+        if (!campaign) return false
+        if (role === "reviewer") return campaign.status !== "draft"
+        return campaign.status === "active"
+      })
   }
 
   async getAgentForCampaign({

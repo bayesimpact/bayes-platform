@@ -13,6 +13,7 @@ import { selectCurrentReviewCampaignId } from "@/common/features/review-campaign
 import { selectCurrentReviewerSessionId } from "@/common/features/review-campaigns/current-reviewer-session-id/current-reviewer-session-id.selectors"
 import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
+import { selectTesterContext } from "@/tester/features/review-campaigns/tester.selectors"
 import { ReviewerRoutes } from "../../../routes/helpers"
 import { selectReviewerSessionDetail } from "../reviewer.selectors"
 import { submitReviewerReview, updateReviewerReview } from "../reviewer.thunks"
@@ -27,6 +28,8 @@ export function ReviewerAgentSession() {
   const reviewCampaignId = useCurrentId(selectCurrentReviewCampaignId)
   const sessionId = useCurrentId(selectCurrentReviewerSessionId)
   const detail = useValue(selectReviewerSessionDetail)
+  const campaignContext = useValue(selectTesterContext)
+  const readOnly = campaignContext.status !== "active"
 
   const agent = detail.agent
 
@@ -35,12 +38,13 @@ export function ReviewerAgentSession() {
     navigate(ReviewerRoutes.campaign.build(scope))
   }
   const handleSubmit = (fields: SubmitReviewerSessionReviewRequestDto) => {
+    if (readOnly) return
     dispatch(submitReviewerReview({ fields }))
     handleBack()
   }
 
   const handleUpdate = (fields: UpdateReviewerSessionReviewRequestDto) => {
-    if (detail.blind) return
+    if (detail.blind || readOnly) return
     dispatch(updateReviewerReview({ reviewId: detail.myReview.id, fields }))
     handleBack()
   }
@@ -61,6 +65,7 @@ export function ReviewerAgentSession() {
 
       <ReviewerSessionReview
         session={detail}
+        readOnly={readOnly}
         onSubmitReview={handleSubmit}
         onUpdateReview={handleUpdate}
       />
