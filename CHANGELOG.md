@@ -10,15 +10,15 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Added
 - Exctraction agent can handle CSV file
 - Embed widget display mode: configure each agent's chat widget to appear as a floating bubble (modal, default) or a side drawer, set per embed config from the Studio
-- In-platform help chat: set `VITE_HELP_AGENT_EMBED_TOKEN` to inject the embed launcher into the Studio — a floating chat bubble lets users ask questions about the platform directly from within the app
+- In-platform help chat: a chat lets users ask questions about the platform directly from within the app
 
 ### Changed
 - Workers can run as separate CPU and GPU pools: each worker instance now selects which queues it consumes via the required `WORKER_QUEUE_NAMES` env var (fails fast if unset or unknown), instead of every instance consuming all queues
 - Workers ship as two Docker images — a CPU image (no Docling) and a GPU image (Docling/Torch included) — built from the `cpu-workers-runtime` and `gpu-workers-runtime` targets
 
 ### Fixed
-- Chat responses no longer display partially or crash the app when the browser's auto-translate feature is active: browser translation is disabled on the Studio and the embed widget, and the page language now matches the selected locale
-- Agent Sources tab now reacts correctly to rag mode changes: switched from `watch` to `useWatch` so the React-Compiler-memoized tab re-renders when the selection changes
+- Chat responses no longer display partially or crash the app when the browser's auto-translate feature is active
+- Agent Sources tab now reacts correctly to RAG mode changes
 - The "Tags" rag mode option is now hidden in the dropdown when the project has no document tags
 - Tester review-campaign sessions now show the actual submitted result for form-based agents instead of an empty placeholder, and the session list refreshes automatically when a form is submitted
 - Testers no longer get stuck on an endless loading screen after starting or opening a session in a review campaign

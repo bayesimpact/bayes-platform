@@ -1,0 +1,12 @@
+---
+description: Never commit or push without explicit user approval
+alwaysApply: true
+---
+
+# No Autonomous Git Commits or Pushes
+
+NEVER run `git commit` or `git push` (on any branch or worktree) unless the user explicitly asks for it in their message.
+
+- Fixing a bug, a failing CI check, or completing a task is NOT implicit permission to commit or push.
+- When a fix requires a commit/push to take effect (e.g. CI runs on the remote branch), stage or prepare the changes, then stop and tell the user what to commit and push.
+- Instead of committing, end the response with the usual suggested commit message (`💬 Git: ...`) and let the user run the git commands themselves.
