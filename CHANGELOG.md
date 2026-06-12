@@ -10,6 +10,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Added
 
 ### Changed
+
+### Fixed
+
+### Security
+
+## [26.06.2] - 2026-06-12
+
+### Added
+
+### Changed
 - Extraction records are processed in parallel, speeding up runs
 - Cancelling an extraction run is now faster, especially for large runs.
 
