@@ -138,13 +138,14 @@ export class AgentCsvExtractionRunsController {
     const connectScope = getRequiredConnectScope(request)
     const agentCsvExtractionRunId = request.agentCsvExtractionRun.id
 
-    await this.agentCsvExtractionRunsService.removePendingJobsForRun({
+    this.agentCsvExtractionRunsService.removePendingJobsForRun({
       agentCsvExtractionRunId,
       connectScope,
     })
 
     const run = await this.agentCsvExtractionRunsService.markRunCancelled({
       agentCsvExtractionRun: request.agentCsvExtractionRun,
+      connectScope,
     })
 
     try {

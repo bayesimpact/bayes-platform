@@ -6,7 +6,8 @@ import {
   UnprocessableEntityException,
 } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import type { Repository } from "typeorm"
+// biome-ignore lint/style/useImportType: DataSource required at runtime for NestJS DI
+import { DataSource, type Repository } from "typeorm"
 import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
@@ -17,12 +18,18 @@ import type {
 } from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { ServiceWithLLM } from "@/external/llm"
-import type { AgentCsvExtractionRunColumnSchema } from "./agent-csv-extraction-run.entity"
+import type {
+  AgentCsvExtractionRunColumnSchema,
+  AgentCsvExtractionRunSummary,
+} from "./agent-csv-extraction-run.entity"
 import { AgentCsvExtractionRun } from "./agent-csv-extraction-run.entity"
 import type { ProcessAgentCsvExtractionRunRecordJobPayload } from "./agent-csv-extraction-run.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentCsvExtractionRunCsvExportService } from "./agent-csv-extraction-run-csv-export.service"
-import { AgentCsvExtractionRunRecord } from "./agent-csv-extraction-run-record.entity"
+import {
+  AgentCsvExtractionRunRecord,
+  type AgentCsvExtractionRunRecordStatus,
+} from "./agent-csv-extraction-run-record.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentCsvExtractionRunStatusNotifierService } from "./agent-csv-extraction-run-status-notifier.service"
 
@@ -47,6 +54,7 @@ export class AgentCsvExtractionRunProcessorService extends ServiceWithLLM {
     medGemmaLlmProvider: LLMProvider,
     @Inject("GemmaLLMProvider")
     gemmaLlmProvider: LLMProvider,
+    private readonly dataSource: DataSource,
   ) {
     super({ mockLlmProvider, vertexLlmProvider, medGemmaLlmProvider, gemmaLlmProvider })
     this.runConnectRepository = new ConnectRepository(runRepository, "agentCsvExtractionRun")
@@ -77,6 +85,13 @@ export class AgentCsvExtractionRunProcessorService extends ServiceWithLLM {
     ) {
       this.logger.log(
         `Agent CSV run ${agentCsvExtractionRun.id} is ${agentCsvExtractionRun.status}; skipping record ${runRecordId}`,
+      )
+      return
+    }
+
+    if (runRecord.status !== "running") {
+      this.logger.warn(
+        `Agent CSV run record ${runRecordId} is in status "${runRecord.status}" and cannot be processed`,
       )
       return
     }
@@ -113,72 +128,109 @@ export class AgentCsvExtractionRunProcessorService extends ServiceWithLLM {
     runRecord.traceId = null
     await this.runRecordConnectRepository.saveOne(runRecord)
 
-    await this.incrementSummary({
+    await this.recomputeSummaryAndMaybeComplete({
       connectScope,
       agentCsvExtractionRunId: agentCsvExtractionRun.id,
-      runRecord,
     })
   }
 
-  private async incrementSummary({
+  /**
+   * Recomputes the run summary from the run-record table and, when the run reaches a
+   * terminal state, transitions its status and triggers the one-off side effects.
+   *
+   * This is safe to call concurrently from multiple workers: a pessimistic lock on the
+   * run row serializes summary updates per run, and the counts are derived from the
+   * records table rather than mutated in place, so the result is idempotent even when a
+   * record job is retried. The terminal transition is guarded by `status = 'running'` so
+   * it (and the CSV export) fires exactly once.
+   */
+  private async recomputeSummaryAndMaybeComplete({
     connectScope,
     agentCsvExtractionRunId,
-    runRecord,
   }: {
     connectScope: RequiredConnectScope
     agentCsvExtractionRunId: string
-    runRecord: AgentCsvExtractionRunRecord
   }): Promise<void> {
-    const run = await this.getAgentCsvExtractionRun({ id: agentCsvExtractionRunId, connectScope })
-    const summary = run.summary
-    if (!summary) {
-      throw new Error(`Run ${agentCsvExtractionRunId} has no summary to increment`)
-    }
+    const shouldGenerateCsv = await this.dataSource.transaction(async (entityManager) => {
+      const runRepository = entityManager.getRepository(AgentCsvExtractionRun)
+      const runRecordRepository = entityManager.getRepository(AgentCsvExtractionRunRecord)
 
-    if (runRecord.status === "success") {
-      summary.processed += 1
-      summary.running -= 1
-    } else if (runRecord.status === "error") {
-      summary.errors += 1
-      summary.running -= 1
-    }
+      // Serialize summary updates for this run across concurrent record jobs. The last
+      // job to acquire the lock therefore observes every committed record status.
+      const run = await runRepository
+        .createQueryBuilder("run")
+        .setLock("pessimistic_write")
+        .where("run.id = :id", { id: agentCsvExtractionRunId })
+        .andWhere("run.organization_id = :organizationId", {
+          organizationId: connectScope.organizationId,
+        })
+        .andWhere("run.project_id = :projectId", { projectId: connectScope.projectId })
+        .getOne()
 
-    await this.runConnectRepository.updateOneById({
-      connectScope,
-      id: agentCsvExtractionRunId,
-      fields: { summary },
+      if (!run || !run.summary) {
+        throw new Error(`Run ${agentCsvExtractionRunId} has no summary to update`)
+      }
+
+      const rows = await runRecordRepository
+        .createQueryBuilder("record")
+        .select("record.status", "status")
+        .addSelect("COUNT(*)", "count")
+        .where("record.agent_csv_extraction_run_id = :runId", {
+          runId: agentCsvExtractionRunId,
+        })
+        .andWhere("record.organization_id = :organizationId", {
+          organizationId: connectScope.organizationId,
+        })
+        .andWhere("record.project_id = :projectId", { projectId: connectScope.projectId })
+        .groupBy("record.status")
+        .getRawMany<{ status: AgentCsvExtractionRunRecordStatus; count: string }>()
+
+      const countByStatus = (status: AgentCsvExtractionRunRecordStatus): number =>
+        Number(rows.find((row) => row.status === status)?.count ?? 0)
+
+      const summary: AgentCsvExtractionRunSummary = {
+        total: run.summary.total,
+        processed: countByStatus("success"),
+        errors: countByStatus("error"),
+        running: countByStatus("running"),
+      }
+
+      await runRepository.update({ id: agentCsvExtractionRunId }, { summary })
+
+      // A cancelled run keeps its terminal status and never produces an export.
+      if (run.status === "cancelled") {
+        return false
+      }
+
+      const isCompleted =
+        summary.running === 0 && summary.processed + summary.errors === summary.total
+      if (!isCompleted) {
+        return false
+      }
+
+      // A run whose records all errored failed outright; otherwise it completed, even
+      // when some individual records errored.
+      const finalStatus = summary.errors > 0 && summary.processed === 0 ? "failed" : "completed"
+      const result = await runRepository
+        .createQueryBuilder()
+        .update()
+        .set({ status: finalStatus })
+        .where("id = :id", { id: agentCsvExtractionRunId })
+        .andWhere("status = :running", { running: "running" })
+        .execute()
+      // Only the worker that actually transitioned the run owns the one-off CSV export.
+      return result.affected === 1
     })
-
-    const isCompleted =
-      summary.running === 0 && summary.processed + summary.errors === summary.total
-    if (isCompleted && run.status !== "cancelled") {
-      const newStatus = summary.errors > 0 && summary.processed === 0 ? "failed" : "completed"
-      await this.runConnectRepository.updateOneById({
-        connectScope,
-        id: agentCsvExtractionRunId,
-        fields: { status: newStatus },
-      })
-      const updatedRun = await this.getAgentCsvExtractionRun({
-        id: agentCsvExtractionRunId,
-        connectScope,
-      })
-      await this.generateCsv(updatedRun)
-      await this.notifyStatusChanged(updatedRun)
-      return
-    }
-
-    if (summary.errors > 0 && run.status === "running") {
-      await this.runConnectRepository.updateOneById({
-        connectScope,
-        id: agentCsvExtractionRunId,
-        fields: { status: "failed" },
-      })
-    }
 
     const updatedRun = await this.getAgentCsvExtractionRun({
       id: agentCsvExtractionRunId,
       connectScope,
     })
+    // Generated outside the transaction so the run-row lock is not held during the
+    // (potentially slow) export.
+    if (shouldGenerateCsv) {
+      await this.generateCsv(updatedRun)
+    }
     await this.notifyStatusChanged(updatedRun)
   }
 
@@ -237,10 +289,9 @@ export class AgentCsvExtractionRunProcessorService extends ServiceWithLLM {
       await this.runRecordConnectRepository.saveOne(runRecord)
     }
 
-    await this.incrementSummary({
+    await this.recomputeSummaryAndMaybeComplete({
       connectScope,
       agentCsvExtractionRunId: agentCsvExtractionRun.id,
-      runRecord,
     })
   }
 

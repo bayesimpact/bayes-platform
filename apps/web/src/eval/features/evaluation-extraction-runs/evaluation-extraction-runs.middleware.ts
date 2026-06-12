@@ -156,6 +156,15 @@ function registerListeners() {
       )
     },
   })
+
+  listenerMiddleware.startListening({
+    actionCreator: evaluationExtractionRunsActions.cancelOne.fulfilled,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(notificationsActions.show({ title: "Run cancelled", type: "success" }))
+      stopRunStatusStream()
+      listenerApi.dispatch(evaluationExtractionRunsActions.getAll())
+    },
+  })
 }
 
 export const evaluationExtractionRunsMiddleware = { listenerMiddleware, registerListeners }

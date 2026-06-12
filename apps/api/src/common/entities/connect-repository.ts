@@ -1,5 +1,6 @@
 import type { FindManyOptions, FindOptionsWhere, Repository, SelectQueryBuilder } from "typeorm"
 import type { DeepPartial } from "typeorm/common/DeepPartial"
+import type { QueryDeepPartialEntity } from "typeorm/query-builder/QueryPartialEntity"
 import type { ConnectEntityBase } from "@/common/entities/connect-entity"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 
@@ -126,6 +127,26 @@ export class ConnectRepository<T extends ConnectEntityBase> {
       organizationId: connectScope.organizationId,
       projectId: connectScope.projectId,
     } as FindOptionsWhere<T>)
+    return res.affected ?? 0
+  }
+
+  public async updateManyBy({
+    connectScope,
+    where,
+    fields,
+  }: {
+    connectScope: RequiredConnectScope
+    where: FindOptionsWhere<T>
+    fields: QueryDeepPartialEntity<T>
+  }): Promise<number> {
+    const res = await this.repository.update(
+      {
+        ...where,
+        organizationId: connectScope.organizationId,
+        projectId: connectScope.projectId,
+      } as FindOptionsWhere<T>,
+      fields,
+    )
     return res.affected ?? 0
   }
 
