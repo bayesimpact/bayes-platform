@@ -52,7 +52,10 @@ export function useAbility() {
   const canAccessTester = useCallback(
     ({ projectId }: { projectId: string | null }) =>
       !!reviewCampaignMemberships?.some(
-        (m) => m.role === "tester" && m.campaignStatus === "active" && m.projectId === projectId,
+        (membership) =>
+          membership.role === "tester" &&
+          membership.campaignStatus === "active" &&
+          membership.projectId === projectId,
       ),
     [reviewCampaignMemberships],
   )
@@ -60,7 +63,10 @@ export function useAbility() {
   const canAccessReviewer = useCallback(
     ({ projectId }: { projectId: string | null }) =>
       !!reviewCampaignMemberships?.some(
-        (m) => m.role === "reviewer" && m.campaignStatus === "active" && m.projectId === projectId,
+        (membership) =>
+          membership.role === "reviewer" &&
+          membership.campaignStatus !== "draft" &&
+          membership.projectId === projectId,
       ),
     [reviewCampaignMemberships],
   )

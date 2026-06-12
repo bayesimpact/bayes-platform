@@ -15,12 +15,12 @@ import { Project } from "@/domains/projects/project.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { LlmModule } from "@/external/llm/llm.module"
 import { Agent } from "../agent.entity"
-import { AgentCategory } from "../categories/agent-category.entity"
 import { ConversationAgentSession } from "../conversation-agent-sessions/conversation-agent-session.entity"
 import { ConversationAgentSessionCategory } from "../conversation-agent-sessions/conversation-agent-session-category.entity"
 import { ExtractionAgentSession } from "../extraction-agent-sessions/extraction-agent-session.entity"
 import { FormAgentSession } from "../form-agent-sessions/form-agent-session.entity"
 import { AgentMembership } from "../memberships/agent-membership.entity"
+import { AgentSessionCategory } from "../session-categories/agent-session-category.entity"
 import { AgentMessage } from "../shared/agent-session-messages/agent-message.entity"
 import { AgentMessageAttachmentDocument } from "../shared/agent-session-messages/agent-message-attachment-document.entity"
 import { BaseAgentSessionGuard } from "./base-agent-session.guard"
@@ -43,7 +43,7 @@ export const moduleImports = [
 ]
 export const moduleFeatures = [
   Agent,
-  AgentCategory,
+  AgentSessionCategory,
   AgentMembership,
   AgentMessage,
   AgentMessageAttachmentDocument,

@@ -1,6 +1,6 @@
 import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
 import { Injectable } from "@nestjs/common"
-import { InjectRepository } from "@nestjs/typeorm"
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: DataSource required at runtime for NestJS DI
 import { DataSource, type Repository } from "typeorm"
 import { ALL_ENTITIES } from "@/common/all-entities"
@@ -16,7 +16,7 @@ export class ProjectsService {
     @InjectRepository(Project) private readonly projectRepository: Repository<Project>,
     @InjectRepository(FeatureFlag) private readonly featureFlagRepository: Repository<FeatureFlag>,
     private readonly projectMembershipsService: ProjectMembershipsService,
-    private readonly dataSource: DataSource,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async createProject(params: {
@@ -42,7 +42,7 @@ export class ProjectsService {
   }): Promise<Project[]> {
     return this.projectRepository.find({
       where: { organizationId, projectMemberships: { userId } },
-      relations: { featureFlags: true, projectAgentCategories: true },
+      relations: { featureFlags: true, projectAgentSessionCategories: true },
       order: { createdAt: "DESC" },
     })
   }
@@ -50,7 +50,7 @@ export class ProjectsService {
   async getProject(organizationId: string, projectId: string): Promise<Project | undefined> {
     const project = await this.projectRepository.findOne({
       where: { id: projectId, organizationId },
-      relations: { featureFlags: true, projectAgentCategories: true },
+      relations: { featureFlags: true, projectAgentSessionCategories: true },
     })
     return project ?? undefined
   }

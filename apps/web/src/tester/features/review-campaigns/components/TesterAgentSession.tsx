@@ -2,18 +2,16 @@ import type { SubmitTesterSessionFeedbackRequestDto } from "@caseai-connect/api-
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { CheckCircle2Icon } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
-import { selectCurrentAgentSessionId } from "@/common/features/agents/agent-sessions/current-agent-session-id/current-agent-session-id.selectors"
 import { FormResult } from "@/common/features/agents/agent-sessions/form/components/FormResult"
 import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
 import { selectCurrentMessagesData } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.selectors"
 import { AgentSessionMessages } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/AgentSessionMessages"
 import type { Agent } from "@/common/features/agents/agents.models"
-import { selectCurrentAgentId } from "@/common/features/agents/agents.selectors"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { selectCurrentReviewCampaignId } from "@/common/features/review-campaigns/current-review-campaign-id/current-review-campaign-id.selectors"
@@ -21,31 +19,18 @@ import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
 import { TesterRoutes } from "@/tester/routes/helpers"
 import { selectCurrentAgentSession, selectTesterContext } from "../tester.selectors"
-import { submitTesterFeedback } from "../tester.thunks"
+import { listMyTesterSessions, submitTesterFeedback } from "../tester.thunks"
 import { TesterFeedbackModal } from "./TesterFeedbackModal"
 
 export function TesterAgentSession() {
-  const agentId = useCurrentId(selectCurrentAgentId)
-  const agentSessionId = useCurrentId(selectCurrentAgentSessionId)
   const context = useValue(selectTesterContext)
   const messages = useValue(selectCurrentMessagesData)
   const agentSession = useValue(selectCurrentAgentSession)
 
-  const syntheticSession = useMemo<ConversationAgentSession | FormAgentSession>(() => {
-    const now = Date.now()
-    return {
-      id: agentSessionId,
-      agentId,
-      type: "live",
-      createdAt: now,
-      updatedAt: now,
-    }
-  }, [agentId, agentSessionId])
-
   return (
     <TesterAgentSessionContent
       agent={context.agent as Agent}
-      agentSession={syntheticSession}
+      agentSession={agentSession}
       messages={messages}
       campaignName={context.name}
       perSessionQuestions={context.testerPerSessionQuestions}
@@ -97,6 +82,16 @@ export function TesterAgentSessionContent({
     handleBack()
   }
 
+  const handleFillFormToolEvent = () => {
+    dispatch(
+      listMyTesterSessions({
+        organizationId,
+        projectId,
+        reviewCampaignId,
+      }),
+    )
+  }
+
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       <GridHeader
@@ -126,6 +121,7 @@ export function TesterAgentSessionContent({
               <FormResult agent={agent} agentSession={agentSession} />
             ) : undefined
           }
+          onFillFormToolEvent={handleFillFormToolEvent}
         />
       </div>
 

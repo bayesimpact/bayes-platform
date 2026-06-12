@@ -14,6 +14,7 @@ import { TesterFeedbackPanel } from "./TesterFeedbackPanel"
 
 type Props = {
   session: GetReviewerSessionResponseDto
+  readOnly?: boolean
   onSubmitReview: (payload: SubmitReviewerSessionReviewRequestDto) => void
   onUpdateReview: (payload: UpdateReviewerSessionReviewRequestDto) => void
 }
@@ -24,7 +25,12 @@ type Props = {
  * answers + empty form), `blind: false` shows the full layout (tester feedback
  * revealed, other reviewers, editable submitted review).
  */
-export function ReviewerSessionReview({ session, onSubmitReview, onUpdateReview }: Props) {
+export function ReviewerSessionReview({
+  session,
+  readOnly = false,
+  onSubmitReview,
+  onUpdateReview,
+}: Props) {
   const { t } = useTranslation()
   return (
     <div className="grid gap-6 lg:grid-cols-[3fr_2fr] p-6">
@@ -63,6 +69,7 @@ export function ReviewerSessionReview({ session, onSubmitReview, onUpdateReview 
             <BlindBanner />
             <ReviewerReviewForm
               questions={session.reviewerQuestions}
+              disabled={readOnly}
               onSubmit={onSubmitReview}
               submitLabel={t("reviewerCampaigns:reviewForm.submitReview")}
             />
@@ -82,6 +89,7 @@ export function ReviewerSessionReview({ session, onSubmitReview, onUpdateReview 
                   comment: session.myReview.comment,
                   answers: session.myReview.answers,
                 }}
+                disabled={readOnly}
                 onSubmit={onUpdateReview}
                 submitLabel={t("reviewerCampaigns:reviewForm.saveChanges")}
               />

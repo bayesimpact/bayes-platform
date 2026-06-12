@@ -1,5 +1,4 @@
 import { reviewCampaignQuestionFactory } from "@/studio/features/review-campaigns/review-campaign.factory"
-import type { TesterSessionSummary } from "@/tester/features/review-campaigns/components/SessionCard"
 import {
   myReviewCampaignFactory,
   myTesterSessionSummaryFactory,
@@ -7,6 +6,7 @@ import {
   testerCampaignSurveyFactory,
   testerContextFactory,
 } from "@/tester/features/review-campaigns/tester.factory"
+import type { MyTesterSessionSummary } from "@/tester/features/review-campaigns/tester.models"
 import { mockProject } from "../fixtures"
 
 const MS_PER_HOUR = 3_600_000
@@ -91,29 +91,30 @@ export const mockMyCampaigns = [
   }),
 ]
 
-export const mockSessions: TesterSessionSummary[] = [
-  {
+export const mockSessions: MyTesterSessionSummary[] = [
+  myTesterSessionSummaryFactory.build({
     id: "session-pending",
-    startedAt: now - 2 * MS_PER_HOUR,
+    createdAt: now - 2 * MS_PER_HOUR,
     feedbackStatus: "pending",
-  },
-  {
+    agentType: "conversation",
+  }),
+  myTesterSessionSummaryFactory.build({
     id: "session-submitted",
-    startedAt: now - 1 * MS_PER_DAY,
+    createdAt: now - 1 * MS_PER_DAY,
     feedbackStatus: "submitted",
-  },
-  {
+    agentType: "conversation",
+  }),
+  myTesterSessionSummaryFactory.build({
     id: "session-abandoned",
-    startedAt: now - 2 * MS_PER_DAY,
+    createdAt: now - 2 * MS_PER_DAY,
     feedbackStatus: "abandoned",
-  },
+    agentType: "conversation",
+  }),
 ]
 
 export const mockSessionSummaries = mockSessions.map((session) =>
   myTesterSessionSummaryFactory.build({
-    sessionId: session.id,
-    sessionType: "conversation",
-    startedAt: session.startedAt,
+    ...session,
     feedbackStatus: session.feedbackStatus === "abandoned" ? "pending" : session.feedbackStatus,
   }),
 )

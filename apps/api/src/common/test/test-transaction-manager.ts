@@ -11,9 +11,9 @@
 
 import { ConfigModule } from "@nestjs/config"
 import { Test, type TestingModule } from "@nestjs/testing"
-import { getRepositoryToken, TypeOrmModule } from "@nestjs/typeorm"
+import { getDataSourceToken, getRepositoryToken, TypeOrmModule } from "@nestjs/typeorm"
 import type { ObjectLiteral, QueryRunner, Repository } from "typeorm"
-import { DataSource, EntityManager } from "typeorm"
+import { type DataSource, EntityManager } from "typeorm"
 import { ALL_ENTITIES } from "../all-entities"
 import type { AllRepositories } from "./test-all-repositories"
 import { buildAllRepositories } from "./test-all-repositories"
@@ -75,7 +75,7 @@ export async function setupTransactionalTestDatabase(
   const baseModule = await createBaseTestingModule(params).compile()
 
   const testDatabaseUrl = process.env.DATABASE_URL
-  const dataSource = baseModule.get<DataSource>(DataSource)
+  const dataSource = baseModule.get<DataSource>(getDataSourceToken())
   let queryRunner: QueryRunner | null = null
   let transactionalModule: TestingModule = baseModule
 

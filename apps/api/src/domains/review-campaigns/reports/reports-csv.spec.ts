@@ -22,7 +22,7 @@ describe("buildSessionMatrixCsv", () => {
   it("emits only the header row when the matrix is empty", () => {
     const csv = buildSessionMatrixCsv(baseReport)
     expect(csv).toBe(
-      "sessionId,sessionType,testerUserId,startedAt,testerRating,reviewerCount,meanReviewerRating,reviewerRatingSpread,reviewerRatings",
+      "sessionId,agentType,testerUserId,startedAt,testerRating,reviewerCount,meanReviewerRating,reviewerRatingSpread,reviewerRatings",
     )
   })
 
@@ -32,7 +32,7 @@ describe("buildSessionMatrixCsv", () => {
       sessionMatrix: [
         {
           sessionId: "sess-1",
-          sessionType: "conversation",
+          agentType: "conversation",
           testerUserId: "user-alice",
           startedAt: new Date("2026-04-20T14:30:00Z"),
           testerRating: 5,
@@ -54,7 +54,7 @@ describe("buildSessionMatrixCsv", () => {
       sessionMatrix: [
         {
           sessionId: "sess-2",
-          sessionType: "form",
+          agentType: "form",
           testerUserId: "user-bob",
           startedAt: new Date("2026-04-20T14:30:00Z"),
           testerRating: null,
@@ -77,7 +77,7 @@ describe("buildSessionMatrixCsv", () => {
       sessionMatrix: [
         {
           sessionId: "sess,3",
-          sessionType: "conversation",
+          agentType: "conversation",
           testerUserId: 'user "quoted" id',
           startedAt: new Date("2026-04-20T14:30:00Z"),
           testerRating: 3,

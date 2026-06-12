@@ -6,7 +6,6 @@ import {
   Delete,
   Get,
   Param,
-  Patch,
   Post,
   Query,
   Req,
@@ -18,11 +17,7 @@ import { UserGuard } from "@/domains/users/user.guard"
 import { TrackActivity } from "../activities/track-activity.decorator"
 import { isEmailBackofficeAuthorized } from "./backoffice.authorization"
 import { BackofficeGuard } from "./backoffice.guard"
-import {
-  toBackofficeOrganizationDto,
-  toBackofficeProjectAgentCategoryDto,
-  toBackofficeUserDto,
-} from "./backoffice.helpers"
+import { toBackofficeOrganizationDto, toBackofficeUserDto } from "./backoffice.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { BackofficeService } from "./backoffice.service"
 
@@ -134,23 +129,5 @@ export class BackofficeController {
       userId: user.id,
     })
     return { data: { success: true } }
-  }
-
-  @Patch(BackofficeRoutes.replaceProjectAgentCategories.path)
-  @TrackActivity({ action: "replace_project_agent_categories", entityFrom: "project" })
-  async replaceProjectAgentCategories(
-    @Req() request: EndpointRequest,
-    @Param("projectId") projectId: string,
-    @Body() body: typeof BackofficeRoutes.replaceProjectAgentCategories.request,
-  ): Promise<typeof BackofficeRoutes.replaceProjectAgentCategories.response> {
-    const { user } = request
-    const canListAll = isEmailBackofficeAuthorized(user.email)
-    const categories = await this.backofficeService.replaceProjectAgentCategories({
-      projectId,
-      categoryNames: body.payload.categoryNames,
-      canListAll,
-      userId: user.id,
-    })
-    return { data: categories.map(toBackofficeProjectAgentCategoryDto) }
   }
 }

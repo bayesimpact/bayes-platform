@@ -4,7 +4,7 @@ import { fn } from "storybook/test"
 import { agentFactory, agentOutputJsonSchemaFactory } from "@/common/features/agents/agent.factory"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import {
-  projectAgentCategoryFactory,
+  projectAgentSessionCategoryFactory,
   projectFactory,
 } from "@/common/features/projects/projects.factory"
 import { withRedux } from "@/stories/decorators"
@@ -13,11 +13,11 @@ import { AgentEditorWithoutTrigger } from "@/studio/features/agents/components/A
 import { documentTagFactory } from "@/studio/features/document-tags/document-tags.factory"
 
 const organization = organizationFactory.build()
-const billingCategory = projectAgentCategoryFactory.build({ name: "Billing" })
-const supportCategory = projectAgentCategoryFactory.build({ name: "Support" })
+const billingCategory = projectAgentSessionCategoryFactory.build({ name: "Billing" })
+const supportCategory = projectAgentSessionCategoryFactory.build({ name: "Support" })
 const project = projectFactory
   .transient({ organization })
-  .build({ agentCategories: [billingCategory, supportCategory] })
+  .build({ agentSessionCategories: [billingCategory, supportCategory] })
 const projectWithOrchestration = {
   ...project,
   featureFlags: ["agent-orchestration" as const],
@@ -34,8 +34,8 @@ const conversationAgent = agentFactory.transient({ project }).build({
   name: "Helpful Assistant",
   documentTagIds: [productTag.id],
   documentsRagMode: DocumentsRagMode.Tags,
-  projectAgentCategoryIds: [billingCategory.id],
-  usedProjectAgentCategoryIds: [billingCategory.id],
+  projectAgentSessionCategoryIds: [billingCategory.id],
+  usedProjectAgentSessionCategoryIds: [billingCategory.id],
   greetingMessage: "Hi! How can I help you today?",
 })
 
@@ -58,7 +58,7 @@ const extractionAgent = agentFactory.transient({ project }).build({
   name: "Document Extractor",
   documentsRagMode: DocumentsRagMode.None,
   outputJsonSchema: mockOutputJsonSchema,
-  greetingMessage: null,
+  greetingMessage: undefined,
 })
 
 const formAgent = agentFactory.transient({ project }).build({

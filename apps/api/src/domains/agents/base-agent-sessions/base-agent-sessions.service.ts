@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common"
+import { InjectDataSource } from "@nestjs/typeorm"
 import type { EntityManager, EntityTarget } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource } from "typeorm"
@@ -19,7 +20,7 @@ const sessionEntityByType: Record<Agent["type"], EntityTarget<AgentSession>> = {
 
 @Injectable()
 export class BaseAgentSessionsService {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async deleteAgentSessions({
     entityManager,

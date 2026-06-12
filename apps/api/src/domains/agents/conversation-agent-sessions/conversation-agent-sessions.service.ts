@@ -7,7 +7,7 @@ import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "../agent.entity"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
-import type { AgentCategory } from "../categories/agent-category.entity"
+import type { AgentSessionCategory } from "../session-categories/agent-session-category.entity"
 import { AgentMessage } from "../shared/agent-session-messages/agent-message.entity"
 import { ConversationAgentSession } from "./conversation-agent-session.entity"
 import { ConversationAgentSessionCategory } from "./conversation-agent-session-category.entity"
@@ -152,7 +152,7 @@ export class ConversationAgentSessionsService {
         projectId: connectScope.projectId,
       },
       relations: {
-        sessionCategories: { agentCategory: true },
+        sessionCategories: { agentSessionCategory: true },
       },
       order: {
         sessionCategories: { createdAt: "ASC" },
@@ -163,7 +163,9 @@ export class ConversationAgentSessionsService {
       throw new NotFoundException(`ConversationAgentSession with id ${sessionId} not found`)
     }
 
-    return session.sessionCategories.map((sessionCategory) => sessionCategory.agentCategory.name)
+    return session.sessionCategories.map(
+      (sessionCategory) => sessionCategory.agentSessionCategory.name,
+    )
   }
 
   async recalculateSessionMetadataFromMessages({
@@ -184,7 +186,7 @@ export class ConversationAgentSessionsService {
         projectId: connectScope.projectId,
       },
       relations: {
-        agent: { categories: true },
+        agent: { sessionCategories: true },
       },
     })
 
@@ -194,7 +196,7 @@ export class ConversationAgentSessionsService {
 
     const selectedCategories = this.selectCategoriesByName({
       requestedCategoryNames: selectedCategoryNames,
-      categories: session.agent.categories ?? [],
+      categories: session.agent.sessionCategories ?? [],
     })
 
     await this.replaceSessionCategories({
@@ -217,8 +219,8 @@ export class ConversationAgentSessionsService {
     categories,
   }: {
     requestedCategoryNames: string[]
-    categories: AgentCategory[]
-  }): AgentCategory[] {
+    categories: AgentSessionCategory[]
+  }): AgentSessionCategory[] {
     if (categories.length === 0 || requestedCategoryNames.length === 0) {
       return []
     }
@@ -237,7 +239,7 @@ export class ConversationAgentSessionsService {
 
     return normalizedUniqueRequestedCategoryNames
       .map((normalizedCategoryName) => categoryByName.get(normalizedCategoryName))
-      .filter((category): category is AgentCategory => category !== undefined)
+      .filter((category): category is AgentSessionCategory => category !== undefined)
       .slice(0, MAX_AUTO_SESSION_CATEGORIES)
   }
 
@@ -246,7 +248,7 @@ export class ConversationAgentSessionsService {
     selectedCategories,
   }: {
     sessionId: string
-    selectedCategories: AgentCategory[]
+    selectedCategories: AgentSessionCategory[]
   }): Promise<void> {
     await this.conversationAgentSessionCategoryRepository.delete({
       conversationAgentSessionId: sessionId,
@@ -257,7 +259,7 @@ export class ConversationAgentSessionsService {
         selectedCategories.map((selectedCategory) =>
           this.conversationAgentSessionCategoryRepository.create({
             conversationAgentSessionId: sessionId,
-            agentCategoryId: selectedCategory.id,
+            agentSessionCategoryId: selectedCategory.id,
           }),
         ),
       )

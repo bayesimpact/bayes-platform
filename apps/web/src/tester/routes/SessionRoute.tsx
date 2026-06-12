@@ -18,6 +18,7 @@ export function SessionRoute({ children }: { children: React.ReactNode }) {
       unmount: reviewCampaignsTesterActions.sessionUnmount,
     },
     condition: !!agentSessionId,
+    refreshOn: [agentSessionId],
   })
 
   if (!agentSessionId) return <LoadingRoute />

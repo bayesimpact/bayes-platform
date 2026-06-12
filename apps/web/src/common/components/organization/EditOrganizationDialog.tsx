@@ -44,10 +44,8 @@ export function EditOrganizationDialog({ open, onClose, organization }: Props) {
     if (open) reset({ name: organization.name })
   }, [open, organization.name, reset])
 
-  const onSubmit = async ({ name }: FormValues) => {
-    await dispatch(
-      updateOrganization({ organizationId: organization.id, name, onSuccess: onClose }),
-    ).unwrap()
+  const onSubmit = ({ name }: FormValues) => {
+    dispatch(updateOrganization({ organizationId: organization.id, name, onSuccess: onClose }))
   }
 
   return (

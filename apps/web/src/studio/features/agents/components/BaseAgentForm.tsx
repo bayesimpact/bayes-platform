@@ -13,10 +13,10 @@ import { selectCurrentProjectData } from "@/common/features/projects/projects.se
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useValue } from "@/common/hooks/use-value"
 import { AgentEmbedTab } from "@/studio/features/agent-embed-configs/components/AgentEmbedTab"
-import { AgentCategoriesTab } from "./AgentCategoriesTab"
 import { AgentGeneralTab } from "./AgentGeneralTab"
 import { AgentModelTab } from "./AgentModelTab"
 import { AgentOutputTab } from "./AgentOutputTab"
+import { AgentSessionCategoriesTab } from "./AgentSessionCategoriesTab"
 import { AgentSourcesTab } from "./AgentSourcesTab"
 import { type AgentSubAgentFormValue, AgentSubAgentsTab } from "./AgentSubAgentsTab"
 import { type AgentFormData, getDefaultFormValues } from "./agent-form.shared"
@@ -55,7 +55,8 @@ export function BaseAgentForm({
 
   const hasOutputJsonSchema = agentType !== "conversation"
   const hasSources = agentType === "conversation"
-  const hasAgentCategories = agentType === "conversation" && project.agentCategories.length > 0
+  const hasAgentSessionCategories =
+    agentType === "conversation" && project.agentSessionCategories.length > 0
 
   const agentSchema = editableAgent ? updateAgentSchema : createAgentSchema
   type FormValues = z.infer<typeof agentSchema>
@@ -72,7 +73,7 @@ export function BaseAgentForm({
     const language = i18n.language.startsWith("fr") ? AgentLocale.FR : AgentLocale.EN
     return {
       ...getDefaultFormValues({ agentType, language }),
-      projectAgentCategoryIds: project.agentCategories.map((category) => category.id),
+      projectAgentSessionCategoryIds: project.agentSessionCategories.map((category) => category.id),
     }
   })()
 
@@ -132,7 +133,7 @@ export function BaseAgentForm({
                   </TabsTrigger>
                 )}
                 {hasSources && <TabsTrigger value="sources">{t("agent:tabs.sources")}</TabsTrigger>}
-                {hasAgentCategories && (
+                {hasAgentSessionCategories && (
                   <TabsTrigger value="categories">{t("agent:tabs.categories")}</TabsTrigger>
                 )}
                 {hasOrchestration && (
@@ -161,9 +162,9 @@ export function BaseAgentForm({
                 </TabsContent>
               )}
 
-              {hasAgentCategories && (
+              {hasAgentSessionCategories && (
                 <TabsContent value="categories">
-                  <AgentCategoriesTab />
+                  <AgentSessionCategoriesTab />
                 </TabsContent>
               )}
 
@@ -218,7 +219,7 @@ const FIELD_TO_TAB: Record<string, "general" | "model" | "output" | "sources" | 
   locale: "general",
   defaultPrompt: "general",
   greetingMessage: "general",
-  projectAgentCategoryIds: "categories",
+  projectAgentSessionCategoryIds: "categories",
   model: "model",
   temperature: "model",
   outputJsonSchema: "output",

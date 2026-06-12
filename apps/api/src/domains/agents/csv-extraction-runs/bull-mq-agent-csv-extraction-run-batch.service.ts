@@ -47,41 +47,45 @@ export class BullMqAgentCsvExtractionRunBatchService {
   }
 
   async retryRunRecords(payloads: ProcessAgentCsvExtractionRunRecordJobPayload[]): Promise<void> {
-    for (const payload of payloads) {
-      const job = await this.recordQueue.getJob(payload.runRecordId)
-      if (!job) {
-        await this.recordQueue.add(AGENT_CSV_EXTRACTION_RUN_RECORD_JOB_NAME, payload, {
-          jobId: payload.runRecordId,
-        })
-        continue
-      }
-      const state = await job.getState()
-      if (state === "failed") {
-        await job.retry()
-      }
-    }
+    await Promise.all(
+      payloads.map(async (payload) => {
+        const job = await this.recordQueue.getJob(payload.runRecordId)
+        if (!job) {
+          await this.recordQueue.add(AGENT_CSV_EXTRACTION_RUN_RECORD_JOB_NAME, payload, {
+            jobId: payload.runRecordId,
+          })
+          return
+        }
+        const state = await job.getState()
+        if (state === "failed") {
+          await job.retry()
+        }
+      }),
+    )
   }
 
   async removePendingRunRecords(runRecordIds: string[]): Promise<void> {
-    for (const runRecordId of runRecordIds) {
-      const job = await this.recordQueue.getJob(runRecordId)
-      if (!job) continue
+    await Promise.all(
+      runRecordIds.map(async (runRecordId) => {
+        const job = await this.recordQueue.getJob(runRecordId)
+        if (!job) return
 
-      const state = await job.getState()
-      if (state === "active") {
-        this.logger.log(
-          `Job Agent CSV Run Record with id "${runRecordId}" is active — relying on cooperative cancel in processor`,
-        )
-        continue
-      }
+        const state = await job.getState()
+        if (state === "active") {
+          this.logger.log(
+            `Job Agent CSV Run Record with id "${runRecordId}" is active — relying on cooperative cancel in processor`,
+          )
+          return
+        }
 
-      try {
-        await job.remove()
-      } catch (error) {
-        this.logger.warn(
-          `Failed to remove job Agent CSV Run Record with id "${runRecordId}" (state=${state}): ${error instanceof Error ? error.message : error}`,
-        )
-      }
-    }
+        try {
+          await job.remove()
+        } catch (error) {
+          this.logger.warn(
+            `Failed to remove job Agent CSV Run Record with id "${runRecordId}" (state=${state}): ${error instanceof Error ? error.message : error}`,
+          )
+        }
+      }),
+    )
   }
 }

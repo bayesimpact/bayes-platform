@@ -8,12 +8,12 @@ import {
   Unique,
   UpdateDateColumn,
 } from "typeorm"
-import { AgentCategory } from "@/domains/agents/categories/agent-category.entity"
-import { ProjectAgentCategory } from "@/domains/agents/categories/project-agent-category.entity"
+import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
+import { ProjectAgentSessionCategory } from "@/domains/agents/session-categories/project-agent-session-category.entity"
 import { ConversationAgentSession } from "./conversation-agent-session.entity"
 
 @Entity("conversation_agent_session_category")
-@Unique(["conversationAgentSessionId", "agentCategoryId"])
+@Unique(["conversationAgentSessionId", "agentSessionCategoryId"])
 export class ConversationAgentSessionCategory {
   @PrimaryGeneratedColumn("uuid")
   id!: string
@@ -21,11 +21,11 @@ export class ConversationAgentSessionCategory {
   @Column({ type: "uuid", name: "conversation_agent_session_id" })
   conversationAgentSessionId!: string
 
-  @Column({ type: "uuid", name: "agent_category_id" })
-  agentCategoryId!: string
+  @Column({ type: "uuid", name: "agent_session_category_id" })
+  agentSessionCategoryId!: string
 
-  @Column({ type: "uuid", name: "project_agent_category_id", nullable: true })
-  projectAgentCategoryId!: string | null
+  @Column({ type: "uuid", name: "project_agent_session_category_id", nullable: true })
+  projectAgentSessionCategoryId!: string | null
 
   @CreateDateColumn({ name: "created_at" })
   createdAt!: Date
@@ -42,18 +42,18 @@ export class ConversationAgentSessionCategory {
   conversationAgentSession!: ConversationAgentSession
 
   @ManyToOne(
-    () => AgentCategory,
-    (agentCategory) => agentCategory.sessionCategories,
+    () => AgentSessionCategory,
+    (agentSessionCategory) => agentSessionCategory.conversationSessionCategories,
     { onDelete: "CASCADE" },
   )
-  @JoinColumn({ name: "agent_category_id" })
-  agentCategory!: AgentCategory
+  @JoinColumn({ name: "agent_session_category_id" })
+  agentSessionCategory!: AgentSessionCategory
 
   @ManyToOne(
-    () => ProjectAgentCategory,
-    (projectAgentCategory) => projectAgentCategory.sessionCategories,
+    () => ProjectAgentSessionCategory,
+    (projectAgentSessionCategory) => projectAgentSessionCategory.conversationSessionCategories,
     { onDelete: "CASCADE", nullable: true },
   )
-  @JoinColumn({ name: "project_agent_category_id" })
-  projectAgentCategory!: ProjectAgentCategory | null
+  @JoinColumn({ name: "project_agent_session_category_id" })
+  projectAgentSessionCategory!: ProjectAgentSessionCategory | null
 }

@@ -36,14 +36,14 @@ export function buildMockTesterService(overrides: Overrides = {}): ITesterSpi {
     },
     async deleteSession() {},
     async startSession() {
-      return { sessionId: `session-${now()}`, sessionType: "conversation" }
+      return { id: `session-${now()}`, agentType: "conversation" }
     },
     async submitFeedback({ sessionId }, payload) {
       return {
         id: `feedback-${now()}`,
         campaignId: mockTesterContext.id,
         sessionId,
-        sessionType: "conversation",
+        agentType: "conversation",
         overallRating: payload.overallRating,
         comment: payload.comment ?? null,
         answers: payload.answers ?? [],
@@ -56,7 +56,7 @@ export function buildMockTesterService(overrides: Overrides = {}): ITesterSpi {
         id: `feedback-${now()}`,
         campaignId: mockTesterContext.id,
         sessionId,
-        sessionType: "conversation",
+        agentType: "conversation",
         overallRating: payload.overallRating ?? 5,
         comment: payload.comment ?? null,
         answers: payload.answers ?? [],

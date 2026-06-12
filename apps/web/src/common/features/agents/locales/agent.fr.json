@@ -17,8 +17,8 @@
       "temperature": "Température",
       "updatedAt": "Mis à jour le",
       "documentTags": "Étiquettes de document",
-      "agentCategories": "Catégories d'agent",
-      "agentCategoriesInUse": "Les catégories déjà utilisées dans les conversations de cet agent ne peuvent pas être décochées.",
+      "agentSessionCategories": "Catégories de conversation",
+      "agentSessionCategoriesInUse": "Les catégories déjà utilisées dans les conversations de cet agent ne peuvent pas être décochées.",
       "documentsRagModeOptions": {
         "none": "Ne pas utiliser le RAG",
         "all": "RAG sur tous les documents",
@@ -99,7 +99,7 @@
       "output": "Sortie",
       "form": "Formulaire",
       "sources": "Sources",
-      "categories": "Catégories",
+      "categories": "Catégories de conversation",
       "orchestration": "Orchestration",
       "embed": "Intégration"
     },

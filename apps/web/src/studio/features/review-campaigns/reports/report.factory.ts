@@ -54,7 +54,7 @@ class CampaignReportSessionRowFactory extends Factory<CampaignReportSessionRowDt
 export const campaignReportSessionRowFactory = CampaignReportSessionRowFactory.define(
   ({ params }) => ({
     sessionId: params.sessionId ?? faker.string.uuid(),
-    sessionType: params.sessionType ?? "conversation",
+    agentType: params.agentType ?? "conversation",
     testerUserId: params.testerUserId ?? faker.string.uuid(),
     startedAt: params.startedAt ?? faker.date.recent().getTime(),
     testerRating: params.testerRating ?? null,

@@ -32,6 +32,7 @@ export class DocumentEmbeddingsProcessorService {
     const document = await this.sharedService.findDocumentOrThrow(payload)
     await this.sharedService.markDocumentStatus(document, "processing")
 
+
     try {
       const extractionResult = await this.extractDocumentChunks(document)
       const embeddingsByModelName = await this.sharedService.generateEmbeddingsByModel(

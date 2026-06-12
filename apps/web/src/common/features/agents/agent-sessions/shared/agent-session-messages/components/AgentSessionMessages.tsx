@@ -28,10 +28,12 @@ export function AgentSessionMessages({
   session,
   messages,
   rightSlot,
+  onFillFormToolEvent,
 }: {
   rightSlot?: React.ReactNode
   session: AgentSession
   messages: AgentSessionMessageType[]
+  onFillFormToolEvent?: () => void
 }) {
   const isStreaming = useAppSelector(selectStreaming)
 
@@ -43,7 +45,11 @@ export function AgentSessionMessages({
         <Chat className="border shadow-none">
           <Messages messages={messages} isStreaming={isStreaming} />
 
-          <Footer session={session} isStreaming={isStreaming} />
+          <Footer
+            session={session}
+            isStreaming={isStreaming}
+            onFillFormToolEvent={onFillFormToolEvent}
+          />
         </Chat>
       </div>
       {rightSlot && (
@@ -88,9 +94,11 @@ function Messages({
 function Footer({
   session,
   isStreaming,
+  onFillFormToolEvent,
 }: {
   session: ConversationAgentSession
   isStreaming: boolean
+  onFillFormToolEvent?: () => void
 }) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
@@ -103,7 +111,7 @@ function Footer({
   const handleSubmit = (message: string) => {
     const trimmedMessage = message.trim()
     if (isStreaming || !trimmedMessage) return
-    void dispatch(sendMessage({ content: trimmedMessage, file }))
+    void dispatch(sendMessage({ content: trimmedMessage, file, onFillFormToolEvent }))
     handleUnattachDocument()
   }
 

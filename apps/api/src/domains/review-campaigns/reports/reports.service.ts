@@ -5,9 +5,9 @@ import { ConversationAgentSession } from "@/domains/agents/conversation-agent-se
 import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type {
+  ReviewCampaignAgentType,
   ReviewCampaignAnswer,
   ReviewCampaignQuestion,
-  ReviewCampaignSessionType,
 } from "../review-campaigns.types"
 import { ReviewerSessionReview } from "../reviewer-session-reviews/reviewer-session-review.entity"
 import { TesterCampaignSurvey } from "../tester-campaign-surveys/tester-campaign-survey.entity"
@@ -38,7 +38,7 @@ export type CampaignReportQuestionDistribution = {
 
 export type CampaignReportSessionRow = {
   sessionId: string
-  sessionType: "conversation" | "form"
+  agentType: ReviewCampaignAgentType
   testerUserId: string
   startedAt: Date
   testerRating: number | null
@@ -61,7 +61,7 @@ type SessionRef = {
   id: string
   userId: string
   createdAt: Date
-  type: "conversation" | "form"
+  agentType: ReviewCampaignAgentType
 }
 
 @Injectable()
@@ -101,13 +101,13 @@ export class ReportsService {
         id: session.id,
         userId: session.userId,
         createdAt: session.createdAt,
-        type: "conversation" as const,
+        agentType: "conversation" as const,
       })),
       ...formSessions.map((session) => ({
         id: session.id,
         userId: session.userId,
         createdAt: session.createdAt,
-        type: "form" as const,
+        agentType: "form" as const,
       })),
     ]
 
@@ -158,7 +158,7 @@ function buildSessionRow(
   )
   return {
     sessionId: session.id,
-    sessionType: session.type,
+    agentType: session.agentType,
     testerUserId: session.userId,
     startedAt: session.createdAt,
     testerRating: feedbackBySessionId.get(session.id)?.overallRating ?? null,
@@ -256,4 +256,5 @@ function groupBy<T, K>(items: T[], keyFn: (item: T) => K): Map<K, T[]> {
 // Exported for convenience in tests/DTO mappers — sessionType is kept as the
 // narrower "conversation" | "form" here because the report only ever sees
 // sessions that testers actually ran (extraction isn't a tester session type).
-export type ReviewCampaignReportableSessionType = Exclude<ReviewCampaignSessionType, "extraction">
+
+export type ReviewCampaignReportableSessionType = ReviewCampaignAgentType

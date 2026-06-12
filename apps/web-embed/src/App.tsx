@@ -33,6 +33,12 @@ export function App() {
   const locale = readLocaleFromUrl()
   const i18n = useMemo(() => createEmbedI18n(locale), [locale])
 
+  // Keep the document language in sync with the widget locale so browsers
+  // don't see an "English" page full of French content and offer to translate.
+  useEffect(() => {
+    document.documentElement.lang = locale
+  }, [locale])
+
   const embedToken = readParam("embedToken")
   const displayMode = readDisplayModeFromUrl()
 

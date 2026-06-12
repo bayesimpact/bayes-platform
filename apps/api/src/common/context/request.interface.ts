@@ -16,7 +16,7 @@ import type { ProjectMembership } from "@/domains/projects/memberships/project-m
 import type { Project } from "@/domains/projects/project.entity"
 import type { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
 import type { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
-import type { ReviewCampaignSessionType } from "@/domains/review-campaigns/review-campaigns.types"
+import type { ReviewCampaignAgentType } from "@/domains/review-campaigns/review-campaigns.types"
 import type { User } from "@/domains/users/user.entity"
 
 export interface JwtPayload {
@@ -105,7 +105,7 @@ export interface EndpointRequestWithAgentSessionInCampaign extends EndpointReque
   reviewCampaign: ReviewCampaign
   agentSessionInCampaign: {
     sessionId: string
-    sessionType: ReviewCampaignSessionType
+    agentType: ReviewCampaignAgentType
     userId: string
   }
 }

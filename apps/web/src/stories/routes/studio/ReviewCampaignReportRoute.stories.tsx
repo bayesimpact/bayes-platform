@@ -79,7 +79,7 @@ function buildPopulatedReport(): CampaignReport {
     ],
     sessionMatrix: [
       campaignReportSessionRowFactory.build({
-        sessionType: "conversation",
+        agentType: "conversation",
         testerRating: 4,
         reviewerRatings: [4, 3],
         reviewerCount: 2,
@@ -87,7 +87,7 @@ function buildPopulatedReport(): CampaignReport {
         reviewerRatingSpread: 1,
       }),
       campaignReportSessionRowFactory.build({
-        sessionType: "form",
+        agentType: "form",
         testerRating: 5,
         reviewerRatings: [5],
         reviewerCount: 1,

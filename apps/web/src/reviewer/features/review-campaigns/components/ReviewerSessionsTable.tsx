@@ -83,7 +83,7 @@ export function ReviewerSessionsTable({ sessions }: { sessions: ReviewerSessionL
               <span className="font-mono text-xs">{shortenId(session.sessionId)}</span>
               <div className="flex items-center gap-1">
                 <Badge variant="outline" className="text-xs">
-                  {session.sessionType}
+                  {session.agentType}
                 </Badge>
                 {session.callerIsSessionOwner && (
                   <Badge variant="secondary" className="text-xs">

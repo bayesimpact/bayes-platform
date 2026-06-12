@@ -6,13 +6,13 @@ import type { ExtractionAgentSession } from "@/domains/agents/extraction-agent-s
 import type { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import type { User } from "@/domains/users/user.entity"
 import type { ReviewCampaign } from "../review-campaign.entity"
-import type { ReviewCampaignSessionType } from "../review-campaigns.types"
+import type { ReviewCampaignAgentType } from "../review-campaigns.types"
 import type { ReviewerSessionReview } from "./reviewer-session-review.entity"
 
 type ReviewerSessionReviewTransientParams = RequiredScopeTransientParams & {
   campaign: ReviewCampaign
   session: ConversationAgentSession | ExtractionAgentSession | FormAgentSession
-  sessionType: ReviewCampaignSessionType
+  agentType: ReviewCampaignAgentType
   reviewerUser: User
 }
 
@@ -35,20 +35,18 @@ export const reviewerSessionReviewFactory = ReviewerSessionReviewFactory.define(
     if (!transientParams.session) {
       throw new Error("session transient is required")
     }
-    if (!transientParams.sessionType) {
-      throw new Error("sessionType transient is required")
+    if (!transientParams.agentType) {
+      throw new Error("agentType transient is required")
     }
     if (!transientParams.reviewerUser) {
       throw new Error("reviewerUser transient is required")
     }
 
-    const sessionType = transientParams.sessionType
+    const agentType = transientParams.agentType
     const conversationAgentSession =
-      sessionType === "conversation" ? (transientParams.session as ConversationAgentSession) : null
-    const extractionAgentSession =
-      sessionType === "extraction" ? (transientParams.session as ExtractionAgentSession) : null
+      agentType === "conversation" ? (transientParams.session as ConversationAgentSession) : null
     const formAgentSession =
-      sessionType === "form" ? (transientParams.session as FormAgentSession) : null
+      agentType === "form" ? (transientParams.session as FormAgentSession) : null
 
     const now = new Date()
     return {
@@ -61,9 +59,8 @@ export const reviewerSessionReviewFactory = ReviewerSessionReviewFactory.define(
       campaignId: transientParams.campaign.id,
       campaign: transientParams.campaign,
       sessionId: transientParams.session.id,
-      sessionType,
+      agentType,
       conversationAgentSession,
-      extractionAgentSession,
       formAgentSession,
       reviewerUserId: transientParams.reviewerUser.id,
       reviewerUser: transientParams.reviewerUser,

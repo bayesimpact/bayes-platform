@@ -80,7 +80,7 @@ export const revokeReviewCampaignMembership = createAsyncThunk<
   ThunkConfig
 >(
   "review-campaigns/revoke",
-  async ({ reviewCampaignId, membershipId }, { extra: { services }, getState }) => {
+  async ({ reviewCampaignId, membershipId }, { extra: { services }, getState, dispatch }) => {
     const state = getState()
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
@@ -90,5 +90,6 @@ export const revokeReviewCampaignMembership = createAsyncThunk<
       reviewCampaignId,
       membershipId,
     })
+    dispatch(getReviewCampaignDetail({ reviewCampaignId }))
   },
 )

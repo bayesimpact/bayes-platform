@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common"
-import { InjectRepository } from "@nestjs/typeorm"
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
 import type { EntityManager, Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource, In } from "typeorm"
@@ -15,7 +15,7 @@ export class AgentMembershipsService {
   constructor(
     @InjectRepository(AgentMembership)
     private readonly agentMembershipRepository: Repository<AgentMembership>,
-    private readonly dataSource: DataSource,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async findById(membershipId: string): Promise<AgentMembership | null> {

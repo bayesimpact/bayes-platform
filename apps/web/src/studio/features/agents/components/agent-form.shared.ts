@@ -30,7 +30,7 @@ export type AgentFormValues = {
   temperature: number
   outputJsonSchema?: Record<string, unknown>
   documentsRagMode: DocumentsRagMode
-  projectAgentCategoryIds: string[]
+  projectAgentSessionCategoryIds: string[]
   tagsToAdd: string[]
   tagsToRemove?: string[]
   documentTagIds?: string[]
@@ -57,13 +57,13 @@ export function getDefaultFormValues({
     type: agentType,
     name: "",
     defaultPrompt: agentDefaultPromptMap[agentType],
-    greetingMessage: null,
+    greetingMessage: undefined,
     documentsRagMode: DocumentsRagMode.All,
     model: AgentModel.Gemini25Flash,
     temperature: 0.0,
     locale: language,
     tagsToAdd: [],
-    projectAgentCategoryIds: [],
+    projectAgentSessionCategoryIds: [],
   }
 
   if (["form", "extraction"].includes(agentType)) {

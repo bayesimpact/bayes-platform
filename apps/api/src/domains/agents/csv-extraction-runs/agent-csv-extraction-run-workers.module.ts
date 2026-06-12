@@ -15,6 +15,7 @@ import { AgentCsvExtractionRunExecuteWorker } from "./agent-csv-extraction-run-e
 import { AgentCsvExtractionRunProcessorService } from "./agent-csv-extraction-run-processor.service"
 import { AgentCsvExtractionRunStarterService } from "./agent-csv-extraction-run-starter.service"
 import { AgentCsvExtractionRunStatusNotifierService } from "./agent-csv-extraction-run-status-notifier.service"
+import { AgentCsvExtractionRunQueueMetricsService } from "./queue-metrics.service"
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AgentCsvExtractionRunStatusNotifierService } from "./agent-csv-extracti
     AgentCsvExtractionRunProcessorService,
     AgentCsvExtractionRunStatusNotifierService,
     AgentCsvExtractionRunCsvExportService,
+    AgentCsvExtractionRunQueueMetricsService,
   ],
 })
 export class AgentCsvExtractionRunWorkersModule {}

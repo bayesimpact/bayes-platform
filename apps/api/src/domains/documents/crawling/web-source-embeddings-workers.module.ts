@@ -11,6 +11,7 @@ import { DocumentTagsService } from "../tags/document-tags.service"
 import { WebPageEmbeddingsProcessorService } from "./web-page-embeddings-processor.service"
 import { WEB_SOURCE_EMBEDDINGS_QUEUE_NAME } from "./web-source-embeddings.constants"
 import { WebSourceEmbeddingsWorker } from "./web-source-embeddings.worker"
+import { WebSourceEmbeddingsQueueMetricsService } from "./web-source-embeddings-queue-metrics.service"
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { WebSourceEmbeddingsWorker } from "./web-source-embeddings.worker"
     DocumentEmbeddingStatusNotifierService,
     DocumentsService,
     DocumentTagsService,
+    WebSourceEmbeddingsQueueMetricsService,
   ],
 })
 export class WebSourceEmbeddingsWorkersModule {}

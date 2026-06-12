@@ -60,12 +60,11 @@ export function DocumentTagPicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        {availableTags.length > 0 && (
-          <Button variant="outline" size="sm" className="gap-1">
-            <PlusIcon className="size-3" />
-            {t("documentTag:addTag")}
-          </Button>
-        )}
+        {/* type="button" prevents submitting the surrounding agent form */}
+        <Button type="button" variant="outline" size="sm" className="gap-1">
+          <PlusIcon className="size-3" />
+          {t("documentTag:addTag")}
+        </Button>
       </PopoverTrigger>
       <PopoverContent className="w-56 p-0" align="start">
         <Command shouldFilter={false}>

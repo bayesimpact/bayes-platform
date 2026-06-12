@@ -1,7 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" translate="no">
   <head>
     <meta charset="UTF-8" />
+    <!-- Browser auto-translate (Chrome/Edge) rewrites React-owned text nodes while
+         agent responses stream, freezing the visible text and crashing React with
+         "NotFoundError: removeChild". The app is localized via i18next, so browser
+         translation is disabled document-wide. -->
+    <meta name="google" content="notranslate" />
     <link rel="icon" type="image/svg+xml" id="favicon" href="/coral-favicon.svg" />
     <script>var f='%VITE_FAVICON_URL%',t='%VITE_THEME_KEY%';document.getElementById('favicon').href=f&&f.indexOf('%')===-1?f:t==='blue'?'/blue-favicon.svg':'/coral-favicon.svg';</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

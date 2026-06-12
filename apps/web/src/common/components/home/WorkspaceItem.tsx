@@ -19,7 +19,7 @@ import {
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { GridCard } from "@/common/components/grid/Grid"
-import { selectMyActiveReviewCampaignMemberships } from "@/common/features/me/me.selectors"
+import { selectMyAccessibleReviewCampaignMemberships } from "@/common/features/me/me.selectors"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import type { Project } from "@/common/features/projects/projects.models"
 import { useAbility } from "@/common/hooks/use-ability"
@@ -123,10 +123,16 @@ function useAvailableApps({
   const { t } = useTranslation()
   const { abilities } = useAbility()
   const { hasFeature } = useFeatureFlags(project)
-  const testerMemberships = useAppSelector(selectMyActiveReviewCampaignMemberships("tester"))
-  const hasTesterCampaignInProject = testerMemberships.some((m) => m.projectId === project.id)
-  const reviewerMemberships = useAppSelector(selectMyActiveReviewCampaignMemberships("reviewer"))
-  const hasReviewerCampaignInProject = reviewerMemberships.some((m) => m.projectId === project.id)
+  const testerMemberships = useAppSelector(selectMyAccessibleReviewCampaignMemberships("tester"))
+  const hasTesterCampaignInProject = testerMemberships.some(
+    (membership) => membership.projectId === project.id,
+  )
+  const reviewerMemberships = useAppSelector(
+    selectMyAccessibleReviewCampaignMemberships("reviewer"),
+  )
+  const hasReviewerCampaignInProject = reviewerMemberships.some(
+    (membership) => membership.projectId === project.id,
+  )
 
   const desk = getAppData({ app: "desk", organizationId, projectId: project.id, t })
   const apps: AppData[] = [desk]

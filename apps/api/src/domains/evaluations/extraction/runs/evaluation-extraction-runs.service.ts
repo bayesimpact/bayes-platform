@@ -118,9 +118,8 @@ export class EvaluationExtractionRunsService {
     evaluationExtractionRun: EvaluationExtractionRun
   }): Promise<EvaluationExtractionRun> {
     if (
-      evaluationExtractionRun.status === "completed" ||
-      evaluationExtractionRun.status === "failed" ||
-      evaluationExtractionRun.status === "cancelled"
+      // Only allow cancelling runs that are currently pending or running. Completed, failed or cancelled runs cannot be cancelled (again)
+      ["pending", "running"].indexOf(evaluationExtractionRun.status) === -1
     ) {
       throw new UnprocessableEntityException(
         `Evaluation run is in status "${evaluationExtractionRun.status}" and cannot be cancelled`,
@@ -129,16 +128,11 @@ export class EvaluationExtractionRunsService {
 
     evaluationExtractionRun.status = "cancelled"
 
-    const unfinishedRecords = await this.runRecordConnectRepository.find(connectScope, {
-      where: [{ evaluationExtractionRunId: evaluationExtractionRun.id, status: "running" }],
+    await this.runRecordConnectRepository.updateManyBy({
+      connectScope,
+      where: { evaluationExtractionRunId: evaluationExtractionRun.id, status: "running" },
+      fields: { status: "error" },
     })
-
-    await Promise.all(
-      unfinishedRecords.map((runRecord) => {
-        runRecord.status = "error"
-        return this.runRecordConnectRepository.saveOne(runRecord)
-      }),
-    )
 
     return this.runConnectRepository.saveOne(evaluationExtractionRun)
   }

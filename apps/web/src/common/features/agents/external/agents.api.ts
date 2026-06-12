@@ -47,6 +47,6 @@ const toAgent = (dto: AgentDto): Agent => ({
   type: dto.type,
   updatedAt: dto.updatedAt,
   documentTagIds: dto.documentTagIds,
-  projectAgentCategoryIds: dto.projectAgentCategoryIds,
-  usedProjectAgentCategoryIds: dto.usedProjectAgentCategoryIds,
+  projectAgentSessionCategoryIds: dto.projectAgentSessionCategoryIds,
+  usedProjectAgentSessionCategoryIds: dto.usedProjectAgentSessionCategoryIds,
 })

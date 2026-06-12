@@ -65,9 +65,16 @@ export const getAttachmentDocumentTemporaryUrl = createAsyncThunk<
   },
 )
 
-export const sendMessage = createAsyncThunk<void, { content: string; file?: File }, ThunkConfig>(
+export const sendMessage = createAsyncThunk<
+  void,
+  { content: string; file?: File; onFillFormToolEvent?: () => void },
+  ThunkConfig
+>(
   "agentSessionMessages/sendMessage",
-  async ({ content, file }, { extra: { services }, dispatch, getState, signal }) => {
+  async (
+    { content, file, onFillFormToolEvent },
+    { extra: { services }, dispatch, getState, signal },
+  ) => {
     const state = getState()
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
@@ -135,8 +142,10 @@ export const sendMessage = createAsyncThunk<void, { content: string; file?: File
           onNotifyClient(event) {
             switch (event.toolName) {
               case ToolName.FillForm:
+                if (onFillFormToolEvent) onFillFormToolEvent()
                 // FIXME: should be replace by getOne
-                dispatch(formAgentSessionsActions.getAll({ agentId }))
+                else dispatch(formAgentSessionsActions.getAll({ agentId }))
+
                 break
 
               default:

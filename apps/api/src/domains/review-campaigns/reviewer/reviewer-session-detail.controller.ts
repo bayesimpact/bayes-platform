@@ -35,11 +35,11 @@ export class ReviewerSessionDetailController {
     @Req() request: EndpointRequestWithAgentSessionInCampaign &
       EndpointRequestWithReviewCampaignMembership,
   ): Promise<typeof ReviewCampaignsRoutes.getReviewerSession.response> {
-    const { sessionId, sessionType, userId } = request.agentSessionInCampaign
+    const { sessionId, agentType, userId } = request.agentSessionInCampaign
     const result = await this.reviewerService.getSessionForReview({
       campaign: request.reviewCampaign,
       sessionId,
-      sessionType,
+      agentType,
       sessionOwnerUserId: userId,
       reviewerUserId: request.user.id,
     })
@@ -52,7 +52,7 @@ function toGetReviewerSessionResponseDto(
 ): GetReviewerSessionResponseDto {
   const meta = {
     sessionId: result.sessionId,
-    sessionType: result.sessionType,
+    agentType: result.agentType,
     testerUserId: result.testerUserId,
     startedAt: result.startedAt.getTime(),
     agent: result.agent,
@@ -103,7 +103,7 @@ function toReviewerSessionReviewDto(review: ReviewerSessionReview): ReviewerSess
     id: review.id,
     campaignId: review.campaignId,
     sessionId: review.sessionId,
-    sessionType: review.sessionType,
+    agentType: review.agentType,
     reviewerUserId: review.reviewerUserId,
     overallRating: review.overallRating,
     comment: review.comment,

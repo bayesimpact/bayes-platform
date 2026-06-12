@@ -240,7 +240,7 @@ function CreateForm({
           type: agentType,
           outputJsonSchema: fields.outputJsonSchema,
           tagsToAdd: fields.tagsToAdd,
-          projectAgentCategoryIds: fields.projectAgentCategoryIds,
+          projectAgentSessionCategoryIds: fields.projectAgentSessionCategoryIds,
         },
         onSuccess,
       }),

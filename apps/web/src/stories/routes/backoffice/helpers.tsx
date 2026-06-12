@@ -149,9 +149,6 @@ export function buildMockBackofficeService(overrides: {
     },
     async addFeatureFlag() {},
     async removeFeatureFlag() {},
-    async replaceProjectAgentCategories() {
-      return []
-    },
     async listTermsDocuments() {
       if (!termsDocuments) throw new Error("No terms documents seeded in mock service")
       return termsDocuments

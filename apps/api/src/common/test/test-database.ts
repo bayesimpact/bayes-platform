@@ -2,14 +2,8 @@ import { randomUUID } from "node:crypto"
 import type { DynamicModule, Provider, Type } from "@nestjs/common"
 import { ConfigModule } from "@nestjs/config"
 import { Test, type TestingModule, type TestingModuleBuilder } from "@nestjs/testing"
-import { getRepositoryToken, TypeOrmModule } from "@nestjs/typeorm"
-import {
-  DataSource,
-  type EntityManager,
-  type ObjectLiteral,
-  type QueryRunner,
-  type Repository,
-} from "typeorm"
+import { getDataSourceToken, getRepositoryToken, TypeOrmModule } from "@nestjs/typeorm"
+import type { DataSource, EntityManager, ObjectLiteral, QueryRunner, Repository } from "typeorm"
 import { ALL_ENTITIES } from "../all-entities"
 import { type AllRepositories, buildAllRepositories } from "./test-all-repositories"
 
@@ -95,7 +89,7 @@ export async function setupE2eTestDatabase(
 
   const module = await moduleBuilder.compile()
 
-  const dataSource = module.get<DataSource>(DataSource)
+  const dataSource = module.get<DataSource>(getDataSourceToken())
 
   const getRepository = <T extends ObjectLiteral>(entity: new () => T): Repository<T> => {
     return module.get<Repository<T>>(getRepositoryToken(entity))

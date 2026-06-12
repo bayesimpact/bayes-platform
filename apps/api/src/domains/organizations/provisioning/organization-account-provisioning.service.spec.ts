@@ -1,7 +1,7 @@
 import { InternalServerErrorException } from "@nestjs/common"
 import { Test, type TestingModule } from "@nestjs/testing"
-import { getRepositoryToken } from "@nestjs/typeorm"
-import { DataSource, type ObjectLiteral, type Repository } from "typeorm"
+import { getDataSourceToken, getRepositoryToken } from "@nestjs/typeorm"
+import type { ObjectLiteral, Repository } from "typeorm"
 import { User } from "@/domains/users/user.entity"
 import { OrganizationMembership } from "../memberships/organization-membership.entity"
 import { Organization } from "../organization.entity"
@@ -51,7 +51,7 @@ describe("OrganizationAccountProvisioningService", () => {
           provide: getRepositoryToken(OrganizationMembership),
           useValue: organizationMembershipRepository,
         },
-        { provide: DataSource, useValue: dataSource },
+        { provide: getDataSourceToken(), useValue: dataSource },
       ],
     }).compile()
 

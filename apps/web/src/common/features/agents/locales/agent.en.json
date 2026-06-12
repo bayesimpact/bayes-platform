@@ -17,8 +17,8 @@
       "temperature": "Temperature",
       "updatedAt": "Updated At",
       "documentTags": "Document Tags",
-      "agentCategories": "Agent categories",
-      "agentCategoriesInUse": "Categories already used in this agent's conversations cannot be unchecked.",
+      "agentSessionCategories": "Conversation categories",
+      "agentSessionCategoriesInUse": "Categories already used in this agent's conversations cannot be unchecked.",
       "documentsRagModeOptions": {
         "none": "Don't RAG",
         "all": "RAG on all documents",
@@ -99,7 +99,7 @@
       "output": "Output",
       "form": "Form",
       "sources": "Sources",
-      "categories": "Categories",
+      "categories": "Conversation categories",
       "orchestration": "Orchestration",
       "embed": "Embed"
     },

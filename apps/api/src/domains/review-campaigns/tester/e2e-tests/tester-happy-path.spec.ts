@@ -164,6 +164,55 @@ describe("ReviewCampaigns - Tester happy path", () => {
     expect(reviewerResponse.body.data.reviewCampaigns[0]?.id).toBe(reviewerCampaign.id)
   })
 
+  it("getMyReviewCampaigns includes closed campaigns for reviewers only", async () => {
+    const { organization, project } = await seedActiveCampaignWithTester()
+    const reviewerAgent = agentFactory.transient({ organization, project }).build()
+    await repositories.agentRepository.save(reviewerAgent)
+    const callerUser = await repositories.userRepository.findOneByOrFail({ auth0Id })
+    const closedCampaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory
+        .closed()
+        .transient({ organization, project, agent: reviewerAgent })
+        .build(),
+    )
+    const draftCampaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory.transient({ organization, project, agent: reviewerAgent }).build(),
+    )
+    await repositories.reviewCampaignMembershipRepository.save([
+      reviewCampaignMembershipFactory
+        .reviewer()
+        .accepted()
+        .transient({ organization, project, campaign: closedCampaign, user: callerUser })
+        .build(),
+      reviewCampaignMembershipFactory
+        .reviewer()
+        .accepted()
+        .transient({ organization, project, campaign: draftCampaign, user: callerUser })
+        .build(),
+    ])
+
+    const reviewerResponse = await request({
+      route: ReviewCampaignsRoutes.getMyReviewCampaigns,
+      token: accessToken,
+      query: { role: "reviewer" },
+    })
+    expectResponse(reviewerResponse, 200)
+    const campaignIds = reviewerResponse.body.data.reviewCampaigns.map(
+      (campaign: { id: string }) => campaign.id,
+    )
+    expect(campaignIds).toContain(closedCampaign.id)
+    expect(campaignIds).not.toContain(draftCampaign.id)
+
+    const testerResponse = await request({
+      route: ReviewCampaignsRoutes.getMyReviewCampaigns,
+      token: accessToken,
+    })
+    expectResponse(testerResponse, 200)
+    expect(
+      testerResponse.body.data.reviewCampaigns.map((campaign: { id: string }) => campaign.id),
+    ).toEqual([reviewCampaignId])
+  })
+
   it("getMyReviewCampaigns rejects an unknown role filter (400)", async () => {
     await seedActiveCampaignWithTester()
     const response = await request({
@@ -183,10 +232,10 @@ describe("ReviewCampaigns - Tester happy path", () => {
       request: { payload: { type: "live" } },
     })
     expectResponse(response, 201)
-    expect(response.body.data.sessionType).toBe("conversation")
+    expect(response.body.data.agentType).toBe("conversation")
 
     const session = await repositories.conversationAgentSessionRepository.findOne({
-      where: { id: response.body.data.sessionId },
+      where: { id: response.body.data.id },
     })
     expect(session?.campaignId).toBe(reviewCampaignId)
   })
@@ -200,7 +249,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
       token: accessToken,
       request: { payload: { type: "live" } },
     })
-    const pendingSessionId = first.body.data.sessionId
+    const pendingSessionId = first.body.data.id
 
     const second = await request({
       route: ReviewCampaignsRoutes.startTesterSession,
@@ -208,7 +257,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
       token: accessToken,
       request: { payload: { type: "live" } },
     })
-    const submittedSessionId = second.body.data.sessionId
+    const submittedSessionId = second.body.data.id
 
     await request({
       route: ReviewCampaignsRoutes.submitTesterFeedback,
@@ -223,13 +272,10 @@ describe("ReviewCampaigns - Tester happy path", () => {
       token: accessToken,
     })
     expectResponse(response, 200)
-    const sessions = response.body.data.sessions as Array<{
-      sessionId: string
-      feedbackStatus: "submitted" | "pending"
-    }>
+    const sessions = response.body.data.sessions
     expect(sessions).toHaveLength(2)
-    const submittedEntry = sessions.find((entry) => entry.sessionId === submittedSessionId)
-    const pendingEntry = sessions.find((entry) => entry.sessionId === pendingSessionId)
+    const submittedEntry = sessions.find((entry) => entry.id === submittedSessionId)
+    const pendingEntry = sessions.find((entry) => entry.id === pendingSessionId)
     expect(submittedEntry?.feedbackStatus).toBe("submitted")
     expect(pendingEntry?.feedbackStatus).toBe("pending")
   })
@@ -253,7 +299,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
       token: accessToken,
       request: { payload: { type: "live" } },
     })
-    const sessionId = sessionStart.body.data.sessionId
+    const sessionId = sessionStart.body.data.id
 
     const submit = await request({
       route: ReviewCampaignsRoutes.submitTesterFeedback,
@@ -296,7 +342,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
       token: accessToken,
       request: { payload: { type: "live" } },
     })
-    const sessionId = sessionStart.body.data.sessionId
+    const sessionId = sessionStart.body.data.id
 
     const response = await request({
       route: ReviewCampaignsRoutes.submitTesterFeedback,
@@ -378,7 +424,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
       token: accessToken,
       request: { payload: { type: "live" } },
     })
-    const sessionId = sessionStart.body.data.sessionId
+    const sessionId = sessionStart.body.data.id
 
     const deleteResponse = await request({
       route: ReviewCampaignsRoutes.deleteTesterSession,
@@ -405,7 +451,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
       token: accessToken,
       request: { payload: { type: "live" } },
     })
-    const sessionId = sessionStart.body.data.sessionId
+    const sessionId = sessionStart.body.data.id
 
     await request({
       route: ReviewCampaignsRoutes.submitTesterFeedback,
@@ -442,7 +488,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
       pathParams: removeNullish({
         organizationId,
         projectId,
-        sessionId: firstSession.body.data.sessionId,
+        sessionId: firstSession.body.data.id,
       }),
       token: accessToken,
       request: { payload: { overallRating: 4 } },
@@ -452,7 +498,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
       pathParams: removeNullish({
         organizationId,
         projectId,
-        sessionId: secondSession.body.data.sessionId,
+        sessionId: secondSession.body.data.id,
       }),
       token: accessToken,
       request: { payload: { overallRating: 5 } },

@@ -6,7 +6,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common"
-import { InjectRepository } from "@nestjs/typeorm"
+import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
 import type { EntityManager } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource, In, type Repository } from "typeorm"
@@ -63,7 +63,7 @@ export class ReviewCampaignInvitationHandler
     private readonly invitationRepository: Repository<Invitation>,
     @Inject(INVITATION_SENDER)
     private readonly invitationSender: InvitationSender,
-    private readonly dataSource: DataSource,
+    @InjectDataSource() private readonly dataSource: DataSource,
     private readonly invitationPersistence: InvitationPersistenceService,
     private readonly acceptanceHelpers: InvitationAcceptanceHelpersService,
   ) {}

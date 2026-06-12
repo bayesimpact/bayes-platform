@@ -144,6 +144,18 @@ function registerListeners() {
       )
     },
   })
+
+  listenerMiddleware.startListening({
+    actionCreator: agentCsvExtractionRunsActions.cancelOne.fulfilled,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(notificationsActions.show({ title: "Run cancelled", type: "success" }))
+      stopCsvRunStatusStream()
+
+      const state = listenerApi.getState()
+      const agentId = getCurrentId({ state, name: "agentId" })
+      listenerApi.dispatch(extractionAgentSessionsActions.getAll({ agentId }))
+    },
+  })
 }
 
 export const agentCsvExtractionRunsMiddleware = { listenerMiddleware, registerListeners }

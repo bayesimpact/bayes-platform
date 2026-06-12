@@ -1,7 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" translate="no">
   <head>
     <meta charset="UTF-8" />
+    <!-- Browser auto-translate (Chrome/Edge) rewrites React-owned text nodes while
+         responses stream, freezing the visible text and crashing React with
+         "NotFoundError: removeChild". The chat already answers in the user's
+         locale, so translation is disabled for the whole widget document. -->
+    <meta name="google" content="notranslate" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AgentStudio Chat</title>
   </head>

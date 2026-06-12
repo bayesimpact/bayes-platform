@@ -118,7 +118,7 @@ export class EvaluationExtractionRunsController {
     const connectScope = getRequiredConnectScope(request)
     const evaluationExtractionRunId = request.evaluationExtractionRun.id
 
-    await this.evaluationExtractionRunsService.removePendingJobsForRun({
+    this.evaluationExtractionRunsService.removePendingJobsForRun({
       evaluationExtractionRunId,
       connectScope,
     })
