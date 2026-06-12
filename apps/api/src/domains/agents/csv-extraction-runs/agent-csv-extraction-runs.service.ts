@@ -80,15 +80,27 @@ export class AgentCsvExtractionRunsService {
 
   async markRunCancelled({
     agentCsvExtractionRun,
+    connectScope,
   }: {
+    connectScope: RequiredConnectScope
     agentCsvExtractionRun: AgentCsvExtractionRun
   }): Promise<AgentCsvExtractionRun> {
-    if (agentCsvExtractionRun.status !== "pending" && agentCsvExtractionRun.status !== "running") {
+    if (
+      // Only allow cancelling runs that are currently pending or running. Completed, failed or cancelled runs cannot be cancelled (again)
+      ["pending", "running"].indexOf(agentCsvExtractionRun.status) === -1
+    ) {
       throw new UnprocessableEntityException(
         `Cannot cancel a run with status "${agentCsvExtractionRun.status}"`,
       )
     }
     agentCsvExtractionRun.status = "cancelled"
+
+    await this.runRecordConnectRepository.updateManyBy({
+      connectScope,
+      where: { agentCsvExtractionRunId: agentCsvExtractionRun.id, status: "running" },
+      fields: { status: "error" },
+    })
+
     return this.runConnectRepository.saveOne(agentCsvExtractionRun)
   }
 

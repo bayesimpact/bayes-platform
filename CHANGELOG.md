@@ -10,6 +10,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Added
 
 ### Changed
+- Extraction records are processed in parallel, speeding up runs
+- Cancelling an extraction run is now faster, especially for large runs.
 
 ### Fixed
 - Reviewers can now reopen completed review campaigns from the Reviewer app and consult sessions, reviews, and reports in read-only mode
