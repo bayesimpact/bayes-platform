@@ -12,6 +12,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+- Reviewers can now reopen completed review campaigns from the Reviewer app and consult sessions, reviews, and reports in read-only mode
 
 ### Security
 
