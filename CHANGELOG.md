@@ -8,6 +8,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.06.1] - 2026-06-12
+
+### Added
 - Exctraction agent can handle CSV file
 - Embed widget display mode: configure each agent's chat widget to appear as a floating bubble (modal, default) or a side drawer, set per embed config from the Studio
 - In-platform help chat: a chat lets users ask questions about the platform directly from within the app
