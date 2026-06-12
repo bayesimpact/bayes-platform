@@ -26,15 +26,14 @@ import type {
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
+import { CaslAbilityGuard } from "@/common/policies/casl-ability.guard"
+import { CheckAbility } from "@/common/policies/check-ability.decorator"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type { TesterCampaignSurvey } from "../tester-campaign-surveys/tester-campaign-survey.entity"
 import type { TesterSessionFeedback } from "../tester-session-feedbacks/tester-session-feedback.entity"
-import { TesterGuard } from "./tester.guard"
-import type { TesterPolicy } from "./tester.policy"
 import type { MyTesterSessionSummary } from "./tester.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TesterService } from "./tester.service"
@@ -61,14 +60,18 @@ function parseRoleQuery(role: string | undefined): "tester" | "reviewer" {
   throw new BadRequestException(`Invalid role filter: ${role} (expected "tester" or "reviewer")`)
 }
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, TesterGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CaslAbilityGuard)
 @RequireContext("organization", "project", "reviewCampaign", "reviewCampaignMembership")
 @Controller()
 export class TesterController {
   constructor(private readonly testerService: TesterService) {}
 
   @Get(ReviewCampaignsRoutes.getTesterContext.path)
-  @CheckPolicy((policy) => (policy as TesterPolicy).canViewSharedContext())
+  @CheckAbility(
+    "viewSharedContext",
+    "Tester",
+    (req: EndpointRequestWithReviewCampaignMembership) => req.reviewCampaign,
+  )
   async getTesterContext(
     @Req() request: EndpointRequestWithReviewCampaignMembership,
   ): Promise<typeof ReviewCampaignsRoutes.getTesterContext.response> {
@@ -80,7 +83,11 @@ export class TesterController {
   }
 
   @Get(ReviewCampaignsRoutes.listMyTesterSessions.path)
-  @CheckPolicy((policy) => policy.canView())
+  @CheckAbility(
+    "read",
+    "Tester",
+    (req: EndpointRequestWithReviewCampaignMembership) => req.reviewCampaign,
+  )
   async listMyTesterSessions(
     @Req() request: EndpointRequestWithReviewCampaignMembership,
   ): Promise<typeof ReviewCampaignsRoutes.listMyTesterSessions.response> {
@@ -92,7 +99,11 @@ export class TesterController {
   }
 
   @Post(ReviewCampaignsRoutes.startTesterSession.path)
-  @CheckPolicy((policy) => policy.canView())
+  @CheckAbility(
+    "read",
+    "Tester",
+    (req: EndpointRequestWithReviewCampaignMembership) => req.reviewCampaign,
+  )
   async startTesterSession(
     @Req() request: EndpointRequestWithReviewCampaignMembership,
     @Body() { payload }: typeof ReviewCampaignsRoutes.startTesterSession.request,
@@ -107,7 +118,11 @@ export class TesterController {
   }
 
   @Post(ReviewCampaignsRoutes.submitTesterSurvey.path)
-  @CheckPolicy((policy) => policy.canView())
+  @CheckAbility(
+    "read",
+    "Tester",
+    (req: EndpointRequestWithReviewCampaignMembership) => req.reviewCampaign,
+  )
   async submitTesterSurvey(
     @Req() request: EndpointRequestWithReviewCampaignMembership,
     @Body() { payload }: typeof ReviewCampaignsRoutes.submitTesterSurvey.request,
@@ -122,7 +137,11 @@ export class TesterController {
   }
 
   @Patch(ReviewCampaignsRoutes.updateTesterSurvey.path)
-  @CheckPolicy((policy) => policy.canView())
+  @CheckAbility(
+    "read",
+    "Tester",
+    (req: EndpointRequestWithReviewCampaignMembership) => req.reviewCampaign,
+  )
   async updateTesterSurvey(
     @Req() request: EndpointRequestWithReviewCampaignMembership,
     @Body() { payload }: typeof ReviewCampaignsRoutes.updateTesterSurvey.request,
@@ -136,7 +155,11 @@ export class TesterController {
   }
 
   @Get(ReviewCampaignsRoutes.getMyTesterSurvey.path)
-  @CheckPolicy((policy) => policy.canView())
+  @CheckAbility(
+    "read",
+    "Tester",
+    (req: EndpointRequestWithReviewCampaignMembership) => req.reviewCampaign,
+  )
   async getMyTesterSurvey(
     @Req() request: EndpointRequestWithReviewCampaignMembership,
   ): Promise<typeof ReviewCampaignsRoutes.getMyTesterSurvey.response> {
@@ -148,14 +171,18 @@ export class TesterController {
   }
 }
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, TesterGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CaslAbilityGuard)
 @RequireContext("organization", "project", "agentSessionInCampaign", "reviewCampaignMembership")
 @Controller()
 export class TesterSessionFeedbackController {
   constructor(private readonly testerService: TesterService) {}
 
   @Post(ReviewCampaignsRoutes.submitTesterFeedback.path)
-  @CheckPolicy((policy) => policy.canView())
+  @CheckAbility(
+    "read",
+    "Tester",
+    (req: EndpointRequestWithReviewCampaignMembership) => req.reviewCampaign,
+  )
   async submitTesterFeedback(
     @Req() request: EndpointRequestWithAgentSessionInCampaign &
       EndpointRequestWithReviewCampaignMembership,
@@ -175,7 +202,11 @@ export class TesterSessionFeedbackController {
   }
 
   @Patch(ReviewCampaignsRoutes.updateTesterFeedback.path)
-  @CheckPolicy((policy) => policy.canView())
+  @CheckAbility(
+    "read",
+    "Tester",
+    (req: EndpointRequestWithReviewCampaignMembership) => req.reviewCampaign,
+  )
   async updateTesterFeedback(
     @Req() request: EndpointRequestWithAgentSessionInCampaign &
       EndpointRequestWithReviewCampaignMembership,
@@ -192,7 +223,11 @@ export class TesterSessionFeedbackController {
   }
 
   @Delete(ReviewCampaignsRoutes.deleteTesterSession.path)
-  @CheckPolicy((policy) => policy.canView())
+  @CheckAbility(
+    "read",
+    "Tester",
+    (req: EndpointRequestWithReviewCampaignMembership) => req.reviewCampaign,
+  )
   async deleteTesterSession(
     @Req() request: EndpointRequestWithAgentSessionInCampaign &
       EndpointRequestWithReviewCampaignMembership,

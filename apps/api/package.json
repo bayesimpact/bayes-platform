@@ -49,6 +49,7 @@
     "@bull-board/nestjs": "^6.21.3",
     "@bull-board/ui": "^6.21.3",
     "@caseai-connect/api-contracts": "*",
+    "@casl/ability": "^7.0.0",
     "@google-cloud/aiplatform": "^6.5.0",
     "@google-cloud/opentelemetry-cloud-monitoring-exporter": "^0.21.0",
     "@google-cloud/opentelemetry-cloud-trace-exporter": "^3.0.0",
