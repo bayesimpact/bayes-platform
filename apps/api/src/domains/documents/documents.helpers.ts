@@ -1,4 +1,14 @@
+import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
 import { UnprocessableEntityException } from "@nestjs/common"
+import type { Document } from "./document.entity"
+
+/**
+ * A document is "public" when it carries the `public-documents` tag — the single
+ * tag that exposes downloadable sources in chat. Requires `tags` to be loaded.
+ */
+export function isPublicDocument(document: Pick<Document, "tags">): boolean {
+  return document.tags?.some((tag) => tag.name === PUBLIC_DOCUMENTS_TAG_NAME) ?? false
+}
 
 export function extractFileExtension(fileName: string): string {
   const extension = fileName.split(".").pop() || ""

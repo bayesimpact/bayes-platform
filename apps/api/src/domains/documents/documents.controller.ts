@@ -57,6 +57,7 @@ import type { Document } from "./document.entity"
 import { DocumentsGuard } from "./documents.guard"
 import {
   extractFileExtension,
+  isPublicDocument,
   normalizeUploadedFileName,
   parseMultipartTagIdsField,
 } from "./documents.helpers"
@@ -392,6 +393,18 @@ export class DocumentsController {
       throw new NotFoundException("Temporary URL not found for the document.")
     }
     return { data: { url } }
+  }
+
+  // Reports whether a document is tagged `public-documents`. Drives the download
+  // affordance for chat sources without trusting a value copied by the LLM. Any
+  // project member can call it (canView) since it exposes only a boolean.
+  @CheckPolicy((policy) => policy.canView())
+  @AddContext("document")
+  @Get(DocumentsRoutes.getIsPublic.path)
+  async getIsPublic(
+    @Request() req: EndpointRequestWithDocument,
+  ): Promise<typeof DocumentsRoutes.getIsPublic.response> {
+    return { data: { isPublicDocument: isPublicDocument(req.document) } }
   }
 
   @CheckPolicy((policy) => policy.canCreate())

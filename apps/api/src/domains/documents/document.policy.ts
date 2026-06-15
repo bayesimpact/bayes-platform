@@ -1,6 +1,6 @@
-import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
 import { ProjectScopedPolicy } from "@/common/policies/project-scoped-policy"
 import type { Document } from "./document.entity"
+import { isPublicDocument } from "./documents.helpers"
 
 export class DocumentPolicy extends ProjectScopedPolicy<Document> {
   constructor(
@@ -27,11 +27,7 @@ export class DocumentPolicy extends ProjectScopedPolicy<Document> {
   canDownload(): boolean {
     if (!this.canAccess()) return false
     if (this.isProjectAdminOrOwner()) return true
-    return this.isPublicDocument()
-  }
-
-  private isPublicDocument(): boolean {
-    return this.entity?.tags?.some((tag) => tag.name === PUBLIC_DOCUMENTS_TAG_NAME) ?? false
+    return this.entity ? isPublicDocument(this.entity) : false
   }
 
   canCreate(): boolean {

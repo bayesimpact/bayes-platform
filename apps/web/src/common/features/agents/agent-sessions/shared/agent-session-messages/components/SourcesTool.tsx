@@ -8,16 +8,19 @@ import {
   SheetTrigger,
 } from "@caseai-connect/ui/shad/sheet"
 import { DownloadIcon, FileTextIcon, GlobeIcon } from "lucide-react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { AgentSessionMessage as AgentSessionMessageType } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import { useAppDispatch } from "@/common/store/hooks"
-import { getDocumentTemporaryUrl } from "@/studio/features/documents/documents.thunks"
+import {
+  getDocumentIsPublic,
+  getDocumentTemporaryUrl,
+} from "@/studio/features/documents/documents.thunks"
 
 type Source = {
   documentId: string
   documentTitle?: string
   documentSourceType?: string
-  isPublicDocument?: boolean
   chunks: {
     chunkId: string
     partialContent: string
@@ -27,6 +30,29 @@ type Source = {
 function SourceItem({ source }: { source: Source }) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const [isPublicDocument, setIsPublicDocument] = useState(false)
+
+  const isWebCrawl = source.documentSourceType === "webCrawl"
+
+  // Only uploaded files have a downloadable artifact; crawled pages have no
+  // stored file, so skip the public check and hide the download affordance.
+  // Whether the document is public is resolved from the backend rather than
+  // trusting a value the LLM copied into the sources tool call.
+  useEffect(() => {
+    if (isWebCrawl) return
+    let cancelled = false
+    dispatch(getDocumentIsPublic({ documentId: source.documentId }))
+      .unwrap()
+      .then((result) => {
+        if (!cancelled) setIsPublicDocument(result.isPublicDocument)
+      })
+      .catch(() => {
+        if (!cancelled) setIsPublicDocument(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [dispatch, source.documentId, isWebCrawl])
 
   const handleDownload = async (documentId: string) => {
     const result = await dispatch(getDocumentTemporaryUrl({ documentId })).unwrap()
@@ -37,10 +63,7 @@ function SourceItem({ source }: { source: Source }) {
     anchor.click()
   }
 
-  const isWebCrawl = source.documentSourceType === "webCrawl"
-  // Only uploaded files have a downloadable artifact; crawled pages have
-  // no stored file, so the download affordance is hidden for them.
-  const isDownloadable = Boolean(source.isPublicDocument) && !isWebCrawl
+  const isDownloadable = isPublicDocument && !isWebCrawl
 
   return (
     <div className="grid grid-cols-1 gap-2 mt-3">
