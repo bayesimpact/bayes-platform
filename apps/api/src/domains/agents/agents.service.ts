@@ -230,9 +230,13 @@ export class AgentsService {
       ...(fieldsToUpdate.outputJsonSchema !== undefined && {
         outputJsonSchema: fieldsToUpdate.outputJsonSchema,
       }),
-      ...(fieldsToUpdate.greetingMessage !== undefined && {
-        greetingMessage: normalizeGreetingMessage(fieldsToUpdate.greetingMessage),
-      }),
+      ...(fieldsToUpdate.greetingMessage !== undefined
+        ? {
+            greetingMessage: normalizeGreetingMessage(fieldsToUpdate.greetingMessage),
+          }
+        : {
+            greetingMessage: null,
+          }),
     })
 
     const updatedAgent = await this.agentConnectRepository.saveOne(agent)
@@ -328,8 +332,7 @@ export class AgentsService {
 }
 
 function normalizeGreetingMessage(value: string | null | undefined): string | null {
-  if (value === undefined) return null
-  if (value === null) return null
+  if (value === undefined || value === null) return null
   const trimmed = value.trim()
   return trimmed.length === 0 ? null : trimmed
 }
