@@ -1,13 +1,17 @@
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq"
 import { Logger } from "@nestjs/common"
 import type { Job } from "bullmq"
-import { AGENT_CSV_EXTRACTION_RUN_QUEUE_NAME } from "./agent-csv-extraction-run.constants"
+import {
+  AGENT_CSV_EXTRACTION_RUN_CONCURRENCY,
+  AGENT_CSV_EXTRACTION_RUN_QUEUE_NAME,
+} from "./agent-csv-extraction-run.constants"
 import type { ProcessAgentCsvExtractionRunRecordJobPayload } from "./agent-csv-extraction-run.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentCsvExtractionRunProcessorService } from "./agent-csv-extraction-run-processor.service"
 
 @Processor(AGENT_CSV_EXTRACTION_RUN_QUEUE_NAME, {
   maxStalledCount: 3,
+  concurrency: AGENT_CSV_EXTRACTION_RUN_CONCURRENCY,
 })
 export class AgentCsvExtractionRunWorker extends WorkerHost {
   private readonly logger = new Logger(AgentCsvExtractionRunWorker.name)
