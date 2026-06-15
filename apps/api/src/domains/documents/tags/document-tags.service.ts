@@ -93,6 +93,10 @@ export class DocumentTagsService {
       throw new NotFoundException(`DocumentTag with id ${documentTagId} not found`)
     }
 
+    if (documentTag.name === PUBLIC_DOCUMENTS_TAG_NAME) {
+      throw new BadRequestException(`Tag "${PUBLIC_DOCUMENTS_TAG_NAME}" cannot be edited.`)
+    }
+
     if (fieldsToUpdate.name === PUBLIC_DOCUMENTS_TAG_NAME) {
       throw new BadRequestException(`Tag name "${PUBLIC_DOCUMENTS_TAG_NAME}" is reserved.`)
     }
@@ -116,6 +120,10 @@ export class DocumentTagsService {
 
     if (!documentTag) {
       throw new NotFoundException(`DocumentTag with id ${documentTagId} not found`)
+    }
+
+    if (documentTag.name === PUBLIC_DOCUMENTS_TAG_NAME) {
+      throw new BadRequestException(`Tag "${PUBLIC_DOCUMENTS_TAG_NAME}" cannot be deleted.`)
     }
 
     // Manually delete relations in join tables before deleting the tag itself to avoid foreign key constraint errors
