@@ -9,5 +9,4 @@ export type RetrievedDocumentChunk = {
   distance: number
   modelName: string
   isParentChunk: boolean
-  isPublicDocument: boolean
 }

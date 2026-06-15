@@ -1,3 +1,4 @@
+import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository, UpdateResult } from "typeorm"
@@ -265,5 +266,42 @@ export class DocumentsService {
       throw new NotFoundException(`Document with id ${documentId} not found`)
     }
     return true
+  }
+
+  /**
+   * Returns the subset of `documentIds` that are tagged `public-documents`
+   * within the given scope. Used to resolve a document's public status from the
+   * database rather than trusting the value the LLM copies into the sources tool.
+   */
+  async getPublicDocumentIds({
+    connectScope,
+    documentIds,
+  }: {
+    connectScope: RequiredConnectScope
+    documentIds: string[]
+  }): Promise<Set<string>> {
+    const uniqueDocumentIds = [...new Set(documentIds.filter(Boolean))]
+    if (uniqueDocumentIds.length === 0) {
+      return new Set()
+    }
+
+    const rows = await this.documentRepository
+      .createQueryBuilder()
+      .select("DISTINCT ddt.document_id", "documentId")
+      .from("document_document_tag", "ddt")
+      .innerJoin("document", "document", "document.id = ddt.document_id")
+      .innerJoin("document_tag", "tag", "tag.id = ddt.document_tag_id")
+      .where("document.organization_id = :organizationId", {
+        organizationId: connectScope.organizationId,
+      })
+      .andWhere("document.project_id = :projectId", { projectId: connectScope.projectId })
+      .andWhere("document.id IN (:...documentIds)", { documentIds: uniqueDocumentIds })
+      .andWhere("tag.name = :publicDocumentsTagName", {
+        publicDocumentsTagName: PUBLIC_DOCUMENTS_TAG_NAME,
+      })
+      .andWhere("tag.deleted_at IS NULL")
+      .getRawMany<{ documentId: string }>()
+
+    return new Set(rows.map((row) => row.documentId))
   }
 }

@@ -5,8 +5,10 @@ import type { ToolExecutionLog } from "./tool-execution-log"
 
 export function sourcesTool({
   onExecute,
+  resolvePublicDocumentIds,
 }: {
   onExecute: (toolExecution: ToolExecutionLog) => void
+  resolvePublicDocumentIds: (documentIds: string[]) => Promise<Set<string>>
 }) {
   return tool({
     description: "Retrieve sources from document chunks that you use to answer questions.",
@@ -24,10 +26,6 @@ export function sourcesTool({
             .describe(
               "The source type of the document, e.g. 'project' for an uploaded file or 'webCrawl' for a crawled web page (copy from retrieved chunks).",
             ),
-          isPublicDocument: z
-            .boolean()
-            .optional()
-            .describe("Whether the document is publicly accessible (copy from retrieved chunks)."),
           chunks: z
             .array(
               z.object({
@@ -50,7 +48,19 @@ export function sourcesTool({
       content: z.string().describe("The content of the system message."),
     }),
     execute: async (input, _options) => {
-      onExecute({ toolName: ToolName.Sources, arguments: input })
+      // Resolve the public status server-side from the document tags rather than
+      // trusting the LLM. This drives the download affordance in chat, so it must
+      // be authoritative.
+      const publicDocumentIds = await resolvePublicDocumentIds(
+        input.sources.map((source) => source.documentId),
+      )
+      const resolvedInput = {
+        sources: input.sources.map((source) => ({
+          ...source,
+          isPublicDocument: publicDocumentIds.has(source.documentId),
+        })),
+      }
+      onExecute({ toolName: ToolName.Sources, arguments: resolvedInput })
       return {
         role: "system",
         content:

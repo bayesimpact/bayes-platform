@@ -375,9 +375,10 @@ export class DocumentsController {
     return { data: { success: true } }
   }
 
-  // FIXME: create a dedicated endpoint for every sourceType and check ownership
-  // because we can show any doc with its id
-  @CheckPolicy((policy) => policy.canView())
+  // Admins/owners can download any document; regular members only documents
+  // tagged `public-documents` (see DocumentPolicy.canDownload). The document is
+  // loaded with its tags by DocumentContextResolver so the policy can enforce this.
+  @CheckPolicy((policy) => policy.canDownload())
   @AddContext("document")
   @Get(DocumentsRoutes.getTemporaryUrl.path)
   @HttpCode(HttpStatus.CREATED)

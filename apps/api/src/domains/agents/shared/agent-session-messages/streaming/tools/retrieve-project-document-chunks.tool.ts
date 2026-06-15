@@ -36,7 +36,6 @@ const retrievedChunkSchema = z.object({
   distance: z.number(),
   modelName: z.string(),
   isParentChunk: z.boolean(),
-  isPublicDocument: z.boolean(),
 })
 
 export type RetrieveProjectDocumentChunksExecution = {

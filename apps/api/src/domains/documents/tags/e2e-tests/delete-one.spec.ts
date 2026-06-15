@@ -1,4 +1,4 @@
-import { DocumentTagsRoutes } from "@caseai-connect/api-contracts"
+import { DocumentTagsRoutes, PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -96,5 +96,23 @@ describe("DocumentTags - deleteOne", () => {
     const response = await subject()
 
     expectResponse(response, 404)
+  })
+
+  it("should reject deleting the public-documents tag", async () => {
+    const { organization, project } = await createContext()
+
+    const documentTagRepository = setup.getRepository(DocumentTag)
+    const publicDocumentsTag = documentTagFactory
+      .transient({ organization, project })
+      .build({ name: PUBLIC_DOCUMENTS_TAG_NAME })
+    await documentTagRepository.save(publicDocumentsTag)
+    documentTagId = publicDocumentsTag.id
+
+    const response = await subject()
+
+    expectResponse(response, 400, `Tag "${PUBLIC_DOCUMENTS_TAG_NAME}" cannot be deleted.`)
+
+    const stillExists = await documentTagRepository.findOne({ where: { id: documentTagId } })
+    expect(stillExists).not.toBeNull()
   })
 })

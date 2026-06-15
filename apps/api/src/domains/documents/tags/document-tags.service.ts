@@ -34,6 +34,13 @@ export class DocumentTagsService {
     return [...currentTags.filter((tag) => !tagsToRemoveSet.has(tag.id)), ...addedTags]
   }
 
+  // Match the reserved name case-insensitively so that variants like
+  // "Public-Documents" cannot be created and silently bypass the reservation
+  // (the retrieval query matches the exact lowercase name).
+  private isReservedPublicDocumentsName(name: string | undefined): boolean {
+    return name?.trim().toLowerCase() === PUBLIC_DOCUMENTS_TAG_NAME
+  }
+
   private async assertParentIsNotPublicDocumentsTag(parentId: string | null | undefined) {
     if (!parentId) {
       return
@@ -51,7 +58,7 @@ export class DocumentTagsService {
     connectScope: RequiredConnectScope
     fields: Pick<DocumentTag, "name"> & Partial<Pick<DocumentTag, "description" | "parentId">>
   }): Promise<DocumentTag> {
-    if (fields.name === PUBLIC_DOCUMENTS_TAG_NAME) {
+    if (this.isReservedPublicDocumentsName(fields.name)) {
       throw new BadRequestException(`Tag name "${PUBLIC_DOCUMENTS_TAG_NAME}" is reserved.`)
     }
     await this.assertParentIsNotPublicDocumentsTag(fields.parentId)
@@ -108,7 +115,7 @@ export class DocumentTagsService {
       throw new BadRequestException(`Tag "${PUBLIC_DOCUMENTS_TAG_NAME}" cannot be edited.`)
     }
 
-    if (fieldsToUpdate.name === PUBLIC_DOCUMENTS_TAG_NAME) {
+    if (this.isReservedPublicDocumentsName(fieldsToUpdate.name)) {
       throw new BadRequestException(`Tag name "${PUBLIC_DOCUMENTS_TAG_NAME}" is reserved.`)
     }
 

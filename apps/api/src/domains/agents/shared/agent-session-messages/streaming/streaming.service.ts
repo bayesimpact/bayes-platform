@@ -24,6 +24,8 @@ import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agen
 import { FormAgentSessionsService } from "@/domains/agents/form-agent-sessions/form-agent-sessions.service"
 import { AgentSubAgentsService } from "@/domains/agents/sub-agents/agent-sub-agents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { DocumentsService } from "@/domains/documents/documents.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentChunkRetrievalService } from "@/domains/documents/embeddings/document-chunk-retrieval.service"
 import {
   FILE_STORAGE_SERVICE,
@@ -73,6 +75,7 @@ export class StreamingService extends ServiceWithLLM {
     @Inject(ProjectsService)
     private readonly projectsService: ProjectsService,
 
+    private readonly documentsService: DocumentsService,
     private readonly documentChunkRetrievalService: DocumentChunkRetrievalService,
     private readonly mcpClientService: McpClientService,
     private readonly mcpServersService: McpServersService,
@@ -735,7 +738,18 @@ export class StreamingService extends ServiceWithLLM {
               onExecute,
             }),
           }),
-      ...(hasSourcesTool ? { [ToolName.Sources]: sourcesTool({ onExecute }) } : {}),
+      ...(hasSourcesTool
+        ? {
+            [ToolName.Sources]: sourcesTool({
+              onExecute,
+              resolvePublicDocumentIds: (documentIds) =>
+                this.documentsService.getPublicDocumentIds({
+                  connectScope,
+                  documentIds,
+                }),
+            }),
+          }
+        : {}),
       ...(hasRecalculateConversationSessionMetadataTool
         ? {
             [ToolName.RecalculateConversationSessionMetadata]:

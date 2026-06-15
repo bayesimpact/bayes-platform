@@ -105,6 +105,18 @@ describe("DocumentTags - createOne", () => {
     expect(response.body.data.parentId).toBeUndefined()
   })
 
+  it("should reject creating a tag with the reserved name regardless of case", async () => {
+    await createContext()
+
+    const response = await subject({ payload: { name: "Public-Documents" } })
+
+    expectResponse(response, 400, `Tag name "${PUBLIC_DOCUMENTS_TAG_NAME}" is reserved.`)
+
+    const documentTagRepository = setup.getRepository(DocumentTag)
+    const count = await documentTagRepository.count({ where: { projectId } })
+    expect(count).toBe(0)
+  })
+
   it("should reject creating a tag whose parent is the public-documents tag", async () => {
     const { organization, project } = await createContext()
 

@@ -1,6 +1,7 @@
-import { DocumentsRoutes } from "@caseai-connect/api-contracts"
+import { DocumentsRoutes, PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
+import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import {
   type AllRepositories,
   clearTestDatabase,
@@ -8,6 +9,8 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
+import { documentTagFactory } from "@/domains/documents/tags/document-tag.factory"
 import { createOrganizationWithDocument } from "@/domains/organizations/organization.factory"
 import type { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
@@ -50,7 +53,13 @@ describe("Documents - getTemporaryUrl", () => {
     await app.close()
   })
 
-  const createContext = async (projectMembership?: Partial<ProjectMembership>) => {
+  const createContext = async ({
+    projectMembership,
+    isPublic = false,
+  }: {
+    projectMembership?: Partial<ProjectMembership>
+    isPublic?: boolean
+  } = {}) => {
     const { user, organization, project, document } = await createOrganizationWithDocument(
       repositories,
       {
@@ -65,6 +74,17 @@ describe("Documents - getTemporaryUrl", () => {
     documentId = document.id
     storagePath = document.storageRelativePath
     auth0Id = user.auth0Id
+
+    if (isPublic) {
+      const documentTagRepository = setup.getRepository(DocumentTag)
+      const publicDocumentsTag = documentTagFactory
+        .transient({ organization, project })
+        .build({ name: PUBLIC_DOCUMENTS_TAG_NAME })
+      await documentTagRepository.save(publicDocumentsTag)
+      document.tags = [publicDocumentsTag]
+      await repositories.documentRepository.save(document)
+    }
+
     return { organization, project, document }
   }
 
@@ -86,8 +106,8 @@ describe("Documents - getTemporaryUrl", () => {
     expect(typeof url).toBe("string")
     expect(url).toContain(storagePath)
   })
-  it("should return a temporary URL for a document for a simple member", async () => {
-    await createContext({ role: "member" })
+  it("should let a simple member download a public document", async () => {
+    await createContext({ projectMembership: { role: "member" }, isPublic: true })
 
     const response = await subject()
 
@@ -96,5 +116,13 @@ describe("Documents - getTemporaryUrl", () => {
     expect(url).toBeDefined()
     expect(typeof url).toBe("string")
     expect(url).toContain(storagePath)
+  })
+
+  it("should forbid a simple member from downloading a non-public document", async () => {
+    await createContext({ projectMembership: { role: "member" }, isPublic: false })
+
+    const response = await subject()
+
+    expectResponse(response, 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 })

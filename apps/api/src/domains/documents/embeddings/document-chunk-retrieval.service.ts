@@ -1,5 +1,4 @@
 import { createVertex } from "@ai-sdk/google-vertex"
-import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
 import { Injectable, Logger } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
 import { embed } from "ai"
@@ -97,7 +96,6 @@ export class DocumentChunkRetrievalService {
     return rows.map((row) => ({
       ...row,
       isParentChunk: Boolean(row.isParentChunk),
-      isPublicDocument: Boolean(row.isPublicDocument),
     }))
   }
 
@@ -128,17 +126,6 @@ export class DocumentChunkRetrievalService {
       .addSelect("embedding.model_name", "modelName")
       .addSelect("(embedding.embedding <=> :queryEmbedding::vector)", "distance")
       .addSelect("(parent.id IS NOT NULL)", "isParentChunk")
-      .addSelect(
-        `EXISTS (
-          SELECT 1
-          FROM document_document_tag ddt_pub
-          JOIN document_tag dt_pub ON ddt_pub.document_tag_id = dt_pub.id
-          WHERE ddt_pub.document_id = document.id
-            AND dt_pub.name = '${PUBLIC_DOCUMENTS_TAG_NAME}'
-            AND dt_pub.deleted_at IS NULL
-        )`,
-        "isPublicDocument",
-      )
       .distinctOn(["COALESCE(parent.id, chunk.id)"])
       .from("document_chunk_embedding", "embedding")
       .innerJoin("document_chunk", "chunk", "chunk.id = embedding.document_chunk_id")
