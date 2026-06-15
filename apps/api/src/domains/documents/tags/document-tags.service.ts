@@ -34,6 +34,16 @@ export class DocumentTagsService {
     return [...currentTags.filter((tag) => !tagsToRemoveSet.has(tag.id)), ...addedTags]
   }
 
+  private async assertParentIsNotPublicDocumentsTag(parentId: string | null | undefined) {
+    if (!parentId) {
+      return
+    }
+    const parentTag = await this.documentTagRepository.findOneBy({ id: parentId })
+    if (parentTag?.name === PUBLIC_DOCUMENTS_TAG_NAME) {
+      throw new BadRequestException(`Tag "${PUBLIC_DOCUMENTS_TAG_NAME}" cannot have children.`)
+    }
+  }
+
   async createDocumentTag({
     connectScope,
     fields,
@@ -44,6 +54,7 @@ export class DocumentTagsService {
     if (fields.name === PUBLIC_DOCUMENTS_TAG_NAME) {
       throw new BadRequestException(`Tag name "${PUBLIC_DOCUMENTS_TAG_NAME}" is reserved.`)
     }
+    await this.assertParentIsNotPublicDocumentsTag(fields.parentId)
     return await this.documentTagConnectRepository.createAndSave(connectScope, {
       name: fields.name,
       description: fields.description ?? null,
@@ -100,6 +111,8 @@ export class DocumentTagsService {
     if (fieldsToUpdate.name === PUBLIC_DOCUMENTS_TAG_NAME) {
       throw new BadRequestException(`Tag name "${PUBLIC_DOCUMENTS_TAG_NAME}" is reserved.`)
     }
+
+    await this.assertParentIsNotPublicDocumentsTag(fieldsToUpdate.parentId)
 
     Object.assign(documentTag, fieldsToUpdate)
 

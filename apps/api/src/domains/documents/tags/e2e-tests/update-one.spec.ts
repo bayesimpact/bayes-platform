@@ -1,4 +1,4 @@
-import { DocumentTagsRoutes } from "@caseai-connect/api-contracts"
+import { DocumentTagsRoutes, PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -97,5 +97,28 @@ describe("DocumentTags - updateOne", () => {
     expect(updated?.name).toBe("Updated Name")
     expect(updated?.description).toBe("Original description")
     await expectActivityCreated("documentTag.update")
+  })
+
+  it("should reject reparenting a tag under the public-documents tag", async () => {
+    const { organization, project, documentTag } = await createContext()
+
+    const documentTagRepository = setup.getRepository(DocumentTag)
+    const publicDocumentsTag = documentTagFactory
+      .transient({ organization, project })
+      .build({ name: PUBLIC_DOCUMENTS_TAG_NAME })
+    await documentTagRepository.save(publicDocumentsTag)
+
+    const response = await subject({
+      payload: {
+        name: documentTag.name,
+        description: documentTag.description ?? undefined,
+        parentId: publicDocumentsTag.id,
+      },
+    })
+
+    expectResponse(response, 400, `Tag "${PUBLIC_DOCUMENTS_TAG_NAME}" cannot have children.`)
+
+    const updated = await documentTagRepository.findOne({ where: { id: documentTagId } })
+    expect(updated?.parentId).toBeNull()
   })
 })

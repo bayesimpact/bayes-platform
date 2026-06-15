@@ -1,4 +1,4 @@
-import { DocumentTagsRoutes } from "@caseai-connect/api-contracts"
+import { DocumentTagsRoutes, PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -15,6 +15,7 @@ import { createOrganizationWithProject } from "@/domains/organizations/organizat
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { DocumentTag } from "../document-tag.entity"
+import { documentTagFactory } from "../document-tag.factory"
 import { DocumentTagsModule } from "../document-tags.module"
 
 describe("DocumentTags - createOne", () => {
@@ -102,5 +103,24 @@ describe("DocumentTags - createOne", () => {
     expect(response.body.data.name).toBe("Minimal Tag")
     expect(response.body.data.description).toBeUndefined()
     expect(response.body.data.parentId).toBeUndefined()
+  })
+
+  it("should reject creating a tag whose parent is the public-documents tag", async () => {
+    const { organization, project } = await createContext()
+
+    const documentTagRepository = setup.getRepository(DocumentTag)
+    const publicDocumentsTag = documentTagFactory
+      .transient({ organization, project })
+      .build({ name: PUBLIC_DOCUMENTS_TAG_NAME })
+    await documentTagRepository.save(publicDocumentsTag)
+
+    const response = await subject({
+      payload: { name: "Child Tag", parentId: publicDocumentsTag.id },
+    })
+
+    expectResponse(response, 400, `Tag "${PUBLIC_DOCUMENTS_TAG_NAME}" cannot have children.`)
+
+    const childCount = await documentTagRepository.count({ where: { name: "Child Tag" } })
+    expect(childCount).toBe(0)
   })
 })

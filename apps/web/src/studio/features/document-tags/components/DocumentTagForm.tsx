@@ -61,8 +61,12 @@ export function DocumentTagForm({
   })
 
   const availableParents = allTags.filter(
-    // Exclude the current tag and its descendants from the list of available parents to prevent circular references
-    (tag) => tag.id !== editableTag?.id && !editableTag?.childrenIds.includes(tag.id),
+    (tag) =>
+      // Exclude the current tag and its descendants from the list of available parents to prevent circular references
+      tag.id !== editableTag?.id &&
+      !editableTag?.childrenIds.includes(tag.id) &&
+      // The public-documents tag can never have children
+      tag.name !== PUBLIC_DOCUMENTS_TAG_NAME,
   )
 
   const handleFormSubmit = (data: DocumentTagFormData) => {
