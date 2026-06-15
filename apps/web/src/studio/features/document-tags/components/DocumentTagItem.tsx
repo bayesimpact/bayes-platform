@@ -1,3 +1,4 @@
+import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -52,7 +53,7 @@ export function DocumentTagItem({
             </BreadcrumbList>
           </Breadcrumb>
         </ItemTitle>
-        {!readonly && (
+        {!readonly && tag.name !== PUBLIC_DOCUMENTS_TAG_NAME && (
           <ItemActions>
             {allTags.value && <DocumentTagEditor allTags={allTags.value} tag={tag} />}
             <DocumentTagDeletor tag={tag} />

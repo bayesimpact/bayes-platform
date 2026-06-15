@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from "@nestjs/common"
+import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
@@ -33,6 +34,23 @@ export class DocumentTagsService {
     return [...currentTags.filter((tag) => !tagsToRemoveSet.has(tag.id)), ...addedTags]
   }
 
+  // Match the reserved name case-insensitively so that variants like
+  // "Public-Documents" cannot be created and silently bypass the reservation
+  // (the retrieval query matches the exact lowercase name).
+  private isReservedPublicDocumentsName(name: string | undefined): boolean {
+    return name?.trim().toLowerCase() === PUBLIC_DOCUMENTS_TAG_NAME
+  }
+
+  private async assertParentIsNotPublicDocumentsTag(parentId: string | null | undefined) {
+    if (!parentId) {
+      return
+    }
+    const parentTag = await this.documentTagRepository.findOneBy({ id: parentId })
+    if (parentTag?.name === PUBLIC_DOCUMENTS_TAG_NAME) {
+      throw new BadRequestException(`Tag "${PUBLIC_DOCUMENTS_TAG_NAME}" cannot have children.`)
+    }
+  }
+
   async createDocumentTag({
     connectScope,
     fields,
@@ -40,10 +58,22 @@ export class DocumentTagsService {
     connectScope: RequiredConnectScope
     fields: Pick<DocumentTag, "name"> & Partial<Pick<DocumentTag, "description" | "parentId">>
   }): Promise<DocumentTag> {
+    if (this.isReservedPublicDocumentsName(fields.name)) {
+      throw new BadRequestException(`Tag name "${PUBLIC_DOCUMENTS_TAG_NAME}" is reserved.`)
+    }
+    await this.assertParentIsNotPublicDocumentsTag(fields.parentId)
     return await this.documentTagConnectRepository.createAndSave(connectScope, {
       name: fields.name,
       description: fields.description ?? null,
       parentId: fields.parentId ?? null,
+    })
+  }
+
+  async createPublicDocumentsTag(connectScope: RequiredConnectScope): Promise<DocumentTag> {
+    return this.documentTagConnectRepository.createAndSave(connectScope, {
+      name: PUBLIC_DOCUMENTS_TAG_NAME,
+      description: null,
+      parentId: null,
     })
   }
 
@@ -81,6 +111,16 @@ export class DocumentTagsService {
       throw new NotFoundException(`DocumentTag with id ${documentTagId} not found`)
     }
 
+    if (documentTag.name === PUBLIC_DOCUMENTS_TAG_NAME) {
+      throw new BadRequestException(`Tag "${PUBLIC_DOCUMENTS_TAG_NAME}" cannot be edited.`)
+    }
+
+    if (this.isReservedPublicDocumentsName(fieldsToUpdate.name)) {
+      throw new BadRequestException(`Tag name "${PUBLIC_DOCUMENTS_TAG_NAME}" is reserved.`)
+    }
+
+    await this.assertParentIsNotPublicDocumentsTag(fieldsToUpdate.parentId)
+
     Object.assign(documentTag, fieldsToUpdate)
 
     return await this.documentTagConnectRepository.saveOne(documentTag)
@@ -100,6 +140,10 @@ export class DocumentTagsService {
 
     if (!documentTag) {
       throw new NotFoundException(`DocumentTag with id ${documentTagId} not found`)
+    }
+
+    if (documentTag.name === PUBLIC_DOCUMENTS_TAG_NAME) {
+      throw new BadRequestException(`Tag "${PUBLIC_DOCUMENTS_TAG_NAME}" cannot be deleted.`)
     }
 
     // Manually delete relations in join tables before deleting the tag itself to avoid foreign key constraint errors

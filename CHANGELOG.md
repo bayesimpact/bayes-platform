@@ -8,6 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- Sources tagged "public-documents" can be downloaded from the chat sources panel
 
 ### Changed
 

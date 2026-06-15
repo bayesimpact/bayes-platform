@@ -56,6 +56,11 @@ export interface IDocumentsSpi {
     projectId: string
     documentId: string
   }): Promise<{ url: string }>
+  getIsPublic(params: {
+    organizationId: string
+    projectId: string
+    documentId: string
+  }): Promise<{ isPublicDocument: boolean }>
   streamEmbeddingStatus(params: {
     organizationId: string
     projectId: string

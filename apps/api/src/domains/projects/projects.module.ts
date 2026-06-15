@@ -11,6 +11,7 @@ import { OrganizationsModule } from "@/domains/organizations/organizations.modul
 import { User } from "@/domains/users/user.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { AgentsModule } from "../agents/agents.module"
+import { DocumentTagsModule } from "../documents/tags/document-tags.module"
 import { FeatureFlag } from "../feature-flags/feature-flag.entity"
 import { InvitationsModule } from "../invitations/invitations.module"
 import { ProjectMembership } from "./memberships/project-membership.entity"
@@ -34,6 +35,7 @@ import { ProjectsService } from "./projects.service"
     OrganizationsModule,
     forwardRef(() => AgentsModule),
     forwardRef(() => InvitationsModule),
+    forwardRef(() => DocumentTagsModule),
     UsersModule,
     AuthModule,
   ],

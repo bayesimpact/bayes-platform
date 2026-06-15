@@ -1592,6 +1592,31 @@
   },
   {
     "type": "cycle",
+    "from": "src/domains/documents/tags/document-tags.module.ts",
+    "to": "src/domains/projects/projects.module.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/domains/projects/projects.module.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/documents/tags/document-tags.module.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
     "from": "src/domains/evaluations/evaluation.entity.ts",
     "to": "src/domains/evaluations/reports/evaluation-report.entity.ts",
     "rule": {
@@ -4453,6 +4478,15 @@
     "type": "dependency",
     "from": "src/domains/projects/memberships/project-memberships.service.ts",
     "to": "src/domains/agents/memberships/agent-memberships.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/projects/projects.service.ts",
+    "to": "src/domains/documents/tags/document-tags.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"

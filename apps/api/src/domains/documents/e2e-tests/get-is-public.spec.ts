@@ -1,7 +1,6 @@
 import { DocumentsRoutes, PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
-import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import {
   type AllRepositories,
   clearTestDatabase,
@@ -17,7 +16,7 @@ import { expectResponse, type Requester, testRequester } from "../../../../test/
 import { DocumentsModule } from "../documents.module"
 import { withDocumentAuthAndEmbeddingsMocks } from "../test-overrides"
 
-describe("Documents - getTemporaryUrl", () => {
+describe("Documents - getIsPublic", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
@@ -26,7 +25,6 @@ describe("Documents - getTemporaryUrl", () => {
   let organizationId: string
   let projectId: string
   let documentId: string
-  let storagePath: string
   let accessToken: string | undefined = "token"
   let auth0Id = "auth0|123"
 
@@ -62,17 +60,11 @@ describe("Documents - getTemporaryUrl", () => {
   } = {}) => {
     const { user, organization, project, document } = await createOrganizationWithDocument(
       repositories,
-      {
-        projectMembership,
-        document: {
-          storageRelativePath: "org-id/project-id/file-id.pdf",
-        },
-      },
+      { projectMembership },
     )
     organizationId = organization.id
     projectId = project.id
     documentId = document.id
-    storagePath = document.storageRelativePath
     auth0Id = user.auth0Id
 
     if (isPublic) {
@@ -90,39 +82,35 @@ describe("Documents - getTemporaryUrl", () => {
 
   const subject = async () =>
     request({
-      route: DocumentsRoutes.getTemporaryUrl,
+      route: DocumentsRoutes.getIsPublic,
       pathParams: removeNullish({ organizationId, projectId, documentId }),
       token: accessToken,
     })
 
-  it("should return a temporary URL for a document", async () => {
-    await createContext()
+  it("returns true when the document is tagged public-documents", async () => {
+    await createContext({ isPublic: true })
 
     const response = await subject()
 
-    expectResponse(response, 201)
-    const { url } = response.body.data
-    expect(url).toBeDefined()
-    expect(typeof url).toBe("string")
-    expect(url).toContain(storagePath)
+    expectResponse(response, 200)
+    expect(response.body.data.isPublicDocument).toBe(true)
   })
-  it("should let a simple member download a public document", async () => {
+
+  it("returns false when the document is not tagged public-documents", async () => {
+    await createContext({ isPublic: false })
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(response.body.data.isPublicDocument).toBe(false)
+  })
+
+  it("lets a simple member check a document's public status", async () => {
     await createContext({ projectMembership: { role: "member" }, isPublic: true })
 
     const response = await subject()
 
-    expectResponse(response, 201)
-    const { url } = response.body.data
-    expect(url).toBeDefined()
-    expect(typeof url).toBe("string")
-    expect(url).toContain(storagePath)
-  })
-
-  it("should forbid a simple member from downloading a non-public document", async () => {
-    await createContext({ projectMembership: { role: "member" }, isPublic: false })
-
-    const response = await subject()
-
-    expectResponse(response, 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    expectResponse(response, 200)
+    expect(response.body.data.isPublicDocument).toBe(true)
   })
 })

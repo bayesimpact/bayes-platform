@@ -45,6 +45,10 @@ export const DocumentsRoutes = {
     method: "get",
     path: "organizations/:organizationId/projects/:projectId/documents/:documentId/temporary-url",
   }),
+  getIsPublic: defineRoute<ResponseData<{ isPublicDocument: boolean }>>({
+    method: "get",
+    path: "organizations/:organizationId/projects/:projectId/documents/:documentId/is-public",
+  }),
   updateOne: defineRoute<
     ResponseData<SuccessResponseDTO>,
     RequestPayload<Partial<Pick<DocumentDto, "title">> & DocumentTagsUpdateFieldsDto>

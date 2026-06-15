@@ -57,6 +57,7 @@ import type { Document } from "./document.entity"
 import { DocumentsGuard } from "./documents.guard"
 import {
   extractFileExtension,
+  isPublicDocument,
   normalizeUploadedFileName,
   parseMultipartTagIdsField,
 } from "./documents.helpers"
@@ -375,9 +376,10 @@ export class DocumentsController {
     return { data: { success: true } }
   }
 
-  // FIXME: create a dedicated endpoint for every sourceType and check ownership
-  // because we can show any doc with its id
-  @CheckPolicy((policy) => policy.canView())
+  // Admins/owners can download any document; regular members only documents
+  // tagged `public-documents` (see DocumentPolicy.canDownload). The document is
+  // loaded with its tags by DocumentContextResolver so the policy can enforce this.
+  @CheckPolicy((policy) => policy.canDownload())
   @AddContext("document")
   @Get(DocumentsRoutes.getTemporaryUrl.path)
   @HttpCode(HttpStatus.CREATED)
@@ -391,6 +393,18 @@ export class DocumentsController {
       throw new NotFoundException("Temporary URL not found for the document.")
     }
     return { data: { url } }
+  }
+
+  // Reports whether a document is tagged `public-documents`. Drives the download
+  // affordance for chat sources without trusting a value copied by the LLM. Any
+  // project member can call it (canView) since it exposes only a boolean.
+  @CheckPolicy((policy) => policy.canView())
+  @AddContext("document")
+  @Get(DocumentsRoutes.getIsPublic.path)
+  async getIsPublic(
+    @Request() req: EndpointRequestWithDocument,
+  ): Promise<typeof DocumentsRoutes.getIsPublic.response> {
+    return { data: { isPublicDocument: isPublicDocument(req.document) } }
   }
 
   @CheckPolicy((policy) => policy.canCreate())

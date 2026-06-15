@@ -1,3 +1,4 @@
+import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Command,
@@ -19,13 +20,17 @@ import { z } from "zod"
 import { generateId } from "@/common/utils/generate-id"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 
-const schema = z.object({
-  name: z.string().min(2),
-  description: z.string(),
-  parentId: z.string().nullable(),
-})
+const buildSchema = (reservedNameError: string) =>
+  z.object({
+    name: z
+      .string()
+      .min(2)
+      .refine((name) => name !== PUBLIC_DOCUMENTS_TAG_NAME, { message: reservedNameError }),
+    description: z.string(),
+    parentId: z.string().nullable(),
+  })
 
-type DocumentTagFormData = z.infer<typeof schema>
+type DocumentTagFormData = z.infer<ReturnType<typeof buildSchema>>
 
 export function DocumentTagForm({
   allTags,
@@ -39,6 +44,7 @@ export function DocumentTagForm({
   ) => Promise<void> | void
 }) {
   const { t } = useTranslation("documentTag")
+  const schema = buildSchema(t("props.validation.reservedName"))
   const [parentPickerOpen, setParentPickerOpen] = useState(false)
   const {
     register,
@@ -55,8 +61,12 @@ export function DocumentTagForm({
   })
 
   const availableParents = allTags.filter(
-    // Exclude the current tag and its descendants from the list of available parents to prevent circular references
-    (tag) => tag.id !== editableTag?.id && !editableTag?.childrenIds.includes(tag.id),
+    (tag) =>
+      // Exclude the current tag and its descendants from the list of available parents to prevent circular references
+      tag.id !== editableTag?.id &&
+      !editableTag?.childrenIds.includes(tag.id) &&
+      // The public-documents tag can never have children
+      tag.name !== PUBLIC_DOCUMENTS_TAG_NAME,
   )
 
   const handleFormSubmit = (data: DocumentTagFormData) => {

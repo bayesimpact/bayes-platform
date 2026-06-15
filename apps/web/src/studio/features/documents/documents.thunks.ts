@@ -144,6 +144,18 @@ export const getDocumentTemporaryUrl = createAsyncThunk<
   return await services.documents.getTemporaryUrl({ organizationId, projectId, documentId })
 })
 
+export const getDocumentIsPublic = createAsyncThunk<
+  { isPublicDocument: boolean },
+  { documentId: string },
+  ThunkConfig
+>("documents/getIsPublic", async ({ documentId }, { extra: { services }, getState }) => {
+  const state = getState()
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+
+  return await services.documents.getIsPublic({ organizationId, projectId, documentId })
+})
+
 export const crawlUrl = createAsyncThunk<
   { message: string },
   { url: string; name?: string },

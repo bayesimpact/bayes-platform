@@ -735,7 +735,11 @@ export class StreamingService extends ServiceWithLLM {
               onExecute,
             }),
           }),
-      ...(hasSourcesTool ? { [ToolName.Sources]: sourcesTool({ onExecute }) } : {}),
+      ...(hasSourcesTool
+        ? {
+            [ToolName.Sources]: sourcesTool({ onExecute }),
+          }
+        : {}),
       ...(hasRecalculateConversationSessionMetadataTool
         ? {
             [ToolName.RecalculateConversationSessionMetadata]:

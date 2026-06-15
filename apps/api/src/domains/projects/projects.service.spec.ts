@@ -1,3 +1,4 @@
+import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
 import {
   type AllRepositories,
   clearTestDatabase,
@@ -5,6 +6,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
+import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
 import {
   createOrganizationWithOwner,
   createOrganizationWithProject,
@@ -64,6 +66,23 @@ describe("ProjectsService", () => {
       })
       expect(savedProject).not.toBeNull()
       expect(savedProject?.name).toBe("New Project")
+    })
+
+    it("should seed the public-documents tag for the new project", async () => {
+      const { organization, user } = await createOrganizationWithOwner(repositories)
+
+      const result = await service.createProject({
+        organizationId: organization.id,
+        name: "New Project",
+        userId: user.id,
+      })
+
+      const documentTags = await setup.getRepository(DocumentTag).find({
+        where: { projectId: result.id },
+      })
+      expect(documentTags).toHaveLength(1)
+      expect(documentTags[0]?.name).toBe(PUBLIC_DOCUMENTS_TAG_NAME)
+      expect(documentTags[0]?.parentId).toBeNull()
     })
   })
 

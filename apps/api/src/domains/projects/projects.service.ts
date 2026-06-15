@@ -5,6 +5,8 @@ import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
 import { DataSource, type Repository } from "typeorm"
 import { ALL_ENTITIES } from "@/common/all-entities"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { DocumentTagsService } from "../documents/tags/document-tags.service"
 import { FeatureFlag } from "../feature-flags/feature-flag.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipsService } from "./memberships/project-memberships.service"
@@ -16,6 +18,7 @@ export class ProjectsService {
     @InjectRepository(Project) private readonly projectRepository: Repository<Project>,
     @InjectRepository(FeatureFlag) private readonly featureFlagRepository: Repository<FeatureFlag>,
     private readonly projectMembershipsService: ProjectMembershipsService,
+    private readonly documentTagsService: DocumentTagsService,
     @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
@@ -29,6 +32,10 @@ export class ProjectsService {
     await this.projectMembershipsService.createProjectOwnerMembership({
       projectId: project.id,
       userId: params.userId,
+    })
+    await this.documentTagsService.createPublicDocumentsTag({
+      organizationId: params.organizationId,
+      projectId: project.id,
     })
     return project
   }

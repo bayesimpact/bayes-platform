@@ -17,6 +17,10 @@ export class BasePolicy<T> {
     return false
   }
 
+  canDownload(): boolean {
+    return false
+  }
+
   canCreate(): boolean {
     return false
   }

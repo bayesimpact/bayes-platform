@@ -12,7 +12,8 @@
         "description": "Description facultative"
       },
       "validation": {
-        "nameRequired": "Le nom est requis"
+        "nameRequired": "Le nom est requis",
+        "reservedName": "\"public-documents\" est un nom d'étiquette réservé"
       }
     },
     "sheet": {
