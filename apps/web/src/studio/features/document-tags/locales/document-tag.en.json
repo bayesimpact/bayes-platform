@@ -12,7 +12,8 @@
         "description": "Optional description"
       },
       "validation": {
-        "nameRequired": "Name is required"
+        "nameRequired": "Name is required",
+        "reservedName": "\"public-documents\" is a reserved tag name"
       }
     },
     "sheet": {

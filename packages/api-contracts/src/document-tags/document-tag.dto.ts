@@ -1,6 +1,8 @@
 import { z } from "zod"
 import { type TimeType, timeTypeSchema } from "../generic"
 
+export const PUBLIC_DOCUMENTS_TAG_NAME = "public-documents"
+
 export const documentTagSchema = z.object({
   childrenIds: z.array(z.string()),
   createdAt: timeTypeSchema,

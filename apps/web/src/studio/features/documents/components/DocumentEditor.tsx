@@ -1,8 +1,11 @@
+import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -64,11 +67,28 @@ function EditorForm({ document, onSuccess }: { document: Document; onSuccess: ()
   const dispatch = useAppDispatch()
   const { t } = useTranslation()
   const { documentTags } = useDocumentTags()
+  const [pendingPublicTagId, setPendingPublicTagId] = useState<string | null>(null)
 
   const [editorState, dispatchEditor] = useReducer(editorReducer, {
     title: document.title,
     tagIds: document.tagIds,
   })
+
+  const handleAddTag = (tagId: string) => {
+    const tag = documentTags.find((t) => t.id === tagId)
+    if (tag?.name === PUBLIC_DOCUMENTS_TAG_NAME) {
+      setPendingPublicTagId(tagId)
+    } else {
+      dispatchEditor({ type: "ADD_TAG", tagId })
+    }
+  }
+
+  const handleConfirmPublicTag = () => {
+    if (pendingPublicTagId) {
+      dispatchEditor({ type: "ADD_TAG", tagId: pendingPublicTagId })
+    }
+    setPendingPublicTagId(null)
+  }
 
   const handleSave = () => {
     const originalTagIds = document.tagIds
@@ -84,48 +104,70 @@ function EditorForm({ document, onSuccess }: { document: Document; onSuccess: ()
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <FieldGroup>
-        <FieldSet>
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="doc-title">{t("document:props.title")}</FieldLabel>
-              <Input
-                id="doc-title"
-                value={editorState.title}
-                onChange={(e) => dispatchEditor({ type: "SET_TITLE", title: e.target.value })}
-              />
-            </Field>
-          </FieldGroup>
-        </FieldSet>
-      </FieldGroup>
+    <>
+      <div className="flex flex-col gap-4">
+        <FieldGroup>
+          <FieldSet>
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="doc-title">{t("document:props.title")}</FieldLabel>
+                <Input
+                  id="doc-title"
+                  value={editorState.title}
+                  onChange={(e) => dispatchEditor({ type: "SET_TITLE", title: e.target.value })}
+                />
+              </Field>
+            </FieldGroup>
+          </FieldSet>
+        </FieldGroup>
 
-      <div className="flex flex-col gap-2">
-        <FieldLabel>{t("document:props.tags")}</FieldLabel>
-        <div className="flex flex-wrap gap-2 items-center">
-          {editorState.tagIds.map((id) => (
-            <Badge key={id} variant="secondary" className="gap-1">
-              {getTagNameById(documentTags, id)}
-              <button
-                type="button"
-                onClick={() => dispatchEditor({ type: "REMOVE_TAG", tagId: id })}
-                className="opacity-60 hover:opacity-100"
-              >
-                <XIcon className="size-3" />
-              </button>
-            </Badge>
-          ))}
-          <DocumentTagPicker
-            documentTags={documentTags}
-            attachedTagIds={editorState.tagIds}
-            onAdd={(tagId) => dispatchEditor({ type: "ADD_TAG", tagId })}
-          />
+        <div className="flex flex-col gap-2">
+          <FieldLabel>{t("document:props.tags")}</FieldLabel>
+          <div className="flex flex-wrap gap-2 items-center">
+            {editorState.tagIds.map((id) => (
+              <Badge key={id} variant="secondary" className="gap-1">
+                {getTagNameById(documentTags, id)}
+                <button
+                  type="button"
+                  onClick={() => dispatchEditor({ type: "REMOVE_TAG", tagId: id })}
+                  className="opacity-60 hover:opacity-100"
+                >
+                  <XIcon className="size-3" />
+                </button>
+              </Badge>
+            ))}
+            <DocumentTagPicker
+              documentTags={documentTags}
+              attachedTagIds={editorState.tagIds}
+              onAdd={handleAddTag}
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <Button onClick={handleSave}>{t("actions:update")}</Button>
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <Button onClick={handleSave}>{t("actions:update")}</Button>
-      </div>
-    </div>
+      <Dialog
+        open={pendingPublicTagId !== null}
+        onOpenChange={(open) => !open && setPendingPublicTagId(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("document:publicTag.disclaimer.title")}</DialogTitle>
+            <DialogDescription>{t("document:publicTag.disclaimer.description")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingPublicTagId(null)}>
+              {t("actions:cancel")}
+            </Button>
+            <Button onClick={handleConfirmPublicTag}>
+              {t("document:publicTag.disclaimer.confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

@@ -51,6 +51,14 @@
     "reprocess": {
       "cta": "Reprocess"
     },
+    "download": "Download",
+    "publicTag": {
+      "disclaimer": {
+        "title": "Make document publicly accessible?",
+        "description": "This document will be visible and downloadable by all users in this project's chat. Remove the tag at any time to revoke access.",
+        "confirm": "Make public"
+      }
+    },
     "list": {
       "description": "Enhance your agents' knowledge and capabilities by adding documents.",
       "empty": {

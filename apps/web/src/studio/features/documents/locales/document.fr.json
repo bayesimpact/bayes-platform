@@ -51,6 +51,14 @@
     "reprocess": {
       "cta": "Relancer le traitement"
     },
+    "download": "Télécharger",
+    "publicTag": {
+      "disclaimer": {
+        "title": "Rendre le document accessible publiquement ?",
+        "description": "Ce document sera visible et téléchargeable par tous les utilisateurs du chat de ce projet. Supprimez le tag à tout moment pour révoquer l'accès.",
+        "confirm": "Rendre public"
+      }
+    },
     "list": {
       "description": "Améliorez les connaissances et les capacités de vos agents en ajoutant des documents.",
       "empty": {

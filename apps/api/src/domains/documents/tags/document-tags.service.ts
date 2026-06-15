@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from "@nestjs/common"
+import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
@@ -40,10 +41,21 @@ export class DocumentTagsService {
     connectScope: RequiredConnectScope
     fields: Pick<DocumentTag, "name"> & Partial<Pick<DocumentTag, "description" | "parentId">>
   }): Promise<DocumentTag> {
+    if (fields.name === PUBLIC_DOCUMENTS_TAG_NAME) {
+      throw new BadRequestException(`Tag name "${PUBLIC_DOCUMENTS_TAG_NAME}" is reserved.`)
+    }
     return await this.documentTagConnectRepository.createAndSave(connectScope, {
       name: fields.name,
       description: fields.description ?? null,
       parentId: fields.parentId ?? null,
+    })
+  }
+
+  async createPublicDocumentsTag(connectScope: RequiredConnectScope): Promise<DocumentTag> {
+    return this.documentTagConnectRepository.createAndSave(connectScope, {
+      name: PUBLIC_DOCUMENTS_TAG_NAME,
+      description: null,
+      parentId: null,
     })
   }
 
@@ -79,6 +91,10 @@ export class DocumentTagsService {
 
     if (!documentTag) {
       throw new NotFoundException(`DocumentTag with id ${documentTagId} not found`)
+    }
+
+    if (fieldsToUpdate.name === PUBLIC_DOCUMENTS_TAG_NAME) {
+      throw new BadRequestException(`Tag name "${PUBLIC_DOCUMENTS_TAG_NAME}" is reserved.`)
     }
 
     Object.assign(documentTag, fieldsToUpdate)

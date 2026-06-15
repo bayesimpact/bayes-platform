@@ -24,6 +24,10 @@ export function sourcesTool({
             .describe(
               "The source type of the document, e.g. 'project' for an uploaded file or 'webCrawl' for a crawled web page (copy from retrieved chunks).",
             ),
+          isPublicDocument: z
+            .boolean()
+            .optional()
+            .describe("Whether the document is publicly accessible (copy from retrieved chunks)."),
           chunks: z
             .array(
               z.object({
