@@ -22,6 +22,7 @@ import {
   DatabaseZapIcon,
   FileIcon,
   GlobeIcon,
+  LibraryBigIcon,
   ListChecksIcon,
   Loader2Icon,
   MegaphoneIcon,
@@ -151,6 +152,7 @@ function NavSources({ organizationId, projectId }: { organizationId: string; pro
             <RestrictedFeature feature="web-sources">
               <NavWebSources organizationId={organizationId} projectId={projectId} />
             </RestrictedFeature>
+            <NavResourceLibraries organizationId={organizationId} projectId={projectId} />
           </SidebarMenuSub>
         </CollapsibleContent>
       </SidebarMenuItem>
@@ -199,6 +201,32 @@ function NavWebSources({
         <Link to={path}>
           <GlobeIcon />
           <span>{t("document:filter.webSources")}</span>
+        </Link>
+      </SidebarMenuSubButton>
+    </SidebarMenuSubItem>
+  )
+}
+
+function NavResourceLibraries({
+  organizationId,
+  projectId,
+}: {
+  organizationId: string
+  projectId: string
+}) {
+  const { t } = useTranslation()
+  const { isRoute } = useIsRoute()
+  const isActive =
+    isRoute(StudioRoutes.resourceLibraries.path) ||
+    isRoute(StudioRoutes.resourceLibrary.path) ||
+    isRoute(StudioRoutes.resourceLibraryNew.path)
+  const path = StudioRoutes.resourceLibraries.build({ organizationId, projectId })
+  return (
+    <SidebarMenuSubItem>
+      <SidebarMenuSubButton isActive={isActive} asChild>
+        <Link to={path}>
+          <LibraryBigIcon />
+          <span>{t("resourceLibrary:title")}</span>
         </Link>
       </SidebarMenuSubButton>
     </SidebarMenuSubItem>

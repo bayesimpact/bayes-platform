@@ -22,6 +22,8 @@ ${Object.entries(agent.outputJsonSchema?.properties ?? {})
   )
   .join("\n")}
 
+${promptHelpers.resourceLibraries(agent.resourceLibraries ?? [])}
+
 ${promptHelpers.tools(toolNames, toolDescriptions)}
 
 ${promptHelpers.language(agent.locale)}`

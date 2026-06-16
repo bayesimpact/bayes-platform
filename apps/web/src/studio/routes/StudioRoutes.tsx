@@ -31,6 +31,11 @@ import { StudioRoutes } from "./helpers"
 import { ProjectAnalyticsRoute } from "./ProjectAnalyticsRoute"
 import { ProjectMembershipRoute } from "./ProjectMembershipRoute"
 import { ProjectMembershipsRoute } from "./ProjectMembershipsRoute"
+import { ResourceCreatorRoute } from "./ResourceCreatorRoute"
+import { ResourceEditorRoute } from "./ResourceEditorRoute"
+import { ResourceLibrariesRoute } from "./ResourceLibrariesRoute"
+import { ResourceLibraryCreatorRoute } from "./ResourceLibraryCreatorRoute"
+import { ResourceLibraryEditorRoute } from "./ResourceLibraryEditorRoute"
 import { RestrictedAccess } from "./RestrictedAccess"
 import { ReviewCampaignReportRoute } from "./ReviewCampaignReportRoute"
 import { StudioAgentSessionRoute } from "./StudioAgentSessionRoute"
@@ -79,6 +84,30 @@ export const studioRoutes = {
               <WebSourcesDocumentsRoute />
             </RestrictedFeature>
           ),
+        },
+        {
+          path: StudioRoutes.resourceLibraries.path,
+          element: <ResourceLibrariesRoute />,
+          children: [
+            {
+              path: StudioRoutes.resourceLibraryNew.path,
+              element: <ResourceLibraryCreatorRoute />,
+            },
+            {
+              path: StudioRoutes.resourceLibrary.path,
+              element: <ResourceLibraryEditorRoute />,
+              children: [
+                {
+                  path: StudioRoutes.resourceNew.path,
+                  element: <ResourceCreatorRoute />,
+                },
+                {
+                  path: StudioRoutes.resource.path,
+                  element: <ResourceEditorRoute />,
+                },
+              ],
+            },
+          ],
         },
         {
           path: StudioRoutes.projectAnalytics.path,

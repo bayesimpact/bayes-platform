@@ -83,6 +83,9 @@ export { ProjectsRoutes } from "./projects/projects.routes"
 // Public Chat (anonymous embed access)
 export type * from "./public-chat/public-chat.dto"
 export { PublicChatRoutes } from "./public-chat/public-chat.routes"
+// Resource Libraries
+export * from "./resource-libraries/resource-library.dto"
+export { ResourceLibrariesRoutes } from "./resource-libraries/resource-library.routes"
 // Review Campaigns
 export type * from "./review-campaigns/review-campaigns.dto"
 export { ReviewCampaignsRoutes } from "./review-campaigns/review-campaigns.routes"

@@ -14,6 +14,7 @@ import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entit
 import type { DocumentTag } from "../documents/tags/document-tag.entity"
 import { EvaluationReport } from "../evaluations/reports/evaluation-report.entity"
 import { AgentMcpServer } from "../mcp-servers/agent-mcp-server.entity"
+import { ResourceLibrary } from "../resource-libraries/resource-library.entity"
 import { ExtractionAgentSession } from "./extraction-agent-sessions/extraction-agent-session.entity"
 import { AgentMembership } from "./memberships/agent-membership.entity"
 
@@ -116,4 +117,15 @@ export class Agent extends ConnectEntityBase {
 
   @OneToMany("AgentSubAgent", (agentSubAgent: AgentSubAgentRelation) => agentSubAgent.childAgent)
   parentSubAgents!: AgentSubAgentRelation[]
+
+  @ManyToMany(
+    () => ResourceLibrary,
+    (resourceLibrary) => resourceLibrary.agents,
+  )
+  @JoinTable({
+    name: "agent_resource_library",
+    joinColumn: { name: "agent_id", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "resource_library_id", referencedColumnName: "id" },
+  })
+  resourceLibraries!: ResourceLibrary[]
 }

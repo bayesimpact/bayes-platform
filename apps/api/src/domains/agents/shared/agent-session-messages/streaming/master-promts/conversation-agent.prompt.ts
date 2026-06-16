@@ -17,6 +17,8 @@ You are **${agent.name}**, a conversational AI assistant.
 
 ${agent.defaultPrompt}
 
+${promptHelpers.resourceLibraries(agent.resourceLibraries ?? [])}
+
 ${promptHelpers.tools(toolNames, toolDescriptions)}
 
 ${promptHelpers.language(agent.locale)}`

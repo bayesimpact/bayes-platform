@@ -23,6 +23,7 @@ import evaluationReports from "@/studio/features/evaluation-reports/external/eva
 import evaluations from "@/studio/features/evaluations/external/evaluations.api"
 import invitations from "@/studio/features/invitations/external/invitations.api"
 import projectMemberships from "@/studio/features/project-memberships/external/project-memberships.api"
+import resourceLibraries from "@/studio/features/resource-libraries/external/resource-libraries.api"
 import reviewCampaigns from "@/studio/features/review-campaigns/external/review-campaigns.api"
 import reviewCampaignsReports from "@/studio/features/review-campaigns/reports/external/reports.api"
 import reviewCampaignsTester from "@/tester/features/review-campaigns/external/tester.api"
@@ -52,6 +53,7 @@ export const services = {
   projectAnalytics,
   projectMemberships,
   projects,
+  resourceLibraries,
   reviewCampaigns,
   reviewCampaignsReports,
   reviewCampaignsReviewer,

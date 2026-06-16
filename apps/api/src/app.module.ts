@@ -28,6 +28,7 @@ import { OrganizationsModule } from "./domains/organizations/organizations.modul
 import { ProjectsModule } from "./domains/projects/projects.module"
 import { AgentEmbedConfigsManagementModule } from "./domains/public-chat/agent-embed-configs/agent-embed-configs-management.module"
 import { PublicChatModule } from "./domains/public-chat/public-chat.module"
+import { ResourceLibrariesModule } from "./domains/resource-libraries/resource-libraries.module"
 import { ReviewCampaignsModule } from "./domains/review-campaigns/review-campaigns.module"
 import { TermsComplianceModule } from "./domains/terms-compliance/terms-compliance.module"
 import { UsersModule } from "./domains/users/users.module"
@@ -69,6 +70,7 @@ import { UsersModule } from "./domains/users/users.module"
     ProjectsModule,
     ProjectsModule,
     PublicChatModule,
+    ResourceLibrariesModule,
     ReviewCampaignsModule,
     StorageModule,
     StreamingModule,

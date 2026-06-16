@@ -8,6 +8,9 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentTagsService } from "../documents/tags/document-tags.service"
 import type { DocumentTagsUpdateFields } from "../documents/tags/document-tags.types"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ResourceLibrariesService } from "../resource-libraries/resource-libraries.service"
+import type { ResourceLibrary } from "../resource-libraries/resource-library.entity"
 import { Agent } from "./agent.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "./memberships/agent-memberships.service"
@@ -17,6 +20,10 @@ import { ProjectAgentSessionCategory } from "./session-categories/project-agent-
 
 type AgentProjectCategoriesUpdateFields = {
   projectAgentSessionCategoryIds?: string[]
+}
+
+type AgentResourceLibrariesUpdateFields = {
+  resourceLibraryIds?: string[]
 }
 
 @Injectable()
@@ -29,6 +36,7 @@ export class AgentsService {
     @InjectRepository(ProjectAgentSessionCategory)
     private readonly projectAgentSessionCategoryRepository: Repository<ProjectAgentSessionCategory>,
     private readonly documentTagsService: DocumentTagsService,
+    private readonly resourceLibrariesService: ResourceLibrariesService,
     private readonly agentSessionCategoriesService: AgentSessionCategoriesService,
     private readonly agentMembershipsService: AgentMembershipsService,
     @InjectDataSource() private readonly dataSource: DataSource,
@@ -53,7 +61,8 @@ export class AgentsService {
       > &
       Partial<Pick<Agent, "outputJsonSchema" | "greetingMessage">> &
       DocumentTagsUpdateFields &
-      AgentProjectCategoriesUpdateFields
+      AgentProjectCategoriesUpdateFields &
+      AgentResourceLibrariesUpdateFields
   }): Promise<Agent> {
     this.validateAgentName(fields.name)
 
@@ -62,10 +71,15 @@ export class AgentsService {
 
     const greetingMessage = normalizeGreetingMessage(fields.greetingMessage)
 
-    const { tagsToAdd, projectAgentSessionCategoryIds, ...agentFields } = fields
+    const { tagsToAdd, projectAgentSessionCategoryIds, resourceLibraryIds, ...agentFields } = fields
     const documentTags = await this.resolveDocumentTags({
       currentTags: [],
       tagsToAdd,
+    })
+    const resourceLibraries = await this.resolveResourceLibraries({
+      connectScope,
+      resourceLibraryIds,
+      agentType: fields.type,
     })
 
     // Create the agent with defaults
@@ -75,6 +89,7 @@ export class AgentsService {
       outputJsonSchema,
       greetingMessage,
       documentTags,
+      resourceLibraries,
     })
 
     if (projectAgentSessionCategoryIds !== undefined) {
@@ -120,6 +135,7 @@ export class AgentsService {
         where: { agentMemberships: { userId } },
         relations: {
           documentTags: true,
+          resourceLibraries: true,
           sessionCategories: { conversationSessionCategories: true },
         },
       })
@@ -167,7 +183,8 @@ export class AgentsService {
         >
       > &
       DocumentTagsUpdateFields &
-      AgentProjectCategoriesUpdateFields
+      AgentProjectCategoriesUpdateFields &
+      AgentResourceLibrariesUpdateFields
   }): Promise<Agent> {
     const { name, defaultPrompt, documentsRagMode, model, temperature, locale, type } =
       fieldsToUpdate
@@ -178,10 +195,15 @@ export class AgentsService {
       documentsRagMode !== undefined ||
       fieldsToUpdate.tagsToAdd !== undefined ||
       fieldsToUpdate.tagsToRemove !== undefined
+    const needsResourceLibraries = fieldsToUpdate.resourceLibraryIds !== undefined
+    const relationsToLoad = [
+      ...(needsTags ? ["documentTags"] : []),
+      ...(needsResourceLibraries ? ["resourceLibraries"] : []),
+    ]
     const agent = await this.agentConnectRepository.getOneById(
       connectScope,
       agentId,
-      needsTags ? { relations: ["documentTags"] } : undefined,
+      relationsToLoad.length > 0 ? { relations: relationsToLoad } : undefined,
     )
 
     if (!agent) {
@@ -204,6 +226,14 @@ export class AgentsService {
         currentTags: agent.documentTags ?? [],
         tagsToAdd: fieldsToUpdate.tagsToAdd,
         tagsToRemove: fieldsToUpdate.tagsToRemove,
+      })
+    }
+
+    if (needsResourceLibraries) {
+      agent.resourceLibraries = await this.resolveResourceLibraries({
+        connectScope,
+        resourceLibraryIds: fieldsToUpdate.resourceLibraryIds,
+        agentType: nextType,
       })
     }
 
@@ -295,6 +325,36 @@ export class AgentsService {
       tagsToAdd,
       tagsToRemove,
     })
+  }
+
+  private async resolveResourceLibraries({
+    connectScope,
+    resourceLibraryIds,
+    agentType,
+  }: {
+    connectScope: RequiredConnectScope
+    resourceLibraryIds?: string[]
+    agentType: Agent["type"]
+  }): Promise<ResourceLibrary[]> {
+    if (!resourceLibraryIds || resourceLibraryIds.length === 0) return []
+
+    if (agentType !== "conversation" && agentType !== "form") {
+      throw new UnprocessableEntityException(
+        "Resource libraries can only be attached to conversation or form agents",
+      )
+    }
+
+    const uniqueIds = [...new Set(resourceLibraryIds)]
+    const resourceLibraries = await this.resourceLibrariesService.findResourceLibrariesByIds({
+      connectScope,
+      ids: uniqueIds,
+    })
+
+    if (resourceLibraries.length !== uniqueIds.length) {
+      throw new UnprocessableEntityException("One or more resource libraries do not exist")
+    }
+
+    return resourceLibraries
   }
 
   private async resolveProjectAgentSessionCategories({

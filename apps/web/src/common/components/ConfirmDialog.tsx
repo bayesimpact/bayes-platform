@@ -39,7 +39,7 @@ export function ConfirmDialog({
             {t("actions:cancel")}
           </Button>
           <Button type="button" variant="destructive" onClick={onConfirm}>
-            {confirmLabel ?? t("actions:remove")}
+            {confirmLabel ?? t("actions:delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

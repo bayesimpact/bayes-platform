@@ -16,6 +16,7 @@ import { AgentEmbedTab } from "@/studio/features/agent-embed-configs/components/
 import { AgentGeneralTab } from "./AgentGeneralTab"
 import { AgentModelTab } from "./AgentModelTab"
 import { AgentOutputTab } from "./AgentOutputTab"
+import { AgentResourceLibrariesTab } from "./AgentResourceLibrariesTab"
 import { AgentSessionCategoriesTab } from "./AgentSessionCategoriesTab"
 import { AgentSourcesTab } from "./AgentSourcesTab"
 import { type AgentSubAgentFormValue, AgentSubAgentsTab } from "./AgentSubAgentsTab"
@@ -28,6 +29,7 @@ type ActiveTab =
   | "model"
   | "output"
   | "sources"
+  | "resourceLibraries"
   | "categories"
   | "orchestration"
   | "embed"
@@ -55,6 +57,7 @@ export function BaseAgentForm({
 
   const hasOutputJsonSchema = agentType !== "conversation"
   const hasSources = agentType === "conversation"
+  const hasResourceLibraries = agentType === "conversation" || agentType === "form"
   const hasAgentSessionCategories =
     agentType === "conversation" && project.agentSessionCategories.length > 0
 
@@ -133,6 +136,9 @@ export function BaseAgentForm({
                   </TabsTrigger>
                 )}
                 {hasSources && <TabsTrigger value="sources">{t("agent:tabs.sources")}</TabsTrigger>}
+                {hasResourceLibraries && (
+                  <TabsTrigger value="resourceLibraries">Resources</TabsTrigger>
+                )}
                 {hasAgentSessionCategories && (
                   <TabsTrigger value="categories">{t("agent:tabs.categories")}</TabsTrigger>
                 )}
@@ -159,6 +165,12 @@ export function BaseAgentForm({
               {hasSources && (
                 <TabsContent value="sources">
                   <AgentSourcesTab />
+                </TabsContent>
+              )}
+
+              {hasResourceLibraries && (
+                <TabsContent value="resourceLibraries">
+                  <AgentResourceLibrariesTab />
                 </TabsContent>
               )}
 
