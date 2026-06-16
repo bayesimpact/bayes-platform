@@ -1,8 +1,6 @@
 import type {
-  AgentMembershipRoleDto,
   BackofficeOrganizationDto,
   BackofficeProjectDto,
-  BackofficeUserAgentMembershipDto,
   BackofficeUserDto,
   BackofficeUserOrganizationMembershipDto,
   BackofficeUserProjectMembershipDto,
@@ -43,12 +41,6 @@ export type BackofficeUserProjectMembership = {
   role: ProjectMembershipRoleDto
 }
 
-export type BackofficeUserAgentMembership = {
-  agentId: string
-  agentName: string
-  role: AgentMembershipRoleDto
-}
-
 export type BackofficeUser = {
   id: string
   email: string
@@ -56,7 +48,6 @@ export type BackofficeUser = {
   createdAt: TimeType
   organizationMemberships: BackofficeUserOrganizationMembership[]
   projectMemberships: BackofficeUserProjectMembership[]
-  agentMemberships: BackofficeUserAgentMembership[]
 }
 
 export const toBackofficeProject = (dto: BackofficeProjectDto): BackofficeProject => ({
@@ -109,14 +100,6 @@ const toBackofficeUserProjectMembership = (
   role: dto.role,
 })
 
-const toBackofficeUserAgentMembership = (
-  dto: BackofficeUserAgentMembershipDto,
-): BackofficeUserAgentMembership => ({
-  agentId: dto.agentId,
-  agentName: dto.agentName,
-  role: dto.role,
-})
-
 export const toBackofficeUser = (dto: BackofficeUserDto): BackofficeUser => ({
   id: dto.id,
   email: dto.email,
@@ -124,7 +107,6 @@ export const toBackofficeUser = (dto: BackofficeUserDto): BackofficeUser => ({
   createdAt: dto.createdAt,
   organizationMemberships: dto.organizationMemberships.map(toBackofficeUserOrganizationMembership),
   projectMemberships: dto.projectMemberships.map(toBackofficeUserProjectMembership),
-  agentMemberships: dto.agentMemberships.map(toBackofficeUserAgentMembership),
 })
 
 export type PaginatedBackofficeUsers = {

@@ -61,10 +61,5 @@ export function toBackofficeUserDto(user: User): BackofficeUserDto {
       projectName: membership.project?.name ?? "",
       role: membership.role,
     })),
-    agentMemberships: (user.agentMemberships ?? []).map((membership) => ({
-      agentId: membership.agentId,
-      agentName: membership.agent?.name ?? "",
-      role: membership.role,
-    })),
   }
 }

@@ -5,7 +5,6 @@ import type {
   BackofficeOrganization,
   BackofficeProject,
   BackofficeUser,
-  BackofficeUserAgentMembership,
   BackofficeUserOrganizationMembership,
   BackofficeUserProjectMembership,
   PaginatedBackofficeOrganizations,
@@ -99,24 +98,6 @@ export const backofficeUserProjectMembershipFactory = BackofficeUserProjectMembe
   },
 )
 
-type AgentMembershipTransientParams = {
-  agentId?: string
-  agentName?: string
-}
-
-class BackofficeUserAgentMembershipFactory extends Factory<
-  BackofficeUserAgentMembership,
-  AgentMembershipTransientParams
-> {}
-
-export const backofficeUserAgentMembershipFactory = BackofficeUserAgentMembershipFactory.define(
-  ({ params, transientParams }) => ({
-    agentId: params.agentId ?? transientParams.agentId ?? faker.string.uuid(),
-    agentName: params.agentName ?? transientParams.agentName ?? faker.commerce.productName(),
-    role: params.role ?? "member",
-  }),
-)
-
 class BackofficeUserFactory extends Factory<BackofficeUser> {}
 
 export const backofficeUserFactory = BackofficeUserFactory.define(({ params }) => {
@@ -129,7 +110,6 @@ export const backofficeUserFactory = BackofficeUserFactory.define(({ params }) =
     createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
     organizationMemberships: params.organizationMemberships ?? [],
     projectMemberships: params.projectMemberships ?? [],
-    agentMemberships: params.agentMemberships ?? [],
   }
 })
 

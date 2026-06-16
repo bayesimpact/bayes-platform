@@ -1,4 +1,3 @@
-import type { AgentMembershipRoleDto } from "../agent-membership/agent-membership.dto"
 import type { FeatureFlagsDto } from "../feature-flags/feature-flags.dto"
 import type { TimeType } from "../generic"
 import type { OrganizationMembershipRoleDto } from "../organizations/organizations.dto"
@@ -39,12 +38,6 @@ export type BackofficeUserProjectMembershipDto = {
   role: ProjectMembershipRoleDto
 }
 
-export type BackofficeUserAgentMembershipDto = {
-  agentId: string
-  agentName: string
-  role: AgentMembershipRoleDto
-}
-
 export type BackofficeUserDto = {
   id: string
   email: string
@@ -52,7 +45,6 @@ export type BackofficeUserDto = {
   createdAt: TimeType
   organizationMemberships: BackofficeUserOrganizationMembershipDto[]
   projectMemberships: BackofficeUserProjectMembershipDto[]
-  agentMemberships: BackofficeUserAgentMembershipDto[]
 }
 
 export type PaginatedBackofficeUsersDto = {

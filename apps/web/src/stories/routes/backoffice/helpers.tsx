@@ -1,7 +1,6 @@
 import {
   backofficeOrganizationFactory,
   backofficeProjectFactory,
-  backofficeUserAgentMembershipFactory,
   backofficeUserFactory,
   backofficeUserOrganizationMembershipFactory,
   backofficeUserProjectMembershipFactory,
@@ -113,11 +112,9 @@ function buildUsersPage(organizations: BackofficeOrganization[]): PaginatedBacko
     const projectMemberships = project
       ? [backofficeUserProjectMembershipFactory.transient({ project }).build()]
       : []
-    const agentMemberships = [backofficeUserAgentMembershipFactory.build()]
     return backofficeUserFactory.build({
       organizationMemberships,
       projectMemberships,
-      agentMemberships,
     })
   })
   return paginatedBackofficeUsersFactory.build({ users, total, page: 0, limit: pageSize })

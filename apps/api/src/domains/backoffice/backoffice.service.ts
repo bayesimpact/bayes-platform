@@ -261,16 +261,15 @@ export class BackofficeService {
       relations: {
         memberships: { organization: true },
         projectMemberships: { project: true },
-        agentMemberships: { agent: true },
       },
     })
 
-    const usersById = new Map(usersWithRelations.map((listedUser) => [listedUser.id, listedUser]))
-    const users = paginatedIds
+    const usersById = new Map(usersWithRelations.map((user) => [user.id, user]))
+    const orderedUsers = paginatedIds
       .map((id) => usersById.get(id))
-      .filter((listedUser): listedUser is User => listedUser !== undefined)
+      .filter((user): user is User => user !== undefined)
 
-    return { users, total }
+    return { users: orderedUsers, total }
   }
 
   private async findVisibleUserIdsForAdmin(userId: string): Promise<Set<string>> {

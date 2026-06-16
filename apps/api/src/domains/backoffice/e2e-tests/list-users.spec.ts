@@ -70,8 +70,8 @@ describe("Backoffice - list users", () => {
     return context
   }
 
-  it("lists users with their organization, project, and agent memberships", async () => {
-    const { user, organization, project, agent } = await createAuthorizedContext()
+  it("lists users with their organization and project memberships", async () => {
+    const { user, organization, project } = await createAuthorizedContext()
     const response = await request({
       route: BackofficeRoutes.listUsers,
       token: "token",
@@ -98,13 +98,6 @@ describe("Backoffice - list users", () => {
         role: "owner",
       },
     ])
-    expect(returned?.agentMemberships).toEqual([
-      {
-        agentId: agent.id,
-        agentName: agent.name,
-        role: "owner",
-      },
-    ])
   })
 
   it("returns an empty memberships list for users with no relationships", async () => {
@@ -127,7 +120,6 @@ describe("Backoffice - list users", () => {
     expect(returned).toBeDefined()
     expect(returned?.organizationMemberships).toEqual([])
     expect(returned?.projectMemberships).toEqual([])
-    expect(returned?.agentMemberships).toEqual([])
   })
 
   it("paginates with the requested page and limit", async () => {

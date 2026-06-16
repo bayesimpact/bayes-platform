@@ -27,7 +27,6 @@ type UserRow = {
   name: string
   organizationMemberships: BackofficeUser["organizationMemberships"]
   projectMemberships: BackofficeUser["projectMemberships"]
-  agentMemberships: BackofficeUser["agentMemberships"]
 }
 
 export function UsersPanel() {
@@ -71,7 +70,6 @@ function WithData() {
         name: user.name ?? "",
         organizationMemberships: user.organizationMemberships,
         projectMemberships: user.projectMemberships,
-        agentMemberships: user.agentMemberships,
       })),
     [users.users],
   )
@@ -111,19 +109,6 @@ function WithData() {
             items={row.original.projectMemberships.map((membership) => ({
               key: membership.projectId,
               name: membership.projectName,
-              role: membership.role,
-            }))}
-          />
-        ),
-      },
-      {
-        id: "agents",
-        header: () => <span className="text-muted-foreground">Agents</span>,
-        cell: ({ row }) => (
-          <MembershipsCell
-            items={row.original.agentMemberships.map((membership) => ({
-              key: membership.agentId,
-              name: membership.agentName,
               role: membership.role,
             }))}
           />
