@@ -6,7 +6,7 @@ import { useCurrentId } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import type { Resource, ResourceLibrary } from "../resource-libraries.models"
-import { updateResourceLibrary } from "../resource-libraries.thunks"
+import { updateResource } from "../resource-libraries.thunks"
 import { ResourceForm } from "./ResourceForm"
 
 export function EditResource({
@@ -34,16 +34,12 @@ export function EditResource({
       headerTitle={resource.title || t("resourceLibrary:resourceForm.editTitle")}
       submitLabel={t("actions:save")}
       onBack={() => navigate(editorPath)}
-      onSubmit={(next) =>
+      onSubmit={({ id: resourceId, ...fields }) =>
         dispatch(
-          updateResourceLibrary({
+          updateResource({
             resourceLibraryId: resourceLibrary.id,
-            fields: {
-              title: resourceLibrary.title,
-              resources: resourceLibrary.resources.map((item) =>
-                item.id === next.id ? next : item,
-              ),
-            },
+            resourceId,
+            fields,
             onSuccess: () => navigate(editorPath),
           }),
         )

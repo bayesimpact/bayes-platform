@@ -32,6 +32,38 @@ export default {
       ResourceLibrariesRoutes.deleteOne.getPath({ organizationId, projectId, resourceLibraryId }),
     )
   },
+  addResource: async ({ organizationId, projectId, resourceLibraryId }, payload) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<typeof ResourceLibrariesRoutes.addResource.response>(
+      ResourceLibrariesRoutes.addResource.getPath({ organizationId, projectId, resourceLibraryId }),
+      { payload } satisfies typeof ResourceLibrariesRoutes.addResource.request,
+    )
+    return toResourceLibrary(response.data.data)
+  },
+  updateResource: async ({ organizationId, projectId, resourceLibraryId, resourceId }, payload) => {
+    const axios = getAxiosInstance()
+    const response = await axios.patch<typeof ResourceLibrariesRoutes.updateResource.response>(
+      ResourceLibrariesRoutes.updateResource.getPath({
+        organizationId,
+        projectId,
+        resourceLibraryId,
+        resourceId,
+      }),
+      { payload } satisfies typeof ResourceLibrariesRoutes.updateResource.request,
+    )
+    return toResourceLibrary(response.data.data)
+  },
+  deleteResource: async ({ organizationId, projectId, resourceLibraryId, resourceId }) => {
+    const axios = getAxiosInstance()
+    await axios.delete(
+      ResourceLibrariesRoutes.deleteResource.getPath({
+        organizationId,
+        projectId,
+        resourceLibraryId,
+        resourceId,
+      }),
+    )
+  },
   uploadResourceFile: async ({ organizationId, projectId }, file) => {
     const axios = getAxiosInstance()
     const formData = new FormData()

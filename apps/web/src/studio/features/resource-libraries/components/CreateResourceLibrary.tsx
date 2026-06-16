@@ -33,7 +33,7 @@ export function CreateResourceLibrary() {
           onSubmit={(title) =>
             dispatch(
               createResourceLibrary({
-                fields: { title, resources: [] },
+                fields: { title },
                 onSuccess: (library) =>
                   navigate(
                     StudioRoutes.resourceLibrary.build({

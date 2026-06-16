@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto"
 import { ResourceLibrariesRoutes } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
@@ -69,68 +68,27 @@ describe("ResourceLibraries - createOne", () => {
       request: payload,
     })
 
-  it("creates a resource library with url and file resources", async () => {
+  it("creates a resource library with just a title and no resources", async () => {
     await createContext()
 
-    const urlResourceId = randomUUID()
-    const fileResourceId = randomUUID()
-    const response = await subject({
-      payload: {
-        title: "Getting Started",
-        resources: [
-          {
-            id: urlResourceId,
-            title: "Intro video",
-            description: "A short intro",
-            linkType: "url",
-            url: "https://example.com/video",
-          },
-          {
-            id: fileResourceId,
-            title: "Handbook",
-            description: "The handbook",
-            linkType: "file",
-            file: {
-              storageRelativePath: `${organizationId}/${projectId}/handbook.pdf`,
-              fileName: "handbook.pdf",
-              mimeType: "application/pdf",
-            },
-          },
-        ],
-      },
-    })
+    const response = await subject({ payload: { title: "Getting Started" } })
 
     expectResponse(response, 201)
     expect(response.body.data.title).toBe("Getting Started")
-    expect(response.body.data.resources).toHaveLength(2)
+    expect(response.body.data.resources).toHaveLength(0)
     expect(response.body.data.projectId).toBe(projectId)
 
     const stored = await setup.getRepository(ResourceLibrary).findOne({
       where: { id: response.body.data.id },
     })
-    expect(stored?.resources).toHaveLength(2)
-    expect(
-      stored?.resources.find((resource) => resource.id === fileResourceId)?.file?.fileName,
-    ).toBe("handbook.pdf")
+    expect(stored?.resources).toHaveLength(0)
     await expectActivityCreated("resourceLibrary.create")
   })
 
-  it("rejects a resource whose linkType does not match its payload", async () => {
+  it("rejects a library without a title", async () => {
     await createContext()
 
-    const response = await subject({
-      payload: {
-        title: "Broken",
-        resources: [
-          {
-            id: randomUUID(),
-            title: "Bad",
-            description: "missing url",
-            linkType: "url",
-          },
-        ],
-      },
-    })
+    const response = await subject({ payload: { title: "" } })
 
     expectResponse(response, 400)
   })

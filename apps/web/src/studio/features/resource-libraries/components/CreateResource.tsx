@@ -8,7 +8,7 @@ import { useAppDispatch } from "@/common/store/hooks"
 import { generateId } from "@/common/utils/generate-id"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import type { Resource, ResourceLibrary } from "../resource-libraries.models"
-import { updateResourceLibrary } from "../resource-libraries.thunks"
+import { addResource } from "../resource-libraries.thunks"
 import { ResourceForm } from "./ResourceForm"
 
 function emptyResource(): Resource {
@@ -35,14 +35,11 @@ export function CreateResource({ resourceLibrary }: { resourceLibrary: ResourceL
       headerTitle={t("resourceLibrary:resourceForm.createTitle")}
       submitLabel={t("actions:create")}
       onBack={() => navigate(editorPath)}
-      onSubmit={(resource) =>
+      onSubmit={({ id: _id, ...fields }) =>
         dispatch(
-          updateResourceLibrary({
+          addResource({
             resourceLibraryId: resourceLibrary.id,
-            fields: {
-              title: resourceLibrary.title,
-              resources: [...resourceLibrary.resources, resource],
-            },
+            fields,
             onSuccess: () => navigate(editorPath),
           }),
         )

@@ -3,9 +3,12 @@ import { notificationsActions } from "@/common/features/notifications/notificati
 import { projectsActions } from "@/common/features/projects/projects.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
+  addResource,
   createResourceLibrary,
+  deleteResource,
   deleteResourceLibrary,
   listResourceLibraries,
+  updateResource,
   updateResourceLibrary,
 } from "./resource-libraries.thunks"
 
@@ -24,6 +27,9 @@ function registerListeners() {
       deleteResourceLibrary.fulfilled,
       createResourceLibrary.fulfilled,
       updateResourceLibrary.fulfilled,
+      addResource.fulfilled,
+      updateResource.fulfilled,
+      deleteResource.fulfilled,
     ),
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(listResourceLibraries())
@@ -80,6 +86,44 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({ title: "Resource library deletion failed", type: "error" }),
+      )
+    },
+  })
+
+  for (const saveResource of [addResource, updateResource]) {
+    listenerMiddleware.startListening({
+      actionCreator: saveResource.fulfilled,
+      effect: async (action, listenerApi) => {
+        listenerApi.dispatch(
+          notificationsActions.show({ title: "Resource saved", type: "success" }),
+        )
+        action.meta.arg.onSuccess()
+      },
+    })
+  }
+  listenerMiddleware.startListening({
+    matcher: isAnyOf(addResource.rejected, updateResource.rejected),
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({ title: "Saving resource failed", type: "error" }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: deleteResource.fulfilled,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({ title: "Resource deleted", type: "success" }),
+      )
+      action.meta.arg.onSuccess()
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: deleteResource.rejected,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({ title: "Resource deletion failed", type: "error" }),
       )
     },
   })

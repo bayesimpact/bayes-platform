@@ -112,7 +112,7 @@ describe("ResourceLibraries - Auth", () => {
     })
     it("doesn't allow a simple member to create a resource library", async () => {
       await createContextForRole("member")
-      expectResponse(await subject({ payload: { title: "Library", resources: [] } }), 403)
+      expectResponse(await subject({ payload: { title: "Library" } }), 403)
     })
   })
 
@@ -155,6 +155,71 @@ describe("ResourceLibraries - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
     it("doesn't allow a simple member to delete a resource library", async () => {
+      await createContextForRole("member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
+  describe("ResourceLibrariesRoutes.addResource", () => {
+    const subject = async (payload?: typeof ResourceLibrariesRoutes.addResource.request) =>
+      request({
+        route: ResourceLibrariesRoutes.addResource,
+        pathParams: removeNullish({ organizationId, projectId, resourceLibraryId }),
+        token: accessToken ?? undefined,
+        request: payload,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("doesn't allow a simple member to add a resource", async () => {
+      await createContextForRole("member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
+  describe("ResourceLibrariesRoutes.updateResource", () => {
+    const subject = async () =>
+      request({
+        route: ResourceLibrariesRoutes.updateResource,
+        pathParams: removeNullish({
+          organizationId,
+          projectId,
+          resourceLibraryId,
+          resourceId: randomUUID(),
+        }),
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("doesn't allow a simple member to update a resource", async () => {
+      await createContextForRole("member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
+  describe("ResourceLibrariesRoutes.deleteResource", () => {
+    const subject = async () =>
+      request({
+        route: ResourceLibrariesRoutes.deleteResource,
+        pathParams: removeNullish({
+          organizationId,
+          projectId,
+          resourceLibraryId,
+          resourceId: randomUUID(),
+        }),
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("doesn't allow a simple member to delete a resource", async () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })

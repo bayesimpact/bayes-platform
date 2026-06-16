@@ -12,7 +12,7 @@ import { useCurrentId } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import type { Resource, ResourceLibrary } from "../resource-libraries.models"
-import { updateResourceLibrary } from "../resource-libraries.thunks"
+import { deleteResource, updateResourceLibrary } from "../resource-libraries.thunks"
 import { ResourceLibraryTitleForm } from "./ResourceLibraryTitleForm"
 import { ResourcesTable } from "./ResourcesTable"
 
@@ -28,14 +28,24 @@ export function EditResourceLibrary({ resourceLibrary }: { resourceLibrary: Reso
 
   const { resources, title } = resourceLibrary
 
-  const save = (fields: { title: string; resources: Resource[] }) => {
+  const saveTitle = (nextTitle: string) => {
     dispatch(
-      updateResourceLibrary({ resourceLibraryId: resourceLibrary.id, fields, onSuccess: () => {} }),
+      updateResourceLibrary({
+        resourceLibraryId: resourceLibrary.id,
+        fields: { title: nextTitle },
+        onSuccess: () => {},
+      }),
     )
   }
 
   const removeResource = (resourceId: string) => {
-    save({ title, resources: resources.filter((resource) => resource.id !== resourceId) })
+    dispatch(
+      deleteResource({
+        resourceLibraryId: resourceLibrary.id,
+        resourceId,
+        onSuccess: () => {},
+      }),
+    )
     setDeletingResource(null)
   }
 
@@ -70,7 +80,7 @@ export function EditResourceLibrary({ resourceLibrary }: { resourceLibrary: Reso
           defaultTitle={title}
           isLoading={false}
           submitLabel={t("actions:save")}
-          onSubmit={(nextTitle) => save({ title: nextTitle, resources })}
+          onSubmit={saveTitle}
         />
 
         <Field>

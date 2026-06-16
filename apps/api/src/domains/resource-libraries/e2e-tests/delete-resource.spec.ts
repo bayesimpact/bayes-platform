@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { ResourceLibrariesRoutes } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
@@ -16,7 +17,7 @@ import { ResourceLibrariesModule } from "../resource-libraries.module"
 import { ResourceLibrary } from "../resource-library.entity"
 import { buildResource, createResourceLibraryForProject } from "../resource-library.factory"
 
-describe("ResourceLibraries - updateOne", () => {
+describe("ResourceLibraries - deleteResource", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
@@ -25,6 +26,7 @@ describe("ResourceLibraries - updateOne", () => {
   let organizationId: string
   let projectId: string
   let resourceLibraryId: string
+  let resourceId: string
   let accessToken: string | undefined = "token"
   let auth0Id = "auth0|123"
 
@@ -50,52 +52,48 @@ describe("ResourceLibraries - updateOne", () => {
     await app.close()
   })
 
-  const createContext = async () => {
+  const createContext = async (
+    resources = [buildResource({ title: "Keep me" }), buildResource()],
+  ) => {
     const { user, organization, project } = await createOrganizationWithProject(repositories)
     organizationId = organization.id
     projectId = project.id
     auth0Id = user.auth0Id
+    resourceId = resources[1]?.id ?? randomUUID()
     const resourceLibrary = await createResourceLibraryForProject({
       repositories,
       organization,
       project,
+      params: { resourceLibrary: { resources } },
     })
     resourceLibraryId = resourceLibrary.id
     return { organization, project }
   }
 
-  const subject = async (payload?: typeof ResourceLibrariesRoutes.updateOne.request) =>
+  const subject = async () =>
     request({
-      route: ResourceLibrariesRoutes.updateOne,
-      pathParams: removeNullish({ organizationId, projectId, resourceLibraryId }),
+      route: ResourceLibrariesRoutes.deleteResource,
+      pathParams: removeNullish({ organizationId, projectId, resourceLibraryId, resourceId }),
       token: accessToken,
-      request: payload,
     })
 
-  it("updates the title and leaves the resources untouched", async () => {
-    const { project } = await createContext()
-    const existingResource = buildResource({ title: "Existing resource" })
-    await repositories.resourceLibraryRepository.update(resourceLibraryId, {
-      resources: [existingResource],
-    })
-
-    const response = await subject({ payload: { title: "Renamed Library" } })
-
-    expectResponse(response, 200)
-    const stored = await setup.getRepository(ResourceLibrary).findOne({
-      where: { id: resourceLibraryId },
-    })
-    expect(stored?.title).toBe("Renamed Library")
-    expect(stored?.resources).toHaveLength(1)
-    expect(stored?.resources[0]?.title).toBe("Existing resource")
-    expect(stored?.projectId).toBe(project.id)
-  })
-
-  it("rejects an empty title", async () => {
+  it("removes only the targeted resource", async () => {
     await createContext()
 
-    const response = await subject({ payload: { title: "" } })
+    expectResponse(await subject(), 200)
 
-    expectResponse(response, 400)
+    const stored = await setup
+      .getRepository(ResourceLibrary)
+      .findOne({ where: { id: resourceLibraryId } })
+    expect(stored?.resources).toHaveLength(1)
+    expect(stored?.resources[0]?.title).toBe("Keep me")
+    expect(stored?.resources.some((resource) => resource.id === resourceId)).toBe(false)
+  })
+
+  it("returns 404 when the resource does not exist in the library", async () => {
+    await createContext()
+    resourceId = randomUUID()
+
+    expectResponse(await subject(), 404)
   })
 })

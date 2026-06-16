@@ -1,10 +1,12 @@
 import {
   createResourceLibrarySchema,
+  createResourceSchema,
   documentUploadAllowedMimeTypePattern,
   isAllowedMimeType,
   ResourceLibrariesRoutes,
   type ResourceLibraryDto,
   updateResourceLibrarySchema,
+  updateResourceSchema,
 } from "@caseai-connect/api-contracts"
 import {
   Body,
@@ -16,6 +18,7 @@ import {
   HttpStatus,
   Inject,
   MaxFileSizeValidator,
+  Param,
   ParseFilePipe,
   Patch,
   Post,
@@ -76,7 +79,7 @@ export class ResourceLibrariesController {
   ): Promise<typeof ResourceLibrariesRoutes.createOne.response> {
     const resourceLibrary = await this.resourceLibrariesService.createResourceLibrary({
       connectScope: getRequiredConnectScope(request),
-      fields: { title: payload.title, resources: payload.resources },
+      fields: { title: payload.title },
     })
 
     return { data: toResourceLibraryDto(resourceLibrary) }
@@ -105,7 +108,60 @@ export class ResourceLibrariesController {
     await this.resourceLibrariesService.updateResourceLibrary({
       connectScope: getRequiredConnectScope(request),
       resourceLibraryId: request.resourceLibrary.id,
-      fieldsToUpdate: { title: payload.title, resources: payload.resources },
+      fieldsToUpdate: { title: payload.title },
+    })
+    return { data: { success: true } }
+  }
+
+  @Post(ResourceLibrariesRoutes.addResource.path)
+  @CheckPolicy((policy) => policy.canUpdate())
+  @AddContext("resourceLibrary")
+  @TrackActivity({ action: "resourceLibrary.addResource", entityFrom: "resourceLibrary" })
+  @UsePipes(new ZodValidationPipe(createResourceSchema))
+  async addResource(
+    @Req() request: EndpointRequestWithResourceLibrary,
+    @Body() { payload }: typeof ResourceLibrariesRoutes.addResource.request,
+  ): Promise<typeof ResourceLibrariesRoutes.addResource.response> {
+    const resourceLibrary = await this.resourceLibrariesService.addResource({
+      connectScope: getRequiredConnectScope(request),
+      resourceLibraryId: request.resourceLibrary.id,
+      fields: payload,
+    })
+    return { data: toResourceLibraryDto(resourceLibrary) }
+  }
+
+  @Patch(ResourceLibrariesRoutes.updateResource.path)
+  @CheckPolicy((policy) => policy.canUpdate())
+  @AddContext("resourceLibrary")
+  @TrackActivity({ action: "resourceLibrary.updateResource", entityFrom: "resourceLibrary" })
+  async updateResource(
+    @Req() request: EndpointRequestWithResourceLibrary,
+    @Param("resourceId") resourceId: string,
+    // The pipe is bound to the body (not the whole method) so it does not also run on `resourceId`.
+    @Body(new ZodValidationPipe(updateResourceSchema))
+    { payload }: typeof ResourceLibrariesRoutes.updateResource.request,
+  ): Promise<typeof ResourceLibrariesRoutes.updateResource.response> {
+    const resourceLibrary = await this.resourceLibrariesService.updateResource({
+      connectScope: getRequiredConnectScope(request),
+      resourceLibraryId: request.resourceLibrary.id,
+      resourceId,
+      fields: payload,
+    })
+    return { data: toResourceLibraryDto(resourceLibrary) }
+  }
+
+  @Delete(ResourceLibrariesRoutes.deleteResource.path)
+  @CheckPolicy((policy) => policy.canUpdate())
+  @AddContext("resourceLibrary")
+  @TrackActivity({ action: "resourceLibrary.deleteResource", entityFrom: "resourceLibrary" })
+  async deleteResource(
+    @Req() request: EndpointRequestWithResourceLibrary,
+    @Param("resourceId") resourceId: string,
+  ): Promise<typeof ResourceLibrariesRoutes.deleteResource.response> {
+    await this.resourceLibrariesService.deleteResource({
+      connectScope: getRequiredConnectScope(request),
+      resourceLibraryId: request.resourceLibrary.id,
+      resourceId,
     })
     return { data: { success: true } }
   }

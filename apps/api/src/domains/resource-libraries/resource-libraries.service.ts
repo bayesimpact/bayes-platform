@@ -1,4 +1,9 @@
-import type { ResourceDto } from "@caseai-connect/api-contracts"
+import { randomUUID } from "node:crypto"
+import type {
+  CreateResourceDto,
+  ResourceDto,
+  UpdateResourceDto,
+} from "@caseai-connect/api-contracts"
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"
@@ -25,11 +30,11 @@ export class ResourceLibrariesService {
     fields,
   }: {
     connectScope: RequiredConnectScope
-    fields: { title: string; resources: ResourceDto[] }
+    fields: { title: string }
   }): Promise<ResourceLibrary> {
     return await this.resourceLibraryConnectRepository.createAndSave(connectScope, {
       title: fields.title,
-      resources: fields.resources,
+      resources: [],
     })
   }
 
@@ -71,8 +76,82 @@ export class ResourceLibrariesService {
   }: {
     connectScope: RequiredConnectScope
     resourceLibraryId: string
-    fieldsToUpdate: { title: string; resources: ResourceDto[] }
+    fieldsToUpdate: { title: string }
   }): Promise<ResourceLibrary> {
+    const resourceLibrary = await this.getResourceLibraryOrThrow(connectScope, resourceLibraryId)
+
+    Object.assign(resourceLibrary, fieldsToUpdate)
+
+    return await this.resourceLibraryConnectRepository.saveOne(resourceLibrary)
+  }
+
+  async addResource({
+    connectScope,
+    resourceLibraryId,
+    fields,
+  }: {
+    connectScope: RequiredConnectScope
+    resourceLibraryId: string
+    fields: CreateResourceDto
+  }): Promise<ResourceLibrary> {
+    const resourceLibrary = await this.getResourceLibraryOrThrow(connectScope, resourceLibraryId)
+
+    const resource: ResourceDto = { ...fields, id: randomUUID() }
+    resourceLibrary.resources = [...resourceLibrary.resources, resource]
+
+    return await this.resourceLibraryConnectRepository.saveOne(resourceLibrary)
+  }
+
+  async updateResource({
+    connectScope,
+    resourceLibraryId,
+    resourceId,
+    fields,
+  }: {
+    connectScope: RequiredConnectScope
+    resourceLibraryId: string
+    resourceId: string
+    fields: UpdateResourceDto
+  }): Promise<ResourceLibrary> {
+    const resourceLibrary = await this.getResourceLibraryOrThrow(connectScope, resourceLibraryId)
+
+    if (!resourceLibrary.resources.some((resource) => resource.id === resourceId)) {
+      throw new NotFoundException(`Resource with id ${resourceId} not found`)
+    }
+
+    resourceLibrary.resources = resourceLibrary.resources.map((resource) =>
+      resource.id === resourceId ? { ...fields, id: resourceId } : resource,
+    )
+
+    return await this.resourceLibraryConnectRepository.saveOne(resourceLibrary)
+  }
+
+  async deleteResource({
+    connectScope,
+    resourceLibraryId,
+    resourceId,
+  }: {
+    connectScope: RequiredConnectScope
+    resourceLibraryId: string
+    resourceId: string
+  }): Promise<ResourceLibrary> {
+    const resourceLibrary = await this.getResourceLibraryOrThrow(connectScope, resourceLibraryId)
+
+    if (!resourceLibrary.resources.some((resource) => resource.id === resourceId)) {
+      throw new NotFoundException(`Resource with id ${resourceId} not found`)
+    }
+
+    resourceLibrary.resources = resourceLibrary.resources.filter(
+      (resource) => resource.id !== resourceId,
+    )
+
+    return await this.resourceLibraryConnectRepository.saveOne(resourceLibrary)
+  }
+
+  private async getResourceLibraryOrThrow(
+    connectScope: RequiredConnectScope,
+    resourceLibraryId: string,
+  ): Promise<ResourceLibrary> {
     const resourceLibrary = await this.resourceLibraryConnectRepository.getOneById(
       connectScope,
       resourceLibraryId,
@@ -82,9 +161,7 @@ export class ResourceLibrariesService {
       throw new NotFoundException(`ResourceLibrary with id ${resourceLibraryId} not found`)
     }
 
-    Object.assign(resourceLibrary, fieldsToUpdate)
-
-    return await this.resourceLibraryConnectRepository.saveOne(resourceLibrary)
+    return resourceLibrary
   }
 
   async deleteResourceLibrary({

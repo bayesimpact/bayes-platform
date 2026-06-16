@@ -1,8 +1,10 @@
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
 import type {
+  CreateResourceDto,
   CreateResourceLibraryDto,
   ResourceLibraryDto,
+  UpdateResourceDto,
   UpdateResourceLibraryDto,
   UploadResourceFileResponseDto,
 } from "./resource-library.dto"
@@ -29,6 +31,18 @@ export const ResourceLibrariesRoutes = {
   deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
     method: "delete",
     path: "organizations/:organizationId/projects/:projectId/resource-libraries/:resourceLibraryId",
+  }),
+  addResource: defineRoute<ResponseData<ResourceLibraryDto>, RequestPayload<CreateResourceDto>>({
+    method: "post",
+    path: "organizations/:organizationId/projects/:projectId/resource-libraries/:resourceLibraryId/resources",
+  }),
+  updateResource: defineRoute<ResponseData<ResourceLibraryDto>, RequestPayload<UpdateResourceDto>>({
+    method: "patch",
+    path: "organizations/:organizationId/projects/:projectId/resource-libraries/:resourceLibraryId/resources/:resourceId",
+  }),
+  deleteResource: defineRoute<ResponseData<SuccessResponseDTO>>({
+    method: "delete",
+    path: "organizations/:organizationId/projects/:projectId/resource-libraries/:resourceLibraryId/resources/:resourceId",
   }),
   uploadResourceFile: defineRoute<
     ResponseData<UploadResourceFileResponseDto>,

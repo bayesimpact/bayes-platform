@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { ResourceLibrariesRoutes } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
@@ -16,7 +17,7 @@ import { ResourceLibrariesModule } from "../resource-libraries.module"
 import { ResourceLibrary } from "../resource-library.entity"
 import { buildResource, createResourceLibraryForProject } from "../resource-library.factory"
 
-describe("ResourceLibraries - updateOne", () => {
+describe("ResourceLibraries - updateResource", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
@@ -25,6 +26,7 @@ describe("ResourceLibraries - updateOne", () => {
   let organizationId: string
   let projectId: string
   let resourceLibraryId: string
+  let resourceId: string
   let accessToken: string | undefined = "token"
   let auth0Id = "auth0|123"
 
@@ -55,46 +57,75 @@ describe("ResourceLibraries - updateOne", () => {
     organizationId = organization.id
     projectId = project.id
     auth0Id = user.auth0Id
+    const resource = buildResource({ title: "Original", url: "https://example.com/original" })
+    resourceId = resource.id
     const resourceLibrary = await createResourceLibraryForProject({
       repositories,
       organization,
       project,
+      params: { resourceLibrary: { resources: [resource] } },
     })
     resourceLibraryId = resourceLibrary.id
     return { organization, project }
   }
 
-  const subject = async (payload?: typeof ResourceLibrariesRoutes.updateOne.request) =>
+  const subject = async (payload?: typeof ResourceLibrariesRoutes.updateResource.request) =>
     request({
-      route: ResourceLibrariesRoutes.updateOne,
-      pathParams: removeNullish({ organizationId, projectId, resourceLibraryId }),
+      route: ResourceLibrariesRoutes.updateResource,
+      pathParams: removeNullish({ organizationId, projectId, resourceLibraryId, resourceId }),
       token: accessToken,
       request: payload,
     })
 
-  it("updates the title and leaves the resources untouched", async () => {
-    const { project } = await createContext()
-    const existingResource = buildResource({ title: "Existing resource" })
-    await repositories.resourceLibraryRepository.update(resourceLibraryId, {
-      resources: [existingResource],
-    })
-
-    const response = await subject({ payload: { title: "Renamed Library" } })
-
-    expectResponse(response, 200)
-    const stored = await setup.getRepository(ResourceLibrary).findOne({
-      where: { id: resourceLibraryId },
-    })
-    expect(stored?.title).toBe("Renamed Library")
-    expect(stored?.resources).toHaveLength(1)
-    expect(stored?.resources[0]?.title).toBe("Existing resource")
-    expect(stored?.projectId).toBe(project.id)
-  })
-
-  it("rejects an empty title", async () => {
+  it("updates the targeted resource in place, keeping its id", async () => {
     await createContext()
 
-    const response = await subject({ payload: { title: "" } })
+    const response = await subject({
+      payload: {
+        title: "Updated",
+        description: "new desc",
+        linkType: "url",
+        url: "https://example.com/updated",
+      },
+    })
+
+    expectResponse(response, 200)
+    expect(response.body.data.resources).toHaveLength(1)
+    expect(response.body.data.resources[0]?.id).toBe(resourceId)
+    expect(response.body.data.resources[0]?.title).toBe("Updated")
+
+    const stored = await setup
+      .getRepository(ResourceLibrary)
+      .findOne({ where: { id: resourceLibraryId } })
+    expect(stored?.resources[0]?.url).toBe("https://example.com/updated")
+  })
+
+  it("returns 404 when the resource does not exist in the library", async () => {
+    await createContext()
+    resourceId = randomUUID()
+
+    const response = await subject({
+      payload: {
+        title: "Updated",
+        description: "new desc",
+        linkType: "url",
+        url: "https://example.com/updated",
+      },
+    })
+
+    expectResponse(response, 404)
+  })
+
+  it("rejects a resource whose linkType does not match its payload", async () => {
+    await createContext()
+
+    const response = await subject({
+      payload: {
+        title: "Updated",
+        description: "missing file",
+        linkType: "file",
+      },
+    })
 
     expectResponse(response, 400)
   })
