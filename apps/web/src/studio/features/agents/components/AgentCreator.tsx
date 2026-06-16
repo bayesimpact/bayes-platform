@@ -1,3 +1,4 @@
+import { AgentLocale, type CreateAgentDto } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Dialog,
@@ -6,14 +7,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@caseai-connect/ui/shad/dialog"
-import { ScrollArea } from "@caseai-connect/ui/shad/scroll-area"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@caseai-connect/ui/shad/sheet"
+import { Field, FieldLabel } from "@caseai-connect/ui/shad/field"
+import { Input } from "@caseai-connect/ui/shad/input"
 import { cn } from "@caseai-connect/ui/utils"
 import { PlusCircleIcon, PlusIcon } from "lucide-react"
 import { useState } from "react"
@@ -25,11 +20,11 @@ import type { Project } from "@/common/features/projects/projects.models"
 import { useAppDispatch } from "@/common/store/hooks"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { createAgent } from "../agents.thunks"
-import type { AgentFormData } from "./agent-form.shared"
-import { BaseAgentForm } from "./BaseAgentForm"
+import { getDefaultFormValues } from "./agent-form.shared"
 
-const defaultStep = "typeSelection"
-const defaultType = "conversation"
+const defaultType: Agent["type"] = "conversation"
+const agentTypes: Agent["type"][] = ["conversation", "extraction", "form"]
+const minNameLength = 3
 
 export function AgentCreatorButton({ project }: { project: Project }) {
   const { t } = useTranslation()
@@ -43,7 +38,7 @@ export function AgentCreatorButton({ project }: { project: Project }) {
           {t("actions:create")}
           <PlusCircleIcon className="ml-2 size-5" />
         </Button>
-        <AgentCreator project={project} open={open} onOpenChange={setOpen} />
+        <AgentCreatorDialog project={project} open={open} onOpenChange={setOpen} />
       </GridCard.Body>
     </GridCard>
   )
@@ -54,12 +49,12 @@ export function SidebarAgentCreatorButton({ project }: { project: Project }) {
   return (
     <>
       <PlusIcon className="size-4 cursor-pointer" onClick={() => setOpen(true)} />
-      <AgentCreator project={project} open={open} onOpenChange={setOpen} />
+      <AgentCreatorDialog project={project} open={open} onOpenChange={setOpen} />
     </>
   )
 }
 
-function AgentCreator({
+function AgentCreatorDialog({
   project,
   open,
   onOpenChange,
@@ -68,185 +63,98 @@ function AgentCreator({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  const [step, setStep] = useState<"typeSelection" | "agentCreation">(defaultStep)
-  const [selectedType, setSelectedType] = useState<Agent["type"]>(defaultType)
-
-  const reset = () => {
-    onOpenChange(false)
-    setStep(defaultStep)
-    setSelectedType(defaultType)
-  }
-
-  const handleNextStep = () => setStep("agentCreation")
-
-  const handleOpenChange = (open: boolean) => {
-    if (!open) reset()
-  }
-
-  return (
-    <>
-      {/* // First step */}
-      <TypeSelection
-        open={open && step === "typeSelection"}
-        selectedType={selectedType}
-        onSelectType={setSelectedType}
-        onOpenChange={handleOpenChange}
-        onComplete={handleNextStep}
-      />
-
-      {/* // Second step */}
-      <AgentCreation
-        project={project}
-        open={open && step === "agentCreation"}
-        onOpenChange={handleOpenChange}
-        selectedType={selectedType}
-        onSuccess={reset}
-      />
-    </>
-  )
-}
-
-function TypeSelection({
-  open,
-  onOpenChange,
-  onComplete,
-  onSelectType,
-  selectedType,
-}: {
-  onSelectType: (agentType: Agent["type"]) => void
-  selectedType: Agent["type"]
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onComplete: () => void
-}) {
-  const { t } = useTranslation()
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{t("agent:create.typeDialog.title")}</DialogTitle>
-          <DialogDescription>{t("agent:create.typeDialog.description")}</DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4 pt-2">
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              className={cn(
-                "border rounded-md px-3 py-2 text-sm text-left",
-                selectedType === "conversation" ? "border-primary" : "border-muted",
-              )}
-              onClick={() => onSelectType("conversation")}
-            >
-              {t("agent:create.typeDialog.conversation")}
-            </button>
-            <button
-              type="button"
-              className={cn(
-                "border rounded-md px-3 py-2 text-sm text-left",
-                selectedType === "extraction" ? "border-primary" : "border-muted",
-              )}
-              onClick={() => onSelectType("extraction")}
-            >
-              {t("agent:create.typeDialog.extraction")}
-            </button>
-            <button
-              type="button"
-              className={cn(
-                "border rounded-md px-3 py-2 text-sm text-left",
-                selectedType === "form" ? "border-primary" : "border-muted",
-              )}
-              onClick={() => onSelectType("form")}
-            >
-              {t("agent:create.typeDialog.form")}
-            </button>
-          </div>
-
-          <Button type="button" onClick={onComplete} className="w-full">
-            {t("actions:confirm")}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function AgentCreation({
-  project,
-  open,
-  onOpenChange,
-  selectedType,
-  onSuccess,
-}: {
-  project: Project
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  selectedType: Agent["type"]
-  onSuccess: () => void
-}) {
-  const { t } = useTranslation("agent", { keyPrefix: "create" })
-  const navigate = useNavigate()
-
-  const handleSuccess = (agent: Agent) => {
-    const path = StudioRoutes.agent.build({
-      organizationId: project.organizationId,
-      projectId: project.id,
-      agentId: agent.id,
-    })
-    navigate(path)
-    onSuccess()
-  }
-
-  const sheetTitle = t(`${selectedType}Dialog.title`)
-  const sheetDescription = t(`${selectedType}Dialog.description`, { projectName: project.name })
-
-  return (
-    <Sheet modal open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-dvh">
-        <ScrollArea className="h-full">
-          <SheetHeader>
-            <SheetTitle>{sheetTitle}</SheetTitle>
-            <SheetDescription>{sheetDescription}</SheetDescription>
-          </SheetHeader>
-          <div className="px-4 pb-4">
-            <CreateForm agentType={selectedType} onSuccess={handleSuccess} />
-          </div>
-        </ScrollArea>
-      </SheetContent>
-    </Sheet>
-  )
-}
-
-function CreateForm({
-  agentType,
-  onSuccess,
-}: {
-  agentType: Agent["type"]
-  onSuccess: (agent: Agent) => void
-}) {
+  const { t, i18n } = useTranslation()
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
+  const [selectedType, setSelectedType] = useState<Agent["type"]>(defaultType)
+  const [name, setName] = useState("")
 
-  const handleCreate = async (fields: AgentFormData) => {
-    await dispatch(
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setSelectedType(defaultType)
+      setName("")
+    }
+    onOpenChange(nextOpen)
+  }
+
+  const canCreate = name.trim().length >= minNameLength
+
+  const handleCreate = () => {
+    const language = i18n.language.startsWith("fr") ? AgentLocale.FR : AgentLocale.EN
+    const fields: CreateAgentDto = {
+      ...getDefaultFormValues({ agentType: selectedType, language }),
+      type: selectedType,
+      name: name.trim(),
+      projectAgentSessionCategoryIds: project.agentSessionCategories.map((category) => category.id),
+    }
+
+    dispatch(
       createAgent({
-        fields: {
-          name: fields.name,
-          defaultPrompt: fields.defaultPrompt,
-          greetingMessage: fields.greetingMessage,
-          documentsRagMode: fields.documentsRagMode,
-          model: fields.model,
-          temperature: fields.temperature,
-          locale: fields.locale,
-          type: agentType,
-          outputJsonSchema: fields.outputJsonSchema,
-          tagsToAdd: fields.tagsToAdd,
-          projectAgentSessionCategoryIds: fields.projectAgentSessionCategoryIds,
-          resourceLibraryIds: fields.resourceLibraryIds,
+        fields,
+        onSuccess: (agent) => {
+          handleOpenChange(false)
+          navigate(
+            StudioRoutes.agentEdit.build({
+              organizationId: project.organizationId,
+              projectId: project.id,
+              agentId: agent.id,
+            }),
+          )
         },
-        onSuccess,
       }),
     )
   }
 
-  return <BaseAgentForm agentType={agentType} onSubmit={handleCreate} />
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("agent:create.title")}</DialogTitle>
+          <DialogDescription>{t("agent:create.typeDialog.description")}</DialogDescription>
+        </DialogHeader>
+
+        <form
+          className="space-y-4 pt-2"
+          onSubmit={(event) => {
+            event.preventDefault()
+            if (canCreate) handleCreate()
+          }}
+        >
+          <Field>
+            <FieldLabel>{t("agent:create.typeDialog.title")}</FieldLabel>
+            <div className="grid grid-cols-3 gap-2">
+              {agentTypes.map((agentType) => (
+                <button
+                  key={agentType}
+                  type="button"
+                  className={cn(
+                    "border rounded-md px-3 py-2 text-sm text-center",
+                    selectedType === agentType ? "border-primary" : "border-muted",
+                  )}
+                  onClick={() => setSelectedType(agentType)}
+                >
+                  {t(`agent:create.typeDialog.${agentType}`)}
+                </button>
+              ))}
+            </div>
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="agent-name">{t("agent:props.name")}</FieldLabel>
+            <Input
+              id="agent-name"
+              autoFocus
+              placeholder={t("agent:props.placeholders.name")}
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+            />
+          </Field>
+
+          <Button type="submit" className="w-full" disabled={!canCreate}>
+            {t("actions:create")}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
 }
