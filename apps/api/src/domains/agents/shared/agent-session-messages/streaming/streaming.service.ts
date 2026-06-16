@@ -46,6 +46,7 @@ import { fillFormTool } from "./tools/fill-form.tool"
 import { recalculateConversationSessionMetadataTool } from "./tools/recalculate-conversation-session-metadata.tool"
 import { retrieveProjectDocumentChunksTool } from "./tools/retrieve-project-document-chunks.tool"
 import { sourcesTool } from "./tools/sources.tool"
+import { surfaceResourcesTool } from "./tools/surface-resources.tool"
 import type { ToolExecutionLog } from "./tools/tool-execution-log"
 
 type NotifyClient = (event: Extract<StreamEvent, { type: "notify_client" }>) => void
@@ -735,10 +736,9 @@ export class StreamingService extends ServiceWithLLM {
               onExecute,
             }),
           }),
-      ...(hasSourcesTool
-        ? {
-            [ToolName.Sources]: sourcesTool({ onExecute }),
-          }
+      ...(hasSourcesTool ? { [ToolName.Sources]: sourcesTool({ onExecute }) } : {}),
+      ...((agent.resourceLibraries?.length ?? 0) > 0
+        ? { [ToolName.SurfaceResources]: surfaceResourcesTool({ onExecute }) }
         : {}),
       ...(hasRecalculateConversationSessionMetadataTool
         ? {
@@ -891,6 +891,9 @@ export class StreamingService extends ServiceWithLLM {
               formAgentSessionsService: this.formAgentSessionsService,
               onExecute,
             }),
+            ...((agent.resourceLibraries?.length ?? 0) > 0
+              ? { [ToolName.SurfaceResources]: surfaceResourcesTool({ onExecute }) }
+              : {}),
           } as ToolSet,
         }
 

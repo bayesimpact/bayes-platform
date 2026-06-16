@@ -9,6 +9,11 @@ const agent = project.extend("/a/:agentId")
 const documents = project.extend("/d")
 const webSources = project.extend("/web-sources")
 const document = documents.extend("/:documentId")
+const resourceLibraries = project.extend("/resource-libraries")
+const resourceLibraryNew = resourceLibraries.extend("/new")
+const resourceLibrary = resourceLibraries.extend("/:resourceLibraryId")
+const resourceNew = resourceLibrary.extend("/resources/new")
+const resource = resourceLibrary.extend("/resources/:resourceId")
 const projectAnalytics = project.extend("/analytics")
 const evaluation = project.extend("/evaluation")
 const projectMemberships = project.extend("/members")
@@ -45,6 +50,11 @@ export const StudioRoutes = {
   projectAnalytics,
   projectMembership,
   projectMemberships,
+  resource,
+  resourceLibraries,
+  resourceLibrary,
+  resourceLibraryNew,
+  resourceNew,
   reviewCampaignReport,
   reviewCampaigns,
   webSources,

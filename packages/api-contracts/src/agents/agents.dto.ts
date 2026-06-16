@@ -64,6 +64,7 @@ export type AgentDto = {
   documentsRagMode: DocumentsRagMode
   projectAgentSessionCategoryIds: string[]
   usedProjectAgentSessionCategoryIds: string[]
+  resourceLibraryIds: string[]
 }
 
 export const outputJsonSchemaSchema = z
@@ -95,6 +96,7 @@ const agentValidationSchema = z.object({
   name: z.string().trim().min(3),
   outputJsonSchema: outputJsonSchemaSchema.optional(),
   projectAgentSessionCategoryIds: z.array(z.string().uuid()),
+  resourceLibraryIds: z.array(z.string().uuid()).optional(),
   temperature: z
     .float32()
     .min(0)
@@ -161,6 +163,17 @@ const refineOutputJsonSchema = {
   },
 }
 
+const refineResourceLibraries = {
+  fn: (data: { type?: AgentType; resourceLibraryIds?: string[] }) =>
+    (data.resourceLibraryIds?.length ?? 0) === 0 ||
+    data.type === "conversation" ||
+    data.type === "form",
+  message: {
+    message: "Resource libraries can only be attached to conversation or form agents",
+    path: ["resourceLibraryIds"],
+  },
+}
+
 const hasRequiredDocumentTags = (data: {
   documentTagIds?: string[]
   documentsRagMode: DocumentsRagMode
@@ -181,6 +194,7 @@ export const createAgentSchema = agentValidationSchema
     name: true,
     outputJsonSchema: true,
     projectAgentSessionCategoryIds: true,
+    resourceLibraryIds: true,
     temperature: true,
     type: true,
   })
@@ -188,6 +202,7 @@ export const createAgentSchema = agentValidationSchema
     tagsToAdd: updateDocumentTagsSchema.required().shape.tagsToAdd,
   })
   .refine(refineOutputJsonSchema.fn, refineOutputJsonSchema.message)
+  .refine(refineResourceLibraries.fn, refineResourceLibraries.message)
   .refine(hasRequiredDocumentTags, {
     message: "At least one document tag is required when documentsRagMode is 'tags'",
     path: ["tagsToAdd"],
@@ -204,6 +219,7 @@ export const updateAgentSchema = agentValidationSchema
     name: true,
     outputJsonSchema: true,
     projectAgentSessionCategoryIds: true,
+    resourceLibraryIds: true,
     temperature: true,
   })
   .extend({

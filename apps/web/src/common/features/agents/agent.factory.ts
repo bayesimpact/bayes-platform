@@ -54,6 +54,7 @@ export const agentFactory = AgentFactory.define(({ params, transientParams }) =>
     defaultPrompt: params.defaultPrompt ?? faker.lorem.paragraph(),
     documentsRagMode: params.documentsRagMode ?? DocumentsRagMode.None,
     documentTagIds: params.documentTagIds ?? [],
+    resourceLibraryIds: params.resourceLibraryIds ?? [],
     greetingMessage: params.greetingMessage ?? undefined,
     id: params.id ?? faker.string.uuid(),
     locale: params.locale ?? AgentLocale.EN,

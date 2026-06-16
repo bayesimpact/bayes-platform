@@ -45,5 +45,6 @@ export const agentFactory = AgentFactory.define(({ sequence, params, transientPa
     sessionCategories: params.sessionCategories || [],
     childSubAgents: params.childSubAgents || [],
     parentSubAgents: params.parentSubAgents || [],
+    resourceLibraries: params.resourceLibraries || [],
   } satisfies Agent
 })

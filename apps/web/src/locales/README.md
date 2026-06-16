@@ -51,6 +51,18 @@ Example structure for a new feature:
 }
 ```
 
+### Reuse Shared `actions` / `status` Keys First
+
+`actions.{en,fr}.json` and `status.{en,fr}.json` are **shared, reusable** namespaces for
+generic UI verbs and states. Before adding a key to a feature locale file, check whether a
+shared key already covers it and reuse it via the namespaced lookup — `t("actions:delete")`,
+`t("actions:edit")`, `t("actions:update")`, `t("status:loading")`, etc.
+
+Do NOT create feature-specific keys that duplicate a shared action/status (e.g. a per-feature
+`deleteResource: "Delete"` when `actions:delete` already exists). Only add a feature key when
+the label is genuinely domain-specific. When a generic verb recurs across features, promote it
+to the `actions`/`status` namespace rather than repeating it.
+
 ## Post-Processors
 
 Custom post-processors handle special text formatting:

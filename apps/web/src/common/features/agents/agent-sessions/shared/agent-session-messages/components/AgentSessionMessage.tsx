@@ -12,6 +12,7 @@ import { Attachment } from "./Attachment"
 import { ChatBotMessage, ChatUserMessage } from "./Chat"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { SourcesTool } from "./SourcesTool"
+import { SurfaceResourcesTool } from "./SurfaceResourcesTool"
 
 export function AgentSessionMessage({ message }: { message: AgentSessionMessageType }) {
   switch (message.role) {
@@ -20,6 +21,9 @@ export function AgentSessionMessage({ message }: { message: AgentSessionMessageT
       const isEmpty = message.content.trim().length === 0 && message.status === "completed"
       const isError = message.status === "error" || isEmpty
       const sourcesTool = message.toolCalls?.find((call) => call.name === ToolName.Sources)
+      const surfaceResourcesTool = message.toolCalls?.find(
+        (call) => call.name === ToolName.SurfaceResources,
+      )
       return (
         <div key={message.id} className="max-w-3/4 relative">
           <ChatBotMessage>
@@ -32,6 +36,10 @@ export function AgentSessionMessage({ message }: { message: AgentSessionMessageT
               {isStreaming && <ThinkingMessage />}
               {isError ? <ErrorMessage /> : <MarkdownWrapper content={message.content} />}
             </div>
+
+            {!isStreaming && surfaceResourcesTool && (
+              <SurfaceResourcesTool toolCall={surfaceResourcesTool} />
+            )}
 
             {!isStreaming && (
               <div className="w-full mt-1 flex items-center">

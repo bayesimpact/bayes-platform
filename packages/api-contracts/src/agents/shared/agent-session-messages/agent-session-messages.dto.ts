@@ -5,6 +5,7 @@ export enum ToolName {
   RecalculateConversationSessionMetadata = "recalculateConversationSessionMetadata",
   McpSearchResources = "search_resources",
   McpSmartSearch = "smart_search",
+  SurfaceResources = "surfaceResources",
 }
 
 export type AgentSessionToolName = ToolName | (string & {})

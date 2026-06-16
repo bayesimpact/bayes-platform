@@ -274,6 +274,28 @@ Each story passes both (a) the seeded state for the decorator AND (b) the matchi
 
 ---
 
+## Internationalization (i18n)
+
+### Reuse Shared Action & Status Keys Before Adding New Ones
+
+**Rule**: Generic UI verbs and statuses live in the **global shared namespaces** `actions` and `status` ([src/locales/actions.{en,fr}.json](src/locales/actions.en.json), [src/locales/status.{en,fr}.json](src/locales/status.en.json)). Before adding a translation key to any feature locale file, check whether a shared key already covers it and reuse it via the namespaced lookup `t("actions:<key>")` / `t("status:<key>")`. Do NOT create feature-specific keys that duplicate a shared action/status.
+
+```tsx
+// ❌ Wrong — feature-specific duplicate of a generic verb
+// resource-libraries.en.json: { "resourceLibraries": { "deleteResource": "Delete", "editResource": "Edit" } }
+{t("resourceLibraries:deleteResource")}
+{t("resourceLibraries:editResource")}
+
+// ✅ Correct — reuse the shared action keys
+{t("actions:delete")}
+{t("actions:edit")}
+{t("actions:update")}
+```
+
+- Existing shared `actions` keys include: `accept, add, back, cancel, close, confirm, create, decline, delete, deselect, disable, download, edit, enable, filter, finish, invite, leave, loadMore, more, next, open, previous, refresh, remove, reset, retry, run, save, search, select, selectAll, send, sort, start, stop, submit, update, upload, view` (see the file for the full list).
+- Only add a feature key when the label is genuinely domain-specific (e.g. `"Surface resources"`), not a generic verb. When the same generic verb keeps recurring across features, promote it to the `actions`/`status` namespace instead of repeating it per feature.
+- A label like `"Enregistrer les modifications"` / `"Save changes"` should reuse `actions:save` (or `actions:update`) rather than introducing a new key.
+
 ## Completion Criteria
 
 Before marking web work as completed:

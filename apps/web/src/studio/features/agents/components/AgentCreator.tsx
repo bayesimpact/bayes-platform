@@ -241,6 +241,7 @@ function CreateForm({
           outputJsonSchema: fields.outputJsonSchema,
           tagsToAdd: fields.tagsToAdd,
           projectAgentSessionCategoryIds: fields.projectAgentSessionCategoryIds,
+          resourceLibraryIds: fields.resourceLibraryIds,
         },
         onSuccess,
       }),

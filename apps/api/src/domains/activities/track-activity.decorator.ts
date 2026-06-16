@@ -16,6 +16,7 @@ export type TrackActivityEntityFrom =
   | "memberAgentMembership"
   | "document"
   | "documentTag"
+  | "resourceLibrary"
   | "agentSession"
   | "evaluation"
   | "evaluationExtractionDataset"

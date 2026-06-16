@@ -1,0 +1,60 @@
+{
+  "resourceLibrary": {
+    "title": "Resource libraries",
+    "description": "Group resources the assistant can surface to users.",
+    "empty": "No resource libraries yet. Create one to let this project's agents surface resources.",
+    "resourceCount_one": "{{count}} resource",
+    "resourceCount_other": "{{count}} resources",
+    "manage": "Manage libraries",
+    "actions": {
+      "newLibrary": "New library"
+    },
+    "table": {
+      "title": "Title",
+      "description": "Description",
+      "link": "Link",
+      "actions": "Actions"
+    },
+    "preview": {
+      "title": "Resource preview"
+    },
+    "form": {
+      "titleLabel": "Title",
+      "titlePlaceholder": "Getting Started",
+      "titleRequired": "A title is required",
+      "resources": "Resources",
+      "noResources": "No resources yet."
+    },
+    "resourceForm": {
+      "createTitle": "New resource",
+      "editTitle": "Edit resource",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Resource title",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Shown to users on the resource card",
+      "matchingHintsLabel": "Matching hints (not shown to users)",
+      "matchingHintsPlaceholder": "Keywords, synonyms, or \"use when…\" guidance the assistant uses to match user requests"
+    },
+    "link": {
+      "url": "URL",
+      "file": "Uploaded file",
+      "urlPlaceholder": "https://example.com/resource",
+      "urlInvalid": "Enter a valid https:// URL"
+    },
+    "create": {
+      "title": "New resource library"
+    },
+    "delete": {
+      "title": "Delete resource library",
+      "description": "Delete \"{{title}}\"? Agents using it will lose access to its resources."
+    },
+    "removeResource": {
+      "title": "Remove resource",
+      "description": "Remove \"{{title}}\" from this library?"
+    },
+    "agentTab": {
+      "label": "Resource libraries",
+      "description": "The assistant can surface resources from the selected libraries when a user's request matches a resource's title or description."
+    }
+  }
+}

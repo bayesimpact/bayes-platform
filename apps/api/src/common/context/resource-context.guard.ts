@@ -42,6 +42,8 @@ import { ProjectContextResolver } from "./resolvers/project-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipContextResolver } from "./resolvers/project-membership-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ResourceLibraryContextResolver } from "./resolvers/resource-library-context.resolver"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ReviewCampaignContextResolver } from "./resolvers/review-campaign-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ReviewCampaignMembershipContextResolver } from "./resolvers/review-campaign-membership-context.resolver"
@@ -56,6 +58,7 @@ const RESOLUTION_ORDER: ContextResource[] = [
   "agentCsvExtractionRun",
   "document",
   "documentTag",
+  "resourceLibrary",
   "evaluation",
   "evaluationExtractionDataset",
   "evaluationExtractionRun",
@@ -80,6 +83,7 @@ export class ResourceContextGuard implements CanActivate {
     @Optional() agentCsvExtractionRunContextResolver?: AgentCsvExtractionRunContextResolver,
     @Optional() documentContextResolver?: DocumentContextResolver,
     @Optional() documentTagContextResolver?: DocumentTagContextResolver,
+    @Optional() resourceLibraryContextResolver?: ResourceLibraryContextResolver,
     @Optional() evaluationContextResolver?: EvaluationContextResolver,
     @Optional()
     evaluationExtractionDatasetContextResolver?: EvaluationExtractionDatasetContextResolver,
@@ -128,6 +132,12 @@ export class ResourceContextGuard implements CanActivate {
     }
     if (documentTagContextResolver) {
       resolverEntries.push([documentTagContextResolver.resource, documentTagContextResolver])
+    }
+    if (resourceLibraryContextResolver) {
+      resolverEntries.push([
+        resourceLibraryContextResolver.resource,
+        resourceLibraryContextResolver,
+      ])
     }
     if (evaluationContextResolver) {
       resolverEntries.push([evaluationContextResolver.resource, evaluationContextResolver])

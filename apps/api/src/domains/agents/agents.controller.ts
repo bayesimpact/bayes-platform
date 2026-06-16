@@ -179,6 +179,7 @@ function toAgentDto(entity: Agent): AgentDto {
     type: entity.type,
     updatedAt: entity.updatedAt.getTime(),
     documentTagIds: entity.documentTags?.map((tag) => tag.id) || [],
+    resourceLibraryIds: entity.resourceLibraries?.map((library) => library.id) || [],
     documentsRagMode: entity.documentsRagMode,
     projectAgentSessionCategoryIds: (entity.sessionCategories ?? [])
       .map((category) => category.projectAgentSessionCategoryId)
