@@ -16,6 +16,7 @@ export interface UseBuildRoutesContextValue {
     projectRoute: BuildProjectRoute
     agentRoute: BuildAgentRoute
     agentSessionRoute: BuildAgentSessionRoute
+    agentExtractionCsvRunRoute: BuildAgentExtractionCsvRunRoute
   }
 }
 

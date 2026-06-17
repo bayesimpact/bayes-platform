@@ -172,6 +172,7 @@ export function AgentCsvExtractionRunRecordsTable({ run }: { run: AgentCsvExtrac
         <SortableFilterableHeader
           column={column}
           label={t("agentCsvExtractionRun:results.status")}
+          className="text-semibold text-inherit"
         />
       ),
       cell: ({ row }) => <RecordStatusBadge status={row.original.status} />,
@@ -194,7 +195,13 @@ export function AgentCsvExtractionRunRecordsTable({ run }: { run: AgentCsvExtrac
       id: `output_${outputKey}`,
       accessorFn: (row: ResultRow) => String(row.agentRawOutput[outputKey] ?? ""),
       header: ({ column }) => (
-        <SortableFilterableHeader column={column} label={outputKey} badge="output" />
+        <SortableFilterableHeader
+          column={column}
+          label={outputKey}
+          badge="output"
+          badgeProps={{ variant: "outline", className: "border-primary text-primary" }}
+          className="text-semibold text-inherit"
+        />
       ),
       cell: ({ row }) => (
         <TruncatedCell
@@ -208,8 +215,8 @@ export function AgentCsvExtractionRunRecordsTable({ run }: { run: AgentCsvExtrac
     const allColumns: ColumnDef<ResultRow>[] = [
       indexColumn,
       statusColumn,
-      ...inputColDefs,
       ...outputColDefs,
+      ...inputColDefs,
     ]
 
     if (hasErrors) {

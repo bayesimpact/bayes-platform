@@ -307,6 +307,8 @@ function RecordsTable({
             column={column}
             label={mappingEntry.agentOutputKey}
             badge="agent"
+            badgeProps={{ variant: "outline", className: "border-primary text-primary" }}
+            className="text-inherit font-semibold"
           />
         ),
         cell: ({ row }: { row: { original: ResultRow } }) => {
@@ -327,6 +329,7 @@ function RecordsTable({
         <SortableFilterableHeader
           column={column}
           label={t("evaluationExtractionRun:results.status")}
+          className="text-inherit font-semibold"
         />
       ),
       cell: ({ row }) => {
@@ -363,7 +366,7 @@ function RecordsTable({
       enableColumnFilter: false,
     }
 
-    const allColumns = [indexColumn, ...inputColDefs, ...targetColumns, statusColumn]
+    const allColumns = [indexColumn, statusColumn, ...inputColDefs, ...targetColumns]
 
     if (hasErrors) {
       allColumns.push({

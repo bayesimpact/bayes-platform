@@ -85,10 +85,16 @@ export function SortableFilterableHeader<TData>({
   column,
   label,
   badge,
+  className,
+  badgeProps = {
+    variant: "outline",
+  },
 }: {
   column: Column<TData, unknown>
   label: string
   badge?: string
+  className?: string
+  badgeProps?: React.ComponentProps<typeof Badge>
 }) {
   const sorted = column.getIsSorted()
   const filterValue = (column.getFilterValue() as string) ?? ""
@@ -97,11 +103,14 @@ export function SortableFilterableHeader<TData>({
     <div className="flex flex-row gap-1.5">
       <button
         type="button"
-        className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+        className={cn(
+          "flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors",
+          className,
+        )}
         onClick={column.getToggleSortingHandler()}
       >
         {label}
-        {badge && <Badge variant="outline">{badge}</Badge>}
+        {badge && <Badge {...badgeProps}>{badge}</Badge>}
         {sorted === "asc" ? (
           <ArrowUpIcon className="size-3.5" />
         ) : sorted === "desc" ? (
