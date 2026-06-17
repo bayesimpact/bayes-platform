@@ -9,7 +9,7 @@
       "defaultPrompt": "Prompt par défaut",
       "formConfiguration": "Configuration du formulaire",
       "greeting": "Message d'accueil",
-      "documentsRagMode": "RAG des documents",
+      "documentsRagMode": "Source de réponse",
       "locale": "Langue",
       "name": "Nom",
       "model": "Modèle",
@@ -20,9 +20,9 @@
       "agentSessionCategories": "Catégories de conversation",
       "agentSessionCategoriesInUse": "Les catégories déjà utilisées dans les conversations de cet agent ne peuvent pas être décochées.",
       "documentsRagModeOptions": {
-        "none": "Ne pas utiliser le RAG",
-        "all": "RAG sur tous les documents",
-        "tags": "RAG selon les étiquettes de document"
+        "none": "Répondre sans consulter de documents",
+        "all": "Rechercher dans tous les documents",
+        "tags": "Recherche dans les documents étiquetés"
       },
       "placeholders": {
         "name": "Entrez le nom de l'agent",
