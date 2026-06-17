@@ -114,6 +114,64 @@ export const deleteDocument = createAsyncThunk<
   return await services.documents.deleteOne({ organizationId, projectId, documentId })
 })
 
+export const deleteDocuments = createAsyncThunk<
+  void,
+  { documentIds: string[]; onSuccess?: () => void },
+  ThunkConfig
+>("documents/deleteMany", async ({ documentIds }, { extra: { services }, getState }) => {
+  const state = getState()
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  await Promise.all(
+    documentIds.map((documentId) =>
+      services.documents.deleteOne({ organizationId, projectId, documentId }),
+    ),
+  )
+})
+
+export const addTagsToDocuments = createAsyncThunk<
+  void,
+  { documentIds: string[]; tagIds: string[]; onSuccess?: () => void },
+  ThunkConfig
+>("documents/addTagsMany", async ({ documentIds, tagIds }, { extra: { services }, getState }) => {
+  const state = getState()
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  await Promise.all(
+    documentIds.map((documentId) =>
+      services.documents.updateOne({
+        organizationId,
+        projectId,
+        documentId,
+        payload: { tagsToAdd: tagIds },
+      }),
+    ),
+  )
+})
+
+export const removeTagsFromDocuments = createAsyncThunk<
+  void,
+  { documentIds: string[]; tagIds: string[]; onSuccess?: () => void },
+  ThunkConfig
+>(
+  "documents/removeTagsMany",
+  async ({ documentIds, tagIds }, { extra: { services }, getState }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    await Promise.all(
+      documentIds.map((documentId) =>
+        services.documents.updateOne({
+          organizationId,
+          projectId,
+          documentId,
+          payload: { tagsToRemove: tagIds },
+        }),
+      ),
+    )
+  },
+)
+
 export const reprocessDocument = createAsyncThunk<void, { documentId: string }, ThunkConfig>(
   "documents/reprocess",
   async ({ documentId }, { extra: { services }, getState, dispatch }) => {

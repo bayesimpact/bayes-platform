@@ -8,6 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- Documents can now be selected in bulk from the documents list, then deleted, tagged, or untagged in a single action
 
 ### Changed
 

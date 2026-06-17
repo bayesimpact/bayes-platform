@@ -51,6 +51,29 @@
     "reprocess": {
       "cta": "Relancer le traitement"
     },
+    "bulk": {
+      "selected_one": "{{count}} sélectionné",
+      "selected_other": "{{count}} sélectionnés",
+      "delete": {
+        "title_one": "Supprimer {{count}} document",
+        "title_other": "Supprimer {{count}} documents",
+        "description": "Êtes-vous sûr de vouloir supprimer les documents sélectionnés ? Cette action est irréversible."
+      },
+      "addTag": {
+        "title_one": "Ajouter des tags à {{count}} document",
+        "title_other": "Ajouter des tags à {{count}} documents",
+        "description": "Choisissez les tags à appliquer à chaque document sélectionné.",
+        "confirm": "Appliquer"
+      },
+      "removeTag": {
+        "cta": "Retirer un tag",
+        "title_one": "Retirer des tags de {{count}} document",
+        "title_other": "Retirer des tags de {{count}} documents",
+        "description": "Choisissez les tags à retirer de chaque document sélectionné.",
+        "empty": "Les documents sélectionnés n'ont aucun tag.",
+        "confirm": "Retirer"
+      }
+    },
     "download": "Télécharger",
     "publicTag": {
       "disclaimer": {

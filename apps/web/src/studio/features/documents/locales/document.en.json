@@ -51,6 +51,29 @@
     "reprocess": {
       "cta": "Reprocess"
     },
+    "bulk": {
+      "selected_one": "{{count}} selected",
+      "selected_other": "{{count}} selected",
+      "delete": {
+        "title_one": "Delete {{count}} document",
+        "title_other": "Delete {{count}} documents",
+        "description": "Are you sure you want to delete the selected documents? This action cannot be undone."
+      },
+      "addTag": {
+        "title_one": "Add tags to {{count}} document",
+        "title_other": "Add tags to {{count}} documents",
+        "description": "Choose tags to apply to every selected document.",
+        "confirm": "Apply"
+      },
+      "removeTag": {
+        "cta": "Remove tag",
+        "title_one": "Remove tags from {{count}} document",
+        "title_other": "Remove tags from {{count}} documents",
+        "description": "Choose tags to remove from every selected document.",
+        "empty": "The selected documents have no tags.",
+        "confirm": "Remove"
+      }
+    },
     "download": "Download",
     "publicTag": {
       "disclaimer": {

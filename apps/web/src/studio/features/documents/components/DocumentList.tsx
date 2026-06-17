@@ -1,6 +1,7 @@
 import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
+import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -36,12 +37,14 @@ import {
   Loader2Icon,
   PencilIcon,
   RotateCcwIcon,
+  TagIcon,
   Trash2Icon,
   XIcon,
 } from "lucide-react"
 import { useReducer, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
+import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { GridHeader } from "@/common/components/grid/Grid"
 import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/MarkdownWrapper"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
@@ -65,8 +68,11 @@ import {
   selectUploaderState,
 } from "@/studio/features/documents/documents.selectors"
 import {
+  addTagsToDocuments,
   deleteDocument,
+  deleteDocuments,
   getDocumentTemporaryUrl,
+  removeTagsFromDocuments,
   reprocessDocument,
   updateDocument,
 } from "@/studio/features/documents/documents.thunks"
@@ -81,6 +87,30 @@ export function DocumentList() {
   const { t } = useTranslation()
   const projectRoute = useGetProjectRoute()
   const handleBack = () => navigate(projectRoute)
+
+  const [selectedIds, setSelectedIds] = useState<ReadonlySet<string>>(new Set())
+
+  const selectedDocuments = documents.filter((document) => selectedIds.has(document.id))
+  const allSelected = documents.length > 0 && selectedDocuments.length === documents.length
+  const someSelected = selectedDocuments.length > 0 && !allSelected
+
+  const clearSelection = () => setSelectedIds(new Set())
+
+  const toggleAll = () => {
+    setSelectedIds(allSelected ? new Set() : new Set(documents.map((document) => document.id)))
+  }
+
+  const toggleOne = (documentId: string) => {
+    setSelectedIds((previous) => {
+      const next = new Set(previous)
+      if (next.has(documentId)) {
+        next.delete(documentId)
+      } else {
+        next.add(documentId)
+      }
+      return next
+    })
+  }
 
   return (
     <UploadDocumentsButton className="w-full">
@@ -101,28 +131,50 @@ export function DocumentList() {
         {documents.length === 0 ? (
           <EmptyDocument />
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="font-medium rounded-tl-lg bg-muted">
-                  {t("document:props.title")}
-                </TableHead>
-                <TableHead className="font-medium bg-muted">{t("document:props.tags")}</TableHead>
-                <TableHead className="font-medium bg-muted">
-                  {t("document:props.embeddingStatus")}
-                </TableHead>
-                <TableHead className="font-medium bg-muted">
-                  {t("document:props.updatedAt")}
-                </TableHead>
-                <TableHead className="w-10 rounded-tr-lg bg-muted" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {documents.map((document) => (
-                <DocumentRow key={document.id} document={document} documentTags={documentTags} />
-              ))}
-            </TableBody>
-          </Table>
+          <div className="flex flex-col gap-3">
+            {selectedDocuments.length > 0 && (
+              <DocumentBulkActions
+                selectedDocuments={selectedDocuments}
+                documentTags={documentTags}
+                onClear={clearSelection}
+              />
+            )}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-10 rounded-tl-lg bg-muted">
+                    <Checkbox
+                      checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                      onCheckedChange={toggleAll}
+                      aria-label={t("actions:selectAll")}
+                    />
+                  </TableHead>
+                  <TableHead className="font-medium bg-muted">
+                    {t("document:props.title")}
+                  </TableHead>
+                  <TableHead className="font-medium bg-muted">{t("document:props.tags")}</TableHead>
+                  <TableHead className="font-medium bg-muted">
+                    {t("document:props.embeddingStatus")}
+                  </TableHead>
+                  <TableHead className="font-medium bg-muted">
+                    {t("document:props.updatedAt")}
+                  </TableHead>
+                  <TableHead className="w-10 rounded-tr-lg bg-muted" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {documents.map((document) => (
+                  <DocumentRow
+                    key={document.id}
+                    document={document}
+                    documentTags={documentTags}
+                    selected={selectedIds.has(document.id)}
+                    onToggleSelected={() => toggleOne(document.id)}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </div>
     </UploadDocumentsButton>
@@ -132,14 +184,26 @@ export function DocumentList() {
 function DocumentRow({
   document,
   documentTags,
+  selected,
+  onToggleSelected,
 }: {
   document: Document
   documentTags: DocumentTag[]
+  selected: boolean
+  onToggleSelected: () => void
 }) {
+  const { t } = useTranslation()
   const date = buildSince(document.updatedAt)
 
   return (
-    <TableRow>
+    <TableRow data-state={selected ? "selected" : undefined}>
+      <TableCell>
+        <Checkbox
+          checked={selected}
+          onCheckedChange={onToggleSelected}
+          aria-label={t("actions:select")}
+        />
+      </TableCell>
       <TableCell>{document.title}</TableCell>
       <TableCell>
         <div className="flex flex-wrap gap-1">
@@ -182,6 +246,247 @@ export function getTagFullPath(documentTags: DocumentTag[], tagId: string): Reac
         </div>
       ))
     : "Unknown Tag"
+}
+
+function DocumentBulkActions({
+  selectedDocuments,
+  documentTags,
+  onClear,
+}: {
+  selectedDocuments: Document[]
+  documentTags: DocumentTag[]
+  onClear: () => void
+}) {
+  const dispatch = useAppDispatch()
+  const { t } = useTranslation()
+  const [activeAction, setActiveAction] = useState<"delete" | "addTag" | "removeTag" | null>(null)
+
+  const documentIds = selectedDocuments.map((document) => document.id)
+  const count = documentIds.length
+  const removableTagIds = [...new Set(selectedDocuments.flatMap((document) => document.tagIds))]
+
+  const handleDelete = () => {
+    dispatch(
+      deleteDocuments({
+        documentIds,
+        onSuccess: () => {
+          setActiveAction(null)
+          onClear()
+        },
+      }),
+    )
+  }
+
+  return (
+    <div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-3 py-2">
+      <Button variant="ghost" size="icon" className="size-8" onClick={onClear}>
+        <XIcon className="size-4" />
+      </Button>
+      <span className="text-sm font-medium">{t("document:bulk.selected", { count })}</span>
+      <div className="ml-auto flex items-center gap-2">
+        <Button variant="outline" size="sm" onClick={() => setActiveAction("addTag")}>
+          <TagIcon className="size-4" />
+          {t("documentTag:addTag")}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={removableTagIds.length === 0}
+          onClick={() => setActiveAction("removeTag")}
+        >
+          <TagIcon className="size-4" />
+          {t("document:bulk.removeTag.cta")}
+        </Button>
+
+        <Button variant="outline" size="sm" onClick={() => setActiveAction("delete")}>
+          <Trash2Icon className="size-4" />
+          {t("actions:delete")}
+        </Button>
+      </div>
+
+      <ConfirmDialog
+        open={activeAction === "delete"}
+        title={t("document:bulk.delete.title", { count })}
+        description={t("document:bulk.delete.description")}
+        onConfirm={handleDelete}
+        onCancel={() => setActiveAction(null)}
+      />
+
+      <BulkAddTagDialog
+        open={activeAction === "addTag"}
+        documentIds={documentIds}
+        documentTags={documentTags}
+        onSuccess={() => {
+          setActiveAction(null)
+          onClear()
+        }}
+        onCancel={() => setActiveAction(null)}
+      />
+
+      <BulkRemoveTagDialog
+        open={activeAction === "removeTag"}
+        documentIds={documentIds}
+        documentTags={documentTags}
+        removableTagIds={removableTagIds}
+        onSuccess={() => {
+          setActiveAction(null)
+          onClear()
+        }}
+        onCancel={() => setActiveAction(null)}
+      />
+    </div>
+  )
+}
+
+function BulkAddTagDialog({
+  open,
+  documentIds,
+  documentTags,
+  onSuccess,
+  onCancel,
+}: {
+  open: boolean
+  documentIds: string[]
+  documentTags: DocumentTag[]
+  onSuccess: () => void
+  onCancel: () => void
+}) {
+  const dispatch = useAppDispatch()
+  const { t } = useTranslation()
+  const [tagIds, setTagIds] = useState<string[]>([])
+
+  const handleApply = () => {
+    dispatch(addTagsToDocuments({ documentIds, tagIds, onSuccess }))
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          setTagIds([])
+          onCancel()
+        }
+      }}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {t("document:bulk.addTag.title", { count: documentIds.length })}
+          </DialogTitle>
+          <DialogDescription>{t("document:bulk.addTag.description")}</DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-wrap gap-2 items-center">
+          {tagIds.map((tagId) => (
+            <Badge key={tagId} variant="secondary" className="gap-1">
+              {getTagNameById(documentTags, tagId)}
+              <button
+                type="button"
+                onClick={() => setTagIds((previous) => previous.filter((id) => id !== tagId))}
+                className="opacity-60 hover:opacity-100"
+              >
+                <XIcon className="size-3" />
+              </button>
+            </Badge>
+          ))}
+          <DocumentTagPicker
+            documentTags={documentTags}
+            attachedTagIds={tagIds}
+            onAdd={(tagId) => setTagIds((previous) => [...previous, tagId])}
+          />
+        </div>
+        <div className="flex justify-end gap-2 pt-4">
+          <Button variant="outline" onClick={onCancel}>
+            {t("actions:cancel")}
+          </Button>
+          <Button onClick={handleApply} disabled={tagIds.length === 0}>
+            {t("document:bulk.addTag.confirm")}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function BulkRemoveTagDialog({
+  open,
+  documentIds,
+  documentTags,
+  removableTagIds,
+  onSuccess,
+  onCancel,
+}: {
+  open: boolean
+  documentIds: string[]
+  documentTags: DocumentTag[]
+  removableTagIds: string[]
+  onSuccess: () => void
+  onCancel: () => void
+}) {
+  const dispatch = useAppDispatch()
+  const { t } = useTranslation()
+  const [tagIds, setTagIds] = useState<string[]>([])
+
+  const toggleTag = (tagId: string) => {
+    setTagIds((previous) =>
+      previous.includes(tagId) ? previous.filter((id) => id !== tagId) : [...previous, tagId],
+    )
+  }
+
+  const handleRemove = () => {
+    dispatch(removeTagsFromDocuments({ documentIds, tagIds, onSuccess }))
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          setTagIds([])
+          onCancel()
+        }
+      }}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {t("document:bulk.removeTag.title", { count: documentIds.length })}
+          </DialogTitle>
+          <DialogDescription>{t("document:bulk.removeTag.description")}</DialogDescription>
+        </DialogHeader>
+        {removableTagIds.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t("document:bulk.removeTag.empty")}</p>
+        ) : (
+          <div className="flex flex-wrap gap-2 items-center">
+            {removableTagIds.map((tagId) => {
+              const selected = tagIds.includes(tagId)
+              return (
+                <Badge
+                  key={tagId}
+                  asChild
+                  variant={selected ? "destructive" : "secondary"}
+                  className="cursor-pointer gap-1"
+                >
+                  <button type="button" onClick={() => toggleTag(tagId)}>
+                    {getTagNameById(documentTags, tagId)}
+                    {selected && <XIcon className="size-3" />}
+                  </button>
+                </Badge>
+              )
+            })}
+          </div>
+        )}
+        <div className="flex justify-end gap-2 pt-4">
+          <Button variant="outline" onClick={onCancel}>
+            {t("actions:cancel")}
+          </Button>
+          <Button variant="destructive" onClick={handleRemove} disabled={tagIds.length === 0}>
+            {t("document:bulk.removeTag.confirm")}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
 function DocumentActions({
