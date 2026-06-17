@@ -3091,7 +3091,25 @@
   {
     "type": "dependency",
     "from": "src/domains/backoffice/backoffice.helpers.ts",
+    "to": "src/domains/agents/memberships/agent-membership.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.helpers.ts",
     "to": "src/domains/feature-flags/feature-flag.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.helpers.ts",
+    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"

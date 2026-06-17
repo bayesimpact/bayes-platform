@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type {
+  BackofficeUserDetail,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeUsers,
   TermsDocuments,
@@ -18,6 +19,7 @@ interface State {
   organizationsQuery: ListQuery
   users: AsyncData<PaginatedBackofficeUsers>
   usersQuery: ListQuery
+  userDetail: AsyncData<BackofficeUserDetail>
   termsDocuments: AsyncData<TermsDocuments>
 }
 
@@ -28,6 +30,7 @@ const initialState: State = {
   organizationsQuery: defaultListQuery,
   users: defaultAsyncData,
   usersQuery: defaultListQuery,
+  userDetail: defaultAsyncData,
   termsDocuments: defaultAsyncData,
 }
 
@@ -38,6 +41,9 @@ const slice = createSlice({
     mount: () => {},
     unmount: () => {},
     reset: () => initialState,
+    resetUserDetail: (state) => {
+      state.userDetail = defaultAsyncData
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -90,6 +96,26 @@ const slice = createSlice({
         state.users = {
           status: ADS.Error,
           error: action.error.message || "Failed to fetch users",
+          value: null,
+        }
+      })
+
+    builder
+      .addCase(backofficeThunks.getUser.pending, (state) => {
+        state.userDetail.status = ADS.Loading
+        state.userDetail.error = null
+      })
+      .addCase(backofficeThunks.getUser.fulfilled, (state, action) => {
+        state.userDetail = {
+          status: ADS.Fulfilled,
+          error: null,
+          value: action.payload,
+        }
+      })
+      .addCase(backofficeThunks.getUser.rejected, (state, action) => {
+        state.userDetail = {
+          status: ADS.Error,
+          error: action.error.message || "Failed to fetch user",
           value: null,
         }
       })

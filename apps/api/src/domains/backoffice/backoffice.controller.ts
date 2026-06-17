@@ -5,6 +5,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Post,
   Query,
@@ -17,7 +18,11 @@ import { UserGuard } from "@/domains/users/user.guard"
 import { TrackActivity } from "../activities/track-activity.decorator"
 import { isEmailBackofficeAuthorized } from "./backoffice.authorization"
 import { BackofficeGuard } from "./backoffice.guard"
-import { toBackofficeOrganizationDto, toBackofficeUserDto } from "./backoffice.helpers"
+import {
+  toBackofficeOrganizationDto,
+  toBackofficeUserDetailDto,
+  toBackofficeUserDto,
+} from "./backoffice.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { BackofficeService } from "./backoffice.service"
 
@@ -76,7 +81,7 @@ export class BackofficeController {
     const canListAll = isEmailBackofficeAuthorized(user.email)
     const page = Math.max(0, Number(pageParam) || 0)
     const limit = Math.min(100, Math.max(1, Number(limitParam) || 10))
-    const { users, total } = await this.backofficeService.listUsersWithMemberships({
+    const { users, total } = await this.backofficeService.listUsers({
       canListAll,
       userId: user.id,
       page,
@@ -90,6 +95,28 @@ export class BackofficeController {
         page,
         limit,
       },
+    }
+  }
+
+  @Get(BackofficeRoutes.getUser.path)
+  async getUser(
+    @Req() request: EndpointRequest,
+    @Param("userId") userId: string,
+  ): Promise<typeof BackofficeRoutes.getUser.response> {
+    const { user } = request
+    const canListAll = isEmailBackofficeAuthorized(user.email)
+    const result = await this.backofficeService.getUserDetail({
+      canListAll,
+      requestingUserId: user.id,
+      targetUserId: userId,
+    })
+    if (!result) throw new NotFoundException(`User ${userId} not found`)
+    return {
+      data: toBackofficeUserDetailDto(
+        result.user,
+        result.organizationMemberships,
+        result.agentMemberships,
+      ),
     }
   }
 

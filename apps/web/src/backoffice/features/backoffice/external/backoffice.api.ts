@@ -1,6 +1,7 @@
 import { BackofficeRoutes } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import {
+  toBackofficeUserDetail,
   toPaginatedBackofficeOrganizations,
   toPaginatedBackofficeUsers,
 } from "../backoffice.models"
@@ -32,6 +33,13 @@ export default {
       { params: queryParams },
     )
     return toPaginatedBackofficeUsers(response.data.data)
+  },
+  getUser: async (userId) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof BackofficeRoutes.getUser.response>(
+      BackofficeRoutes.getUser.getPath({ userId }),
+    )
+    return toBackofficeUserDetail(response.data.data)
   },
   addFeatureFlag: async ({ projectId, featureFlagKey }) => {
     const axios = getAxiosInstance()

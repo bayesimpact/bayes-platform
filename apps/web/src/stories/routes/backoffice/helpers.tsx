@@ -2,8 +2,6 @@ import {
   backofficeOrganizationFactory,
   backofficeProjectFactory,
   backofficeUserFactory,
-  backofficeUserOrganizationMembershipFactory,
-  backofficeUserProjectMembershipFactory,
   paginatedBackofficeOrganizationsFactory,
   paginatedBackofficeUsersFactory,
   termsDocumentsFactory,
@@ -66,7 +64,7 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
         limit: 10,
       })
   const users: PaginatedBackofficeUsers = args.withUsers
-    ? buildUsersPage(organizations.organizations)
+    ? buildUsersPage()
     : paginatedBackofficeUsersFactory.build({ users: [], total: 0, page: 0, limit: 10 })
   const termsDocuments =
     args.isTermsManagementAuthorized && args.withTermsDocuments
@@ -100,23 +98,10 @@ function buildOrganizationsPage(): PaginatedBackofficeOrganizations {
   })
 }
 
-function buildUsersPage(organizations: BackofficeOrganization[]): PaginatedBackofficeUsers {
+function buildUsersPage(): PaginatedBackofficeUsers {
   const total = 24
   const pageSize = 10
-  const users: BackofficeUser[] = Array.from({ length: pageSize }).map(() => {
-    const organization = organizations[0]
-    const project = organization?.projects[0]
-    const organizationMemberships = organization
-      ? [backofficeUserOrganizationMembershipFactory.transient({ organization }).build()]
-      : []
-    const projectMemberships = project
-      ? [backofficeUserProjectMembershipFactory.transient({ project }).build()]
-      : []
-    return backofficeUserFactory.build({
-      organizationMemberships,
-      projectMemberships,
-    })
-  })
+  const users: BackofficeUser[] = backofficeUserFactory.buildList(pageSize)
   return paginatedBackofficeUsersFactory.build({ users, total, page: 0, limit: pageSize })
 }
 
@@ -143,6 +128,9 @@ export function buildMockBackofficeService(overrides: {
     },
     async listUsers() {
       return users
+    },
+    async getUser(userId) {
+      throw new Error(`getUser(${userId}) not implemented in mock service`)
     },
     async addFeatureFlag() {},
     async removeFeatureFlag() {},

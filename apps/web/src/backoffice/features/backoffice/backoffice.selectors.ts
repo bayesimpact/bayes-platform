@@ -5,4 +5,5 @@ export const selectBackofficeOrganizationsQuery = (state: RootState) =>
   state.backoffice.organizationsQuery
 export const selectBackofficeUsers = (state: RootState) => state.backoffice.users
 export const selectBackofficeUsersQuery = (state: RootState) => state.backoffice.usersQuery
+export const selectBackofficeUserDetail = (state: RootState) => state.backoffice.userDetail
 export const selectTermsDocuments = (state: RootState) => state.backoffice.termsDocuments

@@ -1,7 +1,7 @@
+import type { AgentMembershipRoleDto } from "../agent-membership/agent-membership.dto"
 import type { FeatureFlagsDto } from "../feature-flags/feature-flags.dto"
 import type { TimeType } from "../generic"
 import type { OrganizationMembershipRoleDto } from "../organizations/organizations.dto"
-import type { ProjectMembershipRoleDto } from "../project-membership/project-membership.dto"
 
 export type BackofficeProjectDto = {
   id: string
@@ -26,25 +26,11 @@ export type PaginatedBackofficeOrganizationsDto = {
   limit: number
 }
 
-export type BackofficeUserOrganizationMembershipDto = {
-  organizationId: string
-  organizationName: string
-  role: OrganizationMembershipRoleDto
-}
-
-export type BackofficeUserProjectMembershipDto = {
-  projectId: string
-  projectName: string
-  role: ProjectMembershipRoleDto
-}
-
 export type BackofficeUserDto = {
   id: string
   email: string
   name: string | null
   createdAt: TimeType
-  organizationMemberships: BackofficeUserOrganizationMembershipDto[]
-  projectMemberships: BackofficeUserProjectMembershipDto[]
 }
 
 export type PaginatedBackofficeUsersDto = {
@@ -52,6 +38,27 @@ export type PaginatedBackofficeUsersDto = {
   total: number
   page: number
   limit: number
+}
+
+export type BackofficeUserOrganizationMembershipDto = {
+  organizationId: string
+  organizationName: string
+  role: OrganizationMembershipRoleDto
+}
+
+export type BackofficeUserAgentMembershipDto = {
+  agentId: string
+  agentName: string
+  role: AgentMembershipRoleDto
+}
+
+export type BackofficeUserDetailDto = {
+  id: string
+  email: string
+  name: string | null
+  createdAt: TimeType
+  organizationMemberships: BackofficeUserOrganizationMembershipDto[]
+  agentMemberships: BackofficeUserAgentMembershipDto[]
 }
 
 export const TERMS_DOCUMENT_TYPES = [

@@ -5,8 +5,9 @@ import type {
   BackofficeOrganization,
   BackofficeProject,
   BackofficeUser,
+  BackofficeUserAgentMembership,
+  BackofficeUserDetail,
   BackofficeUserOrganizationMembership,
-  BackofficeUserProjectMembership,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeUsers,
   TermsDocuments,
@@ -49,55 +50,6 @@ export const backofficeOrganizationFactory = BackofficeOrganizationFactory.defin
   projects: params.projects ?? [],
 }))
 
-type OrganizationMembershipTransientParams = {
-  organization: BackofficeOrganization
-}
-
-class BackofficeUserOrganizationMembershipFactory extends Factory<
-  BackofficeUserOrganizationMembership,
-  OrganizationMembershipTransientParams
-> {}
-
-export const backofficeUserOrganizationMembershipFactory =
-  BackofficeUserOrganizationMembershipFactory.define(({ params, transientParams }) => {
-    const { organization } = transientParams
-    if (!organization) {
-      throw new Error(
-        "Organization must be provided in transient params to build a BackofficeUserOrganizationMembership",
-      )
-    }
-    return {
-      organizationId: params.organizationId ?? organization.id,
-      organizationName: params.organizationName ?? organization.name,
-      role: params.role ?? "member",
-    }
-  })
-
-type ProjectMembershipTransientParams = {
-  project: BackofficeProject
-}
-
-class BackofficeUserProjectMembershipFactory extends Factory<
-  BackofficeUserProjectMembership,
-  ProjectMembershipTransientParams
-> {}
-
-export const backofficeUserProjectMembershipFactory = BackofficeUserProjectMembershipFactory.define(
-  ({ params, transientParams }) => {
-    const { project } = transientParams
-    if (!project) {
-      throw new Error(
-        "Project must be provided in transient params to build a BackofficeUserProjectMembership",
-      )
-    }
-    return {
-      projectId: params.projectId ?? project.id,
-      projectName: params.projectName ?? project.name,
-      role: params.role ?? "member",
-    }
-  },
-)
-
 class BackofficeUserFactory extends Factory<BackofficeUser> {}
 
 export const backofficeUserFactory = BackofficeUserFactory.define(({ params }) => {
@@ -108,8 +60,6 @@ export const backofficeUserFactory = BackofficeUserFactory.define(({ params }) =
     email: params.email ?? faker.internet.email({ firstName, lastName }).toLowerCase(),
     name: params.name ?? `${firstName} ${lastName}`,
     createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
-    organizationMemberships: params.organizationMemberships ?? [],
-    projectMemberships: params.projectMemberships ?? [],
   }
 })
 
@@ -139,6 +89,55 @@ export const paginatedBackofficeOrganizationsFactory =
       limit: params.limit ?? 10,
     }
   })
+
+type OrganizationMembershipTransientParams = {
+  organization: BackofficeOrganization
+}
+
+class BackofficeUserOrganizationMembershipFactory extends Factory<
+  BackofficeUserOrganizationMembership,
+  OrganizationMembershipTransientParams
+> {}
+
+export const backofficeUserOrganizationMembershipFactory =
+  BackofficeUserOrganizationMembershipFactory.define(({ params, transientParams }) => {
+    const { organization } = transientParams
+    if (!organization) {
+      throw new Error(
+        "Organization must be provided in transient params to build a BackofficeUserOrganizationMembership",
+      )
+    }
+    return {
+      organizationId: params.organizationId ?? organization.id,
+      organizationName: params.organizationName ?? organization.name,
+      role: params.role ?? "member",
+    }
+  })
+
+class BackofficeUserAgentMembershipFactory extends Factory<BackofficeUserAgentMembership> {}
+
+export const backofficeUserAgentMembershipFactory = BackofficeUserAgentMembershipFactory.define(
+  ({ params }) => ({
+    agentId: params.agentId ?? faker.string.uuid(),
+    agentName: params.agentName ?? faker.commerce.productName(),
+    role: params.role ?? "member",
+  }),
+)
+
+class BackofficeUserDetailFactory extends Factory<BackofficeUserDetail> {}
+
+export const backofficeUserDetailFactory = BackofficeUserDetailFactory.define(({ params }) => {
+  const firstName = faker.person.firstName()
+  const lastName = faker.person.lastName()
+  return {
+    id: params.id ?? faker.string.uuid(),
+    email: params.email ?? faker.internet.email({ firstName, lastName }).toLowerCase(),
+    name: params.name ?? `${firstName} ${lastName}`,
+    createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
+    organizationMemberships: params.organizationMemberships ?? [],
+    agentMemberships: params.agentMemberships ?? [],
+  }
+})
 
 function termsDocument(type: TermsDocumentType) {
   return {

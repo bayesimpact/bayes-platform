@@ -187,7 +187,7 @@ export class BackofficeService {
     })
   }
 
-  async listUsersWithMemberships({
+  async listUsers({
     canListAll,
     userId,
     page,
@@ -222,24 +222,6 @@ export class BackofficeService {
         `(
           LOWER("user"."email") LIKE :searchPattern
           OR LOWER(COALESCE("user"."name", '')) LIKE :searchPattern
-          OR EXISTS (
-            SELECT 1 FROM "organization_membership" "om"
-            JOIN "organization" "o" ON "o"."id" = "om"."organization_id"
-            WHERE "om"."user_id" = "user"."id"
-              AND LOWER("o"."name") LIKE :searchPattern
-          )
-          OR EXISTS (
-            SELECT 1 FROM "project_membership" "pm"
-            JOIN "project" "p" ON "p"."id" = "pm"."project_id"
-            WHERE "pm"."user_id" = "user"."id"
-              AND LOWER("p"."name") LIKE :searchPattern
-          )
-          OR EXISTS (
-            SELECT 1 FROM "agent_membership" "am"
-            JOIN "agent" "a" ON "a"."id" = "am"."agent_id"
-            WHERE "am"."user_id" = "user"."id"
-              AND LOWER("a"."name") LIKE :searchPattern
-          )
         )`,
         { searchPattern },
       )
@@ -256,20 +238,53 @@ export class BackofficeService {
       return { users: [], total }
     }
 
-    const usersWithRelations = await this.userRepository.find({
+    const users = await this.userRepository.find({
       where: { id: In(paginatedIds) },
-      relations: {
-        memberships: { organization: true },
-        projectMemberships: { project: true },
-      },
     })
 
-    const usersById = new Map(usersWithRelations.map((user) => [user.id, user]))
+    const usersById = new Map(users.map((user) => [user.id, user]))
     const orderedUsers = paginatedIds
       .map((id) => usersById.get(id))
       .filter((user): user is User => user !== undefined)
 
     return { users: orderedUsers, total }
+  }
+
+  async getUserDetail({
+    canListAll,
+    requestingUserId,
+    targetUserId,
+  }: {
+    canListAll: boolean
+    requestingUserId: string
+    targetUserId: string
+  }): Promise<{
+    user: User
+    organizationMemberships: OrganizationMembership[]
+    agentMemberships: AgentMembership[]
+  } | null> {
+    if (!canListAll) {
+      const visibleUserIds = await this.findVisibleUserIdsForAdmin(requestingUserId)
+      if (!visibleUserIds.has(targetUserId)) return null
+    }
+
+    const user = await this.userRepository.findOne({ where: { id: targetUserId } })
+    if (!user) return null
+
+    const [organizationMemberships, agentMemberships] = await Promise.all([
+      this.organizationMembershipRepository.find({
+        where: { userId: targetUserId },
+        relations: { organization: true },
+        order: { organization: { name: "ASC" } },
+      }),
+      this.agentMembershipRepository.find({
+        where: { userId: targetUserId },
+        relations: { agent: true },
+        order: { agent: { name: "ASC" } },
+      }),
+    ])
+
+    return { user, organizationMemberships, agentMemberships }
   }
 
   private async findVisibleUserIdsForAdmin(userId: string): Promise<Set<string>> {
