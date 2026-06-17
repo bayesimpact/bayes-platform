@@ -1,9 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type {
+  BackofficeAgentDetail,
   BackofficeOrganizationDetail,
   BackofficeProjectDetail,
   BackofficeUserDetail,
+  PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
   PaginatedBackofficeUsers,
@@ -21,6 +23,9 @@ interface State {
   organizations: AsyncData<PaginatedBackofficeOrganizations>
   organizationsQuery: ListQuery
   organizationDetail: AsyncData<BackofficeOrganizationDetail>
+  agents: AsyncData<PaginatedBackofficeAgents>
+  agentsQuery: ListQuery
+  agentDetail: AsyncData<BackofficeAgentDetail>
   projects: AsyncData<PaginatedBackofficeProjects>
   projectsQuery: ListQuery
   projectDetail: AsyncData<BackofficeProjectDetail>
@@ -36,6 +41,9 @@ const initialState: State = {
   organizations: defaultAsyncData,
   organizationsQuery: defaultListQuery,
   organizationDetail: defaultAsyncData,
+  agents: defaultAsyncData,
+  agentsQuery: defaultListQuery,
+  agentDetail: defaultAsyncData,
   projects: defaultAsyncData,
   projectsQuery: defaultListQuery,
   projectDetail: defaultAsyncData,
@@ -54,6 +62,9 @@ const slice = createSlice({
     reset: () => initialState,
     resetOrganizationDetail: (state) => {
       state.organizationDetail = defaultAsyncData
+    },
+    resetAgentDetail: (state) => {
+      state.agentDetail = defaultAsyncData
     },
     resetProjectDetail: (state) => {
       state.projectDetail = defaultAsyncData
@@ -106,6 +117,53 @@ const slice = createSlice({
         state.organizationDetail = {
           status: ADS.Error,
           error: action.error.message || "Failed to fetch organization",
+          value: null,
+        }
+      })
+
+    builder
+      .addCase(backofficeThunks.listAgents.pending, (state, action) => {
+        if (!ADS.isFulfilled(state.agents)) {
+          state.agents.status = ADS.Loading
+        }
+        state.agents.error = null
+        state.agentsQuery = {
+          page: action.meta.arg?.page ?? state.agentsQuery.page,
+          limit: action.meta.arg?.limit ?? state.agentsQuery.limit,
+          search: action.meta.arg?.search ?? state.agentsQuery.search,
+        }
+      })
+      .addCase(backofficeThunks.listAgents.fulfilled, (state, action) => {
+        state.agents = {
+          status: ADS.Fulfilled,
+          error: null,
+          value: action.payload,
+        }
+      })
+      .addCase(backofficeThunks.listAgents.rejected, (state, action) => {
+        state.agents = {
+          status: ADS.Error,
+          error: action.error.message || "Failed to fetch agents",
+          value: null,
+        }
+      })
+
+    builder
+      .addCase(backofficeThunks.getAgent.pending, (state) => {
+        state.agentDetail.status = ADS.Loading
+        state.agentDetail.error = null
+      })
+      .addCase(backofficeThunks.getAgent.fulfilled, (state, action) => {
+        state.agentDetail = {
+          status: ADS.Fulfilled,
+          error: null,
+          value: action.payload,
+        }
+      })
+      .addCase(backofficeThunks.getAgent.rejected, (state, action) => {
+        state.agentDetail = {
+          status: ADS.Error,
+          error: action.error.message || "Failed to fetch agent",
           value: null,
         }
       })

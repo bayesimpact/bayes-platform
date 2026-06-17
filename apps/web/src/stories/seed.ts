@@ -1,4 +1,5 @@
 import type {
+  PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
   PaginatedBackofficeUsers,
@@ -302,6 +303,15 @@ export const seed = {
             limit: organizations.limit,
             search: "",
           },
+        },
+      }
+    },
+
+    agents(agents: PaginatedBackofficeAgents): StoryPreloadedState {
+      return {
+        backoffice: {
+          agents: ads.fulfilled(agents),
+          agentsQuery: { page: agents.page, limit: agents.limit, search: "" },
         },
       }
     },

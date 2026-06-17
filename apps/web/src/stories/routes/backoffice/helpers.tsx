@@ -1,20 +1,26 @@
 import {
+  backofficeAgentDetailFactory,
+  backofficeAgentListItemFactory,
   backofficeOrganizationDetailFactory,
   backofficeOrganizationFactory,
   backofficeProjectDetailFactory,
   backofficeProjectListItemFactory,
   backofficeUserFactory,
+  paginatedBackofficeAgentsFactory,
   paginatedBackofficeOrganizationsFactory,
   paginatedBackofficeProjectsFactory,
   paginatedBackofficeUsersFactory,
   termsDocumentsFactory,
 } from "@/backoffice/features/backoffice/backoffice.factory"
 import type {
+  BackofficeAgentDetail,
+  BackofficeAgentListItem,
   BackofficeOrganization,
   BackofficeOrganizationDetail,
   BackofficeProjectDetail,
   BackofficeProjectListItem,
   BackofficeUser,
+  PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
   PaginatedBackofficeUsers,
@@ -30,6 +36,7 @@ export type BackofficeStoryArgs = {
   isBackofficeAuthorized: boolean
   isTermsManagementAuthorized: boolean
   withOrganizations: boolean
+  withAgents: boolean
   withProjects: boolean
   withUsers: boolean
   withTermsDocuments: boolean
@@ -39,6 +46,7 @@ export const backofficeStoryArgs = {
   isBackofficeAuthorized: true,
   isTermsManagementAuthorized: false,
   withOrganizations: true,
+  withAgents: true,
   withProjects: true,
   withUsers: true,
   withTermsDocuments: false,
@@ -48,6 +56,7 @@ export const backofficeStoryArgTypes = {
   isBackofficeAuthorized: { control: "boolean" },
   isTermsManagementAuthorized: { control: "boolean" },
   withOrganizations: { control: "boolean" },
+  withAgents: { control: "boolean" },
   withProjects: { control: "boolean" },
   withUsers: { control: "boolean" },
   withTermsDocuments: { control: "boolean" },
@@ -56,6 +65,7 @@ export const backofficeStoryArgTypes = {
 export function buildBackofficeData(args: BackofficeStoryArgs): {
   user: User
   organizations: PaginatedBackofficeOrganizations
+  agents: PaginatedBackofficeAgents
   projects: PaginatedBackofficeProjects
   users: PaginatedBackofficeUsers
   termsDocuments: TermsDocuments | null
@@ -74,6 +84,9 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
         page: 0,
         limit: 10,
       })
+  const agents: PaginatedBackofficeAgents = args.withAgents
+    ? buildAgentsPage()
+    : paginatedBackofficeAgentsFactory.build({ agents: [], total: 0, page: 0, limit: 10 })
   const projects: PaginatedBackofficeProjects = args.withProjects
     ? buildProjectsPage()
     : paginatedBackofficeProjectsFactory.build({ projects: [], total: 0, page: 0, limit: 10 })
@@ -86,6 +99,7 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
       : null
 
   const seeds: StoryPreloadedState[] = [seed.me(user), seed.backoffice.organizations(organizations)]
+  seeds.push(seed.backoffice.agents(agents))
   seeds.push(seed.backoffice.projects(projects))
   seeds.push(seed.backoffice.users(users))
   if (termsDocuments) seeds.push(seed.backoffice.termsDocuments(termsDocuments))
@@ -93,6 +107,7 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
   return {
     user,
     organizations,
+    agents,
     projects,
     users,
     termsDocuments,
@@ -108,6 +123,13 @@ function buildOrganizationsPage(): PaginatedBackofficeOrganizations {
     page: 0,
     limit: 10,
   })
+}
+
+function buildAgentsPage(): PaginatedBackofficeAgents {
+  const total = 12
+  const pageSize = 10
+  const agents: BackofficeAgentListItem[] = backofficeAgentListItemFactory.buildList(pageSize)
+  return paginatedBackofficeAgentsFactory.build({ agents, total, page: 0, limit: pageSize })
 }
 
 function buildProjectsPage(): PaginatedBackofficeProjects {
@@ -127,6 +149,8 @@ function buildUsersPage(): PaginatedBackofficeUsers {
 export function buildMockBackofficeService(overrides: {
   organizations?: PaginatedBackofficeOrganizations
   organizationDetails?: Record<string, BackofficeOrganizationDetail>
+  agents?: PaginatedBackofficeAgents
+  agentDetails?: Record<string, BackofficeAgentDetail>
   projects?: PaginatedBackofficeProjects
   projectDetails?: Record<string, BackofficeProjectDetail>
   users?: PaginatedBackofficeUsers
@@ -141,6 +165,10 @@ export function buildMockBackofficeService(overrides: {
       limit: 10,
     })
   const organizationDetails = overrides.organizationDetails ?? {}
+  const agents =
+    overrides.agents ??
+    paginatedBackofficeAgentsFactory.build({ agents: [], total: 0, page: 0, limit: 10 })
+  const agentDetails = overrides.agentDetails ?? {}
   const projects =
     overrides.projects ??
     paginatedBackofficeProjectsFactory.build({ projects: [], total: 0, page: 0, limit: 10 })
@@ -157,6 +185,16 @@ export function buildMockBackofficeService(overrides: {
       const detail = organizationDetails[organizationId]
       if (!detail) {
         return backofficeOrganizationDetailFactory.build({ id: organizationId })
+      }
+      return detail
+    },
+    async listAgents() {
+      return agents
+    },
+    async getAgent(agentId) {
+      const detail = agentDetails[agentId]
+      if (!detail) {
+        return backofficeAgentDetailFactory.build({ id: agentId })
       }
       return detail
     },

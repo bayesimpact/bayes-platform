@@ -2,6 +2,9 @@ import type { TermsDocumentType, TimeType } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type {
+  BackofficeAgentDetail,
+  BackofficeAgentListItem,
+  BackofficeAgentMember,
   BackofficeOrganization,
   BackofficeOrganizationDetail,
   BackofficeOrganizationMember,
@@ -16,6 +19,7 @@ import type {
   BackofficeUserDetail,
   BackofficeUserOrganizationMembership,
   BackofficeUserProjectMembership,
+  PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
   PaginatedBackofficeUsers,
@@ -46,6 +50,54 @@ export const backofficeProjectFactory = BackofficeProjectFactory.define(
       createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
       updatedAt: (params.updatedAt ?? faker.date.recent().getTime()) as TimeType,
       featureFlags: params.featureFlags ?? [],
+    }
+  },
+)
+
+class BackofficeAgentListItemFactory extends Factory<BackofficeAgentListItem> {}
+
+export const backofficeAgentListItemFactory = BackofficeAgentListItemFactory.define(
+  ({ params }) => ({
+    id: params.id ?? faker.string.uuid(),
+    name: params.name ?? "Helpful Assistant",
+    projectId: params.projectId ?? faker.string.uuid(),
+    projectName: params.projectName ?? faker.commerce.productName(),
+    createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
+  }),
+)
+
+class BackofficeAgentMemberFactory extends Factory<BackofficeAgentMember> {}
+
+export const backofficeAgentMemberFactory = BackofficeAgentMemberFactory.define(({ params }) => ({
+  userId: params.userId ?? faker.string.uuid(),
+  userEmail: params.userEmail ?? faker.internet.email().toLowerCase(),
+  userName: params.userName ?? faker.person.fullName(),
+  role: params.role ?? "member",
+}))
+
+class BackofficeAgentDetailFactory extends Factory<BackofficeAgentDetail> {}
+
+export const backofficeAgentDetailFactory = BackofficeAgentDetailFactory.define(({ params }) => ({
+  id: params.id ?? faker.string.uuid(),
+  name: params.name ?? "Helpful Assistant",
+  projectId: params.projectId ?? faker.string.uuid(),
+  projectName: params.projectName ?? faker.commerce.productName(),
+  organizationId: params.organizationId ?? faker.string.uuid(),
+  organizationName: params.organizationName ?? faker.company.name(),
+  createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
+  members: params.members ?? [],
+}))
+
+class PaginatedBackofficeAgentsFactory extends Factory<PaginatedBackofficeAgents> {}
+
+export const paginatedBackofficeAgentsFactory = PaginatedBackofficeAgentsFactory.define(
+  ({ params }) => {
+    const agents = params.agents ?? []
+    return {
+      agents,
+      total: params.total ?? agents.length,
+      page: params.page ?? 0,
+      limit: params.limit ?? 10,
     }
   },
 )

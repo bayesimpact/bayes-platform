@@ -1,5 +1,8 @@
 import type {
   AgentMembershipRoleDto,
+  BackofficeAgentDetailDto,
+  BackofficeAgentListItemDto,
+  BackofficeAgentMemberDto,
   BackofficeOrganizationDetailDto,
   BackofficeOrganizationDto,
   BackofficeOrganizationMemberDto,
@@ -17,6 +20,7 @@ import type {
   CurrentTermsDto,
   FeatureFlagKey,
   OrganizationMembershipRoleDto,
+  PaginatedBackofficeAgentsDto,
   PaginatedBackofficeOrganizationsDto,
   PaginatedBackofficeProjectsDto,
   PaginatedBackofficeUsersDto,
@@ -59,6 +63,76 @@ export type BackofficeOrganizationDetail = {
   members: BackofficeOrganizationMember[]
   projects: BackofficeOrganizationProject[]
 }
+
+export type BackofficeAgentListItem = {
+  id: string
+  name: string
+  projectId: string
+  projectName: string
+  createdAt: TimeType
+}
+
+export type BackofficeAgentMember = {
+  userId: string
+  userEmail: string
+  userName: string | null
+  role: AgentMembershipRoleDto
+}
+
+export type BackofficeAgentDetail = {
+  id: string
+  name: string
+  projectId: string
+  projectName: string
+  organizationId: string
+  organizationName: string
+  createdAt: TimeType
+  members: BackofficeAgentMember[]
+}
+
+export type PaginatedBackofficeAgents = {
+  agents: BackofficeAgentListItem[]
+  total: number
+  page: number
+  limit: number
+}
+
+export const toBackofficeAgentListItem = (
+  dto: BackofficeAgentListItemDto,
+): BackofficeAgentListItem => ({
+  id: dto.id,
+  name: dto.name,
+  projectId: dto.projectId,
+  projectName: dto.projectName,
+  createdAt: dto.createdAt,
+})
+
+export const toPaginatedBackofficeAgents = (
+  dto: PaginatedBackofficeAgentsDto,
+): PaginatedBackofficeAgents => ({
+  agents: dto.agents.map(toBackofficeAgentListItem),
+  total: dto.total,
+  page: dto.page,
+  limit: dto.limit,
+})
+
+const toBackofficeAgentMember = (dto: BackofficeAgentMemberDto): BackofficeAgentMember => ({
+  userId: dto.userId,
+  userEmail: dto.userEmail,
+  userName: dto.userName,
+  role: dto.role,
+})
+
+export const toBackofficeAgentDetail = (dto: BackofficeAgentDetailDto): BackofficeAgentDetail => ({
+  id: dto.id,
+  name: dto.name,
+  projectId: dto.projectId,
+  projectName: dto.projectName,
+  organizationId: dto.organizationId,
+  organizationName: dto.organizationName,
+  createdAt: dto.createdAt,
+  members: dto.members.map(toBackofficeAgentMember),
+})
 
 export type BackofficeProjectListItem = {
   id: string

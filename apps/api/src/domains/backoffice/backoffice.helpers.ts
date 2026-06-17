@@ -1,4 +1,7 @@
 import type {
+  BackofficeAgentDetailDto,
+  BackofficeAgentListItemDto,
+  BackofficeAgentMemberDto,
   BackofficeOrganizationDetailDto,
   BackofficeOrganizationDto,
   BackofficeOrganizationMemberDto,
@@ -75,6 +78,48 @@ export function toBackofficeOrganizationDetailDto(
         id: project.id,
         name: project.name,
         featureFlags: toFeatureFlagsDto(project.featureFlags),
+      }),
+    ),
+  }
+}
+
+export function toBackofficeAgentListItemDto(
+  agent: Agent & { project?: { id: string; name: string } },
+): BackofficeAgentListItemDto {
+  return {
+    id: agent.id,
+    name: agent.name,
+    projectId: agent.project?.id ?? "",
+    projectName: agent.project?.name ?? "",
+    createdAt: agent.createdAt.getTime() as TimeType,
+  }
+}
+
+export function toBackofficeAgentDetailDto(
+  agent: Agent & {
+    project?: {
+      id: string
+      name: string
+      organizationId?: string
+      organization?: { id: string; name: string }
+    }
+  },
+  members: AgentMembership[],
+): BackofficeAgentDetailDto {
+  return {
+    id: agent.id,
+    name: agent.name,
+    projectId: agent.project?.id ?? "",
+    projectName: agent.project?.name ?? "",
+    organizationId: agent.project?.organization?.id ?? agent.project?.organizationId ?? "",
+    organizationName: agent.project?.organization?.name ?? "",
+    createdAt: agent.createdAt.getTime() as TimeType,
+    members: members.map(
+      (membership): BackofficeAgentMemberDto => ({
+        userId: membership.userId,
+        userEmail: membership.user?.email ?? "",
+        userName: membership.user?.name ?? null,
+        role: membership.role,
       }),
     ),
   }

@@ -19,6 +19,8 @@ import { TrackActivity } from "../activities/track-activity.decorator"
 import { isEmailBackofficeAuthorized } from "./backoffice.authorization"
 import { BackofficeGuard } from "./backoffice.guard"
 import {
+  toBackofficeAgentDetailDto,
+  toBackofficeAgentListItemDto,
   toBackofficeOrganizationDetailDto,
   toBackofficeOrganizationDto,
   toBackofficeProjectDetailDto,
@@ -87,6 +89,50 @@ export class BackofficeController {
     return {
       data: toBackofficeOrganizationDetailDto(result.organization, result.members, result.projects),
     }
+  }
+
+  @Get(BackofficeRoutes.listAgents.path)
+  async listAgents(
+    @Req() request: EndpointRequest,
+    @Query("page") pageParam?: string,
+    @Query("limit") limitParam?: string,
+    @Query("search") search?: string,
+  ): Promise<typeof BackofficeRoutes.listAgents.response> {
+    const { user } = request
+    const canListAll = isEmailBackofficeAuthorized(user.email)
+    const page = Math.max(0, Number(pageParam) || 0)
+    const limit = Math.min(100, Math.max(1, Number(limitParam) || 10))
+    const { agents, total } = await this.backofficeService.listAgents({
+      canListAll,
+      userId: user.id,
+      page,
+      limit,
+      search,
+    })
+    return {
+      data: {
+        agents: agents.map(toBackofficeAgentListItemDto),
+        total,
+        page,
+        limit,
+      },
+    }
+  }
+
+  @Get(BackofficeRoutes.getAgent.path)
+  async getAgent(
+    @Req() request: EndpointRequest,
+    @Param("agentId") agentId: string,
+  ): Promise<typeof BackofficeRoutes.getAgent.response> {
+    const { user } = request
+    const canListAll = isEmailBackofficeAuthorized(user.email)
+    const result = await this.backofficeService.getAgentDetail({
+      canListAll,
+      requestingUserId: user.id,
+      targetAgentId: agentId,
+    })
+    if (!result) throw new NotFoundException(`Agent ${agentId} not found`)
+    return { data: toBackofficeAgentDetailDto(result.agent, result.members) }
   }
 
   @Get(BackofficeRoutes.listUsers.path)

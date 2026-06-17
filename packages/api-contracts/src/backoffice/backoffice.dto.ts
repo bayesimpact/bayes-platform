@@ -86,6 +86,39 @@ export type BackofficeProjectDetailDto = {
   agents: BackofficeProjectAgentDto[]
 }
 
+export type BackofficeAgentListItemDto = {
+  id: string
+  name: string
+  projectId: string
+  projectName: string
+  createdAt: TimeType
+}
+
+export type PaginatedBackofficeAgentsDto = {
+  agents: BackofficeAgentListItemDto[]
+  total: number
+  page: number
+  limit: number
+}
+
+export type BackofficeAgentMemberDto = {
+  userId: string
+  userEmail: string
+  userName: string | null
+  role: AgentMembershipRoleDto
+}
+
+export type BackofficeAgentDetailDto = {
+  id: string
+  name: string
+  projectId: string
+  projectName: string
+  organizationId: string
+  organizationName: string
+  createdAt: TimeType
+  members: BackofficeAgentMemberDto[]
+}
+
 export type BackofficeUserDto = {
   id: string
   email: string
