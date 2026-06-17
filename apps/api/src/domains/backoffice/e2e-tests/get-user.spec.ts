@@ -8,12 +8,12 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { mockAuth0EmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { BackofficeModule } from "../backoffice.module"
 
-describe("Backoffice - list organizations", () => {
+describe("Backoffice - get user", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
@@ -62,7 +62,7 @@ describe("Backoffice - list organizations", () => {
 
   const createAuthorizedContext = async () => {
     const email = mockAuth0EmailForSub(auth0Id)
-    const context = await createOrganizationWithProject(repositories, {
+    const context = await createOrganizationWithAgent(repositories, {
       user: { auth0Id, email },
     })
     process.env.BACKOFFICE_AUTHORIZED_DOMAIN = "@example.com"
@@ -70,68 +70,68 @@ describe("Backoffice - list organizations", () => {
     return context
   }
 
-  it("returns default pagination metadata when no params are passed", async () => {
-    const { organization } = await createAuthorizedContext()
+  it("returns the user detail with organization and agent memberships", async () => {
+    const { user, organization, project, agent } = await createAuthorizedContext()
     const response = await request({
-      route: BackofficeRoutes.listOrganizations,
+      route: BackofficeRoutes.getUser,
+      pathParams: { userId: user.id },
       token: "token",
     })
     expectResponse(response, 200)
-    const { organizations, total, page, limit } = response.body.data
-    expect(page).toBe(0)
-    expect(limit).toBe(10)
-    expect(total).toBeGreaterThanOrEqual(1)
-    expect(organizations.some((candidate) => candidate.id === organization.id)).toBe(true)
+    const returned = response.body.data
+    expect(returned.id).toBe(user.id)
+    expect(returned.email).toBe(user.email)
+    expect(returned.organizationMemberships).toEqual([
+      {
+        organizationId: organization.id,
+        organizationName: organization.name,
+        role: "owner",
+      },
+    ])
+    expect(returned.projectMemberships).toEqual([
+      {
+        projectId: project.id,
+        projectName: project.name,
+        role: "owner",
+      },
+    ])
+    expect(returned.agentMemberships).toEqual([
+      {
+        agentId: agent.id,
+        agentName: agent.name,
+        role: "owner",
+      },
+    ])
   })
 
-  it("paginates with the requested page and limit", async () => {
+  it("returns empty membership lists for a user with no memberships", async () => {
     await createAuthorizedContext()
-    for (let organizationIndex = 0; organizationIndex < 15; organizationIndex++) {
-      await repositories.organizationRepository.save(
-        repositories.organizationRepository.create({
-          name: `bulk-${organizationIndex}-${randomUUID()}`,
-        }),
-      )
-    }
-    const firstPage = await request({
-      route: BackofficeRoutes.listOrganizations,
-      query: { page: "0", limit: "10" },
-      token: "token",
-    })
-    expectResponse(firstPage, 200)
-    expect(firstPage.body.data.organizations).toHaveLength(10)
-    expect(firstPage.body.data.total).toBeGreaterThanOrEqual(16)
-
-    const secondPage = await request({
-      route: BackofficeRoutes.listOrganizations,
-      query: { page: "1", limit: "10" },
-      token: "token",
-    })
-    expectResponse(secondPage, 200)
-    expect(secondPage.body.data.organizations.length).toBeGreaterThan(0)
-    const firstPageIds = new Set(firstPage.body.data.organizations.map((candidate) => candidate.id))
-    for (const candidate of secondPage.body.data.organizations) {
-      expect(firstPageIds.has(candidate.id)).toBe(false)
-    }
-  })
-
-  it("filters by organization name", async () => {
-    await createAuthorizedContext()
-    const uniqueName = `findme-org-${randomUUID()}`
-    const matchingOrganization = await repositories.organizationRepository.save(
-      repositories.organizationRepository.create({ name: uniqueName }),
+    const isolatedUser = await repositories.userRepository.save(
+      repositories.userRepository.create({
+        auth0Id: `auth0|${randomUUID()}`,
+        email: `isolated-${randomUUID()}@example.com`,
+        name: null,
+        pictureUrl: null,
+      }),
     )
-
     const response = await request({
-      route: BackofficeRoutes.listOrganizations,
-      query: { search: "findme-org" },
+      route: BackofficeRoutes.getUser,
+      pathParams: { userId: isolatedUser.id },
       token: "token",
     })
     expectResponse(response, 200)
-    expect(
-      response.body.data.organizations.some(
-        (candidate: { id: string }) => candidate.id === matchingOrganization.id,
-      ),
-    ).toBe(true)
+    expect(response.body.data.organizationMemberships).toEqual([])
+    expect(response.body.data.projectMemberships).toEqual([])
+    expect(response.body.data.agentMemberships).toEqual([])
+  })
+
+  it("returns 404 for an unknown user id", async () => {
+    await createAuthorizedContext()
+    const response = await request({
+      route: BackofficeRoutes.getUser,
+      pathParams: { userId: randomUUID() },
+      token: "token",
+    })
+    expectResponse(response, 404)
   })
 })

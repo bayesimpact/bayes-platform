@@ -11,40 +11,40 @@ import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tan
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { BackofficeUserRoutes } from "@/backoffice/routes/helpers"
+import { BackofficeAgentRoutes } from "@/backoffice/routes/helpers"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import type { BackofficeUser } from "../backoffice.models"
-import { selectBackofficeUsers, selectBackofficeUsersQuery } from "../backoffice.selectors"
+import type { BackofficeAgentListItem } from "../backoffice.models"
+import { selectBackofficeAgents, selectBackofficeAgentsQuery } from "../backoffice.selectors"
 import { backofficeActions } from "../backoffice.slice"
 import { SearchField } from "./BackofficeTable"
 
 const DEFAULT_PAGE_SIZE = 10
 
-export function UsersPanel() {
-  const users = useAppSelector(selectBackofficeUsers)
+export function AgentsPanel() {
+  const agents = useAppSelector(selectBackofficeAgents)
 
   useMount({
     actions: {
-      mount: backofficeActions.usersPanelMount,
-      unmount: backofficeActions.usersPanelUnmount,
+      mount: backofficeActions.agentsPanelMount,
+      unmount: backofficeActions.agentsPanelUnmount,
     },
   })
 
   return (
-    <AsyncRoute data={[users]}>
+    <AsyncRoute data={[agents]}>
       <WithData />
     </AsyncRoute>
   )
 }
 
 function WithData() {
-  const users = useValue(selectBackofficeUsers)
+  const agents = useValue(selectBackofficeAgents)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const query = useAppSelector(selectBackofficeUsersQuery)
+  const query = useAppSelector(selectBackofficeAgentsQuery)
   const [searchInput, setSearchInput] = useState(query.search)
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -53,7 +53,7 @@ function WithData() {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
     debounceTimerRef.current = setTimeout(() => {
       dispatch(
-        backofficeActions.listUsers({
+        backofficeActions.listAgents({
           page: 0,
           limit: query.limit,
           search: searchInput,
@@ -65,39 +65,39 @@ function WithData() {
     }
   }, [searchInput, query.search, query.limit, dispatch])
 
-  const columns = useMemo<ColumnDef<BackofficeUser>[]>(
+  const columns = useMemo<ColumnDef<BackofficeAgentListItem>[]>(
     () => [
       {
-        accessorKey: "email",
-        header: () => <span className="text-muted-foreground">User</span>,
+        accessorKey: "name",
+        header: () => <span className="text-muted-foreground">Agent</span>,
+        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+      },
+      {
+        accessorKey: "projectName",
+        header: () => <span className="text-muted-foreground">Project</span>,
         cell: ({ row }) => (
-          <div className="flex flex-col">
-            <span className="font-medium">{row.original.email}</span>
-            {row.original.name && (
-              <span className="text-xs text-muted-foreground">{row.original.name}</span>
-            )}
-          </div>
+          <span className="text-sm text-muted-foreground">{row.original.projectName}</span>
         ),
       },
     ],
     [],
   )
 
-  const pageSize = users.limit || DEFAULT_PAGE_SIZE
-  const pageCount = Math.max(1, Math.ceil(users.total / pageSize))
+  const pageSize = agents.limit || DEFAULT_PAGE_SIZE
+  const pageCount = Math.max(1, Math.ceil(agents.total / pageSize))
 
   const table = useReactTable({
-    data: users.users,
+    data: agents.agents,
     columns,
     manualPagination: true,
     pageCount,
-    rowCount: users.total,
+    rowCount: agents.total,
     getCoreRowModel: getCoreRowModel(),
   })
 
   const goToPage = (nextPage: number) => {
     dispatch(
-      backofficeActions.listUsers({
+      backofficeActions.listAgents({
         page: nextPage,
         limit: pageSize,
         search: query.search,
@@ -105,8 +105,12 @@ function WithData() {
     )
   }
 
-  const from = users.total === 0 ? 0 : users.page * pageSize + 1
-  const to = Math.min((users.page + 1) * pageSize, users.total)
+  const handleRowClick = (agentId: string) => {
+    navigate(BackofficeAgentRoutes.agent.build({ agentId }))
+  }
+
+  const from = agents.total === 0 ? 0 : agents.page * pageSize + 1
+  const to = Math.min((agents.page + 1) * pageSize, agents.total)
 
   return (
     <>
@@ -114,7 +118,7 @@ function WithData() {
         <SearchField
           value={searchInput}
           onChange={setSearchInput}
-          placeholder="Search by email or name…"
+          placeholder="Search by agent or project name…"
         />
       </div>
       <Table>
@@ -137,9 +141,7 @@ function WithData() {
               <TableRow
                 key={row.id}
                 className="cursor-pointer hover:bg-muted/50"
-                onClick={() =>
-                  navigate(BackofficeUserRoutes.user.build({ userId: row.original.id }))
-                }
+                onClick={() => handleRowClick(row.original.id)}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
@@ -162,26 +164,26 @@ function WithData() {
       </Table>
       <div className="flex items-center justify-between p-4 border-t">
         <span className="text-sm text-muted-foreground">
-          {users.total === 0 ? "No users" : `${from}–${to} of ${users.total}`}
+          {agents.total === 0 ? "No agents" : `${from}–${to} of ${agents.total}`}
         </span>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
-            disabled={users.page <= 0}
-            onClick={() => goToPage(users.page - 1)}
+            disabled={agents.page <= 0}
+            onClick={() => goToPage(agents.page - 1)}
           >
             <ChevronLeftIcon className="size-4" />
             Previous
           </Button>
           <span className="text-sm text-muted-foreground">
-            {users.page + 1} / {pageCount}
+            {agents.page + 1} / {pageCount}
           </span>
           <Button
             variant="outline"
             size="sm"
-            disabled={users.page >= pageCount - 1}
-            onClick={() => goToPage(users.page + 1)}
+            disabled={agents.page >= pageCount - 1}
+            onClick={() => goToPage(agents.page + 1)}
           >
             Next
             <ChevronRightIcon className="size-4" />

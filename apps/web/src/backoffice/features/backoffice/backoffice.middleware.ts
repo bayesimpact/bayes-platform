@@ -10,8 +10,6 @@ function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: backofficeActions.mount,
     effect: async (_, listenerApi) => {
-      listenerApi.dispatch(backofficeActions.listOrganizations({ page: 0, limit: 10 }))
-      listenerApi.dispatch(backofficeActions.listUsers({ page: 0, limit: 10 }))
       if (selectIsTermsManagementAuthorized(listenerApi.getState()))
         listenerApi.dispatch(backofficeActions.listTermsDocuments())
     },
@@ -20,6 +18,34 @@ function registerListeners() {
     actionCreator: backofficeActions.unmount,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(backofficeActions.reset())
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: backofficeActions.organizationsPanelMount,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(backofficeActions.listOrganizations({ page: 0, limit: 10 }))
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: backofficeActions.agentsPanelMount,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(backofficeActions.listAgents({ page: 0, limit: 10 }))
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: backofficeActions.projectsPanelMount,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(backofficeActions.listProjects({ page: 0, limit: 10 }))
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: backofficeActions.usersPanelMount,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(backofficeActions.listUsers({ page: 0, limit: 10 }))
     },
   })
 

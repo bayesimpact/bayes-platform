@@ -17,11 +17,117 @@ export type BackofficeOrganizationDto = {
   id: string
   name: string
   createdAt: TimeType
-  projects: BackofficeProjectDto[]
 }
 
 export type PaginatedBackofficeOrganizationsDto = {
   organizations: BackofficeOrganizationDto[]
+  total: number
+  page: number
+  limit: number
+}
+
+export type BackofficeOrganizationMemberDto = {
+  userId: string
+  userEmail: string
+  userName: string | null
+  role: OrganizationMembershipRoleDto
+}
+
+export type BackofficeOrganizationProjectDto = {
+  id: string
+  name: string
+  featureFlags: FeatureFlagsDto
+}
+
+export type BackofficeOrganizationDetailDto = {
+  id: string
+  name: string
+  createdAt: TimeType
+  members: BackofficeOrganizationMemberDto[]
+  projects: BackofficeOrganizationProjectDto[]
+}
+
+export type BackofficeProjectListItemDto = {
+  id: string
+  name: string
+  organizationId: string
+  organizationName: string
+  createdAt: TimeType
+  featureFlags: FeatureFlagsDto
+}
+
+export type PaginatedBackofficeProjectsDto = {
+  projects: BackofficeProjectListItemDto[]
+  total: number
+  page: number
+  limit: number
+}
+
+export type BackofficeProjectMemberDto = {
+  userId: string
+  userEmail: string
+  userName: string | null
+  role: ProjectMembershipRoleDto
+}
+
+export type BackofficeProjectAgentDto = {
+  id: string
+  name: string
+}
+
+export type BackofficeProjectDetailDto = {
+  id: string
+  name: string
+  organizationId: string
+  organizationName: string
+  createdAt: TimeType
+  featureFlags: FeatureFlagsDto
+  members: BackofficeProjectMemberDto[]
+  agents: BackofficeProjectAgentDto[]
+}
+
+export type BackofficeAgentListItemDto = {
+  id: string
+  name: string
+  projectId: string
+  projectName: string
+  createdAt: TimeType
+}
+
+export type PaginatedBackofficeAgentsDto = {
+  agents: BackofficeAgentListItemDto[]
+  total: number
+  page: number
+  limit: number
+}
+
+export type BackofficeAgentMemberDto = {
+  userId: string
+  userEmail: string
+  userName: string | null
+  role: AgentMembershipRoleDto
+}
+
+export type BackofficeAgentDetailDto = {
+  id: string
+  name: string
+  projectId: string
+  projectName: string
+  organizationId: string
+  organizationName: string
+  createdAt: TimeType
+  members: BackofficeAgentMemberDto[]
+}
+
+export type BackofficeUserDto = {
+  id: string
+  email: string
+  name: string | null
+  createdAt: TimeType
+}
+
+export type PaginatedBackofficeUsersDto = {
+  users: BackofficeUserDto[]
   total: number
   page: number
   limit: number
@@ -45,7 +151,7 @@ export type BackofficeUserAgentMembershipDto = {
   role: AgentMembershipRoleDto
 }
 
-export type BackofficeUserDto = {
+export type BackofficeUserDetailDto = {
   id: string
   email: string
   name: string | null
@@ -53,13 +159,6 @@ export type BackofficeUserDto = {
   organizationMemberships: BackofficeUserOrganizationMembershipDto[]
   projectMemberships: BackofficeUserProjectMembershipDto[]
   agentMemberships: BackofficeUserAgentMembershipDto[]
-}
-
-export type PaginatedBackofficeUsersDto = {
-  users: BackofficeUserDto[]
-  total: number
-  page: number
-  limit: number
 }
 
 export const TERMS_DOCUMENT_TYPES = [

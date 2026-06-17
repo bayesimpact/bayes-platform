@@ -8,12 +8,12 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { mockAuth0EmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { BackofficeModule } from "../backoffice.module"
 
-describe("Backoffice - list organizations", () => {
+describe("Backoffice - list projects", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
@@ -62,7 +62,7 @@ describe("Backoffice - list organizations", () => {
 
   const createAuthorizedContext = async () => {
     const email = mockAuth0EmailForSub(auth0Id)
-    const context = await createOrganizationWithProject(repositories, {
+    const context = await createOrganizationWithAgent(repositories, {
       user: { auth0Id, email },
     })
     process.env.BACKOFFICE_AUTHORIZED_DOMAIN = "@example.com"
@@ -70,67 +70,79 @@ describe("Backoffice - list organizations", () => {
     return context
   }
 
-  it("returns default pagination metadata when no params are passed", async () => {
-    const { organization } = await createAuthorizedContext()
+  it("lists projects with their organization name", async () => {
+    const { project, organization } = await createAuthorizedContext()
     const response = await request({
-      route: BackofficeRoutes.listOrganizations,
+      route: BackofficeRoutes.listProjects,
       token: "token",
     })
     expectResponse(response, 200)
-    const { organizations, total, page, limit } = response.body.data
+    const { projects, total, page, limit } = response.body.data
     expect(page).toBe(0)
     expect(limit).toBe(10)
     expect(total).toBeGreaterThanOrEqual(1)
-    expect(organizations.some((candidate) => candidate.id === organization.id)).toBe(true)
+    const returned = projects.find((candidate: { id: string }) => candidate.id === project.id)
+    expect(returned).toBeDefined()
+    expect(returned?.name).toBe(project.name)
+    expect(returned?.organizationId).toBe(organization.id)
+    expect(returned?.organizationName).toBe(organization.name)
   })
 
-  it("paginates with the requested page and limit", async () => {
-    await createAuthorizedContext()
-    for (let organizationIndex = 0; organizationIndex < 15; organizationIndex++) {
-      await repositories.organizationRepository.save(
-        repositories.organizationRepository.create({
-          name: `bulk-${organizationIndex}-${randomUUID()}`,
+  it("paginates correctly", async () => {
+    const { organization } = await createAuthorizedContext()
+    for (let projectIndex = 0; projectIndex < 12; projectIndex++) {
+      await repositories.projectRepository.save(
+        repositories.projectRepository.create({
+          name: `Bulk Project ${projectIndex}-${randomUUID()}`,
+          organizationId: organization.id,
         }),
       )
     }
     const firstPage = await request({
-      route: BackofficeRoutes.listOrganizations,
+      route: BackofficeRoutes.listProjects,
       query: { page: "0", limit: "10" },
       token: "token",
     })
     expectResponse(firstPage, 200)
-    expect(firstPage.body.data.organizations).toHaveLength(10)
-    expect(firstPage.body.data.total).toBeGreaterThanOrEqual(16)
-
-    const secondPage = await request({
-      route: BackofficeRoutes.listOrganizations,
-      query: { page: "1", limit: "10" },
-      token: "token",
-    })
-    expectResponse(secondPage, 200)
-    expect(secondPage.body.data.organizations.length).toBeGreaterThan(0)
-    const firstPageIds = new Set(firstPage.body.data.organizations.map((candidate) => candidate.id))
-    for (const candidate of secondPage.body.data.organizations) {
-      expect(firstPageIds.has(candidate.id)).toBe(false)
-    }
+    expect(firstPage.body.data.projects).toHaveLength(10)
+    expect(firstPage.body.data.total).toBeGreaterThanOrEqual(13)
   })
 
-  it("filters by organization name", async () => {
-    await createAuthorizedContext()
-    const uniqueName = `findme-org-${randomUUID()}`
-    const matchingOrganization = await repositories.organizationRepository.save(
-      repositories.organizationRepository.create({ name: uniqueName }),
+  it("returns the feature flags of a project", async () => {
+    const { project } = await createAuthorizedContext()
+    await repositories.featureFlagRepository.save(
+      repositories.featureFlagRepository.create({
+        projectId: project.id,
+        featureFlagKey: "gemma",
+        enabled: true,
+      }),
     )
-
     const response = await request({
-      route: BackofficeRoutes.listOrganizations,
-      query: { search: "findme-org" },
+      route: BackofficeRoutes.listProjects,
+      token: "token",
+    })
+    expectResponse(response, 200)
+    const returned = response.body.data.projects.find(
+      (listedProject: { id: string }) => listedProject.id === project.id,
+    )
+    expect(returned?.featureFlags).toEqual(["gemma"])
+  })
+
+  it("filters by project name", async () => {
+    const { organization } = await createAuthorizedContext()
+    const uniqueName = `findme-project-${randomUUID()}`
+    const matchingProject = await repositories.projectRepository.save(
+      repositories.projectRepository.create({ name: uniqueName, organizationId: organization.id }),
+    )
+    const response = await request({
+      route: BackofficeRoutes.listProjects,
+      query: { search: "findme-project" },
       token: "token",
     })
     expectResponse(response, 200)
     expect(
-      response.body.data.organizations.some(
-        (candidate: { id: string }) => candidate.id === matchingOrganization.id,
+      response.body.data.projects.some(
+        (listedProject: { id: string }) => listedProject.id === matchingProject.id,
       ),
     ).toBe(true)
   })

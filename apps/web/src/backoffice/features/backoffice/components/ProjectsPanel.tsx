@@ -11,40 +11,40 @@ import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tan
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { BackofficeUserRoutes } from "@/backoffice/routes/helpers"
+import { BackofficeProjectRoutes } from "@/backoffice/routes/helpers"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import type { BackofficeUser } from "../backoffice.models"
-import { selectBackofficeUsers, selectBackofficeUsersQuery } from "../backoffice.selectors"
+import type { BackofficeProjectListItem } from "../backoffice.models"
+import { selectBackofficeProjects, selectBackofficeProjectsQuery } from "../backoffice.selectors"
 import { backofficeActions } from "../backoffice.slice"
-import { SearchField } from "./BackofficeTable"
+import { FeatureFlagCell, SearchField } from "./BackofficeTable"
 
 const DEFAULT_PAGE_SIZE = 10
 
-export function UsersPanel() {
-  const users = useAppSelector(selectBackofficeUsers)
+export function ProjectsPanel() {
+  const projects = useAppSelector(selectBackofficeProjects)
 
   useMount({
     actions: {
-      mount: backofficeActions.usersPanelMount,
-      unmount: backofficeActions.usersPanelUnmount,
+      mount: backofficeActions.projectsPanelMount,
+      unmount: backofficeActions.projectsPanelUnmount,
     },
   })
 
   return (
-    <AsyncRoute data={[users]}>
+    <AsyncRoute data={[projects]}>
       <WithData />
     </AsyncRoute>
   )
 }
 
 function WithData() {
-  const users = useValue(selectBackofficeUsers)
+  const projects = useValue(selectBackofficeProjects)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const query = useAppSelector(selectBackofficeUsersQuery)
+  const query = useAppSelector(selectBackofficeProjectsQuery)
   const [searchInput, setSearchInput] = useState(query.search)
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -53,7 +53,7 @@ function WithData() {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
     debounceTimerRef.current = setTimeout(() => {
       dispatch(
-        backofficeActions.listUsers({
+        backofficeActions.listProjects({
           page: 0,
           limit: query.limit,
           search: searchInput,
@@ -65,39 +65,64 @@ function WithData() {
     }
   }, [searchInput, query.search, query.limit, dispatch])
 
-  const columns = useMemo<ColumnDef<BackofficeUser>[]>(
+  const columns = useMemo<ColumnDef<BackofficeProjectListItem>[]>(
     () => [
       {
-        accessorKey: "email",
-        header: () => <span className="text-muted-foreground">User</span>,
+        accessorKey: "name",
+        header: () => <span className="text-muted-foreground">Project</span>,
+        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+      },
+      {
+        accessorKey: "organizationName",
+        header: () => <span className="text-muted-foreground">Organization</span>,
         cell: ({ row }) => (
-          <div className="flex flex-col">
-            <span className="font-medium">{row.original.email}</span>
-            {row.original.name && (
-              <span className="text-xs text-muted-foreground">{row.original.name}</span>
-            )}
-          </div>
+          <span className="text-sm text-muted-foreground">{row.original.organizationName}</span>
+        ),
+      },
+      {
+        id: "featureFlags",
+        header: () => <span className="text-muted-foreground">Feature flags</span>,
+        cell: ({ row }) => (
+          <FeatureFlagCell
+            enabledFlags={row.original.featureFlags}
+            onAdd={(featureFlagKey) =>
+              dispatch(
+                backofficeActions.addFeatureFlag({
+                  projectId: row.original.id,
+                  featureFlagKey,
+                }),
+              )
+            }
+            onRemove={(featureFlagKey) =>
+              dispatch(
+                backofficeActions.removeFeatureFlag({
+                  projectId: row.original.id,
+                  featureFlagKey,
+                }),
+              )
+            }
+          />
         ),
       },
     ],
-    [],
+    [dispatch],
   )
 
-  const pageSize = users.limit || DEFAULT_PAGE_SIZE
-  const pageCount = Math.max(1, Math.ceil(users.total / pageSize))
+  const pageSize = projects.limit || DEFAULT_PAGE_SIZE
+  const pageCount = Math.max(1, Math.ceil(projects.total / pageSize))
 
   const table = useReactTable({
-    data: users.users,
+    data: projects.projects,
     columns,
     manualPagination: true,
     pageCount,
-    rowCount: users.total,
+    rowCount: projects.total,
     getCoreRowModel: getCoreRowModel(),
   })
 
   const goToPage = (nextPage: number) => {
     dispatch(
-      backofficeActions.listUsers({
+      backofficeActions.listProjects({
         page: nextPage,
         limit: pageSize,
         search: query.search,
@@ -105,8 +130,13 @@ function WithData() {
     )
   }
 
-  const from = users.total === 0 ? 0 : users.page * pageSize + 1
-  const to = Math.min((users.page + 1) * pageSize, users.total)
+  const handleRowClick = (event: React.MouseEvent, projectId: string) => {
+    if ((event.target as HTMLElement).closest("[data-no-navigate]")) return
+    navigate(BackofficeProjectRoutes.project.build({ projectId }))
+  }
+
+  const from = projects.total === 0 ? 0 : projects.page * pageSize + 1
+  const to = Math.min((projects.page + 1) * pageSize, projects.total)
 
   return (
     <>
@@ -114,7 +144,7 @@ function WithData() {
         <SearchField
           value={searchInput}
           onChange={setSearchInput}
-          placeholder="Search by email or name…"
+          placeholder="Search by project or organization name…"
         />
       </div>
       <Table>
@@ -137,9 +167,7 @@ function WithData() {
               <TableRow
                 key={row.id}
                 className="cursor-pointer hover:bg-muted/50"
-                onClick={() =>
-                  navigate(BackofficeUserRoutes.user.build({ userId: row.original.id }))
-                }
+                onClick={(event) => handleRowClick(event, row.original.id)}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
@@ -162,26 +190,26 @@ function WithData() {
       </Table>
       <div className="flex items-center justify-between p-4 border-t">
         <span className="text-sm text-muted-foreground">
-          {users.total === 0 ? "No users" : `${from}–${to} of ${users.total}`}
+          {projects.total === 0 ? "No projects" : `${from}–${to} of ${projects.total}`}
         </span>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
-            disabled={users.page <= 0}
-            onClick={() => goToPage(users.page - 1)}
+            disabled={projects.page <= 0}
+            onClick={() => goToPage(projects.page - 1)}
           >
             <ChevronLeftIcon className="size-4" />
             Previous
           </Button>
           <span className="text-sm text-muted-foreground">
-            {users.page + 1} / {pageCount}
+            {projects.page + 1} / {pageCount}
           </span>
           <Button
             variant="outline"
             size="sm"
-            disabled={users.page >= pageCount - 1}
-            onClick={() => goToPage(users.page + 1)}
+            disabled={projects.page >= pageCount - 1}
+            onClick={() => goToPage(projects.page + 1)}
           >
             Next
             <ChevronRightIcon className="size-4" />

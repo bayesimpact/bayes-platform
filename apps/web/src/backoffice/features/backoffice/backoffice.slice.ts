@@ -1,7 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type {
+  BackofficeAgentDetail,
+  BackofficeOrganizationDetail,
+  BackofficeProjectDetail,
+  BackofficeUserDetail,
+  PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
+  PaginatedBackofficeProjects,
   PaginatedBackofficeUsers,
   TermsDocuments,
 } from "./backoffice.models"
@@ -16,8 +22,16 @@ interface ListQuery {
 interface State {
   organizations: AsyncData<PaginatedBackofficeOrganizations>
   organizationsQuery: ListQuery
+  organizationDetail: AsyncData<BackofficeOrganizationDetail>
+  agents: AsyncData<PaginatedBackofficeAgents>
+  agentsQuery: ListQuery
+  agentDetail: AsyncData<BackofficeAgentDetail>
+  projects: AsyncData<PaginatedBackofficeProjects>
+  projectsQuery: ListQuery
+  projectDetail: AsyncData<BackofficeProjectDetail>
   users: AsyncData<PaginatedBackofficeUsers>
   usersQuery: ListQuery
+  userDetail: AsyncData<BackofficeUserDetail>
   termsDocuments: AsyncData<TermsDocuments>
 }
 
@@ -26,8 +40,16 @@ const defaultListQuery: ListQuery = { page: 0, limit: 10, search: "" }
 const initialState: State = {
   organizations: defaultAsyncData,
   organizationsQuery: defaultListQuery,
+  organizationDetail: defaultAsyncData,
+  agents: defaultAsyncData,
+  agentsQuery: defaultListQuery,
+  agentDetail: defaultAsyncData,
+  projects: defaultAsyncData,
+  projectsQuery: defaultListQuery,
+  projectDetail: defaultAsyncData,
   users: defaultAsyncData,
   usersQuery: defaultListQuery,
+  userDetail: defaultAsyncData,
   termsDocuments: defaultAsyncData,
 }
 
@@ -38,6 +60,26 @@ const slice = createSlice({
     mount: () => {},
     unmount: () => {},
     reset: () => initialState,
+    organizationsPanelMount: () => {},
+    organizationsPanelUnmount: () => {},
+    agentsPanelMount: () => {},
+    agentsPanelUnmount: () => {},
+    projectsPanelMount: () => {},
+    projectsPanelUnmount: () => {},
+    usersPanelMount: () => {},
+    usersPanelUnmount: () => {},
+    resetOrganizationDetail: (state) => {
+      state.organizationDetail = defaultAsyncData
+    },
+    resetAgentDetail: (state) => {
+      state.agentDetail = defaultAsyncData
+    },
+    resetProjectDetail: (state) => {
+      state.projectDetail = defaultAsyncData
+    },
+    resetUserDetail: (state) => {
+      state.userDetail = defaultAsyncData
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -63,6 +105,120 @@ const slice = createSlice({
         state.organizations = {
           status: ADS.Error,
           error: action.error.message || "Failed to fetch organizations",
+          value: null,
+        }
+      })
+
+    builder
+      .addCase(backofficeThunks.getOrganization.pending, (state) => {
+        state.organizationDetail.status = ADS.Loading
+        state.organizationDetail.error = null
+      })
+      .addCase(backofficeThunks.getOrganization.fulfilled, (state, action) => {
+        state.organizationDetail = {
+          status: ADS.Fulfilled,
+          error: null,
+          value: action.payload,
+        }
+      })
+      .addCase(backofficeThunks.getOrganization.rejected, (state, action) => {
+        state.organizationDetail = {
+          status: ADS.Error,
+          error: action.error.message || "Failed to fetch organization",
+          value: null,
+        }
+      })
+
+    builder
+      .addCase(backofficeThunks.listAgents.pending, (state, action) => {
+        if (!ADS.isFulfilled(state.agents)) {
+          state.agents.status = ADS.Loading
+        }
+        state.agents.error = null
+        state.agentsQuery = {
+          page: action.meta.arg?.page ?? state.agentsQuery.page,
+          limit: action.meta.arg?.limit ?? state.agentsQuery.limit,
+          search: action.meta.arg?.search ?? state.agentsQuery.search,
+        }
+      })
+      .addCase(backofficeThunks.listAgents.fulfilled, (state, action) => {
+        state.agents = {
+          status: ADS.Fulfilled,
+          error: null,
+          value: action.payload,
+        }
+      })
+      .addCase(backofficeThunks.listAgents.rejected, (state, action) => {
+        state.agents = {
+          status: ADS.Error,
+          error: action.error.message || "Failed to fetch agents",
+          value: null,
+        }
+      })
+
+    builder
+      .addCase(backofficeThunks.getAgent.pending, (state) => {
+        state.agentDetail.status = ADS.Loading
+        state.agentDetail.error = null
+      })
+      .addCase(backofficeThunks.getAgent.fulfilled, (state, action) => {
+        state.agentDetail = {
+          status: ADS.Fulfilled,
+          error: null,
+          value: action.payload,
+        }
+      })
+      .addCase(backofficeThunks.getAgent.rejected, (state, action) => {
+        state.agentDetail = {
+          status: ADS.Error,
+          error: action.error.message || "Failed to fetch agent",
+          value: null,
+        }
+      })
+
+    builder
+      .addCase(backofficeThunks.listProjects.pending, (state, action) => {
+        if (!ADS.isFulfilled(state.projects)) {
+          state.projects.status = ADS.Loading
+        }
+        state.projects.error = null
+        state.projectsQuery = {
+          page: action.meta.arg?.page ?? state.projectsQuery.page,
+          limit: action.meta.arg?.limit ?? state.projectsQuery.limit,
+          search: action.meta.arg?.search ?? state.projectsQuery.search,
+        }
+      })
+      .addCase(backofficeThunks.listProjects.fulfilled, (state, action) => {
+        state.projects = {
+          status: ADS.Fulfilled,
+          error: null,
+          value: action.payload,
+        }
+      })
+      .addCase(backofficeThunks.listProjects.rejected, (state, action) => {
+        state.projects = {
+          status: ADS.Error,
+          error: action.error.message || "Failed to fetch projects",
+          value: null,
+        }
+      })
+
+    builder
+      .addCase(backofficeThunks.getProject.pending, (state) => {
+        state.projectDetail.status = ADS.Loading
+        state.projectDetail.error = null
+      })
+      .addCase(backofficeThunks.getProject.fulfilled, (state, action) => {
+        state.projectDetail = {
+          status: ADS.Fulfilled,
+          error: null,
+          value: action.payload,
+        }
+      })
+      .addCase(backofficeThunks.getProject.rejected, (state, action) => {
+        state.projectDetail = {
+          status: ADS.Error,
+          error: action.error.message || "Failed to fetch project",
           value: null,
         }
       })
@@ -94,11 +250,43 @@ const slice = createSlice({
         }
       })
 
+    builder
+      .addCase(backofficeThunks.getUser.pending, (state) => {
+        state.userDetail.status = ADS.Loading
+        state.userDetail.error = null
+      })
+      .addCase(backofficeThunks.getUser.fulfilled, (state, action) => {
+        state.userDetail = {
+          status: ADS.Fulfilled,
+          error: null,
+          value: action.payload,
+        }
+      })
+      .addCase(backofficeThunks.getUser.rejected, (state, action) => {
+        state.userDetail = {
+          status: ADS.Error,
+          error: action.error.message || "Failed to fetch user",
+          value: null,
+        }
+      })
+
     builder.addCase(backofficeThunks.addFeatureFlag.fulfilled, (state, action) => {
-      if (!ADS.isFulfilled(state.organizations)) return
       const { projectId, featureFlagKey } = action.payload
-      for (const organization of state.organizations.value.organizations) {
-        const project = organization.projects.find((project) => project.id === projectId)
+      if (ADS.isFulfilled(state.projects)) {
+        const project = state.projects.value.projects.find((project) => project.id === projectId)
+        if (project && !project.featureFlags.includes(featureFlagKey)) {
+          project.featureFlags.push(featureFlagKey)
+        }
+      }
+      if (ADS.isFulfilled(state.projectDetail) && state.projectDetail.value.id === projectId) {
+        if (!state.projectDetail.value.featureFlags.includes(featureFlagKey)) {
+          state.projectDetail.value.featureFlags.push(featureFlagKey)
+        }
+      }
+      if (ADS.isFulfilled(state.organizationDetail)) {
+        const project = state.organizationDetail.value.projects.find(
+          (project) => project.id === projectId,
+        )
         if (project && !project.featureFlags.includes(featureFlagKey)) {
           project.featureFlags.push(featureFlagKey)
         }
@@ -106,10 +294,22 @@ const slice = createSlice({
     })
 
     builder.addCase(backofficeThunks.removeFeatureFlag.fulfilled, (state, action) => {
-      if (!ADS.isFulfilled(state.organizations)) return
       const { projectId, featureFlagKey } = action.payload
-      for (const organization of state.organizations.value.organizations) {
-        const project = organization.projects.find((project) => project.id === projectId)
+      if (ADS.isFulfilled(state.projects)) {
+        const project = state.projects.value.projects.find((project) => project.id === projectId)
+        if (project) {
+          project.featureFlags = project.featureFlags.filter((flag) => flag !== featureFlagKey)
+        }
+      }
+      if (ADS.isFulfilled(state.projectDetail) && state.projectDetail.value.id === projectId) {
+        state.projectDetail.value.featureFlags = state.projectDetail.value.featureFlags.filter(
+          (flag) => flag !== featureFlagKey,
+        )
+      }
+      if (ADS.isFulfilled(state.organizationDetail)) {
+        const project = state.organizationDetail.value.projects.find(
+          (project) => project.id === projectId,
+        )
         if (project) {
           project.featureFlags = project.featureFlags.filter((flag) => flag !== featureFlagKey)
         }
