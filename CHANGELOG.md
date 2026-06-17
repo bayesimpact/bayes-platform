@@ -13,6 +13,11 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Resource files can be downloaded from the chat
 
 ### Changed
+- Agent creation is now a single dialog where you pick the agent type and name, replacing the previous multi-step flow
+- Document search (RAG) mode descriptions have been rewritten in plain, user-friendly language
+- Source tag badges on the agent Sources tab now show tooltips describing each tag
+- The "public-documents" tag now displays an in-app description explaining that its sources can be downloaded from the chat
+- The web sources page now has a dedicated title and description
 
 ### Fixed
 
