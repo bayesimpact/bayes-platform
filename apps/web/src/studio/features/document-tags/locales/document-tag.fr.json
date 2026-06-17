@@ -32,6 +32,7 @@
       "title": "Supprimer {{tagName}} ?",
       "description": "Cette action est irréversible."
     },
+    "publicDescription": "Lorsqu'un document portant cette étiquette apparaît comme source dans une conversation, l'utilisateur peut le télécharger.",
     "parentNone": "Aucune",
     "searchPlaceholder": "Rechercher...",
     "noTagsFound": "Aucune étiquette trouvée",
