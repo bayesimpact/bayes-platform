@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { selectBackofficeUserDetail } from "../features/backoffice/backoffice.selectors"
 import { backofficeActions } from "../features/backoffice/backoffice.slice"
 import {
+  BackofficeAgentRoutes,
   BackofficeOrganizationRoutes,
   BackofficeProjectRoutes,
   BackofficeUserRoutes,
@@ -86,6 +87,7 @@ function WithData() {
             key: membership.agentId,
             label: membership.agentName,
             role: membership.role,
+            to: BackofficeAgentRoutes.agent.build({ agentId: membership.agentId }),
           }))}
           emptyText="No agent memberships"
         />

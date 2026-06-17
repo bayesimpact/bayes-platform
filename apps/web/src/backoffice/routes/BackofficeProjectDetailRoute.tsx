@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { selectBackofficeProjectDetail } from "../features/backoffice/backoffice.selectors"
 import { backofficeActions } from "../features/backoffice/backoffice.slice"
 import {
+  BackofficeAgentRoutes,
   BackofficeOrganizationRoutes,
   BackofficeProjectRoutes,
   BackofficeUserRoutes,
@@ -82,6 +83,7 @@ function WithData() {
           items={project.agents.map((agent) => ({
             key: agent.id,
             label: agent.name,
+            to: BackofficeAgentRoutes.agent.build({ agentId: agent.id }),
           }))}
           emptyText="No agents"
         />
