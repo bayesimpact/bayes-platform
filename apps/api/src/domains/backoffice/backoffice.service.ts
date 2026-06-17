@@ -200,17 +200,14 @@ export class BackofficeService {
     limit: number
     search?: string
   }): Promise<{ users: User[]; total: number }> {
-    const idsQuery = this.userRepository
-      .createQueryBuilder("user")
-      .select("user.id", "id")
-      .orderBy("LOWER(user.email)", "ASC")
+    const qb = this.userRepository.createQueryBuilder("user").orderBy("LOWER(user.email)", "ASC")
 
     if (!canListAll) {
       const visibleUserIds = await this.findVisibleUserIdsForAdmin(userId)
       if (visibleUserIds.size === 0) {
         return { users: [], total: 0 }
       }
-      idsQuery.andWhere("user.id IN (:...visibleUserIds)", {
+      qb.andWhere("user.id IN (:...visibleUserIds)", {
         visibleUserIds: Array.from(visibleUserIds),
       })
     }
@@ -218,7 +215,7 @@ export class BackofficeService {
     const trimmedSearch = search?.trim()
     if (trimmedSearch) {
       const searchPattern = `%${trimmedSearch.toLowerCase()}%`
-      idsQuery.andWhere(
+      qb.andWhere(
         `(
           LOWER("user"."email") LIKE :searchPattern
           OR LOWER(COALESCE("user"."name", '')) LIKE :searchPattern
@@ -227,27 +224,12 @@ export class BackofficeService {
       )
     }
 
-    const total = await idsQuery.getCount()
-    const idRows = await idsQuery
-      .offset(page * limit)
-      .limit(limit)
-      .getRawMany<{ id: string }>()
-    const paginatedIds = idRows.map((row) => row.id)
+    const [users, total] = await qb
+      .skip(page * limit)
+      .take(limit)
+      .getManyAndCount()
 
-    if (paginatedIds.length === 0) {
-      return { users: [], total }
-    }
-
-    const users = await this.userRepository.find({
-      where: { id: In(paginatedIds) },
-    })
-
-    const usersById = new Map(users.map((user) => [user.id, user]))
-    const orderedUsers = paginatedIds
-      .map((id) => usersById.get(id))
-      .filter((user): user is User => user !== undefined)
-
-    return { users: orderedUsers, total }
+    return { users, total }
   }
 
   async getUserDetail({
