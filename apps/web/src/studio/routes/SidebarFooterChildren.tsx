@@ -42,7 +42,7 @@ export function SidebarFooterChildren({ project }: { project: Project }) {
   const { t } = useTranslation()
   return (
     <SidebarGroup>
-      <SidebarGroupLabel className="flex-col items-start mb-3">
+      <SidebarGroupLabel className="flex-col items-start h-fit mb-3">
         <span className="font-bold text-sm">{project.name}</span>
         <span className="uppercase">{t("project:settings")}</span>
       </SidebarGroupLabel>
