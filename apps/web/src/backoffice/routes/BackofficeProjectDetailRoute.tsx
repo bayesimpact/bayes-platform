@@ -20,6 +20,7 @@ export function BackofficeProjectDetailRoute() {
   const dispatch = useAppDispatch()
   const projectDetail = useAppSelector(selectBackofficeProjectDetail)
 
+  // useEffect is intentional: the ID comes from useParams (URL), not Redux state. See BackofficeAgentDetailRoute for rationale.
   useEffect(() => {
     if (!projectId) return
     dispatch(backofficeActions.getProject(projectId))

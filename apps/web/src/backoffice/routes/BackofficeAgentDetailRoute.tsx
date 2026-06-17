@@ -15,6 +15,10 @@ export function BackofficeAgentDetailRoute() {
   const dispatch = useAppDispatch()
   const agentDetail = useAppSelector(selectBackofficeAgentDetail)
 
+  // useEffect is intentional here: the ID comes from useParams (URL), not from Redux state.
+  // useMount requires a payload-free action whose middleware reads the ID from Redux — that would
+  // mean storing a "current backoffice agent ID" in the slice solely to satisfy the hook contract,
+  // adding complexity with no architectural benefit.
   useEffect(() => {
     if (!agentId) return
     dispatch(backofficeActions.getAgent(agentId))

@@ -12,6 +12,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { BackofficeUserRoutes } from "@/backoffice/routes/helpers"
+import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
@@ -23,12 +24,14 @@ import { SearchField } from "./BackofficeTable"
 const DEFAULT_PAGE_SIZE = 10
 
 export function UsersPanel() {
-  const dispatch = useAppDispatch()
   const users = useAppSelector(selectBackofficeUsers)
 
-  useEffect(() => {
-    dispatch(backofficeActions.listUsers({ page: 0, limit: 10 }))
-  }, [dispatch])
+  useMount({
+    actions: {
+      mount: backofficeActions.usersPanelMount,
+      unmount: backofficeActions.usersPanelUnmount,
+    },
+  })
 
   return (
     <AsyncRoute data={[users]}>

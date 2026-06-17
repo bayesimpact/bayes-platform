@@ -60,6 +60,14 @@ const slice = createSlice({
     mount: () => {},
     unmount: () => {},
     reset: () => initialState,
+    organizationsPanelMount: () => {},
+    organizationsPanelUnmount: () => {},
+    agentsPanelMount: () => {},
+    agentsPanelUnmount: () => {},
+    projectsPanelMount: () => {},
+    projectsPanelUnmount: () => {},
+    usersPanelMount: () => {},
+    usersPanelUnmount: () => {},
     resetOrganizationDetail: (state) => {
       state.organizationDetail = defaultAsyncData
     },

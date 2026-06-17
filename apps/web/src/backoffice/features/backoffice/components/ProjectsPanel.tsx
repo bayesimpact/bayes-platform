@@ -12,6 +12,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { BackofficeProjectRoutes } from "@/backoffice/routes/helpers"
+import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
@@ -23,12 +24,14 @@ import { FeatureFlagCell, SearchField } from "./BackofficeTable"
 const DEFAULT_PAGE_SIZE = 10
 
 export function ProjectsPanel() {
-  const dispatch = useAppDispatch()
   const projects = useAppSelector(selectBackofficeProjects)
 
-  useEffect(() => {
-    dispatch(backofficeActions.listProjects({ page: 0, limit: 10 }))
-  }, [dispatch])
+  useMount({
+    actions: {
+      mount: backofficeActions.projectsPanelMount,
+      unmount: backofficeActions.projectsPanelUnmount,
+    },
+  })
 
   return (
     <AsyncRoute data={[projects]}>

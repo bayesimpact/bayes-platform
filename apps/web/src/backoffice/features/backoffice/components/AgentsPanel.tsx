@@ -12,6 +12,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { BackofficeAgentRoutes } from "@/backoffice/routes/helpers"
+import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
@@ -23,12 +24,14 @@ import { SearchField } from "./BackofficeTable"
 const DEFAULT_PAGE_SIZE = 10
 
 export function AgentsPanel() {
-  const dispatch = useAppDispatch()
   const agents = useAppSelector(selectBackofficeAgents)
 
-  useEffect(() => {
-    dispatch(backofficeActions.listAgents({ page: 0, limit: 10 }))
-  }, [dispatch])
+  useMount({
+    actions: {
+      mount: backofficeActions.agentsPanelMount,
+      unmount: backofficeActions.agentsPanelUnmount,
+    },
+  })
 
   return (
     <AsyncRoute data={[agents]}>

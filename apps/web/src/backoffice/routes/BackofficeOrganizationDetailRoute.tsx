@@ -19,6 +19,7 @@ export function BackofficeOrganizationDetailRoute() {
   const dispatch = useAppDispatch()
   const organizationDetail = useAppSelector(selectBackofficeOrganizationDetail)
 
+  // useEffect is intentional: the ID comes from useParams (URL), not Redux state. See BackofficeAgentDetailRoute for rationale.
   useEffect(() => {
     if (!organizationId) return
     dispatch(backofficeActions.getOrganization(organizationId))
