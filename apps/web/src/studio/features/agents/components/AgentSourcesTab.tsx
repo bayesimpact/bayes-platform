@@ -1,4 +1,8 @@
-import { DocumentsRagMode, type UpdateAgentDto } from "@caseai-connect/api-contracts"
+import {
+  DocumentsRagMode,
+  PUBLIC_DOCUMENTS_TAG_NAME,
+  type UpdateAgentDto,
+} from "@caseai-connect/api-contracts"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Field, FieldGroup, FieldLabel } from "@caseai-connect/ui/shad/field"
 import {
@@ -8,18 +12,51 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@caseai-connect/ui/shad/select"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
 import { XIcon } from "lucide-react"
 import { Controller, useFormContext, useWatch } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
-import {
-  getTagNameById,
-  useDocumentTags,
-} from "@/studio/features/document-tags/document-tags.helpers"
+import { useDocumentTags } from "@/studio/features/document-tags/document-tags.helpers"
+import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import { DocumentTagPicker } from "@/studio/features/documents/components/DocumentTagPicker"
 import type { AgentFormValues } from "./agent-form.shared"
+
+function DocumentTagBadge({
+  tagId,
+  documentTags,
+  onRemove,
+}: {
+  tagId: string
+  documentTags: DocumentTag[]
+  onRemove: () => void
+}) {
+  const { t } = useTranslation()
+  const tag = documentTags.find((documentTag) => documentTag.id === tagId)
+  const name = tag?.name ?? "Unknown Tag"
+  const description =
+    tag?.name === PUBLIC_DOCUMENTS_TAG_NAME ? t("documentTag:publicDescription") : tag?.description
+
+  const badge = (
+    <Badge variant="secondary" className="gap-1">
+      {name}
+      <button type="button" onClick={onRemove} className="opacity-60 hover:opacity-100">
+        <XIcon className="size-3" />
+      </button>
+    </Badge>
+  )
+
+  if (!description) return badge
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{badge}</TooltipTrigger>
+      <TooltipContent className="max-w-xs text-balance">{description}</TooltipContent>
+    </Tooltip>
+  )
+}
 
 export function AgentSourcesTab() {
   const { t } = useTranslation()
@@ -95,16 +132,12 @@ export function AgentSourcesTab() {
               render={({ field }) => (
                 <div className="flex flex-wrap gap-2 items-center">
                   {field.value.map((tagId) => (
-                    <Badge key={tagId} variant="secondary" className="gap-1">
-                      {getTagNameById(documentTags, tagId)}
-                      <button
-                        type="button"
-                        onClick={() => field.onChange(field.value.filter((id) => id !== tagId))}
-                        className="opacity-60 hover:opacity-100"
-                      >
-                        <XIcon className="size-3" />
-                      </button>
-                    </Badge>
+                    <DocumentTagBadge
+                      key={tagId}
+                      tagId={tagId}
+                      documentTags={documentTags}
+                      onRemove={() => field.onChange(field.value.filter((id) => id !== tagId))}
+                    />
                   ))}
                   <DocumentTagPicker
                     documentTags={documentTags}
@@ -121,16 +154,12 @@ export function AgentSourcesTab() {
               render={({ field }) => (
                 <div className="flex flex-wrap gap-2 items-center">
                   {field.value.map((tagId) => (
-                    <Badge key={tagId} variant="secondary" className="gap-1">
-                      {getTagNameById(documentTags, tagId)}
-                      <button
-                        type="button"
-                        onClick={() => field.onChange(field.value.filter((id) => id !== tagId))}
-                        className="opacity-60 hover:opacity-100"
-                      >
-                        <XIcon className="size-3" />
-                      </button>
-                    </Badge>
+                    <DocumentTagBadge
+                      key={tagId}
+                      tagId={tagId}
+                      documentTags={documentTags}
+                      onRemove={() => field.onChange(field.value.filter((id) => id !== tagId))}
+                    />
                   ))}
                   <DocumentTagPicker
                     documentTags={documentTags}

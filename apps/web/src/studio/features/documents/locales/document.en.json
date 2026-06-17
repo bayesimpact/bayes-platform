@@ -66,6 +66,10 @@
         "description": "Upload your first document to get started."
       }
     },
+    "webSources": {
+      "title": "Web sources",
+      "description": "Enhance your agents' knowledge and capabilities by crawling websites."
+    },
     "filter": {
       "all": "All",
       "uploaded": "Documents",

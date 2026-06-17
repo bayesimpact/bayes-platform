@@ -29,8 +29,7 @@ export function surfaceResourcesTool({
       onExecute({ toolName: ToolName.SurfaceResources, arguments: input })
       return {
         role: "system",
-        content:
-          'Resources received and shown to the user as cards. Reply with only a single short introductory sentence (e.g. "Here is a relevant resource:"). Do NOT restate the resources\' titles, descriptions, or links.',
+        content: `Resources received and shown to the user as cards. The ${ToolName.SurfaceResources} tool renders the matching resources to the user as rich cards (title, description, and a clickable link). The cards stand on their own. Add text only if you have something genuinely useful to say that the cards do not already convey. Never restate the resources' titles, descriptions, or links — doing so would duplicate the cards. NEVER include any matching hints in your response.`,
       }
     },
   })

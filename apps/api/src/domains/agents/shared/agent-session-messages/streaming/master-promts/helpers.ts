@@ -34,8 +34,6 @@ export const promptHelpers = {
     return `## Resource libraries:
 You have access to the following resources. When the user's request matches a resource by its title, description, or matching hints, call the ${ToolName.SurfaceResources} tool with the matching resources (copy their id, title, description, and link verbatim — never copy the matching hints). Do not invent resources or links.
 
-The ${ToolName.SurfaceResources} tool renders the matching resources to the user as rich cards (title, description, and a clickable link). Therefore your text reply MUST be a single short sentence introducing them (e.g. "Here is a relevant resource:") and MUST NOT repeat the resources' titles, descriptions, or links — that would duplicate the cards.
-
 ${serializedLibraries}`
   },
 
@@ -70,7 +68,7 @@ ${names
         return `[${name}]: AI-powered search across multiple workforce and social sources. Rewrites the query for better results and reranks by relevance. Use this when the user's question spans multiple resource types or when you want the best results across all sources.`
 
       case ToolName.SurfaceResources:
-        return `[${name}]: Call this tool whenever the user's request matches a resource in the resource libraries (by title or description). Pass the matching resources, copying their id, title, description, and link verbatim. Do not surface resources that are not relevant to the user's request. The tool renders the resources as cards, so your text reply must be a single short introductory sentence and must NOT repeat the resources' titles, descriptions, or links.`
+        return `[${name}]: Call ${name} tool whenever the user's request matches a resource in the resource libraries (by title or description or matchingHints). Pass the matching resources, copying their id, title, description, and link verbatim. Do not surface resources that are not relevant to the user's request.`
 
       default:
         if (descriptions[name]) return `[${name}]: ${descriptions[name]}`
