@@ -5,6 +5,7 @@ import type {
   BackofficeUserDetailDto,
   BackofficeUserDto,
   BackofficeUserOrganizationMembershipDto,
+  BackofficeUserProjectMembershipDto,
   FeatureFlagKey,
   FeatureFlagsDto,
   TimeType,
@@ -13,6 +14,7 @@ import type { AgentMembership } from "@/domains/agents/memberships/agent-members
 import type { FeatureFlag } from "@/domains/feature-flags/feature-flag.entity"
 import type { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import type { Organization } from "@/domains/organizations/organization.entity"
+import type { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import type { Project } from "@/domains/projects/project.entity"
 import type { User } from "@/domains/users/user.entity"
 
@@ -69,6 +71,16 @@ export function toBackofficeUserOrganizationMembershipDto(
   }
 }
 
+export function toBackofficeUserProjectMembershipDto(
+  membership: ProjectMembership,
+): BackofficeUserProjectMembershipDto {
+  return {
+    projectId: membership.projectId,
+    projectName: membership.project?.name ?? "",
+    role: membership.role,
+  }
+}
+
 export function toBackofficeUserAgentMembershipDto(
   membership: AgentMembership,
 ): BackofficeUserAgentMembershipDto {
@@ -82,6 +94,7 @@ export function toBackofficeUserAgentMembershipDto(
 export function toBackofficeUserDetailDto(
   user: User,
   organizationMemberships: OrganizationMembership[],
+  projectMemberships: ProjectMembership[],
   agentMemberships: AgentMembership[],
 ): BackofficeUserDetailDto {
   return {
@@ -90,6 +103,7 @@ export function toBackofficeUserDetailDto(
     name: user.name,
     createdAt: user.createdAt.getTime() as TimeType,
     organizationMemberships: organizationMemberships.map(toBackofficeUserOrganizationMembershipDto),
+    projectMemberships: projectMemberships.map(toBackofficeUserProjectMembershipDto),
     agentMemberships: agentMemberships.map(toBackofficeUserAgentMembershipDto),
   }
 }

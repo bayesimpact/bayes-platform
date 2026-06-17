@@ -8,6 +8,7 @@ import type {
   BackofficeUserAgentMembership,
   BackofficeUserDetail,
   BackofficeUserOrganizationMembership,
+  BackofficeUserProjectMembership,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeUsers,
   TermsDocuments,
@@ -114,6 +115,31 @@ export const backofficeUserOrganizationMembershipFactory =
     }
   })
 
+type ProjectMembershipTransientParams = {
+  project: BackofficeProject
+}
+
+class BackofficeUserProjectMembershipFactory extends Factory<
+  BackofficeUserProjectMembership,
+  ProjectMembershipTransientParams
+> {}
+
+export const backofficeUserProjectMembershipFactory = BackofficeUserProjectMembershipFactory.define(
+  ({ params, transientParams }) => {
+    const { project } = transientParams
+    if (!project) {
+      throw new Error(
+        "Project must be provided in transient params to build a BackofficeUserProjectMembership",
+      )
+    }
+    return {
+      projectId: params.projectId ?? project.id,
+      projectName: params.projectName ?? project.name,
+      role: params.role ?? "member",
+    }
+  },
+)
+
 class BackofficeUserAgentMembershipFactory extends Factory<BackofficeUserAgentMembership> {}
 
 export const backofficeUserAgentMembershipFactory = BackofficeUserAgentMembershipFactory.define(
@@ -135,6 +161,7 @@ export const backofficeUserDetailFactory = BackofficeUserDetailFactory.define(({
     name: params.name ?? `${firstName} ${lastName}`,
     createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
     organizationMemberships: params.organizationMemberships ?? [],
+    projectMemberships: params.projectMemberships ?? [],
     agentMemberships: params.agentMemberships ?? [],
   }
 })

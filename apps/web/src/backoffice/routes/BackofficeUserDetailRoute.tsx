@@ -53,7 +53,7 @@ function WithData() {
         {user.name && <p className="text-muted-foreground">{user.name}</p>}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-3">
         <MembershipSection
           title="Organizations"
           items={user.organizationMemberships.map((membership) => ({
@@ -62,6 +62,15 @@ function WithData() {
             role: membership.role,
           }))}
           emptyText="No organization memberships"
+        />
+        <MembershipSection
+          title="Projects"
+          items={user.projectMemberships.map((membership) => ({
+            key: membership.projectId,
+            label: membership.projectName,
+            role: membership.role,
+          }))}
+          emptyText="No project memberships"
         />
         <MembershipSection
           title="Agents"

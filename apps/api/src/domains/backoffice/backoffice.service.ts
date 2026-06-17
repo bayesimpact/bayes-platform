@@ -243,6 +243,7 @@ export class BackofficeService {
   }): Promise<{
     user: User
     organizationMemberships: OrganizationMembership[]
+    projectMemberships: ProjectMembership[]
     agentMemberships: AgentMembership[]
   } | null> {
     if (!canListAll) {
@@ -253,20 +254,34 @@ export class BackofficeService {
     const user = await this.userRepository.findOne({ where: { id: targetUserId } })
     if (!user) return null
 
-    const [organizationMemberships, agentMemberships] = await Promise.all([
-      this.organizationMembershipRepository.find({
-        where: { userId: targetUserId },
-        relations: { organization: true },
-        order: { organization: { name: "ASC" } },
-      }),
-      this.agentMembershipRepository.find({
-        where: { userId: targetUserId },
-        relations: { agent: true },
-        order: { agent: { name: "ASC" } },
-      }),
+    const [organizationMemberships, projectMemberships, agentMemberships] = await Promise.all([
+      this.organizationMembershipRepository
+        .createQueryBuilder("om")
+        .select(["om.organizationId", "om.role"])
+        .leftJoin("om.organization", "org")
+        .addSelect(["org.id", "org.name"])
+        .where("om.userId = :userId", { userId: targetUserId })
+        .orderBy("LOWER(org.name)", "ASC")
+        .getMany(),
+      this.projectMembershipRepository
+        .createQueryBuilder("pm")
+        .select(["pm.projectId", "pm.role"])
+        .leftJoin("pm.project", "project")
+        .addSelect(["project.id", "project.name"])
+        .where("pm.userId = :userId", { userId: targetUserId })
+        .orderBy("LOWER(project.name)", "ASC")
+        .getMany(),
+      this.agentMembershipRepository
+        .createQueryBuilder("am")
+        .select(["am.agentId", "am.role"])
+        .leftJoin("am.agent", "agent")
+        .addSelect(["agent.id", "agent.name"])
+        .where("am.userId = :userId", { userId: targetUserId })
+        .orderBy("LOWER(agent.name)", "ASC")
+        .getMany(),
     ])
 
-    return { user, organizationMemberships, agentMemberships }
+    return { user, organizationMemberships, projectMemberships, agentMemberships }
   }
 
   private async findVisibleUserIdsForAdmin(userId: string): Promise<Set<string>> {

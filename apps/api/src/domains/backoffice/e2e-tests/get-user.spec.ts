@@ -71,7 +71,7 @@ describe("Backoffice - get user", () => {
   }
 
   it("returns the user detail with organization and agent memberships", async () => {
-    const { user, organization, agent } = await createAuthorizedContext()
+    const { user, organization, project, agent } = await createAuthorizedContext()
     const response = await request({
       route: BackofficeRoutes.getUser,
       pathParams: { userId: user.id },
@@ -85,6 +85,13 @@ describe("Backoffice - get user", () => {
       {
         organizationId: organization.id,
         organizationName: organization.name,
+        role: "owner",
+      },
+    ])
+    expect(returned.projectMemberships).toEqual([
+      {
+        projectId: project.id,
+        projectName: project.name,
         role: "owner",
       },
     ])
@@ -114,6 +121,7 @@ describe("Backoffice - get user", () => {
     })
     expectResponse(response, 200)
     expect(response.body.data.organizationMemberships).toEqual([])
+    expect(response.body.data.projectMemberships).toEqual([])
     expect(response.body.data.agentMemberships).toEqual([])
   })
 

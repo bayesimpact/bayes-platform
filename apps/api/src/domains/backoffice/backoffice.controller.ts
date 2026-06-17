@@ -115,6 +115,7 @@ export class BackofficeController {
       data: toBackofficeUserDetailDto(
         result.user,
         result.organizationMemberships,
+        result.projectMemberships,
         result.agentMemberships,
       ),
     }
