@@ -1,14 +1,18 @@
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
-import { ArrowLeftIcon } from "lucide-react"
+import { ArrowLeftIcon, ExternalLinkIcon } from "lucide-react"
 import { useEffect } from "react"
-import { useNavigate, useParams } from "react-router-dom"
+import { Link, useNavigate, useParams } from "react-router-dom"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { selectBackofficeUserDetail } from "../features/backoffice/backoffice.selectors"
 import { backofficeActions } from "../features/backoffice/backoffice.slice"
-import { BackofficeUserRoutes } from "./helpers"
+import {
+  BackofficeOrganizationRoutes,
+  BackofficeProjectRoutes,
+  BackofficeUserRoutes,
+} from "./helpers"
 
 export function BackofficeUserDetailRoute() {
   const { userId } = useParams<{ userId: string }>()
@@ -60,6 +64,9 @@ function WithData() {
             key: membership.organizationId,
             label: membership.organizationName,
             role: membership.role,
+            to: BackofficeOrganizationRoutes.organization.build({
+              organizationId: membership.organizationId,
+            }),
           }))}
           emptyText="No organization memberships"
         />
@@ -69,6 +76,7 @@ function WithData() {
             key: membership.projectId,
             label: membership.projectName,
             role: membership.role,
+            to: BackofficeProjectRoutes.project.build({ projectId: membership.projectId }),
           }))}
           emptyText="No project memberships"
         />
@@ -86,7 +94,7 @@ function WithData() {
   )
 }
 
-type MembershipItem = { key: string; label: string; role: string }
+type MembershipItem = { key: string; label: string; role: string; to?: string }
 
 function MembershipSection({
   title,
@@ -106,14 +114,31 @@ function MembershipSection({
         <p className="px-4 py-6 text-sm text-muted-foreground text-center italic">{emptyText}</p>
       ) : (
         <ul className="divide-y">
-          {items.map((item) => (
-            <li key={item.key} className="flex items-center justify-between px-4 py-3">
-              <span className="text-sm font-medium">{item.label}</span>
-              <Badge variant="secondary" className="text-xs">
-                {item.role}
-              </Badge>
-            </li>
-          ))}
+          {items.map((item) =>
+            item.to ? (
+              <li key={item.key}>
+                <Link
+                  to={item.to}
+                  className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors group"
+                >
+                  <span className="text-sm font-medium flex items-center gap-1.5">
+                    {item.label}
+                    <ExternalLinkIcon className="size-3 opacity-0 group-hover:opacity-60 transition-opacity" />
+                  </span>
+                  <Badge variant="secondary" className="text-xs">
+                    {item.role}
+                  </Badge>
+                </Link>
+              </li>
+            ) : (
+              <li key={item.key} className="flex items-center justify-between px-4 py-3">
+                <span className="text-sm font-medium">{item.label}</span>
+                <Badge variant="secondary" className="text-xs">
+                  {item.role}
+                </Badge>
+              </li>
+            ),
+          )}
         </ul>
       )}
     </div>

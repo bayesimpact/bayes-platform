@@ -1,4 +1,3 @@
-import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Table,
@@ -11,25 +10,20 @@ import {
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { BackofficeOrganizationRoutes } from "@/backoffice/routes/helpers"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import type { BackofficeOrganization } from "../backoffice.models"
 import {
   selectBackofficeOrganizations,
   selectBackofficeOrganizationsQuery,
 } from "../backoffice.selectors"
 import { backofficeActions } from "../backoffice.slice"
-import { FeatureFlagCell, SearchField } from "./BackofficeTable"
+import { SearchField } from "./BackofficeTable"
 
 const DEFAULT_PAGE_SIZE = 10
-
-type OrganizationRow = {
-  organizationId: string
-  organizationName: string
-  projectId: string | null
-  projectName: string
-  featureFlags: FeatureFlagKey[]
-}
 
 export function OrganizationsPanel() {
   const organizations = useAppSelector(selectBackofficeOrganizations)
@@ -43,6 +37,7 @@ export function OrganizationsPanel() {
 function WithData() {
   const organizations = useValue(selectBackofficeOrganizations)
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const query = useAppSelector(selectBackofficeOrganizationsQuery)
   const [searchInput, setSearchInput] = useState(query.search)
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -64,76 +59,22 @@ function WithData() {
     }
   }, [searchInput, query.search, query.limit, dispatch])
 
-  const rows = useMemo<OrganizationRow[]>(
-    () =>
-      organizations.organizations.flatMap((organization): OrganizationRow[] => {
-        if (organization.projects.length === 0) {
-          return [
-            {
-              organizationId: organization.id,
-              organizationName: organization.name,
-              projectId: null,
-              projectName: "",
-              featureFlags: [],
-            },
-          ]
-        }
-        return organization.projects.map((project) => ({
-          organizationId: organization.id,
-          organizationName: organization.name,
-          projectId: project.id,
-          projectName: project.name,
-          featureFlags: project.featureFlags as FeatureFlagKey[],
-        }))
-      }),
-    [organizations.organizations],
-  )
-
-  const columns = useMemo<ColumnDef<OrganizationRow>[]>(
+  const columns = useMemo<ColumnDef<BackofficeOrganization>[]>(
     () => [
       {
-        accessorKey: "organizationName",
+        accessorKey: "name",
         header: () => <span className="text-muted-foreground">Organization</span>,
-        cell: ({ row }) => <span className="font-medium">{row.original.organizationName}</span>,
-      },
-      {
-        accessorKey: "projectName",
-        header: () => <span className="text-muted-foreground">Project</span>,
-        cell: ({ row }) =>
-          row.original.projectId ? (
-            row.original.projectName
-          ) : (
-            <span className="text-muted-foreground italic">No projects</span>
-          ),
-      },
-      {
-        id: "featureFlags",
-        header: () => <span className="text-muted-foreground">Feature flags</span>,
-        cell: ({ row }) => {
-          const { projectId, featureFlags } = row.original
-          if (!projectId) return null
-          return (
-            <FeatureFlagCell
-              enabledFlags={featureFlags}
-              onAdd={(featureFlagKey) =>
-                dispatch(backofficeActions.addFeatureFlag({ projectId, featureFlagKey }))
-              }
-              onRemove={(featureFlagKey) =>
-                dispatch(backofficeActions.removeFeatureFlag({ projectId, featureFlagKey }))
-              }
-            />
-          )
-        },
+        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
       },
     ],
-    [dispatch],
+    [],
   )
 
   const pageSize = organizations.limit || DEFAULT_PAGE_SIZE
   const pageCount = Math.max(1, Math.ceil(organizations.total / pageSize))
 
   const table = useReactTable({
-    data: rows,
+    data: organizations.organizations,
     columns,
     manualPagination: true,
     pageCount,
@@ -151,6 +92,10 @@ function WithData() {
     )
   }
 
+  const handleRowClick = (organizationId: string) => {
+    navigate(BackofficeOrganizationRoutes.organization.build({ organizationId }))
+  }
+
   const from = organizations.total === 0 ? 0 : organizations.page * pageSize + 1
   const to = Math.min((organizations.page + 1) * pageSize, organizations.total)
 
@@ -160,7 +105,7 @@ function WithData() {
         <SearchField
           value={searchInput}
           onChange={setSearchInput}
-          placeholder="Search organizations or projects…"
+          placeholder="Search by organization name…"
         />
       </div>
       <Table>
@@ -180,7 +125,11 @@ function WithData() {
         <TableBody>
           {table.getRowModel().rows.length > 0 ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow
+                key={row.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleRowClick(row.original.id)}
+              >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

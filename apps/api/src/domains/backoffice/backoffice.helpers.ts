@@ -1,5 +1,8 @@
 import type {
+  BackofficeOrganizationDetailDto,
   BackofficeOrganizationDto,
+  BackofficeOrganizationMemberDto,
+  BackofficeOrganizationProjectDto,
   BackofficeProjectAgentDto,
   BackofficeProjectDetailDto,
   BackofficeProjectDto,
@@ -23,10 +26,6 @@ import type { ProjectMembership } from "@/domains/projects/memberships/project-m
 import type { Project } from "@/domains/projects/project.entity"
 import type { User } from "@/domains/users/user.entity"
 
-export type BackofficeOrganizationView = Omit<Organization, "projects"> & {
-  projects: Project[]
-}
-
 function toFeatureFlagsDto(featureFlags: FeatureFlag[] | undefined): FeatureFlagsDto {
   return (
     featureFlags
@@ -46,14 +45,38 @@ export function toBackofficeProjectDto(project: Project): BackofficeProjectDto {
   }
 }
 
-export function toBackofficeOrganizationDto(
-  organization: BackofficeOrganizationView,
-): BackofficeOrganizationDto {
+export function toBackofficeOrganizationDto(organization: Organization): BackofficeOrganizationDto {
   return {
     id: organization.id,
     name: organization.name,
     createdAt: organization.createdAt.getTime() as TimeType,
-    projects: organization.projects.map(toBackofficeProjectDto),
+  }
+}
+
+export function toBackofficeOrganizationDetailDto(
+  organization: Organization,
+  members: OrganizationMembership[],
+  projects: Project[],
+): BackofficeOrganizationDetailDto {
+  return {
+    id: organization.id,
+    name: organization.name,
+    createdAt: organization.createdAt.getTime() as TimeType,
+    members: members.map(
+      (membership): BackofficeOrganizationMemberDto => ({
+        userId: membership.userId,
+        userEmail: membership.user?.email ?? "",
+        userName: membership.user?.name ?? null,
+        role: membership.role,
+      }),
+    ),
+    projects: projects.map(
+      (project): BackofficeOrganizationProjectDto => ({
+        id: project.id,
+        name: project.name,
+        featureFlags: toFeatureFlagsDto(project.featureFlags),
+      }),
+    ),
   }
 }
 

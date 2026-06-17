@@ -1,14 +1,18 @@
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
-import { ArrowLeftIcon } from "lucide-react"
+import { ArrowLeftIcon, ExternalLinkIcon } from "lucide-react"
 import { useEffect } from "react"
-import { useNavigate, useParams } from "react-router-dom"
+import { Link, useNavigate, useParams } from "react-router-dom"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { selectBackofficeProjectDetail } from "../features/backoffice/backoffice.selectors"
 import { backofficeActions } from "../features/backoffice/backoffice.slice"
-import { BackofficeProjectRoutes } from "./helpers"
+import {
+  BackofficeOrganizationRoutes,
+  BackofficeProjectRoutes,
+  BackofficeUserRoutes,
+} from "./helpers"
 
 export function BackofficeProjectDetailRoute() {
   const { projectId } = useParams<{ projectId: string }>()
@@ -50,7 +54,15 @@ function WithData() {
 
       <div className="space-y-1">
         <h2 className="text-xl font-semibold">{project.name}</h2>
-        <p className="text-muted-foreground">{project.organizationName}</p>
+        <Link
+          to={BackofficeOrganizationRoutes.organization.build({
+            organizationId: project.organizationId,
+          })}
+          className="text-muted-foreground hover:underline flex items-center gap-1 w-fit"
+        >
+          {project.organizationName}
+          <ExternalLinkIcon className="size-3 opacity-60" />
+        </Link>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -61,6 +73,7 @@ function WithData() {
             label: member.userEmail,
             sublabel: member.userName ?? undefined,
             role: member.role,
+            to: BackofficeUserRoutes.user.build({ userId: member.userId }),
           }))}
           emptyText="No members"
         />
@@ -77,7 +90,7 @@ function WithData() {
   )
 }
 
-type DetailItem = { key: string; label: string; sublabel?: string; role?: string }
+type DetailItem = { key: string; label: string; sublabel?: string; role?: string; to?: string }
 
 function DetailSection({
   title,
@@ -97,21 +110,45 @@ function DetailSection({
         <p className="px-4 py-6 text-sm text-muted-foreground text-center italic">{emptyText}</p>
       ) : (
         <ul className="divide-y">
-          {items.map((item) => (
-            <li key={item.key} className="flex items-center justify-between px-4 py-3">
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">{item.label}</span>
-                {item.sublabel && (
-                  <span className="text-xs text-muted-foreground">{item.sublabel}</span>
+          {items.map((item) =>
+            item.to ? (
+              <li key={item.key}>
+                <Link
+                  to={item.to}
+                  className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors group"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium flex items-center gap-1.5">
+                      {item.label}
+                      <ExternalLinkIcon className="size-3 opacity-0 group-hover:opacity-60 transition-opacity" />
+                    </span>
+                    {item.sublabel && (
+                      <span className="text-xs text-muted-foreground">{item.sublabel}</span>
+                    )}
+                  </div>
+                  {item.role && (
+                    <Badge variant="secondary" className="text-xs">
+                      {item.role}
+                    </Badge>
+                  )}
+                </Link>
+              </li>
+            ) : (
+              <li key={item.key} className="flex items-center justify-between px-4 py-3">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">{item.label}</span>
+                  {item.sublabel && (
+                    <span className="text-xs text-muted-foreground">{item.sublabel}</span>
+                  )}
+                </div>
+                {item.role && (
+                  <Badge variant="secondary" className="text-xs">
+                    {item.role}
+                  </Badge>
                 )}
-              </div>
-              {item.role && (
-                <Badge variant="secondary" className="text-xs">
-                  {item.role}
-                </Badge>
-              )}
-            </li>
-          ))}
+              </li>
+            ),
+          )}
         </ul>
       )}
     </div>

@@ -1,7 +1,7 @@
 import {
+  backofficeOrganizationDetailFactory,
   backofficeOrganizationFactory,
   backofficeProjectDetailFactory,
-  backofficeProjectFactory,
   backofficeProjectListItemFactory,
   backofficeUserFactory,
   paginatedBackofficeOrganizationsFactory,
@@ -11,6 +11,7 @@ import {
 } from "@/backoffice/features/backoffice/backoffice.factory"
 import type {
   BackofficeOrganization,
+  BackofficeOrganizationDetail,
   BackofficeProjectDetail,
   BackofficeProjectListItem,
   BackofficeUser,
@@ -100,11 +101,7 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
 }
 
 function buildOrganizationsPage(): PaginatedBackofficeOrganizations {
-  const organizations: BackofficeOrganization[] = Array.from({ length: 3 }).map(() => {
-    const organization = backofficeOrganizationFactory.build()
-    const projects = backofficeProjectFactory.transient({ organization }).buildList(2)
-    return { ...organization, projects }
-  })
+  const organizations: BackofficeOrganization[] = backofficeOrganizationFactory.buildList(3)
   return paginatedBackofficeOrganizationsFactory.build({
     organizations,
     total: organizations.length,
@@ -129,6 +126,7 @@ function buildUsersPage(): PaginatedBackofficeUsers {
 
 export function buildMockBackofficeService(overrides: {
   organizations?: PaginatedBackofficeOrganizations
+  organizationDetails?: Record<string, BackofficeOrganizationDetail>
   projects?: PaginatedBackofficeProjects
   projectDetails?: Record<string, BackofficeProjectDetail>
   users?: PaginatedBackofficeUsers
@@ -142,6 +140,7 @@ export function buildMockBackofficeService(overrides: {
       page: 0,
       limit: 10,
     })
+  const organizationDetails = overrides.organizationDetails ?? {}
   const projects =
     overrides.projects ??
     paginatedBackofficeProjectsFactory.build({ projects: [], total: 0, page: 0, limit: 10 })
@@ -153,6 +152,13 @@ export function buildMockBackofficeService(overrides: {
   return {
     async listOrganizations() {
       return organizations
+    },
+    async getOrganization(organizationId) {
+      const detail = organizationDetails[organizationId]
+      if (!detail) {
+        return backofficeOrganizationDetailFactory.build({ id: organizationId })
+      }
+      return detail
     },
     async listProjects() {
       return projects

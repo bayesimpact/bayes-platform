@@ -1,6 +1,9 @@
 import type {
   AgentMembershipRoleDto,
+  BackofficeOrganizationDetailDto,
   BackofficeOrganizationDto,
+  BackofficeOrganizationMemberDto,
+  BackofficeOrganizationProjectDto,
   BackofficeProjectAgentDto,
   BackofficeProjectDetailDto,
   BackofficeProjectDto,
@@ -34,7 +37,27 @@ export type BackofficeOrganization = {
   id: string
   name: string
   createdAt: TimeType
-  projects: BackofficeProject[]
+}
+
+export type BackofficeOrganizationMember = {
+  userId: string
+  userEmail: string
+  userName: string | null
+  role: OrganizationMembershipRoleDto
+}
+
+export type BackofficeOrganizationProject = {
+  id: string
+  name: string
+  featureFlags: FeatureFlagKey[]
+}
+
+export type BackofficeOrganizationDetail = {
+  id: string
+  name: string
+  createdAt: TimeType
+  members: BackofficeOrganizationMember[]
+  projects: BackofficeOrganizationProject[]
 }
 
 export type BackofficeProjectListItem = {
@@ -171,7 +194,33 @@ export const toBackofficeOrganization = (
   id: dto.id,
   name: dto.name,
   createdAt: dto.createdAt,
-  projects: dto.projects.map(toBackofficeProject),
+})
+
+const toBackofficeOrganizationMember = (
+  dto: BackofficeOrganizationMemberDto,
+): BackofficeOrganizationMember => ({
+  userId: dto.userId,
+  userEmail: dto.userEmail,
+  userName: dto.userName,
+  role: dto.role,
+})
+
+const toBackofficeOrganizationProject = (
+  dto: BackofficeOrganizationProjectDto,
+): BackofficeOrganizationProject => ({
+  id: dto.id,
+  name: dto.name,
+  featureFlags: dto.featureFlags,
+})
+
+export const toBackofficeOrganizationDetail = (
+  dto: BackofficeOrganizationDetailDto,
+): BackofficeOrganizationDetail => ({
+  id: dto.id,
+  name: dto.name,
+  createdAt: dto.createdAt,
+  members: dto.members.map(toBackofficeOrganizationMember),
+  projects: dto.projects.map(toBackofficeOrganizationProject),
 })
 
 export type PaginatedBackofficeOrganizations = {

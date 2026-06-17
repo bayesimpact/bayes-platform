@@ -3,6 +3,9 @@ import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type {
   BackofficeOrganization,
+  BackofficeOrganizationDetail,
+  BackofficeOrganizationMember,
+  BackofficeOrganizationProject,
   BackofficeProject,
   BackofficeProjectAgent,
   BackofficeProjectDetail,
@@ -113,8 +116,40 @@ export const backofficeOrganizationFactory = BackofficeOrganizationFactory.defin
   id: params.id ?? faker.string.uuid(),
   name: params.name ?? faker.company.name(),
   createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
-  projects: params.projects ?? [],
 }))
+
+class BackofficeOrganizationMemberFactory extends Factory<BackofficeOrganizationMember> {}
+
+export const backofficeOrganizationMemberFactory = BackofficeOrganizationMemberFactory.define(
+  ({ params }) => ({
+    userId: params.userId ?? faker.string.uuid(),
+    userEmail: params.userEmail ?? faker.internet.email().toLowerCase(),
+    userName: params.userName ?? faker.person.fullName(),
+    role: params.role ?? "member",
+  }),
+)
+
+class BackofficeOrganizationProjectFactory extends Factory<BackofficeOrganizationProject> {}
+
+export const backofficeOrganizationProjectFactory = BackofficeOrganizationProjectFactory.define(
+  ({ params }) => ({
+    id: params.id ?? faker.string.uuid(),
+    name: params.name ?? faker.commerce.productName(),
+    featureFlags: params.featureFlags ?? [],
+  }),
+)
+
+class BackofficeOrganizationDetailFactory extends Factory<BackofficeOrganizationDetail> {}
+
+export const backofficeOrganizationDetailFactory = BackofficeOrganizationDetailFactory.define(
+  ({ params }) => ({
+    id: params.id ?? faker.string.uuid(),
+    name: params.name ?? faker.company.name(),
+    createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
+    members: params.members ?? [],
+    projects: params.projects ?? [],
+  }),
+)
 
 class BackofficeUserFactory extends Factory<BackofficeUser> {}
 

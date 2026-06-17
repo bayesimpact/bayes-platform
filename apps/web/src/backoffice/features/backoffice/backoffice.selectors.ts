@@ -3,6 +3,8 @@ import type { RootState } from "@/common/store"
 export const selectBackofficeOrganizations = (state: RootState) => state.backoffice.organizations
 export const selectBackofficeOrganizationsQuery = (state: RootState) =>
   state.backoffice.organizationsQuery
+export const selectBackofficeOrganizationDetail = (state: RootState) =>
+  state.backoffice.organizationDetail
 export const selectBackofficeProjects = (state: RootState) => state.backoffice.projects
 export const selectBackofficeProjectsQuery = (state: RootState) => state.backoffice.projectsQuery
 export const selectBackofficeProjectDetail = (state: RootState) => state.backoffice.projectDetail

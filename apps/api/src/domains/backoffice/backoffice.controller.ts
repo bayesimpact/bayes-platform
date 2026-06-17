@@ -19,6 +19,7 @@ import { TrackActivity } from "../activities/track-activity.decorator"
 import { isEmailBackofficeAuthorized } from "./backoffice.authorization"
 import { BackofficeGuard } from "./backoffice.guard"
 import {
+  toBackofficeOrganizationDetailDto,
   toBackofficeOrganizationDto,
   toBackofficeProjectDetailDto,
   toBackofficeProjectListItemDto,
@@ -53,7 +54,7 @@ export class BackofficeController {
     const canListAll = isEmailBackofficeAuthorized(user.email)
     const page = Math.max(0, Number(pageParam) || 0)
     const limit = Math.min(100, Math.max(1, Number(limitParam) || 10))
-    const { organizations, total } = await this.backofficeService.listOrganizationsWithProjects({
+    const { organizations, total } = await this.backofficeService.listOrganizations({
       canListAll,
       userId: user.id,
       page,
@@ -62,13 +63,29 @@ export class BackofficeController {
     })
     return {
       data: {
-        organizations: organizations.map((organization) =>
-          toBackofficeOrganizationDto({ ...organization, projects: organization.projects ?? [] }),
-        ),
+        organizations: organizations.map(toBackofficeOrganizationDto),
         total,
         page,
         limit,
       },
+    }
+  }
+
+  @Get(BackofficeRoutes.getOrganization.path)
+  async getOrganization(
+    @Req() request: EndpointRequest,
+    @Param("organizationId") organizationId: string,
+  ): Promise<typeof BackofficeRoutes.getOrganization.response> {
+    const { user } = request
+    const canListAll = isEmailBackofficeAuthorized(user.email)
+    const result = await this.backofficeService.getOrganizationDetail({
+      canListAll,
+      requestingUserId: user.id,
+      targetOrganizationId: organizationId,
+    })
+    if (!result) throw new NotFoundException(`Organization ${organizationId} not found`)
+    return {
+      data: toBackofficeOrganizationDetailDto(result.organization, result.members, result.projects),
     }
   }
 

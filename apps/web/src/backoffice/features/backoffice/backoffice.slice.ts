@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type {
+  BackofficeOrganizationDetail,
   BackofficeProjectDetail,
   BackofficeUserDetail,
   PaginatedBackofficeOrganizations,
@@ -19,6 +20,7 @@ interface ListQuery {
 interface State {
   organizations: AsyncData<PaginatedBackofficeOrganizations>
   organizationsQuery: ListQuery
+  organizationDetail: AsyncData<BackofficeOrganizationDetail>
   projects: AsyncData<PaginatedBackofficeProjects>
   projectsQuery: ListQuery
   projectDetail: AsyncData<BackofficeProjectDetail>
@@ -33,6 +35,7 @@ const defaultListQuery: ListQuery = { page: 0, limit: 10, search: "" }
 const initialState: State = {
   organizations: defaultAsyncData,
   organizationsQuery: defaultListQuery,
+  organizationDetail: defaultAsyncData,
   projects: defaultAsyncData,
   projectsQuery: defaultListQuery,
   projectDetail: defaultAsyncData,
@@ -49,6 +52,9 @@ const slice = createSlice({
     mount: () => {},
     unmount: () => {},
     reset: () => initialState,
+    resetOrganizationDetail: (state) => {
+      state.organizationDetail = defaultAsyncData
+    },
     resetProjectDetail: (state) => {
       state.projectDetail = defaultAsyncData
     },
@@ -80,6 +86,26 @@ const slice = createSlice({
         state.organizations = {
           status: ADS.Error,
           error: action.error.message || "Failed to fetch organizations",
+          value: null,
+        }
+      })
+
+    builder
+      .addCase(backofficeThunks.getOrganization.pending, (state) => {
+        state.organizationDetail.status = ADS.Loading
+        state.organizationDetail.error = null
+      })
+      .addCase(backofficeThunks.getOrganization.fulfilled, (state, action) => {
+        state.organizationDetail = {
+          status: ADS.Fulfilled,
+          error: null,
+          value: action.payload,
+        }
+      })
+      .addCase(backofficeThunks.getOrganization.rejected, (state, action) => {
+        state.organizationDetail = {
+          status: ADS.Error,
+          error: action.error.message || "Failed to fetch organization",
           value: null,
         }
       })
@@ -180,14 +206,6 @@ const slice = createSlice({
 
     builder.addCase(backofficeThunks.addFeatureFlag.fulfilled, (state, action) => {
       const { projectId, featureFlagKey } = action.payload
-      if (ADS.isFulfilled(state.organizations)) {
-        for (const organization of state.organizations.value.organizations) {
-          const project = organization.projects.find((project) => project.id === projectId)
-          if (project && !project.featureFlags.includes(featureFlagKey)) {
-            project.featureFlags.push(featureFlagKey)
-          }
-        }
-      }
       if (ADS.isFulfilled(state.projects)) {
         const project = state.projects.value.projects.find((project) => project.id === projectId)
         if (project && !project.featureFlags.includes(featureFlagKey)) {
@@ -199,18 +217,18 @@ const slice = createSlice({
           state.projectDetail.value.featureFlags.push(featureFlagKey)
         }
       }
+      if (ADS.isFulfilled(state.organizationDetail)) {
+        const project = state.organizationDetail.value.projects.find(
+          (project) => project.id === projectId,
+        )
+        if (project && !project.featureFlags.includes(featureFlagKey)) {
+          project.featureFlags.push(featureFlagKey)
+        }
+      }
     })
 
     builder.addCase(backofficeThunks.removeFeatureFlag.fulfilled, (state, action) => {
       const { projectId, featureFlagKey } = action.payload
-      if (ADS.isFulfilled(state.organizations)) {
-        for (const organization of state.organizations.value.organizations) {
-          const project = organization.projects.find((project) => project.id === projectId)
-          if (project) {
-            project.featureFlags = project.featureFlags.filter((flag) => flag !== featureFlagKey)
-          }
-        }
-      }
       if (ADS.isFulfilled(state.projects)) {
         const project = state.projects.value.projects.find((project) => project.id === projectId)
         if (project) {
@@ -221,6 +239,14 @@ const slice = createSlice({
         state.projectDetail.value.featureFlags = state.projectDetail.value.featureFlags.filter(
           (flag) => flag !== featureFlagKey,
         )
+      }
+      if (ADS.isFulfilled(state.organizationDetail)) {
+        const project = state.organizationDetail.value.projects.find(
+          (project) => project.id === projectId,
+        )
+        if (project) {
+          project.featureFlags = project.featureFlags.filter((flag) => flag !== featureFlagKey)
+        }
       }
     })
 

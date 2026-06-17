@@ -115,45 +115,22 @@ describe("Backoffice - list organizations", () => {
     }
   })
 
-  it("filters by search across organization name and project name", async () => {
+  it("filters by organization name", async () => {
     await createAuthorizedContext()
-    const matchingOrganizationName = `findme-org-${randomUUID()}`
+    const uniqueName = `findme-org-${randomUUID()}`
     const matchingOrganization = await repositories.organizationRepository.save(
-      repositories.organizationRepository.create({ name: matchingOrganizationName }),
+      repositories.organizationRepository.create({ name: uniqueName }),
     )
 
-    const byOrganizationName = await request({
+    const response = await request({
       route: BackofficeRoutes.listOrganizations,
       query: { search: "findme-org" },
       token: "token",
     })
-    expectResponse(byOrganizationName, 200)
+    expectResponse(response, 200)
     expect(
-      byOrganizationName.body.data.organizations.some(
-        (candidate) => candidate.id === matchingOrganization.id,
-      ),
-    ).toBe(true)
-
-    const projectOrganization = await repositories.organizationRepository.save(
-      repositories.organizationRepository.create({ name: `other-${randomUUID()}` }),
-    )
-    const matchingProjectName = `findme-project-${randomUUID()}`
-    await repositories.projectRepository.save(
-      repositories.projectRepository.create({
-        organizationId: projectOrganization.id,
-        name: matchingProjectName,
-      }),
-    )
-
-    const byProjectName = await request({
-      route: BackofficeRoutes.listOrganizations,
-      query: { search: "findme-project" },
-      token: "token",
-    })
-    expectResponse(byProjectName, 200)
-    expect(
-      byProjectName.body.data.organizations.some(
-        (candidate) => candidate.id === projectOrganization.id,
+      response.body.data.organizations.some(
+        (candidate: { id: string }) => candidate.id === matchingOrganization.id,
       ),
     ).toBe(true)
   })

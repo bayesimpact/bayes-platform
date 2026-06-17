@@ -9,6 +9,11 @@ export const BackofficeUserRoutes = {
   user: home.extend("/users/:userId"),
 }
 
+export const BackofficeOrganizationRoutes = {
+  organizations: home.extend("/organizations"),
+  organization: home.extend("/organizations/:organizationId"),
+}
+
 export const BackofficeProjectRoutes = {
   projects: home.extend("/projects"),
   project: home.extend("/projects/:projectId"),

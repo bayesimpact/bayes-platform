@@ -3,6 +3,7 @@ import { createAsyncThunk } from "@reduxjs/toolkit"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 
 import type {
+  BackofficeOrganizationDetail,
   BackofficeProjectDetail,
   BackofficeUserDetail,
   PaginatedBackofficeOrganizations,
@@ -21,6 +22,13 @@ const listOrganizations = createAsyncThunk<
 >("backoffice/fetchOrganizations", async (params, { extra: { services } }) => {
   return services.backoffice.listOrganizations(params ?? {})
 })
+
+const getOrganization = createAsyncThunk<BackofficeOrganizationDetail, string, ThunkConfig>(
+  "backoffice/getOrganization",
+  async (organizationId, { extra: { services } }) => {
+    return services.backoffice.getOrganization(organizationId)
+  },
+)
 
 const listProjects = createAsyncThunk<
   PaginatedBackofficeProjects,
@@ -85,6 +93,7 @@ const updateTermsDocuments = createAsyncThunk<
 
 export const backofficeThunks = {
   listOrganizations,
+  getOrganization,
   listProjects,
   getProject,
   listUsers,
