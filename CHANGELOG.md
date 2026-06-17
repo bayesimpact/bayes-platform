@@ -12,6 +12,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Agents can surface resources from their attached libraries directly in the chat, displaying them as cards to the user
 - Resource files can be downloaded from the chat
 - Extraction history: CSV extraction runs can be opened directly from the history dialog, navigating to the corresponding run's results
+- The crawling queues (URL crawling and web source embeddings) are now visible in the Bull dashboard for monitoring and debugging
 
 ### Changed
 - Agent creation is now a single dialog where you pick the agent type and name, replacing the previous multi-step flow
