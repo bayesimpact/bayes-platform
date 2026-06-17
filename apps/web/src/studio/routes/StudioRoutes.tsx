@@ -54,6 +54,7 @@ export const studioRoutes = {
               build={{
                 agentRoute: StudioRoutes.agent.build,
                 agentSessionRoute: StudioRoutes.agentSession.build,
+                agentExtractionCsvRunRoute: StudioRoutes.agentExtractionCsvRun.build,
                 projectRoute: StudioRoutes.project.build,
               }}
             >
