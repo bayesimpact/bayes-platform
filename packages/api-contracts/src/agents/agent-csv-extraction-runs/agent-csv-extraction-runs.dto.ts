@@ -15,7 +15,7 @@ export type AgentCsvExtractionRunStatusDto =
   | "failed"
   | "cancelled"
 
-export type AgentCsvExtractionRunRecordStatusDto = "running" | "success" | "error"
+export type AgentCsvExtractionRunRecordStatusDto = "running" | "success" | "error" | "cancelled"
 
 export type AgentCsvExtractionRunSummaryDto = {
   total: number

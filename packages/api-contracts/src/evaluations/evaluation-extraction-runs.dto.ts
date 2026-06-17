@@ -10,7 +10,12 @@ export type EvaluationExtractionRunStatusDto =
   | "completed"
   | "failed"
   | "cancelled"
-export type EvaluationExtractionRunRecordStatusDto = "match" | "mismatch" | "error" | "running"
+export type EvaluationExtractionRunRecordStatusDto =
+  | "match"
+  | "mismatch"
+  | "error"
+  | "running"
+  | "cancelled"
 export type EvaluationExtractionRunRecordFieldStatusDto = "match" | "mismatch" | "fyi"
 
 export type EvaluationExtractionRunKeyMappingEntryDto = {

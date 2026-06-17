@@ -88,6 +88,8 @@ describe("AgentCsvExtractionRuns - cancelOne", () => {
     agentId = context.agent.id
     agentCsvExtractionRunId = run.id
     auth0Id = context.user.auth0Id
+
+    return { runningRecord }
   }
 
   const subject = async () =>
@@ -98,7 +100,7 @@ describe("AgentCsvExtractionRuns - cancelOne", () => {
     })
 
   it("marks a running run cancelled and removes pending jobs", async () => {
-    await createContext({ status: "running" })
+    const { runningRecord } = await createContext({ status: "running" })
 
     const response = await subject()
 
@@ -110,6 +112,11 @@ describe("AgentCsvExtractionRuns - cancelOne", () => {
       where: { id: agentCsvExtractionRunId },
     })
     expect(persisted?.status).toBe("cancelled")
+
+    const persistedRecord = await repositories.agentCsvExtractionRunRecordRepository.findOne({
+      where: { id: runningRecord.id },
+    })
+    expect(persistedRecord?.status).toBe("cancelled")
 
     await expectActivityCreated("agentCsvExtractionRun.cancel")
   })

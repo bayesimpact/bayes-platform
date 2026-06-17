@@ -98,7 +98,7 @@ export class AgentCsvExtractionRunsService {
     await this.runRecordConnectRepository.updateManyBy({
       connectScope,
       where: { agentCsvExtractionRunId: agentCsvExtractionRun.id, status: "running" },
-      fields: { status: "error" },
+      fields: { status: "cancelled" },
     })
 
     return this.runConnectRepository.saveOne(agentCsvExtractionRun)
@@ -137,6 +137,7 @@ export class AgentCsvExtractionRunsService {
       where: [
         { agentCsvExtractionRunId: agentCsvExtractionRun.id, status: "running" },
         { agentCsvExtractionRunId: agentCsvExtractionRun.id, status: "error" },
+        { agentCsvExtractionRunId: agentCsvExtractionRun.id, status: "cancelled" },
       ],
     })
 
