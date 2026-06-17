@@ -1,6 +1,10 @@
 import type {
   BackofficeOrganizationDto,
+  BackofficeProjectAgentDto,
+  BackofficeProjectDetailDto,
   BackofficeProjectDto,
+  BackofficeProjectListItemDto,
+  BackofficeProjectMemberDto,
   BackofficeUserAgentMembershipDto,
   BackofficeUserDetailDto,
   BackofficeUserDto,
@@ -10,6 +14,7 @@ import type {
   FeatureFlagsDto,
   TimeType,
 } from "@caseai-connect/api-contracts"
+import type { Agent } from "@/domains/agents/agent.entity"
 import type { AgentMembership } from "@/domains/agents/memberships/agent-membership.entity"
 import type { FeatureFlag } from "@/domains/feature-flags/feature-flag.entity"
 import type { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
@@ -49,6 +54,47 @@ export function toBackofficeOrganizationDto(
     name: organization.name,
     createdAt: organization.createdAt.getTime() as TimeType,
     projects: organization.projects.map(toBackofficeProjectDto),
+  }
+}
+
+export function toBackofficeProjectListItemDto(
+  project: Project & { organization?: { name: string } },
+): BackofficeProjectListItemDto {
+  return {
+    id: project.id,
+    name: project.name,
+    organizationId: project.organizationId,
+    organizationName: project.organization?.name ?? "",
+    createdAt: project.createdAt.getTime() as TimeType,
+  }
+}
+
+export function toBackofficeProjectDetailDto(
+  project: Project & { organization?: { name: string } },
+  members: ProjectMembership[],
+  agents: Agent[],
+): BackofficeProjectDetailDto {
+  return {
+    id: project.id,
+    name: project.name,
+    organizationId: project.organizationId,
+    organizationName: project.organization?.name ?? "",
+    createdAt: project.createdAt.getTime() as TimeType,
+    featureFlags: toFeatureFlagsDto(project.featureFlags),
+    members: members.map(
+      (membership): BackofficeProjectMemberDto => ({
+        userId: membership.userId,
+        userEmail: membership.user?.email ?? "",
+        userName: membership.user?.name ?? null,
+        role: membership.role,
+      }),
+    ),
+    agents: agents.map(
+      (agent): BackofficeProjectAgentDto => ({
+        id: agent.id,
+        name: agent.name,
+      }),
+    ),
   }
 }
 

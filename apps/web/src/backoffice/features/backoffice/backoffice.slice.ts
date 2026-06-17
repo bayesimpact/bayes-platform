@@ -1,8 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type {
+  BackofficeProjectDetail,
   BackofficeUserDetail,
   PaginatedBackofficeOrganizations,
+  PaginatedBackofficeProjects,
   PaginatedBackofficeUsers,
   TermsDocuments,
 } from "./backoffice.models"
@@ -17,6 +19,9 @@ interface ListQuery {
 interface State {
   organizations: AsyncData<PaginatedBackofficeOrganizations>
   organizationsQuery: ListQuery
+  projects: AsyncData<PaginatedBackofficeProjects>
+  projectsQuery: ListQuery
+  projectDetail: AsyncData<BackofficeProjectDetail>
   users: AsyncData<PaginatedBackofficeUsers>
   usersQuery: ListQuery
   userDetail: AsyncData<BackofficeUserDetail>
@@ -28,6 +33,9 @@ const defaultListQuery: ListQuery = { page: 0, limit: 10, search: "" }
 const initialState: State = {
   organizations: defaultAsyncData,
   organizationsQuery: defaultListQuery,
+  projects: defaultAsyncData,
+  projectsQuery: defaultListQuery,
+  projectDetail: defaultAsyncData,
   users: defaultAsyncData,
   usersQuery: defaultListQuery,
   userDetail: defaultAsyncData,
@@ -41,6 +49,9 @@ const slice = createSlice({
     mount: () => {},
     unmount: () => {},
     reset: () => initialState,
+    resetProjectDetail: (state) => {
+      state.projectDetail = defaultAsyncData
+    },
     resetUserDetail: (state) => {
       state.userDetail = defaultAsyncData
     },
@@ -69,6 +80,53 @@ const slice = createSlice({
         state.organizations = {
           status: ADS.Error,
           error: action.error.message || "Failed to fetch organizations",
+          value: null,
+        }
+      })
+
+    builder
+      .addCase(backofficeThunks.listProjects.pending, (state, action) => {
+        if (!ADS.isFulfilled(state.projects)) {
+          state.projects.status = ADS.Loading
+        }
+        state.projects.error = null
+        state.projectsQuery = {
+          page: action.meta.arg?.page ?? state.projectsQuery.page,
+          limit: action.meta.arg?.limit ?? state.projectsQuery.limit,
+          search: action.meta.arg?.search ?? state.projectsQuery.search,
+        }
+      })
+      .addCase(backofficeThunks.listProjects.fulfilled, (state, action) => {
+        state.projects = {
+          status: ADS.Fulfilled,
+          error: null,
+          value: action.payload,
+        }
+      })
+      .addCase(backofficeThunks.listProjects.rejected, (state, action) => {
+        state.projects = {
+          status: ADS.Error,
+          error: action.error.message || "Failed to fetch projects",
+          value: null,
+        }
+      })
+
+    builder
+      .addCase(backofficeThunks.getProject.pending, (state) => {
+        state.projectDetail.status = ADS.Loading
+        state.projectDetail.error = null
+      })
+      .addCase(backofficeThunks.getProject.fulfilled, (state, action) => {
+        state.projectDetail = {
+          status: ADS.Fulfilled,
+          error: null,
+          value: action.payload,
+        }
+      })
+      .addCase(backofficeThunks.getProject.rejected, (state, action) => {
+        state.projectDetail = {
+          status: ADS.Error,
+          error: action.error.message || "Failed to fetch project",
           value: null,
         }
       })

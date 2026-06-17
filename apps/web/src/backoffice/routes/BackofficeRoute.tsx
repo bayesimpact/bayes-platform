@@ -12,7 +12,7 @@ import { NotFoundRoute } from "@/common/routes/NotFoundRoute"
 import { useAppSelector } from "@/common/store/hooks"
 import { backofficeActions } from "../features/backoffice/backoffice.slice"
 import { injectBackofficeSlices, resetBackofficeSlices } from "../store/slices"
-import { BackofficeUserRoutes } from "./helpers"
+import { BackofficeProjectRoutes, BackofficeUserRoutes } from "./helpers"
 
 export function BackofficeRoute() {
   const isAuthorized = useAppSelector(selectIsBackofficeAuthorized)
@@ -52,6 +52,18 @@ function Layout() {
           }
         >
           Organizations
+        </NavLink>
+        <NavLink
+          to={BackofficeProjectRoutes.projects.path.replace("/backoffice/", "")}
+          className={({ isActive }) =>
+            `px-3 py-1.5 text-sm rounded-md font-medium transition-colors ${
+              isActive
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            }`
+          }
+        >
+          Projects
         </NavLink>
         <NavLink
           to={BackofficeUserRoutes.users.path.replace("/backoffice/", "")}

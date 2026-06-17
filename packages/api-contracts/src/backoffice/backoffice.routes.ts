@@ -2,9 +2,11 @@ import type { FeatureFlagKey } from "../feature-flags/feature-flags.dto"
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
 import type {
+  BackofficeProjectDetailDto,
   BackofficeUserDetailDto,
   ListTermsDocumentsResponseDto,
   PaginatedBackofficeOrganizationsDto,
+  PaginatedBackofficeProjectsDto,
   PaginatedBackofficeUsersDto,
   UpdateTermsDocumentsRequestDto,
 } from "./backoffice.dto"
@@ -21,6 +23,14 @@ export const BackofficeRoutes = {
   getUser: defineRoute<ResponseData<BackofficeUserDetailDto>>({
     method: "get",
     path: "backoffice/users/:userId",
+  }),
+  listProjects: defineRoute<ResponseData<PaginatedBackofficeProjectsDto>>({
+    method: "get",
+    path: "backoffice/projects",
+  }),
+  getProject: defineRoute<ResponseData<BackofficeProjectDetailDto>>({
+    method: "get",
+    path: "backoffice/projects/:projectId",
   }),
   addFeatureFlag: defineRoute<
     ResponseData<SuccessResponseDTO>,

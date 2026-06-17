@@ -3,6 +3,7 @@ import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/commo
 import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource, In, type Repository } from "typeorm"
+import { Agent } from "../agents/agent.entity"
 import { AgentMembership } from "../agents/memberships/agent-membership.entity"
 import { FeatureFlag } from "../feature-flags/feature-flag.entity"
 import { OrganizationMembership } from "../organizations/memberships/organization-membership.entity"
@@ -29,6 +30,7 @@ export class BackofficeService {
     private readonly projectMembershipRepository: Repository<ProjectMembership>,
     @InjectRepository(AgentMembership)
     private readonly agentMembershipRepository: Repository<AgentMembership>,
+    @InjectRepository(Agent) private readonly agentRepository: Repository<Agent>,
     @InjectDataSource() readonly _dataSource: DataSource,
   ) {}
 
@@ -230,6 +232,124 @@ export class BackofficeService {
       .getManyAndCount()
 
     return { users, total }
+  }
+
+  async listProjects({
+    canListAll,
+    userId,
+    page,
+    limit,
+    search,
+  }: {
+    canListAll: boolean
+    userId: string
+    page: number
+    limit: number
+    search?: string
+  }): Promise<{ projects: Project[]; total: number }> {
+    const qb = this.projectRepository
+      .createQueryBuilder("project")
+      .leftJoin("project.organization", "org")
+      .addSelect(["org.id", "org.name"])
+      .orderBy("project.name", "ASC")
+
+    if (!canListAll) {
+      const { organizationIds, projectIds } = await this.findAdminOrganizationAndProjectIds(userId)
+      if (organizationIds.size === 0 && projectIds.size === 0) {
+        return { projects: [], total: 0 }
+      }
+      if (organizationIds.size > 0 && projectIds.size > 0) {
+        qb.andWhere(
+          "(project.organizationId IN (:...organizationIds) OR project.id IN (:...projectIds))",
+          {
+            organizationIds: Array.from(organizationIds),
+            projectIds: Array.from(projectIds),
+          },
+        )
+      } else if (organizationIds.size > 0) {
+        qb.andWhere("project.organizationId IN (:...organizationIds)", {
+          organizationIds: Array.from(organizationIds),
+        })
+      } else {
+        qb.andWhere("project.id IN (:...projectIds)", {
+          projectIds: Array.from(projectIds),
+        })
+      }
+    }
+
+    const trimmedSearch = search?.trim()
+    if (trimmedSearch) {
+      const searchPattern = `%${trimmedSearch.toLowerCase()}%`
+      qb.andWhere(
+        `(
+          LOWER(project.name) LIKE :searchPattern
+          OR LOWER(org.name) LIKE :searchPattern
+        )`,
+        { searchPattern },
+      )
+    }
+
+    const [projects, total] = await qb
+      .skip(page * limit)
+      .take(limit)
+      .getManyAndCount()
+
+    return { projects, total }
+  }
+
+  async getProjectDetail({
+    canListAll,
+    requestingUserId,
+    targetProjectId,
+  }: {
+    canListAll: boolean
+    requestingUserId: string
+    targetProjectId: string
+  }): Promise<{
+    project: Project
+    members: ProjectMembership[]
+    agents: Agent[]
+  } | null> {
+    if (!canListAll) {
+      const { organizationIds, projectIds } =
+        await this.findAdminOrganizationAndProjectIds(requestingUserId)
+      const targetProject = await this.projectRepository.findOne({
+        where: { id: targetProjectId },
+        select: ["id", "organizationId"],
+      })
+      if (!targetProject) return null
+      const canAccess =
+        organizationIds.has(targetProject.organizationId) || projectIds.has(targetProjectId)
+      if (!canAccess) return null
+    }
+
+    const project = await this.projectRepository
+      .createQueryBuilder("project")
+      .leftJoin("project.organization", "org")
+      .addSelect(["org.id", "org.name"])
+      .leftJoinAndSelect("project.featureFlags", "featureFlag")
+      .where("project.id = :id", { id: targetProjectId })
+      .getOne()
+    if (!project) return null
+
+    const [members, agents] = await Promise.all([
+      this.projectMembershipRepository
+        .createQueryBuilder("pm")
+        .select(["pm.userId", "pm.role"])
+        .leftJoin("pm.user", "user")
+        .addSelect(["user.id", "user.email", "user.name"])
+        .where("pm.projectId = :projectId", { projectId: targetProjectId })
+        .orderBy("LOWER(user.email)", "ASC")
+        .getMany(),
+      this.agentRepository
+        .createQueryBuilder("agent")
+        .select(["agent.id", "agent.name"])
+        .where("agent.projectId = :projectId", { projectId: targetProjectId })
+        .orderBy("LOWER(agent.name)", "ASC")
+        .getMany(),
+    ])
+
+    return { project, members, agents }
   }
 
   async getUserDetail({

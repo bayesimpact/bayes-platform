@@ -20,6 +20,8 @@ import { isEmailBackofficeAuthorized } from "./backoffice.authorization"
 import { BackofficeGuard } from "./backoffice.guard"
 import {
   toBackofficeOrganizationDto,
+  toBackofficeProjectDetailDto,
+  toBackofficeProjectListItemDto,
   toBackofficeUserDetailDto,
   toBackofficeUserDto,
 } from "./backoffice.helpers"
@@ -118,6 +120,52 @@ export class BackofficeController {
         result.projectMemberships,
         result.agentMemberships,
       ),
+    }
+  }
+
+  @Get(BackofficeRoutes.listProjects.path)
+  async listProjects(
+    @Req() request: EndpointRequest,
+    @Query("page") pageParam?: string,
+    @Query("limit") limitParam?: string,
+    @Query("search") search?: string,
+  ): Promise<typeof BackofficeRoutes.listProjects.response> {
+    const { user } = request
+    const canListAll = isEmailBackofficeAuthorized(user.email)
+    const page = Math.max(0, Number(pageParam) || 0)
+    const limit = Math.min(100, Math.max(1, Number(limitParam) || 10))
+    const { projects, total } = await this.backofficeService.listProjects({
+      canListAll,
+      userId: user.id,
+      page,
+      limit,
+      search,
+    })
+    return {
+      data: {
+        projects: projects.map(toBackofficeProjectListItemDto),
+        total,
+        page,
+        limit,
+      },
+    }
+  }
+
+  @Get(BackofficeRoutes.getProject.path)
+  async getProject(
+    @Req() request: EndpointRequest,
+    @Param("projectId") projectId: string,
+  ): Promise<typeof BackofficeRoutes.getProject.response> {
+    const { user } = request
+    const canListAll = isEmailBackofficeAuthorized(user.email)
+    const result = await this.backofficeService.getProjectDetail({
+      canListAll,
+      requestingUserId: user.id,
+      targetProjectId: projectId,
+    })
+    if (!result) throw new NotFoundException(`Project ${projectId} not found`)
+    return {
+      data: toBackofficeProjectDetailDto(result.project, result.members, result.agents),
     }
   }
 

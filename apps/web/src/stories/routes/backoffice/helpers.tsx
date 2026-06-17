@@ -1,15 +1,21 @@
 import {
   backofficeOrganizationFactory,
+  backofficeProjectDetailFactory,
   backofficeProjectFactory,
+  backofficeProjectListItemFactory,
   backofficeUserFactory,
   paginatedBackofficeOrganizationsFactory,
+  paginatedBackofficeProjectsFactory,
   paginatedBackofficeUsersFactory,
   termsDocumentsFactory,
 } from "@/backoffice/features/backoffice/backoffice.factory"
 import type {
   BackofficeOrganization,
+  BackofficeProjectDetail,
+  BackofficeProjectListItem,
   BackofficeUser,
   PaginatedBackofficeOrganizations,
+  PaginatedBackofficeProjects,
   PaginatedBackofficeUsers,
   TermsDocuments,
 } from "@/backoffice/features/backoffice/backoffice.models"
@@ -23,6 +29,7 @@ export type BackofficeStoryArgs = {
   isBackofficeAuthorized: boolean
   isTermsManagementAuthorized: boolean
   withOrganizations: boolean
+  withProjects: boolean
   withUsers: boolean
   withTermsDocuments: boolean
 }
@@ -31,6 +38,7 @@ export const backofficeStoryArgs = {
   isBackofficeAuthorized: true,
   isTermsManagementAuthorized: false,
   withOrganizations: true,
+  withProjects: true,
   withUsers: true,
   withTermsDocuments: false,
 } satisfies BackofficeStoryArgs
@@ -39,6 +47,7 @@ export const backofficeStoryArgTypes = {
   isBackofficeAuthorized: { control: "boolean" },
   isTermsManagementAuthorized: { control: "boolean" },
   withOrganizations: { control: "boolean" },
+  withProjects: { control: "boolean" },
   withUsers: { control: "boolean" },
   withTermsDocuments: { control: "boolean" },
 } as const
@@ -46,6 +55,7 @@ export const backofficeStoryArgTypes = {
 export function buildBackofficeData(args: BackofficeStoryArgs): {
   user: User
   organizations: PaginatedBackofficeOrganizations
+  projects: PaginatedBackofficeProjects
   users: PaginatedBackofficeUsers
   termsDocuments: TermsDocuments | null
   baseSeeds: StoryPreloadedState
@@ -63,6 +73,9 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
         page: 0,
         limit: 10,
       })
+  const projects: PaginatedBackofficeProjects = args.withProjects
+    ? buildProjectsPage()
+    : paginatedBackofficeProjectsFactory.build({ projects: [], total: 0, page: 0, limit: 10 })
   const users: PaginatedBackofficeUsers = args.withUsers
     ? buildUsersPage()
     : paginatedBackofficeUsersFactory.build({ users: [], total: 0, page: 0, limit: 10 })
@@ -72,12 +85,14 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
       : null
 
   const seeds: StoryPreloadedState[] = [seed.me(user), seed.backoffice.organizations(organizations)]
+  seeds.push(seed.backoffice.projects(projects))
   seeds.push(seed.backoffice.users(users))
   if (termsDocuments) seeds.push(seed.backoffice.termsDocuments(termsDocuments))
 
   return {
     user,
     organizations,
+    projects,
     users,
     termsDocuments,
     baseSeeds: mergeSeeds(...seeds),
@@ -98,6 +113,13 @@ function buildOrganizationsPage(): PaginatedBackofficeOrganizations {
   })
 }
 
+function buildProjectsPage(): PaginatedBackofficeProjects {
+  const total = 18
+  const pageSize = 10
+  const projects: BackofficeProjectListItem[] = backofficeProjectListItemFactory.buildList(pageSize)
+  return paginatedBackofficeProjectsFactory.build({ projects, total, page: 0, limit: pageSize })
+}
+
 function buildUsersPage(): PaginatedBackofficeUsers {
   const total = 24
   const pageSize = 10
@@ -107,6 +129,8 @@ function buildUsersPage(): PaginatedBackofficeUsers {
 
 export function buildMockBackofficeService(overrides: {
   organizations?: PaginatedBackofficeOrganizations
+  projects?: PaginatedBackofficeProjects
+  projectDetails?: Record<string, BackofficeProjectDetail>
   users?: PaginatedBackofficeUsers
   termsDocuments?: TermsDocuments | null
 }): IBackofficeSpi {
@@ -118,6 +142,10 @@ export function buildMockBackofficeService(overrides: {
       page: 0,
       limit: 10,
     })
+  const projects =
+    overrides.projects ??
+    paginatedBackofficeProjectsFactory.build({ projects: [], total: 0, page: 0, limit: 10 })
+  const projectDetails = overrides.projectDetails ?? {}
   const users =
     overrides.users ??
     paginatedBackofficeUsersFactory.build({ users: [], total: 0, page: 0, limit: 10 })
@@ -125,6 +153,16 @@ export function buildMockBackofficeService(overrides: {
   return {
     async listOrganizations() {
       return organizations
+    },
+    async listProjects() {
+      return projects
+    },
+    async getProject(projectId) {
+      const detail = projectDetails[projectId]
+      if (!detail) {
+        return backofficeProjectDetailFactory.build({ id: projectId })
+      }
+      return detail
     },
     async listUsers() {
       return users

@@ -1,5 +1,7 @@
 import { Navigate } from "react-router-dom"
 import { BackofficeOrganizationsRoute } from "./BackofficeOrganizationsRoute"
+import { BackofficeProjectDetailRoute } from "./BackofficeProjectDetailRoute"
+import { BackofficeProjectsListRoute } from "./BackofficeProjectsListRoute"
 import { BackofficeRoute } from "./BackofficeRoute"
 import { BackofficeTermsRoute } from "./BackofficeTermsRoute"
 import { BackofficeUserDetailRoute } from "./BackofficeUserDetailRoute"
@@ -17,6 +19,14 @@ export const backofficeRoutes = {
     {
       path: "organizations",
       element: <BackofficeOrganizationsRoute />,
+    },
+    {
+      path: "projects",
+      element: <BackofficeProjectsListRoute />,
+    },
+    {
+      path: "projects/:projectId",
+      element: <BackofficeProjectDetailRoute />,
     },
     {
       path: "users",

@@ -8,3 +8,8 @@ export const BackofficeUserRoutes = {
   users: home.extend("/users"),
   user: home.extend("/users/:userId"),
 }
+
+export const BackofficeProjectRoutes = {
+  projects: home.extend("/projects"),
+  project: home.extend("/projects/:projectId"),
+}

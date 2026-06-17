@@ -1,8 +1,10 @@
 import { BackofficeRoutes } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import {
+  toBackofficeProjectDetail,
   toBackofficeUserDetail,
   toPaginatedBackofficeOrganizations,
+  toPaginatedBackofficeProjects,
   toPaginatedBackofficeUsers,
 } from "../backoffice.models"
 import type { IBackofficeSpi } from "../backoffice.spi"
@@ -20,6 +22,26 @@ export default {
       { params: queryParams },
     )
     return toPaginatedBackofficeOrganizations(response.data.data)
+  },
+  listProjects: async ({ page, limit, search }) => {
+    const axios = getAxiosInstance()
+    const queryParams: Record<string, string> = {}
+    if (page !== undefined) queryParams.page = String(page)
+    if (limit !== undefined) queryParams.limit = String(limit)
+    if (search) queryParams.search = search
+
+    const response = await axios.get<typeof BackofficeRoutes.listProjects.response>(
+      BackofficeRoutes.listProjects.getPath(),
+      { params: queryParams },
+    )
+    return toPaginatedBackofficeProjects(response.data.data)
+  },
+  getProject: async (projectId) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof BackofficeRoutes.getProject.response>(
+      BackofficeRoutes.getProject.getPath({ projectId }),
+    )
+    return toBackofficeProjectDetail(response.data.data)
   },
   listUsers: async ({ page, limit, search }) => {
     const axios = getAxiosInstance()

@@ -27,6 +27,44 @@ export type PaginatedBackofficeOrganizationsDto = {
   limit: number
 }
 
+export type BackofficeProjectListItemDto = {
+  id: string
+  name: string
+  organizationId: string
+  organizationName: string
+  createdAt: TimeType
+}
+
+export type PaginatedBackofficeProjectsDto = {
+  projects: BackofficeProjectListItemDto[]
+  total: number
+  page: number
+  limit: number
+}
+
+export type BackofficeProjectMemberDto = {
+  userId: string
+  userEmail: string
+  userName: string | null
+  role: ProjectMembershipRoleDto
+}
+
+export type BackofficeProjectAgentDto = {
+  id: string
+  name: string
+}
+
+export type BackofficeProjectDetailDto = {
+  id: string
+  name: string
+  organizationId: string
+  organizationName: string
+  createdAt: TimeType
+  featureFlags: FeatureFlagsDto
+  members: BackofficeProjectMemberDto[]
+  agents: BackofficeProjectAgentDto[]
+}
+
 export type BackofficeUserDto = {
   id: string
   email: string
