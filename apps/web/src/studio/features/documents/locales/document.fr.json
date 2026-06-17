@@ -66,6 +66,10 @@
         "description": "Téléversez votre premier document pour commencer."
       }
     },
+    "webSources": {
+      "title": "Sites web",
+      "description": "Améliorez les connaissances et les capacités de vos agents en explorant des sites web."
+    },
     "filter": {
       "all": "Tous",
       "uploaded": "Documents",

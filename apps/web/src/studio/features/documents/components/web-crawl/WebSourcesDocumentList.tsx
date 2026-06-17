@@ -92,8 +92,8 @@ export function WebSourcesDocumentList() {
     <div className="w-full">
       <GridHeader
         onBack={handleBack}
-        title={t("document:documents")}
-        description={t("document:list.description")}
+        title={t("document:webSources.title")}
+        description={t("document:webSources.description")}
         action={
           <div className="flex items-center gap-2">
             <CrawlUrlButton />
