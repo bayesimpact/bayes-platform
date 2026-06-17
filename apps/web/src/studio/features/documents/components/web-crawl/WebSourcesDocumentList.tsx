@@ -62,8 +62,8 @@ import type { DocumentTag } from "@/studio/features/document-tags/document-tags.
 import { selectDocumentTagsData } from "@/studio/features/document-tags/document-tags.selectors"
 import { CrawlingStatusBadge } from "@/studio/features/documents/components/CrawlingStatusBadge"
 import { CrawlUrlButton } from "@/studio/features/documents/components/CrawlUrlButton"
-import { EmptyWebSources } from "@/studio/features/documents/components/EmptyWebSources"
 import { DocumentTagPicker } from "@/studio/features/documents/components/DocumentTagPicker"
+import { EmptyWebSources } from "@/studio/features/documents/components/EmptyWebSources"
 import type { Document } from "@/studio/features/documents/documents.models"
 import {
   selectCrawlProgressByDocumentId,
