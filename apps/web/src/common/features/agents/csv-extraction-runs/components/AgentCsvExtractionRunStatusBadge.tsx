@@ -27,6 +27,12 @@ export function AgentCsvExtractionRunStatusBadge({
 export function RecordStatusBadge({ status }: { status: AgentCsvExtractionRunRecordStatus }) {
   const { t } = useTranslation()
   const variant =
-    status === "success" ? "success" : status === "error" ? "destructive" : "secondary"
+    status === "success"
+      ? "success"
+      : status === "error"
+        ? "destructive"
+        : status === "cancelled"
+          ? "outline"
+          : "secondary"
   return <Badge variant={variant}>{t(`agentCsvExtractionRun:results.${status}`)}</Badge>
 }

@@ -19,6 +19,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Source tag badges on the agent Sources tab now show tooltips describing each tag
 - The "public-documents" tag now displays an in-app description explaining that its sources can be downloaded from the chat
 - The web sources page now has a dedicated title and description
+- Records left running when an extraction run is cancelled now show a distinct "Cancelled" status instead of being marked as errors
 
 ### Fixed
 

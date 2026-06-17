@@ -2,7 +2,12 @@ import { Column, JoinColumn, ManyToOne } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { AgentCsvExtractionRun } from "./agent-csv-extraction-run.entity"
 
-export const AGENT_CSV_EXTRACTION_RUN_RECORD_STATUSES = ["running", "success", "error"] as const
+export const AGENT_CSV_EXTRACTION_RUN_RECORD_STATUSES = [
+  "running",
+  "success",
+  "error",
+  "cancelled",
+] as const
 export type AgentCsvExtractionRunRecordStatus =
   (typeof AGENT_CSV_EXTRACTION_RUN_RECORD_STATUSES)[number]
 

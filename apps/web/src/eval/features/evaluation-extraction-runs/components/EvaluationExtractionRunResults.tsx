@@ -47,7 +47,13 @@ import { TraceUrlOpener } from "@/studio/components/TraceUrlOpener"
 function StatusBadge({ status }: { status: EvaluationExtractionRunRecordStatus }) {
   const { t } = useTranslation()
   const variant =
-    status === "match" ? "success" : status === "mismatch" ? "destructive" : "secondary"
+    status === "match"
+      ? "success"
+      : status === "mismatch"
+        ? "destructive"
+        : status === "cancelled"
+          ? "outline"
+          : "secondary"
   return <Badge variant={variant}>{t(`evaluationExtractionRun:results.${status}`)}</Badge>
 }
 
