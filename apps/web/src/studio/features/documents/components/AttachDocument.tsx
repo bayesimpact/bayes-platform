@@ -1,4 +1,4 @@
-import { allowedDocumentUploadMimeTypesForFileUploader } from "@caseai-connect/api-contracts"
+import { agentSessionMessageAttachmentAllowedMimeTypesForFileUploader } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { PaperclipIcon } from "lucide-react"
 import { FileUploader } from "@/common/components/FileUploader"
@@ -16,7 +16,7 @@ export function AttachDocument({
   return (
     <FileUploader
       onDropFiles={handleProcessFiles}
-      allowedMimeTypes={allowedDocumentUploadMimeTypesForFileUploader}
+      allowedMimeTypes={agentSessionMessageAttachmentAllowedMimeTypesForFileUploader}
       maxFiles={1}
       startProcessingFiles={false}
     >
