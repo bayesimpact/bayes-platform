@@ -26,7 +26,13 @@ import { SearchField } from "./BackofficeTable"
 const DEFAULT_PAGE_SIZE = 10
 
 export function OrganizationsPanel() {
+  const dispatch = useAppDispatch()
   const organizations = useAppSelector(selectBackofficeOrganizations)
+
+  useEffect(() => {
+    dispatch(backofficeActions.listOrganizations({ page: 0, limit: 10 }))
+  }, [dispatch])
+
   return (
     <AsyncRoute data={[organizations]}>
       <WithData />

@@ -23,7 +23,13 @@ import { FeatureFlagCell, SearchField } from "./BackofficeTable"
 const DEFAULT_PAGE_SIZE = 10
 
 export function ProjectsPanel() {
+  const dispatch = useAppDispatch()
   const projects = useAppSelector(selectBackofficeProjects)
+
+  useEffect(() => {
+    dispatch(backofficeActions.listProjects({ page: 0, limit: 10 }))
+  }, [dispatch])
+
   return (
     <AsyncRoute data={[projects]}>
       <WithData />
