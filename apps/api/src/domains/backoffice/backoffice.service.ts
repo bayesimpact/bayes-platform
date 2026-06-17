@@ -289,12 +289,33 @@ export class BackofficeService {
       )
     }
 
-    const [projects, total] = await qb
+    const [rawProjects, total] = await qb
       .skip(page * limit)
       .take(limit)
       .getManyAndCount()
 
+    const projects = await this.attachFeatureFlagsToProjects(rawProjects)
+
     return { projects, total }
+  }
+
+  private async attachFeatureFlagsToProjects(projects: Project[]): Promise<Project[]> {
+    if (projects.length === 0) return projects
+    const projectIds = projects.map((project) => project.id)
+    const featureFlags = await this.featureFlagRepository.find({
+      where: { projectId: In(projectIds) },
+      select: ["projectId", "featureFlagKey", "enabled"],
+    })
+    const featureFlagsByProjectId = new Map<string, typeof featureFlags>()
+    for (const featureFlag of featureFlags) {
+      const existing = featureFlagsByProjectId.get(featureFlag.projectId) ?? []
+      existing.push(featureFlag)
+      featureFlagsByProjectId.set(featureFlag.projectId, existing)
+    }
+    return projects.map((project) => ({
+      ...project,
+      featureFlags: featureFlagsByProjectId.get(project.id) ?? [],
+    }))
   }
 
   async getProjectDetail({

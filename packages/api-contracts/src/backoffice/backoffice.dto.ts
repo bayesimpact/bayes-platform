@@ -33,6 +33,7 @@ export type BackofficeProjectListItemDto = {
   organizationId: string
   organizationName: string
   createdAt: TimeType
+  featureFlags: FeatureFlagsDto
 }
 
 export type PaginatedBackofficeProjectsDto = {

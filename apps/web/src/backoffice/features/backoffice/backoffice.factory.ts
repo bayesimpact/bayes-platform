@@ -56,6 +56,7 @@ export const backofficeProjectListItemFactory = BackofficeProjectListItemFactory
     organizationId: params.organizationId ?? faker.string.uuid(),
     organizationName: params.organizationName ?? faker.company.name(),
     createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
+    featureFlags: params.featureFlags ?? [],
   }),
 )
 

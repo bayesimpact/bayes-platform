@@ -179,24 +179,48 @@ const slice = createSlice({
       })
 
     builder.addCase(backofficeThunks.addFeatureFlag.fulfilled, (state, action) => {
-      if (!ADS.isFulfilled(state.organizations)) return
       const { projectId, featureFlagKey } = action.payload
-      for (const organization of state.organizations.value.organizations) {
-        const project = organization.projects.find((project) => project.id === projectId)
+      if (ADS.isFulfilled(state.organizations)) {
+        for (const organization of state.organizations.value.organizations) {
+          const project = organization.projects.find((project) => project.id === projectId)
+          if (project && !project.featureFlags.includes(featureFlagKey)) {
+            project.featureFlags.push(featureFlagKey)
+          }
+        }
+      }
+      if (ADS.isFulfilled(state.projects)) {
+        const project = state.projects.value.projects.find((project) => project.id === projectId)
         if (project && !project.featureFlags.includes(featureFlagKey)) {
           project.featureFlags.push(featureFlagKey)
+        }
+      }
+      if (ADS.isFulfilled(state.projectDetail) && state.projectDetail.value.id === projectId) {
+        if (!state.projectDetail.value.featureFlags.includes(featureFlagKey)) {
+          state.projectDetail.value.featureFlags.push(featureFlagKey)
         }
       }
     })
 
     builder.addCase(backofficeThunks.removeFeatureFlag.fulfilled, (state, action) => {
-      if (!ADS.isFulfilled(state.organizations)) return
       const { projectId, featureFlagKey } = action.payload
-      for (const organization of state.organizations.value.organizations) {
-        const project = organization.projects.find((project) => project.id === projectId)
+      if (ADS.isFulfilled(state.organizations)) {
+        for (const organization of state.organizations.value.organizations) {
+          const project = organization.projects.find((project) => project.id === projectId)
+          if (project) {
+            project.featureFlags = project.featureFlags.filter((flag) => flag !== featureFlagKey)
+          }
+        }
+      }
+      if (ADS.isFulfilled(state.projects)) {
+        const project = state.projects.value.projects.find((project) => project.id === projectId)
         if (project) {
           project.featureFlags = project.featureFlags.filter((flag) => flag !== featureFlagKey)
         }
+      }
+      if (ADS.isFulfilled(state.projectDetail) && state.projectDetail.value.id === projectId) {
+        state.projectDetail.value.featureFlags = state.projectDetail.value.featureFlags.filter(
+          (flag) => flag !== featureFlagKey,
+        )
       }
     })
 

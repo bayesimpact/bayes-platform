@@ -43,6 +43,7 @@ export type BackofficeProjectListItem = {
   organizationId: string
   organizationName: string
   createdAt: TimeType
+  featureFlags: FeatureFlagKey[]
 }
 
 export type BackofficeProjectMember = {
@@ -83,6 +84,7 @@ export const toBackofficeProjectListItem = (
   organizationId: dto.organizationId,
   organizationName: dto.organizationName,
   createdAt: dto.createdAt,
+  featureFlags: dto.featureFlags,
 })
 
 export const toPaginatedBackofficeProjects = (

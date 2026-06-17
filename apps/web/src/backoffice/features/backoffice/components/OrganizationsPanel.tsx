@@ -1,12 +1,5 @@
-import { type FeatureFlagKey, FeatureFlags } from "@caseai-connect/api-contracts"
-import { Badge } from "@caseai-connect/ui/shad/badge"
+import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@caseai-connect/ui/shad/dropdown-menu"
 import {
   Table,
   TableBody,
@@ -16,7 +9,7 @@ import {
   TableRow,
 } from "@caseai-connect/ui/shad/table"
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
-import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, XIcon } from "lucide-react"
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
@@ -26,7 +19,7 @@ import {
   selectBackofficeOrganizationsQuery,
 } from "../backoffice.selectors"
 import { backofficeActions } from "../backoffice.slice"
-import { SearchField } from "./BackofficeTable"
+import { FeatureFlagCell, SearchField } from "./BackofficeTable"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -238,57 +231,5 @@ function WithData() {
         </div>
       </div>
     </>
-  )
-}
-
-function FeatureFlagCell({
-  enabledFlags,
-  onAdd,
-  onRemove,
-}: {
-  enabledFlags: FeatureFlagKey[]
-  onAdd: (featureFlagKey: FeatureFlagKey) => void
-  onRemove: (featureFlagKey: FeatureFlagKey) => void
-}) {
-  const availableFlags = useMemo(
-    () => FeatureFlags.filter((flag) => !enabledFlags.includes(flag.key)),
-    [enabledFlags],
-  )
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      {enabledFlags.map((flagKey) => (
-        <Badge key={flagKey} variant="secondary" className="gap-1 pr-1">
-          {flagKey}
-          <button
-            type="button"
-            onClick={() => onRemove(flagKey)}
-            className="rounded-full p-0.5 hover:bg-muted-foreground/20"
-            aria-label={`Remove ${flagKey}`}
-          >
-            <XIcon className="h-3 w-3" />
-          </button>
-        </Badge>
-      ))}
-      {availableFlags.length > 0 && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-7 px-2 text-xs">
-              <PlusIcon className="mr-1 h-3 w-3" />
-              Add flag
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            {availableFlags.map((flag) => (
-              <DropdownMenuItem key={flag.key} onSelect={() => onAdd(flag.key)}>
-                <div className="flex flex-col">
-                  <span className="font-medium">{flag.key}</span>
-                  <span className="text-xs text-muted-foreground">{flag.description}</span>
-                </div>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-    </div>
   )
 }

@@ -108,6 +108,26 @@ describe("Backoffice - list projects", () => {
     expect(firstPage.body.data.total).toBeGreaterThanOrEqual(13)
   })
 
+  it("returns the feature flags of a project", async () => {
+    const { project } = await createAuthorizedContext()
+    await repositories.featureFlagRepository.save(
+      repositories.featureFlagRepository.create({
+        projectId: project.id,
+        featureFlagKey: "gemma",
+        enabled: true,
+      }),
+    )
+    const response = await request({
+      route: BackofficeRoutes.listProjects,
+      token: "token",
+    })
+    expectResponse(response, 200)
+    const returned = response.body.data.projects.find(
+      (listedProject: { id: string }) => listedProject.id === project.id,
+    )
+    expect(returned?.featureFlags).toEqual(["gemma"])
+  })
+
   it("filters by project name", async () => {
     const { organization } = await createAuthorizedContext()
     const uniqueName = `findme-project-${randomUUID()}`

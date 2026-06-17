@@ -18,7 +18,7 @@ import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import type { BackofficeProjectListItem } from "../backoffice.models"
 import { selectBackofficeProjects, selectBackofficeProjectsQuery } from "../backoffice.selectors"
 import { backofficeActions } from "../backoffice.slice"
-import { SearchField } from "./BackofficeTable"
+import { FeatureFlagCell, SearchField } from "./BackofficeTable"
 
 const DEFAULT_PAGE_SIZE = 10
 
@@ -70,8 +70,33 @@ function WithData() {
           <span className="text-sm text-muted-foreground">{row.original.organizationName}</span>
         ),
       },
+      {
+        id: "featureFlags",
+        header: () => <span className="text-muted-foreground">Feature flags</span>,
+        cell: ({ row }) => (
+          <FeatureFlagCell
+            enabledFlags={row.original.featureFlags}
+            onAdd={(featureFlagKey) =>
+              dispatch(
+                backofficeActions.addFeatureFlag({
+                  projectId: row.original.id,
+                  featureFlagKey,
+                }),
+              )
+            }
+            onRemove={(featureFlagKey) =>
+              dispatch(
+                backofficeActions.removeFeatureFlag({
+                  projectId: row.original.id,
+                  featureFlagKey,
+                }),
+              )
+            }
+          />
+        ),
+      },
     ],
-    [],
+    [dispatch],
   )
 
   const pageSize = projects.limit || DEFAULT_PAGE_SIZE
@@ -94,6 +119,11 @@ function WithData() {
         search: query.search,
       }),
     )
+  }
+
+  const handleRowClick = (event: React.MouseEvent, projectId: string) => {
+    if ((event.target as HTMLElement).closest("[data-no-navigate]")) return
+    navigate(BackofficeProjectRoutes.project.build({ projectId }))
   }
 
   const from = projects.total === 0 ? 0 : projects.page * pageSize + 1
@@ -128,9 +158,7 @@ function WithData() {
               <TableRow
                 key={row.id}
                 className="cursor-pointer hover:bg-muted/50"
-                onClick={() =>
-                  navigate(BackofficeProjectRoutes.project.build({ projectId: row.original.id }))
-                }
+                onClick={(event) => handleRowClick(event, row.original.id)}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>

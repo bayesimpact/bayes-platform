@@ -66,6 +66,7 @@ export function toBackofficeProjectListItemDto(
     organizationId: project.organizationId,
     organizationName: project.organization?.name ?? "",
     createdAt: project.createdAt.getTime() as TimeType,
+    featureFlags: toFeatureFlagsDto(project.featureFlags),
   }
 }
 
