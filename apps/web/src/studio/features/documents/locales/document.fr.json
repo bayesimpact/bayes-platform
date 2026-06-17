@@ -52,12 +52,12 @@
     "reprocess": {
       "cta": "Relancer le traitement"
     },
-    "webSources": {
-      "title": "Sources web",
-      "description": "Explorez des sites web et indexez automatiquement leur contenu pour enrichir les connaissances de vos agents.",
-      "empty": {
-        "title": "Aucun site web exploré pour le moment",
-        "description": "Entrez une URL pour commencer à explorer un site web et indexer son contenu."
+    "download": "Télécharger",
+    "publicTag": {
+      "disclaimer": {
+        "title": "Rendre le document accessible publiquement ?",
+        "description": "Ce document sera visible et téléchargeable par tous les utilisateurs du chat de ce projet. Supprimez le tag à tout moment pour révoquer l'accès.",
+        "confirm": "Rendre public"
       }
     },
     "list": {
@@ -65,6 +65,14 @@
       "empty": {
         "title": "Aucun document pour le moment",
         "description": "Téléversez votre premier document pour commencer."
+      }
+    },
+    "webSources": {
+      "title": "Sites web",
+      "description": "Améliorez les connaissances et les capacités de vos agents en explorant des sites web.",
+      "empty": {
+        "title": "Aucun site web exploré pour le moment",
+        "description": "Entrez une URL pour commencer à explorer un site web et indexer son contenu."
       }
     },
     "filter": {

@@ -17,6 +17,7 @@ import { UsersModule } from "@/domains/users/users.module"
 import { CrawlingController } from "./crawling/crawling.controller"
 import { DocumentCrawlProgressStreamService } from "./crawling/document-crawl-progress-stream.service"
 import { UrlCrawlingBatchModule } from "./crawling/url-crawling-batch.module"
+import { WebSourceEmbeddingsBatchModule } from "./crawling/web-source-embeddings-batch.module"
 import { Document } from "./document.entity"
 import { DocumentsController } from "./documents.controller"
 import { DocumentsGuard } from "./documents.guard"
@@ -60,6 +61,7 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
     StorageModule,
     DocumentEmbeddingsBatchModule,
     UrlCrawlingBatchModule,
+    WebSourceEmbeddingsBatchModule,
   ],
   providers: [
     DocumentsService,

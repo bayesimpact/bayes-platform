@@ -13,6 +13,7 @@ export type ContextResource =
   | "agentCsvExtractionRun"
   | "document"
   | "documentTag"
+  | "resourceLibrary"
   | "evaluation"
   | "evaluationExtractionDataset"
   | "evaluationReport"

@@ -15,6 +15,38 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Security
 
+## [26.06.4] - 2026-06-17
+
+### Added
+- Resource libraries: create and manage libraries of resources (files and links) in the Studio, then attach them to agents so the resources are injected into the agent's prompt
+- Agents can surface resources from their attached libraries directly in the chat, displaying them as cards to the user
+- Resource files can be downloaded from the chat
+- Extraction history: CSV extraction runs can be opened directly from the history dialog, navigating to the corresponding run's results
+- The crawling queues (URL crawling and web source embeddings) are now visible in the Bull dashboard for monitoring and debugging
+
+### Changed
+- Agent creation is now a single dialog where you pick the agent type and name, replacing the previous multi-step flow
+- Document search (RAG) mode descriptions have been rewritten in plain, user-friendly language
+- Source tag badges on the agent Sources tab now show tooltips describing each tag
+- The "public-documents" tag now displays an in-app description explaining that its sources can be downloaded from the chat
+- The web sources page now has a dedicated title and description
+- Records left running when an extraction run is cancelled now show a distinct "Cancelled" status instead of being marked as errors
+
+### Fixed
+
+### Security
+
+## [26.06.3] - 2026-06-16
+
+### Added
+- Sources tagged "public-documents" can be downloaded from the chat sources panel
+
+### Changed
+
+### Fixed
+
+### Security
+
 ## [26.06.2] - 2026-06-12
 
 ### Added

@@ -125,6 +125,13 @@ export default {
     )
     return response.data.data
   },
+  getIsPublic: async (params) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof DocumentsRoutes.getIsPublic.response>(
+      DocumentsRoutes.getIsPublic.getPath(params),
+    )
+    return response.data.data
+  },
   streamEmbeddingStatus: async ({ organizationId, projectId, signal, onStatusChanged }) => {
     await streamDocumentEmbeddingStatus({
       organizationId,

@@ -9,7 +9,7 @@
       "defaultPrompt": "Default Prompt",
       "formConfiguration": "Form Configuration",
       "greeting": "Greeting",
-      "documentsRagMode": "Documents RAG",
+      "documentsRagMode": "Answer source",
       "locale": "Locale",
       "name": "Name",
       "model": "Model",
@@ -20,9 +20,9 @@
       "agentSessionCategories": "Conversation categories",
       "agentSessionCategoriesInUse": "Categories already used in this agent's conversations cannot be unchecked.",
       "documentsRagModeOptions": {
-        "none": "Don't RAG",
-        "all": "RAG on all documents",
-        "tags": "RAG based on document tags"
+        "none": "Answer from model knowledge only",
+        "all": "Search across all documents",
+        "tags": "Search by document tags"
       },
       "placeholders": {
         "name": "Enter agent name",

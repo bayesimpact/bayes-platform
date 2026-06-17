@@ -16,6 +16,8 @@ import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { EvaluationsModule } from "../../../evaluations.module"
 import { EvaluationExtractionRun } from "../evaluation-extraction-run.entity"
+import { EvaluationExtractionRunRecord } from "../records/evaluation-extraction-run-record.entity"
+import { evaluationExtractionRunRecordFactory } from "../records/evaluation-extraction-run-record.factory"
 import { createRunWithCsvDataset } from "./csv-dataset.helpers"
 
 describe("EvaluationExtractionRuns - cancelOne", () => {
@@ -67,7 +69,7 @@ describe("EvaluationExtractionRuns - cancelOne", () => {
     })
     await repositories.agentRepository.save(agent)
 
-    const { run } = await createRunWithCsvDataset({
+    const { run, datasetRecords } = await createRunWithCsvDataset({
       getRepository: setup.getRepository,
       organization,
       project,
@@ -75,7 +77,19 @@ describe("EvaluationExtractionRuns - cancelOne", () => {
       keyMapping: [{ agentOutputKey: "answer", datasetColumnId: "col-answer", mode: "scored" }],
     })
     evaluationExtractionRunId = run.id
-    return { organization, project, run }
+
+    // A still-running record so the cancel path has something to transition to "cancelled".
+    const runningRecord = evaluationExtractionRunRecordFactory
+      .transient({
+        organization,
+        project,
+        evaluationExtractionRun: run,
+        evaluationExtractionDatasetRecord: datasetRecords[0],
+      })
+      .build({ status: "running" })
+    await setup.getRepository(EvaluationExtractionRunRecord).save(runningRecord)
+
+    return { organization, project, run, runningRecord }
   }
 
   const subject = async () =>
@@ -101,21 +115,26 @@ describe("EvaluationExtractionRuns - cancelOne", () => {
     await expectActivityCreated("evaluationExtractionRun.cancel")
   })
 
-  it("cancels a running run", async () => {
-    const { run } = await createContext()
-    run.status = "running"
-    await setup.getRepository(EvaluationExtractionRun).save(run)
+  it("cancels a running run and marks its running records cancelled", async () => {
+    const { run, runningRecord } = await createContext()
+    await setup.getRepository(EvaluationExtractionRun).update({ id: run.id }, { status: "running" })
 
     const res = await subject()
 
     expectResponse(res, 201)
     expect(res.body.data.status).toBe("cancelled")
+
+    const record = await setup
+      .getRepository(EvaluationExtractionRunRecord)
+      .findOneBy({ id: runningRecord.id })
+    expect(record?.status).toBe("cancelled")
   })
 
   it("rejects cancelling a completed run", async () => {
     const { run } = await createContext()
-    run.status = "completed"
-    await setup.getRepository(EvaluationExtractionRun).save(run)
+    await setup
+      .getRepository(EvaluationExtractionRun)
+      .update({ id: run.id }, { status: "completed" })
 
     const res = await subject()
 
@@ -124,8 +143,9 @@ describe("EvaluationExtractionRuns - cancelOne", () => {
 
   it("rejects cancelling an already-cancelled run", async () => {
     const { run } = await createContext()
-    run.status = "cancelled"
-    await setup.getRepository(EvaluationExtractionRun).save(run)
+    await setup
+      .getRepository(EvaluationExtractionRun)
+      .update({ id: run.id }, { status: "cancelled" })
 
     const res = await subject()
 

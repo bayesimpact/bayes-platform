@@ -293,6 +293,46 @@ describe("Documents - Auth", () => {
     })
   })
 
+  describe("DocumentsRoutes.getIsPublic", () => {
+    const subject = async () =>
+      request({
+        route: DocumentsRoutes.getIsPublic,
+        pathParams: removeNullish({ organizationId, projectId, documentId }),
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("requires a valid organization ID", async () => {
+      organizationId = null
+      expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    })
+    it("requires a valid project ID", async () => {
+      await createContextForRole("owner")
+      projectId = randomUUID()
+      expectResponse(await subject(), 404)
+    })
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("owner")
+      auth0Id = mockForeignAuth0Id()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+    it("requires the document to be part of the project", async () => {
+      const { organization } = await createContextForRole("owner")
+      const project2 = await repositories.projectRepository.save(
+        projectFactory.transient({ organization }).build(),
+      )
+      projectId = project2.id
+      expectResponse(await subject(), 404)
+    })
+    it("allows a simple member to check a document's public status", async () => {
+      await createContextForRole("member")
+      expectResponse(await subject(), 200)
+    })
+  })
+
   describe("DocumentsRoutes.reprocessOne", () => {
     const subject = async () =>
       request({

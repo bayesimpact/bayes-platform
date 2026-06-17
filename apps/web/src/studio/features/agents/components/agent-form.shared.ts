@@ -34,6 +34,7 @@ export type AgentFormValues = {
   tagsToAdd: string[]
   tagsToRemove?: string[]
   documentTagIds?: string[]
+  resourceLibraryIds?: string[]
   type?: "conversation" | "extraction" | "form"
 }
 
@@ -64,6 +65,7 @@ export function getDefaultFormValues({
     locale: language,
     tagsToAdd: [],
     projectAgentSessionCategoryIds: [],
+    resourceLibraryIds: [],
   }
 
   if (["form", "extraction"].includes(agentType)) {

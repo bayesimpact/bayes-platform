@@ -1,3 +1,4 @@
+import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -14,6 +15,7 @@ import {
   ItemTitle,
 } from "@caseai-connect/ui/shad/item"
 import { TagIcon } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { useAppSelector } from "@/common/store/hooks"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import { selectDocumentTagsData } from "@/studio/features/document-tags/document-tags.selectors"
@@ -27,10 +29,13 @@ export function DocumentTagItem({
   tag: DocumentTag
   readonly?: boolean
 }) {
+  const { t } = useTranslation("documentTag")
   const allTags = useAppSelector(selectDocumentTagsData)
   const parentTag = tag.parentId
-    ? (allTags.value?.find((t) => t.id === tag.parentId) ?? null)
+    ? (allTags.value?.find((candidateTag) => candidateTag.id === tag.parentId) ?? null)
     : null
+  const isPublicDocumentsTag = tag.name === PUBLIC_DOCUMENTS_TAG_NAME
+  const description = isPublicDocumentsTag ? t("documentTag:publicDescription") : tag.description
   return (
     <Item variant="outline" className="w-full">
       <ItemHeader>
@@ -52,16 +57,18 @@ export function DocumentTagItem({
             </BreadcrumbList>
           </Breadcrumb>
         </ItemTitle>
-        {!readonly && (
+        {!readonly && tag.name !== PUBLIC_DOCUMENTS_TAG_NAME && (
           <ItemActions>
             {allTags.value && <DocumentTagEditor allTags={allTags.value} tag={tag} />}
             <DocumentTagDeletor tag={tag} />
           </ItemActions>
         )}
       </ItemHeader>
-      {tag.description && (
+      {description && (
         <ItemContent>
-          <ItemDescription className="whitespace-break-spaces">{tag.description}</ItemDescription>
+          <ItemDescription className="line-clamp-none whitespace-break-spaces">
+            {description}
+          </ItemDescription>
         </ItemContent>
       )}
     </Item>

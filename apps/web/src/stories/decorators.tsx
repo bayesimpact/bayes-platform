@@ -16,6 +16,10 @@ import { rootSliceList } from "@/common/store/root-slices"
 import type { Services } from "@/di/services"
 import { evalSliceList } from "@/eval/store/slices"
 import { reviewerSliceList } from "@/reviewer/store/slices"
+import {
+  selectCurrentResourceId,
+  selectCurrentResourceLibraryId,
+} from "@/studio/features/resource-libraries/resource-libraries.selectors"
 import { studioSliceList } from "@/studio/store/slices"
 import { testerSliceList } from "@/tester/store/slices"
 
@@ -133,6 +137,8 @@ function useReplaceIds(path: string) {
   const agentSessionId = useAppSelector(selectCurrentAgentSessionId)
   const reviewCampaignId = useAppSelector(selectCurrentReviewCampaignId)
   const reviewerSessionId = useAppSelector(selectCurrentReviewerSessionId)
+  const resourceLibraryId = useAppSelector(selectCurrentResourceLibraryId)
+  const resourceId = useAppSelector(selectCurrentResourceId)
 
   if (organizationId) path = path.replace(":organizationId", organizationId)
   if (projectId) path = path.replace(":projectId", projectId)
@@ -140,6 +146,8 @@ function useReplaceIds(path: string) {
   if (agentSessionId) path = path.replace(":agentSessionId", agentSessionId)
   if (reviewCampaignId) path = path.replace(":reviewCampaignId", reviewCampaignId)
   if (reviewerSessionId) path = path.replace(":reviewerSessionId", reviewerSessionId)
+  if (resourceLibraryId) path = path.replace(":resourceLibraryId", resourceLibraryId)
+  if (resourceId) path = path.replace(":resourceId", resourceId)
 
   return path
 }

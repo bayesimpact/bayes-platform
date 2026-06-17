@@ -1,7 +1,41 @@
 import { ToolName } from "@caseai-connect/api-contracts"
+import type { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
+import { buildResourceLink } from "@/domains/resource-libraries/resource-library-link.helper"
 
 export const promptHelpers = {
   now: () => `Today's date: ${new Date().toLocaleDateString()}`,
+
+  resourceLibraries: (libraries: ResourceLibrary[]) => {
+    const librariesWithResources = libraries.filter(
+      (library) => (library.resources?.length ?? 0) > 0,
+    )
+    if (librariesWithResources.length === 0) return ""
+
+    const serializedLibraries = librariesWithResources
+      .map((library) => {
+        const serializedResources = library.resources
+          .map((resource) => {
+            const link = buildResourceLink({
+              resource,
+              organizationId: library.organizationId,
+              projectId: library.projectId,
+              resourceLibraryId: library.id,
+            })
+            const matchingHintsLine = resource.matchingHints
+              ? `\n    matching hints (for matching only, do NOT show to the user): ${resource.matchingHints}`
+              : ""
+            return `  - id: ${resource.id}\n    title: ${resource.title}\n    description: ${resource.description}${matchingHintsLine}\n    link: ${link}`
+          })
+          .join("\n")
+        return `### ${library.title}\n${serializedResources}`
+      })
+      .join("\n\n")
+
+    return `## Resource libraries:
+You have access to the following resources. When the user's request matches a resource by its title, description, or matching hints, call the ${ToolName.SurfaceResources} tool with the matching resources (copy their id, title, description, and link verbatim — never copy the matching hints). Do not invent resources or links.
+
+${serializedLibraries}`
+  },
 
   language: (locale: string) =>
     `## Response language:
@@ -32,6 +66,9 @@ ${names
 
       case ToolName.McpSmartSearch:
         return `[${name}]: AI-powered search across multiple workforce and social sources. Rewrites the query for better results and reranks by relevance. Use this when the user's question spans multiple resource types or when you want the best results across all sources.`
+
+      case ToolName.SurfaceResources:
+        return `[${name}]: Call ${name} tool whenever the user's request matches a resource in the resource libraries (by title or description or matchingHints). Pass the matching resources, copying their id, title, description, and link verbatim. Do not surface resources that are not relevant to the user's request.`
 
       default:
         if (descriptions[name]) return `[${name}]: ${descriptions[name]}`

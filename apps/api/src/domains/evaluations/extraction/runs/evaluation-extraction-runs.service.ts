@@ -131,7 +131,7 @@ export class EvaluationExtractionRunsService {
     await this.runRecordConnectRepository.updateManyBy({
       connectScope,
       where: { evaluationExtractionRunId: evaluationExtractionRun.id, status: "running" },
-      fields: { status: "error" },
+      fields: { status: "cancelled" },
     })
 
     return this.runConnectRepository.saveOne(evaluationExtractionRun)
@@ -311,6 +311,7 @@ export class EvaluationExtractionRunsService {
       where: [
         { evaluationExtractionRunId: evaluationExtractionRun.id, status: "running" },
         { evaluationExtractionRunId: evaluationExtractionRun.id, status: "error" },
+        { evaluationExtractionRunId: evaluationExtractionRun.id, status: "cancelled" },
       ],
     })
 

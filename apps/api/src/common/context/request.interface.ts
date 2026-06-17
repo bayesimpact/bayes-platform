@@ -14,6 +14,7 @@ import type { Invitation } from "@/domains/invitations/invitation.entity"
 import type { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import type { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import type { Project } from "@/domains/projects/project.entity"
+import type { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
 import type { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
 import type { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import type { ReviewCampaignAgentType } from "@/domains/review-campaigns/review-campaigns.types"
@@ -63,6 +64,10 @@ export interface EndpointRequestWithDocument extends EndpointRequestWithProject 
 
 export interface EndpointRequestWithDocumentTag extends EndpointRequestWithProject {
   documentTag: DocumentTag
+}
+
+export interface EndpointRequestWithResourceLibrary extends EndpointRequestWithProject {
+  resourceLibrary: ResourceLibrary
 }
 
 export interface EndpointRequestWithAgentSession<

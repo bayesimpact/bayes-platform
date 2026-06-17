@@ -52,12 +52,12 @@
     "reprocess": {
       "cta": "Reprocess"
     },
-    "webSources": {
-      "title": "Web Sources",
-      "description": "Crawl websites and automatically index their content to expand what your agents know.",
-      "empty": {
-        "title": "No websites crawled yet",
-        "description": "Enter a URL to start crawling a website and indexing its content."
+    "download": "Download",
+    "publicTag": {
+      "disclaimer": {
+        "title": "Make document publicly accessible?",
+        "description": "This document will be visible and downloadable by all users in this project's chat. Remove the tag at any time to revoke access.",
+        "confirm": "Make public"
       }
     },
     "list": {
@@ -65,6 +65,14 @@
       "empty": {
         "title": "No documents yet",
         "description": "Upload your first document to get started."
+      }
+    },
+    "webSources": {
+      "title": "Web sources",
+      "description": "Enhance your agents' knowledge and capabilities by crawling websites.",
+      "empty": {
+        "title": "No websites crawled yet",
+        "description": "Enter a URL to start crawling a website and indexing its content."
       }
     },
     "filter": {

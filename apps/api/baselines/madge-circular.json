@@ -17,6 +17,7 @@
     "domains/documents/tags/document-tags.module.ts",
     "domains/projects/projects.module.ts"
   ],
+  ["domains/documents/tags/document-tags.module.ts", "domains/projects/projects.module.ts"],
   [
     "domains/agents/agents.module.ts",
     "domains/documents/documents.module.ts",

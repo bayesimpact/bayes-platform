@@ -35,6 +35,7 @@ export const deskRoutes = {
               build={{
                 agentRoute: DeskRoutes.agent.build,
                 agentSessionRoute: DeskRoutes.agentSession.build,
+                agentExtractionCsvRunRoute: DeskRoutes.agentExtractionCsvRun.build,
                 projectRoute: DeskRoutes.project.build,
               }}
             >

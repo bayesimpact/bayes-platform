@@ -12,7 +12,8 @@
         "description": "Optional description"
       },
       "validation": {
-        "nameRequired": "Name is required"
+        "nameRequired": "Name is required",
+        "reservedName": "\"public-documents\" is a reserved tag name"
       }
     },
     "sheet": {
@@ -31,6 +32,7 @@
       "title": "Delete {{tagName}}?",
       "description": "This action cannot be undone."
     },
+    "publicDescription": "When a document with this tag appears as a source in a chat conversation, it can be downloaded by the user.",
     "parentNone": "None",
     "searchPlaceholder": "Search tags...",
     "noTagsFound": "No tags found",

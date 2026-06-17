@@ -53,6 +53,7 @@ export class PublicChatService {
   ): AsyncGenerator<StreamEvent, void, unknown> {
     const agent = await this.agentRepository.findOne({
       where: { id: publicSession.agentId },
+      relations: ["resourceLibraries"],
     })
     if (!agent) throw new NotFoundException("Agent not found")
 

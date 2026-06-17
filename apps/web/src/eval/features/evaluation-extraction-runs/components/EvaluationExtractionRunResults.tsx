@@ -47,7 +47,13 @@ import { TraceUrlOpener } from "@/studio/components/TraceUrlOpener"
 function StatusBadge({ status }: { status: EvaluationExtractionRunRecordStatus }) {
   const { t } = useTranslation()
   const variant =
-    status === "match" ? "success" : status === "mismatch" ? "destructive" : "secondary"
+    status === "match"
+      ? "success"
+      : status === "mismatch"
+        ? "destructive"
+        : status === "cancelled"
+          ? "outline"
+          : "secondary"
   return <Badge variant={variant}>{t(`evaluationExtractionRun:results.${status}`)}</Badge>
 }
 
@@ -307,6 +313,8 @@ function RecordsTable({
             column={column}
             label={mappingEntry.agentOutputKey}
             badge="agent"
+            badgeProps={{ variant: "outline", className: "border-primary text-primary" }}
+            className="text-inherit font-semibold"
           />
         ),
         cell: ({ row }: { row: { original: ResultRow } }) => {
@@ -327,6 +335,7 @@ function RecordsTable({
         <SortableFilterableHeader
           column={column}
           label={t("evaluationExtractionRun:results.status")}
+          className="text-inherit font-semibold"
         />
       ),
       cell: ({ row }) => {
@@ -363,7 +372,7 @@ function RecordsTable({
       enableColumnFilter: false,
     }
 
-    const allColumns = [indexColumn, ...inputColDefs, ...targetColumns, statusColumn]
+    const allColumns = [indexColumn, statusColumn, ...inputColDefs, ...targetColumns]
 
     if (hasErrors) {
       allColumns.push({

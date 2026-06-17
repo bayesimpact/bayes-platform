@@ -109,6 +109,7 @@ function UpdateForm({
           tagsToAdd: fields.documentTagIds.filter((id) => !originalTagIds.includes(id)),
           tagsToRemove: originalTagIds.filter((id) => !fields.documentTagIds.includes(id)),
           projectAgentSessionCategoryIds: fields.projectAgentSessionCategoryIds,
+          resourceLibraryIds: fields.resourceLibraryIds,
         },
       }),
     )

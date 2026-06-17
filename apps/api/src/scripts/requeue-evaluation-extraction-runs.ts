@@ -27,7 +27,11 @@ import {
   validateBaseRequeueOptions,
 } from "./shared/requeue-helpers"
 
-const REQUEUEABLE_STATUSES: EvaluationExtractionRunRecordStatus[] = ["running", "error"]
+const REQUEUEABLE_STATUSES: EvaluationExtractionRunRecordStatus[] = [
+  "running",
+  "error",
+  "cancelled",
+]
 
 type CliOptions = BaseRequeueOptions & {
   statuses: EvaluationExtractionRunRecordStatus[]
@@ -48,7 +52,7 @@ const logger = new Logger("RequeueEvaluationExtractionRuns")
 function validateCliOptions(options: CliOptions): void {
   validateBaseRequeueOptions(options)
 
-  const validStatuses: EvaluationExtractionRunRecordStatus[] = ["running", "error"]
+  const validStatuses: EvaluationExtractionRunRecordStatus[] = ["running", "error", "cancelled"]
   for (const status of options.statuses) {
     if (!validStatuses.includes(status)) {
       throw new Error(

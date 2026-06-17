@@ -39,6 +39,7 @@ import { ProjectMembership } from "@/domains/projects/memberships/project-member
 import { Project } from "@/domains/projects/project.entity"
 import { AgentEmbedConfig } from "@/domains/public-chat/agent-embed-configs/agent-embed-config.entity"
 import { PublicAgentSession } from "@/domains/public-chat/public-agent-sessions/public-agent-session.entity"
+import { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
 import { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import { ReviewerSessionReview } from "@/domains/review-campaigns/reviewer-session-reviews/reviewer-session-review.entity"
@@ -86,6 +87,7 @@ export const ALL_ENTITIES = [
   ProjectMembership,
   AgentEmbedConfig,
   PublicAgentSession,
+  ResourceLibrary,
   ReviewCampaign,
   ReviewCampaignMembership,
   ReviewerSessionReview,

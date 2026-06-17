@@ -1,0 +1,60 @@
+{
+  "resourceLibrary": {
+    "title": "Bibliothèques de ressources",
+    "description": "Regroupez les ressources que l'assistant peut proposer aux utilisateurs.",
+    "empty": "Aucune bibliothèque de ressources pour le moment. Créez-en une pour permettre aux agents de ce projet de proposer des ressources.",
+    "resourceCount_one": "{{count}} ressource",
+    "resourceCount_other": "{{count}} ressources",
+    "manage": "Gérer les bibliothèques",
+    "actions": {
+      "newLibrary": "Nouvelle bibliothèque"
+    },
+    "table": {
+      "title": "Titre",
+      "description": "Description",
+      "link": "Lien",
+      "actions": "Actions"
+    },
+    "preview": {
+      "title": "Aperçu de la ressource"
+    },
+    "form": {
+      "titleLabel": "Titre",
+      "titlePlaceholder": "Pour commencer",
+      "titleRequired": "Un titre est requis",
+      "resources": "Ressources",
+      "noResources": "Aucune ressource pour le moment."
+    },
+    "resourceForm": {
+      "createTitle": "Nouvelle ressource",
+      "editTitle": "Modifier la ressource",
+      "titleLabel": "Titre",
+      "titlePlaceholder": "Titre de la ressource",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Affichée aux utilisateurs sur la carte de ressource",
+      "matchingHintsLabel": "Indices de correspondance (non affichés aux utilisateurs)",
+      "matchingHintsPlaceholder": "Mots-clés, synonymes ou indications « à utiliser quand… » que l'assistant utilise pour faire correspondre les demandes"
+    },
+    "link": {
+      "url": "URL",
+      "file": "Fichier téléversé",
+      "urlPlaceholder": "https://exemple.com/ressource",
+      "urlInvalid": "Saisissez une URL https:// valide"
+    },
+    "create": {
+      "title": "Nouvelle bibliothèque de ressources"
+    },
+    "delete": {
+      "title": "Supprimer la bibliothèque de ressources",
+      "description": "Supprimer « {{title}} » ? Les agents qui l'utilisent perdront l'accès à ses ressources."
+    },
+    "removeResource": {
+      "title": "Retirer la ressource",
+      "description": "Retirer « {{title}} » de cette bibliothèque ?"
+    },
+    "agentTab": {
+      "label": "Bibliothèques de ressources",
+      "description": "L'assistant peut proposer des ressources des bibliothèques sélectionnées lorsqu'une demande de l'utilisateur correspond au titre ou à la description d'une ressource."
+    }
+  }
+}

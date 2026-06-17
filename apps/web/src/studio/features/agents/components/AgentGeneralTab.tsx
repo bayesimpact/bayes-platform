@@ -71,10 +71,10 @@ export function AgentGeneralTab() {
             rows={3}
             className="min-h-40 max-h-96 font-mono"
             {...register("greetingMessage", {
-              setValueAs: (value: string | null | undefined) => {
-                if (value === null || value === undefined) return null
+              setValueAs: (value: string | undefined) => {
+                if (value === undefined) return undefined
                 const trimmed = value.trim()
-                return trimmed.length === 0 ? null : value
+                return trimmed.length === 0 ? undefined : value
               },
             })}
             aria-invalid={errors.greetingMessage ? "true" : "false"}

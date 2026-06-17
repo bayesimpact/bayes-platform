@@ -12,26 +12,36 @@ import { Attachment } from "./Attachment"
 import { ChatBotMessage, ChatUserMessage } from "./Chat"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { SourcesTool } from "./SourcesTool"
+import { SurfaceResourcesTool } from "./SurfaceResourcesTool"
 
 export function AgentSessionMessage({ message }: { message: AgentSessionMessageType }) {
   switch (message.role) {
     case "assistant": {
       const isStreaming = message.status === "streaming"
       const isEmpty = message.content.trim().length === 0 && message.status === "completed"
-      const isError = message.status === "error" || isEmpty
+      const isError = message.status === "error"
       const sourcesTool = message.toolCalls?.find((call) => call.name === ToolName.Sources)
+      const surfaceResourcesTool = message.toolCalls?.find(
+        (call) => call.name === ToolName.SurfaceResources,
+      )
       return (
         <div key={message.id} className="max-w-3/4 relative">
           <ChatBotMessage>
-            <div
-              className={cn(
-                "rounded-2xl p-4 bg-muted w-fit h-fit",
-                isError && "bg-red-50 border border-red-200 text-red-800",
-              )}
-            >
-              {isStreaming && <ThinkingMessage />}
-              {isError ? <ErrorMessage /> : <MarkdownWrapper content={message.content} />}
-            </div>
+            {!isEmpty && (
+              <div
+                className={cn(
+                  "rounded-2xl p-4 bg-muted w-fit h-fit",
+                  isError && "bg-red-50 border border-red-200 text-red-800",
+                )}
+              >
+                {isStreaming && <ThinkingMessage />}
+                {isError ? <ErrorMessage /> : <MarkdownWrapper content={message.content} />}
+              </div>
+            )}
+
+            {!isStreaming && surfaceResourcesTool && (
+              <SurfaceResourcesTool toolCall={surfaceResourcesTool} />
+            )}
 
             {!isStreaming && (
               <div className="w-full mt-1 flex items-center">

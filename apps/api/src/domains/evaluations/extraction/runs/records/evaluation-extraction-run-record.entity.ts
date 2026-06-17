@@ -21,6 +21,7 @@ export const EVALUATION_EXTRACTION_RUN_RECORD_STATUSES = [
   "mismatch",
   "error",
   "running",
+  "cancelled",
 ] as const
 export type EvaluationExtractionRunRecordStatus =
   (typeof EVALUATION_EXTRACTION_RUN_RECORD_STATUSES)[number]

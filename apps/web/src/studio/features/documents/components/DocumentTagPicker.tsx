@@ -1,3 +1,4 @@
+import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Command,
@@ -35,7 +36,8 @@ export function DocumentTagPicker({
     tag.name.toLowerCase().includes(search.toLowerCase()),
   )
   const hasExactMatch = availableTags.some((tag) => tag.name.toLowerCase() === search.toLowerCase())
-  const showCreate = search.trim().length > 0 && !hasExactMatch
+  const isReservedName = search.trim().toLowerCase() === PUBLIC_DOCUMENTS_TAG_NAME
+  const showCreate = search.trim().length > 0 && !hasExactMatch && !isReservedName
 
   const handleSelect = (tagId: string) => {
     onAdd(tagId)

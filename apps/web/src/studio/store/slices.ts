@@ -38,6 +38,8 @@ import { studioAgentsMiddleware } from "../features/agents/agents.middleware"
 import { documentsMiddleware } from "../features/documents/documents.middleware"
 import { documentsSlice } from "../features/documents/documents.slice"
 import { studioProjectsMiddleware } from "../features/projects/projects.middleware"
+import { resourceLibrariesMiddleware } from "../features/resource-libraries/resource-libraries.middleware"
+import { resourceLibrariesSlice } from "../features/resource-libraries/resource-libraries.slice"
 import { reviewCampaignsReportsMiddleware } from "../features/review-campaigns/reports/reports.middleware"
 import { reviewCampaignsReportsSlice } from "../features/review-campaigns/reports/reports.slice"
 import { currentIdsSlice } from "./currentIds.slice"
@@ -61,6 +63,7 @@ const studioMiddlewareList = [
   projectAnalyticsMiddleware,
   projectMembershipsMiddleware,
   reviewCampaignsMiddleware,
+  resourceLibrariesMiddleware,
   reviewCampaignsReportsMiddleware,
   studioAgentsMiddleware,
   studioProjectsMiddleware,
@@ -86,6 +89,7 @@ export const studioSliceList = [
   projectAnalyticsSlice,
   projectMembershipsSlice,
   projectsSlice,
+  resourceLibrariesSlice,
   reviewCampaignsReportsSlice,
   reviewCampaignsSlice,
 ]

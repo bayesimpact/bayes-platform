@@ -29,6 +29,7 @@ import type {
   ProjectMemberAgent,
   ProjectMembership,
 } from "@/studio/features/project-memberships/project-memberships.models"
+import type { ResourceLibrary } from "@/studio/features/resource-libraries/resource-libraries.models"
 import type { CampaignReport } from "@/studio/features/review-campaigns/reports/reports.models"
 import type {
   ReviewCampaign,
@@ -163,6 +164,14 @@ export const seed = {
     return { currentIds: { membershipId: id } }
   },
 
+  currentResourceLibraryId(id: string | null): StoryPreloadedState {
+    return { currentIds: { resourceLibraryId: id } }
+  },
+
+  currentResourceId(id: string | null): StoryPreloadedState {
+    return { currentIds: { resourceId: id } }
+  },
+
   campaignReport(report: CampaignReport): StoryPreloadedState {
     return { reviewCampaignsReports: { report: ads.fulfilled(report) } }
   },
@@ -216,6 +225,10 @@ export const seed = {
 
     documentTags(documentTags: DocumentTag[]): StoryPreloadedState {
       return { documentTags: { data: ads.fulfilled(documentTags) } }
+    },
+
+    resourceLibraries(resourceLibraries: ResourceLibrary[]): StoryPreloadedState {
+      return { resourceLibraries: { data: ads.fulfilled(resourceLibraries) } }
     },
 
     evaluations(evaluations: Evaluation[]): StoryPreloadedState {

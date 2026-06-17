@@ -10,10 +10,15 @@ import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { Trash2Icon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
 import { GridCard } from "@/common/components/grid/Grid"
 import { Loader } from "@/common/components/Loader"
 import type { ExtractionAgentSessionSummary } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
 import { deleteAgentSession } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.thunks"
+import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
+import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
+import { useCurrentId } from "@/common/hooks/use-value"
+import { useRoutesBuilder } from "@/common/routes/build-routes/context"
 import { useAppDispatch } from "@/common/store/hooks"
 import { buildDate, buildSince } from "@/common/utils/build-date"
 import { TraceUrlOpener } from "@/studio/components/TraceUrlOpener"
@@ -63,11 +68,26 @@ export function CsvExtractionSessionItem({
 }) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
+  const { build } = useRoutesBuilder()
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
   const isSuccess = agentSession.status === "completed"
   const badge = isSuccess
     ? buildDate(agentSession.updatedAt)
     : t(`agentCsvExtractionRun:results.${agentSession.status}`)
   const date = buildSince(agentSession.updatedAt)
+
+  const handleOpen = () => {
+    navigate(
+      build.agentExtractionCsvRunRoute({
+        organizationId,
+        projectId,
+        agentId: agentSession.agentId,
+        csvRunId: agentSession.id,
+      }),
+    )
+  }
 
   const handleDelete = () => {
     dispatch(agentCsvExtractionRunsActions.deleteOne({ agentCsvExtractionRunId: agentSession.id }))
@@ -90,6 +110,9 @@ export function CsvExtractionSessionItem({
           </GridCard.Description>
         )}
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleOpen}>
+            {t("actions:open")}
+          </Button>
           {agentSession.csvExportDocumentId && (
             <DocumentOpener
               buttonProps={{ size: "sm" }}
@@ -97,7 +120,7 @@ export function CsvExtractionSessionItem({
             />
           )}
           {canDelete && (
-            <Button variant="outline" size="sm" onClick={handleDelete}>
+            <Button variant="ghost" size="sm" onClick={handleDelete}>
               <Trash2Icon />
             </Button>
           )}
@@ -179,7 +202,7 @@ export function Actions({
         buttonProps={{ size: "sm", variant: "outline" }}
       />
       {canDelete && (
-        <Button variant="outline" size="sm" onClick={handleDelete}>
+        <Button variant="ghost" size="sm" onClick={handleDelete}>
           <Trash2Icon />
         </Button>
       )}
