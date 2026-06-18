@@ -12,13 +12,6 @@ import type {
 } from "./documents.dto"
 
 export const DocumentsRoutes = {
-  uploadOne: defineRoute<
-    ResponseData<DocumentDto>,
-    RequestPayload<{ file: File } & DocumentUploadOptionalTagFields>
-  >({
-    method: "post",
-    path: "organizations/:organizationId/projects/:projectId/documents/:sourceType/upload/",
-  }),
   presignMany: defineRoute<
     ResponseData<PresignFileResponseItemDto[]>,
     RequestPayload<{ files: PresignFileRequestItemDto[] }>
