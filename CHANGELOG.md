@@ -18,6 +18,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Back-office user list no longer causes out-of-memory crashes; DB queries have been optimised and agent memberships are no longer eagerly loaded
 - Back-office search now correctly filters users, projects, and organizations by name instead of returning unrelated results
 - Attaching a document in chat now only offers file types the backend actually accepts
+- Duplicate document chunks are no longer included when retrieving sources for the LLM context
 
 ### Security
 
