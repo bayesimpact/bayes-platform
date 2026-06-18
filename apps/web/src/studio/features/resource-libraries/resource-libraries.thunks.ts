@@ -1,9 +1,12 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
+import { getApiErrorMessage } from "@/common/utils/api-error"
 import type { ResourceFields, ResourceFile, ResourceLibrary } from "./resource-libraries.models"
 
-type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
+// Mutations reject with the API's human-readable message (`rejectValue`), so the middleware can
+// surface what actually went wrong (e.g. a field-level validation error) instead of a generic toast.
+type ThunkConfig = { state: RootState; extra: ThunkExtraArg; rejectValue: string }
 type ResourceLibraryFields = { title: string }
 
 const currentProjectScope = (state: RootState) => ({
@@ -22,9 +25,16 @@ export const createResourceLibrary = createAsyncThunk<
   ResourceLibrary,
   { fields: ResourceLibraryFields; onSuccess: (resourceLibrary: ResourceLibrary) => void },
   ThunkConfig
->("resourceLibraries/create", async ({ fields }, { extra: { services }, getState }) => {
-  return await services.resourceLibraries.createOne(currentProjectScope(getState()), fields)
-})
+>(
+  "resourceLibraries/create",
+  async ({ fields }, { extra: { services }, getState, rejectWithValue }) => {
+    try {
+      return await services.resourceLibraries.createOne(currentProjectScope(getState()), fields)
+    } catch (error) {
+      return rejectWithValue(getApiErrorMessage(error, ""))
+    }
+  },
+)
 
 export const updateResourceLibrary = createAsyncThunk<
   void,
@@ -32,11 +42,15 @@ export const updateResourceLibrary = createAsyncThunk<
   ThunkConfig
 >(
   "resourceLibraries/update",
-  async ({ resourceLibraryId, fields }, { extra: { services }, getState }) => {
-    return await services.resourceLibraries.updateOne(
-      { ...currentProjectScope(getState()), resourceLibraryId },
-      fields,
-    )
+  async ({ resourceLibraryId, fields }, { extra: { services }, getState, rejectWithValue }) => {
+    try {
+      return await services.resourceLibraries.updateOne(
+        { ...currentProjectScope(getState()), resourceLibraryId },
+        fields,
+      )
+    } catch (error) {
+      return rejectWithValue(getApiErrorMessage(error, ""))
+    }
   },
 )
 
@@ -57,11 +71,15 @@ export const addResource = createAsyncThunk<
   ThunkConfig
 >(
   "resourceLibraries/addResource",
-  async ({ resourceLibraryId, fields }, { extra: { services }, getState }) => {
-    return await services.resourceLibraries.addResource(
-      { ...currentProjectScope(getState()), resourceLibraryId },
-      fields,
-    )
+  async ({ resourceLibraryId, fields }, { extra: { services }, getState, rejectWithValue }) => {
+    try {
+      return await services.resourceLibraries.addResource(
+        { ...currentProjectScope(getState()), resourceLibraryId },
+        fields,
+      )
+    } catch (error) {
+      return rejectWithValue(getApiErrorMessage(error, ""))
+    }
   },
 )
 
@@ -71,11 +89,18 @@ export const updateResource = createAsyncThunk<
   ThunkConfig
 >(
   "resourceLibraries/updateResource",
-  async ({ resourceLibraryId, resourceId, fields }, { extra: { services }, getState }) => {
-    return await services.resourceLibraries.updateResource(
-      { ...currentProjectScope(getState()), resourceLibraryId, resourceId },
-      fields,
-    )
+  async (
+    { resourceLibraryId, resourceId, fields },
+    { extra: { services }, getState, rejectWithValue },
+  ) => {
+    try {
+      return await services.resourceLibraries.updateResource(
+        { ...currentProjectScope(getState()), resourceLibraryId, resourceId },
+        fields,
+      )
+    } catch (error) {
+      return rejectWithValue(getApiErrorMessage(error, ""))
+    }
   },
 )
 

@@ -13,12 +13,14 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 - Single-document uploads now upload directly to storage via the same presign/confirm flow as bulk uploads, removing the previous API-side file size limit
+- Resource create/edit forms now validate inline against the same rules as the API and show per-field character counters
 
 ### Fixed
 - Back-office user list no longer causes out-of-memory crashes; DB queries have been optimised and agent memberships are no longer eagerly loaded
 - Back-office search now correctly filters users, projects, and organizations by name instead of returning unrelated results
 - Attaching a document in chat now only offers file types the backend actually accepts
 - Duplicate document chunks are no longer included when retrieving sources for the LLM context
+- Failed resource and resource-library saves now show the actual error from the server instead of a generic message
 
 ### Security
 

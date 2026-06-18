@@ -33,7 +33,9 @@
       "descriptionLabel": "Description",
       "descriptionPlaceholder": "Affichée aux utilisateurs sur la carte de ressource",
       "matchingHintsLabel": "Indices de correspondance (non affichés aux utilisateurs)",
-      "matchingHintsPlaceholder": "Mots-clés, synonymes ou indications « à utiliser quand… » que l'assistant utilise pour faire correspondre les demandes"
+      "matchingHintsPlaceholder": "Mots-clés, synonymes ou indications « à utiliser quand… » que l'assistant utilise pour faire correspondre les demandes",
+      "charactersUsed": "{{count}}/{{max}} caractères",
+      "required": "Ce champ est requis"
     },
     "link": {
       "url": "URL",
