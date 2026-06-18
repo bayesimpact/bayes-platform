@@ -1,5 +1,6 @@
 import {
   type DocumentDto,
+  type DocumentSourceType,
   DocumentsRoutes,
   type PresignFileRequestItemDto,
 } from "@caseai-connect/api-contracts"
@@ -24,75 +25,18 @@ export default {
     return response.data.data.map(toDocument)
   },
   uploadOne: async ({ organizationId, projectId, file, sourceType, tagIds }) => {
-    const axios = getAxiosInstance()
-
-    const formData = new FormData()
-    formData.append("file", file)
-    for (const tagId of tagIds ?? []) {
-      formData.append("tagIds", tagId)
-    }
-
-    const response = await axios.post<typeof DocumentsRoutes.uploadOne.response>(
-      DocumentsRoutes.uploadOne.getPath({ organizationId, projectId, sourceType }),
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } },
-    )
-    return toDocument(response.data.data)
+    return presignUploadAndConfirm({ organizationId, projectId, file, sourceType, tagIds })
   },
   uploadMany: async ({ organizationId, projectId, files, sourceType, tagIds, onFileProcessed }) => {
-    const axios = getAxiosInstance()
-
     for (const file of files) {
       try {
-        // 1. Presign a single file — creates a pending document entity
-        const presignResponse = await axios.post<typeof DocumentsRoutes.presignMany.response>(
-          DocumentsRoutes.presignMany.getPath({ organizationId, projectId, sourceType }),
-          {
-            payload: {
-              files: [
-                {
-                  fileName: file.name,
-                  mimeType: file.type as PresignFileRequestItemDto["mimeType"],
-                  size: file.size,
-                },
-              ],
-            },
-          } satisfies typeof DocumentsRoutes.presignMany.request,
-        )
-        const [presigned] = presignResponse.data.data
-
-        if (!presigned) {
-          const error = new Error(`Presign response is missing data`)
-          onFileProcessed({ file, status: "error", error })
-          continue
-        }
-
-        // 2. Upload directly to GCS
-        await fetch(presigned.uploadUrl, {
-          method: "PUT",
-          headers: { "Content-Type": file.type },
-          body: file,
+        const document = await presignUploadAndConfirm({
+          organizationId,
+          projectId,
+          file,
+          sourceType,
+          tagIds,
         })
-
-        // 3. Confirm — backend marks as uploaded and enqueues embeddings
-        const confirmResponse = await axios.post<typeof DocumentsRoutes.confirmMany.response>(
-          DocumentsRoutes.confirmMany.getPath({ organizationId, projectId }),
-          {
-            payload: {
-              documentIds: [presigned.documentId],
-              ...(tagIds !== undefined && tagIds.length > 0 ? { tagIds } : {}),
-            },
-          } satisfies typeof DocumentsRoutes.confirmMany.request,
-        )
-
-        const [document] = confirmResponse.data.data.map(toDocument)
-
-        if (!document) {
-          const error = new Error(`Confirm response is missing data`)
-          onFileProcessed({ file, status: "error", error })
-          continue
-        }
-
         onFileProcessed({ file, status: "success", document })
       } catch (error) {
         const errorMessage = error instanceof Error ? error : new Error(String(error))
@@ -164,6 +108,70 @@ export default {
     return response.data.data
   },
 } satisfies IDocumentsSpi
+
+// Presign → upload directly to GCS → confirm. Shared by uploadOne and uploadMany.
+async function presignUploadAndConfirm({
+  organizationId,
+  projectId,
+  file,
+  sourceType,
+  tagIds,
+}: {
+  organizationId: string
+  projectId: string
+  file: File
+  sourceType: DocumentSourceType
+  tagIds?: string[]
+}): Promise<Document> {
+  const axios = getAxiosInstance()
+
+  // 1. Presign a single file — creates a pending document entity
+  const presignResponse = await axios.post<typeof DocumentsRoutes.presignMany.response>(
+    DocumentsRoutes.presignMany.getPath({ organizationId, projectId, sourceType }),
+    {
+      payload: {
+        files: [
+          {
+            fileName: file.name,
+            mimeType: file.type as PresignFileRequestItemDto["mimeType"],
+            size: file.size,
+          },
+        ],
+      },
+    } satisfies typeof DocumentsRoutes.presignMany.request,
+  )
+  const [presigned] = presignResponse.data.data
+
+  if (!presigned) {
+    throw new Error(`Presign response is missing data`)
+  }
+
+  // 2. Upload directly to GCS
+  await fetch(presigned.uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": file.type },
+    body: file,
+  })
+
+  // 3. Confirm — backend marks as uploaded and enqueues embeddings
+  const confirmResponse = await axios.post<typeof DocumentsRoutes.confirmMany.response>(
+    DocumentsRoutes.confirmMany.getPath({ organizationId, projectId }),
+    {
+      payload: {
+        documentIds: [presigned.documentId],
+        ...(tagIds !== undefined && tagIds.length > 0 ? { tagIds } : {}),
+      },
+    } satisfies typeof DocumentsRoutes.confirmMany.request,
+  )
+
+  const [document] = confirmResponse.data.data.map(toDocument)
+
+  if (!document) {
+    throw new Error(`Confirm response is missing data`)
+  }
+
+  return document
+}
 
 function toDocument(dto: DocumentDto): Document {
   return {

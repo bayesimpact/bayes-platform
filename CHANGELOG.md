@@ -12,6 +12,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Back-office now has dedicated tabs for Users, Projects, Organizations, and Agents, each with list and detail views
 
 ### Changed
+- Single-document uploads now upload directly to storage via the same presign/confirm flow as bulk uploads, removing the previous API-side file size limit
 
 ### Fixed
 - Back-office user list no longer causes out-of-memory crashes; DB queries have been optimised and agent memberships are no longer eagerly loaded
