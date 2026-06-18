@@ -93,10 +93,22 @@ export class DocumentChunkRetrievalService {
       topK,
     }).getRawMany<RetrievedDocumentChunk>()
 
-    return rows.map((row) => ({
-      ...row,
-      isParentChunk: Boolean(row.isParentChunk),
-    }))
+    // The SQL already collapses children of the same parent via DISTINCT ON, so
+    // chunkId is unique. This is a defensive guard against any future query
+    // regression re-introducing duplicate chunks into the LLM context.
+    const seenChunkIds = new Set<string>()
+    return rows
+      .filter((row) => {
+        if (seenChunkIds.has(row.chunkId)) {
+          return false
+        }
+        seenChunkIds.add(row.chunkId)
+        return true
+      })
+      .map((row) => ({
+        ...row,
+        isParentChunk: Boolean(row.isParentChunk),
+      }))
   }
 
   /**
