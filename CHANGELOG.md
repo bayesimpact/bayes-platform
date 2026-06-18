@@ -8,6 +8,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.06.5] - 2026-06-18
+
+### Added
 - Documents can now be selected in bulk from the documents list, then deleted, tagged, or untagged in a single action
 - Back-office now has dedicated tabs for Users, Projects, Organizations, and Agents, each with list and detail views
 
