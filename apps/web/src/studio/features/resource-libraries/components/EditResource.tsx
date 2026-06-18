@@ -34,11 +34,11 @@ export function EditResource({
       headerTitle={resource.title || t("resourceLibrary:resourceForm.editTitle")}
       submitLabel={t("actions:save")}
       onBack={() => navigate(editorPath)}
-      onSubmit={({ id: resourceId, ...fields }) =>
+      onSubmit={(fields) =>
         dispatch(
           updateResource({
             resourceLibraryId: resourceLibrary.id,
-            resourceId,
+            resourceId: resource.id,
             fields,
             onSuccess: () => navigate(editorPath),
           }),

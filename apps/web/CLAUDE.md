@@ -147,6 +147,46 @@ listenerMiddleware.startListening({
 
 ## Form Component Architecture
 
+See [ADR 0012](../../docs/adr/0012-form-architecture.md) for full rationale. [ResourceForm.tsx](src/studio/features/resource-libraries/components/ResourceForm.tsx) is the canonical reference — copy it.
+
+### Always use react-hook-form + Zod + the shared `Form` components
+
+**Rule**: Every form MUST use `useForm` (react-hook-form) for state, `zodResolver` with a schema from `@caseai-connect/api-contracts` for validation, and the `Form` / `FormField` / `FormItem` / `FormLabel` / `FormControl` / `FormDescription` / `FormMessage` components from [@caseai-connect/ui/shad/form](../../packages/ui/src/shad/form.tsx) for markup.
+
+```tsx
+import { createResourceSchema } from "@caseai-connect/api-contracts"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@caseai-connect/ui/shad/form"
+
+type FormValues = z.infer<typeof createResourceSchema>
+
+const form = useForm<FormValues>({ resolver: zodResolver(createResourceSchema), defaultValues: { /* … */ } })
+
+return (
+  <Form {...form}>
+    <form onSubmit={form.handleSubmit(onValid)}>
+      <FormField
+        control={form.control}
+        name="title"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{t("…titleLabel")}</FormLabel>
+            <FormControl><Input {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </form>
+  </Form>
+)
+```
+
+- **Validate with the contract schema.** Import `create{Entity}Schema` / `update{Entity}Schema` from `api-contracts` — never redeclare an inline `z.object` that duplicates it. UI-only rules extend it with `.refine` (memoised on `[t]` so the message can be translated).
+- **`FormMessage` renders errors automatically.** Do NOT hand-write `{errors.x && <p className="text-destructive">…</p>}` or `{...register("x")}` onto a bare `<Field>`.
+- **`FormDescription` carries input characteristics** — character counters (`{{count}}/{{max}}`), format hints. Surface limits from an exported contract constant, not hard-coded numbers.
+- **Submit via `handleSubmit`.** Keep the button enabled (disable only on `formState.isSubmitting`, plus `!formState.isDirty` for edit-only forms). Do NOT gate it on a manual `isComplete(values)` predicate — that hides *why* submit is blocked.
+- **Composite inputs** (a sub-component editing several fields at once) are wired via `Controller` or `watch`/`setValue`; the sub-component stays presentational and never runs its own validation.
+
 ### Separation of Create and Update Forms
 
 **Rule**: A `CreateXXXForm` MUST NEVER handle both creating and updating. Always use separate components and extract shared logic into a base form.

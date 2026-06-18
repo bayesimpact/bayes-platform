@@ -35,7 +35,7 @@ export function CreateResource({ resourceLibrary }: { resourceLibrary: ResourceL
       headerTitle={t("resourceLibrary:resourceForm.createTitle")}
       submitLabel={t("actions:create")}
       onBack={() => navigate(editorPath)}
-      onSubmit={({ id: _id, ...fields }) =>
+      onSubmit={(fields) =>
         dispatch(
           addResource({
             resourceLibraryId: resourceLibrary.id,

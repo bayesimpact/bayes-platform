@@ -47,9 +47,13 @@ function registerListeners() {
   })
   listenerMiddleware.startListening({
     actionCreator: createResourceLibrary.rejected,
-    effect: async (_, listenerApi) => {
+    effect: async (action, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Resource library creation failed", type: "error" }),
+        notificationsActions.show({
+          title: "Resource library creation failed",
+          description: action.payload || undefined,
+          type: "error",
+        }),
       )
     },
   })
@@ -65,9 +69,13 @@ function registerListeners() {
   })
   listenerMiddleware.startListening({
     actionCreator: updateResourceLibrary.rejected,
-    effect: async (_, listenerApi) => {
+    effect: async (action, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Resource library update failed", type: "error" }),
+        notificationsActions.show({
+          title: "Resource library update failed",
+          description: action.payload || undefined,
+          type: "error",
+        }),
       )
     },
   })
@@ -103,9 +111,13 @@ function registerListeners() {
   }
   listenerMiddleware.startListening({
     matcher: isAnyOf(addResource.rejected, updateResource.rejected),
-    effect: async (_, listenerApi) => {
+    effect: async (action, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Saving resource failed", type: "error" }),
+        notificationsActions.show({
+          title: "Saving resource failed",
+          description: typeof action.payload === "string" ? action.payload || undefined : undefined,
+          type: "error",
+        }),
       )
     },
   })

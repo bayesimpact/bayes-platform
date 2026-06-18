@@ -6,7 +6,6 @@ import { FileIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { FileUploader } from "@/common/components/FileUploader"
 import { useAppDispatch } from "@/common/store/hooks"
-import { isValidHttpsUrl } from "../resource-libraries.helpers"
 import type { Resource } from "../resource-libraries.models"
 import { uploadResourceFile } from "../resource-libraries.thunks"
 
@@ -19,9 +18,6 @@ export function ResourceLinkField({
 }) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
-
-  const url = (resource.url ?? "").trim()
-  const showUrlError = resource.linkType === "url" && url.length > 0 && !isValidHttpsUrl(url)
 
   const setLinkType = (linkType: "url" | "file") => {
     if (linkType === "url") {
@@ -56,18 +52,12 @@ export function ResourceLinkField({
       </RadioGroup>
 
       {resource.linkType === "url" ? (
-        <div className="flex flex-col gap-1">
-          <Input
-            type="url"
-            placeholder={t("resourceLibrary:link.urlPlaceholder")}
-            aria-invalid={showUrlError ? "true" : "false"}
-            value={resource.url ?? ""}
-            onChange={(event) => onChange({ ...resource, url: event.target.value })}
-          />
-          {showUrlError && (
-            <p className="text-sm text-destructive">{t("resourceLibrary:link.urlInvalid")}</p>
-          )}
-        </div>
+        <Input
+          type="url"
+          placeholder={t("resourceLibrary:link.urlPlaceholder")}
+          value={resource.url ?? ""}
+          onChange={(event) => onChange({ ...resource, url: event.target.value })}
+        />
       ) : (
         <div className="flex items-center gap-3">
           <FileUploader

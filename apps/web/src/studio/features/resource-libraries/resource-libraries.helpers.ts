@@ -21,18 +21,6 @@ export function isValidHttpsUrl(value: string): boolean {
   return parsed.protocol === "https:"
 }
 
-/**
- * A resource can be saved once it has a title and description, and a link: either a valid
- * https:// URL or an uploaded file.
- */
-export function isResourceComplete(resource: Resource): boolean {
-  if (resource.title.trim().length === 0) return false
-  if (resource.description.trim().length === 0) return false
-  return resource.linkType === "url"
-    ? isValidHttpsUrl((resource.url ?? "").trim())
-    : resource.file !== undefined
-}
-
 export function getResourceLibraryTitleById(
   resourceLibraries: ResourceLibrary[],
   resourceLibraryId: string,
