@@ -1,7 +1,7 @@
 #
 # 🏡 Production Build
 #
-FROM node:24-bookworm-slim AS build
+FROM node:24.16.0-bookworm-slim AS build
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends libc6 && rm -rf /var/lib/apt/lists/*
@@ -37,7 +37,7 @@ RUN mkdir -p /app/apps/api/node_modules
 #
 # 🚀 Runtime Base (shared)
 #
-FROM node:24-bookworm-slim AS runtime-base
+FROM node:24.16.0-bookworm-slim AS runtime-base
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends libc6 && rm -rf /var/lib/apt/lists/*
