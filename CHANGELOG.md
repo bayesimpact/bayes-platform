@@ -8,6 +8,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.06.6] - 2026-06-19
+
+### Added
 - Extraction documents and evaluation dataset files now share a single list where each item can be opened in a details panel and deleted individually or in bulk
 - The document details panel now displays file sizes in a human-readable format (e.g. "22.3 MB")
 
