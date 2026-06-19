@@ -15,7 +15,7 @@ import { StudioRoutes } from "./helpers"
 export function ResourceEditorRoute() {
   const organizationId = useCurrentId(selectCurrentOrganizationId)
   const projectId = useCurrentId(selectCurrentProjectId)
-  const resourceLibraryId = useAppSelector(selectCurrentResourceLibraryId)
+  const resourceLibraryId = useCurrentId(selectCurrentResourceLibraryId)
   const resourceId = useAppSelector(selectCurrentResourceId)
   const data = useValue(selectResourceLibrariesData)
 

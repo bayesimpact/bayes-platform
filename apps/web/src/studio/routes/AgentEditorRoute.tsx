@@ -7,7 +7,6 @@ import { useGetAgentRoute } from "@/common/hooks/use-get-path"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
-import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
 import { selectAgentSubAgentsData } from "@/studio/features/agent-sub-agents/agent-sub-agents.selectors"
 import { agentSubAgentsActions } from "@/studio/features/agent-sub-agents/agent-sub-agents.slice"
@@ -17,31 +16,23 @@ import {
 } from "@/studio/features/agents/components/AgentEditor"
 
 export function AgentEditorRoute() {
-  const agent = useAppSelector(selectCurrentAgentData)
-  const agents = useAppSelector(selectAgentsData)
-  const project = useAppSelector(selectCurrentProjectData)
+  const agent = useValue(selectCurrentAgentData)
+  const project = useValue(selectCurrentProjectData)
   const subAgents = useAppSelector(selectAgentSubAgentsData)
   const hasOrchestration =
-    ADS.isFulfilled(agent) &&
-    agent.value.type === "conversation" &&
-    ADS.isFulfilled(project) &&
-    project.value.featureFlags.includes("agent-orchestration")
+    agent.type === "conversation" && project.featureFlags.includes("agent-orchestration")
 
   useMount({ actions: agentSubAgentsActions, condition: hasOrchestration })
 
   if (hasOrchestration) {
     return (
-      <AsyncRoute data={[agent, agents, subAgents]}>
+      <AsyncRoute data={[subAgents]}>
         <WithOrchestrationData />
       </AsyncRoute>
     )
   }
 
-  return (
-    <AsyncRoute data={[agent]}>
-      <WithData />
-    </AsyncRoute>
-  )
+  return <WithData />
 }
 
 function WithOrchestrationData() {

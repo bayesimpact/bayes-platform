@@ -64,10 +64,9 @@ export function ProjectAnalyticsRoute() {
   const conversations = useAppSelector(selectAnalyticsConversationsPerDay)
   const avgQuestions = useAppSelector(selectAnalyticsAvgUserQuestionsPerSessionPerDay)
   const conversationsByCategoryPerDay = useAppSelector(selectAnalyticsConversationsByCategoryPerDay)
-  const agentsData = useAppSelector(selectAgentsData)
 
   return (
-    <AsyncRoute data={[agentsData, conversations, avgQuestions, conversationsByCategoryPerDay]}>
+    <AsyncRoute data={[conversations, avgQuestions, conversationsByCategoryPerDay]}>
       <WithData
         onAnalyticsRangeChange={setBounds}
         selectedAgentId={selectedAgentId}

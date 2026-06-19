@@ -8,8 +8,7 @@ import {
 import { useFormContext } from "react-hook-form"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
-import { ADS } from "@/common/store/async-data-status"
-import { useAppSelector } from "@/common/store/hooks"
+import { useValue } from "@/common/hooks/use-value"
 import {
   agentDefaultOutputJsonSchemaMap,
   agentDefaultPromptMap,
@@ -91,6 +90,6 @@ export function isValidJsonObject(rawJson: string): boolean {
  */
 export function useAgentType(): Agent["type"] | undefined {
   const { watch } = useFormContext<AgentFormValues>()
-  const agentData = useAppSelector(selectCurrentAgentData)
-  return watch("type") ?? (ADS.isFulfilled(agentData) ? agentData.value.type : undefined)
+  const agentData = useValue(selectCurrentAgentData)
+  return watch("type") ?? agentData.type
 }
