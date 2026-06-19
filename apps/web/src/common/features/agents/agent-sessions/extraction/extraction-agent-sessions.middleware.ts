@@ -8,7 +8,8 @@ import { extractionAgentSessionsActions } from "./extraction-agent-sessions.slic
 // Create typed listener middleware
 export const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
-const { mount, executeOne, listMyDocuments, getAll } = extractionAgentSessionsActions
+const { mount, executeOne, listMyDocuments, deleteMyDocuments, getAll } =
+  extractionAgentSessionsActions
 
 function registerListeners() {
   // Load conversation agent sessions when agent is loaded
@@ -57,6 +58,30 @@ function registerListeners() {
       listenerApi.dispatch(
         notificationsActions.show({
           title: "Extraction execution failed",
+          type: "error",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: deleteMyDocuments.fulfilled,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "Document(s) deleted successfully",
+          type: "success",
+        }),
+      )
+      listenerApi.dispatch(listMyDocuments())
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: deleteMyDocuments.rejected,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "Failed to delete document(s)",
           type: "error",
         }),
       )

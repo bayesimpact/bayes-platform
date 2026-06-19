@@ -81,6 +81,20 @@ const executeOne = createAsyncThunk<
   },
 )
 
+const deleteMyDocuments = createAsyncThunk<void, { documentIds: string[] }, ThunkConfig>(
+  "extractionAgentSessions/deleteMyDocuments",
+  async ({ documentIds }, { extra: { services }, getState }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    await Promise.all(
+      documentIds.map((documentId) =>
+        services.documents.deleteOne({ organizationId, projectId, documentId }),
+      ),
+    )
+  },
+)
+
 const getOne = createAsyncThunk<ExtractionAgentSession, { agentSessionId: string }, ThunkConfig>(
   "extractionAgentSessions/getOne",
   async ({ agentSessionId }, { extra: { services }, getState }) => {
@@ -102,5 +116,6 @@ export const extractionAgentSessionsThunks = {
   getOne,
   executeOne,
   listMyDocuments,
+  deleteMyDocuments,
   getAll,
 }

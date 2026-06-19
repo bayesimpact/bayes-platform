@@ -98,10 +98,14 @@ function toEvaluationExtractionDatasetFile(
     createdAt: dto.createdAt,
     fileName: dto.fileName,
     id: dto.id,
+    language: dto.language,
+    mimeType: dto.mimeType,
     projectId: dto.projectId,
     size: dto.size,
     storageRelativePath: dto.storageRelativePath,
+    title: dto.title,
     updatedAt: dto.updatedAt,
+    sourceType: dto.sourceType,
   }
 }
 
