@@ -12,6 +12,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+
+### Security
+
+## [26.06.7] - 2026-06-19
+
+### Added
+
+### Changed
+
+### Fixed
 - Users without admin or owner permissions can now upload documents in the agent extraction app
 
 ### Security
