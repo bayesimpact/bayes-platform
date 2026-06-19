@@ -30,7 +30,7 @@ export const config: () => TypeOrmModuleOptions = () => ({
   migrations: [`${__dirname}/../**/migrations/*.{js,ts}`],
   autoLoadEntities: true,
   synchronize: false,
-  logging: false,
+  logging: true,
   extra,
 })
 

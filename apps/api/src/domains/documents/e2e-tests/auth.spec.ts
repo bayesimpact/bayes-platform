@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { type DocumentSourceType, DocumentsRoutes } from "@caseai-connect/api-contracts"
+import { DocumentsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import type { Repository } from "typeorm"
@@ -71,52 +71,6 @@ describe("Documents - Auth", () => {
     accessToken = "token"
     return { organization, project }
   }
-
-  describe("DocumentsRoutes.uploadOne", () => {
-    let sourceType: DocumentSourceType | null = "project"
-
-    beforeEach(() => {
-      sourceType = "project"
-    })
-
-    const subject = async (payload?: typeof DocumentsRoutes.uploadOne.request) =>
-      request({
-        route: DocumentsRoutes.uploadOne,
-        pathParams: removeNullish({ organizationId, projectId, sourceType }),
-        token: accessToken ?? undefined,
-        request: payload,
-      })
-
-    it("requires an authentication token", async () => {
-      accessToken = null
-      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
-    })
-    it("requires a valid organization ID", async () => {
-      organizationId = null
-      expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
-    })
-    it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
-      projectId = null // reset to a non-null value
-      expectResponse(await subject(), 404)
-    })
-    it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
-      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
-    })
-    it("doesn't allow a simple member to upload a project document", async () => {
-      await createContextForRole("member")
-      sourceType = "project"
-      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-    })
-
-    it("allows a simple member to upload non-project documents", async () => {
-      await createContextForRole("member")
-      sourceType = "agentSessionMessage"
-      expectResponse(await subject(), 422)
-    })
-  })
 
   describe("DocumentsRoutes.getAll", () => {
     const subject = async (payload?: typeof DocumentsRoutes.getAll.request) =>

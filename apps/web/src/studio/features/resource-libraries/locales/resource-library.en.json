@@ -33,7 +33,9 @@
       "descriptionLabel": "Description",
       "descriptionPlaceholder": "Shown to users on the resource card",
       "matchingHintsLabel": "Matching hints (not shown to users)",
-      "matchingHintsPlaceholder": "Keywords, synonyms, or \"use when…\" guidance the assistant uses to match user requests"
+      "matchingHintsPlaceholder": "Keywords, synonyms, or \"use when…\" guidance the assistant uses to match user requests",
+      "charactersUsed": "{{count}}/{{max}} characters",
+      "required": "This field is required"
     },
     "link": {
       "url": "URL",

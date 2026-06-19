@@ -142,17 +142,17 @@ const uploadFile = createAsyncThunk<void, { file: File }, ThunkConfig>(
   },
 )
 
-const deleteFile = createAsyncThunk<void, { fileId: string }, ThunkConfig>(
-  "datasets/deleteFile",
-  async ({ fileId }, { extra: { services }, getState }) => {
+const deleteFiles = createAsyncThunk<void, { fileIds: string[] }, ThunkConfig>(
+  "datasets/deleteFiles",
+  async ({ fileIds }, { extra: { services }, getState }) => {
     const state = getState()
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
-    await services.documents.deleteOne({
-      organizationId,
-      projectId,
-      documentId: fileId,
-    })
+    await Promise.all(
+      fileIds.map((fileId) =>
+        services.documents.deleteOne({ organizationId, projectId, documentId: fileId }),
+      ),
+    )
   },
 )
 
@@ -191,5 +191,5 @@ export const evaluationExtractionDatasetsThunks = {
   getFileColumns,
   uploadFile,
   updateOne,
-  deleteFile,
+  deleteFiles,
 }

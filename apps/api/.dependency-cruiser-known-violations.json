@@ -3164,6 +3164,24 @@
   {
     "type": "dependency",
     "from": "src/domains/backoffice/backoffice.helpers.ts",
+    "to": "src/domains/agents/agent.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.helpers.ts",
+    "to": "src/domains/agents/memberships/agent-membership.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.helpers.ts",
     "to": "src/domains/feature-flags/feature-flag.entity.ts",
     "rule": {
       "severity": "error",
@@ -3173,7 +3191,25 @@
   {
     "type": "dependency",
     "from": "src/domains/backoffice/backoffice.helpers.ts",
+    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.helpers.ts",
     "to": "src/domains/organizations/organization.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.helpers.ts",
+    "to": "src/domains/projects/memberships/project-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3192,6 +3228,15 @@
     "type": "dependency",
     "from": "src/domains/backoffice/backoffice.helpers.ts",
     "to": "src/domains/users/user.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.module.ts",
+    "to": "src/domains/agents/agent.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3255,6 +3300,15 @@
     "type": "dependency",
     "from": "src/domains/backoffice/backoffice.module.ts",
     "to": "src/domains/users/user.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.service.ts",
+    "to": "src/domains/agents/agent.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"

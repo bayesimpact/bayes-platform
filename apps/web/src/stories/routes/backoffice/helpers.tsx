@@ -1,18 +1,28 @@
 import {
+  backofficeAgentDetailFactory,
+  backofficeAgentListItemFactory,
+  backofficeOrganizationDetailFactory,
   backofficeOrganizationFactory,
-  backofficeProjectFactory,
-  backofficeUserAgentMembershipFactory,
+  backofficeProjectDetailFactory,
+  backofficeProjectListItemFactory,
   backofficeUserFactory,
-  backofficeUserOrganizationMembershipFactory,
-  backofficeUserProjectMembershipFactory,
+  paginatedBackofficeAgentsFactory,
   paginatedBackofficeOrganizationsFactory,
+  paginatedBackofficeProjectsFactory,
   paginatedBackofficeUsersFactory,
   termsDocumentsFactory,
 } from "@/backoffice/features/backoffice/backoffice.factory"
 import type {
+  BackofficeAgentDetail,
+  BackofficeAgentListItem,
   BackofficeOrganization,
+  BackofficeOrganizationDetail,
+  BackofficeProjectDetail,
+  BackofficeProjectListItem,
   BackofficeUser,
+  PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
+  PaginatedBackofficeProjects,
   PaginatedBackofficeUsers,
   TermsDocuments,
 } from "@/backoffice/features/backoffice/backoffice.models"
@@ -26,6 +36,8 @@ export type BackofficeStoryArgs = {
   isBackofficeAuthorized: boolean
   isTermsManagementAuthorized: boolean
   withOrganizations: boolean
+  withAgents: boolean
+  withProjects: boolean
   withUsers: boolean
   withTermsDocuments: boolean
 }
@@ -34,6 +46,8 @@ export const backofficeStoryArgs = {
   isBackofficeAuthorized: true,
   isTermsManagementAuthorized: false,
   withOrganizations: true,
+  withAgents: true,
+  withProjects: true,
   withUsers: true,
   withTermsDocuments: false,
 } satisfies BackofficeStoryArgs
@@ -42,6 +56,8 @@ export const backofficeStoryArgTypes = {
   isBackofficeAuthorized: { control: "boolean" },
   isTermsManagementAuthorized: { control: "boolean" },
   withOrganizations: { control: "boolean" },
+  withAgents: { control: "boolean" },
+  withProjects: { control: "boolean" },
   withUsers: { control: "boolean" },
   withTermsDocuments: { control: "boolean" },
 } as const
@@ -49,6 +65,8 @@ export const backofficeStoryArgTypes = {
 export function buildBackofficeData(args: BackofficeStoryArgs): {
   user: User
   organizations: PaginatedBackofficeOrganizations
+  agents: PaginatedBackofficeAgents
+  projects: PaginatedBackofficeProjects
   users: PaginatedBackofficeUsers
   termsDocuments: TermsDocuments | null
   baseSeeds: StoryPreloadedState
@@ -66,8 +84,14 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
         page: 0,
         limit: 10,
       })
+  const agents: PaginatedBackofficeAgents = args.withAgents
+    ? buildAgentsPage()
+    : paginatedBackofficeAgentsFactory.build({ agents: [], total: 0, page: 0, limit: 10 })
+  const projects: PaginatedBackofficeProjects = args.withProjects
+    ? buildProjectsPage()
+    : paginatedBackofficeProjectsFactory.build({ projects: [], total: 0, page: 0, limit: 10 })
   const users: PaginatedBackofficeUsers = args.withUsers
-    ? buildUsersPage(organizations.organizations)
+    ? buildUsersPage()
     : paginatedBackofficeUsersFactory.build({ users: [], total: 0, page: 0, limit: 10 })
   const termsDocuments =
     args.isTermsManagementAuthorized && args.withTermsDocuments
@@ -75,12 +99,16 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
       : null
 
   const seeds: StoryPreloadedState[] = [seed.me(user), seed.backoffice.organizations(organizations)]
+  seeds.push(seed.backoffice.agents(agents))
+  seeds.push(seed.backoffice.projects(projects))
   seeds.push(seed.backoffice.users(users))
   if (termsDocuments) seeds.push(seed.backoffice.termsDocuments(termsDocuments))
 
   return {
     user,
     organizations,
+    agents,
+    projects,
     users,
     termsDocuments,
     baseSeeds: mergeSeeds(...seeds),
@@ -88,11 +116,7 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
 }
 
 function buildOrganizationsPage(): PaginatedBackofficeOrganizations {
-  const organizations: BackofficeOrganization[] = Array.from({ length: 3 }).map(() => {
-    const organization = backofficeOrganizationFactory.build()
-    const projects = backofficeProjectFactory.transient({ organization }).buildList(2)
-    return { ...organization, projects }
-  })
+  const organizations: BackofficeOrganization[] = backofficeOrganizationFactory.buildList(3)
   return paginatedBackofficeOrganizationsFactory.build({
     organizations,
     total: organizations.length,
@@ -101,30 +125,34 @@ function buildOrganizationsPage(): PaginatedBackofficeOrganizations {
   })
 }
 
-function buildUsersPage(organizations: BackofficeOrganization[]): PaginatedBackofficeUsers {
+function buildAgentsPage(): PaginatedBackofficeAgents {
+  const total = 12
+  const pageSize = 10
+  const agents: BackofficeAgentListItem[] = backofficeAgentListItemFactory.buildList(pageSize)
+  return paginatedBackofficeAgentsFactory.build({ agents, total, page: 0, limit: pageSize })
+}
+
+function buildProjectsPage(): PaginatedBackofficeProjects {
+  const total = 18
+  const pageSize = 10
+  const projects: BackofficeProjectListItem[] = backofficeProjectListItemFactory.buildList(pageSize)
+  return paginatedBackofficeProjectsFactory.build({ projects, total, page: 0, limit: pageSize })
+}
+
+function buildUsersPage(): PaginatedBackofficeUsers {
   const total = 24
   const pageSize = 10
-  const users: BackofficeUser[] = Array.from({ length: pageSize }).map(() => {
-    const organization = organizations[0]
-    const project = organization?.projects[0]
-    const organizationMemberships = organization
-      ? [backofficeUserOrganizationMembershipFactory.transient({ organization }).build()]
-      : []
-    const projectMemberships = project
-      ? [backofficeUserProjectMembershipFactory.transient({ project }).build()]
-      : []
-    const agentMemberships = [backofficeUserAgentMembershipFactory.build()]
-    return backofficeUserFactory.build({
-      organizationMemberships,
-      projectMemberships,
-      agentMemberships,
-    })
-  })
+  const users: BackofficeUser[] = backofficeUserFactory.buildList(pageSize)
   return paginatedBackofficeUsersFactory.build({ users, total, page: 0, limit: pageSize })
 }
 
 export function buildMockBackofficeService(overrides: {
   organizations?: PaginatedBackofficeOrganizations
+  organizationDetails?: Record<string, BackofficeOrganizationDetail>
+  agents?: PaginatedBackofficeAgents
+  agentDetails?: Record<string, BackofficeAgentDetail>
+  projects?: PaginatedBackofficeProjects
+  projectDetails?: Record<string, BackofficeProjectDetail>
   users?: PaginatedBackofficeUsers
   termsDocuments?: TermsDocuments | null
 }): IBackofficeSpi {
@@ -136,6 +164,15 @@ export function buildMockBackofficeService(overrides: {
       page: 0,
       limit: 10,
     })
+  const organizationDetails = overrides.organizationDetails ?? {}
+  const agents =
+    overrides.agents ??
+    paginatedBackofficeAgentsFactory.build({ agents: [], total: 0, page: 0, limit: 10 })
+  const agentDetails = overrides.agentDetails ?? {}
+  const projects =
+    overrides.projects ??
+    paginatedBackofficeProjectsFactory.build({ projects: [], total: 0, page: 0, limit: 10 })
+  const projectDetails = overrides.projectDetails ?? {}
   const users =
     overrides.users ??
     paginatedBackofficeUsersFactory.build({ users: [], total: 0, page: 0, limit: 10 })
@@ -144,8 +181,38 @@ export function buildMockBackofficeService(overrides: {
     async listOrganizations() {
       return organizations
     },
+    async getOrganization(organizationId) {
+      const detail = organizationDetails[organizationId]
+      if (!detail) {
+        return backofficeOrganizationDetailFactory.build({ id: organizationId })
+      }
+      return detail
+    },
+    async listAgents() {
+      return agents
+    },
+    async getAgent(agentId) {
+      const detail = agentDetails[agentId]
+      if (!detail) {
+        return backofficeAgentDetailFactory.build({ id: agentId })
+      }
+      return detail
+    },
+    async listProjects() {
+      return projects
+    },
+    async getProject(projectId) {
+      const detail = projectDetails[projectId]
+      if (!detail) {
+        return backofficeProjectDetailFactory.build({ id: projectId })
+      }
+      return detail
+    },
     async listUsers() {
       return users
+    },
+    async getUser(userId) {
+      throw new Error(`getUser(${userId}) not implemented in mock service`)
     },
     async addFeatureFlag() {},
     async removeFeatureFlag() {},

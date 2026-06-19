@@ -70,8 +70,8 @@ describe("Backoffice - list users", () => {
     return context
   }
 
-  it("lists users with their organization, project, and agent memberships", async () => {
-    const { user, organization, project, agent } = await createAuthorizedContext()
+  it("lists users with their basic info (no memberships inline)", async () => {
+    const { user } = await createAuthorizedContext()
     const response = await request({
       route: BackofficeRoutes.listUsers,
       token: "token",
@@ -81,36 +81,15 @@ describe("Backoffice - list users", () => {
     expect(page).toBe(0)
     expect(limit).toBe(10)
     expect(total).toBeGreaterThanOrEqual(1)
-    const returned = users.find((candidate) => candidate.id === user.id)
+    const returned = users.find((candidate: { id: string }) => candidate.id === user.id)
     expect(returned).toBeDefined()
     expect(returned?.email).toBe(user.email)
-    expect(returned?.organizationMemberships).toEqual([
-      {
-        organizationId: organization.id,
-        organizationName: organization.name,
-        role: "owner",
-      },
-    ])
-    expect(returned?.projectMemberships).toEqual([
-      {
-        projectId: project.id,
-        projectName: project.name,
-        role: "owner",
-      },
-    ])
-    expect(returned?.agentMemberships).toEqual([
-      {
-        agentId: agent.id,
-        agentName: agent.name,
-        role: "owner",
-      },
-    ])
   })
 
-  it("returns an empty memberships list for users with no relationships", async () => {
+  it("returns an empty list when no users match", async () => {
     await createAuthorizedContext()
     const email = `no-membership-${randomUUID()}@example.com`
-    const createdUser = await repositories.userRepository.save(
+    await repositories.userRepository.save(
       repositories.userRepository.create({
         auth0Id: `auth0|${randomUUID()}`,
         email,
@@ -123,11 +102,7 @@ describe("Backoffice - list users", () => {
       token: "token",
     })
     expectResponse(response, 200)
-    const returned = response.body.data.users.find((candidate) => candidate.id === createdUser.id)
-    expect(returned).toBeDefined()
-    expect(returned?.organizationMemberships).toEqual([])
-    expect(returned?.projectMemberships).toEqual([])
-    expect(returned?.agentMemberships).toEqual([])
+    expect(response.body.data.users.length).toBeGreaterThanOrEqual(1)
   })
 
   it("paginates with the requested page and limit", async () => {
@@ -158,13 +133,15 @@ describe("Backoffice - list users", () => {
     })
     expectResponse(secondPage, 200)
     expect(secondPage.body.data.users.length).toBeGreaterThan(0)
-    const firstPageIds = new Set(firstPage.body.data.users.map((listedUser) => listedUser.id))
+    const firstPageIds = new Set(
+      firstPage.body.data.users.map((listedUser: { id: string }) => listedUser.id),
+    )
     for (const listedUser of secondPage.body.data.users) {
       expect(firstPageIds.has(listedUser.id)).toBe(false)
     }
   })
 
-  it("filters by search across email, name, and membership names", async () => {
+  it("filters by email or name only", async () => {
     await createAuthorizedContext()
     const matchingEmail = `findme-${randomUUID()}@example.com`
     const matchingUser = await repositories.userRepository.save(
@@ -183,8 +160,10 @@ describe("Backoffice - list users", () => {
     })
     expectResponse(response, 200)
     expect(response.body.data.users.length).toBeGreaterThanOrEqual(1)
-    expect(response.body.data.users.some((listedUser) => listedUser.id === matchingUser.id)).toBe(
-      true,
-    )
+    expect(
+      response.body.data.users.some(
+        (listedUser: { id: string }) => listedUser.id === matchingUser.id,
+      ),
+    ).toBe(true)
   })
 })

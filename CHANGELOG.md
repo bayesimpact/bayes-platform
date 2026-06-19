@@ -8,10 +8,31 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- Extraction documents and evaluation dataset files now share a single list where each item can be opened in a details panel and deleted individually or in bulk
+- The document details panel now displays file sizes in a human-readable format (e.g. "22.3 MB")
 
 ### Changed
 
 ### Fixed
+
+### Security
+
+## [26.06.5] - 2026-06-18
+
+### Added
+- Documents can now be selected in bulk from the documents list, then deleted, tagged, or untagged in a single action
+- Back-office now has dedicated tabs for Users, Projects, Organizations, and Agents, each with list and detail views
+
+### Changed
+- Single-document uploads now upload directly to storage via the same presign/confirm flow as bulk uploads, removing the previous API-side file size limit
+- Resource create/edit forms now validate inline against the same rules as the API and show per-field character counters
+
+### Fixed
+- Back-office user list no longer causes out-of-memory crashes; DB queries have been optimised and agent memberships are no longer eagerly loaded
+- Back-office search now correctly filters users, projects, and organizations by name instead of returning unrelated results
+- Attaching a document in chat now only offers file types the backend actually accepts
+- Duplicate document chunks are no longer included when retrieving sources for the LLM context
+- Failed resource and resource-library saves now show the actual error from the server instead of a generic message
 
 ### Security
 

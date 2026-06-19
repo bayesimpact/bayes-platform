@@ -1,6 +1,4 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@caseai-connect/ui/shad/tabs"
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { NavLink, Outlet, useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
 import {
   selectIsBackofficeAuthorized,
@@ -13,12 +11,8 @@ import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { NotFoundRoute } from "@/common/routes/NotFoundRoute"
 import { useAppSelector } from "@/common/store/hooks"
 import { backofficeActions } from "../features/backoffice/backoffice.slice"
-import { OrganizationsPanel } from "../features/backoffice/components/OrganizationsPanel"
-import { TermsDocumentsPanel } from "../features/backoffice/components/TermsDocumentsPanel"
-import { UsersPanel } from "../features/backoffice/components/UsersPanel"
 import { injectBackofficeSlices, resetBackofficeSlices } from "../store/slices"
-
-type TabValue = "organizations" | "users" | "termsDocuments"
+import { BackofficeAgentRoutes, BackofficeProjectRoutes, BackofficeUserRoutes } from "./helpers"
 
 export function BackofficeRoute() {
   const isAuthorized = useAppSelector(selectIsBackofficeAuthorized)
@@ -29,21 +23,15 @@ export function BackofficeRoute() {
   })
 
   if (!isAuthorized) return <NotFoundRoute />
-  if (initDone) return <Route />
+  if (initDone) return <Layout />
   return <LoadingRoute />
 }
 
-function Route() {
+function Layout() {
+  const navigate = useNavigate()
   const canManageTerms = useAppSelector(selectIsTermsManagementAuthorized)
 
   useMount({ actions: backofficeActions })
-
-  return <WithData canManageTerms={canManageTerms} />
-}
-
-function WithData({ canManageTerms }: { canManageTerms: boolean }) {
-  const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState<TabValue>("organizations")
 
   return (
     <div className="w-4/5 lg:w-3/4 mx-auto my-10 relative border rounded-2xl overflow-hidden">
@@ -52,31 +40,71 @@ function WithData({ canManageTerms }: { canManageTerms: boolean }) {
         title="Backoffice"
         description="Manage organizations, projects, feature flags, and users"
       />
-      <Tabs
-        value={activeTab}
-        onValueChange={(value) => setActiveTab(value as TabValue)}
-        className="gap-0"
-      >
-        <div className="p-4 border-b">
-          <TabsList>
-            <TabsTrigger value="organizations">Organizations</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            {canManageTerms && <TabsTrigger value="termsDocuments">Terms & Compliance</TabsTrigger>}
-          </TabsList>
-        </div>
-        <TabsContent value="organizations">
-          <OrganizationsPanel />
-        </TabsContent>
-        <TabsContent value="users">
-          <UsersPanel />
-        </TabsContent>
-
+      <nav className="p-4 border-b flex gap-2">
+        <NavLink
+          to="organizations"
+          className={({ isActive }) =>
+            `px-3 py-1.5 text-sm rounded-md font-medium transition-colors ${
+              isActive
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            }`
+          }
+        >
+          Organizations
+        </NavLink>
+        <NavLink
+          to={BackofficeProjectRoutes.projects.path.replace("/backoffice/", "")}
+          className={({ isActive }) =>
+            `px-3 py-1.5 text-sm rounded-md font-medium transition-colors ${
+              isActive
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            }`
+          }
+        >
+          Projects
+        </NavLink>
+        <NavLink
+          to={BackofficeAgentRoutes.agents.path.replace("/backoffice/", "")}
+          className={({ isActive }) =>
+            `px-3 py-1.5 text-sm rounded-md font-medium transition-colors ${
+              isActive
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            }`
+          }
+        >
+          Agents
+        </NavLink>
+        <NavLink
+          to={BackofficeUserRoutes.users.path.replace("/backoffice/", "")}
+          className={({ isActive }) =>
+            `px-3 py-1.5 text-sm rounded-md font-medium transition-colors ${
+              isActive
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            }`
+          }
+        >
+          Users
+        </NavLink>
         {canManageTerms && (
-          <TabsContent value="termsDocuments">
-            <TermsDocumentsPanel />
-          </TabsContent>
+          <NavLink
+            to="terms"
+            className={({ isActive }) =>
+              `px-3 py-1.5 text-sm rounded-md font-medium transition-colors ${
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`
+            }
+          >
+            Terms & Compliance
+          </NavLink>
         )}
-      </Tabs>
+      </nav>
+      <Outlet />
     </div>
   )
 }

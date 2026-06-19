@@ -1,4 +1,3 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Table,
@@ -11,6 +10,9 @@ import {
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { BackofficeUserRoutes } from "@/backoffice/routes/helpers"
+import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
@@ -21,17 +23,16 @@ import { SearchField } from "./BackofficeTable"
 
 const DEFAULT_PAGE_SIZE = 10
 
-type UserRow = {
-  id: string
-  email: string
-  name: string
-  organizationMemberships: BackofficeUser["organizationMemberships"]
-  projectMemberships: BackofficeUser["projectMemberships"]
-  agentMemberships: BackofficeUser["agentMemberships"]
-}
-
 export function UsersPanel() {
   const users = useAppSelector(selectBackofficeUsers)
+
+  useMount({
+    actions: {
+      mount: backofficeActions.usersPanelMount,
+      unmount: backofficeActions.usersPanelUnmount,
+    },
+  })
+
   return (
     <AsyncRoute data={[users]}>
       <WithData />
@@ -42,6 +43,7 @@ export function UsersPanel() {
 function WithData() {
   const users = useValue(selectBackofficeUsers)
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const query = useAppSelector(selectBackofficeUsersQuery)
   const [searchInput, setSearchInput] = useState(query.search)
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -63,20 +65,7 @@ function WithData() {
     }
   }, [searchInput, query.search, query.limit, dispatch])
 
-  const rows = useMemo<UserRow[]>(
-    () =>
-      users.users.map((user) => ({
-        id: user.id,
-        email: user.email,
-        name: user.name ?? "",
-        organizationMemberships: user.organizationMemberships,
-        projectMemberships: user.projectMemberships,
-        agentMemberships: user.agentMemberships,
-      })),
-    [users.users],
-  )
-
-  const columns = useMemo<ColumnDef<UserRow>[]>(
+  const columns = useMemo<ColumnDef<BackofficeUser>[]>(
     () => [
       {
         accessorKey: "email",
@@ -90,45 +79,6 @@ function WithData() {
           </div>
         ),
       },
-      {
-        id: "organizations",
-        header: () => <span className="text-muted-foreground">Organizations</span>,
-        cell: ({ row }) => (
-          <MembershipsCell
-            items={row.original.organizationMemberships.map((membership) => ({
-              key: membership.organizationId,
-              name: membership.organizationName,
-              role: membership.role,
-            }))}
-          />
-        ),
-      },
-      {
-        id: "projects",
-        header: () => <span className="text-muted-foreground">Projects</span>,
-        cell: ({ row }) => (
-          <MembershipsCell
-            items={row.original.projectMemberships.map((membership) => ({
-              key: membership.projectId,
-              name: membership.projectName,
-              role: membership.role,
-            }))}
-          />
-        ),
-      },
-      {
-        id: "agents",
-        header: () => <span className="text-muted-foreground">Agents</span>,
-        cell: ({ row }) => (
-          <MembershipsCell
-            items={row.original.agentMemberships.map((membership) => ({
-              key: membership.agentId,
-              name: membership.agentName,
-              role: membership.role,
-            }))}
-          />
-        ),
-      },
     ],
     [],
   )
@@ -137,7 +87,7 @@ function WithData() {
   const pageCount = Math.max(1, Math.ceil(users.total / pageSize))
 
   const table = useReactTable({
-    data: rows,
+    data: users.users,
     columns,
     manualPagination: true,
     pageCount,
@@ -164,7 +114,7 @@ function WithData() {
         <SearchField
           value={searchInput}
           onChange={setSearchInput}
-          placeholder="Search users, organizations, projects, or agents…"
+          placeholder="Search by email or name…"
         />
       </div>
       <Table>
@@ -184,7 +134,13 @@ function WithData() {
         <TableBody>
           {table.getRowModel().rows.length > 0 ? (
             table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow
+                key={row.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() =>
+                  navigate(BackofficeUserRoutes.user.build({ userId: row.original.id }))
+                }
+              >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -233,21 +189,5 @@ function WithData() {
         </div>
       </div>
     </>
-  )
-}
-
-function MembershipsCell({ items }: { items: { key: string; name: string; role: string }[] }) {
-  if (items.length === 0) {
-    return <span className="text-muted-foreground italic">—</span>
-  }
-  return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      {items.map((item) => (
-        <Badge key={item.key} variant="secondary" className="gap-1">
-          <span className="font-medium">{item.name}</span>
-          <span className="text-xs text-muted-foreground">({item.role})</span>
-        </Badge>
-      ))}
-    </div>
   )
 }

@@ -1,7 +1,13 @@
 import { BackofficeRoutes } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import {
+  toBackofficeAgentDetail,
+  toBackofficeOrganizationDetail,
+  toBackofficeProjectDetail,
+  toBackofficeUserDetail,
+  toPaginatedBackofficeAgents,
   toPaginatedBackofficeOrganizations,
+  toPaginatedBackofficeProjects,
   toPaginatedBackofficeUsers,
 } from "../backoffice.models"
 import type { IBackofficeSpi } from "../backoffice.spi"
@@ -20,6 +26,53 @@ export default {
     )
     return toPaginatedBackofficeOrganizations(response.data.data)
   },
+  getOrganization: async (organizationId) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof BackofficeRoutes.getOrganization.response>(
+      BackofficeRoutes.getOrganization.getPath({ organizationId }),
+    )
+    return toBackofficeOrganizationDetail(response.data.data)
+  },
+  listAgents: async ({ page, limit, search }) => {
+    const axios = getAxiosInstance()
+    const queryParams: Record<string, string> = {}
+    if (page !== undefined) queryParams.page = String(page)
+    if (limit !== undefined) queryParams.limit = String(limit)
+    if (search) queryParams.search = search
+
+    const response = await axios.get<typeof BackofficeRoutes.listAgents.response>(
+      BackofficeRoutes.listAgents.getPath(),
+      { params: queryParams },
+    )
+    return toPaginatedBackofficeAgents(response.data.data)
+  },
+  getAgent: async (agentId) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof BackofficeRoutes.getAgent.response>(
+      BackofficeRoutes.getAgent.getPath({ agentId }),
+    )
+    return toBackofficeAgentDetail(response.data.data)
+  },
+  listProjects: async ({ page, limit, search }) => {
+    const axios = getAxiosInstance()
+    const queryParams: Record<string, string> = {}
+    if (page !== undefined) queryParams.page = String(page)
+    if (limit !== undefined) queryParams.limit = String(limit)
+    if (search) queryParams.search = search
+
+    const response = await axios.get<typeof BackofficeRoutes.listProjects.response>(
+      BackofficeRoutes.listProjects.getPath(),
+      { params: queryParams },
+    )
+    return toPaginatedBackofficeProjects(response.data.data)
+  },
+  getProject: async (projectId) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof BackofficeRoutes.getProject.response>(
+      BackofficeRoutes.getProject.getPath({ projectId }),
+    )
+    return toBackofficeProjectDetail(response.data.data)
+  },
   listUsers: async ({ page, limit, search }) => {
     const axios = getAxiosInstance()
     const queryParams: Record<string, string> = {}
@@ -32,6 +85,13 @@ export default {
       { params: queryParams },
     )
     return toPaginatedBackofficeUsers(response.data.data)
+  },
+  getUser: async (userId) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof BackofficeRoutes.getUser.response>(
+      BackofficeRoutes.getUser.getPath({ userId }),
+    )
+    return toBackofficeUserDetail(response.data.data)
   },
   addFeatureFlag: async ({ projectId, featureFlagKey }) => {
     const axios = getAxiosInstance()

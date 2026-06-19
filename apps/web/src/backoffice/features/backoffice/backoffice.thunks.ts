@@ -3,7 +3,13 @@ import { createAsyncThunk } from "@reduxjs/toolkit"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 
 import type {
+  BackofficeAgentDetail,
+  BackofficeOrganizationDetail,
+  BackofficeProjectDetail,
+  BackofficeUserDetail,
+  PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
+  PaginatedBackofficeProjects,
   PaginatedBackofficeUsers,
   TermsDocuments,
   UpdateTermsDocumentsInput,
@@ -19,6 +25,43 @@ const listOrganizations = createAsyncThunk<
   return services.backoffice.listOrganizations(params ?? {})
 })
 
+const getOrganization = createAsyncThunk<BackofficeOrganizationDetail, string, ThunkConfig>(
+  "backoffice/getOrganization",
+  async (organizationId, { extra: { services } }) => {
+    return services.backoffice.getOrganization(organizationId)
+  },
+)
+
+const listAgents = createAsyncThunk<
+  PaginatedBackofficeAgents,
+  { page?: number; limit?: number; search?: string } | undefined,
+  ThunkConfig
+>("backoffice/fetchAgents", async (params, { extra: { services } }) => {
+  return services.backoffice.listAgents(params ?? {})
+})
+
+const getAgent = createAsyncThunk<BackofficeAgentDetail, string, ThunkConfig>(
+  "backoffice/getAgent",
+  async (agentId, { extra: { services } }) => {
+    return services.backoffice.getAgent(agentId)
+  },
+)
+
+const listProjects = createAsyncThunk<
+  PaginatedBackofficeProjects,
+  { page?: number; limit?: number; search?: string } | undefined,
+  ThunkConfig
+>("backoffice/fetchProjects", async (params, { extra: { services } }) => {
+  return services.backoffice.listProjects(params ?? {})
+})
+
+const getProject = createAsyncThunk<BackofficeProjectDetail, string, ThunkConfig>(
+  "backoffice/getProject",
+  async (projectId, { extra: { services } }) => {
+    return services.backoffice.getProject(projectId)
+  },
+)
+
 const listUsers = createAsyncThunk<
   PaginatedBackofficeUsers,
   { page?: number; limit?: number; search?: string } | undefined,
@@ -26,6 +69,13 @@ const listUsers = createAsyncThunk<
 >("backoffice/fetchUsers", async (params, { extra: { services } }) => {
   return services.backoffice.listUsers(params ?? {})
 })
+
+const getUser = createAsyncThunk<BackofficeUserDetail, string, ThunkConfig>(
+  "backoffice/getUser",
+  async (userId, { extra: { services } }) => {
+    return services.backoffice.getUser(userId)
+  },
+)
 
 const addFeatureFlag = createAsyncThunk<
   { projectId: string; featureFlagKey: FeatureFlagKey },
@@ -60,7 +110,13 @@ const updateTermsDocuments = createAsyncThunk<
 
 export const backofficeThunks = {
   listOrganizations,
+  getOrganization,
+  listAgents,
+  getAgent,
+  listProjects,
+  getProject,
   listUsers,
+  getUser,
   addFeatureFlag,
   removeFeatureFlag,
   listTermsDocuments,

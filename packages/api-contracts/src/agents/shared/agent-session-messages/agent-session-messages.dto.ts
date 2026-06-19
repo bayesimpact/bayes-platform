@@ -36,6 +36,11 @@ export const agentSessionMessageAttachmentAllowedMimeTypes = [
 export type AgentSessionMessageAttachmentMimeType =
   (typeof agentSessionMessageAttachmentAllowedMimeTypes)[number]
 
+/** For `FileUploader` / dropzone `accept` (one flag per distinct MIME string). */
+export const agentSessionMessageAttachmentAllowedMimeTypesForFileUploader = Object.fromEntries(
+  agentSessionMessageAttachmentAllowedMimeTypes.map((mimeType) => [mimeType, true]),
+) as Partial<Record<AgentSessionMessageAttachmentMimeType, boolean>>
+
 export type PresignAgentSessionMessageAttachmentDocumentRequestDto = {
   fileName: string
   mimeType: AgentSessionMessageAttachmentMimeType

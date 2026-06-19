@@ -154,8 +154,8 @@ describe("Backoffice - feature flag lifecycle", () => {
     expectResponse(response, 404)
   })
 
-  it("lists organizations with nested projects and enabled flags", async () => {
-    const { project } = await createAuthorizedContext()
+  it("returns enabled flag in organization detail", async () => {
+    const { organization, project } = await createAuthorizedContext()
     await repositories.featureFlagRepository.save(
       repositories.featureFlagRepository.create({
         projectId: project.id,
@@ -164,17 +164,14 @@ describe("Backoffice - feature flag lifecycle", () => {
       }),
     )
     const response = await request({
-      route: BackofficeRoutes.listOrganizations,
+      route: BackofficeRoutes.getOrganization,
+      pathParams: { organizationId: organization.id },
       token: "token",
     })
     expectResponse(response, 200)
-    const organizations = response.body.data.organizations
-    expect(organizations.length).toBeGreaterThanOrEqual(1)
-    const organization = organizations.find((org) =>
-      org.projects.some((proj) => proj.id === project.id),
+    const returnedProject = response.body.data.projects.find(
+      (proj: { id: string }) => proj.id === project.id,
     )
-    expect(organization).toBeDefined()
-    const returnedProject = organization?.projects.find((proj) => proj.id === project.id)
     expect(returnedProject?.featureFlags).toContain("evaluation")
   })
 })

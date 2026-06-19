@@ -11,11 +11,14 @@ import {
 import { selectDocumentsData, selectUploaderState } from "./documents.selectors"
 import { documentsActions } from "./documents.slice"
 import {
+  addTagsToDocuments,
   cancelCrawl,
   crawlUrl,
   deleteDocument,
+  deleteDocuments,
   listDocuments,
   reCrawlUrl,
+  removeTagsFromDocuments,
   updateDocument,
   uploadDocument,
   uploadDocuments,
@@ -143,6 +146,9 @@ function registerListeners() {
       cancelCrawl.fulfilled,
       updateDocument.fulfilled,
       deleteDocument.fulfilled,
+      deleteDocuments.fulfilled,
+      addTagsToDocuments.fulfilled,
+      removeTagsFromDocuments.fulfilled,
       // DocumentTag changes
       createDocumentTag.fulfilled,
       updateDocumentTag.fulfilled,
@@ -266,6 +272,78 @@ function registerListeners() {
       listenerApi.dispatch(
         notificationsActions.show({
           title: "Document deletion failed",
+          type: "error",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: deleteDocuments.fulfilled,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: `${action.meta.arg.documentIds.length} documents deleted successfully`,
+          type: "success",
+        }),
+      )
+      action.meta.arg.onSuccess?.()
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: deleteDocuments.rejected,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "Failed to delete documents",
+          type: "error",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: addTagsToDocuments.fulfilled,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: `Tags added to ${action.meta.arg.documentIds.length} documents`,
+          type: "success",
+        }),
+      )
+      action.meta.arg.onSuccess?.()
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: addTagsToDocuments.rejected,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "Failed to add tags to documents",
+          type: "error",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: removeTagsFromDocuments.fulfilled,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: `Tags removed from ${action.meta.arg.documentIds.length} documents`,
+          type: "success",
+        }),
+      )
+      action.meta.arg.onSuccess?.()
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: removeTagsFromDocuments.rejected,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "Failed to remove tags from documents",
           type: "error",
         }),
       )

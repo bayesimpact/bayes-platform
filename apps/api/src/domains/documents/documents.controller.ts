@@ -3,7 +3,6 @@ import {
   type DocumentEmbeddingStatusChangedEventDto,
   type DocumentSourceType,
   DocumentsRoutes,
-  documentUploadAllowedMimeTypePattern,
   isAllowedMimeType,
   type MimeTypes,
   type PresignFileResponseItemDto,
@@ -12,25 +11,19 @@ import {
   Body,
   Controller,
   Delete,
-  FileTypeValidator,
   Get,
   HttpCode,
   HttpStatus,
   Inject,
-  MaxFileSizeValidator,
   NotFoundException,
   Param,
-  ParseFilePipe,
   Patch,
   Post,
   Request,
   Sse,
   UnprocessableEntityException,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from "@nestjs/common"
-import { FileInterceptor } from "@nestjs/platform-express/multer"
 import type { Observable } from "rxjs"
 import { filter, map } from "rxjs"
 import { v4 } from "uuid"
@@ -42,7 +35,6 @@ import { getRequiredConnectScope } from "@/common/context/request-context.helper
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
-import type { MulterFile } from "@/common/types"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
@@ -52,7 +44,6 @@ import {
   extractFileExtension,
   isPublicDocument,
   normalizeUploadedFileName,
-  parseMultipartTagIdsField,
 } from "./documents.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "./documents.service"
@@ -64,7 +55,6 @@ import {
 } from "./embeddings/document-embeddings-batch.interface"
 import { FILE_STORAGE_SERVICE, type IFileStorage } from "./storage/file-storage.interface"
 
-const mega = 1024
 @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, DocumentsGuard)
 @RequireContext("organization", "project")
 @Controller()
@@ -77,86 +67,6 @@ export class DocumentsController {
     private readonly documentsService: DocumentsService,
     private readonly documentEmbeddingStatusStreamService: DocumentEmbeddingStatusStreamService,
   ) {}
-
-  @CheckPolicy((policy) => policy.canCreate())
-  @Post(DocumentsRoutes.uploadOne.path)
-  @TrackActivity({ action: "document.create" })
-  @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(FileInterceptor("file"))
-  async uploadOne(
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 10 * mega * mega }), // 10 MB
-          new FileTypeValidator({
-            fileType: documentUploadAllowedMimeTypePattern,
-            skipMagicNumbersValidation: true,
-          }),
-        ],
-        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-      }),
-    )
-    file: MulterFile,
-    @Body()
-    body: { tagIds?: unknown } | undefined,
-    @Request() req: EndpointRequestWithProject,
-    @Param("sourceType") sourceType: DocumentSourceType,
-  ): Promise<typeof DocumentsRoutes.uploadOne.response> {
-    if (!sourceType) {
-      throw new UnprocessableEntityException("Source type is required.")
-    }
-    if (!file) {
-      throw new UnprocessableEntityException("File is required.")
-    }
-    if (!file.mimetype) {
-      throw new UnprocessableEntityException("File MIME type is required.")
-    }
-
-    if (!isAllowedMimeType(file.mimetype)) {
-      throw new UnprocessableEntityException(
-        `Invalid file type: ${file.mimetype}. Allowed types: PDF, Microsoft Office (Word, Excel, PowerPoint), images (PNG, JPEG, TIFF, BMP, WebP), CSV, or plain text.`,
-      )
-    }
-
-    const normalizedFileName = normalizeUploadedFileName(file.originalname)
-    const extension = extractFileExtension(normalizedFileName)
-    const connectScope = getRequiredConnectScope(req)
-    const fileInfo = await this.fileStorageService.save({ file, connectScope, extension })
-    const tagIds = parseMultipartTagIdsField(body?.tagIds)
-
-    const document = await this.documentsService.createDocument({
-      uploadStatus: "uploaded",
-      connectScope,
-      documentId: fileInfo.fileId,
-      tagIds,
-      fields: {
-        fileName: normalizedFileName,
-        mimeType: file.mimetype,
-        size: file.size,
-        storageRelativePath: fileInfo.storageRelativePath,
-        title: normalizedFileName,
-        sourceType,
-      },
-      userId: req.user.id,
-    })
-
-    if (!document) {
-      throw new NotFoundException("Document not found or you do not have permission to access it.")
-    }
-
-    if (document.sourceType === "project") {
-      await this.documentEmbeddingsBatchService.enqueueCreateEmbeddingsForDocument({
-        documentId: document.id,
-        organizationId: connectScope.organizationId,
-        projectId: connectScope.projectId,
-        uploadedByUserId: req.user.id,
-        origin: "document-upload",
-        currentTraceId: v4(),
-      })
-    }
-
-    return { data: toDocumentDto(document) }
-  }
 
   @CheckPolicy((policy) => policy.canCreate())
   @Post(DocumentsRoutes.presignMany.path)
@@ -429,23 +339,23 @@ function parseCrawledPages(
 function toDocumentDto(entity: Document): DocumentDto {
   const isWebCrawl = entity.sourceType === "webCrawl"
   return {
-    id: entity.id,
-    projectId: entity.projectId,
-    title: entity.title,
     content: isWebCrawl ? undefined : entity.content,
-    pages: isWebCrawl ? parseCrawledPages(entity.content) : undefined,
-    fileName: entity.fileName,
     createdAt: entity.createdAt.getTime(),
-    updatedAt: entity.updatedAt.getTime(),
     deletedAt: entity.deletedAt?.getTime() || undefined,
+    embeddingError: entity.embeddingError ?? null,
+    embeddingStatus: entity.embeddingStatus,
+    fileName: entity.fileName,
+    id: entity.id,
     language: entity.language === "fr" ? "fr" : "en",
     mimeType: entity.mimeType as MimeTypes,
+    pages: isWebCrawl ? parseCrawledPages(entity.content) : undefined,
+    projectId: entity.projectId,
     size: entity.size,
-    storageRelativePath: entity.storageRelativePath,
     sourceType: entity.sourceType,
     sourceUrl: entity.sourceUrl ?? null,
-    embeddingStatus: entity.embeddingStatus,
-    embeddingError: entity.embeddingError ?? null,
+    storageRelativePath: entity.storageRelativePath,
     tagIds: entity.tags?.map((tag) => tag.id) || [],
+    title: entity.title,
+    updatedAt: entity.updatedAt.getTime(),
   }
 }

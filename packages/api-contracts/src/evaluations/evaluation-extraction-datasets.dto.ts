@@ -1,15 +1,21 @@
+import type { DocumentDto } from "../documents/documents.dto"
 import type { TimeType } from "../generic"
 
 // DATASET FILE
-export type EvaluationExtractionDatasetFileDto = {
-  createdAt: TimeType
-  fileName?: string
-  id: string
-  projectId: string
-  size?: number
-  storageRelativePath?: string
-  updatedAt: TimeType
-}
+export type EvaluationExtractionDatasetFileDto = Pick<
+  DocumentDto,
+  | "createdAt"
+  | "fileName"
+  | "id"
+  | "language"
+  | "mimeType"
+  | "projectId"
+  | "size"
+  | "sourceType"
+  | "storageRelativePath"
+  | "title"
+  | "updatedAt"
+>
 export type EvaluationExtractionDatasetFileColumnDto = {
   id: string
   name: string
