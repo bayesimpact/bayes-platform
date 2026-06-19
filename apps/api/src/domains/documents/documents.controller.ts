@@ -146,7 +146,9 @@ export class DocumentsController {
     return { data: results }
   }
 
-  @CheckPolicy((policy) => policy.canCreate())
+  // FIXME: the polilcy is not correct here
+  // needed for /app/ (not admin/owner to upload doc in agent extraction)
+  @CheckPolicy((policy) => policy.canView())
   @Post(DocumentsRoutes.confirmMany.path)
   @TrackActivity({ action: "document.createMany" })
   @HttpCode(HttpStatus.CREATED)
