@@ -1,8 +1,9 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
-import { listAgents } from "@/common/features/agents/agents.thunks"
-import { getCurrentId } from "@/common/features/helpers"
+import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
+import { ADS } from "@/common/store/async-data-status"
 import type { AppDispatch, RootState } from "@/common/store/types"
+import { agentMessageFeedbackActions } from "./agent-message-feedback.slice"
 import {
   createAgentMessageFeedback,
   listAgentMessageFeedbacks,
@@ -13,15 +14,14 @@ const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 function registerListeners() {
   // Refresh feedbacks when agents are loaded
   listenerMiddleware.startListening({
-    actionCreator: listAgents.fulfilled,
-    effect: async (action, listenerApi) => {
-      const agents = action.payload
-      await Promise.all(
-        agents.map(async (agent) => {
-          if (agent.type === "extraction") return
-          await listenerApi.dispatch(listAgentMessageFeedbacks({ agentId: agent.id }))
-        }),
-      )
+    actionCreator: agentMessageFeedbackActions.mount,
+    effect: async (_, listenerApi) => {
+      const state = listenerApi.getState()
+      const agent = selectCurrentAgentData(state)
+      if (!ADS.isFulfilled(agent)) return
+
+      if (agent.value.type === "extraction") return
+      await listenerApi.dispatch(listAgentMessageFeedbacks({ agentId: agent.value.id }))
     },
   })
 
@@ -35,10 +35,6 @@ function registerListeners() {
           type: "success",
         }),
       )
-
-      const state = listenerApi.getState()
-      const agentId = getCurrentId({ state, name: "agentId" })
-      await listenerApi.dispatch(listAgentMessageFeedbacks({ agentId }))
     },
   })
   listenerMiddleware.startListening({

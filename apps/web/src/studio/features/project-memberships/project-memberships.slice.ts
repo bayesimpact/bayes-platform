@@ -27,6 +27,8 @@ const slice = createSlice({
   reducers: {
     mount: () => {},
     unmount: () => {},
+    memberMount: () => {},
+    memberUnmount: () => {},
     reset: () => initialState,
   },
   extraReducers: (builder) => {

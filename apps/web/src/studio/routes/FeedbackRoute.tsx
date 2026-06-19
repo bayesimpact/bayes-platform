@@ -7,22 +7,25 @@ import {
 } from "@/common/features/agents/agents.selectors"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
 import { useGetAgentRoute } from "@/common/hooks/use-get-path"
-import { useValue } from "@/common/hooks/use-value"
+import { useMount } from "@/common/hooks/use-mount"
+import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { useAppSelector } from "@/common/store/hooks"
 import { selectCurrentAgentFeedbacksData } from "@/studio/features/agent-message-feedback/agent-message-feedback.selectors"
 import { AsyncRoute } from "../../common/routes/AsyncRoute"
 import { ErrorRoute } from "../../common/routes/ErrorRoute"
+import { agentMessageFeedbackActions } from "../features/agent-message-feedback/agent-message-feedback.slice"
 import { EmptyFeedback } from "../features/agent-message-feedback/components/EmptyFeedback"
 import { FeedbackItem } from "../features/agent-message-feedback/components/FeedbackItem"
 
 export function FeedbackRoute() {
-  const agentId = useAppSelector(selectCurrentAgentId)
-  const agent = useAppSelector(selectCurrentAgentData)
+  const agentId = useCurrentId(selectCurrentAgentId)
   const feedbacks = useAppSelector(selectCurrentAgentFeedbacksData)
+
+  useMount({ actions: agentMessageFeedbackActions, refreshOn: [agentId] })
 
   if (!agentId) return <ErrorRoute error="Missing valid agent ID" />
   return (
-    <AsyncRoute data={[agent, feedbacks]}>
+    <AsyncRoute data={[feedbacks]}>
       <WithData />
     </AsyncRoute>
   )
