@@ -470,23 +470,23 @@ function parseCrawledPages(
 function toDocumentDto(entity: Document): DocumentDto {
   const isWebCrawl = entity.sourceType === "webCrawl"
   return {
-    id: entity.id,
-    projectId: entity.projectId,
-    title: entity.title,
     content: isWebCrawl ? undefined : entity.content,
-    pages: isWebCrawl ? parseCrawledPages(entity.content) : undefined,
-    fileName: entity.fileName,
     createdAt: entity.createdAt.getTime(),
-    updatedAt: entity.updatedAt.getTime(),
     deletedAt: entity.deletedAt?.getTime() || undefined,
+    embeddingError: entity.embeddingError ?? null,
+    embeddingStatus: entity.embeddingStatus,
+    fileName: entity.fileName,
+    id: entity.id,
     language: entity.language === "fr" ? "fr" : "en",
     mimeType: entity.mimeType as MimeTypes,
+    pages: isWebCrawl ? parseCrawledPages(entity.content) : undefined,
+    projectId: entity.projectId,
     size: entity.size,
-    storageRelativePath: entity.storageRelativePath,
     sourceType: entity.sourceType,
     sourceUrl: entity.sourceUrl ?? null,
-    embeddingStatus: entity.embeddingStatus,
-    embeddingError: entity.embeddingError ?? null,
+    storageRelativePath: entity.storageRelativePath,
     tagIds: entity.tags?.map((tag) => tag.id) || [],
+    title: entity.title,
+    updatedAt: entity.updatedAt.getTime(),
   }
 }

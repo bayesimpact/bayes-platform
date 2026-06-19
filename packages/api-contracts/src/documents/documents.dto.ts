@@ -53,24 +53,24 @@ export type DocumentUploadOptionalTagFields = {
 }
 
 export type DocumentDto = {
-  createdAt: TimeType
-  id: string
-  projectId: string
-  updatedAt: TimeType
-  deletedAt?: TimeType
-  title: string
   content?: string
-  pages?: { url: string; markdown: string }[]
+  createdAt: TimeType
+  deletedAt?: TimeType
+  embeddingError: string | null
+  embeddingStatus: DocumentEmbeddingStatus
   fileName?: string
+  id: string
   language: "en" | "fr"
   mimeType?: MimeTypes
+  pages?: { url: string; markdown: string }[]
+  projectId: string
   size?: number
-  storageRelativePath?: string
   sourceType: DocumentSourceType
   sourceUrl?: string | null
-  embeddingStatus: DocumentEmbeddingStatus
-  embeddingError: string | null
+  storageRelativePath?: string
   tagIds: DocumentTagDto["id"][]
+  title: string
+  updatedAt: TimeType
 }
 
 export type CrawlUrlRequestDto = {

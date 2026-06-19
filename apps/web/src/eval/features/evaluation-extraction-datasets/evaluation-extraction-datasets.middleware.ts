@@ -133,7 +133,7 @@ function registerFileListeners() {
   listenerMiddleware.startListening({
     matcher: isAnyOf(
       evaluationExtractionDatasetsActions.uploadFile.fulfilled,
-      evaluationExtractionDatasetsActions.deleteFile.fulfilled,
+      evaluationExtractionDatasetsActions.deleteFiles.fulfilled,
     ),
     effect: async (_, listenerApi) => {
       await Promise.all([listenerApi.dispatch(evaluationExtractionDatasetsActions.listFiles())])
@@ -175,18 +175,18 @@ function registerFileListeners() {
   })
 
   listenerMiddleware.startListening({
-    actionCreator: evaluationExtractionDatasetsActions.deleteFile.fulfilled,
+    actionCreator: evaluationExtractionDatasetsActions.deleteFiles.fulfilled,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "File deleted successfully",
+          title: "File(s) deleted successfully",
           type: "success",
         }),
       )
     },
   })
   listenerMiddleware.startListening({
-    actionCreator: evaluationExtractionDatasetsActions.deleteFile.rejected,
+    actionCreator: evaluationExtractionDatasetsActions.deleteFiles.rejected,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({

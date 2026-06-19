@@ -4,6 +4,7 @@ import {
   type EvaluationExtractionDatasetFileDto,
   type EvaluationExtractionDatasetRecordRowDto,
   EvaluationExtractionDatasetsRoutes,
+  type MimeTypes,
   type PaginatedEvaluationExtractionDatasetRecordsDto,
 } from "@caseai-connect/api-contracts"
 import {
@@ -214,16 +215,20 @@ export class EvaluationExtractionDatasetsController {
 }
 
 function toEvaluationExtractionDatasetFileDto(
-  document: Document,
+  entity: Document,
 ): EvaluationExtractionDatasetFileDto {
   return {
-    createdAt: document.createdAt.getTime(),
-    fileName: document.fileName,
-    id: document.id,
-    projectId: document.projectId,
-    size: document.size,
-    storageRelativePath: document.storageRelativePath,
-    updatedAt: document.updatedAt.getTime(),
+    createdAt: entity.createdAt.getTime(),
+    fileName: entity.fileName,
+    id: entity.id,
+    language: entity.language === "fr" ? "fr" : "en",
+    mimeType: entity.mimeType as MimeTypes,
+    projectId: entity.projectId,
+    size: entity.size,
+    sourceType: entity.sourceType,
+    storageRelativePath: entity.storageRelativePath,
+    title: entity.title,
+    updatedAt: entity.updatedAt.getTime(),
   }
 }
 function toEvaluationExtractionDatasetFileColumnDto(

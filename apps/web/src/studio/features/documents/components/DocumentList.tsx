@@ -19,7 +19,6 @@ import {
 import { Field, FieldGroup, FieldLabel, FieldSet } from "@caseai-connect/ui/shad/field"
 import { Input } from "@caseai-connect/ui/shad/input"
 import { Item } from "@caseai-connect/ui/shad/item"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@caseai-connect/ui/shad/sheet"
 import {
   Table,
   TableBody,
@@ -45,12 +44,12 @@ import { useReducer, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
+import { DocumentDetailsSheet } from "@/common/components/DocumentSelectionList"
 import { GridHeader } from "@/common/components/grid/Grid"
-import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/MarkdownWrapper"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import { buildDate, buildSince } from "@/common/utils/build-date"
+import { buildSince } from "@/common/utils/build-date"
 import { generateId } from "@/common/utils/generate-id"
 import {
   getTagNameById,
@@ -76,7 +75,6 @@ import {
   reprocessDocument,
   updateDocument,
 } from "@/studio/features/documents/documents.thunks"
-import { DocumentTagItem } from "../../document-tags/components/DocumentTagItem"
 import { DocumentTagsSheet } from "../../document-tags/components/DocumentTagsSheet"
 
 export function DocumentList() {
@@ -597,53 +595,12 @@ function DocumentActions({
         </DialogContent>
       </Dialog>
 
-      <Sheet
+      <DocumentDetailsSheet
+        document={document}
+        documentTags={documentTags}
         open={activeAction === "details"}
         onOpenChange={(open) => !open && setActiveAction(null)}
-      >
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle>{document.title}</SheetTitle>
-          </SheetHeader>
-          <div className="flex flex-col gap-4 px-4 pb-4">
-            <div className="flex flex-col gap-4">
-              <MetaField
-                label={t("document:props.createdAt")}
-                value={buildDate(document.createdAt)}
-              />
-              <MetaField
-                label={t("document:props.updatedAt")}
-                value={buildDate(document.updatedAt)}
-              />
-              <MetaField label={t("document:props.fileName")} value={document.fileName} />
-              <MetaField label={t("document:props.size")} value={document.size?.toString()} />
-              <MetaField label={t("document:props.language")} value={document.language} />
-              <MetaField label={t("document:props.mimeType")} value={document.mimeType} />
-              <div className="flex flex-col gap-1">
-                <span className="font-medium">{t("document:props.embeddingStatus")}:</span>
-                <EmbeddingStatusBadge status={document.embeddingStatus} />
-              </div>
-              {document.embeddingError && (
-                <MetaField
-                  label={t("document:props.embeddingError")}
-                  value={document.embeddingError}
-                />
-              )}
-            </div>
-            {document.tagIds.length > 0 && (
-              <div className="flex flex-col gap-2">
-                <span className="text-sm font-medium">{t("document:props.tags")}</span>
-                {document.tagIds.map((tagId) => {
-                  const tag = documentTags.find((documentTag) => documentTag.id === tagId)
-                  if (!tag) return null
-                  return <DocumentTagItem key={tagId} tag={tag} readonly />
-                })}
-              </div>
-            )}
-            {document.content && <MarkdownWrapper content={document.content} />}
-          </div>
-        </SheetContent>
-      </Sheet>
+      />
     </>
   )
 }
@@ -740,16 +697,6 @@ function DocumentEditForm({ document, onSuccess }: { document: Document; onSucce
       <div className="flex justify-end">
         <Button onClick={handleSave}>{t("actions:update")}</Button>
       </div>
-    </div>
-  )
-}
-
-function MetaField({ label, value }: { label: string; value?: string }) {
-  if (!value) return null
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="font-medium">{label}:</span>
-      <span className="text-muted-foreground">{value}</span>
     </div>
   )
 }
