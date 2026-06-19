@@ -6,9 +6,12 @@ import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { CheckIcon, CopyIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
+import {
+  selectCurrentAgentData,
+  selectCurrentAgentId,
+} from "@/common/features/agents/agents.selectors"
 import { useMount } from "@/common/hooks/use-mount"
-import { useValue } from "@/common/hooks/use-value"
+import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import type { AgentEmbedConfig } from "../agent-embed-configs.models"
@@ -42,9 +45,10 @@ const emptyFormState: EmbedFormState = {
 }
 
 export function AgentEmbedTab() {
+  const agentId = useCurrentId(selectCurrentAgentId)
   const config = useAppSelector(selectAgentEmbedConfig)
 
-  useMount({ actions: agentEmbedConfigsActions })
+  useMount({ actions: agentEmbedConfigsActions, refreshOn: [agentId] })
 
   return (
     <AsyncRoute data={[config]}>

@@ -1,10 +1,13 @@
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/grid/Grid"
-import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
+import {
+  selectCurrentAgentData,
+  selectCurrentAgentId,
+} from "@/common/features/agents/agents.selectors"
 import { useGetAgentRoute } from "@/common/hooks/use-get-path"
 import { useMount } from "@/common/hooks/use-mount"
-import { useValue } from "@/common/hooks/use-value"
+import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import {
@@ -18,14 +21,14 @@ import { revokeInvitation } from "@/studio/features/invitations/invitations.thun
 import { agentMembershipsActions } from "../features/agent-memberships/agent-memberships.slice"
 
 export function AgentMembershipsRoute() {
-  const agent = useAppSelector(selectCurrentAgentData)
+  const agentId = useCurrentId(selectCurrentAgentId)
   const memberships = useAppSelector(selectAgentMemberships)
   const pendingInvitations = useAppSelector(selectAgentPendingInvitations)
 
-  useMount({ actions: agentMembershipsActions })
+  useMount({ actions: agentMembershipsActions, refreshOn: [agentId] })
 
   return (
-    <AsyncRoute data={[memberships, agent, pendingInvitations]}>
+    <AsyncRoute data={[memberships, pendingInvitations]}>
       <WithData />
     </AsyncRoute>
   )

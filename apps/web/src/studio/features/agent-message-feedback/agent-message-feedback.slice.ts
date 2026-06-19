@@ -19,6 +19,8 @@ const slice = createSlice({
   name: "agentMessageFeedback",
   initialState,
   reducers: {
+    mount: () => {},
+    unmount: () => {},
     reset: () => initialState,
     setCurrentFeedbackId: (state, action: PayloadAction<{ feedbackId: string | null }>) => {
       state.currentFeedbackId = action.payload.feedbackId
