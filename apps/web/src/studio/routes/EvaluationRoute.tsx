@@ -20,10 +20,9 @@ import { evaluationsActions } from "../features/evaluations/evaluations.slice"
 
 export function EvaluationRoute() {
   const evaluations = useAppSelector(selectEvaluationsData)
-  const agents = useAppSelector(selectAgentsData)
   useMount({ actions: evaluationsActions })
   return (
-    <AsyncRoute data={[agents, evaluations]}>
+    <AsyncRoute data={[evaluations]}>
       <WithData />
     </AsyncRoute>
   )

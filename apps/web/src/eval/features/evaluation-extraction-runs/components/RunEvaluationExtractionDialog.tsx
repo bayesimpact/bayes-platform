@@ -24,7 +24,7 @@ import { useNavigate } from "react-router-dom"
 import { RunScopeSelector } from "@/common/components/shared/RunScopeSelector"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
-import { ADS } from "@/common/store/async-data-status"
+import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import type {
   EvaluationExtractionDataset,
@@ -49,7 +49,7 @@ export function RunEvaluationExtractionDialog({
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { buildRunPath } = useEvaluationExtractionRunPath()
-  const agentsData = useAppSelector(selectAgentsData)
+  const agentsData = useValue(selectAgentsData)
   const isExecuting = useAppSelector(selectIsExecuting)
   const [open, setOpen] = useState(false)
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
@@ -58,8 +58,7 @@ export function RunEvaluationExtractionDialog({
   const [limitedCount, setLimitedCount] = useState(1)
 
   const extractionAgents = useMemo(() => {
-    if (!ADS.isFulfilled(agentsData)) return []
-    return agentsData.value.filter((agent) => agent.type === "extraction")
+    return agentsData.filter((agent) => agent.type === "extraction")
   }, [agentsData])
 
   const targetColumns = useMemo(
