@@ -15,7 +15,10 @@ import {
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
-import { reviewCampaignMembershipFactory } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../test/e2e.helpers"
@@ -202,20 +205,22 @@ describe("MeController (e2e)", () => {
       const draftCampaign = await repositories.reviewCampaignRepository.save(
         reviewCampaignFactory.transient({ organization, project, agent }).build(),
       )
-      await repositories.reviewCampaignMembershipRepository.save(
-        reviewCampaignMembershipFactory
+      await saveReviewCampaignMembership({
+        repositories,
+        membership: reviewCampaignMembershipFactory
           .reviewer()
           .accepted()
           .transient({ organization, project, campaign: activeCampaign, user })
           .build(),
-      )
-      await repositories.reviewCampaignMembershipRepository.save(
-        reviewCampaignMembershipFactory
+      })
+      await saveReviewCampaignMembership({
+        repositories,
+        membership: reviewCampaignMembershipFactory
           .tester()
           .accepted()
           .transient({ organization, project, campaign: draftCampaign, user })
           .build(),
-      )
+      })
       auth0Id = user.auth0Id
 
       const response = await subject()

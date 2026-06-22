@@ -17,7 +17,10 @@ import { createOrganizationWithProject } from "@/domains/organizations/organizat
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
-import { reviewCampaignMembershipFactory } from "../../memberships/review-campaign-membership.factory"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "../../memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
 
@@ -94,12 +97,13 @@ describe("ReviewCampaigns - Reviewer auth", () => {
       factory.transient({ organization, project, agent }).build(),
     )
     if (callerRole !== "none") {
-      await repositories.reviewCampaignMembershipRepository.save(
-        reviewCampaignMembershipFactory[callerRole]()
+      await saveReviewCampaignMembership({
+        repositories,
+        membership: reviewCampaignMembershipFactory[callerRole]()
           .accepted()
           .transient({ organization, project, campaign, user: caller })
           .build(),
-      )
+      })
     }
     const session = conversationAgentSessionFactory
       .transient({ organization, project, agent, user: tester })

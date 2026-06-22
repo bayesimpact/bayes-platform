@@ -5,8 +5,8 @@ import type { User } from "@/domains/users/user.entity"
 import type { UserMembership, UserMembershipResourceType } from "./user-membership.entity"
 
 type UserMembershipTransientParams = {
-  user: User
-  organization: Organization
+  user?: User
+  organization?: Organization
 }
 
 class UserMembershipFactory extends Factory<UserMembership, UserMembershipTransientParams> {
@@ -24,23 +24,21 @@ class UserMembershipFactory extends Factory<UserMembership, UserMembershipTransi
 }
 
 export const userMembershipFactory = UserMembershipFactory.define(({ params, transientParams }) => {
-  if (!transientParams.user) {
-    throw new Error("user transient is required")
-  }
-  if (!transientParams.organization) {
-    throw new Error("organization transient is required")
-  }
+  const userId = params.userId ?? transientParams.user?.id
+  const resourceId = params.resourceId ?? transientParams.organization?.id
+  if (!userId) throw new Error("userId param or user transient is required")
+  if (!resourceId) throw new Error("resourceId param or organization transient is required")
 
   const now = new Date()
   return {
     id: params.id ?? randomUUID(),
-    userId: transientParams.user.id,
+    userId,
     resourceType: (params.resourceType ?? "organization") as UserMembershipResourceType,
-    resourceId: params.resourceId ?? transientParams.organization.id,
+    resourceId,
     role: params.role ?? "member",
     createdAt: params.createdAt ?? now,
     updatedAt: params.updatedAt ?? now,
     deletedAt: params.deletedAt ?? null,
-    user: transientParams.user,
+    user: transientParams.user as User,
   } satisfies UserMembership
 })

@@ -17,7 +17,10 @@ import { createOrganizationWithProject } from "@/domains/organizations/organizat
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
-import { reviewCampaignMembershipFactory } from "../../memberships/review-campaign-membership.factory"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "../../memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
 
@@ -75,13 +78,14 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
     const campaign = await repositories.reviewCampaignRepository.save(
       factory.transient({ organization, project, agent }).build(),
     )
-    await repositories.reviewCampaignMembershipRepository.save(
-      reviewCampaignMembershipFactory
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
         .reviewer()
         .accepted()
         .transient({ organization, project, campaign, user: reviewer })
         .build(),
-    )
+    })
     organizationId = organization.id
     projectId = project.id
     reviewCampaignId = campaign.id
