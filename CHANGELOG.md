@@ -12,6 +12,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+
+### Security
+
+## [26.06.8] - 2026-06-22
+
+### Added
+
+### Changed
+
+### Fixed
 - Agent extraction PDF upload correctly shows the last extraction result after upload completes
 - Deleting an extraction run requires confirmation
 
