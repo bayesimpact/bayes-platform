@@ -107,8 +107,10 @@ describe("UserMembershipService", () => {
         }),
       ).rejects.toThrow("forced rollback")
 
+      // The "owner" row written by createOrganizationWithOwner is still present,
+      // but the rolled-back "member" upsert must not have mutated it.
       const row = await getUserMembership(user.id, organization.id)
-      expect(row).toBeNull()
+      expect(row?.role).toBe("owner")
     })
   })
 
