@@ -2,6 +2,7 @@ import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store"
+import { agentCsvExtractionRunsThunks } from "../../csv-extraction-runs/agent-csv-extraction-runs.thunks"
 import { deleteAgentSession } from "../shared/base-agent-session/base-agent-sessions.thunks"
 import { extractionAgentSessionsActions } from "./extraction-agent-sessions.slice"
 
@@ -23,7 +24,12 @@ function registerListeners() {
   })
 
   listenerMiddleware.startListening({
-    matcher: isAnyOf(mount, executeOne.fulfilled, executeOne.rejected),
+    matcher: isAnyOf(
+      mount,
+      executeOne.fulfilled,
+      executeOne.rejected,
+      agentCsvExtractionRunsThunks.uploadCsvFile.fulfilled,
+    ),
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(listMyDocuments())
     },

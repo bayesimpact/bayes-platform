@@ -24,6 +24,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Fixed
 - Agent extraction PDF upload correctly shows the last extraction result after upload completes
 - Deleting an extraction run requires confirmation
+- Uploaded documents now appear in the extraction document list after upload (CSV uploads were not refreshing the list)
 
 ### Security
 
