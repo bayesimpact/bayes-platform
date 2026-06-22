@@ -3,6 +3,8 @@ import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
 import type { EntityManager, Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource, In } from "typeorm"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { UserMembershipService } from "@/domains/memberships/user-membership.service"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { User } from "@/domains/users/user.entity"
 import { Agent } from "../agent.entity"
@@ -16,6 +18,7 @@ export class AgentMembershipsService {
     @InjectRepository(AgentMembership)
     private readonly agentMembershipRepository: Repository<AgentMembership>,
     @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly userMembershipService: UserMembershipService,
   ) {}
 
   async findById(membershipId: string): Promise<AgentMembership | null> {
@@ -70,12 +73,20 @@ export class AgentMembershipsService {
     agentId: string
     userId: string
   }): Promise<AgentMembership> {
-    const membership = this.agentMembershipRepository.create({
-      agentId: params.agentId,
-      userId: params.userId,
-      role: "owner",
+    return this.dataSource.transaction(async (manager) => {
+      const membershipRepo = manager.getRepository(AgentMembership)
+      const membership = membershipRepo.create({
+        agentId: params.agentId,
+        userId: params.userId,
+        role: "owner",
+      })
+      const saved = await membershipRepo.save(membership)
+      await this.userMembershipService.upsertAgentMembership(
+        { userId: params.userId, agentId: params.agentId, role: "owner" },
+        manager,
+      )
+      return saved
     })
-    return this.agentMembershipRepository.save(membership)
   }
 
   async upsertAgentMemberMembership(params: {
@@ -97,7 +108,12 @@ export class AgentMembershipsService {
       userId: params.userId,
       role: "member",
     })
-    return membershipRepo.save(newMembership)
+    const saved = await membershipRepo.save(newMembership)
+    await this.userMembershipService.upsertAgentMembership(
+      { userId: params.userId, agentId: params.agentId, role: "member" },
+      params.manager,
+    )
+    return saved
   }
 
   /**
@@ -129,6 +145,10 @@ export class AgentMembershipsService {
       }
 
       await membershipRepo.delete({ id: membershipId, agentId })
+      await this.userMembershipService.deleteAgentMembership(
+        { userId: membership.user.id, agentId },
+        manager,
+      )
 
       if (membership.user.auth0Id.startsWith(PLACEHOLDER_AUTH0_ID_PREFIX)) {
         // If the user is a placeholder (never signed up), clean them up
@@ -159,6 +179,10 @@ export class AgentMembershipsService {
         if (existing.role !== "admin") {
           existing.role = "admin"
           await manager.save(AgentMembership, existing)
+          await this.userMembershipService.upsertAgentMembership(
+            { userId, agentId: agent.id, role: "admin" },
+            manager,
+          )
         }
         continue
       }
@@ -169,6 +193,10 @@ export class AgentMembershipsService {
         role: "admin",
       })
       await manager.save(AgentMembership, membership)
+      await this.userMembershipService.upsertAgentMembership(
+        { userId, agentId: agent.id, role: "admin" },
+        manager,
+      )
     }
   }
 
@@ -191,17 +219,24 @@ export class AgentMembershipsService {
     for (const projectMembership of projectMemberships) {
       if (projectMembership.userId === excludeUserId) continue
 
-      const existing = await this.agentMembershipRepository.findOne({
-        where: { agentId, userId: projectMembership.userId },
-      })
-      if (existing) continue
+      await this.dataSource.transaction(async (manager) => {
+        const membershipRepo = manager.getRepository(AgentMembership)
+        const existing = await membershipRepo.findOne({
+          where: { agentId, userId: projectMembership.userId },
+        })
+        if (existing) return
 
-      const membership = this.agentMembershipRepository.create({
-        agentId,
-        userId: projectMembership.userId,
-        role: "admin",
+        const membership = membershipRepo.create({
+          agentId,
+          userId: projectMembership.userId,
+          role: "admin",
+        })
+        await membershipRepo.save(membership)
+        await this.userMembershipService.upsertAgentMembership(
+          { userId: projectMembership.userId, agentId, role: "admin" },
+          manager,
+        )
       })
-      await this.agentMembershipRepository.save(membership)
     }
   }
 
@@ -219,5 +254,6 @@ export class AgentMembershipsService {
 
     const agentIds = agents.map((agent) => agent.id)
     await manager.delete(AgentMembership, { agentId: In(agentIds), userId })
+    await this.userMembershipService.deleteAgentMembershipsForUser({ userId, agentIds }, manager)
   }
 }

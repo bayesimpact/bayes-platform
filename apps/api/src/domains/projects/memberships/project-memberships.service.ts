@@ -5,6 +5,8 @@ import type { EntityManager, Repository } from "typeorm"
 import { DataSource } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { UserMembershipService } from "@/domains/memberships/user-membership.service"
 import { User } from "@/domains/users/user.entity"
 import { ProjectMembership } from "./project-membership.entity"
 
@@ -17,6 +19,7 @@ export class ProjectMembershipsService {
     private readonly projectMembershipRepository: Repository<ProjectMembership>,
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly agentMembershipsService: AgentMembershipsService,
+    private readonly userMembershipService: UserMembershipService,
   ) {}
 
   async findById(membershipId: string): Promise<ProjectMembership | null> {
@@ -50,7 +53,13 @@ export class ProjectMembershipsService {
       userId,
       role: "owner",
     })
-    return this.projectMembershipRepository.save(membership)
+    const saved = await this.projectMembershipRepository.save(membership)
+    await this.userMembershipService.upsertProjectMembership({
+      userId,
+      projectId,
+      role: "owner",
+    })
+    return saved
   }
 
   async upsertProjectAdminMembership(params: {
@@ -67,6 +76,10 @@ export class ProjectMembershipsService {
       if (existingMembership.role !== "admin") {
         existingMembership.role = "admin"
         await membershipRepo.save(existingMembership)
+        await this.userMembershipService.upsertProjectMembership(
+          { userId: params.userId, projectId: params.projectId, role: "admin" },
+          params.manager,
+        )
         await this.agentMembershipsService.createAdminAgentMembershipsForUserInProject({
           manager: params.manager,
           userId: params.userId,
@@ -81,7 +94,12 @@ export class ProjectMembershipsService {
       userId: params.userId,
       role: "admin",
     })
-    return membershipRepo.save(newMembership)
+    const savedMembership = await membershipRepo.save(newMembership)
+    await this.userMembershipService.upsertProjectMembership(
+      { userId: params.userId, projectId: params.projectId, role: "admin" },
+      params.manager,
+    )
+    return savedMembership
   }
 
   /**
@@ -123,6 +141,10 @@ export class ProjectMembershipsService {
       })
 
       await membershipRepo.delete({ id: membershipId, projectId })
+      await this.userMembershipService.deleteProjectMembership(
+        { userId: user.id, projectId },
+        manager,
+      )
 
       // If the user is a placeholder (never signed up), clean them up
       if (user.auth0Id.startsWith(PLACEHOLDER_AUTH0_ID_PREFIX)) {

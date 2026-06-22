@@ -11,6 +11,11 @@ import {
 } from "@/domains/auth/invitation-sender.interface"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { InvitationPersistenceService } from "@/domains/invitations/invitation-persistence.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import {
+  type UserMembershipRole,
+  UserMembershipService,
+} from "@/domains/memberships/user-membership.service"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { User } from "@/domains/users/user.entity"
@@ -61,6 +66,7 @@ export class AgentInvitationHandler
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly invitationPersistence: InvitationPersistenceService,
     private readonly acceptanceHelpers: InvitationAcceptanceHelpersService,
+    private readonly userMembershipService: UserMembershipService,
   ) {}
 
   async createInvitations(params: CreateInvitationsForTargetParams): Promise<Invitation[]> {
@@ -246,10 +252,18 @@ export class AgentInvitationHandler
         user.id,
         agent.organizationId,
       )
+      await this.userMembershipService.upsertOrganizationMembership(
+        { userId: user.id, organizationId: agent.organizationId, role: "member" },
+        manager,
+      )
       await this.acceptanceHelpers.ensureProjectMembership(
         repos.projectMembershipRepository,
         user.id,
         agent.projectId,
+      )
+      await this.userMembershipService.upsertProjectMembership(
+        { userId: user.id, projectId: agent.projectId, role: "member" },
+        manager,
       )
 
       const existingMembership = await repos.membershipRepository.findOne({
@@ -262,6 +276,14 @@ export class AgentInvitationHandler
             userId: user.id,
             role: invitation.role as AgentMembership["role"],
           }),
+        )
+        await this.userMembershipService.upsertAgentMembership(
+          {
+            userId: user.id,
+            agentId: invitation.targetId,
+            role: invitation.role as UserMembershipRole,
+          },
+          manager,
         )
       }
       await repos.invitationRepository.update({ id: invitation.id }, { userId: user.id })
