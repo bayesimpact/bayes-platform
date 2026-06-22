@@ -40,6 +40,13 @@
       "button": "History",
       "title": "History",
       "description": "View the history of your agent sessions"
+    },
+    "delete": {
+      "confirm": {
+        "title": "Delete extraction",
+        "description": "This extraction will be permanently deleted. This action cannot be undone.",
+        "submit": "Delete"
+      }
     }
   }
 }

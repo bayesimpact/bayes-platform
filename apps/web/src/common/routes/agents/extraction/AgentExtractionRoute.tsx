@@ -6,7 +6,10 @@ import { useNavigate, useOutlet } from "react-router-dom"
 import type { Document } from "@/studio/features/documents/documents.models"
 import { FileUploader } from "../../../components/FileUploader"
 import { GridHeader } from "../../../components/grid/Grid"
-import { selectIsExtracting } from "../../../features/agents/agent-sessions/extraction/extraction-agent-sessions.selectors"
+import {
+  selectExtractionAgentSessionsDocuments,
+  selectIsExtracting,
+} from "../../../features/agents/agent-sessions/extraction/extraction-agent-sessions.selectors"
 import { extractionAgentSessionsActions } from "../../../features/agents/agent-sessions/extraction/extraction-agent-sessions.slice"
 import { selectCurrentAgentData } from "../../../features/agents/agents.selectors"
 import { DocumentList } from "../../../features/agents/components/DocumentList"
@@ -16,20 +19,50 @@ import { CsvExtractor } from "../../../features/agents/csv-extraction-runs/compo
 import { useGetAgentRoute } from "../../../hooks/use-get-path"
 import { useValue } from "../../../hooks/use-value"
 import { useAppDispatch, useAppSelector } from "../../../store/hooks"
+import { AsyncRoute } from "../../AsyncRoute"
 import type { BuildAgentExtractionCsvRunRoute } from "../../build-routes/context"
 import { ErrorRoute } from "../../ErrorRoute"
 
-export function AgentExtractionRoute({
+export function AgentExtractionRoute(props: { buildCsvRunPath: BuildAgentExtractionCsvRunRoute }) {
+  const documents = useAppSelector(selectExtractionAgentSessionsDocuments)
+  const agent = useValue(selectCurrentAgentData)
+  const [csvDocumentId, setCsvDocumentId] = useState<string | null>(null)
+  const [openLastExtraction, setOpenLastExtraction] = useState(false)
+
+  if (agent.type !== "extraction")
+    return <ErrorRoute error={`${agent.name} is not an extraction agent`} />
+  return (
+    <AsyncRoute data={[documents]}>
+      <WithData
+        {...props}
+        agentId={agent.id}
+        csvDocumentId={csvDocumentId}
+        setCsvDocumentId={setCsvDocumentId}
+        openLastExtraction={openLastExtraction}
+        setOpenLastExtraction={setOpenLastExtraction}
+      />
+    </AsyncRoute>
+  )
+}
+
+function WithData({
   buildCsvRunPath,
+  agentId,
+  csvDocumentId,
+  setCsvDocumentId,
+  openLastExtraction,
+  setOpenLastExtraction,
 }: {
   buildCsvRunPath: BuildAgentExtractionCsvRunRoute
+  agentId: string
+  csvDocumentId: string | null
+  setCsvDocumentId: (id: string | null) => void
+  openLastExtraction: boolean
+  setOpenLastExtraction: (open: boolean) => void
 }) {
   const dispatch = useAppDispatch()
   const outlet = useOutlet()
   const navigate = useNavigate()
-  const agent = useValue(selectCurrentAgentData)
-  const [csvDocumentId, setCsvDocumentId] = useState<string | null>(null)
-  const [openLastExtraction, setOpenLastExtraction] = useState(false)
   const agentPath = useGetAgentRoute()
 
   const handleBack = () => navigate(agentPath)
@@ -37,15 +70,13 @@ export function AgentExtractionRoute({
   const handleSuccess = ({ isCsv, documentId }: { isCsv: boolean; documentId?: string }) => {
     if (isCsv && documentId) {
       setCsvDocumentId(documentId)
-      dispatch(agentCsvExtractionRunsThunks.getFileColumns({ agentId: agent.id, documentId }))
+      dispatch(agentCsvExtractionRunsThunks.getFileColumns({ agentId, documentId }))
     } else {
       setOpenLastExtraction(true)
     }
   }
 
-  if (agent.type !== "extraction")
-    return <ErrorRoute error={`${agent.name} is not an extraction agent`} />
-
+  if (openLastExtraction) return <LastExtraction onBack={handleBack} />
   if (outlet) return outlet
   if (csvDocumentId)
     return (
@@ -55,8 +86,7 @@ export function AgentExtractionRoute({
         documentId={csvDocumentId}
       />
     )
-  if (openLastExtraction) return <LastExtraction onBack={handleBack} />
-  return <FileManager agentId={agent.id} onSuccess={handleSuccess} />
+  return <FileManager agentId={agentId} onSuccess={handleSuccess} />
 }
 
 function FileManager({

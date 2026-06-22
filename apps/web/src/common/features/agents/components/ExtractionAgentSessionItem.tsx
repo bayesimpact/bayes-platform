@@ -11,6 +11,7 @@ import { Trash2Icon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
+import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { GridCard } from "@/common/components/grid/Grid"
 import { Loader } from "@/common/components/Loader"
 import type { ExtractionAgentSessionSummary } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
@@ -89,8 +90,11 @@ export function CsvExtractionSessionItem({
     )
   }
 
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
+
   const handleDelete = () => {
     dispatch(agentCsvExtractionRunsActions.deleteOne({ agentCsvExtractionRunId: agentSession.id }))
+    setConfirmDeleteOpen(false)
   }
 
   return (
@@ -120,12 +124,20 @@ export function CsvExtractionSessionItem({
             />
           )}
           {canDelete && (
-            <Button variant="ghost" size="sm" onClick={handleDelete}>
+            <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteOpen(true)}>
               <Trash2Icon />
             </Button>
           )}
         </div>
       </GridCard.Body>
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        title={t("agentCsvExtractionRun:delete.confirm.title")}
+        description={t("agentCsvExtractionRun:delete.confirm.description")}
+        confirmLabel={t("agentCsvExtractionRun:delete.confirm.submit")}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDeleteOpen(false)}
+      />
     </GridCard>
   )
 }
@@ -139,9 +151,11 @@ export function Actions({
   isSuccess: boolean
   canDelete?: boolean
 }) {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const [isLoading, setIsLoading] = useState(false)
   const [runResult, setRunResult] = useState<Record<string, unknown>>()
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
   const handleGetRunResult = async (
     agentSessionId: string,
@@ -172,6 +186,7 @@ export function Actions({
         agentSessionId: agentSession.id,
       }),
     )
+    setConfirmDeleteOpen(false)
   }
 
   return (
@@ -202,10 +217,18 @@ export function Actions({
         buttonProps={{ size: "sm", variant: "outline" }}
       />
       {canDelete && (
-        <Button variant="ghost" size="sm" onClick={handleDelete}>
+        <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteOpen(true)}>
           <Trash2Icon />
         </Button>
       )}
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        title={t("extractionAgentSession:delete.confirm.title")}
+        description={t("extractionAgentSession:delete.confirm.description")}
+        confirmLabel={t("extractionAgentSession:delete.confirm.submit")}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDeleteOpen(false)}
+      />
     </div>
   )
 }
