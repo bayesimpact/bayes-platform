@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+title: "Bayes Platform (AgentStudio)"
+abstract: >-
+  Open-source platform for building multi-agent AI systems for the public
+  interest, developed by the nonprofit Bayes Impact.
+type: software
+message: >-
+  If you build AI agents on the Bayes Platform, please cite it and add the
+  acknowledgment described in CITING.md. If your work was part of the Impulse
+  program, please mention it. See CITING.md for ready-to-paste text and for when
+  co-authorship is (and isn't) appropriate.
+authors:
+  - name: "Bayes Impact"
+    website: "https://www.bayesimpact.org"
+license: MIT
+repository-code: "https://github.com/bayesimpact/agent-studio"
+url: "https://www.bayesimpact.org"
+keywords:
+  - artificial intelligence
+  - multi-agent systems
+  - public services
+  - open source
+  - nonprofit
+# TODO: once a release DOI is minted (GitHub ↔ Zenodo integration) or a JOSS
+# software paper is published, set `version` + `date-released` per release, add
+# the `doi:` here, and add a `preferred-citation:` block pointing at that paper/DOI
+# so it becomes the canonical reference (see CITING.md). Until then, GitHub's
+# "Cite this repository" button uses the software metadata above.
