@@ -54,6 +54,13 @@
       "errorDetails": "Détails de l'erreur",
       "noRecords": "Aucun enregistrement trouvé",
       "processingDescription": "{{processed}} sur {{total}} enregistrements traités."
+    },
+    "delete": {
+      "confirm": {
+        "title": "Supprimer l'extraction CSV",
+        "description": "Cette extraction CSV sera supprimée définitivement. Cette action est irréversible.",
+        "submit": "Supprimer"
+      }
     }
   }
 }

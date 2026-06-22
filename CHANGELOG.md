@@ -12,6 +12,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+- Agent extraction PDF upload correctly shows the last extraction result after upload completes
+- Deleting an extraction run requires confirmation
 
 ### Security
 
@@ -22,7 +24,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
-- Users without admin or owner permissions can now upload documents in the agent extraction app
+- Users without admin or owner permissions can upload documents in the agent extraction app
 
 ### Security
 

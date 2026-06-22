@@ -40,6 +40,13 @@
       "button": "Historique",
       "title": "Historique",
       "description": "Consultez l'historique de vos sessions d'agent"
+    },
+    "delete": {
+      "confirm": {
+        "title": "Supprimer l'extraction",
+        "description": "Cette extraction sera supprimée définitivement. Cette action est irréversible.",
+        "submit": "Supprimer"
+      }
     }
   }
 }
