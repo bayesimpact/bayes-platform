@@ -88,12 +88,10 @@ export class BackofficeService {
 
     const trimmedSearch = search?.trim()
     if (trimmedSearch) {
+      const searchPattern = `%${trimmedSearch.toLowerCase()}%`
       qb.andWhere(
-        "(LOWER(organization.name) LIKE :searchPattern OR CAST(organization.id AS TEXT) = :exactSearch)",
-        {
-          searchPattern: `%${trimmedSearch.toLowerCase()}%`,
-          exactSearch: trimmedSearch,
-        },
+        "(LOWER(organization.name) LIKE :searchPattern OR CAST(organization.id AS TEXT) LIKE :searchPattern)",
+        { searchPattern },
       )
     }
 
@@ -207,8 +205,8 @@ export class BackofficeService {
     if (trimmedSearch) {
       const searchPattern = `%${trimmedSearch.toLowerCase()}%`
       qb.andWhere(
-        "(LOWER(agent.name) LIKE :searchPattern OR LOWER(project.name) LIKE :searchPattern OR CAST(agent.id AS TEXT) = :exactSearch)",
-        { searchPattern, exactSearch: trimmedSearch },
+        "(LOWER(agent.name) LIKE :searchPattern OR LOWER(project.name) LIKE :searchPattern OR CAST(agent.id AS TEXT) LIKE :searchPattern)",
+        { searchPattern },
       )
     }
 
@@ -314,9 +312,9 @@ export class BackofficeService {
         `(
           LOWER("user"."email") LIKE :searchPattern
           OR LOWER(COALESCE("user"."name", '')) LIKE :searchPattern
-          OR CAST("user"."id" AS TEXT) = :exactSearch
+          OR CAST("user"."id" AS TEXT) LIKE :searchPattern
         )`,
-        { searchPattern, exactSearch: trimmedSearch },
+        { searchPattern },
       )
     }
 
@@ -378,9 +376,9 @@ export class BackofficeService {
         `(
           LOWER(project.name) LIKE :searchPattern
           OR LOWER(org.name) LIKE :searchPattern
-          OR CAST(project.id AS TEXT) = :exactSearch
+          OR CAST(project.id AS TEXT) LIKE :searchPattern
         )`,
-        { searchPattern, exactSearch: trimmedSearch },
+        { searchPattern },
       )
     }
 
