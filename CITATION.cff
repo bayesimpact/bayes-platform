@@ -6,9 +6,8 @@ abstract: >-
 type: software
 message: >-
   If you build AI agents on the Bayes Platform, please cite it and add the
-  acknowledgment described in CITING.md. If your work was part of the Impulse
-  program, please mention it. See CITING.md for ready-to-paste text and for when
-  co-authorship is (and isn't) appropriate.
+  acknowledgment described in CITING.md. See CITING.md for ready-to-paste text and
+  for when co-authorship is (and isn't) appropriate.
 authors:
   - name: "Bayes Impact"
     website: "https://www.bayesimpact.org"

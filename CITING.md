@@ -1,7 +1,7 @@
 # Citing & crediting the Bayes Platform
 
-Built something on the Bayes Platform — especially through the **Impulse** program —
-and publishing a paper, report, or case study? Thank you. Here's how to credit it.
+Built something on the **Bayes Platform** and publishing a paper, report, or case
+study? Thank you. Here's how to credit it.
 
 **TL;DR:** please **cite** the platform and add a one-line **acknowledgment**. You do
 **not** need to offer co-authorship just for using the platform — that's not how tool
@@ -42,16 +42,15 @@ BibTeX:
 
 Copy-paste, bilingual:
 
-**EN** — *The AI agents in this work were built on the open-source Bayes Platform
-(AgentStudio), developed by the nonprofit Bayes Impact (https://www.bayesimpact.org).
-This work was carried out as part of Bayes Impact's Impulse program.*
+**EN** — *The AI agents in this work were built on the open-source Bayes Platform,
+developed by the nonprofit Bayes Impact (https://www.bayesimpact.org).*
 
-**FR** — *Les agents IA de ce travail ont été développés sur la plateforme open-source
-Bayes Platform (AgentStudio), créée par l'association Bayes Impact
-(https://www.bayesimpact.org). Ce travail a été réalisé dans le cadre du programme
-Impulse de Bayes Impact.*
+**FR** — *Les agents IA de ce travail ont été développés sur la Bayes Platform
+open-source, créée par l'association Bayes Impact (https://www.bayesimpact.org).*
 
-(Drop the Impulse sentence if your work wasn't part of the program.)
+*Optional:* if your work was part of a Bayes program, add a clause naming it — e.g.
+EN *"…, as part of Bayes Impact's Impulse program."* / FR *"…, dans le cadre du
+programme Impulse de Bayes Impact."*
 
 ---
 
