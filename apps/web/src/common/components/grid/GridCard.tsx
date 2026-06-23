@@ -69,15 +69,12 @@ function GridCardBadge({
   className?: string
 }) {
   if (children === null || children === undefined || children === false) return null
-  // Auto-wrap plain strings (preserving the capitalize behavior); pass nodes through.
-  if (typeof children === "string") {
-    return (
-      <Badge variant={variant} className={cn("capitalize", className)}>
-        {children}
-      </Badge>
-    )
-  }
-  return <>{children}</>
+
+  return (
+    <Badge variant={variant} className={cn("capitalize", className)}>
+      {children}
+    </Badge>
+  )
 }
 
 function GridCardBody({ className, ...props }: React.ComponentProps<"div">) {

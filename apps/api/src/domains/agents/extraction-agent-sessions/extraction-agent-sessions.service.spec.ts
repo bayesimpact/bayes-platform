@@ -38,6 +38,18 @@ describe("ExtractionAgentSessionsService", () => {
     await teardownE2eTestDatabase(setup)
   })
 
+  // executeExtraction is fire-and-forget: it returns immediately with a
+  // "pending" run while the LLM call resolves in the background. Poll the DB
+  // until the run reaches a terminal status.
+  const waitForRunCompletion = async (runId: string) => {
+    for (let attempt = 0; attempt < 50; attempt++) {
+      const run = await repositories.extractionAgentSessionRepository.findOneBy({ id: runId })
+      if (run && run.status !== "pending") return run
+      await new Promise((resolve) => setTimeout(resolve, 50))
+    }
+    throw new Error(`Extraction run ${runId} did not complete in time`)
+  }
+
   it("should execute extraction and persist a successful run", async () => {
     const schema = z.object({ content: z.string(), source: z.string() })
     const { organization, project, user, agent } = await createOrganizationWithAgent(repositories, {
@@ -55,13 +67,16 @@ describe("ExtractionAgentSessionsService", () => {
     })
     await repositories.documentRepository.save(document)
 
-    const run = await service.executeExtraction({
+    const pendingRun = await service.executeExtraction({
       connectScope: { organizationId: organization.id, projectId: project.id },
       agent,
       userId: user.id,
       documentId: document.id,
       type: "playground",
     })
+    expect(pendingRun.status).toBe("pending")
+
+    const run = await waitForRunCompletion(pendingRun.id)
 
     expect(run.status).toBe("success")
     const result = run.result
@@ -131,6 +146,7 @@ describe("ExtractionAgentSessionsService", () => {
       documentId: document.id,
       type: "playground",
     })
+    await waitForRunCompletion(createdRun.id)
 
     const runs = await service.listRuns({
       connectScope: { organizationId: organization.id, projectId: project.id },

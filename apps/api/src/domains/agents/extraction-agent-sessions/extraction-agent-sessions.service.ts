@@ -1,5 +1,5 @@
 import { URL } from "node:url"
-import { Inject, Injectable, UnprocessableEntityException } from "@nestjs/common"
+import { Inject, Injectable, Logger, UnprocessableEntityException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { FilePart, ImagePart } from "ai"
 import { JSONParseError, TypeValidationError } from "ai"
@@ -24,15 +24,20 @@ import { ServiceWithLLM } from "@/external/llm"
 import type { Agent } from "../agent.entity"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 import { ExtractionAgentSession } from "./extraction-agent-session.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ExtractionAgentSessionStatusNotifierService } from "./extraction-agent-session-status-notifier.service"
 
 @Injectable()
 export class ExtractionAgentSessionsService extends ServiceWithLLM {
+  private readonly logger = new Logger(ExtractionAgentSessionsService.name)
+
   constructor(
     @InjectRepository(ExtractionAgentSession)
     extractionAgentSessionRepository: Repository<ExtractionAgentSession>,
     @Inject(FILE_STORAGE_SERVICE)
     private readonly fileStorageService: IFileStorage,
     private readonly documentsService: DocumentsService,
+    private readonly statusNotifierService: ExtractionAgentSessionStatusNotifierService,
     @Inject("_MockLLMProvider")
     mockLlmProvider: LLMProvider,
     @Inject("VertexLLMProvider")
@@ -83,7 +88,7 @@ export class ExtractionAgentSessionsService extends ServiceWithLLM {
       agentId: agent.id,
       userId,
       documentId,
-      status: "failed",
+      status: "pending",
       type,
       result: null,
       errorCode: null,
@@ -93,7 +98,28 @@ export class ExtractionAgentSessionsService extends ServiceWithLLM {
       traceId: v4(),
     })
 
-    return this.processExtraction({ document, effectivePrompt, agent, run, connectScope })
+    // Fire and forget — returns immediately so the HTTP response is not blocked
+    void this.runExtractionAsync({ document, effectivePrompt, agent, run, connectScope })
+
+    return run
+  }
+
+  private async runExtractionAsync(params: {
+    document: Document
+    effectivePrompt: string
+    agent: Agent
+    run: ExtractionAgentSession
+    connectScope: RequiredConnectScope
+  }) {
+    try {
+      await this.processExtraction(params)
+    } catch (error) {
+      // processExtraction already saved the failed status; just log the unhandled error
+      this.logger.error(
+        `Extraction failed for session ${params.run.id}`,
+        error instanceof Error ? error.stack : String(error),
+      )
+    }
   }
 
   private async processExtraction({
@@ -134,9 +160,18 @@ export class ExtractionAgentSessionsService extends ServiceWithLLM {
       run.result = result
       run.errorCode = null
       run.errorDetails = null
-      return await this.sessionConnectRepository.saveOne(run)
+      const savedRun = await this.sessionConnectRepository.saveOne(run)
+      await this.statusNotifierService.notifySessionStatusChanged({
+        extractionAgentSessionId: savedRun.id,
+        organizationId: connectScope.organizationId,
+        projectId: connectScope.projectId,
+        agentId: agent.id,
+        status: savedRun.status,
+        updatedAt: savedRun.updatedAt.getTime(),
+      })
+      return savedRun
     } catch (error) {
-      return await this.handleExtractionError({ run, error })
+      return await this.handleExtractionError({ run, error, connectScope, agentId: agent.id })
     }
   }
 
@@ -188,16 +223,20 @@ export class ExtractionAgentSessionsService extends ServiceWithLLM {
       run.errorDetails = null
       return await this.sessionConnectRepository.saveOne(run)
     } catch (error) {
-      return await this.handleExtractionError({ run, error })
+      return await this.handleExtractionError({ run, error, connectScope, agentId: agent.id })
     }
   }
 
   private async handleExtractionError({
     run,
     error,
+    connectScope,
+    agentId,
   }: {
     run: ExtractionAgentSession
     error: unknown
+    connectScope: RequiredConnectScope
+    agentId: string
   }): Promise<ExtractionAgentSession> {
     run.status = "failed"
     run.result = null
@@ -211,15 +250,22 @@ export class ExtractionAgentSessionsService extends ServiceWithLLM {
     if (isSchemaValidationError) {
       run.errorCode = "SCHEMA_VALIDATION_FAILED"
       run.errorDetails = { message: (error as Error).message }
-      await this.sessionConnectRepository.saveOne(run)
-      throw new UnprocessableEntityException("Model output does not match outputJsonSchema")
+    } else {
+      run.errorCode = "EXTRACTION_PROVIDER_ERROR"
+      run.errorDetails = {
+        message: error instanceof Error ? error.message : "Unknown extraction provider error",
+      }
     }
 
-    run.errorCode = "EXTRACTION_PROVIDER_ERROR"
-    run.errorDetails = {
-      message: error instanceof Error ? error.message : "Unknown extraction provider error",
-    }
-    await this.sessionConnectRepository.saveOne(run)
+    const savedRun = await this.sessionConnectRepository.saveOne(run)
+    await this.statusNotifierService.notifySessionStatusChanged({
+      extractionAgentSessionId: savedRun.id,
+      organizationId: connectScope.organizationId,
+      projectId: connectScope.projectId,
+      agentId,
+      status: savedRun.status,
+      updatedAt: savedRun.updatedAt.getTime(),
+    })
     throw error
   }
 

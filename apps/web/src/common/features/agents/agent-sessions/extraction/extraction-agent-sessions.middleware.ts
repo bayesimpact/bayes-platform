@@ -4,29 +4,34 @@ import { notificationsActions } from "@/common/features/notifications/notificati
 import type { AppDispatch, RootState } from "@/common/store"
 import { agentCsvExtractionRunsThunks } from "../../csv-extraction-runs/agent-csv-extraction-runs.thunks"
 import { deleteAgentSession } from "../shared/base-agent-session/base-agent-sessions.thunks"
+import {
+  startExtractionSessionStatusStream,
+  stopExtractionSessionStatusStream,
+  syncExtractionSessionStatusStreamWithSessions,
+} from "./extraction-agent-session-stream-status"
+import { patchExtractionSessionStatus } from "./extraction-agent-sessions.actions"
 import { extractionAgentSessionsActions } from "./extraction-agent-sessions.slice"
 
-// Create typed listener middleware
 export const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
 const { mount, executeOne, listMyDocuments, deleteMyDocuments, getAll } =
   extractionAgentSessionsActions
 
 function registerListeners() {
-  // Load conversation agent sessions when agent is loaded
   listenerMiddleware.startListening({
     actionCreator: mount,
     effect: async (_, listenerApi) => {
       const state = listenerApi.getState()
       const agentId = getCurrentId({ state, name: "agentId" })
       await listenerApi.dispatch(getAll({ agentId }))
+      // After loading, start the stream if any sessions are still pending
+      syncExtractionSessionStatusStreamWithSessions(listenerApi)
     },
   })
 
   listenerMiddleware.startListening({
     matcher: isAnyOf(
       mount,
-      executeOne.fulfilled,
       executeOne.rejected,
       agentCsvExtractionRunsThunks.uploadCsvFile.fulfilled,
     ),
@@ -35,29 +40,70 @@ function registerListeners() {
     },
   })
 
-  // Refresh extraction agent sessions when create a new run
-  listenerMiddleware.startListening({
-    matcher: isAnyOf(executeOne.fulfilled, executeOne.rejected),
-    effect: async (_, listenerApi) => {
-      const state = listenerApi.getState()
-      const agentId = getCurrentId({ state, name: "agentId" })
-      await listenerApi.dispatch(getAll({ agentId }))
-    },
-  })
-
   listenerMiddleware.startListening({
     actionCreator: executeOne.fulfilled,
     effect: async (action, listenerApi) => {
-      listenerApi.dispatch(
-        notificationsActions.show({
-          title: "Extraction executed successfully",
-          type: "success",
-        }),
-      )
+      const state = listenerApi.getState()
+      const agentId = getCurrentId({ state, name: "agentId" })
+      await listenerApi.dispatch(getAll({ agentId }))
 
-      action.meta.arg.onSuccess?.()
+      action.meta.arg.onSuccess?.(action.payload.runId)
+
+      listenerApi.dispatch(listMyDocuments())
+
+      // Start the SSE stream to watch for the terminal status
+      listenerApi.dispatch(extractionAgentSessionsActions.startSessionStatusStream())
     },
   })
+
+  listenerMiddleware.startListening({
+    actionCreator: extractionAgentSessionsActions.startSessionStatusStream,
+    effect: async (_, listenerApi) => {
+      await startExtractionSessionStatusStream(listenerApi)
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: extractionAgentSessionsActions.stopSessionStatusStream,
+    effect: async () => {
+      stopExtractionSessionStatusStream()
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: patchExtractionSessionStatus,
+    effect: async (action, listenerApi) => {
+      const { status, agentId } = action.payload
+
+      switch (status) {
+        case "success": {
+          await listenerApi.dispatch(getAll({ agentId }))
+          listenerApi.dispatch(
+            notificationsActions.show({
+              title: "Extraction completed successfully",
+              type: "success",
+            }),
+          )
+          break
+        }
+        case "failed": {
+          await listenerApi.dispatch(getAll({ agentId }))
+          listenerApi.dispatch(
+            notificationsActions.show({
+              title: "Extraction failed",
+              type: "error",
+            }),
+          )
+          break
+        }
+        default:
+          break
+      }
+
+      syncExtractionSessionStatusStreamWithSessions(listenerApi)
+    },
+  })
+
   listenerMiddleware.startListening({
     actionCreator: executeOne.rejected,
     effect: async (_, listenerApi) => {
