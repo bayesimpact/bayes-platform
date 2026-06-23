@@ -8,8 +8,10 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- Extraction runs have a dedicated result page (like CSV runs), accessible from the history list
 
 ### Changed
+- Extraction status updates in real-time
 
 ### Fixed
 

@@ -110,7 +110,6 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
     const response = await subject()
     expectResponse(response, 201)
     expect(response.body.data.runId).toBeDefined()
-    expect(response.body.data.result).toEqual({ fullName: "Jane Doe" })
 
     await expectActivityCreated("extractionAgentSession.execute")
   })

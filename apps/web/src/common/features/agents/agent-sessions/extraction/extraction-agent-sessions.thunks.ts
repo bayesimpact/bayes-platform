@@ -6,6 +6,7 @@ import { uploadDocument } from "@/studio/features/documents/documents.thunks"
 import { isStudioInterface } from "@/studio/routes/helpers"
 import type { AgentCsvExtractionRun } from "../../csv-extraction-runs/agent-csv-extraction-runs.models"
 import { buildType } from "../shared/base-agent-session/base-agent-sessions.thunks"
+import { patchExtractionSessionStatus } from "./extraction-agent-sessions.actions"
 import type {
   ExtractionAgentSession,
   ExtractionAgentSessionResult,
@@ -13,6 +14,7 @@ import type {
 } from "./extraction-agent-sessions.models"
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
+type ThunkConfigWithSignal = ThunkConfig & { serializedErrorType: Error }
 
 const getAll = createAsyncThunk<
   {
@@ -49,7 +51,10 @@ const listMyDocuments = createAsyncThunk<Document[], void, ThunkConfig>(
 
 const executeOne = createAsyncThunk<
   ExtractionAgentSessionResult,
-  { agentId: string; onSuccess: () => void } & ({ file: File } | { document: Document }),
+  { agentId: string; onSuccess: (runId: string) => void } & (
+    | { file: File }
+    | { document: Document }
+  ),
   ThunkConfig
 >(
   "extractionAgentSessions/executeOne",
@@ -77,6 +82,32 @@ const executeOne = createAsyncThunk<
       agentId,
       documentId: document.id,
       type: isStudio ? "playground" : "live",
+    })
+  },
+)
+
+const streamSessionStatus = createAsyncThunk<void, void, ThunkConfigWithSignal>(
+  "extractionAgentSessions/streamSessionStatus",
+  async (_, { extra: { services }, getState, dispatch, signal }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const agentId = getCurrentId({ state, name: "agentId" })
+    await services.extractionAgentSessions.streamSessionStatus({
+      organizationId,
+      projectId,
+      agentId,
+      signal,
+      onStatusChanged: (event) => {
+        dispatch(
+          patchExtractionSessionStatus({
+            extractionAgentSessionId: event.extractionAgentSessionId,
+            agentId: event.agentId,
+            status: event.status,
+            updatedAt: event.updatedAt,
+          }),
+        )
+      },
     })
   },
 )
@@ -115,6 +146,7 @@ const getOne = createAsyncThunk<ExtractionAgentSession, { agentSessionId: string
 export const extractionAgentSessionsThunks = {
   getOne,
   executeOne,
+  streamSessionStatus,
   listMyDocuments,
   deleteMyDocuments,
   getAll,

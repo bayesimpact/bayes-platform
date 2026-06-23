@@ -11,6 +11,7 @@ import type {
   ExtractionAgentSessionSummary,
 } from "../extraction-agent-sessions.models"
 import type { IExtractionAgentSessionsSpi } from "../extraction-agent-sessions.spi"
+import { streamExtractionAgentSessionStatus } from "./extraction-agent-sessions-streaming"
 
 const api: IExtractionAgentSessionsSpi = {
   getAll: async ({ type, ...params }) => {
@@ -36,7 +37,6 @@ const api: IExtractionAgentSessionsSpi = {
       {
         payload: { documentId, type },
       } satisfies typeof ExtractionAgentSessionsRoutes.executeOne.request,
-      { timeout: 30 * 1000 }, // 30 seconds timeout for execution as it might take longer than regular API calls
     )
     return fromExtractionAgentSessionResultDto(response.data.data)
   },
@@ -47,6 +47,9 @@ const api: IExtractionAgentSessionsSpi = {
       { payload: { type } } satisfies typeof ExtractionAgentSessionsRoutes.deleteOne.request,
     )
     return response.data.data
+  },
+  streamSessionStatus: async (params) => {
+    await streamExtractionAgentSessionStatus(params)
   },
 }
 
@@ -90,6 +93,5 @@ function fromExtractionAgentSessionResultDto(
 ): ExtractionAgentSessionResult {
   return {
     runId: dto.runId,
-    result: dto.result,
   }
 }

@@ -11,11 +11,13 @@ const agent = project.extend("/a/:agentId")
 const agentSession = agent.extend("/as/:agentSessionId")
 const agentExtraction = agent.extend("/extraction")
 const agentExtractionCsvRun = agentExtraction.extend("/csv-runs/:csvRunId")
+const agentExtractionRun = agentExtraction.extend("/runs/:extractionRunId")
 
 export const DeskRoutes = {
   agent,
   agentExtraction,
   agentExtractionCsvRun,
+  agentExtractionRun,
   agentSession,
   home,
   organization,

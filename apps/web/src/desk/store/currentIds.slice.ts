@@ -6,6 +6,7 @@ interface State {
   agentId: string | null
   agentSessionId: string | null
   csvRunId: string | null
+  extractionRunId: string | null
 }
 
 const initialState: State = {
@@ -14,6 +15,7 @@ const initialState: State = {
   agentId: null,
   agentSessionId: null,
   csvRunId: null,
+  extractionRunId: null,
 }
 
 const slice = createSlice({
@@ -26,6 +28,7 @@ const slice = createSlice({
     setAgentId: setId("agentId"),
     setAgentSessionId: setId("agentSessionId"),
     setCsvRunId: setId("csvRunId"),
+    setExtractionRunId: setId("extractionRunId"),
   },
 })
 

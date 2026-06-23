@@ -13,21 +13,22 @@ import {
 import { extractionAgentSessionsActions } from "../../../features/agents/agent-sessions/extraction/extraction-agent-sessions.slice"
 import { selectCurrentAgentData } from "../../../features/agents/agents.selectors"
 import { DocumentList } from "../../../features/agents/components/DocumentList"
-import { LastExtraction } from "../../../features/agents/components/LastExtraction"
 import { agentCsvExtractionRunsThunks } from "../../../features/agents/csv-extraction-runs/agent-csv-extraction-runs.thunks"
 import { CsvExtractor } from "../../../features/agents/csv-extraction-runs/components/CsvExtractor"
+import { selectCurrentOrganizationId } from "../../../features/organizations/organizations.selectors"
+import { selectCurrentProjectId } from "../../../features/projects/projects.selectors"
 import { useGetAgentRoute } from "../../../hooks/use-get-path"
-import { useValue } from "../../../hooks/use-value"
+import { useCurrentId, useValue } from "../../../hooks/use-value"
 import { useAppDispatch, useAppSelector } from "../../../store/hooks"
 import { AsyncRoute } from "../../AsyncRoute"
 import type { BuildAgentExtractionCsvRunRoute } from "../../build-routes/context"
+import { useRoutesBuilder } from "../../build-routes/context"
 import { ErrorRoute } from "../../ErrorRoute"
 
 export function AgentExtractionRoute(props: { buildCsvRunPath: BuildAgentExtractionCsvRunRoute }) {
   const documents = useAppSelector(selectExtractionAgentSessionsDocuments)
   const agent = useValue(selectCurrentAgentData)
   const [csvDocumentId, setCsvDocumentId] = useState<string | null>(null)
-  const [openLastExtraction, setOpenLastExtraction] = useState(false)
 
   if (agent.type !== "extraction")
     return <ErrorRoute error={`${agent.name} is not an extraction agent`} />
@@ -38,8 +39,6 @@ export function AgentExtractionRoute(props: { buildCsvRunPath: BuildAgentExtract
         agentId={agent.id}
         csvDocumentId={csvDocumentId}
         setCsvDocumentId={setCsvDocumentId}
-        openLastExtraction={openLastExtraction}
-        setOpenLastExtraction={setOpenLastExtraction}
       />
     </AsyncRoute>
   )
@@ -50,33 +49,28 @@ function WithData({
   agentId,
   csvDocumentId,
   setCsvDocumentId,
-  openLastExtraction,
-  setOpenLastExtraction,
 }: {
   buildCsvRunPath: BuildAgentExtractionCsvRunRoute
   agentId: string
   csvDocumentId: string | null
   setCsvDocumentId: (id: string | null) => void
-  openLastExtraction: boolean
-  setOpenLastExtraction: (open: boolean) => void
 }) {
   const dispatch = useAppDispatch()
   const outlet = useOutlet()
   const navigate = useNavigate()
-  const agentPath = useGetAgentRoute()
+  const { build } = useRoutesBuilder()
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
 
-  const handleBack = () => navigate(agentPath)
-
-  const handleSuccess = ({ isCsv, documentId }: { isCsv: boolean; documentId?: string }) => {
-    if (isCsv && documentId) {
-      setCsvDocumentId(documentId)
-      dispatch(agentCsvExtractionRunsThunks.getFileColumns({ agentId, documentId }))
-    } else {
-      setOpenLastExtraction(true)
-    }
+  const handleCsvSuccess = (documentId: string) => {
+    setCsvDocumentId(documentId)
+    dispatch(agentCsvExtractionRunsThunks.getFileColumns({ agentId, documentId }))
   }
 
-  if (openLastExtraction) return <LastExtraction onBack={handleBack} />
+  const handleExtractionRunSuccess = (extractionRunId: string) => {
+    navigate(build.agentExtractionRunRoute({ organizationId, projectId, agentId, extractionRunId }))
+  }
+
   if (outlet) return outlet
   if (csvDocumentId)
     return (
@@ -86,15 +80,23 @@ function WithData({
         documentId={csvDocumentId}
       />
     )
-  return <FileManager agentId={agentId} onSuccess={handleSuccess} />
+  return (
+    <FileManager
+      agentId={agentId}
+      onCsvSuccess={handleCsvSuccess}
+      onExtractionRunSuccess={handleExtractionRunSuccess}
+    />
+  )
 }
 
 function FileManager({
   agentId,
-  onSuccess,
+  onCsvSuccess,
+  onExtractionRunSuccess,
 }: {
   agentId: string
-  onSuccess: (params: { isCsv: boolean; documentId?: string }) => void
+  onCsvSuccess: (documentId: string) => void
+  onExtractionRunSuccess: (runId: string) => void
 }) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
@@ -102,9 +104,7 @@ function FileManager({
   const path = useGetAgentRoute()
   const isExtracting = useAppSelector(selectIsExtracting)
 
-  const handleBack = () => {
-    navigate(path)
-  }
+  const handleBack = () => navigate(path)
 
   const handleSubmit = (data: { file: File } | { document: Document }) => {
     if (!data) return
@@ -112,21 +112,20 @@ function FileManager({
       dispatch(
         agentCsvExtractionRunsThunks.uploadCsvFile({
           file: data.file,
-          onSuccess: (documentId) => onSuccess({ isCsv: true, documentId }),
+          onSuccess: onCsvSuccess,
         }),
       )
     } else if ("document" in data && data.document.mimeType === "text/csv") {
-      onSuccess({ isCsv: true, documentId: data.document.id })
-    }
-    // For non-csv files, we directly create and execute the extraction session
-    else
+      onCsvSuccess(data.document.id)
+    } else {
       dispatch(
         extractionAgentSessionsActions.executeOne({
           ...data,
           agentId,
-          onSuccess: () => onSuccess({ isCsv: false }),
+          onSuccess: onExtractionRunSuccess,
         }),
       )
+    }
   }
 
   return (

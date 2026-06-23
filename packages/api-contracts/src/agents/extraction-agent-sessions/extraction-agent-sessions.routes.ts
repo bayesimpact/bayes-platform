@@ -4,8 +4,12 @@ import { defineRoute } from "../../helpers"
 import type {
   ExtractionAgentSessionDto,
   ExtractionAgentSessionResultDto,
+  ExtractionAgentSessionStatusChangedEventDto,
   ExtractionAgentSessionSummaryDto,
 } from "./extraction-agent-sessions.dto"
+
+const prefix =
+  "organizations/:organizationId/projects/:projectId/agents/:agentId/extraction-agent-sessions"
 
 type Request<T = object> = RequestPayload<{ type: BaseAgentSessionTypeDto } & T>
 
@@ -15,18 +19,22 @@ export const ExtractionAgentSessionsRoutes = {
     Request<Pick<ExtractionAgentSessionSummaryDto, "documentId">>
   >({
     method: "post",
-    path: "organizations/:organizationId/projects/:projectId/agents/:agentId/extraction-agent-sessions/execute",
+    path: `${prefix}/execute`,
+  }),
+  streamSessionStatus: defineRoute<ExtractionAgentSessionStatusChangedEventDto>({
+    method: "get",
+    path: `${prefix}/status/stream`,
   }),
   getAll: defineRoute<ResponseData<ExtractionAgentSessionSummaryDto[]>, Request>({
     method: "post",
-    path: "organizations/:organizationId/projects/:projectId/agents/:agentId/extraction-agent-sessions",
+    path: prefix,
   }),
   getOne: defineRoute<ResponseData<ExtractionAgentSessionDto>, Request>({
     method: "post",
-    path: "organizations/:organizationId/projects/:projectId/agents/:agentId/extraction-agent-sessions/:agentSessionId/getOne",
+    path: `${prefix}/:agentSessionId/getOne`,
   }),
   deleteOne: defineRoute<ResponseData<SuccessResponseDTO>, Request>({
     method: "post",
-    path: "/organizations/:organizationId/projects/:projectId/agents/:agentId/extraction-agent-sessions/:agentSessionId/delete",
+    path: `/${prefix}/:agentSessionId/delete`,
   }),
 }

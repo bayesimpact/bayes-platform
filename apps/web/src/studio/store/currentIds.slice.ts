@@ -8,6 +8,7 @@ interface State {
   membershipId: string | null
   reviewCampaignId: string | null
   csvRunId: string | null
+  extractionRunId: string | null
   resourceLibraryId: string | null
   resourceId: string | null
 }
@@ -20,6 +21,7 @@ const initialState: State = {
   membershipId: null,
   reviewCampaignId: null,
   csvRunId: null,
+  extractionRunId: null,
   resourceLibraryId: null,
   resourceId: null,
 }
@@ -36,6 +38,7 @@ const slice = createSlice({
     setMembershipId: setId("membershipId"),
     setReviewCampaignId: setId("reviewCampaignId"),
     setCsvRunId: setId("csvRunId"),
+    setExtractionRunId: setId("extractionRunId"),
     setResourceLibraryId: setId("resourceLibraryId"),
     setResourceId: setId("resourceId"),
   },

@@ -20,6 +20,10 @@ const mockLlmProvider = {
   generateStructuredOutput: jest.fn(),
 }
 
+// Execute now returns immediately with a pending session; the LLM call happens
+// in the background. Allow time for the async processing to complete in tests.
+const waitForAsyncExtraction = () => new Promise<void>((resolve) => setTimeout(resolve, 200))
+
 // FIXME: Why is it skipped? @Olivier @did ??
 describe.skip("ExtractionAgentSessions - executeOne", () => {
   let app: INestApplication<App>
@@ -151,7 +155,9 @@ describe.skip("ExtractionAgentSessions - executeOne", () => {
     const executeResponse = await subjectExecutePlayground()
     expectResponse(executeResponse, 201)
     expect(executeResponse.body.data.runId).toBeDefined()
-    expect(executeResponse.body.data.result).toEqual({ fullName: "Jane Doe" })
+
+    // Extraction runs asynchronously after execute returns; wait for completion
+    await waitForAsyncExtraction()
 
     const getAllResponse = await subjectGetAllPlayground()
     expectResponse(getAllResponse, 200)
@@ -167,7 +173,7 @@ describe.skip("ExtractionAgentSessions - executeOne", () => {
     expect(getOneResponse.body.data.errorCode).toBeNull()
   })
 
-  it("should return 422 and persist failed run when schema validation fails", async () => {
+  it("should persist a failed run when schema validation fails", async () => {
     await createContext()
 
     const schemaError = new Error("schema mismatch")
@@ -175,7 +181,10 @@ describe.skip("ExtractionAgentSessions - executeOne", () => {
     mockLlmProvider.generateStructuredOutput.mockRejectedValue(schemaError)
 
     const response = await subjectExecutePlayground()
-    expectResponse(response, 422)
+    expectResponse(response, 201)
+
+    // Extraction runs asynchronously; wait for the failure to be persisted
+    await waitForAsyncExtraction()
 
     const getAllResponse = await subjectGetAllPlayground()
     expectResponse(getAllResponse, 200)
