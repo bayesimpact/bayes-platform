@@ -49,7 +49,7 @@ export function FeatureFlagCell({
     [enabledFlags],
   )
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2" data-no-navigate>
       {enabledFlags.map((flagKey) => (
         <Badge key={flagKey} variant="secondary" className="gap-1 pr-1">
           {flagKey}
@@ -71,7 +71,7 @@ export function FeatureFlagCell({
               Add flag
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
+          <DropdownMenuContent onClick={(event) => event.stopPropagation()}>
             {availableFlags.map((flag) => (
               <DropdownMenuItem key={flag.key} onSelect={() => onAdd(flag.key)}>
                 <div className="flex flex-col">

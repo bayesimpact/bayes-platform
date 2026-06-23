@@ -114,7 +114,7 @@ function WithData() {
         <SearchField
           value={searchInput}
           onChange={setSearchInput}
-          placeholder="Search by email or name…"
+          placeholder="Search by email, name or UUID…"
         />
       </div>
       <Table>
