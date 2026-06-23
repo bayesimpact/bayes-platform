@@ -16,6 +16,8 @@ import {
 } from "@/domains/auth/invitation-sender.interface"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { InvitationPersistenceService } from "@/domains/invitations/invitation-persistence.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { UserMembershipService } from "@/domains/memberships/user-membership.service"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
@@ -66,6 +68,7 @@ export class ReviewCampaignInvitationHandler
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly invitationPersistence: InvitationPersistenceService,
     private readonly acceptanceHelpers: InvitationAcceptanceHelpersService,
+    private readonly userMembershipService: UserMembershipService,
   ) {}
 
   async createInvitations(params: CreateInvitationsForTargetParams): Promise<Invitation[]> {
@@ -295,12 +298,25 @@ export class ReviewCampaignInvitationHandler
         user.id,
         campaign.organizationId,
       )
+      await this.userMembershipService.upsertOrganizationMembership(
+        { userId: user.id, organizationId: campaign.organizationId, role: "member" },
+        manager,
+      )
       await this.acceptanceHelpers.ensureProjectMembership(
         projectMembershipRepository,
         user.id,
         campaign.projectId,
       )
+      await this.userMembershipService.upsertProjectMembership(
+        { userId: user.id, projectId: campaign.projectId, role: "member" },
+        manager,
+      )
+      const role = invitation.role as ReviewCampaignMembershipRole
       await this.upsertCampaignMembership(membershipRepository, invitation, user.id, campaign)
+      await this.userMembershipService.upsertReviewCampaignMembership(
+        { userId: user.id, campaignId: campaign.id, role },
+        manager,
+      )
       await invitationRepository.update({ id: invitation.id }, { userId: user.id })
       return { userId: user.id }
     })

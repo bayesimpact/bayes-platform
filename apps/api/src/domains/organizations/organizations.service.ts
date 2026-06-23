@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { UserMembershipService } from "@/domains/memberships/user-membership.service"
 import { User } from "@/domains/users/user.entity"
 import { OrganizationMembership } from "./memberships/organization-membership.entity"
 import { Organization } from "./organization.entity"
@@ -12,6 +14,7 @@ export class OrganizationsService {
     @InjectRepository(OrganizationMembership)
     private readonly organizationMembershipRepository: Repository<OrganizationMembership>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    private readonly userMembershipService: UserMembershipService,
   ) {}
 
   async getUserOrganizations(userId: string): Promise<Organization[]> {
@@ -57,6 +60,11 @@ export class OrganizationsService {
       role: "owner",
     })
     await this.organizationMembershipRepository.save(membership)
+    await this.userMembershipService.upsertOrganizationMembership({
+      userId: user.id,
+      organizationId: savedOrganization.id,
+      role: "owner",
+    })
 
     return savedOrganization
   }

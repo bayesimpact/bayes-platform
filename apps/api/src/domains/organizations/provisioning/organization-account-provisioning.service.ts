@@ -3,6 +3,8 @@ import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource } from "typeorm"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { UserMembershipService } from "@/domains/memberships/user-membership.service"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { User } from "@/domains/users/user.entity"
@@ -37,6 +39,7 @@ export class OrganizationAccountProvisioningService {
     private readonly userRepository: Repository<User>,
     @InjectDataSource()
     private readonly dataSource: DataSource,
+    private readonly userMembershipService: UserMembershipService,
   ) {}
 
   async provisionOrganizationAccount(
@@ -82,6 +85,10 @@ export class OrganizationAccountProvisioningService {
         role: "owner",
       })
       await organizationMembershipRepository.save(ownerMembership)
+      await this.userMembershipService.upsertOrganizationMembership(
+        { userId: user.id, organizationId: savedOrganization.id, role: "owner" },
+        manager,
+      )
 
       return {
         status: "created",

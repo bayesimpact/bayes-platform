@@ -14,7 +14,10 @@ import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
-import { reviewCampaignMembershipFactory } from "../memberships/review-campaign-membership.factory"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "../memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "../review-campaign.factory"
 import { ReviewCampaignsModule } from "../review-campaigns.module"
 
@@ -77,11 +80,13 @@ describe("ReviewCampaigns - getOne", () => {
       .build({ name: "Detail" })
     await repositories.reviewCampaignRepository.save(campaign)
 
-    const membership = reviewCampaignMembershipFactory
-      .tester()
-      .transient({ organization, project, campaign, user })
-      .build()
-    await repositories.reviewCampaignMembershipRepository.save(membership)
+    const membership = await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
+        .tester()
+        .transient({ organization, project, campaign, user })
+        .build(),
+    })
 
     organizationId = organization.id
     projectId = project.id

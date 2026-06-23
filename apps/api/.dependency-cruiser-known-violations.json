@@ -4513,6 +4513,15 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/agents/memberships/agent-memberships.service.ts",
+    "to": "src/domains/memberships/user-membership.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/agents/shared/agent-session-messages/streaming/streaming.service.ts",
     "to": "src/domains/documents/embeddings/document-chunk-retrieval.service.ts",
     "rule": {
@@ -4576,8 +4585,35 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/invitations/handlers/agent-invitation.handler.ts",
+    "to": "src/domains/memberships/user-membership.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/invitations/handlers/project-invitation.handler.ts",
     "to": "src/domains/agents/memberships/agent-memberships.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/invitations/handlers/project-invitation.handler.ts",
+    "to": "src/domains/memberships/user-membership.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/invitations/handlers/review-campaign-invitation.handler.ts",
+    "to": "src/domains/memberships/user-membership.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"
@@ -4630,6 +4666,33 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/organizations/organizations.service.ts",
+    "to": "src/domains/memberships/user-membership.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/organizations/provisioning/organization-account-provisioning.service.ts",
+    "to": "src/domains/memberships/user-membership.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/organizations/provisioning/workspace-invitation.service.ts",
+    "to": "src/domains/memberships/user-membership.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/organizations/provisioning/workspace-invitation.service.ts",
     "to": "src/domains/projects/memberships/project-memberships.service.ts",
     "rule": {
@@ -4641,6 +4704,15 @@
     "type": "dependency",
     "from": "src/domains/projects/memberships/project-memberships.service.ts",
     "to": "src/domains/agents/memberships/agent-memberships.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/projects/memberships/project-memberships.service.ts",
+    "to": "src/domains/memberships/user-membership.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"

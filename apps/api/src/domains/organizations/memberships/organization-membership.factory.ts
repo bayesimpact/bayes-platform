@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto"
 import { Factory } from "fishery"
-import type { Repository } from "typeorm"
+import type { AllRepositories } from "@/common/test/test-transaction-manager"
+import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "../../users/user.factory"
 import type { Organization } from "../organization.entity"
@@ -55,25 +56,48 @@ export const organizationMembershipFactory = OrganizationMembershipFactory.defin
   },
 )
 
+/**
+ * Saves an OrganizationMembership to both the legacy table and user_memberships.
+ * Use this in tests instead of `repositories.organizationMembershipRepository.save()`
+ * to keep user_memberships in sync during the dual-write transition period.
+ */
+export const saveOrgMembership = async ({
+  repositories,
+  membership,
+}: {
+  repositories: AllRepositories
+  membership: OrganizationMembership
+}) => {
+  const saved = await repositories.organizationMembershipRepository.save(membership)
+  await repositories.userMembershipRepository.save(
+    userMembershipFactory.build({
+      userId: saved.userId,
+      resourceType: "organization",
+      resourceId: saved.organizationId,
+      role: saved.role,
+    }),
+  )
+  return saved
+}
+
 export const addUserToOrganization = async ({
   repositories,
   organization,
   membership,
   user,
 }: {
-  repositories: {
-    userRepository: Repository<User>
-    organizationRepository: Repository<Organization>
-    organizationMembershipRepository: Repository<OrganizationMembership>
-  }
+  repositories: AllRepositories
   organization: Organization
   user?: Partial<User>
   membership?: Partial<OrganizationMembership>
 }) => {
   const newUser = userFactory.build(user)
   await repositories.userRepository.save(newUser)
-  const newMembership = await repositories.organizationMembershipRepository.save(
-    organizationMembershipFactory.transient({ user: newUser, organization }).build(membership),
-  )
+  const newMembership = await saveOrgMembership({
+    repositories,
+    membership: organizationMembershipFactory
+      .transient({ user: newUser, organization })
+      .build(membership),
+  })
   return { user: newUser, membership: newMembership }
 }

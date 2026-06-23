@@ -3,6 +3,8 @@ import {
   setupTransactionalTestDatabase,
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
+import { MembershipsModule } from "@/domains/memberships/memberships.module"
+import { UserMembershipService } from "@/domains/memberships/user-membership.service"
 import { organizationFactory } from "@/domains/organizations/organization.factory"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { userFactory } from "@/domains/users/user.factory"
@@ -36,7 +38,7 @@ describe("WorkspaceInvitationService", () => {
 
   beforeAll(async () => {
     setup = await setupTransactionalTestDatabase({
-      additionalImports: [OrganizationsModule],
+      additionalImports: [OrganizationsModule, MembershipsModule],
     })
     const repositories = setup.getAllRepositories()
     userRepository = repositories.userRepository
@@ -45,7 +47,12 @@ describe("WorkspaceInvitationService", () => {
     projectRepository = repositories.projectRepository
     projectMembershipRepository = repositories.projectMembershipRepository
     invitationRepository = repositories.invitationRepository
-    service = new WorkspaceInvitationService(mockInvitationSender, setup.dataSource)
+    const userMembershipService = setup.module.get(UserMembershipService)
+    service = new WorkspaceInvitationService(
+      mockInvitationSender,
+      setup.dataSource,
+      userMembershipService,
+    )
   })
 
   beforeEach(async () => {

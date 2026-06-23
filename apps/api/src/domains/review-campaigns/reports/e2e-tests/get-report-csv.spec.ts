@@ -12,12 +12,18 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
-import { organizationMembershipFactory } from "@/domains/organizations/memberships/organization-membership.factory"
+import {
+  organizationMembershipFactory,
+  saveOrgMembership,
+} from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
-import { reviewCampaignMembershipFactory } from "../../memberships/review-campaign-membership.factory"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "../../memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
 
@@ -74,9 +80,10 @@ describe("ReviewCampaigns - Report CSV", () => {
     const reviewer = await repositories.userRepository.save(
       userFactory.build({ email: `reviewer-csv-${randomUUID()}@example.com` }),
     )
-    await repositories.organizationMembershipRepository.save(
-      organizationMembershipFactory.transient({ user: reviewer, organization }).build(),
-    )
+    await saveOrgMembership({
+      repositories,
+      membership: organizationMembershipFactory.transient({ user: reviewer, organization }).build(),
+    })
 
     const agent = agentFactory.transient({ organization, project }).build({ type: "conversation" })
     await repositories.agentRepository.save(agent)
@@ -86,13 +93,14 @@ describe("ReviewCampaigns - Report CSV", () => {
       .transient({ organization, project, agent })
       .build({})
     await repositories.reviewCampaignRepository.save(campaign)
-    await repositories.reviewCampaignMembershipRepository.save(
-      reviewCampaignMembershipFactory
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
         .reviewer()
         .accepted()
         .transient({ organization, project, campaign, user: reviewer })
         .build(),
-    )
+    })
 
     const session = conversationAgentSessionFactory
       .transient({ organization, project, agent, user: tester })

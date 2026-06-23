@@ -12,6 +12,8 @@ import {
 } from "@/domains/auth/invitation-sender.interface"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { InvitationPersistenceService } from "@/domains/invitations/invitation-persistence.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { UserMembershipService } from "@/domains/memberships/user-membership.service"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
@@ -62,6 +64,7 @@ export class ProjectInvitationHandler
     private readonly invitationPersistence: InvitationPersistenceService,
     private readonly agentMembershipsService: AgentMembershipsService,
     private readonly acceptanceHelpers: InvitationAcceptanceHelpersService,
+    private readonly userMembershipService: UserMembershipService,
   ) {}
 
   async createInvitations(params: CreateInvitationsForTargetParams): Promise<Invitation[]> {
@@ -153,11 +156,19 @@ export class ProjectInvitationHandler
         project.organizationId,
         "admin",
       )
+      await this.userMembershipService.upsertOrganizationMembership(
+        { userId: user.id, organizationId: project.organizationId, role: "admin" },
+        manager,
+      )
       await this.acceptanceHelpers.ensureProjectMembership(
         repos.projectMembershipRepository,
         user.id,
         invitation.projectId,
         "admin",
+      )
+      await this.userMembershipService.upsertProjectMembership(
+        { userId: user.id, projectId: invitation.projectId, role: "admin" },
+        manager,
       )
       await this.agentMembershipsService.createAdminAgentMembershipsForUserInProject({
         manager,

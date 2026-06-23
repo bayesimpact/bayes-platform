@@ -14,7 +14,10 @@ import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
-import { reviewCampaignMembershipFactory } from "../memberships/review-campaign-membership.factory"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "../memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "../review-campaign.factory"
 import { ReviewCampaignsModule } from "../review-campaigns.module"
 
@@ -76,12 +79,13 @@ describe("ReviewCampaigns - revokeMembership", () => {
     const campaign = await repositories.reviewCampaignRepository.save(
       reviewCampaignFactory.active().transient({ organization, project, agent }).build(),
     )
-    const membership = await repositories.reviewCampaignMembershipRepository.save(
-      reviewCampaignMembershipFactory
+    const membership = await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
         .tester()
         .transient({ organization, project, campaign, user })
         .build(),
-    )
+    })
     organizationId = organization.id
     projectId = project.id
     reviewCampaignId = campaign.id

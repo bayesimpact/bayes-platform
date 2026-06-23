@@ -33,6 +33,7 @@ import { FeatureFlag } from "@/domains/feature-flags/feature-flag.entity"
 import { Invitation } from "@/domains/invitations/invitation.entity"
 import { AgentMcpServer } from "@/domains/mcp-servers/agent-mcp-server.entity"
 import { McpServer } from "@/domains/mcp-servers/mcp-server.entity"
+import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
@@ -82,6 +83,7 @@ export const ALL_ENTITIES = [
   Invitation,
   McpServer,
   Organization,
+  UserMembership,
   OrganizationMembership,
   Project,
   ProjectMembership,
