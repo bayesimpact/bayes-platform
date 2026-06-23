@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto"
 import { Factory } from "fishery"
-import type { Repository } from "typeorm"
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
+import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import type { Agent } from "../agent.entity"
@@ -51,24 +51,46 @@ export const agentMembershipFactory = AgentMembershipFactory.define(
   },
 )
 
+/**
+ * Saves an AgentMembership to both the legacy table and user_memberships.
+ * Use this in tests instead of `repositories.agentMembershipRepository.save()`
+ * to keep user_memberships in sync during the dual-write transition period.
+ */
+export const saveAgentMembership = async ({
+  repositories,
+  membership,
+}: {
+  repositories: AllRepositories
+  membership: AgentMembership
+}) => {
+  const saved = await repositories.agentMembershipRepository.save(membership)
+  await repositories.userMembershipRepository.save(
+    userMembershipFactory.build({
+      userId: saved.userId,
+      resourceType: "agent",
+      resourceId: saved.agentId,
+      role: saved.role,
+    }),
+  )
+  return saved
+}
+
 export const addUserToAgent = async ({
   repositories,
   agent,
   user,
   membership,
 }: {
-  repositories: {
-    userRepository: Repository<User>
-    agentMembershipRepository: Repository<AgentMembership>
-  }
+  repositories: AllRepositories
   agent: Agent
   user?: User
   membership?: Partial<AgentMembership>
 }) => {
   const createMembership = async (user: User) => {
-    const newMembership = await repositories.agentMembershipRepository.save(
-      agentMembershipFactory.transient({ agent, user }).build(membership),
-    )
+    const newMembership = await saveAgentMembership({
+      repositories,
+      membership: agentMembershipFactory.transient({ agent, user }).build(membership),
+    })
     return { membership: newMembership, user }
   }
 
@@ -96,8 +118,10 @@ export const inviteUserToAgent = async ({
   await repositories.userRepository.save(invitedUser)
 
   const invitationToken = randomUUID()
-  const membership = agentMembershipFactory.transient({ agent, user: invitedUser }).build()
-  await repositories.agentMembershipRepository.save(membership)
+  const membership = await saveAgentMembership({
+    repositories,
+    membership: agentMembershipFactory.transient({ agent, user: invitedUser }).build(),
+  })
 
   return { membership, invitedUser, invitationToken }
 }

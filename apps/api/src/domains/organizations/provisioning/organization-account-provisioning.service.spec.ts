@@ -2,6 +2,7 @@ import { InternalServerErrorException } from "@nestjs/common"
 import { Test, type TestingModule } from "@nestjs/testing"
 import { getDataSourceToken, getRepositoryToken } from "@nestjs/typeorm"
 import type { ObjectLiteral, Repository } from "typeorm"
+import { UserMembershipService } from "@/domains/memberships/user-membership.service"
 import { User } from "@/domains/users/user.entity"
 import { OrganizationMembership } from "../memberships/organization-membership.entity"
 import { Organization } from "../organization.entity"
@@ -52,6 +53,10 @@ describe("OrganizationAccountProvisioningService", () => {
           useValue: organizationMembershipRepository,
         },
         { provide: getDataSourceToken(), useValue: dataSource },
+        {
+          provide: UserMembershipService,
+          useValue: { upsertOrganizationMembership: jest.fn() },
+        },
       ],
     }).compile()
 

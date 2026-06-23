@@ -13,13 +13,22 @@ import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { formAgentSessionFactory } from "@/domains/agents/form-agent-sessions/form-agent-session.factory"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
-import { organizationMembershipFactory } from "@/domains/organizations/memberships/organization-membership.factory"
+import {
+  organizationMembershipFactory,
+  saveOrgMembership,
+} from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
-import { projectMembershipFactory } from "@/domains/projects/memberships/project-membership.factory"
+import {
+  projectMembershipFactory,
+  saveProjectMembership,
+} from "@/domains/projects/memberships/project-membership.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
-import { reviewCampaignMembershipFactory } from "../../memberships/review-campaign-membership.factory"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "../../memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
 
@@ -87,9 +96,12 @@ describe("ReviewCampaigns - Report", () => {
     )
     // Reviewers still need org membership to pass the organization-context
     // resolver (same requirement as the existing reviewer endpoints).
-    await repositories.organizationMembershipRepository.save(
-      organizationMembershipFactory.transient({ user: reviewerA, organization }).build(),
-    )
+    await saveOrgMembership({
+      repositories,
+      membership: organizationMembershipFactory
+        .transient({ user: reviewerA, organization })
+        .build(),
+    })
     const reviewerB = await repositories.userRepository.save(
       userFactory.build({ email: `rvB-${randomUUID()}@example.com` }),
     )
@@ -122,20 +134,22 @@ describe("ReviewCampaigns - Report", () => {
     await repositories.reviewCampaignRepository.save(campaign)
 
     // Both reviewers are accepted reviewer members.
-    await repositories.reviewCampaignMembershipRepository.save(
-      reviewCampaignMembershipFactory
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
         .reviewer()
         .accepted()
         .transient({ organization, project, campaign, user: reviewerA })
         .build(),
-    )
-    await repositories.reviewCampaignMembershipRepository.save(
-      reviewCampaignMembershipFactory
+    })
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
         .reviewer()
         .accepted()
         .transient({ organization, project, campaign, user: reviewerB })
         .build(),
-    )
+    })
 
     const session1 = conversationAgentSessionFactory
       .transient({ organization, project, agent, user: tester1 })
@@ -361,19 +375,22 @@ describe("ReviewCampaigns - Report", () => {
     const tester = await repositories.userRepository.save(
       userFactory.build({ email: `tester-only-${randomUUID()}@example.com` }),
     )
-    await repositories.organizationMembershipRepository.save(
-      organizationMembershipFactory.transient({ user: tester, organization }).build(),
-    )
-    await repositories.projectMembershipRepository.save(
-      projectMembershipFactory.member().transient({ user: tester, project }).build(),
-    )
-    await repositories.reviewCampaignMembershipRepository.save(
-      reviewCampaignMembershipFactory
+    await saveOrgMembership({
+      repositories,
+      membership: organizationMembershipFactory.transient({ user: tester, organization }).build(),
+    })
+    await saveProjectMembership({
+      repositories,
+      membership: projectMembershipFactory.member().transient({ user: tester, project }).build(),
+    })
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
         .tester()
         .accepted()
         .transient({ organization, project, campaign, user: tester })
         .build(),
-    )
+    })
     auth0Id = tester.auth0Id
 
     const response = await subject()

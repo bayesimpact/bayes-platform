@@ -9,7 +9,10 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
-import { agentMembershipFactory } from "@/domains/agents/memberships/agent-membership.factory"
+import {
+  agentMembershipFactory,
+  saveAgentMembership,
+} from "@/domains/agents/memberships/agent-membership.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -74,11 +77,12 @@ describe("Project membership - getMemberAgents", () => {
       agentFactory.transient({ organization, project }).build({ name: "Agent B" }),
     )
 
-    await repositories.agentMembershipRepository.save(
-      agentMembershipFactory
+    await saveAgentMembership({
+      repositories,
+      membership: agentMembershipFactory
         .transient({ agent: agentWithMembership, user })
         .build({ role: "admin" }),
-    )
+    })
 
     const response = await subject()
 

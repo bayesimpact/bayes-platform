@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto"
 import { Factory } from "fishery"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"
+import type { AllRepositories } from "@/common/test/test-transaction-manager"
+import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import type { User } from "@/domains/users/user.entity"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type { ReviewCampaignMembership } from "./review-campaign-membership.entity"
@@ -59,3 +61,27 @@ export const reviewCampaignMembershipFactory = ReviewCampaignMembershipFactory.d
     } satisfies ReviewCampaignMembership
   },
 )
+
+/**
+ * Saves a ReviewCampaignMembership to both the legacy table and user_memberships.
+ * Use this in tests instead of `repositories.reviewCampaignMembershipRepository.save()`
+ * to keep user_memberships in sync during the dual-write transition period.
+ */
+export const saveReviewCampaignMembership = async ({
+  repositories,
+  membership,
+}: {
+  repositories: AllRepositories
+  membership: ReviewCampaignMembership
+}) => {
+  const saved = await repositories.reviewCampaignMembershipRepository.save(membership)
+  await repositories.userMembershipRepository.save(
+    userMembershipFactory.build({
+      userId: saved.userId,
+      resourceType: "review_campaign",
+      resourceId: saved.campaignId,
+      role: saved.role,
+    }),
+  )
+  return saved
+}

@@ -118,7 +118,7 @@ function WithData() {
         <SearchField
           value={searchInput}
           onChange={setSearchInput}
-          placeholder="Search by agent or project name…"
+          placeholder="Search by name or UUID…"
         />
       </div>
       <Table>

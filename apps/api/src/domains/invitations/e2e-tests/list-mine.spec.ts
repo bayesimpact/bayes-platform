@@ -15,8 +15,14 @@ import { projectFactory } from "@/domains/projects/project.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
-import { agentMembershipFactory } from "../../agents/memberships/agent-membership.factory"
-import { projectMembershipFactory } from "../../projects/memberships/project-membership.factory"
+import {
+  agentMembershipFactory,
+  saveAgentMembership,
+} from "../../agents/memberships/agent-membership.factory"
+import {
+  projectMembershipFactory,
+  saveProjectMembership,
+} from "../../projects/memberships/project-membership.factory"
 import { InvitationsModule } from "../invitations.module"
 
 describe("Invitations — listPendingMine", () => {
@@ -78,11 +84,13 @@ describe("Invitations — listPendingMine", () => {
       .build({ name: "Pending Project" })
     await repositories.projectRepository.save(pendingProject)
     const pendingProjectToken = randomUUID()
-    const pendingProjectMembership = projectMembershipFactory
-      .admin()
-      .transient({ project: pendingProject, user })
-      .build()
-    await repositories.projectMembershipRepository.save(pendingProjectMembership)
+    const pendingProjectMembership = await saveProjectMembership({
+      repositories,
+      membership: projectMembershipFactory
+        .admin()
+        .transient({ project: pendingProject, user })
+        .build(),
+    })
     await repositories.invitationRepository.save(
       repositories.invitationRepository.create({
         organizationId: organization.id,
@@ -104,11 +112,10 @@ describe("Invitations — listPendingMine", () => {
       .build({ name: "Pending Agent", type: "conversation" })
     await repositories.agentRepository.save(pendingAgent)
     const pendingAgentToken = randomUUID()
-    const pendingAgentMembership = agentMembershipFactory
-      .member()
-      .transient({ agent: pendingAgent, user })
-      .build()
-    await repositories.agentMembershipRepository.save(pendingAgentMembership)
+    const pendingAgentMembership = await saveAgentMembership({
+      repositories,
+      membership: agentMembershipFactory.member().transient({ agent: pendingAgent, user }).build(),
+    })
     await repositories.invitationRepository.save(
       repositories.invitationRepository.create({
         organizationId: organization.id,
@@ -129,11 +136,10 @@ describe("Invitations — listPendingMine", () => {
       .transient({ organization, project })
       .build({ name: "Accepted Agent", type: "conversation" })
     await repositories.agentRepository.save(acceptedAgent)
-    const acceptedAgentMembership = agentMembershipFactory
-      .member()
-      .transient({ agent: acceptedAgent, user })
-      .build()
-    await repositories.agentMembershipRepository.save(acceptedAgentMembership)
+    const _acceptedAgentMembership = await saveAgentMembership({
+      repositories,
+      membership: agentMembershipFactory.member().transient({ agent: acceptedAgent, user }).build(),
+    })
 
     const response = await subject()
     expectResponse(response, 200)
@@ -174,11 +180,10 @@ describe("Invitations — listPendingMine", () => {
 
     const otherUser = userFactory.build()
     await repositories.userRepository.save(otherUser)
-    const otherMembership = projectMembershipFactory
-      .member()
-      .transient({ project, user: otherUser })
-      .build()
-    await repositories.projectMembershipRepository.save(otherMembership)
+    const otherMembership = await saveProjectMembership({
+      repositories,
+      membership: projectMembershipFactory.member().transient({ project, user: otherUser }).build(),
+    })
     await repositories.invitationRepository.save(
       repositories.invitationRepository.create({
         organizationId: project.organizationId,

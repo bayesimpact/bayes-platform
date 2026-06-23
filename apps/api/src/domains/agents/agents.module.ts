@@ -12,6 +12,7 @@ import { AuthModule } from "@/domains/auth/auth.module"
 import { DocumentsModule } from "@/domains/documents/documents.module"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
 import { DocumentTagsModule } from "@/domains/documents/tags/document-tags.module"
+import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
@@ -52,6 +53,7 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
       ProjectMembership,
     ]),
     LlmModule,
+    MembershipsModule,
     OrganizationsModule,
     forwardRef(() => ProjectsModule),
     forwardRef(() => InvitationsModule),
