@@ -17,7 +17,8 @@
       },
       "download": {
         "button": "Download JSON"
-      }
+      },
+      "duration": "Duration: {{duration}}"
     },
     "document": {
       "props": {
