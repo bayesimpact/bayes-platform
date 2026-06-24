@@ -47,12 +47,7 @@ export function AgentSubAgentsTab({
   const { t } = useTranslation()
   const selectedAgentIds = new Set(value.map((subAgent) => subAgent.agentId))
   const availableAgents = agents
-    .filter(
-      (agent) =>
-        agent.type === "conversation" &&
-        agent.id !== parentAgentId &&
-        !selectedAgentIds.has(agent.id),
-    )
+    .filter((agent) => agent.id !== parentAgentId && !selectedAgentIds.has(agent.id))
     .sort((leftAgent, rightAgent) => leftAgent.name.localeCompare(rightAgent.name))
 
   const updateSubAgent = (
