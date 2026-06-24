@@ -16,6 +16,7 @@ export type LLMConfig =
       systemPrompt?: string
       mockResult: string | string[]
       tools?: ToolSet
+      useExtendedTimeouts?: never
     }
   | {
       model: Exclude<string, MockModels>
@@ -23,8 +24,13 @@ export type LLMConfig =
       systemPrompt?: string
       mockResult?: never
       tools?: ToolSet
+      /**
+       * Opt in to the extended network timeouts on the underlying provider fetch
+       * (see {@link AISDKVertexProvider}). Reserved for long-running calls such as
+       * extraction agent runs; defaults to the provider's standard timeouts.
+       */
+      useExtendedTimeouts?: boolean
     }
-
 export type LLMMetadata = (
   | {
       evaluationReportId?: never

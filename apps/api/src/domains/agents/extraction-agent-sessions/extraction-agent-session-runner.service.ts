@@ -109,6 +109,9 @@ export class ExtractionAgentSessionRunnerService extends ServiceWithLLM {
           systemPrompt: `Today's date: ${new Date().toLocaleDateString()}`,
           model: agent.model,
           temperature: agent.temperature,
+          // Extraction agent runs can be long-running; opt in to the extended
+          // network timeouts on the provider fetch (see AISDKVertexProvider).
+          useExtendedTimeouts: true,
         }),
         metadata: this.buildLLMMetadata({ agent, run, connectScope }),
       })
