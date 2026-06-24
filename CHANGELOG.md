@@ -10,6 +10,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Added
 
 ### Changed
+- Extraction agent runs use extended, configurable network timeouts so long-running document extractions are less likely to time out
 
 ### Fixed
 

@@ -49,11 +49,13 @@ export abstract class ServiceWithLLM {
     model,
     temperature,
     tools,
+    useExtendedTimeouts,
   }: {
     tools?: ToolSet
     systemPrompt: string
     model: AgentModel
     temperature: AgentTemperature
+    useExtendedTimeouts?: boolean
   }): LLMConfig {
     // Convert temperature to number (database decimal types may be returned as strings)
     const safeTemperature =
@@ -70,6 +72,7 @@ export abstract class ServiceWithLLM {
       temperature: safeTemperature,
       systemPrompt,
       tools,
+      useExtendedTimeouts,
     } as LLMConfig
   }
 }
