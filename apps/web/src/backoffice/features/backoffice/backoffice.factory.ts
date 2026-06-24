@@ -19,6 +19,7 @@ import type {
   BackofficeUserDetail,
   BackofficeUserOrganizationMembership,
   BackofficeUserProjectMembership,
+  BackofficeUserReviewCampaignMembership,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
@@ -302,6 +303,15 @@ export const backofficeUserAgentMembershipFactory = BackofficeUserAgentMembershi
   }),
 )
 
+class BackofficeUserReviewCampaignMembershipFactory extends Factory<BackofficeUserReviewCampaignMembership> {}
+
+export const backofficeUserReviewCampaignMembershipFactory =
+  BackofficeUserReviewCampaignMembershipFactory.define(({ params }) => ({
+    campaignId: params.campaignId ?? faker.string.uuid(),
+    campaignName: params.campaignName ?? faker.lorem.words({ min: 2, max: 4 }),
+    role: params.role ?? "tester",
+  }))
+
 class BackofficeUserDetailFactory extends Factory<BackofficeUserDetail> {}
 
 export const backofficeUserDetailFactory = BackofficeUserDetailFactory.define(({ params }) => {
@@ -315,6 +325,7 @@ export const backofficeUserDetailFactory = BackofficeUserDetailFactory.define(({
     organizationMemberships: params.organizationMemberships ?? [],
     projectMemberships: params.projectMemberships ?? [],
     agentMemberships: params.agentMemberships ?? [],
+    reviewCampaignMemberships: params.reviewCampaignMemberships ?? [],
   }
 })
 

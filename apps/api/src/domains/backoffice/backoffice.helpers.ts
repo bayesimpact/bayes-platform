@@ -16,6 +16,7 @@ import type {
   BackofficeUserDto,
   BackofficeUserOrganizationMembershipDto,
   BackofficeUserProjectMembershipDto,
+  BackofficeUserReviewCampaignMembershipDto,
   FeatureFlagKey,
   FeatureFlagsDto,
   TimeType,
@@ -27,6 +28,7 @@ import type { OrganizationMembership } from "@/domains/organizations/memberships
 import type { Organization } from "@/domains/organizations/organization.entity"
 import type { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import type { Project } from "@/domains/projects/project.entity"
+import type { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
 import type { User } from "@/domains/users/user.entity"
 
 function toFeatureFlagsDto(featureFlags: FeatureFlag[] | undefined): FeatureFlagsDto {
@@ -206,11 +208,22 @@ export function toBackofficeUserAgentMembershipDto(
   }
 }
 
+export function toBackofficeUserReviewCampaignMembershipDto(
+  membership: ReviewCampaignMembership,
+): BackofficeUserReviewCampaignMembershipDto {
+  return {
+    campaignId: membership.campaignId,
+    campaignName: membership.campaign?.name ?? "",
+    role: membership.role,
+  }
+}
+
 export function toBackofficeUserDetailDto(
   user: User,
   organizationMemberships: OrganizationMembership[],
   projectMemberships: ProjectMembership[],
   agentMemberships: AgentMembership[],
+  reviewCampaignMemberships: ReviewCampaignMembership[],
 ): BackofficeUserDetailDto {
   return {
     id: user.id,
@@ -220,5 +233,8 @@ export function toBackofficeUserDetailDto(
     organizationMemberships: organizationMemberships.map(toBackofficeUserOrganizationMembershipDto),
     projectMemberships: projectMemberships.map(toBackofficeUserProjectMembershipDto),
     agentMemberships: agentMemberships.map(toBackofficeUserAgentMembershipDto),
+    reviewCampaignMemberships: reviewCampaignMemberships.map(
+      toBackofficeUserReviewCampaignMembershipDto,
+    ),
   }
 }

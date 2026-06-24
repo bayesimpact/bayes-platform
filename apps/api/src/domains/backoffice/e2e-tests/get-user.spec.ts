@@ -9,6 +9,11 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { mockAuth0EmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { BackofficeModule } from "../backoffice.module"
@@ -70,8 +75,21 @@ describe("Backoffice - get user", () => {
     return context
   }
 
-  it("returns the user detail with organization and agent memberships", async () => {
+  it("returns the user detail with organization, agent, and review campaign memberships", async () => {
     const { user, organization, project, agent } = await createAuthorizedContext()
+    const reviewCampaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory.transient({ organization, project, agent }).build({
+        name: "Review campaign",
+      }),
+    )
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
+        .reviewer()
+        .transient({ organization, project, campaign: reviewCampaign, user })
+        .build(),
+    })
+
     const response = await request({
       route: BackofficeRoutes.getUser,
       pathParams: { userId: user.id },
@@ -102,6 +120,13 @@ describe("Backoffice - get user", () => {
         role: "owner",
       },
     ])
+    expect(returned.reviewCampaignMemberships).toEqual([
+      {
+        campaignId: reviewCampaign.id,
+        campaignName: reviewCampaign.name,
+        role: "reviewer",
+      },
+    ])
   })
 
   it("returns empty membership lists for a user with no memberships", async () => {
@@ -123,6 +148,7 @@ describe("Backoffice - get user", () => {
     expect(response.body.data.organizationMemberships).toEqual([])
     expect(response.body.data.projectMemberships).toEqual([])
     expect(response.body.data.agentMemberships).toEqual([])
+    expect(response.body.data.reviewCampaignMemberships).toEqual([])
   })
 
   it("returns 404 for an unknown user id", async () => {

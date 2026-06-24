@@ -17,6 +17,7 @@ import type {
   BackofficeUserDto,
   BackofficeUserOrganizationMembershipDto,
   BackofficeUserProjectMembershipDto,
+  BackofficeUserReviewCampaignMembershipDto,
   CurrentTermsDto,
   FeatureFlagKey,
   OrganizationMembershipRoleDto,
@@ -25,6 +26,7 @@ import type {
   PaginatedBackofficeProjectsDto,
   PaginatedBackofficeUsersDto,
   ProjectMembershipRoleDto,
+  ReviewCampaignMembershipRole,
   TimeType,
 } from "@caseai-connect/api-contracts"
 
@@ -243,6 +245,12 @@ export type BackofficeUserAgentMembership = {
   role: AgentMembershipRoleDto
 }
 
+export type BackofficeUserReviewCampaignMembership = {
+  campaignId: string
+  campaignName: string
+  role: ReviewCampaignMembershipRole
+}
+
 export type BackofficeUserDetail = {
   id: string
   email: string
@@ -251,6 +259,7 @@ export type BackofficeUserDetail = {
   organizationMemberships: BackofficeUserOrganizationMembership[]
   projectMemberships: BackofficeUserProjectMembership[]
   agentMemberships: BackofficeUserAgentMembership[]
+  reviewCampaignMemberships: BackofficeUserReviewCampaignMembership[]
 }
 
 export const toBackofficeProject = (dto: BackofficeProjectDto): BackofficeProject => ({
@@ -360,6 +369,14 @@ const toBackofficeUserAgentMembership = (
   role: dto.role,
 })
 
+const toBackofficeUserReviewCampaignMembership = (
+  dto: BackofficeUserReviewCampaignMembershipDto,
+): BackofficeUserReviewCampaignMembership => ({
+  campaignId: dto.campaignId,
+  campaignName: dto.campaignName,
+  role: dto.role,
+})
+
 export const toBackofficeUserDetail = (dto: BackofficeUserDetailDto): BackofficeUserDetail => ({
   id: dto.id,
   email: dto.email,
@@ -368,6 +385,9 @@ export const toBackofficeUserDetail = (dto: BackofficeUserDetailDto): Backoffice
   organizationMemberships: dto.organizationMemberships.map(toBackofficeUserOrganizationMembership),
   projectMemberships: dto.projectMemberships.map(toBackofficeUserProjectMembership),
   agentMemberships: dto.agentMemberships.map(toBackofficeUserAgentMembership),
+  reviewCampaignMemberships: dto.reviewCampaignMemberships.map(
+    toBackofficeUserReviewCampaignMembership,
+  ),
 })
 
 export type TermsDocuments = CurrentTermsDto

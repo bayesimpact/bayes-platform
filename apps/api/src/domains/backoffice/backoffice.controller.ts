@@ -182,6 +182,7 @@ export class BackofficeController {
         result.organizationMemberships,
         result.projectMemberships,
         result.agentMemberships,
+        result.reviewCampaignMemberships,
       ),
     }
   }

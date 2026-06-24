@@ -2875,15 +2875,6 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/agents/extraction-agent-sessions/extraction-agent-sessions.service.ts",
-    "to": "src/domains/documents/document.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
     "from": "src/domains/agents/extraction-agent-sessions/extraction-agent-session-runner.service.ts",
     "to": "src/domains/documents/document.entity.ts",
     "rule": {
@@ -3236,6 +3227,15 @@
   {
     "type": "dependency",
     "from": "src/domains/backoffice/backoffice.helpers.ts",
+    "to": "src/domains/review-campaigns/memberships/review-campaign-membership.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.helpers.ts",
     "to": "src/domains/users/user.entity.ts",
     "rule": {
       "severity": "error",
@@ -3308,6 +3308,15 @@
   {
     "type": "dependency",
     "from": "src/domains/backoffice/backoffice.module.ts",
+    "to": "src/domains/review-campaigns/memberships/review-campaign-membership.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.module.ts",
     "to": "src/domains/users/user.entity.ts",
     "rule": {
       "severity": "error",
@@ -3372,6 +3381,15 @@
     "type": "dependency",
     "from": "src/domains/backoffice/backoffice.service.ts",
     "to": "src/domains/projects/project.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.service.ts",
+    "to": "src/domains/review-campaigns/memberships/review-campaign-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"

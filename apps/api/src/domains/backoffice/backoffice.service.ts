@@ -1,8 +1,7 @@
 import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common"
-import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { DataSource, In, type Repository } from "typeorm"
+import { InjectRepository } from "@nestjs/typeorm"
+import { In, type Repository } from "typeorm"
 import { Agent } from "../agents/agent.entity"
 import { AgentMembership } from "../agents/memberships/agent-membership.entity"
 import { FeatureFlag } from "../feature-flags/feature-flag.entity"
@@ -10,6 +9,7 @@ import { OrganizationMembership } from "../organizations/memberships/organizatio
 import { Organization } from "../organizations/organization.entity"
 import { ProjectMembership } from "../projects/memberships/project-membership.entity"
 import { Project } from "../projects/project.entity"
+import { ReviewCampaignMembership } from "../review-campaigns/memberships/review-campaign-membership.entity"
 import { User } from "../users/user.entity"
 
 const adminRoles = In(["admin", "owner"])
@@ -30,7 +30,8 @@ export class BackofficeService {
     @InjectRepository(AgentMembership)
     private readonly agentMembershipRepository: Repository<AgentMembership>,
     @InjectRepository(Agent) private readonly agentRepository: Repository<Agent>,
-    @InjectDataSource() readonly _dataSource: DataSource,
+    @InjectRepository(ReviewCampaignMembership)
+    private readonly reviewCampaignMembershipRepository: Repository<ReviewCampaignMembership>,
   ) {}
 
   async listOrganizations({
@@ -479,6 +480,7 @@ export class BackofficeService {
     organizationMemberships: OrganizationMembership[]
     projectMemberships: ProjectMembership[]
     agentMemberships: AgentMembership[]
+    reviewCampaignMemberships: ReviewCampaignMembership[]
   } | null> {
     if (!canListAll) {
       const visibleUserIds = await this.findVisibleUserIdsForAdmin(requestingUserId)
@@ -488,7 +490,12 @@ export class BackofficeService {
     const user = await this.userRepository.findOne({ where: { id: targetUserId } })
     if (!user) return null
 
-    const [organizationMemberships, projectMemberships, agentMemberships] = await Promise.all([
+    const [
+      organizationMemberships,
+      projectMemberships,
+      agentMemberships,
+      reviewCampaignMemberships,
+    ] = await Promise.all([
       this.organizationMembershipRepository
         .createQueryBuilder("om")
         .select(["om.organizationId", "om.role"])
@@ -513,9 +520,24 @@ export class BackofficeService {
         .where("am.userId = :userId", { userId: targetUserId })
         .orderBy("LOWER(agent.name)", "ASC")
         .getMany(),
+      this.reviewCampaignMembershipRepository
+        .createQueryBuilder("rcm")
+        .select(["rcm.campaignId", "rcm.role"])
+        .leftJoin("rcm.campaign", "campaign")
+        .addSelect(["campaign.id", "campaign.name"])
+        .where("rcm.userId = :userId", { userId: targetUserId })
+        .orderBy("LOWER(campaign.name)", "ASC")
+        .addOrderBy("rcm.role", "ASC")
+        .getMany(),
     ])
 
-    return { user, organizationMemberships, projectMemberships, agentMemberships }
+    return {
+      user,
+      organizationMemberships,
+      projectMemberships,
+      agentMemberships,
+      reviewCampaignMemberships,
+    }
   }
 
   private async findVisibleUserIdsForAdmin(userId: string): Promise<Set<string>> {

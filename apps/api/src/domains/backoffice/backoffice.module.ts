@@ -8,6 +8,7 @@ import { OrganizationMembership } from "@/domains/organizations/memberships/orga
 import { Organization } from "@/domains/organizations/organization.entity"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
+import { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
 import { User } from "@/domains/users/user.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { BackofficeController } from "./backoffice.controller"
@@ -25,6 +26,7 @@ import { BackofficeService } from "./backoffice.service"
       ProjectMembership,
       AgentMembership,
       Agent,
+      ReviewCampaignMembership,
     ]),
     UsersModule,
     AuthModule,
