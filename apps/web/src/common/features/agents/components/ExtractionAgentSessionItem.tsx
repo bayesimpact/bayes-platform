@@ -306,7 +306,7 @@ function JsonViewer({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange} modal>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" disabled={isLoading}>
           {t("button")}
@@ -320,9 +320,9 @@ function JsonViewer({
 
         {result ? (
           <Textarea
-            value={JSON.stringify(result, null, 2)}
+            value={JSON.stringify(deepParseJsonStrings(result), null, 2)}
             readOnly
-            className="font-mono min-h-56"
+            className="font-mono min-h-56 max-h-96 overflow-auto resize-none"
           />
         ) : isLoading ? (
           <Loader />
@@ -371,6 +371,41 @@ function JsonDownloader({
       {t("button")}
     </Button>
   )
+}
+
+/**
+ * Recursively replaces string values that are themselves JSON (objects or
+ * arrays) with their parsed form. Extraction results sometimes nest
+ * JSON-encoded strings, which `JSON.stringify` would otherwise render with
+ * escaped quotes (`\"`); parsing them first yields readable nested JSON.
+ */
+function deepParseJsonStrings(value: unknown): unknown {
+  if (typeof value === "string") {
+    const trimmed = value.trim()
+    const looksLikeJson =
+      (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+      (trimmed.startsWith("[") && trimmed.endsWith("]"))
+    if (!looksLikeJson) {
+      return value
+    }
+    try {
+      return deepParseJsonStrings(JSON.parse(trimmed))
+    } catch {
+      return value
+    }
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(deepParseJsonStrings)
+  }
+
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nestedValue]) => [key, deepParseJsonStrings(nestedValue)]),
+    )
+  }
+
+  return value
 }
 
 function buildRunResultFileName(documentFileName: string | null, runId: string): string {

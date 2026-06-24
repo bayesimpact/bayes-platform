@@ -5,18 +5,21 @@ import {
   moduleImports,
   moduleProviders,
 } from "../base-agent-sessions/base-agent-sessions-module.helpers"
-import { ExtractionAgentSessionStatusNotifierService } from "./extraction-agent-session-status-notifier.service"
+import { ExtractionAgentSessionBatchModule } from "./extraction-agent-session-batch.module"
 import { ExtractionAgentSessionStatusStreamService } from "./extraction-agent-session-status-stream.service"
 import { ExtractionAgentSessionsController } from "./extraction-agent-sessions.controller"
 import { ExtractionAgentSessionsService } from "./extraction-agent-sessions.service"
 
 @Module({
-  imports: [TypeOrmModule.forFeature([...moduleFeatures]), ...moduleImports],
+  imports: [
+    TypeOrmModule.forFeature([...moduleFeatures]),
+    ...moduleImports,
+    ExtractionAgentSessionBatchModule,
+  ],
   providers: [
     ...moduleProviders,
     ExtractionAgentSessionsService,
     ExtractionAgentSessionStatusStreamService,
-    ExtractionAgentSessionStatusNotifierService,
   ],
   controllers: [ExtractionAgentSessionsController],
   exports: [ExtractionAgentSessionsService],

@@ -10,11 +10,12 @@ import {
   syncExtractionSessionStatusStreamWithSessions,
 } from "./extraction-agent-session-stream-status"
 import { patchExtractionSessionStatus } from "./extraction-agent-sessions.actions"
+import { selectHasExtractionSessionsInProgress } from "./extraction-agent-sessions.selectors"
 import { extractionAgentSessionsActions } from "./extraction-agent-sessions.slice"
 
 export const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
-const { mount, executeOne, listMyDocuments, deleteMyDocuments, getAll } =
+const { mount, sessionMount, executeOne, listMyDocuments, deleteMyDocuments, getAll } =
   extractionAgentSessionsActions
 
 function registerListeners() {
@@ -24,8 +25,14 @@ function registerListeners() {
       const state = listenerApi.getState()
       const agentId = getCurrentId({ state, name: "agentId" })
       await listenerApi.dispatch(getAll({ agentId }))
-      // After loading, start the stream if any sessions are still pending
-      syncExtractionSessionStatusStreamWithSessions(listenerApi)
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: sessionMount,
+    effect: async (_, listenerApi) => {
+      if (selectHasExtractionSessionsInProgress(listenerApi.getState())) {
+        listenerApi.dispatch(extractionAgentSessionsActions.startSessionStatusStream())
+      }
     },
   })
 

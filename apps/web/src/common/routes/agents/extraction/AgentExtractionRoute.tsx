@@ -1,15 +1,11 @@
-import { Item, ItemContent } from "@caseai-connect/ui/shad/item"
-import { Spinner } from "@caseai-connect/ui/shad/spinner"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate, useOutlet } from "react-router-dom"
+import { useMount } from "@/common/hooks/use-mount"
 import type { Document } from "@/studio/features/documents/documents.models"
 import { FileUploader } from "../../../components/FileUploader"
 import { GridHeader } from "../../../components/grid/Grid"
-import {
-  selectExtractionAgentSessionsDocuments,
-  selectIsExtracting,
-} from "../../../features/agents/agent-sessions/extraction/extraction-agent-sessions.selectors"
+import { selectExtractionAgentSessionsDocuments } from "../../../features/agents/agent-sessions/extraction/extraction-agent-sessions.selectors"
 import { extractionAgentSessionsActions } from "../../../features/agents/agent-sessions/extraction/extraction-agent-sessions.slice"
 import { selectCurrentAgentData } from "../../../features/agents/agents.selectors"
 import { DocumentList } from "../../../features/agents/components/DocumentList"
@@ -29,6 +25,8 @@ export function AgentExtractionRoute(props: { buildCsvRunPath: BuildAgentExtract
   const documents = useAppSelector(selectExtractionAgentSessionsDocuments)
   const agent = useValue(selectCurrentAgentData)
   const [csvDocumentId, setCsvDocumentId] = useState<string | null>(null)
+
+  useMount({ actions: extractionAgentSessionsActions, refreshOn: [agent.id] })
 
   if (agent.type !== "extraction")
     return <ErrorRoute error={`${agent.name} is not an extraction agent`} />
@@ -102,7 +100,6 @@ function FileManager({
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const path = useGetAgentRoute()
-  const isExtracting = useAppSelector(selectIsExtracting)
 
   const handleBack = () => navigate(path)
 
@@ -136,7 +133,6 @@ function FileManager({
         description={t("extractionAgentSession:create.description")}
         action={
           <FileUploader
-            disabled={isExtracting}
             maxFiles={1}
             allowedMimeTypes={{
               "application/pdf": true,
@@ -153,14 +149,7 @@ function FileManager({
       />
 
       <div className="p-4">
-        {isExtracting ? (
-          <Item variant="muted">
-            <Spinner />
-            <ItemContent>{t("extractionAgentSession:create.processingMessage")}</ItemContent>
-          </Item>
-        ) : (
-          <DocumentList onSelectDocument={(document) => handleSubmit({ document })} />
-        )}
+        <DocumentList onSelectDocument={(document) => handleSubmit({ document })} />
       </div>
     </div>
   )

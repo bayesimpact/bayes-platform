@@ -10,8 +10,10 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Added
 
 ### Changed
+- Extraction runs are processed in the background through a dedicated queue, so submitting a run returns immediately and multiple runs are handled reliably without blocking the request
 
 ### Fixed
+- Extraction run status resumes streaming after a page reload, so a pending run no longer stays stuck on "pending" once it completes
 
 ### Security
 
