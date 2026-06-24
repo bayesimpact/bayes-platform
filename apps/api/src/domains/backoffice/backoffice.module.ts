@@ -4,11 +4,11 @@ import { Agent } from "@/domains/agents/agent.entity"
 import { AgentMembership } from "@/domains/agents/memberships/agent-membership.entity"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { FeatureFlag } from "@/domains/feature-flags/feature-flag.entity"
+import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
-import { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
 import { User } from "@/domains/users/user.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { BackofficeController } from "./backoffice.controller"
@@ -26,7 +26,7 @@ import { BackofficeService } from "./backoffice.service"
       ProjectMembership,
       AgentMembership,
       Agent,
-      ReviewCampaignMembership,
+      UserMembership,
     ]),
     UsersModule,
     AuthModule,
