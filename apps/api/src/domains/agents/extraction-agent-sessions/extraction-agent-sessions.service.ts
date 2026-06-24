@@ -1,60 +1,35 @@
-import { URL } from "node:url"
-import { Inject, Injectable, Logger, UnprocessableEntityException } from "@nestjs/common"
+import { Inject, Injectable, UnprocessableEntityException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import type { FilePart, ImagePart } from "ai"
-import { JSONParseError, TypeValidationError } from "ai"
-import * as Papa from "papaparse"
 import type { Repository } from "typeorm"
 import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type {
-  LLMChatMessage,
-  LLMMetadata,
-  LLMProvider,
-} from "@/common/interfaces/llm-provider.interface"
-import type { Document } from "@/domains/documents/document.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "@/domains/documents/documents.service"
-import {
-  FILE_STORAGE_SERVICE,
-  type IFileStorage,
-} from "@/domains/documents/storage/file-storage.interface"
-import { ServiceWithLLM } from "@/external/llm"
 import type { Agent } from "../agent.entity"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 import { ExtractionAgentSession } from "./extraction-agent-session.entity"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { ExtractionAgentSessionStatusNotifierService } from "./extraction-agent-session-status-notifier.service"
+import {
+  EXTRACTION_AGENT_SESSION_BATCH_SERVICE,
+  type ExtractionAgentSessionBatchService,
+} from "./extraction-agent-session-batch.interface"
 
 @Injectable()
-export class ExtractionAgentSessionsService extends ServiceWithLLM {
-  private readonly logger = new Logger(ExtractionAgentSessionsService.name)
+export class ExtractionAgentSessionsService {
+  private readonly sessionConnectRepository: ConnectRepository<ExtractionAgentSession>
 
   constructor(
     @InjectRepository(ExtractionAgentSession)
     extractionAgentSessionRepository: Repository<ExtractionAgentSession>,
-    @Inject(FILE_STORAGE_SERVICE)
-    private readonly fileStorageService: IFileStorage,
     private readonly documentsService: DocumentsService,
-    private readonly statusNotifierService: ExtractionAgentSessionStatusNotifierService,
-    @Inject("_MockLLMProvider")
-    mockLlmProvider: LLMProvider,
-    @Inject("VertexLLMProvider")
-    vertexLlmProvider: LLMProvider,
-    @Inject("MedGemmaLLMProvider")
-    medGemmaLlmProvider: LLMProvider,
-    @Inject("GemmaLLMProvider")
-    gemmaLlmProvider: LLMProvider,
+    @Inject(EXTRACTION_AGENT_SESSION_BATCH_SERVICE)
+    private readonly batchService: ExtractionAgentSessionBatchService,
   ) {
-    super({ mockLlmProvider, vertexLlmProvider, medGemmaLlmProvider, gemmaLlmProvider })
     this.sessionConnectRepository = new ConnectRepository(
       extractionAgentSessionRepository,
       "extractionAgentSession",
     )
   }
-
-  private readonly sessionConnectRepository: ConnectRepository<ExtractionAgentSession>
 
   async executeExtraction({
     connectScope,
@@ -82,7 +57,8 @@ export class ExtractionAgentSessionsService extends ServiceWithLLM {
     }
 
     const effectivePrompt = promptOverride ?? agent.defaultPrompt
-    const document = await this.getDocument({ connectScope, documentId })
+    // Validate the document exists and is in scope before enqueuing the job.
+    await this.assertDocumentExists({ connectScope, documentId })
 
     const run = await this.sessionConnectRepository.createAndSave(connectScope, {
       agentId: agent.id,
@@ -98,197 +74,14 @@ export class ExtractionAgentSessionsService extends ServiceWithLLM {
       traceId: v4(),
     })
 
-    // Fire and forget — returns immediately so the HTTP response is not blocked
-    void this.runExtractionAsync({ document, effectivePrompt, agent, run, connectScope })
-
-    return run
-  }
-
-  private async runExtractionAsync(params: {
-    document: Document
-    effectivePrompt: string
-    agent: Agent
-    run: ExtractionAgentSession
-    connectScope: RequiredConnectScope
-  }) {
-    try {
-      await this.processExtraction(params)
-    } catch (error) {
-      // processExtraction already saved the failed status; just log the unhandled error
-      this.logger.error(
-        `Extraction failed for session ${params.run.id}`,
-        error instanceof Error ? error.stack : String(error),
-      )
-    }
-  }
-
-  private async processExtraction({
-    document,
-    effectivePrompt,
-    agent,
-    run,
-    connectScope,
-  }: {
-    document: Document
-    effectivePrompt: string
-    agent: Agent
-    run: ExtractionAgentSession
-    connectScope: RequiredConnectScope
-  }) {
-    if (!agent.outputJsonSchema) {
-      throw new UnprocessableEntityException("Extraction agent is missing outputJsonSchema")
-    }
-
-    try {
-      const llmMessage = await this.buildLLMMessage({
-        document,
-        prompt: effectivePrompt,
-      })
-
-      const result = await this.getProviderForModel(agent.model).generateStructuredOutput({
-        message: llmMessage,
-        schema: agent.outputJsonSchema,
-        config: this.buildLLMConfig({
-          systemPrompt: `Today's date: ${new Date().toLocaleDateString()}`,
-          model: agent.model,
-          temperature: agent.temperature,
-        }),
-        metadata: this.buildLLMMetadata({ agent, run, connectScope }),
-      })
-
-      run.status = "success"
-      run.result = result
-      run.errorCode = null
-      run.errorDetails = null
-      const savedRun = await this.sessionConnectRepository.saveOne(run)
-      await this.statusNotifierService.notifySessionStatusChanged({
-        extractionAgentSessionId: savedRun.id,
-        organizationId: connectScope.organizationId,
-        projectId: connectScope.projectId,
-        agentId: agent.id,
-        status: savedRun.status,
-        updatedAt: savedRun.updatedAt.getTime(),
-      })
-      return savedRun
-    } catch (error) {
-      return await this.handleExtractionError({ run, error, connectScope, agentId: agent.id })
-    }
-  }
-
-  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: This method is currently unused but may be needed for future CSV processing
-  private async _processCsvExtraction({
-    document,
-    effectivePrompt,
-    agent,
-    run,
-    connectScope,
-  }: {
-    document: Document
-    effectivePrompt: string
-    agent: Agent
-    run: ExtractionAgentSession
-    connectScope: RequiredConnectScope
-  }) {
-    if (!agent.outputJsonSchema) {
-      throw new UnprocessableEntityException("Extraction agent is missing outputJsonSchema")
-    }
-
-    try {
-      const rows = await this.parseCsvRows(document)
-      const provider = this.getProviderForModel(agent.model)
-      const config = this.buildLLMConfig({
-        systemPrompt: `Today's date: ${new Date().toLocaleDateString()}`,
-        model: agent.model,
-        temperature: agent.temperature,
-      })
-      const metadata = this.buildLLMMetadata({ agent, run, connectScope })
-
-      const rowResults: Record<string, unknown>[] = []
-      for (const row of rows) {
-        const rowResult = await provider.generateStructuredOutput({
-          message: {
-            role: "user",
-            content: [{ type: "text", text: `${effectivePrompt}\n\n${this.formatCsvRow(row)}` }],
-          },
-          schema: agent.outputJsonSchema,
-          config,
-          metadata,
-        })
-        rowResults.push(rowResult)
-      }
-
-      run.status = "success"
-      run.result = { rows: rowResults }
-      run.errorCode = null
-      run.errorDetails = null
-      return await this.sessionConnectRepository.saveOne(run)
-    } catch (error) {
-      return await this.handleExtractionError({ run, error, connectScope, agentId: agent.id })
-    }
-  }
-
-  private async handleExtractionError({
-    run,
-    error,
-    connectScope,
-    agentId,
-  }: {
-    run: ExtractionAgentSession
-    error: unknown
-    connectScope: RequiredConnectScope
-    agentId: string
-  }): Promise<ExtractionAgentSession> {
-    run.status = "failed"
-    run.result = null
-
-    const isSchemaValidationError =
-      TypeValidationError.isInstance(error) ||
-      JSONParseError.isInstance(error) ||
-      (error instanceof Error &&
-        (error.name === "TypeValidationError" || error.name === "JSONParseError"))
-
-    if (isSchemaValidationError) {
-      run.errorCode = "SCHEMA_VALIDATION_FAILED"
-      run.errorDetails = { message: (error as Error).message }
-    } else {
-      run.errorCode = "EXTRACTION_PROVIDER_ERROR"
-      run.errorDetails = {
-        message: error instanceof Error ? error.message : "Unknown extraction provider error",
-      }
-    }
-
-    const savedRun = await this.sessionConnectRepository.saveOne(run)
-    await this.statusNotifierService.notifySessionStatusChanged({
-      extractionAgentSessionId: savedRun.id,
+    // Hand off to a worker so the HTTP response is not blocked by the LLM call.
+    await this.batchService.enqueueExecuteRun({
+      extractionAgentSessionId: run.id,
       organizationId: connectScope.organizationId,
       projectId: connectScope.projectId,
-      agentId,
-      status: savedRun.status,
-      updatedAt: savedRun.updatedAt.getTime(),
-    })
-    throw error
-  }
-
-  private async parseCsvRows(document: Document): Promise<Record<string, unknown>[]> {
-    const buffer = await this.fileStorageService.readFile(document.storageRelativePath)
-    const csvContent = buffer.toString("utf-8")
-
-    const parsed = Papa.parse<Record<string, unknown>>(csvContent, {
-      skipEmptyLines: true,
-      header: true,
     })
 
-    if (!parsed.meta.fields || parsed.meta.fields.length === 0) {
-      throw new UnprocessableEntityException("CSV file has no columns")
-    }
-
-    return parsed.data
-  }
-
-  private formatCsvRow(row: Record<string, unknown>): string {
-    return Object.entries(row)
-      .map(([key, value]) => `${key}: ${value ?? ""}`)
-      .join("\n")
+    return run
   }
 
   async listRuns({
@@ -334,79 +127,16 @@ export class ExtractionAgentSessionsService extends ServiceWithLLM {
     return run
   }
 
-  private async getDocument({
+  private async assertDocumentExists({
     connectScope,
     documentId,
   }: {
     connectScope: RequiredConnectScope
     documentId: string
-  }): Promise<Document> {
+  }): Promise<void> {
     const document = await this.documentsService.findById({ connectScope, documentId })
     if (!document) {
       throw new Error(`Document with ID ${documentId} not found`)
-    }
-    return document
-  }
-
-  private async buildLLMMessage({
-    document,
-    prompt,
-  }: {
-    document: Document
-    prompt: string
-  }): Promise<LLMChatMessage> {
-    const url = await this.fileStorageService.getTemporaryUrl(document.storageRelativePath)
-    const llmMessage: LLMChatMessage = {
-      role: "user",
-      content: [{ type: "text", text: prompt }],
-    }
-
-    switch (document.mimeType) {
-      case "application/pdf": {
-        const content = llmMessage.content as Array<FilePart>
-        content.push({
-          type: "file",
-          mediaType: "application/pdf",
-          data: new URL(url),
-          filename: document.fileName,
-        })
-        break
-      }
-      case "image/png":
-      case "image/jpeg":
-      case "image/jpg": {
-        const content = llmMessage.content as Array<ImagePart>
-        content.push({
-          type: "image",
-          image: new URL(url),
-        })
-        break
-      }
-
-      default:
-        throw new UnprocessableEntityException(`Unsupported document type: ${document.mimeType}`)
-    }
-
-    return llmMessage
-  }
-
-  private buildLLMMetadata({
-    agent,
-    run,
-    connectScope,
-  }: {
-    agent: Agent
-    run: ExtractionAgentSession
-    connectScope: RequiredConnectScope
-  }): LLMMetadata {
-    return {
-      traceId: run.traceId,
-      organizationId: connectScope.organizationId,
-      agentSessionId: run.id,
-      agentId: agent.id,
-      projectId: connectScope.projectId,
-      currentTurn: 1,
-      tags: [agent.name, "extraction"],
     }
   }
 }

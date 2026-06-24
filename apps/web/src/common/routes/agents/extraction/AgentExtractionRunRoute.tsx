@@ -7,8 +7,10 @@ import {
   selectCurrentExtractionRunData,
   selectCurrentExtractionRunId,
 } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.selectors"
+import { extractionAgentSessionsActions } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.slice"
 import { Actions } from "@/common/features/agents/components/ExtractionAgentSessionItem"
 import { useGetAgentRoute } from "@/common/hooks/use-get-path"
+import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppSelector } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
@@ -19,6 +21,15 @@ import { LoadingRoute } from "../../LoadingRoute"
 export function AgentExtractionRunRoute() {
   const runData = useAppSelector(selectCurrentExtractionRunData)
   const runId = useAppSelector(selectCurrentExtractionRunId)
+
+  useMount({
+    actions: {
+      mount: extractionAgentSessionsActions.sessionMount,
+      unmount: extractionAgentSessionsActions.sessionUnmount,
+    },
+    condition: !!runId,
+    refreshOn: [runId],
+  })
 
   if (!runId) return <LoadingRoute />
   return (
