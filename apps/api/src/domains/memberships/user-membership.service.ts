@@ -66,7 +66,7 @@ export class UserMembershipService {
     })
   }
 
-  async upsertReviewCampaignMembership(
+  async ensureReviewCampaignMembership(
     params: { userId: string; campaignId: string; role: UserMembershipRole },
     manager?: EntityManager,
   ): Promise<void> {
@@ -163,7 +163,7 @@ export class UserMembershipService {
       },
     })
     if (existing) {
-      if (existing.role !== params.role) {
+      if (existing.role !== "admin" && existing.role !== "owner" && existing.role !== params.role) {
         existing.role = params.role
         await repo.save(existing)
       }

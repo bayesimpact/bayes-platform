@@ -313,7 +313,7 @@ export class ReviewCampaignInvitationHandler
       )
       const role = invitation.role as ReviewCampaignMembershipRole
       await this.upsertCampaignMembership(membershipRepository, invitation, user.id, campaign)
-      await this.userMembershipService.upsertReviewCampaignMembership(
+      await this.userMembershipService.ensureReviewCampaignMembership(
         { userId: user.id, campaignId: campaign.id, role },
         manager,
       )
