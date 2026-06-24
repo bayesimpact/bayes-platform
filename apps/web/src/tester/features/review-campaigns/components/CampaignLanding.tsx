@@ -194,7 +194,10 @@ function StartSessionButton() {
           </Badge>
         </CardDescription>
         <CardAction>
-          <Button onClick={handleStartSession}>
+          <Button className="sm:hidden" size="icon" onClick={handleStartSession}>
+            <ArrowRightIcon />
+          </Button>
+          <Button className="hidden sm:flex" onClick={handleStartSession}>
             {t("testerCampaigns:landing.startSession")} <ArrowRightIcon />
           </Button>
         </CardAction>

@@ -10,14 +10,20 @@ import { LangfuseIntegrationExporter } from "@/external/langfuse/langfuse-integr
 
 const isProduction = process.env.NODE_ENV === "production"
 
+const hasLangfuseKeys = process.env.LANGFUSE_SK && process.env.LANGFUSE_PK
+
 const spanProcessors = [
-  new BatchSpanProcessor(
-    new LangfuseIntegrationExporter({
-      secretKey: process.env.LANGFUSE_SK,
-      publicKey: process.env.LANGFUSE_PK,
-      baseUrl: process.env.LANGFUSE_BASE_URL,
-    }),
-  ),
+  ...(hasLangfuseKeys
+    ? [
+        new BatchSpanProcessor(
+          new LangfuseIntegrationExporter({
+            secretKey: process.env.LANGFUSE_SK,
+            publicKey: process.env.LANGFUSE_PK,
+            baseUrl: process.env.LANGFUSE_BASE_URL,
+          }),
+        ),
+      ]
+    : []),
 ]
 
 if (isProduction) {

@@ -35,6 +35,7 @@ export const FirstTime: Story = {
     withRedux({
       state: mergeSeeds(
         seed.currentProject(mockProject),
+        seed.currentReviewCampaignId(mockTesterContext.id),
         seed.tester.context(mockTesterContext),
         seed.tester.campaignSurvey(null),
       ),
@@ -54,6 +55,7 @@ export const Editing: Story = {
     withRedux({
       state: mergeSeeds(
         seed.currentProject(mockProject),
+        seed.currentReviewCampaignId(mockTesterContext.id),
         seed.tester.context(mockTesterContext),
         seed.tester.campaignSurvey(editingSurvey),
       ),
