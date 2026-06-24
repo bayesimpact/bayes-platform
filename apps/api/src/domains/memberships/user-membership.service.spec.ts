@@ -56,21 +56,55 @@ describe("UserMembershipService", () => {
       void user
     })
 
-    it("updates the role when the membership already exists", async () => {
+    it("updates the role when the existing role is member", async () => {
+      const { organization } = await createOrganizationWithOwner(repositories)
+      const anotherUser = await repositories.userRepository.save(userFactory.build())
+
+      await service.upsertOrganizationMembership({
+        userId: anotherUser.id,
+        organizationId: organization.id,
+        role: "member",
+      })
+      await service.upsertOrganizationMembership({
+        userId: anotherUser.id,
+        organizationId: organization.id,
+        role: "admin",
+      })
+
+      const row = await getUserMembership(anotherUser.id, organization.id)
+      expect(row?.role).toBe("admin")
+    })
+
+    it("does not overwrite an owner role", async () => {
       const { organization, user } = await createOrganizationWithOwner(repositories)
+      // saveOrgMembership already wrote an "owner" row to user_membership
 
       await service.upsertOrganizationMembership({
         userId: user.id,
         organizationId: organization.id,
         role: "member",
       })
+
+      const row = await getUserMembership(user.id, organization.id)
+      expect(row?.role).toBe("owner")
+    })
+
+    it("does not overwrite an admin role", async () => {
+      const { organization } = await createOrganizationWithOwner(repositories)
+      const anotherUser = await repositories.userRepository.save(userFactory.build())
+
       await service.upsertOrganizationMembership({
-        userId: user.id,
+        userId: anotherUser.id,
         organizationId: organization.id,
         role: "admin",
       })
+      await service.upsertOrganizationMembership({
+        userId: anotherUser.id,
+        organizationId: organization.id,
+        role: "member",
+      })
 
-      const row = await getUserMembership(user.id, organization.id)
+      const row = await getUserMembership(anotherUser.id, organization.id)
       expect(row?.role).toBe("admin")
     })
 
@@ -126,6 +160,18 @@ describe("UserMembershipService", () => {
       expect(row?.role).toBe("owner")
       void organization
     })
+
+    it("does not overwrite an existing admin role when accepting a campaign invitation", async () => {
+      const { user } = await createOrganizationWithOwner(repositories)
+      const projectId = "00000000-0000-0000-0000-000000000001"
+
+      await service.upsertProjectMembership({ userId: user.id, projectId, role: "admin" })
+      // Simulates what review-campaign / agent invitation handlers do: always pass "member"
+      await service.upsertProjectMembership({ userId: user.id, projectId, role: "member" })
+
+      const row = await getUserMembership(user.id, projectId)
+      expect(row?.role).toBe("admin")
+    })
   })
 
   describe("upsertAgentMembership", () => {
@@ -141,13 +187,13 @@ describe("UserMembershipService", () => {
     })
   })
 
-  describe("upsertReviewCampaignMembership", () => {
+  describe("ensureReviewCampaignMembership", () => {
     it("allows the same user to hold both tester and reviewer roles on one campaign", async () => {
       const { user } = await createOrganizationWithOwner(repositories)
       const campaignId = "00000000-0000-0000-0000-000000000003"
 
-      await service.upsertReviewCampaignMembership({ userId: user.id, campaignId, role: "tester" })
-      await service.upsertReviewCampaignMembership({
+      await service.ensureReviewCampaignMembership({ userId: user.id, campaignId, role: "tester" })
+      await service.ensureReviewCampaignMembership({
         userId: user.id,
         campaignId,
         role: "reviewer",
@@ -165,8 +211,8 @@ describe("UserMembershipService", () => {
       const { user } = await createOrganizationWithOwner(repositories)
       const campaignId = "00000000-0000-0000-0000-000000000004"
 
-      await service.upsertReviewCampaignMembership({ userId: user.id, campaignId, role: "tester" })
-      await service.upsertReviewCampaignMembership({ userId: user.id, campaignId, role: "tester" })
+      await service.ensureReviewCampaignMembership({ userId: user.id, campaignId, role: "tester" })
+      await service.ensureReviewCampaignMembership({ userId: user.id, campaignId, role: "tester" })
 
       const rows = await setup.dataSource.getRepository(UserMembership).find({
         where: { userId: user.id, resourceId: campaignId, resourceType: "review_campaign" },
