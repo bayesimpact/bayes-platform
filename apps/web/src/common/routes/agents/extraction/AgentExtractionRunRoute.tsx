@@ -13,7 +13,7 @@ import { useGetAgentRoute } from "@/common/hooks/use-get-path"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppSelector } from "@/common/store/hooks"
-import { buildSince } from "@/common/utils/build-date"
+import { buildDuration, buildSince } from "@/common/utils/build-date"
 import { TraceUrlOpener } from "@/studio/components/TraceUrlOpener"
 import { AsyncRoute } from "../../AsyncRoute"
 import { LoadingRoute } from "../../LoadingRoute"
@@ -59,6 +59,13 @@ function WithData() {
               <Badge variant={isSuccess ? "success" : isPending ? "outline" : "destructive"}>
                 {t(`status:${run.status}`)}
               </Badge>
+              {isSuccess && (
+                <Badge variant="secondary">
+                  {t("extractionAgentSession:result.duration", {
+                    duration: buildDuration(run.createdAt, run.updatedAt),
+                  })}
+                </Badge>
+              )}
             </div>
           </div>
         }
