@@ -88,9 +88,18 @@ const meta = {
   component: TesterAgentSessionContent,
   parameters: { layout: "fullscreen" },
   decorators: [
+    (Story) => (
+      <div className="flex flex-col h-dvh">
+        <Story />
+      </div>
+    ),
     withRouter,
     withRedux({
-      state: mergeSeeds(seed.currentProject(mockProject), seed.tester.context(mockTesterContext)),
+      state: mergeSeeds(
+        seed.currentProject(mockProject),
+        seed.currentReviewCampaignId(mockTesterContext.id),
+        seed.tester.context(mockTesterContext),
+      ),
       services: { reviewCampaignsTester: buildMockTesterService() },
     }),
   ],

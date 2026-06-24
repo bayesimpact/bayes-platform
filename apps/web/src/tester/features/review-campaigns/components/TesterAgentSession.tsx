@@ -1,7 +1,8 @@
 import type { SubmitTesterSessionFeedbackRequestDto } from "@caseai-connect/api-contracts"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
-import { CheckCircle2Icon } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
+import { CheckCircle2Icon, InfoIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
@@ -66,6 +67,13 @@ export function TesterAgentSessionContent({
 
   const [feedbackOpen, setFeedbackOpen] = useState(false)
 
+  const agentInfo = (
+    <>
+      <Badge variant="outline">{t("testerCampaigns:agentSession.badge")}</Badge>
+      <span>{agent.name}</span>
+    </>
+  )
+
   const handleBack = () => {
     const path = TesterRoutes.campaign.build({ organizationId, projectId, reviewCampaignId })
     navigate(path)
@@ -93,15 +101,24 @@ export function TesterAgentSessionContent({
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
+    <div className="flex flex-col flex-1 min-h-0">
       <GridHeader
         onBack={handleBack}
         title={campaignName}
         description={
-          <div className="flex items-center gap-2 text-sm">
-            <Badge variant="outline">{t("testerCampaigns:agentSession.badge")}</Badge>
-            <span>{agent.name}</span>
-          </div>
+          <>
+            <span className="hidden sm:flex items-center gap-2 text-sm">{agentInfo}</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="size-6 sm:hidden">
+                  <InfoIcon className="size-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto text-sm p-2 flex items-center gap-2">
+                {agentInfo}
+              </PopoverContent>
+            </Popover>
+          </>
         }
         action={
           !ended && (
@@ -112,7 +129,7 @@ export function TesterAgentSessionContent({
         }
       />
 
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden flex flex-col min-h-0">
         <AgentSessionMessages
           session={agentSession}
           messages={messages}

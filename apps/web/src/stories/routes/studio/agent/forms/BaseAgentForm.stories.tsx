@@ -1,6 +1,7 @@
 import { DocumentsRagMode } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { fn } from "storybook/test"
+import { withRouter } from "storybook-addon-remix-react-router"
 import { agentFactory, agentOutputJsonSchemaFactory } from "@/common/features/agents/agent.factory"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import {
@@ -64,8 +65,13 @@ const meta = {
   title: "routes/studio/project/agent/BaseAgentForm",
   component: BaseAgentForm,
   decorators: [
+    withRouter,
     withRedux({
-      state: mergeSeeds(seed.currentProject(project), seed.studio.documentTags(documentTags)),
+      state: mergeSeeds(
+        seed.currentProject(project),
+        seed.studio.documentTags(documentTags),
+        seed.agents([conversationAgent], { currentId: conversationAgent.id }),
+      ),
     }),
   ],
   parameters: { layout: "padded" },
@@ -90,6 +96,7 @@ export const ConversationEditWithoutProjectCategories: Story = {
       state: mergeSeeds(
         seed.currentProject(projectWithoutAgentSessionCategories),
         seed.studio.documentTags(documentTags),
+        seed.agents([conversationAgent], { currentId: conversationAgent.id }),
       ),
     }),
   ],
@@ -111,6 +118,15 @@ export const ConversationCreate: Story = {
 }
 
 export const ExtractionEdit: Story = {
+  decorators: [
+    withRedux({
+      state: mergeSeeds(
+        seed.currentProject(project),
+        seed.studio.documentTags(documentTags),
+        seed.agents([extractionAgent], { currentId: extractionAgent.id }),
+      ),
+    }),
+  ],
   args: {
     agentType: "extraction",
     editableAgent: extractionAgent,
@@ -125,6 +141,15 @@ export const ExtractionCreate: Story = {
 }
 
 export const FormEdit: Story = {
+  decorators: [
+    withRedux({
+      state: mergeSeeds(
+        seed.currentProject(project),
+        seed.studio.documentTags(documentTags),
+        seed.agents([formAgent], { currentId: formAgent.id }),
+      ),
+    }),
+  ],
   args: {
     agentType: "form",
     editableAgent: formAgent,

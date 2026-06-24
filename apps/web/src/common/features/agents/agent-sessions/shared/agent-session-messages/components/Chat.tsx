@@ -63,7 +63,7 @@ function ChatContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="chat-content"
-      className={cn("p-6 flex flex-col gap-4 overflow-y-auto h-full flex-1", className)}
+      className={cn("p-6 flex flex-col gap-4 overflow-y-auto flex-1 min-h-0", className)}
       {...props}
     />
   )

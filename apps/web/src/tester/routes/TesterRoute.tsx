@@ -37,15 +37,15 @@ function Layout() {
   const { t } = useTranslation()
   const user = useValue(selectMe)
   return (
-    <>
+    <div className="flex flex-col h-dvh">
       <HorizontalNavbar
         user={user}
         homePath={RouteNames.HOME}
         appName={t("testerCampaigns:shell.title")}
       />
-      <div className="mx-10 xl:mx-20 my-10 relative border rounded-2xl overflow-hidden">
+      <div className="flex-1 min-h-0 sm:mx-4 md:mx-10 xl:mx-20 sm:my-4 md:my-10 relative sm:border sm:rounded-2xl overflow-hidden flex flex-col">
         <CampaignsRoute />
       </div>
-    </>
+    </div>
   )
 }

@@ -65,7 +65,6 @@
       "overallRatingAriaLabel": "Note globale de la session",
       "comment": "Commentaire",
       "commentPlaceholder": "Y a-t-il quelque chose à signaler sur cette session ?",
-      "skipAndAbandon": "Ignorer et abandonner la session",
       "submit": "Envoyer le retour"
     },
     "endOfPhaseForm": {

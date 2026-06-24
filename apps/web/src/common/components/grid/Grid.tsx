@@ -61,52 +61,85 @@ export function GridContent({
   )
 }
 
-export function GridHeader({
-  onBack,
-  title,
-  description,
-  action,
-  className,
-}: {
+type GridHeaderProps = {
   className?: string
   onBack?: () => void
   title: React.ReactNode
   description?: React.ReactNode
   action?: React.ReactNode
-}) {
+}
+
+export function GridHeader(props: GridHeaderProps) {
+  const { activeBreakpoints } = useBreakpoint()
+  const isDesktop = activeBreakpoints.includes("sm")
+
   return (
     <Card
       className={cn(
-        "shadow-none rounded-none border-0 border-b border-foreground-muted",
-        className,
+        "shadow-none rounded-none border-0 border-b border-foreground-muted py-3 sm:py-6",
+        props.className,
       )}
     >
-      <CardHeader className="gap-0">
-        <CardTitle className="text-2xl flex items-center gap-1">
-          {onBack && (
-            <Button variant="secondary" size="icon" className="rounded-full mr-2" onClick={onBack}>
-              <ArrowLeftIcon className="size-4" />
-            </Button>
-          )}
+      {isDesktop ? <DesktopHeader {...props} /> : <MobileHeader {...props} />}
+    </Card>
+  )
+}
 
-          <div className="capitalize-first">{title}</div>
-        </CardTitle>
-
-        {description && (
-          <CardDescription
-            className={cn(
-              "text-xl flex items-center gap-2 capitalize-first max-w-2/3",
-              onBack && "pl-12",
-            )}
+function DesktopHeader({ onBack, title, description, action }: GridHeaderProps) {
+  return (
+    <CardHeader className="gap-1">
+      <CardTitle className="text-2xl flex items-center gap-1 min-w-0">
+        {onBack && (
+          <Button
+            variant="secondary"
+            size="icon"
+            className="rounded-full mr-2 shrink-0"
+            onClick={onBack}
           >
+            <ArrowLeftIcon className="size-4" />
+          </Button>
+        )}
+        <div className="capitalize-first truncate">{title}</div>
+      </CardTitle>
+
+      {description && (
+        <CardDescription
+          className={cn("text-xl flex items-center gap-2 capitalize-first", onBack && "pl-12")}
+        >
+          {description}
+        </CardDescription>
+      )}
+
+      {action && <CardAction className="flex items-center gap-2 flex-wrap">{action}</CardAction>}
+    </CardHeader>
+  )
+}
+
+function MobileHeader({ onBack, title, description, action }: GridHeaderProps) {
+  return (
+    <CardHeader className="gap-1">
+      <CardTitle className="text-base flex items-center gap-1 min-w-0">
+        {onBack && (
+          <Button
+            variant="secondary"
+            size="icon"
+            className="rounded-full mr-2 shrink-0"
+            onClick={onBack}
+          >
+            <ArrowLeftIcon className="size-4" />
+          </Button>
+        )}
+        <div className="capitalize-first truncate">{title}</div>
+      </CardTitle>
+
+      {(description || action) && (
+        <div className="flex items-center gap-2">
+          <CardDescription className="text-sm flex items-center gap-2 capitalize-first shrink-0">
             {description}
           </CardDescription>
-        )}
-
-        {action && (
-          <CardAction className="flex items-center gap-2 min-h-full flex-wrap">{action}</CardAction>
-        )}
-      </CardHeader>
-    </Card>
+          {action && <div className="flex-1 [&>*]:w-full">{action}</div>}
+        </div>
+      )}
+    </CardHeader>
   )
 }
