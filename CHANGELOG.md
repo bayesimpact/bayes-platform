@@ -12,6 +12,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+
+### Security
+
+## [26.06.12] - 2026-06-24
+
+### Added
+
+### Changed
+
+### Fixed
 - Campaign tester UI is now mobile-friendly
 - Accepting an invitation no longer resets the user's role to a lower permission level
 
