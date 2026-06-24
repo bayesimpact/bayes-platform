@@ -10,6 +10,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Added
 
 ### Changed
+
+### Fixed
+
+### Security
+
+## [26.06.10] - 2026-06-24
+
+### Added
+
+### Changed
 - Extraction runs are processed in the background through a dedicated queue, so submitting a run returns immediately and multiple runs are handled reliably without blocking the request
 
 ### Fixed
