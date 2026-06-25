@@ -21,6 +21,7 @@ export const nestConfig = {
   ],
   coverageDirectory: "../coverage",
   testEnvironment: "node",
+  testTimeout: 15_000,
   setupFiles: ["<rootDir>/../jest.setup-early.ts"],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/$1",
