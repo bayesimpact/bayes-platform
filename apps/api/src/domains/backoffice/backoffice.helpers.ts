@@ -16,6 +16,7 @@ import type {
   BackofficeUserDto,
   BackofficeUserOrganizationMembershipDto,
   BackofficeUserProjectMembershipDto,
+  BackofficeUserReviewCampaignMembershipDto,
   FeatureFlagKey,
   FeatureFlagsDto,
   TimeType,
@@ -176,49 +177,21 @@ export function toBackofficeUserDto(user: User): BackofficeUserDto {
   }
 }
 
-export function toBackofficeUserOrganizationMembershipDto(
-  membership: OrganizationMembership,
-): BackofficeUserOrganizationMembershipDto {
-  return {
-    organizationId: membership.organizationId,
-    organizationName: membership.organization?.name ?? "",
-    role: membership.role,
-  }
-}
-
-export function toBackofficeUserProjectMembershipDto(
-  membership: ProjectMembership,
-): BackofficeUserProjectMembershipDto {
-  return {
-    projectId: membership.projectId,
-    projectName: membership.project?.name ?? "",
-    role: membership.role,
-  }
-}
-
-export function toBackofficeUserAgentMembershipDto(
-  membership: AgentMembership,
-): BackofficeUserAgentMembershipDto {
-  return {
-    agentId: membership.agentId,
-    agentName: membership.agent?.name ?? "",
-    role: membership.role,
-  }
-}
-
 export function toBackofficeUserDetailDto(
   user: User,
-  organizationMemberships: OrganizationMembership[],
-  projectMemberships: ProjectMembership[],
-  agentMemberships: AgentMembership[],
+  organizationMemberships: BackofficeUserOrganizationMembershipDto[],
+  projectMemberships: BackofficeUserProjectMembershipDto[],
+  agentMemberships: BackofficeUserAgentMembershipDto[],
+  reviewCampaignMemberships: BackofficeUserReviewCampaignMembershipDto[],
 ): BackofficeUserDetailDto {
   return {
     id: user.id,
     email: user.email,
     name: user.name,
     createdAt: user.createdAt.getTime() as TimeType,
-    organizationMemberships: organizationMemberships.map(toBackofficeUserOrganizationMembershipDto),
-    projectMemberships: projectMemberships.map(toBackofficeUserProjectMembershipDto),
-    agentMemberships: agentMemberships.map(toBackofficeUserAgentMembershipDto),
+    organizationMemberships,
+    projectMemberships,
+    agentMemberships,
+    reviewCampaignMemberships,
   }
 }
