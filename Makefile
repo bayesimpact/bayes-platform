@@ -82,18 +82,21 @@ docker-build-cpu-workers:
 docker-build-gpu-workers:
 	docker build --platform=linux/amd64 --target gpu-workers-runtime -t ${localGpuWorkersImage} -f apps/api/Dockerfile .
 
-BUILDX_CACHE_ARGS = --cache-from type=gha --cache-to type=gha,mode=max --load
+BUILDX_CACHE_DIR = /tmp/.buildx-cache
 
 docker-build-cached: docker-build-cached-api docker-build-cached-cpu-workers docker-build-cached-gpu-workers
 
 docker-build-cached-api:
-	docker buildx build --platform=linux/amd64 --target api-runtime -t ${localApiImage} -f apps/api/Dockerfile ${BUILDX_CACHE_ARGS} .
+	docker buildx build --platform=linux/amd64 --target api-runtime -t ${localApiImage} -f apps/api/Dockerfile --cache-from type=local,src=${BUILDX_CACHE_DIR}/api --cache-to type=local,dest=${BUILDX_CACHE_DIR}/api-new,mode=max --load .
+	rm -rf ${BUILDX_CACHE_DIR}/api && mv ${BUILDX_CACHE_DIR}/api-new ${BUILDX_CACHE_DIR}/api
 
 docker-build-cached-cpu-workers:
-	docker buildx build --platform=linux/amd64 --target cpu-workers-runtime -t ${localCpuWorkersImage} -f apps/api/Dockerfile ${BUILDX_CACHE_ARGS} .
+	docker buildx build --platform=linux/amd64 --target cpu-workers-runtime -t ${localCpuWorkersImage} -f apps/api/Dockerfile --cache-from type=local,src=${BUILDX_CACHE_DIR}/cpu --cache-to type=local,dest=${BUILDX_CACHE_DIR}/cpu-new,mode=max --load .
+	rm -rf ${BUILDX_CACHE_DIR}/cpu && mv ${BUILDX_CACHE_DIR}/cpu-new ${BUILDX_CACHE_DIR}/cpu
 
 docker-build-cached-gpu-workers:
-	docker buildx build --platform=linux/amd64 --target gpu-workers-runtime -t ${localGpuWorkersImage} -f apps/api/Dockerfile ${BUILDX_CACHE_ARGS} .
+	docker buildx build --platform=linux/amd64 --target gpu-workers-runtime -t ${localGpuWorkersImage} -f apps/api/Dockerfile --cache-from type=local,src=${BUILDX_CACHE_DIR}/gpu --cache-to type=local,dest=${BUILDX_CACHE_DIR}/gpu-new,mode=max --load .
+	rm -rf ${BUILDX_CACHE_DIR}/gpu && mv ${BUILDX_CACHE_DIR}/gpu-new ${BUILDX_CACHE_DIR}/gpu
 
 docker-check: docker-build-api
 	@echo "Starting docker container and checking for successful startup..."

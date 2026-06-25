@@ -31,6 +31,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: buildx-${{ hashFiles('apps/api/Dockerfile', 'apps/api/package.json', 'apps/api/requirements-*.txt', 'package-lock.json') }}
+          restore-keys: buildx-
+
       - name: Build images
         run: make docker-build-cached
 
