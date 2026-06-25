@@ -8,6 +8,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.06.14] - 2026-06-25
+
+### Added
 - Agents can delegate to a form agent as a sub-agent: the parent passes the user's latest answer, and the form sub-agent fills the form and replies with the current form state and the next question to ask
 - Agents can delegate to a conversation agent as a sub-agent: the parent passes the user's latest answer, and the conversation sub-agent answers using its own tools and replies to the parent agent
 - Sub-agent runs are recorded as their own Langfuse trace, linked back to the parent agent's trace
