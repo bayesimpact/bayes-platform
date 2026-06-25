@@ -14,6 +14,7 @@ import { McpModule } from "@/external/mcp"
 import { AgentMessageAttachmentDocumentsService } from "../agent-message-attachment-documents.service"
 import { StreamingController } from "./streaming.controller"
 import { StreamingService } from "./streaming.service"
+import { ToolsService } from "./tools.service"
 
 @Module({
   imports: [
@@ -24,7 +25,12 @@ import { StreamingService } from "./streaming.service"
     McpServersModule,
     forwardRef(() => ConversationAgentSessionsModule),
   ],
-  providers: [...moduleProviders, AgentMessageAttachmentDocumentsService, StreamingService],
+  providers: [
+    ...moduleProviders,
+    AgentMessageAttachmentDocumentsService,
+    StreamingService,
+    ToolsService,
+  ],
   controllers: [StreamingController],
   exports: [StreamingService],
 })

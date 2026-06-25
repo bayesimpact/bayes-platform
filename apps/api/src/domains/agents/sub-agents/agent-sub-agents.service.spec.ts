@@ -184,19 +184,13 @@ describe("AgentSubAgentsService", () => {
     ).rejects.toThrow("Duplicate sub-agent tool names are not allowed")
   })
 
-  it("rejects sub-agents outside the project or with a non-conversation type", async () => {
+  it("rejects sub-agents outside the project", async () => {
     const { organization, project, agent } = await createOrganizationWithAgent(repositories)
     const otherProject = await repositories.projectRepository.save(
       projectFactory.transient({ organization }).build(),
     )
     const otherProjectAgent = await repositories.agentRepository.save(
       agentFactory.transient({ organization, project: otherProject }).build(),
-    )
-    const extractionAgent = await repositories.agentRepository.save(
-      agentFactory.transient({ organization, project }).build({
-        type: "extraction",
-        outputJsonSchema: { type: "object", properties: {} },
-      }),
     )
     const connectScope = { organizationId: organization.id, projectId: project.id }
 
@@ -214,21 +208,33 @@ describe("AgentSubAgentsService", () => {
         ],
       }),
     ).rejects.toThrow("One or more sub-agents do not exist in this project")
+  })
 
-    await expect(
-      service.replaceSubAgents({
-        connectScope,
-        parentAgent: agent,
-        subAgents: [
-          {
-            childAgentId: extractionAgent.id,
-            toolName: "ask_extraction",
-            description: "",
-            enabled: true,
-          },
-        ],
+  it("accepts non-conversation agents as sub-agents", async () => {
+    const { organization, project, agent } = await createOrganizationWithAgent(repositories)
+    const extractionAgent = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project }).build({
+        type: "extraction",
+        outputJsonSchema: { type: "object", properties: {} },
       }),
-    ).rejects.toThrow("Sub-agents must be conversation agents")
+    )
+    const connectScope = { organizationId: organization.id, projectId: project.id }
+
+    const result = await service.replaceSubAgents({
+      connectScope,
+      parentAgent: agent,
+      subAgents: [
+        {
+          childAgentId: extractionAgent.id,
+          toolName: "ask_extraction",
+          description: "",
+          enabled: true,
+        },
+      ],
+    })
+
+    expect(result).toHaveLength(1)
+    expect(result[0]?.childAgentId).toBe(extractionAgent.id)
   })
 
   it("rejects non-conversation parent agents", async () => {

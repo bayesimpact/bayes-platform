@@ -12,6 +12,7 @@ import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { StreamingService } from "./streaming.service"
+import type { AgentSessionScope } from "./streaming-session.types"
 
 @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard)
 @RequireContext("organization", "project", "agent", "agentSession")
@@ -32,7 +33,12 @@ export class StreamingController {
       const organizationId = request.organizationId
       const projectId = request.project.id
       const agent = request.agent
-      const sessionId = request.agentSession.id
+
+      const agentSessionScope: AgentSessionScope = {
+        connectScope: { organizationId, projectId },
+        agent,
+        session: request.agentSession,
+      }
 
       if (!userContent) {
         throw new ForbiddenException("Missing user content")
@@ -46,9 +52,7 @@ export class StreamingController {
         void (async () => {
           try {
             const events = this.chatStreamingService.streamAgentResponse({
-              connectScope: { organizationId, projectId },
-              agent,
-              sessionId,
+              agentSessionScope,
               userContent,
               attachmentDocumentId,
               notifyClient: (event) => {
