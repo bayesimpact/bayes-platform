@@ -7,6 +7,8 @@ import {
   formAgentSessionFactory,
 } from "@/common/features/agents/agent-sessions/agent-session.factory"
 import type { Agent } from "@/common/features/agents/agents.models"
+import { deskRoutes } from "@/desk/routes/DeskRoutes"
+import { DeskRoutes } from "@/desk/routes/helpers"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -15,8 +17,6 @@ import {
   studioStoryArgTypes,
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
-import { StudioRoutes } from "@/studio/routes/helpers"
-import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type AgentType = Extract<Agent["type"], "conversation" | "form">
 
@@ -26,7 +26,7 @@ type StoryArgs = StudioStoryArgs & {
 }
 
 const meta = {
-  title: "routes/studio/project/agent/session",
+  title: "routes/desk/agent/session",
   parameters: { layout: "fullscreen" },
   argTypes: {
     ...studioStoryArgTypes,
@@ -43,7 +43,7 @@ const meta = {
     agentType: "conversation",
     withMessages: true,
   },
-  render: render({ routes: studioRoutes, path: StudioRoutes.agentSession.path }),
+  render: render({ routes: deskRoutes, path: DeskRoutes.agentSession.path }),
 } satisfies Meta<StoryArgs>
 
 export default meta
