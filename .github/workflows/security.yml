@@ -28,8 +28,11 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build images
-        run: make docker-build
+        run: make docker-build-cached
 
       - name: Run Trivy vulnerability scanner on API
         uses: aquasecurity/trivy-action@0.35.0

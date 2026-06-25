@@ -82,6 +82,19 @@ docker-build-cpu-workers:
 docker-build-gpu-workers:
 	docker build --platform=linux/amd64 --target gpu-workers-runtime -t ${localGpuWorkersImage} -f apps/api/Dockerfile .
 
+BUILDX_CACHE_ARGS = --cache-from type=gha --cache-to type=gha,mode=max --load
+
+docker-build-cached: docker-build-cached-api docker-build-cached-cpu-workers docker-build-cached-gpu-workers
+
+docker-build-cached-api:
+	docker buildx build --platform=linux/amd64 --target api-runtime -t ${localApiImage} -f apps/api/Dockerfile ${BUILDX_CACHE_ARGS} .
+
+docker-build-cached-cpu-workers:
+	docker buildx build --platform=linux/amd64 --target cpu-workers-runtime -t ${localCpuWorkersImage} -f apps/api/Dockerfile ${BUILDX_CACHE_ARGS} .
+
+docker-build-cached-gpu-workers:
+	docker buildx build --platform=linux/amd64 --target gpu-workers-runtime -t ${localGpuWorkersImage} -f apps/api/Dockerfile ${BUILDX_CACHE_ARGS} .
+
 docker-check: docker-build-api
 	@echo "Starting docker container and checking for successful startup..."
 	@CONTAINER_ID=$$(docker run -d -p "3003:3000" ${localApiImage}); \
