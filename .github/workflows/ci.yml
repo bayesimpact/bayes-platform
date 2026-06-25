@@ -6,6 +6,22 @@ on:
       - main
 
 jobs:
+  ci-checks:
+    runs-on: self-hosted
+    steps:
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run checks
+        run: make ci-checks
+
   tests:
     runs-on: self-hosted
     steps:
@@ -23,4 +39,4 @@ jobs:
           fetch-depth: 1
 
       - name: Run tests
-        run: TEST_WORKERS=6 make tests-parallel
+        run: TEST_WORKERS=6 make tests-only-parallel
