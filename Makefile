@@ -228,8 +228,15 @@ deploy-web-embed:
 	gsutil -h "Cache-Control:no-cache" cp apps/web-embed/dist/index.html gs://$(WEB_EMBED_BUCKET)/index.html
 	@echo "✓ web-embed deployed to https://storage.googleapis.com/$(WEB_EMBED_BUCKET)/"
 
-ci-checks:
-	npm ci && npm run biome:ci && npm run typecheck && npm run check:boundaries
+npm-ci:
+	@if [ -f node_modules/.package-lock-hash ] && [ "$$(cat node_modules/.package-lock-hash)" = "$$(sha256sum package-lock.json | cut -d' ' -f1)" ]; then \
+		echo "package-lock.json unchanged, skipping npm ci"; \
+	else \
+		npm ci && sha256sum package-lock.json | cut -d' ' -f1 > node_modules/.package-lock-hash; \
+	fi
+
+ci-checks: npm-ci
+	npm run biome:ci && npm run typecheck && npm run check:boundaries
 
 db-tests:
 	docker compose -f infra/database/docker-compose.yaml -f infra/database/docker-compose.test.yaml up -d
