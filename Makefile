@@ -232,7 +232,7 @@ ci-checks:
 	npm ci && npm run biome:ci && npm run typecheck && npm run check:boundaries
 
 db-tests:
-	docker compose -f infra/database/docker-compose.yaml up -d
+	docker compose -f infra/database/docker-compose.yaml -f infra/database/docker-compose.test.yaml up -d
 
 tests: db-tests ci-checks
 	cd apps/api && DATABASE_URL=${TEST_DATABASE_URL} MCP_ENCRYPTION_KEY=${TEST_MCP_ENCRYPTION_KEY} npm run migration:test:run && DATABASE_URL=${TEST_DATABASE_URL} MCP_ENCRYPTION_KEY=${TEST_MCP_ENCRYPTION_KEY} npm run test
