@@ -12,6 +12,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+
+### Security
+
+## [26.06.13] - 2026-06-25
+
+### Added
+
+### Changed
+
+### Fixed
 - Form agent session: collected values panel was not visible on desktop
 
 ### Security
