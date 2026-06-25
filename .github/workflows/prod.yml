@@ -35,9 +35,11 @@ jobs:
   tests:
     needs: [check-changes]
     if: needs.check-changes.outputs.deploy == 'true'
-    runs-on:
-      labels: ubuntu-latest-m
+    runs-on: self-hosted
     steps:
+      - name: Clean up Docker artifacts
+        run: docker ps -q | xargs -r docker stop; docker ps -aq | xargs -r docker rm; docker volume prune -f; sudo rm -rf infra/database/dontsave 2>/dev/null || true
+
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
@@ -49,7 +51,7 @@ jobs:
           fetch-depth: 1
 
       - name: Run tests
-        run: TEST_WORKERS=5 make tests-parallel
+        run: TEST_WORKERS=6 make tests-parallel
 
       - name: Notify on failure
         if: ${{ failure() }}
@@ -61,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate GitHub App token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         id: app-token
         with:
           app-id: ${{ secrets.DEPLOY_APP_ID }}
