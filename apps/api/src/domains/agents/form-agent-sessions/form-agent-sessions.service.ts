@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import type { Repository } from "typeorm"
+import { IsNull, type Repository } from "typeorm"
 import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
@@ -48,7 +48,10 @@ export class FormAgentSessionsService {
     type: BaseAgentSessionType
   }): Promise<FormAgentSession[]> {
     return this.sessionConnectRepository.find(connectScope, {
-      where: { agentId, type, userId },
+      // Exclude sub-sessions (those with a parent session): these are internal
+      // artifacts created when a parent agent delegates to this form agent, not
+      // user-facing sessions.
+      where: { agentId, type, userId, parentSessionId: IsNull() },
       order: { createdAt: "DESC" },
     })
   }
@@ -108,6 +111,40 @@ export class FormAgentSessionsService {
     const session = sessions[0]
     if (!session) return null
     return session
+  }
+
+  /**
+   * Finds the form sub-session spawned by a parent agent session for a given
+   * form sub-agent, or creates it if it does not exist yet. A single sub-session
+   * is reused across parent turns so the form state accumulates.
+   */
+  async findOrCreateSubSession({
+    connectScope,
+    agentId,
+    userId,
+    parentSessionId,
+    type,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+    userId: string
+    parentSessionId: string
+    type: BaseAgentSessionType
+  }): Promise<FormAgentSession> {
+    const existing = await this.sessionConnectRepository.find(connectScope, {
+      where: { agentId, parentSessionId, type },
+      take: 1,
+    })
+    if (existing[0]) return existing[0]
+
+    return this.sessionConnectRepository.createAndSave(connectScope, {
+      agentId,
+      userId,
+      type,
+      parentSessionId,
+      result: null,
+      traceId: v4(),
+    })
   }
 
   async updateSessionResult({

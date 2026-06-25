@@ -146,11 +146,6 @@ export class AgentSubAgentsService {
       throw new UnprocessableEntityException("One or more sub-agents do not exist in this project")
     }
 
-    const invalidChildAgent = childAgents.find((agent) => agent.type !== "conversation")
-    if (invalidChildAgent) {
-      throw new UnprocessableEntityException("Sub-agents must be conversation agents")
-    }
-
     return childAgents
   }
 }

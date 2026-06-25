@@ -1,4 +1,3 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Empty,
@@ -8,7 +7,6 @@ import {
   EmptyTitle,
 } from "@caseai-connect/ui/shad/empty"
 import { Field, FieldGroup, FieldLabel } from "@caseai-connect/ui/shad/field"
-import { Input } from "@caseai-connect/ui/shad/input"
 import {
   Item,
   ItemActions,
@@ -18,12 +16,11 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@caseai-connect/ui/shad/item"
-import { Switch } from "@caseai-connect/ui/shad/switch"
-import { Textarea } from "@caseai-connect/ui/shad/textarea"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
-import { BotIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { BotIcon, PlusIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import type { Agent } from "@/common/features/agents/agents.models"
+import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
+import { AgentSubAgentItem } from "./AgentSubAgentItem"
 
 export type AgentSubAgentFormValue = {
   id: string
@@ -49,7 +46,7 @@ export function AgentSubAgentsTab({
   const availableAgents = agents
     .filter(
       (agent) =>
-        agent.type === "conversation" &&
+        (agent.type === "conversation" || agent.type === "form") &&
         agent.id !== parentAgentId &&
         !selectedAgentIds.has(agent.id),
     )
@@ -97,81 +94,15 @@ export function AgentSubAgentsTab({
           </Empty>
         ) : (
           <ItemGroup className="gap-3">
-            {value.map((subAgent) => {
-              const agent = agents.find((candidate) => candidate.id === subAgent.agentId)
-              const title = agent?.name ?? t("agent:orchestration.missingAgent")
-              return (
-                <div key={subAgent.id} className="rounded-md border">
-                  <Item>
-                    <ItemMedia variant="icon">
-                      <BotIcon />
-                    </ItemMedia>
-                    <ItemContent>
-                      <ItemTitle>
-                        {title}
-                        <Badge variant={subAgent.enabled ? "default" : "secondary"}>
-                          {subAgent.enabled
-                            ? t("agent:orchestration.enabled")
-                            : t("agent:orchestration.disabled")}
-                        </Badge>
-                      </ItemTitle>
-                      <ItemDescription>{subAgent.toolName}</ItemDescription>
-                    </ItemContent>
-                    <ItemActions>
-                      <Switch
-                        checked={subAgent.enabled}
-                        onCheckedChange={(enabled) => updateSubAgent(subAgent.id, { enabled })}
-                        aria-label={t("agent:orchestration.enabled")}
-                      />
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="size-8 text-muted-foreground hover:text-destructive"
-                            aria-label={t("agent:orchestration.remove")}
-                            onClick={() => removeSubAgent(subAgent.id)}
-                          >
-                            <Trash2Icon className="size-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>{t("agent:orchestration.remove")}</TooltipContent>
-                      </Tooltip>
-                    </ItemActions>
-                  </Item>
-                  <div className="grid gap-4 border-t p-4 md:grid-cols-[minmax(12rem,18rem)_1fr]">
-                    <Field>
-                      <FieldLabel htmlFor={`sub-agent-tool-name-${subAgent.id}`}>
-                        {t("agent:orchestration.toolName")}
-                      </FieldLabel>
-                      <Input
-                        id={`sub-agent-tool-name-${subAgent.id}`}
-                        value={subAgent.toolName}
-                        placeholder={t("agent:orchestration.toolNamePlaceholder")}
-                        onChange={(event) =>
-                          updateSubAgent(subAgent.id, { toolName: event.target.value })
-                        }
-                      />
-                    </Field>
-                    <Field>
-                      <FieldLabel htmlFor={`sub-agent-description-${subAgent.id}`}>
-                        {t("agent:orchestration.description")}
-                      </FieldLabel>
-                      <Textarea
-                        id={`sub-agent-description-${subAgent.id}`}
-                        value={subAgent.description}
-                        rows={2}
-                        className="min-h-20"
-                        onChange={(event) =>
-                          updateSubAgent(subAgent.id, { description: event.target.value })
-                        }
-                      />
-                    </Field>
-                  </div>
-                </div>
-              )
-            })}
+            {value.map((subAgent) => (
+              <AgentSubAgentItem
+                key={subAgent.id}
+                subAgent={subAgent}
+                agent={agents.find((candidate) => candidate.id === subAgent.agentId)}
+                onUpdate={(fields) => updateSubAgent(subAgent.id, fields)}
+                onRemove={() => removeSubAgent(subAgent.id)}
+              />
+            ))}
           </ItemGroup>
         )}
       </Field>
@@ -184,28 +115,31 @@ export function AgentSubAgentsTab({
           </p>
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
-            {availableAgents.map((agent) => (
-              <Item key={agent.id} variant="outline">
-                <ItemMedia variant="icon">
-                  <BotIcon />
-                </ItemMedia>
-                <ItemContent>
-                  <ItemTitle>{agent.name}</ItemTitle>
-                  <ItemDescription>{agent.defaultPrompt}</ItemDescription>
-                </ItemContent>
-                <ItemActions>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => addSubAgent(agent)}
-                  >
-                    <PlusIcon />
-                    {t("agent:orchestration.add")}
-                  </Button>
-                </ItemActions>
-              </Item>
-            ))}
+            {availableAgents.map((agent) => {
+              const Icon = getAgentIcon(agent.type)
+              return (
+                <Item key={agent.id} variant="outline">
+                  <ItemMedia variant="icon">
+                    <Icon />
+                  </ItemMedia>
+                  <ItemContent>
+                    <ItemTitle>{agent.name}</ItemTitle>
+                    <ItemDescription>{agent.defaultPrompt}</ItemDescription>
+                  </ItemContent>
+                  <ItemActions>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addSubAgent(agent)}
+                    >
+                      <PlusIcon />
+                      {t("agent:orchestration.add")}
+                    </Button>
+                  </ItemActions>
+                </Item>
+              )
+            })}
           </div>
         )}
       </Field>

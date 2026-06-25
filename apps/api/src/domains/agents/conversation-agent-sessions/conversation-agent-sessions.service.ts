@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import type { Repository } from "typeorm"
+import { IsNull, type Repository } from "typeorm"
 import { v4 } from "uuid"
 
 import { ConnectRepository } from "@/common/entities/connect-repository"
@@ -82,8 +82,46 @@ export class ConversationAgentSessionsService {
     type: BaseAgentSessionType
   }): Promise<ConversationAgentSession[]> {
     return await this.conversationAgentSessionConnectRepository.find(connectScope, {
-      where: { agentId, userId, type },
+      // Exclude sub-sessions (those with a parent session): these are internal
+      // artifacts created when a parent agent delegates to this conversation
+      // agent, not user-facing sessions.
+      where: { agentId, userId, type, parentSessionId: IsNull() },
       order: { createdAt: "DESC" },
+    })
+  }
+
+  /**
+   * Finds the conversation sub-session spawned by a parent agent session for a
+   * given conversation sub-agent, or creates it if it does not exist yet. A
+   * single sub-session is reused across parent turns so the sub-agent's runs all
+   * land in one persistent trace.
+   */
+  async findOrCreateSubSession({
+    connectScope,
+    agentId,
+    userId,
+    parentSessionId,
+    type,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+    userId: string
+    parentSessionId: string
+    type: BaseAgentSessionType
+  }): Promise<ConversationAgentSession> {
+    const existing = await this.conversationAgentSessionConnectRepository.find(connectScope, {
+      where: { agentId, parentSessionId, type },
+      take: 1,
+    })
+    if (existing[0]) return existing[0]
+
+    return this.conversationAgentSessionConnectRepository.createAndSave(connectScope, {
+      agentId,
+      userId,
+      type,
+      parentSessionId,
+      expiresAt: null,
+      traceId: v4(),
     })
   }
 
