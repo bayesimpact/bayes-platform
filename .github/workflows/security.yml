@@ -32,7 +32,7 @@ jobs:
         run: make docker-build
 
       - name: Run Trivy vulnerability scanner on API
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: 'caseai-connect/api:local'
           format: 'table'
@@ -45,7 +45,7 @@ jobs:
 
       - name: Run Trivy vulnerability scanner on CPU Workers
         if: always()
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: 'caseai-connect/cpu-workers:local'
           format: 'table'
@@ -58,7 +58,7 @@ jobs:
 
       - name: Run Trivy vulnerability scanner on GPU Workers
         if: always()
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: 'caseai-connect/gpu-workers:local'
           format: 'table'
