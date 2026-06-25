@@ -32,6 +32,28 @@ jobs:
             echo "deploy=false" >> $GITHUB_OUTPUT
           fi
 
+  ci-checks:
+    needs: [check-changes]
+    if: needs.check-changes.outputs.deploy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run checks
+        run: make ci-checks
+
+      - name: Notify on failure
+        if: ${{ failure() }}
+        run: make notify-error
+
   tests:
     needs: [check-changes]
     if: needs.check-changes.outputs.deploy == 'true'
@@ -51,15 +73,15 @@ jobs:
           fetch-depth: 1
 
       - name: Run tests
-        run: TEST_WORKERS=6 make tests-parallel
+        run: TEST_WORKERS=6 make tests-only-parallel
 
       - name: Notify on failure
         if: ${{ failure() }}
         run: make notify-error
 
   dispatch:
-    needs: [check-changes, tests]
-    if: ${{ always() && needs.check-changes.result == 'success' && needs.tests.result != 'failure' }}
+    needs: [check-changes, ci-checks, tests]
+    if: ${{ always() && needs.check-changes.result == 'success' && needs.ci-checks.result != 'failure' && needs.tests.result != 'failure' }}
     runs-on: ubuntu-latest
     steps:
       - name: Generate GitHub App token
