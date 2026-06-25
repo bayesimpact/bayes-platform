@@ -43,7 +43,7 @@ export function AgentSessionMessages({
   const isStreaming = useAppSelector(selectStreaming)
   const { t } = useTranslation()
 
-  const desktopHeightClasses = "md:min-h-[calc(100dvh-17rem)] md:max-h-[calc(100dvh-17rem)]"
+  const desktopHeightClasses = "md:h-[calc(100dvh-17rem)]"
   return (
     <div className={cn("flex flex-1 flex-col md:flex-row min-h-0", desktopHeightClasses)}>
       {rightSlot && (
