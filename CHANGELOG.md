@@ -8,6 +8,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.06.15] - 2026-06-26
+
+### Added
 - Studio conversation session view surfaces the form results produced by delegated form sub-agents, opened in a side sheet from the relevant message
 
 ### Changed
