@@ -14,10 +14,7 @@ export function buildConversationAgentPrompt({
   // forms a byte-stable prefix that Vertex/Gemini implicit caching can reuse
   // across runs. Putting the daily-changing date first would invalidate the
   // whole cached prefix on every date rollover.
-  return `## Identity
-You are **${agent.name}**, a conversational AI assistant.
-
-${agent.defaultPrompt}
+  return `${agent.defaultPrompt}
 
 ${promptHelpers.resourceLibraries(agent.resourceLibraries ?? [])}
 
