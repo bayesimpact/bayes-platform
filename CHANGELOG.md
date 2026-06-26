@@ -13,6 +13,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+- Langfuse generations report cached prompt tokens (Vertex/Gemini `cachedContentTokenCount`), so context-cache hits and savings are visible instead of being dropped
 
 ### Security
 
