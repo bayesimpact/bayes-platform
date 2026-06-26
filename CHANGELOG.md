@@ -15,6 +15,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 - Langfuse generations report cached prompt tokens (Vertex/Gemini `cachedContentTokenCount`), so context-cache hits and savings are visible instead of being dropped
+- Agent system prompts place the current date at the end instead of the start, so the stable instructions form a byte-identical prefix that Vertex implicit context caching can reuse across runs (including sub-agent runs invoked via a parent agent)
 - Listing sub-agents for a non-conversation parent agent returns an empty list instead of failing with an error
 
 ### Security
