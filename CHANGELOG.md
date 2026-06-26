@@ -13,6 +13,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+- Agent system prompts place the current date at the end instead of the start, so the stable instructions form a byte-identical prefix that Vertex implicit context caching can reuse across runs (including sub-agent runs invoked via a parent agent)
 
 ### Security
 
