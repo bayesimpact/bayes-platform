@@ -9,7 +9,10 @@ import { ChevronDownIcon, FileCheckIcon, XIcon } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
-import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
+import type {
+  FormAgentSession,
+  FormSubSession,
+} from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
 import type { AgentSessionMessage as AgentSessionMessageType } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import { AgentSessionMessage } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/AgentSessionMessage"
 import {
@@ -21,6 +24,7 @@ import {
   ChatSubmit,
 } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/Chat"
 import { Dictaphone } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/Dictaphone"
+import { FormSubSessionsProvider } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/form-sub-sessions-context"
 import { useScrollToEnd } from "@/common/hooks/use-scroll-to-end"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { AttachDocument } from "@/studio/features/documents/components/AttachDocument"
@@ -34,11 +38,13 @@ export function AgentSessionMessages({
   messages,
   rightSlot,
   onFillFormToolEvent,
+  formSubSessions = [],
 }: {
   rightSlot?: React.ReactNode
   session: AgentSession
   messages: AgentSessionMessageType[]
   onFillFormToolEvent?: () => void
+  formSubSessions?: FormSubSession[]
 }) {
   const isStreaming = useAppSelector(selectStreaming)
   const { t } = useTranslation()
@@ -71,7 +77,9 @@ export function AgentSessionMessages({
       )}
       <div className="flex flex-1 p-2 sm:p-4 min-h-0 md:min-h-full">
         <Chat className="border shadow-none">
-          <Messages messages={messages} isStreaming={isStreaming} />
+          <FormSubSessionsProvider value={formSubSessions}>
+            <Messages messages={messages} isStreaming={isStreaming} />
+          </FormSubSessionsProvider>
 
           <Footer
             session={session}

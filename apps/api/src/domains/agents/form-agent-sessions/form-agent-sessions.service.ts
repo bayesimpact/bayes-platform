@@ -147,6 +147,29 @@ export class FormAgentSessionsService {
     })
   }
 
+  /**
+   * Lists the form sub-sessions spawned by a given parent agent session. These
+   * are the persistent form sessions created when a parent agent delegates to a
+   * form sub-agent (see {@link findOrCreateSubSession}). Scoped to the requesting
+   * user to match {@link listSessions} visibility.
+   */
+  async listSubSessions({
+    connectScope,
+    parentSessionId,
+    userId,
+    type,
+  }: {
+    connectScope: RequiredConnectScope
+    parentSessionId: string
+    userId: string
+    type: BaseAgentSessionType
+  }): Promise<FormAgentSession[]> {
+    return this.sessionConnectRepository.find(connectScope, {
+      where: { parentSessionId, userId, type },
+      order: { createdAt: "ASC" },
+    })
+  }
+
   async updateSessionResult({
     connectScope,
     input,

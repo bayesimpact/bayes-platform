@@ -1,5 +1,9 @@
-import { type FormAgentSessionDto, FormAgentSessionsRoutes } from "@caseai-connect/api-contracts"
-import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common"
+import {
+  type FormAgentSessionDto,
+  FormAgentSessionsRoutes,
+  type FormSubSessionDto,
+} from "@caseai-connect/api-contracts"
+import { Body, Controller, Param, Post, Req, UseGuards } from "@nestjs/common"
 import type {
   EndpointRequestWithAgent,
   EndpointRequestWithAgentSession,
@@ -16,6 +20,8 @@ import { BaseAgentSessionGuard } from "../base-agent-sessions/base-agent-session
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { BaseAgentSessionsService } from "../base-agent-sessions/base-agent-sessions.service"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSubAgentsService } from "../sub-agents/agent-sub-agents.service"
 import type { FormAgentSession } from "./form-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { FormAgentSessionsService } from "./form-agent-sessions.service"
@@ -28,6 +34,8 @@ export class FormAgentSessionsController {
     private readonly formAgentSessionsService: FormAgentSessionsService,
 
     private readonly baseAgentSessionsService: BaseAgentSessionsService,
+
+    private readonly agentSubAgentsService: AgentSubAgentsService,
   ) {}
 
   @CheckPolicy((policy) => policy.canList())
@@ -73,6 +81,45 @@ export class FormAgentSessionsController {
       agentSession: request.agentSession,
     })
     return { data: { success: true } }
+  }
+
+  @CheckPolicy((policy) => policy.canList())
+  @Post(FormAgentSessionsRoutes.listSubSessions.path)
+  async listSubSessions(
+    @Req() request: EndpointRequestWithAgent,
+    @Param("agentSessionId") agentSessionId: string,
+    @Body() { payload }: typeof FormAgentSessionsRoutes.listSubSessions.request,
+  ): Promise<typeof FormAgentSessionsRoutes.listSubSessions.response> {
+    const connectScope = getRequiredConnectScope(request)
+
+    const [subAgents, sessions] = await Promise.all([
+      this.agentSubAgentsService.listSubAgents({ connectScope, parentAgent: request.agent }),
+      this.formAgentSessionsService.listSubSessions({
+        connectScope,
+        parentSessionId: agentSessionId,
+        userId: request.user.id,
+        type: payload.type,
+      }),
+    ])
+
+    const sessionByAgentId = new Map(sessions.map((session) => [session.agentId, session]))
+
+    const data = subAgents.flatMap((subAgent): FormSubSessionDto[] => {
+      if (subAgent.childAgent?.type !== "form") return []
+      const session = sessionByAgentId.get(subAgent.childAgentId)
+      if (!session) return []
+      return [
+        {
+          toolName: subAgent.toolName,
+          agentId: subAgent.childAgentId,
+          agentName: subAgent.childAgent.name,
+          outputJsonSchema: subAgent.childAgent.outputJsonSchema ?? undefined,
+          session: toDto(payload.type)(session),
+        },
+      ]
+    })
+
+    return { data }
   }
 }
 
