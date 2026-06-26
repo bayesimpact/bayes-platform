@@ -182,6 +182,15 @@ async function runSubAgentTool({
   // trace); any other sub-agent gets a fresh trace id per invocation.
   const subAgentTraceId = childSession.traceId
 
+  // Surface a direct link to the sub-agent's own langfuse trace on the parent's
+  // tool-call event. The AI SDK runs this tool inside an `ai.toolCall` span (the
+  // span the langfuse exporter turns into the `ai.toolCall …` event); any
+  // `ai.telemetry.metadata.*` attribute set on it is copied into that event's
+  // metadata, giving a copyable pointer from the parent trace to the child's.
+  trace
+    .getActiveSpan()
+    ?.setAttribute("ai.telemetry.metadata.subAgentTraceUrl", getTraceUrl(subAgentTraceId))
+
   const { tools, mcpClose, toolDescriptions } = await buildTools({
     agentSessionScope: childScope,
     includeSessionMetadataTools: false,
@@ -358,10 +367,13 @@ function buildSubAgentMetadata({
   // The sub-agent runs inside a fresh OTEL root span (see runSubAgentTool), so its
   // spans get their own OTEL trace id and the exporter writes them under this
   // dedicated langfuse trace id rather than collapsing into the parent's trace.
-  // A `parent-trace:` tag links back to the parent run for navigation.
+  // It is grouped under the parent's langfuse session (`langfuseSessionId`) so the
+  // parent and all its sub-agent traces share one session timeline, and a
+  // `parent-trace:` tag links back to the parent run for navigation.
   return {
     traceId: subAgentTraceId,
     agentSessionId: childSession.id,
+    langfuseSessionId: session.id,
     agentId: childAgent.id,
     projectId: childAgent.projectId,
     organizationId: session?.organizationId ?? connectScope.organizationId,
