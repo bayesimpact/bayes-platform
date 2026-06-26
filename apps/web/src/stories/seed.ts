@@ -7,7 +7,10 @@ import type {
 } from "@/backoffice/features/backoffice/backoffice.models"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import type { ExtractionAgentSessions } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
-import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
+import type {
+  FormAgentSession,
+  FormSubSession,
+} from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
 import type { AgentSessionMessage } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { User } from "@/common/features/me/me.models"
@@ -198,6 +201,18 @@ export const seed = {
       ]),
     )
     return { formAgentSessions: { data } }
+  },
+
+  formSubSessions(
+    subSessionsByParentSessionId: Record<string, FormSubSession[]>,
+  ): StoryPreloadedState {
+    const subSessions = Object.fromEntries(
+      Object.entries(subSessionsByParentSessionId).map(([parentSessionId, subSessionList]) => [
+        parentSessionId,
+        ads.fulfilled(subSessionList),
+      ]),
+    )
+    return { formAgentSessions: { subSessions } }
   },
 
   extractionAgentSessions(

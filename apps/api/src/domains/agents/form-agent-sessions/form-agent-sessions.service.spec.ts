@@ -150,4 +150,56 @@ describe("FormAgentSessionsService", () => {
       expect(listed.map((session) => session.id)).toEqual([userSession.id])
     })
   })
+
+  describe("listSubSessions", () => {
+    it("returns only the sub-sessions for the given parent session, user and type", async () => {
+      const { connectScope, formAgent, user } = await createFormAgent()
+
+      const subSession = await service.findOrCreateSubSession({
+        connectScope,
+        agentId: formAgent.id,
+        userId: user.id,
+        parentSessionId: PARENT_SESSION_ID,
+        type: "playground",
+      })
+      // A sub-session under a different parent session must be excluded.
+      await service.findOrCreateSubSession({
+        connectScope,
+        agentId: formAgent.id,
+        userId: user.id,
+        parentSessionId: "22222222-2222-2222-2222-222222222222",
+        type: "playground",
+      })
+
+      const listed = await service.listSubSessions({
+        connectScope,
+        parentSessionId: PARENT_SESSION_ID,
+        userId: user.id,
+        type: "playground",
+      })
+
+      expect(listed.map((session) => session.id)).toEqual([subSession.id])
+    })
+
+    it("does not return another user's sub-sessions", async () => {
+      const { connectScope, formAgent, user } = await createFormAgent()
+
+      await service.findOrCreateSubSession({
+        connectScope,
+        agentId: formAgent.id,
+        userId: user.id,
+        parentSessionId: PARENT_SESSION_ID,
+        type: "playground",
+      })
+
+      const listed = await service.listSubSessions({
+        connectScope,
+        parentSessionId: PARENT_SESSION_ID,
+        userId: "99999999-9999-9999-9999-999999999999",
+        type: "playground",
+      })
+
+      expect(listed).toHaveLength(0)
+    })
+  })
 })
