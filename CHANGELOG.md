@@ -11,9 +11,11 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Studio conversation session view surfaces the form results produced by delegated form sub-agents, opened in a side sheet from the relevant message
 
 ### Changed
+- Sub-agent Langfuse traces are grouped under the parent run's session, and the parent's tool-call event carries a direct link to the sub-agent trace
 
 ### Fixed
 - Langfuse generations report cached prompt tokens (Vertex/Gemini `cachedContentTokenCount`), so context-cache hits and savings are visible instead of being dropped
+- Listing sub-agents for a non-conversation parent agent returns an empty list instead of failing with an error
 
 ### Security
 

@@ -531,7 +531,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
   }): Record<string, string | number | string[]> {
     return removeNullish({
       langfuseTraceId: metadata.traceId,
-      sessionId: `as:${metadata.agentSessionId}`,
+      sessionId: `as:${metadata.langfuseSessionId ?? metadata.agentSessionId}`,
       userId: `o:${metadata.organizationId} / p:${metadata.projectId}`,
       tags: [...this.getTags(config), ...(metadata?.tags || [])],
       currentTurn: metadata.currentTurn,
