@@ -48,6 +48,12 @@ export type LLMMetadata = (
   agentId: string
   projectId: string
   tags: string[]
+  /**
+   * Overrides the langfuse session id (which otherwise derives from
+   * `agentSessionId`). Sub-agents set this to the parent session id so their
+   * dedicated traces group under the same langfuse session as the parent run.
+   */
+  langfuseSessionId?: string
 }
 
 export interface LLMProvider {
