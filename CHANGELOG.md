@@ -14,6 +14,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Sub-agent Langfuse traces are grouped under the parent run's session, and the parent's tool-call event carries a direct link to the sub-agent trace
 
 ### Fixed
+- Listing sub-agents for a non-conversation parent agent returns an empty list instead of failing with an error
 
 ### Security
 

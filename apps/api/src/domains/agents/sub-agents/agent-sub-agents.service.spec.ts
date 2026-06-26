@@ -263,4 +263,20 @@ describe("AgentSubAgentsService", () => {
       }),
     ).rejects.toThrow("Only conversation agents can have sub-agents")
   })
+
+  it("returns an empty list for non-conversation parent agents instead of throwing", async () => {
+    const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
+      agent: {
+        type: "form",
+        outputJsonSchema: { type: "object", properties: {} },
+      },
+    })
+
+    const listed = await service.listSubAgents({
+      connectScope: { organizationId: organization.id, projectId: project.id },
+      parentAgent: agent,
+    })
+
+    expect(listed).toEqual([])
+  })
 })
