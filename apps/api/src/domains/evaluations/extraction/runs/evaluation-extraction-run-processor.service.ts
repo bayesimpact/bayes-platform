@@ -395,7 +395,7 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
       content: [{ type: "text", text: inputText }],
     }
 
-    const systemPrompt = `Today's date: ${new Date().toLocaleDateString()}\n\n${agent.defaultPrompt}`
+    const systemPrompt = `${agent.defaultPrompt}\n\nToday's date: ${new Date().toLocaleDateString()}`
 
     const llmConfig = this.buildLLMConfig({
       systemPrompt,
