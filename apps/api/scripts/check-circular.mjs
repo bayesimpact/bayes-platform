@@ -19,10 +19,14 @@ const baselinePath = join(apiRoot, "baselines/madge-circular.json")
 
 const mode = process.argv[2] === "--write" ? "write" : "check"
 
-const result = spawnSync("npx", ["madge", "--circular", "--json", "src"], {
+const isWindowsRunning = process.platform === "win32"
+const npx = isWindowsRunning ? "npx.cmd" : "npx"
+
+const result = spawnSync(npx, ["madge", "--circular", "--json", "src"], {
   cwd: apiRoot,
   encoding: "utf8",
   stdio: ["ignore", "pipe", "inherit"],
+  shell: isWindowsRunning,
 })
 
 if (result.error) {
