@@ -161,8 +161,14 @@ describe("requiresNewAgentSettingsRevision", () => {
   it("ignores changes to keys outside the settings whitelist", () => {
     expect(
       requiresNewAgentSettingsRevision({
-        initialAgentSettings: { instructions: "Same", id: "a" } as Partial<AgentSettingsUpdateFields>,
-        modifiedAgentSettings: { instructions: "Same", id: "b" } as Partial<AgentSettingsUpdateFields>,
+        initialAgentSettings: {
+          instructions: "Same",
+          id: "a",
+        } as Partial<AgentSettingsUpdateFields>,
+        modifiedAgentSettings: {
+          instructions: "Same",
+          id: "b",
+        } as Partial<AgentSettingsUpdateFields>,
       }),
     ).toBe(false)
   })

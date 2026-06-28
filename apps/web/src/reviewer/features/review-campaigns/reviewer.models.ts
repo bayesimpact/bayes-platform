@@ -14,5 +14,7 @@ export type ReviewerSessionDetail = GetReviewerSessionResponseDto
 export type ReviewerSessionReview = ReviewerSessionReviewDto
 export type ReviewCampaignTesterContext = ReviewCampaignTesterContextDto
 
-export type { SubmitReviewerSessionReviewRequestDto as SubmitReviewerReviewFields }
-export type { UpdateReviewerSessionReviewRequestDto as UpdateReviewerReviewFields }
+export type {
+  SubmitReviewerSessionReviewRequestDto as SubmitReviewerReviewFields,
+  UpdateReviewerSessionReviewRequestDto as UpdateReviewerReviewFields,
+}

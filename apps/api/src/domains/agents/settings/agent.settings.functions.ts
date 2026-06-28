@@ -20,6 +20,7 @@ export function extractAgentSettingsCreateFields<T extends object>(
 
   for (const key of agentSettingsFieldKeys) {
     if (key in fields) {
+      // biome-ignore lint/suspicious/noExplicitAny: dynamic call of property
       result[key] = (fields as any)[key]
     }
   }
@@ -34,6 +35,7 @@ export function extractAgentSettingsUpdateFields<T extends object>(
 
   for (const key of agentSettingsFieldKeys) {
     if (key in fields) {
+      // biome-ignore lint/suspicious/noExplicitAny: dynamic call of property
       result[key] = (fields as any)[key]
     }
   }

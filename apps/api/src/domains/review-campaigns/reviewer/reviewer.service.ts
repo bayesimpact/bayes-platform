@@ -182,7 +182,7 @@ export class ReviewerService {
     sessionOwnerUserId: string
     reviewerUserId: string
   }): Promise<ReviewerSessionViewResult> {
-	const agent = await this.agentRepository.findOne({
+    const agent = await this.agentRepository.findOne({
       where: {
         id: campaign.agentId,
         organizationId: campaign.organizationId,
@@ -207,31 +207,24 @@ export class ReviewerService {
     }
     // Loads everything we need in parallel. Redaction happens below based on
     // whether the caller has already reviewed.
-    const [
-      transcript,
-      callerReview,
-      allReviews,
-      testerFeedback,
-      sessionStartedAt,
-      formSession,
-    ] = await Promise.all([     
-      this.agentMessageRepository.find({
-        where: { sessionId, role: In(["user", "assistant"]) },
-        order: { createdAt: "ASC" },
-      }),
-      this.reviewRepository.findOne({ where: { sessionId, reviewerUserId } }),
-      this.reviewRepository.find({ where: { sessionId } }),
-      this.testerFeedbackRepository.findOne({ where: { sessionId } }),
-      this.resolveSessionStartedAt(sessionId, agentType),
-      agentType === "form"
-        ? this.formSessionRepository.findOne({
-            where: { id: sessionId },
-            select: { id: true, result: true },
-          })
-        : Promise.resolve(null),
-    ])
+    const [transcript, callerReview, allReviews, testerFeedback, sessionStartedAt, formSession] =
+      await Promise.all([
+        this.agentMessageRepository.find({
+          where: { sessionId, role: In(["user", "assistant"]) },
+          order: { createdAt: "ASC" },
+        }),
+        this.reviewRepository.findOne({ where: { sessionId, reviewerUserId } }),
+        this.reviewRepository.find({ where: { sessionId } }),
+        this.testerFeedbackRepository.findOne({ where: { sessionId } }),
+        this.resolveSessionStartedAt(sessionId, agentType),
+        agentType === "form"
+          ? this.formSessionRepository.findOne({
+              where: { id: sessionId },
+              select: { id: true, result: true },
+            })
+          : Promise.resolve(null),
+      ])
 
-  
     const otherReviews = allReviews.filter((review) => review.reviewerUserId !== reviewerUserId)
     const formResult: ReviewerFormResult | null =
       agentType === "form"

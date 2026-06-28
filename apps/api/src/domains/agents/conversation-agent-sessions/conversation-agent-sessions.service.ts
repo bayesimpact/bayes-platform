@@ -160,17 +160,19 @@ export class ConversationAgentSessionsService {
     const greetingMessage = agentSettings.greetingMessage
     if (greetingMessage && greetingMessage.trim().length > 0) {
       const now = new Date()
-      await this.agentMessageConnectRepository.createAndSave(connectScope,
+      await this.agentMessageConnectRepository.createAndSave(
+        connectScope,
 
-          {
-        sessionId: session.id,
-        agentSettingsId: agentSettings.id,
-        role: "assistant",
-        content: greetingMessage,
-        status: "completed",
-        startedAt: now,
-        completedAt: now,
-      })
+        {
+          sessionId: session.id,
+          agentSettingsId: agentSettings.id,
+          role: "assistant",
+          content: greetingMessage,
+          status: "completed",
+          startedAt: now,
+          completedAt: now,
+        },
+      )
     }
 
     return session

@@ -109,7 +109,10 @@ describe("ReviewCampaigns - revokeMembership", () => {
       },
     )
     const campaign = await repositories.reviewCampaignRepository.save(
-      reviewCampaignFactory.active().transient({ organization, project, agent, agentSettings }).build(),
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
     )
     organizationId = organization.id
     projectId = project.id

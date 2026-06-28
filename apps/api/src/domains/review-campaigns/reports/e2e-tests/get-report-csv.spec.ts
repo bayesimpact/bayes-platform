@@ -17,8 +17,9 @@ import {
   organizationMembershipFactory,
   saveOrgMembership,
 } from "@/domains/organizations/memberships/organization-membership.factory"
-import { createOrganizationWithProject,
-  createOrganizationWithAgent
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
