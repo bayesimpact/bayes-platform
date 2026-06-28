@@ -116,6 +116,7 @@ export class AgentSettingsService {
       revision = 1
     }
 
+    // biome-ignore lint/complexity/useLiteralKeys: force id property to be undefined to ensure creation
     agentSettings["id"] = undefined
 
     return await this.agentSettingsConnectRepository.createAndSave(connectScope, {

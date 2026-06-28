@@ -39,7 +39,6 @@ export function extractAgentSettingsUpdateFields<T extends object>(
       result[key] = (fields as any)[key]
     }
   }
-
   return result
 }
 export function requiresNewAgentSettingsRevision({
