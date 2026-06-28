@@ -38,6 +38,7 @@ const toAgent = (dto: AgentDto): Agent => ({
   greetingMessage: dto.greetingMessage,
   hasCategories: dto.hasCategories ?? false,
   id: dto.id,
+  revision: dto.revision ?? 1,
   locale: dto.locale,
   model: dto.model,
   name: dto.name,

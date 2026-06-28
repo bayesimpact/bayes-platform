@@ -60,6 +60,7 @@ export type AgentDto = {
   instructions: string
   hasCategories?: boolean
   id: string
+  revision: number
   locale: AgentLocale
   model: AgentModel
   name: string

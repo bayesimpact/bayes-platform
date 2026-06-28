@@ -1,5 +1,6 @@
 import {
   type AgentDto,
+  AgentHistoryRoutes,
   type AgentSubAgentDto,
   AgentSubAgentsRoutes,
   AgentsRoutes,
@@ -112,7 +113,22 @@ export class AgentsController {
     return { data: { success: true } }
   }
 
-  //fixme DOO ajouter getAll history
+  @Get(AgentHistoryRoutes.getAll.path)
+  @CheckPolicy((policy) => policy.canUpdate())
+  @AddContext("agent")
+  async getAllHistory(
+    @Req() request: EndpointRequestWithAgent,
+  ): Promise<typeof AgentHistoryRoutes.getAll.response> {
+    const agentSettings = await this.agentSettingsService.getAll({
+      connectScope: getRequiredConnectScope(request),
+      agentId: request.agent.id,
+    })
+    const results = agentSettings.map((as) => {
+      return toAgentDto({ agent: request.agent, agentSettings: as })
+    })
+    return { data: results }
+  }
+
   @Get(AgentSubAgentsRoutes.getAll.path)
   @CheckPolicy((policy) => policy.canUpdate())
   @AddContext("agent")
@@ -190,6 +206,7 @@ function toAgentDto({
     instructions: agentSettings.instructions,
     hasCategories: (agent.sessionCategories?.length ?? 0) > 0,
     id: agent.id,
+    revision: agentSettings.revision,
     locale: agentSettings.locale,
     model: agentSettings.model,
     name: agent.name,

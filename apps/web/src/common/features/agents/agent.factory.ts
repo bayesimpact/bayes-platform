@@ -57,6 +57,7 @@ export const agentFactory = AgentFactory.define(({ params, transientParams }) =>
     resourceLibraryIds: params.resourceLibraryIds ?? [],
     greetingMessage: params.greetingMessage ?? undefined,
     id: params.id ?? faker.string.uuid(),
+    revision: params.revision ?? 1,
     locale: params.locale ?? AgentLocale.EN,
     model: params.model ?? AgentModel.Gemini25Flash,
     name: params.name ?? faker.helpers.arrayElement(AGENT_NAMES),
