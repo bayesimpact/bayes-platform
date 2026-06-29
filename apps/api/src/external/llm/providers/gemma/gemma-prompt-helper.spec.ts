@@ -31,20 +31,25 @@ describe("GemmaPromptHelper", () => {
     },
   })
   const testTools = { test: testTool } as ToolSet
-  it("appendToolsToPrompt", async () => {
+  it("appendToolsToPrompt - returns prompt unchanged when marker is absent", async () => {
     const initialPrompt = "initial prompt"
     const result = GemmaPromptHelper.appendToolsToPrompt({
       prompt: initialPrompt,
       tools: testTools,
     })
-    expect(result).toBeDefined()
-    expect(result).toContain(initialPrompt)
-    expect(result).toContain("##TOOLS")
-    expect(result).toContain("You have access to the following tools:")
-    expect(result).toContain("test: A test tool")
-    expect(result).toContain(
-      "Parameters: { stringVal: string | null; boolVal: boolean | null; intVal: number | null; numberVal: number | null }",
-    )
+    expect(result).toBe(initialPrompt)
+  })
+  it("appendToolsToPrompt - returns prompt unchanged when no tools", async () => {
+    const prompt = `some text\n## Response language:\nAlways answer in English.`
+    const result = GemmaPromptHelper.appendToolsToPrompt({ prompt, tools: {} as ToolSet })
+    expect(result).toBe(prompt)
+  })
+  it("appendToolsToPrompt - injects CRITICAL instruction before language marker", async () => {
+    const prompt = `some text\n## Response language:\nAlways answer in English.`
+    const result = GemmaPromptHelper.appendToolsToPrompt({ prompt, tools: testTools })
+    expect(result).toContain("(CRITICAL)")
+    expect(result).toContain("## Response language:\nAlways answer in")
+    expect(result.indexOf("(CRITICAL)")).toBeLessThan(result.indexOf("## Response language:"))
   })
   it("convertToolsToDocs", async () => {
     const results = GemmaPromptHelper.convertToolsToDocs(testTools)
