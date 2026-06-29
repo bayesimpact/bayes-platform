@@ -20,6 +20,7 @@ describe("buildSubAgentTools", () => {
       organizationId: "organization-id",
       instructions: "Answer delegated questions.",
       model: "mock-model",
+      revision: 1,
       temperature: 0,
       locale: "en",
       documentsRagMode: DocumentsRagMode.None,
@@ -29,10 +30,15 @@ describe("buildSubAgentTools", () => {
       id: "parent-agent-id",
       name: "Orchestrator",
     }
+    const parentAgentSettings = {
+      ...childAgentSettings,
+      id: "parent-agent-id-settings",
+    }
 
     const { tools } = await buildSubAgentTools({
       agentSessionScope: {
         agent: parentAgent,
+        agentSettings: parentAgentSettings,
         session: { id: "session-id", traceId: "trace-id", organizationId: "organization-id" },
         connectScope: { organizationId: "organization-id", projectId: "project-id" },
       } as never,
@@ -133,6 +139,7 @@ describe("buildSubAgentTools", () => {
       model: "mock-model",
       temperature: 0,
       locale: "en",
+      revision: 1,
       documentsRagMode: DocumentsRagMode.None,
       outputJsonSchema: { type: "object", properties: {} },
     }
@@ -141,6 +148,10 @@ describe("buildSubAgentTools", () => {
       id: "parent-agent-id",
       name: "Orchestrator",
       type: "conversation",
+    }
+    const parentAgentSettings = {
+      ...childAgentSettings,
+      id: "parent-agent-id-settings",
     }
 
     const subSession = {
@@ -160,6 +171,7 @@ describe("buildSubAgentTools", () => {
     const { tools } = await buildSubAgentTools({
       agentSessionScope: {
         agent: parentAgent,
+        agentSettings: parentAgentSettings,
         session: {
           id: "parent-session-id",
           traceId: "parent-trace-id",
@@ -246,6 +258,7 @@ describe("buildSubAgentTools", () => {
       organizationId: "organization-id",
       instructions: "Answer pricing questions.",
       model: "mock-model",
+      revision: 1,
       temperature: 0,
       locale: "en",
       documentsRagMode: DocumentsRagMode.None,
@@ -254,6 +267,10 @@ describe("buildSubAgentTools", () => {
       ...childAgent,
       id: "parent-agent-id",
       name: "Orchestrator",
+    }
+    const parentAgentSettings = {
+      ...childAgentSettings,
+      id: "parent-agent-id-settings",
     }
 
     const subSession = {
@@ -272,6 +289,7 @@ describe("buildSubAgentTools", () => {
     const { tools } = await buildSubAgentTools({
       agentSessionScope: {
         agent: parentAgent,
+        agentSettings: parentAgentSettings,
         session: {
           id: "parent-session-id",
           traceId: "parent-trace-id",
