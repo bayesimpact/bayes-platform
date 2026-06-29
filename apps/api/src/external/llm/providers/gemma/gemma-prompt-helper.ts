@@ -5,14 +5,16 @@ export class GemmaPromptHelper {
   static appendToolsToPrompt({ prompt, tools }: { prompt: string; tools: ToolSet }): string {
     const toolDocs = GemmaPromptHelper.convertToolsToDocs(tools)
     if (!toolDocs) return prompt
-    return `${prompt}
-
-##TOOLS
-You have access to the following tools:
-${toolDocs.join("\n")}
-
-(CRITICAL) If a parameters allows null, set the value to null when unknown. Set to null not to quoted "null"`
+    // FIXME: this is a hack to inject a critical instruction into the prompt. We should find a better way to do this.
+    const marker = "## Response language:\nAlways answer in"
+    const injection = `(CRITICAL) If a field value allows null, set the value to null when unknown. Set to null not to quoted "null"`
+    const injectedPrompt = prompt.includes(marker)
+      ? prompt.replace(marker, `${injection}\n${marker}`)
+      : prompt
+    return injectedPrompt
   }
+
+  // FIXME: not used anymore
   static convertToolsToDocs(tools: ToolSet) {
     if (!tools || Object.entries(tools).length === 0) return undefined
     return Object.entries(tools).map(
