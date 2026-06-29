@@ -541,6 +541,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
       userId: `o:${metadata.organizationId} / p:${metadata.projectId}`,
       tags: [...(metadata?.tags || []), ...this.getTags(config)],
       currentTurn: metadata.currentTurn,
+      revision: metadata.revision,
       outputSchema: JSON.stringify(schema),
       availableTools: JSON.stringify(config.tools),
     })
