@@ -13,6 +13,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 - Conversation agent system prompts use the agent's configured prompt directly, without prepending a hardcoded identity header
 - Sub-agent Langfuse traces are grouped under the parent run's session, and the parent's tool-call event carries a direct link to the sub-agent trace
+- Form agent prompt instructs the agent to ask one question at a time, extract multiple field values from a single answer, and update fields when the user revises a previous answer
+- `fillForm` tool instructions explain that the agent can pass `getFormState: true` (including alongside partial field updates) to retrieve the current form state, and should only send fields that are new or have changed
 
 ### Fixed
 - Langfuse generations report cached prompt tokens (Vertex/Gemini `cachedContentTokenCount`), so context-cache hits and savings are visible instead of being dropped

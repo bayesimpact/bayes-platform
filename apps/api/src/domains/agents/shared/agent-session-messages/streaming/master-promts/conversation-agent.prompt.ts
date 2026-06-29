@@ -18,7 +18,7 @@ export function buildConversationAgentPrompt({
 
 ${promptHelpers.resourceLibraries(agent.resourceLibraries ?? [])}
 
-${promptHelpers.tools(toolNames, toolDescriptions)}
+${promptHelpers.tools({ names: toolNames, descriptions: toolDescriptions, agent })}
 
 ${promptHelpers.language(agent.locale)}
 
