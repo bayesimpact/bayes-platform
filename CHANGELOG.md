@@ -15,6 +15,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Security
 
+## [26.06.16] - 2026-06-29
+
+### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
 ## [26.06.15] - 2026-06-26
 
 ### Added
