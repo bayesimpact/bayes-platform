@@ -364,8 +364,8 @@ export class AgentCsvExtractionRunProcessorService extends ServiceWithLLM {
       projectId: connectScope.projectId,
       tags: [
         agentWithSettings.name,
-        "agent-csv-extraction-run",
         `rev-${agentWithSettings.revision}`,
+        "agent-csv-extraction-run",
       ],
     }
 

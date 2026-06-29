@@ -424,8 +424,9 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
       projectId: connectScope.projectId,
       tags: [
         agentWithSettings.name,
-        "evaluation-extraction-run",
         `rev-${agentWithSettings.revision}`,
+        agentWithSettings.type,
+        "evaluation-extraction-run",
       ],
     }
 

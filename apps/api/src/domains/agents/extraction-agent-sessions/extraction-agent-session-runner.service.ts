@@ -253,7 +253,7 @@ export class ExtractionAgentSessionRunnerService extends ServiceWithLLM {
       revision: agentSettings.revision,
       projectId: connectScope.projectId,
       currentTurn: 1,
-      tags: [agent.name, "extraction"],
+      tags: [agent.name, `rev-${agentSettings.revision}`, agent.type],
     }
   }
 }

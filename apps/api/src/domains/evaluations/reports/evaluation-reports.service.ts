@@ -164,7 +164,7 @@ export class EvaluationReportsService extends ServiceWithLLM {
       revision: agentSettings.revision,
       projectId: agent.projectId,
       organizationId: evaluationReport.organizationId,
-      tags: [agent.name, `rev-${agentSettings.revision}`],
+      tags: [agent.name, `rev-${agentSettings.revision}`, agent.type],
     }
 
     return await this.getProviderForModel(llmConfig.model).generateText({

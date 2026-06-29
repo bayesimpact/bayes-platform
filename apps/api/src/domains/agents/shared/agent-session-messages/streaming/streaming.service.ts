@@ -353,7 +353,7 @@ export class StreamingService extends ServiceWithLLM {
     this.logger.log(
       `Agent "${agent.name}" (${agent.id}) trace: ${getTraceUrl(session.traceId)} (session ${session.id})`,
     )
-    const tags = [agent.name]
+    const tags = [agent.name, `rev-${agentSettings.revision}`, agent.type]
     return {
       traceId: session.traceId,
       agentSessionId: session.id,

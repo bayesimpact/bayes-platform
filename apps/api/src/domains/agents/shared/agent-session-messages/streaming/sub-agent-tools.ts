@@ -378,7 +378,12 @@ function buildSubAgentMetadata({
   childSession: StreamingSession
   subAgentTraceId: string
 }): LLMMetadata {
-  const { connectScope, agent: parentAgent, session } = agentSessionScope
+  const {
+    connectScope,
+    agent: parentAgent,
+    agentSettings: parentAgentSettings,
+    session,
+  } = agentSessionScope
 
   // The sub-agent runs inside a fresh OTEL root span (see runSubAgentTool), so its
   // spans get their own OTEL trace id and the exporter writes them under this
@@ -395,6 +400,15 @@ function buildSubAgentMetadata({
     projectId: childAgent.projectId,
     organizationId: session?.organizationId ?? connectScope.organizationId,
     currentTurn: session?.messages?.filter((message) => message.role === "user").length ?? 0,
-    tags: [parentAgent.name, childAgent.name, "sub-agent", `parent-trace:${session.traceId}`],
+    tags: [
+      childAgent.name,
+      `rev-${childAgentSettings.revision}`,
+      childAgent.type,
+      "sub-agent",
+      `parent-${parentAgent.name}`,
+      `parent-rev-${parentAgentSettings.revision}`,
+      `parent-type-${parentAgent.type}`,
+      `parent-trace:${session.traceId}`,
+    ],
   }
 }
