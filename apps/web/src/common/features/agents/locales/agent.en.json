@@ -143,7 +143,14 @@
       "resourceLibraries": "Resource libraries",
       "categories": "Conversation categories",
       "orchestration": "Orchestration",
-      "embed": "Embed"
+      "embed": "Embed",
+      "mcpServers": "MCP Servers"
+    },
+    "mcpServers": {
+      "emptyTitle": "No MCP servers",
+      "emptyDescription": "No MCP servers are linked to this agent.",
+      "enabled": "Enabled",
+      "disabled": "Disabled"
     },
     "unsavedChanges": {
       "title": "Unsaved changes",

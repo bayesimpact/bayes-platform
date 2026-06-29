@@ -143,7 +143,14 @@
       "resourceLibraries": "Bibliothèques de ressources",
       "categories": "Catégories de conversation",
       "orchestration": "Orchestration",
-      "embed": "Intégration"
+      "embed": "Intégration",
+      "mcpServers": "Serveurs MCP"
+    },
+    "mcpServers": {
+      "emptyTitle": "Aucun serveur MCP",
+      "emptyDescription": "Aucun serveur MCP n'est lié à cet agent.",
+      "enabled": "Activé",
+      "disabled": "Désactivé"
     },
     "unsavedChanges": {
       "title": "Modifications non enregistrées",
