@@ -305,7 +305,7 @@ export class AgentsService {
       connectScope,
       agentId: agent.id,
       agentSettings: {
-        ...agentSettings,
+        ...extractAgentSettingsUpdateFields(agentSettings),
         ...agentSettingsFieldsToUpdate,
         ...(agentSettingsFieldsToUpdate.greetingMessage !== undefined
           ? {

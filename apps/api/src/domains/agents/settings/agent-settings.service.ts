@@ -92,7 +92,9 @@ export class AgentSettingsService {
     agentSettings: Partial<AgentSettingsValues>
   }): Promise<AgentSettings> {
     const last = await this.getLastOrUndefined({ connectScope, agentId })
-    let previousSettings: Omit<AgentSettings, "id"> | undefined
+    let previousSettings:
+      | Omit<AgentSettings, "id" | "createdAt" | "updatedAt" | "deletedAt">
+      | undefined
     let revision: number
     if (last) {
       if (
@@ -110,14 +112,11 @@ export class AgentSettingsService {
         return last
 
       revision = last.revision + 1
-      const { id, ...withoutId } = last
-      previousSettings = withoutId
+      const { id, createdAt, updatedAt, deletedAt, ...cleanedSettings } = last
+      previousSettings = cleanedSettings
     } else {
       revision = 1
     }
-
-    // biome-ignore lint/complexity/useLiteralKeys: force id property to be undefined to ensure creation
-    agentSettings["id"] = undefined
 
     return await this.agentSettingsConnectRepository.createAndSave(connectScope, {
       ...(previousSettings ?? {}),
