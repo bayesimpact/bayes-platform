@@ -8,7 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
-
+-  (beta) Mistral Small 3.1 available for all Agents
 ### Changed
 
 ### Fixed
