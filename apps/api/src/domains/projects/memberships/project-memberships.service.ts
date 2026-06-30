@@ -1,40 +1,26 @@
 import { Injectable } from "@nestjs/common"
-import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
-import type { EntityManager, Repository } from "typeorm"
+import { InjectDataSource } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { DataSource } from "typeorm"
+import { DataSource, type EntityManager } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { UserMembershipService } from "@/domains/memberships/user-membership.service"
 import { User } from "@/domains/users/user.entity"
-import { ProjectMembership } from "./project-membership.entity"
+import type { ProjectMembershipModel } from "./project-membership.model"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ProjectMembershipRepository } from "./project-membership.repository"
 
 export const PLACEHOLDER_AUTH0_ID_PREFIX = "00000000-0000-0000-0000-"
 
 @Injectable()
 export class ProjectMembershipsService {
   constructor(
-    @InjectRepository(ProjectMembership)
-    private readonly projectMembershipRepository: Repository<ProjectMembership>,
+    private readonly projectMembershipRepository: ProjectMembershipRepository,
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly agentMembershipsService: AgentMembershipsService,
-    private readonly userMembershipService: UserMembershipService,
   ) {}
 
-  async findById(membershipId: string): Promise<ProjectMembership | null> {
-    return this.projectMembershipRepository.findOne({
-      where: { id: membershipId },
-      relations: ["user"],
-    })
-  }
-
-  async listProjectMemberships(projectId: string): Promise<ProjectMembership[]> {
-    return this.projectMembershipRepository.find({
-      where: { projectId },
-      relations: ["user"],
-      order: { createdAt: "DESC" },
-    })
+  async listProjectMemberships(projectId: string): Promise<ProjectMembershipModel[]> {
+    return this.projectMembershipRepository.findAllByProject(projectId)
   }
 
   async listMemberAgents(params: { projectId: string; userId: string }) {
@@ -47,59 +33,40 @@ export class ProjectMembershipsService {
   }: {
     projectId: string
     userId: string
-  }): Promise<ProjectMembership> {
-    const membership = this.projectMembershipRepository.create({
-      projectId,
-      userId,
-      role: "owner",
-    })
-    const saved = await this.projectMembershipRepository.save(membership)
-    await this.userMembershipService.upsertProjectMembership({
-      userId,
-      projectId,
-      role: "owner",
-    })
-    return saved
+  }): Promise<ProjectMembershipModel> {
+    return this.projectMembershipRepository.createOwnerMembership({ projectId, userId })
   }
 
-  async upsertProjectAdminMembership(params: {
+  async upsertProjectAdminMembership({
+    manager,
+    projectId,
+    userId,
+  }: {
     manager: EntityManager
     projectId: string
     userId: string
-  }): Promise<ProjectMembership | null> {
-    const membershipRepo = params.manager.getRepository(ProjectMembership)
-    const existingMembership = await membershipRepo.findOne({
-      where: { projectId: params.projectId, userId: params.userId },
-    })
+  }): Promise<ProjectMembershipModel | null> {
+    const existing = await this.projectMembershipRepository.findByUserAndProject({ userId, projectId })
 
-    if (existingMembership) {
-      if (existingMembership.role !== "admin") {
-        existingMembership.role = "admin"
-        await membershipRepo.save(existingMembership)
-        await this.userMembershipService.upsertProjectMembership(
-          { userId: params.userId, projectId: params.projectId, role: "admin" },
-          params.manager,
-        )
-        await this.agentMembershipsService.createAdminAgentMembershipsForUserInProject({
-          manager: params.manager,
-          userId: params.userId,
-          projectId: params.projectId,
-        })
-      }
+    if (existing?.role === "admin") return null
+
+    if (existing) {
+      await this.projectMembershipRepository.updateRole({
+        membershipId: existing.id,
+        userId,
+        projectId,
+        role: "admin",
+        manager,
+      })
+      await this.agentMembershipsService.createAdminAgentMembershipsForUserInProject({
+        manager,
+        userId,
+        projectId,
+      })
       return null
     }
 
-    const newMembership = membershipRepo.create({
-      projectId: params.projectId,
-      userId: params.userId,
-      role: "admin",
-    })
-    const savedMembership = await membershipRepo.save(newMembership)
-    await this.userMembershipService.upsertProjectMembership(
-      { userId: params.userId, projectId: params.projectId, role: "admin" },
-      params.manager,
-    )
-    return savedMembership
+    return this.projectMembershipRepository.createMembership({ userId, projectId, role: "admin", manager })
   }
 
   /**
@@ -117,15 +84,10 @@ export class ProjectMembershipsService {
     projectId: string
   }): Promise<void> {
     return this.dataSource.transaction(async (manager) => {
-      const membershipRepo = manager.getRepository(ProjectMembership)
-      const userRepo = manager.getRepository(User)
-
-      const membership = await this.findById(membershipId)
+      const membership = await this.projectMembershipRepository.findById({ membershipId, projectId })
       if (!membership) return
 
-      const { user } = membership
-
-      if (user.id === userId) {
+      if (membership.user.id === userId) {
         throw new Error("Cannot remove yourself from the project")
       }
 
@@ -133,22 +95,21 @@ export class ProjectMembershipsService {
         throw new Error("Cannot remove owner from the project")
       }
 
-      // Also delete all agent memberships for this user in the project
       await this.agentMembershipsService.deleteAgentMembershipsForUserInProject({
         manager,
-        userId: user.id,
+        userId: membership.userId,
         projectId,
       })
 
-      await membershipRepo.delete({ id: membershipId, projectId })
-      await this.userMembershipService.deleteProjectMembership(
-        { userId: user.id, projectId },
+      await this.projectMembershipRepository.deleteMembership({
+        membershipId,
+        projectId,
+        userId: membership.userId,
         manager,
-      )
+      })
 
-      // If the user is a placeholder (never signed up), clean them up
-      if (user.auth0Id.startsWith(PLACEHOLDER_AUTH0_ID_PREFIX)) {
-        await userRepo.delete({ id: user.id })
+      if (membership.user.auth0Id.startsWith(PLACEHOLDER_AUTH0_ID_PREFIX)) {
+        await manager.getRepository(User).delete({ id: membership.userId })
       }
     })
   }

@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
-import { InjectRepository } from "@nestjs/typeorm"
-import type { Repository } from "typeorm"
-import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ProjectMembershipRepository } from "@/domains/projects/memberships/project-membership.repository"
 import type { ContextResolver, ResolvableRequest } from "../context-resolver.interface"
 import type { EndpointRequestWithProjectMembership } from "../request.interface"
 
@@ -9,10 +8,7 @@ import type { EndpointRequestWithProjectMembership } from "../request.interface"
 export class ProjectMembershipContextResolver implements ContextResolver {
   readonly resource = "projectMembership" as const
 
-  constructor(
-    @InjectRepository(ProjectMembership)
-    private readonly projectMembershipRepository: Repository<ProjectMembership>,
-  ) {}
+  constructor(private readonly projectMembershipRepository: ProjectMembershipRepository) {}
 
   async resolve(request: ResolvableRequest): Promise<void> {
     const requestWithParams = request as ResolvableRequest & {
@@ -24,11 +20,9 @@ export class ProjectMembershipContextResolver implements ContextResolver {
 
     const requestWithProjectMembership = request as EndpointRequestWithProjectMembership
     const memberProjectMembership =
-      (await this.projectMembershipRepository.findOne({
-        where: {
-          id: membershipId,
-          projectId: requestWithProjectMembership.project.id,
-        },
+      (await this.projectMembershipRepository.findById({
+        membershipId,
+        projectId: requestWithProjectMembership.project.id,
       })) ?? undefined
     if (!memberProjectMembership) throw new NotFoundException()
 

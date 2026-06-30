@@ -13,6 +13,7 @@ import type { EvaluationReport } from "@/domains/evaluations/reports/evaluation-
 import type { Invitation } from "@/domains/invitations/invitation.entity"
 import type { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import type { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
+import type { ProjectMembershipModel } from "@/domains/projects/memberships/project-membership.model"
 import type { Project } from "@/domains/projects/project.entity"
 import type { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
 import type { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
@@ -46,7 +47,7 @@ export interface EndpointRequestWithProject extends EndpointRequestWithOrganizat
 }
 
 export interface EndpointRequestWithProjectMembership extends EndpointRequestWithProject {
-  memberProjectMembership: ProjectMembership
+  memberProjectMembership: ProjectMembershipModel
 }
 
 export interface EndpointRequestWithAgent extends EndpointRequestWithProject {

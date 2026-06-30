@@ -10,9 +10,11 @@ import { ConversationAgentSession } from "@/domains/agents/conversation-agent-se
 import { AgentMembership } from "@/domains/agents/memberships/agent-membership.entity"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import { AuthModule } from "@/domains/auth/auth.module"
+import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
+import { ProjectMembershipRepository } from "@/domains/projects/memberships/project-membership.repository"
 import { Project } from "@/domains/projects/project.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { AgentsAnalyticsController } from "./agents-analytics.controller"
@@ -32,11 +34,13 @@ import { AgentsAnalyticsService } from "./agents-analytics.service"
       ProjectMembership,
     ]),
     AuthModule,
+    MembershipsModule,
     UsersModule,
   ],
   providers: [
     AgentsAnalyticsService,
     AgentsAnalyticsGuard,
+    ProjectMembershipRepository,
     ResourceContextGuard,
     OrganizationContextResolver,
     ProjectContextResolver,

@@ -16,6 +16,7 @@ import { DocumentTagsModule } from "../documents/tags/document-tags.module"
 import { FeatureFlag } from "../feature-flags/feature-flag.entity"
 import { InvitationsModule } from "../invitations/invitations.module"
 import { ProjectMembership } from "./memberships/project-membership.entity"
+import { ProjectMembershipRepository } from "./memberships/project-membership.repository"
 import { ProjectMembershipsController } from "./memberships/project-memberships.controller"
 import { ProjectMembershipsService } from "./memberships/project-memberships.service"
 import { Project } from "./project.entity"
@@ -43,6 +44,7 @@ import { ProjectsService } from "./projects.service"
   ],
   providers: [
     ProjectsService,
+    ProjectMembershipRepository,
     ProjectMembershipsService,
     ProjectsGuard,
     ResourceContextGuard,
