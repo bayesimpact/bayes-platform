@@ -62,7 +62,7 @@ export type DocumentDto = {
   id: string
   language: "en" | "fr"
   mimeType?: MimeTypes
-  pages?: { url: string; markdown: string }[]
+  pages?: { url: string; markdown?: string }[]
   projectId: string
   size?: number
   sourceType: DocumentSourceType
