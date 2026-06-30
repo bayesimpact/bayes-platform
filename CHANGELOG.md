@@ -12,6 +12,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+- (temp) skip page markdown from web crawl list HTTP responses to avoid HTTP 500 errors.
 
 ### Security
 
