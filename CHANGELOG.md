@@ -8,6 +8,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.06.17] - 2026-06-30
+
+### Added
 -  (beta) Mistral Small 3.1 available for all Agents
 ### Changed
 
