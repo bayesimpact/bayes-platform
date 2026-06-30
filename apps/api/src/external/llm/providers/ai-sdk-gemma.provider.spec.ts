@@ -102,6 +102,14 @@ if (process.env.IS_TEST === "true" && process.env.GEMMA_TEST === "true") {
         advancedExpectation: true,
       })
     })
+
+    it.each(testModels)("streamChatResponse with multiple tools - $name", async ({ model }) => {
+      await ProviderSpecs.testStreamChatResponseWithMultipleTools({
+        provider,
+        model,
+        advancedExpectation: true,
+      })
+    })
   })
 } else {
   describe.skip("AISDKGemmaProvider", () => {

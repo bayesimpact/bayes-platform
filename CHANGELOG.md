@@ -8,6 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+-  (beta) Gemini 3.1 Flash Lite & Gemini 3.5 Flash available for all Agents
 
 ### Changed
 

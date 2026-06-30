@@ -4,12 +4,17 @@ import { AISDKMedGemmaProvider } from "@/external/llm/providers/ai-sdk-med-gemma
 import { AISDKMistralProvider } from "@/external/llm/providers/ai-sdk-mistral.provider"
 import { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
 import { AISDKVertexProvider } from "@/external/llm/providers/ai-sdk-vertex.provider"
+import { AISDKVertex3Provider } from "@/external/llm/providers/ai-sdk-vertex3.provider"
 
 @Module({
   providers: [
     {
       provide: "VertexLLMProvider",
       useClass: AISDKVertexProvider,
+    },
+    {
+      provide: "Vertex3LLMProvider",
+      useClass: AISDKVertex3Provider,
     },
     {
       provide: "MistralLLMProvider",
@@ -32,6 +37,7 @@ import { AISDKVertexProvider } from "@/external/llm/providers/ai-sdk-vertex.prov
     "MedGemmaLLMProvider",
     "GemmaLLMProvider",
     "VertexLLMProvider",
+    "Vertex3LLMProvider",
     "MistralLLMProvider",
     "_MockLLMProvider",
   ],

@@ -1,4 +1,4 @@
-import type { AgentModel } from "@caseai-connect/api-contracts"
+import type { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import type { ModelMessage, ToolSet } from "ai"
 import type { ZodObject, z } from "zod"
 export type LLMChatMessage = ModelMessage
@@ -57,6 +57,7 @@ export type LLMMetadata = (
 }
 
 export interface LLMProvider {
+  getAgentProvider(): AgentProvider
   streamChatResponse({
     messages,
     config,
