@@ -42,6 +42,10 @@ export const FeatureFlags = [
     description: "Crawl a website and index its pages as documents.",
   }),
   featureFlag({
+    key: "agent-mcp",
+    description: "Connect MCP servers to agents for external tool access.",
+  }),
+  featureFlag({
     key: "agent-embed",
     description: "Embed conversation agents as a chat widget on external websites.",
   }),

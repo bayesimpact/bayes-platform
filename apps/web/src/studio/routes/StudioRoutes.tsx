@@ -30,6 +30,7 @@ import { ProjectDocumentsRoute } from "./DocumentsRoute"
 import { EvaluationRoute } from "./EvaluationRoute"
 import { FeedbackRoute } from "./FeedbackRoute"
 import { StudioRoutes } from "./helpers"
+import { McpServersRoute } from "./McpServersRoute"
 import { ProjectAnalyticsRoute } from "./ProjectAnalyticsRoute"
 import { ProjectMembershipRoute } from "./ProjectMembershipRoute"
 import { ProjectMembershipsRoute } from "./ProjectMembershipsRoute"
@@ -87,6 +88,14 @@ export const studioRoutes = {
           element: (
             <RestrictedFeature feature="web-sources">
               <WebSourcesRoute />
+            </RestrictedFeature>
+          ),
+        },
+        {
+          path: StudioRoutes.mcpServers.path,
+          element: (
+            <RestrictedFeature feature="agent-mcp">
+              <McpServersRoute />
             </RestrictedFeature>
           ),
         },

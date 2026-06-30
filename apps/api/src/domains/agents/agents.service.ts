@@ -175,6 +175,7 @@ export class AgentsService {
           documentTags: true,
           resourceLibraries: true,
           sessionCategories: { conversationSessionCategories: true },
+          agentMcpServers: { mcpServer: true },
         },
       })
     )?.sort((agentA, agentB) => agentA.name.localeCompare(agentB.name))

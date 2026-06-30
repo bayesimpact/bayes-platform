@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "title": "MCP Servers",
+    "description": "Manage external tool servers connected to this project.",
+    "empty": "No MCP servers configured yet. Add one to give your agents access to external tools.",
+    "actions": {
+      "newServer": "New Server"
+    },
+    "create": {
+      "title": "Add MCP Server",
+      "description": "Connect an external MCP server to this project."
+    },
+    "delete": {
+      "title": "Delete MCP Server",
+      "description": "Are you sure you want to delete \"{{name}}\"? Agents using this server will lose access to its tools."
+    },
+    "fields": {
+      "name": "Name",
+      "namePlaceholder": "Enter server name",
+      "url": "URL",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "Optional authentication key"
+    }
+  }
+}

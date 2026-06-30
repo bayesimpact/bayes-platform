@@ -64,4 +64,5 @@ const toAgent = (dto: AgentDto): Agent => ({
   resourceLibraryIds: dto.resourceLibraryIds,
   projectAgentSessionCategoryIds: dto.projectAgentSessionCategoryIds,
   usedProjectAgentSessionCategoryIds: dto.usedProjectAgentSessionCategoryIds,
+  mcpServers: dto.mcpServers,
 })

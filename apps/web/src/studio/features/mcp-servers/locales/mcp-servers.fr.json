@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "title": "Serveurs MCP",
+    "description": "Gérer les serveurs d'outils externes connectés à ce projet.",
+    "empty": "Aucun serveur MCP configuré. Ajoutez-en un pour donner à vos agents accès à des outils externes.",
+    "actions": {
+      "newServer": "Nouveau serveur"
+    },
+    "create": {
+      "title": "Ajouter un serveur MCP",
+      "description": "Connecter un serveur MCP externe à ce projet."
+    },
+    "delete": {
+      "title": "Supprimer le serveur MCP",
+      "description": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ? Les agents utilisant ce serveur perdront l'accès à ses outils."
+    },
+    "fields": {
+      "name": "Nom",
+      "namePlaceholder": "Entrez le nom du serveur",
+      "url": "URL",
+      "apiKey": "Clé API",
+      "apiKeyPlaceholder": "Clé d'authentification optionnelle"
+    }
+  }
+}

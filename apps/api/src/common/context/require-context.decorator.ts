@@ -22,6 +22,7 @@ export type ContextResource =
   | "reviewCampaignMembership"
   | "agentSessionInCampaign"
   | "invitationScope"
+  | "mcpServer"
 
 export const RequireContext = (...resources: ContextResource[]) =>
   SetMetadata(REQUIRE_CONTEXT_KEY, resources)

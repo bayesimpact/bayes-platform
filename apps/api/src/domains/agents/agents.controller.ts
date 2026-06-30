@@ -271,5 +271,10 @@ function toAgentDto({
         (projectAgentSessionCategoryId): projectAgentSessionCategoryId is string =>
           projectAgentSessionCategoryId !== null,
       ),
+    mcpServers: (entity.agentMcpServers ?? []).map((agentMcpServer) => ({
+      id: agentMcpServer.mcpServer.id,
+      name: agentMcpServer.mcpServer.name,
+      enabled: agentMcpServer.enabled,
+    })),
   }
 }

@@ -26,6 +26,7 @@ import {
   ListChecksIcon,
   Loader2Icon,
   MegaphoneIcon,
+  ServerIcon,
   Settings2Icon,
   UsersIcon,
 } from "lucide-react"
@@ -54,6 +55,9 @@ export function SidebarFooterChildren({ project }: { project: Project }) {
             <NavAnalytics organizationId={project.organizationId} projectId={project.id} />
           </RestrictedFeature>
           <NavSources organizationId={project.organizationId} projectId={project.id} />
+          <RestrictedFeature feature="agent-mcp">
+            <NavMcpServers organizationId={project.organizationId} projectId={project.id} />
+          </RestrictedFeature>
           <NavProjectMemberships organizationId={project.organizationId} projectId={project.id} />
           <NavAdmin organizationId={project.organizationId} projectId={project.id} />
         </SidebarMenu>
@@ -250,6 +254,31 @@ function UploaderState() {
         <CloudAlertIcon className="text-destructive size-5 animate-pulse" />
       )}
     </div>
+  )
+}
+
+function NavMcpServers({
+  organizationId,
+  projectId,
+}: {
+  organizationId: string
+  projectId: string
+}) {
+  const { t } = useTranslation()
+  const { isRoute } = useIsRoute()
+  const isActive = isRoute(StudioRoutes.mcpServers.path)
+  const path = StudioRoutes.mcpServers.build({ organizationId, projectId })
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton isActive={isActive} asChild>
+        <Link to={path}>
+          <ServerIcon />
+          <span className={cn(isActive && "font-semibold capitalize-first")}>
+            {t("mcpServers:title")}
+          </span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
   )
 }
 

@@ -30,6 +30,7 @@ import type { Document } from "@/studio/features/documents/documents.models"
 import type { EvaluationReport } from "@/studio/features/evaluation-reports/evaluation-reports.models"
 import type { Evaluation } from "@/studio/features/evaluations/evaluations.models"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
+import type { McpServer } from "@/studio/features/mcp-servers/mcp-servers.models"
 import type {
   ProjectMemberAgent,
   ProjectMembership,
@@ -242,6 +243,10 @@ export const seed = {
 
     documentTags(documentTags: DocumentTag[]): StoryPreloadedState {
       return { documentTags: { data: ads.fulfilled(documentTags) } }
+    },
+
+    mcpServers(mcpServers: McpServer[]): StoryPreloadedState {
+      return { mcpServers: { data: ads.fulfilled(mcpServers) } }
     },
 
     resourceLibraries(resourceLibraries: ResourceLibrary[]): StoryPreloadedState {

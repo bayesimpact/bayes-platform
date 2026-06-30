@@ -13,15 +13,17 @@
   ],
   [
     "domains/agents/agents.module.ts",
-    "domains/documents/documents.module.ts",
-    "domains/documents/tags/document-tags.module.ts",
+    "domains/agents/conversation-agent-sessions/conversation-agent-sessions.module.ts",
+    "domains/agents/shared/agent-session-messages/streaming/streaming.module.ts",
+    "domains/mcp-servers/mcp-servers.module.ts",
     "domains/projects/projects.module.ts"
   ],
-  ["domains/documents/tags/document-tags.module.ts", "domains/projects/projects.module.ts"],
+  ["domains/projects/projects.module.ts", "domains/documents/tags/document-tags.module.ts"],
   [
     "domains/agents/agents.module.ts",
-    "domains/documents/documents.module.ts",
-    "domains/documents/tags/document-tags.module.ts",
+    "domains/agents/conversation-agent-sessions/conversation-agent-sessions.module.ts",
+    "domains/agents/shared/agent-session-messages/streaming/streaming.module.ts",
+    "domains/mcp-servers/mcp-servers.module.ts",
     "domains/projects/projects.module.ts",
     "domains/invitations/invitations.module.ts"
   ],

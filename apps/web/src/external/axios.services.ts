@@ -22,6 +22,7 @@ import documents from "@/studio/features/documents/external/documents.api"
 import evaluationReports from "@/studio/features/evaluation-reports/external/evaluation-reports.api"
 import evaluations from "@/studio/features/evaluations/external/evaluations.api"
 import invitations from "@/studio/features/invitations/external/invitations.api"
+import mcpServers from "@/studio/features/mcp-servers/external/mcp-servers.api"
 import projectMemberships from "@/studio/features/project-memberships/external/project-memberships.api"
 import resourceLibraries from "@/studio/features/resource-libraries/external/resource-libraries.api"
 import reviewCampaigns from "@/studio/features/review-campaigns/external/review-campaigns.api"
@@ -48,6 +49,7 @@ export const services = {
   extractionAgentSessions,
   formAgentSessions,
   invitations,
+  mcpServers,
   me,
   organizations,
   projectAnalytics,

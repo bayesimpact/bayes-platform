@@ -9,6 +9,7 @@ const agent = project.extend("/a/:agentId")
 const documents = project.extend("/d")
 const webSources = project.extend("/web-sources")
 const document = documents.extend("/:documentId")
+const mcpServers = project.extend("/mcp-servers")
 const resourceLibraries = project.extend("/resource-libraries")
 const resourceLibraryNew = resourceLibraries.extend("/new")
 const resourceLibrary = resourceLibraries.extend("/:resourceLibraryId")
@@ -46,6 +47,7 @@ export const StudioRoutes = {
   evaluation,
   feedback,
   home,
+  mcpServers,
   organization,
   project,
   projectAdmin,

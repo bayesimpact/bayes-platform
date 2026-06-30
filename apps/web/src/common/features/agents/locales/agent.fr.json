@@ -147,10 +147,10 @@
       "mcpServers": "Serveurs MCP"
     },
     "mcpServers": {
+      "label": "Serveurs MCP",
+      "manage": "Gérer les serveurs",
       "emptyTitle": "Aucun serveur MCP",
-      "emptyDescription": "Aucun serveur MCP n'est lié à cet agent.",
-      "enabled": "Activé",
-      "disabled": "Désactivé"
+      "emptyDescription": "Ajoutez des serveurs MCP à ce projet pour donner à vos agents accès à des outils externes."
     },
     "unsavedChanges": {
       "title": "Modifications non enregistrées",

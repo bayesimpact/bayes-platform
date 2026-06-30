@@ -44,6 +44,44 @@ export class McpServersService {
     )
   }
 
+  async createMcpServer({
+    projectId,
+    name,
+    config,
+  }: {
+    projectId: string
+    name: string
+    config: McpServerConfig
+  }): Promise<McpServer> {
+    const encryptedConfig = this.encryptionService.encrypt(JSON.stringify(config))
+    return this.mcpServerRepository.save(
+      this.mcpServerRepository.create({
+        name,
+        presetSlug: null,
+        projectId,
+        encryptedConfig,
+      }),
+    )
+  }
+
+  async listMcpServers(projectId: string): Promise<McpServer[]> {
+    return this.mcpServerRepository.find({
+      where: { projectId },
+      order: { name: "ASC" },
+    })
+  }
+
+  async findMcpServerById(mcpServerId: string, projectId: string): Promise<McpServer | null> {
+    return this.mcpServerRepository.findOne({
+      where: { id: mcpServerId, projectId },
+    })
+  }
+
+  async deleteMcpServer(mcpServerId: string): Promise<void> {
+    await this.agentMcpServerRepository.softDelete({ mcpServerId })
+    await this.mcpServerRepository.softDelete({ id: mcpServerId })
+  }
+
   async enableForAgent(agentId: string, mcpServerId: string): Promise<AgentMcpServer> {
     return this.agentMcpServerRepository.save(
       this.agentMcpServerRepository.create({
@@ -52,6 +90,14 @@ export class McpServersService {
         enabled: true,
       }),
     )
+  }
+
+  async disableForAgent(agentId: string, mcpServerId: string): Promise<void> {
+    await this.agentMcpServerRepository.delete({ agentId, mcpServerId })
+  }
+
+  decryptUrl(mcpServer: McpServer): string {
+    return this.decryptConfig(mcpServer).url
   }
 
   private decryptConfig(mcpServer: McpServer): McpServerConfig {

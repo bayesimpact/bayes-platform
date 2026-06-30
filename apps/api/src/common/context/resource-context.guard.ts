@@ -36,6 +36,8 @@ import { EvaluationExtractionRunContextResolver } from "./resolvers/evaluation-e
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { InvitationScopeContextResolver } from "./resolvers/invitation-scope-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { McpServerContextResolver } from "./resolvers/mcp-server-context.resolver"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationContextResolver } from "./resolvers/organization-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectContextResolver } from "./resolvers/project-context.resolver"
@@ -59,6 +61,7 @@ const RESOLUTION_ORDER: ContextResource[] = [
   "document",
   "documentTag",
   "resourceLibrary",
+  "mcpServer",
   "evaluation",
   "evaluationExtractionDataset",
   "evaluationExtractionRun",
@@ -84,6 +87,7 @@ export class ResourceContextGuard implements CanActivate {
     @Optional() documentContextResolver?: DocumentContextResolver,
     @Optional() documentTagContextResolver?: DocumentTagContextResolver,
     @Optional() resourceLibraryContextResolver?: ResourceLibraryContextResolver,
+    @Optional() mcpServerContextResolver?: McpServerContextResolver,
     @Optional() evaluationContextResolver?: EvaluationContextResolver,
     @Optional()
     evaluationExtractionDatasetContextResolver?: EvaluationExtractionDatasetContextResolver,
@@ -138,6 +142,9 @@ export class ResourceContextGuard implements CanActivate {
         resourceLibraryContextResolver.resource,
         resourceLibraryContextResolver,
       ])
+    }
+    if (mcpServerContextResolver) {
+      resolverEntries.push([mcpServerContextResolver.resource, mcpServerContextResolver])
     }
     if (evaluationContextResolver) {
       resolverEntries.push([evaluationContextResolver.resource, evaluationContextResolver])
