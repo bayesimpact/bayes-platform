@@ -13,7 +13,10 @@ import { gcpCredentialsCheck } from "@/external/llm/providers/spec-gcp-tools"
 dotenvConfig({ path: ".env", override: true, quiet: true })
 dotenvConfig({ path: ".env.test", override: true, quiet: true })
 const testModels = Object.values(AgentModel)
-  .filter((am) => AgentModelToAgentProvider[am] === AgentProvider.Vertex)
+  .filter(
+    (am) =>
+      AgentModelToAgentProvider[am] === AgentProvider.Vertex && process.env.VERTEX_TEST === "true",
+  )
   .map((m) => ({
     name: GetAgentModelKeyFromValue(m),
     model: m,
@@ -94,6 +97,13 @@ if (process.env.IS_TEST === "true" && process.env.VERTEX_TEST === "true") {
     })
     it.each(testModels)("streamChatResponse with tools - TER - $name", async ({ model }) => {
       await ProviderSpecs.testStreamChatResponseWithToolsTer({
+        provider,
+        model,
+        advancedExpectation: true,
+      })
+    })
+    it.each(testModels)("streamChatResponse with multiple tools - $name", async ({ model }) => {
+      await ProviderSpecs.testStreamChatResponseWithMultipleTools({
         provider,
         model,
         advancedExpectation: true,

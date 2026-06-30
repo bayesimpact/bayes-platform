@@ -1,27 +1,31 @@
 import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
 import { afterAll, beforeAll } from "@jest/globals"
-import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base"
+import { BatchSpanProcessor, ConsoleSpanExporter } from "@opentelemetry/sdk-trace-base"
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
 import { config as dotenvConfig } from "dotenv"
 import { LangfuseIntegrationExporter } from "@/external/langfuse/langfuse-integration-exporter"
 import { GetAgentModelKeyFromValue } from "@/external/llm/agent-provider"
 import { sdk } from "@/external/llm/open-telemetry-init"
-import { AISDKMistralProvider } from "@/external/llm/providers/ai-sdk-mistral.provider"
+import { AISDKVertex3Provider } from "@/external/llm/providers/ai-sdk-vertex3.provider"
 import { ProviderSpecs } from "@/external/llm/providers/provider-specs"
 import { gcpCredentialsCheck } from "@/external/llm/providers/spec-gcp-tools"
 
-dotenvConfig({ path: ".env", override: true })
-dotenvConfig({ path: ".env.test", override: true })
+dotenvConfig({ path: ".env", override: true, quiet: true })
+dotenvConfig({ path: ".env.test", override: true, quiet: true })
 const testModels = Object.values(AgentModel)
-  .filter((am) => AgentModelToAgentProvider[am] === AgentProvider.Mistral)
+  .filter(
+    (am) =>
+      AgentModelToAgentProvider[am] === AgentProvider.Vertex3 &&
+      process.env.VERTEX_PREVIEW_TEST === "true",
+  )
   .map((m) => ({
     name: GetAgentModelKeyFromValue(m),
     model: m,
   }))
 
-if (process.env.IS_TEST === "true" && process.env.MISTRAL_TEST === "true") {
-  describe("AISDKMistralProvider", () => {
-    jest.setTimeout(600_000)
+if (process.env.IS_TEST === "true" && process.env.VERTEX_PREVIEW_TEST === "true") {
+  describe("AISDKVertex3Provider", () => {
+    jest.setTimeout(60_000)
     const langfuse = new LangfuseIntegrationExporter({
       secretKey: process.env.LANGFUSE_SK,
       publicKey: process.env.LANGFUSE_PK,
@@ -29,15 +33,15 @@ if (process.env.IS_TEST === "true" && process.env.MISTRAL_TEST === "true") {
     })
     const traceProvider = new NodeTracerProvider({
       spanProcessors: [
-        // new BatchSpanProcessor(new ConsoleSpanExporter()),
+        new BatchSpanProcessor(new ConsoleSpanExporter()),
         new BatchSpanProcessor(langfuse),
       ],
     })
-    let provider: AISDKMistralProvider
+    let provider: AISDKVertex3Provider
     beforeAll(async () => {
       const conf = process.env.GOOGLE_APPLICATION_CREDENTIALS
       if (!conf) return
-      provider = new AISDKMistralProvider()
+      provider = new AISDKVertex3Provider()
       traceProvider.register()
     })
     afterAll(async () => {
@@ -70,7 +74,6 @@ if (process.env.IS_TEST === "true" && process.env.MISTRAL_TEST === "true") {
     it.each(testModels)("generateStructuredOutput -png - $name", async ({ model }) => {
       await ProviderSpecs.testGenerateStructuredOutputFromXRayPng_FR({ provider, model })
     })
-
     it.each(testModels)("generateStructuredOutput -png (low res) - $name", async ({ model }) => {
       await ProviderSpecs.testGenerateStructuredOutputFromXRayLowPng_FR({ provider, model })
     })
@@ -86,7 +89,6 @@ if (process.env.IS_TEST === "true" && process.env.MISTRAL_TEST === "true") {
         advancedExpectation: true,
       })
     })
-
     it.each(testModels)("streamChatResponse with tools - BIS - $name", async ({ model }) => {
       await ProviderSpecs.testStreamChatResponseWithToolsBis({
         provider,
@@ -94,7 +96,6 @@ if (process.env.IS_TEST === "true" && process.env.MISTRAL_TEST === "true") {
         advancedExpectation: true,
       })
     })
-
     it.each(testModels)("streamChatResponse with tools - TER - $name", async ({ model }) => {
       await ProviderSpecs.testStreamChatResponseWithToolsTer({
         provider,
@@ -102,7 +103,6 @@ if (process.env.IS_TEST === "true" && process.env.MISTRAL_TEST === "true") {
         advancedExpectation: true,
       })
     })
-
     it.each(testModels)("streamChatResponse with multiple tools - $name", async ({ model }) => {
       await ProviderSpecs.testStreamChatResponseWithMultipleTools({
         provider,
@@ -112,9 +112,7 @@ if (process.env.IS_TEST === "true" && process.env.MISTRAL_TEST === "true") {
     })
   })
 } else {
-  describe.skip("AISDKMistralProvider", () => {
-    it.each(
-      testModels,
-    )("skipped (requires process.env.IS_TEST=true and process.env.MISTRAL_TEST=true)", () => {})
+  describe.skip("AISDKVertexProvider", () => {
+    it("skipped (requires process.env.IS_TEST=true and process.env.VERTEX_TEST=true)", () => {})
   })
 }

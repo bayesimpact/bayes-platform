@@ -30,6 +30,10 @@ export const FeatureFlags = [
     description: "(tests purpose only) Access and utilize mistral models.",
   }),
   featureFlag({
+    key: "vertex-3",
+    description: "(tests purpose only) Access and utilize new vertex 3.x models.",
+  }),
+  featureFlag({
     key: "project-analytics",
     description: "View project-level analytics and usage charts in the studio.",
   }),

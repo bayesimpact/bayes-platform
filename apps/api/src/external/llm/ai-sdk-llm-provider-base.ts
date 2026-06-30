@@ -322,6 +322,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
     metadata: LLMMetadata
   }): Promise<string> {
     const callOrigin = CallOrigin.generateText
+    this.checkConfigProviderAndModel(config)
     const { text } = await generateText({
       model: this.getLanguageModelWithRawCapture({ config, callOrigin }),
       system: config.systemPrompt,
@@ -353,6 +354,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
     metadata: LLMMetadata
   }): Promise<z.infer<T>> {
     const callOrigin = CallOrigin.generateObject
+    this.checkConfigProviderAndModel(config)
     const res = await generateText({
       model: this.getLanguageModelWithRawCapture({ config, callOrigin }),
       system: config.systemPrompt,
@@ -396,6 +398,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
     metadata: LLMMetadata
   }): Promise<Record<string, unknown>> {
     const callOrigin = CallOrigin.generateStructuredOutput
+    this.checkConfigProviderAndModel(config)
     if (AgentModelToAgentProvider[config.model] === AgentProvider._Mock) {
       const fakeFile: LLMFile = {
         type: "file",
@@ -515,7 +518,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
     const provider = AgentModelToAgentProvider[config.model]
     if (provider !== this.getAgentProvider())
       throw new NotImplementedException(
-        `missing or invalid association between agent provider (${provider}) and agent model (${config.model})`,
+        `DEV - missing or invalid association between agent provider (${provider}) and agent model (${config.model})`,
       )
   }
 

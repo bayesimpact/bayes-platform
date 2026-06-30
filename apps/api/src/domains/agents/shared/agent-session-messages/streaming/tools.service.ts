@@ -64,6 +64,8 @@ export class ToolsService extends ServiceWithLLM {
     mockLlmProvider: LLMProvider,
     @Inject("VertexLLMProvider")
     vertexLlmProvider: LLMProvider,
+    @Inject("Vertex3LLMProvider")
+    vertex3LlmProvider: LLMProvider,
     @Inject("MistralLLMProvider")
     mistralLlmProvider: LLMProvider,
     @Inject("MedGemmaLLMProvider")
@@ -74,6 +76,7 @@ export class ToolsService extends ServiceWithLLM {
     super({
       mockLlmProvider,
       vertexLlmProvider,
+      vertex3LlmProvider,
       medGemmaLlmProvider,
       gemmaLlmProvider,
       mistralLlmProvider,

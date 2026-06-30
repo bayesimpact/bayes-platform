@@ -57,6 +57,8 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
     mockLlmProvider: LLMProvider,
     @Inject("VertexLLMProvider")
     vertexLlmProvider: LLMProvider,
+    @Inject("Vertex3LLMProvider")
+    vertex3LlmProvider: LLMProvider,
     @Inject("MistralLLMProvider")
     mistralLlmProvider: LLMProvider,
     @Inject("MedGemmaLLMProvider")
@@ -68,6 +70,7 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
     super({
       mockLlmProvider,
       vertexLlmProvider,
+      vertex3LlmProvider,
       medGemmaLlmProvider,
       gemmaLlmProvider,
       mistralLlmProvider,
