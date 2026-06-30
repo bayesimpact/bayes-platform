@@ -57,13 +57,21 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
     mockLlmProvider: LLMProvider,
     @Inject("VertexLLMProvider")
     vertexLlmProvider: LLMProvider,
+    @Inject("MistralLLMProvider")
+    mistralLlmProvider: LLMProvider,
     @Inject("MedGemmaLLMProvider")
     medGemmaLlmProvider: LLMProvider,
     @Inject("GemmaLLMProvider")
     gemmaLlmProvider: LLMProvider,
     private readonly dataSource: DataSource,
   ) {
-    super({ mockLlmProvider, vertexLlmProvider, medGemmaLlmProvider, gemmaLlmProvider })
+    super({
+      mockLlmProvider,
+      vertexLlmProvider,
+      medGemmaLlmProvider,
+      gemmaLlmProvider,
+      mistralLlmProvider,
+    })
     this.evaluationExtractionRunConnectRepository = new ConnectRepository(
       evaluationExtractionRunRepository,
       "evaluationExtractionRun",

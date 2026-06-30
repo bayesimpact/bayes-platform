@@ -12,21 +12,25 @@ export abstract class ServiceWithLLM {
   constructor({
     mockLlmProvider,
     vertexLlmProvider,
+    mistralLlmProvider,
     medGemmaLlmProvider,
     gemmaLlmProvider,
   }: {
     mockLlmProvider: LLMProvider
     vertexLlmProvider: LLMProvider
+    mistralLlmProvider: LLMProvider
     medGemmaLlmProvider: LLMProvider
     gemmaLlmProvider: LLMProvider
   }) {
     this._mockLlmProvider = mockLlmProvider
     this.vertexLlmProvider = vertexLlmProvider
+    this.mistralLlmProvider = mistralLlmProvider
     this.medGemmaLlmProvider = medGemmaLlmProvider
     this.gemmaLlmProvider = gemmaLlmProvider
   }
   private readonly _mockLlmProvider: LLMProvider
   private readonly vertexLlmProvider: LLMProvider
+  private readonly mistralLlmProvider: LLMProvider
   private readonly medGemmaLlmProvider: LLMProvider
   private readonly gemmaLlmProvider: LLMProvider
   protected getProviderForModel(model: string): LLMProvider {
@@ -36,6 +40,8 @@ export abstract class ServiceWithLLM {
         return this._mockLlmProvider
       case AgentProvider.Vertex:
         return this.vertexLlmProvider
+      case AgentProvider.Mistral:
+        return this.mistralLlmProvider
       case AgentProvider.MedGemma:
         return this.medGemmaLlmProvider
       case AgentProvider.Gemma:

@@ -26,6 +26,10 @@ export const FeatureFlags = [
     description: "Access and utilize medgemma models.",
   }),
   featureFlag({
+    key: "mistral",
+    description: "(tests purpose only) Access and utilize mistral models.",
+  }),
+  featureFlag({
     key: "project-analytics",
     description: "View project-level analytics and usage charts in the studio.",
   }),

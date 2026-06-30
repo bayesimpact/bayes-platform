@@ -416,12 +416,15 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
         ],
       }
     }
-    //Gemma restriction: no pdf
-    if (AgentModelToAgentProvider[config.model] === AgentProvider.Gemma) {
+    //Gemma and Mistral restriction: no pdf
+    if (
+      AgentModelToAgentProvider[config.model] === AgentProvider.Gemma ||
+      AgentModelToAgentProvider[config.model] === AgentProvider.Mistral
+    ) {
       if (Array.isArray(message.content)) {
         const filePart = message.content.find((p): p is FilePart => p.type === "file")
         if (filePart?.mediaType === "application/pdf") {
-          throw new Error(`MedGemma model cannot process ${filePart?.mediaType} file`)
+          throw new Error(`Model cannot process ${filePart?.mediaType} file`)
         }
       }
     }

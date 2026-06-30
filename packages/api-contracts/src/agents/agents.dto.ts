@@ -11,6 +11,7 @@ export enum AgentModel {
   Gemini25Pro = "gemini-2.5-pro",
   MedGemma10_27B = "google/medgemma-27b-it",
   Gemma4_26B = "google/gemma-4-26b-A4B-it",
+  MistralSmall31_24B = "mistralai/Mistral-Small-3.1-24B-Instruct-2503",
   _MockGenerateObject = "generate-object-mock-language-model-v3",
   _MockGenerateStructuredOutput = "generate-structured-output-mock-language-model-v3",
   _MockGenerateText = "generate-text-mock-language-model-v3",
@@ -22,6 +23,7 @@ export enum AgentProvider {
   MedGemma = "MED-GEMMA",
   Gemma = "GEMMA",
   Vertex = "VERTEX",
+  Mistral = "MISTRAL",
   _Mock = "MOCK",
 }
 export const AgentModelToAgentProvider: Record<AgentModel, AgentProvider> = {
@@ -29,6 +31,7 @@ export const AgentModelToAgentProvider: Record<AgentModel, AgentProvider> = {
   [AgentModel.Gemini25Pro]: AgentProvider.Vertex,
   [AgentModel.MedGemma10_27B]: AgentProvider.MedGemma,
   [AgentModel.Gemma4_26B]: AgentProvider.Gemma,
+  [AgentModel.MistralSmall31_24B]: AgentProvider.Mistral,
   [AgentModel._MockGenerateObject]: AgentProvider._Mock,
   [AgentModel._MockGenerateStructuredOutput]: AgentProvider._Mock,
   [AgentModel._MockGenerateText]: AgentProvider._Mock,
