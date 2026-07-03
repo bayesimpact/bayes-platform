@@ -28,7 +28,7 @@ From each user response, extract and fill as many fields as possible.
 Update any field whenever the user revises a previous answer.
 If a user response is unclear or doesn't map to any field, ask them to clarify or rephrase.
 
-${promptHelpers.tools({ names: toolNames, descriptions: toolDescriptions, agent })}
+${promptHelpers.tools({ names: toolNames, descriptions: toolDescriptions, agentSettings })}
 
 
 ${promptHelpers.now()}`
