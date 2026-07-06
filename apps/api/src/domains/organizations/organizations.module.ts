@@ -6,7 +6,8 @@ import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { User } from "@/domains/users/user.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { OrganizationMembership } from "./memberships/organization-membership.entity"
-import { OrganizationMembershipService } from "./memberships/organization-membership.service"
+import { OrganizationMembershipRepository } from "./memberships/organization-membership.repository"
+import { OrganizationMembershipsService } from "./memberships/organization-memberships.service"
 import { Organization } from "./organization.entity"
 import { OrganizationGuard } from "./organization.guard"
 import { OrganizationsController } from "./organizations.controller"
@@ -24,7 +25,8 @@ import { OrganizationAccountProvisioningService } from "./provisioning/organizat
   ],
   providers: [
     OrganizationsService,
-    OrganizationMembershipService,
+    OrganizationMembershipRepository,
+    OrganizationMembershipsService,
     OrganizationGuard,
     OrganizationsPolicyGuard,
     OrganizationAccountProvisioningService,
@@ -32,7 +34,8 @@ import { OrganizationAccountProvisioningService } from "./provisioning/organizat
   controllers: [OrganizationsController],
   exports: [
     OrganizationsService,
-    OrganizationMembershipService,
+    OrganizationMembershipsService,
+    OrganizationMembershipRepository,
     OrganizationAccountProvisioningService,
   ],
 })

@@ -3,7 +3,7 @@ import type { DataSource, Repository } from "typeorm"
 import type { InvitationSender } from "@/domains/auth/invitation-sender.interface"
 import { Invitation } from "@/domains/invitations/invitation.entity"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
-import type { OrganizationMembershipService } from "@/domains/organizations/memberships/organization-membership.service"
+import type { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { PLACEHOLDER_AUTH0_ID_PREFIX } from "@/domains/projects/memberships/project-memberships.service"
@@ -38,7 +38,7 @@ export class WorkspaceInvitationService {
   constructor(
     private readonly invitationSender: InvitationSender,
     private readonly dataSource: DataSource,
-    private readonly organizationMembershipService: OrganizationMembershipService,
+    private readonly organizationMembershipsService: OrganizationMembershipsService,
   ) {}
 
   async inviteWorkspaceOwner(
@@ -96,7 +96,7 @@ export class WorkspaceInvitationService {
         where: { userId: user.id, organizationId: organization.id },
       })
       if (!existingOrgMembership) {
-        await this.organizationMembershipService.upsertOrganizationAdminMembership({
+        await this.organizationMembershipsService.upsertOrganizationAdminMembership({
           userId: user.id,
           organizationId: organization.id,
         })

@@ -19,7 +19,7 @@ import {
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { InvitationPersistenceService } from "@/domains/invitations/invitation-persistence.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { OrganizationMembershipService } from "@/domains/organizations/memberships/organization-membership.service"
+import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
 import { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
@@ -73,7 +73,7 @@ export class ReviewCampaignInvitationHandler
     private readonly transactionService: TransactionService,
     private readonly invitationPersistence: InvitationPersistenceService,
     private readonly acceptanceHelpers: InvitationAcceptanceHelpersService,
-    private readonly organizationMembershipService: OrganizationMembershipService,
+    private readonly organizationMembershipsService: OrganizationMembershipsService,
     private readonly projectMembershipsService: ProjectMembershipsService,
     private readonly reviewCampaignMembershipsService: ReviewCampaignMembershipsService,
   ) {}
@@ -298,7 +298,7 @@ export class ReviewCampaignInvitationHandler
         where: { id: invitation.targetId },
       })
 
-      await this.organizationMembershipService.upsertOrganizationMemberMembership({
+      await this.organizationMembershipsService.upsertOrganizationMemberMembership({
         userId: user.id,
         organizationId: campaign.organizationId,
       })

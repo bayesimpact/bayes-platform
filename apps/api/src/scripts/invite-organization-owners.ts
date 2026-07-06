@@ -4,7 +4,7 @@ import { NestFactory } from "@nestjs/core"
 import { DataSource } from "typeorm"
 import { AppModule } from "@/app.module"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
-import { OrganizationMembershipService } from "@/domains/organizations/memberships/organization-membership.service"
+import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 import {
   type InviteWorkspaceOwnerResult,
   type PreviewWorkspaceInvitationResult,
@@ -195,11 +195,11 @@ async function bootstrapCli(): Promise<void> {
   try {
     const dataSource = app.get(DataSource)
     const invitationSender = app.get(INVITATION_SENDER)
-    const organizationMembershipService = app.get(OrganizationMembershipService)
+    const organizationMembershipsService = app.get(OrganizationMembershipsService)
     const invitationService = new WorkspaceInvitationService(
       invitationSender,
       dataSource,
-      organizationMembershipService,
+      organizationMembershipsService,
     )
     logger.log(`Processing ${rows.length} row(s)...`)
     const results = await runInvitationBatch({

@@ -3,9 +3,8 @@ import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource } from "typeorm"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { OrganizationMembershipService } from "@/domains/organizations/memberships/organization-membership.service"
+import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { User } from "@/domains/users/user.entity"
 
@@ -33,13 +32,11 @@ export type ProvisionOrganizationAccountResult =
 @Injectable()
 export class OrganizationAccountProvisioningService {
   constructor(
-    @InjectRepository(OrganizationMembership)
-    private readonly organizationMembershipRepository: Repository<OrganizationMembership>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectDataSource()
     private readonly dataSource: DataSource,
-    private readonly organizationMembershipService: OrganizationMembershipService,
+    private readonly organizationMembershipsService: OrganizationMembershipsService,
   ) {}
 
   async provisionOrganizationAccount(
@@ -50,7 +47,6 @@ export class OrganizationAccountProvisioningService {
 
     return this.dataSource.transaction(async (manager) => {
       const organizationRepository = manager.getRepository(Organization)
-      const organizationMembershipRepository = manager.getRepository(OrganizationMembership)
       const userRepository = manager.getRepository(User)
 
       const user = await this.upsertUser({
@@ -60,11 +56,11 @@ export class OrganizationAccountProvisioningService {
         userRepository,
       })
 
-      const existingOwnerMembership = await this.findExistingOwnerMembershipByOrganizationName({
-        userId: user.id,
-        organizationName: normalizedOrganizationName,
-        organizationMembershipRepository,
-      })
+      const existingOwnerMembership =
+        await this.organizationMembershipsService.findOwnerMembershipByOrganizationName({
+          userId: user.id,
+          organizationName: normalizedOrganizationName,
+        })
 
       if (existingOwnerMembership) {
         return {
@@ -79,7 +75,7 @@ export class OrganizationAccountProvisioningService {
       })
       const savedOrganization = await organizationRepository.save(organization)
 
-      await this.organizationMembershipService.createOrganizationOwnerMembership({
+      await this.organizationMembershipsService.createOrganizationOwnerMembership({
         userId: user.id,
         organizationId: savedOrganization.id,
       })
@@ -107,11 +103,11 @@ export class OrganizationAccountProvisioningService {
       return false
     }
 
-    const membership = await this.findExistingOwnerMembershipByOrganizationName({
-      userId: user.id,
-      organizationName: normalizedOrganizationName,
-      organizationMembershipRepository: this.organizationMembershipRepository,
-    })
+    const membership =
+      await this.organizationMembershipsService.findOwnerMembershipByOrganizationName({
+        userId: user.id,
+        organizationName: normalizedOrganizationName,
+      })
     return Boolean(membership)
   }
 
@@ -177,21 +173,5 @@ export class OrganizationAccountProvisioningService {
       pictureUrl: null,
     })
     return input.userRepository.save(createdUser)
-  }
-
-  private async findExistingOwnerMembershipByOrganizationName(input: {
-    userId: string
-    organizationName: string
-    organizationMembershipRepository: Repository<OrganizationMembership>
-  }): Promise<OrganizationMembership | null> {
-    return input.organizationMembershipRepository
-      .createQueryBuilder("membership")
-      .innerJoin("membership.organization", "organization")
-      .where("membership.userId = :userId", { userId: input.userId })
-      .andWhere("membership.role = :role", { role: "owner" })
-      .andWhere("LOWER(organization.name) = LOWER(:organizationName)", {
-        organizationName: input.organizationName,
-      })
-      .getOne()
   }
 }

@@ -11,7 +11,7 @@ import {
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { InvitationPersistenceService } from "@/domains/invitations/invitation-persistence.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { OrganizationMembershipService } from "@/domains/organizations/memberships/organization-membership.service"
+import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
@@ -55,7 +55,7 @@ export class ProjectInvitationHandler
     private readonly transactionService: TransactionService,
     private readonly invitationPersistence: InvitationPersistenceService,
     private readonly projectMembershipsService: ProjectMembershipsService,
-    private readonly organizationMembershipService: OrganizationMembershipService,
+    private readonly organizationMembershipsService: OrganizationMembershipsService,
     private readonly acceptanceHelpers: InvitationAcceptanceHelpersService,
   ) {}
 
@@ -139,7 +139,7 @@ export class ProjectInvitationHandler
         params.email,
       )
 
-      await this.organizationMembershipService.upsertOrganizationAdminMembership({
+      await this.organizationMembershipsService.upsertOrganizationAdminMembership({
         userId: user.id,
         organizationId: project.organizationId,
       })
