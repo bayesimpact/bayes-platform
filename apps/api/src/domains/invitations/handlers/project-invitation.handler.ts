@@ -12,7 +12,6 @@ import {
 import { InvitationPersistenceService } from "@/domains/invitations/invitation-persistence.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
-import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
 import { Project } from "@/domains/projects/project.entity"
@@ -32,7 +31,6 @@ import type {
 } from "./invitation-target.handler"
 
 type InviteMembersContext = BaseInviteMembersContext & {
-  projectMembershipRepository: Repository<ProjectMembership>
   projectOrganizationId: string
 }
 
@@ -46,8 +44,6 @@ export class ProjectInvitationHandler
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
-    @InjectRepository(ProjectMembership)
-    readonly _projectMembershipRepository: Repository<ProjectMembership>,
     @InjectRepository(Invitation)
     private readonly invitationRepository: Repository<Invitation>,
     @Inject(INVITATION_SENDER)
@@ -163,7 +159,6 @@ export class ProjectInvitationHandler
     })
     return {
       userRepository: manager.getRepository(User),
-      projectMembershipRepository: manager.getRepository(ProjectMembership),
       invitationRepository: manager.getRepository(Invitation),
       projectOrganizationId: project.organizationId,
     }
@@ -218,8 +213,9 @@ export class ProjectInvitationHandler
     context: InviteMembersContext
   }): Promise<boolean> {
     if (params.existingUser) {
-      const existingMembership = await params.context.projectMembershipRepository.findOne({
-        where: { projectId: params.projectId, userId: params.existingUser.id },
+      const existingMembership = await this.projectMembershipsService.findProjectMembership({
+        userId: params.existingUser.id,
+        projectId: params.projectId,
       })
       if (existingMembership) {
         await this.projectMembershipsService.upsertProjectAdminMembership({

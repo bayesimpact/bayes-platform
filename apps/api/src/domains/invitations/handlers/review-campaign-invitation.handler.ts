@@ -22,8 +22,6 @@ import { OrganizationMembershipsService } from "@/domains/organizations/membersh
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { ReviewCampaignMembershipRepository } from "@/domains/review-campaigns/memberships/review-campaign-membership.repository"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ReviewCampaignMembershipsService } from "@/domains/review-campaigns/memberships/review-campaign-memberships.service"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import type { ReviewCampaignMembershipRole } from "@/domains/review-campaigns/review-campaigns.types"
@@ -71,7 +69,6 @@ export class ReviewCampaignInvitationHandler
     private readonly acceptanceHelpers: InvitationAcceptanceHelpersService,
     private readonly organizationMembershipsService: OrganizationMembershipsService,
     private readonly projectMembershipsService: ProjectMembershipsService,
-    private readonly reviewCampaignMembershipRepository: ReviewCampaignMembershipRepository,
     private readonly reviewCampaignMembershipsService: ReviewCampaignMembershipsService,
   ) {}
 
@@ -210,7 +207,7 @@ export class ReviewCampaignInvitationHandler
   }): Promise<boolean> {
     if (params.existingUser) {
       const existingMembership =
-        await this.reviewCampaignMembershipRepository.findByUserCampaignAndRole({
+        await this.reviewCampaignMembershipsService.findByUserCampaignAndRole({
           userId: params.existingUser.id,
           campaignId: params.context.reviewCampaign.id,
           role: params.role,

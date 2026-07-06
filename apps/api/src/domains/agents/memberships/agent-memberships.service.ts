@@ -37,6 +37,16 @@ export class AgentMembershipsService {
     return this.agentMembershipRepository.findAllByUser(userId)
   }
 
+  async findAgentMembership({
+    userId,
+    agentId,
+  }: {
+    userId: string
+    agentId: string
+  }): Promise<AgentMembershipModel | null> {
+    return this.agentMembershipRepository.findByUserAndAgent({ userId, agentId })
+  }
+
   async listProjectMemberAgents({
     projectId,
     userId,
