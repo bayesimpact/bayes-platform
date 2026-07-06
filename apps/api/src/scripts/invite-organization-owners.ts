@@ -5,6 +5,7 @@ import { DataSource } from "typeorm"
 import { AppModule } from "@/app.module"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
+import { TransactionService } from "@/common/transaction/transaction.service"
 import {
   type InviteWorkspaceOwnerResult,
   type PreviewWorkspaceInvitationResult,
@@ -196,10 +197,12 @@ async function bootstrapCli(): Promise<void> {
     const dataSource = app.get(DataSource)
     const invitationSender = app.get(INVITATION_SENDER)
     const organizationMembershipsService = app.get(OrganizationMembershipsService)
+    const transactionService = app.get(TransactionService)
     const invitationService = new WorkspaceInvitationService(
       invitationSender,
       dataSource,
       organizationMembershipsService,
+      transactionService,
     )
     logger.log(`Processing ${rows.length} row(s)...`)
     const results = await runInvitationBatch({

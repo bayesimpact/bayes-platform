@@ -19,6 +19,8 @@ export type DeleteMembershipParams = {
   userId: string
   resourceType: UserMembershipResourceType
   resourceId: string
+  /** When set, targets a single role row (required for review_campaign). */
+  role?: UserMembershipRole
 }
 
 export type DeleteMembershipsForUserParams = {
@@ -49,11 +51,20 @@ export class UserMembershipRepository {
   }
 
   async deleteMembership(params: DeleteMembershipParams, manager?: EntityManager): Promise<void> {
-    await this.repo(manager).delete({
+    const where: {
+      userId: string
+      resourceType: UserMembershipResourceType
+      resourceId: string
+      role?: UserMembershipRole
+    } = {
       userId: params.userId,
       resourceType: params.resourceType,
       resourceId: params.resourceId,
-    })
+    }
+    if (params.role !== undefined) {
+      where.role = params.role
+    }
+    await this.repo(manager).delete(where)
   }
 
   async deleteMembershipsForUser(

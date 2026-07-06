@@ -1,23 +1,66 @@
 import { Injectable } from "@nestjs/common"
-import type { Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { UserMembershipRepository } from "@/domains/memberships/user-membership.repository"
+import type { ReviewCampaign } from "../review-campaign.entity"
 import type { ReviewCampaignMembershipRole } from "../review-campaigns.types"
-import { ReviewCampaignMembership } from "./review-campaign-membership.entity"
+import type { ReviewCampaignMembershipModel } from "./review-campaign-membership.model"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ReviewCampaignMembershipRepository } from "./review-campaign-membership.repository"
 
 @Injectable()
 export class ReviewCampaignMembershipsService {
   constructor(
+    private readonly reviewCampaignMembershipRepository: ReviewCampaignMembershipRepository,
     private readonly transactionService: TransactionService,
-    private readonly userMembershipRepository: UserMembershipRepository,
   ) {}
 
-  /**
-   * Accepts a review-campaign invitation: creates or updates the legacy membership
-   * and dual-writes to `user_membership`.
-   */
+  async findById({
+    membershipId,
+    campaignId,
+  }: {
+    membershipId: string
+    campaignId: string
+  }): Promise<ReviewCampaignMembershipModel | null> {
+    return this.reviewCampaignMembershipRepository.findById({ membershipId, campaignId })
+  }
+
+  async findByUserCampaignAndRole({
+    userId,
+    campaignId,
+    role,
+  }: {
+    userId: string
+    campaignId: string
+    role: ReviewCampaignMembershipRole
+  }): Promise<ReviewCampaignMembershipModel | null> {
+    return this.reviewCampaignMembershipRepository.findByUserCampaignAndRole({
+      userId,
+      campaignId,
+      role,
+    })
+  }
+
+  async listCampaignMemberships(campaignId: string): Promise<ReviewCampaignMembershipModel[]> {
+    return this.reviewCampaignMembershipRepository.findAllByCampaign(campaignId)
+  }
+
+  async listCampaignsForUser(
+    userId: string,
+    role: ReviewCampaignMembershipRole,
+  ): Promise<ReviewCampaign[]> {
+    const memberships = await this.reviewCampaignMembershipRepository.findAllByUserAndRole({
+      userId,
+      role,
+    })
+    return memberships
+      .map((membership) => membership.campaign)
+      .filter((campaign): campaign is ReviewCampaign => {
+        if (!campaign) return false
+        if (role === "reviewer") return campaign.status !== "draft"
+        return campaign.status === "active"
+      })
+  }
+
   async acceptCampaignMembership({
     campaignId,
     userId,
@@ -30,41 +73,36 @@ export class ReviewCampaignMembershipsService {
     role: ReviewCampaignMembershipRole
     organizationId: string
     projectId: string
-  }): Promise<void> {
-    return this.transactionService.run(async () => {
-      const repository = this.repo()
-      const existing = await repository.findOne({
-        where: { campaignId, userId, role },
-      })
-
-      if (existing) {
-        if (!existing.acceptedAt) {
-          existing.acceptedAt = new Date()
-          await repository.save(existing)
-        }
-      } else {
-        await repository.save(
-          repository.create({
-            organizationId,
-            projectId,
-            campaignId,
-            userId,
-            role,
-            acceptedAt: new Date(),
-          }),
-        )
-      }
-
-      await this.userMembershipRepository.upsertMembership({
+  }): Promise<ReviewCampaignMembershipModel> {
+    return this.transactionService.run(() =>
+      this.reviewCampaignMembershipRepository.acceptMembership({
+        campaignId,
         userId,
-        resourceType: "review_campaign",
-        resourceId: campaignId,
         role,
-      })
-    })
+        organizationId,
+        projectId,
+      }),
+    )
   }
 
-  private repo(): Repository<ReviewCampaignMembership> {
-    return this.transactionService.getManager().getRepository(ReviewCampaignMembership)
+  async removeCampaignMembership({
+    membershipId,
+    campaignId,
+    userId,
+    role,
+  }: {
+    membershipId: string
+    campaignId: string
+    userId: string
+    role: ReviewCampaignMembershipRole
+  }): Promise<void> {
+    return this.transactionService.run(() =>
+      this.reviewCampaignMembershipRepository.deleteMembership({
+        membershipId,
+        campaignId,
+        userId,
+        role,
+      }),
+    )
   }
 }

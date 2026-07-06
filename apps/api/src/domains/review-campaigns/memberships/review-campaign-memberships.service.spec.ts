@@ -1,0 +1,163 @@
+import {
+  type AllRepositories,
+  clearTestDatabase,
+  setupE2eTestDatabase,
+  teardownE2eTestDatabase,
+} from "@/common/test/test-database"
+import { agentFactory } from "@/domains/agents/agent.factory"
+import { MembershipsModule } from "@/domains/memberships/memberships.module"
+import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { reviewCampaignFactory } from "../review-campaign.factory"
+import { ReviewCampaignMembershipRepository } from "./review-campaign-membership.repository"
+import { ReviewCampaignMembershipsService } from "./review-campaign-memberships.service"
+
+describe("ReviewCampaignMembershipsService", () => {
+  let service: ReviewCampaignMembershipsService
+  let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
+  let repositories: AllRepositories
+
+  beforeAll(async () => {
+    setup = await setupE2eTestDatabase({
+      additionalImports: [MembershipsModule],
+      providers: [ReviewCampaignMembershipRepository, ReviewCampaignMembershipsService],
+    })
+  })
+
+  afterAll(async () => {
+    await teardownE2eTestDatabase(setup)
+  })
+
+  beforeEach(async () => {
+    await clearTestDatabase(setup.dataSource)
+    service = setup.module.get(ReviewCampaignMembershipsService)
+    repositories = setup.getAllRepositories()
+  })
+
+  describe("acceptCampaignMembership", () => {
+    it("creates legacy and unified rows for a new membership", async () => {
+      const { organization, project, user } = await createOrganizationWithProject(repositories)
+      const agent = await repositories.agentRepository.save(
+        agentFactory.transient({ organization, project }).build(),
+      )
+      const campaign = await repositories.reviewCampaignRepository.save(
+        reviewCampaignFactory.active().transient({ organization, project, agent }).build(),
+      )
+
+      await service.acceptCampaignMembership({
+        campaignId: campaign.id,
+        userId: user.id,
+        role: "tester",
+        organizationId: organization.id,
+        projectId: project.id,
+      })
+
+      const legacy = await repositories.reviewCampaignMembershipRepository.findOne({
+        where: { campaignId: campaign.id, userId: user.id, role: "tester" },
+      })
+      expect(legacy).not.toBeNull()
+      expect(legacy?.acceptedAt).not.toBeNull()
+
+      const unified = await setup.dataSource.getRepository(UserMembership).findOne({
+        where: {
+          userId: user.id,
+          resourceId: campaign.id,
+          resourceType: "review_campaign",
+          role: "tester",
+        },
+      })
+      expect(unified).not.toBeNull()
+    })
+
+    it("allows tester and reviewer roles on the same campaign", async () => {
+      const { organization, project, user } = await createOrganizationWithProject(repositories)
+      const agent = await repositories.agentRepository.save(
+        agentFactory.transient({ organization, project }).build(),
+      )
+      const campaign = await repositories.reviewCampaignRepository.save(
+        reviewCampaignFactory.active().transient({ organization, project, agent }).build(),
+      )
+
+      await service.acceptCampaignMembership({
+        campaignId: campaign.id,
+        userId: user.id,
+        role: "tester",
+        organizationId: organization.id,
+        projectId: project.id,
+      })
+      await service.acceptCampaignMembership({
+        campaignId: campaign.id,
+        userId: user.id,
+        role: "reviewer",
+        organizationId: organization.id,
+        projectId: project.id,
+      })
+
+      const unified = await setup.dataSource.getRepository(UserMembership).find({
+        where: {
+          userId: user.id,
+          resourceId: campaign.id,
+          resourceType: "review_campaign",
+        },
+      })
+      expect(unified).toHaveLength(2)
+    })
+  })
+
+  describe("removeCampaignMembership", () => {
+    it("deletes only the targeted role from both tables", async () => {
+      const { organization, project, user } = await createOrganizationWithProject(repositories)
+      const agent = await repositories.agentRepository.save(
+        agentFactory.transient({ organization, project }).build(),
+      )
+      const campaign = await repositories.reviewCampaignRepository.save(
+        reviewCampaignFactory.active().transient({ organization, project, agent }).build(),
+      )
+
+      await service.acceptCampaignMembership({
+        campaignId: campaign.id,
+        userId: user.id,
+        role: "tester",
+        organizationId: organization.id,
+        projectId: project.id,
+      })
+      await service.acceptCampaignMembership({
+        campaignId: campaign.id,
+        userId: user.id,
+        role: "reviewer",
+        organizationId: organization.id,
+        projectId: project.id,
+      })
+
+      const testerMembership = await service.findByUserCampaignAndRole({
+        campaignId: campaign.id,
+        userId: user.id,
+        role: "tester",
+      })
+      expect(testerMembership).not.toBeNull()
+
+      await service.removeCampaignMembership({
+        membershipId: testerMembership!.id,
+        campaignId: campaign.id,
+        userId: user.id,
+        role: "tester",
+      })
+
+      const remainingLegacy = await repositories.reviewCampaignMembershipRepository.find({
+        where: { campaignId: campaign.id, userId: user.id },
+      })
+      expect(remainingLegacy).toHaveLength(1)
+      expect(remainingLegacy[0]?.role).toBe("reviewer")
+
+      const remainingUnified = await setup.dataSource.getRepository(UserMembership).find({
+        where: {
+          userId: user.id,
+          resourceId: campaign.id,
+          resourceType: "review_campaign",
+        },
+      })
+      expect(remainingUnified).toHaveLength(1)
+      expect(remainingUnified[0]?.role).toBe("reviewer")
+    })
+  })
+})

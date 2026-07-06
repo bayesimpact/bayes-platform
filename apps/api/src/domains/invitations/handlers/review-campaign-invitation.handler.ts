@@ -6,10 +6,9 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common"
-import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
-import type { EntityManager } from "typeorm"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { DataSource, In, type Repository } from "typeorm"
+import { InjectRepository } from "@nestjs/typeorm"
+import type { EntityManager, Repository } from "typeorm"
+import { In } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 import {
@@ -22,7 +21,8 @@ import { InvitationPersistenceService } from "@/domains/invitations/invitation-p
 import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
-import { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ReviewCampaignMembershipRepository } from "@/domains/review-campaigns/memberships/review-campaign-membership.repository"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ReviewCampaignMembershipsService } from "@/domains/review-campaigns/memberships/review-campaign-memberships.service"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
@@ -43,7 +43,6 @@ import type {
 } from "./invitation-target.handler"
 
 type InviteMembersContext = BaseInviteMembersContext & {
-  membershipRepository: Repository<ReviewCampaignMembership>
   reviewCampaign: Pick<ReviewCampaign, "id" | "organizationId" | "projectId" | "status">
 }
 
@@ -63,18 +62,16 @@ export class ReviewCampaignInvitationHandler
   constructor(
     @InjectRepository(ReviewCampaign)
     private readonly reviewCampaignRepository: Repository<ReviewCampaign>,
-    @InjectRepository(ReviewCampaignMembership)
-    readonly _reviewCampaignMembershipRepository: Repository<ReviewCampaignMembership>,
     @InjectRepository(Invitation)
     private readonly invitationRepository: Repository<Invitation>,
     @Inject(INVITATION_SENDER)
     private readonly invitationSender: InvitationSender,
-    @InjectDataSource() private readonly dataSource: DataSource,
     private readonly transactionService: TransactionService,
     private readonly invitationPersistence: InvitationPersistenceService,
     private readonly acceptanceHelpers: InvitationAcceptanceHelpersService,
     private readonly organizationMembershipsService: OrganizationMembershipsService,
     private readonly projectMembershipsService: ProjectMembershipsService,
+    private readonly reviewCampaignMembershipRepository: ReviewCampaignMembershipRepository,
     private readonly reviewCampaignMembershipsService: ReviewCampaignMembershipsService,
   ) {}
 
@@ -99,7 +96,8 @@ export class ReviewCampaignInvitationHandler
     inviterName: string
     role: ReviewCampaignMembershipRole
   }): Promise<Invitation[]> {
-    return this.dataSource.transaction(async (manager) => {
+    return this.transactionService.run(async () => {
+      const manager = this.transactionService.getManager()
       const context = await this.buildInviteMembersContext({
         manager,
         reviewCampaignId: params.reviewCampaignId,
@@ -129,7 +127,6 @@ export class ReviewCampaignInvitationHandler
     }
     return {
       userRepository: params.manager.getRepository(User),
-      membershipRepository: params.manager.getRepository(ReviewCampaignMembership),
       invitationRepository: params.manager.getRepository(Invitation),
       reviewCampaign,
     }
@@ -212,13 +209,12 @@ export class ReviewCampaignInvitationHandler
     context: InviteMembersContext
   }): Promise<boolean> {
     if (params.existingUser) {
-      const existingMembership = await params.context.membershipRepository.findOne({
-        where: {
-          campaignId: params.context.reviewCampaign.id,
+      const existingMembership =
+        await this.reviewCampaignMembershipRepository.findByUserCampaignAndRole({
           userId: params.existingUser.id,
+          campaignId: params.context.reviewCampaign.id,
           role: params.role,
-        },
-      })
+        })
       if (existingMembership) return true
     }
 

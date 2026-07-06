@@ -16,7 +16,7 @@ import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
-import type { ReviewCampaignMembership } from "./memberships/review-campaign-membership.entity"
+import type { ReviewCampaignMembershipModel } from "./memberships/review-campaign-membership.model"
 import type { ReviewCampaign } from "./review-campaign.entity"
 import { ReviewCampaignsGuard } from "./review-campaigns.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -134,7 +134,7 @@ function toReviewCampaignDto(campaign: ReviewCampaign): ReviewCampaignDto {
 }
 
 function toReviewCampaignMembershipDto(
-  membership: ReviewCampaignMembership,
+  membership: ReviewCampaignMembershipModel,
 ): ReviewCampaignMembershipDto {
   return {
     id: membership.id,
@@ -148,7 +148,7 @@ function toReviewCampaignMembershipDto(
 
 function toReviewCampaignDetailDto(
   campaign: ReviewCampaign,
-  memberships: ReviewCampaignMembership[],
+  memberships: ReviewCampaignMembershipModel[],
   aggregates: CampaignAggregatesDto | null,
 ): ReviewCampaignDetailDto {
   return {

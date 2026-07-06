@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto"
 import type { DataSource, Repository } from "typeorm"
+import type { TransactionService } from "@/common/transaction/transaction.service"
 import type { InvitationSender } from "@/domains/auth/invitation-sender.interface"
 import { Invitation } from "@/domains/invitations/invitation.entity"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
@@ -39,6 +40,7 @@ export class WorkspaceInvitationService {
     private readonly invitationSender: InvitationSender,
     private readonly dataSource: DataSource,
     private readonly organizationMembershipsService: OrganizationMembershipsService,
+    private readonly transactionService: TransactionService,
   ) {}
 
   async inviteWorkspaceOwner(
@@ -48,7 +50,8 @@ export class WorkspaceInvitationService {
     const normalizedOrgName = input.organizationName.trim()
     const projectName = input.workspaceName?.trim() || normalizedOrgName
 
-    return this.dataSource.transaction(async (manager) => {
+    return this.transactionService.run(async () => {
+      const manager = this.transactionService.getManager()
       const organizationRepository = manager.getRepository(Organization)
       const organizationMembershipRepository = manager.getRepository(OrganizationMembership)
       const projectRepository = manager.getRepository(Project)

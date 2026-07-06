@@ -14,6 +14,7 @@ import { ProjectMembership } from "@/domains/projects/memberships/project-member
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
 import { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
+import { ReviewCampaignMembershipRepository } from "@/domains/review-campaigns/memberships/review-campaign-membership.repository"
 import { ReviewCampaignMembershipsService } from "@/domains/review-campaigns/memberships/review-campaign-memberships.service"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import { UsersModule } from "@/domains/users/users.module"
@@ -57,6 +58,7 @@ import { InvitationsPersistenceModule } from "./invitations-persistence.module"
     ProjectInvitationHandler,
     AgentInvitationHandler,
     ReviewCampaignInvitationHandler,
+    ReviewCampaignMembershipRepository,
     ReviewCampaignMembershipsService,
     ResourceContextGuard,
     InvitationScopeContextResolver,

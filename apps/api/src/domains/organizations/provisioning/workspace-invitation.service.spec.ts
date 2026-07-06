@@ -3,6 +3,7 @@ import {
   setupTransactionalTestDatabase,
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
+import { TransactionService } from "@/common/transaction/transaction.service"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 import { organizationFactory } from "@/domains/organizations/organization.factory"
@@ -48,10 +49,12 @@ describe("WorkspaceInvitationService", () => {
     projectMembershipRepository = repositories.projectMembershipRepository
     invitationRepository = repositories.invitationRepository
     const organizationMembershipsService = setup.module.get(OrganizationMembershipsService)
+    const transactionService = setup.module.get(TransactionService)
     service = new WorkspaceInvitationService(
       mockInvitationSender,
       setup.dataSource,
       organizationMembershipsService,
+      transactionService,
     )
   })
 

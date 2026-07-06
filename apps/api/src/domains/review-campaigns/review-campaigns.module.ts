@@ -25,6 +25,7 @@ import { ProjectsModule } from "@/domains/projects/projects.module"
 import { User } from "@/domains/users/user.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { ReviewCampaignMembership } from "./memberships/review-campaign-membership.entity"
+import { ReviewCampaignMembershipRepository } from "./memberships/review-campaign-membership.repository"
 import { ReviewCampaignMembershipsService } from "./memberships/review-campaign-memberships.service"
 import { CampaignReportGuard } from "./reports/campaign-report.guard"
 import { ReportsController } from "./reports/reports.controller"
@@ -86,6 +87,7 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
     ResourceContextGuard,
     ReviewCampaignContextResolver,
     ReviewCampaignMembershipContextResolver,
+    ReviewCampaignMembershipRepository,
     ReviewCampaignMembershipsService,
     ReviewCampaignsGuard,
     ReviewCampaignsService,
@@ -107,6 +109,7 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
   exports: [
     ReportsService,
     ReviewCampaignsService,
+    ReviewCampaignMembershipRepository,
     ReviewCampaignMembershipsService,
     ReviewerService,
     TesterService,

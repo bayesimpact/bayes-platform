@@ -11,6 +11,8 @@ import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "@/domains/agents/agent.entity"
 import { ReviewCampaignMembership } from "./memberships/review-campaign-membership.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ReviewCampaignMembershipsService } from "./memberships/review-campaign-memberships.service"
 import { ReviewCampaign } from "./review-campaign.entity"
 import type { ReviewCampaignQuestion, ReviewCampaignStatus } from "./review-campaigns.types"
 import type { CampaignAggregates } from "./tester/tester.service"
@@ -42,10 +44,9 @@ export class ReviewCampaignsService {
   constructor(
     @InjectRepository(ReviewCampaign)
     private readonly reviewCampaignRepository: Repository<ReviewCampaign>,
-    @InjectRepository(ReviewCampaignMembership)
-    private readonly reviewCampaignMembershipRepository: Repository<ReviewCampaignMembership>,
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
+    private readonly reviewCampaignMembershipsService: ReviewCampaignMembershipsService,
     private readonly testerService: TesterService,
   ) {
     this.reviewCampaignConnectRepository = new ConnectRepository(
@@ -128,18 +129,16 @@ export class ReviewCampaignsService {
     reviewCampaignId: string
   }): Promise<{
     campaign: ReviewCampaign
-    memberships: ReviewCampaignMembership[]
+    memberships: Awaited<ReturnType<ReviewCampaignMembershipsService["listCampaignMemberships"]>>
     aggregates: CampaignAggregates | null
   }> {
     const campaign = await this.findById({ connectScope, reviewCampaignId })
     if (!campaign) {
       throw new NotFoundException(`Review campaign ${reviewCampaignId} not found`)
     }
-    const memberships = await this.reviewCampaignMembershipRepository.find({
-      where: { campaignId: campaign.id },
-      relations: ["user"],
-      order: { createdAt: "ASC" },
-    })
+    const memberships = await this.reviewCampaignMembershipsService.listCampaignMemberships(
+      campaign.id,
+    )
     const aggregates =
       campaign.status === "closed"
         ? await this.testerService.computeCampaignAggregates(campaign.id)
@@ -257,8 +256,9 @@ export class ReviewCampaignsService {
       throw new NotFoundException(`Review campaign ${reviewCampaignId} not found`)
     }
 
-    const membership = await this.reviewCampaignMembershipRepository.findOne({
-      where: { id: membershipId, campaignId: campaign.id },
+    const membership = await this.reviewCampaignMembershipsService.findById({
+      membershipId,
+      campaignId: campaign.id,
     })
     if (!membership) {
       throw new NotFoundException(`Membership ${membershipId} not found in this campaign`)
@@ -267,9 +267,11 @@ export class ReviewCampaignsService {
       throw new ForbiddenException("Cannot revoke memberships from a closed campaign")
     }
 
-    await this.reviewCampaignMembershipRepository.delete({
-      id: membershipId,
+    await this.reviewCampaignMembershipsService.removeCampaignMembership({
+      membershipId,
       campaignId: campaign.id,
+      userId: membership.userId,
+      role: membership.role,
     })
   }
 }
