@@ -30,6 +30,10 @@ export class OrganizationMembershipsService {
     return this.organizationMembershipRepository.findOrganizationsForUser(userId)
   }
 
+  async listMembershipsForUser(userId: string): Promise<OrganizationMembershipModel[]> {
+    return this.organizationMembershipRepository.findAllByUser(userId)
+  }
+
   async findOwnerMembershipByOrganizationName({
     userId,
     organizationName,

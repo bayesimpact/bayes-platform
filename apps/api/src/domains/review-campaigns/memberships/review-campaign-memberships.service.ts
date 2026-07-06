@@ -44,6 +44,10 @@ export class ReviewCampaignMembershipsService {
     return this.reviewCampaignMembershipRepository.findAllByCampaign(campaignId)
   }
 
+  async listMembershipsForUser(userId: string): Promise<ReviewCampaignMembershipModel[]> {
+    return this.reviewCampaignMembershipRepository.findAllByUser(userId)
+  }
+
   async listCampaignsForUser(
     userId: string,
     role: ReviewCampaignMembershipRole,

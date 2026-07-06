@@ -50,6 +50,15 @@ export class ProjectMembershipRepository {
     return entities.map((entity) => this.toModel(entity))
   }
 
+  async findAllByUser(userId: string): Promise<ProjectMembershipModel[]> {
+    const entities = await this.repo().find({
+      where: { userId },
+      relations: ["user", "project"],
+      order: { createdAt: "DESC" },
+    })
+    return entities.map((entity) => this.toModel(entity))
+  }
+
   async findByUserAndProject({
     userId,
     projectId,

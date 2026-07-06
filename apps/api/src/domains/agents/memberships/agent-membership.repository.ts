@@ -48,6 +48,15 @@ export class AgentMembershipRepository {
     return entities.map((entity) => this.toModel(entity))
   }
 
+  async findAllByUser(userId: string): Promise<AgentMembershipModel[]> {
+    const entities = await this.repo().find({
+      where: { userId },
+      relations: ["user", "agent"],
+      order: { createdAt: "DESC" },
+    })
+    return entities.map((entity) => this.toModel(entity))
+  }
+
   async findByUserAndAgent({
     userId,
     agentId,

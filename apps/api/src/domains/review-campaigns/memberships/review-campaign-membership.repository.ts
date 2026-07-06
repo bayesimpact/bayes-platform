@@ -63,6 +63,15 @@ export class ReviewCampaignMembershipRepository {
     return entities.map((entity) => this.toModel(entity))
   }
 
+  async findAllByUser(userId: string): Promise<ReviewCampaignMembershipModel[]> {
+    const entities = await this.repo().find({
+      where: { userId },
+      relations: ["user", "campaign"],
+      order: { createdAt: "DESC" },
+    })
+    return entities.map((entity) => this.toModel(entity))
+  }
+
   async findAllByUserAndRole({
     userId,
     role,

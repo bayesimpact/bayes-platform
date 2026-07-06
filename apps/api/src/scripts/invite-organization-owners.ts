@@ -3,9 +3,9 @@ import { Logger } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 import { DataSource } from "typeorm"
 import { AppModule } from "@/app.module"
+import { TransactionService } from "@/common/transaction/transaction.service"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
-import { TransactionService } from "@/common/transaction/transaction.service"
 import {
   type InviteWorkspaceOwnerResult,
   type PreviewWorkspaceInvitationResult,

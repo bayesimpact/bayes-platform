@@ -33,6 +33,10 @@ export class AgentMembershipsService {
     return this.agentMembershipRepository.findAllByAgent(agentId)
   }
 
+  async listMembershipsForUser(userId: string): Promise<AgentMembershipModel[]> {
+    return this.agentMembershipRepository.findAllByUser(userId)
+  }
+
   async listProjectMemberAgents({
     projectId,
     userId,
