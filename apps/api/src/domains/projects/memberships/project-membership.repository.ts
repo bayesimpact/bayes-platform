@@ -1,7 +1,8 @@
 import { Injectable } from "@nestjs/common"
-import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
+import { InjectRepository } from "@nestjs/typeorm"
+import type { Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { DataSource, type EntityManager, type Repository } from "typeorm"
+import { TransactionService } from "@/common/transaction/transaction.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UserMembershipService } from "@/domains/memberships/user-membership.service"
 import { ProjectMembership, type ProjectMembershipRole } from "./project-membership.entity"
@@ -15,15 +16,17 @@ import type { ProjectMembershipModel } from "./project-membership.model"
  * Writes to both the legacy table and the unified `user_membership` table
  * (dual-write transition — see the comment in UserMembershipService).
  *
- * The service layer depends on this class exclusively; it never imports TypeORM
- * types or touches either underlying table directly.
+ * All write methods participate in whatever transaction is active in the
+ * current async context (via TransactionService.getManager()). The service
+ * layer is responsible for starting and committing transactions using
+ * TransactionService.run().
  */
 @Injectable()
 export class ProjectMembershipRepository {
   constructor(
     @InjectRepository(ProjectMembership)
     private readonly legacyRepository: Repository<ProjectMembership>,
-    @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly transactionService: TransactionService,
     private readonly userMembershipService: UserMembershipService,
   ) {}
 
@@ -50,22 +53,6 @@ export class ProjectMembershipRepository {
     return entities.map((entity) => this.toModel(entity))
   }
 
-  /**
-   * Creates an owner membership, writing to both the legacy and unified tables
-   * atomically.
-   */
-  async createOwnerMembership({
-    projectId,
-    userId,
-  }: {
-    projectId: string
-    userId: string
-  }): Promise<ProjectMembershipModel> {
-    return this.dataSource.transaction((manager) =>
-      this.createMembership({ userId, projectId, role: "owner", manager }),
-    )
-  }
-
   async findByUserAndProject({
     userId,
     projectId,
@@ -81,24 +68,22 @@ export class ProjectMembershipRepository {
   }
 
   /**
-   * Creates a membership within a caller-owned transaction, writing to both
-   * the legacy and unified tables.
+   * Creates a membership, writing to both the legacy and unified tables.
+   * Must be called from within a TransactionService.run() context.
    */
   async createMembership({
     userId,
     projectId,
     role,
-    manager,
   }: {
     userId: string
     projectId: string
     role: ProjectMembershipRole
-    manager: EntityManager
   }): Promise<ProjectMembershipModel> {
-    const membershipRepo = manager.getRepository(ProjectMembership)
+    const membershipRepo = this.transactionService.getManager().getRepository(ProjectMembership)
     const entity = membershipRepo.create({ userId, projectId, role })
     const saved = await membershipRepo.save(entity)
-    await this.userMembershipService.upsertProjectMembership({ userId, projectId, role }, manager)
+    await this.userMembershipService.upsertProjectMembership({ userId, projectId, role })
     const withRelations = await membershipRepo.findOneOrFail({
       where: { id: saved.id },
       relations: ["user", "project"],
@@ -107,45 +92,41 @@ export class ProjectMembershipRepository {
   }
 
   /**
-   * Updates the role of an existing membership within a caller-owned
-   * transaction, writing to both the legacy and unified tables.
+   * Updates the role of an existing membership, writing to both tables.
+   * Must be called from within a TransactionService.run() context.
    */
   async updateRole({
     membershipId,
     userId,
     projectId,
     role,
-    manager,
   }: {
     membershipId: string
     userId: string
     projectId: string
     role: ProjectMembershipRole
-    manager: EntityManager
   }): Promise<void> {
-    const membershipRepo = manager.getRepository(ProjectMembership)
+    const membershipRepo = this.transactionService.getManager().getRepository(ProjectMembership)
     await membershipRepo.update({ id: membershipId, projectId }, { role })
-    await this.userMembershipService.upsertProjectMembership({ userId, projectId, role }, manager)
+    await this.userMembershipService.upsertProjectMembership({ userId, projectId, role })
   }
 
   /**
-   * Deletes a membership within a caller-owned transaction, removing from both
-   * the legacy and unified tables.
+   * Deletes a membership from both tables.
+   * Must be called from within a TransactionService.run() context.
    */
   async deleteMembership({
     membershipId,
     projectId,
     userId,
-    manager,
   }: {
     membershipId: string
     projectId: string
     userId: string
-    manager: EntityManager
   }): Promise<void> {
-    const membershipRepo = manager.getRepository(ProjectMembership)
+    const membershipRepo = this.transactionService.getManager().getRepository(ProjectMembership)
     await membershipRepo.delete({ id: membershipId, projectId })
-    await this.userMembershipService.deleteProjectMembership({ userId, projectId }, manager)
+    await this.userMembershipService.deleteProjectMembership({ userId, projectId })
   }
 
   private toModel(entity: ProjectMembership): ProjectMembershipModel {

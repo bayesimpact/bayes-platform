@@ -90,13 +90,10 @@ describe("ProjectMembershipsService", () => {
       const { project } = await createOrganizationWithProject(repositories)
       const invitedUser = await repositories.userRepository.save(userFactory.build())
 
-      const created = await setup.dataSource.transaction((manager) =>
-        service.upsertProjectAdminMembership({
-          manager,
-          projectId: project.id,
-          userId: invitedUser.id,
-        }),
-      )
+      const created = await service.upsertProjectAdminMembership({
+        projectId: project.id,
+        userId: invitedUser.id,
+      })
 
       expect(created).not.toBeNull()
       expect(created?.role).toBe("admin")
@@ -115,13 +112,10 @@ describe("ProjectMembershipsService", () => {
         .spyOn(agentMembershipsService, "createAdminAgentMembershipsForUserInProject")
         .mockResolvedValue()
 
-      const result = await setup.dataSource.transaction((manager) =>
-        service.upsertProjectAdminMembership({
-          manager,
-          projectId: project.id,
-          userId: invitedUser.id,
-        }),
-      )
+      const result = await service.upsertProjectAdminMembership({
+        projectId: project.id,
+        userId: invitedUser.id,
+      })
 
       expect(result).toBeNull()
       const updatedMembership = await projectMembershipRepository.findOneOrFail({

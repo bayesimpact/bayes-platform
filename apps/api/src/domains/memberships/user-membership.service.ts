@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common"
-import { InjectDataSource } from "@nestjs/typeorm"
+import type { EntityManager, Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { DataSource, type EntityManager } from "typeorm"
+import { TransactionService } from "@/common/transaction/transaction.service"
 import { UserMembership, type UserMembershipRole } from "./user-membership.entity"
 
 export type { UserMembershipRole }
@@ -12,26 +12,31 @@ export type { UserMembershipRole }
  * During the transition period this service is called alongside legacy
  * membership writes (dual-write). Legacy write paths will be removed in the
  * follow-up cleanup PR, after which this becomes the sole write layer.
+ *
+ * ## Transaction participation
+ *
+ * Each method accepts an optional `manager?: EntityManager` for backward
+ * compatibility with callers that haven't yet been migrated to
+ * `TransactionService`. When no explicit manager is provided the method calls
+ * `transactionService.getManager()`, which returns the transactional manager
+ * stored in the current `AsyncLocalStorage` context (if any), falling back to
+ * the DataSource's auto-commit manager for plain reads.
+ *
+ * Callers that already use `TransactionService.run()` can drop the `manager`
+ * argument entirely — the ambient context is picked up automatically.
+ *
+ * TODO (cleanup PR): once all callers use `TransactionService`, remove the
+ * `manager?` parameter from every method.
  */
 @Injectable()
 export class UserMembershipService {
-  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
+  constructor(private readonly transactionService: TransactionService) {}
 
-  /**
-   * Upsert a row in user_membership from a transaction-scoped EntityManager.
-   * Prefer the manager-based overload when inside a TypeORM transaction so the
-   * write participates in the same transaction as the legacy table write.
-   *
-   * TODO (cleanup PR): once the legacy membership tables are dropped, remove the
-   * `manager?` parameter from all upsert/delete methods. Callers will no longer
-   * need to co-ordinate dual-write atomicity; transactions will be owned at the
-   * service or use-case level instead.
-   */
   async upsertOrganizationMembership(
     params: { userId: string; organizationId: string; role: UserMembershipRole },
     manager?: EntityManager,
   ): Promise<void> {
-    const repo = (manager ?? this.dataSource.manager).getRepository(UserMembership)
+    const repo = this.repo(manager)
     await this.upsertNonCampaign(repo, {
       userId: params.userId,
       resourceType: "organization",
@@ -44,7 +49,7 @@ export class UserMembershipService {
     params: { userId: string; projectId: string; role: UserMembershipRole },
     manager?: EntityManager,
   ): Promise<void> {
-    const repo = (manager ?? this.dataSource.manager).getRepository(UserMembership)
+    const repo = this.repo(manager)
     await this.upsertNonCampaign(repo, {
       userId: params.userId,
       resourceType: "project",
@@ -57,7 +62,7 @@ export class UserMembershipService {
     params: { userId: string; agentId: string; role: UserMembershipRole },
     manager?: EntityManager,
   ): Promise<void> {
-    const repo = (manager ?? this.dataSource.manager).getRepository(UserMembership)
+    const repo = this.repo(manager)
     await this.upsertNonCampaign(repo, {
       userId: params.userId,
       resourceType: "agent",
@@ -70,7 +75,7 @@ export class UserMembershipService {
     params: { userId: string; campaignId: string; role: UserMembershipRole },
     manager?: EntityManager,
   ): Promise<void> {
-    const repo = (manager ?? this.dataSource.manager).getRepository(UserMembership)
+    const repo = this.repo(manager)
     const existing = await repo.findOne({
       where: {
         userId: params.userId,
@@ -94,7 +99,7 @@ export class UserMembershipService {
     params: { userId: string; organizationId: string },
     manager?: EntityManager,
   ): Promise<void> {
-    const repo = (manager ?? this.dataSource.manager).getRepository(UserMembership)
+    const repo = this.repo(manager)
     await repo.delete({
       userId: params.userId,
       resourceType: "organization",
@@ -106,7 +111,7 @@ export class UserMembershipService {
     params: { userId: string; projectId: string },
     manager?: EntityManager,
   ): Promise<void> {
-    const repo = (manager ?? this.dataSource.manager).getRepository(UserMembership)
+    const repo = this.repo(manager)
     await repo.delete({
       userId: params.userId,
       resourceType: "project",
@@ -118,7 +123,7 @@ export class UserMembershipService {
     params: { userId: string; agentId: string },
     manager?: EntityManager,
   ): Promise<void> {
-    const repo = (manager ?? this.dataSource.manager).getRepository(UserMembership)
+    const repo = this.repo(manager)
     await repo.delete({
       userId: params.userId,
       resourceType: "agent",
@@ -131,7 +136,7 @@ export class UserMembershipService {
     manager?: EntityManager,
   ): Promise<void> {
     if (params.agentIds.length === 0) return
-    const repo = (manager ?? this.dataSource.manager).getRepository(UserMembership)
+    const repo = this.repo(manager)
     await repo
       .createQueryBuilder()
       .delete()
@@ -147,7 +152,7 @@ export class UserMembershipService {
   }
 
   private async upsertNonCampaign(
-    repo: ReturnType<typeof this.dataSource.manager.getRepository<UserMembership>>,
+    repo: Repository<UserMembership>,
     params: {
       userId: string
       resourceType: "organization" | "project" | "agent"
@@ -177,5 +182,13 @@ export class UserMembershipService {
         role: params.role,
       }),
     )
+  }
+
+  /**
+   * Returns the repository scoped to `manager` when explicitly provided
+   * (backward-compat callers), or to the ambient transaction context otherwise.
+   */
+  private repo(manager?: EntityManager): Repository<UserMembership> {
+    return (manager ?? this.transactionService.getManager()).getRepository(UserMembership)
   }
 }
