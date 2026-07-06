@@ -73,6 +73,23 @@ export class ProjectMembershipRepository {
     return entity ? this.toModel(entity) : null
   }
 
+  async findAnyByUserAndOrganization({
+    userId,
+    organizationId,
+  }: {
+    userId: string
+    organizationId: string
+  }): Promise<ProjectMembershipModel | null> {
+    const entity = await this.repo()
+      .createQueryBuilder("membership")
+      .innerJoinAndSelect("membership.project", "project")
+      .innerJoinAndSelect("membership.user", "user")
+      .where("membership.userId = :userId", { userId })
+      .andWhere("project.organizationId = :organizationId", { organizationId })
+      .getOne()
+    return entity ? this.toModel(entity) : null
+  }
+
   async findAdminAndOwnerUserIdsByProject(projectId: string): Promise<string[]> {
     const entities = await this.repo().find({
       where: [

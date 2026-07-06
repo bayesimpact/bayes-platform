@@ -38,6 +38,19 @@ export class ProjectMembershipsService {
     return this.projectMembershipRepository.findByUserAndProject({ userId, projectId })
   }
 
+  async findProjectMembershipInOrganization({
+    userId,
+    organizationId,
+  }: {
+    userId: string
+    organizationId: string
+  }): Promise<ProjectMembershipModel | null> {
+    return this.projectMembershipRepository.findAnyByUserAndOrganization({
+      userId,
+      organizationId,
+    })
+  }
+
   async listMemberAgents(params: { projectId: string; userId: string }) {
     return this.agentMembershipsService.listProjectMemberAgents(params)
   }

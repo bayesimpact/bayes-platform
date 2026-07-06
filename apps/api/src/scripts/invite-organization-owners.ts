@@ -11,6 +11,7 @@ import {
   type PreviewWorkspaceInvitationResult,
   WorkspaceInvitationService,
 } from "@/domains/organizations/provisioning/workspace-invitation.service"
+import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
 import { confirmDatabaseTarget } from "@/scripts/script-bootstrap"
 
 type CliOptions = {
@@ -197,11 +198,13 @@ async function bootstrapCli(): Promise<void> {
     const dataSource = app.get(DataSource)
     const invitationSender = app.get(INVITATION_SENDER)
     const organizationMembershipsService = app.get(OrganizationMembershipsService)
+    const projectMembershipsService = app.get(ProjectMembershipsService)
     const transactionService = app.get(TransactionService)
     const invitationService = new WorkspaceInvitationService(
       invitationSender,
       dataSource,
       organizationMembershipsService,
+      projectMembershipsService,
       transactionService,
     )
     logger.log(`Processing ${rows.length} row(s)...`)

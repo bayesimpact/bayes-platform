@@ -8,6 +8,8 @@ import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 import { organizationFactory } from "@/domains/organizations/organization.factory"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
+import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
+import { ProjectsModule } from "@/domains/projects/projects.module"
 import { userFactory } from "@/domains/users/user.factory"
 import { WorkspaceInvitationService } from "./workspace-invitation.service"
 
@@ -39,7 +41,7 @@ describe("WorkspaceInvitationService", () => {
 
   beforeAll(async () => {
     setup = await setupTransactionalTestDatabase({
-      additionalImports: [OrganizationsModule, MembershipsModule],
+      additionalImports: [OrganizationsModule, MembershipsModule, ProjectsModule],
     })
     const repositories = setup.getAllRepositories()
     userRepository = repositories.userRepository
@@ -49,11 +51,13 @@ describe("WorkspaceInvitationService", () => {
     projectMembershipRepository = repositories.projectMembershipRepository
     invitationRepository = repositories.invitationRepository
     const organizationMembershipsService = setup.module.get(OrganizationMembershipsService)
+    const projectMembershipsService = setup.module.get(ProjectMembershipsService)
     const transactionService = setup.module.get(TransactionService)
     service = new WorkspaceInvitationService(
       mockInvitationSender,
       setup.dataSource,
       organizationMembershipsService,
+      projectMembershipsService,
       transactionService,
     )
   })
