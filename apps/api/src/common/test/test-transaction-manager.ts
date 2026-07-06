@@ -15,6 +15,7 @@ import { getDataSourceToken, getRepositoryToken, TypeOrmModule } from "@nestjs/t
 import type { ObjectLiteral, QueryRunner, Repository } from "typeorm"
 import { type DataSource, EntityManager } from "typeorm"
 import { ALL_ENTITIES } from "../all-entities"
+import { TransactionModule } from "../transaction/transaction.module"
 import type { AllRepositories } from "./test-all-repositories"
 import { buildAllRepositories } from "./test-all-repositories"
 import type { SetupTestDatabaseParams } from "./test-database"
@@ -116,6 +117,7 @@ export async function setupTransactionalTestDatabase(
           dropSchema: false,
         }),
         TypeOrmModule.forFeature(ALL_ENTITIES),
+        TransactionModule,
         ...additionalImports,
       ],
       providers: [
@@ -234,6 +236,7 @@ export function createBaseTestingModule({
         dropSchema: false,
       }),
       TypeOrmModule.forFeature(ALL_ENTITIES),
+      TransactionModule,
       ...additionalImports,
     ],
     providers,
