@@ -53,6 +53,6 @@ import { ProjectsService } from "./projects.service"
     ProjectMembershipContextResolver,
   ],
   controllers: [ProjectsController, ProjectMembershipsController],
-  exports: [ProjectsService, ProjectMembershipsService],
+  exports: [ProjectsService, ProjectMembershipsService, ProjectMembershipRepository],
 })
 export class ProjectsModule {}

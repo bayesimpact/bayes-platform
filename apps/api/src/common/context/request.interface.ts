@@ -3,7 +3,7 @@ import type { ConversationAgentSession } from "@/domains/agents/conversation-age
 import type { AgentCsvExtractionRun } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run.entity"
 import type { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
 import type { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
-import type { AgentMembership } from "@/domains/agents/memberships/agent-membership.entity"
+import type { AgentMembershipModel } from "@/domains/agents/memberships/agent-membership.model"
 import type { Document } from "@/domains/documents/document.entity"
 import type { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
 import type { Evaluation } from "@/domains/evaluations/evaluation.entity"
@@ -52,11 +52,11 @@ export interface EndpointRequestWithProjectMembership extends EndpointRequestWit
 
 export interface EndpointRequestWithAgent extends EndpointRequestWithProject {
   agent: Agent
-  agentMembership: AgentMembership | undefined
+  agentMembership: AgentMembershipModel | undefined
 }
 
 export interface EndpointRequestWithAgentMembership extends EndpointRequestWithAgent {
-  memberAgentMembership: AgentMembership
+  memberAgentMembership: AgentMembershipModel
 }
 
 export interface EndpointRequestWithDocument extends EndpointRequestWithProject {
@@ -122,5 +122,5 @@ export interface EndpointRequestWithInvitationScope extends EndpointRequestWithP
   /** The target entity (Project, Agent, or ReviewCampaign) loaded by the resolver. */
   invitationTarget?: Project | Agent | ReviewCampaign
   /** Caller's agent membership, set only when targetType is "agent". */
-  invitationAgentMembership?: AgentMembership
+  invitationAgentMembership?: AgentMembershipModel
 }

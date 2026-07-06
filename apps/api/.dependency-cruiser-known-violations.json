@@ -2875,7 +2875,7 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/agents/extraction-agent-sessions/extraction-agent-sessions.service.ts",
+    "from": "src/domains/agents/extraction-agent-sessions/extraction-agent-session-runner.service.ts",
     "to": "src/domains/documents/document.entity.ts",
     "rule": {
       "severity": "error",
@@ -2884,8 +2884,8 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/agents/extraction-agent-sessions/extraction-agent-session-runner.service.ts",
-    "to": "src/domains/documents/document.entity.ts",
+    "from": "src/domains/agents/memberships/agent-membership.model.ts",
+    "to": "src/domains/users/user.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4531,7 +4531,7 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/agents/memberships/agent-memberships.service.ts",
+    "from": "src/domains/agents/memberships/agent-membership.repository.ts",
     "to": "src/domains/memberships/user-membership.service.ts",
     "rule": {
       "severity": "warn",

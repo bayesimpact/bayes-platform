@@ -4,7 +4,7 @@ import {
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
-import { UserMembershipService } from "@/domains/memberships/user-membership.service"
+import { OrganizationMembershipService } from "@/domains/organizations/memberships/organization-membership.service"
 import { organizationFactory } from "@/domains/organizations/organization.factory"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { userFactory } from "@/domains/users/user.factory"
@@ -47,11 +47,11 @@ describe("WorkspaceInvitationService", () => {
     projectRepository = repositories.projectRepository
     projectMembershipRepository = repositories.projectMembershipRepository
     invitationRepository = repositories.invitationRepository
-    const userMembershipService = setup.module.get(UserMembershipService)
+    const organizationMembershipService = setup.module.get(OrganizationMembershipService)
     service = new WorkspaceInvitationService(
       mockInvitationSender,
       setup.dataSource,
-      userMembershipService,
+      organizationMembershipService,
     )
   })
 

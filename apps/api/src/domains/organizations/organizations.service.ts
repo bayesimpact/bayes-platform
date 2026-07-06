@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { UserMembershipService } from "@/domains/memberships/user-membership.service"
 import { User } from "@/domains/users/user.entity"
 import { OrganizationMembership } from "./memberships/organization-membership.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { OrganizationMembershipService } from "./memberships/organization-membership.service"
 import { Organization } from "./organization.entity"
 
 @Injectable()
@@ -14,7 +14,7 @@ export class OrganizationsService {
     @InjectRepository(OrganizationMembership)
     private readonly organizationMembershipRepository: Repository<OrganizationMembership>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    private readonly userMembershipService: UserMembershipService,
+    private readonly organizationMembershipService: OrganizationMembershipService,
   ) {}
 
   async getUserOrganizations(userId: string): Promise<Organization[]> {
@@ -50,20 +50,9 @@ export class OrganizationsService {
     const organization = this.organizationRepository.create({ name })
     const savedOrganization = await this.organizationRepository.save(organization)
 
-    // Create the membership with owner role
-    // Set both entity references and IDs to ensure proper foreign key handling in transactions
-    const membership = this.organizationMembershipRepository.create({
-      user,
-      organization: savedOrganization,
+    await this.organizationMembershipService.createOrganizationOwnerMembership({
       userId: user.id,
       organizationId: savedOrganization.id,
-      role: "owner",
-    })
-    await this.organizationMembershipRepository.save(membership)
-    await this.userMembershipService.upsertOrganizationMembership({
-      userId: user.id,
-      organizationId: savedOrganization.id,
-      role: "owner",
     })
 
     return savedOrganization

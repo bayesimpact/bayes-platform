@@ -3,7 +3,8 @@ import { Injectable } from "@nestjs/common"
 import { TransactionService } from "@/common/transaction/transaction.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
-import { User } from "@/domains/users/user.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { UserRepository } from "@/domains/users/user.repository"
 import type { ProjectMembershipModel } from "./project-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipRepository } from "./project-membership.repository"
@@ -16,6 +17,7 @@ export class ProjectMembershipsService {
     private readonly projectMembershipRepository: ProjectMembershipRepository,
     private readonly transactionService: TransactionService,
     private readonly agentMembershipsService: AgentMembershipsService,
+    private readonly userRepository: UserRepository,
   ) {}
 
   async listProjectMemberships(projectId: string): Promise<ProjectMembershipModel[]> {
@@ -72,18 +74,49 @@ export class ProjectMembershipsService {
           projectId,
           role: "admin",
         })
-        // AgentMembershipsService has not yet been migrated to TransactionService;
-        // we pass the active manager explicitly so its writes join the same transaction.
-        const manager = this.transactionService.getManager()
         await this.agentMembershipsService.createAdminAgentMembershipsForUserInProject({
-          manager,
           userId,
           projectId,
         })
         return null
       }
 
-      return this.projectMembershipRepository.createMembership({ userId, projectId, role: "admin" })
+      const membership = await this.projectMembershipRepository.createMembership({
+        userId,
+        projectId,
+        role: "admin",
+      })
+      await this.agentMembershipsService.createAdminAgentMembershipsForUserInProject({
+        userId,
+        projectId,
+      })
+      return membership
+    })
+  }
+
+  /**
+   * Ensures the user has a member-level project membership.
+   * Returns the existing membership when present, otherwise creates one.
+   */
+  async upsertProjectMemberMembership({
+    projectId,
+    userId,
+  }: {
+    projectId: string
+    userId: string
+  }): Promise<ProjectMembershipModel | null> {
+    return this.transactionService.run(async () => {
+      const existing = await this.projectMembershipRepository.findByUserAndProject({
+        userId,
+        projectId,
+      })
+      if (existing) return existing
+
+      return this.projectMembershipRepository.createMembership({
+        userId,
+        projectId,
+        role: "member",
+      })
     })
   }
 
@@ -116,12 +149,7 @@ export class ProjectMembershipsService {
         throw new Error("Cannot remove owner from the project")
       }
 
-      // AgentMembershipsService has not yet been migrated to TransactionService;
-      // we pass the active manager explicitly so its writes join the same transaction.
-      const manager = this.transactionService.getManager()
-
       await this.agentMembershipsService.deleteAgentMembershipsForUserInProject({
-        manager,
         userId: membership.userId,
         projectId,
       })
@@ -133,7 +161,7 @@ export class ProjectMembershipsService {
       })
 
       if (membership.user.auth0Id.startsWith(PLACEHOLDER_AUTH0_ID_PREFIX)) {
-        await manager.getRepository(User).delete({ id: membership.userId })
+        await this.userRepository.deleteById({ userId: membership.userId })
       }
     })
   }

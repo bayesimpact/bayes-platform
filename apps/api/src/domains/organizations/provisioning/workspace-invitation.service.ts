@@ -2,8 +2,8 @@ import { randomUUID } from "node:crypto"
 import type { DataSource, Repository } from "typeorm"
 import type { InvitationSender } from "@/domains/auth/invitation-sender.interface"
 import { Invitation } from "@/domains/invitations/invitation.entity"
-import type { UserMembershipService } from "@/domains/memberships/user-membership.service"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
+import type { OrganizationMembershipService } from "@/domains/organizations/memberships/organization-membership.service"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { PLACEHOLDER_AUTH0_ID_PREFIX } from "@/domains/projects/memberships/project-memberships.service"
@@ -38,7 +38,7 @@ export class WorkspaceInvitationService {
   constructor(
     private readonly invitationSender: InvitationSender,
     private readonly dataSource: DataSource,
-    private readonly userMembershipService: UserMembershipService,
+    private readonly organizationMembershipService: OrganizationMembershipService,
   ) {}
 
   async inviteWorkspaceOwner(
@@ -96,17 +96,10 @@ export class WorkspaceInvitationService {
         where: { userId: user.id, organizationId: organization.id },
       })
       if (!existingOrgMembership) {
-        await organizationMembershipRepository.save(
-          organizationMembershipRepository.create({
-            userId: user.id,
-            organizationId: organization.id,
-            role: "admin",
-          }),
-        )
-        await this.userMembershipService.upsertOrganizationMembership(
-          { userId: user.id, organizationId: organization.id, role: "admin" },
-          manager,
-        )
+        await this.organizationMembershipService.upsertOrganizationAdminMembership({
+          userId: user.id,
+          organizationId: organization.id,
+        })
       }
 
       const { ticketId } = await this.invitationSender.sendInvitation({

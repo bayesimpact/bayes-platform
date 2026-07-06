@@ -24,10 +24,12 @@ import { ProjectsModule } from "../projects/projects.module"
 import { ResourceLibrariesModule } from "../resource-libraries/resource-libraries.module"
 import { Agent } from "./agent.entity"
 import { AgentGuard } from "./agent.guard"
+import { AgentRepository } from "./agent.repository"
 import { AgentsController } from "./agents.controller"
 import { AgentsService } from "./agents.service"
 import { BaseAgentSessionsService } from "./base-agent-sessions/base-agent-sessions.service"
 import { AgentMembership } from "./memberships/agent-membership.entity"
+import { AgentMembershipRepository } from "./memberships/agent-membership.repository"
 import { AgentMembershipsController } from "./memberships/agent-memberships.controller"
 import { AgentMembershipsGuard } from "./memberships/agent-memberships.guard"
 import { AgentMembershipsService } from "./memberships/agent-memberships.service"
@@ -69,11 +71,13 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
   ],
   providers: [
     AgentsService,
+    AgentRepository,
     AgentSessionCategoriesService,
     AgentSubAgentsService,
     ProjectAgentSessionCategoriesService,
     BaseAgentSessionsService,
     AgentMembershipsService,
+    AgentMembershipRepository,
     AgentGuard,
     AgentMembershipsGuard,
     ProjectAgentSessionCategoriesGuard,

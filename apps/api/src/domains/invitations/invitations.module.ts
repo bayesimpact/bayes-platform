@@ -9,11 +9,13 @@ import { AuthModule } from "@/domains/auth/auth.module"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
+import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
 import { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
+import { ReviewCampaignMembershipsService } from "@/domains/review-campaigns/memberships/review-campaign-memberships.service"
 import { UsersModule } from "@/domains/users/users.module"
 import { LlmModule } from "@/external/llm/llm.module"
 import { AgentInvitationHandler } from "./handlers/agent-invitation.handler"
@@ -46,6 +48,7 @@ import { InvitationsPersistenceModule } from "./invitations-persistence.module"
     MembershipsModule,
     UsersModule,
     AuthModule,
+    OrganizationsModule,
     forwardRef(() => ProjectsModule),
     forwardRef(() => AgentsModule),
   ],
@@ -54,6 +57,7 @@ import { InvitationsPersistenceModule } from "./invitations-persistence.module"
     ProjectInvitationHandler,
     AgentInvitationHandler,
     ReviewCampaignInvitationHandler,
+    ReviewCampaignMembershipsService,
     ResourceContextGuard,
     InvitationScopeContextResolver,
     InvitationsGuard,

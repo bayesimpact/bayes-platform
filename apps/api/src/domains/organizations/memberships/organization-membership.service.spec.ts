@@ -4,6 +4,7 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { organizationMembershipFactory } from "@/domains/organizations/memberships/organization-membership.factory"
 import { OrganizationMembershipService } from "@/domains/organizations/memberships/organization-membership.service"
 import {
@@ -144,6 +145,62 @@ describe("OrganizationMembershipService", () => {
       expect(result2).not.toBeNull()
       expect(result2?.organizationId).toBe(savedOrganization2.id)
       expect(result2?.role).toBe("member")
+    })
+  })
+
+  describe("upsertOrganizationAdminMembership", () => {
+    it("creates an admin organization membership when none exists", async () => {
+      const { user, organization } = await createOrganizationWithOwner(repositories)
+      await repositories.organizationMembershipRepository.delete({ userId: user.id })
+
+      await service.upsertOrganizationAdminMembership({
+        userId: user.id,
+        organizationId: organization.id,
+      })
+
+      const membership = await repositories.organizationMembershipRepository.findOne({
+        where: { userId: user.id, organizationId: organization.id },
+      })
+      expect(membership?.role).toBe("admin")
+
+      const userMembership = await setup.dataSource.getRepository(UserMembership).findOne({
+        where: {
+          userId: user.id,
+          resourceId: organization.id,
+          resourceType: "organization",
+        },
+      })
+      expect(userMembership?.role).toBe("admin")
+    })
+
+    it("promotes a member to admin", async () => {
+      const { user, organization } = await createOrganizationWithOwner(repositories, {
+        organizationMembership: { role: "member" },
+      })
+
+      await service.upsertOrganizationAdminMembership({
+        userId: user.id,
+        organizationId: organization.id,
+      })
+
+      const membership = await repositories.organizationMembershipRepository.findOneOrFail({
+        where: { userId: user.id, organizationId: organization.id },
+      })
+      expect(membership.role).toBe("admin")
+    })
+
+    it("is a no-op when the user is already admin or owner", async () => {
+      const { user, organization } = await createOrganizationWithOwner(repositories)
+
+      await service.upsertOrganizationAdminMembership({
+        userId: user.id,
+        organizationId: organization.id,
+      })
+
+      const membership = await repositories.organizationMembershipRepository.findOneOrFail({
+        where: { userId: user.id, organizationId: organization.id },
+      })
+      expect(membership.role).toBe("owner")
     })
   })
 })

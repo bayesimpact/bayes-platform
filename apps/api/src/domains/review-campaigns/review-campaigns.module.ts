@@ -15,6 +15,7 @@ import { FormAgentSessionsModule } from "@/domains/agents/form-agent-sessions/fo
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { InvitationsModule } from "@/domains/invitations/invitations.module"
+import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
@@ -24,6 +25,7 @@ import { ProjectsModule } from "@/domains/projects/projects.module"
 import { User } from "@/domains/users/user.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { ReviewCampaignMembership } from "./memberships/review-campaign-membership.entity"
+import { ReviewCampaignMembershipsService } from "./memberships/review-campaign-memberships.service"
 import { CampaignReportGuard } from "./reports/campaign-report.guard"
 import { ReportsController } from "./reports/reports.controller"
 import { ReportsService } from "./reports/reports.service"
@@ -68,6 +70,7 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
     ]),
     OrganizationsModule,
     ProjectsModule,
+    MembershipsModule,
     forwardRef(() => InvitationsModule),
     UsersModule,
     AuthModule,
@@ -83,6 +86,7 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
     ResourceContextGuard,
     ReviewCampaignContextResolver,
     ReviewCampaignMembershipContextResolver,
+    ReviewCampaignMembershipsService,
     ReviewCampaignsGuard,
     ReviewCampaignsService,
     ReviewerGuard,
@@ -100,6 +104,12 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
     TesterMeController,
     TesterSessionFeedbackController,
   ],
-  exports: [ReportsService, ReviewCampaignsService, ReviewerService, TesterService],
+  exports: [
+    ReportsService,
+    ReviewCampaignsService,
+    ReviewCampaignMembershipsService,
+    ReviewerService,
+    TesterService,
+  ],
 })
 export class ReviewCampaignsModule {}
