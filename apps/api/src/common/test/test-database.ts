@@ -5,6 +5,7 @@ import { Test, type TestingModule, type TestingModuleBuilder } from "@nestjs/tes
 import { getDataSourceToken, getRepositoryToken, TypeOrmModule } from "@nestjs/typeorm"
 import type { DataSource, EntityManager, ObjectLiteral, QueryRunner, Repository } from "typeorm"
 import { ALL_ENTITIES } from "../all-entities"
+import { TransactionModule } from "../transaction/transaction.module"
 import { type AllRepositories, buildAllRepositories } from "./test-all-repositories"
 
 export type { AllRepositories } from "./test-all-repositories"
@@ -78,6 +79,7 @@ export async function setupE2eTestDatabase(
         dropSchema: false,
       }),
       TypeOrmModule.forFeature(ALL_ENTITIES),
+      TransactionModule,
       ...additionalImports,
     ],
     providers,
