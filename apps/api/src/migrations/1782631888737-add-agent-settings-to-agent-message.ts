@@ -15,11 +15,12 @@ export class AddAgentSettingsToAgentMessage1782631888737 implements MigrationInt
       FROM (
              SELECT
                "am"."id" AS "message_id",
-               COALESCE("cas"."agent_id", "eas"."agent_id", "fas"."agent_id") AS "agent_id"
+               COALESCE("cas"."agent_id", "eas"."agent_id", "fas"."agent_id", "pas"."agent_id") AS "agent_id"
              FROM "agent_message" AS "am"
                     LEFT JOIN "conversation_agent_session" "cas" ON "cas"."id" = "am"."session_id"
                     LEFT JOIN "extraction_agent_session" "eas" ON "eas"."id" = "am"."session_id"
                     LEFT JOIN "form_agent_session" "fas" ON "fas"."id" = "am"."session_id"
+                    LEFT JOIN "public_agent_session" "pas" ON "pas"."id" = "am"."session_id"
            ) AS "agent_session"
              JOIN "agent_settings" AS "as"
                   ON "as".agent_id = "agent_session"."agent_id" AND "as"."revision" = 1
