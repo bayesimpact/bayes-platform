@@ -13,6 +13,7 @@ import {
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
+import { createResourceLibraryForProject } from "@/domains/resource-libraries/resource-library.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { DocumentTag } from "../documents/tags/document-tag.entity"
@@ -518,6 +519,47 @@ describe("AgentsService", () => {
       })
       expect(updatedAgent?.documentTags.map((documentTag) => documentTag.id)).toEqual([
         documentTag.id,
+      ])
+    })
+    it("should update resource libraries", async () => {
+      const { organization, project, agent, agentResourceLibraries } =
+        await createOrganizationWithAgent(repositories, {
+          agentSettings: { documentsRagMode: DocumentsRagMode.Tags },
+        })
+      const initialAgent = await repositories.agentRepository.findOne({
+        where: { id: agent.id },
+        relations: ["resourceLibraries"],
+      })
+      expect(initialAgent?.resourceLibraries.map((resourceLib) => resourceLib.id)).toEqual([
+        agentResourceLibraries[0]?.id,
+      ])
+
+      const resourceLibrary1 = await createResourceLibraryForProject({
+        repositories,
+        organization,
+        project,
+      })
+      const resourceLibrary2 = await createResourceLibraryForProject({
+        repositories,
+        organization,
+        project,
+      })
+
+      await service.updateAgent({
+        connectScope: { organizationId: organization.id, projectId: project.id },
+        agentId: agent.id,
+        fieldsToUpdate: {
+          resourceLibraryIds: [resourceLibrary1.id, resourceLibrary2.id],
+        },
+      })
+
+      const updatedAgent = await repositories.agentRepository.findOne({
+        where: { id: agent.id },
+        relations: ["resourceLibraries"],
+      })
+      expect(updatedAgent?.resourceLibraries.map((resourceLib) => resourceLib.id)).toEqual([
+        resourceLibrary1.id,
+        resourceLibrary2.id,
       ])
     })
   })

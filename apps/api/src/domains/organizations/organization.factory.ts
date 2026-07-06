@@ -11,6 +11,8 @@ import type { Document } from "@/domains/documents/document.entity"
 import { documentFactory } from "@/domains/documents/document.factory"
 import type { Project } from "@/domains/projects/project.entity"
 import { projectFactory } from "@/domains/projects/project.factory"
+import type { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
+import { resourceLibraryFactory } from "@/domains/resource-libraries/resource-library.factory"
 import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import type { ExtractionAgentSession } from "../agents/extraction-agent-sessions/extraction-agent-session.entity"
@@ -126,6 +128,7 @@ type AgentReturnType = ProjectReturnType & {
   agent: Agent
   agentSettings: AgentSettings
   agentMembership: AgentMembership
+  agentResourceLibraries: ResourceLibrary[]
 }
 export async function createOrganizationWithAgent(
   repositories: AllRepositories,
@@ -134,7 +137,12 @@ export async function createOrganizationWithAgent(
   const data = await createOrganizationWithProject(repositories, params)
   const { organization, user, project } = data
 
-  const agent = agentFactory.transient({ project, organization }).build(params.agent)
+  const resourceLibrary = resourceLibraryFactory.transient({ organization, project }).build()
+  await repositories.resourceLibraryRepository.save(resourceLibrary)
+
+  const agent = agentFactory
+    .transient({ project, organization })
+    .build({ ...params.agent, resourceLibraries: [resourceLibrary] })
   await repositories.agentRepository.save(agent)
   const agentSettings = agentSettingsFactory
     .transient({ project, organization, agent })
@@ -151,6 +159,7 @@ export async function createOrganizationWithAgent(
     agent,
     agentSettings,
     agentMembership,
+    agentResourceLibraries: [resourceLibrary],
   }
 }
 

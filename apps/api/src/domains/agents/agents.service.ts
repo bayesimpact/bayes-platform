@@ -252,6 +252,14 @@ export class AgentsService {
       })
     }
 
+    if (needsResourceLibraries) {
+      agent.resourceLibraries = await this.resolveResourceLibraries({
+        connectScope,
+        resourceLibraryIds: fieldsToUpdate.resourceLibraryIds,
+        agentType: nextType,
+      })
+    }
+
     if (fieldsToUpdate.projectAgentSessionCategoryIds !== undefined) {
       const selectedProjectCategories = await this.resolveProjectAgentSessionCategories({
         projectId: connectScope.projectId,
