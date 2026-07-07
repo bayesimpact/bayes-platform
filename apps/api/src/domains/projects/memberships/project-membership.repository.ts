@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common"
-import type { Repository } from "typeorm"
+import { In, type Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -55,6 +55,27 @@ export class ProjectMembershipRepository {
       where: { userId },
       relations: ["user", "project"],
       order: { createdAt: "DESC" },
+    })
+    return entities.map((entity) => this.toModel(entity))
+  }
+
+  async findAdminAndOwnerByUser(userId: string): Promise<ProjectMembershipModel[]> {
+    const entities = await this.repo().find({
+      where: [
+        { userId, role: "admin" },
+        { userId, role: "owner" },
+      ],
+      relations: ["user", "project"],
+    })
+    return entities.map((entity) => this.toModel(entity))
+  }
+
+  async findAllByProjectIds(projectIds: string[]): Promise<ProjectMembershipModel[]> {
+    if (projectIds.length === 0) return []
+
+    const entities = await this.repo().find({
+      where: { projectId: In(projectIds) },
+      relations: ["user", "project"],
     })
     return entities.map((entity) => this.toModel(entity))
   }

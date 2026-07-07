@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common"
-import type { Repository } from "typeorm"
+import { In, type Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -47,6 +47,39 @@ export class OrganizationMembershipRepository {
       where: { userId },
       relations: ["user", "organization"],
       order: { createdAt: "DESC" },
+    })
+    return entities.map((entity) => this.toModel(entity))
+  }
+
+  async findAdminAndOwnerByUser(userId: string): Promise<OrganizationMembershipModel[]> {
+    const entities = await this.repo().find({
+      where: [
+        { userId, role: "admin" },
+        { userId, role: "owner" },
+      ],
+      relations: ["user", "organization"],
+    })
+    return entities.map((entity) => this.toModel(entity))
+  }
+
+  async findAllByOrganization(organizationId: string): Promise<OrganizationMembershipModel[]> {
+    const entities = await this.repo()
+      .createQueryBuilder("membership")
+      .innerJoinAndSelect("membership.user", "user")
+      .where("membership.organizationId = :organizationId", { organizationId })
+      .orderBy("LOWER(user.email)", "ASC")
+      .getMany()
+    return entities.map((entity) => this.toModel(entity))
+  }
+
+  async findAllByOrganizationIds(
+    organizationIds: string[],
+  ): Promise<OrganizationMembershipModel[]> {
+    if (organizationIds.length === 0) return []
+
+    const entities = await this.repo().find({
+      where: { organizationId: In(organizationIds) },
+      relations: ["user", "organization"],
     })
     return entities.map((entity) => this.toModel(entity))
   }

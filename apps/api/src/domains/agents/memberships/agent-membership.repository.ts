@@ -57,6 +57,27 @@ export class AgentMembershipRepository {
     return entities.map((entity) => this.toModel(entity))
   }
 
+  async findAdminAndOwnerByUser(userId: string): Promise<AgentMembershipModel[]> {
+    const entities = await this.repo().find({
+      where: [
+        { userId, role: "admin" },
+        { userId, role: "owner" },
+      ],
+      relations: ["user", "agent"],
+    })
+    return entities.map((entity) => this.toModel(entity))
+  }
+
+  async findAllByAgentIds(agentIds: string[]): Promise<AgentMembershipModel[]> {
+    if (agentIds.length === 0) return []
+
+    const entities = await this.repo().find({
+      where: { agentId: In(agentIds) },
+      relations: ["user", "agent"],
+    })
+    return entities.map((entity) => this.toModel(entity))
+  }
+
   async findByUserAndAgent({
     userId,
     agentId,

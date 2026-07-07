@@ -28,6 +28,14 @@ export class ProjectMembershipsService {
     return this.projectMembershipRepository.findAllByUser(userId)
   }
 
+  async listAdminAndOwnerMembershipsForUser(userId: string): Promise<ProjectMembershipModel[]> {
+    return this.projectMembershipRepository.findAdminAndOwnerByUser(userId)
+  }
+
+  async listMembershipsByProjectIds(projectIds: string[]): Promise<ProjectMembershipModel[]> {
+    return this.projectMembershipRepository.findAllByProjectIds(projectIds)
+  }
+
   async findProjectMembership({
     userId,
     projectId,
