@@ -6,7 +6,6 @@ import { ProjectMembershipContextResolver } from "@/common/context/resolvers/pro
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { User } from "@/domains/users/user.entity"
@@ -15,7 +14,6 @@ import { AgentsModule } from "../agents/agents.module"
 import { DocumentTagsModule } from "../documents/tags/document-tags.module"
 import { FeatureFlag } from "../feature-flags/feature-flag.entity"
 import { InvitationsModule } from "../invitations/invitations.module"
-import { ProjectMembership } from "./memberships/project-membership.entity"
 import { ProjectMembershipRepository } from "./memberships/project-membership.repository"
 import { ProjectMembershipsController } from "./memberships/project-memberships.controller"
 import { ProjectMembershipsService } from "./memberships/project-memberships.service"
@@ -26,14 +24,7 @@ import { ProjectsService } from "./projects.service"
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      Project,
-      Organization,
-      OrganizationMembership,
-      ProjectMembership,
-      User,
-      FeatureFlag,
-    ]),
+    TypeOrmModule.forFeature([Project, Organization, User, FeatureFlag]),
     MembershipsModule,
     OrganizationsModule,
     forwardRef(() => AgentsModule),

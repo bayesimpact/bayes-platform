@@ -8,10 +8,10 @@ import { AgentRepository } from "@/domains/agents/agent.repository"
 import { ProjectMembershipRepository } from "@/domains/projects/memberships/project-membership.repository"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UserRepository } from "@/domains/users/user.repository"
-import type { AgentMembershipRole } from "./agent-membership.entity"
 import type { AgentMembershipModel } from "./agent-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipRepository } from "./agent-membership.repository"
+import type { AgentMembershipRole } from "./agent-membership.types"
 
 export const PLACEHOLDER_AUTH0_ID_PREFIX = "00000000-0000-0000-0000-"
 

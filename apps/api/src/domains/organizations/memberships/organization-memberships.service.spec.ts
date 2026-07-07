@@ -5,7 +5,10 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { UserMembership } from "@/domains/memberships/user-membership.entity"
-import { organizationMembershipFactory } from "@/domains/organizations/memberships/organization-membership.factory"
+import {
+  organizationMembershipFactory,
+  saveOrgMembership,
+} from "@/domains/organizations/memberships/organization-membership.factory"
 import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 import {
   createOrganizationWithOwner,
@@ -107,12 +110,13 @@ describe("OrganizationMembershipsService", () => {
       const savedOrganization2 = await repositories.organizationRepository.save(
         organizationFactory.build({ name: "Org 2" }),
       )
-      await repositories.organizationMembershipRepository.save(
-        organizationMembershipFactory
+      await saveOrgMembership({
+        repositories,
+        membership: organizationMembershipFactory
           .transient({ user, organization: savedOrganization2 })
           .member()
           .build(),
-      )
+      })
 
       const result1 = await service.findOrganizationMembership({
         userId: user.id,
@@ -136,26 +140,21 @@ describe("OrganizationMembershipsService", () => {
   describe("upsertOrganizationAdminMembership", () => {
     it("creates an admin organization membership when none exists", async () => {
       const { user, organization } = await createOrganizationWithOwner(repositories)
-      await repositories.organizationMembershipRepository.delete({ userId: user.id })
+      await repositories.userMembershipRepository.delete({ userId: user.id })
 
       await service.upsertOrganizationAdminMembership({
         userId: user.id,
         organizationId: organization.id,
       })
 
-      const membership = await repositories.organizationMembershipRepository.findOne({
-        where: { userId: user.id, organizationId: organization.id },
-      })
-      expect(membership?.role).toBe("admin")
-
-      const userMembership = await setup.dataSource.getRepository(UserMembership).findOne({
+      const membership = await repositories.userMembershipRepository.findOne({
         where: {
           userId: user.id,
           resourceId: organization.id,
           resourceType: "organization",
         },
       })
-      expect(userMembership?.role).toBe("admin")
+      expect(membership?.role).toBe("admin")
     })
 
     it("promotes a member to admin", async () => {
@@ -168,8 +167,12 @@ describe("OrganizationMembershipsService", () => {
         organizationId: organization.id,
       })
 
-      const membership = await repositories.organizationMembershipRepository.findOneOrFail({
-        where: { userId: user.id, organizationId: organization.id },
+      const membership = await repositories.userMembershipRepository.findOneOrFail({
+        where: {
+          userId: user.id,
+          resourceId: organization.id,
+          resourceType: "organization",
+        },
       })
       expect(membership.role).toBe("admin")
     })
@@ -182,28 +185,26 @@ describe("OrganizationMembershipsService", () => {
         organizationId: organization.id,
       })
 
-      const membership = await repositories.organizationMembershipRepository.findOneOrFail({
-        where: { userId: user.id, organizationId: organization.id },
+      const membership = await repositories.userMembershipRepository.findOneOrFail({
+        where: {
+          userId: user.id,
+          resourceId: organization.id,
+          resourceType: "organization",
+        },
       })
       expect(membership.role).toBe("owner")
     })
   })
 
   describe("createOrganizationOwnerMembership", () => {
-    it("dual-writes owner membership to both tables", async () => {
+    it("writes owner membership to user_membership", async () => {
       const { user, organization } = await createOrganizationWithOwner(repositories)
-      await repositories.organizationMembershipRepository.delete({ userId: user.id })
-      await setup.dataSource.getRepository(UserMembership).delete({ userId: user.id })
+      await repositories.userMembershipRepository.delete({ userId: user.id })
 
       await service.createOrganizationOwnerMembership({
         userId: user.id,
         organizationId: organization.id,
       })
-
-      const membership = await repositories.organizationMembershipRepository.findOneOrFail({
-        where: { userId: user.id, organizationId: organization.id },
-      })
-      expect(membership.role).toBe("owner")
 
       const userMembership = await setup.dataSource.getRepository(UserMembership).findOneOrFail({
         where: {

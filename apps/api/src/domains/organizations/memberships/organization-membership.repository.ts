@@ -2,31 +2,22 @@ import { Injectable } from "@nestjs/common"
 import { In, type Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { UserMembershipRepository } from "@/domains/memberships/user-membership.repository"
-import type { Organization } from "@/domains/organizations/organization.entity"
-import {
-  OrganizationMembership,
-  type OrganizationMembershipRole,
-} from "./organization-membership.entity"
+import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { Organization } from "@/domains/organizations/organization.entity"
 import type { OrganizationMembershipModel } from "./organization-membership.model"
+import type { OrganizationMembershipRole } from "./organization-membership.types"
+
+const ORGANIZATION_RESOURCE_TYPE = "organization" as const
 
 /**
  * Repository for organization memberships.
  *
- * Reads from the legacy `organization_membership` table. Writes to both the
- * legacy table and the unified `user_membership` table (dual-write transition).
- *
- * All write methods participate in whatever transaction is active in the
- * current async context (via TransactionService.getManager()). The service
- * layer is responsible for starting transactions using TransactionService.run().
+ * Reads and writes the unified `user_membership` table with
+ * `resourceType = 'organization'`.
  */
 @Injectable()
 export class OrganizationMembershipRepository {
-  constructor(
-    private readonly transactionService: TransactionService,
-    private readonly userMembershipRepository: UserMembershipRepository,
-  ) {}
+  constructor(private readonly transactionService: TransactionService) {}
 
   async findByUserAndOrganization({
     userId,
@@ -35,41 +26,59 @@ export class OrganizationMembershipRepository {
     userId: string
     organizationId: string
   }): Promise<OrganizationMembershipModel | null> {
-    const entity = await this.repo().findOne({
-      where: { userId, organizationId },
-      relations: ["user", "organization"],
+    const membership = await this.userMembershipRepo().findOne({
+      where: {
+        userId,
+        resourceType: ORGANIZATION_RESOURCE_TYPE,
+        resourceId: organizationId,
+      },
+      relations: ["user"],
     })
-    return entity ? this.toModel(entity) : null
+    if (!membership) return null
+
+    const organization = await this.organizationRepo().findOne({
+      where: { id: organizationId },
+    })
+    if (!organization) return null
+
+    return this.toModel(membership, organization)
   }
 
   async findAllByUser(userId: string): Promise<OrganizationMembershipModel[]> {
-    const entities = await this.repo().find({
-      where: { userId },
-      relations: ["user", "organization"],
+    const memberships = await this.userMembershipRepo().find({
+      where: { userId, resourceType: ORGANIZATION_RESOURCE_TYPE },
+      relations: ["user"],
       order: { createdAt: "DESC" },
     })
-    return entities.map((entity) => this.toModel(entity))
+    return this.toModels(memberships)
   }
 
   async findAdminAndOwnerByUser(userId: string): Promise<OrganizationMembershipModel[]> {
-    const entities = await this.repo().find({
+    const memberships = await this.userMembershipRepo().find({
       where: [
-        { userId, role: "admin" },
-        { userId, role: "owner" },
+        { userId, resourceType: ORGANIZATION_RESOURCE_TYPE, role: "admin" },
+        { userId, resourceType: ORGANIZATION_RESOURCE_TYPE, role: "owner" },
       ],
-      relations: ["user", "organization"],
+      relations: ["user"],
     })
-    return entities.map((entity) => this.toModel(entity))
+    return this.toModels(memberships)
   }
 
   async findAllByOrganization(organizationId: string): Promise<OrganizationMembershipModel[]> {
-    const entities = await this.repo()
+    const memberships = await this.userMembershipRepo()
       .createQueryBuilder("membership")
       .innerJoinAndSelect("membership.user", "user")
-      .where("membership.organizationId = :organizationId", { organizationId })
+      .where("membership.resourceType = :resourceType", {
+        resourceType: ORGANIZATION_RESOURCE_TYPE,
+      })
+      .andWhere("membership.resourceId = :organizationId", { organizationId })
       .orderBy("LOWER(user.email)", "ASC")
       .getMany()
-    return entities.map((entity) => this.toModel(entity))
+
+    const organization = await this.organizationRepo().findOneOrFail({
+      where: { id: organizationId },
+    })
+    return memberships.map((membership) => this.toModel(membership, organization))
   }
 
   async findAllByOrganizationIds(
@@ -77,11 +86,14 @@ export class OrganizationMembershipRepository {
   ): Promise<OrganizationMembershipModel[]> {
     if (organizationIds.length === 0) return []
 
-    const entities = await this.repo().find({
-      where: { organizationId: In(organizationIds) },
-      relations: ["user", "organization"],
+    const memberships = await this.userMembershipRepo().find({
+      where: {
+        resourceType: ORGANIZATION_RESOURCE_TYPE,
+        resourceId: In(organizationIds),
+      },
+      relations: ["user"],
     })
-    return entities.map((entity) => this.toModel(entity))
+    return this.toModels(memberships)
   }
 
   async findOwnerByUserAndOrganizationName({
@@ -91,21 +103,25 @@ export class OrganizationMembershipRepository {
     userId: string
     organizationName: string
   }): Promise<OrganizationMembershipModel | null> {
-    const entity = await this.repo()
+    const membership = await this.userMembershipRepo()
       .createQueryBuilder("membership")
-      .innerJoinAndSelect("membership.organization", "organization")
       .innerJoinAndSelect("membership.user", "user")
+      .innerJoin(Organization, "organization", "organization.id = membership.resource_id")
       .where("membership.userId = :userId", { userId })
+      .andWhere("membership.resourceType = :resourceType", {
+        resourceType: ORGANIZATION_RESOURCE_TYPE,
+      })
       .andWhere("membership.role = :role", { role: "owner" })
       .andWhere("LOWER(organization.name) = LOWER(:organizationName)", { organizationName })
       .getOne()
-    return entity ? this.toModel(entity) : null
+    if (!membership) return null
+
+    const organization = await this.organizationRepo().findOneOrFail({
+      where: { id: membership.resourceId },
+    })
+    return this.toModel(membership, organization)
   }
 
-  /**
-   * Creates a membership, writing to both the legacy and unified tables.
-   * Must be called from within a TransactionService.run() context.
-   */
   async createMembership({
     userId,
     organizationId,
@@ -115,29 +131,26 @@ export class OrganizationMembershipRepository {
     organizationId: string
     role: OrganizationMembershipRole
   }): Promise<OrganizationMembershipModel> {
-    const membershipRepo = this.repo()
-    const entity = membershipRepo.create({ userId, organizationId, role })
-    const saved = await membershipRepo.save(entity)
-    await this.userMembershipRepository.upsertMembership({
-      userId,
-      resourceType: "organization",
-      resourceId: organizationId,
-      role,
-    })
-    const withRelations = await membershipRepo.findOneOrFail({
+    const saved = await this.userMembershipRepo().save(
+      this.userMembershipRepo().create({
+        userId,
+        resourceType: ORGANIZATION_RESOURCE_TYPE,
+        resourceId: organizationId,
+        role,
+      }),
+    )
+    const withUser = await this.userMembershipRepo().findOneOrFail({
       where: { id: saved.id },
-      relations: ["user", "organization"],
+      relations: ["user"],
     })
-    return this.toModel(withRelations)
+    const organization = await this.organizationRepo().findOneOrFail({
+      where: { id: organizationId },
+    })
+    return this.toModel(withUser, organization)
   }
 
-  /**
-   * Updates the role of an existing membership, writing to both tables.
-   * Must be called from within a TransactionService.run() context.
-   */
   async updateRole({
     membershipId,
-    userId,
     organizationId,
     role,
   }: {
@@ -146,20 +159,16 @@ export class OrganizationMembershipRepository {
     organizationId: string
     role: OrganizationMembershipRole
   }): Promise<void> {
-    const membershipRepo = this.repo()
-    await membershipRepo.update({ id: membershipId, organizationId }, { role })
-    await this.userMembershipRepository.upsertMembership({
-      userId,
-      resourceType: "organization",
-      resourceId: organizationId,
-      role,
-    })
+    await this.userMembershipRepo().update(
+      {
+        id: membershipId,
+        resourceType: ORGANIZATION_RESOURCE_TYPE,
+        resourceId: organizationId,
+      },
+      { role },
+    )
   }
 
-  /**
-   * Deletes a membership from both tables.
-   * Must be called from within a TransactionService.run() context.
-   */
   async deleteMembership({
     membershipId,
     organizationId,
@@ -169,36 +178,58 @@ export class OrganizationMembershipRepository {
     organizationId: string
     userId: string
   }): Promise<void> {
-    const membershipRepo = this.repo()
-    await membershipRepo.delete({ id: membershipId, organizationId })
-    await this.userMembershipRepository.deleteMembership({
+    await this.userMembershipRepo().delete({
+      id: membershipId,
       userId,
-      resourceType: "organization",
+      resourceType: ORGANIZATION_RESOURCE_TYPE,
       resourceId: organizationId,
     })
   }
 
-  /** Returns organizations the user belongs to (convenience for list endpoints). */
   async findOrganizationsForUser(userId: string): Promise<Organization[]> {
     const memberships = await this.findAllByUser(userId)
     return memberships.map((membership) => membership.organization)
   }
 
-  private repo(): Repository<OrganizationMembership> {
-    return this.transactionService.getManager().getRepository(OrganizationMembership)
+  private userMembershipRepo(): Repository<UserMembership> {
+    return this.transactionService.getManager().getRepository(UserMembership)
   }
 
-  private toModel(entity: OrganizationMembership): OrganizationMembershipModel {
+  private organizationRepo(): Repository<Organization> {
+    return this.transactionService.getManager().getRepository(Organization)
+  }
+
+  private async toModels(memberships: UserMembership[]): Promise<OrganizationMembershipModel[]> {
+    if (memberships.length === 0) return []
+
+    const organizationIds = [...new Set(memberships.map((membership) => membership.resourceId))]
+    const organizations = await this.organizationRepo().find({
+      where: { id: In(organizationIds) },
+    })
+    const organizationById = new Map(
+      organizations.map((organization) => [organization.id, organization]),
+    )
+
+    return memberships.flatMap((membership) => {
+      const organization = organizationById.get(membership.resourceId)
+      return organization ? [this.toModel(membership, organization)] : []
+    })
+  }
+
+  private toModel(
+    membership: UserMembership,
+    organization: Organization,
+  ): OrganizationMembershipModel {
     return {
-      id: entity.id,
-      userId: entity.userId,
-      organizationId: entity.organizationId,
-      role: entity.role,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
-      deletedAt: entity.deletedAt,
-      user: entity.user,
-      organization: entity.organization,
+      id: membership.id,
+      userId: membership.userId,
+      organizationId: membership.resourceId,
+      role: membership.role as OrganizationMembershipRole,
+      createdAt: membership.createdAt,
+      updatedAt: membership.updatedAt,
+      deletedAt: membership.deletedAt,
+      user: membership.user,
+      organization,
     }
   }
 }

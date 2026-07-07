@@ -118,8 +118,8 @@ describe("AgentsService", () => {
         userId: user.id,
       })
 
-      const memberships = await repositories.agentMembershipRepository.find({
-        where: { agentId: result.id },
+      const memberships = await repositories.userMembershipRepository.find({
+        where: { resourceType: "agent", resourceId: result.id },
       })
 
       // Owner (creator) + admin = 2 memberships

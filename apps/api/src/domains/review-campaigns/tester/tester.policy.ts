@@ -1,17 +1,17 @@
 import { BasePolicy } from "@/common/policies/base-policy"
-import type { ReviewCampaignMembership } from "../memberships/review-campaign-membership.entity"
+import type { ReviewCampaignMembershipModel } from "../memberships/review-campaign-membership.model"
 import type { ReviewCampaign } from "../review-campaign.entity"
 
 type TesterPolicyContext = {
   reviewCampaign: ReviewCampaign
-  testerMembership: ReviewCampaignMembership | undefined
-  reviewerMembership: ReviewCampaignMembership | undefined
+  testerMembership: ReviewCampaignMembershipModel | undefined
+  reviewerMembership: ReviewCampaignMembershipModel | undefined
 }
 
 export class TesterPolicy extends BasePolicy<ReviewCampaign> {
   private readonly reviewCampaign: ReviewCampaign
-  private readonly testerMembership: ReviewCampaignMembership | undefined
-  private readonly reviewerMembership: ReviewCampaignMembership | undefined
+  private readonly testerMembership: ReviewCampaignMembershipModel | undefined
+  private readonly reviewerMembership: ReviewCampaignMembershipModel | undefined
 
   constructor(context: TesterPolicyContext) {
     // BasePolicy's organizationMembership is not relevant for tester auth — the
@@ -70,8 +70,8 @@ export class TesterPolicy extends BasePolicy<ReviewCampaign> {
   }
 
   private isMembershipForCampaign(
-    membership: ReviewCampaignMembership | undefined,
-  ): membership is ReviewCampaignMembership {
+    membership: ReviewCampaignMembershipModel | undefined,
+  ): membership is ReviewCampaignMembershipModel {
     return !!membership && membership.campaignId === this.reviewCampaign.id
   }
 

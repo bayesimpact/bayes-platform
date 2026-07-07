@@ -130,16 +130,29 @@ export class AgentsService {
     userId: string
     connectScope: RequiredConnectScope
   }): Promise<Agent[]> {
+    const memberships = await this.agentMembershipsService.listMembershipsForUser(userId)
+    const agentIdsInScope = memberships
+      .filter(
+        (membership) =>
+          membership.agent.projectId === connectScope.projectId &&
+          membership.agent.organizationId === connectScope.organizationId,
+      )
+      .map((membership) => membership.agentId)
+
+    if (agentIdsInScope.length === 0) {
+      return []
+    }
+
     return (
       await this.agentConnectRepository.find(connectScope, {
-        where: { agentMemberships: { userId } },
+        where: { id: In(agentIdsInScope) },
         relations: {
           documentTags: true,
           resourceLibraries: true,
           sessionCategories: { conversationSessionCategories: true },
         },
       })
-    )?.sort((a, b) => a.name.localeCompare(b.name))
+    )?.sort((agentA, agentB) => agentA.name.localeCompare(agentB.name))
   }
 
   /**

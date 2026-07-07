@@ -5,7 +5,7 @@ import { userMembershipFactory } from "@/domains/memberships/user-membership.fac
 import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import type { Agent } from "../agent.entity"
-import type { AgentMembership, AgentMembershipRole } from "./agent-membership.entity"
+import type { AgentMembershipFixture, AgentMembershipRole } from "./agent-membership.types"
 import { PLACEHOLDER_AUTH0_ID_PREFIX } from "./agent-memberships.service"
 
 type AgentMembershipTransientParams = {
@@ -13,7 +13,10 @@ type AgentMembershipTransientParams = {
   user: User
 }
 
-class AgentMembershipFactory extends Factory<AgentMembership, AgentMembershipTransientParams> {
+class AgentMembershipFactory extends Factory<
+  AgentMembershipFixture,
+  AgentMembershipTransientParams
+> {
   member() {
     return this.params({ role: "member" })
   }
@@ -47,32 +50,30 @@ export const agentMembershipFactory = AgentMembershipFactory.define(
       deletedAt: params.deletedAt || null,
       agent: transientParams.agent,
       user: transientParams.user,
-    } satisfies AgentMembership
+    } satisfies AgentMembershipFixture
   },
 )
 
 /**
- * Saves an AgentMembership to both the legacy table and user_memberships.
- * Use this in tests instead of `repositories.agentMembershipRepository.save()`
- * to keep user_memberships in sync during the dual-write transition period.
+ * Saves an agent membership to `user_membership`.
  */
 export const saveAgentMembership = async ({
   repositories,
   membership,
 }: {
   repositories: AllRepositories
-  membership: AgentMembership
+  membership: AgentMembershipFixture
 }) => {
-  const saved = await repositories.agentMembershipRepository.save(membership)
-  await repositories.userMembershipRepository.save(
+  const saved = await repositories.userMembershipRepository.save(
     userMembershipFactory.build({
-      userId: saved.userId,
+      id: membership.id,
+      userId: membership.userId,
       resourceType: "agent",
-      resourceId: saved.agentId,
-      role: saved.role,
+      resourceId: membership.agentId,
+      role: membership.role,
     }),
   )
-  return saved
+  return { ...membership, id: saved.id }
 }
 
 export const addUserToAgent = async ({
@@ -84,7 +85,7 @@ export const addUserToAgent = async ({
   repositories: AllRepositories
   agent: Agent
   user?: User
-  membership?: Partial<AgentMembership>
+  membership?: Partial<AgentMembershipFixture>
 }) => {
   const createMembership = async (user: User) => {
     const newMembership = await saveAgentMembership({

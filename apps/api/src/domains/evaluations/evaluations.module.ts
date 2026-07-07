@@ -12,16 +12,13 @@ import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { DocumentsModule } from "@/domains/documents/documents.module"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
-import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { LlmModule } from "@/external/llm/llm.module"
 import { Agent } from "../agents/agent.entity"
-import { AgentMembership } from "../agents/memberships/agent-membership.entity"
 import { Evaluation } from "./evaluation.entity"
 import { EvaluationGuard } from "./evaluation.guard"
 import { EvaluationsController } from "./evaluations.controller"
@@ -52,7 +49,6 @@ import { EvaluationReportsService } from "./reports/evaluation-reports.service"
     LlmModule,
     TypeOrmModule.forFeature([
       Agent,
-      AgentMembership,
       Evaluation,
       EvaluationExtractionDataset,
       EvaluationExtractionDatasetDocument,
@@ -61,9 +57,7 @@ import { EvaluationReportsService } from "./reports/evaluation-reports.service"
       EvaluationExtractionRun,
       EvaluationExtractionRunRecord,
       Organization,
-      OrganizationMembership,
       Project,
-      ProjectMembership,
     ]),
     EvaluationExtractionRunBatchModule,
     DocumentsModule,

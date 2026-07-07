@@ -1,4 +1,3 @@
-import type { Repository } from "typeorm"
 import {
   type AllRepositories,
   clearTestDatabase,
@@ -13,7 +12,6 @@ import {
 import { userFactory } from "@/domains/users/user.factory"
 import { projectFactory } from "../project.factory"
 import { ProjectsModule } from "../projects.module"
-import type { ProjectMembership } from "./project-membership.entity"
 import { addUserToProject } from "./project-membership.factory"
 import {
   PLACEHOLDER_AUTH0_ID_PREFIX,
@@ -23,14 +21,12 @@ import {
 describe("ProjectMembershipsService", () => {
   let service: ProjectMembershipsService
   let repositories: AllRepositories
-  let projectMembershipRepository: Repository<ProjectMembership>
   let agentMembershipsService: AgentMembershipsService
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({ additionalImports: [ProjectsModule] })
     repositories = setup.getAllRepositories()
-    projectMembershipRepository = repositories.projectMembershipRepository
     service = setup.module.get(ProjectMembershipsService)
     agentMembershipsService = setup.module.get(AgentMembershipsService)
   })
@@ -118,8 +114,12 @@ describe("ProjectMembershipsService", () => {
       })
 
       expect(result).toBeNull()
-      const updatedMembership = await projectMembershipRepository.findOneOrFail({
-        where: { projectId: project.id, userId: invitedUser.id },
+      const updatedMembership = await repositories.userMembershipRepository.findOneOrFail({
+        where: {
+          userId: invitedUser.id,
+          resourceType: "project",
+          resourceId: project.id,
+        },
       })
       expect(updatedMembership.role).toBe("admin")
       expect(createAdminAgentMembershipsSpy).toHaveBeenCalledTimes(1)
@@ -162,7 +162,7 @@ describe("ProjectMembershipsService", () => {
         projectId: project.id,
       })
 
-      const deletedMembership = await projectMembershipRepository.findOne({
+      const deletedMembership = await repositories.userMembershipRepository.findOne({
         where: { id: membership.id },
       })
       const deletedUser = await repositories.userRepository.findOne({

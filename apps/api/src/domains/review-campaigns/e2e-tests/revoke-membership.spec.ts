@@ -92,7 +92,7 @@ describe("ReviewCampaigns - revokeMembership", () => {
     membershipId = membership.id
 
     expectResponse(await subject(), 200)
-    const found = await repositories.reviewCampaignMembershipRepository.findOne({
+    const found = await repositories.userMembershipRepository.findOne({
       where: { id: membership.id },
     })
     expect(found).toBeNull()

@@ -11,12 +11,11 @@ import type { EvaluationExtractionDataset } from "@/domains/evaluations/extracti
 import type { EvaluationExtractionRun } from "@/domains/evaluations/extraction/runs/evaluation-extraction-run.entity"
 import type { EvaluationReport } from "@/domains/evaluations/reports/evaluation-report.entity"
 import type { Invitation } from "@/domains/invitations/invitation.entity"
-import type { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
-import type { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
+import type { OrganizationMembershipContextModel } from "@/domains/organizations/memberships/organization-membership.model"
 import type { ProjectMembershipModel } from "@/domains/projects/memberships/project-membership.model"
 import type { Project } from "@/domains/projects/project.entity"
 import type { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
-import type { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
+import type { ReviewCampaignMembershipModel } from "@/domains/review-campaigns/memberships/review-campaign-membership.model"
 import type { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import type { ReviewCampaignAgentType } from "@/domains/review-campaigns/review-campaigns.types"
 import type { User } from "@/domains/users/user.entity"
@@ -37,13 +36,13 @@ export interface EndpointRequest {
 }
 
 export interface EndpointRequestWithOrganizationMembership extends EndpointRequest {
-  organizationMembership: OrganizationMembership
+  organizationMembership: OrganizationMembershipContextModel
   organizationId: string
 }
 
 export interface EndpointRequestWithProject extends EndpointRequestWithOrganizationMembership {
   project: Project
-  projectMembership: ProjectMembership | undefined
+  projectMembership: ProjectMembershipModel | undefined
 }
 
 export interface EndpointRequestWithProjectMembership extends EndpointRequestWithProject {
@@ -103,8 +102,8 @@ export interface EndpointRequestWithReviewCampaign extends EndpointRequestWithPr
 
 export interface EndpointRequestWithReviewCampaignMembership
   extends EndpointRequestWithReviewCampaign {
-  testerMembership: ReviewCampaignMembership | undefined
-  reviewerMembership: ReviewCampaignMembership | undefined
+  testerMembership: ReviewCampaignMembershipModel | undefined
+  reviewerMembership: ReviewCampaignMembershipModel | undefined
 }
 
 export interface EndpointRequestWithAgentSessionInCampaign extends EndpointRequestWithProject {

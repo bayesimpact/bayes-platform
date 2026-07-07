@@ -1,8 +1,8 @@
-import type { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
+import type { OrganizationMembershipContextModel } from "@/domains/organizations/memberships/organization-membership.model"
 
 export class BasePolicy<T> {
   constructor(
-    private readonly organizationMembership: OrganizationMembership,
+    private readonly organizationMembership: OrganizationMembershipContextModel,
     protected readonly entity?: T,
   ) {
     this.organizationMembership = organizationMembership

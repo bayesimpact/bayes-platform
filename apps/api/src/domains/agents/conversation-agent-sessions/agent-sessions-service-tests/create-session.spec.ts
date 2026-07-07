@@ -1,7 +1,10 @@
 import { afterAll } from "@jest/globals"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { agentFactory } from "@/domains/agents/agent.factory"
-import { organizationMembershipFactory } from "@/domains/organizations/memberships/organization-membership.factory"
+import {
+  organizationMembershipFactory,
+  saveOrgMembership,
+} from "@/domains/organizations/memberships/organization-membership.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { agentSessionControllerTestSetup } from "./test-setup"
 
@@ -12,14 +15,8 @@ describe("createSession", () => {
     await sdk.shutdown()
   })
   it("should create a live session", async () => {
-    const {
-      service,
-      testAgent,
-      testUser,
-      testOrganization,
-      organizationMembershipRepository,
-      testProject,
-    } = getTestContext()
+    const { service, testAgent, testUser, testOrganization, repositories, testProject } =
+      getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
       projectId: testProject.id,
@@ -29,7 +26,7 @@ describe("createSession", () => {
       .transient({ user: testUser, organization: testOrganization })
       .member()
       .build()
-    await organizationMembershipRepository.save(membership)
+    await saveOrgMembership({ repositories, membership })
 
     const session = await service.createSession({
       connectScope,
@@ -47,14 +44,8 @@ describe("createSession", () => {
     expect(session.expiresAt).toBeNull()
   })
   it("should create a playground session", async () => {
-    const {
-      service,
-      testAgent,
-      testUser,
-      testOrganization,
-      organizationMembershipRepository,
-      testProject,
-    } = getTestContext()
+    const { service, testAgent, testUser, testOrganization, repositories, testProject } =
+      getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
       projectId: testProject.id,
@@ -64,7 +55,7 @@ describe("createSession", () => {
       .transient({ user: testUser, organization: testOrganization })
       .member()
       .build()
-    await organizationMembershipRepository.save(membership)
+    await saveOrgMembership({ repositories, membership })
 
     const session = await service.createSession({
       connectScope,
@@ -90,7 +81,7 @@ describe("createSession", () => {
       testProject,
       agentRepository,
       agentMessageRepository,
-      organizationMembershipRepository,
+      repositories,
     } = getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
@@ -101,7 +92,7 @@ describe("createSession", () => {
       .transient({ user: testUser, organization: testOrganization })
       .member()
       .build()
-    await organizationMembershipRepository.save(membership)
+    await saveOrgMembership({ repositories, membership })
 
     const greeting = "Hi! How can I help you today?"
     const agentWithGreeting = await agentRepository.save(
@@ -135,7 +126,7 @@ describe("createSession", () => {
       testOrganization,
       testProject,
       agentMessageRepository,
-      organizationMembershipRepository,
+      repositories,
     } = getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
@@ -146,7 +137,7 @@ describe("createSession", () => {
       .transient({ user: testUser, organization: testOrganization })
       .member()
       .build()
-    await organizationMembershipRepository.save(membership)
+    await saveOrgMembership({ repositories, membership })
 
     const session = await service.createSession({
       connectScope,
@@ -167,7 +158,7 @@ describe("createSession", () => {
       testProject,
       agentRepository,
       agentMessageRepository,
-      organizationMembershipRepository,
+      repositories,
     } = getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
@@ -178,7 +169,7 @@ describe("createSession", () => {
       .transient({ user: testUser, organization: testOrganization })
       .member()
       .build()
-    await organizationMembershipRepository.save(membership)
+    await saveOrgMembership({ repositories, membership })
 
     const whitespaceAgent = await agentRepository.save(
       agentRepository.create(

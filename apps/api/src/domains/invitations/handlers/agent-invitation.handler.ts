@@ -5,7 +5,7 @@ import { In, type Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 import { Agent } from "@/domains/agents/agent.entity"
-import type { AgentMembershipRole } from "@/domains/agents/memberships/agent-membership.entity"
+import type { AgentMembershipRole } from "@/domains/agents/memberships/agent-membership.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
 import {

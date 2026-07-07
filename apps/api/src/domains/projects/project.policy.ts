@@ -1,15 +1,15 @@
 import { BasePolicy } from "@/common/policies/base-policy"
-import type { OrganizationMembership } from "../organizations/memberships/organization-membership.entity"
-import type { ProjectMembership } from "./memberships/project-membership.entity"
+import type { OrganizationMembershipContextModel } from "../organizations/memberships/organization-membership.model"
+import type { ProjectMembershipFixture } from "./memberships/project-membership.types"
 import type { Project } from "./project.entity"
 
 export class ProjectPolicy extends BasePolicy<Project> {
-  protected readonly projectMembership?: ProjectMembership
+  protected readonly projectMembership?: ProjectMembershipFixture
 
   constructor(
     protected readonly context: {
-      organizationMembership: OrganizationMembership
-      projectMembership?: ProjectMembership
+      organizationMembership: OrganizationMembershipContextModel
+      projectMembership?: ProjectMembershipFixture
     },
     protected readonly entity?: Project,
   ) {

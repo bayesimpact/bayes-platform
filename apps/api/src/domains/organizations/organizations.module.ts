@@ -5,7 +5,6 @@ import { AuthModule } from "@/domains/auth/auth.module"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { User } from "@/domains/users/user.entity"
 import { UsersModule } from "@/domains/users/users.module"
-import { OrganizationMembership } from "./memberships/organization-membership.entity"
 import { OrganizationMembershipRepository } from "./memberships/organization-membership.repository"
 import { OrganizationMembershipsService } from "./memberships/organization-memberships.service"
 import { Organization } from "./organization.entity"
@@ -17,7 +16,7 @@ import { OrganizationAccountProvisioningService } from "./provisioning/organizat
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Organization, OrganizationMembership, User]),
+    TypeOrmModule.forFeature([Organization, User]),
     ActivitiesModule,
     MembershipsModule,
     UsersModule,

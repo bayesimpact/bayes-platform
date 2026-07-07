@@ -1,6 +1,6 @@
 import type { Agent } from "@/domains/agents/agent.entity"
 import type { User } from "@/domains/users/user.entity"
-import type { AgentMembershipRole } from "./agent-membership.entity"
+import type { AgentMembershipRole } from "./agent-membership.types"
 
 /**
  * Domain model for an agent membership.

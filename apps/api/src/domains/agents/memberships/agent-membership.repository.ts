@@ -1,29 +1,23 @@
 import { Injectable } from "@nestjs/common"
-import type { Repository } from "typeorm"
-import { In } from "typeorm"
+import { In, type Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { UserMembershipRepository } from "@/domains/memberships/user-membership.repository"
-import { AgentMembership, type AgentMembershipRole } from "./agent-membership.entity"
+import { Agent } from "@/domains/agents/agent.entity"
+import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import type { AgentMembershipModel } from "./agent-membership.model"
+import type { AgentMembershipRole } from "./agent-membership.types"
+
+const AGENT_RESOURCE_TYPE = "agent" as const
 
 /**
  * Repository for agent memberships.
  *
- * Reads from the legacy `agent_membership` table. Writes to both the legacy
- * table and the unified `user_membership` table (dual-write transition).
- *
- * All write methods participate in whatever transaction is active in the
- * current async context (via TransactionService.getManager()). The service
- * layer is responsible for starting transactions using TransactionService.run().
+ * Reads and writes the unified `user_membership` table with
+ * `resourceType = 'agent'`.
  */
 @Injectable()
 export class AgentMembershipRepository {
-  constructor(
-    private readonly transactionService: TransactionService,
-    private readonly userMembershipRepository: UserMembershipRepository,
-  ) {}
+  constructor(private readonly transactionService: TransactionService) {}
 
   async findById({
     membershipId,
@@ -32,50 +26,60 @@ export class AgentMembershipRepository {
     membershipId: string
     agentId?: string
   }): Promise<AgentMembershipModel | null> {
-    const entity = await this.repo().findOne({
-      where: { id: membershipId, agentId },
-      relations: ["user", "agent"],
+    const membership = await this.userMembershipRepo().findOne({
+      where: {
+        id: membershipId,
+        resourceType: AGENT_RESOURCE_TYPE,
+        ...(agentId ? { resourceId: agentId } : {}),
+      },
+      relations: ["user"],
     })
-    return entity ? this.toModel(entity) : null
+    if (!membership) return null
+
+    const agent = await this.agentRepo().findOne({ where: { id: membership.resourceId } })
+    if (!agent) return null
+
+    return this.toModel(membership, agent)
   }
 
   async findAllByAgent(agentId: string): Promise<AgentMembershipModel[]> {
-    const entities = await this.repo().find({
-      where: { agentId },
-      relations: ["user", "agent"],
+    const memberships = await this.userMembershipRepo().find({
+      where: { resourceType: AGENT_RESOURCE_TYPE, resourceId: agentId },
+      relations: ["user"],
       order: { createdAt: "DESC" },
     })
-    return entities.map((entity) => this.toModel(entity))
+    const agent = await this.agentRepo().findOneOrFail({ where: { id: agentId } })
+    return memberships.map((membership) => this.toModel(membership, agent))
   }
 
   async findAllByUser(userId: string): Promise<AgentMembershipModel[]> {
-    const entities = await this.repo().find({
-      where: { userId },
-      relations: ["user", "agent"],
+    const memberships = await this.userMembershipRepo().find({
+      where: { userId, resourceType: AGENT_RESOURCE_TYPE },
+      relations: ["user"],
       order: { createdAt: "DESC" },
     })
-    return entities.map((entity) => this.toModel(entity))
+    return this.toModels(memberships)
   }
 
   async findAdminAndOwnerByUser(userId: string): Promise<AgentMembershipModel[]> {
-    const entities = await this.repo().find({
+    const memberships = await this.userMembershipRepo().find({
       where: [
-        { userId, role: "admin" },
-        { userId, role: "owner" },
+        { userId, resourceType: AGENT_RESOURCE_TYPE, role: "admin" },
+        { userId, resourceType: AGENT_RESOURCE_TYPE, role: "owner" },
       ],
-      relations: ["user", "agent"],
+      relations: ["user"],
     })
-    return entities.map((entity) => this.toModel(entity))
+    return this.toModels(memberships)
   }
 
   async findAllByAgentIds(agentIds: string[]): Promise<AgentMembershipModel[]> {
     if (agentIds.length === 0) return []
 
-    const entities = await this.repo().find({
-      where: { agentId: In(agentIds) },
-      relations: ["user", "agent"],
+    const memberships = await this.userMembershipRepo().find({
+      where: { resourceType: AGENT_RESOURCE_TYPE, resourceId: In(agentIds) },
+      relations: ["user"],
     })
-    return entities.map((entity) => this.toModel(entity))
+    return this.toModels(memberships)
   }
 
   async findByUserAndAgent({
@@ -85,11 +89,20 @@ export class AgentMembershipRepository {
     userId: string
     agentId: string
   }): Promise<AgentMembershipModel | null> {
-    const entity = await this.repo().findOne({
-      where: { userId, agentId },
-      relations: ["user", "agent"],
+    const membership = await this.userMembershipRepo().findOne({
+      where: {
+        userId,
+        resourceType: AGENT_RESOURCE_TYPE,
+        resourceId: agentId,
+      },
+      relations: ["user"],
     })
-    return entity ? this.toModel(entity) : null
+    if (!membership) return null
+
+    const agent = await this.agentRepo().findOne({ where: { id: agentId } })
+    if (!agent) return null
+
+    return this.toModel(membership, agent)
   }
 
   async findByUserAndAgents({
@@ -101,17 +114,13 @@ export class AgentMembershipRepository {
   }): Promise<AgentMembershipModel[]> {
     if (agentIds.length === 0) return []
 
-    const entities = await this.repo().find({
-      where: { userId, agentId: In(agentIds) },
-      relations: ["user", "agent"],
+    const memberships = await this.userMembershipRepo().find({
+      where: { userId, resourceType: AGENT_RESOURCE_TYPE, resourceId: In(agentIds) },
+      relations: ["user"],
     })
-    return entities.map((entity) => this.toModel(entity))
+    return this.toModels(memberships)
   }
 
-  /**
-   * Creates a membership, writing to both the legacy and unified tables.
-   * Must be called from within a TransactionService.run() context.
-   */
   async createMembership({
     userId,
     agentId,
@@ -121,29 +130,24 @@ export class AgentMembershipRepository {
     agentId: string
     role: AgentMembershipRole
   }): Promise<AgentMembershipModel> {
-    const membershipRepo = this.repo()
-    const entity = membershipRepo.create({ userId, agentId, role })
-    const saved = await membershipRepo.save(entity)
-    await this.userMembershipRepository.upsertMembership({
-      userId,
-      resourceType: "agent",
-      resourceId: agentId,
-      role,
-    })
-    const withRelations = await membershipRepo.findOneOrFail({
+    const saved = await this.userMembershipRepo().save(
+      this.userMembershipRepo().create({
+        userId,
+        resourceType: AGENT_RESOURCE_TYPE,
+        resourceId: agentId,
+        role,
+      }),
+    )
+    const withUser = await this.userMembershipRepo().findOneOrFail({
       where: { id: saved.id },
-      relations: ["user", "agent"],
+      relations: ["user"],
     })
-    return this.toModel(withRelations)
+    const agent = await this.agentRepo().findOneOrFail({ where: { id: agentId } })
+    return this.toModel(withUser, agent)
   }
 
-  /**
-   * Updates the role of an existing membership, writing to both tables.
-   * Must be called from within a TransactionService.run() context.
-   */
   async updateRole({
     membershipId,
-    userId,
     agentId,
     role,
   }: {
@@ -152,20 +156,16 @@ export class AgentMembershipRepository {
     agentId: string
     role: AgentMembershipRole
   }): Promise<void> {
-    const membershipRepo = this.repo()
-    await membershipRepo.update({ id: membershipId, agentId }, { role })
-    await this.userMembershipRepository.upsertMembership({
-      userId,
-      resourceType: "agent",
-      resourceId: agentId,
-      role,
-    })
+    await this.userMembershipRepo().update(
+      {
+        id: membershipId,
+        resourceType: AGENT_RESOURCE_TYPE,
+        resourceId: agentId,
+      },
+      { role },
+    )
   }
 
-  /**
-   * Deletes a membership from both tables.
-   * Must be called from within a TransactionService.run() context.
-   */
   async deleteMembership({
     membershipId,
     agentId,
@@ -175,19 +175,14 @@ export class AgentMembershipRepository {
     agentId: string
     userId: string
   }): Promise<void> {
-    const membershipRepo = this.repo()
-    await membershipRepo.delete({ id: membershipId, agentId })
-    await this.userMembershipRepository.deleteMembership({
+    await this.userMembershipRepo().delete({
+      id: membershipId,
       userId,
-      resourceType: "agent",
+      resourceType: AGENT_RESOURCE_TYPE,
       resourceId: agentId,
     })
   }
 
-  /**
-   * Deletes all agent memberships for a user across the given agents.
-   * Must be called from within a TransactionService.run() context.
-   */
   async deleteMembershipsForUserAndAgents({
     userId,
     agentIds,
@@ -197,30 +192,48 @@ export class AgentMembershipRepository {
   }): Promise<void> {
     if (agentIds.length === 0) return
 
-    const membershipRepo = this.repo()
-    await membershipRepo.delete({ agentId: In(agentIds), userId })
-    await this.userMembershipRepository.deleteMembershipsForUser({
-      userId,
-      resourceType: "agent",
-      resourceIds: agentIds,
+    await this.userMembershipRepo()
+      .createQueryBuilder()
+      .delete()
+      .where(
+        '"user_id" = :userId AND "resource_type" = :resourceType AND "resource_id" = ANY(:agentIds)',
+        { userId, resourceType: AGENT_RESOURCE_TYPE, agentIds },
+      )
+      .execute()
+  }
+
+  private userMembershipRepo(): Repository<UserMembership> {
+    return this.transactionService.getManager().getRepository(UserMembership)
+  }
+
+  private agentRepo(): Repository<Agent> {
+    return this.transactionService.getManager().getRepository(Agent)
+  }
+
+  private async toModels(memberships: UserMembership[]): Promise<AgentMembershipModel[]> {
+    if (memberships.length === 0) return []
+
+    const agentIds = [...new Set(memberships.map((membership) => membership.resourceId))]
+    const agents = await this.agentRepo().find({ where: { id: In(agentIds) } })
+    const agentById = new Map(agents.map((agent) => [agent.id, agent]))
+
+    return memberships.flatMap((membership) => {
+      const agent = agentById.get(membership.resourceId)
+      return agent ? [this.toModel(membership, agent)] : []
     })
   }
 
-  private repo(): Repository<AgentMembership> {
-    return this.transactionService.getManager().getRepository(AgentMembership)
-  }
-
-  private toModel(entity: AgentMembership): AgentMembershipModel {
+  private toModel(membership: UserMembership, agent: Agent): AgentMembershipModel {
     return {
-      id: entity.id,
-      userId: entity.userId,
-      agentId: entity.agentId,
-      role: entity.role,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
-      deletedAt: entity.deletedAt,
-      user: entity.user,
-      agent: entity.agent,
+      id: membership.id,
+      userId: membership.userId,
+      agentId: membership.resourceId,
+      role: membership.role as AgentMembershipRole,
+      createdAt: membership.createdAt,
+      updatedAt: membership.updatedAt,
+      deletedAt: membership.deletedAt,
+      user: membership.user,
+      agent,
     }
   }
 }

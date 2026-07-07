@@ -127,7 +127,9 @@ export class UserMembershipRepository {
         role: params.role,
       },
     })
-    if (existing) return
+    if (existing) {
+      return
+    }
     await repo.save(
       repo.create({
         userId: params.userId,

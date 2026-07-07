@@ -100,7 +100,6 @@ describe("ReviewCampaigns - Reviewer auth", () => {
       await saveReviewCampaignMembership({
         repositories,
         membership: reviewCampaignMembershipFactory[callerRole]()
-          .accepted()
           .transient({ organization, project, campaign, user: caller })
           .build(),
       })

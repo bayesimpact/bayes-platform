@@ -16,15 +16,12 @@ import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/age
 import { AuthModule } from "@/domains/auth/auth.module"
 import { InvitationsModule } from "@/domains/invitations/invitations.module"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
-import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
 import { User } from "@/domains/users/user.entity"
 import { UsersModule } from "@/domains/users/users.module"
-import { ReviewCampaignMembership } from "./memberships/review-campaign-membership.entity"
 import { ReviewCampaignMembershipRepository } from "./memberships/review-campaign-membership.repository"
 import { ReviewCampaignMembershipsService } from "./memberships/review-campaign-memberships.service"
 import { CampaignReportGuard } from "./reports/campaign-report.guard"
@@ -60,11 +57,8 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
       ExtractionAgentSession,
       FormAgentSession,
       Organization,
-      OrganizationMembership,
       Project,
-      ProjectMembership,
       ReviewCampaign,
-      ReviewCampaignMembership,
       ReviewerSessionReview,
       TesterCampaignSurvey,
       TesterSessionFeedback,

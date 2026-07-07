@@ -3,7 +3,7 @@ import type { Repository } from "typeorm"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-import { ReviewCampaignMembership } from "./memberships/review-campaign-membership.entity"
+import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { ReviewCampaign } from "./review-campaign.entity"
 
 @Injectable()
@@ -15,7 +15,11 @@ export class ReviewCampaignRepository {
   ): Promise<Array<{ campaign: ReviewCampaign; memberCount: number }>> {
     const { entities, raw } = await this.repo()
       .createQueryBuilder("campaign")
-      .leftJoin(ReviewCampaignMembership, "membership", "membership.campaign_id = campaign.id")
+      .leftJoin(
+        UserMembership,
+        "membership",
+        "membership.resource_type = 'review_campaign' AND membership.resource_id = campaign.id",
+      )
       .where("campaign.organization_id = :organizationId", {
         organizationId: connectScope.organizationId,
       })

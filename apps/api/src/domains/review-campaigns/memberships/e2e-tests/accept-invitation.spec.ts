@@ -98,16 +98,20 @@ describe("Invitations - acceptInvitation (review campaigns)", () => {
     return { organization, project, campaign, membership, invitee }
   }
 
-  it("marks the tester membership accepted", async () => {
-    const { membership } = await seedInvitation()
+  it("ensures the campaign membership exists after accept", async () => {
+    const { campaign, invitee } = await seedInvitation()
 
     const response = await subject({ payload: { ticketId: "ticket_test" } })
     expectResponse(response, 201)
 
-    const updated = await repositories.reviewCampaignMembershipRepository.findOne({
-      where: { id: membership.id },
+    const membership = await repositories.userMembershipRepository.findOne({
+      where: {
+        userId: invitee.id,
+        resourceId: campaign.id,
+        resourceType: "review_campaign",
+      },
     })
-    expect(updated?.acceptedAt).not.toBeNull()
+    expect(membership).not.toBeNull()
   })
 
   it("ensures the invitee gets an organization membership (role: member)", async () => {
@@ -115,8 +119,12 @@ describe("Invitations - acceptInvitation (review campaigns)", () => {
 
     await subject({ payload: { ticketId: "ticket_test" } })
 
-    const orgMembership = await repositories.organizationMembershipRepository.findOne({
-      where: { userId: invitee.id, organizationId: organization.id },
+    const orgMembership = await repositories.userMembershipRepository.findOne({
+      where: {
+        userId: invitee.id,
+        resourceId: organization.id,
+        resourceType: "organization",
+      },
     })
     expect(orgMembership?.role).toBe("member")
   })
@@ -126,30 +134,39 @@ describe("Invitations - acceptInvitation (review campaigns)", () => {
 
     await subject({ payload: { ticketId: "ticket_test" } })
 
-    const projectMembership = await repositories.projectMembershipRepository.findOne({
-      where: { userId: invitee.id, projectId: project.id },
+    const projectMembership = await repositories.userMembershipRepository.findOne({
+      where: {
+        userId: invitee.id,
+        resourceId: project.id,
+        resourceType: "project",
+      },
     })
     expect(projectMembership?.role).toBe("member")
   })
 
-  it("is idempotent — second accept returns success without re-stamping", async () => {
-    const { membership } = await seedInvitation()
+  it("is idempotent — second accept returns success without duplicating membership", async () => {
+    const { membership, invitee, campaign } = await seedInvitation()
 
     const first = await subject({ payload: { ticketId: "ticket_test" } })
     expectResponse(first, 201)
 
-    const after = await repositories.reviewCampaignMembershipRepository.findOne({
+    const after = await repositories.userMembershipRepository.findOne({
       where: { id: membership.id },
     })
-    const firstAcceptedAt = after?.acceptedAt
+    const firstCreatedAt = after?.createdAt
 
     const second = await subject({ payload: { ticketId: "ticket_test" } })
     expectResponse(second, 201)
 
-    const afterSecond = await repositories.reviewCampaignMembershipRepository.findOne({
-      where: { id: membership.id },
+    const memberships = await repositories.userMembershipRepository.find({
+      where: {
+        userId: invitee.id,
+        resourceId: campaign.id,
+        resourceType: "review_campaign",
+      },
     })
-    expect(afterSecond?.acceptedAt?.getTime()).toBe(firstAcceptedAt?.getTime())
+    expect(memberships).toHaveLength(1)
+    expect(memberships[0]?.createdAt.getTime()).toBe(firstCreatedAt?.getTime())
   })
 
   it("returns 404 for an unknown ticketId", async () => {

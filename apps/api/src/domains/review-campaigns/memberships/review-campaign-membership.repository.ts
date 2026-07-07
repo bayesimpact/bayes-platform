@@ -1,28 +1,26 @@
 import { Injectable } from "@nestjs/common"
-import type { Repository } from "typeorm"
+import { In, type Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { UserMembershipRepository } from "@/domains/memberships/user-membership.repository"
+import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { ReviewCampaign } from "../review-campaign.entity"
 import type { ReviewCampaignMembershipRole } from "../review-campaigns.types"
-import { ReviewCampaignMembership } from "./review-campaign-membership.entity"
 import type { ReviewCampaignMembershipModel } from "./review-campaign-membership.model"
+
+const REVIEW_CAMPAIGN_RESOURCE_TYPE = "review_campaign" as const
 
 /**
  * Repository for review-campaign memberships.
  *
- * Reads from the legacy `review_campaign_membership` table. Writes to both the
- * legacy table and the unified `user_membership` table (dual-write transition).
+ * Reads and writes the unified `user_membership` table with
+ * `resourceType = 'review_campaign'`.
  *
  * A user may hold both `tester` and `reviewer` roles on the same campaign;
- * each role is a separate row in both tables.
+ * each role is a separate row.
  */
 @Injectable()
 export class ReviewCampaignMembershipRepository {
-  constructor(
-    private readonly transactionService: TransactionService,
-    private readonly userMembershipRepository: UserMembershipRepository,
-  ) {}
+  constructor(private readonly transactionService: TransactionService) {}
 
   async findById({
     membershipId,
@@ -31,11 +29,20 @@ export class ReviewCampaignMembershipRepository {
     membershipId: string
     campaignId: string
   }): Promise<ReviewCampaignMembershipModel | null> {
-    const entity = await this.repo().findOne({
-      where: { id: membershipId, campaignId },
-      relations: ["user", "campaign"],
+    const membership = await this.userMembershipRepo().findOne({
+      where: {
+        id: membershipId,
+        resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
+        resourceId: campaignId,
+      },
+      relations: ["user"],
     })
-    return entity ? this.toModel(entity) : null
+    if (!membership) return null
+
+    const campaign = await this.campaignRepo().findOne({ where: { id: campaignId } })
+    if (!campaign) return null
+
+    return this.toModel(membership, campaign)
   }
 
   async findByUserCampaignAndRole({
@@ -47,29 +54,40 @@ export class ReviewCampaignMembershipRepository {
     campaignId: string
     role: ReviewCampaignMembershipRole
   }): Promise<ReviewCampaignMembershipModel | null> {
-    const entity = await this.repo().findOne({
-      where: { userId, campaignId, role },
-      relations: ["user", "campaign"],
+    const membership = await this.userMembershipRepo().findOne({
+      where: {
+        userId,
+        resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
+        resourceId: campaignId,
+        role,
+      },
+      relations: ["user"],
     })
-    return entity ? this.toModel(entity) : null
+    if (!membership) return null
+
+    const campaign = await this.campaignRepo().findOne({ where: { id: campaignId } })
+    if (!campaign) return null
+
+    return this.toModel(membership, campaign)
   }
 
   async findAllByCampaign(campaignId: string): Promise<ReviewCampaignMembershipModel[]> {
-    const entities = await this.repo().find({
-      where: { campaignId },
-      relations: ["user", "campaign"],
+    const memberships = await this.userMembershipRepo().find({
+      where: { resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE, resourceId: campaignId },
+      relations: ["user"],
       order: { createdAt: "ASC" },
     })
-    return entities.map((entity) => this.toModel(entity))
+    const campaign = await this.campaignRepo().findOneOrFail({ where: { id: campaignId } })
+    return memberships.map((membership) => this.toModel(membership, campaign))
   }
 
   async findAllByUser(userId: string): Promise<ReviewCampaignMembershipModel[]> {
-    const entities = await this.repo().find({
-      where: { userId },
-      relations: ["user", "campaign"],
+    const memberships = await this.userMembershipRepo().find({
+      where: { userId, resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE },
+      relations: ["user"],
       order: { createdAt: "DESC" },
     })
-    return entities.map((entity) => this.toModel(entity))
+    return this.toModels(memberships)
   }
 
   async findAllByUserAndRole({
@@ -79,12 +97,11 @@ export class ReviewCampaignMembershipRepository {
     userId: string
     role: ReviewCampaignMembershipRole
   }): Promise<ReviewCampaignMembershipModel[]> {
-    const entities = await this.repo().find({
-      where: { userId, role },
-      relations: ["campaign"],
+    const memberships = await this.userMembershipRepo().find({
+      where: { userId, resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE, role },
       order: { createdAt: "DESC" },
     })
-    return entities.map((entity) => this.toModel(entity))
+    return this.toModels(memberships)
   }
 
   async findAllByUserAndCampaign({
@@ -94,23 +111,24 @@ export class ReviewCampaignMembershipRepository {
     userId: string
     campaignId: string
   }): Promise<ReviewCampaignMembershipModel[]> {
-    const entities = await this.repo().find({
-      where: { userId, campaignId },
-      relations: ["user", "campaign"],
+    const memberships = await this.userMembershipRepo().find({
+      where: {
+        userId,
+        resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
+        resourceId: campaignId,
+      },
+      relations: ["user"],
     })
-    return entities.map((entity) => this.toModel(entity))
+    const campaign = await this.campaignRepo().findOneOrFail({ where: { id: campaignId } })
+    return memberships.map((membership) => this.toModel(membership, campaign))
   }
 
-  /**
-   * Accepts an invitation: creates the legacy membership (with acceptedAt) and
-   * dual-writes to `user_membership`. Idempotent when the role already exists.
-   */
   async acceptMembership({
     campaignId,
     userId,
     role,
-    organizationId,
-    projectId,
+    organizationId: _organizationId,
+    projectId: _projectId,
   }: {
     campaignId: string
     userId: string
@@ -118,53 +136,38 @@ export class ReviewCampaignMembershipRepository {
     organizationId: string
     projectId: string
   }): Promise<ReviewCampaignMembershipModel> {
-    const membershipRepo = this.repo()
+    const membershipRepo = this.userMembershipRepo()
     const existing = await membershipRepo.findOne({
-      where: { campaignId, userId, role },
-      relations: ["user", "campaign"],
+      where: {
+        userId,
+        resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
+        resourceId: campaignId,
+        role,
+      },
+      relations: ["user"],
     })
 
     if (existing) {
-      if (!existing.acceptedAt) {
-        existing.acceptedAt = new Date()
-        await membershipRepo.save(existing)
-      }
-      await this.userMembershipRepository.upsertMembership({
-        userId,
-        resourceType: "review_campaign",
-        resourceId: campaignId,
-        role,
-      })
-      return this.toModel(existing)
+      const campaign = await this.campaignRepo().findOneOrFail({ where: { id: campaignId } })
+      return this.toModel(existing, campaign)
     }
 
     const saved = await membershipRepo.save(
       membershipRepo.create({
-        organizationId,
-        projectId,
-        campaignId,
         userId,
+        resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
+        resourceId: campaignId,
         role,
-        acceptedAt: new Date(),
       }),
     )
-    await this.userMembershipRepository.upsertMembership({
-      userId,
-      resourceType: "review_campaign",
-      resourceId: campaignId,
-      role,
-    })
-    const withRelations = await membershipRepo.findOneOrFail({
+    const withUser = await membershipRepo.findOneOrFail({
       where: { id: saved.id },
-      relations: ["user", "campaign"],
+      relations: ["user"],
     })
-    return this.toModel(withRelations)
+    const campaign = await this.campaignRepo().findOneOrFail({ where: { id: campaignId } })
+    return this.toModel(withUser, campaign)
   }
 
-  /**
-   * Deletes a membership from both tables. Must include `role` because a user
-   * may hold multiple roles on the same campaign.
-   */
   async deleteMembership({
     membershipId,
     campaignId,
@@ -176,34 +179,52 @@ export class ReviewCampaignMembershipRepository {
     userId: string
     role: ReviewCampaignMembershipRole
   }): Promise<void> {
-    const membershipRepo = this.repo()
-    await membershipRepo.delete({ id: membershipId, campaignId })
-    await this.userMembershipRepository.deleteMembership({
+    await this.userMembershipRepo().delete({
+      id: membershipId,
       userId,
-      resourceType: "review_campaign",
+      resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
       resourceId: campaignId,
       role,
     })
   }
 
-  private repo(): Repository<ReviewCampaignMembership> {
-    return this.transactionService.getManager().getRepository(ReviewCampaignMembership)
+  private userMembershipRepo(): Repository<UserMembership> {
+    return this.transactionService.getManager().getRepository(UserMembership)
   }
 
-  private toModel(entity: ReviewCampaignMembership): ReviewCampaignMembershipModel {
+  private campaignRepo(): Repository<ReviewCampaign> {
+    return this.transactionService.getManager().getRepository(ReviewCampaign)
+  }
+
+  private async toModels(memberships: UserMembership[]): Promise<ReviewCampaignMembershipModel[]> {
+    if (memberships.length === 0) return []
+
+    const campaignIds = [...new Set(memberships.map((membership) => membership.resourceId))]
+    const campaigns = await this.campaignRepo().find({ where: { id: In(campaignIds) } })
+    const campaignById = new Map(campaigns.map((campaign) => [campaign.id, campaign]))
+
+    return memberships.flatMap((membership) => {
+      const campaign = campaignById.get(membership.resourceId)
+      return campaign ? [this.toModel(membership, campaign)] : []
+    })
+  }
+
+  private toModel(
+    membership: UserMembership,
+    campaign: ReviewCampaign,
+  ): ReviewCampaignMembershipModel {
     return {
-      id: entity.id,
-      userId: entity.userId,
-      campaignId: entity.campaignId,
-      organizationId: entity.organizationId,
-      projectId: entity.projectId,
-      role: entity.role,
-      acceptedAt: entity.acceptedAt,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
-      deletedAt: entity.deletedAt,
-      user: entity.user,
-      campaign: entity.campaign,
+      id: membership.id,
+      userId: membership.userId,
+      campaignId: membership.resourceId,
+      organizationId: campaign.organizationId,
+      projectId: campaign.projectId,
+      role: membership.role as ReviewCampaignMembershipRole,
+      createdAt: membership.createdAt,
+      updatedAt: membership.updatedAt,
+      deletedAt: membership.deletedAt,
+      user: membership.user,
+      campaign,
     }
   }
 }

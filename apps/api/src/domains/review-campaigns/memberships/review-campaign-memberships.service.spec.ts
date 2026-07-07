@@ -35,7 +35,7 @@ describe("ReviewCampaignMembershipsService", () => {
   })
 
   describe("acceptCampaignMembership", () => {
-    it("creates legacy and unified rows for a new membership", async () => {
+    it("creates a unified user_membership row for a new membership", async () => {
       const { organization, project, user } = await createOrganizationWithProject(repositories)
       const agent = await repositories.agentRepository.save(
         agentFactory.transient({ organization, project }).build(),
@@ -52,13 +52,7 @@ describe("ReviewCampaignMembershipsService", () => {
         projectId: project.id,
       })
 
-      const legacy = await repositories.reviewCampaignMembershipRepository.findOne({
-        where: { campaignId: campaign.id, userId: user.id, role: "tester" },
-      })
-      expect(legacy).not.toBeNull()
-      expect(legacy?.acceptedAt).not.toBeNull()
-
-      const unified = await setup.dataSource.getRepository(UserMembership).findOne({
+      const unified = await repositories.userMembershipRepository.findOne({
         where: {
           userId: user.id,
           resourceId: campaign.id,
@@ -105,7 +99,7 @@ describe("ReviewCampaignMembershipsService", () => {
   })
 
   describe("removeCampaignMembership", () => {
-    it("deletes only the targeted role from both tables", async () => {
+    it("deletes only the targeted role from user_membership", async () => {
       const { organization, project, user } = await createOrganizationWithProject(repositories)
       const agent = await repositories.agentRepository.save(
         agentFactory.transient({ organization, project }).build(),
@@ -142,12 +136,6 @@ describe("ReviewCampaignMembershipsService", () => {
         userId: user.id,
         role: "tester",
       })
-
-      const remainingLegacy = await repositories.reviewCampaignMembershipRepository.find({
-        where: { campaignId: campaign.id, userId: user.id },
-      })
-      expect(remainingLegacy).toHaveLength(1)
-      expect(remainingLegacy[0]?.role).toBe("reviewer")
 
       const remainingUnified = await setup.dataSource.getRepository(UserMembership).find({
         where: {

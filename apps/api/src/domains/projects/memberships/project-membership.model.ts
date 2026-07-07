@@ -1,6 +1,6 @@
 import type { Project } from "@/domains/projects/project.entity"
 import type { User } from "@/domains/users/user.entity"
-import type { ProjectMembershipRole } from "./project-membership.entity"
+import type { ProjectMembershipRole } from "./project-membership.types"
 
 /**
  * Domain model for a project membership.

@@ -24,7 +24,6 @@ import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
-import { buildDate } from "@/common/utils/build-date"
 import { PendingInvitationsSection } from "@/studio/features/invitations/components/PendingInvitationsSection"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 
@@ -143,15 +142,7 @@ export function ParticipantsList({
                   <TableCell>
                     <Badge variant="outline">{roleLabel(membership.role)}</Badge>
                   </TableCell>
-                  <TableCell>
-                    {membership.acceptedAt ? (
-                      buildDate(membership.acceptedAt)
-                    ) : (
-                      <span className="text-muted-foreground text-sm italic">
-                        {t("reviewCampaigns:participants.pending")}
-                      </span>
-                    )}
-                  </TableCell>
+                  <TableCell />
                   <TableCell className="text-right">
                     <Button
                       variant="ghost"

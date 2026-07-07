@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common"
-import type { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ReviewCampaignMembershipRepository } from "@/domains/review-campaigns/memberships/review-campaign-membership.repository"
 import type { ContextResolver, ResolvableRequest } from "../context-resolver.interface"
@@ -29,11 +28,7 @@ export class ReviewCampaignMembershipContextResolver implements ContextResolver 
     const reviewerMembership = memberships.find((membership) => membership.role === "reviewer")
 
     const requestWithMembership = request as EndpointRequestWithReviewCampaignMembership
-    requestWithMembership.testerMembership = testerMembership as
-      | ReviewCampaignMembership
-      | undefined
-    requestWithMembership.reviewerMembership = reviewerMembership as
-      | ReviewCampaignMembership
-      | undefined
+    requestWithMembership.testerMembership = testerMembership
+    requestWithMembership.reviewerMembership = reviewerMembership
   }
 }

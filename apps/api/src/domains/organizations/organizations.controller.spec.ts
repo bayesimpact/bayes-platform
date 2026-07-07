@@ -1,6 +1,6 @@
+import { randomUUID } from "node:crypto"
 import type { OrganizationDto } from "@caseai-connect/api-contracts"
 import { OrganizationsRoutes } from "@caseai-connect/api-contracts"
-import { randomUUID } from "node:crypto"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
@@ -116,8 +116,12 @@ describe("Organizations - createOrganization", () => {
     const response = await subject({ payload: { name: "Owned Org" } })
 
     expectResponse(response, 201)
-    const membership = await repositories.organizationMembershipRepository.findOne({
-      where: { userId: user.id, organizationId: response.body.data.id },
+    const membership = await repositories.userMembershipRepository.findOne({
+      where: {
+        userId: user.id,
+        resourceId: response.body.data.id,
+        resourceType: "organization",
+      },
     })
     expect(membership).not.toBeNull()
     expect(membership?.role).toBe("owner")

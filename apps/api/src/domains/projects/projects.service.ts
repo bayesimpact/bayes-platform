@@ -2,7 +2,7 @@ import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
 import { Injectable } from "@nestjs/common"
 import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: DataSource required at runtime for NestJS DI
-import { DataSource, type Repository } from "typeorm"
+import { DataSource, In, type Repository } from "typeorm"
 import { ALL_ENTITIES } from "@/common/all-entities"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -47,8 +47,14 @@ export class ProjectsService {
     organizationId: string
     userId: string
   }): Promise<Project[]> {
+    const memberships = await this.projectMembershipsService.listMembershipsForUser(userId)
+    const projectIds = memberships.map((membership) => membership.projectId)
+    if (projectIds.length === 0) {
+      return []
+    }
+
     return this.projectRepository.find({
-      where: { organizationId, projectMemberships: { userId } },
+      where: { organizationId, id: In(projectIds) },
       relations: { featureFlags: true, projectAgentSessionCategories: true },
       order: { createdAt: "DESC" },
     })

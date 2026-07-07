@@ -2,14 +2,8 @@ import type { User } from "@/domains/users/user.entity"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type { ReviewCampaignMembershipRole } from "../review-campaigns.types"
 
-/**
- * Domain model for a review-campaign membership.
- *
- * Plain object returned to the service layer. `user` and `campaign` are TypeORM
- * entities for now (pragmatic compromise during the transition away from legacy
- * tables).
- */
-export type ReviewCampaignMembershipModel = {
+/** Plain-object shape used by test factories before persistence. */
+export type ReviewCampaignMembershipFixture = {
   id: string
   userId: string
   campaignId: string

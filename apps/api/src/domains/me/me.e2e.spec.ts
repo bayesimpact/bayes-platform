@@ -209,7 +209,6 @@ describe("MeController (e2e)", () => {
         repositories,
         membership: reviewCampaignMembershipFactory
           .reviewer()
-          .accepted()
           .transient({ organization, project, campaign: activeCampaign, user })
           .build(),
       })
@@ -217,7 +216,6 @@ describe("MeController (e2e)", () => {
         repositories,
         membership: reviewCampaignMembershipFactory
           .tester()
-          .accepted()
           .transient({ organization, project, campaign: draftCampaign, user })
           .build(),
       })

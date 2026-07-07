@@ -47,7 +47,6 @@ export type ReviewCampaignMembershipDto = {
   userId: string
   userEmail: string
   role: ReviewCampaignMembershipRole
-  acceptedAt: TimeType | null
 }
 
 export type CampaignAggregatesDto = {

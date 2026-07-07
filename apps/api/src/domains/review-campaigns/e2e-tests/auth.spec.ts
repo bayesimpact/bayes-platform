@@ -12,7 +12,11 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
-import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import {
+  mockAuth0EmailForSub,
+  mockForeignAuth0Id,
+  setupUserGuardForTesting,
+} from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { reviewCampaignFactory } from "../review-campaign.factory"
 import { ReviewCampaignsModule } from "../review-campaigns.module"
@@ -57,10 +61,11 @@ describe("ReviewCampaigns - Auth", () => {
   })
 
   const createContextForRole = async (role: "owner" | "admin" | "member" = "owner") => {
-    const { organization, project } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id },
+    const { organization, project, user } = await createOrganizationWithProject(repositories, {
+      user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
       projectMembership: { role },
     })
+    auth0Id = user.auth0Id
     const agent = agentFactory.transient({ organization, project }).build()
     await repositories.agentRepository.save(agent)
     const campaign = reviewCampaignFactory.transient({ organization, project, agent }).build()

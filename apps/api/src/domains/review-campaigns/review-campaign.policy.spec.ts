@@ -3,9 +3,9 @@ import {
   testPolicyScopedByProject,
 } from "@/common/test/test-project-scoped-policy.helpers"
 import { agentFactory } from "@/domains/agents/agent.factory"
-import type { OrganizationMembershipRole } from "@/domains/organizations/memberships/organization-membership.entity"
+import type { OrganizationMembershipRole } from "@/domains/organizations/memberships/organization-membership.types"
 import type { Organization } from "@/domains/organizations/organization.entity"
-import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.entity"
+import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
 import type { Project } from "@/domains/projects/project.entity"
 import type { ReviewCampaign } from "./review-campaign.entity"
 import { reviewCampaignFactory } from "./review-campaign.factory"

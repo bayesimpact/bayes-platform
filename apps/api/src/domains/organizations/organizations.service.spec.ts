@@ -4,10 +4,11 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import { FeatureFlag } from "../feature-flags/feature-flag.entity"
-import { OrganizationMembership } from "./memberships/organization-membership.entity"
 import { Organization } from "./organization.entity"
 import { organizationFactory } from "./organization.factory"
 import { OrganizationsModule } from "./organizations.module"
@@ -16,7 +17,7 @@ import { OrganizationsService } from "./organizations.service"
 describe("OrganizationsService", () => {
   let service: OrganizationsService
   let organizationRepository: Repository<Organization>
-  let organizationMembershipRepository: Repository<OrganizationMembership>
+  let userMembershipRepository: Repository<UserMembership>
   let userRepository: Repository<User>
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
 
@@ -34,7 +35,7 @@ describe("OrganizationsService", () => {
     await clearTestDatabase(setup.dataSource)
     service = setup.module.get<OrganizationsService>(OrganizationsService)
     organizationRepository = setup.getRepository(Organization)
-    organizationMembershipRepository = setup.getRepository(OrganizationMembership)
+    userMembershipRepository = setup.getRepository(UserMembership)
     setup.getRepository(FeatureFlag)
     userRepository = setup.getRepository(User)
   })
@@ -66,10 +67,11 @@ describe("OrganizationsService", () => {
       expect(savedOrganization?.name).toBe("Test Organization")
 
       // Verify membership was created with owner role
-      const membership = await organizationMembershipRepository.findOne({
+      const membership = await userMembershipRepository.findOne({
         where: {
           userId: savedUser.id,
-          organizationId: result.id,
+          resourceId: result.id,
+          resourceType: "organization",
         },
       })
       expect(membership).not.toBeNull()
@@ -90,16 +92,16 @@ describe("OrganizationsService", () => {
       })
 
       // Assert - Verify the membership links user and organization correctly
-      const membership = await organizationMembershipRepository.findOne({
+      const membership = await userMembershipRepository.findOne({
         where: {
           userId: savedUser.id,
-          organizationId: organization.id,
+          resourceId: organization.id,
+          resourceType: "organization",
         },
-        relations: ["user", "organization"],
       })
       expect(membership).not.toBeNull()
-      expect(membership?.user.id).toBe(savedUser.id)
-      expect(membership?.organization.id).toBe(organization.id)
+      expect(membership?.userId).toBe(savedUser.id)
+      expect(membership?.resourceId).toBe(organization.id)
     })
 
     it("should allow multiple organizations to be created", async () => {
@@ -125,11 +127,11 @@ describe("OrganizationsService", () => {
       expect(result1.id).not.toBe(result2.id)
 
       // Verify both memberships exist
-      const memberships = await organizationMembershipRepository.find({
-        where: { userId: savedUser.id },
+      const memberships = await userMembershipRepository.find({
+        where: { userId: savedUser.id, resourceType: "organization" },
       })
       expect(memberships).toHaveLength(2)
-      expect(memberships.every((m) => m.role === "owner")).toBe(true)
+      expect(memberships.every((membership) => membership.role === "owner")).toBe(true)
     })
 
     it("should create organization with unique IDs", async () => {
@@ -203,19 +205,23 @@ describe("OrganizationsService", () => {
       const org2 = organizationFactory.build({ name: "Org 2" })
       const savedOrg2 = await organizationRepository.save(org2)
 
-      const membership1 = organizationMembershipRepository.create({
-        userId: savedUser.id,
-        organizationId: savedOrg1.id,
-        role: "owner",
-      })
-      await organizationMembershipRepository.save(membership1)
+      await userMembershipRepository.save(
+        userMembershipFactory.build({
+          userId: savedUser.id,
+          resourceId: savedOrg1.id,
+          resourceType: "organization",
+          role: "owner",
+        }),
+      )
 
-      const membership2 = organizationMembershipRepository.create({
-        userId: savedUser.id,
-        organizationId: savedOrg2.id,
-        role: "member",
-      })
-      await organizationMembershipRepository.save(membership2)
+      await userMembershipRepository.save(
+        userMembershipFactory.build({
+          userId: savedUser.id,
+          resourceId: savedOrg2.id,
+          resourceType: "organization",
+          role: "member",
+        }),
+      )
 
       // Act
       const result = await service.getUserOrganizations(savedUser.id)

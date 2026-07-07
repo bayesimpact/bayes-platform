@@ -16,7 +16,6 @@ import { EvaluationReport } from "../evaluations/reports/evaluation-report.entit
 import { AgentMcpServer } from "../mcp-servers/agent-mcp-server.entity"
 import { ResourceLibrary } from "../resource-libraries/resource-library.entity"
 import { ExtractionAgentSession } from "./extraction-agent-sessions/extraction-agent-session.entity"
-import { AgentMembership } from "./memberships/agent-membership.entity"
 
 type AgentSubAgentRelation = {
   parentAgent: Agent
@@ -87,12 +86,6 @@ export class Agent extends ConnectEntityBase {
     inverseJoinColumn: { name: "document_tag_id", referencedColumnName: "id" },
   })
   documentTags!: DocumentTag[]
-
-  @OneToMany(
-    () => AgentMembership,
-    (agentMembership) => agentMembership.agent,
-  )
-  agentMemberships!: AgentMembership[]
 
   @OneToMany(
     () => AgentMcpServer,
