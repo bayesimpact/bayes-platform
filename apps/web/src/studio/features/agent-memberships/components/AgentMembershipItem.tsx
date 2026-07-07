@@ -5,13 +5,14 @@ import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { GridCard } from "@/common/components/grid/Grid"
 import { selectMe } from "@/common/features/me/me.selectors"
-import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import { useValue } from "@/common/hooks/use-value"
+import { useAppDispatch } from "@/common/store/hooks"
 import type { AgentMembership } from "@/studio/features/agent-memberships/agent-memberships.models"
 import { agentMembershipsActions } from "../agent-memberships.slice"
 
 export function AgentMembershipItem({ membership }: { membership: AgentMembership }) {
   const dispatch = useAppDispatch()
-  const me = useAppSelector(selectMe)
+  const me = useValue(selectMe)
   const { t } = useTranslation()
   const [confirmOpen, setConfirmOpen] = useState(false)
 
@@ -20,7 +21,7 @@ export function AgentMembershipItem({ membership }: { membership: AgentMembershi
     setConfirmOpen(false)
   }
 
-  const disabled = membership.role === "owner" || membership.userId === me?.value?.id
+  const disabled = membership.role === "owner" || membership.userId === me.id
 
   return (
     <>

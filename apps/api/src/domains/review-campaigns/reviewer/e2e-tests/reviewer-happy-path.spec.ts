@@ -16,7 +16,10 @@ import { createOrganizationWithProject } from "@/domains/organizations/organizat
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
-import { reviewCampaignMembershipFactory } from "../../memberships/review-campaign-membership.factory"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "../../memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
 
@@ -88,13 +91,14 @@ describe("ReviewCampaigns - Reviewer happy path", () => {
         ],
       })
     await repositories.reviewCampaignRepository.save(campaign)
-    await repositories.reviewCampaignMembershipRepository.save(
-      reviewCampaignMembershipFactory
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
         .reviewer()
         .accepted()
         .transient({ organization, project, campaign, user: reviewer })
         .build(),
-    )
+    })
     const session = conversationAgentSessionFactory
       .transient({ organization, project, agent, user: tester })
       .build({ campaignId: campaign.id })
@@ -163,13 +167,14 @@ describe("ReviewCampaigns - Reviewer happy path", () => {
       .build({})
     await repositories.reviewCampaignRepository.save(campaign)
     // Same user is both reviewer AND the session owner (tester) — self-review.
-    await repositories.reviewCampaignMembershipRepository.save(
-      reviewCampaignMembershipFactory
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
         .reviewer()
         .accepted()
         .transient({ organization, project, campaign, user: reviewer })
         .build(),
-    )
+    })
     const ownSession = conversationAgentSessionFactory
       .transient({ organization, project, agent, user: reviewer })
       .build({ campaignId: campaign.id })
@@ -256,13 +261,14 @@ describe("ReviewCampaigns - Reviewer happy path", () => {
     const otherReviewer = await repositories.userRepository.save(
       userFactory.build({ email: `other-reviewer-${randomUUID()}@example.com` }),
     )
-    await repositories.reviewCampaignMembershipRepository.save(
-      reviewCampaignMembershipFactory
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
         .reviewer()
         .accepted()
         .transient({ organization, project, campaign, user: otherReviewer })
         .build(),
-    )
+    })
     const theirReview = await repositories.reviewerSessionReviewRepository.save({
       organizationId: organization.id,
       projectId: project.id,

@@ -18,6 +18,11 @@
     "chat": {
       "title": "Playground",
       "placeholder": "Ask your question..."
+    },
+    "subAgentResults": {
+      "view": "Form result",
+      "title": "Sub-agent form results",
+      "description": "Results collected by the form sub-agents this agent delegated to."
     }
   }
 }

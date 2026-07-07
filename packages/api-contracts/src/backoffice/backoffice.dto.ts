@@ -3,6 +3,7 @@ import type { FeatureFlagsDto } from "../feature-flags/feature-flags.dto"
 import type { TimeType } from "../generic"
 import type { OrganizationMembershipRoleDto } from "../organizations/organizations.dto"
 import type { ProjectMembershipRoleDto } from "../project-membership/project-membership.dto"
+import type { ReviewCampaignMembershipRole } from "../review-campaigns/review-campaigns.dto"
 
 export type BackofficeProjectDto = {
   id: string
@@ -151,6 +152,12 @@ export type BackofficeUserAgentMembershipDto = {
   role: AgentMembershipRoleDto
 }
 
+export type BackofficeUserReviewCampaignMembershipDto = {
+  campaignId: string
+  campaignName: string
+  role: ReviewCampaignMembershipRole
+}
+
 export type BackofficeUserDetailDto = {
   id: string
   email: string
@@ -159,6 +166,7 @@ export type BackofficeUserDetailDto = {
   organizationMemberships: BackofficeUserOrganizationMembershipDto[]
   projectMemberships: BackofficeUserProjectMembershipDto[]
   agentMemberships: BackofficeUserAgentMembershipDto[]
+  reviewCampaignMemberships: BackofficeUserReviewCampaignMembershipDto[]
 }
 
 export const TERMS_DOCUMENT_TYPES = [

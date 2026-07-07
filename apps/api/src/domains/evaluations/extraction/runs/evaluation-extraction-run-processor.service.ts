@@ -57,13 +57,24 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
     mockLlmProvider: LLMProvider,
     @Inject("VertexLLMProvider")
     vertexLlmProvider: LLMProvider,
+    @Inject("Vertex3LLMProvider")
+    vertex3LlmProvider: LLMProvider,
+    @Inject("MistralLLMProvider")
+    mistralLlmProvider: LLMProvider,
     @Inject("MedGemmaLLMProvider")
     medGemmaLlmProvider: LLMProvider,
     @Inject("GemmaLLMProvider")
     gemmaLlmProvider: LLMProvider,
     private readonly dataSource: DataSource,
   ) {
-    super({ mockLlmProvider, vertexLlmProvider, medGemmaLlmProvider, gemmaLlmProvider })
+    super({
+      mockLlmProvider,
+      vertexLlmProvider,
+      vertex3LlmProvider,
+      medGemmaLlmProvider,
+      gemmaLlmProvider,
+      mistralLlmProvider,
+    })
     this.evaluationExtractionRunConnectRepository = new ConnectRepository(
       evaluationExtractionRunRepository,
       "evaluationExtractionRun",
@@ -395,7 +406,7 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
       content: [{ type: "text", text: inputText }],
     }
 
-    const systemPrompt = `Today's date: ${new Date().toLocaleDateString()}\n\n${agent.defaultPrompt}`
+    const systemPrompt = `${agent.defaultPrompt}\n\nToday's date: ${new Date().toLocaleDateString()}`
 
     const llmConfig = this.buildLLMConfig({
       systemPrompt,

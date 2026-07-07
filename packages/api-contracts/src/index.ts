@@ -20,7 +20,7 @@ export { AgentsRoutes } from "./agents/agents.routes"
 export type * from "./agents/conversation-agent-sessions/conversation-agent-sessions.dto"
 export { ConversationAgentSessionsRoutes } from "./agents/conversation-agent-sessions/conversation-agent-sessions.routes"
 // Extraction Agent Sessions
-export type * from "./agents/extraction-agent-sessions/extraction-agent-sessions.dto"
+export * from "./agents/extraction-agent-sessions/extraction-agent-sessions.dto"
 export { ExtractionAgentSessionsRoutes } from "./agents/extraction-agent-sessions/extraction-agent-sessions.routes"
 // Form Agent Sessions
 export type * from "./agents/form-agent-sessions/form-agent-sessions.dto"

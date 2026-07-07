@@ -133,7 +133,9 @@ export class DocumentsController {
     return { data: results }
   }
 
-  @CheckPolicy((policy) => policy.canCreate())
+  // FIXME: the polilcy is not correct here
+  // needed for /app/ (not admin/owner to upload doc in agent extraction)
+  @CheckPolicy((policy) => policy.canView())
   @Post(DocumentsRoutes.confirmMany.path)
   @TrackActivity({ action: "document.createMany" })
   @HttpCode(HttpStatus.CREATED)
@@ -321,14 +323,14 @@ export class DocumentsController {
   }
 }
 
-function parseCrawledPages(
-  content: string | null,
-): { url: string; markdown: string }[] | undefined {
+// TODO(#421): temporary — page markdown is excluded from list responses to prevent OOM crashes.
+// Replace with a dedicated paginated endpoint that returns page content on demand.
+function parseCrawledPageUrls(content: string | null): { url: string }[] | undefined {
   if (!content) return undefined
   try {
     const parsed: unknown = JSON.parse(content)
-    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].url && parsed[0].markdown) {
-      return parsed as { url: string; markdown: string }[]
+    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].url) {
+      return (parsed as { url: string }[]).map(({ url }) => ({ url }))
     }
   } catch {
     // malformed content
@@ -348,7 +350,7 @@ function toDocumentDto(entity: Document): DocumentDto {
     id: entity.id,
     language: entity.language === "fr" ? "fr" : "en",
     mimeType: entity.mimeType as MimeTypes,
-    pages: isWebCrawl ? parseCrawledPages(entity.content) : undefined,
+    pages: isWebCrawl ? parseCrawledPageUrls(entity.content) : undefined,
     projectId: entity.projectId,
     size: entity.size,
     sourceType: entity.sourceType,

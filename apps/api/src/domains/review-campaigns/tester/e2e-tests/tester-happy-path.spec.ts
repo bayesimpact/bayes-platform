@@ -14,7 +14,10 @@ import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
-import { reviewCampaignMembershipFactory } from "../../memberships/review-campaign-membership.factory"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "../../memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
 
@@ -79,12 +82,14 @@ describe("ReviewCampaigns - Tester happy path", () => {
         ],
       })
     await repositories.reviewCampaignRepository.save(campaign)
-    const membership = reviewCampaignMembershipFactory
-      .tester()
-      .accepted()
-      .transient({ organization, project, campaign, user })
-      .build()
-    await repositories.reviewCampaignMembershipRepository.save(membership)
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
+        .tester()
+        .accepted()
+        .transient({ organization, project, campaign, user })
+        .build(),
+    })
 
     organizationId = organization.id
     projectId = project.id
@@ -136,13 +141,14 @@ describe("ReviewCampaigns - Tester happy path", () => {
         .build(),
     )
     const callerUser = await repositories.userRepository.findOneByOrFail({ auth0Id })
-    await repositories.reviewCampaignMembershipRepository.save(
-      reviewCampaignMembershipFactory
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
         .reviewer()
         .accepted()
         .transient({ organization, project, campaign: reviewerCampaign, user: callerUser })
         .build(),
-    )
+    })
 
     // Default (no role → tester): returns only the tester campaign.
     const testerResponse = await request({
@@ -178,18 +184,22 @@ describe("ReviewCampaigns - Tester happy path", () => {
     const draftCampaign = await repositories.reviewCampaignRepository.save(
       reviewCampaignFactory.transient({ organization, project, agent: reviewerAgent }).build(),
     )
-    await repositories.reviewCampaignMembershipRepository.save([
-      reviewCampaignMembershipFactory
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
         .reviewer()
         .accepted()
         .transient({ organization, project, campaign: closedCampaign, user: callerUser })
         .build(),
-      reviewCampaignMembershipFactory
+    })
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
         .reviewer()
         .accepted()
         .transient({ organization, project, campaign: draftCampaign, user: callerUser })
         .build(),
-    ])
+    })
 
     const reviewerResponse = await request({
       route: ReviewCampaignsRoutes.getMyReviewCampaigns,

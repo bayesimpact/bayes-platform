@@ -1,5 +1,4 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
-import { hasAgentChanged } from "@/common/features/agents/agents.selectors"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { agentEmbedConfigsActions } from "./agent-embed-configs.slice"
@@ -18,15 +17,6 @@ function registerListeners() {
     actionCreator: agentEmbedConfigsActions.unmount,
     effect: (_, listenerApi) => {
       listenerApi.dispatch(agentEmbedConfigsActions.reset())
-    },
-  })
-
-  listenerMiddleware.startListening({
-    predicate(_, currentState, originalState) {
-      return hasAgentChanged(originalState, currentState)
-    },
-    effect: async (_, listenerApi) => {
-      await listenerApi.dispatch(agentEmbedConfigsActions.fetchConfig())
     },
   })
 

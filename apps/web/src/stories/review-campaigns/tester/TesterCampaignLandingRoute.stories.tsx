@@ -35,6 +35,7 @@ export const Fresh: Story = {
     withRedux({
       state: mergeSeeds(
         seed.currentProject(mockProject),
+        seed.currentReviewCampaignId(mockTesterContext.id),
         seed.tester.context(mockTesterContext),
         seed.tester.campaignSessions([]),
         seed.tester.campaignSurvey(null),
@@ -49,6 +50,7 @@ export const WithPastSessions: Story = {
     withRedux({
       state: mergeSeeds(
         seed.currentProject(mockProject),
+        seed.currentReviewCampaignId(mockTesterContext.id),
         seed.tester.context(mockTesterContext),
         seed.tester.campaignSessions(mockSessionSummaries),
         seed.tester.campaignSurvey(null),
@@ -67,6 +69,7 @@ export const ParticipationFinished: Story = {
     withRedux({
       state: mergeSeeds(
         seed.currentProject(mockProject),
+        seed.currentReviewCampaignId(mockTesterContext.id),
         seed.tester.context(mockTesterContext),
         seed.tester.campaignSessions(mockSessionSummaries),
         seed.tester.campaignSurvey(mockSurvey),

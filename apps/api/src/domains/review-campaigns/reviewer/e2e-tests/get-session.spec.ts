@@ -17,7 +17,10 @@ import { createOrganizationWithProject } from "@/domains/organizations/organizat
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
-import { reviewCampaignMembershipFactory } from "../../memberships/review-campaign-membership.factory"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "../../memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
 
@@ -114,13 +117,14 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
       ],
     })
     await repositories.reviewCampaignRepository.save(campaign)
-    await repositories.reviewCampaignMembershipRepository.save(
-      reviewCampaignMembershipFactory
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
         .reviewer()
         .accepted()
         .transient({ organization, project, campaign, user: reviewer })
         .build(),
-    )
+    })
     const session = conversationAgentSessionFactory
       .transient({ organization, project, agent, user: tester })
       .build({ campaignId: campaign.id })
@@ -204,13 +208,14 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
     const otherReviewer = await repositories.userRepository.save(
       userFactory.build({ email: `other-reviewer-${randomUUID()}@example.com` }),
     )
-    await repositories.reviewCampaignMembershipRepository.save(
-      reviewCampaignMembershipFactory
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
         .reviewer()
         .accepted()
         .transient({ organization, project, campaign, user: otherReviewer })
         .build(),
-    )
+    })
     await repositories.reviewerSessionReviewRepository.save({
       organizationId: organization.id,
       projectId: project.id,
@@ -287,8 +292,9 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
         ],
       })
     await repositories.reviewCampaignRepository.save(campaign)
-    await repositories.reviewCampaignMembershipRepository.save(
-      reviewCampaignMembershipFactory
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
         .reviewer()
         .accepted()
         .transient({
@@ -298,7 +304,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
           user: await repositories.userRepository.findOneByOrFail({ auth0Id }),
         })
         .build(),
-    )
+    })
     const session = conversationAgentSessionFactory
       .transient({ organization, project, agent, user: tester })
       .build({ campaignId: campaign.id })
@@ -355,13 +361,14 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
       reviewCampaignFactory.active().transient({ organization, project, agent: formAgent }).build(),
     )
     const callerUser = await repositories.userRepository.findOneByOrFail({ auth0Id })
-    await repositories.reviewCampaignMembershipRepository.save(
-      reviewCampaignMembershipFactory
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
         .reviewer()
         .accepted()
         .transient({ organization, project, campaign, user: callerUser })
         .build(),
-    )
+    })
     const session = formAgentSessionFactory
       .transient({ organization, project, agent: formAgent, user: tester })
       .build({

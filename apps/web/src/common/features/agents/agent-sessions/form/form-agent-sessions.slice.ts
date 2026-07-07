@@ -3,16 +3,20 @@ import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data
 import type { Agent } from "../../agents.models"
 import { listAgents } from "../../agents.thunks"
 import { createAgentChatSession } from "../shared/base-agent-session/base-agent-sessions.thunks"
-import type { FormAgentSession } from "./form-agent-sessions.models"
+import type { FormAgentSession, FormSubSession } from "./form-agent-sessions.models"
 import { formAgentSessionsThunks } from "./form-agent-sessions.thunks"
 
 type DataType = Record<Agent["id"], AsyncData<FormAgentSession[]>> // keyed by agentId
+// Form sub-sessions delegated by a parent agent session, keyed by parent session id.
+type SubSessionsType = Record<string, AsyncData<FormSubSession[]>>
 type State = {
   data: DataType
+  subSessions: SubSessionsType
 }
 
 const initialState: State = {
   data: {},
+  subSessions: {},
 }
 
 const slice = createSlice({
@@ -67,6 +71,30 @@ const slice = createSlice({
           status: ADS.Error,
           value: null,
           error: action.error.message || "Failed to load form sessions",
+        }
+      })
+
+    builder
+      .addCase(formAgentSessionsThunks.listSubSessions.pending, (state, action) => {
+        const { agentSessionId } = action.meta.arg
+        const current = state.subSessions[agentSessionId]
+        if (current && ADS.isFulfilled(current)) return
+        state.subSessions[agentSessionId] = { status: ADS.Loading, value: null, error: null }
+      })
+      .addCase(formAgentSessionsThunks.listSubSessions.fulfilled, (state, action) => {
+        const { agentSessionId, subSessions } = action.payload
+        state.subSessions[agentSessionId] = {
+          status: ADS.Fulfilled,
+          value: subSessions,
+          error: null,
+        }
+      })
+      .addCase(formAgentSessionsThunks.listSubSessions.rejected, (state, action) => {
+        const { agentSessionId } = action.meta.arg
+        state.subSessions[agentSessionId] = {
+          status: ADS.Error,
+          value: null,
+          error: action.error.message || "Failed to load form sub-sessions",
         }
       })
   },

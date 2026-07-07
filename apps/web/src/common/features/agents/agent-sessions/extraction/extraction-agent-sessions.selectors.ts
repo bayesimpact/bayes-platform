@@ -1,9 +1,13 @@
 import { createSelector } from "@reduxjs/toolkit"
 import type { RootState } from "@/common/store"
-import { ADS } from "@/common/store/async-data-status"
+import { ADS, defaultAsyncData } from "@/common/store/async-data-status"
 import { selectCurrentAgentData } from "../../agents.selectors"
+import type { ExtractionAgentSessionSummary } from "./extraction-agent-sessions.models"
 
 const selectExtractionAgentSessionsData = (state: RootState) => state.extractionAgentSessions.data
+
+export const selectIsExtractionSessionStatusStreamActive = (state: RootState) =>
+  state.extractionAgentSessions.sessionStatusStream.isActive
 
 export const selectIsExtracting = createSelector(
   [selectCurrentAgentData, selectExtractionAgentSessionsData],
@@ -13,17 +17,17 @@ export const selectIsExtracting = createSelector(
   },
 )
 
-export const selectLastExtractionSession = (state: RootState) => {
-  const data = selectCurrentExtractionAgentSessionsData(state)
-  if (!ADS.isFulfilled(data)) return null
-
-  const sessions = data.value
-  if (!sessions || sessions.others.length === 0) return null
-
-  return sessions.others.reduce((latest, session) => {
-    return new Date(session.createdAt) > new Date(latest.createdAt) ? session : latest
-  })
-}
+export const selectHasExtractionSessionsInProgress = createSelector(
+  [selectCurrentAgentData, selectExtractionAgentSessionsData],
+  (agent, data): boolean => {
+    if (!ADS.isFulfilled(agent)) return false
+    const slot = data[agent.value.id]
+    if (!slot) return false
+    if (slot.isExtracting) return true
+    if (!ADS.isFulfilled(slot.sessions)) return false
+    return slot.sessions.value.others.some((session) => session.status === "pending")
+  },
+)
 
 export const selectExtractionAgentSessionsDocuments = (state: RootState) =>
   state.extractionAgentSessions.documents
@@ -52,3 +56,24 @@ export const selectExtractionAgentSessionsFromAgentId = (agentId?: string | null
     if (!slot) return missingAgentSessions
     return slot.sessions
   })
+
+export const selectCurrentExtractionRunId = (state: RootState) => state.currentIds.extractionRunId
+
+export const selectCurrentExtractionRunData = createSelector(
+  [selectCurrentExtractionAgentSessionsData, selectCurrentExtractionRunId],
+  (
+    sessionsData,
+    runId,
+  ): typeof defaultAsyncData & { value: ExtractionAgentSessionSummary | null } => {
+    if (!runId) return defaultAsyncData
+    if (ADS.isFulfilled(sessionsData)) {
+      const run = sessionsData.value.others.find((session) => session.id === runId)
+      if (!run) return { status: ADS.Error, value: null, error: "Extraction run not found" }
+      return { status: ADS.Fulfilled, value: run, error: null }
+    }
+    if (ADS.isError(sessionsData)) {
+      return { status: ADS.Error, value: null, error: sessionsData.error ?? "Failed to load run" }
+    }
+    return { status: ADS.Loading, value: null, error: null }
+  },
+)

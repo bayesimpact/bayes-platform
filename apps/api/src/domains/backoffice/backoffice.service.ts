@@ -1,11 +1,17 @@
-import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
+import type {
+  BackofficeUserAgentMembershipDto,
+  BackofficeUserOrganizationMembershipDto,
+  BackofficeUserProjectMembershipDto,
+  BackofficeUserReviewCampaignMembershipDto,
+  FeatureFlagKey,
+} from "@caseai-connect/api-contracts"
 import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common"
-import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { DataSource, In, type Repository } from "typeorm"
+import { InjectRepository } from "@nestjs/typeorm"
+import { In, type Repository } from "typeorm"
 import { Agent } from "../agents/agent.entity"
 import { AgentMembership } from "../agents/memberships/agent-membership.entity"
 import { FeatureFlag } from "../feature-flags/feature-flag.entity"
+import { UserMembership } from "../memberships/user-membership.entity"
 import { OrganizationMembership } from "../organizations/memberships/organization-membership.entity"
 import { Organization } from "../organizations/organization.entity"
 import { ProjectMembership } from "../projects/memberships/project-membership.entity"
@@ -30,7 +36,8 @@ export class BackofficeService {
     @InjectRepository(AgentMembership)
     private readonly agentMembershipRepository: Repository<AgentMembership>,
     @InjectRepository(Agent) private readonly agentRepository: Repository<Agent>,
-    @InjectDataSource() readonly _dataSource: DataSource,
+    @InjectRepository(UserMembership)
+    private readonly userMembershipRepository: Repository<UserMembership>,
   ) {}
 
   async listOrganizations({
@@ -88,9 +95,11 @@ export class BackofficeService {
 
     const trimmedSearch = search?.trim()
     if (trimmedSearch) {
-      qb.andWhere("LOWER(organization.name) LIKE :searchPattern", {
-        searchPattern: `%${trimmedSearch.toLowerCase()}%`,
-      })
+      const searchPattern = `%${trimmedSearch.toLowerCase()}%`
+      qb.andWhere(
+        "(LOWER(organization.name) LIKE :searchPattern OR CAST(organization.id AS TEXT) LIKE :searchPattern)",
+        { searchPattern },
+      )
     }
 
     const [organizations, total] = await qb
@@ -203,7 +212,7 @@ export class BackofficeService {
     if (trimmedSearch) {
       const searchPattern = `%${trimmedSearch.toLowerCase()}%`
       qb.andWhere(
-        "(LOWER(agent.name) LIKE :searchPattern OR LOWER(project.name) LIKE :searchPattern)",
+        "(LOWER(agent.name) LIKE :searchPattern OR LOWER(project.name) LIKE :searchPattern OR CAST(agent.id AS TEXT) LIKE :searchPattern)",
         { searchPattern },
       )
     }
@@ -310,6 +319,7 @@ export class BackofficeService {
         `(
           LOWER("user"."email") LIKE :searchPattern
           OR LOWER(COALESCE("user"."name", '')) LIKE :searchPattern
+          OR CAST("user"."id" AS TEXT) LIKE :searchPattern
         )`,
         { searchPattern },
       )
@@ -373,6 +383,7 @@ export class BackofficeService {
         `(
           LOWER(project.name) LIKE :searchPattern
           OR LOWER(org.name) LIKE :searchPattern
+          OR CAST(project.id AS TEXT) LIKE :searchPattern
         )`,
         { searchPattern },
       )
@@ -472,9 +483,10 @@ export class BackofficeService {
     targetUserId: string
   }): Promise<{
     user: User
-    organizationMemberships: OrganizationMembership[]
-    projectMemberships: ProjectMembership[]
-    agentMemberships: AgentMembership[]
+    organizationMemberships: BackofficeUserOrganizationMembershipDto[]
+    projectMemberships: BackofficeUserProjectMembershipDto[]
+    agentMemberships: BackofficeUserAgentMembershipDto[]
+    reviewCampaignMemberships: BackofficeUserReviewCampaignMembershipDto[]
   } | null> {
     if (!canListAll) {
       const visibleUserIds = await this.findVisibleUserIdsForAdmin(requestingUserId)
@@ -484,34 +496,102 @@ export class BackofficeService {
     const user = await this.userRepository.findOne({ where: { id: targetUserId } })
     if (!user) return null
 
-    const [organizationMemberships, projectMemberships, agentMemberships] = await Promise.all([
-      this.organizationMembershipRepository
-        .createQueryBuilder("om")
-        .select(["om.organizationId", "om.role"])
-        .leftJoin("om.organization", "org")
-        .addSelect(["org.id", "org.name"])
-        .where("om.userId = :userId", { userId: targetUserId })
-        .orderBy("LOWER(org.name)", "ASC")
-        .getMany(),
-      this.projectMembershipRepository
-        .createQueryBuilder("pm")
-        .select(["pm.projectId", "pm.role"])
-        .leftJoin("pm.project", "project")
-        .addSelect(["project.id", "project.name"])
-        .where("pm.userId = :userId", { userId: targetUserId })
-        .orderBy("LOWER(project.name)", "ASC")
-        .getMany(),
-      this.agentMembershipRepository
-        .createQueryBuilder("am")
-        .select(["am.agentId", "am.role"])
-        .leftJoin("am.agent", "agent")
-        .addSelect(["agent.id", "agent.name"])
-        .where("am.userId = :userId", { userId: targetUserId })
-        .orderBy("LOWER(agent.name)", "ASC")
-        .getMany(),
+    const [
+      organizationMemberships,
+      projectMemberships,
+      agentMemberships,
+      reviewCampaignMemberships,
+    ] = await Promise.all([
+      this.findUserOrganizationMemberships(targetUserId),
+      this.findUserProjectMemberships(targetUserId),
+      this.findUserAgentMemberships(targetUserId),
+      this.findUserReviewCampaignMemberships(targetUserId),
     ])
 
-    return { user, organizationMemberships, projectMemberships, agentMemberships }
+    return {
+      user,
+      organizationMemberships,
+      projectMemberships,
+      agentMemberships,
+      reviewCampaignMemberships,
+    }
+  }
+
+  private async findUserOrganizationMemberships(
+    userId: string,
+  ): Promise<BackofficeUserOrganizationMembershipDto[]> {
+    return this.userMembershipRepository
+      .createQueryBuilder("membership")
+      .innerJoin(
+        "organization",
+        "organization",
+        "organization.id = membership.resourceId AND organization.deleted_at IS NULL",
+      )
+      .select("membership.resourceId", "organizationId")
+      .addSelect("membership.role", "role")
+      .addSelect("organization.name", "organizationName")
+      .where("membership.userId = :userId", { userId })
+      .andWhere("membership.resourceType = :resourceType", { resourceType: "organization" })
+      .andWhere("membership.deletedAt IS NULL")
+      .orderBy("LOWER(organization.name)", "ASC")
+      .getRawMany<BackofficeUserOrganizationMembershipDto>()
+  }
+
+  private async findUserProjectMemberships(
+    userId: string,
+  ): Promise<BackofficeUserProjectMembershipDto[]> {
+    return this.userMembershipRepository
+      .createQueryBuilder("membership")
+      .innerJoin(
+        "project",
+        "project",
+        "project.id = membership.resourceId AND project.deleted_at IS NULL",
+      )
+      .select("membership.resourceId", "projectId")
+      .addSelect("membership.role", "role")
+      .addSelect("project.name", "projectName")
+      .where("membership.userId = :userId", { userId })
+      .andWhere("membership.resourceType = :resourceType", { resourceType: "project" })
+      .andWhere("membership.deletedAt IS NULL")
+      .orderBy("LOWER(project.name)", "ASC")
+      .getRawMany<BackofficeUserProjectMembershipDto>()
+  }
+
+  private async findUserAgentMemberships(
+    userId: string,
+  ): Promise<BackofficeUserAgentMembershipDto[]> {
+    return this.userMembershipRepository
+      .createQueryBuilder("membership")
+      .innerJoin("agent", "agent", "agent.id = membership.resourceId AND agent.deleted_at IS NULL")
+      .select("membership.resourceId", "agentId")
+      .addSelect("membership.role", "role")
+      .addSelect("agent.name", "agentName")
+      .where("membership.userId = :userId", { userId })
+      .andWhere("membership.resourceType = :resourceType", { resourceType: "agent" })
+      .andWhere("membership.deletedAt IS NULL")
+      .orderBy("LOWER(agent.name)", "ASC")
+      .getRawMany<BackofficeUserAgentMembershipDto>()
+  }
+
+  private async findUserReviewCampaignMemberships(
+    userId: string,
+  ): Promise<BackofficeUserReviewCampaignMembershipDto[]> {
+    return this.userMembershipRepository
+      .createQueryBuilder("membership")
+      .innerJoin(
+        "review_campaign",
+        "campaign",
+        "campaign.id = membership.resourceId AND campaign.deleted_at IS NULL",
+      )
+      .select("membership.resourceId", "campaignId")
+      .addSelect("membership.role", "role")
+      .addSelect("campaign.name", "campaignName")
+      .where("membership.userId = :userId", { userId })
+      .andWhere("membership.resourceType = :resourceType", { resourceType: "review_campaign" })
+      .andWhere("membership.deletedAt IS NULL")
+      .orderBy("LOWER(campaign.name)", "ASC")
+      .addOrderBy("membership.role", "ASC")
+      .getRawMany<BackofficeUserReviewCampaignMembershipDto>()
   }
 
   private async findVisibleUserIdsForAdmin(userId: string): Promise<Set<string>> {

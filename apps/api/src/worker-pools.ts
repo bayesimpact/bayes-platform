@@ -2,6 +2,7 @@ import {
   AGENT_CSV_EXTRACTION_RUN_EXECUTE_QUEUE_NAME,
   AGENT_CSV_EXTRACTION_RUN_QUEUE_NAME,
 } from "./domains/agents/csv-extraction-runs/agent-csv-extraction-run.constants"
+import { EXTRACTION_AGENT_SESSION_QUEUE_NAME } from "./domains/agents/extraction-agent-sessions/extraction-agent-session.constants"
 import { URL_CRAWLING_QUEUE_NAME } from "./domains/documents/crawling/url-crawling.constants"
 import { WEB_SOURCE_EMBEDDINGS_QUEUE_NAME } from "./domains/documents/crawling/web-source-embeddings.constants"
 import { DOCUMENT_EMBEDDINGS_QUEUE_NAME } from "./domains/documents/embeddings/document-embeddings.constants"
@@ -21,6 +22,7 @@ export const KNOWN_WORKER_QUEUE_NAMES: readonly string[] = [
   EVALUATION_EXTRACTION_RUN_EXECUTE_QUEUE_NAME,
   AGENT_CSV_EXTRACTION_RUN_QUEUE_NAME,
   AGENT_CSV_EXTRACTION_RUN_EXECUTE_QUEUE_NAME,
+  EXTRACTION_AGENT_SESSION_QUEUE_NAME,
   URL_CRAWLING_QUEUE_NAME,
   DOCUMENT_EMBEDDINGS_QUEUE_NAME,
   DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME,

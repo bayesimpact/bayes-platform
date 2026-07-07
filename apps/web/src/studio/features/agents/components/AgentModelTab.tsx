@@ -21,8 +21,20 @@ function extractModelList(
   const defaultModels = Object.entries(AgentModel).filter(
     ([_key, value]) => AgentModelToAgentProvider[value] === AgentProvider.Vertex,
   ) as [string, AgentModel][]
+  let mistralModels: [string, AgentModel][] = []
+  let vertex3Models: [string, AgentModel][] = []
   let medGemmaModels: [string, AgentModel][] = []
   let gemmaModels: [string, AgentModel][] = []
+  if (hasFeature("mistral")) {
+    mistralModels = Object.entries(AgentModel).filter(
+      ([_key, value]) => AgentModelToAgentProvider[value] === AgentProvider.Mistral,
+    ) as [string, AgentModel][]
+  }
+  if (hasFeature("vertex-3")) {
+    vertex3Models = Object.entries(AgentModel).filter(
+      ([_key, value]) => AgentModelToAgentProvider[value] === AgentProvider.Vertex3,
+    ) as [string, AgentModel][]
+  }
   if (hasFeature("gemma")) {
     gemmaModels = Object.entries(AgentModel).filter(
       ([_key, value]) => AgentModelToAgentProvider[value] === AgentProvider.Gemma,
@@ -33,7 +45,7 @@ function extractModelList(
       ([_key, value]) => AgentModelToAgentProvider[value] === AgentProvider.MedGemma,
     ) as [string, AgentModel][]
   }
-  return [...defaultModels, ...medGemmaModels, ...gemmaModels]
+  return [...defaultModels, ...medGemmaModels, ...gemmaModels, ...vertex3Models, ...mistralModels]
 }
 
 export function AgentModelTab() {

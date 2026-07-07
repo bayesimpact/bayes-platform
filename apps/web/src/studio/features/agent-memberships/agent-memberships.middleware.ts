@@ -1,5 +1,5 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
-import { hasAgentChanged, selectCurrentAgentId } from "@/common/features/agents/agents.selectors"
+import { selectCurrentAgentId } from "@/common/features/agents/agents.selectors"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
@@ -27,21 +27,6 @@ function registerListeners() {
     actionCreator: agentMembershipsActions.unmount,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(agentMembershipsActions.reset())
-    },
-  })
-
-  // Refresh agent memberships when current agent changes
-  listenerMiddleware.startListening({
-    predicate(_, currentState, originalState) {
-      return hasAgentChanged(originalState, currentState)
-    },
-    effect: async (_, listenerApi) => {
-      const agentId = selectCurrentAgentId(listenerApi.getState())
-      if (!agentId) return
-      await Promise.all([
-        listenerApi.dispatch(agentMembershipsActions.list()),
-        listenerApi.dispatch(listInvitationsForTarget({ targetType: "agent", targetId: agentId })),
-      ])
     },
   })
 

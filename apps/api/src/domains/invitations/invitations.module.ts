@@ -6,6 +6,7 @@ import { Agent } from "@/domains/agents/agent.entity"
 import { AgentsModule } from "@/domains/agents/agents.module"
 import { AgentMembership } from "@/domains/agents/memberships/agent-membership.entity"
 import { AuthModule } from "@/domains/auth/auth.module"
+import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
@@ -42,6 +43,7 @@ import { InvitationsPersistenceModule } from "./invitations-persistence.module"
     ]),
     InvitationsPersistenceModule,
     LlmModule,
+    MembershipsModule,
     UsersModule,
     AuthModule,
     forwardRef(() => ProjectsModule),

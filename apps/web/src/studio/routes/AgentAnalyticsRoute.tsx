@@ -12,7 +12,7 @@ import {
 } from "@/common/features/agents/agents.selectors"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
 import { useGetAgentRoute } from "@/common/hooks/use-get-path"
-import { useValue } from "@/common/hooks/use-value"
+import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import {
   selectAgentAnalyticsAvgUserQuestionsPerSessionPerDay,
@@ -45,7 +45,7 @@ function getInitialAnalyticsBounds() {
 }
 
 export function AgentAnalyticsRoute() {
-  const agentId = useAppSelector(selectCurrentAgentId)
+  const agentId = useCurrentId(selectCurrentAgentId)
   const dispatch = useAppDispatch()
   const [bounds, setBounds] = useState(getInitialAnalyticsBounds)
 
@@ -54,7 +54,6 @@ export function AgentAnalyticsRoute() {
     void dispatch(loadAgentAnalytics(bounds))
   }, [dispatch, bounds])
 
-  const agent = useAppSelector(selectCurrentAgentData)
   const conversations = useAppSelector(selectAgentAnalyticsConversationsPerDay)
   const avgQuestions = useAppSelector(selectAgentAnalyticsAvgUserQuestionsPerSessionPerDay)
   const conversationsByCategoryPerDay = useAppSelector(
@@ -63,7 +62,7 @@ export function AgentAnalyticsRoute() {
 
   if (!agentId) return <ErrorRoute error="Missing valid agent ID" />
   return (
-    <AsyncRoute data={[agent, conversations, avgQuestions, conversationsByCategoryPerDay]}>
+    <AsyncRoute data={[conversations, avgQuestions, conversationsByCategoryPerDay]}>
       <WithData onAnalyticsRangeChange={setBounds} />
     </AsyncRoute>
   )

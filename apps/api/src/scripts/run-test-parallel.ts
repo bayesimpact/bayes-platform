@@ -106,6 +106,7 @@ async function main(): Promise<void> {
           "--experimental-vm-modules",
           "../../node_modules/jest/bin/jest.js",
           "--colors",
+          "--forceExit",
           `--maxWorkers=${resolvedWorkerCount}`,
           ...jestAdditionalArguments,
         ],

@@ -20,6 +20,7 @@ import { userFactory } from "@/domains/users/user.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { AgentMessage } from "../../shared/agent-session-messages/agent-message.entity"
 import { StreamingService } from "../../shared/agent-session-messages/streaming/streaming.service"
+import { ToolsService } from "../../shared/agent-session-messages/streaming/tools.service"
 import { ConversationAgentSession } from "../conversation-agent-session.entity"
 import { ConversationAgentSessionCategory } from "../conversation-agent-session-category.entity"
 import { ConversationAgentSessionsModule } from "../conversation-agent-sessions.module"
@@ -28,6 +29,7 @@ import { ConversationAgentSessionsService } from "../conversation-agent-sessions
 export function agentSessionControllerTestSetup() {
   let service: ConversationAgentSessionsService
   let streamingService: StreamingService
+  let toolsService: ToolsService
   let conversationAgentSessionRepository: Repository<ConversationAgentSession>
   let conversationAgentSessionCategoryRepository: Repository<ConversationAgentSessionCategory>
   let agentRepository: Repository<Agent>
@@ -62,6 +64,7 @@ export function agentSessionControllerTestSetup() {
     await clearTestDatabase(setup.dataSource)
     service = setup.module.get<ConversationAgentSessionsService>(ConversationAgentSessionsService)
     streamingService = setup.module.get<StreamingService>(StreamingService)
+    toolsService = setup.module.get<ToolsService>(ToolsService)
     conversationAgentSessionRepository = setup.getRepository(ConversationAgentSession)
     conversationAgentSessionCategoryRepository = setup.getRepository(
       ConversationAgentSessionCategory,
@@ -129,6 +132,7 @@ export function agentSessionControllerTestSetup() {
       testUser,
       userRepository,
       streamingService,
+      toolsService,
     }
   }
 }

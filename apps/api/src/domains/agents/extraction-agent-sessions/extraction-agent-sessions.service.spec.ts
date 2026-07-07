@@ -1,5 +1,4 @@
 import { AgentModel } from "@caseai-connect/api-contracts"
-import { UnprocessableEntityException } from "@nestjs/common"
 import { z } from "zod"
 import {
   type AllRepositories,
@@ -11,18 +10,27 @@ import { AgentsModule } from "@/domains/agents/agents.module"
 import { documentFactory } from "@/domains/documents/document.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
+import { EXTRACTION_AGENT_SESSION_BATCH_SERVICE } from "./extraction-agent-session-batch.interface"
 import { ExtractionAgentSessionsService } from "./extraction-agent-sessions.service"
+
+/** A batch service whose queue interactions are stubbed out (no Redis/BullMQ). */
+const buildMockBatchService = () => ({
+  enqueueExecuteRun: jest.fn().mockResolvedValue(undefined),
+})
 
 describe("ExtractionAgentSessionsService", () => {
   let service: ExtractionAgentSessionsService
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
+  const mockBatchService = buildMockBatchService()
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [AgentsModule],
-      //   applyOverrides: (moduleBuilder) =>
-      //     moduleBuilder.overrideProvider("LLMProvider").useValue(mockLlmProvider),
+      applyOverrides: (moduleBuilder) =>
+        moduleBuilder
+          .overrideProvider(EXTRACTION_AGENT_SESSION_BATCH_SERVICE)
+          .useValue(mockBatchService),
     })
     repositories = setup.getAllRepositories()
     service = setup.module.get(ExtractionAgentSessionsService)
@@ -38,7 +46,7 @@ describe("ExtractionAgentSessionsService", () => {
     await teardownE2eTestDatabase(setup)
   })
 
-  it("should execute extraction and persist a successful run", async () => {
+  it("creates a pending run and enqueues an execute job", async () => {
     const schema = z.object({ content: z.string(), source: z.string() })
     const { organization, project, user, agent } = await createOrganizationWithAgent(repositories, {
       agent: {
@@ -63,49 +71,13 @@ describe("ExtractionAgentSessionsService", () => {
       type: "playground",
     })
 
-    expect(run.status).toBe("success")
-    const result = run.result
-    expect(result).toBeDefined()
-    expect(() => schema.parse(result)).not.toThrow()
-    const parsed = schema.parse(result)
-    expect(parsed.source).toBe("MOCK") //see <default mock result for generateObject>
-    expect(parsed.content).toBe("Hello, I'm the generateStructuredOutput default mock response!") //see <default mock result for generateObject>
-  })
-
-  //fixme: schema validation in a separate function
-  xit("should persist failed run when schema validation fails", async () => {
-    const schema = z.object({ fullname: z.string() })
-    const { organization, project, user, agent } = await createOrganizationWithAgent(repositories, {
-      agent: {
-        model: AgentModel._MockGenerateStructuredOutput,
-        type: "extraction",
-        outputJsonSchema: schema.toJSONSchema(),
-      },
+    expect(run.status).toBe("pending")
+    expect(mockBatchService.enqueueExecuteRun).toHaveBeenCalledTimes(1)
+    expect(mockBatchService.enqueueExecuteRun).toHaveBeenCalledWith({
+      extractionAgentSessionId: run.id,
+      organizationId: organization.id,
+      projectId: project.id,
     })
-    const document = documentFactory.transient({ organization, project }).build({
-      mimeType: "application/pdf",
-      sourceType: "extraction",
-      storageRelativePath: "test/file.pdf",
-    })
-    await repositories.documentRepository.save(document)
-
-    const schemaError = new Error("schema mismatch")
-    schemaError.name = "TypeValidationError"
-
-    await expect(
-      service.executeExtraction({
-        connectScope: { organizationId: organization.id, projectId: project.id },
-        agent,
-        userId: user.id,
-        documentId: document.id,
-        type: "playground",
-      }),
-    ).rejects.toThrow(UnprocessableEntityException)
-
-    const runs = await repositories.extractionAgentSessionRepository.find()
-    expect(runs).toHaveLength(1)
-    expect(runs[0]!.status).toBe("failed")
-    expect(runs[0]!.errorCode).toBe("SCHEMA_VALIDATION_FAILED")
   })
 
   it("should list and retrieve runs scoped by agent", async () => {
@@ -148,11 +120,6 @@ describe("ExtractionAgentSessionsService", () => {
       type: "playground",
     })
     expect(run).not.toBeNull()
-    const result = run?.result
-    expect(result).toBeDefined()
-    expect(() => schema.parse(result)).not.toThrow()
-    const parsed = schema.parse(result)
-    expect(parsed.source).toBe("MOCK") //see <default mock result for generateObject>
-    expect(parsed.content).toBe("Hello, I'm the generateStructuredOutput default mock response!") //see <default mock result for generateObject>
+    expect(run!.id).toBe(createdRun.id)
   })
 })

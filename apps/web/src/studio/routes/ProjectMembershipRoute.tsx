@@ -40,14 +40,20 @@ import { projectMembershipsActions } from "../features/project-memberships/proje
 export function ProjectMembershipRoute() {
   const membershipId = useAppSelector(selectCurrentProjectMembershipId)
   const memberships = useAppSelector(selectProjectMemberships)
-  const project = useAppSelector(selectCurrentProjectData)
   const memberAgents = useAppSelector(selectProjectMemberAgents)
 
-  useMount({ actions: projectMembershipsActions, condition: !!membershipId })
+  useMount({
+    actions: {
+      mount: projectMembershipsActions.memberMount,
+      unmount: projectMembershipsActions.memberUnmount,
+    },
+    condition: !!membershipId,
+    refreshOn: [membershipId],
+  })
 
   if (!membershipId) return <LoadingRoute />
   return (
-    <AsyncRoute data={[memberships, project, memberAgents]}>
+    <AsyncRoute data={[memberships, memberAgents]}>
       <WithData />
     </AsyncRoute>
   )

@@ -11,12 +11,19 @@ import {
 } from "@/common/test/test-database"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { addUserToAgent } from "@/domains/agents/memberships/agent-membership.factory"
+import {
+  organizationMembershipFactory,
+  saveOrgMembership,
+} from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
-import { projectMembershipFactory } from "../../projects/memberships/project-membership.factory"
+import {
+  projectMembershipFactory,
+  saveProjectMembership,
+} from "../../projects/memberships/project-membership.factory"
 import { InvitationsModule } from "../invitations.module"
 
 describe("Invitations — authorization", () => {
@@ -128,16 +135,20 @@ describe("Invitations — authorization", () => {
 
       const memberUser = userFactory.build()
       await repositories.userRepository.save(memberUser)
-      await repositories.projectMembershipRepository.save(
-        projectMembershipFactory.member().transient({ project, user: memberUser }).build(),
-      )
-      await repositories.organizationMembershipRepository.save(
-        repositories.organizationMembershipRepository.create({
-          userId: memberUser.id,
-          organizationId: organization.id,
-          role: "member",
-        }),
-      )
+      await saveProjectMembership({
+        repositories,
+        membership: projectMembershipFactory
+          .member()
+          .transient({ project, user: memberUser })
+          .build(),
+      })
+      await saveOrgMembership({
+        repositories,
+        membership: organizationMembershipFactory
+          .member()
+          .transient({ user: memberUser, organization })
+          .build(),
+      })
 
       auth0Id = memberUser.auth0Id
       const response = await subject()
@@ -200,16 +211,20 @@ describe("Invitations — authorization", () => {
 
       const memberUser = userFactory.build()
       await repositories.userRepository.save(memberUser)
-      await repositories.projectMembershipRepository.save(
-        projectMembershipFactory.member().transient({ project, user: memberUser }).build(),
-      )
-      await repositories.organizationMembershipRepository.save(
-        repositories.organizationMembershipRepository.create({
-          userId: memberUser.id,
-          organizationId: organization.id,
-          role: "member",
-        }),
-      )
+      await saveProjectMembership({
+        repositories,
+        membership: projectMembershipFactory
+          .member()
+          .transient({ project, user: memberUser })
+          .build(),
+      })
+      await saveOrgMembership({
+        repositories,
+        membership: organizationMembershipFactory
+          .member()
+          .transient({ user: memberUser, organization })
+          .build(),
+      })
 
       auth0Id = memberUser.auth0Id
       const response = await subject({ targetType: "project", targetId: projectId })
@@ -243,16 +258,20 @@ describe("Invitations — authorization", () => {
 
         const nonMemberUser = userFactory.build()
         await repositories.userRepository.save(nonMemberUser)
-        await repositories.organizationMembershipRepository.save(
-          repositories.organizationMembershipRepository.create({
-            userId: nonMemberUser.id,
-            organizationId: organization.id,
-            role: "member",
-          }),
-        )
-        await repositories.projectMembershipRepository.save(
-          projectMembershipFactory.member().transient({ project, user: nonMemberUser }).build(),
-        )
+        await saveOrgMembership({
+          repositories,
+          membership: organizationMembershipFactory
+            .member()
+            .transient({ user: nonMemberUser, organization })
+            .build(),
+        })
+        await saveProjectMembership({
+          repositories,
+          membership: projectMembershipFactory
+            .member()
+            .transient({ project, user: nonMemberUser })
+            .build(),
+        })
 
         auth0Id = nonMemberUser.auth0Id
         const response = await subject({ targetType: "agent", targetId: agent.id })
@@ -267,16 +286,20 @@ describe("Invitations — authorization", () => {
 
         const memberUser = userFactory.build()
         await repositories.userRepository.save(memberUser)
-        await repositories.organizationMembershipRepository.save(
-          repositories.organizationMembershipRepository.create({
-            userId: memberUser.id,
-            organizationId: organization.id,
-            role: "member",
-          }),
-        )
-        await repositories.projectMembershipRepository.save(
-          projectMembershipFactory.member().transient({ project, user: memberUser }).build(),
-        )
+        await saveOrgMembership({
+          repositories,
+          membership: organizationMembershipFactory
+            .member()
+            .transient({ user: memberUser, organization })
+            .build(),
+        })
+        await saveProjectMembership({
+          repositories,
+          membership: projectMembershipFactory
+            .member()
+            .transient({ project, user: memberUser })
+            .build(),
+        })
         await addUserToAgent({
           repositories,
           agent,
@@ -320,16 +343,20 @@ describe("Invitations — authorization", () => {
 
         const memberUser = userFactory.build()
         await repositories.userRepository.save(memberUser)
-        await repositories.organizationMembershipRepository.save(
-          repositories.organizationMembershipRepository.create({
-            userId: memberUser.id,
-            organizationId: organization.id,
-            role: "member",
-          }),
-        )
-        await repositories.projectMembershipRepository.save(
-          projectMembershipFactory.member().transient({ project, user: memberUser }).build(),
-        )
+        await saveOrgMembership({
+          repositories,
+          membership: organizationMembershipFactory
+            .member()
+            .transient({ user: memberUser, organization })
+            .build(),
+        })
+        await saveProjectMembership({
+          repositories,
+          membership: projectMembershipFactory
+            .member()
+            .transient({ project, user: memberUser })
+            .build(),
+        })
 
         auth0Id = memberUser.auth0Id
         const response = await subject({

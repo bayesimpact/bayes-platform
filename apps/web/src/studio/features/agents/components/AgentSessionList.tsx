@@ -18,10 +18,7 @@ import type {
   ExtractionAgentSessionSummary,
   ExtractionAgentSessions,
 } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
-import {
-  selectCurrentExtractionAgentSessionsData,
-  selectIsExtracting,
-} from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.selectors"
+import { selectCurrentExtractionAgentSessionsData } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.selectors"
 import { selectCurrentFormAgentSessionsData } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.selectors"
 import {
   selectCurrentAgentData,
@@ -38,7 +35,6 @@ import { selectCurrentProjectId } from "@/common/features/projects/projects.sele
 import { useAbility } from "@/common/hooks/use-ability"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useCurrentId, useValue } from "@/common/hooks/use-value"
-import { useAppSelector } from "@/common/store/hooks"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { AgentActions } from "./AgentActions"
 import { AgentEditor } from "./AgentEditor"
@@ -123,7 +119,6 @@ export function ExtractionAgentSessionList() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const projectRoute = useGetProjectRoute()
-  const isExtracting = useAppSelector(selectIsExtracting)
   const organizationId = useCurrentId(selectCurrentOrganizationId)
 
   const { abilities } = useAbility()
@@ -151,7 +146,7 @@ export function ExtractionAgentSessionList() {
           </GridCard.Description>
           <div className="flex items-center gap-2">
             <History agentSessions={agentSessions} />
-            <ExtractionButton disabled={isExtracting} />
+            <ExtractionButton />
           </div>
         </GridCard.Body>
       </GridCard>
@@ -161,7 +156,7 @@ export function ExtractionAgentSessionList() {
   )
 }
 
-function ExtractionButton({ disabled }: { disabled: boolean }) {
+function ExtractionButton() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const organizationId = useCurrentId(selectCurrentOrganizationId)
@@ -172,7 +167,7 @@ function ExtractionButton({ disabled }: { disabled: boolean }) {
     navigate(StudioRoutes.agentExtraction.build({ organizationId, projectId, agentId }))
   }
   return (
-    <Button size="lg" className="text-base" disabled={disabled} onClick={handleClick}>
+    <Button size="lg" className="text-base" onClick={handleClick}>
       {t("actions:run")}
       <PlusCircleIcon className="ml-2 size-5" />
     </Button>

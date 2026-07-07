@@ -54,6 +54,13 @@
       "errorDetails": "Error Details",
       "noRecords": "No records found",
       "processingDescription": "{{processed}} of {{total}} records processed."
+    },
+    "delete": {
+      "confirm": {
+        "title": "Delete CSV extraction",
+        "description": "This CSV extraction will be permanently deleted. This action cannot be undone.",
+        "submit": "Delete"
+      }
     }
   }
 }

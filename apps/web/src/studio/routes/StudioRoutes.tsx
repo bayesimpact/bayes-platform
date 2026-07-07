@@ -7,6 +7,8 @@ import { ConversationAgentSessionsRoute } from "@/common/routes/agents/Conversat
 import { ExtractionAgentSessionsRoute } from "@/common/routes/agents/ExtractionAgentSessionsRoute"
 import { AgentCsvExtractionRunRoute } from "@/common/routes/agents/extraction/AgentCsvExtractionRunRoute"
 import { AgentExtractionRoute } from "@/common/routes/agents/extraction/AgentExtractionRoute"
+import { AgentExtractionRunRoute } from "@/common/routes/agents/extraction/AgentExtractionRunRoute"
+
 import { FormAgentSessionsRoute } from "@/common/routes/agents/FormAgentSessionsRoute"
 import { RoutesBuilderProvider } from "@/common/routes/build-routes/RoutesBuilderProvider"
 import { ErrorRoute } from "@/common/routes/ErrorRoute"
@@ -56,6 +58,7 @@ export const studioRoutes = {
                 agentRoute: StudioRoutes.agent.build,
                 agentSessionRoute: StudioRoutes.agentSession.build,
                 agentExtractionCsvRunRoute: StudioRoutes.agentExtractionCsvRun.build,
+                agentExtractionRunRoute: StudioRoutes.agentExtractionRun.build,
                 projectRoute: StudioRoutes.project.build,
               }}
             >
@@ -163,6 +166,10 @@ export const studioRoutes = {
                 {
                   path: StudioRoutes.agentExtractionCsvRun.path,
                   element: <AgentCsvExtractionRunRoute />,
+                },
+                {
+                  path: StudioRoutes.agentExtractionRun.path,
+                  element: <AgentExtractionRunRoute />,
                 },
               ],
             },

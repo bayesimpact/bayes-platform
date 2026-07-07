@@ -24,7 +24,13 @@ export class AgentSubAgentsService {
     connectScope: RequiredConnectScope
     parentAgent: Agent
   }): Promise<AgentSubAgent[]> {
-    this.validateParentAgent({ connectScope, parentAgent })
+    this.validateParentScope({ connectScope, parentAgent })
+
+    // Non-conversation agents can never have sub-agents; reading their (empty)
+    // list is a no-op rather than an error.
+    if (parentAgent.type !== "conversation") {
+      return []
+    }
 
     return this.agentSubAgentRepository.find({
       where: { parentAgentId: parentAgent.id },
@@ -47,7 +53,8 @@ export class AgentSubAgentsService {
     parentAgent: Agent
     subAgents: ReplaceAgentSubAgentDto[]
   }): Promise<AgentSubAgent[]> {
-    this.validateParentAgent({ connectScope, parentAgent })
+    this.validateParentScope({ connectScope, parentAgent })
+    this.validateParentIsConversation(parentAgent)
     this.validateReplacementInput({ parentAgent, subAgents })
 
     const childAgents = await this.resolveChildAgents({
@@ -82,7 +89,7 @@ export class AgentSubAgentsService {
     return savedRows
   }
 
-  private validateParentAgent({
+  private validateParentScope({
     connectScope,
     parentAgent,
   }: {
@@ -95,7 +102,9 @@ export class AgentSubAgentsService {
     ) {
       throw new UnprocessableEntityException("Parent agent must belong to the current project")
     }
+  }
 
+  private validateParentIsConversation(parentAgent: Agent) {
     if (parentAgent.type !== "conversation") {
       throw new UnprocessableEntityException("Only conversation agents can have sub-agents")
     }
@@ -144,11 +153,6 @@ export class AgentSubAgentsService {
 
     if (childAgents.length !== childAgentIds.length) {
       throw new UnprocessableEntityException("One or more sub-agents do not exist in this project")
-    }
-
-    const invalidChildAgent = childAgents.find((agent) => agent.type !== "conversation")
-    if (invalidChildAgent) {
-      throw new UnprocessableEntityException("Sub-agents must be conversation agents")
     }
 
     return childAgents

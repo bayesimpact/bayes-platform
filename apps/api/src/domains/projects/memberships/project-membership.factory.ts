@@ -1,9 +1,12 @@
 import { randomUUID } from "node:crypto"
 import { Factory } from "fishery"
-import type { Repository } from "typeorm"
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
+import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import type { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
-import { organizationMembershipFactory } from "@/domains/organizations/memberships/organization-membership.factory"
+import {
+  organizationMembershipFactory,
+  saveOrgMembership,
+} from "@/domains/organizations/memberships/organization-membership.factory"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
@@ -57,24 +60,46 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
   },
 )
 
+/**
+ * Saves a ProjectMembership to both the legacy table and user_memberships.
+ * Use this in tests instead of `repositories.projectMembershipRepository.save()`
+ * to keep user_memberships in sync during the dual-write transition period.
+ */
+export const saveProjectMembership = async ({
+  repositories,
+  membership,
+}: {
+  repositories: AllRepositories
+  membership: ProjectMembership
+}) => {
+  const saved = await repositories.projectMembershipRepository.save(membership)
+  await repositories.userMembershipRepository.save(
+    userMembershipFactory.build({
+      userId: saved.userId,
+      resourceType: "project",
+      resourceId: saved.projectId,
+      role: saved.role,
+    }),
+  )
+  return saved
+}
+
 export const addUserToProject = async ({
   repositories,
   project,
   user,
   membership,
 }: {
-  repositories: {
-    userRepository: Repository<User>
-    projectMembershipRepository: Repository<ProjectMembership>
-  }
+  repositories: AllRepositories
   project: Project
   user?: User
   membership?: Partial<ProjectMembership>
 }) => {
   const createMembership = async (user: User) => {
-    const newMembership = await repositories.projectMembershipRepository.save(
-      projectMembershipFactory.transient({ project, user }).build(membership),
-    )
+    const newMembership = await saveProjectMembership({
+      repositories,
+      membership: projectMembershipFactory.transient({ project, user }).build(membership),
+    })
     return { membership: newMembership, user }
   }
 
@@ -108,18 +133,21 @@ export const inviteUserToProject = async ({
   await repositories.userRepository.save(invitedUser)
 
   if (organization) {
-    await repositories.organizationMembershipRepository.save(
-      organizationMembershipFactory
+    await saveOrgMembership({
+      repositories,
+      membership: organizationMembershipFactory
         .transient({ user: invitedUser, organization })
         .build(organizationMembership),
-    )
+    })
   }
 
   const invitationToken = randomUUID()
-  const membership = projectMembershipFactory
-    .transient({ project, user: invitedUser })
-    .build(projectMembership)
-  await repositories.projectMembershipRepository.save(membership)
+  const membership = await saveProjectMembership({
+    repositories,
+    membership: projectMembershipFactory
+      .transient({ project, user: invitedUser })
+      .build(projectMembership),
+  })
 
   return { membership, invitedUser, invitationToken }
 }

@@ -1,4 +1,4 @@
-import type { AgentModel } from "@caseai-connect/api-contracts"
+import type { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import type { ModelMessage, ToolSet } from "ai"
 import type { ZodObject, z } from "zod"
 export type LLMChatMessage = ModelMessage
@@ -16,6 +16,7 @@ export type LLMConfig =
       systemPrompt?: string
       mockResult: string | string[]
       tools?: ToolSet
+      useExtendedTimeouts?: never
     }
   | {
       model: Exclude<string, MockModels>
@@ -23,8 +24,13 @@ export type LLMConfig =
       systemPrompt?: string
       mockResult?: never
       tools?: ToolSet
+      /**
+       * Opt in to the extended network timeouts on the underlying provider fetch
+       * (see {@link AISDKVertexProvider}). Reserved for long-running calls such as
+       * extraction agent runs; defaults to the provider's standard timeouts.
+       */
+      useExtendedTimeouts?: boolean
     }
-
 export type LLMMetadata = (
   | {
       evaluationReportId?: never
@@ -42,9 +48,16 @@ export type LLMMetadata = (
   agentId: string
   projectId: string
   tags: string[]
+  /**
+   * Overrides the langfuse session id (which otherwise derives from
+   * `agentSessionId`). Sub-agents set this to the parent session id so their
+   * dedicated traces group under the same langfuse session as the parent run.
+   */
+  langfuseSessionId?: string
 }
 
 export interface LLMProvider {
+  getAgentProvider(): AgentProvider
   streamChatResponse({
     messages,
     config,

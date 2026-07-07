@@ -3,9 +3,10 @@ import { Button } from "@caseai-connect/ui/shad/button"
 import { useSidebar } from "@caseai-connect/ui/shad/sidebar"
 import { Spinner } from "@caseai-connect/ui/shad/spinner"
 import { AlertCircleIcon, Trash2Icon } from "lucide-react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
+import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { GridHeader } from "@/common/components/grid/Grid"
 import {
   selectCurrentCsvRunData,
@@ -54,6 +55,9 @@ function WithData() {
   const isCancelling = useAppSelector(selectIsCancellingCsvRun)
   const isRetrying = useAppSelector(selectIsRetryingCsvRun)
   const agentPath = useGetAgentRoute()
+
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
+
   const handleBack = () => navigate(agentPath)
 
   const canCancel = run.status === "pending" || run.status === "running"
@@ -81,6 +85,7 @@ function WithData() {
 
   const handleDelete = () => {
     dispatch(agentCsvExtractionRunsActions.deleteOne({ agentCsvExtractionRunId: run.id }))
+    setConfirmDeleteOpen(false)
     handleBack()
   }
 
@@ -124,11 +129,19 @@ function WithData() {
               <DocumentOpener documentId={run.csvExportDocumentId} />
             ) : null}
 
-            <Button variant="secondary" size="icon" onClick={handleDelete}>
+            <Button variant="secondary" size="icon" onClick={() => setConfirmDeleteOpen(true)}>
               <Trash2Icon />
             </Button>
           </>
         }
+      />
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        title={t("agentCsvExtractionRun:delete.confirm.title")}
+        description={t("agentCsvExtractionRun:delete.confirm.description")}
+        confirmLabel={t("agentCsvExtractionRun:delete.confirm.submit")}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDeleteOpen(false)}
       />
       <div className="p-6 flex flex-col gap-6">
         <AgentCsvExtractionRunSummary run={run} />

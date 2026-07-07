@@ -16,13 +16,22 @@ import { extractionAgentSessionFactory } from "../agents/extraction-agent-sessio
 import type { FormAgentSession } from "../agents/form-agent-sessions/form-agent-session.entity"
 import { formAgentSessionFactory } from "../agents/form-agent-sessions/form-agent-session.factory"
 import type { AgentMembership } from "../agents/memberships/agent-membership.entity"
-import { agentMembershipFactory } from "../agents/memberships/agent-membership.factory"
+import {
+  agentMembershipFactory,
+  saveAgentMembership,
+} from "../agents/memberships/agent-membership.factory"
 import type { AgentMessage } from "../agents/shared/agent-session-messages/agent-message.entity"
 import { agentMessageFactory } from "../agents/shared/agent-session-messages/agent-messages.factory"
 import type { ProjectMembership } from "../projects/memberships/project-membership.entity"
-import { projectMembershipFactory } from "../projects/memberships/project-membership.factory"
+import {
+  projectMembershipFactory,
+  saveProjectMembership,
+} from "../projects/memberships/project-membership.factory"
 import type { OrganizationMembership } from "./memberships/organization-membership.entity"
-import { organizationMembershipFactory } from "./memberships/organization-membership.factory"
+import {
+  organizationMembershipFactory,
+  saveOrgMembership,
+} from "./memberships/organization-membership.factory"
 import type { Organization } from "./organization.entity"
 
 export const organizationFactory = Factory.define<Organization>(({ sequence, params }) => {
@@ -74,7 +83,7 @@ export async function createOrganizationWithOwner(
     repositories.userRepository.save(user),
     repositories.organizationRepository.save(organization),
   ])
-  await repositories.organizationMembershipRepository.save(organizationMembership)
+  await saveOrgMembership({ repositories, membership: organizationMembership })
 
   return { organization, user, organizationMembership }
 }
@@ -101,7 +110,7 @@ export async function createOrganizationWithProject(
     .owner()
     .transient({ user, project })
     .build(params.projectMembership)
-  await repositories.projectMembershipRepository.save(projectMembership)
+  await saveProjectMembership({ repositories, membership: projectMembership })
 
   return { ...data, projectMembership, project }
 }
@@ -127,7 +136,7 @@ export async function createOrganizationWithAgent(
     .owner()
     .transient({ user, agent })
     .build(params.agentMembership)
-  await repositories.agentMembershipRepository.save(agentMembership)
+  await saveAgentMembership({ repositories, membership: agentMembership })
 
   return {
     ...data,

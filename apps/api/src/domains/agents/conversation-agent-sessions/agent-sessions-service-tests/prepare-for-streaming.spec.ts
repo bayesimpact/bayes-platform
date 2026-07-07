@@ -27,8 +27,7 @@ describe("prepareForStreaming", () => {
 
     const { session: updatedSession, assistantMessageId } =
       await streamingService.prepareForStreaming({
-        connectScope,
-        sessionId: session.id,
+        agentSessionScope: { agent: testAgent, session, connectScope },
         userContent: "Hello, how are you?",
         agentType: testAgent.type,
       })
@@ -56,10 +55,15 @@ describe("prepareForStreaming", () => {
 
     // Use a valid UUID format for non-existent session
     const nonExistentId = "00000000-0000-0000-0000-000000000000"
+    const session = {
+      id: nonExistentId,
+      traceId: nonExistentId,
+      organizationId: testOrganization.id,
+      messages: [],
+    }
     await expect(
       streamingService.prepareForStreaming({
-        connectScope,
-        sessionId: nonExistentId,
+        agentSessionScope: { agent: testAgent, session: session as never, connectScope },
         userContent: "Hello",
         agentType: testAgent.type,
       }),

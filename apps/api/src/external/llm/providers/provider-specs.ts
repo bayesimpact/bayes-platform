@@ -30,7 +30,13 @@ export class ProviderSpecs {
     }
   }
 
-  static async testGenerateText({ provider, model }: { provider: LLMProvider; model: string }) {
+  static async testGenerateText({
+    provider,
+    model,
+  }: {
+    provider: LLMProvider
+    model: string
+  }): Promise<void> {
     const metadata = ProviderSpecs.getMetadata()
     const prompt = "What's your name?"
     const config = {
@@ -42,7 +48,13 @@ export class ProviderSpecs {
     expect(result).toBeDefined()
     expectIncludes(result, "Elvis")
   }
-  static async testGenerateObject({ provider, model }: { provider: LLMProvider; model: string }) {
+  static async testGenerateObject({
+    provider,
+    model,
+  }: {
+    provider: LLMProvider
+    model: string
+  }): Promise<void> {
     const metadata = ProviderSpecs.getMetadata()
     const prompt = "Can I use aspirin if I am bleeding?"
     const schema = z.object({
@@ -66,7 +78,7 @@ export class ProviderSpecs {
   }: {
     provider: LLMProvider
     model: string
-  }) {
+  }): Promise<void> {
     const metadata = ProviderSpecs.getMetadata()
     const messages: LLMChatMessage[] = [{ role: "user", content: "What can you do for me?" }]
     const config = {
@@ -239,7 +251,7 @@ export class ProviderSpecs {
     provider: LLMProvider
     model: string
     advancedExpectation: boolean
-  }) {
+  }): Promise<void> {
     const prompt = `##Instructions:
     Your main task is to help the user fill out the form by asking questions and providing guidance.
     Ask one question at a time to fill out the form.
@@ -391,30 +403,7 @@ export class ProviderSpecs {
     provider: LLMProvider
     model: string
     advancedExpectation: boolean
-  }) {
-    const _prompt_initial = `Today's date: 4/1/2026
-
-## Identity
-You are **Warmachine rules**, a conversational AI assistant.
-
-## Purpose
-Your purpose is to assist users by answering their questions about a tabletop wargame
-
-## Behavioural Rules
-- **Tone**: Friendly, clear, and professional.
-- **Brevity**: Provide concise responses focused on the user's needs.
-- **Formatting**: Use **bold** for key terms and bullet points for lists.
-- **Interactivity**: Ask clarifying questions when the user's request is ambiguous.
-
-## Guardrails
-- **Confidentiality**: Do not share any personal or sensitive information.
-- **Ethics**: Avoid engaging in discussions that promote harm or illegal activities.
-
-## Tools:
-[retrieveProjectDocumentChunks]: When the user asks about information that may exist in project documents, call the retrieveProjectDocumentChunks tool before answering. Use the returned chunks as primary context and avoid inventing facts not present in those chunks.
-
-## Response language:
-Always answer in English.`
+  }): Promise<void> {
     const prompt = `Today's date: 4/1/2026
 
 ## Identity
@@ -445,14 +434,6 @@ Always answer in English.`
       description: "Retrieve useful Document's Chunks",
       inputSchema,
       outputSchema: undefined,
-      // outputSchema: z.object({
-      //   status: z
-      //       .enum(["completed", "in_progress"])
-      //       .describe("Whether the form is completed or not"),
-      //   formState: inputSchema.describe(
-      //       "The current state of the form, with values filled by the user",
-      //   ),
-      // }),
       execute: async (input, _options) => {
         return getChunks(input.latestUserQuestion)
       },
@@ -508,6 +489,141 @@ Always answer in English.`
     }
   }
 
+  static async testStreamChatResponseWithMultipleTools({
+    provider,
+    model,
+    advancedExpectation,
+  }: {
+    provider: LLMProvider
+    model: string
+    advancedExpectation: boolean
+  }): Promise<void> {
+    const prompt = `Today's date: 4/1/2026
+
+## Identity
+You are **Warmachine rules**, a conversational AI assistant.
+
+## Purpose
+Your purpose is to assist users by answering their questions about a tabletop wargame.
+(CRITICAL) ALWAYS call the available tools to get document chunks before return answer to the user.
+
+## Behavioural Rules
+- **Tone**: Friendly, clear, and professional.
+- **Brevity**: Provide concise responses focused on the user's needs.
+- **Formatting**: Use **bold** for key terms and bullet points for lists.
+- **Interactivity**: Ask clarifying questions when the user's request is ambiguous.
+
+## Guardrails
+- **Confidentiality**: Do not share any personal or sensitive information.
+- **Ethics**: Avoid engaging in discussions that promote harm or illegal activities.
+
+## Response language:
+Always answer in English.`
+    const inputSchemaRetrieveProjectDocumentChunksTool = z.object({
+      conversationSummary: z.string().describe("Summary of the conversation"),
+      latestUserQuestion: z.string().describe("Latest user's question"),
+      topK: z.number().describe("topK value"),
+    })
+    const retrieveProjectDocumentChunksTool = tool({
+      description: "Retrieve useful Document's Chunks",
+      inputSchema: inputSchemaRetrieveProjectDocumentChunksTool,
+      outputSchema: undefined,
+      execute: async (input, _options) => {
+        return getChunks(input.latestUserQuestion)
+      },
+    })
+    const inputSchemaGetUnitValue = z.object({
+      unitName: z.string().describe("The name of the unit"),
+    })
+    const getUnitValueTool = tool({
+      description:
+        "Return the value in points of the specified unit with his name. Always call this tool if you need to answer a question that is about a cost in army points",
+      inputSchema: inputSchemaGetUnitValue,
+      outputSchema: z.object({ value: z.number() }),
+      execute: async (input) => {
+        return { value: input.unitName.length }
+      },
+    })
+    const inputSchemaGetUnitPrice = z.object({
+      unitName: z.string().describe("The name of the unit"),
+      unitValue: z.number().describe("The value in army points of the unit"),
+    })
+    const getUnitPriceTool = tool({
+      description:
+        "Return the price of the specified unit (with his name and his army value in points). Always call this tool if you need to answer a question that is about a price of a unit",
+      inputSchema: inputSchemaGetUnitPrice,
+      outputSchema: z.object({ value: z.number() }),
+      execute: async (input) => {
+        return { value: input.unitName.length * input.unitValue }
+      },
+    })
+    const config = {
+      model,
+      temperature: ProviderSpecs.temperature,
+      systemPrompt: prompt,
+      tools: {
+        retrieveProjectDocumentChunks: retrieveProjectDocumentChunksTool,
+        getUnitValue: getUnitValueTool,
+        getUnitPrice: getUnitPriceTool,
+      } as ToolSet,
+    }
+    const chatMessages: LLMChatMessage[] = [
+      {
+        role: "user",
+        content:
+          "C'est combien de deplacement en plus la charge pour un warcaster 'Robert le warcaster'. Et combien de points d'armée pour cette unité ?",
+      },
+    ]
+    const metadata = ProviderSpecs.getMetadata()
+    const traceId = metadata.traceId
+    metadata.currentTurn = chatMessages.filter((message) => message.role === "user").length
+    let stream = provider.streamChatResponse({ messages: chatMessages, config, metadata })
+    let results = await ProviderSpecs.streamToStringArray(stream)
+    expect(results).toBeDefined()
+    expect(results.length).toBeGreaterThan(0)
+    let result = results.join("")
+    if (advancedExpectation) {
+      expectIncludes(result, "3")
+      expectIncludes(result, "19")
+    }
+
+    chatMessages.push({ role: "assistant", content: results.join("") })
+    chatMessages.push({
+      role: "user",
+      content:
+        "tu m'avais dit 5 pouces. Sinon, j'ai une unité 'Elmutt le calbutt' et je voudrai savoir quel est son prix?",
+    })
+    const metadata2 = ProviderSpecs.getMetadata()
+    metadata2.currentTurn = chatMessages.filter((message) => message.role === "user").length
+    metadata2.traceId = traceId
+    stream = provider.streamChatResponse({ messages: chatMessages, config, metadata: metadata2 })
+    results = await ProviderSpecs.streamToStringArray(stream)
+    expect(results).toBeDefined()
+    expect(results.length).toBeGreaterThan(0)
+    result = results.join("")
+    if (advancedExpectation) {
+      expectIncludesAtLeastOne(result, ["5", "3"])
+      expectIncludes(result, "289")
+    }
+
+    chatMessages.push({ role: "assistant", content: results.join("") })
+    chatMessages.push({
+      role: "user",
+      content:
+        "qui est le moins cher entre Robert et Elmutt ? Retourne moi juste le nom complet du moins cher, sans guillemets",
+    })
+    const metadata3 = ProviderSpecs.getMetadata()
+    metadata3.currentTurn = chatMessages.filter((message) => message.role === "user").length
+    metadata3.traceId = traceId
+    stream = provider.streamChatResponse({ messages: chatMessages, config, metadata: metadata3 })
+    results = await ProviderSpecs.streamToStringArray(stream)
+    expect(results).toBeDefined()
+    expect(results.length).toBeGreaterThan(0)
+    result = results.join("")
+    if (advancedExpectation) {
+      expect(result).toBe("Elmutt le calbutt")
+    }
+  }
   private static async streamToStringArray(
     stream: AsyncGenerator<string, void, unknown>,
   ): Promise<string[]> {
@@ -570,7 +686,7 @@ DO NOT HALLUCINATE VALUES, return only values that you find in the file; if no v
   }: {
     provider: LLMProvider
     model: string
-  }) {
+  }): Promise<void> {
     const prompt = `From the input table, extract each constant name and its value. 
 Output the full list unchanged, except for the constant named ‘Pi’, which must have its value replaced by 0.007.`
     const metadata = ProviderSpecs.getMetadata()
@@ -626,9 +742,9 @@ Output the full list unchanged, except for the constant named ‘Pi’, which mu
   }: {
     provider: LLMProvider
     model: string
-  }) {
+  }): Promise<void> {
     const filename = "xray-png.png"
-    await ProviderSpecs.testGenerateStructuredOutputFromXRay(filename, model, provider)
+    return await ProviderSpecs.testGenerateStructuredOutputFromXRay(filename, model, provider)
   }
 
   static async testGenerateStructuredOutputFromXRayLowPng_FR({
@@ -637,9 +753,9 @@ Output the full list unchanged, except for the constant named ‘Pi’, which mu
   }: {
     provider: LLMProvider
     model: string
-  }) {
+  }): Promise<void> {
     const filename = "xray-micro-png.png"
-    await ProviderSpecs.testGenerateStructuredOutputFromXRay(filename, model, provider)
+    return await ProviderSpecs.testGenerateStructuredOutputFromXRay(filename, model, provider)
   }
 
   static async testGenerateStructuredOutputFromXRayJpg_FR({
@@ -648,18 +764,18 @@ Output the full list unchanged, except for the constant named ‘Pi’, which mu
   }: {
     provider: LLMProvider
     model: string
-  }) {
+  }): Promise<void> {
     const filename = "xray-jpg.jpg"
-    await ProviderSpecs.testGenerateStructuredOutputFromXRay(filename, model, provider)
+    return await ProviderSpecs.testGenerateStructuredOutputFromXRay(filename, model, provider)
   }
 
   private static async testGenerateStructuredOutputFromXRay(
     filename: string,
     model: string,
     provider: LLMProvider,
-  ) {
+  ): Promise<void> {
     const systemPromptFr =
-      "Tu es un chat bot nommé Elvis. Ton objectif est de répondre aux utilisateurs en focntion des connaissances dont tu disposes"
+      "Tu es un chat bot nommé Elvis. Ton objectif est de répondre aux utilisateurs en fonction des connaissances dont tu disposes"
     const prompt = `Analyse cette radiographie et extrais les informations sous format JSON strict.`
     const metadata = ProviderSpecs.getMetadata()
     const emergencyLevel = ["faible", "moyen", "eleve"]

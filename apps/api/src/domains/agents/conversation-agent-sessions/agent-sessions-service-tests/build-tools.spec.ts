@@ -5,12 +5,19 @@ import { agentSessionControllerTestSetup } from "./test-setup"
 
 const getTestContext = agentSessionControllerTestSetup()
 
+type AgentSessionScope = Parameters<StreamingService["streamAgentResponse"]>[0]["agentSessionScope"]
+
 type BuildToolsArgs = {
-  agent: Parameters<StreamingService["streamAgentResponse"]>[0]["agent"]
-  sessionId: string
-  connectScope: RequiredConnectScope
+  agentSessionScope: AgentSessionScope
   onExecute: () => void
 }
+
+const buildSessionStub = (sessionId: string): AgentSessionScope["session"] =>
+  ({
+    id: sessionId,
+    traceId: sessionId,
+    organizationId: "organization-id",
+  }) as AgentSessionScope["session"]
 
 type BuildToolsAccessor = {
   buildTools: (args: BuildToolsArgs) => Promise<{
@@ -21,16 +28,18 @@ type BuildToolsAccessor = {
 
 describe("buildTools", () => {
   it("should omit document retrieval when documentsRagMode is none", async () => {
-    const { streamingService, testAgent, testOrganization, testProject } = getTestContext()
+    const { toolsService, testAgent, testOrganization, testProject } = getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
       projectId: testProject.id,
     }
 
-    const { tools } = await (streamingService as unknown as BuildToolsAccessor).buildTools({
-      agent: { ...testAgent, documentsRagMode: DocumentsRagMode.None },
-      sessionId: "session-id",
-      connectScope,
+    const { tools } = await (toolsService as unknown as BuildToolsAccessor).buildTools({
+      agentSessionScope: {
+        agent: { ...testAgent, documentsRagMode: DocumentsRagMode.None },
+        session: buildSessionStub("session-id"),
+        connectScope,
+      },
       onExecute: () => undefined,
     })
 
@@ -39,16 +48,18 @@ describe("buildTools", () => {
   })
 
   it("should expose document retrieval when documentsRagMode is all", async () => {
-    const { streamingService, testAgent, testOrganization, testProject } = getTestContext()
+    const { toolsService, testAgent, testOrganization, testProject } = getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
       projectId: testProject.id,
     }
 
-    const { tools } = await (streamingService as unknown as BuildToolsAccessor).buildTools({
-      agent: { ...testAgent, documentsRagMode: DocumentsRagMode.All },
-      sessionId: "session-id",
-      connectScope,
+    const { tools } = await (toolsService as unknown as BuildToolsAccessor).buildTools({
+      agentSessionScope: {
+        agent: { ...testAgent, documentsRagMode: DocumentsRagMode.All },
+        session: buildSessionStub("session-id"),
+        connectScope,
+      },
       onExecute: () => undefined,
     })
 
@@ -57,16 +68,18 @@ describe("buildTools", () => {
   })
 
   it("should expose document retrieval when documentsRagMode is tags", async () => {
-    const { streamingService, testAgent, testOrganization, testProject } = getTestContext()
+    const { toolsService, testAgent, testOrganization, testProject } = getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
       projectId: testProject.id,
     }
 
-    const { tools } = await (streamingService as unknown as BuildToolsAccessor).buildTools({
-      agent: { ...testAgent, documentsRagMode: DocumentsRagMode.Tags },
-      sessionId: "session-id",
-      connectScope,
+    const { tools } = await (toolsService as unknown as BuildToolsAccessor).buildTools({
+      agentSessionScope: {
+        agent: { ...testAgent, documentsRagMode: DocumentsRagMode.Tags },
+        session: buildSessionStub("session-id"),
+        connectScope,
+      },
       onExecute: () => undefined,
     })
 
@@ -76,7 +89,7 @@ describe("buildTools", () => {
 
   it("should expose metadata recalculation tool when agent has categories", async () => {
     const {
-      streamingService,
+      toolsService,
       service,
       testAgent,
       testOrganization,
@@ -102,14 +115,16 @@ describe("buildTools", () => {
       type: "playground",
     })
 
-    const { tools } = await (streamingService as unknown as BuildToolsAccessor).buildTools({
-      agent: {
-        ...testAgent,
-        sessionCategories: [savedCategory],
-        documentsRagMode: DocumentsRagMode.None,
+    const { tools } = await (toolsService as unknown as BuildToolsAccessor).buildTools({
+      agentSessionScope: {
+        agent: {
+          ...testAgent,
+          sessionCategories: [savedCategory],
+          documentsRagMode: DocumentsRagMode.None,
+        },
+        session,
+        connectScope,
       },
-      sessionId: session.id,
-      connectScope,
       onExecute: () => undefined,
     })
 
@@ -120,7 +135,7 @@ describe("buildTools", () => {
     const {
       agentRepository,
       agentSubAgentRepository,
-      streamingService,
+      toolsService,
       testAgent,
       testOrganization,
       testProject,
@@ -153,11 +168,13 @@ describe("buildTools", () => {
     )
 
     const { tools, toolDescriptions } = await (
-      streamingService as unknown as BuildToolsAccessor
+      toolsService as unknown as BuildToolsAccessor
     ).buildTools({
-      agent: { ...testAgent, documentsRagMode: DocumentsRagMode.None },
-      sessionId: "session-id",
-      connectScope,
+      agentSessionScope: {
+        agent: { ...testAgent, documentsRagMode: DocumentsRagMode.None },
+        session: buildSessionStub("session-id"),
+        connectScope,
+      },
       onExecute: () => undefined,
     })
 
@@ -170,7 +187,7 @@ describe("buildTools", () => {
       agentRepository,
       agentSubAgentRepository,
       featureFlagRepository,
-      streamingService,
+      toolsService,
       testAgent,
       testOrganization,
       testProject,
@@ -210,11 +227,13 @@ describe("buildTools", () => {
     )
 
     const { tools, toolDescriptions } = await (
-      streamingService as unknown as BuildToolsAccessor
+      toolsService as unknown as BuildToolsAccessor
     ).buildTools({
-      agent: { ...testAgent, documentsRagMode: DocumentsRagMode.None },
-      sessionId: "session-id",
-      connectScope,
+      agentSessionScope: {
+        agent: { ...testAgent, documentsRagMode: DocumentsRagMode.None },
+        session: buildSessionStub("session-id"),
+        connectScope,
+      },
       onExecute: () => undefined,
     })
 

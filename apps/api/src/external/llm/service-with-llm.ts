@@ -12,21 +12,29 @@ export abstract class ServiceWithLLM {
   constructor({
     mockLlmProvider,
     vertexLlmProvider,
+    vertex3LlmProvider,
+    mistralLlmProvider,
     medGemmaLlmProvider,
     gemmaLlmProvider,
   }: {
     mockLlmProvider: LLMProvider
     vertexLlmProvider: LLMProvider
+    vertex3LlmProvider: LLMProvider
+    mistralLlmProvider: LLMProvider
     medGemmaLlmProvider: LLMProvider
     gemmaLlmProvider: LLMProvider
   }) {
     this._mockLlmProvider = mockLlmProvider
     this.vertexLlmProvider = vertexLlmProvider
+    this.vertex3LlmProvider = vertex3LlmProvider
+    this.mistralLlmProvider = mistralLlmProvider
     this.medGemmaLlmProvider = medGemmaLlmProvider
     this.gemmaLlmProvider = gemmaLlmProvider
   }
   private readonly _mockLlmProvider: LLMProvider
   private readonly vertexLlmProvider: LLMProvider
+  private readonly vertex3LlmProvider: LLMProvider
+  private readonly mistralLlmProvider: LLMProvider
   private readonly medGemmaLlmProvider: LLMProvider
   private readonly gemmaLlmProvider: LLMProvider
   protected getProviderForModel(model: string): LLMProvider {
@@ -36,6 +44,10 @@ export abstract class ServiceWithLLM {
         return this._mockLlmProvider
       case AgentProvider.Vertex:
         return this.vertexLlmProvider
+      case AgentProvider.Vertex3:
+        return this.vertex3LlmProvider
+      case AgentProvider.Mistral:
+        return this.mistralLlmProvider
       case AgentProvider.MedGemma:
         return this.medGemmaLlmProvider
       case AgentProvider.Gemma:
@@ -49,11 +61,13 @@ export abstract class ServiceWithLLM {
     model,
     temperature,
     tools,
+    useExtendedTimeouts,
   }: {
     tools?: ToolSet
     systemPrompt: string
     model: AgentModel
     temperature: AgentTemperature
+    useExtendedTimeouts?: boolean
   }): LLMConfig {
     // Convert temperature to number (database decimal types may be returned as strings)
     const safeTemperature =
@@ -70,6 +84,7 @@ export abstract class ServiceWithLLM {
       temperature: safeTemperature,
       systemPrompt,
       tools,
+      useExtendedTimeouts,
     } as LLMConfig
   }
 }

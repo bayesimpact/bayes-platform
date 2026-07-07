@@ -1,9 +1,11 @@
 import {
   type ExtractionAgentSessionDto,
+  type ExtractionAgentSessionStatusChangedEventDto,
   type ExtractionAgentSessionSummaryDto,
   ExtractionAgentSessionsRoutes,
 } from "@caseai-connect/api-contracts"
-import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common"
+import { Body, Controller, Post, Req, Sse, UseGuards } from "@nestjs/common"
+import { filter, map, type Observable } from "rxjs"
 import type {
   EndpointRequestWithAgent,
   EndpointRequestWithAgentSession,
@@ -22,18 +24,24 @@ import { BaseAgentSessionsService } from "../base-agent-sessions/base-agent-sess
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 import type { ExtractionAgentSession } from "./extraction-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ExtractionAgentSessionStatusStreamService } from "./extraction-agent-session-status-stream.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ExtractionAgentSessionsService } from "./extraction-agent-sessions.service"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, BaseAgentSessionGuard)
+// BaseAgentSessionGuard is applied per-method rather than at class level because
+// the SSE stream endpoint is a bodyless GET and does not carry payload.type.
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard)
 @RequireContext("organization", "project", "agent")
 @Controller()
 export class ExtractionAgentSessionsController {
   constructor(
     private readonly extractionAgentSessionsService: ExtractionAgentSessionsService,
     private readonly baseAgentSessionsService: BaseAgentSessionsService,
+    private readonly sessionStatusStreamService: ExtractionAgentSessionStatusStreamService,
   ) {}
 
   @Post(ExtractionAgentSessionsRoutes.executeOne.path)
+  @UseGuards(BaseAgentSessionGuard)
   @CheckPolicy((policy) => policy.canCreate())
   @TrackActivity({ action: "extractionAgentSession.execute" })
   async executeOne(
@@ -47,10 +55,27 @@ export class ExtractionAgentSessionsController {
       documentId: payload.documentId,
       type: payload.type,
     })
-    return { data: { runId: run.id, result: run.result ?? {} } }
+    return { data: { runId: run.id } }
+  }
+
+  @Sse(ExtractionAgentSessionsRoutes.streamSessionStatus.path, { method: 0 /* GET */ })
+  streamSessionStatus(
+    @Req() request: EndpointRequestWithAgent,
+  ): Observable<ExtractionAgentSessionStatusChangedEventDto> {
+    const connectScope = getRequiredConnectScope(request)
+    return this.sessionStatusStreamService.events$.pipe(
+      filter(
+        (event) =>
+          event.organizationId === connectScope.organizationId &&
+          event.projectId === connectScope.projectId &&
+          event.agentId === request.agent.id,
+      ),
+      map((event) => ({ ...event, data: JSON.stringify(event) })),
+    )
   }
 
   @Post(ExtractionAgentSessionsRoutes.getAll.path)
+  @UseGuards(BaseAgentSessionGuard)
   @CheckPolicy((policy) => policy.canList())
   async getAll(
     @Req() request: EndpointRequestWithAgent,
@@ -66,6 +91,7 @@ export class ExtractionAgentSessionsController {
   }
 
   @Post(ExtractionAgentSessionsRoutes.getOne.path)
+  @UseGuards(BaseAgentSessionGuard)
   @AddContext("agentSession")
   @CheckPolicy((policy) => policy.canList())
   async getOne(
@@ -76,6 +102,7 @@ export class ExtractionAgentSessionsController {
   }
 
   @Post(ExtractionAgentSessionsRoutes.deleteOne.path)
+  @UseGuards(BaseAgentSessionGuard)
   @AddContext("agentSession")
   @CheckPolicy((policy) => policy.canDelete())
   async deleteOne(

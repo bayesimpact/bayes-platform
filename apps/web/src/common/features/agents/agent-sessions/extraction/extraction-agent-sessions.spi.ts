@@ -2,6 +2,7 @@ import type { BaseAgentSessionTypeDto, SuccessResponseDTO } from "@caseai-connec
 import type {
   ExtractionAgentSession,
   ExtractionAgentSessionResult,
+  ExtractionAgentSessionStatusChangedEvent,
   ExtractionAgentSessionSummary,
 } from "./extraction-agent-sessions.models"
 
@@ -24,4 +25,11 @@ export interface IExtractionAgentSessionsSpi {
     },
   ) => Promise<ExtractionAgentSessionResult>
   deleteOne: (params: BaseParams & { agentSessionId: string }) => Promise<SuccessResponseDTO>
+  streamSessionStatus: (params: {
+    organizationId: string
+    projectId: string
+    agentId: string
+    signal?: AbortSignal
+    onStatusChanged: (event: ExtractionAgentSessionStatusChangedEvent) => void
+  }) => Promise<void>
 }

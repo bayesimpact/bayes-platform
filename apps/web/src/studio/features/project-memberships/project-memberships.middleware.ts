@@ -2,7 +2,6 @@ import { createListenerMiddleware } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
-import { projectsActions } from "@/common/features/projects/projects.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
   createInvitationsForTarget,
@@ -19,9 +18,8 @@ import {
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
 function registerListeners() {
-  // Refresh project memberships when current project changes
   listenerMiddleware.startListening({
-    actionCreator: projectsActions.mount,
+    actionCreator: projectMembershipsActions.mount,
     effect: async (_, listenerApi) => {
       const projectId = selectCurrentProjectId(listenerApi.getState())
       if (!projectId) return
@@ -35,7 +33,7 @@ function registerListeners() {
   })
 
   listenerMiddleware.startListening({
-    actionCreator: projectMembershipsActions.mount,
+    actionCreator: projectMembershipsActions.memberMount,
     effect: async (_, listenerApi) => {
       const state = listenerApi.getState()
       const membershipId = getCurrentId({ state, name: "membershipId" })

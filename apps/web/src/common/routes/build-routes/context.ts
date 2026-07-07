@@ -11,12 +11,17 @@ export type BuildAgentExtractionCsvRunRoute =
   | typeof StudioRoutes.agentExtractionCsvRun.build
   | typeof DeskRoutes.agentExtractionCsvRun.build
 
+export type BuildAgentExtractionRunRoute =
+  | typeof StudioRoutes.agentExtractionRun.build
+  | typeof DeskRoutes.agentExtractionRun.build
+
 export interface UseBuildRoutesContextValue {
   build: {
     projectRoute: BuildProjectRoute
     agentRoute: BuildAgentRoute
     agentSessionRoute: BuildAgentSessionRoute
     agentExtractionCsvRunRoute: BuildAgentExtractionCsvRunRoute
+    agentExtractionRunRoute: BuildAgentExtractionRunRoute
   }
 }
 

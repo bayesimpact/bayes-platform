@@ -19,7 +19,10 @@ import {
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
-import { reviewCampaignMembershipFactory } from "../review-campaign-membership.factory"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "../review-campaign-membership.factory"
 
 describe("Invitations - acceptInvitation (review campaigns)", () => {
   let app: INestApplication<App>
@@ -72,12 +75,13 @@ describe("Invitations - acceptInvitation (review campaigns)", () => {
     const invitee = await repositories.userRepository.save(
       userFactory.build({ email: mockAuth0EmailForSub(auth0Id) }),
     )
-    const membership = await repositories.reviewCampaignMembershipRepository.save(
-      reviewCampaignMembershipFactory
+    const membership = await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
         .tester()
         .transient({ organization, project, campaign, user: invitee })
         .build(),
-    )
+    })
     await repositories.invitationRepository.save({
       organizationId: organization.id,
       projectId: project.id,

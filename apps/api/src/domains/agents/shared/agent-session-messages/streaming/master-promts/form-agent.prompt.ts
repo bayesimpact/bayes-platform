@@ -10,21 +10,24 @@ export function buildFormAgentPrompt({
   toolDescriptions?: Record<string, string>
   toolNames: string[]
 }): string {
-  return `${promptHelpers.now()}
-
-# Instructions:
+  // Keep the volatile timestamp at the very END so the stable content above
+  // forms a byte-stable prefix that Vertex/Gemini implicit caching can reuse
+  // across runs. Putting the daily-changing date first would invalidate the
+  // whole cached prefix on every date rollover.
+  return `# Instructions:
+  
 ${agent.defaultPrompt}
 
-Here are the form fields to fill:
-${Object.entries(agent.outputJsonSchema?.properties ?? {})
-  .map(
-    ([key, value]) => `- ${key}: ${"description" in value ? value.description : "No description"}`,
-  )
-  .join("\n")}
+Your primary task is to help the user complete the form by asking questions.
+If a question order is provided, follow it.
+To avoid overwhelming the user, ask one question at a time. However, keep in mind that a single answer may contain values for multiple form fields — be sure to capture every details and save all of them in the form.
+From each user response, extract and fill as many fields as possible.
+Update any field whenever the user revises a previous answer.
+If a user response is unclear or doesn't map to any field, ask them to clarify or rephrase.
 
-${promptHelpers.resourceLibraries(agent.resourceLibraries ?? [])}
+${promptHelpers.tools({ names: toolNames, descriptions: toolDescriptions, agent })}
 
-${promptHelpers.tools(toolNames, toolDescriptions)}
+${promptHelpers.language(agent.locale)}
 
-${promptHelpers.language(agent.locale)}`
+${promptHelpers.now()}`
 }

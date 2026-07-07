@@ -6,6 +6,7 @@ import { listAgents } from "../../agents.thunks"
 import { patchRunStatus } from "../../csv-extraction-runs/agent-csv-extraction-runs.actions"
 import type { AgentCsvExtractionRun } from "../../csv-extraction-runs/agent-csv-extraction-runs.models"
 import { agentCsvExtractionRunsThunks } from "../../csv-extraction-runs/agent-csv-extraction-runs.thunks"
+import { patchExtractionSessionStatus } from "./extraction-agent-sessions.actions"
 import type { ExtractionAgentSessions } from "./extraction-agent-sessions.models"
 import { extractionAgentSessionsThunks } from "./extraction-agent-sessions.thunks"
 
@@ -19,11 +20,13 @@ type DataType = Record<
 interface State {
   data: DataType
   documents: AsyncData<Document[]>
+  sessionStatusStream: { isActive: boolean }
 }
 
 const initialState: State = {
   data: {},
   documents: defaultAsyncData,
+  sessionStatusStream: { isActive: false },
 }
 
 function ensureAgentSlot(state: State, agentId: string): DataType[string] {
@@ -56,6 +59,12 @@ const slice = createSlice({
     sessionMount: () => {},
     sessionUnmount: () => {},
     reset: () => initialState,
+    startSessionStatusStream: (state) => {
+      state.sessionStatusStream.isActive = true
+    },
+    stopSessionStatusStream: (state) => {
+      state.sessionStatusStream.isActive = false
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(listAgents.fulfilled, (state, action) => {
@@ -83,12 +92,27 @@ const slice = createSlice({
       .addCase(extractionAgentSessionsThunks.executeOne.pending, (state, action) => {
         ensureAgentSlot(state, action.meta.arg.agentId).isExtracting = true
       })
-      .addCase(extractionAgentSessionsThunks.executeOne.fulfilled, (state, action) => {
-        ensureAgentSlot(state, action.meta.arg.agentId).isExtracting = false
-      })
+      // executeOne now returns immediately with a pending session — keep isExtracting true
+      // until the SSE event arrives with a terminal status.
       .addCase(extractionAgentSessionsThunks.executeOne.rejected, (state, action) => {
         ensureAgentSlot(state, action.meta.arg.agentId).isExtracting = false
       })
+
+    builder.addCase(patchExtractionSessionStatus, (state, action) => {
+      const { extractionAgentSessionId, agentId, status, updatedAt } = action.payload
+      const slot = state.data[agentId]
+      if (!slot) return
+      if (status === "success" || status === "failed") {
+        slot.isExtracting = false
+      }
+      if (ADS.isFulfilled(slot.sessions)) {
+        const session = slot.sessions.value.others.find((s) => s.id === extractionAgentSessionId)
+        if (session) {
+          session.status = status
+          session.updatedAt = updatedAt
+        }
+      }
+    })
 
     builder
       .addCase(extractionAgentSessionsThunks.listMyDocuments.pending, (state) => {

@@ -1,4 +1,5 @@
 import { ToolName } from "@caseai-connect/api-contracts"
+import type { Agent } from "@/domains/agents/agent.entity"
 import type { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
 import { buildResourceLink } from "@/domains/resource-libraries/resource-library-link.helper"
 
@@ -42,7 +43,15 @@ ${serializedLibraries}`
 Always answer in ${locale === "en" ? "English" : locale === "fr" ? "French" : "user's language"}.
       `.trim(),
 
-  tools: (names: string[], descriptions: Record<string, string> = {}) =>
+  tools: ({
+    agent,
+    names,
+    descriptions = {},
+  }: {
+    names: string[]
+    descriptions?: Record<string, string>
+    agent: Agent
+  }) =>
     names.length === 0
       ? ""
       : `## Tools:
@@ -56,7 +65,12 @@ ${names
         return `[${name}]: You MUST call the ${name} tool whenever you use information from the ${ToolName.RetrieveProjectDocumentChunks} tool to answer the user, regardless of whether the chunks come from uploaded documents (documentSourceType="project") or crawled web pages (documentSourceType="webCrawl"). Include EVERY document whose chunks you actually used — do not omit web-crawled pages. For each source, copy the documentId, documentTitle, and documentSourceType verbatim from the retrieved chunks. Do NOT cite sources inline in your text response; the ${name} tool is the only way to show sources to the user.`
 
       case ToolName.FillForm:
-        return `[${name}]: You can use the ${name} tool to fill out the form fields. Just fill out the information you have and ask the user for the missing information. You can also update previously filled information if the user changes their answer. Pass undefined for fields that are not filled yet.`
+        return `[${name}]: Use the ${name} tool to fill the form progressively. Call it with getFormState: true at any time — including alongside partial field updates — to retrieve the current form state and know which fields are already filled. Only pass fields that are new or have changed — never re-send fields already stored. Ask the user for any missing information until the form is complete. Form fields:
+${Object.entries(agent.outputJsonSchema?.properties ?? {})
+  .map(
+    ([key, value]) => `- ${key}: ${"description" in value ? value.description : "No description"}`,
+  )
+  .join("\n")}\n\n`
 
       case ToolName.RecalculateConversationSessionMetadata:
         return `[${name}]: Call this tool after answering the user so session metadata stays aligned. Return the full category set that should remain on the session (including categories still relevant from earlier turns), not only categories from the latest message.`

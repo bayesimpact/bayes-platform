@@ -13,13 +13,19 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import type { AgentMembershipRole } from "@/domains/agents/memberships/agent-membership.entity"
-import { agentMembershipFactory } from "@/domains/agents/memberships/agent-membership.factory"
+import {
+  agentMembershipFactory,
+  saveAgentMembership,
+} from "@/domains/agents/memberships/agent-membership.factory"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.entity"
-import { projectMembershipFactory } from "@/domains/projects/memberships/project-membership.factory"
+import {
+  projectMembershipFactory,
+  saveProjectMembership,
+} from "@/domains/projects/memberships/project-membership.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
 import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -78,10 +84,12 @@ describe("Agents Analytics - Auth", () => {
     const agent = agentFactory.transient({ organization, project }).build()
     await repositories.agentRepository.save(agent)
     if (options.agentMembership !== "none") {
-      const membership = agentMembershipFactory
-        .transient({ user, agent })
-        .build({ role: options.agentMembership })
-      await repositories.agentMembershipRepository.save(membership)
+      await saveAgentMembership({
+        repositories,
+        membership: agentMembershipFactory
+          .transient({ user, agent })
+          .build({ role: options.agentMembership }),
+      })
     }
     organizationId = organization.id
     projectId = project.id
@@ -200,11 +208,13 @@ describe("Agents Analytics - Auth", () => {
     const otherProject = await repositories.projectRepository.save(
       projectFactory.transient({ organization }).build(),
     )
-    const otherProjectMembership = projectMembershipFactory
-      .owner()
-      .transient({ user, project: otherProject })
-      .build()
-    await repositories.projectMembershipRepository.save(otherProjectMembership)
+    const _otherProjectMembership = await saveProjectMembership({
+      repositories,
+      membership: projectMembershipFactory
+        .owner()
+        .transient({ user, project: otherProject })
+        .build(),
+    })
     projectId = otherProject.id
     expectResponse(await subjectConversations(), 404)
     expectResponse(await subjectAvg(), 404)

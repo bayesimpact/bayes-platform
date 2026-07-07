@@ -1,3 +1,8 @@
+// Provide an explicit factory so Jest never evaluates the real CJS module.
+// Without it, Jest's auto-mock still loads the module to inspect its exports,
+// which triggers @llamaindex/env's singleton guard ("llamaindex was already imported").
+jest.mock("@llamaindex/readers/pdf", () => ({ PDFReader: jest.fn() }))
+
 import { DocumentEmbeddingsWorker } from "./document-embeddings.worker"
 import type { DocumentEmbeddingsProcessorService } from "./document-embeddings-processor.service"
 

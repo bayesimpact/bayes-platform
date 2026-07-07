@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto"
 import type { DataSource, Repository } from "typeorm"
 import type { InvitationSender } from "@/domains/auth/invitation-sender.interface"
 import { Invitation } from "@/domains/invitations/invitation.entity"
+import type { UserMembershipService } from "@/domains/memberships/user-membership.service"
 import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
@@ -37,6 +38,7 @@ export class WorkspaceInvitationService {
   constructor(
     private readonly invitationSender: InvitationSender,
     private readonly dataSource: DataSource,
+    private readonly userMembershipService: UserMembershipService,
   ) {}
 
   async inviteWorkspaceOwner(
@@ -100,6 +102,10 @@ export class WorkspaceInvitationService {
             organizationId: organization.id,
             role: "admin",
           }),
+        )
+        await this.userMembershipService.upsertOrganizationMembership(
+          { userId: user.id, organizationId: organization.id, role: "admin" },
+          manager,
         )
       }
 

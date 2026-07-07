@@ -15,7 +15,10 @@ import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
-import { reviewCampaignMembershipFactory } from "../../memberships/review-campaign-membership.factory"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "../../memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
 
@@ -80,13 +83,14 @@ describe("ReviewCampaigns - Tester auth", () => {
     const campaign = await repositories.reviewCampaignRepository.save(
       factory.transient({ organization, project, agent }).build(),
     )
-    await repositories.reviewCampaignMembershipRepository.save(
-      reviewCampaignMembershipFactory
+    await saveReviewCampaignMembership({
+      repositories,
+      membership: reviewCampaignMembershipFactory
         .tester()
         .accepted()
         .transient({ organization, project, campaign, user })
         .build(),
-    )
+    })
     organizationId = organization.id
     projectId = project.id
     reviewCampaignId = campaign.id
@@ -152,13 +156,14 @@ describe("ReviewCampaigns - Tester auth", () => {
       const campaign = await repositories.reviewCampaignRepository.save(
         reviewCampaignFactory.active().transient({ organization, project, agent }).build(),
       )
-      await repositories.reviewCampaignMembershipRepository.save(
-        reviewCampaignMembershipFactory
+      await saveReviewCampaignMembership({
+        repositories,
+        membership: reviewCampaignMembershipFactory
           .reviewer()
           .accepted()
           .transient({ organization, project, campaign, user })
           .build(),
-      )
+      })
       organizationId = organization.id
       projectId = project.id
       reviewCampaignId = campaign.id
@@ -174,13 +179,14 @@ describe("ReviewCampaigns - Tester auth", () => {
       const campaign = await repositories.reviewCampaignRepository.save(
         reviewCampaignFactory.closed().transient({ organization, project, agent }).build(),
       )
-      await repositories.reviewCampaignMembershipRepository.save(
-        reviewCampaignMembershipFactory
+      await saveReviewCampaignMembership({
+        repositories,
+        membership: reviewCampaignMembershipFactory
           .reviewer()
           .accepted()
           .transient({ organization, project, campaign, user })
           .build(),
-      )
+      })
       organizationId = organization.id
       projectId = project.id
       reviewCampaignId = campaign.id

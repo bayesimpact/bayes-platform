@@ -13,7 +13,6 @@ export const selectAgentMessageFeedbackError = (state: RootState) =>
 export const selectAgentMessageFeedbackData = (state: RootState) => state.agentMessageFeedback.data
 
 const missingAgentId = { status: ADS.Error, value: null, error: "No agent selected" }
-const missingFeedbacks = { status: ADS.Error, value: null, error: "No feedbacks available" }
 
 export const selectFeedbacksFromAgentId = (agentId?: string | null) =>
   createSelector(
@@ -23,7 +22,7 @@ export const selectFeedbacksFromAgentId = (agentId?: string | null) =>
 
       if (!ADS.isFulfilled(feedbackData)) return { ...feedbackData }
 
-      if (!feedbackData.value?.[agentId]) return missingFeedbacks
+      if (!feedbackData.value[agentId]) return { status: ADS.Loading, value: null, error: null }
 
       return { status: ADS.Fulfilled, value: feedbackData.value[agentId], error: null }
     },
@@ -39,7 +38,7 @@ export const selectCurrentAgentFeedbacksData = createSelector(
 
     if (!ADS.isFulfilled(feedbackData)) return { ...feedbackData }
 
-    if (!feedbackData.value?.[agentId]) return missingFeedbacks
+    if (!feedbackData.value[agentId]) return { status: ADS.Loading, value: null, error: null }
 
     return { status: ADS.Fulfilled, value: feedbackData.value[agentId], error: null }
   },

@@ -1,0 +1,9 @@
+import { EXTRACTION_AGENT_SESSION_STATUS_CHANGED_CHANNEL_DTO } from "@caseai-connect/api-contracts"
+
+export const EXTRACTION_AGENT_SESSION_STATUS_CHANGED_CHANNEL =
+  EXTRACTION_AGENT_SESSION_STATUS_CHANGED_CHANNEL_DTO
+
+export const EXTRACTION_AGENT_SESSION_QUEUE_NAME =
+  process.env.EXTRACTION_AGENT_SESSION_QUEUE_NAME ?? "extraction-agent-session-queue"
+
+export const EXTRACTION_AGENT_SESSION_EXECUTE_JOB_NAME = "extraction-agent-session-execute-job"

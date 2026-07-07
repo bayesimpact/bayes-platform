@@ -15,11 +15,17 @@ import { createOrganizationWithAgent } from "@/domains/organizations/organizatio
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentsModule } from "../../agents.module"
+import { EXTRACTION_AGENT_SESSION_BATCH_SERVICE } from "../extraction-agent-session-batch.interface"
 
 const mockLlmProvider = {
   streamChatResponse: jest.fn(),
   generateChatResponse: jest.fn(),
   generateStructuredOutput: jest.fn(),
+}
+
+/** A batch service whose queue interactions are stubbed out (no Redis/BullMQ). */
+const mockBatchService = {
+  enqueueExecuteRun: jest.fn().mockResolvedValue(undefined),
 }
 
 describe("ExtractionAgentSessionsRoutes.createOne", () => {
@@ -42,7 +48,9 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
       applyOverrides: (moduleBuilder) =>
         setupUserGuardForTesting(moduleBuilder, () => auth0Id)
           .overrideProvider("_MockLLMProvider")
-          .useValue(mockLlmProvider),
+          .useValue(mockLlmProvider)
+          .overrideProvider(EXTRACTION_AGENT_SESSION_BATCH_SERVICE)
+          .useValue(mockBatchService),
     })
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
@@ -110,7 +118,11 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
     const response = await subject()
     expectResponse(response, 201)
     expect(response.body.data.runId).toBeDefined()
-    expect(response.body.data.result).toEqual({ fullName: "Jane Doe" })
+    expect(mockBatchService.enqueueExecuteRun).toHaveBeenCalledWith({
+      extractionAgentSessionId: response.body.data.runId,
+      organizationId,
+      projectId,
+    })
 
     await expectActivityCreated("extractionAgentSession.execute")
   })

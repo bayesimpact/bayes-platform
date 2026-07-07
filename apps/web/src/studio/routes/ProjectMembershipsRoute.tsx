@@ -1,4 +1,6 @@
-import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
+import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
+import { useMount } from "@/common/hooks/use-mount"
+import { useCurrentId } from "@/common/hooks/use-value"
 import { useAppSelector } from "@/common/store/hooks"
 import {
   selectProjectMemberships,
@@ -6,16 +8,20 @@ import {
 } from "@/studio/features/project-memberships/project-memberships.selectors"
 import { AsyncRoute } from "../../common/routes/AsyncRoute"
 import { ProjectMembershipList } from "../features/project-memberships/components/ProjectMembershipList"
+import { projectMembershipsActions } from "../features/project-memberships/project-memberships.slice"
 
 export function ProjectMembershipsRoute() {
-  const project = useAppSelector(selectCurrentProjectData)
+  const projectId = useCurrentId(selectCurrentProjectId)
   const memberships = useAppSelector(selectProjectMemberships)
   const pendingInvitations = useAppSelector(selectProjectPendingInvitations)
 
-  // TODO: useMount to load pending invitations and memberships if not loaded yet
+  useMount({
+    actions: projectMembershipsActions,
+    refreshOn: [projectId],
+  })
 
   return (
-    <AsyncRoute data={[memberships, project, pendingInvitations]}>
+    <AsyncRoute data={[memberships, pendingInvitations]}>
       <ProjectMembershipList />
     </AsyncRoute>
   )

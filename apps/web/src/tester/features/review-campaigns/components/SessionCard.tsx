@@ -30,7 +30,10 @@ export function SessionCard({ session, onOpenFeedback, onDelete, onResume }: Pro
   const status = STATUS_CONFIG[session.feedbackStatus]
   const StatusIcon = status.icon
   return (
-    <Item variant="outline" className="flex items-center justify-between gap-4">
+    <Item
+      variant="outline"
+      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+    >
       <ItemContent className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
           <MessageSquareIcon className="size-4 text-muted-foreground" />
@@ -41,7 +44,7 @@ export function SessionCard({ session, onOpenFeedback, onDelete, onResume }: Pro
           {t(`testerCampaigns:sessionCard.status.${session.feedbackStatus}`)}
         </Badge>
       </ItemContent>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         {session.feedbackStatus === "pending" && (
           <Button variant="outline" size="sm" onClick={() => onOpenFeedback(session.id)}>
             {t("testerCampaigns:sessionCard.actions.giveFeedback")}
