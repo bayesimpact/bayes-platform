@@ -1,4 +1,4 @@
-import { AgentsRoutes, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentsRoutes, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -128,6 +128,38 @@ describe("Agents - updateOne", () => {
     })
     expect(updatedAgent?.name).toBe("Only Name Updated")
     expect(updatedAgent?.defaultPrompt).toBe(originalPrompt)
+  })
+
+  it("should preserve greetingMessage when a partial update omits it", async () => {
+    await createContext()
+
+    const setGreeting = await subject({ payload: { greetingMessage: "Hello there!" } })
+    expectResponse(setGreeting, 200)
+    const afterSet = await repositories.agentRepository.findOne({ where: { id: agentId } })
+    expect(afterSet?.greetingMessage).toBe("Hello there!")
+
+    // A different tab saves only its own field and omits greetingMessage entirely.
+    const response = await subject({ payload: { name: "Renamed Agent" } })
+    expectResponse(response, 200)
+
+    const updatedAgent = await repositories.agentRepository.findOne({ where: { id: agentId } })
+    expect(updatedAgent?.name).toBe("Renamed Agent")
+    expect(updatedAgent?.greetingMessage).toBe("Hello there!")
+  })
+
+  it("should update only the model tab fields and leave the rest untouched", async () => {
+    const { agent } = await createContext()
+
+    const response = await subject({
+      payload: { model: AgentModel.Gemini25Pro, temperature: 1.5 },
+    })
+    expectResponse(response, 200)
+
+    const updatedAgent = await repositories.agentRepository.findOne({ where: { id: agentId } })
+    expect(updatedAgent?.model).toBe(AgentModel.Gemini25Pro)
+    expect(updatedAgent?.temperature).toBe(1.5)
+    expect(updatedAgent?.name).toBe(agent.name)
+    expect(updatedAgent?.defaultPrompt).toBe(agent.defaultPrompt)
   })
 
   it("should update and clear greetingMessage", async () => {

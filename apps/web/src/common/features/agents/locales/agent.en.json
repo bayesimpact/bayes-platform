@@ -99,9 +99,14 @@
       "output": "Output",
       "form": "Form",
       "sources": "Sources",
+      "resourceLibraries": "Resource libraries",
       "categories": "Conversation categories",
       "orchestration": "Orchestration",
       "embed": "Embed"
+    },
+    "unsavedChanges": {
+      "title": "Unsaved changes",
+      "description": "You have unsaved changes that will be lost. Do you want to discard them?"
     },
     "orchestration": {
       "selectedTitle": "Sub-agents",

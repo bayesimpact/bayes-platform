@@ -260,13 +260,11 @@ export class AgentsService {
       ...(fieldsToUpdate.outputJsonSchema !== undefined && {
         outputJsonSchema: fieldsToUpdate.outputJsonSchema,
       }),
-      ...(fieldsToUpdate.greetingMessage !== undefined
-        ? {
-            greetingMessage: normalizeGreetingMessage(fieldsToUpdate.greetingMessage),
-          }
-        : {
-            greetingMessage: null,
-          }),
+      // Only touch greetingMessage when the caller provided it, so partial (per-tab)
+      // updates that omit it don't wipe an existing greeting. Sending `null` clears it.
+      ...(fieldsToUpdate.greetingMessage !== undefined && {
+        greetingMessage: normalizeGreetingMessage(fieldsToUpdate.greetingMessage),
+      }),
     })
 
     const updatedAgent = await this.agentConnectRepository.saveOne(agent)

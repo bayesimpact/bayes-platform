@@ -99,9 +99,14 @@
       "output": "Sortie",
       "form": "Formulaire",
       "sources": "Sources",
+      "resourceLibraries": "Bibliothèques de ressources",
       "categories": "Catégories de conversation",
       "orchestration": "Orchestration",
       "embed": "Intégration"
+    },
+    "unsavedChanges": {
+      "title": "Modifications non enregistrées",
+      "description": "Vous avez des modifications non enregistrées qui seront perdues. Voulez-vous les abandonner ?"
     },
     "orchestration": {
       "selectedTitle": "Sous-agents",

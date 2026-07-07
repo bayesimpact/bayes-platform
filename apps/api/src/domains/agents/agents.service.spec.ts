@@ -432,9 +432,9 @@ describe("AgentsService", () => {
       expect(afterClear.greetingMessage).toBeNull()
     })
 
-    it("should clear greetingMessage when not provided in update", async () => {
+    it("should preserve greetingMessage when not provided in a partial update", async () => {
       const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
-        agent: { greetingMessage: "Clear me" },
+        agent: { greetingMessage: "Keep me" },
       })
 
       const result = await service.updateAgent({
@@ -442,7 +442,7 @@ describe("AgentsService", () => {
         agentId: agent.id,
         fieldsToUpdate: { name: "Renamed" },
       })
-      expect(result.greetingMessage).toBeNull()
+      expect(result.greetingMessage).toBe("Keep me")
     })
 
     it("should keep stored tags when switching documentsRagMode to none", async () => {

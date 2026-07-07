@@ -15,9 +15,12 @@ import { StudioRoutes } from "@/studio/routes/helpers"
 export function AgentActions({ organizationId, agent }: { organizationId: string; agent: Agent }) {
   const { abilities } = useAbility()
   const canManageAgent = abilities.canManageAgent({ agentId: agent.id })
+  const isExtractionAgent = agent.type === "extraction"
   return (
     <>
-      <NavEvaluation organizationId={organizationId} projectId={agent.projectId} />
+      {isExtractionAgent && (
+        <NavEvaluation organizationId={organizationId} projectId={agent.projectId} />
+      )}
 
       <NavApp organizationId={organizationId} projectId={agent.projectId} agentId={agent.id} />
 
