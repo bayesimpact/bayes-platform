@@ -186,6 +186,7 @@ async function runSubAgentTool({
   const childScope: AgentSessionScope = {
     ...agentSessionScope,
     agent: childAgent,
+    agentSettings: childAgentSettings,
     session: childSession,
   }
 
