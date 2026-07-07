@@ -6,6 +6,7 @@ import type { Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "@/domains/agents/agent.entity"
+import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { toAgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.helper"
 import { EvaluationExtractionDataset } from "../datasets/evaluation-extraction-dataset.entity"
 import { EvaluationExtractionDatasetRecord } from "../datasets/records/evaluation-extraction-dataset-record.entity"
@@ -30,6 +31,7 @@ export class EvaluationExtractionRunStarterService {
   private readonly datasetConnectRepository: ConnectRepository<EvaluationExtractionDataset>
   private readonly datasetRecordConnectRepository: ConnectRepository<EvaluationExtractionDatasetRecord>
   private readonly agentConnectRepository: ConnectRepository<Agent>
+  private readonly agentSettingsConnectRepository: ConnectRepository<AgentSettings>
 
   constructor(
     @InjectRepository(EvaluationExtractionRun)
@@ -42,6 +44,8 @@ export class EvaluationExtractionRunStarterService {
     datasetRecordRepository: Repository<EvaluationExtractionDatasetRecord>,
     @InjectRepository(Agent)
     agentRepository: Repository<Agent>,
+    @InjectRepository(AgentSettings)
+    agentSettingsRepository: Repository<AgentSettings>,
     @InjectQueue(EVALUATION_EXTRACTION_RUN_QUEUE_NAME)
     private readonly queue: Queue<ProcessEvaluationExtractionRunRecordJobPayload>,
   ) {
@@ -59,6 +63,10 @@ export class EvaluationExtractionRunStarterService {
       "evaluationExtractionDatasetRecord",
     )
     this.agentConnectRepository = new ConnectRepository(agentRepository, "agent")
+    this.agentSettingsConnectRepository = new ConnectRepository(
+      agentSettingsRepository,
+      "agentSettings",
+    )
   }
 
   async startRun(payload: ExecuteEvaluationExtractionRunJobPayload): Promise<void> {
@@ -96,6 +104,14 @@ export class EvaluationExtractionRunStarterService {
       throw new NotFoundException(`Agent with id ${run.agentId} not found`)
     }
 
+    const agentSettings = await this.agentSettingsConnectRepository.getOneById(
+      connectScope,
+      run.agentSettingsId,
+    )
+    if (!agentSettings) {
+      throw new NotFoundException(`AgentSettings with id ${run.agentSettingsId} not found`)
+    }
+
     const runRecords: EvaluationExtractionRunRecord[] = []
 
     try {
@@ -124,7 +140,7 @@ export class EvaluationExtractionRunStarterService {
                 schemaMapping: dataset.schemaMapping,
                 agentWithSettings: toAgentWithSettingsRunJobPayload({
                   agent,
-                  agentSettings: run.agentSettings,
+                  agentSettings,
                 }),
               },
               opts: { jobId: runRecord.id },
