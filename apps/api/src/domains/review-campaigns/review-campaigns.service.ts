@@ -10,10 +10,11 @@ import type { Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "@/domains/agents/agent.entity"
-import { ReviewCampaignMembership } from "./memberships/review-campaign-membership.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ReviewCampaignMembershipsService } from "./memberships/review-campaign-memberships.service"
 import { ReviewCampaign } from "./review-campaign.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ReviewCampaignRepository } from "./review-campaign.repository"
 import type { ReviewCampaignQuestion, ReviewCampaignStatus } from "./review-campaigns.types"
 import type { CampaignAggregates } from "./tester/tester.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -43,14 +44,15 @@ export class ReviewCampaignsService {
 
   constructor(
     @InjectRepository(ReviewCampaign)
-    private readonly reviewCampaignRepository: Repository<ReviewCampaign>,
+    reviewCampaignOrmRepository: Repository<ReviewCampaign>,
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
     private readonly reviewCampaignMembershipsService: ReviewCampaignMembershipsService,
+    private readonly reviewCampaignRepository: ReviewCampaignRepository,
     private readonly testerService: TesterService,
   ) {
     this.reviewCampaignConnectRepository = new ConnectRepository(
-      reviewCampaignRepository,
+      reviewCampaignOrmRepository,
       "review-campaigns",
     )
   }
@@ -93,22 +95,7 @@ export class ReviewCampaignsService {
   async listCampaigns(
     connectScope: RequiredConnectScope,
   ): Promise<Array<{ campaign: ReviewCampaign; memberCount: number }>> {
-    const { entities, raw } = await this.reviewCampaignRepository
-      .createQueryBuilder("campaign")
-      .leftJoin(ReviewCampaignMembership, "membership", "membership.campaign_id = campaign.id")
-      .where("campaign.organization_id = :organizationId", {
-        organizationId: connectScope.organizationId,
-      })
-      .andWhere("campaign.project_id = :projectId", { projectId: connectScope.projectId })
-      .addSelect("COUNT(membership.id)::int", "memberCount")
-      .groupBy("campaign.id")
-      .orderBy("campaign.created_at", "DESC")
-      .getRawAndEntities<{ memberCount: number }>()
-
-    return entities.map((campaign, index) => ({
-      campaign,
-      memberCount: Number(raw[index]?.memberCount ?? 0),
-    }))
+    return this.reviewCampaignRepository.listWithMemberCounts(connectScope)
   }
 
   async findById({

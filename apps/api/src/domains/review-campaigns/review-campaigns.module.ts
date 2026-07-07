@@ -31,6 +31,7 @@ import { CampaignReportGuard } from "./reports/campaign-report.guard"
 import { ReportsController } from "./reports/reports.controller"
 import { ReportsService } from "./reports/reports.service"
 import { ReviewCampaign } from "./review-campaign.entity"
+import { ReviewCampaignRepository } from "./review-campaign.repository"
 import { ReviewCampaignsController } from "./review-campaigns.controller"
 import { ReviewCampaignsGuard } from "./review-campaigns.guard"
 import { ReviewCampaignsService } from "./review-campaigns.service"
@@ -89,6 +90,7 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
     ReviewCampaignMembershipContextResolver,
     ReviewCampaignMembershipRepository,
     ReviewCampaignMembershipsService,
+    ReviewCampaignRepository,
     ReviewCampaignsGuard,
     ReviewCampaignsService,
     ReviewerGuard,
@@ -109,6 +111,7 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
   exports: [
     ReportsService,
     ReviewCampaignsService,
+    ReviewCampaignRepository,
     ReviewCampaignMembershipRepository,
     ReviewCampaignMembershipsService,
     ReviewerService,

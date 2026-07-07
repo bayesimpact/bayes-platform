@@ -16,7 +16,11 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
-import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import {
+  mockAuth0EmailForSub,
+  mockForeignAuth0Id,
+  setupUserGuardForTesting,
+} from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { ConversationAgentSessionsModule } from "../conversation-agent-sessions.module"
 
@@ -63,16 +67,16 @@ describe("Agent Sessions - Auth", () => {
   })
 
   const createContextForRole = async (role: ProjectMembershipRoleDto) => {
-    const { organization, project, agent, agentSession } = await createOrganizationWithAgentSession(
-      {
+    const { organization, project, agent, agentSession, user } =
+      await createOrganizationWithAgentSession({
         repositories,
         params: {
-          user: { auth0Id },
+          user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
           projectMembership: { role },
         },
         agentType: "conversation",
-      },
-    )
+      })
+    auth0Id = user.auth0Id
     organizationId = organization.id
     projectId = project.id
     agentId = agent.id

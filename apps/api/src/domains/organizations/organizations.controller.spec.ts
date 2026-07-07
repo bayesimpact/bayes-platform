@@ -1,5 +1,6 @@
 import type { OrganizationDto } from "@caseai-connect/api-contracts"
 import { OrganizationsRoutes } from "@caseai-connect/api-contracts"
+import { randomUUID } from "node:crypto"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
@@ -23,7 +24,7 @@ describe("Organizations - createOrganization", () => {
   let repositories: AllRepositories
 
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let auth0Id = `auth0|${randomUUID()}`
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
@@ -40,9 +41,10 @@ describe("Organizations - createOrganization", () => {
   })
 
   beforeEach(async () => {
+    process.env.ORGANIZATION_CREATOR_EMAIL_DOMAIN = "@bayesimpact.org"
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    auth0Id = `auth0|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -53,6 +55,7 @@ describe("Organizations - createOrganization", () => {
 
   const createContext = async (userParams?: Partial<{ email: string }>) => {
     const user = userFactory.build({
+      auth0Id,
       email: userParams?.email ?? "creator@bayesimpact.org",
     })
     await repositories.userRepository.save(user)
@@ -99,6 +102,7 @@ describe("Organizations - createOrganization", () => {
 
     const response = await subject({ payload: { name: "Persisted Org" } })
 
+    expectResponse(response, 201)
     const organization = await setup
       .getRepository(Organization)
       .findOne({ where: { id: response.body.data.id } })
@@ -111,6 +115,7 @@ describe("Organizations - createOrganization", () => {
 
     const response = await subject({ payload: { name: "Owned Org" } })
 
+    expectResponse(response, 201)
     const membership = await repositories.organizationMembershipRepository.findOne({
       where: { userId: user.id, organizationId: response.body.data.id },
     })

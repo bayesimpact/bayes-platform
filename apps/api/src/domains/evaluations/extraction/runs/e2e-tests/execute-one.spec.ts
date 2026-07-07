@@ -1,13 +1,14 @@
+import { randomUUID } from "node:crypto"
 import { AgentModel, EvaluationExtractionRunsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
-import { clearTestDatabase } from "@/common/test/test-database"
 import {
   type AllRepositories,
-  setupTransactionalTestDatabase,
-  teardownTestDatabase,
-} from "@/common/test/test-transaction-manager"
+  clearTestDatabase,
+  setupE2eTestDatabase,
+  teardownE2eTestDatabase,
+} from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { agentFactory } from "@/domains/agents/agent.factory"
@@ -21,7 +22,7 @@ import { createRunWithCsvDataset } from "./csv-dataset.helpers"
 describe("EvaluationExtractionRuns - executeOne", () => {
   let app: INestApplication<App>
   let request: Requester
-  let setup: Awaited<ReturnType<typeof setupTransactionalTestDatabase>>
+  let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
@@ -29,12 +30,12 @@ describe("EvaluationExtractionRuns - executeOne", () => {
   let projectId: string
   let evaluationExtractionRunId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let auth0Id = `auth0|${randomUUID()}`
 
   const mockEnqueueExecuteRun = jest.fn().mockResolvedValue(undefined)
 
   beforeAll(async () => {
-    setup = await setupTransactionalTestDatabase({
+    setup = await setupE2eTestDatabase({
       additionalImports: [EvaluationsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) =>
         setupUserGuardForTesting(moduleBuilder, () => auth0Id)
@@ -57,16 +58,18 @@ describe("EvaluationExtractionRuns - executeOne", () => {
     await clearTestDatabase(setup.dataSource)
     mockEnqueueExecuteRun.mockClear()
     accessToken = "token"
-    auth0Id = "auth0|123"
+    auth0Id = `auth0|${randomUUID()}`
   })
 
   afterAll(async () => {
-    await teardownTestDatabase(setup)
+    await teardownE2eTestDatabase(setup)
     await app.close()
   })
 
   const createContext = async ({ agentOutputKey = "answer" }: { agentOutputKey?: string } = {}) => {
-    const { user, organization, project } = await createOrganizationWithProject(repositories)
+    const { user, organization, project } = await createOrganizationWithProject(repositories, {
+      user: { auth0Id },
+    })
     organizationId = organization.id
     projectId = project.id
     auth0Id = user.auth0Id
