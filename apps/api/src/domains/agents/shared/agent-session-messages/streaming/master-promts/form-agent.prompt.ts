@@ -1,14 +1,11 @@
-import type { Agent } from "@/domains/agents/agent.entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { promptHelpers } from "./helpers"
 
 export function buildFormAgentPrompt({
-  agent,
   agentSettings,
   toolDescriptions,
   toolNames,
 }: {
-  agent: Agent
   agentSettings: AgentSettings
   toolDescriptions?: Record<string, string>
   toolNames: string[]
