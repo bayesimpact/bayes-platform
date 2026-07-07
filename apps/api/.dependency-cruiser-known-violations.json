@@ -3849,6 +3849,15 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-run-starter.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-runs.service.ts",
     "to": "src/domains/agents/agent.entity.ts",
     "rule": {
