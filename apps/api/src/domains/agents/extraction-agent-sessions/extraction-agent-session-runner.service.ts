@@ -43,12 +43,23 @@ export class ExtractionAgentSessionRunnerService extends ServiceWithLLM {
     mockLlmProvider: LLMProvider,
     @Inject("VertexLLMProvider")
     vertexLlmProvider: LLMProvider,
+    @Inject("Vertex3LLMProvider")
+    vertex3LlmProvider: LLMProvider,
+    @Inject("MistralLLMProvider")
+    mistralLlmProvider: LLMProvider,
     @Inject("MedGemmaLLMProvider")
     medGemmaLlmProvider: LLMProvider,
     @Inject("GemmaLLMProvider")
     gemmaLlmProvider: LLMProvider,
   ) {
-    super({ mockLlmProvider, vertexLlmProvider, medGemmaLlmProvider, gemmaLlmProvider })
+    super({
+      mockLlmProvider,
+      vertexLlmProvider,
+      vertex3LlmProvider,
+      medGemmaLlmProvider,
+      gemmaLlmProvider,
+      mistralLlmProvider,
+    })
     this.sessionConnectRepository = new ConnectRepository(
       extractionAgentSessionRepository,
       "extractionAgentSession",

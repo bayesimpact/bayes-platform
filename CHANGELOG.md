@@ -8,10 +8,86 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+-  (beta) Gemini 3.1 Flash Lite & Gemini 3.5 Flash available for all Agents
 
 ### Changed
 
 ### Fixed
+
+### Security
+
+## [26.06.17] - 2026-06-30
+
+### Added
+-  (beta) Mistral Small 3.1 available for all Agents
+### Changed
+
+### Fixed
+- (temp) skip page markdown from web crawl list HTTP responses to avoid HTTP 500 errors.
+
+### Security
+
+## [26.06.16] - 2026-06-29
+
+### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.06.15] - 2026-06-26
+
+### Added
+- Studio conversation session view surfaces the form results produced by delegated form sub-agents, opened in a side sheet from the relevant message
+
+### Changed
+- Conversation agent system prompts use the agent's configured prompt directly, without prepending a hardcoded identity header
+- Sub-agent Langfuse traces are grouped under the parent run's session, and the parent's tool-call event carries a direct link to the sub-agent trace
+- Form agent prompt instructs the agent to ask one question at a time, extract multiple field values from a single answer, and update fields when the user revises a previous answer
+- `fillForm` tool instructions explain that the agent can pass `getFormState: true` (including alongside partial field updates) to retrieve the current form state, and should only send fields that are new or have changed
+
+### Fixed
+- Langfuse generations report cached prompt tokens (Vertex/Gemini `cachedContentTokenCount`), so context-cache hits and savings are visible instead of being dropped
+- Agent system prompts place the current date at the end instead of the start, so the stable instructions form a byte-identical prefix that Vertex implicit context caching can reuse across runs (including sub-agent runs invoked via a parent agent)
+- Listing sub-agents for a non-conversation parent agent returns an empty list instead of failing with an error
+
+### Security
+
+## [26.06.14] - 2026-06-25
+
+### Added
+- Agents can delegate to a form agent as a sub-agent: the parent passes the user's latest answer, and the form sub-agent fills the form and replies with the current form state and the next question to ask
+- Agents can delegate to a conversation agent as a sub-agent: the parent passes the user's latest answer, and the conversation sub-agent answers using its own tools and replies to the parent agent
+- Sub-agent runs are recorded as their own Langfuse trace, linked back to the parent agent's trace
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.06.13] - 2026-06-25
+
+### Added
+
+### Changed
+
+### Fixed
+- Form agent session: collected values panel was not visible on desktop
+
+### Security
+
+## [26.06.12] - 2026-06-24
+
+### Added
+
+### Changed
+
+### Fixed
+- Campaign tester UI is now mobile-friendly
+- Accepting an invitation no longer resets the user's role to a lower permission level
 
 ### Security
 

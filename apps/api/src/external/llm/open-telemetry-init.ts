@@ -8,16 +8,21 @@ import { NodeSDK } from "@opentelemetry/sdk-node"
 import { BatchSpanProcessor, ConsoleSpanExporter } from "@opentelemetry/sdk-trace-base"
 import { LangfuseIntegrationExporter } from "@/external/langfuse/langfuse-integration-exporter"
 
+const isTest = process.env.NODE_ENV === "test"
 const isProduction = process.env.NODE_ENV === "production"
 
 const spanProcessors = [
-  new BatchSpanProcessor(
-    new LangfuseIntegrationExporter({
-      secretKey: process.env.LANGFUSE_SK,
-      publicKey: process.env.LANGFUSE_PK,
-      baseUrl: process.env.LANGFUSE_BASE_URL,
-    }),
-  ),
+  ...(!isTest
+    ? [
+        new BatchSpanProcessor(
+          new LangfuseIntegrationExporter({
+            secretKey: process.env.LANGFUSE_SK,
+            publicKey: process.env.LANGFUSE_PK,
+            baseUrl: process.env.LANGFUSE_BASE_URL,
+          }),
+        ),
+      ]
+    : []),
 ]
 
 if (isProduction) {
@@ -29,8 +34,6 @@ if (isProduction) {
 const metricReader = isProduction
   ? new PeriodicExportingMetricReader({ exporter: new MetricExporter() })
   : undefined
-
-const isTest = process.env.NODE_ENV === "test"
 
 export const sdk = new NodeSDK({
   spanProcessors,

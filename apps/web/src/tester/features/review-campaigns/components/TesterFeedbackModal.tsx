@@ -61,13 +61,16 @@ export function TesterFeedbackModal({ open, questions, onSubmit, onAbandon }: Pr
 
   return (
     <Dialog open={open}>
-      <DialogContent showCloseButton={false} className="sm:max-w-xl">
-        <DialogHeader>
+      <DialogContent
+        showCloseButton={false}
+        className="sm:max-w-xl flex flex-col max-h-[calc(100dvh-2rem)] p-0 gap-0"
+      >
+        <DialogHeader className="p-6 pb-2 shrink-0">
           <DialogTitle>{t("testerCampaigns:feedbackModal.title")}</DialogTitle>
           <DialogDescription>{t("testerCampaigns:feedbackModal.description")}</DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 py-2">
+        <div className="flex flex-col gap-4 px-6 py-2 overflow-y-auto">
           <Field>
             <FieldLabel>
               {t("testerCampaigns:feedbackModal.overallRating")}{" "}
@@ -105,12 +108,12 @@ export function TesterFeedbackModal({ open, questions, onSubmit, onAbandon }: Pr
           ))}
         </div>
 
-        <DialogFooter>
-          <Button type="button" variant="ghost" onClick={onAbandon}>
-            {t("testerCampaigns:feedbackModal.skipAndAbandon")}
-          </Button>
-          <Button type="button" disabled={!canSubmit} onClick={handleSubmit}>
+        <DialogFooter className="p-6 pt-2 shrink-0 flex-col">
+          <Button type="button" disabled={!canSubmit} onClick={handleSubmit} className="w-full">
             {t("testerCampaigns:feedbackModal.submit")}
+          </Button>
+          <Button type="button" variant="ghost" onClick={onAbandon} className="w-full">
+            {t("actions:back")}
           </Button>
         </DialogFooter>
       </DialogContent>

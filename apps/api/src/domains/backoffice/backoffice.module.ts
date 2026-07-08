@@ -13,6 +13,8 @@ import { Organization } from "@/domains/organizations/organization.entity"
 import { ProjectMembershipRepository } from "@/domains/projects/memberships/project-membership.repository"
 import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
 import { Project } from "@/domains/projects/project.entity"
+import { ReviewCampaignMembershipRepository } from "@/domains/review-campaigns/memberships/review-campaign-membership.repository"
+import { ReviewCampaignMembershipsService } from "@/domains/review-campaigns/memberships/review-campaign-memberships.service"
 import { User } from "@/domains/users/user.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { BackofficeController } from "./backoffice.controller"
@@ -37,6 +39,8 @@ import { BackofficeService } from "./backoffice.service"
     AgentMembershipRepository,
     AgentMembershipsService,
     AgentRepository,
+    ReviewCampaignMembershipRepository,
+    ReviewCampaignMembershipsService,
   ],
 })
 export class BackofficeModule {}

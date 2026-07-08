@@ -10,11 +10,15 @@ import type { AgentSessionMessage as AgentSessionMessageType } from "@/common/fe
 import { useCopyToClipboard } from "@/common/hooks/use-copy-to-clipboard"
 import { Attachment } from "./Attachment"
 import { ChatBotMessage, ChatUserMessage } from "./Chat"
+import { useFormSubSessions } from "./form-sub-sessions-context"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { SourcesTool } from "./SourcesTool"
+import { SubAgentFormResultSheet } from "./SubAgentFormResultSheet"
 import { SurfaceResourcesTool } from "./SurfaceResourcesTool"
 
 export function AgentSessionMessage({ message }: { message: AgentSessionMessageType }) {
+  const formSubSessions = useFormSubSessions()
+
   switch (message.role) {
     case "assistant": {
       const isStreaming = message.status === "streaming"
@@ -24,6 +28,15 @@ export function AgentSessionMessage({ message }: { message: AgentSessionMessageT
       const surfaceResourcesTool = message.toolCalls?.find(
         (call) => call.name === ToolName.SurfaceResources,
       )
+      // Tool names this message delegated to that resolved to a form sub-session,
+      // deduplicated so a sub-agent invoked twice shows a single affordance.
+      const delegatedToolNames = [
+        ...new Set(
+          (message.toolCalls ?? [])
+            .map((call) => call.name)
+            .filter((name) => formSubSessions.some((subSession) => subSession.toolName === name)),
+        ),
+      ]
       return (
         <div key={message.id} className="max-w-3/4 relative">
           <ChatBotMessage>
@@ -52,6 +65,14 @@ export function AgentSessionMessage({ message }: { message: AgentSessionMessageT
                 <RestrictedFeature feature="sources-tool">
                   {sourcesTool && <SourcesTool toolCall={sourcesTool} />}
                 </RestrictedFeature>
+
+                {delegatedToolNames.map((toolName) => (
+                  <SubAgentFormResultSheet
+                    key={toolName}
+                    subSessions={formSubSessions}
+                    defaultToolName={toolName}
+                  />
+                ))}
               </div>
             )}
           </ChatBotMessage>

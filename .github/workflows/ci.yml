@@ -6,9 +6,8 @@ on:
       - main
 
 jobs:
-  tests:
-    runs-on:
-      labels: ubuntu-latest-m
+  ci-checks:
+    runs-on: ubuntu-latest
     steps:
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -20,5 +19,24 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Run checks
+        run: make ci-checks
+
+  tests:
+    runs-on: self-hosted
+    steps:
+      - name: Clean up Docker artifacts
+        run: docker ps -q | xargs -r docker stop; docker ps -aq | xargs -r docker rm; docker volume prune -f; sudo rm -rf infra/database/dontsave 2>/dev/null || true
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
       - name: Run tests
-        run: TEST_WORKERS=5 make tests-parallel
+        run: TEST_WORKERS=6 make tests-only-parallel

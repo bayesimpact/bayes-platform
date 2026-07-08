@@ -182,6 +182,72 @@ describe("Agent Sessions - Auth", () => {
     })
   })
 
+  describe("FormAgentSessionsRoutes.listSubSessions", () => {
+    // Sub-sessions are listed for a parent conversation agent, the only agent
+    // type allowed to have sub-agents.
+    const createConversationContextForRole = async (role: ProjectMembershipRoleDto) => {
+      const { organization, project, agent, agentSession } =
+        await createOrganizationWithAgentSession({
+          repositories,
+          params: {
+            user: { auth0Id },
+            projectMembership: { role },
+          },
+          agentType: "conversation",
+        })
+      organizationId = organization.id
+      projectId = project.id
+      agentId = agent.id
+      agentSessionId = agentSession.id
+      accessToken = "token"
+    }
+
+    const subject = async (type: "playground" | "live") =>
+      request({
+        route: FormAgentSessionsRoutes.listSubSessions,
+        pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
+        token: accessToken ?? undefined,
+        request: { payload: { type } },
+      })
+
+    describe.each([["live"], ["playground"]] as const)("listing %s sub-sessions", (type) => {
+      it("requires an authentication token", async () => {
+        accessToken = null
+        expectResponse(await subject(type), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+      })
+      it("requires a valid organization ID", async () => {
+        await createConversationContextForRole("owner")
+        organizationId = null
+        expectResponse(await subject(type), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+      })
+      it("requires a valid agent ID", async () => {
+        await createConversationContextForRole("owner")
+        agentId = null
+        expectResponse(await subject(type), 404)
+      })
+      it("requires the user to be a member of the organization", async () => {
+        await createConversationContextForRole("owner")
+        auth0Id = mockForeignAuth0Id()
+        expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+      })
+      if (type === "playground") {
+        it("doesn't allow a simple member to list playground sub-sessions", async () => {
+          await createConversationContextForRole("member")
+          expectResponse(await subject(type), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+        })
+      } else {
+        it("allows members to list live sub-sessions", async () => {
+          await createConversationContextForRole("member")
+          expectResponse(await subject(type), 201)
+        })
+      }
+      it("allows owner to list sub-sessions", async () => {
+        await createConversationContextForRole("owner")
+        expectResponse(await subject(type), 201)
+      })
+    })
+  })
+
   describe("FormAgentSessionsRoutes.deleteOne", () => {
     const subject = async (type: "playground" | "live") =>
       request({

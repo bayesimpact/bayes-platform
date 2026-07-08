@@ -3,7 +3,7 @@ import { Factory } from "fishery"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { ConversationAgentSession } from "./conversation/conversation-agent-sessions.models"
 import type { ExtractionAgentSessionSummary } from "./extraction/extraction-agent-sessions.models"
-import type { FormAgentSession } from "./form/form-agent-sessions.models"
+import type { FormAgentSession, FormSubSession } from "./form/form-agent-sessions.models"
 import type { AgentSessionMessage } from "./shared/agent-session-messages/agent-session-messages.models"
 
 type SessionTransientParams = {
@@ -54,6 +54,30 @@ export const formAgentSessionFactory = FormAgentSessionFactory.define(
   },
 )
 
+type FormSubSessionTransientParams = SessionTransientParams & {
+  session?: FormAgentSession
+}
+
+class FormSubSessionFactory extends Factory<FormSubSession, FormSubSessionTransientParams> {}
+
+export const formSubSessionFactory = FormSubSessionFactory.define(
+  ({ params, transientParams }): FormSubSession => {
+    const session =
+      transientParams.session ??
+      formAgentSessionFactory.transient(transientParams).build({ type: "playground" })
+    return {
+      toolName: params.toolName ?? faker.helpers.slugify(faker.word.verb()).replace(/-/g, "_"),
+      agentId: params.agentId ?? session.agentId,
+      agentName: params.agentName ?? faker.commerce.productName(),
+      outputJsonSchema: params.outputJsonSchema ?? {
+        type: "object",
+        properties: { title: { type: "string" }, summary: { type: "string" } },
+      },
+      session,
+    }
+  },
+)
+
 class ExtractionAgentSessionSummaryFactory extends Factory<
   ExtractionAgentSessionSummary,
   SessionTransientParams
@@ -83,4 +107,5 @@ export const agentSessionMessageFactory = AgentSessionMessageFactory.define(({ p
   role: params.role ?? "user",
   content: params.content ?? faker.lorem.sentence(),
   status: params.status ?? "completed",
+  toolCalls: params.toolCalls,
 }))

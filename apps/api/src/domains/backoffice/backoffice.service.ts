@@ -15,6 +15,9 @@ import { Agent } from "../agents/agent.entity"
 import { FeatureFlag } from "../feature-flags/feature-flag.entity"
 import { Organization } from "../organizations/organization.entity"
 import { Project } from "../projects/project.entity"
+import type { ReviewCampaignMembershipModel } from "../review-campaigns/memberships/review-campaign-membership.model"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ReviewCampaignMembershipsService } from "../review-campaigns/memberships/review-campaign-memberships.service"
 import { User } from "../users/user.entity"
 
 function sortMembershipsByUserEmail<TMembership extends { user: { email: string } }>(
@@ -51,6 +54,18 @@ function sortAgentMembershipsByAgentName(
   )
 }
 
+function sortReviewCampaignMembershipsByCampaignName(
+  memberships: ReviewCampaignMembershipModel[],
+): ReviewCampaignMembershipModel[] {
+  return [...memberships].sort((left, right) => {
+    const campaignNameCompare = left.campaign.name.localeCompare(right.campaign.name, undefined, {
+      sensitivity: "base",
+    })
+    if (campaignNameCompare !== 0) return campaignNameCompare
+    return left.role.localeCompare(right.role)
+  })
+}
+
 @Injectable()
 export class BackofficeService {
   constructor(
@@ -64,6 +79,7 @@ export class BackofficeService {
     private readonly organizationMembershipsService: OrganizationMembershipsService,
     private readonly projectMembershipsService: ProjectMembershipsService,
     private readonly agentMembershipsService: AgentMembershipsService,
+    private readonly reviewCampaignMembershipsService: ReviewCampaignMembershipsService,
   ) {}
 
   async listOrganizations({
@@ -491,6 +507,7 @@ export class BackofficeService {
     organizationMemberships: OrganizationMembershipModel[]
     projectMemberships: ProjectMembershipModel[]
     agentMemberships: AgentMembershipModel[]
+    reviewCampaignMemberships: ReviewCampaignMembershipModel[]
   } | null> {
     if (!canListAll) {
       const visibleUserIds = await this.findVisibleUserIdsForAdmin(requestingUserId)
@@ -500,7 +517,12 @@ export class BackofficeService {
     const user = await this.userRepository.findOne({ where: { id: targetUserId } })
     if (!user) return null
 
-    const [organizationMemberships, projectMemberships, agentMemberships] = await Promise.all([
+    const [
+      organizationMemberships,
+      projectMemberships,
+      agentMemberships,
+      reviewCampaignMemberships,
+    ] = await Promise.all([
       this.organizationMembershipsService
         .listMembershipsForUser(targetUserId)
         .then(sortOrganizationMembershipsByOrganizationName),
@@ -510,9 +532,18 @@ export class BackofficeService {
       this.agentMembershipsService
         .listMembershipsForUser(targetUserId)
         .then(sortAgentMembershipsByAgentName),
+      this.reviewCampaignMembershipsService
+        .listMembershipsForUser(targetUserId)
+        .then(sortReviewCampaignMembershipsByCampaignName),
     ])
 
-    return { user, organizationMemberships, projectMemberships, agentMemberships }
+    return {
+      user,
+      organizationMemberships,
+      projectMemberships,
+      agentMemberships,
+      reviewCampaignMemberships,
+    }
   }
 
   private async findVisibleUserIdsForAdmin(userId: string): Promise<Set<string>> {

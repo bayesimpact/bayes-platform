@@ -5,6 +5,7 @@ import {
   agentSessionMessageFactory,
   conversationAgentSessionFactory,
   formAgentSessionFactory,
+  formSubSessionFactory,
 } from "@/common/features/agents/agent-sessions/agent-session.factory"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { buildDecorator, render } from "@/stories/decorators"
@@ -23,6 +24,7 @@ type AgentType = Extract<Agent["type"], "conversation" | "form">
 type StoryArgs = StudioStoryArgs & {
   agentType: AgentType
   withMessages?: boolean
+  withSubAgentForms?: boolean
 }
 
 const meta = {
@@ -36,12 +38,14 @@ const meta = {
       options: ["conversation", "form"] satisfies AgentType[],
     },
     withMessages: { control: "boolean" },
+    withSubAgentForms: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
     withAgents: true,
     agentType: "conversation",
     withMessages: true,
+    withSubAgentForms: false,
   },
   render: render({ routes: studioRoutes, path: StudioRoutes.agentSession.path }),
 } satisfies Meta<StoryArgs>
@@ -51,7 +55,7 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   decorators: [
-    buildDecorator<StoryArgs>(({ agentType, withMessages, ...args }) => {
+    buildDecorator<StoryArgs>(({ agentType, withMessages, withSubAgentForms, ...args }) => {
       const { baseSeeds, project, agents } = buildStudioData(args)
       const [firstAgent, ...restAgents] = agents
 
@@ -96,10 +100,58 @@ export const Default: Story = {
           : null
       const currentSessionId = (conversationSession ?? formSession)?.id ?? null
 
+      // Form sub-agents the parent conversation delegated to during this session.
+      const showSubAgentForms = withSubAgentForms && agentType === "conversation"
+      const subSessions = showSubAgentForms
+        ? [
+            formSubSessionFactory
+              .transient({
+                session: formAgentSessionFactory.build({
+                  type: "playground",
+                  result: { fullName: faker.person.fullName(), email: faker.internet.email() },
+                }),
+              })
+              .build({
+                toolName: "collect_contact",
+                agentName: "Contact Form",
+                outputJsonSchema: {
+                  type: "object",
+                  properties: { fullName: { type: "string" }, email: { type: "string" } },
+                },
+              }),
+            formSubSessionFactory
+              .transient({
+                session: formAgentSessionFactory.build({
+                  type: "playground",
+                  result: { company: faker.company.name(), industry: faker.commerce.department() },
+                }),
+              })
+              .build({
+                toolName: "collect_company",
+                agentName: "Company Form",
+                outputJsonSchema: {
+                  type: "object",
+                  properties: { company: { type: "string" }, industry: { type: "string" } },
+                },
+              }),
+          ]
+        : []
+
+      const assistantMessage = agentSessionMessageFactory.build({
+        role: "assistant",
+        toolCalls: showSubAgentForms
+          ? subSessions.map((subSession) => ({
+              id: faker.string.uuid(),
+              name: subSession.toolName,
+              arguments: {},
+            }))
+          : undefined,
+      })
+
       const messages = withMessages
         ? [
             agentSessionMessageFactory.build({ role: "user" }),
-            agentSessionMessageFactory.build({ role: "assistant" }),
+            assistantMessage,
             agentSessionMessageFactory.build({ role: "user" }),
             agentSessionMessageFactory.build({ role: "assistant" }),
           ]
@@ -115,10 +167,23 @@ export const Default: Story = {
           seed.formAgentSessions({
             [currentAgent.id]: formSession ? [formSession] : [],
           }),
+          currentSessionId && subSessions.length > 0
+            ? seed.formSubSessions({ [currentSessionId]: subSessions })
+            : {},
           seed.currentAgentSessionId(currentSessionId),
           seed.agentSessionMessages(messages),
         ),
       }
     }),
   ],
+}
+
+export const FormSession: Story = {
+  args: { agentType: "form" },
+  decorators: Default.decorators,
+}
+
+export const WithSubAgentForms: Story = {
+  args: { agentType: "conversation", withMessages: true, withSubAgentForms: true },
+  decorators: Default.decorators,
 }

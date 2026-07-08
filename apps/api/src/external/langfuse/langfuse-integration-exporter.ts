@@ -339,6 +339,17 @@ export class LangfuseIntegrationExporter implements SpanExporter {
         "ai.usage.tokens" in attributes
           ? parseInt(attributes["ai.usage.tokens"]?.toString() ?? "0", 10)
           : undefined,
+      // Cached prompt tokens (Vertex/Gemini `cachedContentTokenCount`, mapped by
+      // the AI SDK to `usage.cachedInputTokens`). These are already counted in
+      // `input`; surfacing them separately lets Langfuse show cache hits/savings.
+      ...("ai.usage.cachedInputTokens" in attributes
+        ? {
+            cache_read_input_tokens: parseInt(
+              attributes["ai.usage.cachedInputTokens"]?.toString() ?? "0",
+              10,
+            ),
+          }
+        : {}),
     }
   }
 

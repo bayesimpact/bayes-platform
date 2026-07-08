@@ -228,14 +228,24 @@ deploy-web-embed:
 	gsutil -h "Cache-Control:no-cache" cp apps/web-embed/dist/index.html gs://$(WEB_EMBED_BUCKET)/index.html
 	@echo "✓ web-embed deployed to https://storage.googleapis.com/$(WEB_EMBED_BUCKET)/"
 
-ci-checks:
-	npm ci && npm run biome:ci && npm run typecheck && npm run check:boundaries
+npm-ci:
+	@if [ -f node_modules/.package-lock-hash ] && [ "$$(cat node_modules/.package-lock-hash)" = "$$(sha256sum package-lock.json | cut -d' ' -f1)" ]; then \
+		echo "package-lock.json unchanged, skipping npm ci"; \
+	else \
+		npm ci && sha256sum package-lock.json | cut -d' ' -f1 > node_modules/.package-lock-hash; \
+	fi
+
+ci-checks: npm-ci
+	npm run biome:ci && npm run typecheck && npm run check:boundaries
 
 db-tests:
-	docker compose -f infra/database/docker-compose.yaml up -d
+	docker compose -f infra/database/docker-compose.yaml -f infra/database/docker-compose.test.yaml up -d
 
 tests: db-tests ci-checks
 	cd apps/api && DATABASE_URL=${TEST_DATABASE_URL} MCP_ENCRYPTION_KEY=${TEST_MCP_ENCRYPTION_KEY} npm run migration:test:run && DATABASE_URL=${TEST_DATABASE_URL} MCP_ENCRYPTION_KEY=${TEST_MCP_ENCRYPTION_KEY} npm run test
 
 tests-parallel: db-tests ci-checks
+	cd apps/api && DATABASE_URL=${TEST_DATABASE_URL} MCP_ENCRYPTION_KEY=${TEST_MCP_ENCRYPTION_KEY} npm run migration:test:run && TEST_ADMIN_DATABASE_URL=${TEST_ADMIN_DATABASE_URL} TEST_MAX_WORKERS=${TEST_MAX_WORKERS} DATABASE_URL=${TEST_DATABASE_URL} MCP_ENCRYPTION_KEY=${TEST_MCP_ENCRYPTION_KEY} npm run test:parallel
+
+tests-only-parallel: npm-ci db-tests
 	cd apps/api && DATABASE_URL=${TEST_DATABASE_URL} MCP_ENCRYPTION_KEY=${TEST_MCP_ENCRYPTION_KEY} npm run migration:test:run && TEST_ADMIN_DATABASE_URL=${TEST_ADMIN_DATABASE_URL} TEST_MAX_WORKERS=${TEST_MAX_WORKERS} DATABASE_URL=${TEST_DATABASE_URL} MCP_ENCRYPTION_KEY=${TEST_MCP_ENCRYPTION_KEY} npm run test:parallel

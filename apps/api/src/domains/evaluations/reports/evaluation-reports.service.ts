@@ -19,12 +19,23 @@ export class EvaluationReportsService extends ServiceWithLLM {
     mockLlmProvider: LLMProvider,
     @Inject("VertexLLMProvider")
     vertexLlmProvider: LLMProvider,
+    @Inject("Vertex3LLMProvider")
+    vertex3LlmProvider: LLMProvider,
+    @Inject("MistralLLMProvider")
+    mistralLlmProvider: LLMProvider,
     @Inject("MedGemmaLLMProvider")
     medGemmaLlmProvider: LLMProvider,
     @Inject("GemmaLLMProvider")
     gemmaLlmProvider: LLMProvider,
   ) {
-    super({ mockLlmProvider, vertexLlmProvider, medGemmaLlmProvider, gemmaLlmProvider })
+    super({
+      mockLlmProvider,
+      vertexLlmProvider,
+      vertex3LlmProvider,
+      medGemmaLlmProvider,
+      gemmaLlmProvider,
+      mistralLlmProvider,
+    })
     this.reportConnectRepository = new ConnectRepository(reportRepository, "evaluation_reports")
   }
   private readonly reportConnectRepository: ConnectRepository<EvaluationReport>
@@ -219,15 +230,13 @@ return only the rating value (0 to 100), no sentence`,
   }
 
   private generateMasterPrompt(agent: Agent): string {
-    return `
-Today's date: ${new Date().toLocaleDateString()}
-
-${agent.defaultPrompt}
+    return `${agent.defaultPrompt}
 
 # Attachment:
 If there is a file (image or pdf) attached to the user's chat message, answer the user's question or instruction reading the content of the file.
 
 Always answer in ${agent.locale}.
-  `.trim()
+
+Today's date: ${new Date().toLocaleDateString()}`
   }
 }

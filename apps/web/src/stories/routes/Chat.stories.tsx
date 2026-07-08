@@ -14,8 +14,11 @@ import {
   ChatInput,
   ChatSubmit,
 } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/Chat"
+import { organizationFactory } from "@/common/features/organizations/organization.factory"
+import { projectFactory } from "@/common/features/projects/projects.factory"
 import { DotsBackground } from "@/studio/components/DotsBackground"
 import { withRedux } from "../decorators"
+import { seed } from "../seed"
 
 type StoryArgs = {
   messages: AgentSessionMessage[]
@@ -92,7 +95,13 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
-  decorators: [withRedux()],
+  decorators: [
+    withRedux({
+      state: seed.currentProject(
+        projectFactory.transient({ organization: organizationFactory.build() }).build(),
+      ),
+    }),
+  ],
   render: (args) => {
     const typedArgs = args as StoryArgs
     const [messages, setMessages] = useState<AgentSessionMessage[]>(typedArgs.messages)

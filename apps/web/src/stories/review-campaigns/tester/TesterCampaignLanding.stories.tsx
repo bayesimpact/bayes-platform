@@ -21,7 +21,11 @@ const meta = {
   decorators: [
     withRouter,
     withRedux({
-      state: mergeSeeds(seed.currentProject(mockProject), seed.tester.context(mockTesterContext)),
+      state: mergeSeeds(
+        seed.currentProject(mockProject),
+        seed.currentReviewCampaignId(mockTesterContext.id),
+        seed.tester.context(mockTesterContext),
+      ),
     }),
   ],
 } satisfies Meta<typeof CampaignLanding>

@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.13",
-    "@ai-sdk/google-vertex": "^4.0.28",
+    "@ai-sdk/google-vertex": "^4.0.142",
     "@ai-sdk/mcp": "^1.0.30",
     "@bull-board/api": "^6.21.3",
     "@bull-board/express": "^6.21.3",

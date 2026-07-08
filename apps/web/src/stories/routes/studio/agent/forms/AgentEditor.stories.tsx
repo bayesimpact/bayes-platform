@@ -1,6 +1,7 @@
 import { DocumentsRagMode } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { fn } from "storybook/test"
+import { withRouter } from "storybook-addon-remix-react-router"
 import { agentFactory, agentOutputJsonSchemaFactory } from "@/common/features/agents/agent.factory"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import {
@@ -73,6 +74,7 @@ const meta = {
   title: "routes/studio/project/agent/AgentEditor",
   component: AgentEditorWithoutTrigger,
   decorators: [
+    withRouter,
     withRedux({
       state: mergeSeeds(seed.currentProject(project), seed.studio.documentTags(documentTags)),
     }),
@@ -92,7 +94,9 @@ export const ConversationEdit: Story = {
       state: mergeSeeds(
         seed.currentProject(projectWithOrchestration),
         seed.studio.documentTags(documentTags),
-        seed.agents([conversationAgent, resourceAgent, policyAgent]),
+        seed.agents([conversationAgent, resourceAgent, policyAgent], {
+          currentId: conversationAgent.id,
+        }),
       ),
     }),
   ],
@@ -102,12 +106,30 @@ export const ConversationEdit: Story = {
 }
 
 export const ExtractionEdit: Story = {
+  decorators: [
+    withRedux({
+      state: mergeSeeds(
+        seed.currentProject(project),
+        seed.studio.documentTags(documentTags),
+        seed.agents([extractionAgent], { currentId: extractionAgent.id }),
+      ),
+    }),
+  ],
   args: {
     agent: extractionAgent,
   },
 }
 
 export const FormEdit: Story = {
+  decorators: [
+    withRedux({
+      state: mergeSeeds(
+        seed.currentProject(project),
+        seed.studio.documentTags(documentTags),
+        seed.agents([formAgent], { currentId: formAgent.id }),
+      ),
+    }),
+  ],
   args: {
     agent: formAgent,
   },

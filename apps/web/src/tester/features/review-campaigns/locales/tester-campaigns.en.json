@@ -65,7 +65,6 @@
       "overallRatingAriaLabel": "Overall session rating",
       "comment": "Comment",
       "commentPlaceholder": "Anything we should know about this session?",
-      "skipAndAbandon": "Skip and abandon session",
       "submit": "Submit feedback"
     },
     "endOfPhaseForm": {

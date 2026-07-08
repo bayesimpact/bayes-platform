@@ -1,10 +1,18 @@
 import { Button } from "@caseai-connect/ui/shad/button"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@caseai-connect/ui/shad/collapsible"
 import { cn } from "@caseai-connect/ui/utils"
-import { FileCheckIcon, XIcon } from "lucide-react"
+import { ChevronDownIcon, FileCheckIcon, XIcon } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
-import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
+import type {
+  FormAgentSession,
+  FormSubSession,
+} from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
 import type { AgentSessionMessage as AgentSessionMessageType } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import { AgentSessionMessage } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/AgentSessionMessage"
 import {
@@ -16,6 +24,7 @@ import {
   ChatSubmit,
 } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/Chat"
 import { Dictaphone } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/Dictaphone"
+import { FormSubSessionsProvider } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/form-sub-sessions-context"
 import { useScrollToEnd } from "@/common/hooks/use-scroll-to-end"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { AttachDocument } from "@/studio/features/documents/components/AttachDocument"
@@ -29,21 +38,48 @@ export function AgentSessionMessages({
   messages,
   rightSlot,
   onFillFormToolEvent,
+  formSubSessions = [],
 }: {
   rightSlot?: React.ReactNode
   session: AgentSession
   messages: AgentSessionMessageType[]
   onFillFormToolEvent?: () => void
+  formSubSessions?: FormSubSession[]
 }) {
   const isStreaming = useAppSelector(selectStreaming)
+  const { t } = useTranslation()
 
-  const heightClasses =
-    "h-full min-h-[calc(100vh-15rem)] sm:min-h-[calc(100vh-11rem)] md:min-h-[calc(100vh-17rem)] md:max-h-[calc(100vh-17rem)] xl:max-h-[calc(100vh-17rem)]"
+  const desktopHeightClasses = "md:h-[calc(100dvh-17rem)]"
   return (
-    <div className={cn("flex flex-1 flex-col md:flex-row", heightClasses)}>
-      <div className="flex flex-1 p-4 min-h-[calc(100vh-15rem)] md:min-h-full">
+    <div className={cn("flex flex-1 flex-col md:flex-row min-h-0", desktopHeightClasses)}>
+      {rightSlot && (
+        <>
+          {/* mobile: collapsible strip above the chat */}
+          <Collapsible className="md:hidden w-full shrink-0 border-b bg-white">
+            <CollapsibleTrigger asChild>
+              <button
+                type="button"
+                className="flex w-full items-center justify-between px-4 py-2 text-sm font-medium"
+              >
+                <span>{t("formAgentSession:props.result")}</span>
+                <ChevronDownIcon className="size-4 transition-transform [[data-state=open]_&]:rotate-180" />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="relative h-40 overflow-hidden">{rightSlot}</div>
+            </CollapsibleContent>
+          </Collapsible>
+          {/* desktop: fixed sidebar */}
+          <div className="hidden md:block w-80 shrink-0 order-last h-full border-l bg-white relative overflow-hidden">
+            {rightSlot}
+          </div>
+        </>
+      )}
+      <div className="flex flex-1 p-2 sm:p-4 min-h-0 md:min-h-full">
         <Chat className="border shadow-none">
-          <Messages messages={messages} isStreaming={isStreaming} />
+          <FormSubSessionsProvider value={formSubSessions}>
+            <Messages messages={messages} isStreaming={isStreaming} />
+          </FormSubSessionsProvider>
 
           <Footer
             session={session}
@@ -52,16 +88,6 @@ export function AgentSessionMessages({
           />
         </Chat>
       </div>
-      {rightSlot && (
-        <div
-          className={cn(
-            "w-80 shrink-0 h-full min-h-fit md:min-h-full border-l bg-white overflow-hidden relative",
-            heightClasses,
-          )}
-        >
-          {rightSlot}
-        </div>
-      )}
     </div>
   )
 }

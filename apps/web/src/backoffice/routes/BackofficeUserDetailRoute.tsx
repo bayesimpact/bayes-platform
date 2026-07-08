@@ -59,7 +59,7 @@ function WithData() {
         {user.name && <p className="text-muted-foreground">{user.name}</p>}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         <MembershipSection
           title="Organizations"
           items={user.organizationMemberships.map((membership) => ({
@@ -91,6 +91,15 @@ function WithData() {
             to: BackofficeAgentRoutes.agent.build({ agentId: membership.agentId }),
           }))}
           emptyText="No agent memberships"
+        />
+        <MembershipSection
+          title="Review campaigns"
+          items={user.reviewCampaignMemberships.map((membership) => ({
+            key: `${membership.campaignId}:${membership.role}`,
+            label: membership.campaignName,
+            role: membership.role,
+          }))}
+          emptyText="No review campaign memberships"
         />
       </div>
     </div>

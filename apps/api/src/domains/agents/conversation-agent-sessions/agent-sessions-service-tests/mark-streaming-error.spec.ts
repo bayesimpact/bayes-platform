@@ -24,8 +24,7 @@ describe("markStreamingError", () => {
     })
 
     const { assistantMessageId } = await streamingService.prepareForStreaming({
-      connectScope,
-      sessionId: session.id,
+      agentSessionScope: { agent: testAgent, session, connectScope },
       userContent: "Hello",
       agentType: testAgent.type,
     })

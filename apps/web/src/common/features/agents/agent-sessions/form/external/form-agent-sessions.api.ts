@@ -1,6 +1,10 @@
-import { type FormAgentSessionDto, FormAgentSessionsRoutes } from "@caseai-connect/api-contracts"
+import {
+  type FormAgentSessionDto,
+  FormAgentSessionsRoutes,
+  type FormSubSessionDto,
+} from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
-import type { FormAgentSession } from "../form-agent-sessions.models"
+import type { FormAgentSession, FormSubSession } from "../form-agent-sessions.models"
 import type { IFormAgentSessionsSpi } from "../form-agent-sessions.spi"
 
 export default {
@@ -28,6 +32,14 @@ export default {
     )
     return response.data.data
   },
+  listSubSessions: async ({ type, ...params }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<typeof FormAgentSessionsRoutes.listSubSessions.response>(
+      FormAgentSessionsRoutes.listSubSessions.getPath(params),
+      { payload: { type } } satisfies typeof FormAgentSessionsRoutes.listSubSessions.request,
+    )
+    return response.data.data.map(fromSubSessionDto)
+  },
 } satisfies IFormAgentSessionsSpi
 
 const fromDto = (dto: FormAgentSessionDto): FormAgentSession => ({
@@ -38,4 +50,12 @@ const fromDto = (dto: FormAgentSessionDto): FormAgentSession => ({
   traceUrl: dto.traceUrl,
   type: dto.type,
   updatedAt: dto.updatedAt,
+})
+
+const fromSubSessionDto = (dto: FormSubSessionDto): FormSubSession => ({
+  toolName: dto.toolName,
+  agentId: dto.agentId,
+  agentName: dto.agentName,
+  outputJsonSchema: dto.outputJsonSchema,
+  session: fromDto(dto.session),
 })
