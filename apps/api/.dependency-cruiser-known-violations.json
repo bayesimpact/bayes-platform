@@ -33,25 +33,6 @@
   {
     "type": "cycle",
     "from": "src/domains/agents/agent.entity.ts",
-    "to": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/domains/agents/agent.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/domains/agents/agent.entity.ts",
     "to": "src/domains/agents/memberships/agent-membership.entity.ts",
     "rule": {
       "severity": "error",
@@ -811,14 +792,18 @@
   {
     "type": "cycle",
     "from": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
-    "to": "src/domains/documents/document.entity.ts",
+    "to": "src/domains/agents/agent.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-circular"
     },
     "cycle": [
       {
-        "name": "src/domains/documents/document.entity.ts",
+        "name": "src/domains/agents/agent.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/review-campaigns/review-campaign.entity.ts",
         "dependencyTypes": [
           "aliased",
           "aliased-tsconfig",
@@ -828,7 +813,103 @@
         ]
       },
       {
+        "name": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/domains/agents/settings/agent-settings.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/agents/agent.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/documents/tags/document-tag.entity.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "src/domains/documents/document.entity.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
         "name": "src/domains/projects/project.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/organizations/organization.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/organizations/memberships/organization-membership.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/users/user.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/review-campaigns/memberships/review-campaign-membership.entity.ts",
         "dependencyTypes": [
           "aliased",
           "aliased-tsconfig",
@@ -934,8 +1015,36 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
+        "name": "src/domains/documents/tags/document-tag.entity.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "src/domains/documents/document.entity.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "src/domains/projects/project.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/review-campaigns/review-campaign.entity.ts",
         "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
       }
     ]
   },
@@ -1191,6 +1300,64 @@
   },
   {
     "type": "cycle",
+    "from": "src/domains/agents/settings/agent-settings.entity.ts",
+    "to": "src/domains/agents/agent.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/domains/agents/agent.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/documents/tags/document-tag.entity.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "src/domains/documents/document.entity.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "src/domains/projects/project.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/settings/agent-settings.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
     "from": "src/domains/agents/shared/agent-session-messages/agent-message-attachment-document.entity.ts",
     "to": "src/domains/organizations/organization.entity.ts",
     "rule": {
@@ -1322,21 +1489,7 @@
         ]
       },
       {
-        "name": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/domains/review-campaigns/review-campaign.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/domains/review-campaigns/memberships/review-campaign-membership.entity.ts",
+        "name": "src/domains/agents/memberships/agent-membership.entity.ts",
         "dependencyTypes": ["local", "import"]
       },
       {
@@ -1773,6 +1926,42 @@
   },
   {
     "type": "cycle",
+    "from": "src/domains/evaluations/reports/evaluation-report.entity.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/domains/agents/settings/agent-settings.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/agents/agent.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/evaluations/reports/evaluation-report.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
     "from": "src/domains/feature-flags/feature-flag.entity.ts",
     "to": "src/domains/projects/project.entity.ts",
     "rule": {
@@ -2102,6 +2291,48 @@
   {
     "type": "cycle",
     "from": "src/domains/review-campaigns/review-campaign.entity.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/domains/agents/settings/agent-settings.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/agents/agent.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/review-campaigns/review-campaign.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/domains/review-campaigns/review-campaign.entity.ts",
     "to": "src/domains/review-campaigns/reviewer-session-reviews/reviewer-session-review.entity.ts",
     "rule": {
       "severity": "error",
@@ -2184,10 +2415,6 @@
           "local",
           "import"
         ]
-      },
-      {
-        "name": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
-        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/review-campaigns/review-campaign.entity.ts",
@@ -3515,6 +3742,15 @@
   {
     "type": "dependency",
     "from": "src/domains/evaluations/evaluations.module.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/evaluations/evaluations.module.ts",
     "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
     "rule": {
       "severity": "error",
@@ -3578,6 +3814,15 @@
   {
     "type": "dependency",
     "from": "src/domains/evaluations/extraction/runs/e2e-tests/csv-dataset.helpers.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/evaluations/extraction/runs/e2e-tests/csv-dataset.helpers.ts",
     "to": "src/domains/organizations/organization.entity.ts",
     "rule": {
       "severity": "error",
@@ -3595,15 +3840,6 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-run-processor.service.ts",
-    "to": "src/domains/agents/agent.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
     "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-run-starter.service.ts",
     "to": "src/domains/agents/agent.entity.ts",
     "rule": {
@@ -3613,8 +3849,8 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-run.types.ts",
-    "to": "src/domains/agents/agent.entity.ts",
+    "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-run-starter.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3631,8 +3867,26 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-runs.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/evaluations/reports/evaluation-reports.service.ts",
     "to": "src/domains/agents/agent.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/evaluations/reports/evaluation-reports.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4181,7 +4435,7 @@
   {
     "type": "dependency",
     "from": "src/domains/public-chat/public-agent-sessions/public-agent-sessions.service.ts",
-    "to": "src/domains/agents/agent.entity.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4208,6 +4462,15 @@
   {
     "type": "dependency",
     "from": "src/domains/public-chat/public-chat.module.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/public-chat/public-chat.module.ts",
     "to": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
     "rule": {
       "severity": "error",
@@ -4218,6 +4481,15 @@
     "type": "dependency",
     "from": "src/domains/public-chat/public-chat.service.ts",
     "to": "src/domains/agents/agent.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/public-chat/public-chat.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4343,6 +4615,15 @@
   {
     "type": "dependency",
     "from": "src/domains/review-campaigns/review-campaigns.module.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/review-campaigns/review-campaigns.module.ts",
     "to": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
     "rule": {
       "severity": "error",
@@ -4442,6 +4723,15 @@
   {
     "type": "dependency",
     "from": "src/domains/review-campaigns/reviewer/reviewer.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/review-campaigns/reviewer/reviewer.service.ts",
     "to": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
     "rule": {
       "severity": "error",
@@ -4452,6 +4742,15 @@
     "type": "dependency",
     "from": "src/domains/review-campaigns/tester/tester.controller.ts",
     "to": "src/domains/agents/agent.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/review-campaigns/tester/tester.controller.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4479,6 +4778,15 @@
     "type": "dependency",
     "from": "src/domains/review-campaigns/tester/tester.service.ts",
     "to": "src/domains/agents/form-agent-sessions/form-agent-session.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/review-campaigns/tester/tester.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4540,25 +4848,7 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/agents/shared/agent-session-messages/streaming/streaming.service.ts",
-    "to": "src/domains/documents/embeddings/document-chunk-retrieval.service.ts",
-    "rule": {
-      "severity": "warn",
-      "name": "no-cross-domain-service-reach"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/shared/agent-session-messages/streaming/streaming.service.ts",
-    "to": "src/domains/mcp-servers/mcp-servers.service.ts",
-    "rule": {
-      "severity": "warn",
-      "name": "no-cross-domain-service-reach"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/shared/agent-session-messages/streaming/streaming.service.ts",
+    "from": "src/domains/agents/shared/agent-session-messages/streaming/sub-agent-tools.ts",
     "to": "src/domains/projects/projects.service.ts",
     "rule": {
       "severity": "warn",
@@ -4567,7 +4857,25 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/agents/shared/agent-session-messages/streaming/sub-agent-tools.ts",
+    "from": "src/domains/agents/shared/agent-session-messages/streaming/tools.service.ts",
+    "to": "src/domains/documents/embeddings/document-chunk-retrieval.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/agents/shared/agent-session-messages/streaming/tools.service.ts",
+    "to": "src/domains/mcp-servers/mcp-servers.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/agents/shared/agent-session-messages/streaming/tools.service.ts",
     "to": "src/domains/projects/projects.service.ts",
     "rule": {
       "severity": "warn",
@@ -4596,6 +4904,24 @@
     "type": "dependency",
     "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-run-csv-export.service.ts",
     "to": "src/domains/documents/documents.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-runs.controller.ts",
+    "to": "src/domains/agents/settings/agent-settings.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/evaluations/reports/evaluation-reports.controller.ts",
+    "to": "src/domains/agents/settings/agent-settings.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"
@@ -4756,6 +5082,24 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/review-campaigns/review-campaigns.module.ts",
+    "to": "src/domains/agents/settings/agent-settings.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/review-campaigns/review-campaigns.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/review-campaigns/tester/tester.service.ts",
     "to": "src/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service.ts",
     "rule": {
@@ -4767,6 +5111,15 @@
     "type": "dependency",
     "from": "src/domains/review-campaigns/tester/tester.service.ts",
     "to": "src/domains/agents/form-agent-sessions/form-agent-sessions.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/review-campaigns/tester/tester.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"

@@ -10,10 +10,10 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import type { Agent } from "@/domains/agents/agent.entity"
-import { agentFactory } from "@/domains/agents/agent.factory"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import type { Organization } from "@/domains/organizations/organization.entity"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import type { Project } from "@/domains/projects/project.entity"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
@@ -65,15 +65,17 @@ describe("ReviewCampaigns - updateOne", () => {
     organization: Organization
     project: Project
     agent: Agent
+    agentSettings: AgentSettings
   }> => {
-    const { organization, project } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id },
-    })
-    const agent = agentFactory.transient({ organization, project }).build()
-    await repositories.agentRepository.save(agent)
+    const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        user: { auth0Id },
+      },
+    )
     organizationId = organization.id
     projectId = project.id
-    return { organization, project, agent }
+    return { organization, project, agent, agentSettings }
   }
 
   const subject = async (payload: typeof ReviewCampaignsRoutes.updateOne.request) =>
@@ -85,9 +87,9 @@ describe("ReviewCampaigns - updateOne", () => {
     })
 
   it("updates the name while in draft", async () => {
-    const { organization, project, agent } = await createContext()
+    const { organization, project, agent, agentSettings } = await createContext()
     const campaign = await repositories.reviewCampaignRepository.save(
-      reviewCampaignFactory.transient({ organization, project, agent }).build(),
+      reviewCampaignFactory.transient({ organization, project, agent, agentSettings }).build(),
     )
     reviewCampaignId = campaign.id
 
@@ -97,9 +99,12 @@ describe("ReviewCampaigns - updateOne", () => {
   })
 
   it("refuses config updates on an active campaign", async () => {
-    const { organization, project, agent } = await createContext()
+    const { organization, project, agent, agentSettings } = await createContext()
     const campaign = await repositories.reviewCampaignRepository.save(
-      reviewCampaignFactory.active().transient({ organization, project, agent }).build(),
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
     )
     reviewCampaignId = campaign.id
 
@@ -107,9 +112,9 @@ describe("ReviewCampaigns - updateOne", () => {
   })
 
   it("transitions draft → active and stamps activatedAt", async () => {
-    const { organization, project, agent } = await createContext()
+    const { organization, project, agent, agentSettings } = await createContext()
     const campaign = await repositories.reviewCampaignRepository.save(
-      reviewCampaignFactory.transient({ organization, project, agent }).build(),
+      reviewCampaignFactory.transient({ organization, project, agent, agentSettings }).build(),
     )
     reviewCampaignId = campaign.id
 
@@ -120,9 +125,12 @@ describe("ReviewCampaigns - updateOne", () => {
   })
 
   it("transitions active → closed and stamps closedAt", async () => {
-    const { organization, project, agent } = await createContext()
+    const { organization, project, agent, agentSettings } = await createContext()
     const campaign = await repositories.reviewCampaignRepository.save(
-      reviewCampaignFactory.active().transient({ organization, project, agent }).build(),
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
     )
     reviewCampaignId = campaign.id
 
@@ -133,9 +141,9 @@ describe("ReviewCampaigns - updateOne", () => {
   })
 
   it("rejects invalid transitions (draft → closed)", async () => {
-    const { organization, project, agent } = await createContext()
+    const { organization, project, agent, agentSettings } = await createContext()
     const campaign = await repositories.reviewCampaignRepository.save(
-      reviewCampaignFactory.transient({ organization, project, agent }).build(),
+      reviewCampaignFactory.transient({ organization, project, agent, agentSettings }).build(),
     )
     reviewCampaignId = campaign.id
 

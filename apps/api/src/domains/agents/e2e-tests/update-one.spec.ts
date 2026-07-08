@@ -57,12 +57,13 @@ describe("Agents - updateOne", () => {
   })
 
   const createContext = async () => {
-    const { user, organization, project, agent } = await createOrganizationWithAgent(repositories)
+    const { user, organization, project, agent, agentSettings } =
+      await createOrganizationWithAgent(repositories)
     organizationId = organization.id
     projectId = project.id
     agentId = agent.id
     auth0Id = user.auth0Id
-    return { organization, project, agent, user }
+    return { organization, project, agent, agentSettings, user }
   }
 
   const subject = async (payload?: typeof AgentsRoutes.updateOne.request) =>
@@ -74,13 +75,14 @@ describe("Agents - updateOne", () => {
     })
 
   it("should update an agent and return success", async () => {
-    const { agent } = await createContext()
+    const { agent, agentSettings } = await createContext()
 
     const response = await subject({
       payload: {
         ...agent,
+        ...agentSettings,
         name: "Updated Agent",
-        defaultPrompt: "Updated Prompt",
+        instructions: "Updated Prompt",
         documentTagIds: [],
         documentsRagMode: DocumentsRagMode.All,
         outputJsonSchema: undefined,
@@ -98,21 +100,25 @@ describe("Agents - updateOne", () => {
       where: { id: agentId },
     })
     expect(updatedAgent?.name).toBe("Updated Agent")
-    expect(updatedAgent?.defaultPrompt).toBe("Updated Prompt")
-    expect(updatedAgent?.documentsRagMode).toBe(DocumentsRagMode.All)
+
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 2 },
+    })
+    expect(updatedAgentSettings?.instructions).toBe("Updated Prompt")
+    expect(updatedAgentSettings?.documentsRagMode).toBe(DocumentsRagMode.All)
     await expectActivityCreated("agent.update")
   })
 
   it("should update only provided fields (partial update)", async () => {
-    const { agent } = await createContext()
-    const originalPrompt = agent.defaultPrompt
+    const { agent, agentSettings } = await createContext()
+    const originalPrompt = agentSettings.instructions
 
     const response = await subject({
       payload: {
         ...agent,
+        ...agentSettings,
         name: "Only Name Updated",
         documentTagIds: [],
-        documentsRagMode: DocumentsRagMode.All,
         outputJsonSchema: undefined,
         tagsToAdd: [],
         tagsToRemove: [],
@@ -127,7 +133,11 @@ describe("Agents - updateOne", () => {
       where: { id: agentId },
     })
     expect(updatedAgent?.name).toBe("Only Name Updated")
-    expect(updatedAgent?.defaultPrompt).toBe(originalPrompt)
+
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 1 },
+    })
+    expect(updatedAgentSettings?.instructions).toBe(originalPrompt)
   })
 
   it("should preserve greetingMessage when a partial update omits it", async () => {
@@ -135,7 +145,10 @@ describe("Agents - updateOne", () => {
 
     const setGreeting = await subject({ payload: { greetingMessage: "Hello there!" } })
     expectResponse(setGreeting, 200)
-    const afterSet = await repositories.agentRepository.findOne({ where: { id: agentId } })
+    const afterSet = await repositories.agentSettingsRepository.findOne({
+      where: { agentId },
+      order: { revision: "DESC" },
+    })
     expect(afterSet?.greetingMessage).toBe("Hello there!")
 
     // A different tab saves only its own field and omits greetingMessage entirely.
@@ -144,11 +157,15 @@ describe("Agents - updateOne", () => {
 
     const updatedAgent = await repositories.agentRepository.findOne({ where: { id: agentId } })
     expect(updatedAgent?.name).toBe("Renamed Agent")
-    expect(updatedAgent?.greetingMessage).toBe("Hello there!")
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId },
+      order: { revision: "DESC" },
+    })
+    expect(updatedAgentSettings?.greetingMessage).toBe("Hello there!")
   })
 
   it("should update only the model tab fields and leave the rest untouched", async () => {
-    const { agent } = await createContext()
+    const { agent, agentSettings } = await createContext()
 
     const response = await subject({
       payload: { model: AgentModel.Gemini25Pro, temperature: 1.5 },
@@ -156,21 +173,26 @@ describe("Agents - updateOne", () => {
     expectResponse(response, 200)
 
     const updatedAgent = await repositories.agentRepository.findOne({ where: { id: agentId } })
-    expect(updatedAgent?.model).toBe(AgentModel.Gemini25Pro)
-    expect(updatedAgent?.temperature).toBe(1.5)
     expect(updatedAgent?.name).toBe(agent.name)
-    expect(updatedAgent?.defaultPrompt).toBe(agent.defaultPrompt)
+
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId },
+      order: { revision: "DESC" },
+    })
+    expect(updatedAgentSettings?.model).toBe(AgentModel.Gemini25Pro)
+    expect(updatedAgentSettings?.temperature).toBe(1.5)
+    expect(updatedAgentSettings?.instructions).toBe(agentSettings.instructions)
   })
 
   it("should update and clear greetingMessage", async () => {
-    const { agent } = await createContext()
+    const { agent, agentSettings } = await createContext()
 
     const setResponse = await subject({
       payload: {
         ...agent,
+        ...agentSettings,
         greetingMessage: "Hi! How can I help you today?",
         documentTagIds: [],
-        documentsRagMode: DocumentsRagMode.All,
         outputJsonSchema: undefined,
         tagsToAdd: [],
         tagsToRemove: [],
@@ -179,12 +201,15 @@ describe("Agents - updateOne", () => {
     })
     expectResponse(setResponse, 200)
 
-    const afterSet = await repositories.agentRepository.findOne({ where: { id: agentId } })
-    expect(afterSet?.greetingMessage).toBe("Hi! How can I help you today?")
+    let updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 2 },
+    })
+    expect(updatedAgentSettings?.greetingMessage).toBe("Hi! How can I help you today?")
 
     const clearResponse = await subject({
       payload: {
         ...agent,
+        ...agentSettings,
         greetingMessage: "",
         documentTagIds: [],
         documentsRagMode: DocumentsRagMode.All,
@@ -196,15 +221,17 @@ describe("Agents - updateOne", () => {
     })
     expectResponse(clearResponse, 200)
 
-    const afterClear = await repositories.agentRepository.findOne({ where: { id: agentId } })
-    expect(afterClear?.greetingMessage).toBeNull()
+    updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 3 },
+    })
+    expect(updatedAgentSettings?.greetingMessage).toBeNull()
   })
 
   it("should preserve stored tags when switching documentsRagMode to none", async () => {
-    const { organization, project, agent } = await createContext()
+    const { organization, project, agent, agentSettings } = await createContext()
     const documentTag = documentTagFactory.transient({ organization, project }).build()
     await setup.getRepository(DocumentTag).save(documentTag)
-    await repositories.agentRepository.update(agent.id, {
+    await repositories.agentSettingsRepository.update(agentSettings.id, {
       documentsRagMode: DocumentsRagMode.Tags,
     })
     await repositories.agentRepository
@@ -216,6 +243,7 @@ describe("Agents - updateOne", () => {
     const response = await subject({
       payload: {
         ...agent,
+        ...agentSettings,
         documentTagIds: [documentTag.id],
         documentsRagMode: DocumentsRagMode.None,
         outputJsonSchema: undefined,
@@ -232,12 +260,15 @@ describe("Agents - updateOne", () => {
       where: { id: agentId },
       relations: ["documentTags"],
     })
-    expect(updatedAgent?.documentsRagMode).toBe(DocumentsRagMode.None)
     expect(updatedAgent?.documentTags.map((savedTag) => savedTag.id)).toEqual([documentTag.id])
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 2 },
+    })
+    expect(updatedAgentSettings?.documentsRagMode).toBe(DocumentsRagMode.None)
   })
 
   it("should update selected project categories", async () => {
-    const { project, agent } = await createContext()
+    const { project, agent, agentSettings } = await createContext()
     const projectCategory = await repositories.projectAgentSessionCategoryRepository.save(
       repositories.projectAgentSessionCategoryRepository.create({
         projectId: project.id,
@@ -248,6 +279,7 @@ describe("Agents - updateOne", () => {
     const response = await subject({
       payload: {
         ...agent,
+        ...agentSettings,
         documentTagIds: [],
         documentsRagMode: DocumentsRagMode.All,
         outputJsonSchema: undefined,
@@ -267,7 +299,7 @@ describe("Agents - updateOne", () => {
   })
 
   it("should preserve an existing soft-deleted project category while adding a new category", async () => {
-    const { project, agent } = await createContext()
+    const { project, agent, agentSettings } = await createContext()
     const legacyProjectCategory = await repositories.projectAgentSessionCategoryRepository.save(
       repositories.projectAgentSessionCategoryRepository.create({
         projectId: project.id,
@@ -292,6 +324,7 @@ describe("Agents - updateOne", () => {
     const response = await subject({
       payload: {
         ...agent,
+        ...agentSettings,
         documentTagIds: [],
         documentsRagMode: DocumentsRagMode.All,
         outputJsonSchema: undefined,
@@ -313,7 +346,7 @@ describe("Agents - updateOne", () => {
   })
 
   it("should reject removing a category already used by a conversation", async () => {
-    const { organization, project, agent, user } = await createContext()
+    const { organization, project, agent, agentSettings, user } = await createContext()
     const projectCategory = await repositories.projectAgentSessionCategoryRepository.save(
       repositories.projectAgentSessionCategoryRepository.create({
         projectId: project.id,
@@ -346,6 +379,7 @@ describe("Agents - updateOne", () => {
     const response = await subject({
       payload: {
         ...agent,
+        ...agentSettings,
         documentTagIds: [],
         documentsRagMode: DocumentsRagMode.All,
         outputJsonSchema: undefined,

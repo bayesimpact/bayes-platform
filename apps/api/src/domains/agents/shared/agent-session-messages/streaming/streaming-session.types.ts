@@ -1,5 +1,6 @@
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { Agent } from "@/domains/agents/agent.entity"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { ConversationAgentSession } from "../../../conversation-agent-sessions/conversation-agent-session.entity"
 import type { FormAgentSession } from "../../../form-agent-sessions/form-agent-session.entity"
 import type { AgentMessage } from "../agent-message.entity"
@@ -23,6 +24,7 @@ export type StreamingSession =
 
 export type AgentSessionScope = {
   agent: Agent
+  agentSettings: AgentSettings
   session: StreamingSession
   connectScope: RequiredConnectScope
 }

@@ -58,10 +58,14 @@ describe("EvaluationExtractionRuns - Auth", () => {
   })
 
   const createContextForRole = async (role: ProjectMembershipRole = "owner") => {
-    const { user, organization, project, agent } = await createOrganizationWithAgent(repositories, {
-      projectMembership: { role },
-      agent: { type: "extraction", outputJsonSchema: { type: "object" } },
-    })
+    const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        projectMembership: { role },
+        agent: { type: "extraction" },
+        agentSettings: { outputJsonSchema: { type: "object" } },
+      },
+    )
     organizationId = organization.id
     projectId = project.id
     accessToken = "token"
@@ -73,7 +77,13 @@ describe("EvaluationExtractionRuns - Auth", () => {
     await setup.getRepository(EvaluationExtractionDataset).save(dataset)
 
     const run = evaluationExtractionRunFactory
-      .transient({ organization, project, agent, evaluationExtractionDataset: dataset })
+      .transient({
+        organization,
+        project,
+        agent,
+        agentSettings,
+        evaluationExtractionDataset: dataset,
+      })
       .build()
     await setup.getRepository(EvaluationExtractionRun).save(run)
     evaluationExtractionRunId = run.id

@@ -72,6 +72,8 @@ describe.skip("ExtractionAgentSessions - executeOne", () => {
     const { user, organization, project, agent } = await createOrganizationWithAgent(repositories, {
       agent: {
         type: agentType,
+      },
+      agentSettings: {
         outputJsonSchema: {
           type: "object",
           properties: { fullName: { type: "string" } },

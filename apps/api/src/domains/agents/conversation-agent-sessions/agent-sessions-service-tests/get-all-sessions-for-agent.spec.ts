@@ -2,6 +2,7 @@ import type { BaseAgentSessionTypeDto } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { agentSessionControllerTestSetup } from "./test-setup"
@@ -116,6 +117,7 @@ describe("getAllSessionsForAgent", () => {
       testAgent,
       testUser,
       agentRepository,
+      agentSettingsRepository,
       conversationAgentSessionRepository,
       testProject,
       testOrganization,
@@ -128,6 +130,11 @@ describe("getAllSessionsForAgent", () => {
         name: "Another Agent",
       })
     await agentRepository.save(anotherAgent)
+
+    const anotherAgentSettings = agentSettingsFactory
+      .transient({ organization: testOrganization, project: testProject, agent: anotherAgent })
+      .build()
+    await agentSettingsRepository.save(anotherAgentSettings)
 
     // Create sessions for both agents
     const session1 = conversationAgentSessionFactory

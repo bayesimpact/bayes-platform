@@ -11,15 +11,22 @@ describe("findById", () => {
     await sdk.shutdown()
   })
   it("should find an existing session", async () => {
-    const { service, testAgent, testOrganization, testUser, testProject, streamingService } =
-      getTestContext()
+    const {
+      service,
+      testAgent,
+      testAgentSettings,
+      testOrganization,
+      testUser,
+      testProject,
+      streamingService,
+    } = getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
       projectId: testProject.id,
     }
     const createdSession = await service.createSession({
       connectScope,
-      agentId: testAgent.id,
+      agentSettingsId: testAgentSettings.id,
       userId: testUser.id,
       type: "playground",
     })
@@ -51,6 +58,7 @@ describe("findById", () => {
     const {
       service,
       testAgent,
+      testAgentSettings,
       testOrganization,
       testUser,
       agentMessageRepository,
@@ -65,7 +73,7 @@ describe("findById", () => {
     // Create a session with an old streaming message
     const session = await service.createSession({
       connectScope,
-      agentId: testAgent.id,
+      agentSettingsId: testAgentSettings.id,
       userId: testUser.id,
       type: "playground",
     })
@@ -78,7 +86,12 @@ describe("findById", () => {
       .streaming()
       .sentMinutesAgo(10)
       .assistant()
-      .transient({ organization: testOrganization, project: testProject, session: session })
+      .transient({
+        organization: testOrganization,
+        project: testProject,
+        session: session,
+        agentSettings: testAgentSettings,
+      })
       .build()
     await agentMessageRepository.save(oldMessage)
 

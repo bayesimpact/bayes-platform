@@ -41,6 +41,7 @@ export type AgentCsvExtractionRunColumnSchemaDto = Record<
 export type AgentCsvExtractionRunDto = {
   id: string
   agentId: string
+  agentSettingsId: string
   csvDocumentId: string
   columnSchema: AgentCsvExtractionRunColumnSchemaDto
   status: AgentCsvExtractionRunStatusDto

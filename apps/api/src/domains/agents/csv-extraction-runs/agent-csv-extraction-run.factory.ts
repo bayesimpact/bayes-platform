@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto"
 import { Factory } from "fishery"
 import type { Agent } from "@/domains/agents/agent.entity"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { Document } from "@/domains/documents/document.entity"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import type { Project } from "@/domains/projects/project.entity"
@@ -14,6 +15,7 @@ type AgentCsvExtractionRunTransientParams = {
   organization: Organization
   project: Project
   agent: Agent
+  agentSettings: AgentSettings
   csvDocument: Document
 }
 
@@ -43,6 +45,9 @@ export const agentCsvExtractionRunFactory = AgentCsvExtractionRunFactory.define(
     if (!transientParams.agent) {
       throw new Error("agent transient is required")
     }
+    if (!transientParams.agentSettings) {
+      throw new Error("agentSettings transient is required")
+    }
     if (!transientParams.csvDocument) {
       throw new Error("csvDocument transient is required")
     }
@@ -55,8 +60,8 @@ export const agentCsvExtractionRunFactory = AgentCsvExtractionRunFactory.define(
       deletedAt: params.deletedAt ?? null,
       organizationId: transientParams.organization.id,
       projectId: transientParams.project.id,
-      agentId: transientParams.agent.id,
-      agent: transientParams.agent,
+      agentSettingsId: transientParams.agentSettings.id,
+      agentSettings: transientParams.agentSettings,
       csvDocumentId: transientParams.csvDocument.id,
       csvDocument: transientParams.csvDocument,
       columnSchema:
@@ -66,6 +71,9 @@ export const agentCsvExtractionRunFactory = AgentCsvExtractionRunFactory.define(
       records: params.records || [],
       csvExportDocumentId: params.csvExportDocumentId ?? null,
       csvExportDocument: null,
+      //fixme DOO : to delete as the same time we delete the fields in db: it's just a security ...
+      _deleted_agentId: transientParams.agent.id,
+      _deleted_agent: transientParams.agent, //fixme DOO
     } satisfies AgentCsvExtractionRun
   },
 )

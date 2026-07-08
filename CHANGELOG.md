@@ -12,6 +12,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 - Agent editor saves each configuration tab independently, so editing one tab no longer requires re-saving the whole agent; switching tabs with unsaved edits prompts to discard them
+- Backoffice feature flags are now managed through a searchable dialog with side-by-side Available/Enabled columns, reachable from both the projects list and the project detail page
 
 ### Fixed
 - Editing a single agent tab no longer clears the agent's greeting message

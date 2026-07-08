@@ -42,14 +42,14 @@ const conversationAgent = agentFactory.transient({ project }).build({
 const resourceAgent = agentFactory.transient({ project }).build({
   type: "conversation",
   name: "Resource Navigator",
-  defaultPrompt: "Find relevant services, contacts, and eligibility details.",
+  instructions: "Find relevant services, contacts, and eligibility details.",
   documentsRagMode: DocumentsRagMode.None,
 })
 
 const policyAgent = agentFactory.transient({ project }).build({
   type: "conversation",
   name: "Policy Analyst",
-  defaultPrompt: "Interpret policy documents and summarize operational constraints.",
+  instructions: "Interpret policy documents and summarize operational constraints.",
   documentsRagMode: DocumentsRagMode.Tags,
 })
 

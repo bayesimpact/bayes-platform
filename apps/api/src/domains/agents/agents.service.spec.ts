@@ -13,6 +13,7 @@ import {
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
+import { createResourceLibraryForProject } from "@/domains/resource-libraries/resource-library.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { DocumentTag } from "../documents/tags/document-tag.entity"
@@ -21,9 +22,11 @@ import { Agent } from "./agent.entity"
 import { AgentsModule } from "./agents.module"
 import { AgentsService } from "./agents.service"
 import { addUserToAgent } from "./memberships/agent-membership.factory"
+import { AgentSettingsService } from "./settings/agent-settings.service"
 
 describe("AgentsService", () => {
   let service: AgentsService
+  let agentSettingsService: AgentSettingsService
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
 
@@ -41,6 +44,7 @@ describe("AgentsService", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     service = setup.module.get<AgentsService>(AgentsService)
+    agentSettingsService = setup.module.get<AgentSettingsService>(AgentSettingsService)
     repositories = setup.getAllRepositories()
   })
 
@@ -48,7 +52,7 @@ describe("AgentsService", () => {
     it("should create an Agent", async () => {
       const { organization, project, user } = await createOrganizationWithProject(repositories)
 
-      const result = await service.createAgent({
+      const { agent, agentSettings } = await service.createAgent({
         connectScope: {
           organizationId: organization.id,
           projectId: project.id,
@@ -56,7 +60,7 @@ describe("AgentsService", () => {
         fields: {
           type: "conversation",
           name: "My Template",
-          defaultPrompt: "This is a default prompt",
+          instructions: "This is a default prompt",
           documentsRagMode: DocumentsRagMode.All,
           model: AgentModel.Gemini25Flash,
           temperature: 0,
@@ -66,13 +70,15 @@ describe("AgentsService", () => {
       })
 
       // Assert
-      expect(result.name).toBe("My Template")
-      expect(result.defaultPrompt).toBe("This is a default prompt")
-      expect(result.projectId).toBe(project.id)
-      expect(result.id).toBeDefined()
+      expect(agent.name).toBe("My Template")
+      expect(agent.projectId).toBe(project.id)
+      expect(agent.id).toBeDefined()
+
+      expect(agentSettings).toBeDefined()
+      expect(agentSettings?.instructions).toBe("This is a default prompt")
 
       const savedTemplate = await repositories.agentRepository.findOne({
-        where: { id: result.id },
+        where: { id: agent.id },
       })
       expect(savedTemplate).not.toBeNull()
       expect(savedTemplate?.name).toBe("My Template")
@@ -101,7 +107,7 @@ describe("AgentsService", () => {
         membership: { role: "member" },
       })
 
-      const result = await service.createAgent({
+      const { agent } = await service.createAgent({
         connectScope: {
           organizationId: organization.id,
           projectId: project.id,
@@ -109,7 +115,7 @@ describe("AgentsService", () => {
         fields: {
           type: "conversation",
           name: "New Agent",
-          defaultPrompt: "Prompt",
+          instructions: "Prompt",
           documentsRagMode: DocumentsRagMode.All,
           model: AgentModel.Gemini25Flash,
           temperature: 0,
@@ -119,7 +125,7 @@ describe("AgentsService", () => {
       })
 
       const memberships = await repositories.agentMembershipRepository.find({
-        where: { agentId: result.id },
+        where: { agentId: agent.id },
       })
 
       // Owner (creator) + admin = 2 memberships
@@ -150,7 +156,7 @@ describe("AgentsService", () => {
           fields: {
             type: "conversation",
             name: "AB",
-            defaultPrompt: "Prompt",
+            instructions: "Prompt",
             documentsRagMode: DocumentsRagMode.All,
             model: AgentModel.Gemini25Flash,
             temperature: 0,
@@ -169,7 +175,7 @@ describe("AgentsService", () => {
     it("should default to conversation type", async () => {
       const { organization, project, user } = await createOrganizationWithProject(repositories)
 
-      const result = await service.createAgent({
+      const { agent } = await service.createAgent({
         connectScope: {
           organizationId: organization.id,
           projectId: project.id,
@@ -177,7 +183,7 @@ describe("AgentsService", () => {
         fields: {
           type: "conversation",
           name: "Conversation Agent",
-          defaultPrompt: "This is a default prompt",
+          instructions: "This is a default prompt",
           documentsRagMode: DocumentsRagMode.All,
           model: AgentModel.Gemini25Flash,
           temperature: 0,
@@ -186,18 +192,18 @@ describe("AgentsService", () => {
         userId: user.id,
       })
 
-      expect(result.type).toBe("conversation")
+      expect(agent.type).toBe("conversation")
     })
 
     it("should persist greetingMessage when provided", async () => {
       const { organization, project, user } = await createOrganizationWithProject(repositories)
 
-      const result = await service.createAgent({
+      const { agentSettings } = await service.createAgent({
         connectScope: { organizationId: organization.id, projectId: project.id },
         fields: {
           type: "conversation",
           name: "Greeter Agent",
-          defaultPrompt: "Prompt",
+          instructions: "Prompt",
           greetingMessage: "Hi! How can I help you today?",
           documentsRagMode: DocumentsRagMode.All,
           model: AgentModel.Gemini25Flash,
@@ -206,19 +212,19 @@ describe("AgentsService", () => {
         },
         userId: user.id,
       })
-
-      expect(result.greetingMessage).toBe("Hi! How can I help you today?")
+      expect(agentSettings).toBeDefined()
+      expect(agentSettings?.greetingMessage).toBe("Hi! How can I help you today?")
     })
 
     it("should default greetingMessage to null when not provided", async () => {
       const { organization, project, user } = await createOrganizationWithProject(repositories)
 
-      const result = await service.createAgent({
+      const { agentSettings } = await service.createAgent({
         connectScope: { organizationId: organization.id, projectId: project.id },
         fields: {
           type: "conversation",
           name: "Silent Agent",
-          defaultPrompt: "Prompt",
+          instructions: "Prompt",
           documentsRagMode: DocumentsRagMode.All,
           model: AgentModel.Gemini25Flash,
           temperature: 0,
@@ -227,18 +233,19 @@ describe("AgentsService", () => {
         userId: user.id,
       })
 
-      expect(result.greetingMessage).toBeNull()
+      expect(agentSettings).toBeDefined()
+      expect(agentSettings?.greetingMessage).toBeNull()
     })
 
     it("should normalize empty greetingMessage to null", async () => {
       const { organization, project, user } = await createOrganizationWithProject(repositories)
 
-      const result = await service.createAgent({
+      const { agentSettings } = await service.createAgent({
         connectScope: { organizationId: organization.id, projectId: project.id },
         fields: {
           type: "conversation",
           name: "Whitespace Agent",
-          defaultPrompt: "Prompt",
+          instructions: "Prompt",
           greetingMessage: "   ",
           documentsRagMode: DocumentsRagMode.All,
           model: AgentModel.Gemini25Flash,
@@ -247,8 +254,8 @@ describe("AgentsService", () => {
         },
         userId: user.id,
       })
-
-      expect(result.greetingMessage).toBeNull()
+      expect(agentSettings).toBeDefined()
+      expect(agentSettings?.greetingMessage).toBeNull()
     })
 
     it("should require extraction fields when type is extraction", async () => {
@@ -262,7 +269,7 @@ describe("AgentsService", () => {
           },
           fields: {
             name: "Extraction Agent",
-            defaultPrompt: "This is a default prompt",
+            instructions: "This is a default prompt",
             documentsRagMode: DocumentsRagMode.All,
             model: AgentModel.Gemini25Flash,
             temperature: 0,
@@ -285,11 +292,9 @@ describe("AgentsService", () => {
 
       const agent1 = agentFactory.transient({ organization, project }).build({
         name: "Template 1",
-        defaultPrompt: "Prompt 1",
       })
       const agent2 = agentFactory.transient({ organization, project }).build({
         name: "Template 2",
-        defaultPrompt: "Prompt 2",
       })
       await repositories.agentRepository.save([agent1, agent2])
       await addUserToAgent({ repositories, agent: agent1, user })
@@ -327,11 +332,9 @@ describe("AgentsService", () => {
 
       const agent1 = agentFactory.transient({ organization, project }).build({
         name: "Second Template",
-        defaultPrompt: "Prompt 2",
       })
       const agent2 = agentFactory.transient({ organization, project }).build({
         name: "First Template",
-        defaultPrompt: "Prompt 1",
         createdAt: new Date("2024-01-02"),
       })
       await repositories.agentRepository.save([agent1, agent2])
@@ -356,43 +359,55 @@ describe("AgentsService", () => {
       const { organization, project, agent } = await createOrganizationWithAgent(repositories)
 
       // Act
-      const result = await service.updateAgent({
-        connectScope: { organizationId: organization.id, projectId: project.id },
-        agentId: agent.id,
-        fieldsToUpdate: {
-          name: "Updated Template",
-          defaultPrompt: "Updated Prompt",
-          documentsRagMode: DocumentsRagMode.All,
-        },
-      })
+      const { agent: updatedAgent, agentSettings: updatedAgentSettings } =
+        await service.updateAgent({
+          connectScope: { organizationId: organization.id, projectId: project.id },
+          agentId: agent.id,
+          fieldsToUpdate: {
+            name: "Updated Template",
+            instructions: "Updated Prompt",
+            documentsRagMode: DocumentsRagMode.All,
+          },
+        })
 
-      // Assert
-      expect(result.name).toBe("Updated Template")
-      expect(result.defaultPrompt).toBe("Updated Prompt")
-      expect(result.id).toBe(agent.id)
+      expect(updatedAgent.name).toBe("Updated Template")
+      expect(updatedAgent.id).toBe(agent.id)
+
+      expect(updatedAgentSettings.instructions).toBe("Updated Prompt")
+      expect(updatedAgentSettings.agentId).toBe(agent.id)
+      expect(updatedAgentSettings.revision).toBe(2)
 
       const updatedTemplate = await repositories.agentRepository.findOne({
         where: { id: agent.id },
       })
       expect(updatedTemplate?.name).toBe("Updated Template")
-      expect(updatedTemplate?.defaultPrompt).toBe("Updated Prompt")
+
+      const updatedPrompt = await repositories.agentSettingsRepository.findOne({
+        where: { agentId: agent.id, revision: 2 },
+      })
+      expect(updatedPrompt).toBeDefined()
+      expect(updatedPrompt?.instructions).toBe("Updated Prompt")
     })
 
-    it("should update only name when defaultPrompt is not provided", async () => {
-      const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
-        agent: { defaultPrompt: "Original Prompt" },
-      })
+    it("should update only name when instructions is not provided", async () => {
+      const {
+        organization,
+        project,
+        agent,
+        agentSettings: initialAgentSettings,
+      } = await createOrganizationWithAgent(repositories)
 
-      // Act
-      const result = await service.updateAgent({
+      const { agent: updatedAgent, agentSettings } = await service.updateAgent({
         connectScope: { organizationId: organization.id, projectId: project.id },
         agentId: agent.id,
         fieldsToUpdate: { name: "Updated Name" },
       })
 
-      // Assert
-      expect(result.name).toBe("Updated Name")
-      expect(result.defaultPrompt).toBe("Original Prompt") // Unchanged
+      expect(updatedAgent.name).toBe("Updated Name")
+
+      expect(agentSettings).toBeDefined()
+      expect(agentSettings?.instructions).toBe(initialAgentSettings.instructions) // Unchanged
+      expect(agentSettings?.revision).toBe(initialAgentSettings.revision) // Unchanged
     })
 
     it("should throw UnprocessableEntityException when name is less than 3 characters", async () => {
@@ -413,62 +428,90 @@ describe("AgentsService", () => {
     })
 
     it("should update greetingMessage and clear it with empty string", async () => {
-      const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
-        agent: { greetingMessage: "Original greeting" },
-      })
+      const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+        repositories,
+        {},
+      )
 
-      const afterSet = await service.updateAgent({
+      const _afterSet = await service.updateAgent({
         connectScope: { organizationId: organization.id, projectId: project.id },
         agentId: agent.id,
         fieldsToUpdate: { greetingMessage: "New greeting" },
       })
-      expect(afterSet.greetingMessage).toBe("New greeting")
+      let updatedAgentSettings = await agentSettingsService.getLast({
+        connectScope: {
+          organizationId: organization.id,
+          projectId: project.id,
+        },
+        agentId: agent.id,
+      })
+      expect(updatedAgentSettings.greetingMessage).not.toBe(agentSettings.greetingMessage)
+      expect(updatedAgentSettings.greetingMessage).toBe("New greeting")
 
-      const afterClear = await service.updateAgent({
+      const _afterClear = await service.updateAgent({
         connectScope: { organizationId: organization.id, projectId: project.id },
         agentId: agent.id,
         fieldsToUpdate: { greetingMessage: "" },
       })
-      expect(afterClear.greetingMessage).toBeNull()
+
+      updatedAgentSettings = await agentSettingsService.getLast({
+        connectScope: {
+          organizationId: organization.id,
+          projectId: project.id,
+        },
+        agentId: agent.id,
+      })
+      expect(updatedAgentSettings.greetingMessage).toBeNull()
     })
 
     it("should preserve greetingMessage when not provided in a partial update", async () => {
       const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
-        agent: { greetingMessage: "Keep me" },
+        agentSettings: { greetingMessage: "Keep me" },
       })
 
-      const result = await service.updateAgent({
+      await service.updateAgent({
         connectScope: { organizationId: organization.id, projectId: project.id },
         agentId: agent.id,
         fieldsToUpdate: { name: "Renamed" },
       })
-      expect(result.greetingMessage).toBe("Keep me")
+      const updatedAgentSettings = await agentSettingsService.getLast({
+        connectScope: {
+          organizationId: organization.id,
+          projectId: project.id,
+        },
+        agentId: agent.id,
+      })
+      expect(updatedAgentSettings?.greetingMessage).toBe("Keep me")
     })
 
     it("should keep stored tags when switching documentsRagMode to none", async () => {
       const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
-        agent: { documentsRagMode: DocumentsRagMode.Tags },
+        agentSettings: { documentsRagMode: DocumentsRagMode.Tags },
       })
       const documentTag = documentTagFactory.transient({ organization, project }).build()
       await setup.getRepository(DocumentTag).save(documentTag)
-      await repositories.agentRepository.update(agent.id, {
-        documentsRagMode: DocumentsRagMode.Tags,
-      })
+
       await repositories.agentRepository
         .createQueryBuilder()
         .relation(Agent, "documentTags")
         .of(agent.id)
         .add(documentTag.id)
 
-      const result = await service.updateAgent({
+      await service.updateAgent({
         connectScope: { organizationId: organization.id, projectId: project.id },
         agentId: agent.id,
         fieldsToUpdate: {
           documentsRagMode: DocumentsRagMode.None,
         },
       })
-
-      expect(result.documentsRagMode).toBe(DocumentsRagMode.None)
+      const updatedAgentSettings = await agentSettingsService.getLast({
+        connectScope: {
+          organizationId: organization.id,
+          projectId: project.id,
+        },
+        agentId: agent.id,
+      })
+      expect(updatedAgentSettings?.documentsRagMode).toBe(DocumentsRagMode.None)
 
       const updatedAgent = await repositories.agentRepository.findOne({
         where: { id: agent.id },
@@ -476,6 +519,47 @@ describe("AgentsService", () => {
       })
       expect(updatedAgent?.documentTags.map((documentTag) => documentTag.id)).toEqual([
         documentTag.id,
+      ])
+    })
+    it("should update resource libraries", async () => {
+      const { organization, project, agent, agentResourceLibraries } =
+        await createOrganizationWithAgent(repositories, {
+          agentSettings: { documentsRagMode: DocumentsRagMode.Tags },
+        })
+      const initialAgent = await repositories.agentRepository.findOne({
+        where: { id: agent.id },
+        relations: ["resourceLibraries"],
+      })
+      expect(initialAgent?.resourceLibraries.map((resourceLib) => resourceLib.id)).toEqual([
+        agentResourceLibraries[0]?.id,
+      ])
+
+      const resourceLibrary1 = await createResourceLibraryForProject({
+        repositories,
+        organization,
+        project,
+      })
+      const resourceLibrary2 = await createResourceLibraryForProject({
+        repositories,
+        organization,
+        project,
+      })
+
+      await service.updateAgent({
+        connectScope: { organizationId: organization.id, projectId: project.id },
+        agentId: agent.id,
+        fieldsToUpdate: {
+          resourceLibraryIds: [resourceLibrary1.id, resourceLibrary2.id],
+        },
+      })
+
+      const updatedAgent = await repositories.agentRepository.findOne({
+        where: { id: agent.id },
+        relations: ["resourceLibraries"],
+      })
+      expect(updatedAgent?.resourceLibraries.map((resourceLib) => resourceLib.id)).toEqual([
+        resourceLibrary1.id,
+        resourceLibrary2.id,
       ])
     })
   })
@@ -490,6 +574,12 @@ describe("AgentsService", () => {
         where: { id: agent.id },
       })
       expect(deletedAgent).toBeNull()
+
+      const deletedAgentSettings = await repositories.agentSettingsRepository.find({
+        where: { id: agent.id },
+      })
+      expect(deletedAgentSettings).toBeDefined()
+      expect(deletedAgentSettings.length).toBe(0)
     })
   })
 })

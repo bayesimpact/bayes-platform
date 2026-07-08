@@ -37,7 +37,7 @@ export function AgentGeneralTab({ agent, onDirtyChange }: AgentTabFormProps) {
     defaultValues: {
       name: agent.name,
       locale: agent.locale,
-      defaultPrompt: agent.defaultPrompt,
+      instructions: agent.instructions,
       greetingMessage: agent.greetingMessage ?? null,
     },
   })
@@ -119,13 +119,13 @@ export function AgentGeneralTab({ agent, onDirtyChange }: AgentTabFormProps) {
 
         <FormField
           control={form.control}
-          name="defaultPrompt"
+          name="instructions"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("agent:props.defaultPrompt")}</FormLabel>
+              <FormLabel>{t("agent:props.instructions")}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder={t("agent:props.placeholders.defaultPrompt")}
+                  placeholder={t("agent:props.placeholders.instructions")}
                   rows={8}
                   className="min-h-40 max-h-96 font-mono"
                   {...field}

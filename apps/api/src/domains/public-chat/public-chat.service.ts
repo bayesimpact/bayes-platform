@@ -8,6 +8,7 @@ import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import { Agent } from "@/domains/agents/agent.entity"
+import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { StreamingService } from "@/domains/agents/shared/agent-session-messages/streaming/streaming.service"
@@ -23,6 +24,8 @@ export class PublicChatService {
   constructor(
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
+    @InjectRepository(AgentSettings)
+    private readonly agentSettingsRepository: Repository<AgentSettings>,
     readonly agentEmbedConfigsService: AgentEmbedConfigsService,
     private readonly publicAgentSessionsService: PublicAgentSessionsService,
     private readonly streamingService: StreamingService,
@@ -57,6 +60,12 @@ export class PublicChatService {
     })
     if (!agent) throw new NotFoundException("Agent not found")
 
+    const agentSettings = await this.agentSettingsRepository.findOne({
+      where: { agentId: publicSession.agentId },
+      order: { revision: "DESC" }, //findOne + order DESC to get last revision
+    })
+    if (!agentSettings) throw new NotFoundException("AgentSettings for Agent not found")
+
     await this.publicAgentSessionsService.updateLastActivity(publicSession.id)
 
     yield* this.streamingService.streamPublicAgentResponse({
@@ -66,6 +75,7 @@ export class PublicChatService {
       },
       publicSessionId: publicSession.id,
       agent,
+      agentSettings,
       userContent,
       notifyClient,
     })

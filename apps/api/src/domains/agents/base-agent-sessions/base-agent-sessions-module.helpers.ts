@@ -4,6 +4,7 @@ import { AgentSessionContextResolver } from "@/common/context/resolvers/agent-se
 import { OrganizationContextResolver } from "@/common/context/resolvers/organization-context.resolver"
 import { ProjectContextResolver } from "@/common/context/resolvers/project-context.resolver"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
+import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { Document } from "@/domains/documents/document.entity"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
@@ -44,6 +45,7 @@ export const moduleImports = [
 export const moduleFeatures = [
   Agent,
   AgentSessionCategory,
+  AgentSettings,
   AgentMembership,
   AgentMessage,
   AgentMessageAttachmentDocument,

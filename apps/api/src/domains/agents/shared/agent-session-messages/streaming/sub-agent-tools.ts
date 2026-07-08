@@ -9,6 +9,8 @@ import type {
 import type { Agent } from "@/domains/agents/agent.entity"
 import type { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
 import type { FormAgentSessionsService } from "@/domains/agents/form-agent-sessions/form-agent-sessions.service"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+import type { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import type { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
 import type { AgentSubAgentsService } from "@/domains/agents/sub-agents/agent-sub-agents.service"
 import type { ProjectsService } from "@/domains/projects/projects.service"
@@ -27,14 +29,15 @@ export type BuiltTools = {
 }
 
 type BuildLLMConfig = (params: {
-  model: Agent["model"]
+  model: AgentSettings["model"]
   systemPrompt: string
-  temperature: Agent["temperature"]
+  temperature: AgentSettings["temperature"]
   tools?: ToolSet
 }) => LLMConfig
 
 type GenerateMasterPrompt = (params: {
   agent: Agent
+  agentSettings: AgentSettings
   toolDescriptions?: Record<string, string>
   toolNames: string[]
 }) => string
@@ -52,6 +55,7 @@ export async function buildSubAgentTools({
   buildTools,
   conversationAgentSessionsService,
   formAgentSessionsService,
+  agentSettingsService,
   generateMasterPrompt,
   getProviderForModel,
   onExecute,
@@ -64,6 +68,7 @@ export async function buildSubAgentTools({
   buildTools: BuildTools
   conversationAgentSessionsService: ConversationAgentSessionsService
   formAgentSessionsService: FormAgentSessionsService
+  agentSettingsService: AgentSettingsService
   generateMasterPrompt: GenerateMasterPrompt
   getProviderForModel: (model: string) => LLMProvider
   onExecute: OnExecute
@@ -105,6 +110,7 @@ export async function buildSubAgentTools({
           buildTools,
           conversationAgentSessionsService,
           formAgentSessionsService,
+          agentSettingsService,
           generateMasterPrompt,
           getProviderForModel,
           input,
@@ -124,6 +130,7 @@ async function runSubAgentTool({
   buildTools,
   conversationAgentSessionsService,
   formAgentSessionsService,
+  agentSettingsService,
   generateMasterPrompt,
   getProviderForModel,
   input,
@@ -135,6 +142,7 @@ async function runSubAgentTool({
   buildTools: BuildTools
   conversationAgentSessionsService: ConversationAgentSessionsService
   formAgentSessionsService: FormAgentSessionsService
+  agentSettingsService: AgentSettingsService
   generateMasterPrompt: GenerateMasterPrompt
   getProviderForModel: (model: string) => LLMProvider
   input: SubAgentToolInput
@@ -147,6 +155,10 @@ async function runSubAgentTool({
       `Sub-agent "${childAgent.name}" (${childAgent.id}) is an extraction agent, which is not supported as a sub-agent.`,
     )
   }
+  const childAgentSettings = await agentSettingsService.getLast({
+    connectScope: agentSessionScope.connectScope,
+    agentId: childAgent.id,
+  })
 
   // Form and conversation sub-agents each get their own persistent sub-session,
   // keyed to the parent session. A form sub-agent needs it so the fillForm tool
@@ -174,6 +186,7 @@ async function runSubAgentTool({
   const childScope: AgentSessionScope = {
     ...agentSessionScope,
     agent: childAgent,
+    agentSettings: childAgentSettings,
     session: childSession,
   }
 
@@ -206,19 +219,21 @@ async function runSubAgentTool({
     const toolNames = tools ? Object.keys(tools) : []
     const systemPrompt = generateMasterPrompt({
       agent: childAgent,
+      agentSettings: childAgentSettings,
       toolNames,
       toolDescriptions,
     })
 
     const config = buildLLMConfig({
       systemPrompt,
-      model: childAgent.model,
-      temperature: childAgent.temperature,
+      model: childAgentSettings.model,
+      temperature: childAgentSettings.temperature,
       tools,
     })
 
     const metadata = buildSubAgentMetadata({
       childAgent,
+      childAgentSettings,
       agentSessionScope,
       childSession,
       subAgentTraceId,
@@ -353,16 +368,23 @@ function buildSubAgentPrompt(input: SubAgentToolInput, childAgent: Agent): strin
 
 function buildSubAgentMetadata({
   childAgent,
+  childAgentSettings,
   agentSessionScope,
   childSession,
   subAgentTraceId,
 }: {
   agentSessionScope: AgentSessionScope
   childAgent: Agent
+  childAgentSettings: AgentSettings
   childSession: StreamingSession
   subAgentTraceId: string
 }): LLMMetadata {
-  const { connectScope, agent: parentAgent, session } = agentSessionScope
+  const {
+    connectScope,
+    agent: parentAgent,
+    agentSettings: parentAgentSettings,
+    session,
+  } = agentSessionScope
 
   // The sub-agent runs inside a fresh OTEL root span (see runSubAgentTool), so its
   // spans get their own OTEL trace id and the exporter writes them under this
@@ -375,9 +397,19 @@ function buildSubAgentMetadata({
     agentSessionId: childSession.id,
     langfuseSessionId: session.id,
     agentId: childAgent.id,
+    revision: childAgentSettings.revision,
     projectId: childAgent.projectId,
     organizationId: session?.organizationId ?? connectScope.organizationId,
     currentTurn: session?.messages?.filter((message) => message.role === "user").length ?? 0,
-    tags: [parentAgent.name, childAgent.name, "sub-agent", `parent-trace:${session.traceId}`],
+    tags: [
+      childAgent.name,
+      `rev-${childAgentSettings.revision}`,
+      childAgent.type,
+      "sub-agent",
+      `parent-${parentAgent.name}`,
+      `parent-rev-${parentAgentSettings.revision}`,
+      `parent-type-${parentAgent.type}`,
+      `parent-trace:${session.traceId}`,
+    ],
   }
 }

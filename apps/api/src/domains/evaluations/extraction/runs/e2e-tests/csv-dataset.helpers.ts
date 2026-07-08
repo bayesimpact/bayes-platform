@@ -1,6 +1,7 @@
 import type { EvaluationExtractionDatasetSchemaColumnDto } from "@caseai-connect/api-contracts"
 import type { Repository } from "typeorm"
 import type { Agent } from "@/domains/agents/agent.entity"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import type { Project } from "@/domains/projects/project.entity"
 import type { EvaluationExtractionDatasetSchemaMapping } from "../../datasets/evaluation-extraction-dataset.entity"
@@ -89,12 +90,14 @@ export async function createRunWithCsvDataset({
   organization,
   project,
   agent,
+  agentSettings,
   keyMapping,
 }: {
   getRepository: <T extends object>(entity: new () => T) => Repository<T>
   organization: Organization
   project: Project
   agent: Agent
+  agentSettings: AgentSettings
   keyMapping: EvaluationExtractionRun["keyMapping"]
 }) {
   const { dataset, records: datasetRecords } = await createDatasetWithCsvRecords({
@@ -104,7 +107,13 @@ export async function createRunWithCsvDataset({
   })
 
   const run = evaluationExtractionRunFactory
-    .transient({ organization, project, agent, evaluationExtractionDataset: dataset })
+    .transient({
+      organization,
+      project,
+      agent,
+      agentSettings,
+      evaluationExtractionDataset: dataset,
+    })
     .build({ keyMapping })
   await getRepository(EvaluationExtractionRun).save(run)
 

@@ -12,11 +12,17 @@ describe("buildSubAgentTools", () => {
       projectId: "project-id",
       organizationId: "organization-id",
       name: "Helpful Assistant",
-      defaultPrompt: "Answer delegated questions.",
+      type: "conversation",
+    }
+    const childAgentSettings = {
+      id: "child-agent-id-settings",
+      projectId: "project-id",
+      organizationId: "organization-id",
+      instructions: "Answer delegated questions.",
       model: "mock-model",
+      revision: 1,
       temperature: 0,
       locale: "en",
-      type: "conversation",
       documentsRagMode: DocumentsRagMode.None,
     }
     const parentAgent = {
@@ -24,10 +30,15 @@ describe("buildSubAgentTools", () => {
       id: "parent-agent-id",
       name: "Orchestrator",
     }
+    const parentAgentSettings = {
+      ...childAgentSettings,
+      id: "parent-agent-id-settings",
+    }
 
     const { tools } = await buildSubAgentTools({
       agentSessionScope: {
         agent: parentAgent,
+        agentSettings: parentAgentSettings,
         session: { id: "session-id", traceId: "trace-id", organizationId: "organization-id" },
         connectScope: { organizationId: "organization-id", projectId: "project-id" },
       } as never,
@@ -50,6 +61,9 @@ describe("buildSubAgentTools", () => {
       } as never,
       formAgentSessionsService: {
         findOrCreateSubSession: jest.fn(),
+      } as never,
+      agentSettingsService: {
+        getLast: jest.fn().mockResolvedValue(childAgentSettings),
       } as never,
       buildTools: async ({
         onExecute,
@@ -115,11 +129,17 @@ describe("buildSubAgentTools", () => {
       projectId: "project-id",
       organizationId: "organization-id",
       name: "Intake Form",
-      defaultPrompt: "Collect the user details.",
+      type: "form",
+    }
+    const childAgentSettings = {
+      id: "form-agent-id-settings",
+      projectId: "project-id",
+      organizationId: "organization-id",
+      instructions: "Collect the user details.",
       model: "mock-model",
       temperature: 0,
       locale: "en",
-      type: "form",
+      revision: 1,
       documentsRagMode: DocumentsRagMode.None,
       outputJsonSchema: { type: "object", properties: {} },
     }
@@ -128,6 +148,10 @@ describe("buildSubAgentTools", () => {
       id: "parent-agent-id",
       name: "Orchestrator",
       type: "conversation",
+    }
+    const parentAgentSettings = {
+      ...childAgentSettings,
+      id: "parent-agent-id-settings",
     }
 
     const subSession = {
@@ -147,6 +171,7 @@ describe("buildSubAgentTools", () => {
     const { tools } = await buildSubAgentTools({
       agentSessionScope: {
         agent: parentAgent,
+        agentSettings: parentAgentSettings,
         session: {
           id: "parent-session-id",
           traceId: "parent-trace-id",
@@ -175,6 +200,9 @@ describe("buildSubAgentTools", () => {
         findOrCreateSubSession: jest.fn(),
       } as never,
       formAgentSessionsService: { findOrCreateSubSession } as never,
+      agentSettingsService: {
+        getLast: jest.fn().mockResolvedValue(childAgentSettings),
+      } as never,
       buildTools: async () => ({ toolDescriptions: {}, tools: {}, hasSubAgentTools: false }),
       generateMasterPrompt: () => "system prompt",
       getProviderForModel: () =>
@@ -222,17 +250,27 @@ describe("buildSubAgentTools", () => {
       projectId: "project-id",
       organizationId: "organization-id",
       name: "Pricing Expert",
-      defaultPrompt: "Answer pricing questions.",
+      type: "conversation",
+    }
+    const childAgentSettings = {
+      id: "conversation-agent-id-settings",
+      projectId: "project-id",
+      organizationId: "organization-id",
+      instructions: "Answer pricing questions.",
       model: "mock-model",
+      revision: 1,
       temperature: 0,
       locale: "en",
-      type: "conversation",
       documentsRagMode: DocumentsRagMode.None,
     }
     const parentAgent = {
       ...childAgent,
       id: "parent-agent-id",
       name: "Orchestrator",
+    }
+    const parentAgentSettings = {
+      ...childAgentSettings,
+      id: "parent-agent-id-settings",
     }
 
     const subSession = {
@@ -251,6 +289,7 @@ describe("buildSubAgentTools", () => {
     const { tools } = await buildSubAgentTools({
       agentSessionScope: {
         agent: parentAgent,
+        agentSettings: parentAgentSettings,
         session: {
           id: "parent-session-id",
           traceId: "parent-trace-id",
@@ -277,6 +316,9 @@ describe("buildSubAgentTools", () => {
       buildLLMConfig: (params) => params as never,
       conversationAgentSessionsService: { findOrCreateSubSession } as never,
       formAgentSessionsService: { findOrCreateSubSession: jest.fn() } as never,
+      agentSettingsService: {
+        getLast: jest.fn().mockResolvedValue(childAgentSettings),
+      } as never,
       buildTools: async () => ({ toolDescriptions: {}, tools: {}, hasSubAgentTools: false }),
       generateMasterPrompt: () => "system prompt",
       getProviderForModel: () =>

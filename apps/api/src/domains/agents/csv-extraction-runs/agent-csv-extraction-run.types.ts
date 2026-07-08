@@ -1,5 +1,5 @@
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type { Agent } from "@/domains/agents/agent.entity"
+import type { AgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.types"
 import type {
   AgentCsvExtractionRun,
   AgentCsvExtractionRunColumnSchema,
@@ -17,5 +17,5 @@ export type ProcessAgentCsvExtractionRunRecordJobPayload = {
   runRecordId: string
   connectScope: RequiredConnectScope
   columnSchema: AgentCsvExtractionRunColumnSchema
-  agent: Agent
+  agentWithSettings: AgentWithSettingsRunJobPayload
 }

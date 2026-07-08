@@ -56,7 +56,7 @@ export class BaseAgentSessionsService {
     userId: string
   }): Promise<AgentSession | null> {
     return entityManager.findOne(sessionEntityByType[agentType] as EntityTarget<AgentSession>, {
-      where: { agentId, id: sessionId, userId },
+      where: { agentId: agentId, id: sessionId, userId },
       select: { id: true },
     })
   }
@@ -89,7 +89,7 @@ export class BaseAgentSessionsService {
     agentType: Agent["type"]
   }): Promise<{ id: string }[]> {
     return entityManager.find(sessionEntityByType[agentType] as EntityTarget<AgentSession>, {
-      where: { agentId },
+      where: { agentId: agentId },
       select: { id: true },
     })
   }

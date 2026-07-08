@@ -24,7 +24,7 @@ export function getDefaultFormValues({
   const value = {
     type: agentType,
     name: "",
-    defaultPrompt: agentDefaultPromptMap[agentType],
+    instructions: agentDefaultPromptMap[agentType],
     greetingMessage: undefined,
     documentsRagMode: DocumentsRagMode.All,
     model: AgentModel.Gemini25Flash,

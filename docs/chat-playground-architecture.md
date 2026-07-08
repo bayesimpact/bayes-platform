@@ -181,7 +181,7 @@ const llmConfig = this.buildLLMConfig(agent)
 - Extracts configuration from agent:
   - `model` (e.g., `"models/gemini-2.5-flash"`)
   - `temperature` (parsed to number, validated to be between 0-2)
-  - `systemPrompt` (from `agent.defaultPrompt`)
+  - `systemPrompt` (from `agentSettings.instructions` in the last revision)
 
 **Step 5: Stream Response from LLM**
 

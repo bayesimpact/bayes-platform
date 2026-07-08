@@ -42,6 +42,7 @@ import { TesterSessionFeedback } from "@/domains/review-campaigns/tester-session
 import { TermsAcceptance } from "@/domains/terms-compliance/terms-acceptance.entity"
 import { TermsDocument } from "@/domains/terms-compliance/terms-document.entity"
 import { User } from "@/domains/users/user.entity"
+import { AgentSettings } from "../../domains/agents/settings/agent-settings.entity"
 
 export type AllRepositories = {
   agentEmbedConfigRepository: Repository<AgentEmbedConfig>
@@ -53,6 +54,7 @@ export type AllRepositories = {
   agentMessageFeedbackRepository: Repository<AgentMessageFeedback>
   agentMessageRepository: Repository<AgentMessage>
   agentRepository: Repository<Agent>
+  agentSettingsRepository: Repository<AgentSettings>
   agentSubAgentRepository: Repository<AgentSubAgent>
   conversationAgentSessionRepository: Repository<ConversationAgentSession>
   conversationAgentSessionCategoryRepository: Repository<ConversationAgentSessionCategory>
@@ -102,6 +104,7 @@ export function buildAllRepositories(
     agentMessageFeedbackRepository: getRepository(AgentMessageFeedback),
     agentMessageRepository: getRepository(AgentMessage),
     agentRepository: getRepository(Agent),
+    agentSettingsRepository: getRepository(AgentSettings),
     agentSubAgentRepository: getRepository(AgentSubAgent),
     conversationAgentSessionRepository: getRepository(ConversationAgentSession),
     conversationAgentSessionCategoryRepository: getRepository(ConversationAgentSessionCategory),

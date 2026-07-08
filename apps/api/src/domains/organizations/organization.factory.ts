@@ -5,10 +5,14 @@ import type { Agent } from "@/domains/agents/agent.entity"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { Document } from "@/domains/documents/document.entity"
 import { documentFactory } from "@/domains/documents/document.factory"
 import type { Project } from "@/domains/projects/project.entity"
 import { projectFactory } from "@/domains/projects/project.factory"
+import type { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
+import { resourceLibraryFactory } from "@/domains/resource-libraries/resource-library.factory"
 import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import type { ExtractionAgentSession } from "../agents/extraction-agent-sessions/extraction-agent-session.entity"
@@ -117,11 +121,14 @@ export async function createOrganizationWithProject(
 
 type AgentParams = ProjectParams & {
   agent?: Partial<Agent>
+  agentSettings?: Partial<AgentSettings>
   agentMembership?: Partial<AgentMembership>
 }
 type AgentReturnType = ProjectReturnType & {
   agent: Agent
+  agentSettings: AgentSettings
   agentMembership: AgentMembership
+  agentResourceLibraries: ResourceLibrary[]
 }
 export async function createOrganizationWithAgent(
   repositories: AllRepositories,
@@ -130,8 +137,17 @@ export async function createOrganizationWithAgent(
   const data = await createOrganizationWithProject(repositories, params)
   const { organization, user, project } = data
 
-  const agent = agentFactory.transient({ project, organization }).build(params.agent)
+  const resourceLibrary = resourceLibraryFactory.transient({ organization, project }).build()
+  await repositories.resourceLibraryRepository.save(resourceLibrary)
+
+  const agent = agentFactory
+    .transient({ project, organization })
+    .build({ ...params.agent, resourceLibraries: [resourceLibrary] })
   await repositories.agentRepository.save(agent)
+  const agentSettings = agentSettingsFactory
+    .transient({ project, organization, agent })
+    .build(params.agentSettings)
+  await repositories.agentSettingsRepository.save(agentSettings)
   const agentMembership = agentMembershipFactory
     .owner()
     .transient({ user, agent })
@@ -141,7 +157,9 @@ export async function createOrganizationWithAgent(
   return {
     ...data,
     agent,
+    agentSettings,
     agentMembership,
+    agentResourceLibraries: [resourceLibrary],
   }
 }
 
@@ -151,6 +169,7 @@ type AgentSessionParams = AgentParams & {
     | Partial<FormAgentSession>
     | Partial<ExtractionAgentSession>
   document?: Partial<Document>
+  agentSettings?: Partial<AgentSettings>
 }
 type AgentSessionReturnType<T> = AgentReturnType & {
   agentSession: T
@@ -179,7 +198,7 @@ export async function createOrganizationWithAgentSession<T extends Agent["type"]
     ...params,
     agent: { ...params.agent, type: agentType },
   })
-  const { organization, user, agent, project } = data
+  const { organization, user, agent, agentSettings, project } = data
 
   switch (agentType) {
     case "conversation": {
@@ -196,7 +215,7 @@ export async function createOrganizationWithAgentSession<T extends Agent["type"]
       const document = documentFactory.transient({ organization, project }).build(params.document)
       await repositories.documentRepository.save(document)
       const agentSession = extractionAgentSessionFactory
-        .transient({ organization, project, user, agent, document })
+        .transient({ organization, project, user, agent, agentSettings, document })
         .build(params.agentSession)
       await repositories.extractionAgentSessionRepository.save(agentSession)
 
@@ -239,7 +258,7 @@ export async function createOrganizationWithAgentMessage<T extends Agent["type"]
   }
 
   const data = await createOrganizationWithAgentSession({ repositories, params, agentType })
-  const { organization, project, agentSession } = data
+  const { organization, project, agentSession, agentSettings } = data
 
   if (!agentSession) {
     throw new Error("Agent session is required to create an agent message")
@@ -250,6 +269,7 @@ export async function createOrganizationWithAgentMessage<T extends Agent["type"]
       organization,
       project,
       session: agentSession as ConversationAgentSession | FormAgentSession,
+      agentSettings,
     })
     .build(params.agentMessage)
   await repositories.agentMessageRepository.save(agentMessage)

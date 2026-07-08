@@ -11,21 +11,33 @@ describe("finalizeStreaming", () => {
     await sdk.shutdown()
   })
   it("should update assistant message with content and completed status", async () => {
-    const { service, testAgent, testOrganization, testUser, testProject, streamingService } =
-      getTestContext()
+    const {
+      service,
+      testAgent,
+      testAgentSettings,
+      testOrganization,
+      testUser,
+      testProject,
+      streamingService,
+    } = getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
       projectId: testProject.id,
     }
     const session = await service.createSession({
       connectScope,
-      agentId: testAgent.id,
+      agentSettingsId: testAgentSettings.id,
       userId: testUser.id,
       type: "playground",
     })
 
     const { assistantMessageId } = await streamingService.prepareForStreaming({
-      agentSessionScope: { agent: testAgent, session, connectScope },
+      agentSessionScope: {
+        agent: testAgent,
+        agentSettings: testAgentSettings,
+        session,
+        connectScope,
+      },
       userContent: "Hello",
       agentType: testAgent.type,
     })

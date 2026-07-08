@@ -1,8 +1,4 @@
-import {
-  type FormAgentSessionDto,
-  FormAgentSessionsRoutes,
-  type FormSubSessionDto,
-} from "@caseai-connect/api-contracts"
+import { type FormAgentSessionDto, FormAgentSessionsRoutes } from "@caseai-connect/api-contracts"
 import { Body, Controller, Param, Post, Req, UseGuards } from "@nestjs/common"
 import type {
   EndpointRequestWithAgent,
@@ -13,6 +9,8 @@ import { AddContext, RequireContext } from "@/common/context/require-context.dec
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
@@ -32,6 +30,7 @@ import { FormAgentSessionsService } from "./form-agent-sessions.service"
 export class FormAgentSessionsController {
   constructor(
     private readonly formAgentSessionsService: FormAgentSessionsService,
+    private readonly agentSettingsService: AgentSettingsService,
 
     private readonly baseAgentSessionsService: BaseAgentSessionsService,
 
@@ -60,10 +59,14 @@ export class FormAgentSessionsController {
     @Req() request: EndpointRequestWithAgent,
     @Body() { payload }: typeof FormAgentSessionsRoutes.createOne.request,
   ): Promise<typeof FormAgentSessionsRoutes.createOne.response> {
+    const agentSettings = await this.agentSettingsService.getLast({
+      connectScope: getRequiredConnectScope(request),
+      agentId: request.agent.id,
+    })
     const session = await this.formAgentSessionsService.createSession({
       connectScope: getRequiredConnectScope(request),
       userId: request.user.id,
-      agentId: request.agent.id,
+      agentSettingsId: agentSettings.id,
       type: payload.type,
     })
     return { data: toDto(payload.type)(session) }
@@ -104,22 +107,31 @@ export class FormAgentSessionsController {
 
     const sessionByAgentId = new Map(sessions.map((session) => [session.agentId, session]))
 
-    const data = subAgents.flatMap((subAgent): FormSubSessionDto[] => {
-      if (subAgent.childAgent?.type !== "form") return []
-      const session = sessionByAgentId.get(subAgent.childAgentId)
-      if (!session) return []
-      return [
-        {
-          toolName: subAgent.toolName,
-          agentId: subAgent.childAgentId,
-          agentName: subAgent.childAgent.name,
-          outputJsonSchema: subAgent.childAgent.outputJsonSchema ?? undefined,
-          session: toDto(payload.type)(session),
-        },
-      ]
-    })
+    const results = await Promise.all(
+      subAgents.map(async (subAgent) => {
+        if (subAgent.childAgent?.type !== "form") return []
 
-    return { data }
+        const session = sessionByAgentId.get(subAgent.childAgentId)
+        if (!session) return []
+
+        const settings = await this.agentSettingsService.getLast({
+          connectScope,
+          agentId: subAgent.childAgentId,
+        })
+
+        return [
+          {
+            toolName: subAgent.toolName,
+            agentId: subAgent.childAgentId,
+            agentName: subAgent.childAgent.name,
+            outputJsonSchema: settings.outputJsonSchema ?? undefined,
+            session: toDto(payload.type)(session),
+          },
+        ]
+      }),
+    )
+
+    return { data: results.flat() }
   }
 }
 
