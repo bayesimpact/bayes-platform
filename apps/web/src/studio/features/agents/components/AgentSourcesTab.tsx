@@ -1,10 +1,18 @@
 import {
   DocumentsRagMode,
   PUBLIC_DOCUMENTS_TAG_NAME,
-  type UpdateAgentDto,
+  type UpdateAgentSourcesFormDto,
+  updateAgentSourcesFormSchema,
 } from "@caseai-connect/api-contracts"
 import { Badge } from "@caseai-connect/ui/shad/badge"
-import { Field, FieldGroup, FieldLabel } from "@caseai-connect/ui/shad/field"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@caseai-connect/ui/shad/form"
 import {
   Select,
   SelectContent,
@@ -13,16 +21,17 @@ import {
   SelectValue,
 } from "@caseai-connect/ui/shad/select"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { XIcon } from "lucide-react"
-import { Controller, useFormContext, useWatch } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
-import { ADS } from "@/common/store/async-data-status"
-import { useAppSelector } from "@/common/store/hooks"
+import { useAppDispatch } from "@/common/store/hooks"
 import { useDocumentTags } from "@/studio/features/document-tags/document-tags.helpers"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import { DocumentTagPicker } from "@/studio/features/documents/components/DocumentTagPicker"
-import type { AgentFormValues } from "./agent-form.shared"
+import { updateAgentSources } from "../agents.thunks"
+import { AgentTabSaveButton } from "./AgentTabSaveButton"
+import { type AgentTabFormProps, useReportDirty } from "./agent-tab-form.shared"
 
 function DocumentTagBadge({
   tagId,
@@ -58,78 +67,80 @@ function DocumentTagBadge({
   )
 }
 
-export function AgentSourcesTab() {
+export function AgentSourcesTab({ agent, onDirtyChange }: AgentTabFormProps) {
   const { t } = useTranslation()
-  const {
-    control,
-    formState: { errors },
-  } = useFormContext<AgentFormValues>()
-
+  const dispatch = useAppDispatch()
   const { documentTags } = useDocumentTags()
-  const agentData = useAppSelector(selectCurrentAgentData)
-  const editableAgent = ADS.isFulfilled(agentData) ? agentData.value : undefined
 
-  // useWatch (not watch) so this child component re-renders on changes:
-  // watch() only notifies the form root, and the React Compiler memoizes
-  // this tab so the root re-render never reaches it.
-  const documentsRagMode = useWatch({ control, name: "documentsRagMode" })
+  const form = useForm<UpdateAgentSourcesFormDto>({
+    resolver: zodResolver(updateAgentSourcesFormSchema),
+    defaultValues: {
+      documentsRagMode: agent.documentsRagMode,
+      documentTagIds: agent.documentTagIds,
+    },
+  })
+  useReportDirty(form.formState.isDirty, onDirtyChange)
 
-  const documentTagErrorMessage = (() => {
-    if (editableAgent && "documentTagIds" in errors) {
-      return errors.documentTagIds?.message
-    }
-    if (!editableAgent && "tagsToAdd" in errors) {
-      return errors.tagsToAdd?.message
-    }
-    return undefined
-  })()
+  // useWatch (not watch) so this component re-renders on changes — the React Compiler memoizes
+  // children, so a form-root re-render would not otherwise reach the conditional tag field.
+  const documentsRagMode = useWatch({ control: form.control, name: "documentsRagMode" })
+
+  const handleSubmit = form.handleSubmit(async (values) => {
+    const originalTagIds = agent.documentTagIds
+    const tagsToAdd = values.documentTagIds.filter((id) => !originalTagIds.includes(id))
+    const tagsToRemove = originalTagIds.filter((id) => !values.documentTagIds.includes(id))
+    await dispatch(
+      updateAgentSources({
+        agentId: agent.id,
+        fields: { ...values, tagsToAdd, tagsToRemove },
+      }),
+    ).unwrap()
+    form.reset(values)
+  })
 
   return (
-    <FieldGroup>
-      <div className="grid gap-4 md:grid-cols-2">
-        <Field>
-          <FieldLabel htmlFor="documentsRagMode">{t("agent:props.documentsRagMode")}</FieldLabel>
-          <Controller
-            control={control}
+    <Form {...form}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2">
+          <FormField
+            control={form.control}
             name="documentsRagMode"
             render={({ field }) => (
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <SelectTrigger
-                  id="documentsRagMode"
-                  aria-invalid={errors.documentsRagMode ? "true" : "false"}
-                >
-                  <SelectValue placeholder={t("agent:props.placeholders.documentsRagMode")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={DocumentsRagMode.None}>
-                    {t("agent:props.documentsRagModeOptions.none")}
-                  </SelectItem>
-                  <SelectItem value={DocumentsRagMode.All}>
-                    {t("agent:props.documentsRagModeOptions.all")}
-                  </SelectItem>
-                  {(documentTags.length > 0 || field.value === DocumentsRagMode.Tags) && (
-                    <SelectItem value={DocumentsRagMode.Tags}>
-                      {t("agent:props.documentsRagModeOptions.tags")}
+              <FormItem>
+                <FormLabel>{t("agent:props.documentsRagMode")}</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("agent:props.placeholders.documentsRagMode")} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value={DocumentsRagMode.None}>
+                      {t("agent:props.documentsRagModeOptions.none")}
                     </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+                    <SelectItem value={DocumentsRagMode.All}>
+                      {t("agent:props.documentsRagModeOptions.all")}
+                    </SelectItem>
+                    {(documentTags.length > 0 || field.value === DocumentsRagMode.Tags) && (
+                      <SelectItem value={DocumentsRagMode.Tags}>
+                        {t("agent:props.documentsRagModeOptions.tags")}
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
             )}
           />
-          {errors.documentsRagMode && (
-            <p className="text-sm text-destructive">{errors.documentsRagMode.message}</p>
-          )}
-        </Field>
-      </div>
+        </div>
 
-      {documentsRagMode === DocumentsRagMode.Tags && documentTags.length > 0 && (
-        <Field>
-          <FieldLabel>{t("agent:props.documentTags")}</FieldLabel>
-          {editableAgent ? (
-            <Controller
-              control={control as unknown as import("react-hook-form").Control<UpdateAgentDto>}
-              name="documentTagIds"
-              render={({ field }) => (
+        {documentsRagMode === DocumentsRagMode.Tags && documentTags.length > 0 && (
+          <FormField
+            control={form.control}
+            name="documentTagIds"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("agent:props.documentTags")}</FormLabel>
                 <div className="flex flex-wrap gap-2 items-center">
                   {field.value.map((tagId) => (
                     <DocumentTagBadge
@@ -145,36 +156,17 @@ export function AgentSourcesTab() {
                     onAdd={(tagId) => field.onChange([...field.value, tagId])}
                   />
                 </div>
-              )}
-            />
-          ) : (
-            <Controller
-              control={control}
-              name="tagsToAdd"
-              render={({ field }) => (
-                <div className="flex flex-wrap gap-2 items-center">
-                  {field.value.map((tagId) => (
-                    <DocumentTagBadge
-                      key={tagId}
-                      tagId={tagId}
-                      documentTags={documentTags}
-                      onRemove={() => field.onChange(field.value.filter((id) => id !== tagId))}
-                    />
-                  ))}
-                  <DocumentTagPicker
-                    documentTags={documentTags}
-                    attachedTagIds={field.value}
-                    onAdd={(tagId) => field.onChange([...field.value, tagId])}
-                  />
-                </div>
-              )}
-            />
-          )}
-          {documentTagErrorMessage && (
-            <p className="text-sm text-destructive">{documentTagErrorMessage}</p>
-          )}
-        </Field>
-      )}
-    </FieldGroup>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        <AgentTabSaveButton
+          isSubmitting={form.formState.isSubmitting}
+          isDirty={form.formState.isDirty}
+        />
+      </form>
+    </Form>
   )
 }

@@ -14,6 +14,7 @@ import { useMount } from "@/common/hooks/use-mount"
 import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import { useReportDirty } from "@/studio/features/agents/components/agent-tab-form.shared"
 import type { AgentEmbedConfig } from "../agent-embed-configs.models"
 import { selectAgentEmbedConfig } from "../agent-embed-configs.selectors"
 import { agentEmbedConfigsActions } from "../agent-embed-configs.slice"
@@ -44,7 +45,7 @@ const emptyFormState: EmbedFormState = {
   primaryColor: "",
 }
 
-export function AgentEmbedTab() {
+export function AgentEmbedTab({ onDirtyChange }: { onDirtyChange: (dirty: boolean) => void }) {
   const agentId = useCurrentId(selectCurrentAgentId)
   const config = useAppSelector(selectAgentEmbedConfig)
 
@@ -52,12 +53,12 @@ export function AgentEmbedTab() {
 
   return (
     <AsyncRoute data={[config]}>
-      <WithData />
+      <WithData onDirtyChange={onDirtyChange} />
     </AsyncRoute>
   )
 }
 
-function WithData() {
+function WithData({ onDirtyChange }: { onDirtyChange: (dirty: boolean) => void }) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const agent = useValue(selectCurrentAgentData)
@@ -69,6 +70,9 @@ function WithData() {
   useEffect(() => {
     if (config) setForm(toFormState(config))
   }, [config])
+
+  const isDirty = config ? JSON.stringify(form) !== JSON.stringify(toFormState(config)) : false
+  useReportDirty(isDirty, onDirtyChange)
 
   const embedBaseUrl =
     (import.meta.env.VITE_AGENT_EMBED_URL as string | undefined) ?? window.location.origin

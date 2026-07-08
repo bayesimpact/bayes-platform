@@ -294,15 +294,13 @@ export class AgentsService {
       ...(agentSettingsFieldsToUpdate.outputJsonSchema !== undefined && {
         _deleted_outputJsonSchema: agentSettingsFieldsToUpdate.outputJsonSchema,
       }),
-      ...(agentSettingsFieldsToUpdate.greetingMessage !== undefined
-        ? {
-            _deleted_greetingMessage: normalizeGreetingMessage(
-              agentSettingsFieldsToUpdate.greetingMessage,
-            ),
-          }
-        : {
-            _deleted_greetingMessage: null,
-          }),
+      // Only touch greetingMessage when the caller provided it, so partial (per-tab)
+      // updates that omit it don't wipe an existing greeting. Sending `null` clears it.
+      ...(agentSettingsFieldsToUpdate.greetingMessage !== undefined && {
+        _deleted_greetingMessage: normalizeGreetingMessage(
+          agentSettingsFieldsToUpdate.greetingMessage,
+        ),
+      }),
     })
 
     const updatedAgent = await this.agentConnectRepository.saveOne(agent)
@@ -314,16 +312,10 @@ export class AgentsService {
       agentId: agent.id,
       agentSettings: {
         ...extractAgentSettingsUpdateFields(agentSettings),
+        // `agentSettingsFieldsToUpdate.greetingMessage` is already normalized above and is only
+        // present when the caller provided it, so omitting a per-tab field preserves the existing
+        // greeting instead of wiping it. Sending `null` clears it.
         ...agentSettingsFieldsToUpdate,
-        ...(agentSettingsFieldsToUpdate.greetingMessage !== undefined
-          ? {
-              greetingMessage: normalizeGreetingMessage(
-                agentSettingsFieldsToUpdate.greetingMessage,
-              ),
-            }
-          : {
-              greetingMessage: null,
-            }),
       },
     })
 

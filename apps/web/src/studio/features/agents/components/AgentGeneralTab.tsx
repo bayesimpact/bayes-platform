@@ -1,5 +1,12 @@
-import { AgentLocale } from "@caseai-connect/api-contracts"
-import { Field, FieldGroup, FieldLabel } from "@caseai-connect/ui/shad/field"
+import { AgentLocale, updateAgentGeneralSchema } from "@caseai-connect/api-contracts"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@caseai-connect/ui/shad/form"
 import { Input } from "@caseai-connect/ui/shad/input"
 import {
   Select,
@@ -9,96 +16,131 @@ import {
   SelectValue,
 } from "@caseai-connect/ui/shad/select"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
-import { Controller, useFormContext } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import { type AgentFormValues, useAgentType } from "./agent-form.shared"
+import type { z } from "zod"
+import { useAppDispatch } from "@/common/store/hooks"
+import { updateAgentGeneral } from "../agents.thunks"
+import { AgentTabSaveButton } from "./AgentTabSaveButton"
+import { type AgentTabFormProps, useReportDirty } from "./agent-tab-form.shared"
 
-export function AgentGeneralTab() {
+type FormValues = z.infer<typeof updateAgentGeneralSchema>
+
+export function AgentGeneralTab({ agent, onDirtyChange }: AgentTabFormProps) {
   const { t } = useTranslation()
-  const {
-    register,
-    control,
-    formState: { errors },
-  } = useFormContext<AgentFormValues>()
+  const dispatch = useAppDispatch()
+  const hasGreetingMessage = agent.type === "conversation" || agent.type === "form"
 
-  const agentType = useAgentType()
-  const hasGreetingMessage = agentType === "conversation" || agentType === "form"
+  const form = useForm<FormValues>({
+    resolver: zodResolver(updateAgentGeneralSchema),
+    defaultValues: {
+      name: agent.name,
+      locale: agent.locale,
+      instructions: agent.instructions,
+      greetingMessage: agent.greetingMessage ?? null,
+    },
+  })
+  useReportDirty(form.formState.isDirty, onDirtyChange)
+
+  const handleSubmit = form.handleSubmit(async (values) => {
+    await dispatch(updateAgentGeneral({ agentId: agent.id, fields: values })).unwrap()
+    form.reset(values)
+  })
 
   return (
-    <FieldGroup>
-      <div className="grid gap-4 md:grid-cols-2">
-        <Field>
-          <FieldLabel htmlFor="name">{t("agent:props.name")}</FieldLabel>
-          <Input
-            id="name"
-            placeholder={t("agent:props.placeholders.name")}
-            {...register("name")}
-            aria-invalid={errors.name ? "true" : "false"}
-          />
-          {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
-        </Field>
-
-        <Field>
-          <FieldLabel htmlFor="locale">{t("agent:props.locale")}</FieldLabel>
-          <Controller
-            control={control}
-            name="locale"
+    <Form {...form}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="name"
             render={({ field }) => (
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <SelectTrigger id="locale" aria-invalid={errors.locale ? "true" : "false"}>
-                  <SelectValue placeholder={t("agent:props.placeholders.locale")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(AgentLocale).map(([key, value]) => (
-                    <SelectItem key={key} value={value}>
-                      {value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormItem>
+                <FormLabel>{t("agent:props.name")}</FormLabel>
+                <FormControl>
+                  <Input placeholder={t("agent:props.placeholders.name")} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
-          {errors.locale && <p className="text-sm text-destructive">{errors.locale.message}</p>}
-        </Field>
-      </div>
 
-      {hasGreetingMessage && (
-        <Field>
-          <FieldLabel htmlFor="greetingMessage">{t("agent:props.greeting")}</FieldLabel>
-          <Textarea
-            id="greetingMessage"
-            placeholder={t("agent:props.placeholders.greeting")}
-            rows={3}
-            className="min-h-40 max-h-96 font-mono"
-            {...register("greetingMessage", {
-              setValueAs: (value: string | undefined) => {
-                if (value === undefined) return undefined
-                const trimmed = value.trim()
-                return trimmed.length === 0 ? undefined : value
-              },
-            })}
-            aria-invalid={errors.greetingMessage ? "true" : "false"}
+          <FormField
+            control={form.control}
+            name="locale"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("agent:props.locale")}</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("agent:props.placeholders.locale")} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {Object.entries(AgentLocale).map(([key, value]) => (
+                      <SelectItem key={key} value={value}>
+                        {value}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          {errors.greetingMessage && (
-            <p className="text-sm text-destructive">{errors.greetingMessage.message}</p>
-          )}
-        </Field>
-      )}
+        </div>
 
-      <Field>
-        <FieldLabel htmlFor="instructions">{t("agent:props.instructions")}</FieldLabel>
-        <Textarea
-          id="instructions"
-          placeholder={t("agent:props.placeholders.instructions")}
-          rows={8}
-          className="min-h-40 max-h-96 font-mono"
-          {...register("instructions")}
-          aria-invalid={errors.instructions ? "true" : "false"}
-        />
-        {errors.instructions && (
-          <p className="text-sm text-destructive">{errors.instructions.message}</p>
+        {hasGreetingMessage && (
+          <FormField
+            control={form.control}
+            name="greetingMessage"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("agent:props.greeting")}</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder={t("agent:props.placeholders.greeting")}
+                    rows={3}
+                    className="min-h-40 max-h-96 font-mono"
+                    {...field}
+                    value={field.value ?? ""}
+                    onChange={(event) =>
+                      field.onChange(event.target.value === "" ? null : event.target.value)
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         )}
-      </Field>
-    </FieldGroup>
+
+        <FormField
+          control={form.control}
+          name="instructions"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("agent:props.instructions")}</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder={t("agent:props.placeholders.instructions")}
+                  rows={8}
+                  className="min-h-40 max-h-96 font-mono"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <AgentTabSaveButton
+          isSubmitting={form.formState.isSubmitting}
+          isDirty={form.formState.isDirty}
+        />
+      </form>
+    </Form>
   )
 }

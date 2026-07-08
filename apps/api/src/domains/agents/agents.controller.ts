@@ -5,6 +5,7 @@ import {
   AgentSubAgentsRoutes,
   AgentsRoutes,
   createAgentSchema,
+  partialUpdateAgentSchema,
   replaceAgentSubAgentsSchema,
 } from "@caseai-connect/api-contracts"
 import {
@@ -95,6 +96,7 @@ export class AgentsController {
   @CheckPolicy((policy) => policy.canUpdate())
   @AddContext("agent")
   @TrackActivity({ action: "agent.update", entityFrom: "agent" })
+  @UsePipes(new ZodValidationPipe(partialUpdateAgentSchema))
   async updateOne(
     @Req() request: EndpointRequestWithAgent,
     @Body() { payload }: typeof AgentsRoutes.updateOne.request,

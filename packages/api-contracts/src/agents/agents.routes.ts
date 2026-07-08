@@ -1,6 +1,6 @@
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
-import type { AgentDto, CreateAgentDto, UpdateAgentDto } from "./agents.dto"
+import type { AgentDto, CreateAgentDto, PartialUpdateAgentDto } from "./agents.dto"
 
 export const AgentsRoutes = {
   createOne: defineRoute<ResponseData<AgentDto>, RequestPayload<CreateAgentDto>>({
@@ -11,7 +11,7 @@ export const AgentsRoutes = {
     method: "get",
     path: "organizations/:organizationId/projects/:projectId/agents",
   }),
-  updateOne: defineRoute<ResponseData<SuccessResponseDTO>, RequestPayload<UpdateAgentDto>>({
+  updateOne: defineRoute<ResponseData<SuccessResponseDTO>, RequestPayload<PartialUpdateAgentDto>>({
     method: "patch",
     path: "organizations/:organizationId/projects/:projectId/agents/:agentId",
   }),

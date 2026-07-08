@@ -3,56 +3,24 @@ import {
   AgentModel,
   type CreateAgentDto,
   DocumentsRagMode,
-  type UpdateAgentDto,
 } from "@caseai-connect/api-contracts"
-import { useFormContext } from "react-hook-form"
 import type { Agent } from "@/common/features/agents/agents.models"
-import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
-import { useValue } from "@/common/hooks/use-value"
 import {
   agentDefaultOutputJsonSchemaMap,
   agentDefaultPromptMap,
 } from "./default-agent-values/default-agent-values.helpers"
 
-export type AgentFormData = CreateAgentDto | UpdateAgentDto
-
 /**
- * Wide form values type covering all possible fields from both create and update schemas.
- * Used as the generic for useFormContext in tab components so they can access any field.
+ * Default field values used when creating an agent (see AgentCreator). The agent editor itself
+ * is update-only and seeds each tab form from the existing agent, so it does not use this.
  */
-export type AgentFormValues = {
-  name: string
-  locale: AgentLocale
-  instructions: string
-  greetingMessage?: string | null
-  model: AgentModel
-  temperature: number
-  outputJsonSchema?: Record<string, unknown>
-  documentsRagMode: DocumentsRagMode
-  projectAgentSessionCategoryIds: string[]
-  tagsToAdd: string[]
-  tagsToRemove?: string[]
-  documentTagIds?: string[]
-  resourceLibraryIds?: string[]
-  type?: "conversation" | "extraction" | "form"
-}
-
-export interface AgentFormBaseProps {
-  defaultValues?: AgentFormData
-  isLoading: boolean
-  error: string | null
-  onSubmit: (values: AgentFormData) => Promise<void> | void
-  submitLabelIdle: string
-  submitLabelLoading: string
-}
-
 export function getDefaultFormValues({
   agentType,
   language,
 }: {
   agentType: Agent["type"]
   language: AgentLocale
-}): AgentFormData {
+}): CreateAgentDto {
   const value = {
     type: agentType,
     name: "",
@@ -73,23 +41,4 @@ export function getDefaultFormValues({
   }
 
   return value
-}
-
-export function isValidJsonObject(rawJson: string): boolean {
-  try {
-    const parsedJson = JSON.parse(rawJson) as unknown
-    return typeof parsedJson === "object" && parsedJson !== null && !Array.isArray(parsedJson)
-  } catch {
-    return false
-  }
-}
-
-/**
- * Returns the agent type from the form context (create mode, where "type" is part of the schema)
- * or from the Redux store (edit mode, where the current agent is already loaded).
- */
-export function useAgentType(): Agent["type"] | undefined {
-  const { watch } = useFormContext<AgentFormValues>()
-  const agentData = useValue(selectCurrentAgentData)
-  return watch("type") ?? agentData.type
 }

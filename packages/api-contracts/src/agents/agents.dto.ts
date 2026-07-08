@@ -242,3 +242,62 @@ export const updateAgentSchema = agentValidationSchema
 
 export type CreateAgentDto = z.infer<typeof createAgentSchema>
 export type UpdateAgentDto = z.infer<typeof updateAgentSchema>
+
+// Per-tab update schemas. Each agent editor tab owns and validates only its own fields,
+// and PATCHes a partial payload (the update endpoint applies fields independently).
+const greetingMessageUpdateSchema = z.string().max(2000).nullable().optional()
+
+export const updateAgentGeneralSchema = agentValidationSchema
+  .pick({ name: true, locale: true, instructions: true })
+  .extend({ greetingMessage: greetingMessageUpdateSchema })
+
+export const updateAgentModelSchema = agentValidationSchema.pick({
+  model: true,
+  temperature: true,
+})
+
+export const updateAgentOutputSchema = z.object({ outputJsonSchema: outputJsonSchemaSchema })
+
+export const updateAgentSourcesSchema = agentValidationSchema
+  .pick({ documentsRagMode: true, documentTagIds: true })
+  .extend({
+    tagsToAdd: updateDocumentTagsSchema.required().shape.tagsToAdd,
+    tagsToRemove: updateDocumentTagsSchema.required().shape.tagsToRemove,
+  })
+  .refine(hasRequiredDocumentTags, {
+    message: "At least one document tag is required when documentsRagMode is 'tags'",
+    path: ["documentTagIds"],
+  })
+
+// The Sources tab edits the desired final tag set; it derives `tagsToAdd`/`tagsToRemove`
+// (what the API actually consumes) from the original agent tags at submit time.
+export const updateAgentSourcesFormSchema = agentValidationSchema
+  .pick({ documentsRagMode: true, documentTagIds: true })
+  .refine(hasRequiredDocumentTags, {
+    message: "At least one document tag is required when documentsRagMode is 'tags'",
+    path: ["documentTagIds"],
+  })
+
+export const updateAgentResourcesSchema = agentValidationSchema
+  .pick({ resourceLibraryIds: true })
+  .extend({ resourceLibraryIds: z.array(z.string().uuid()) })
+
+export const updateAgentCategoriesSchema = agentValidationSchema.pick({
+  projectAgentSessionCategoryIds: true,
+})
+
+// Server-side validation for the (partial) update endpoint: any subset of the tab fields.
+export const partialUpdateAgentSchema = agentValidationSchema.partial().extend({
+  greetingMessage: greetingMessageUpdateSchema,
+  tagsToAdd: updateDocumentTagsSchema.required().shape.tagsToAdd.optional(),
+  tagsToRemove: updateDocumentTagsSchema.required().shape.tagsToRemove.optional(),
+})
+
+export type UpdateAgentGeneralDto = z.infer<typeof updateAgentGeneralSchema>
+export type UpdateAgentModelDto = z.infer<typeof updateAgentModelSchema>
+export type UpdateAgentOutputDto = z.infer<typeof updateAgentOutputSchema>
+export type UpdateAgentSourcesDto = z.infer<typeof updateAgentSourcesSchema>
+export type UpdateAgentSourcesFormDto = z.infer<typeof updateAgentSourcesFormSchema>
+export type UpdateAgentResourcesDto = z.infer<typeof updateAgentResourcesSchema>
+export type UpdateAgentCategoriesDto = z.infer<typeof updateAgentCategoriesSchema>
+export type PartialUpdateAgentDto = z.infer<typeof partialUpdateAgentSchema>

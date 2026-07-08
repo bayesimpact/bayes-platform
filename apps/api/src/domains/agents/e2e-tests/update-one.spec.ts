@@ -1,4 +1,4 @@
-import { AgentsRoutes, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentsRoutes, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -138,6 +138,50 @@ describe("Agents - updateOne", () => {
       where: { agentId, revision: 1 },
     })
     expect(updatedAgentSettings?.instructions).toBe(originalPrompt)
+  })
+
+  it("should preserve greetingMessage when a partial update omits it", async () => {
+    await createContext()
+
+    const setGreeting = await subject({ payload: { greetingMessage: "Hello there!" } })
+    expectResponse(setGreeting, 200)
+    const afterSet = await repositories.agentSettingsRepository.findOne({
+      where: { agentId },
+      order: { revision: "DESC" },
+    })
+    expect(afterSet?.greetingMessage).toBe("Hello there!")
+
+    // A different tab saves only its own field and omits greetingMessage entirely.
+    const response = await subject({ payload: { name: "Renamed Agent" } })
+    expectResponse(response, 200)
+
+    const updatedAgent = await repositories.agentRepository.findOne({ where: { id: agentId } })
+    expect(updatedAgent?.name).toBe("Renamed Agent")
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId },
+      order: { revision: "DESC" },
+    })
+    expect(updatedAgentSettings?.greetingMessage).toBe("Hello there!")
+  })
+
+  it("should update only the model tab fields and leave the rest untouched", async () => {
+    const { agent, agentSettings } = await createContext()
+
+    const response = await subject({
+      payload: { model: AgentModel.Gemini25Pro, temperature: 1.5 },
+    })
+    expectResponse(response, 200)
+
+    const updatedAgent = await repositories.agentRepository.findOne({ where: { id: agentId } })
+    expect(updatedAgent?.name).toBe(agent.name)
+
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId },
+      order: { revision: "DESC" },
+    })
+    expect(updatedAgentSettings?.model).toBe(AgentModel.Gemini25Pro)
+    expect(updatedAgentSettings?.temperature).toBe(1.5)
+    expect(updatedAgentSettings?.instructions).toBe(agentSettings.instructions)
   })
 
   it("should update and clear greetingMessage", async () => {

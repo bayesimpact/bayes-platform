@@ -26,7 +26,19 @@ export class AgentSettings extends ConnectEntityBase {
   @Column({ type: "varchar", nullable: false })
   model!: AgentModel
 
-  @Column({ type: "decimal", precision: 3, scale: 2, default: 0, nullable: false })
+  @Column({
+    type: "decimal",
+    precision: 3,
+    scale: 2,
+    default: 0,
+    nullable: false,
+    // Postgres returns `decimal` as a string; convert on read so the runtime value matches the
+    // declared number type (AgentDto.temperature) and passes numeric validation.
+    transformer: {
+      from: (value: string | null): AgentTemperature => (value === null ? 0 : Number(value)),
+      to: (value: AgentTemperature): AgentTemperature => value,
+    },
+  })
   temperature!: AgentTemperature
 
   @Column({ type: "varchar", nullable: false })
