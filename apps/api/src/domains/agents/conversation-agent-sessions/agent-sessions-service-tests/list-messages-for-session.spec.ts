@@ -17,7 +17,7 @@ describe("listMessagesForSession", () => {
   it("should return messages when user is a member of the organization", async () => {
     const {
       service,
-      testAgent,
+      testAgentSettings,
       testUser,
       testOrganization,
       repositories,
@@ -39,12 +39,12 @@ describe("listMessagesForSession", () => {
 
     const session = await service.createSession({
       connectScope,
-      agentId: testAgent.id,
+      agentSettingsId: testAgentSettings.id,
       userId: testUser.id,
       type: "playground",
     })
 
-    await createChitChatConversation(testOrganization, testProject, session, {
+    await createChitChatConversation(testOrganization, testProject, session, testAgentSettings, {
       agentMessageRepository,
     })
 

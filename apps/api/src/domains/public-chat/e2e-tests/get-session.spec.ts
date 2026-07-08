@@ -9,8 +9,7 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { agentFactory } from "@/domains/agents/agent.factory"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
 import { publicAgentSessionFactory } from "../public-agent-sessions/public-agent-session.factory"
@@ -48,9 +47,8 @@ describe("PublicChat - getSession", () => {
   })
 
   const createContext = async () => {
-    const { organization, project } = await createOrganizationWithProject(repositories)
-    const agent = agentFactory.transient({ organization, project }).build()
-    await repositories.agentRepository.save(agent)
+    const { organization, project, agent, agentSettings } =
+      await createOrganizationWithAgent(repositories)
     const embedConfig = agentEmbedConfigFactory
       .transient({ organization, project, agent })
       .build({ isEnabled: true })
@@ -66,7 +64,7 @@ describe("PublicChat - getSession", () => {
     sessionId = session.id
     sessionToken = knownToken
 
-    return { organization, project, agent, embedConfig, session }
+    return { organization, project, agent, agentSettings, embedConfig, session }
   }
 
   const subject = () =>
@@ -87,9 +85,7 @@ describe("PublicChat - getSession", () => {
   })
 
   it("should create a session via the endpoint and then retrieve it", async () => {
-    const { organization, project } = await createOrganizationWithProject(repositories)
-    const agent = agentFactory.transient({ organization, project }).build()
-    await repositories.agentRepository.save(agent)
+    const { organization, project, agent } = await createOrganizationWithAgent(repositories)
     const embedConfig = agentEmbedConfigFactory
       .transient({ organization, project, agent })
       .build({ isEnabled: true })
@@ -111,7 +107,7 @@ describe("PublicChat - getSession", () => {
   })
 
   it("should return messages in chronological order when they exist", async () => {
-    const { embedConfig } = await createContext()
+    const { embedConfig, agentSettings } = await createContext()
     const connectScope = {
       organizationId: embedConfig.organizationId,
       projectId: embedConfig.projectId,
@@ -121,6 +117,7 @@ describe("PublicChat - getSession", () => {
       id: randomUUID(),
       sessionId,
       ...connectScope,
+      agentSettingsId: agentSettings.id,
       role: "user" as const,
       content: "Hello",
       status: null,
@@ -137,6 +134,7 @@ describe("PublicChat - getSession", () => {
       id: randomUUID(),
       sessionId,
       ...connectScope,
+      agentSettingsId: agentSettings.id,
       role: "assistant" as const,
       content: "Hi there!",
       status: "completed" as const,

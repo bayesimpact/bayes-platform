@@ -8,7 +8,6 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { agentFactory } from "@/domains/agents/agent.factory"
 import { evaluationFactory } from "@/domains/evaluations/evaluation.factory"
 import { EvaluationsModule } from "@/domains/evaluations/evaluations.module"
 import { evaluationReportFactory } from "@/domains/evaluations/reports/evaluation-report.factory"
@@ -54,15 +53,13 @@ describe("Evaluation Reports - getAll", () => {
   })
 
   const createContext = async () => {
-    const { user, organization, project } = await createOrganizationWithAgent(repositories)
+    const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      { agentSettings: { model: AgentModel._MockGenerateText } },
+    )
     organizationId = organization.id
     projectId = project.id
     auth0Id = user.auth0Id
-
-    const agentMock = agentFactory.transient({ organization, project }).build({
-      model: AgentModel._MockGenerateText,
-    })
-    await repositories.agentRepository.save(agentMock)
 
     const evaluation = evaluationFactory.transient({ organization, project }).build({
       input: "test input",
@@ -72,7 +69,7 @@ describe("Evaluation Reports - getAll", () => {
     evaluationId = evaluation.id
 
     const evaluationReport = evaluationReportFactory
-      .transient({ organization, project, agent: agentMock, evaluation })
+      .transient({ organization, project, agent, agentSettings, evaluation })
       .build()
     await repositories.evaluationReportRepository.save(evaluationReport)
     evaluationReportId = evaluationReport.id

@@ -9,6 +9,8 @@ import { EvaluationReportContextResolver } from "@/common/context/resolvers/eval
 import { OrganizationContextResolver } from "@/common/context/resolvers/organization-context.resolver"
 import { ProjectContextResolver } from "@/common/context/resolvers/project-context.resolver"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
+import { AgentsModule } from "@/domains/agents/agents.module"
+import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { DocumentsModule } from "@/domains/documents/documents.module"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
@@ -49,6 +51,7 @@ import { EvaluationReportsService } from "./reports/evaluation-reports.service"
     LlmModule,
     TypeOrmModule.forFeature([
       Agent,
+      AgentSettings,
       Evaluation,
       EvaluationExtractionDataset,
       EvaluationExtractionDatasetDocument,
@@ -59,6 +62,7 @@ import { EvaluationReportsService } from "./reports/evaluation-reports.service"
       Organization,
       Project,
     ]),
+    AgentsModule,
     EvaluationExtractionRunBatchModule,
     DocumentsModule,
     StorageModule,

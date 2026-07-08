@@ -7,11 +7,14 @@ import { ReviewCampaignContextResolver } from "@/common/context/resolvers/review
 import { ReviewCampaignMembershipContextResolver } from "@/common/context/resolvers/review-campaign-membership-context.resolver"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { Agent } from "@/domains/agents/agent.entity"
+import { AgentsModule } from "@/domains/agents/agents.module"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
 import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import { FormAgentSessionsModule } from "@/domains/agents/form-agent-sessions/form-agent-sessions.module"
+import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { InvitationsModule } from "@/domains/invitations/invitations.module"
@@ -52,6 +55,7 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
   imports: [
     TypeOrmModule.forFeature([
       Agent,
+      AgentSettings,
       AgentMessage,
       ConversationAgentSession,
       ExtractionAgentSession,
@@ -67,6 +71,7 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
     OrganizationsModule,
     ProjectsModule,
     MembershipsModule,
+    AgentsModule,
     forwardRef(() => InvitationsModule),
     UsersModule,
     AuthModule,
@@ -75,6 +80,7 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
   ],
   providers: [
     AgentSessionInCampaignContextResolver,
+    AgentSettingsService,
     CampaignReportGuard,
     OrganizationContextResolver,
     ProjectContextResolver,

@@ -15,7 +15,11 @@ import {
   organizationMembershipFactory,
   saveOrgMembership,
 } from "@/domains/organizations/memberships/organization-membership.factory"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithProject,
+} from "@/domains/organizations/organization.factory"
+
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import {
@@ -333,15 +337,13 @@ describe("Invitations — authorization", () => {
 
     describe("review_campaign target", () => {
       it("allows project admin to list invitations for a review campaign", async () => {
-        const { user, organization, project } = await createOrganizationWithProject(repositories, {
-          user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
-        })
+        const { user, organization, project, agent, agentSettings } =
+          await createOrganizationWithAgent(repositories, {
+            user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+          })
         auth0Id = user.auth0Id
-        const agent = await repositories.agentRepository.save(
-          agentFactory.transient({ organization, project }).build(),
-        )
         const reviewCampaign = await repositories.reviewCampaignRepository.save(
-          reviewCampaignFactory.transient({ organization, project, agent }).build(),
+          reviewCampaignFactory.transient({ organization, project, agent, agentSettings }).build(),
         )
 
         const response = await subject({
@@ -353,14 +355,15 @@ describe("Invitations — authorization", () => {
       })
 
       it("forbids project member (non-admin) from listing review campaign invitations", async () => {
-        const { organization, project } = await createOrganizationWithProject(repositories, {
-          user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
-        })
-        const agent = await repositories.agentRepository.save(
-          agentFactory.transient({ organization, project }).build(),
+        const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+          repositories,
+          {
+            user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+          },
         )
+
         const reviewCampaign = await repositories.reviewCampaignRepository.save(
-          reviewCampaignFactory.transient({ organization, project, agent }).build(),
+          reviewCampaignFactory.transient({ organization, project, agent, agentSettings }).build(),
         )
 
         const memberUser = userFactory.build()

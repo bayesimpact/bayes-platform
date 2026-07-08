@@ -26,9 +26,9 @@ import { AgentRepository } from "./agent.repository"
 import { AgentsController } from "./agents.controller"
 import { AgentsService } from "./agents.service"
 import { BaseAgentSessionsService } from "./base-agent-sessions/base-agent-sessions.service"
-import { AgentMembershipRepository } from "./memberships/agent-membership.repository"
 import { AgentMembershipsController } from "./memberships/agent-memberships.controller"
 import { AgentMembershipsGuard } from "./memberships/agent-memberships.guard"
+import { AgentMembershipRepository } from "./memberships/agent-membership.repository"
 import { AgentMembershipsService } from "./memberships/agent-memberships.service"
 import { AgentSessionCategoriesService } from "./session-categories/agent-session-categories.service"
 import { AgentSessionCategory } from "./session-categories/agent-session-category.entity"
@@ -36,6 +36,8 @@ import { ProjectAgentSessionCategoriesController } from "./session-categories/pr
 import { ProjectAgentSessionCategoriesGuard } from "./session-categories/project-agent-session-categories.guard"
 import { ProjectAgentSessionCategoriesService } from "./session-categories/project-agent-session-categories.service"
 import { ProjectAgentSessionCategory } from "./session-categories/project-agent-session-category.entity"
+import { AgentSettings } from "./settings/agent-settings.entity"
+import { AgentSettingsService } from "./settings/agent-settings.service"
 import { AgentSubAgent } from "./sub-agents/agent-sub-agent.entity"
 import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
 
@@ -47,6 +49,7 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
       AgentSubAgent,
       ProjectAgentSessionCategory,
       Project,
+      AgentSettings,
     ]),
     LlmModule,
     MembershipsModule,
@@ -67,6 +70,7 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
     AgentsService,
     AgentRepository,
     AgentSessionCategoriesService,
+    AgentSettingsService,
     AgentSubAgentsService,
     ProjectAgentSessionCategoriesService,
     BaseAgentSessionsService,
@@ -89,6 +93,7 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
   exports: [
     AgentsService,
     AgentSessionCategoriesService,
+    AgentSettingsService,
     AgentMembershipsService,
     AgentSubAgentsService,
   ],

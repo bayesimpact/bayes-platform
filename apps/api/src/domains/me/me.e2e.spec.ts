@@ -8,11 +8,9 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
-import { agentFactory } from "@/domains/agents/agent.factory"
 import {
   createOrganizationWithAgent,
   createOrganizationWithOwner,
-  createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
 import {
@@ -194,16 +192,17 @@ describe("MeController (e2e)", () => {
     })
 
     it("returns review-campaign memberships with role + campaign status", async () => {
-      const { user, organization, project } = await createOrganizationWithProject(repositories)
-      const agent = agentFactory
-        .transient({ organization, project })
-        .build({ type: "conversation" })
-      await repositories.agentRepository.save(agent)
+      const { user, organization, project, agent, agentSettings } =
+        await createOrganizationWithAgent(repositories, { agent: { type: "conversation" } })
+
       const activeCampaign = await repositories.reviewCampaignRepository.save(
-        reviewCampaignFactory.active().transient({ organization, project, agent }).build(),
+        reviewCampaignFactory
+          .active()
+          .transient({ organization, project, agent, agentSettings })
+          .build(),
       )
       const draftCampaign = await repositories.reviewCampaignRepository.save(
-        reviewCampaignFactory.transient({ organization, project, agent }).build(),
+        reviewCampaignFactory.transient({ organization, project, agent, agentSettings }).build(),
       )
       await saveReviewCampaignMembership({
         repositories,

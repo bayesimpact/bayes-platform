@@ -15,6 +15,7 @@ import type {
 import type { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import {
   FILE_STORAGE_SERVICE,
   type IFileStorage,
@@ -177,12 +178,14 @@ export class StreamingService extends ServiceWithLLM {
     connectScope,
     publicSessionId,
     agent,
+    agentSettings,
     userContent,
     notifyClient,
   }: {
     connectScope: RequiredConnectScope
     publicSessionId: string
     agent: Agent
+    agentSettings: AgentSettings
     userContent: string
     notifyClient: NotifyClient
   }): AsyncGenerator<StreamEvent, void, unknown> {
@@ -190,6 +193,7 @@ export class StreamingService extends ServiceWithLLM {
 
     await this.agentMessageConnectRepository.createAndSave(connectScope, {
       sessionId: publicSessionId,
+      agentSettingsId: agentSettings.id,
       role: "user",
       content: userContent,
       status: null,
@@ -203,6 +207,7 @@ export class StreamingService extends ServiceWithLLM {
     await this.agentMessageConnectRepository.createAndSave(connectScope, {
       id: assistantMessageId,
       sessionId: publicSessionId,
+      agentSettingsId: agentSettings.id,
       role: "assistant",
       content: "",
       status: "streaming",
@@ -230,7 +235,7 @@ export class StreamingService extends ServiceWithLLM {
 
     try {
       const llmRequest = await this.buildLLMRequest({
-        agentSessionScope: { session: sessionProxy, agent, connectScope },
+        agentSessionScope: { session: sessionProxy, agent, agentSettings, connectScope },
         notifyClient,
         assistantMessageId,
       })
@@ -244,29 +249,23 @@ export class StreamingService extends ServiceWithLLM {
         yield this.sseEvent({ type: "chunk", content: chunk, messageId: assistantMessageId })
       }
 
-      const assistantMessage = await this.agentMessageRepository.findOne({
-        where: { id: assistantMessageId, sessionId: publicSessionId },
+      await this.updateMessageStatusWithIds({
+        id: assistantMessageId,
+        sessionId: publicSessionId,
+        status: "completed",
+        content: fullContent,
       })
-      if (assistantMessage) {
-        assistantMessage.status = "completed"
-        assistantMessage.content = fullContent
-        assistantMessage.completedAt = new Date()
-        await this.agentMessageRepository.save(assistantMessage)
-      }
 
       yield this.sseEvent({ type: "end", messageId: assistantMessageId, fullContent })
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
 
-      const assistantMessage = await this.agentMessageRepository.findOne({
-        where: { id: assistantMessageId, sessionId: publicSessionId },
+      await this.updateMessageStatusWithIds({
+        id: assistantMessageId,
+        sessionId: publicSessionId,
+        status: "error",
+        content: errorMessage,
       })
-      if (assistantMessage) {
-        assistantMessage.status = "error"
-        assistantMessage.content = errorMessage
-        assistantMessage.completedAt = new Date()
-        await this.agentMessageRepository.save(assistantMessage)
-      }
 
       yield this.sseEvent({ type: "error", messageId: assistantMessageId, error: errorMessage })
       throw error
@@ -292,7 +291,7 @@ export class StreamingService extends ServiceWithLLM {
     notifyClient: NotifyClient
     attachmentDocumentId?: string
   }) {
-    const { session, agent, connectScope } = agentSessionScope
+    const { session, agent, agentSettings, connectScope } = agentSessionScope
 
     const { tools, mcpClose, toolDescriptions, hasSubAgentTools } =
       await this.toolsService.buildTools({
@@ -309,13 +308,23 @@ export class StreamingService extends ServiceWithLLM {
 
     const toolNames = tools ? Object.keys(tools) : []
     const config = this.buildLLMConfig({
-      systemPrompt: generateMasterPrompt({ agent, toolNames, toolDescriptions }),
-      model: agent.model,
-      temperature: agent.temperature,
+      systemPrompt: generateMasterPrompt({
+        agent,
+        agentSettings,
+        toolNames,
+        toolDescriptions,
+      }),
+      model: agentSettings.model,
+      temperature: agentSettings.temperature,
       tools,
     })
 
-    const metadata: LLMMetadata = this.buildLLMData({ session, agent, hasSubAgentTools })
+    const metadata: LLMMetadata = this.buildLLMData({
+      session,
+      agent,
+      agentSettings,
+      hasSubAgentTools,
+    })
 
     const messages = await this.convertToLLMFormat(session.messages)
 
@@ -333,20 +342,23 @@ export class StreamingService extends ServiceWithLLM {
   private buildLLMData({
     session,
     agent,
+    agentSettings,
     hasSubAgentTools,
   }: {
     session: StreamingSession
     agent: Agent
+    agentSettings: AgentSettings
     hasSubAgentTools: boolean
   }): LLMMetadata {
     this.logger.log(
       `Agent "${agent.name}" (${agent.id}) trace: ${getTraceUrl(session.traceId)} (session ${session.id})`,
     )
-    const tags = [agent.name]
+    const tags = [agent.name, `rev-${agentSettings.revision}`, agent.type]
     return {
       traceId: session.traceId,
       agentSessionId: session.id,
       agentId: agent.id,
+      revision: agentSettings.revision,
       projectId: agent.projectId,
       organizationId: session.organizationId,
       currentTurn: session.messages.filter((message) => message.role === "user").length,
@@ -518,10 +530,12 @@ export class StreamingService extends ServiceWithLLM {
   }> {
     const { session, connectScope } = agentSessionScope
     const sessionId = session.id
+    const agentSettingsId = agentSessionScope.agentSettings.id
 
     // Create user message
     await this.agentMessageConnectRepository.createAndSave(connectScope, {
       sessionId,
+      agentSettingsId,
       role: "user",
       content: userContent,
       status: null,
@@ -536,6 +550,7 @@ export class StreamingService extends ServiceWithLLM {
     await this.agentMessageConnectRepository.createAndSave(connectScope, {
       id: assistantMessageId,
       sessionId,
+      agentSettingsId,
       role: "assistant",
       content: "",
       status: "streaming",
@@ -569,20 +584,13 @@ export class StreamingService extends ServiceWithLLM {
     fullContent: string
     sessionId: string
   }): Promise<ConversationAgentSession | FormAgentSession> {
-    const message = await this.agentMessageRepository.findOne({
-      where: { id: assistantMessageId, sessionId },
+    await this.updateMessageStatusWithIds({
+      id: assistantMessageId,
+      sessionId,
+      status: "completed",
+      content: fullContent,
+      throwNotFound: true,
     })
-
-    if (!message) {
-      throw new NotFoundException(
-        `ChatMessage with id ${assistantMessageId} not found in session ${sessionId}`,
-      )
-    }
-
-    message.content = fullContent
-    message.status = "completed"
-    message.completedAt = new Date()
-    await this.agentMessageRepository.save(message)
 
     const session = await this.findSessionById({ sessionId, agentType })
 
@@ -607,20 +615,13 @@ export class StreamingService extends ServiceWithLLM {
     errorMessage: string
     sessionId: string
   }): Promise<ConversationAgentSession | FormAgentSession> {
-    const message = await this.agentMessageRepository.findOne({
-      where: { id: assistantMessageId, sessionId },
+    await this.updateMessageStatusWithIds({
+      id: assistantMessageId,
+      sessionId,
+      status: "error",
+      content: errorMessage,
+      throwNotFound: true,
     })
-
-    if (!message) {
-      throw new NotFoundException(
-        `ChatMessage with id ${assistantMessageId} not found in session ${sessionId}`,
-      )
-    }
-
-    message.content = errorMessage
-    message.status = "error"
-    message.completedAt = new Date()
-    await this.agentMessageRepository.save(message)
 
     const session = await this.findSessionById({ sessionId, agentType })
 
@@ -646,12 +647,50 @@ export class StreamingService extends ServiceWithLLM {
 
     for (const message of messages) {
       if (this.isStreamAborted(message)) {
-        message.status = "aborted"
-        await this.agentMessageRepository.save(message)
+        await this.updateMessageStatus({ message, status: "aborted", content: "" })
       }
     }
   }
 
+  private async updateMessageStatus({
+    message,
+    status,
+    content,
+  }: {
+    message: AgentMessage
+    status: "completed" | "error" | "aborted"
+    content: string
+  }) {
+    message.status = status
+    if (status !== "aborted") {
+      message.content = content
+      message.completedAt = new Date()
+    }
+    await this.agentMessageRepository.save(message)
+  }
+
+  private async updateMessageStatusWithIds({
+    id,
+    sessionId,
+    status,
+    content,
+    throwNotFound,
+  }: {
+    id: string
+    sessionId: string
+    status: "completed" | "error" | "aborted"
+    content: string
+    throwNotFound?: true
+  }) {
+    const message = await this.agentMessageRepository.findOne({
+      where: { id, sessionId },
+    })
+    if (message) {
+      await this.updateMessageStatus({ message, status, content })
+    } else if (throwNotFound) {
+      throw new NotFoundException(`ChatMessage with id ${id} not found in session ${sessionId}`)
+    }
+  }
   /**
    * Checks if a streaming message should be marked as aborted
    */
@@ -679,7 +718,7 @@ export class StreamingService extends ServiceWithLLM {
     notifyClient: NotifyClient
     toolExecution: ToolExecutionLog
   }): Promise<void> {
-    const { session, connectScope } = agentSessionScope
+    const { session, connectScope, agentSettings } = agentSessionScope
     const toolCall = {
       id: v4(),
       name: toolExecution.toolName,
@@ -690,6 +729,7 @@ export class StreamingService extends ServiceWithLLM {
     await this.agentMessageConnectRepository.createAndSave(connectScope, {
       id: v4(),
       sessionId: session.id,
+      agentSettingsId: agentSettings.id,
       role: "tool",
       content: `${toolExecution.toolName} called`,
       status: "completed",

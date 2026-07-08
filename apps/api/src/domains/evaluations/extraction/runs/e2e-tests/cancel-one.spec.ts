@@ -11,8 +11,7 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
-import { agentFactory } from "@/domains/agents/agent.factory"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { EvaluationsModule } from "../../../evaluations.module"
@@ -58,25 +57,29 @@ describe("EvaluationExtractionRuns - cancelOne", () => {
   })
 
   const createContext = async () => {
-    const { user, organization, project } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id },
-    })
+    const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        user: { auth0Id },
+        agent: {
+          type: "extraction",
+        },
+        agentSettings: {
+          outputJsonSchema: { type: "object", properties: { answer: { type: "string" } } },
+          model: AgentModel._MockGenerateStructuredOutput,
+        },
+      },
+    )
     organizationId = organization.id
     projectId = project.id
     auth0Id = user.auth0Id
-
-    const agent = agentFactory.transient({ organization, project }).build({
-      type: "extraction",
-      outputJsonSchema: { type: "object", properties: { answer: { type: "string" } } },
-      model: AgentModel._MockGenerateStructuredOutput,
-    })
-    await repositories.agentRepository.save(agent)
 
     const { run, datasetRecords } = await createRunWithCsvDataset({
       getRepository: setup.getRepository,
       organization,
       project,
       agent,
+      agentSettings,
       keyMapping: [{ agentOutputKey: "answer", datasetColumnId: "col-answer", mode: "scored" }],
     })
     evaluationExtractionRunId = run.id

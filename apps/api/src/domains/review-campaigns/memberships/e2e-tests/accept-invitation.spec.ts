@@ -7,9 +7,8 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { agentFactory } from "@/domains/agents/agent.factory"
 import { InvitationsModule } from "@/domains/invitations/invitations.module"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import {
   mockAuth0EmailForSub,
@@ -65,12 +64,13 @@ describe("Invitations - acceptInvitation (review campaigns)", () => {
     })
 
   const seedInvitation = async () => {
-    const { organization, project } = await createOrganizationWithProject(repositories)
-    const agent = await repositories.agentRepository.save(
-      agentFactory.transient({ organization, project }).build(),
-    )
+    const { organization, project, agent, agentSettings } =
+      await createOrganizationWithAgent(repositories)
     const campaign = await repositories.reviewCampaignRepository.save(
-      reviewCampaignFactory.active().transient({ organization, project, agent }).build(),
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
     )
     const invitee = await repositories.userRepository.save(
       userFactory.build({ email: mockAuth0EmailForSub(auth0Id) }),

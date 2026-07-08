@@ -27,6 +27,7 @@ describe("AISDKMockProvider", () => {
       projectId: "projectId",
       tags: ["**TEST**"],
       traceId: "traceId",
+      revision: 1,
     }
   })
   afterAll(async () => {

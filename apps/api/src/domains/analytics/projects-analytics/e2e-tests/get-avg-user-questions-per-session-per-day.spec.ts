@@ -11,6 +11,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messages/agent-messages.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
@@ -75,6 +76,14 @@ describe("Projects Analytics - getAvgUserQuestionsPerSessionPerDay", () => {
     await repositories.agentRepository.save([primaryAgent, secondaryAgent])
     primaryAgentId = primaryAgent.id
 
+    const primaryAgentSettings = agentSettingsFactory
+      .transient({ organization, project, agent: primaryAgent })
+      .build()
+    const secondaryAgentSettings = agentSettingsFactory
+      .transient({ organization, project, agent: secondaryAgent })
+      .build()
+    await repositories.agentSettingsRepository.save([primaryAgentSettings, secondaryAgentSettings])
+
     const session1Day1 = conversationAgentSessionFactory
       .transient({ organization, project, agent: primaryAgent, user })
       .build({ createdAt: new Date(day1Start.getTime() + 3600 * 1000), updatedAt: new Date() })
@@ -98,27 +107,52 @@ describe("Projects Analytics - getAvgUserQuestionsPerSessionPerDay", () => {
     await repositories.agentMessageRepository.save([
       agentMessageFactory
         .user()
-        .transient({ organization, project, session: session1Day1 })
+        .transient({
+          organization,
+          project,
+          session: session1Day1,
+          agentSettings: primaryAgentSettings,
+        })
         .build({ createdAt: new Date(day1Start.getTime() + 10 * 60 * 1000) }),
       agentMessageFactory
         .user()
-        .transient({ organization, project, session: session1Day1 })
+        .transient({
+          organization,
+          project,
+          session: session1Day1,
+          agentSettings: primaryAgentSettings,
+        })
         .build({ createdAt: new Date(day1Start.getTime() + 20 * 60 * 1000) }),
       ...Array.from({ length: 4 }, (_value, messageIndex) =>
         agentMessageFactory
           .user()
-          .transient({ organization, project, session: session3Day2 })
+          .transient({
+            organization,
+            project,
+            session: session3Day2,
+            agentSettings: primaryAgentSettings,
+          })
           .build({
             createdAt: new Date(day2Start.getTime() + (messageIndex + 1) * 5 * 60 * 1000),
           }),
       ),
       agentMessageFactory
         .user()
-        .transient({ organization, project, session: session4Day2 })
+        .transient({
+          organization,
+          project,
+          session: session4Day2,
+          agentSettings: secondaryAgentSettings,
+        })
         .build({ createdAt: new Date(day2Start.getTime() + 6 * 60 * 1000) }),
       agentMessageFactory
         .user()
-        .transient({ organization, project, session: session4Day2 })
+        .transient({
+          organization,
+          project,
+          session: session4Day2,
+          agentSettings: secondaryAgentSettings,
+        })
         .build({ createdAt: new Date(day2Start.getTime() + 12 * 60 * 1000) }),
     ])
   }

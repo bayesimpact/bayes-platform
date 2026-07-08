@@ -229,7 +229,7 @@ export function BaseAgentForm({
 const FIELD_TO_TAB: Record<string, "general" | "model" | "output" | "sources" | "categories"> = {
   name: "general",
   locale: "general",
-  defaultPrompt: "general",
+  instructions: "general",
   greetingMessage: "general",
   projectAgentSessionCategoryIds: "categories",
   model: "model",

@@ -4,7 +4,7 @@ import { IsNull, type Repository } from "typeorm"
 import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import { Agent } from "../agent.entity"
+import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 import { AgentMessage } from "../shared/agent-session-messages/agent-message.entity"
 import { FormAgentSession } from "./form-agent-session.entity"
@@ -13,7 +13,7 @@ import { FormAgentSession } from "./form-agent-session.entity"
 export class FormAgentSessionsService {
   private readonly sessionConnectRepository: ConnectRepository<FormAgentSession>
   private readonly agentMessageConnectRepository: ConnectRepository<AgentMessage>
-  private readonly agentConnectRepository: ConnectRepository<Agent>
+  private readonly agentSettingsConnectRepository: ConnectRepository<AgentSettings>
 
   constructor(
     @InjectRepository(FormAgentSession)
@@ -22,8 +22,8 @@ export class FormAgentSessionsService {
     @InjectRepository(AgentMessage)
     agentMessageRepository: Repository<AgentMessage>,
 
-    @InjectRepository(Agent)
-    agentRepository: Repository<Agent>,
+    @InjectRepository(AgentSettings)
+    agentSettingsRepository: Repository<AgentSettings>,
   ) {
     this.sessionConnectRepository = new ConnectRepository(
       formAgentSessionRepository,
@@ -33,7 +33,10 @@ export class FormAgentSessionsService {
       agentMessageRepository,
       "agentMessage",
     )
-    this.agentConnectRepository = new ConnectRepository(agentRepository, "agents")
+    this.agentSettingsConnectRepository = new ConnectRepository(
+      agentSettingsRepository,
+      "agentSettings",
+    )
   }
 
   async listSessions({
@@ -58,30 +61,35 @@ export class FormAgentSessionsService {
 
   async createSession({
     connectScope,
-    agentId,
+    agentSettingsId,
     userId,
     type,
   }: {
     connectScope: RequiredConnectScope
     userId: string
-    agentId: string
+    agentSettingsId: string
     type: BaseAgentSessionType
   }): Promise<FormAgentSession> {
-    const agent = await this.agentConnectRepository.getOneById(connectScope, agentId)
-    if (!agent) throw new NotFoundException(`Agent with id ${agentId} not found`)
+    const agentSettings = await this.agentSettingsConnectRepository.getOneById(
+      connectScope,
+      agentSettingsId,
+    )
+    if (!agentSettings)
+      throw new NotFoundException(`AgentSettings with id ${agentSettingsId} not found`)
 
     const session = await this.sessionConnectRepository.createAndSave(connectScope, {
-      agentId,
+      agentId: agentSettings.agentId,
       userId,
       type,
       traceId: v4(),
     })
 
-    const greetingMessage = agent.greetingMessage
+    const greetingMessage = agentSettings.greetingMessage
     if (greetingMessage && greetingMessage.trim().length > 0) {
       const now = new Date()
       await this.agentMessageConnectRepository.createAndSave(connectScope, {
         sessionId: session.id,
+        agentSettingsId,
         role: "assistant",
         content: greetingMessage,
         status: "completed",

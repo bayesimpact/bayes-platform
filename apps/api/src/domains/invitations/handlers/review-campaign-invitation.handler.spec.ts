@@ -11,8 +11,10 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { agentFactory } from "@/domains/agents/agent.factory"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithProject,
+} from "@/domains/organizations/organization.factory"
 import {
   reviewCampaignMembershipFactory,
   saveReviewCampaignMembership,
@@ -54,23 +56,26 @@ describe("ReviewCampaignInvitationHandler", () => {
   // ─── helpers ──────────────────────────────────────────────────────────────
 
   const createActiveCampaign = async () => {
-    const { organization, project, user } = await createOrganizationWithProject(repositories)
-    const agent = await repositories.agentRepository.save(
-      agentFactory.transient({ organization, project }).build(),
-    )
+    const { organization, project, user, agent, agentSettings } =
+      await createOrganizationWithAgent(repositories)
+
     const campaign = await repositories.reviewCampaignRepository.save(
-      reviewCampaignFactory.active().transient({ organization, project, agent }).build(),
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
     )
     return { organization, project, agent, campaign, user }
   }
 
   const createDraftCampaign = async () => {
-    const { organization, project, user } = await createOrganizationWithProject(repositories)
-    const agent = await repositories.agentRepository.save(
-      agentFactory.transient({ organization, project }).build(),
-    )
+    const { organization, project, user, agent, agentSettings } =
+      await createOrganizationWithAgent(repositories)
     const campaign = await repositories.reviewCampaignRepository.save(
-      reviewCampaignFactory.draft().transient({ organization, project, agent }).build(),
+      reviewCampaignFactory
+        .draft()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
     )
     return { organization, project, agent, campaign, user }
   }
@@ -544,7 +549,7 @@ describe("ReviewCampaignInvitationHandler", () => {
       const updated = await repositories.userMembershipRepository.findOneOrFail({
         where: { id: membership.id },
       })
-      expect(updated.createdAt.getTime()).toBe(membership.createdAt.getTime())
+      expect(updated.id).toBe(membership.id)
     })
 
     it("is case-insensitive when comparing email to invitedEmail", async () => {

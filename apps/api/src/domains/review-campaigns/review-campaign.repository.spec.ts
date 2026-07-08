@@ -5,6 +5,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { agentFactory } from "@/domains/agents/agent.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import {
@@ -42,11 +43,16 @@ describe("ReviewCampaignRepository", () => {
       const agent = await repositories.agentRepository.save(
         agentFactory.transient({ organization, project }).build(),
       )
+      const agentSettings = await repositories.agentSettingsRepository.save(
+        agentSettingsFactory.transient({ organization, project, agent }).build(),
+      )
       const [withMembers, empty] = await repositories.reviewCampaignRepository.save([
         reviewCampaignFactory
-          .transient({ organization, project, agent })
+          .transient({ organization, project, agent, agentSettings })
           .build({ name: "with-members" }),
-        reviewCampaignFactory.transient({ organization, project, agent }).build({ name: "empty" }),
+        reviewCampaignFactory
+          .transient({ organization, project, agent, agentSettings })
+          .build({ name: "empty" }),
       ])
       if (!withMembers || !empty) throw new Error("factory returned empty")
 

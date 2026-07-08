@@ -10,7 +10,10 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { agentFactory } from "@/domains/agents/agent.factory"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithProject,
+} from "@/domains/organizations/organization.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
 import { publicAgentSessionFactory } from "../public-agent-sessions/public-agent-session.factory"
@@ -100,9 +103,7 @@ describe("PublicChat - Auth", () => {
     })
 
     it("returns 403 when Origin is not in allowedOrigins", async () => {
-      const { organization, project } = await createOrganizationWithProject(repositories)
-      const agent = agentFactory.transient({ organization, project }).build()
-      await repositories.agentRepository.save(agent)
+      const { organization, project, agent } = await createOrganizationWithAgent(repositories)
       const restrictedConfig = agentEmbedConfigFactory
         .transient({ organization, project, agent })
         .build({ isEnabled: true, allowedOrigins: ["https://allowed.example.com"] })
@@ -118,9 +119,7 @@ describe("PublicChat - Auth", () => {
     })
 
     it("returns 201 when Origin matches allowedOrigins", async () => {
-      const { organization, project } = await createOrganizationWithProject(repositories)
-      const agent = agentFactory.transient({ organization, project }).build()
-      await repositories.agentRepository.save(agent)
+      const { organization, project, agent } = await createOrganizationWithAgent(repositories)
       const restrictedConfig = agentEmbedConfigFactory
         .transient({ organization, project, agent })
         .build({ isEnabled: true, allowedOrigins: ["https://allowed.example.com"] })

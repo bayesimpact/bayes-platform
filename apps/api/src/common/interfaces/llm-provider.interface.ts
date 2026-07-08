@@ -46,6 +46,7 @@ export type LLMMetadata = (
   traceId: string
   organizationId: string
   agentId: string
+  revision: number
   projectId: string
   tags: string[]
   /**

@@ -41,13 +41,18 @@ describe("ExtractionAgentSessionRunnerService", () => {
 
   it("runs the extraction and persists a successful run", async () => {
     const schema = z.object({ content: z.string(), source: z.string() })
-    const { organization, project, user, agent } = await createOrganizationWithAgent(repositories, {
-      agent: {
-        model: AgentModel._MockGenerateStructuredOutput,
-        type: "extraction",
-        outputJsonSchema: schema.toJSONSchema(),
+    const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        agent: {
+          type: "extraction",
+        },
+        agentSettings: {
+          model: AgentModel._MockGenerateStructuredOutput,
+          outputJsonSchema: schema.toJSONSchema(),
+        },
       },
-    })
+    )
 
     const document = documentFactory.transient({ organization, project }).build({
       mimeType: "application/pdf",
@@ -57,13 +62,13 @@ describe("ExtractionAgentSessionRunnerService", () => {
     await repositories.documentRepository.save(document)
 
     const pendingRun = extractionAgentSessionFactory
-      .transient({ organization, project, agent, user, document })
+      .transient({ organization, project, agent, agentSettings, user, document })
       .build({
         status: "pending",
         type: "playground",
         result: null,
-        effectivePrompt: agent.defaultPrompt ?? "Extract the document",
-        schemaSnapshot: agent.outputJsonSchema ?? {},
+        effectivePrompt: agentSettings.instructions ?? "Extract the document",
+        _deleted_schemaSnapshot: agentSettings.outputJsonSchema ?? {},
       })
     await repositories.extractionAgentSessionRepository.save(pendingRun)
 

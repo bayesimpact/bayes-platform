@@ -90,7 +90,7 @@ describe("ExtractionAgentSessions - Auth", () => {
         params: {
           user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
           projectMembership: { role },
-          agent: {
+          agentSettings: {
             outputJsonSchema: {
               type: "object",
               properties: { fullName: { type: "string" } },

@@ -10,8 +10,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { agentFactory } from "@/domains/agents/agent.factory"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import {
   mockAuth0EmailForSub,
   mockForeignAuth0Id,
@@ -61,14 +60,17 @@ describe("ReviewCampaigns - Auth", () => {
   })
 
   const createContextForRole = async (role: "owner" | "admin" | "member" = "owner") => {
-    const { organization, project, user } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
-      projectMembership: { role },
-    })
+    const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+        projectMembership: { role },
+      },
+    )
     auth0Id = user.auth0Id
-    const agent = agentFactory.transient({ organization, project }).build()
-    await repositories.agentRepository.save(agent)
-    const campaign = reviewCampaignFactory.transient({ organization, project, agent }).build()
+    const campaign = reviewCampaignFactory
+      .transient({ organization, project, agent, agentSettings })
+      .build()
     await repositories.reviewCampaignRepository.save(campaign)
     organizationId = organization.id
     projectId = project.id

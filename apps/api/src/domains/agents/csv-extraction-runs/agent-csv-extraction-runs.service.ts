@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+import { toAgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.helper"
 import type { AgentCsvExtractionRunColumnSchema } from "./agent-csv-extraction-run.entity"
 import { AgentCsvExtractionRun } from "./agent-csv-extraction-run.entity"
 import {
@@ -40,12 +41,14 @@ export class AgentCsvExtractionRunsService {
     connectScope: RequiredConnectScope
     fields: {
       agentId: string
+      agentSettingsId: string
       csvDocumentId: string
       columnSchema: AgentCsvExtractionRunColumnSchema
     }
   }): Promise<AgentCsvExtractionRun> {
     return this.runConnectRepository.createAndSave(connectScope, {
-      agentId: fields.agentId,
+      _deleted_agentId: fields.agentId,
+      agentSettingsId: fields.agentSettingsId,
       csvDocumentId: fields.csvDocumentId,
       columnSchema: fields.columnSchema,
       status: "pending",
@@ -72,7 +75,8 @@ export class AgentCsvExtractionRunsService {
     agentId: string
   }): Promise<AgentCsvExtractionRun[]> {
     const runs = await this.runConnectRepository.find(connectScope, {
-      where: { agentId },
+      where: { agentSettings: { agentId } },
+      relations: { agentSettings: true },
       order: { createdAt: "DESC" },
     })
     return runs
@@ -125,10 +129,12 @@ export class AgentCsvExtractionRunsService {
     agentCsvExtractionRun,
     connectScope,
     agent,
+    agentSettings,
   }: {
     agentCsvExtractionRun: AgentCsvExtractionRun
     connectScope: RequiredConnectScope
     agent: import("@/domains/agents/agent.entity").Agent
+    agentSettings: import("@/domains/agents/settings/agent-settings.entity").AgentSettings
   }): Promise<void> {
     agentCsvExtractionRun.status = "running"
     await this.runConnectRepository.saveOne(agentCsvExtractionRun)
@@ -153,7 +159,10 @@ export class AgentCsvExtractionRunsService {
                 runRecordId: runRecord.id,
                 connectScope,
                 columnSchema: agentCsvExtractionRun.columnSchema,
-                agent,
+                agentWithSettings: toAgentWithSettingsRunJobPayload({
+                  agent,
+                  agentSettings,
+                }),
               })),
             ),
         ),

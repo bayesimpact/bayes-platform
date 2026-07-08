@@ -33,11 +33,12 @@ export default {
 
 const toAgent = (dto: AgentDto): Agent => ({
   createdAt: dto.createdAt,
-  defaultPrompt: dto.defaultPrompt,
+  instructions: dto.instructions,
   documentsRagMode: dto.documentsRagMode,
   greetingMessage: dto.greetingMessage,
   hasCategories: dto.hasCategories ?? false,
   id: dto.id,
+  revision: dto.revision ?? 1,
   locale: dto.locale,
   model: dto.model,
   name: dto.name,

@@ -28,6 +28,7 @@ import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import type { Agent } from "@/domains/agents/agent.entity"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { ReviewCampaign } from "../review-campaign.entity"
@@ -72,11 +73,11 @@ export class TesterController {
   async getTesterContext(
     @Req() request: EndpointRequestWithReviewCampaignMembership,
   ): Promise<typeof ReviewCampaignsRoutes.getTesterContext.response> {
-    const agent = await this.testerService.getAgentForCampaign({
+    const { agent, agentSettings } = await this.testerService.getAgentForCampaign({
       connectScope: getRequiredConnectScope(request),
       campaign: request.reviewCampaign,
     })
-    return { data: toTesterContextDto(request.reviewCampaign, agent) }
+    return { data: toTesterContextDto(request.reviewCampaign, agent, agentSettings) }
   }
 
   @Get(ReviewCampaignsRoutes.listMyTesterSessions.path)
@@ -226,6 +227,7 @@ function toMyCampaignDto(
 function toTesterContextDto(
   campaign: ReviewCampaign,
   agent: Agent,
+  agentSettings: AgentSettings,
 ): ReviewCampaignTesterContextDto {
   return {
     id: campaign.id,
@@ -236,8 +238,8 @@ function toTesterContextDto(
       id: agent.id,
       name: agent.name,
       type: agent.type,
-      greetingMessage: agent.greetingMessage ?? undefined,
-      outputJsonSchema: agent.outputJsonSchema ?? undefined,
+      greetingMessage: agentSettings.greetingMessage ?? undefined,
+      outputJsonSchema: agentSettings.outputJsonSchema ?? undefined,
     },
     testerPerSessionQuestions: campaign.testerPerSessionQuestions,
     testerEndOfPhaseQuestions: campaign.testerEndOfPhaseQuestions,

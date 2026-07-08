@@ -21,14 +21,14 @@ const masterAgent = agentFactory.transient({ project }).build({
 const resourceAgent = agentFactory.transient({ project }).build({
   type: "conversation",
   name: "Resource Navigator",
-  defaultPrompt: "Find relevant services, contacts, and eligibility details.",
+  instructions: "Find relevant services, contacts, and eligibility details.",
   documentsRagMode: DocumentsRagMode.None,
 })
 
 const policyAgent = agentFactory.transient({ project }).build({
   type: "conversation",
   name: "Policy Analyst",
-  defaultPrompt: "Interpret policy documents and summarize operational constraints.",
+  instructions: "Interpret policy documents and summarize operational constraints.",
   documentsRagMode: DocumentsRagMode.Tags,
 })
 
@@ -41,7 +41,7 @@ const intakeAgent = agentFactory.transient({ project }).build({
 const draftingAgent = agentFactory.transient({ project }).build({
   type: "conversation",
   name: "Drafting Assistant",
-  defaultPrompt: "Prepare concise drafts from approved context and prior decisions.",
+  instructions: "Prepare concise drafts from approved context and prior decisions.",
   documentsRagMode: DocumentsRagMode.None,
 })
 

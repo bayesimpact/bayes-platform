@@ -53,6 +53,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
   let organizationId: string
   let projectId: string
   let agentId: string
+  let agentSettingsId: string
   let accessToken: string | undefined = "token"
   let auth0Id = "auth0|123"
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
@@ -82,9 +83,12 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
   })
 
   const createContext = async (role: "owner" | "member" | "admin") => {
-    const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
-      organizationMembership: { role },
-    })
+    const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        organizationMembership: { role },
+      },
+    )
     const { invitedUser } = await inviteUserToProject({
       repositories,
       organization,
@@ -95,6 +99,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     organizationId = organization.id
     projectId = project.id
     agentId = agent.id
+    agentSettingsId = agentSettings.id
     auth0Id = invitedUser.auth0Id
   }
 
@@ -150,7 +155,9 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     it("should seed an assistant message when the agent has a greetingMessage", async () => {
       await createContext("owner")
       const greeting = "Hi! How can I help you today?"
-      await repositories.agentRepository.update(agentId, { greetingMessage: greeting })
+      await repositories.agentSettingsRepository.update(agentSettingsId, {
+        greetingMessage: greeting,
+      })
 
       const response = await subject({ payload: { type: "live" } })
 

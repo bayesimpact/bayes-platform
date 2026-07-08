@@ -4,6 +4,7 @@ import { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
 import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { Project } from "@/domains/projects/project.entity"
 import type { ReviewCampaignQuestion, ReviewCampaignStatus } from "./review-campaigns.types"
 import { ReviewerSessionReview } from "./reviewer-session-reviews/reviewer-session-review.entity"
@@ -21,13 +22,20 @@ export class ReviewCampaign extends ConnectEntityBase {
 
   @Column({ type: "uuid", name: "agent_id" })
   agentId!: string
-
   @ManyToOne(
     () => Agent,
     (agent) => agent.reviewCampaigns,
   )
   @JoinColumn({ name: "agent_id" })
   agent!: Agent
+
+  @Column({ type: "uuid", name: "agent_settings_id", nullable: false })
+  agentSettingsId!: string
+  @ManyToOne("AgentSettings", (agentSettings: AgentSettings) => agentSettings.id, {
+    onDelete: "CASCADE",
+  })
+  @JoinColumn({ name: "agent_settings_id" })
+  agentSettings!: AgentSettings
 
   @Column({ type: "varchar" })
   name!: string

@@ -6,7 +6,7 @@
     "settings": "Agent Settings",
     "props": {
       "createdAt": "Created At",
-      "defaultPrompt": "Default Prompt",
+      "instructions": "Default Prompt",
       "formConfiguration": "Form Configuration",
       "greeting": "Greeting",
       "documentsRagMode": "Answer source",
@@ -26,7 +26,7 @@
       },
       "placeholders": {
         "name": "Enter agent name",
-        "defaultPrompt": "Enter default prompt",
+        "instructions": "Enter default prompt",
         "greeting": "Optional greeting the agent sends first when a new conversation starts",
         "documentsRagMode": "Select document usage",
         "model": "Select model",

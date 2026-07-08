@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { DocumentsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -25,7 +26,7 @@ describe("Documents - deleteOne", () => {
   let projectId: string
   let documentId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let auth0Id = `auth0|${randomUUID()}`
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
@@ -44,7 +45,7 @@ describe("Documents - deleteOne", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    auth0Id = `auth0|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -56,6 +57,7 @@ describe("Documents - deleteOne", () => {
     const { user, organization, project, document } = await createOrganizationWithDocument(
       repositories,
       {
+        user: { auth0Id },
         projectMembership: { role: "admin" },
       },
     )

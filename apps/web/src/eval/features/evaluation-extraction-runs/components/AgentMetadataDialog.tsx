@@ -85,7 +85,7 @@ export function AgentMetadataDialog({
                 {t("evaluationExtractionRun:agentMetadata.prompt")}
               </span>
               <pre className="overflow-auto max-h-48 rounded-lg border bg-muted/50 p-3 text-sm font-mono whitespace-pre-wrap">
-                {agent.defaultPrompt}
+                {agent.instructions}
               </pre>
             </div>
 

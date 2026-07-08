@@ -12,6 +12,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { formAgentSessionFactory } from "@/domains/agents/form-agent-sessions/form-agent-session.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import {
   organizationMembershipFactory,
@@ -109,9 +110,12 @@ describe("ReviewCampaigns - Report", () => {
     const agent = agentFactory.transient({ organization, project }).build({ type: "conversation" })
     await repositories.agentRepository.save(agent)
 
+    const agentSettings = agentSettingsFactory.transient({ organization, project, agent }).build()
+    await repositories.agentSettingsRepository.save(agentSettings)
+
     const campaign = reviewCampaignFactory
       .active()
-      .transient({ organization, project, agent })
+      .transient({ organization, project, agent, agentSettings })
       .build({
         testerPerSessionQuestions: [
           { id: "tp-1", prompt: "Was the agent helpful?", type: "rating", required: true },

@@ -5,6 +5,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { agentFactory } from "@/domains/agents/agent.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
@@ -34,15 +35,28 @@ describe("ReviewCampaignMembershipsService", () => {
     repositories = setup.getAllRepositories()
   })
 
+  const saveActiveCampaign = async (
+    organization: Awaited<ReturnType<typeof createOrganizationWithProject>>["organization"],
+    project: Awaited<ReturnType<typeof createOrganizationWithProject>>["project"],
+  ) => {
+    const agent = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project }).build(),
+    )
+    const agentSettings = await repositories.agentSettingsRepository.save(
+      agentSettingsFactory.transient({ organization, project, agent }).build(),
+    )
+    return repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
+    )
+  }
+
   describe("acceptCampaignMembership", () => {
     it("creates a unified user_membership row for a new membership", async () => {
       const { organization, project, user } = await createOrganizationWithProject(repositories)
-      const agent = await repositories.agentRepository.save(
-        agentFactory.transient({ organization, project }).build(),
-      )
-      const campaign = await repositories.reviewCampaignRepository.save(
-        reviewCampaignFactory.active().transient({ organization, project, agent }).build(),
-      )
+      const campaign = await saveActiveCampaign(organization, project)
 
       await service.acceptCampaignMembership({
         campaignId: campaign.id,
@@ -65,12 +79,7 @@ describe("ReviewCampaignMembershipsService", () => {
 
     it("allows tester and reviewer roles on the same campaign", async () => {
       const { organization, project, user } = await createOrganizationWithProject(repositories)
-      const agent = await repositories.agentRepository.save(
-        agentFactory.transient({ organization, project }).build(),
-      )
-      const campaign = await repositories.reviewCampaignRepository.save(
-        reviewCampaignFactory.active().transient({ organization, project, agent }).build(),
-      )
+      const campaign = await saveActiveCampaign(organization, project)
 
       await service.acceptCampaignMembership({
         campaignId: campaign.id,
@@ -101,12 +110,7 @@ describe("ReviewCampaignMembershipsService", () => {
   describe("removeCampaignMembership", () => {
     it("deletes only the targeted role from user_membership", async () => {
       const { organization, project, user } = await createOrganizationWithProject(repositories)
-      const agent = await repositories.agentRepository.save(
-        agentFactory.transient({ organization, project }).build(),
-      )
-      const campaign = await repositories.reviewCampaignRepository.save(
-        reviewCampaignFactory.active().transient({ organization, project, agent }).build(),
-      )
+      const campaign = await saveActiveCampaign(organization, project)
 
       await service.acceptCampaignMembership({
         campaignId: campaign.id,

@@ -11,6 +11,8 @@ import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "@/domains/agents/agent.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ReviewCampaignMembershipsService } from "./memberships/review-campaign-memberships.service"
 import { ReviewCampaign } from "./review-campaign.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -49,6 +51,7 @@ export class ReviewCampaignsService {
     private readonly agentRepository: Repository<Agent>,
     private readonly reviewCampaignMembershipsService: ReviewCampaignMembershipsService,
     private readonly reviewCampaignRepository: ReviewCampaignRepository,
+    private readonly agentSettingsService: AgentSettingsService,
     private readonly testerService: TesterService,
   ) {
     this.reviewCampaignConnectRepository = new ConnectRepository(
@@ -78,9 +81,14 @@ export class ReviewCampaignsService {
     if (!agent) {
       throw new UnprocessableEntityException(`Agent ${fields.agentId} not found in this project`)
     }
+    const agentSettings = await this.agentSettingsService.getLast({
+      connectScope,
+      agentId: agent.id,
+    })
 
     return this.reviewCampaignConnectRepository.createAndSave(connectScope, {
       agentId: fields.agentId,
+      agentSettingsId: agentSettings.id,
       name: fields.name.trim(),
       description: fields.description ?? null,
       status: "draft",
