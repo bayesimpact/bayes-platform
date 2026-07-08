@@ -64,7 +64,7 @@ describe("EvaluationExtractionRuns - cancelOne", () => {
         },
         agentSettings: {
           outputJsonSchema: { type: "object", properties: { answer: { type: "string" } } },
-          model: AgentModel._MockGenerateStructuredOutput,
+          model: AgentModel._Mock,
         },
       },
     )

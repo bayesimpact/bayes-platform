@@ -119,7 +119,7 @@ describe("Evaluations - deleteOne", () => {
       pathParams: removeNullish({
         organizationId,
         projectId,
-        evaluationId: "non-existent-id",
+        evaluationId: "00000000-0000-0000-0000-000000000000",
       }),
       token: accessToken,
     })

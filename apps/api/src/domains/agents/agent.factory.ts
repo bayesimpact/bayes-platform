@@ -39,7 +39,7 @@ export const agentFactory = AgentFactory.define(({ sequence, params, transientPa
     parentSubAgents: params.parentSubAgents || [],
     resourceLibraries: params.resourceLibraries || [],
     _deleted_defaultPrompt: `This is a test default prompt for bot ${sequence}`,
-    _deleted_model: AgentModel._MockStreamChatResponse,
+    _deleted_model: AgentModel._Mock,
     _deleted_temperature: 0.7,
     _deleted_locale: AgentLocale.EN,
     _deleted_documentsRagMode: DocumentsRagMode.All,

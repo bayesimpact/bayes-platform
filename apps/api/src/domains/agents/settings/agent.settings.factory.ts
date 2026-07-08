@@ -28,7 +28,7 @@ export const agentSettingsFactory = AgentSettingsFactory.define(
       id: params.id || randomUUID(),
       revision: params.revision ?? 1,
       instructions: params.instructions || `This is a test default prompt for bot ${sequence}`,
-      model: params.model || AgentModel._MockStreamChatResponse,
+      model: params.model || AgentModel._Mock,
       temperature: params.temperature ?? 0.7,
       locale: params.locale || AgentLocale.EN,
       documentsRagMode: params.documentsRagMode || DocumentsRagMode.All,

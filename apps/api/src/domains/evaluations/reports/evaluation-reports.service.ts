@@ -212,7 +212,7 @@ export class EvaluationReportsService extends ServiceWithLLM {
 
     //fixme: remove when specific agent for rating(in db) for rating with mock
     if (AgentModelToAgentProvider[generatorAgentSettings.model] === AgentProvider._Mock) {
-      ratingAgent.model = AgentModel._MockRate
+      ratingAgent.model = AgentModel._Mock
       llmMetadata.tags.unshift("**TEST**")
     }
 

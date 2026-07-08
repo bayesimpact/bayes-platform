@@ -107,7 +107,7 @@ describe("AgentSettings", () => {
   }
   const agentSettingsValues3: AgentSettingsValues = {
     instructions: "This is a default prompt 3",
-    model: AgentModel._MockGenerateText,
+    model: AgentModel._Mock,
     temperature: 1,
     locale: AgentLocale.FR,
     documentsRagMode: DocumentsRagMode.All,

@@ -61,7 +61,7 @@ describe("EvaluationExtractionRuns - createOne", () => {
       agent: { type: agentType ?? "extraction" },
       agentSettings: {
         outputJsonSchema: { type: "object", properties: { age: { type: "string" } } },
-        model: AgentModel._MockGenerateStructuredOutput,
+        model: AgentModel._Mock,
       },
     })
     organizationId = organization.id

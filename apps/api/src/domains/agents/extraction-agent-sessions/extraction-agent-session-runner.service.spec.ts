@@ -6,6 +6,7 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import type { Document } from "@/domains/documents/document.entity"
 import { documentFactory } from "@/domains/documents/document.factory"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
@@ -16,7 +17,7 @@ import { ExtractionAgentSessionRunnerService } from "./extraction-agent-session-
 import { ExtractionAgentSessionStatusNotifierService } from "./extraction-agent-session-status-notifier.service"
 
 describe("ExtractionAgentSessionRunnerService", () => {
-  let runner: ExtractionAgentSessionRunnerService
+  let service: ExtractionAgentSessionRunnerService
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
 
@@ -26,7 +27,7 @@ describe("ExtractionAgentSessionRunnerService", () => {
       providers: [ExtractionAgentSessionRunnerService, ExtractionAgentSessionStatusNotifierService],
     })
     repositories = setup.getAllRepositories()
-    runner = setup.module.get(ExtractionAgentSessionRunnerService)
+    service = setup.module.get(ExtractionAgentSessionRunnerService)
   })
 
   beforeEach(async () => {
@@ -39,7 +40,13 @@ describe("ExtractionAgentSessionRunnerService", () => {
     await teardownE2eTestDatabase(setup)
   })
 
-  it("runs the extraction and persists a successful run", async () => {
+  const seedPendingSessionWithDocument = async ({
+    documentDesc,
+    forceEmptySchema,
+  }: {
+    documentDesc: Pick<Document, "mimeType" | "sourceType" | "storageRelativePath">
+    forceEmptySchema?: true
+  }) => {
     const schema = z.object({ content: z.string(), source: z.string() })
     const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
@@ -48,20 +55,15 @@ describe("ExtractionAgentSessionRunnerService", () => {
           type: "extraction",
         },
         agentSettings: {
-          model: AgentModel._MockGenerateStructuredOutput,
-          outputJsonSchema: schema.toJSONSchema(),
+          model: AgentModel._Mock,
+          outputJsonSchema: forceEmptySchema ? undefined : schema.toJSONSchema(),
         },
       },
     )
-
-    const document = documentFactory.transient({ organization, project }).build({
-      mimeType: "application/pdf",
-      sourceType: "extraction",
-      storageRelativePath: "test/file.pdf",
-    })
+    const document = documentFactory.transient({ organization, project }).build({ ...documentDesc })
     await repositories.documentRepository.save(document)
 
-    const pendingRun = extractionAgentSessionFactory
+    const pendingSession = extractionAgentSessionFactory
       .transient({ organization, project, agent, agentSettings, user, document })
       .build({
         status: "pending",
@@ -70,20 +72,121 @@ describe("ExtractionAgentSessionRunnerService", () => {
         effectivePrompt: agentSettings.instructions ?? "Extract the document",
         _deleted_schemaSnapshot: agentSettings.outputJsonSchema ?? {},
       })
-    await repositories.extractionAgentSessionRepository.save(pendingRun)
 
-    await runner.runById({
-      extractionAgentSessionId: pendingRun.id,
+    await repositories.extractionAgentSessionRepository.save(pendingSession)
+    return { organization, project, schema, pendingSession }
+  }
+
+  it("runById - should works - pdf", async () => {
+    const { organization, project, schema, pendingSession } = await seedPendingSessionWithDocument({
+      documentDesc: {
+        mimeType: "application/pdf",
+        sourceType: "extraction",
+        storageRelativePath: "test/file.pdf",
+      },
+    })
+    await service.runById({
+      extractionAgentSessionId: pendingSession.id,
       organizationId: organization.id,
       projectId: project.id,
     })
 
     const run = await repositories.extractionAgentSessionRepository.findOneByOrFail({
-      id: pendingRun.id,
+      id: pendingSession.id,
     })
     expect(run.status).toBe("success")
     const parsed = schema.parse(run.result)
-    expect(parsed.source).toBe("MOCK") // see <default mock result for generateObject>
-    expect(parsed.content).toBe("Hello, I'm the generateStructuredOutput default mock response!")
+    expect(parsed.source).toBe("source-value")
+    expect(parsed.content).toBe("content-value")
+  })
+
+  it("runById - should works - jpg", async () => {
+    const { organization, project, schema, pendingSession } = await seedPendingSessionWithDocument({
+      documentDesc: {
+        mimeType: "image/jpg",
+        sourceType: "extraction",
+        storageRelativePath: "test/file.jpg",
+      },
+    })
+    await service.runById({
+      extractionAgentSessionId: pendingSession.id,
+      organizationId: organization.id,
+      projectId: project.id,
+    })
+
+    const run = await repositories.extractionAgentSessionRepository.findOneByOrFail({
+      id: pendingSession.id,
+    })
+    expect(run.status).toBe("success")
+    const parsed = schema.parse(run.result)
+    expect(parsed.source).toBe("source-value")
+    expect(parsed.content).toBe("content-value")
+  })
+  it("runById - should throw when session not found", async () => {
+    const { organization, project } = await seedPendingSessionWithDocument({
+      documentDesc: {
+        mimeType: "text/plain",
+        sourceType: "extraction",
+        storageRelativePath: "test/file.txt",
+      },
+    })
+    await expect(
+      service.runById({
+        extractionAgentSessionId: "00000000-0000-0000-0000-000000000000",
+        organizationId: organization.id,
+        projectId: project.id,
+      }),
+    ).rejects.toThrow(/not found/)
+  })
+
+  it("runById - should throw EXTRACTION_PROVIDER_ERROR when empty schema", async () => {
+    const { organization, project, pendingSession } = await seedPendingSessionWithDocument({
+      documentDesc: {
+        mimeType: "text/plain",
+        sourceType: "extraction",
+        storageRelativePath: "test/file.txt",
+      },
+      forceEmptySchema: true,
+    })
+    await expect(
+      service.runById({
+        extractionAgentSessionId: pendingSession.id,
+        organizationId: organization.id,
+        projectId: project.id,
+      }),
+    ).rejects.toThrow(/missing outputJsonSchema/)
+
+    const run = await repositories.extractionAgentSessionRepository.findOneByOrFail({
+      id: pendingSession.id,
+    })
+    expect(run.status).toBe("failed")
+    expect(run.result).toBeNull()
+    expect(run.errorCode).toBe("EXTRACTION_PROVIDER_ERROR")
+    expect(run.errorDetails?.message).toContain("missing outputJsonSchema")
+  })
+
+  it("runById - should throw EXTRACTION_PROVIDER_ERROR when txt", async () => {
+    const { organization, project, pendingSession } = await seedPendingSessionWithDocument({
+      documentDesc: {
+        mimeType: "text/plain",
+        sourceType: "extraction",
+        storageRelativePath: "test/file.txt",
+      },
+    })
+    await expect(
+      service.runById({
+        extractionAgentSessionId: pendingSession.id,
+        organizationId: organization.id,
+        projectId: project.id,
+      }),
+    ).rejects.toThrow(/Unsupported document type/)
+
+    const run = await repositories.extractionAgentSessionRepository.findOneByOrFail({
+      id: pendingSession.id,
+    })
+    expect(run.status).toBe("failed")
+    expect(run.result).toBeNull()
+    expect(run.errorCode).toBe("EXTRACTION_PROVIDER_ERROR")
+    expect(run.errorDetails?.message).toContain("Unsupported document type")
   })
 })

@@ -14,11 +14,7 @@ export enum AgentModel {
   MedGemma10_27B = "google/medgemma-27b-it",
   Gemma4_26B = "google/gemma-4-26b-A4B-it",
   MistralSmall31_24B = "mistralai/Mistral-Small-3.1-24B-Instruct-2503",
-  _MockGenerateObject = "generate-object-mock-language-model-v3",
-  _MockGenerateStructuredOutput = "generate-structured-output-mock-language-model-v3",
-  _MockGenerateText = "generate-text-mock-language-model-v3",
-  _MockRate = "rate-mock-language-model-v3",
-  _MockStreamChatResponse = "stream-chat-response-mock-language-model-v3",
+  _Mock = "mock-language-model-v3",
 }
 
 export enum AgentProvider {
@@ -37,11 +33,7 @@ export const AgentModelToAgentProvider: Record<AgentModel, AgentProvider> = {
   [AgentModel.MedGemma10_27B]: AgentProvider.MedGemma,
   [AgentModel.Gemma4_26B]: AgentProvider.Gemma,
   [AgentModel.MistralSmall31_24B]: AgentProvider.Mistral,
-  [AgentModel._MockGenerateObject]: AgentProvider._Mock,
-  [AgentModel._MockGenerateStructuredOutput]: AgentProvider._Mock,
-  [AgentModel._MockGenerateText]: AgentProvider._Mock,
-  [AgentModel._MockRate]: AgentProvider._Mock,
-  [AgentModel._MockStreamChatResponse]: AgentProvider._Mock,
+  [AgentModel._Mock]: AgentProvider._Mock,
 }
 export enum AgentLocale {
   EN = "en",
