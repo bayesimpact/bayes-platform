@@ -55,7 +55,7 @@ describe("ExtractionAgentSessionsService", () => {
           type: "extraction",
         },
         agentSettings: {
-          model: AgentModel._MockGenerateStructuredOutput,
+          model: AgentModel._Mock,
           outputJsonSchema: schema.toJSONSchema(),
         },
       },
@@ -95,7 +95,7 @@ describe("ExtractionAgentSessionsService", () => {
           type: "extraction",
         },
         agentSettings: {
-          model: AgentModel._MockGenerateStructuredOutput,
+          model: AgentModel._Mock,
           outputJsonSchema: schema.toJSONSchema(),
         },
       },

@@ -8,7 +8,10 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import {
+  addFeature,
+  createOrganizationWithAgent,
+} from "@/domains/organizations/organization.factory"
 import { mockAuth0EmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { BackofficeModule } from "../backoffice.module"
@@ -72,13 +75,13 @@ describe("Backoffice - get organization", () => {
 
   it("returns organization detail with members, projects and feature flags", async () => {
     const { organization, project, user, agent } = await createAuthorizedContext()
-    await repositories.featureFlagRepository.save(
-      repositories.featureFlagRepository.create({
-        projectId: project.id,
-        featureFlagKey: "gemma",
-        enabled: true,
-      }),
-    )
+
+    await addFeature({
+      featureFlagRepository: repositories.featureFlagRepository,
+      projectId: project.id,
+      featureFlagKey: "gemma",
+    })
+
     const response = await request({
       route: BackofficeRoutes.getOrganization,
       pathParams: { organizationId: organization.id },

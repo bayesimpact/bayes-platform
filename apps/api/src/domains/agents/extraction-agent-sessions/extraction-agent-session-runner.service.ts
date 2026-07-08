@@ -107,11 +107,10 @@ export class ExtractionAgentSessionRunnerService extends ServiceWithLLM {
     run: ExtractionAgentSession
     connectScope: RequiredConnectScope
   }) {
-    if (!agentSettings.outputJsonSchema) {
-      throw new UnprocessableEntityException("Extraction agent is missing outputJsonSchema")
-    }
-
     try {
+      if (!agentSettings.outputJsonSchema) {
+        throw new UnprocessableEntityException("Extraction agent is missing outputJsonSchema")
+      }
       const llmMessage = await this.buildLLMMessage({
         document,
         prompt: effectivePrompt,

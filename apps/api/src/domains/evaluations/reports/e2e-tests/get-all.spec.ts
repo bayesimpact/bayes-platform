@@ -55,7 +55,7 @@ describe("Evaluation Reports - getAll", () => {
   const createContext = async () => {
     const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
-      { agentSettings: { model: AgentModel._MockGenerateText } },
+      { agentSettings: { model: AgentModel._Mock } },
     )
     organizationId = organization.id
     projectId = project.id

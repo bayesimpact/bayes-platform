@@ -1,6 +1,7 @@
 import { DocumentsRagMode, ToolName } from "@caseai-connect/api-contracts"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import { addFeature } from "@/domains/organizations/organization.factory"
 import type { StreamingService } from "../../shared/agent-session-messages/streaming/streaming.service"
 import { agentSessionControllerTestSetup } from "./test-setup"
 
@@ -223,13 +224,11 @@ describe("buildTools", () => {
       organizationId: testOrganization.id,
       projectId: testProject.id,
     }
-    await featureFlagRepository.save(
-      featureFlagRepository.create({
-        projectId: testProject.id,
-        featureFlagKey: "agent-orchestration",
-        enabled: true,
-      }),
-    )
+    await addFeature({
+      featureFlagRepository,
+      projectId: testProject.id,
+      featureFlagKey: "agent-orchestration",
+    })
     const childAgent = await agentRepository.save(
       agentRepository.create({
         organizationId: testOrganization.id,

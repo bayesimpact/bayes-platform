@@ -14,6 +14,7 @@ import { evaluationFactory } from "@/domains/evaluations/evaluation.factory"
 import { EvaluationsModule } from "@/domains/evaluations/evaluations.module"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
+import type { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 
@@ -30,6 +31,7 @@ describe("Evaluation Reports - createOne", () => {
   let accessToken: string | undefined = "token"
   let auth0Id = "auth0|123"
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
+  let mockProvider: AISDKMockProvider
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
@@ -38,6 +40,7 @@ describe("Evaluation Reports - createOne", () => {
     })
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
+    mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -45,6 +48,7 @@ describe("Evaluation Reports - createOne", () => {
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
+    mockProvider.resetMock()
     accessToken = "token"
     auth0Id = "auth0|123"
   })
@@ -58,7 +62,7 @@ describe("Evaluation Reports - createOne", () => {
   const createContext = async () => {
     const { user, organization, project, agent } = await createOrganizationWithAgent(repositories, {
       organizationMembership: { role: "owner" },
-      agentSettings: { model: AgentModel._MockGenerateText },
+      agentSettings: { model: AgentModel._Mock },
     })
     organizationId = organization.id
     projectId = project.id
@@ -86,14 +90,18 @@ describe("Evaluation Reports - createOne", () => {
   it("should create an evaluation report", async () => {
     await createContext()
 
+    const generatedOutput = "A generated answer."
+    mockProvider.addTextTurn(agentId, generatedOutput)
+    mockProvider.addTextTurn("Custom-Rating-Agent", "76")
+
     const res = await subject()
     expectResponse(res, 201)
     expect(res.body.data).toMatchObject({ agentId, evaluationId })
     expect(res.body.data.id).toBeDefined()
     expect(res.body.data.createdAt).toBeDefined()
     expect(res.body.data.updatedAt).toBeDefined()
-    expect(res.body.data.output).toBe(`Hello, I'm the generateText default mock response!`) //see <default mock result for generateText>
-    expect(res.body.data.score).toBe("76") //see <default mock result for generateText>
+    expect(res.body.data.output).toBe(generatedOutput)
+    expect(res.body.data.score).toBe("76")
     await expectActivityCreated("evaluationReport.create")
   })
 })

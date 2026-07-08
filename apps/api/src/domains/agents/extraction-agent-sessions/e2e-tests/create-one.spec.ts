@@ -77,7 +77,7 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
         type: "extraction",
       },
       agentSettings: {
-        model: AgentModel._MockGenerateText,
+        model: AgentModel._Mock,
         outputJsonSchema: {
           type: "object",
           properties: { fullName: { type: "string" } },

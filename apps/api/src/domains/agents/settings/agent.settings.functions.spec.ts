@@ -13,7 +13,7 @@ import {
 const fullFields: AgentSettingsCreateFields = {
   instructions: "You are a helpful assistant",
   documentsRagMode: DocumentsRagMode.All,
-  model: AgentModel._MockStreamChatResponse,
+  model: AgentModel._Mock,
   temperature: 0.7,
   locale: AgentLocale.EN,
   outputJsonSchema: { type: "object" },
@@ -42,12 +42,12 @@ describe("extractAgentSettingsCreateFields", () => {
   it("returns only the keys present in the input", () => {
     const result = extractAgentSettingsCreateFields({
       instructions: "Just instructions",
-      model: AgentModel._MockStreamChatResponse,
+      model: AgentModel._Mock,
     })
 
     expect(result).toEqual({
       instructions: "Just instructions",
-      model: AgentModel._MockStreamChatResponse,
+      model: AgentModel._Mock,
     })
   })
 
