@@ -163,8 +163,8 @@ export async function clearTestDatabase(dataSource: DataSource): Promise<void> {
       await queryRunner.query(`DELETE FROM "tester_session_feedback"`)
       await queryRunner.query(`DELETE FROM "tester_campaign_survey"`)
       await queryRunner.query(`DELETE FROM "user_membership"`)
-      // Legacy membership tables may still exist on test DBs that use synchronize
-      // without running the drop-legacy-memberships migration yet.
+      // Legacy membership tables are kept in production for now; test DBs may still
+      // have them from older migrations or synchronize.
       await queryRunner.query(`
         DO $$
         BEGIN
