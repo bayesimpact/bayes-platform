@@ -1,4 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@caseai-connect/ui/shad/tabs"
+import { AlertTriangleIcon } from "lucide-react"
 import { type ReactNode, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useBlocker } from "react-router-dom"
@@ -196,6 +197,7 @@ export function AgentEditor({
         title={t("agent:unsavedChanges.title")}
         description={t("agent:unsavedChanges.description")}
         confirmLabel={t("actions:discard")}
+        confirmIcon={<AlertTriangleIcon className="size-5" />}
         onConfirm={handleConfirm}
         onCancel={handleCancel}
       />
