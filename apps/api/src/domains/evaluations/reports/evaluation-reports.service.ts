@@ -178,13 +178,11 @@ export class EvaluationReportsService extends ServiceWithLLM {
     evaluationReport,
     generatedValue,
     expectedValue,
-    generatorAgent,
     generatorAgentSettings,
   }: {
     evaluationReport: EvaluationReport
     generatedValue: string
     expectedValue: string
-    generatorAgent: Agent
     generatorAgentSettings: AgentSettings
   }): Promise<string> {
     const ratingAgent = {

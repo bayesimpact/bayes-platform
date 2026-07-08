@@ -69,7 +69,6 @@ export class EvaluationReportsController {
       evaluationReport: report,
       expectedValue: request.evaluation.expectedOutput,
       generatedValue: result,
-      generatorAgent: request.agent,
       generatorAgentSettings: agentSettings,
     })
     const reportUpdated = await this.reportsService.updateReport({
