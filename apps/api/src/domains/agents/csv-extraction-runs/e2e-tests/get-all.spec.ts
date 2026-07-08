@@ -9,6 +9,7 @@ import {
 } from "@/common/test/test-transaction-manager"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { agentCsvExtractionRunFactory } from "../agent-csv-extraction-run.factory"
 import { AgentCsvExtractionRunsModule } from "../agent-csv-extraction-runs.module"
@@ -101,11 +102,20 @@ describe("AgentCsvExtractionRuns - getAll", () => {
       .transient({ organization: context.organization, project: context.project })
       .build({ type: "extraction" })
     await repositories.agentRepository.save(otherAgent)
+    const otherAgentSettings = agentSettingsFactory
+      .transient({
+        organization: context.organization,
+        project: context.project,
+        agent: otherAgent,
+      })
+      .build()
+    await repositories.agentSettingsRepository.save(otherAgentSettings)
     const otherRun = agentCsvExtractionRunFactory
       .transient({
         organization: context.organization,
         project: context.project,
         agent: otherAgent,
+        agentSettings: otherAgentSettings,
         csvDocument: context.csvDocument,
       })
       .build()

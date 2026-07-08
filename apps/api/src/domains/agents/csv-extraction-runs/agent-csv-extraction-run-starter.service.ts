@@ -13,6 +13,8 @@ import type { Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "@/domains/agents/agent.entity"
+import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+import { toAgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.helper"
 import {
   FILE_STORAGE_SERVICE,
   type IFileStorage,
@@ -37,6 +39,7 @@ export class AgentCsvExtractionRunStarterService {
   private readonly runConnectRepository: ConnectRepository<AgentCsvExtractionRun>
   private readonly runRecordConnectRepository: ConnectRepository<AgentCsvExtractionRunRecord>
   private readonly agentConnectRepository: ConnectRepository<Agent>
+  private readonly agentSettingsConnectRepository: ConnectRepository<AgentSettings>
 
   constructor(
     @InjectRepository(AgentCsvExtractionRun)
@@ -45,6 +48,8 @@ export class AgentCsvExtractionRunStarterService {
     runRecordRepository: Repository<AgentCsvExtractionRunRecord>,
     @InjectRepository(Agent)
     agentRepository: Repository<Agent>,
+    @InjectRepository(AgentSettings)
+    agentSettingsRepository: Repository<AgentSettings>,
     @InjectQueue(AGENT_CSV_EXTRACTION_RUN_QUEUE_NAME)
     private readonly queue: Queue<ProcessAgentCsvExtractionRunRecordJobPayload>,
     @Inject(FILE_STORAGE_SERVICE)
@@ -56,6 +61,10 @@ export class AgentCsvExtractionRunStarterService {
       "agentCsvExtractionRunRecord",
     )
     this.agentConnectRepository = new ConnectRepository(agentRepository, "agent")
+    this.agentSettingsConnectRepository = new ConnectRepository(
+      agentSettingsRepository,
+      "agentSettings",
+    )
   }
 
   async startRun(payload: ExecuteAgentCsvExtractionRunJobPayload): Promise<void> {
@@ -71,9 +80,17 @@ export class AgentCsvExtractionRunStarterService {
       )
     }
 
-    const agent = await this.agentConnectRepository.getOneById(connectScope, run.agentId)
+    const agentSettings = await this.agentSettingsConnectRepository.getOneById(
+      connectScope,
+      run.agentSettingsId,
+    )
+    if (!agentSettings) {
+      throw new NotFoundException(`AgentSettings with id ${run.agentSettingsId} not found`)
+    }
+
+    const agent = await this.agentConnectRepository.getOneById(connectScope, agentSettings.agentId)
     if (!agent) {
-      throw new NotFoundException(`Agent with id ${run.agentId} not found`)
+      throw new NotFoundException(`Agent with id ${agentSettings.agentId} not found`)
     }
 
     // Load CSV document from storage
@@ -113,7 +130,7 @@ export class AgentCsvExtractionRunStarterService {
                 runRecordId: runRecord.id,
                 connectScope,
                 columnSchema: run.columnSchema,
-                agent,
+                agentWithSettings: toAgentWithSettingsRunJobPayload({ agent, agentSettings }),
               },
               opts: { jobId: runRecord.id },
             })),

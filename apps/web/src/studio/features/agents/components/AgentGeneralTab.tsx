@@ -86,17 +86,17 @@ export function AgentGeneralTab() {
       )}
 
       <Field>
-        <FieldLabel htmlFor="defaultPrompt">{t("agent:props.defaultPrompt")}</FieldLabel>
+        <FieldLabel htmlFor="instructions">{t("agent:props.instructions")}</FieldLabel>
         <Textarea
-          id="defaultPrompt"
-          placeholder={t("agent:props.placeholders.defaultPrompt")}
+          id="instructions"
+          placeholder={t("agent:props.placeholders.instructions")}
           rows={8}
           className="min-h-40 max-h-96 font-mono"
-          {...register("defaultPrompt")}
-          aria-invalid={errors.defaultPrompt ? "true" : "false"}
+          {...register("instructions")}
+          aria-invalid={errors.instructions ? "true" : "false"}
         />
-        {errors.defaultPrompt && (
-          <p className="text-sm text-destructive">{errors.defaultPrompt.message}</p>
+        {errors.instructions && (
+          <p className="text-sm text-destructive">{errors.instructions.message}</p>
         )}
       </Field>
     </FieldGroup>

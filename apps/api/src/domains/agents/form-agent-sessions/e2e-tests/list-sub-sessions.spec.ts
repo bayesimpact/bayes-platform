@@ -1,4 +1,4 @@
-import { FormAgentSessionsRoutes } from "@caseai-connect/api-contracts"
+import { DocumentsRagMode, FormAgentSessionsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {
@@ -9,6 +9,7 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
@@ -64,8 +65,16 @@ describe("FormAgentSessionsRoutes.listSubSessions", () => {
       agentFactory.transient({ organization, project }).build({
         name: "Intake Form",
         type: "form",
-        outputJsonSchema: { type: "object", properties: { fullName: { type: "string" } } },
       }),
+    )
+    const _formChildAgentSettings = await repositories.agentSettingsRepository.save(
+      repositories.agentSettingsRepository.create(
+        agentSettingsFactory.transient({ organization, project, agent: formChildAgent }).build({
+          instructions: "Answer benefits questions",
+          documentsRagMode: DocumentsRagMode.None,
+          outputJsonSchema: { type: "object", properties: { fullName: { type: "string" } } },
+        }),
+      ),
     )
 
     await repositories.agentSubAgentRepository.save(

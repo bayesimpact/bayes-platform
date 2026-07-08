@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
 import { Agent } from "@/domains/agents/agent.entity"
+import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import { StreamingModule } from "@/domains/agents/shared/agent-session-messages/streaming/streaming.module"
 import { AgentEmbedConfig } from "./agent-embed-configs/agent-embed-config.entity"
@@ -14,7 +15,13 @@ import { PublicChatService } from "./public-chat.service"
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AgentEmbedConfig, PublicAgentSession, AgentMessage, Agent]),
+    TypeOrmModule.forFeature([
+      AgentEmbedConfig,
+      PublicAgentSession,
+      AgentMessage,
+      Agent,
+      AgentSettings,
+    ]),
     StreamingModule,
   ],
   providers: [

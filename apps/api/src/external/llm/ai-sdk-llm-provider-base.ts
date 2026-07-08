@@ -539,8 +539,9 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
       langfuseTraceId: metadata.traceId,
       sessionId: `as:${metadata.langfuseSessionId ?? metadata.agentSessionId}`,
       userId: `o:${metadata.organizationId} / p:${metadata.projectId}`,
-      tags: [...this.getTags(config), ...(metadata?.tags || [])],
+      tags: [...(metadata?.tags || []), ...this.getTags(config)],
       currentTurn: metadata.currentTurn,
+      revision: metadata.revision,
       outputSchema: JSON.stringify(schema),
       availableTools: JSON.stringify(config.tools),
     })

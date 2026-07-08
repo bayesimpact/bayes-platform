@@ -11,8 +11,15 @@ describe("prepareForStreaming", () => {
     await sdk.shutdown()
   })
   it("should persist user message and empty assistant message", async () => {
-    const { service, testAgent, testOrganization, testUser, testProject, streamingService } =
-      getTestContext()
+    const {
+      service,
+      testAgent,
+      testAgentSettings,
+      testOrganization,
+      testUser,
+      testProject,
+      streamingService,
+    } = getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
       projectId: testProject.id,
@@ -20,14 +27,19 @@ describe("prepareForStreaming", () => {
 
     const session = await service.createSession({
       connectScope,
-      agentId: testAgent.id,
+      agentSettingsId: testAgentSettings.id,
       userId: testUser.id,
       type: "playground",
     })
 
     const { session: updatedSession, assistantMessageId } =
       await streamingService.prepareForStreaming({
-        agentSessionScope: { agent: testAgent, session, connectScope },
+        agentSessionScope: {
+          agent: testAgent,
+          agentSettings: testAgentSettings,
+          session,
+          connectScope,
+        },
         userContent: "Hello, how are you?",
         agentType: testAgent.type,
       })
@@ -47,7 +59,8 @@ describe("prepareForStreaming", () => {
   })
 
   it("should throw NotFoundException for non-existent session", async () => {
-    const { testOrganization, testProject, streamingService, testAgent } = getTestContext()
+    const { testOrganization, testProject, streamingService, testAgent, testAgentSettings } =
+      getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
       projectId: testProject.id,
@@ -63,7 +76,12 @@ describe("prepareForStreaming", () => {
     }
     await expect(
       streamingService.prepareForStreaming({
-        agentSessionScope: { agent: testAgent, session: session as never, connectScope },
+        agentSessionScope: {
+          agent: testAgent,
+          agentSettings: testAgentSettings,
+          session: session as never,
+          connectScope,
+        },
         userContent: "Hello",
         agentType: testAgent.type,
       }),

@@ -11,12 +11,16 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import {
   organizationMembershipFactory,
   saveOrgMembership,
 } from "@/domains/organizations/memberships/organization-membership.factory"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithProject,
+} from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -88,9 +92,14 @@ describe("ReviewCampaigns - Report CSV", () => {
     const agent = agentFactory.transient({ organization, project }).build({ type: "conversation" })
     await repositories.agentRepository.save(agent)
 
+    const agentSettings = agentSettingsFactory
+      .transient({ organization, project, agent: agent })
+      .build()
+    await repositories.agentSettingsRepository.save(agentSettings)
+
     const campaign = reviewCampaignFactory
       .active()
-      .transient({ organization, project, agent })
+      .transient({ organization, project, agent, agentSettings })
       .build({})
     await repositories.reviewCampaignRepository.save(campaign)
     await saveReviewCampaignMembership({
@@ -164,22 +173,19 @@ describe("ReviewCampaigns - Report CSV", () => {
   })
 
   it("returns just the header when there are no sessions", async () => {
-    await createOrganizationWithProject(repositories, { user: { auth0Id } }).then(
-      async ({ organization, project }) => {
-        const agent = agentFactory
-          .transient({ organization, project })
-          .build({ type: "conversation" })
-        await repositories.agentRepository.save(agent)
-        const campaign = reviewCampaignFactory
-          .active()
-          .transient({ organization, project, agent })
-          .build({})
-        await repositories.reviewCampaignRepository.save(campaign)
-        organizationId = organization.id
-        projectId = project.id
-        reviewCampaignId = campaign.id
-      },
-    )
+    await createOrganizationWithAgent(repositories, {
+      user: { auth0Id },
+      agent: { type: "conversation" },
+    }).then(async ({ organization, project, agent, agentSettings }) => {
+      const campaign = reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent, agentSettings })
+        .build({})
+      await repositories.reviewCampaignRepository.save(campaign)
+      organizationId = organization.id
+      projectId = project.id
+      reviewCampaignId = campaign.id
+    })
 
     const response = await subject()
     expectResponse(response, 200)

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto"
 import { Factory } from "fishery"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"
 import type { Agent } from "@/domains/agents/agent.entity"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { EvaluationExtractionDataset } from "../datasets/evaluation-extraction-dataset.entity"
 import type {
   EvaluationExtractionRun,
@@ -11,6 +12,7 @@ import type {
 
 type EvaluationExtractionRunTransientParams = RequiredScopeTransientParams & {
   agent: Agent
+  agentSettings: AgentSettings
   evaluationExtractionDataset: EvaluationExtractionDataset
 }
 
@@ -30,6 +32,9 @@ export const evaluationExtractionRunFactory = EvaluationExtractionRunFactory.def
     if (!transientParams.agent) {
       throw new Error("agent transient is required")
     }
+    if (!transientParams.agentSettings) {
+      throw new Error("agentSettings transient is required")
+    }
     if (!transientParams.evaluationExtractionDataset) {
       throw new Error("evaluationExtractionDataset transient is required")
     }
@@ -41,6 +46,8 @@ export const evaluationExtractionRunFactory = EvaluationExtractionRunFactory.def
       evaluationExtractionDataset: transientParams.evaluationExtractionDataset,
       agentId: transientParams.agent.id,
       agent: transientParams.agent,
+      agentSettingsId: transientParams.agentSettings.id,
+      agentSettings: transientParams.agentSettings,
       keyMapping: (params.keyMapping || []) as EvaluationExtractionRunKeyMapping,
       status: params.status || "pending",
       summary: (params.summary as EvaluationExtractionRunSummary) || null,

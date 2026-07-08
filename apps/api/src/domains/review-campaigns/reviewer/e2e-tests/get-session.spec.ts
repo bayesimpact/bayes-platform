@@ -12,8 +12,12 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { formAgentSessionFactory } from "@/domains/agents/form-agent-sessions/form-agent-session.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithProject,
+} from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -89,9 +93,12 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
     const agent = agentFactory.transient({ organization, project }).build({ type: "conversation" })
     await repositories.agentRepository.save(agent)
 
+    const agentSettings = agentSettingsFactory.transient({ organization, project, agent }).build()
+    await repositories.agentSettingsRepository.save(agentSettings)
+
     const factory =
       campaignStatus === "closed" ? reviewCampaignFactory.closed() : reviewCampaignFactory.active()
-    const campaign = factory.transient({ organization, project, agent }).build({
+    const campaign = factory.transient({ organization, project, agent, agentSettings }).build({
       testerPerSessionQuestions: [
         {
           id: "q-factual",
@@ -136,6 +143,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
         sessionId: session.id,
         role: "user",
         content: "hello",
+        agentSettingsId: agentSettings.id,
       },
       {
         organizationId: organization.id,
@@ -143,6 +151,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
         sessionId: session.id,
         role: "assistant",
         content: "hi",
+        agentSettingsId: agentSettings.id,
       },
       {
         organizationId: organization.id,
@@ -150,6 +159,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
         sessionId: session.id,
         role: "tool",
         content: '{"result": "internal"}',
+        agentSettingsId: agentSettings.id,
       },
     ])
     await repositories.testerSessionFeedbackRepository.save({
@@ -268,17 +278,19 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
 
   it("never returns free-text answers during blind, even if isFactual is true", async () => {
     // Re-seed with a free-text question flagged isFactual (should still be hidden).
-    const { organization, project } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id },
-    })
+    const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        user: { auth0Id },
+        agent: { type: "conversation" },
+      },
+    )
     const tester = await repositories.userRepository.save(
       userFactory.build({ email: `tester-text-${randomUUID()}@example.com` }),
     )
-    const agent = agentFactory.transient({ organization, project }).build({ type: "conversation" })
-    await repositories.agentRepository.save(agent)
     const campaign = reviewCampaignFactory
       .active()
-      .transient({ organization, project, agent })
+      .transient({ organization, project, agent, agentSettings })
       .build({
         testerPerSessionQuestions: [
           {
@@ -340,25 +352,35 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
   })
 
   it("includes formResult for form-agent sessions (schema from agent, value from session)", async () => {
-    const { organization, project } = await createOrganizationWithProject(repositories, {
+    const {
+      organization,
+      project,
+      agent: formAgent,
+      agentSettings: formAgentSettings,
+    } = await createOrganizationWithAgent(repositories, {
       user: { auth0Id },
+      agent: {
+        type: "form",
+      },
+      agentSettings: {
+        outputJsonSchema: {
+          type: "object",
+          properties: {
+            fullName: { type: "string", title: "Full name" },
+            email: { type: "string", title: "Email" },
+          },
+        },
+      },
     })
     const tester = await repositories.userRepository.save(
       userFactory.build({ email: `tester-form-${randomUUID()}@example.com` }),
     )
-    const formAgent = agentFactory.transient({ organization, project }).build({
-      type: "form",
-      outputJsonSchema: {
-        type: "object",
-        properties: {
-          fullName: { type: "string", title: "Full name" },
-          email: { type: "string", title: "Email" },
-        },
-      },
-    })
-    await repositories.agentRepository.save(formAgent)
+
     const campaign = await repositories.reviewCampaignRepository.save(
-      reviewCampaignFactory.active().transient({ organization, project, agent: formAgent }).build(),
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent: formAgent, agentSettings: formAgentSettings })
+        .build(),
     )
     const callerUser = await repositories.userRepository.findOneByOrFail({ auth0Id })
     await saveReviewCampaignMembership({

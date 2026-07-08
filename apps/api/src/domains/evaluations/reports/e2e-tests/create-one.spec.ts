@@ -10,10 +10,9 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
-import { agentFactory } from "@/domains/agents/agent.factory"
 import { evaluationFactory } from "@/domains/evaluations/evaluation.factory"
 import { EvaluationsModule } from "@/domains/evaluations/evaluations.module"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -57,19 +56,15 @@ describe("Evaluation Reports - createOne", () => {
   })
 
   const createContext = async () => {
-    const { user, organization, project } = await createOrganizationWithProject(repositories, {
+    const { user, organization, project, agent } = await createOrganizationWithAgent(repositories, {
       organizationMembership: { role: "owner" },
+      agentSettings: { model: AgentModel._MockGenerateText },
     })
     organizationId = organization.id
     projectId = project.id
 
     auth0Id = user.auth0Id
-
-    const agentMock = agentFactory.transient({ organization, project }).build({
-      model: AgentModel._MockGenerateText,
-    })
-    await repositories.agentRepository.save(agentMock)
-    agentId = agentMock.id
+    agentId = agent.id
 
     const evaluation = evaluationFactory.transient({ organization, project }).build({
       input: "test input",

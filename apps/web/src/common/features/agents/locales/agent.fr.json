@@ -6,7 +6,7 @@
     "settings": "Paramètres de l'agent",
     "props": {
       "createdAt": "Créé le",
-      "defaultPrompt": "Prompt par défaut",
+      "instructions": "Prompt par défaut",
       "formConfiguration": "Configuration du formulaire",
       "greeting": "Message d'accueil",
       "documentsRagMode": "Source de réponse",
@@ -26,7 +26,7 @@
       },
       "placeholders": {
         "name": "Entrez le nom de l'agent",
-        "defaultPrompt": "Entrez le prompt par défaut",
+        "instructions": "Entrez le prompt par défaut",
         "greeting": "Message d'accueil facultatif envoyé par l'agent au début d'une nouvelle conversation",
         "documentsRagMode": "Sélectionnez l'usage des documents",
         "model": "Sélectionnez le modèle",

@@ -27,6 +27,8 @@ import { AddContext, RequireContext } from "@/common/context/require-context.dec
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
@@ -53,6 +55,7 @@ export class EvaluationExtractionRunsController {
     private readonly csvExportService: EvaluationExtractionRunCsvExportService,
     private readonly runStatusStreamService: EvaluationExtractionRunStatusStreamService,
     private readonly statusNotifierService: EvaluationExtractionRunStatusNotifierService,
+    private readonly agentSettingsService: AgentSettingsService,
   ) {}
 
   @Post(EvaluationExtractionRunsRoutes.createOne.path)
@@ -62,11 +65,16 @@ export class EvaluationExtractionRunsController {
     @Req() request: EndpointRequestWithProject,
     @Body() { payload }: typeof EvaluationExtractionRunsRoutes.createOne.request,
   ): Promise<typeof EvaluationExtractionRunsRoutes.createOne.response> {
+    const agentSettings = await this.agentSettingsService.getLast({
+      connectScope: getRequiredConnectScope(request),
+      agentId: payload.agentId,
+    })
     const run = await this.evaluationExtractionRunsService.createRun({
       connectScope: getRequiredConnectScope(request),
       fields: {
         evaluationExtractionDatasetId: payload.evaluationExtractionDatasetId,
         agentId: payload.agentId,
+        agentSettingsId: agentSettings.id,
         keyMapping: payload.keyMapping,
       },
     })

@@ -9,6 +9,7 @@ import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { ConversationAgentSessionCategory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity"
 import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messages/agent-messages.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { ProjectsAnalyticsModule } from "./projects-analytics.module"
@@ -48,6 +49,14 @@ describe("ProjectsAnalyticsService", () => {
     const secondaryAgent = agentFactory.transient({ organization, project }).build()
     await repositories.agentRepository.save([primaryAgent, secondaryAgent])
 
+    const primaryAgentSettings = agentSettingsFactory
+      .transient({ organization, project, agent: primaryAgent })
+      .build()
+    const secondaryAgentSettings = agentSettingsFactory
+      .transient({ organization, project, agent: secondaryAgent })
+      .build()
+    await repositories.agentSettingsRepository.save([primaryAgentSettings, secondaryAgentSettings])
+
     const session1Day1 = conversationAgentSessionFactory
       .transient({ organization, project, agent: primaryAgent, user })
       .build({ createdAt: hours(1).after(day1Start), updatedAt: new Date() })
@@ -71,18 +80,38 @@ describe("ProjectsAnalyticsService", () => {
     const userMessagesSession1 = [
       agentMessageFactory
         .user()
-        .transient({ organization, project, session: session1Day1 })
-        .build({ createdAt: minutes(10).after(day1Start) }),
+        .transient({
+          organization,
+          project,
+          session: session1Day1,
+          agentSettings: primaryAgentSettings,
+        })
+        .build({
+          createdAt: minutes(10).after(day1Start),
+        }),
       agentMessageFactory
         .user()
-        .transient({ organization, project, session: session1Day1 })
-        .build({ createdAt: minutes(20).after(day1Start) }),
+        .transient({
+          organization,
+          project,
+          session: session1Day1,
+          agentSettings: primaryAgentSettings,
+        })
+        .build({
+          createdAt: minutes(20).after(day1Start),
+          agentSettingsId: primaryAgentSettings.id,
+        }),
     ]
 
     const userMessagesSession3 = Array.from({ length: 4 }, (_unusedValue, messageIndex) =>
       agentMessageFactory
         .user()
-        .transient({ organization, project, session: session3Day2 })
+        .transient({
+          organization,
+          project,
+          session: session3Day2,
+          agentSettings: primaryAgentSettings,
+        })
         .build({
           createdAt: minutes((messageIndex + 1) * 5).after(day2Start),
         }),
@@ -91,12 +120,26 @@ describe("ProjectsAnalyticsService", () => {
     const userMessagesSession4 = [
       agentMessageFactory
         .user()
-        .transient({ organization, project, session: session4Day2 })
-        .build({ createdAt: minutes(15).after(day2Start) }),
+        .transient({
+          organization,
+          project,
+          session: session4Day2,
+          agentSettings: secondaryAgentSettings,
+        })
+        .build({
+          createdAt: minutes(15).after(day2Start),
+        }),
       agentMessageFactory
         .user()
-        .transient({ organization, project, session: session4Day2 })
-        .build({ createdAt: minutes(25).after(day2Start) }),
+        .transient({
+          organization,
+          project,
+          session: session4Day2,
+          agentSettings: secondaryAgentSettings,
+        })
+        .build({
+          createdAt: minutes(25).after(day2Start),
+        }),
     ]
 
     await repositories.agentMessageRepository.save([
@@ -223,6 +266,11 @@ describe("ProjectsAnalyticsService", () => {
       .build()
     await repositories.agentRepository.save(otherAgent)
 
+    const otherAgentSettings = agentSettingsFactory
+      .transient({ organization: otherOrganization, project: otherProject, agent: otherAgent })
+      .build()
+    await repositories.agentSettingsRepository.save(otherAgentSettings)
+
     const leakedSession = conversationAgentSessionFactory
       .transient({
         organization: otherOrganization,
@@ -240,9 +288,11 @@ describe("ProjectsAnalyticsService", () => {
           organization: otherOrganization,
           project: otherProject,
           session: leakedSession,
+          agentSettings: otherAgentSettings,
         })
         .build({
           createdAt: minutes((messageIndex + 1) * 5).after(dayStart),
+          agentSettingsId: otherAgentSettings.id,
         }),
     )
     await repositories.agentMessageRepository.save(leakedUserMessages)

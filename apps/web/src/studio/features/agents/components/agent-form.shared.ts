@@ -23,7 +23,7 @@ export type AgentFormData = CreateAgentDto | UpdateAgentDto
 export type AgentFormValues = {
   name: string
   locale: AgentLocale
-  defaultPrompt: string
+  instructions: string
   greetingMessage?: string | null
   model: AgentModel
   temperature: number
@@ -56,7 +56,7 @@ export function getDefaultFormValues({
   const value = {
     type: agentType,
     name: "",
-    defaultPrompt: agentDefaultPromptMap[agentType],
+    instructions: agentDefaultPromptMap[agentType],
     greetingMessage: undefined,
     documentsRagMode: DocumentsRagMode.All,
     model: AgentModel.Gemini25Flash,

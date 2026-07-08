@@ -1,5 +1,5 @@
 import { ToolName } from "@caseai-connect/api-contracts"
-import type { Agent } from "@/domains/agents/agent.entity"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
 import { buildResourceLink } from "@/domains/resource-libraries/resource-library-link.helper"
 
@@ -44,13 +44,13 @@ Always answer in ${locale === "en" ? "English" : locale === "fr" ? "French" : "u
       `.trim(),
 
   tools: ({
-    agent,
+    agentSettings,
     names,
     descriptions = {},
   }: {
     names: string[]
     descriptions?: Record<string, string>
-    agent: Agent
+    agentSettings: AgentSettings
   }) =>
     names.length === 0
       ? ""
@@ -66,7 +66,7 @@ ${names
 
       case ToolName.FillForm:
         return `[${name}]: Use the ${name} tool to fill the form progressively. Call it with getFormState: true at any time — including alongside partial field updates — to retrieve the current form state and know which fields are already filled. Only pass fields that are new or have changed — never re-send fields already stored. Ask the user for any missing information until the form is complete. Form fields:
-${Object.entries(agent.outputJsonSchema?.properties ?? {})
+${Object.entries(agentSettings.outputJsonSchema?.properties ?? {})
   .map(
     ([key, value]) => `- ${key}: ${"description" in value ? value.description : "No description"}`,
   )

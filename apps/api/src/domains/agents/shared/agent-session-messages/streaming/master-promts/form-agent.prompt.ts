@@ -1,12 +1,12 @@
-import type { Agent } from "@/domains/agents/agent.entity"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { promptHelpers } from "./helpers"
 
 export function buildFormAgentPrompt({
-  agent,
+  agentSettings,
   toolDescriptions,
   toolNames,
 }: {
-  agent: Agent
+  agentSettings: AgentSettings
   toolDescriptions?: Record<string, string>
   toolNames: string[]
 }): string {
@@ -15,8 +15,8 @@ export function buildFormAgentPrompt({
   // across runs. Putting the daily-changing date first would invalidate the
   // whole cached prefix on every date rollover.
   return `# Instructions:
-  
-${agent.defaultPrompt}
+
+${agentSettings.instructions}
 
 Your primary task is to help the user complete the form by asking questions.
 If a question order is provided, follow it.
@@ -25,9 +25,8 @@ From each user response, extract and fill as many fields as possible.
 Update any field whenever the user revises a previous answer.
 If a user response is unclear or doesn't map to any field, ask them to clarify or rephrase.
 
-${promptHelpers.tools({ names: toolNames, descriptions: toolDescriptions, agent })}
+${promptHelpers.tools({ names: toolNames, descriptions: toolDescriptions, agentSettings })}
 
-${promptHelpers.language(agent.locale)}
 
 ${promptHelpers.now()}`
 }

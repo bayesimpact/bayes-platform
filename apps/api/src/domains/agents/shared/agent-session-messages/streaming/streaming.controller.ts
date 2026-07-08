@@ -3,11 +3,14 @@ import type { MessageEvent } from "@nestjs/common"
 import { Controller, ForbiddenException, Query, Req, Sse, UseGuards } from "@nestjs/common"
 import { Observable } from "rxjs"
 import type { EndpointRequestWithAgentSession } from "@/common/context/request.interface"
+import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import type { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -18,7 +21,10 @@ import type { AgentSessionScope } from "./streaming-session.types"
 @RequireContext("organization", "project", "agent", "agentSession")
 @Controller()
 export class StreamingController {
-  constructor(private readonly chatStreamingService: StreamingService) {}
+  constructor(
+    private readonly chatStreamingService: StreamingService,
+    private readonly agentSettingsService: AgentSettingsService,
+  ) {}
 
   @CheckPolicy((policy) => policy.canList())
   @Sse(AgentSessionMessagesRoutes.stream.path, { method: 0 /* GET */ })
@@ -33,12 +39,7 @@ export class StreamingController {
       const organizationId = request.organizationId
       const projectId = request.project.id
       const agent = request.agent
-
-      const agentSessionScope: AgentSessionScope = {
-        connectScope: { organizationId, projectId },
-        agent,
-        session: request.agentSession,
-      }
+      const connectScope = getRequiredConnectScope(request)
 
       if (!userContent) {
         throw new ForbiddenException("Missing user content")
@@ -47,10 +48,19 @@ export class StreamingController {
       if (typeof userContent === "string" && !userContent.trim()) {
         throw new ForbiddenException("User content must not be empty")
       }
-
       return new Observable<StreamEvent>((subscriber) => {
         void (async () => {
           try {
+            const agentSettings = await this.agentSettingsService.getLast({
+              connectScope: { organizationId, projectId },
+              agentId: agent.id,
+            })
+            const agentSessionScope: AgentSessionScope = {
+              connectScope,
+              agent,
+              agentSettings,
+              session: request.agentSession,
+            }
             const events = this.chatStreamingService.streamAgentResponse({
               agentSessionScope,
               userContent,

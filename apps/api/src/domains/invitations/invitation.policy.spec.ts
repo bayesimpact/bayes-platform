@@ -1,5 +1,6 @@
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentMembershipFactory } from "@/domains/agents/memberships/agent-membership.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { organizationMembershipFactory } from "@/domains/organizations/memberships/organization-membership.factory"
 import { organizationFactory } from "@/domains/organizations/organization.factory"
 import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.entity"
@@ -17,15 +18,26 @@ const user = userFactory.build()
 const project = projectFactory.transient({ organization }).build()
 const projectInDifferentOrg = projectFactory.transient({ organization: otherOrganization }).build()
 const agent = agentFactory.transient({ organization, project }).build()
+const agentSettings = agentSettingsFactory.transient({ organization, project, agent }).build()
 const agentInDifferentOrg = agentFactory
   .transient({ organization: otherOrganization, project: projectInDifferentOrg })
   .build()
-const reviewCampaign = reviewCampaignFactory.transient({ organization, project, agent }).build()
+const agentSettingsInDifferentOrg = agentSettingsFactory
+  .transient({
+    organization: otherOrganization,
+    project: projectInDifferentOrg,
+    agent: agentInDifferentOrg,
+  })
+  .build()
+const reviewCampaign = reviewCampaignFactory
+  .transient({ organization, project, agent, agentSettings })
+  .build()
 const reviewCampaignInDifferentOrg = reviewCampaignFactory
   .transient({
     organization: otherOrganization,
     project: projectInDifferentOrg,
     agent: agentInDifferentOrg,
+    agentSettings: agentSettingsInDifferentOrg,
   })
   .build()
 

@@ -5,7 +5,6 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { agentFactory } from "@/domains/agents/agent.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { AgentsModule } from "../agents.module"
@@ -36,17 +35,19 @@ describe("FormAgentSessionsService", () => {
   })
 
   const createFormAgent = async () => {
-    const { organization, project, user } = await createOrganizationWithAgent(repositories)
-    const formAgent = await repositories.agentRepository.save(
-      agentFactory.transient({ organization, project }).build({
-        name: "Intake Form",
-        type: "form",
-        outputJsonSchema: { type: "object", properties: {} },
-      }),
+    const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        agent: { name: "Intake Form", type: "form" },
+        agentSettings: {
+          outputJsonSchema: { type: "object", properties: {} },
+        },
+      },
     )
     return {
       connectScope: { organizationId: organization.id, projectId: project.id },
-      formAgent,
+      formAgent: agent,
+      formAgentSettings: agentSettings,
       user,
     }
   }
@@ -124,11 +125,11 @@ describe("FormAgentSessionsService", () => {
     })
 
     it("excludes sub-sessions from the user-facing session list", async () => {
-      const { connectScope, formAgent, user } = await createFormAgent()
+      const { connectScope, formAgent, formAgentSettings, user } = await createFormAgent()
 
       const userSession = await service.createSession({
         connectScope,
-        agentId: formAgent.id,
+        agentSettingsId: formAgentSettings.id,
         userId: user.id,
         type: "playground",
       })

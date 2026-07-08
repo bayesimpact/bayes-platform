@@ -53,11 +53,11 @@ describe("AgentSessionMessagesRoutes.listMessages", () => {
   })
 
   const createContext = async () => {
-    const { organization, user, project, agent, agentSession } =
+    const { organization, user, project, agent, agentSettings, agentSession } =
       await createOrganizationWithAgentSession({ repositories, agentType: "conversation" })
 
     // add 2 messages (from the assistant and the user) to the session
-    await createChitChatConversation(organization, project, agentSession, {
+    await createChitChatConversation(organization, project, agentSession, agentSettings, {
       agentMessageRepository: repositories.agentMessageRepository,
     })
 

@@ -7,6 +7,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { agentFactory } from "@/domains/agents/agent.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
@@ -40,11 +41,13 @@ describe("PublicAgentSessionsService", () => {
     const { organization, project } = await createOrganizationWithProject(repositories)
     const agent = agentFactory.transient({ organization, project }).build()
     await repositories.agentRepository.save(agent)
+    const agentSettings = agentSettingsFactory.transient({ organization, project, agent }).build()
+    await repositories.agentSettingsRepository.save(agentSettings)
     const embedConfig = agentEmbedConfigFactory
       .transient({ organization, project, agent })
       .build({ isEnabled: true })
     await repositories.agentEmbedConfigRepository.save(embedConfig)
-    return { organization, project, agent, embedConfig }
+    return { organization, project, agent, agentSettings, embedConfig }
   }
 
   describe("createSession", () => {
@@ -149,7 +152,7 @@ describe("PublicAgentSessionsService", () => {
     })
 
     it("should return messages belonging to the session in chronological order", async () => {
-      const { embedConfig } = await buildEmbedConfig()
+      const { embedConfig, agentSettings } = await buildEmbedConfig()
       const { session } = await service.createSession(embedConfig)
 
       const connectScope = {
@@ -159,6 +162,7 @@ describe("PublicAgentSessionsService", () => {
       await repositories.agentMessageRepository.save({
         id: randomUUID(),
         sessionId: session.id,
+        agentSettingsId: agentSettings.id,
         ...connectScope,
         role: "user" as const,
         content: "First message",
@@ -175,6 +179,7 @@ describe("PublicAgentSessionsService", () => {
       await repositories.agentMessageRepository.save({
         id: randomUUID(),
         sessionId: session.id,
+        agentSettingsId: agentSettings.id,
         ...connectScope,
         role: "assistant" as const,
         content: "Response",
@@ -197,7 +202,7 @@ describe("PublicAgentSessionsService", () => {
     })
 
     it("should mark streaming messages older than 5 minutes as aborted", async () => {
-      const { embedConfig } = await buildEmbedConfig()
+      const { embedConfig, agentSettings } = await buildEmbedConfig()
       const { session } = await service.createSession(embedConfig)
 
       const connectScope = {
@@ -209,6 +214,7 @@ describe("PublicAgentSessionsService", () => {
       await repositories.agentMessageRepository.save({
         id: stuckMessageId,
         sessionId: session.id,
+        agentSettingsId: agentSettings.id,
         ...connectScope,
         role: "assistant" as const,
         content: "",
@@ -232,7 +238,7 @@ describe("PublicAgentSessionsService", () => {
     })
 
     it("should not mark recent streaming messages as aborted", async () => {
-      const { embedConfig } = await buildEmbedConfig()
+      const { embedConfig, agentSettings } = await buildEmbedConfig()
       const { session } = await service.createSession(embedConfig)
 
       const connectScope = {
@@ -243,6 +249,7 @@ describe("PublicAgentSessionsService", () => {
       await repositories.agentMessageRepository.save({
         id: recentMessageId,
         sessionId: session.id,
+        agentSettingsId: agentSettings.id,
         ...connectScope,
         role: "assistant" as const,
         content: "",

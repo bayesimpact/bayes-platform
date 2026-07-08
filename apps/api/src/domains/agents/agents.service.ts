@@ -5,6 +5,14 @@ import { DataSource, In, type Repository } from "typeorm"
 import { ALL_ENTITIES } from "@/common/all-entities"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+import {
+  extractAgentSettingsCreateFields,
+  extractAgentSettingsUpdateFields,
+} from "@/domains/agents/settings/agent.settings.functions"
+import type {
+  AgentSettingsCreateFields,
+  AgentSettingsUpdateFields,
+} from "@/domains/agents/settings/agent.settings.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentTagsService } from "../documents/tags/document-tags.service"
 import type { DocumentTagsUpdateFields } from "../documents/tags/document-tags.types"
@@ -17,6 +25,9 @@ import { AgentMembershipsService } from "./memberships/agent-memberships.service
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSessionCategoriesService } from "./session-categories/agent-session-categories.service"
 import { ProjectAgentSessionCategory } from "./session-categories/project-agent-session-category.entity"
+import type { AgentSettings } from "./settings/agent-settings.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSettingsService } from "./settings/agent-settings.service"
 
 type AgentProjectCategoriesUpdateFields = {
   projectAgentSessionCategoryIds?: string[]
@@ -35,6 +46,7 @@ export class AgentsService {
     agentRepository: Repository<Agent>,
     @InjectRepository(ProjectAgentSessionCategory)
     private readonly projectAgentSessionCategoryRepository: Repository<ProjectAgentSessionCategory>,
+    private readonly agentSettingsService: AgentSettingsService,
     private readonly documentTagsService: DocumentTagsService,
     private readonly resourceLibrariesService: ResourceLibrariesService,
     private readonly agentSessionCategoriesService: AgentSessionCategoriesService,
@@ -55,15 +67,12 @@ export class AgentsService {
     userId: string
     connectScope: RequiredConnectScope
     fields: Pick<RequiredConnectScope, never> &
-      Pick<
-        Agent,
-        "defaultPrompt" | "documentsRagMode" | "name" | "model" | "temperature" | "locale" | "type"
-      > &
-      Partial<Pick<Agent, "outputJsonSchema" | "greetingMessage">> &
+      Pick<Agent, "name" | "type"> &
+      AgentSettingsCreateFields &
       DocumentTagsUpdateFields &
       AgentProjectCategoriesUpdateFields &
       AgentResourceLibrariesUpdateFields
-  }): Promise<Agent> {
+  }): Promise<{ agent: Agent; agentSettings: AgentSettings }> {
     this.validateAgentName(fields.name)
 
     const outputJsonSchema = fields.outputJsonSchema || null
@@ -86,10 +95,23 @@ export class AgentsService {
     const agent = await this.agentConnectRepository.createAndSave(connectScope, {
       ...agentFields,
       type: agentFields.type,
-      outputJsonSchema,
-      greetingMessage,
       documentTags,
       resourceLibraries,
+
+      //fixme DOO : to delete as the same time we delete the fields in db: it's just a security ...
+      _deleted_model: agentFields.model,
+      _deleted_locale: agentFields.locale,
+      _deleted_defaultPrompt: agentFields.instructions,
+      _deleted_temperature: agentFields.temperature,
+      _deleted_documentsRagMode: agentFields.documentsRagMode,
+      _deleted_outputJsonSchema: agentFields.outputJsonSchema,
+      _deleted_greetingMessage: agentFields.greetingMessage,
+    })
+    const agentSettingsValues = extractAgentSettingsCreateFields(agentFields)
+    const agentSettings = await this.agentSettingsService.createSettingsIfChanged({
+      connectScope,
+      agentId: agent.id,
+      agentSettings: { ...agentSettingsValues, outputJsonSchema, greetingMessage },
     })
 
     if (projectAgentSessionCategoryIds !== undefined) {
@@ -117,7 +139,7 @@ export class AgentsService {
       excludeUserId: userId,
     })
 
-    return agent
+    return { agent, agentSettings }
   }
 
   /**
@@ -168,31 +190,27 @@ export class AgentsService {
     connectScope: RequiredConnectScope
     agentId: string
     fieldsToUpdate: Pick<RequiredConnectScope, never> &
-      Partial<
-        Pick<
-          Agent,
-          | "name"
-          | "defaultPrompt"
-          | "greetingMessage"
-          | "documentsRagMode"
-          | "model"
-          | "temperature"
-          | "locale"
-          | "type"
-          | "outputJsonSchema"
-        >
-      > &
+      Partial<Pick<Agent, "name" | "type">> &
+      AgentSettingsUpdateFields &
       DocumentTagsUpdateFields &
       AgentProjectCategoriesUpdateFields &
       AgentResourceLibrariesUpdateFields
-  }): Promise<Agent> {
-    const { name, defaultPrompt, documentsRagMode, model, temperature, locale, type } =
+  }): Promise<{ agent: Agent; agentSettings: AgentSettings }> {
+    const { name, type, tagsToAdd, tagsToRemove, projectAgentSessionCategoryIds, ...fields } =
       fieldsToUpdate
+
+    let agentSettingsFieldsToUpdate = extractAgentSettingsUpdateFields(fields)
+    agentSettingsFieldsToUpdate = {
+      ...agentSettingsFieldsToUpdate,
+      ...(agentSettingsFieldsToUpdate.greetingMessage !== undefined && {
+        greetingMessage: normalizeGreetingMessage(agentSettingsFieldsToUpdate.greetingMessage),
+      }),
+    }
 
     this.validateAgentName(name)
 
     const needsTags =
-      documentsRagMode !== undefined ||
+      agentSettingsFieldsToUpdate.documentsRagMode !== undefined ||
       fieldsToUpdate.tagsToAdd !== undefined ||
       fieldsToUpdate.tagsToRemove !== undefined
     const needsResourceLibraries = fieldsToUpdate.resourceLibraryIds !== undefined
@@ -210,11 +228,16 @@ export class AgentsService {
       throw new NotFoundException(`Agent with id ${agentId} not found`)
     }
 
+    const agentSettings = await this.agentSettingsService.getLast({
+      connectScope,
+      agentId,
+    })
+
     const nextType = type ?? agent.type
     const nextOutputJsonSchema =
-      fieldsToUpdate.outputJsonSchema !== undefined
-        ? fieldsToUpdate.outputJsonSchema
-        : agent.outputJsonSchema
+      agentSettingsFieldsToUpdate.outputJsonSchema !== undefined
+        ? agentSettingsFieldsToUpdate.outputJsonSchema
+        : agentSettings.outputJsonSchema
 
     this.validateExtractionAgent({
       type: nextType,
@@ -224,8 +247,8 @@ export class AgentsService {
     if (needsTags) {
       agent.documentTags = await this.resolveDocumentTags({
         currentTags: agent.documentTags ?? [],
-        tagsToAdd: fieldsToUpdate.tagsToAdd,
-        tagsToRemove: fieldsToUpdate.tagsToRemove,
+        tagsToAdd: tagsToAdd,
+        tagsToRemove: tagsToRemove,
       })
     }
 
@@ -251,21 +274,34 @@ export class AgentsService {
 
     Object.assign(agent, {
       ...(name !== undefined && { name }),
-      ...(defaultPrompt !== undefined && { defaultPrompt }),
-      ...(documentsRagMode !== undefined && { documentsRagMode }),
-      ...(model !== undefined && { model }),
-      ...(temperature !== undefined && { temperature }),
-      ...(locale !== undefined && { locale }),
       ...(type !== undefined && { type }),
-      ...(fieldsToUpdate.outputJsonSchema !== undefined && {
-        outputJsonSchema: fieldsToUpdate.outputJsonSchema,
+      //fixme DOO : to delete as the same time we delete the fields in db: it's just a security ...
+      ...(agentSettingsFieldsToUpdate.model !== undefined && {
+        _deleted_model: agentSettingsFieldsToUpdate.model,
       }),
-      ...(fieldsToUpdate.greetingMessage !== undefined
+      ...(agentSettingsFieldsToUpdate.locale !== undefined && {
+        _deleted_locale: agentSettingsFieldsToUpdate.locale,
+      }),
+      ...(agentSettingsFieldsToUpdate.instructions !== undefined && {
+        _deleted_defaultPrompt: agentSettingsFieldsToUpdate.instructions,
+      }),
+      ...(agentSettingsFieldsToUpdate.temperature !== undefined && {
+        _deleted_temperature: agentSettingsFieldsToUpdate.temperature,
+      }),
+      ...(agentSettingsFieldsToUpdate.documentsRagMode !== undefined && {
+        _deleted_documentsRagMode: agentSettingsFieldsToUpdate.documentsRagMode,
+      }),
+      ...(agentSettingsFieldsToUpdate.outputJsonSchema !== undefined && {
+        _deleted_outputJsonSchema: agentSettingsFieldsToUpdate.outputJsonSchema,
+      }),
+      ...(agentSettingsFieldsToUpdate.greetingMessage !== undefined
         ? {
-            greetingMessage: normalizeGreetingMessage(fieldsToUpdate.greetingMessage),
+            _deleted_greetingMessage: normalizeGreetingMessage(
+              agentSettingsFieldsToUpdate.greetingMessage,
+            ),
           }
         : {
-            greetingMessage: null,
+            _deleted_greetingMessage: null,
           }),
     })
 
@@ -273,7 +309,25 @@ export class AgentsService {
     updatedAgent.sessionCategories =
       await this.agentSessionCategoriesService.listActiveCategoriesForAgent(agent.id)
 
-    return updatedAgent
+    const updatedAgentSettings = await this.agentSettingsService.createSettingsIfChanged({
+      connectScope,
+      agentId: agent.id,
+      agentSettings: {
+        ...extractAgentSettingsUpdateFields(agentSettings),
+        ...agentSettingsFieldsToUpdate,
+        ...(agentSettingsFieldsToUpdate.greetingMessage !== undefined
+          ? {
+              greetingMessage: normalizeGreetingMessage(
+                agentSettingsFieldsToUpdate.greetingMessage,
+              ),
+            }
+          : {
+              greetingMessage: null,
+            }),
+      },
+    })
+
+    return { agent: updatedAgent, agentSettings: updatedAgentSettings }
   }
 
   async deleteAgent(agent: Agent): Promise<void> {
@@ -304,7 +358,7 @@ export class AgentsService {
     outputJsonSchema,
   }: {
     type: Agent["type"]
-    outputJsonSchema: Agent["outputJsonSchema"]
+    outputJsonSchema: AgentSettings["outputJsonSchema"]
   }): void {
     if (type === "extraction" && !outputJsonSchema) {
       throw new UnprocessableEntityException("Extraction agent requires outputJsonSchema")

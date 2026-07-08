@@ -15,7 +15,6 @@ import type { DocumentTag } from "../documents/tags/document-tag.entity"
 import { EvaluationReport } from "../evaluations/reports/evaluation-report.entity"
 import { AgentMcpServer } from "../mcp-servers/agent-mcp-server.entity"
 import { ResourceLibrary } from "../resource-libraries/resource-library.entity"
-import { ExtractionAgentSession } from "./extraction-agent-sessions/extraction-agent-session.entity"
 import { AgentMembership } from "./memberships/agent-membership.entity"
 
 type AgentSubAgentRelation = {
@@ -35,32 +34,8 @@ export class Agent extends ConnectEntityBase {
   @Column({ type: "varchar" })
   name!: string
 
-  @Column({ type: "text", name: "default_prompt" })
-  defaultPrompt!: string
-
-  @Column({ type: "varchar" })
-  model!: AgentModel
-
-  @Column({ type: "decimal", precision: 3, scale: 2, default: 0 })
-  temperature!: AgentTemperature
-
-  @Column({ type: "varchar" })
-  locale!: AgentLocale
-
   @Column({ type: "varchar", default: "conversation" })
   type!: AgentType
-
-  @Column({ type: "varchar", name: "documents_rag_mode", default: "all" })
-  documentsRagMode!: DocumentsRagMode
-
-  @Column({ type: "text", nullable: true, name: "instruction_prompt" })
-  instructionPrompt!: string | null
-
-  @Column({ type: "text", nullable: true, name: "greeting_message" })
-  greetingMessage!: string | null
-
-  @Column({ type: "jsonb", nullable: true, name: "output_json_schema" })
-  outputJsonSchema!: Record<string, unknown> | null
 
   @OneToMany(
     () => ConversationAgentSession,
@@ -74,11 +49,12 @@ export class Agent extends ConnectEntityBase {
   )
   evaluationReports!: EvaluationReport[]
 
-  @OneToMany(
-    () => ExtractionAgentSession,
-    (extractionAgentSession) => extractionAgentSession.agent,
-  )
-  extractionSessions!: ExtractionAgentSession[]
+  //fixme DOO : ensure useless
+  // @OneToMany(
+  //   () => ExtractionAgentSession,
+  //   (extractionAgentSession) => extractionAgentSession._deleted_agent,
+  // )
+  // _deleted_extractionSessions!: ExtractionAgentSession[]
 
   @ManyToMany("DocumentTag", (tag: DocumentTag) => tag.agents)
   @JoinTable({
@@ -128,4 +104,27 @@ export class Agent extends ConnectEntityBase {
     inverseJoinColumn: { name: "resource_library_id", referencedColumnName: "id" },
   })
   resourceLibraries!: ResourceLibrary[]
+
+  @Column({ type: "text", name: "_deleted_default_prompt", nullable: true })
+  _deleted_defaultPrompt!: string | null
+
+  @Column({ type: "varchar", nullable: true })
+  _deleted_model!: AgentModel | null
+
+  @Column({ type: "decimal", precision: 3, scale: 2, default: 0, nullable: true })
+  _deleted_temperature!: AgentTemperature | null
+
+  @Column({ type: "varchar", nullable: true })
+  _deleted_locale!: AgentLocale | null
+  @Column({ type: "varchar", name: "_deleted_documents_rag_mode", default: "all", nullable: true })
+  _deleted_documentsRagMode!: DocumentsRagMode | null
+
+  @Column({ type: "text", nullable: true, name: "_deleted_instruction_prompt" })
+  _deleted_instructionPrompt!: string | null
+
+  @Column({ type: "text", nullable: true, name: "_deleted_greeting_message" })
+  _deleted_greetingMessage!: string | null
+
+  @Column({ type: "jsonb", nullable: true, name: "_deleted_output_json_schema" })
+  _deleted_outputJsonSchema!: Record<string, unknown> | null
 }
