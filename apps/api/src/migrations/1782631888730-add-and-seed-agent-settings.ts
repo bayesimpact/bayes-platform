@@ -11,16 +11,6 @@ export class AddAndSeedAgentSettings1782631888730 implements MigrationInterface 
       `ALTER TABLE "agent_settings" ADD CONSTRAINT "FK_7708bd77e5ffe5455db0c86e6cc" FOREIGN KEY ("agent_id") REFERENCES "agent"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
     )
 
-    //remove feedback on orphans messages
-    await queryRunner.query(`
-    DELETE FROM agent_message_feedback AS amf
-    WHERE amf.agent_message_id IN
-    (SELECT id FROM agent_message AS am                       
-    WHERE NOT EXISTS (SELECT DISTINCT 1 FROM form_agent_session AS fas WHERE fas.id = am.session_id)
-    AND NOT EXISTS (SELECT DISTINCT 1 FROM conversation_agent_session AS cas WHERE cas.id = am.session_id)
-    AND NOT EXISTS (SELECT DISTINCT 1 FROM extraction_agent_session AS eas WHERE eas.id = am.session_id)
-    AND NOT EXISTS (SELECT DISTINCT 1 FROM public_agent_session AS pas WHERE pas.id = am.session_id))`)
-
     //remove orphans messages due to a fixed issue
     await queryRunner.query(`
     DELETE FROM agent_message AS am
