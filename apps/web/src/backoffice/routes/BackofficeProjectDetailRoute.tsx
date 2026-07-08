@@ -8,6 +8,7 @@ import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { selectBackofficeProjectDetail } from "../features/backoffice/backoffice.selectors"
 import { backofficeActions } from "../features/backoffice/backoffice.slice"
+import { FeatureFlagCell } from "../features/backoffice/components/BackofficeTable"
 import {
   BackofficeAgentRoutes,
   BackofficeOrganizationRoutes,
@@ -38,6 +39,7 @@ export function BackofficeProjectDetailRoute() {
 
 function WithData() {
   const navigate = useNavigate()
+  const dispatch = useAppDispatch()
   const project = useValue(selectBackofficeProjectDetail)
 
   return (
@@ -54,17 +56,29 @@ function WithData() {
         </Button>
       </div>
 
-      <div className="space-y-1">
-        <h2 className="text-xl font-semibold">{project.name}</h2>
-        <Link
-          to={BackofficeOrganizationRoutes.organization.build({
-            organizationId: project.organizationId,
-          })}
-          className="text-muted-foreground hover:underline flex items-center gap-1 w-fit"
-        >
-          {project.organizationName}
-          <ExternalLinkIcon className="size-3 opacity-60" />
-        </Link>
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold">{project.name}</h2>
+          <Link
+            to={BackofficeOrganizationRoutes.organization.build({
+              organizationId: project.organizationId,
+            })}
+            className="text-muted-foreground hover:underline flex items-center gap-1 w-fit"
+          >
+            {project.organizationName}
+            <ExternalLinkIcon className="size-3 opacity-60" />
+          </Link>
+        </div>
+        <FeatureFlagCell
+          projectName={project.name}
+          enabledFlags={project.featureFlags}
+          onAdd={(featureFlagKey) =>
+            dispatch(backofficeActions.addFeatureFlag({ projectId: project.id, featureFlagKey }))
+          }
+          onRemove={(featureFlagKey) =>
+            dispatch(backofficeActions.removeFeatureFlag({ projectId: project.id, featureFlagKey }))
+          }
+        />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

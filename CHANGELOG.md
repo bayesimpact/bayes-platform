@@ -11,6 +11,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 -  (beta) Gemini 3.1 Flash Lite & Gemini 3.5 Flash available for all Agents
 
 ### Changed
+- Backoffice feature flags are now managed through a searchable dialog with side-by-side Available/Enabled columns, reachable from both the projects list and the project detail page
 
 ### Fixed
 
