@@ -49,10 +49,7 @@ This spins up the test DB, runs migrations, and runs the API test suite in paral
 
 Only if checked. This requires committed work on a feature branch (not `main`).
 
-1. If there are uncommitted changes, commit them first using Conventional Commits format (see the `commit` skill's conventions), ending the message with:
-   ```
-   Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
-   ```
+1. If there are uncommitted changes, commit them first using Conventional Commits format (see the `commit` skill's conventions).
 2. Push the branch: `git push -u origin <branch>`.
 3. Open the PR with a heredoc body:
    ```bash
@@ -60,7 +57,6 @@ Only if checked. This requires committed work on a feature branch (not `main`).
    ## Summary
    <what changed and why>
 
-   🤖 Generated with [Claude Code](https://claude.com/claude-code)
    EOF
    )"
    ```
