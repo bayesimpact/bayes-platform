@@ -9,6 +9,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 -  (beta) Gemini 3.1 Flash Lite & Gemini 3.5 Flash available for all Agents
+- Shared UI library gains shadcn chat primitives — `message`, `bubble`, `marker`, `attachment`, and `message-scroller` — under `@caseai-connect/ui/shad`, plus `xs`/`icon-xs` button sizes
 
 ### Changed
 - Agent editor saves each configuration tab independently, so editing one tab no longer requires re-saving the whole agent; switching tabs with unsaved edits prompts to discard them
