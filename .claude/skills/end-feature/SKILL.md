@@ -61,6 +61,7 @@ Only if checked. This requires committed work on a feature branch (not `main`).
    )"
    ```
 4. Report the PR URL as a clickable link.
+5. Finally, ask the user (via `AskUserQuestion`) whether they want to switch back to the `main` branch or stay on the feature branch. If they choose `main`, run `git switch main`; otherwise stay put.
 
 ## Notes
 
