@@ -9,6 +9,8 @@ import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { TransactionService } from "@/common/transaction/transaction.service"
 import { Agent } from "@/domains/agents/agent.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
@@ -53,6 +55,7 @@ export class ReviewCampaignsService {
     private readonly reviewCampaignRepository: ReviewCampaignRepository,
     private readonly agentSettingsService: AgentSettingsService,
     private readonly testerService: TesterService,
+    private readonly transactionService: TransactionService,
   ) {
     this.reviewCampaignConnectRepository = new ConnectRepository(
       reviewCampaignOrmRepository,
@@ -228,9 +231,9 @@ export class ReviewCampaignsService {
       throw new ConflictException("Only draft campaigns can be deleted")
     }
 
-    await this.reviewCampaignConnectRepository.deleteOneById({
-      connectScope,
-      id: reviewCampaignId,
+    await this.transactionService.run(async () => {
+      await this.reviewCampaignRepository.softDelete(reviewCampaignId)
+      await this.reviewCampaignMembershipsService.deleteMembership({ campaignId: reviewCampaignId })
     })
   }
 

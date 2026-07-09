@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common"
 import type { Repository } from "typeorm"
+import { ALL_ENTITIES } from "@/common/all-entities"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
@@ -33,6 +34,21 @@ export class ReviewCampaignRepository {
       campaign,
       memberCount: Number(raw[index]?.memberCount ?? 0),
     }))
+  }
+
+  async softDelete(campaignId: string): Promise<void> {
+    const entityManager = this.transactionService.getManager()
+
+    for (const entity of ALL_ENTITIES) {
+      const hasCampaignId = entityManager.connection
+        .getMetadata(entity)
+        .columns.some((column) => column.propertyName === "campaignId")
+      if (hasCampaignId) {
+        await entityManager.softDelete(entity, { campaignId })
+      }
+    }
+
+    await entityManager.softDelete(ReviewCampaign, { id: campaignId })
   }
 
   private repo(): Repository<ReviewCampaign> {

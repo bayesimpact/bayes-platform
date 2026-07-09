@@ -89,6 +89,14 @@ export class ReviewCampaignMembershipsService {
     )
   }
 
+  /**
+   * Soft-deletes all review-campaign memberships for the given campaign.
+   * Joins an outer transaction when called inside TransactionService.run().
+   */
+  async deleteMembership({ campaignId }: { campaignId: string }): Promise<void> {
+    await this.reviewCampaignMembershipRepository.softDeleteAllByCampaign(campaignId)
+  }
+
   async removeCampaignMembership({
     membershipId,
     campaignId,

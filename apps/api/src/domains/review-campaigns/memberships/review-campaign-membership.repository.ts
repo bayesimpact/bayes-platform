@@ -188,6 +188,13 @@ export class ReviewCampaignMembershipRepository {
     })
   }
 
+  async softDeleteAllByCampaign(campaignId: string): Promise<void> {
+    await this.userMembershipRepo().softDelete({
+      resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
+      resourceId: campaignId,
+    })
+  }
+
   private userMembershipRepo(): Repository<UserMembership> {
     return this.transactionService.getManager().getRepository(UserMembership)
   }
