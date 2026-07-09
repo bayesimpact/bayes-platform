@@ -24,7 +24,9 @@ import { Wrap } from "../components/layouts/Wrap"
 import { Logo } from "../components/themes/Logo"
 import type { User } from "../features/me/me.models"
 import { selectMe, selectPendingInvitations } from "../features/me/me.selectors"
+import { meActions } from "../features/me/me.slice"
 import { useAbility } from "../hooks/use-ability"
+import { useMount } from "../hooks/use-mount"
 import { useValue } from "../hooks/use-value"
 import { AsyncRoute } from "./AsyncRoute"
 
@@ -32,6 +34,13 @@ export function OnboardingRoute() {
   const user = useAppSelector(selectMe)
   const organizations = useAppSelector(selectOrganizationsData)
   const invitations = useAppSelector(selectPendingInvitations)
+
+  useMount({
+    actions: {
+      mount: meActions.mountOnboarding,
+      unmount: meActions.unmountOnboarding,
+    },
+  })
   return (
     <AsyncRoute data={[user, organizations, invitations]}>
       <WithData />

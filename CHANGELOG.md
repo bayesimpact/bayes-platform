@@ -11,6 +11,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 -  (beta) Gemini 3.1 Flash Lite & Gemini 3.5 Flash available for all Agents
 
 ### Changed
+- Onboarding screen automatically refreshes pending invitations every 30 seconds, so newly received invitations appear without a manual page reload
 - Agent editor saves each configuration tab independently, so editing one tab no longer requires re-saving the whole agent; switching tabs with unsaved edits prompts to discard them
 - Backoffice feature flags are now managed through a searchable dialog with side-by-side Available/Enabled columns, reachable from both the projects list and the project detail page
 
