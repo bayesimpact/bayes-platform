@@ -1,5 +1,6 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
+import { startPolling } from "@/common/store/polling"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { logoutAuth0 } from "@/external/auth0Client"
 import { acceptInvitation } from "@/studio/features/invitations/invitations.thunks"
@@ -14,24 +15,12 @@ const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
 listenerMiddleware.startListening({
   actionCreator: meActions.mountOnboarding,
-  effect: async (_, listenerApi) => {
-    // Ensure a single polling loop runs even if onboarding mounts several times.
-    listenerApi.cancelActiveListeners()
-
-    // Fetch immediately, then poll while onboarding stays mounted.
-    listenerApi.dispatch(fetchPendingInvitations())
-
-    const pollingTask = listenerApi.fork(async (forkApi) => {
-      while (true) {
-        await forkApi.delay(PENDING_INVITATIONS_POLL_INTERVAL_MS)
-        listenerApi.dispatch(fetchPendingInvitations())
-      }
-    })
-
-    // Stop polling once onboarding unmounts.
-    await listenerApi.condition(meActions.unmountOnboarding.match)
-    pollingTask.cancel()
-  },
+  effect: (_, listenerApi) =>
+    startPolling(listenerApi, {
+      stopWhen: meActions.unmountOnboarding.match,
+      intervalMs: PENDING_INVITATIONS_POLL_INTERVAL_MS,
+      poll: () => listenerApi.dispatch(fetchPendingInvitations()),
+    }),
 })
 
 listenerMiddleware.startListening({
