@@ -1,7 +1,7 @@
 import "./external/llm/open-telemetry-init" // must be first — patches http/pg before they are imported
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
-import { Logger, ValidationPipe } from "@nestjs/common"
+import { ValidationPipe } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS
 import { NestExpressApplication } from "@nestjs/platform-express"
@@ -50,10 +50,8 @@ async function bootstrap() {
     origin: (origin, callback) => callback(null, origin ?? true),
     credentials: true,
   })
-  const protocol = httpsOptions ? "https" : "http"
-  const port = Number(process.env.API_PORT) || 3000
+  const port = Number(process.env.PORT) || 3000
   await app.listen(port)
-  Logger.log(`API server running on ${protocol}://connect.localhost:${port}`, "Bootstrap")
 }
 
 const DEFAULT_LOCAL_FRONTEND_URLS = [

@@ -43,7 +43,7 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
     ...(process.env.NODE_ENV !== "production"
       ? [
           ServeStaticModule.forRoot({
-            // Expose files (e.g., 'http://localhost:API_PORT/documents/orgId/projectId/documentId.pdf')
+            // Expose files (e.g., 'http://localhost:PORT/documents/orgId/projectId/documentId.pdf')
             serveRoot: "/documents/",
             serveStaticOptions: {
               cacheControl: true,
