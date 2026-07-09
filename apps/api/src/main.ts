@@ -51,8 +51,9 @@ async function bootstrap() {
     credentials: true,
   })
   const protocol = httpsOptions ? "https" : "http"
-  await app.listen(3000)
-  Logger.log(`API server running on ${protocol}://connect.localhost:3000`, "Bootstrap")
+  const port = Number(process.env.API_PORT) || 3000
+  await app.listen(port)
+  Logger.log(`API server running on ${protocol}://connect.localhost:${port}`, "Bootstrap")
 }
 
 const DEFAULT_LOCAL_FRONTEND_URLS = [
