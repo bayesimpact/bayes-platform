@@ -1,0 +1,99 @@
+---
+title: Documents
+description: Upload documents so their content becomes part of your agents' knowledge, and manage them with tags.
+category: guides-sources
+order: 3
+updated: 2026-07-09
+---
+
+import DocumentsWalkthrough from "@/components/DocumentsWalkthrough.astro"
+
+A **document** is a file you upload so its content is indexed and added to your
+agents' knowledge. Once a document is uploaded and ready, agents in the workspace
+can draw on it to answer users.
+
+Documents live under **Sources**, alongside Web sources and Resource libraries,
+and belong to the **workspace**.
+
+## How agents use documents
+
+An uploaded document is indexed as knowledge in the workspace. Once its
+**Embedding Status** is **Ready**, agents can retrieve relevant passages from it
+to answer users. Use **tags** to organize your documents and control how they are
+used — for example, the reserved `public-documents` tag lets users download a
+document when it's surfaced in a conversation.
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click
+and the area to watch.
+
+<DocumentsWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Open Documents
+
+In **Studio**, open the left sidebar, expand the **Sources** section, then select
+**Documents**.
+
+### 2. Upload a document
+
+1. Click **Drag or upload a file** (top-right of the page), or drag a file onto
+   the drop zone.
+2. In the **Tags for this upload** dialog, optionally click **Add tag** to apply
+   tags to every file in the upload.
+3. Click **Upload**.
+
+The document appears in the table right away.
+
+### 3. Wait until it's ready
+
+Each document shows an **Embedding Status**. It moves from **Processing** to
+**Ready** once the file has been indexed. Only a **Ready** document is fully
+usable by your agents. The table also shows the document's **Tags** and the last
+update time.
+
+### 4. Manage a document
+
+Open the **⋮** menu at the end of a document's row to:
+
+- **Download Document** — download the original file.
+- **View** — see the document's details and content.
+- **Edit** — rename the document and change its tags.
+- **Delete** — remove the document and its indexed content.
+
+### 5. Manage several documents at once
+
+1. Tick the checkbox on each row you want to manage. A toolbar shows how many are
+   **selected**.
+2. From the toolbar, choose **Add tag**, **Remove tag**, or **Delete** to apply
+   the action to every selected document.
+3. To select everything, tick the checkbox in the header, next to **Title**.
+
+### 6. Create and manage tags
+
+Documents and web sources share the same tags. To create, edit or delete tags,
+open the **Tags** panel from the top-right of the page — the steps are the same as
+in the [Web sources](/en/web-sources) guide.
+
+> The reserved tag **`public-documents`** is special: when a document carrying it
+> is surfaced in a conversation, the user is allowed to download it.
+
+## Tips
+
+- Upload the documents most relevant to what your users ask — focused, well-named
+  files give the best answers.
+- Use tags to keep large document sets organized and to control which ones are
+  downloadable by users.
+- Select several documents to tag or clean them up in one go.
+
+## Troubleshooting
+
+- **An agent doesn't use a document** — check that its **Embedding Status** is
+  **Ready**; a document still **Processing** isn't available yet.
+- **A document failed to process** — open the **⋮** menu to review it, then
+  re-upload it if needed.
+- **I need to change many documents' tags** — select them and use **Add tag** or
+  **Remove tag** from the selection toolbar.

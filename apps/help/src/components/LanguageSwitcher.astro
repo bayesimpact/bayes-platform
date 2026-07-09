@@ -1,0 +1,65 @@
+---
+import Icon from "./Icon.astro"
+import { LOCALES } from "@/consts"
+import { localeNames, useTranslations } from "@/i18n/ui"
+import { getLocaleFromPath, switchLocalePath } from "@/i18n/utils"
+
+const current = getLocaleFromPath(Astro.url.pathname)
+const t = useTranslations(current)
+---
+
+<div class="relative" data-lang-switcher>
+  <button
+    type="button"
+    class="inline-flex h-9 items-center gap-1.5 rounded-md border border-border px-2.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+    aria-haspopup="true"
+    aria-expanded="false"
+    aria-label={t("lang.label")}
+    data-lang-trigger
+  >
+    <Icon name="globe" size={16} />
+    <span class="uppercase">{current}</span>
+  </button>
+  <ul
+    class="absolute right-0 z-50 mt-1 hidden min-w-40 rounded-md border border-border bg-card p-1 shadow-md"
+    data-lang-menu
+  >
+    {
+      LOCALES.map((locale) => (
+        <li>
+          <a
+            href={switchLocalePath(Astro.url.pathname, locale)}
+            class:list={[
+              "flex items-center justify-between rounded-sm px-2.5 py-1.5 text-sm hover:bg-accent",
+              locale === current ? "font-medium text-foreground" : "text-muted-foreground",
+            ]}
+          >
+            {localeNames[locale]}
+            <span class="text-xs uppercase text-muted-foreground">{locale}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<script is:inline>
+  document.querySelectorAll("[data-lang-switcher]").forEach((root) => {
+    const trigger = root.querySelector("[data-lang-trigger]")
+    const menu = root.querySelector("[data-lang-menu]")
+    if (!trigger || !menu) return
+    const close = () => {
+      menu.classList.add("hidden")
+      trigger.setAttribute("aria-expanded", "false")
+    }
+    trigger.addEventListener("click", (event) => {
+      event.stopPropagation()
+      const open = menu.classList.toggle("hidden")
+      trigger.setAttribute("aria-expanded", String(!open))
+    })
+    document.addEventListener("click", close)
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") close()
+    })
+  })
+</script>

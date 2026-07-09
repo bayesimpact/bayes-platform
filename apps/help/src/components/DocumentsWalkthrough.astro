@@ -1,0 +1,534 @@
+---
+/**
+ * Animated, full-page walkthrough of the Documents flow, mirroring the real
+ * Studio interface (same shell, exact Lucide icons, real brand logo). Shares the
+ * exact FORM of the other help-center walkthroughs — only the content differs.
+ * Pass `lang="fr"` for the French copy.
+ */
+type Lang = "en" | "fr"
+const { lang = "en" } = Astro.props as { lang?: Lang }
+
+const STRINGS = {
+  en: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Bayes Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Settings", evaluations: "Evaluations", analytics: "Analytics", sources: "Sources",
+    documents: "Documents", webSources: "Web sources", resourceLibraries: "Resource libraries", members: "Members", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    workspace: "Workspace", conversation: "Conversation", extraction: "Extraction", form: "Form",
+    timeAgo: "About 1 hour ago", create: "Create",
+    newAgent: "New Agent", newAgentDesc: "An agent can perform specific tasks based on its type and configuration.",
+    documentsDesc: "Enhance your agents' knowledge and capabilities by adding documents.",
+    membersDesc: "Invite admins to join your workspace to collaborate together.",
+    reviewCampaigns: "Review campaigns", reviewDesc: "Invite testers and reviewers to evaluate an agent.",
+    analyticsDesc: "View analytics for your project, including conversations, average questions per session, and more.",
+    evalDesc: "Test the performance of your agents.",
+    dragUpload: "Drag or upload a file", tagsBtn: "Tags",
+    emptyTitle: "No documents yet", emptyDesc: "Upload your first document to get started.",
+    uploadTitle: "Tags for this upload", uploadDesc: "Optional: choose tags to apply to every file in this upload.",
+    fileCount: "You're about to upload one file.", tags: "Tags", addTag: "Add tag", cancel: "Cancel", uploadConfirm: "Upload",
+    colTitle: "Title", colTags: "Tags", colStatus: "Embedding Status", colUpdated: "Updated At",
+    docName: "handbook.pdf", doc2: "faq.pdf", doc3: "policy.pdf", tagName: "private-documents",
+    statusProcessing: "Processing", statusReady: "Ready", updatedAgo: "less than a minute ago",
+    download: "Download Document", view: "View", edit: "Edit", del: "Delete",
+    selected2: "2 selected", selected3: "3 selected", removeTag: "Remove tag",
+    prev: "Prev", next: "Next", step: "Step",
+    steps: [
+      "Open the Sources section in the left menu.",
+      "Select Documents.",
+      "Click Drag or upload a file to bring your document to the platform.",
+      "Optionally click Add tag, then click Upload.",
+      "Wait for the Embedding Status to become “Ready”.",
+      "Download, View, Edit or Delete a document from the ⋮ menu.",
+      "Select documents to manage them together: Add tag, Remove tag or Delete.",
+      "Tick the box next to Title to select all documents.",
+    ],
+  },
+  fr: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Bayes Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Paramètres", evaluations: "Évaluations", analytics: "Analytique", sources: "Sources",
+    documents: "Documents", webSources: "Sites web", resourceLibraries: "Bibliothèques de ressources", members: "Membres", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    workspace: "Espace de travail", conversation: "Conversation", extraction: "Extraction", form: "Formulaire",
+    timeAgo: "Il y a environ 1 heure", create: "Créer",
+    newAgent: "Nouvel agent", newAgentDesc: "Un agent peut effectuer des tâches spécifiques selon son type et sa configuration.",
+    documentsDesc: "Enrichissez les connaissances et capacités de vos agents en ajoutant des documents.",
+    membersDesc: "Invitez des administrateurs à rejoindre votre espace de travail pour collaborer ensemble.",
+    reviewCampaigns: "Campagnes de revue", reviewDesc: "Invitez des testeurs et des relecteurs à évaluer un agent.",
+    analyticsDesc: "Consultez les analyses de votre espace de travail : conversations, questions moyennes par session, et plus.",
+    evalDesc: "Testez les performances de vos agents.",
+    dragUpload: "Glissez ou téléversez un fichier", tagsBtn: "Étiquettes",
+    emptyTitle: "Aucun document pour le moment", emptyDesc: "Téléversez votre premier document pour commencer.",
+    uploadTitle: "Tags pour cet envoi", uploadDesc: "Facultatif : choisissez des tags à appliquer à chaque fichier de cet envoi.",
+    fileCount: "Vous êtes sur le point de téléverser un fichier.", tags: "Tags", addTag: "Ajouter une étiquette", cancel: "Annuler", uploadConfirm: "Téléverser",
+    colTitle: "Titre", colTags: "Tags", colStatus: "Statut des embeddings", colUpdated: "Mis à jour le",
+    docName: "guide.pdf", doc2: "faq.pdf", doc3: "politique.pdf", tagName: "private-documents",
+    statusProcessing: "En cours", statusReady: "Prêt", updatedAgo: "il y a moins d'une minute",
+    download: "Télécharger le document", view: "Voir", edit: "Modifier", del: "Supprimer",
+    selected2: "2 sélectionnés", selected3: "3 sélectionnés", removeTag: "Retirer un tag",
+    prev: "Précédent", next: "Suivant", step: "Étape",
+    steps: [
+      "Ouvrez la section Sources dans le menu de gauche.",
+      "Sélectionnez Documents.",
+      "Cliquez sur Glissez ou téléversez un fichier pour importer votre document.",
+      "Cliquez éventuellement sur Ajouter une étiquette, puis sur Téléverser.",
+      "Attendez que le statut des embeddings passe à « Prêt ».",
+      "Télécharger, Voir, Modifier ou Supprimer un document depuis le menu ⋮.",
+      "Sélectionnez des documents pour les gérer ensemble : Ajouter une étiquette, Retirer un tag ou Supprimer.",
+      "Cochez la case à côté de Titre pour tout sélectionner.",
+    ],
+  },
+} as const
+
+const s = STRINGS[lang]
+
+const steps = [
+  { page: "overview", sources: false, nav: "", spot: "navSources", observe: [] },
+  { page: "overview", sources: true, nav: "", spot: "navDocuments", observe: [] },
+  { page: "docsEmpty", sources: true, nav: "documents", spot: "btnUpload", observe: [] },
+  { page: "uploadDialog", sources: true, nav: "documents", spot: "btnUploadConfirm", observe: ["obsAddTag"] },
+  { page: "docsTable", sources: true, nav: "documents", spot: "", observe: ["obsStatus"] },
+  { page: "docsDots", sources: true, nav: "documents", spot: "rowDots", observe: ["obsMenu"] },
+  { page: "docsBulk", sources: true, nav: "documents", spot: "", observe: ["obsToolbar"] },
+  { page: "docsSelectAll", sources: true, nav: "documents", spot: "headCheck", observe: ["obsToolbar2"] },
+].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const labels = { prev: s.prev, next: s.next, step: s.step }
+---
+
+<div class="dsw" role="group" aria-label={s.documents}>
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside class="sb">
+      <div class="sb-head">
+        <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
+        <span class="org"><b>{s.org}</b><small>{s.studio}</small></span>
+      </div>
+      <div class="sb-scroll">
+        <div class="grp-label">{s.agents}<span class="add"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.agent1}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.conversationAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg><span>{s.extractionAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/></svg><span>{s.formAgent}</span></div>
+
+        <div class="grp-label stack"><span class="name">{s.settingsName}</span><span>{s.settings}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg><span>{s.evaluations}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg><span>{s.analytics}</span></div>
+        <div class="navitem" id="navSources"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 15 21.84"/><path d="M21 5V8"/><path d="M21 12L18 17H22L19 22"/><path d="M3 12A9 3 0 0 0 14.59 14.87"/></svg><span>{s.sources}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="subwrap" id="sourcesSub">
+          <div class="subitem" id="navDocuments"><svg viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg><span>{s.documents}</span></div>
+          <div class="subitem"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg><span>{s.webSources}</span></div>
+          <div class="subitem"><svg viewBox="0 0 24 24"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg><span>{s.resourceLibraries}</span></div>
+        </div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>{s.members}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg><span>{s.admin}</span></div>
+      </div>
+      <div class="sb-user">
+        <span class="avatar">AM</span>
+        <span class="who"><b>{s.userName}</b><small>{s.userEmail}</small></span>
+        <span class="updown"><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+      </div>
+    </aside>
+
+    <!-- Main inset -->
+    <div class="inset">
+      <div class="topbar">
+        <span class="trig"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span>
+      </div>
+      <div class="canvas">
+        <span class="fab"><svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
+
+        <!-- workspace overview (steps 1 & 2) -->
+        <div class="page" data-page="overview" data-active="true">
+          <div class="page-head plain">
+            <span><span class="ttl">{s.settingsName}</span><span class="desc">{s.workspace}</span></span>
+          </div>
+          <div class="cards3">
+            <div class="ecard"><span class="cat">{s.conversation}</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg> {s.agent1}</b><p>{s.timeAgo}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.conversation}</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg> {s.conversationAgent}</b><p>{s.timeAgo}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.extraction}</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg> {s.extractionAgent}</b><p>{s.timeAgo}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.form}</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/></svg> {s.formAgent}</b><p>{s.timeAgo}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><b>{s.newAgent}</b><p>{s.newAgentDesc}</p><span class="btn sm">{s.create} <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+            <div class="ecard"><b>{s.documents}</b><p>{s.documentsDesc}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><b>{s.members}</b><p>{s.membersDesc}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><b>{s.reviewCampaigns}</b><p>{s.reviewDesc}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><b>{s.analytics}</b><p>{s.analyticsDesc}</p><div class="bars"><i style="height:40%"></i><i style="height:65%"></i><i style="height:30%"></i><i style="height:80%"></i><i style="height:55%"></i><i style="height:70%"></i><i style="height:45%"></i><i style="height:90%"></i></div></div>
+          </div>
+        </div>
+
+        <!-- documents empty (step 3) -->
+        <div class="page" data-page="docsEmpty">
+          <div class="page-head">
+            <span class="btn icon-round"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.documents}</span><span class="desc">{s.documentsDesc}</span></span>
+            <span class="right">
+              <span class="btn sm" id="btnUpload"><svg viewBox="0 0 24 24"><path d="M12 13v8"/><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m8 17 4-4 4 4"/></svg> {s.dragUpload}</span>
+              <span class="btn outline sm"><svg viewBox="0 0 24 24"><path d="M13.172 2a2 2 0 0 1 1.414.586l6.71 6.71a2.4 2.4 0 0 1 0 3.408l-4.592 4.592a2.4 2.4 0 0 1-3.408 0l-6.71-6.71A2 2 0 0 1 6 9.172V3a1 1 0 0 1 1-1z"/><path d="M2 7v6.172a2 2 0 0 0 .586 1.414l6.71 6.71a2.4 2.4 0 0 0 3.191.193"/><circle cx="10.5" cy="6.5" r=".5" fill="currentColor"/></svg> {s.tagsBtn}</span>
+            </span>
+          </div>
+          <div class="emptybox">
+            <svg class="empty-ico" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
+            <b>{s.emptyTitle}</b>
+            <p>{s.emptyDesc}</p>
+            <span class="btn sm"><svg viewBox="0 0 24 24"><path d="M12 13v8"/><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m8 17 4-4 4 4"/></svg> {s.dragUpload}</span>
+          </div>
+        </div>
+
+        <!-- upload dialog (step 4) -->
+        <div class="page" data-page="uploadDialog">
+          <div class="scrim"></div>
+          <div class="modal">
+            <div class="mhead"><b>{s.uploadTitle}</b><p>{s.uploadDesc}</p></div>
+            <p class="muted-line">{s.fileCount}</p>
+            <p class="lbl">{s.tags}</p>
+            <div class="row"><span class="btn outline sm" id="obsAddTag"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.addTag}</span></div>
+            <div class="row" style="justify-content:flex-end; margin-top:1rem; gap:0.5rem"><span class="btn ghost">{s.cancel}</span><span class="btn" id="btnUploadConfirm">{s.uploadConfirm}</span></div>
+          </div>
+        </div>
+
+        <!-- documents table, processing (step 5) -->
+        <div class="page" data-page="docsTable">
+          <div class="page-head">
+            <span class="btn icon-round"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.documents}</span><span class="desc">{s.documentsDesc}</span></span>
+            <span class="right"><span class="btn sm"><svg viewBox="0 0 24 24"><path d="M12 13v8"/><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m8 17 4-4 4 4"/></svg> {s.dragUpload}</span></span>
+          </div>
+          <table class="res">
+            <thead><tr><th class="cbcol"><span class="cb"></span></th><th>{s.colTitle}</th><th>{s.colTags}</th><th>{s.colStatus}</th><th>{s.colUpdated}</th><th></th></tr></thead>
+            <tbody><tr>
+              <td class="cbcol"><span class="cb"></span></td>
+              <td>{s.docName}</td><td></td>
+              <td id="obsStatus"><span class="badge crawling"><svg class="spin" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg> {s.statusProcessing}</span></td>
+              <td class="muted-cell">{s.updatedAgo}</td>
+              <td class="dots"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></td>
+            </tr></tbody>
+          </table>
+        </div>
+
+        <!-- documents table + dots menu (step 6) -->
+        <div class="page" data-page="docsDots">
+          <div class="page-head">
+            <span class="btn icon-round"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.documents}</span><span class="desc">{s.documentsDesc}</span></span>
+          </div>
+          <table class="res">
+            <thead><tr><th class="cbcol"><span class="cb"></span></th><th>{s.colTitle}</th><th>{s.colTags}</th><th>{s.colStatus}</th><th>{s.colUpdated}</th><th></th></tr></thead>
+            <tbody><tr>
+              <td class="cbcol"><span class="cb"></span></td>
+              <td>{s.docName}</td>
+              <td><span class="chip">{s.tagName}</span></td>
+              <td><span class="badge ready">{s.statusReady}</span></td>
+              <td class="muted-cell">{s.updatedAgo}</td>
+              <td class="dots"><span id="rowDots"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></span></td>
+            </tr></tbody>
+          </table>
+          <div class="menu" id="obsMenu">
+            <div class="menu-item"><svg viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg> {s.download}</div>
+            <div class="menu-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg> {s.view}</div>
+            <div class="menu-item"><svg viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg> {s.edit}</div>
+            <div class="menu-sep"></div>
+            <div class="menu-item danger"><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> {s.del}</div>
+          </div>
+        </div>
+
+        <!-- documents bulk select (step 7) -->
+        <div class="page" data-page="docsBulk">
+          <div class="page-head">
+            <span class="btn icon-round"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.documents}</span><span class="desc">{s.documentsDesc}</span></span>
+          </div>
+          <div class="seltoolbar" id="obsToolbar">
+            <span class="sel-left"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> {s.selected2}</span>
+            <span class="sel-actions">
+              <span class="miniact"><svg viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg> {s.addTag}</span>
+              <span class="miniact"><svg viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg> {s.removeTag}</span>
+              <span class="miniact danger"><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> {s.del}</span>
+            </span>
+          </div>
+          <table class="res">
+            <thead><tr><th class="cbcol"><span class="cb"></span></th><th>{s.colTitle}</th><th>{s.colTags}</th><th>{s.colStatus}</th><th>{s.colUpdated}</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="cbcol"><span class="cb on"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span></td><td>{s.docName}</td><td></td><td><span class="badge ready">{s.statusReady}</span></td><td class="muted-cell">{s.updatedAgo}</td><td class="dots"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></td></tr>
+              <tr><td class="cbcol"><span class="cb on"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span></td><td>{s.doc2}</td><td></td><td><span class="badge ready">{s.statusReady}</span></td><td class="muted-cell">{s.updatedAgo}</td><td class="dots"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></td></tr>
+              <tr><td class="cbcol"><span class="cb"></span></td><td>{s.doc3}</td><td></td><td><span class="badge ready">{s.statusReady}</span></td><td class="muted-cell">{s.updatedAgo}</td><td class="dots"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- documents select all (step 8) -->
+        <div class="page" data-page="docsSelectAll">
+          <div class="page-head">
+            <span class="btn icon-round"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.documents}</span><span class="desc">{s.documentsDesc}</span></span>
+          </div>
+          <div class="seltoolbar" id="obsToolbar2">
+            <span class="sel-left"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg> {s.selected3}</span>
+            <span class="sel-actions">
+              <span class="miniact"><svg viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg> {s.addTag}</span>
+              <span class="miniact"><svg viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg> {s.removeTag}</span>
+              <span class="miniact danger"><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> {s.del}</span>
+            </span>
+          </div>
+          <table class="res">
+            <thead><tr><th class="cbcol"><span class="cb on" id="headCheck"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span></th><th>{s.colTitle}</th><th>{s.colTags}</th><th>{s.colStatus}</th><th>{s.colUpdated}</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="cbcol"><span class="cb on"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span></td><td>{s.docName}</td><td></td><td><span class="badge ready">{s.statusReady}</span></td><td class="muted-cell">{s.updatedAgo}</td><td class="dots"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></td></tr>
+              <tr><td class="cbcol"><span class="cb on"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span></td><td>{s.doc2}</td><td></td><td><span class="badge ready">{s.statusReady}</span></td><td class="muted-cell">{s.updatedAgo}</td><td class="dots"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></td></tr>
+              <tr><td class="cbcol"><span class="cb on"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span></td><td>{s.doc3}</td><td></td><td><span class="badge ready">{s.statusReady}</span></td><td class="muted-cell">{s.updatedAgo}</td><td class="dots"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="navbtn" data-prev><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> {s.prev}</button>
+    <button class="ctrl" data-playpause aria-label="Play / pause">⏸</button>
+    <span class="cap"><span class="st" data-stepcount></span><span class="tx" data-captext></span></span>
+    <span class="dots-nav" data-dots role="tablist" aria-label="Steps"></span>
+    <button class="navbtn primary" data-next>{s.next} <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="progress"><i data-bar></i></div>
+</div>
+
+<script define:vars={{ steps, labels }}>
+  const cs = document.currentScript
+  const dsw =
+    cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("dsw")
+      ? cs.previousElementSibling
+      : document.querySelector(".dsw")
+  const q = (sel) => dsw.querySelector(sel)
+  const pages = [...dsw.querySelectorAll(".page")]
+  const dotsWrap = dsw.querySelector("[data-dots]")
+  const bar = dsw.querySelector("[data-bar]")
+  const capText = dsw.querySelector("[data-captext]")
+  const stepCount = dsw.querySelector("[data-stepcount]")
+  const playPause = dsw.querySelector("[data-playpause]")
+  const prevBtn = dsw.querySelector("[data-prev]")
+  const nextBtn = dsw.querySelector("[data-next]")
+  const navSources = dsw.querySelector("#navSources")
+  const sourcesSub = dsw.querySelector("#sourcesSub")
+  const DUR = 6000
+  let idx = 0, playing = true, timer = null
+
+  steps.forEach((_, i) => {
+    const b = document.createElement("button")
+    b.className = "dotnav"; b.setAttribute("role", "tab"); b.setAttribute("aria-label", labels.step + " " + (i + 1))
+    b.addEventListener("click", () => go(i)); dotsWrap.appendChild(b)
+  })
+  const dots = [...dotsWrap.children]
+
+  function clearMarks() {
+    dsw.querySelectorAll(".spot-on").forEach((el) => el.classList.remove("spot-on"))
+    dsw.querySelectorAll(".observe-on").forEach((el) => el.classList.remove("observe-on"))
+  }
+  function render() {
+    const step = steps[idx]
+    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page)))
+    dots.forEach((d, i) => d.classList.toggle("on", i === idx))
+    stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
+    capText.textContent = step.text
+    navSources.classList.toggle("open", step.sources)
+    sourcesSub.classList.toggle("open", step.sources)
+    q("#navDocuments").classList.toggle("on", step.nav === "documents")
+
+    clearMarks()
+    const active = idx
+    setTimeout(() => {
+      if (active !== idx) return
+      if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
+      step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+    }, 260)
+
+    bar.classList.remove("run"); void bar.offsetWidth
+    bar.style.setProperty("--dur", DUR + "ms")
+    if (playing) bar.classList.add("run")
+  }
+  function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(() => go(idx + 1), DUR) }
+  function go(n) { idx = (n + steps.length) % steps.length; render(); schedule() }
+  function setPlaying(p) {
+    playing = p; playPause.textContent = p ? "⏸" : "▶"
+    if (p) { bar.classList.add("run"); schedule() } else { clearTimeout(timer); bar.classList.remove("run") }
+  }
+  prevBtn.addEventListener("click", () => go(idx - 1))
+  nextBtn.addEventListener("click", () => go(idx + 1))
+  playPause.addEventListener("click", () => setPlaying(!playing))
+
+  render(); schedule()
+</script>
+
+<style>
+  .dsw {
+    --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+    --primary: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --destructive: oklch(0.577 0.245 27.325);
+    --sidebar: oklch(0.985 0 0); --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-accent: oklch(0.97 0 0); --sidebar-accent-foreground: oklch(0.205 0 0); --sidebar-border: oklch(0.922 0 0);
+    --ready: oklch(0.62 0.17 150); --radius: 0.625rem;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
+    --spot: color-mix(in oklab, var(--primary) 55%, transparent);
+    display: block; margin: 1.5rem 0; color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  :global(html.dark) .dsw, :global(.dark) .dsw {
+    --background: oklch(0.145 0 0); --foreground: oklch(0.985 0 0);
+    --card: oklch(0.185 0 0); --card-foreground: oklch(0.985 0 0); --primary-foreground: oklch(0.145 0 0);
+    --secondary: oklch(0.269 0 0); --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0); --muted-foreground: oklch(0.708 0 0);
+    --border: oklch(0.269 0 0); --input: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0); --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0); --sidebar-accent-foreground: oklch(0.985 0 0); --sidebar-border: oklch(0.269 0 0);
+    --ready: oklch(0.72 0.17 150);
+    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 12px 32px rgba(0,0,0,0.5);
+  }
+  .dsw * { box-sizing: border-box; }
+  .dsw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+  .dsw svg circle[fill="currentColor"] { fill: currentColor; }
+
+  .dsw .shell { display: grid; grid-template-columns: 208px 1fr; height: 680px; background: var(--sidebar); color: var(--sidebar-foreground); border: 1px solid var(--sidebar-border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .dsw .sb { display: flex; flex-direction: column; padding: 0.5rem; min-height: 0; }
+  .dsw .sb-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.4rem 0.6rem; }
+  .dsw .logo { width: 1.9rem; height: 1.9rem; display: inline-flex; align-items: center; justify-content: center; }
+  .dsw .logo svg { width: 100%; height: 100%; stroke: none; }
+  .dsw .logo svg path { fill: #f18c6e; }
+  .dsw .logo svg circle { fill: #010101; }
+  .dsw .org { display: flex; flex-direction: column; line-height: 1.05; }
+  .dsw .org b { font-size: 0.92rem; font-weight: 700; }
+  .dsw .org small { color: var(--primary); font-size: 0.72rem; }
+  .dsw .sb-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
+  .dsw .grp-label { font-size: 0.66rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0.4rem 0.5rem 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
+  .dsw .grp-label .add { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+  .dsw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: 0.3rem; }
+  .dsw .grp-label.stack .name { color: var(--sidebar-foreground); font-size: 0.76rem; text-transform: none; font-weight: 700; }
+  .dsw .navitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.3rem 0.5rem; border-radius: 7px; font-size: 0.82rem; color: var(--sidebar-foreground); }
+  .dsw .navitem svg { font-size: 1rem; color: var(--muted-foreground); }
+  .dsw .navitem .chev { margin-left: auto; font-size: 0.9rem; transition: transform 0.25s; }
+  .dsw .navitem.open .chev { transform: rotate(90deg); }
+  .dsw .subwrap { overflow: hidden; max-height: 0; transition: max-height 0.3s ease; }
+  .dsw .subwrap.open { max-height: 140px; }
+  .dsw .subitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.28rem 0.5rem 0.28rem 1.9rem; border-radius: 7px; font-size: 0.79rem; color: var(--muted-foreground); }
+  .dsw .subitem svg { font-size: 0.92rem; color: var(--muted-foreground); }
+  .dsw .subitem.on { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 600; }
+  .dsw .sb-user { display: flex; align-items: center; gap: 0.55rem; margin-top: auto; padding: 0.45rem 0.5rem; }
+  .dsw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
+  .dsw .who { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+  .dsw .who b { font-size: 0.76rem; font-weight: 600; }
+  .dsw .who small { font-size: 0.68rem; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dsw .updown { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+
+  .dsw .inset { position: relative; margin: 0.5rem 0.5rem 0.5rem 0; background: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; box-shadow: var(--shadow); }
+  .dsw .topbar { height: 3rem; flex-shrink: 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
+  .dsw .trig { color: var(--muted-foreground); font-size: 1.05rem; }
+  .dsw .canvas { position: relative; flex: 1; min-height: 0; background: radial-gradient(circle, color-mix(in oklab, var(--muted-foreground) 20%, transparent) 1px, transparent 1px) 0 0 / 22px 22px; }
+  .dsw .fab { position: absolute; right: 1rem; bottom: 1rem; width: 2.3rem; height: 2.3rem; border-radius: 999px; background: var(--primary); color: var(--primary-foreground); display: grid; place-items: center; box-shadow: var(--shadow); font-size: 1.1rem; z-index: 6; }
+
+  .dsw .page { position: absolute; inset: 0; padding: 1.1rem 1.2rem; overflow: auto; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
+  .dsw .page[data-active="true"] { opacity: 1; transform: none; pointer-events: auto; }
+
+  .dsw .spot-on { position: relative; z-index: 7; animation: dsw-spot 1.4s ease-in-out infinite; border-radius: 8px; }
+  @keyframes dsw-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
+  .dsw .observe-on { outline: 2px dashed var(--spot); outline-offset: 3px; border-radius: 10px; }
+
+  .dsw .btn { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--primary); color: var(--primary-foreground); border-radius: 8px; font-size: 0.8rem; font-weight: 500; padding: 0.4rem 0.7rem; }
+  .dsw .btn svg { font-size: 0.95rem; }
+  .dsw .btn.sm { font-size: 0.76rem; padding: 0.32rem 0.55rem; }
+  .dsw .btn.outline { background: var(--background); color: var(--foreground); border: 1px solid var(--border); }
+  .dsw .btn.ghost { background: transparent; color: var(--foreground); }
+  .dsw .btn.icon-round { border-radius: 999px; width: 2rem; height: 2rem; padding: 0; justify-content: center; background: var(--secondary); color: var(--secondary-foreground); }
+
+  .dsw .page-head { border-bottom: 1px solid var(--border); padding-bottom: 0.9rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.7rem; }
+  .dsw .page-head.plain { border: 0; }
+  .dsw .ttl { font-size: 1.3rem; font-weight: 600; line-height: 1.15; display: block; }
+  .dsw .desc { font-size: 0.88rem; color: var(--muted-foreground); margin-top: 0.2rem; display: block; }
+  .dsw .right { margin-left: auto; display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+
+  .dsw .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
+  .dsw .ecard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.8rem; min-height: 116px; display: flex; flex-direction: column; }
+  .dsw .ecard .cat { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-foreground); font-weight: 600; margin-bottom: 0.2rem; }
+  .dsw .ecard b { font-size: 0.88rem; }
+  .dsw .ecard b.ic { display: flex; align-items: center; gap: 0.35rem; }
+  .dsw .ecard b.ic svg { color: var(--muted-foreground); font-size: 0.95rem; }
+  .dsw .ecard p { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.2rem 0 0.6rem; }
+  .dsw .ecard .arrowbtn, .dsw .ecard .btn { margin-top: auto; align-self: flex-start; }
+  .dsw .arrowbtn { width: 1.8rem; height: 1.8rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); }
+  .dsw .bars { display: flex; align-items: flex-end; gap: 3px; height: 34px; margin-top: auto; }
+  .dsw .bars i { flex: 1; background: var(--primary); border-radius: 3px 3px 0 0; opacity: 0.85; }
+
+  .dsw .emptybox { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 2.2rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; text-align: center; }
+  .dsw .emptybox .empty-ico { color: var(--muted-foreground); font-size: 1.6rem; }
+  .dsw .emptybox b { font-size: 0.9rem; }
+  .dsw .emptybox p { font-size: 0.8rem; color: var(--muted-foreground); margin: 0 0 0.6rem; }
+
+  .dsw .lbl { font-size: 0.78rem; font-weight: 500; margin: 0.6rem 0 0.3rem; }
+  .dsw .muted-line { font-size: 0.8rem; color: var(--muted-foreground); margin: 0; }
+  .dsw .row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+
+  .dsw .scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 4; }
+  .dsw .modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(360px, 82%); background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; box-shadow: var(--shadow); z-index: 5; }
+  .dsw .mhead { margin-bottom: 0.5rem; }
+  .dsw .mhead b { font-size: 0.98rem; font-weight: 600; }
+  .dsw .mhead p { font-size: 0.78rem; color: var(--muted-foreground); margin: 0.2rem 0 0; }
+
+  .dsw table.res { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .dsw table.res th { text-align: left; font-weight: 500; color: var(--muted-foreground); font-size: 0.72rem; padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--border); background: var(--muted); }
+  .dsw table.res td { padding: 0.55rem 0.5rem; border-bottom: 1px solid var(--border); }
+  .dsw table.res .muted-cell { color: var(--muted-foreground); }
+  .dsw table.res .dots { text-align: right; color: var(--muted-foreground); }
+  .dsw .cbcol { width: 2rem; }
+  .dsw .cb { display: inline-flex; align-items: center; justify-content: center; width: 1rem; height: 1rem; border: 1.5px solid var(--border); border-radius: 4px; color: transparent; }
+  .dsw .cb.on { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+  .dsw .cb svg { font-size: 0.7rem; stroke-width: 3; }
+  .dsw .badge { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.72rem; font-weight: 500; border-radius: 999px; padding: 0.15rem 0.5rem; }
+  .dsw .badge.ready { color: var(--ready); background: color-mix(in oklab, var(--ready) 15%, transparent); }
+  .dsw .badge.crawling { color: var(--muted-foreground); background: var(--muted); }
+  .dsw .badge .spin { animation: dsw-spin 1s linear infinite; }
+  @keyframes dsw-spin { to { transform: rotate(360deg); } }
+  .dsw .chip { display: inline-flex; background: var(--secondary); color: var(--secondary-foreground); border-radius: 999px; padding: 0.15rem 0.5rem; font-size: 0.72rem; }
+
+  .dsw .menu { position: absolute; top: 6.5rem; right: 1.6rem; width: 200px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); padding: 0.3rem; z-index: 7; }
+  .dsw .menu-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.5rem; border-radius: 7px; font-size: 0.8rem; }
+  .dsw .menu-item svg { color: var(--muted-foreground); font-size: 0.95rem; }
+  .dsw .menu-item.danger { color: var(--destructive); }
+  .dsw .menu-item.danger svg { color: var(--destructive); }
+  .dsw .menu-sep { height: 1px; background: var(--border); margin: 0.3rem 0.25rem; }
+
+  .dsw .seltoolbar { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.6rem; background: var(--card); }
+  .dsw .sel-left { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; }
+  .dsw .sel-left svg { color: var(--muted-foreground); font-size: 0.9rem; }
+  .dsw .sel-actions { display: inline-flex; gap: 0.5rem; }
+  .dsw .miniact { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.76rem; padding: 0.28rem 0.5rem; border: 1px solid var(--border); border-radius: 7px; }
+  .dsw .miniact svg { color: var(--muted-foreground); font-size: 0.9rem; }
+  .dsw .miniact.danger { color: var(--destructive); }
+  .dsw .miniact.danger svg { color: var(--destructive); }
+
+  .dsw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .dsw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+  .dsw .navbtn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .dsw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
+  .dsw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .dsw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
+  .dsw .cap .tx { font-size: 0.88rem; font-weight: 500; }
+  .dsw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 180px; }
+  .dsw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .dsw .dotnav.on { background: var(--primary); transform: scale(1.3); }
+  .dsw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+  .dsw .progress i { display: block; height: 100%; width: 0; background: var(--primary); }
+  .dsw .progress i.run { animation: dsw-fill var(--dur, 6000ms) linear forwards; }
+  @keyframes dsw-fill { to { width: 100%; } }
+
+  @media (max-width: 640px) {
+    .dsw .shell { grid-template-columns: 1fr; height: 560px; }
+    .dsw .sb { display: none; }
+    .dsw .inset { margin: 0.5rem; }
+    .dsw .cards3 { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dsw .page, .dsw .spot-on, .dsw .progress i, .dsw .subwrap, .dsw .spin { transition: none !important; animation: none !important; }
+  }
+</style>

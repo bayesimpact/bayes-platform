@@ -1,0 +1,120 @@
+---
+title: Bibliothèques de ressources
+description: Créez des bibliothèques de liens et de fichiers que vos agents peuvent proposer aux utilisateurs pendant une conversation, et rattachez-les à un agent.
+category: guides-sources
+order: 1
+updated: 2026-07-09
+---
+
+import ResourceLibrariesWalkthrough from "@/components/ResourceLibrariesWalkthrough.astro"
+
+Une **bibliothèque de ressources** est un ensemble nommé de **ressources** — liens
+ou fichiers — qu'un agent peut proposer aux utilisateurs pendant une conversation.
+Lorsqu'un message de l'utilisateur correspond à une ressource, l'assistant la
+propose comme référence utile (sous forme de carte avec le titre et la description
+de la ressource).
+
+Les bibliothèques appartiennent à un **espace de travail** et sont partagées par
+tous ses agents, mais un agent ne propose une bibliothèque qu'une fois celle-ci
+**rattachée** à lui.
+
+## Comment l'assistant propose les ressources
+
+Une fois une bibliothèque rattachée à un agent, l'assistant suit la conversation
+et propose une ressource lorsque la demande de l'utilisateur correspond :
+
+- au **titre** ou à la **description** de la ressource — le texte visible, ou
+- à ses **indices de correspondance** — texte masqué servant uniquement à la
+  correspondance (synonymes, formulations alternatives, notes « à utiliser quand… »).
+
+Rédigez les titres et descriptions comme vos utilisateurs formulent leurs demandes ;
+réservez les indices de correspondance au vocabulaire que vous ne voulez pas
+afficher sur la carte.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape
+met en valeur le bouton à cliquer et la zone à observer.
+
+<ResourceLibrariesWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir le gestionnaire de bibliothèques
+
+Dans **Studio**, ouvrez la barre latérale de gauche, dépliez la section **Sources**,
+puis sélectionnez **Bibliothèques de ressources**. Cela ouvre le gestionnaire pour
+l'espace de travail courant.
+
+### 2. Créer une bibliothèque
+
+1. Cliquez sur **Nouvelle bibliothèque** (en haut à droite de la page).
+2. Sur la page **Nouvelle bibliothèque de ressources**, saisissez un **Titre**
+   (1 à 200 caractères).
+3. Cliquez sur **Créer**.
+
+La bibliothèque apparaît dans la liste avec son nombre de ressources. Cliquez sur
+la **flèche →** de sa carte pour l'ouvrir.
+
+### 3. Ajouter des ressources
+
+Ouvrez la bibliothèque et cliquez sur **Ajouter**, remplissez les champs, puis
+cliquez sur **Créer**. Chaque ressource comporte :
+
+| Champ | Affiché aux utilisateurs | Obligatoire | Limite | Rôle |
+| ----- | :----------------------: | :---------: | ------ | ---- |
+| **Titre** | Oui | Oui | 1 à 200 caractères | Nom sur la carte de ressource. |
+| **Description** | Oui | Non | ≤ 2000 caractères | Affichée sur la carte ; sert aussi à la correspondance. |
+| **Indices de correspondance** | Non | Non | ≤ 1000 caractères | Termes supplémentaires qui aident la correspondance. Intitulé *Indices de correspondance (non affichés aux utilisateurs)*. |
+| **Lien** | — | Oui | — | Soit une **URL** `https://` publique, soit un **Fichier téléversé** (≤ 25 Mo). |
+
+Chaque champ texte affiche un compteur `caractères utilisés / max` en direct, et le
+lien est validé avant l'enregistrement. Ajoutez autant de ressources que nécessaire.
+
+### 4. Prévisualiser, modifier ou supprimer une ressource
+
+Dans la table **Ressources** de la bibliothèque, utilisez le menu **⋯** en fin de
+ligne pour **Prévisualiser**, **Modifier** ou **Supprimer** la ressource. Vous
+pouvez ainsi créer plusieurs bibliothèques spécialisées.
+
+### 5. Rattacher une bibliothèque à un agent
+
+Une bibliothèque ne sert que lorsqu'un agent l'utilise.
+
+1. Ouvrez l'éditeur de l'agent et allez dans l'onglet **Resources** (cet onglet
+   contient les bibliothèques de ressources de l'agent).
+2. Cliquez sur **Add library** et choisissez une bibliothèque. Les bibliothèques
+   rattachées apparaissent sous forme d'étiquettes — utilisez le **✕** d'une
+   étiquette pour la détacher.
+3. Cliquez sur **Mettre à jour** pour enregistrer l'agent.
+
+Le lien **Gérer les bibliothèques** de cet onglet ouvre le gestionnaire dans un
+nouvel onglet, pour ajouter ou modifier des ressources sans quitter l'éditeur.
+
+### 6. Ce que voit l'utilisateur
+
+Une fois la bibliothèque rattachée, un message d'utilisateur qui correspond amène
+l'assistant à proposer la ressource sous forme de carte (titre et description),
+pointant vers l'URL ou le fichier.
+
+## Conseils
+
+- Réutilisez une même bibliothèque sur plusieurs agents du même espace de travail.
+- Gardez des descriptions exactes et autoportantes — l'utilisateur les lit sur la
+  carte avant d'ouvrir le lien.
+- Regroupez les ressources liées dans une même bibliothèque pour rattacher tout
+  l'ensemble en une fois.
+
+## Dépannage
+
+- **Un agent ne propose pas une ressource** — vérifiez que la bibliothèque est
+  rattachée dans l'onglet **Resources** de l'agent, que l'agent a bien été
+  **Mis à jour** ensuite, et que le titre/la description ou les indices de
+  correspondance reflètent la formulation des utilisateurs.
+- **Impossible d'enregistrer une ressource** — une URL doit être une adresse
+  `https://` valide, un fichier téléversé doit respecter 25 Mo, le titre est
+  obligatoire et chaque champ doit rester dans sa limite de caractères.
+- **Une bibliothèque est absente du sélecteur** — elle doit appartenir au même
+  espace de travail que l'agent, et les bibliothèques déjà rattachées n'y
+  apparaissent pas.

@@ -1,0 +1,484 @@
+---
+/**
+ * Animated, full-page walkthrough of the "add an admin" (Members) flow, mirroring
+ * the real Studio interface (same shell, exact Lucide icons, real brand logo).
+ * Shares the exact FORM of the other help-center walkthroughs — only the content
+ * differs. Pass `lang="fr"` for the French copy.
+ */
+type Lang = "en" | "fr"
+const { lang = "en" } = Astro.props as { lang?: Lang }
+
+const STRINGS = {
+  en: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Bayes Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Settings", evaluations: "Evaluations", analytics: "Analytics", sources: "Sources",
+    documents: "Documents", webSources: "Web sources", resourceLibraries: "Resource libraries", members: "Members", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    workspace: "Workspace", conversation: "Conversation", extraction: "Extraction", form: "Form",
+    timeAgo: "About 1 hour ago", create: "Create",
+    newAgent: "New Agent", newAgentDesc: "An agent can perform specific tasks based on its type and configuration.",
+    documentsDesc: "Enhance your agents' knowledge and capabilities by adding documents.",
+    membersDesc: "Invite members to join your workspace to collaborate together.",
+    reviewCampaigns: "Review campaigns", reviewDesc: "Invite testers and reviewers to evaluate an agent.",
+    analyticsDesc: "View analytics for your project, including conversations, average questions per session, and more.",
+    evalDesc: "Test the performance of your agents.",
+    listTitle: "Members of Demo", listDesc: "Invite members to join your workspace to collaborate together.",
+    searchPlaceholder: "Search by name or email…",
+    inviteCardTitle: "Invite an admin",
+    inviteCardDesc: "Enter the email address of the person you want to invite to join your workspace.",
+    invite: "Invite", emailLabel: "Email address", emailPlaceholder: "Enter email address", add: "Add", send: "Send", cancel: "Cancel",
+    inviteEmail: "sam.rivera@example.com",
+    member2Name: "Jordan Lee", member2Email: "jordan.lee@example.com",
+    roleOwner: "Owner", roleAdmin: "Admin",
+    pendingTitle: "Pending invitations", pendingDesc: "Invitations already sent for this project.",
+    invitedAgo: "Invited less than a minute ago",
+    removeTitle: "Remove Jordan Lee?", removeDesc: "This will remove the member from the project. This action cannot be undone.", remove: "Remove",
+    prev: "Prev", next: "Next", step: "Step",
+    steps: [
+      "Open Members in the left menu.",
+      "Open the Invite an admin card and click Invite.",
+      "Enter the person's email address, then click Add.",
+      "Check the recipients, then click Send.",
+      "The invitation appears under Pending invitations until it's accepted.",
+      "Once accepted, the person appears as a member with a role badge.",
+      "To remove a member, click the trash icon on their card, then confirm.",
+      "To cancel an invitation that hasn't been accepted, delete it from Pending invitations.",
+    ],
+  },
+  fr: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Bayes Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Paramètres", evaluations: "Évaluations", analytics: "Analytique", sources: "Sources",
+    documents: "Documents", webSources: "Sites web", resourceLibraries: "Bibliothèques de ressources", members: "Membres", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    workspace: "Espace de travail", conversation: "Conversation", extraction: "Extraction", form: "Formulaire",
+    timeAgo: "Il y a environ 1 heure", create: "Créer",
+    newAgent: "Nouvel agent", newAgentDesc: "Un agent peut effectuer des tâches spécifiques selon son type et sa configuration.",
+    documentsDesc: "Enrichissez les connaissances et capacités de vos agents en ajoutant des documents.",
+    membersDesc: "Invitez des membres à rejoindre votre espace de travail pour collaborer ensemble.",
+    reviewCampaigns: "Campagnes de revue", reviewDesc: "Invitez des testeurs et des relecteurs à évaluer un agent.",
+    analyticsDesc: "Consultez les analyses de votre espace de travail : conversations, questions moyennes par session, et plus.",
+    evalDesc: "Testez les performances de vos agents.",
+    listTitle: "Membres de Demo", listDesc: "Invitez des membres à rejoindre votre espace de travail pour collaborer ensemble.",
+    searchPlaceholder: "Rechercher par nom ou email…",
+    inviteCardTitle: "Inviter un administrateur",
+    inviteCardDesc: "Entrez l'adresse email de la personne que vous souhaitez inviter à rejoindre votre espace de travail.",
+    invite: "Inviter", emailLabel: "Adresse email", emailPlaceholder: "Entrez l'adresse email", add: "Ajouter", send: "Envoyer", cancel: "Annuler",
+    inviteEmail: "sam.rivera@example.com",
+    member2Name: "Jordan Lee", member2Email: "jordan.lee@example.com",
+    roleOwner: "Owner", roleAdmin: "Admin",
+    pendingTitle: "Invitations en attente", pendingDesc: "Invitations déjà envoyées pour ce projet.",
+    invitedAgo: "Invité il y a moins d'une minute",
+    removeTitle: "Retirer Jordan Lee ?", removeDesc: "Ce membre sera retiré du projet. Cette action est irréversible.", remove: "Retirer",
+    prev: "Précédent", next: "Suivant", step: "Étape",
+    steps: [
+      "Ouvrez Membres dans le menu de gauche.",
+      "Ouvrez la carte Inviter un administrateur et cliquez sur Inviter.",
+      "Saisissez l'adresse email de la personne, puis cliquez sur Ajouter.",
+      "Vérifiez les destinataires, puis cliquez sur Envoyer.",
+      "L'invitation apparaît dans Invitations en attente jusqu'à son acceptation.",
+      "Une fois acceptée, la personne apparaît comme membre avec un badge de rôle.",
+      "Pour retirer un membre, cliquez sur l'icône corbeille de sa carte, puis confirmez.",
+      "Pour annuler une invitation non acceptée, supprimez-la dans Invitations en attente.",
+    ],
+  },
+} as const
+
+const s = STRINGS[lang]
+
+const steps = [
+  { page: "overview", sources: false, nav: "", spot: "navMembers", observe: [] },
+  { page: "membersList", sources: false, nav: "members", spot: "btnInvite", observe: [] },
+  { page: "inviteDialog", sources: false, nav: "members", spot: "btnAdd", observe: ["obsEmailField"] },
+  { page: "inviteDialog", sources: false, nav: "members", spot: "btnSend", observe: ["obsChip"] },
+  { page: "membersFull", sources: false, nav: "members", spot: "", observe: ["obsPending"] },
+  { page: "membersFull", sources: false, nav: "members", spot: "", observe: ["obsRole"] },
+  { page: "removeDialog", sources: false, nav: "members", spot: "btnRemoveConfirm", observe: ["obsRemoveModal"] },
+  { page: "membersFull", sources: false, nav: "members", spot: "btnRevoke", observe: ["obsPending"] },
+].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const labels = { prev: s.prev, next: s.next, step: s.step }
+---
+
+<div class="msw" role="group" aria-label={s.members}>
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside class="sb">
+      <div class="sb-head">
+        <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
+        <span class="org"><b>{s.org}</b><small>{s.studio}</small></span>
+      </div>
+      <div class="sb-scroll">
+        <div class="grp-label">{s.agents}<span class="add"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.agent1}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.conversationAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg><span>{s.extractionAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/></svg><span>{s.formAgent}</span></div>
+
+        <div class="grp-label stack"><span class="name">{s.settingsName}</span><span>{s.settings}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg><span>{s.evaluations}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg><span>{s.analytics}</span></div>
+        <div class="navitem" id="navSources"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 15 21.84"/><path d="M21 5V8"/><path d="M21 12L18 17H22L19 22"/><path d="M3 12A9 3 0 0 0 14.59 14.87"/></svg><span>{s.sources}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="subwrap" id="sourcesSub">
+          <div class="subitem"><svg viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg><span>{s.documents}</span></div>
+          <div class="subitem"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg><span>{s.webSources}</span></div>
+          <div class="subitem"><svg viewBox="0 0 24 24"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg><span>{s.resourceLibraries}</span></div>
+        </div>
+        <div class="navitem" id="navMembers"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>{s.members}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg><span>{s.admin}</span></div>
+      </div>
+      <div class="sb-user">
+        <span class="avatar">AM</span>
+        <span class="who"><b>{s.userName}</b><small>{s.userEmail}</small></span>
+        <span class="updown"><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+      </div>
+    </aside>
+
+    <!-- Main inset -->
+    <div class="inset">
+      <div class="topbar">
+        <span class="trig"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span>
+      </div>
+      <div class="canvas">
+        <span class="fab"><svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
+
+        <!-- workspace overview (step 1) -->
+        <div class="page" data-page="overview" data-active="true">
+          <div class="page-head plain">
+            <span><span class="ttl">{s.settingsName}</span><span class="desc">{s.workspace}</span></span>
+          </div>
+          <div class="cards3">
+            <div class="ecard"><span class="cat">{s.conversation}</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg> {s.agent1}</b><p>{s.timeAgo}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.conversation}</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg> {s.conversationAgent}</b><p>{s.timeAgo}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.extraction}</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg> {s.extractionAgent}</b><p>{s.timeAgo}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.form}</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/></svg> {s.formAgent}</b><p>{s.timeAgo}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><b>{s.newAgent}</b><p>{s.newAgentDesc}</p><span class="btn sm">{s.create} <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+            <div class="ecard"><b>{s.documents}</b><p>{s.documentsDesc}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard" id="cardMembers"><b>{s.members}</b><p>{s.membersDesc}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><b>{s.reviewCampaigns}</b><p>{s.reviewDesc}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><b>{s.analytics}</b><p>{s.analyticsDesc}</p><div class="bars"><i style="height:40%"></i><i style="height:65%"></i><i style="height:30%"></i><i style="height:80%"></i><i style="height:55%"></i><i style="height:70%"></i><i style="height:45%"></i><i style="height:90%"></i></div></div>
+          </div>
+        </div>
+
+        <!-- members list, one member + invite card (step 2) -->
+        <div class="page" data-page="membersList">
+          <div class="page-head">
+            <span><span class="ttl">{s.listTitle}</span><span class="desc">{s.listDesc}</span></span>
+            <span class="right"><span class="searchbox"><svg viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg> {s.searchPlaceholder}</span></span>
+          </div>
+          <div class="cards3">
+            <div class="ecard">
+              <span class="mtop"><b>{s.userName}</b><span class="rolebadge owner"><svg viewBox="0 0 24 24"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/></svg> {s.roleOwner}</span></span>
+              <p>{s.userEmail}</p>
+              <span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+            </div>
+            <div class="ecard">
+              <b>{s.inviteCardTitle}</b>
+              <p>{s.inviteCardDesc}</p>
+              <span class="btn sm" id="btnInvite"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg> {s.invite}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- invite dialog (steps 3 & 4) -->
+        <div class="page" data-page="inviteDialog">
+          <div class="scrim"></div>
+          <div class="modal">
+            <div class="mhead"><b>{s.inviteCardTitle}</b><p>{s.inviteCardDesc}</p></div>
+            <p class="lbl">{s.emailLabel}</p>
+            <div class="row" id="obsEmailField">
+              <span class="input">{s.emailPlaceholder}</span>
+              <span class="btn outline sm" id="btnAdd"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.add}</span>
+            </div>
+            <div class="chips"><span class="chip email" id="obsChip"><svg viewBox="0 0 24 24"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg> {s.inviteEmail} <svg class="chipx" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span></div>
+            <div class="row" style="justify-content:flex-end; margin-top:1rem; gap:0.5rem"><span class="btn ghost">{s.cancel}</span><span class="btn" id="btnSend">{s.send}</span></div>
+          </div>
+        </div>
+
+        <!-- members full: owner + admin + invite card + pending (steps 5, 6, 8) -->
+        <div class="page" data-page="membersFull">
+          <div class="page-head">
+            <span><span class="ttl">{s.listTitle}</span><span class="desc">{s.listDesc}</span></span>
+            <span class="right"><span class="searchbox"><svg viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg> {s.searchPlaceholder}</span></span>
+          </div>
+          <div class="cards3">
+            <div class="ecard">
+              <span class="mtop"><b>{s.userName}</b><span class="rolebadge owner"><svg viewBox="0 0 24 24"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/></svg> {s.roleOwner}</span></span>
+              <p>{s.userEmail}</p>
+              <span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+            </div>
+            <div class="ecard">
+              <span class="mtop"><b>{s.member2Name}</b><span class="rolebadge admin" id="obsRole"><svg viewBox="0 0 24 24"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg> {s.roleAdmin}</span><span class="cardtrash"><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span></span>
+              <p>{s.member2Email}</p>
+              <span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+            </div>
+            <div class="ecard">
+              <b>{s.inviteCardTitle}</b>
+              <p>{s.inviteCardDesc}</p>
+              <span class="btn sm"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg> {s.invite}</span>
+            </div>
+          </div>
+          <div class="section" id="obsPending">
+            <div class="sec-head"><b>{s.pendingTitle}</b><p>{s.pendingDesc}</p></div>
+            <div class="pending-card">
+              <span class="pemail"><svg viewBox="0 0 24 24"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg> {s.inviteEmail}</span>
+              <span class="muted-cell">{s.invitedAgo}</span>
+              <span class="cardtrash" id="btnRevoke"><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- remove member confirmation (step 7) -->
+        <div class="page" data-page="removeDialog">
+          <div class="scrim"></div>
+          <div class="modal" id="obsRemoveModal">
+            <div class="mhead"><b>{s.removeTitle}</b><p>{s.removeDesc}</p></div>
+            <div class="row" style="justify-content:flex-end; margin-top:1rem; gap:0.5rem"><span class="btn ghost">{s.cancel}</span><span class="btn danger" id="btnRemoveConfirm"><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> {s.remove}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="navbtn" data-prev><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> {s.prev}</button>
+    <button class="ctrl" data-playpause aria-label="Play / pause">⏸</button>
+    <span class="cap"><span class="st" data-stepcount></span><span class="tx" data-captext></span></span>
+    <span class="dots-nav" data-dots role="tablist" aria-label="Steps"></span>
+    <button class="navbtn primary" data-next>{s.next} <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="progress"><i data-bar></i></div>
+</div>
+
+<script define:vars={{ steps, labels }}>
+  const cs = document.currentScript
+  const msw =
+    cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("msw")
+      ? cs.previousElementSibling
+      : document.querySelector(".msw")
+  const q = (sel) => msw.querySelector(sel)
+  const pages = [...msw.querySelectorAll(".page")]
+  const dotsWrap = msw.querySelector("[data-dots]")
+  const bar = msw.querySelector("[data-bar]")
+  const capText = msw.querySelector("[data-captext]")
+  const stepCount = msw.querySelector("[data-stepcount]")
+  const playPause = msw.querySelector("[data-playpause]")
+  const prevBtn = msw.querySelector("[data-prev]")
+  const nextBtn = msw.querySelector("[data-next]")
+  const navSources = msw.querySelector("#navSources")
+  const sourcesSub = msw.querySelector("#sourcesSub")
+  const DUR = 6000
+  let idx = 0, playing = true, timer = null
+
+  steps.forEach((_, i) => {
+    const b = document.createElement("button")
+    b.className = "dotnav"; b.setAttribute("role", "tab"); b.setAttribute("aria-label", labels.step + " " + (i + 1))
+    b.addEventListener("click", () => go(i)); dotsWrap.appendChild(b)
+  })
+  const dots = [...dotsWrap.children]
+
+  function clearMarks() {
+    msw.querySelectorAll(".spot-on").forEach((el) => el.classList.remove("spot-on"))
+    msw.querySelectorAll(".observe-on").forEach((el) => el.classList.remove("observe-on"))
+  }
+  function render() {
+    const step = steps[idx]
+    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page)))
+    dots.forEach((d, i) => d.classList.toggle("on", i === idx))
+    stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
+    capText.textContent = step.text
+    navSources.classList.toggle("open", step.sources)
+    sourcesSub.classList.toggle("open", step.sources)
+    q("#navMembers").classList.toggle("on", step.nav === "members")
+
+    clearMarks()
+    const active = idx
+    setTimeout(() => {
+      if (active !== idx) return
+      if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
+      step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+    }, 260)
+
+    bar.classList.remove("run"); void bar.offsetWidth
+    bar.style.setProperty("--dur", DUR + "ms")
+    if (playing) bar.classList.add("run")
+  }
+  function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(() => go(idx + 1), DUR) }
+  function go(n) { idx = (n + steps.length) % steps.length; render(); schedule() }
+  function setPlaying(p) {
+    playing = p; playPause.textContent = p ? "⏸" : "▶"
+    if (p) { bar.classList.add("run"); schedule() } else { clearTimeout(timer); bar.classList.remove("run") }
+  }
+  prevBtn.addEventListener("click", () => go(idx - 1))
+  nextBtn.addEventListener("click", () => go(idx + 1))
+  playPause.addEventListener("click", () => setPlaying(!playing))
+
+  render(); schedule()
+</script>
+
+<style>
+  .msw {
+    --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+    --primary: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --destructive: oklch(0.577 0.245 27.325);
+    --sidebar: oklch(0.985 0 0); --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-accent: oklch(0.97 0 0); --sidebar-accent-foreground: oklch(0.205 0 0); --sidebar-border: oklch(0.922 0 0);
+    --ready: oklch(0.62 0.17 150); --radius: 0.625rem;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
+    --spot: color-mix(in oklab, var(--primary) 55%, transparent);
+    display: block; margin: 1.5rem 0; color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  :global(html.dark) .msw, :global(.dark) .msw {
+    --background: oklch(0.145 0 0); --foreground: oklch(0.985 0 0);
+    --card: oklch(0.185 0 0); --card-foreground: oklch(0.985 0 0); --primary-foreground: oklch(0.145 0 0);
+    --secondary: oklch(0.269 0 0); --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0); --muted-foreground: oklch(0.708 0 0);
+    --border: oklch(0.269 0 0); --input: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0); --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0); --sidebar-accent-foreground: oklch(0.985 0 0); --sidebar-border: oklch(0.269 0 0);
+    --ready: oklch(0.72 0.17 150);
+    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 12px 32px rgba(0,0,0,0.5);
+  }
+  .msw * { box-sizing: border-box; }
+  .msw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+  .msw svg circle[fill="currentColor"] { fill: currentColor; }
+
+  .msw .shell { display: grid; grid-template-columns: 208px 1fr; height: 680px; background: var(--sidebar); color: var(--sidebar-foreground); border: 1px solid var(--sidebar-border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .msw .sb { display: flex; flex-direction: column; padding: 0.5rem; min-height: 0; }
+  .msw .sb-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.4rem 0.6rem; }
+  .msw .logo { width: 1.9rem; height: 1.9rem; display: inline-flex; align-items: center; justify-content: center; }
+  .msw .logo svg { width: 100%; height: 100%; stroke: none; }
+  .msw .logo svg path { fill: #f18c6e; }
+  .msw .logo svg circle { fill: #010101; }
+  .msw .org { display: flex; flex-direction: column; line-height: 1.05; }
+  .msw .org b { font-size: 0.92rem; font-weight: 700; }
+  .msw .org small { color: var(--primary); font-size: 0.72rem; }
+  .msw .sb-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
+  .msw .grp-label { font-size: 0.66rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0.4rem 0.5rem 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
+  .msw .grp-label .add { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+  .msw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: 0.3rem; }
+  .msw .grp-label.stack .name { color: var(--sidebar-foreground); font-size: 0.76rem; text-transform: none; font-weight: 700; }
+  .msw .navitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.3rem 0.5rem; border-radius: 7px; font-size: 0.82rem; color: var(--sidebar-foreground); }
+  .msw .navitem svg { font-size: 1rem; color: var(--muted-foreground); }
+  .msw .navitem .chev { margin-left: auto; font-size: 0.9rem; transition: transform 0.25s; }
+  .msw .navitem.open .chev { transform: rotate(90deg); }
+  .msw .navitem.on { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 600; }
+  .msw .navitem.on svg { color: var(--sidebar-accent-foreground); }
+  .msw .subwrap { overflow: hidden; max-height: 0; transition: max-height 0.3s ease; }
+  .msw .subwrap.open { max-height: 140px; }
+  .msw .subitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.28rem 0.5rem 0.28rem 1.9rem; border-radius: 7px; font-size: 0.79rem; color: var(--muted-foreground); }
+  .msw .subitem svg { font-size: 0.92rem; color: var(--muted-foreground); }
+  .msw .subitem.on { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 600; }
+  .msw .sb-user { display: flex; align-items: center; gap: 0.55rem; margin-top: auto; padding: 0.45rem 0.5rem; }
+  .msw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
+  .msw .who { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+  .msw .who b { font-size: 0.76rem; font-weight: 600; }
+  .msw .who small { font-size: 0.68rem; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .msw .updown { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+
+  .msw .inset { position: relative; margin: 0.5rem 0.5rem 0.5rem 0; background: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; box-shadow: var(--shadow); }
+  .msw .topbar { height: 3rem; flex-shrink: 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
+  .msw .trig { color: var(--muted-foreground); font-size: 1.05rem; }
+  .msw .canvas { position: relative; flex: 1; min-height: 0; background: radial-gradient(circle, color-mix(in oklab, var(--muted-foreground) 20%, transparent) 1px, transparent 1px) 0 0 / 22px 22px; }
+  .msw .fab { position: absolute; right: 1rem; bottom: 1rem; width: 2.3rem; height: 2.3rem; border-radius: 999px; background: var(--primary); color: var(--primary-foreground); display: grid; place-items: center; box-shadow: var(--shadow); font-size: 1.1rem; z-index: 6; }
+
+  .msw .page { position: absolute; inset: 0; padding: 1.1rem 1.2rem; overflow: auto; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
+  .msw .page[data-active="true"] { opacity: 1; transform: none; pointer-events: auto; }
+
+  .msw .spot-on { position: relative; z-index: 7; animation: msw-spot 1.4s ease-in-out infinite; border-radius: 8px; }
+  @keyframes msw-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
+  .msw .observe-on { outline: 2px dashed var(--spot); outline-offset: 3px; border-radius: 10px; }
+
+  .msw .btn { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--primary); color: var(--primary-foreground); border-radius: 8px; font-size: 0.8rem; font-weight: 500; padding: 0.4rem 0.7rem; }
+  .msw .btn svg { font-size: 0.95rem; }
+  .msw .btn.sm { font-size: 0.76rem; padding: 0.32rem 0.55rem; }
+  .msw .btn.outline { background: var(--background); color: var(--foreground); border: 1px solid var(--border); }
+  .msw .btn.ghost { background: transparent; color: var(--foreground); }
+  .msw .btn.danger { background: var(--destructive); color: oklch(0.985 0 0); }
+  .msw .btn.icon-round { border-radius: 999px; width: 2rem; height: 2rem; padding: 0; justify-content: center; background: var(--secondary); color: var(--secondary-foreground); }
+
+  .msw .page-head { border-bottom: 1px solid var(--border); padding-bottom: 0.9rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.7rem; }
+  .msw .page-head.plain { border: 0; }
+  .msw .ttl { font-size: 1.3rem; font-weight: 600; line-height: 1.15; display: block; }
+  .msw .desc { font-size: 0.88rem; color: var(--muted-foreground); margin-top: 0.2rem; display: block; }
+  .msw .right { margin-left: auto; display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+  .msw .searchbox { display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid var(--input); border-radius: 8px; padding: 0.4rem 0.6rem; font-size: 0.78rem; color: var(--muted-foreground); background: var(--background); min-width: 210px; }
+  .msw .searchbox svg { font-size: 0.9rem; }
+
+  .msw .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
+  .msw .ecard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.8rem; min-height: 116px; display: flex; flex-direction: column; }
+  .msw .ecard .cat { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-foreground); font-weight: 600; margin-bottom: 0.2rem; }
+  .msw .ecard b { font-size: 0.88rem; }
+  .msw .ecard b.ic { display: flex; align-items: center; gap: 0.35rem; }
+  .msw .ecard b.ic svg { color: var(--muted-foreground); font-size: 0.95rem; }
+  .msw .ecard p { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.2rem 0 0.6rem; }
+  .msw .ecard .arrowbtn, .msw .ecard .btn { margin-top: auto; align-self: flex-start; }
+  .msw .arrowbtn { width: 1.8rem; height: 1.8rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); }
+  .msw .bars { display: flex; align-items: flex-end; gap: 3px; height: 34px; margin-top: auto; }
+  .msw .bars i { flex: 1; background: var(--primary); border-radius: 3px 3px 0 0; opacity: 0.85; }
+
+  .msw .mtop { display: flex; align-items: center; gap: 0.4rem; }
+  .msw .mtop b { font-size: 0.88rem; }
+  .msw .rolebadge { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.66rem; font-weight: 600; border-radius: 999px; padding: 0.1rem 0.45rem; border: 1px solid var(--border); color: var(--muted-foreground); }
+  .msw .rolebadge svg { font-size: 0.8rem; }
+  .msw .rolebadge.admin svg { color: #eab308; }
+  .msw .cardtrash { margin-left: auto; color: var(--muted-foreground); display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem; border: 1px solid var(--border); border-radius: 7px; font-size: 0.85rem; }
+
+  .msw .emptybox { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 2.2rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; text-align: center; }
+
+  .msw .lbl { font-size: 0.78rem; font-weight: 500; margin: 0.6rem 0 0.3rem; }
+  .msw .muted-line { font-size: 0.8rem; color: var(--muted-foreground); margin: 0; }
+  .msw .row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .msw .input { flex: 1; min-width: 0; border: 1px solid var(--input); border-radius: 8px; padding: 0.42rem 0.6rem; font-size: 0.8rem; color: var(--muted-foreground); background: var(--background); }
+  .msw .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.55rem; }
+  .msw .chip.email { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--secondary); color: var(--secondary-foreground); border-radius: 999px; padding: 0.18rem 0.5rem; font-size: 0.74rem; }
+  .msw .chip.email svg { font-size: 0.82rem; color: var(--muted-foreground); }
+  .msw .chip.email .chipx { font-size: 0.78rem; }
+
+  .msw .scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 4; }
+  .msw .modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(360px, 82%); background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; box-shadow: var(--shadow); z-index: 5; }
+  .msw .mhead { margin-bottom: 0.5rem; }
+  .msw .mhead b { font-size: 0.98rem; font-weight: 600; }
+  .msw .mhead p { font-size: 0.78rem; color: var(--muted-foreground); margin: 0.2rem 0 0; }
+
+  .msw .section { margin-top: 1.4rem; }
+  .msw .sec-head { margin-bottom: 0.6rem; }
+  .msw .sec-head b { font-size: 0.98rem; font-weight: 600; }
+  .msw .sec-head p { font-size: 0.78rem; color: var(--muted-foreground); margin: 0.15rem 0 0; }
+  .msw .pending-card { display: flex; align-items: center; gap: 0.6rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.6rem 0.8rem; }
+  .msw .pending-card .pemail { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; }
+  .msw .pending-card .pemail svg { color: var(--muted-foreground); font-size: 0.9rem; }
+  .msw .pending-card .muted-cell { color: var(--muted-foreground); font-size: 0.78rem; margin-left: 0.4rem; }
+  .msw .pending-card .cardtrash { margin-left: auto; }
+
+  .msw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .msw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+  .msw .navbtn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .msw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
+  .msw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .msw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
+  .msw .cap .tx { font-size: 0.88rem; font-weight: 500; }
+  .msw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 180px; }
+  .msw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .msw .dotnav.on { background: var(--primary); transform: scale(1.3); }
+  .msw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+  .msw .progress i { display: block; height: 100%; width: 0; background: var(--primary); }
+  .msw .progress i.run { animation: msw-fill var(--dur, 6000ms) linear forwards; }
+  @keyframes msw-fill { to { width: 100%; } }
+
+  @media (max-width: 640px) {
+    .msw .shell { grid-template-columns: 1fr; height: 560px; }
+    .msw .sb { display: none; }
+    .msw .inset { margin: 0.5rem; }
+    .msw .cards3 { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .msw .page, .msw .spot-on, .msw .progress i, .msw .subwrap { transition: none !important; animation: none !important; }
+  }
+</style>

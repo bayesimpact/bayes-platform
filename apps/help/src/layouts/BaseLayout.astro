@@ -1,0 +1,58 @@
+---
+import Footer from "@/components/Footer.astro"
+import Header from "@/components/Header.astro"
+import { DEFAULT_LOCALE, type Locale, SITE_TITLE } from "@/consts"
+import { useTranslations } from "@/i18n/ui"
+import "@/styles/global.css"
+
+interface Props {
+  title: string
+  description?: string
+  locale?: Locale
+  showMenuToggle?: boolean
+}
+
+const { title, description, locale = DEFAULT_LOCALE, showMenuToggle = false } = Astro.props
+const t = useTranslations(locale)
+const fullTitle = title === SITE_TITLE ? title : `${title} · ${SITE_TITLE}`
+const metaDescription = description ?? t("site.tagline")
+const appUrl = import.meta.env.PUBLIC_APP_URL as string | undefined
+const canonical = new URL(Astro.url.pathname, Astro.site).toString()
+---
+
+<!doctype html>
+<html lang={locale} class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={metaDescription} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={metaDescription} />
+    <meta property="og:type" content="website" />
+    <meta name="generator" content={Astro.generator} />
+    {/* Apply the persisted theme before first paint to avoid a flash. */}
+    <script is:inline>
+      const stored = localStorage.getItem("help-theme")
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+      if (stored === "dark" || (!stored && prefersDark)) {
+        document.documentElement.classList.add("dark")
+      }
+    </script>
+  </head>
+  <body class="min-h-screen">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
+    >
+      Skip to content
+    </a>
+    <Header appUrl={appUrl} showMenuToggle={showMenuToggle} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

@@ -1,0 +1,110 @@
+---
+title: Resource libraries
+description: Create libraries of links and files your agents can surface to users during a conversation, and attach them to an agent.
+category: guides-sources
+order: 1
+updated: 2026-07-09
+---
+
+import ResourceLibrariesWalkthrough from "@/components/ResourceLibrariesWalkthrough.astro"
+
+A **resource library** is a named collection of **resources** — links or files —
+that an agent can surface to users during a conversation. When a user's message
+matches a resource, the assistant offers it as a helpful reference (shown as a
+card with the resource's title and description).
+
+Libraries belong to a **workspace** and are shared by all of its agents, but an
+agent only surfaces a library once that library has been **attached** to it.
+
+## How the assistant surfaces resources
+
+Once a library is attached to an agent, the assistant watches the conversation and
+surfaces a resource when the user's request matches:
+
+- the resource's **title** or **description** — the text shown to users, or
+- the resource's **matching hints** — hidden text used only for matching
+  (synonyms, alternative phrasings, "use when…" notes).
+
+Write titles and descriptions the way your users phrase their requests; use
+matching hints for extra wording you don't want on the visible card.
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click
+and the area to watch.
+
+<ResourceLibrariesWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Open the resource libraries manager
+
+In **Studio**, open the left sidebar, expand the **Sources** section, then select
+**Resource libraries**. This opens the manager for the current workspace.
+
+### 2. Create a library
+
+1. Click **New library** (top-right of the page).
+2. On the **New resource library** page, enter a **Title** (1–200 characters).
+3. Click **Create**.
+
+The library appears in the list showing its resource count. Click the **→** arrow
+on its card to open it.
+
+### 3. Add resources
+
+Open the library and click **Add**, fill in the fields, then click **Create**.
+Each resource has:
+
+| Field | Shown to users | Required | Limit | Purpose |
+| ----- | :------------: | :------: | ----- | ------- |
+| **Title** | Yes | Yes | 1–200 characters | Name on the resource card. |
+| **Description** | Yes | No | ≤ 2000 characters | Shown on the card; also used for matching. |
+| **Matching hints** | No | No | ≤ 1000 characters | Extra terms that help matching. Labelled *Matching hints (not shown to users)*. |
+| **Link** | — | Yes | — | Either a public `https://` **URL** or an **Uploaded file** (≤ 25 MB). |
+
+Each text field shows a live `used / max characters` counter, and the link is
+validated before you can save. Add as many resources as you need.
+
+### 4. Preview, edit or delete a resource
+
+In the library's **Resources** table, use the **⋯** menu at the end of a row to
+**Preview**, **Edit**, or **Delete** that resource. You can build several
+specialized libraries this way.
+
+### 5. Attach a library to an agent
+
+A library only does something once an agent uses it.
+
+1. Open the agent's editor and go to the **Resources** tab (this tab holds the
+   agent's resource libraries).
+2. Click **Add library** and pick a library. Attached libraries appear as tags —
+   use the **✕** on a tag to detach one.
+3. Click **Update** to save the agent.
+
+The **Manage libraries** link on this tab opens the manager in a new tab, so you
+can add or edit resources without leaving the agent editor.
+
+### 6. What the user sees
+
+Once a library is attached, a matching user message makes the assistant surface
+the resource as a card with its title and description, linking to the URL or file.
+
+## Tips
+
+- Reuse one library across several agents in the same workspace.
+- Keep descriptions accurate and self-contained — users read them on the card
+  before opening the link.
+- Group related resources into one library so you can attach the whole set at once.
+
+## Troubleshooting
+
+- **An agent isn't surfacing a resource** — confirm the library is attached on the
+  agent's **Resources** tab, that the agent was **Updated** afterwards, and that
+  the title/description or matching hints match how users phrase the request.
+- **Can't save a resource** — a URL must be a valid `https://` address, an uploaded
+  file must be within 25 MB, the title is required, and each field must stay within
+  its character limit.
+- **A library is missing from the picker** — it must belong to the same workspace
+  as the agent, and libraries already attached don't appear in the picker.

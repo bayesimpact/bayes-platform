@@ -1,0 +1,100 @@
+---
+import type { GetStaticPaths } from "astro"
+import Icon from "@/components/Icon.astro"
+import Search from "@/components/Search.astro"
+import { isLocale, type Locale, LOCALES } from "@/consts"
+import { categoryLabel, getCategory } from "@/i18n/categories"
+import { useTranslations } from "@/i18n/ui"
+import BaseLayout from "@/layouts/BaseLayout.astro"
+import { docHref, getDocsForLocale, groupByCategory } from "@/lib/docs"
+
+export const getStaticPaths = (() => {
+  return LOCALES.map((lang) => ({ params: { lang } }))
+}) satisfies GetStaticPaths
+
+const { lang } = Astro.params
+const locale: Locale = isLocale(lang) ? lang : "en"
+const t = useTranslations(locale)
+
+const docs = await getDocsForLocale(locale)
+const groups = groupByCategory(docs)
+---
+
+<BaseLayout title={t("site.title")} locale={locale}>
+  <section class="border-b border-border bg-muted/40">
+    <div class="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6 sm:py-20">
+      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{t("home.heading")}</h1>
+      <p class="mx-auto mt-3 max-w-xl text-lg text-muted-foreground">{t("site.tagline")}</p>
+      <div class="mx-auto mt-8 flex max-w-md justify-center">
+        <Search />
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+    <h2 class="mb-6 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+      {t("home.categories")}
+    </h2>
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
+      {
+        groups.map((group) => {
+          const category = getCategory(group.id)
+          return (
+            <div class="rounded-xl border border-border bg-card p-6">
+              <div class="flex items-center gap-3">
+                <span class="grid size-10 place-items-center rounded-lg bg-primary/10 text-primary">
+                  <Icon name={category?.icon ?? "book-open"} />
+                </span>
+                <div>
+                  <h3 class="font-semibold">{categoryLabel(group.id, locale)}</h3>
+                  {category && (
+                    <p class="text-sm text-muted-foreground">{category.description[locale]}</p>
+                  )}
+                </div>
+              </div>
+              {group.docs.length > 0 && (
+                <ul class="mt-4 space-y-1">
+                  {group.docs.map((doc) => (
+                    <li>
+                      <a
+                        href={docHref(doc)}
+                        class="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      >
+                        {doc.data.title}
+                        <Icon name="chevron-right" size={16} class="shrink-0 opacity-60" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {group.children.map((child) => {
+                const childCategory = getCategory(child.id)
+                return (
+                  <div class="mt-4">
+                    <div class="flex items-center gap-2 px-2 text-sm font-medium text-foreground">
+                      <Icon name={childCategory?.icon ?? "book-open"} size={16} class="text-primary" />
+                      {categoryLabel(child.id, locale)}
+                    </div>
+                    <ul class="mt-1 space-y-1">
+                      {child.docs.map((doc) => (
+                        <li>
+                          <a
+                            href={docHref(doc)}
+                            class="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                          >
+                            {doc.data.title}
+                            <Icon name="chevron-right" size={16} class="shrink-0 opacity-60" />
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })
+      }
+    </div>
+  </section>
+</BaseLayout>
