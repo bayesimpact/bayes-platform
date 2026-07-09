@@ -20,6 +20,8 @@ const slice = createSlice({
   name: "me",
   initialState,
   reducers: {
+    mountOnboarding: () => {},
+    unmountOnboarding: () => {},
     reset: () => initialState,
   },
   extraReducers: (builder) => {
