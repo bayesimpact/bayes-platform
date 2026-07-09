@@ -156,6 +156,14 @@ export class ProjectMembershipsService {
   }
 
   /**
+   * Soft-deletes all project memberships for the given project.
+   * Joins an outer transaction when called inside TransactionService.run().
+   */
+  async softDeleteMembership({ projectId }: { projectId: string }): Promise<void> {
+    await this.projectMembershipRepository.softDeleteAllByProject(projectId)
+  }
+
+  /**
    * Removes a project membership.
    * If the associated user is a placeholder (never accepted the invitation),
    * also deletes the placeholder user to avoid orphaned records.

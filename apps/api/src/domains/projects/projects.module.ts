@@ -18,6 +18,7 @@ import { ProjectMembershipRepository } from "./memberships/project-membership.re
 import { ProjectMembershipsController } from "./memberships/project-memberships.controller"
 import { ProjectMembershipsService } from "./memberships/project-memberships.service"
 import { Project } from "./project.entity"
+import { ProjectRepository } from "./project.repository"
 import { ProjectsController } from "./projects.controller"
 import { ProjectsGuard } from "./projects.guard"
 import { ProjectsService } from "./projects.service"
@@ -35,6 +36,7 @@ import { ProjectsService } from "./projects.service"
   ],
   providers: [
     ProjectsService,
+    ProjectRepository,
     ProjectMembershipRepository,
     ProjectMembershipsService,
     ProjectsGuard,
@@ -44,6 +46,11 @@ import { ProjectsService } from "./projects.service"
     ProjectMembershipContextResolver,
   ],
   controllers: [ProjectsController, ProjectMembershipsController],
-  exports: [ProjectsService, ProjectMembershipsService, ProjectMembershipRepository],
+  exports: [
+    ProjectsService,
+    ProjectMembershipsService,
+    ProjectMembershipRepository,
+    ProjectRepository,
+  ],
 })
 export class ProjectsModule {}

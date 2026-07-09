@@ -11,6 +11,7 @@ import {
   createOrganizationWithOwner,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
+import { userFactory } from "@/domains/users/user.factory"
 import { addUserToProject } from "./memberships/project-membership.factory"
 import { projectFactory } from "./project.factory"
 import { ProjectsModule } from "./projects.module"
@@ -133,6 +134,46 @@ describe("ProjectsService", () => {
         where: { id: project.id },
       })
       expect(deletedProject).toBeNull()
+    })
+
+    it("should soft-delete project memberships when deleting a project", async () => {
+      const { project } = await createOrganizationWithProject(repositories)
+
+      await service.deleteProject(project)
+
+      const activeMemberships = await repositories.userMembershipRepository.find({
+        where: { resourceType: "project", resourceId: project.id },
+      })
+      expect(activeMemberships).toHaveLength(0)
+
+      const softDeletedMemberships = await repositories.userMembershipRepository.find({
+        where: { resourceType: "project", resourceId: project.id },
+        withDeleted: true,
+      })
+      expect(softDeletedMemberships.length).toBeGreaterThan(0)
+      expect(
+        softDeletedMemberships.every((membership) => membership.deletedAt !== null),
+      ).toBe(true)
+    })
+
+    it("should soft-delete memberships for users other than the project owner", async () => {
+      const { project, user: owner } = await createOrganizationWithProject(repositories)
+      const member = await repositories.userRepository.save(userFactory.build())
+      await addUserToProject({ repositories, project, user: member })
+
+      await service.deleteProject(project)
+
+      for (const userId of [owner.id, member.id]) {
+        const activeMembership = await repositories.userMembershipRepository.findOne({
+          where: { userId, resourceType: "project", resourceId: project.id },
+        })
+        const softDeletedMembership = await repositories.userMembershipRepository.findOne({
+          where: { userId, resourceType: "project", resourceId: project.id },
+          withDeleted: true,
+        })
+        expect(activeMembership).toBeNull()
+        expect(softDeletedMembership?.deletedAt).not.toBeNull()
+      }
     })
   })
 

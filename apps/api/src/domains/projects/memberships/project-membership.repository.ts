@@ -199,6 +199,13 @@ export class ProjectMembershipRepository {
     })
   }
 
+  async softDeleteAllByProject(projectId: string): Promise<void> {
+    await this.userMembershipRepo().softDelete({
+      resourceType: PROJECT_RESOURCE_TYPE,
+      resourceId: projectId,
+    })
+  }
+
   private userMembershipRepo(): Repository<UserMembership> {
     return this.transactionService.getManager().getRepository(UserMembership)
   }
