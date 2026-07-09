@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
-import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
-// biome-ignore lint/style/useImportType: DataSource required at runtime for NestJS DI
-import { DataSource, In, type Repository } from "typeorm"
-import { ALL_ENTITIES } from "@/common/all-entities"
+import { InjectRepository } from "@nestjs/typeorm"
+import { In, type Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { TransactionService } from "@/common/transaction/transaction.service"
 import {
   extractAgentSettingsCreateFields,
   extractAgentSettingsUpdateFields,
@@ -20,6 +20,8 @@ import type { DocumentTagsUpdateFields } from "../documents/tags/document-tags.t
 import { ResourceLibrariesService } from "../resource-libraries/resource-libraries.service"
 import type { ResourceLibrary } from "../resource-libraries/resource-library.entity"
 import { Agent } from "./agent.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentRepository } from "./agent.repository"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "./memberships/agent-memberships.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -51,7 +53,8 @@ export class AgentsService {
     private readonly resourceLibrariesService: ResourceLibrariesService,
     private readonly agentSessionCategoriesService: AgentSessionCategoriesService,
     private readonly agentMembershipsService: AgentMembershipsService,
-    @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly transactionService: TransactionService,
+    private readonly agentsRepository: AgentRepository,
   ) {
     this.agentConnectRepository = new ConnectRepository(agentRepository, "agents")
   }
@@ -344,19 +347,9 @@ export class AgentsService {
   }
 
   async deleteAgent(agent: Agent): Promise<void> {
-    await this.dataSource.transaction(async (entityManager) => {
-      const agentId = agent.id
-      // Sweep everything directly scoped by agentId
-      for (const entity of ALL_ENTITIES) {
-        const hasAgentId = entityManager.connection
-          .getMetadata(entity)
-          .columns.some((column) => column.propertyName === "agentId")
-        if (hasAgentId) {
-          await entityManager.softDelete(entity, { agentId })
-        }
-      }
-
-      await entityManager.softDelete(Agent, { id: agent.id })
+    await this.transactionService.run(async () => {
+      await this.agentsRepository.softDelete(agent.id)
+      await this.agentMembershipsService.deleteMembership({ agentId: agent.id })
     })
   }
 

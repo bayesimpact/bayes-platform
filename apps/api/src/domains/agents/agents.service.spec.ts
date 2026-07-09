@@ -581,5 +581,23 @@ describe("AgentsService", () => {
       expect(deletedAgentSettings).toBeDefined()
       expect(deletedAgentSettings.length).toBe(0)
     })
+
+    it("should soft-delete agent memberships when deleting an agent", async () => {
+      const { agent } = await createOrganizationWithAgent(repositories)
+
+      await service.deleteAgent(agent)
+
+      const activeMemberships = await repositories.userMembershipRepository.find({
+        where: { resourceType: "agent", resourceId: agent.id },
+      })
+      expect(activeMemberships).toHaveLength(0)
+
+      const softDeletedMemberships = await repositories.userMembershipRepository.find({
+        where: { resourceType: "agent", resourceId: agent.id },
+        withDeleted: true,
+      })
+      expect(softDeletedMemberships.length).toBeGreaterThan(0)
+      expect(softDeletedMemberships.every((membership) => membership.deletedAt !== null)).toBe(true)
+    })
   })
 })

@@ -1,6 +1,7 @@
 import type { AgentType } from "@caseai-connect/api-contracts"
 import { Injectable } from "@nestjs/common"
 import type { Repository } from "typeorm"
+import { ALL_ENTITIES } from "@/common/all-entities"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 import { Agent } from "./agent.entity"
@@ -29,6 +30,21 @@ export class AgentRepository {
       select: { id: true },
     })
     return agents.map((agent) => agent.id)
+  }
+
+  async softDelete(agentId: string): Promise<void> {
+    const entityManager = this.transactionService.getManager()
+
+    for (const entity of ALL_ENTITIES) {
+      const hasAgentId = entityManager.connection
+        .getMetadata(entity)
+        .columns.some((column) => column.propertyName === "agentId")
+      if (hasAgentId) {
+        await entityManager.softDelete(entity, { agentId })
+      }
+    }
+
+    await entityManager.softDelete(Agent, { id: agentId })
   }
 
   private repo(): Repository<Agent> {

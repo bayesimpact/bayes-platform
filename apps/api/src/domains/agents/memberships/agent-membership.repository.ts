@@ -202,6 +202,13 @@ export class AgentMembershipRepository {
       .execute()
   }
 
+  async softDeleteAllByAgent(agentId: string): Promise<void> {
+    await this.userMembershipRepo().softDelete({
+      resourceType: AGENT_RESOURCE_TYPE,
+      resourceId: agentId,
+    })
+  }
+
   private userMembershipRepo(): Repository<UserMembership> {
     return this.transactionService.getManager().getRepository(UserMembership)
   }

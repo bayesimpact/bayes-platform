@@ -92,6 +92,7 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
   ],
   exports: [
     AgentsService,
+    AgentRepository,
     AgentSessionCategoriesService,
     AgentSettingsService,
     AgentMembershipsService,

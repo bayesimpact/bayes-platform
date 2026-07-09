@@ -118,6 +118,14 @@ export class AgentMembershipsService {
   }
 
   /**
+   * Soft-deletes all agent memberships for the given agent.
+   * Joins an outer transaction when called inside TransactionService.run().
+   */
+  async deleteMembership({ agentId }: { agentId: string }): Promise<void> {
+    await this.agentMembershipRepository.softDeleteAllByAgent(agentId)
+  }
+
+  /**
    * Removes an agent membership.
    * If the associated user is a placeholder (never accepted), also removes the user.
    */

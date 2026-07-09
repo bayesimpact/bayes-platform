@@ -80,7 +80,7 @@ export class ProjectsService {
   async deleteProject(project: Project): Promise<void> {
     await this.transactionService.run(async () => {
       await this.projectsRepository.softDelete(project.id)
-      await this.projectMembershipsService.softDeleteMembership({ projectId: project.id })
+      await this.projectMembershipsService.deleteMembership({ projectId: project.id })
     })
   }
 
