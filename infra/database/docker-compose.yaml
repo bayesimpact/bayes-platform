@@ -3,7 +3,7 @@ services:
   pgvector:
     image: pgvector/pgvector:pg17
     ports:
-      - "5432:5432"
+      - "${DATABASE_PORT:-5432}:5432"
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: passpass
@@ -17,4 +17,4 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
