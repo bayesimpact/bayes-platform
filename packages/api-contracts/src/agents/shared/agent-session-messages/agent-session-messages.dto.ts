@@ -1,4 +1,4 @@
-import type { TimeType } from "@caseai-connect/api-contracts"
+import type { TimeType } from "../../../generic"
 
 export enum ToolName {
   FillForm = "fillForm",
