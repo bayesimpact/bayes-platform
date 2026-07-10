@@ -151,9 +151,7 @@ describe("ProjectsService", () => {
         withDeleted: true,
       })
       expect(softDeletedMemberships.length).toBeGreaterThan(0)
-      expect(
-        softDeletedMemberships.every((membership) => membership.deletedAt !== null),
-      ).toBe(true)
+      expect(softDeletedMemberships.every((membership) => membership.deletedAt !== null)).toBe(true)
     })
 
     it("should soft-delete memberships for users other than the project owner", async () => {
