@@ -1,0 +1,98 @@
+---
+title: Add an extraction agent
+description: Create an extraction agent that reads an uploaded document and returns structured data matching a JSON schema you define.
+category: guides-agents
+order: 1
+updated: 2026-07-10
+---
+
+import AddExtractionAgentWalkthrough from "@/components/AddExtractionAgentWalkthrough.astro"
+
+An **extraction agent** reads a document you give it and returns **structured data**
+— a JSON object whose fields you define in advance. Instead of chatting, it fills in
+a schema: you describe the fields you want, and the agent pulls those values out of
+each document.
+
+Agents live in your **workspace** and are created from the **New Agent** card on the
+workspace overview (or the **+** next to **Agents** in the left sidebar). Choosing
+the **Extraction** type is what makes the agent extract data rather than hold a
+conversation.
+
+## How an extraction agent works
+
+You define an **Output JSON Schema** listing the fields to capture (for example
+`title` and `summary`) and a **Default Prompt** telling the agent what to extract.
+When the agent runs on a document, it returns one JSON object matching your schema.
+An extraction agent therefore has three configuration tabs — **General**, **Model**
+and **Output** — and no conversation or greeting settings.
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click
+and the area to watch.
+
+<AddExtractionAgentWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Open the New Agent dialog
+
+On the workspace overview, find the **New Agent** card and click **Create** (you can
+also use the **+** next to **Agents** in the left sidebar).
+
+### 2. Choose the Extraction type
+
+In the **New Agent** dialog, under **Agent type**, select **Extraction**. The type
+determines what the agent does, so pick it before continuing.
+
+### 3. Name the agent and create it
+
+Type a **Name** (at least 3 characters) in the **Name** field, then click
+**Create**. Your agent is created with sensible defaults and opens in the editor.
+
+### 4. Set the basics on General
+
+The editor opens on the **General** tab. Set the:
+
+- **Name** — how the agent appears in your workspace.
+- **Locale** — the language the agent works in.
+- **Default Prompt** — the instructions telling the agent what to extract from each
+  document.
+
+### 5. Pick the model on Model
+
+Open the **Model** tab and choose the **Model** that powers the agent, and a
+**Temperature** (lower values give more consistent, literal extractions).
+
+### 6. Define the output on Output
+
+Open the **Output** tab and edit the **Output JSON Schema** — the JSON object that
+describes each field to extract. List your fields under `properties`, give each a
+`type` and a `description`, and mark the mandatory ones in `required`.
+
+### 7. Save your agent
+
+Click **Update** to save your configuration. The extraction agent is now ready to
+run on documents.
+
+## Tips
+
+- Keep field **descriptions** in the schema clear — the agent uses them to decide
+  what to put in each field.
+- Use a **low Temperature** (for example `0.2`) for extraction: you want faithful,
+  repeatable output rather than creative answers.
+- Mark only genuinely mandatory fields as **required**; the agent returns `null`
+  for a required value it can't find.
+- The schema must be **valid JSON** — the editor flags an invalid schema before you
+  can save.
+
+## Troubleshooting
+
+- **The Create button is disabled** — the **Name** must be at least 3 characters.
+- **My schema won't save** — the **Output JSON Schema** must be a valid JSON object;
+  check for a trailing comma or a missing quote.
+- **I don't see an Output tab** — only non-conversation agents have one. Make sure
+  you created an **Extraction** agent (conversation agents chat instead).
+- **The extracted values look wrong** — refine the field **descriptions** and the
+  **Default Prompt**, then click **Update** and try again.

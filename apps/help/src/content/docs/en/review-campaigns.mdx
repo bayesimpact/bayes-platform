@@ -1,0 +1,160 @@
+---
+title: Review campaigns
+description: Create a campaign to invite testers and reviewers to evaluate an agent, then read the aggregated results.
+category: guides-eval
+order: 1
+updated: 2026-07-09
+---
+
+import ReviewCampaignsWalkthrough from "@/components/ReviewCampaignsWalkthrough.astro"
+
+A **review campaign** lets you evaluate an agent with the help of invited people.
+**Testers** hold real conversations with the agent and answer questions about them;
+**reviewers** then read those sessions and give their own independent judgement.
+When the campaign closes, their feedback is aggregated into a report.
+
+Review campaigns are opened from the **Review campaigns** card on the workspace
+overview, and belong to the **workspace**.
+
+## How a campaign works
+
+A campaign moves through three states: **Draft** → **Active** → **Closed**. You
+build it as a draft (agent, questions, and — optionally — a description), then
+**Activate** it to start inviting participants and collecting feedback. Once
+activated, the configuration is **locked** so everyone evaluates the same thing.
+When you **Close** it, results are aggregated and the campaign becomes read-only,
+ready to read in the report.
+
+Participants have one of two roles:
+
+- **Tester** — chats with the agent and answers per-session and end-of-phase
+  questions.
+- **Reviewer** — reads a tester's session and answers the reviewer questions. The
+  tester's rating stays hidden until the reviewer submits their own, so judgements
+  stay independent.
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click and the area to
+watch.
+
+<ReviewCampaignsWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Open Review campaigns
+
+On the workspace overview, open the **Review campaigns** card. The page lists your
+campaigns; the first time, it shows **No review campaigns yet**.
+
+### 2. Create a campaign
+
+1. Click **New campaign** (top-right). The editor opens as a panel from the bottom
+   of the screen, organised into tabs.
+2. In **General**, give the campaign a **Name** and pick the **Target agent** (the
+   agent being evaluated). A **Description** is optional.
+3. Open the **Questions** tab and build the questionnaire (detailed below).
+4. Click **Create campaign** (top-right of the editor). It's saved as a **Draft**.
+
+### 3. Build the questions
+
+The **Questions** tab has three groups, each with its own **Add question** button:
+
+- **Tester — per-session questions** — asked after every session the tester
+  completes.
+- **Tester — end-of-phase questions** — asked once when the tester finishes.
+- **Reviewer questions** — shown to reviewers while they review a session.
+
+Click **Add question** in a group to append a question card. Each card has:
+
+- **Prompt** — the question text (e.g. *Was the response clear?*).
+- **Type** — a dropdown on the right of the prompt. **This is how you change the
+  question's mode.** Open it and choose one of:
+  - **Rating (1–5)** — a 1-to-5 score.
+  - **Single choice** — pick one option. Choosing this **reveals an extra
+    Options** field below the prompt — enter the choices separated by commas (e.g.
+    `Yes, No, Not sure`).
+  - **Free text** — a written answer.
+- **Required** — a toggle; turn it on to make the question mandatory.
+- **Factual** — a toggle shown only on **per-session** tester questions that aren't
+  free text. Turn it on when the question has a correct answer; it stays *visible to
+  reviewers during blind* review.
+
+Reorder a question with the **↑ / ↓** buttons, or remove it with the **trash** icon,
+at the right of the card. Repeat per group to cover what each role should answer.
+
+### 4. Activate the campaign
+
+From the campaigns table, open the draft (the **pencil** / **Edit** icon). In the
+editor **header, top-right**, click **Activate** (rocket icon), then confirm in the
+dialog. From this point the configuration (agent, questions) is **locked** — activate
+only once you're happy with it.
+
+> You must activate a campaign **before** inviting participants: invitations send a
+> real email, and an invitee should land on a campaign that's already live.
+
+### 5. Invite testers and reviewers
+
+In the editor's **Participants** tab (available once the campaign is **Active**):
+
+1. Enter one or more addresses in **Emails** (comma- or newline-separated).
+2. Choose the **Role** — **Tester** or **Reviewer**.
+3. Click **Send invitations**. A real email is sent to each address.
+
+Invited people appear under **Pending invitations** until they accept. You can
+**Revoke** an invitation that hasn't been accepted yet.
+
+### 6. Manage campaigns from the table
+
+Each campaign shows its **Name**, **Status**, **Members** count, and **Created** /
+**Updated** dates. In the row's **Actions** (right-hand column) you can:
+
+- **Edit** (pencil icon) — reopen the editor.
+- **Delete** (trash icon) — only available while the campaign is still a **Draft**.
+
+### 7. Close the campaign
+
+The **Close** button isn't on the table — it lives **inside the editor**. To find
+it:
+
+1. In the campaigns table, click the **Edit** (pencil) icon on the active campaign
+   to open the editor.
+2. In the editor **header, top-right**, click **Close** — this button only appears
+   while the campaign is **Active** (a draft shows **Activate** there instead; a
+   closed campaign shows neither).
+3. Confirm in the **Close “…”?** dialog by clicking **Close campaign**.
+
+A closed campaign is **read-only** — you can no longer edit it or invite anyone.
+
+### 8. Read the report
+
+Once closed, the editor gains a **Summary** tab, and the campaign's aggregated
+results are available in the **Campaign report** — the **mean tester rating**,
+number of **sessions**, **end-of-phase surveys** and a per-question breakdown. Use
+**Download CSV** to export the raw data.
+
+## Tips
+
+- Keep questions short and focused — testers answer them after every session.
+- Mark a question as **Factual** when there's a correct answer; it stays visible to
+  reviewers during blind review.
+- Invite a few testers and reviewers rather than many at once, so you can adjust the
+  next campaign based on what you learn.
+
+## Troubleshooting
+
+- **I can't invite anyone** — the campaign is still a **Draft**. **Activate** it
+  first.
+- **I can't change the questions or agent** — the configuration locks once the
+  campaign is **Active**. Create a new campaign if you need a different setup.
+- **I can't delete a campaign** — only **Draft** campaigns can be deleted. **Close**
+  an active one instead.
+- **I can't find the Close button** — it isn't in the table. Open the campaign with
+  the **Edit** (pencil) icon; **Close** is in the editor **header, top-right**, and
+  only shows while the campaign is **Active**.
+- **I can't change a question's type** — the **Type** dropdown is disabled once the
+  campaign is **Active** (the configuration is locked). Types can only be changed
+  while it's a **Draft**.
+- **The results are empty** — aggregated results become available once the campaign
+  is **Closed**.
