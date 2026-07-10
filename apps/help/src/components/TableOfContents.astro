@@ -1,0 +1,67 @@
+---
+import type { MarkdownHeading } from "astro"
+import type { Locale } from "@/consts"
+import { useTranslations } from "@/i18n/ui"
+
+interface Props {
+  headings: MarkdownHeading[]
+  locale: Locale
+}
+
+const { headings, locale } = Astro.props
+const t = useTranslations(locale)
+// Only surface section (h2) and sub-section (h3) headings.
+const toc = headings.filter((heading) => heading.depth === 2 || heading.depth === 3)
+---
+
+{
+  toc.length > 0 && (
+    <nav class="text-sm" aria-label={t("toc.title")}>
+      <p class="mb-2 font-semibold text-foreground">{t("toc.title")}</p>
+      <ul class="space-y-1.5 border-l border-border">
+        {toc.map((heading) => (
+          <li>
+            <a
+              href={`#${heading.slug}`}
+              data-toc-link
+              class:list={[
+                "block border-l-2 border-transparent py-0.5 text-muted-foreground transition-colors hover:text-foreground",
+                heading.depth === 2 ? "-ml-px pl-3" : "-ml-px pl-6",
+              ]}
+            >
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+<script>
+  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>("[data-toc-link]"))
+  if (links.length > 0) {
+    const byId = new Map(links.map((link) => [link.getAttribute("href")?.slice(1), link]))
+    const activate = (id: string | undefined) => {
+      for (const link of links) {
+        link.classList.remove("border-primary", "text-foreground", "font-medium")
+      }
+      const active = id ? byId.get(id) : undefined
+      active?.classList.add("border-primary", "text-foreground", "font-medium")
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((entry) => entry.isIntersecting)
+        if (visible.length > 0) activate(visible[0].target.id)
+      },
+      { rootMargin: "-80px 0px -70% 0px", threshold: 0 },
+    )
+
+    for (const link of links) {
+      const id = link.getAttribute("href")?.slice(1)
+      const heading = id ? document.getElementById(id) : null
+      if (heading) observer.observe(heading)
+    }
+  }
+</script>

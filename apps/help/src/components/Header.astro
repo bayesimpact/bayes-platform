@@ -1,0 +1,70 @@
+---
+import { SITE_TITLE } from "@/consts"
+import { useTranslations } from "@/i18n/ui"
+import { getLocaleFromPath, localizedPath } from "@/i18n/utils"
+import Icon from "./Icon.astro"
+import LanguageSwitcher from "./LanguageSwitcher.astro"
+import Search from "./Search.astro"
+import ThemeToggle from "./ThemeToggle.astro"
+
+interface Props {
+  /** URL of the main app, shown as a "Back to the app" link when provided. */
+  appUrl?: string
+  /** Whether to show the sidebar toggle (only on doc pages). */
+  showMenuToggle?: boolean
+}
+
+const { appUrl, showMenuToggle = false } = Astro.props
+const locale = getLocaleFromPath(Astro.url.pathname)
+const t = useTranslations(locale)
+---
+
+<header
+  class="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70"
+>
+  <div class="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
+    {
+      showMenuToggle && (
+        <button
+          type="button"
+          class="inline-flex size-9 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-accent hover:text-foreground lg:hidden"
+          aria-label="Menu"
+          data-sidebar-toggle
+        >
+          <Icon name="menu" />
+        </button>
+      )
+    }
+
+    <a href={localizedPath(locale)} class="flex items-center gap-2 font-semibold">
+      <span class="grid size-8 place-items-center rounded-md bg-primary text-primary-foreground">
+        <Icon name="book-open" size={18} />
+      </span>
+      <span class="hidden sm:inline">{SITE_TITLE}</span>
+    </a>
+
+    <div class="ml-auto hidden flex-1 justify-center px-4 md:flex">
+      <Search />
+    </div>
+
+    <div class="ml-auto flex items-center gap-2 md:ml-0">
+      {
+        appUrl && (
+          <a
+            href={appUrl}
+            class="hidden items-center gap-1.5 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
+          >
+            <Icon name="arrow-left" size={16} />
+            {t("nav.backToApp")}
+          </a>
+        )
+      }
+      <LanguageSwitcher />
+      <ThemeToggle />
+    </div>
+  </div>
+
+  <div class="border-t border-border px-4 py-2 md:hidden">
+    <Search />
+  </div>
+</header>

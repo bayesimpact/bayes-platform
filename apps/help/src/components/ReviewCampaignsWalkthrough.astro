@@ -1,0 +1,711 @@
+---
+/**
+ * Animated, full-page walkthrough of the Review campaigns flow, mirroring the real
+ * Studio interface (same shell, exact Lucide icons, real brand logo). Shares the
+ * exact FORM of the other help-center walkthroughs — only the content differs.
+ * Pass `lang="fr"` for the French copy.
+ */
+type Lang = "en" | "fr"
+const { lang = "en" } = Astro.props as { lang?: Lang }
+
+const STRINGS = {
+  en: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Bayes Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Settings", evaluations: "Evaluations", analytics: "Analytics", sources: "Sources",
+    documents: "Documents", webSources: "Web sources", resourceLibraries: "Resource libraries", members: "Members", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    workspace: "Workspace", conversation: "Conversation", extraction: "Extraction", form: "Form",
+    timeAgo: "About 1 hour ago", create: "Create",
+    newAgent: "New Agent", newAgentDesc: "An agent can perform specific tasks based on its type and configuration.",
+    documentsDesc: "Enhance your agents' knowledge and capabilities by adding documents.",
+    membersDesc: "Invite members to join your workspace to collaborate together.",
+    reviewCampaigns: "Review campaigns", reviewDesc: "Invite testers and reviewers to evaluate an agent.",
+    analyticsDesc: "View analytics for your project, including conversations, average questions per session, and more.",
+    evalDesc: "Test the performance of your agents.",
+    title: "Review campaigns", subtitle: "Evaluate agents with invited testers and reviewers.",
+    newBtn: "New campaign",
+    emptyTitle: "No review campaigns yet", emptyDesc: "Create a campaign to invite testers and reviewers to evaluate an agent.",
+    createTitle: "New review campaign", createDesc: "Configure the agent, questions, and invitees before activating.",
+    editTitle: "Edit review campaign",
+    tabGeneral: "General", tabQuestions: "Questions", tabParticipants: "Participants", tabPreview: "Preview",
+    fName: "Name", fNamePh: "e.g. Support agent — Q2 review",
+    fDesc: "Description", fDescPh: "What are we evaluating?",
+    fAgent: "Target agent", fAgentPh: "Select an agent",
+    aCreate: "Create campaign", aSave: "Save", aActivate: "Activate", aClose: "Close", aDelete: "Delete",
+    qPerSession: "Tester — per-session questions", qPerSessionDesc: "Asked after every session the tester completes.",
+    qEndPhase: "Tester — end-of-phase questions", qEndPhaseDesc: "Asked once when the tester finishes participating.",
+    qReviewer: "Reviewer questions", qReviewerDesc: "Shown to reviewers while reviewing a session.",
+    qTypeRating: "Rating (1–5)", qTypeSingle: "Single choice", qTypeFree: "Free text",
+    qPrompt: "Prompt", qType: "Type", qOptions: "Options (comma separated)", qOptionsPh: "Yes, No, Not sure",
+    qRequired: "Required", qFactual: "Factual", qFactualHint: "(visible to reviewers during blind)",
+    qSample1: "Was the response clear?", qSample2: "Was the answer factually correct?", qSample3: "Any comments?",
+    addQuestion: "Add question",
+    inviteTitle: "Invite participants",
+    emailsLabel: "Emails (comma or newline separated)", emailsPh: "alice@example.com, bob@example.com",
+    roleLabel: "Role", roleTester: "Tester", roleReviewer: "Reviewer",
+    send: "Send invitations",
+    pendingTitle: "Pending invitations", pendingDesc: "Invitations already sent for this review campaign.",
+    colEmail: "Email", colRole: "Role", colAccepted: "Accepted", statusPending: "pending", revoke: "Revoke",
+    stDraft: "Draft", stActive: "Active", stClosed: "Closed",
+    colName: "Name", colStatus: "Status", colMembers: "Members", colCreated: "Created", colUpdated: "Updated", colActions: "Actions",
+    campaignName: "Bayes Assistant — Q2 review", timeShort: "just now",
+    closeTitle: "Close “Bayes Assistant — Q2 review”?",
+    closeDesc: "Once closed, results are aggregated and the campaign becomes read-only.",
+    closeConfirm: "Close campaign", cancel: "Cancel",
+    reportTitle: "Campaign report", downloadCsv: "Download CSV",
+    tMeanRating: "Mean tester rating", tSessions: "Sessions", tSurveys: "End-of-phase surveys",
+    email1: "alice@example.com", email2: "bob@example.com",
+    prev: "Prev", next: "Next", step: "Step",
+    steps: [
+      "On the workspace overview, open the Review campaigns card.",
+      "Click New campaign to create one.",
+      "In General, give the campaign a Name and pick the Target agent.",
+      "Set each question's Type — Rating, Single choice or Free text — from the Type dropdown.",
+      "Use Add question to add a question to that group.",
+      "Click Create campaign — it's saved as a Draft.",
+      "Your campaign appears in the table with the Draft status.",
+      "Open the draft and click Activate (top-right of the editor), then confirm.",
+      "In Participants, enter emails, choose Tester or Reviewer, and Send invitations.",
+      "Invitees stay under Pending invitations until they accept.",
+      "To end it, open the campaign and click Close in the editor header.",
+      "Confirm to close the campaign — it becomes read-only.",
+      "Once closed, open the report to see aggregated results.",
+    ],
+  },
+  fr: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Bayes Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Paramètres", evaluations: "Évaluations", analytics: "Analytique", sources: "Sources",
+    documents: "Documents", webSources: "Sites web", resourceLibraries: "Bibliothèques de ressources", members: "Membres", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    workspace: "Espace de travail", conversation: "Conversation", extraction: "Extraction", form: "Formulaire",
+    timeAgo: "Il y a environ 1 heure", create: "Créer",
+    newAgent: "Nouvel agent", newAgentDesc: "Un agent peut effectuer des tâches spécifiques selon son type et sa configuration.",
+    documentsDesc: "Enrichissez les connaissances et capacités de vos agents en ajoutant des documents.",
+    membersDesc: "Invitez des membres à rejoindre votre espace de travail pour collaborer ensemble.",
+    reviewCampaigns: "Campagnes d'évaluation", reviewDesc: "Invitez des testeurs et des relecteurs à évaluer un agent.",
+    analyticsDesc: "Consultez les analyses de votre espace de travail : conversations, questions moyennes par session, et plus.",
+    evalDesc: "Testez les performances de vos agents.",
+    title: "Campagnes d'évaluation", subtitle: "Évaluez les agents avec des testeurs et des relecteurs invités.",
+    newBtn: "Nouvelle campagne",
+    emptyTitle: "Aucune campagne d'évaluation pour le moment", emptyDesc: "Créez une campagne pour inviter des testeurs et des relecteurs à évaluer un agent.",
+    createTitle: "Nouvelle campagne d'évaluation", createDesc: "Configurez l'agent, les questions et les invités avant d'activer.",
+    editTitle: "Modifier la campagne d'évaluation",
+    tabGeneral: "Général", tabQuestions: "Questions", tabParticipants: "Participants", tabPreview: "Aperçu",
+    fName: "Nom", fNamePh: "ex. Agent Support — revue T2",
+    fDesc: "Description", fDescPh: "Que voulons-nous évaluer ?",
+    fAgent: "Agent ciblé", fAgentPh: "Sélectionnez un agent",
+    aCreate: "Créer la campagne", aSave: "Enregistrer", aActivate: "Activer", aClose: "Clôturer", aDelete: "Supprimer",
+    qPerSession: "Testeur — questions par session", qPerSessionDesc: "Posées après chaque session terminée par le testeur.",
+    qEndPhase: "Testeur — questions de fin de phase", qEndPhaseDesc: "Posées une fois lorsque le testeur termine sa participation.",
+    qReviewer: "Questions relecteur", qReviewerDesc: "Affichées aux relecteurs lorsqu'ils relisent une session.",
+    qTypeRating: "Note (1–5)", qTypeSingle: "Choix unique", qTypeFree: "Texte libre",
+    qPrompt: "Question", qType: "Type", qOptions: "Options (séparées par des virgules)", qOptionsPh: "Oui, Non, Incertain",
+    qRequired: "Obligatoire", qFactual: "Factuelle", qFactualHint: "(visible aux relecteurs en mode aveugle)",
+    qSample1: "La réponse était-elle claire ?", qSample2: "La réponse était-elle factuellement correcte ?", qSample3: "Des commentaires ?",
+    addQuestion: "Ajouter une question",
+    inviteTitle: "Inviter des participants",
+    emailsLabel: "E-mails (séparés par des virgules ou des retours à la ligne)", emailsPh: "alice@exemple.com, bob@exemple.com",
+    roleLabel: "Rôle", roleTester: "Testeur", roleReviewer: "Relecteur",
+    send: "Envoyer les invitations",
+    pendingTitle: "Invitations en attente", pendingDesc: "Invitations déjà envoyées pour cette campagne de revue.",
+    colEmail: "E-mail", colRole: "Rôle", colAccepted: "Accepté", statusPending: "en attente", revoke: "Révoquer",
+    stDraft: "Brouillon", stActive: "Active", stClosed: "Clôturée",
+    colName: "Nom", colStatus: "Statut", colMembers: "Membres", colCreated: "Créée", colUpdated: "Modifiée", colActions: "Actions",
+    campaignName: "Bayes Assistant — revue T2", timeShort: "à l'instant",
+    closeTitle: "Clôturer « Bayes Assistant — revue T2 » ?",
+    closeDesc: "Une fois clôturée, les résultats sont agrégés et la campagne devient en lecture seule.",
+    closeConfirm: "Clôturer la campagne", cancel: "Annuler",
+    reportTitle: "Rapport de campagne", downloadCsv: "Télécharger le CSV",
+    tMeanRating: "Note moyenne testeurs", tSessions: "Sessions", tSurveys: "Enquêtes de fin de phase",
+    email1: "alice@exemple.com", email2: "bob@exemple.com",
+    prev: "Précédent", next: "Suivant", step: "Étape",
+    steps: [
+      "Sur la vue d'ensemble de l'espace de travail, ouvrez la carte Campagnes d'évaluation.",
+      "Cliquez sur Nouvelle campagne pour en créer une.",
+      "Dans Général, donnez un Nom à la campagne et choisissez l'Agent ciblé.",
+      "Réglez le Type de chaque question — Note, Choix unique ou Texte libre — via le menu Type.",
+      "Utilisez Ajouter une question pour ajouter une question à ce groupe.",
+      "Cliquez sur Créer la campagne — elle est enregistrée en Brouillon.",
+      "Votre campagne apparaît dans le tableau avec le statut Brouillon.",
+      "Ouvrez le brouillon et cliquez sur Activer (en haut à droite de l'éditeur), puis confirmez.",
+      "Dans Participants, saisissez les e-mails, choisissez Testeur ou Relecteur, puis Envoyer les invitations.",
+      "Les invités restent dans Invitations en attente jusqu'à leur acceptation.",
+      "Pour la terminer, ouvrez la campagne et cliquez sur Clôturer dans l'en-tête de l'éditeur.",
+      "Confirmez pour clôturer la campagne — elle passe en lecture seule.",
+      "Une fois clôturée, ouvrez le rapport pour voir les résultats agrégés.",
+    ],
+  },
+} as const
+
+const s = STRINGS[lang]
+
+const steps = [
+  { page: "overview", sources: false, spot: "cardReview", observe: [] },
+  { page: "campaignsEmpty", sources: false, spot: "btnNew", observe: [] },
+  { page: "editorGeneral", sources: false, spot: "", observe: ["obsGeneral"] },
+  { page: "editorQuestions", sources: false, spot: "typeSelect", observe: ["obsQuestion"] },
+  { page: "editorQuestions", sources: false, spot: "btnAddQuestion", observe: [] },
+  { page: "editorQuestions", sources: false, spot: "btnCreate", observe: [] },
+  { page: "campaignsTable", sources: false, spot: "", observe: ["obsRowDraft"] },
+  { page: "editorEdit", sources: false, spot: "btnActivate", observe: [] },
+  { page: "editorParticipants", sources: false, spot: "btnSend", observe: ["obsInvite"] },
+  { page: "editorParticipants", sources: false, spot: "", observe: ["obsPending"] },
+  { page: "editorParticipants", sources: false, spot: "btnCloseHeader", observe: [] },
+  { page: "closeDialog", sources: false, spot: "btnCloseConfirm", observe: ["obsCloseModal"] },
+  { page: "report", sources: false, spot: "", observe: ["obsReport"] },
+].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const labels = { prev: s.prev, next: s.next, step: s.step }
+---
+
+<div class="rcw" role="group" aria-label={s.title}>
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside class="sb">
+      <div class="sb-head">
+        <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
+        <span class="org"><b>{s.org}</b><small>{s.studio}</small></span>
+      </div>
+      <div class="sb-scroll">
+        <div class="grp-label">{s.agents}<span class="add"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.agent1}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.conversationAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg><span>{s.extractionAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/></svg><span>{s.formAgent}</span></div>
+
+        <div class="grp-label stack"><span class="name">{s.settingsName}</span><span>{s.settings}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg><span>{s.evaluations}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg><span>{s.analytics}</span></div>
+        <div class="navitem" id="navSources"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 15 21.84"/><path d="M21 5V8"/><path d="M21 12L18 17H22L19 22"/><path d="M3 12A9 3 0 0 0 14.59 14.87"/></svg><span>{s.sources}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="subwrap" id="sourcesSub">
+          <div class="subitem"><svg viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg><span>{s.documents}</span></div>
+          <div class="subitem"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg><span>{s.webSources}</span></div>
+          <div class="subitem"><svg viewBox="0 0 24 24"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg><span>{s.resourceLibraries}</span></div>
+        </div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>{s.members}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg><span>{s.admin}</span></div>
+      </div>
+      <div class="sb-user">
+        <span class="avatar">AM</span>
+        <span class="who"><b>{s.userName}</b><small>{s.userEmail}</small></span>
+        <span class="updown"><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+      </div>
+    </aside>
+
+    <!-- Main inset -->
+    <div class="inset">
+      <div class="topbar">
+        <span class="trig"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span>
+      </div>
+      <div class="canvas">
+        <span class="fab"><svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
+
+        <!-- workspace overview (step 1) -->
+        <div class="page" data-page="overview" data-active="true">
+          <div class="page-head plain">
+            <span><span class="ttl">{s.settingsName}</span><span class="desc">{s.workspace}</span></span>
+          </div>
+          <div class="cards3">
+            <div class="ecard"><span class="cat">{s.conversation}</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg> {s.agent1}</b><p>{s.timeAgo}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.conversation}</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg> {s.conversationAgent}</b><p>{s.timeAgo}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.extraction}</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg> {s.extractionAgent}</b><p>{s.timeAgo}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.form}</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/></svg> {s.formAgent}</b><p>{s.timeAgo}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><b>{s.newAgent}</b><p>{s.newAgentDesc}</p><span class="btn sm">{s.create} <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+            <div class="ecard"><b>{s.documents}</b><p>{s.documentsDesc}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><b>{s.members}</b><p>{s.membersDesc}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard" id="cardReview"><b class="ic"><svg viewBox="0 0 24 24"><path d="M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/><path d="M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14"/><path d="M8 6v8"/></svg> {s.reviewCampaigns}</b><p>{s.reviewDesc}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><b>{s.analytics}</b><p>{s.analyticsDesc}</p><div class="bars"><i style="height:40%"></i><i style="height:65%"></i><i style="height:30%"></i><i style="height:80%"></i><i style="height:55%"></i><i style="height:70%"></i><i style="height:45%"></i><i style="height:90%"></i></div></div>
+          </div>
+        </div>
+
+        <!-- campaigns empty (step 2) -->
+        <div class="page" data-page="campaignsEmpty">
+          <div class="page-head">
+            <span class="btn icon-round"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.title}</span><span class="desc">{s.subtitle}</span></span>
+            <span class="right"><span class="btn sm" id="btnNew"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.newBtn}</span></span>
+          </div>
+          <div class="emptybox">
+            <svg class="empty-ico" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>
+            <b>{s.emptyTitle}</b>
+            <p>{s.emptyDesc}</p>
+            <span class="btn sm"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.newBtn}</span>
+          </div>
+        </div>
+
+        <!-- editor sheet — General tab, create mode (step 3) -->
+        <div class="page" data-page="editorGeneral">
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="sheet-head">
+              <span class="h"><b>{s.createTitle} <span class="badge draft">{s.stDraft}</span></b><p>{s.createDesc}</p></span>
+              <span class="sheet-actions"><span class="btn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.aCreate}</span></span>
+            </div>
+            <div class="tabbar"><span class="tab on">{s.tabGeneral}</span><span class="tab">{s.tabQuestions}</span><span class="tab">{s.tabParticipants}</span><span class="tab">{s.tabPreview}</span></div>
+            <div class="sheet-body">
+              <div id="obsGeneral">
+                <div class="field"><span class="lbl">{s.fName}</span><span class="input">{s.fNamePh}</span></div>
+                <div class="field"><span class="lbl">{s.fDesc}</span><span class="textarea">{s.fDescPh}</span></div>
+                <div class="field"><span class="lbl">{s.fAgent}</span><span class="select">{s.fAgentPh} <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- editor sheet — Questions tab, create mode (steps 4, 5 & 6) -->
+        <div class="page" data-page="editorQuestions">
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="sheet-head">
+              <span class="h"><b>{s.createTitle} <span class="badge draft">{s.stDraft}</span></b><p>{s.createDesc}</p></span>
+              <span class="sheet-actions"><span class="btn" id="btnCreate"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.aCreate}</span></span>
+            </div>
+            <div class="tabbar"><span class="tab">{s.tabGeneral}</span><span class="tab on">{s.tabQuestions}</span><span class="tab">{s.tabParticipants}</span><span class="tab">{s.tabPreview}</span></div>
+            <div class="sheet-body">
+              <div class="qsec">
+                <h4>{s.qPerSession}</h4><p class="gdesc">{s.qPerSessionDesc}</p>
+                <div class="qcard" id="obsQuestion">
+                  <div class="qtop">
+                    <span class="qprompt"><span class="lbl">{s.qPrompt}</span><span class="input">{s.qSample1}</span></span>
+                    <span class="qtypefield"><span class="lbl">{s.qType}</span><span class="select" id="typeSelect">{s.qTypeRating} <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></span>
+                  </div>
+                  <div class="qbottom">
+                    <span class="qtoggles"><span class="toggle"><span class="switch on"></span>{s.qRequired}</span></span>
+                    <span class="qacts">
+                      <span class="iconbtn"><svg viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg></span>
+                      <span class="iconbtn"><svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg></span>
+                      <span class="iconbtn"><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
+                    </span>
+                  </div>
+                </div>
+                <div class="qcard">
+                  <div class="qtop">
+                    <span class="qprompt"><span class="lbl">{s.qPrompt}</span><span class="input">{s.qSample2}</span></span>
+                    <span class="qtypefield"><span class="lbl">{s.qType}</span><span class="select">{s.qTypeSingle} <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></span>
+                  </div>
+                  <div class="field"><span class="lbl">{s.qOptions}</span><span class="input">{s.qOptionsPh}</span></div>
+                  <div class="qbottom">
+                    <span class="qtoggles"><span class="toggle"><span class="switch on"></span>{s.qRequired}</span><span class="toggle"><span class="switch on"></span>{s.qFactual}<span class="hint">{s.qFactualHint}</span></span></span>
+                    <span class="qacts">
+                      <span class="iconbtn"><svg viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg></span>
+                      <span class="iconbtn"><svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg></span>
+                      <span class="iconbtn"><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
+                    </span>
+                  </div>
+                </div>
+                <span class="btn outline sm" id="btnAddQuestion"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.addQuestion}</span>
+              </div>
+
+              <div class="qsec">
+                <h4>{s.qEndPhase}</h4><p class="gdesc">{s.qEndPhaseDesc}</p>
+                <div class="qcard">
+                  <div class="qtop">
+                    <span class="qprompt"><span class="lbl">{s.qPrompt}</span><span class="input">{s.qSample3}</span></span>
+                    <span class="qtypefield"><span class="lbl">{s.qType}</span><span class="select">{s.qTypeFree} <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></span>
+                  </div>
+                  <div class="qbottom"><span class="qtoggles"><span class="toggle"><span class="switch off"></span>{s.qRequired}</span></span></div>
+                </div>
+                <span class="btn outline sm"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.addQuestion}</span>
+              </div>
+
+              <div class="qsec">
+                <h4>{s.qReviewer}</h4><p class="gdesc">{s.qReviewerDesc}</p>
+                <div class="qcard">
+                  <div class="qtop">
+                    <span class="qprompt"><span class="lbl">{s.qPrompt}</span><span class="input">{s.qSample1}</span></span>
+                    <span class="qtypefield"><span class="lbl">{s.qType}</span><span class="select">{s.qTypeRating} <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></span>
+                  </div>
+                  <div class="qbottom"><span class="qtoggles"><span class="toggle"><span class="switch on"></span>{s.qRequired}</span></span></div>
+                </div>
+                <span class="btn outline sm"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.addQuestion}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- campaigns table (steps 7 & — reused) -->
+        <div class="page" data-page="campaignsTable">
+          <div class="page-head">
+            <span class="btn icon-round"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.title}</span><span class="desc">{s.subtitle}</span></span>
+            <span class="right"><span class="btn sm"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.newBtn}</span></span>
+          </div>
+          <table class="res">
+            <thead><tr><th>{s.colName}</th><th>{s.colStatus}</th><th>{s.colMembers}</th><th>{s.colCreated}</th><th>{s.colUpdated}</th><th class="ta-r">{s.colActions}</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>{s.campaignName}</td>
+                <td id="obsRowDraft"><span class="badge draft">{s.stDraft}</span></td>
+                <td class="muted-cell">0</td>
+                <td class="muted-cell">{s.timeShort}</td>
+                <td class="muted-cell">{s.timeShort}</td>
+                <td class="rowacts"><span class="iconbtn"><svg viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg></span><span class="iconbtn danger"><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- editor sheet — draft edit, shows Activate in header (step 8) -->
+        <div class="page" data-page="editorEdit">
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="sheet-head">
+              <span class="h"><b>{s.editTitle} <span class="badge draft">{s.stDraft}</span></b><p>{s.campaignName}</p></span>
+              <span class="sheet-actions">
+                <span class="btn ghost"><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> {s.aDelete}</span>
+                <span class="btn outline" id="btnActivate"><svg viewBox="0 0 24 24"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"/><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"/></svg> {s.aActivate}</span>
+                <span class="btn">{s.aSave}</span>
+              </span>
+            </div>
+            <div class="tabbar"><span class="tab on">{s.tabGeneral}</span><span class="tab">{s.tabQuestions}</span><span class="tab">{s.tabParticipants}</span><span class="tab">{s.tabPreview}</span></div>
+            <div class="sheet-body">
+              <div class="field"><span class="lbl">{s.fName}</span><span class="input filled">{s.campaignName}</span></div>
+              <div class="field"><span class="lbl">{s.fAgent}</span><span class="select filled">{s.agent1} <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- editor sheet — Participants tab, active (steps 9, 10 & 11) -->
+        <div class="page" data-page="editorParticipants">
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="sheet-head">
+              <span class="h"><b>{s.editTitle} <span class="badge active">{s.stActive}</span></b><p>{s.campaignName}</p></span>
+              <span class="sheet-actions"><span class="btn outline" id="btnCloseHeader">{s.aClose}</span></span>
+            </div>
+            <div class="tabbar"><span class="tab">{s.tabGeneral}</span><span class="tab">{s.tabQuestions}</span><span class="tab on">{s.tabParticipants}</span><span class="tab">{s.tabPreview}</span></div>
+            <div class="sheet-body">
+              <div class="invitebox" id="obsInvite">
+                <b class="secttl">{s.inviteTitle}</b>
+                <div class="field"><span class="lbl">{s.emailsLabel}</span><span class="textarea">{s.emailsPh}</span></div>
+                <div class="row" style="gap:0.6rem; align-items:flex-end">
+                  <span style="flex:1"><span class="lbl">{s.roleLabel}</span><span class="select">{s.roleTester} <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></span>
+                  <span class="btn" id="btnSend"><svg viewBox="0 0 24 24"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg> {s.send}</span>
+                </div>
+              </div>
+              <div class="section" id="obsPending">
+                <div class="sec-head"><b>{s.pendingTitle}</b><p>{s.pendingDesc}</p></div>
+                <table class="res">
+                  <thead><tr><th>{s.colEmail}</th><th>{s.colRole}</th><th>{s.colAccepted}</th><th class="ta-r">{s.colActions}</th></tr></thead>
+                  <tbody>
+                    <tr><td>{s.email1}</td><td>{s.roleTester}</td><td class="muted-cell">{s.statusPending}</td><td class="rowacts"><span class="linkbtn">{s.revoke}</span></td></tr>
+                    <tr><td>{s.email2}</td><td>{s.roleReviewer}</td><td class="muted-cell">{s.statusPending}</td><td class="rowacts"><span class="linkbtn">{s.revoke}</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- close confirmation (step 12) -->
+        <div class="page" data-page="closeDialog">
+          <div class="scrim"></div>
+          <div class="modal" id="obsCloseModal">
+            <div class="mhead"><b>{s.closeTitle}</b><p>{s.closeDesc}</p></div>
+            <div class="row" style="justify-content:flex-end; margin-top:1rem; gap:0.5rem"><span class="btn ghost">{s.cancel}</span><span class="btn" id="btnCloseConfirm">{s.closeConfirm}</span></div>
+          </div>
+        </div>
+
+        <!-- report (step 13) -->
+        <div class="page" data-page="report">
+          <div class="page-head">
+            <span class="btn icon-round"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.reportTitle}</span><span class="desc">{s.campaignName} · <span class="badge closed">{s.stClosed}</span></span></span>
+            <span class="right"><span class="btn outline sm"><svg viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg> {s.downloadCsv}</span></span>
+          </div>
+          <div class="tiles" id="obsReport">
+            <div class="tile"><span class="k">{s.tMeanRating}</span><span class="v">4.2 / 5</span></div>
+            <div class="tile"><span class="k">{s.tSessions}</span><span class="v">18</span></div>
+            <div class="tile"><span class="k">{s.tSurveys}</span><span class="v">6</span></div>
+          </div>
+          <div class="qgroup">
+            <b>{s.qSample1}</b>
+            <div class="bars big"><i style="height:30%"></i><i style="height:45%"></i><i style="height:60%"></i><i style="height:85%"></i><i style="height:70%"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="navbtn" data-prev><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> {s.prev}</button>
+    <button class="ctrl" data-playpause aria-label="Play / pause">⏸</button>
+    <span class="cap"><span class="st" data-stepcount></span><span class="tx" data-captext></span></span>
+    <span class="dots-nav" data-dots role="tablist" aria-label="Steps"></span>
+    <button class="navbtn primary" data-next>{s.next} <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="progress"><i data-bar></i></div>
+</div>
+
+<script define:vars={{ steps, labels }}>
+  const cs = document.currentScript
+  const rcw =
+    cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("rcw")
+      ? cs.previousElementSibling
+      : document.querySelector(".rcw")
+  const q = (sel) => rcw.querySelector(sel)
+  const pages = [...rcw.querySelectorAll(".page")]
+  const dotsWrap = rcw.querySelector("[data-dots]")
+  const bar = rcw.querySelector("[data-bar]")
+  const capText = rcw.querySelector("[data-captext]")
+  const stepCount = rcw.querySelector("[data-stepcount]")
+  const playPause = rcw.querySelector("[data-playpause]")
+  const prevBtn = rcw.querySelector("[data-prev]")
+  const nextBtn = rcw.querySelector("[data-next]")
+  const navSources = rcw.querySelector("#navSources")
+  const sourcesSub = rcw.querySelector("#sourcesSub")
+  const DUR = 6000
+  let idx = 0, playing = true, timer = null
+
+  steps.forEach((_, i) => {
+    const b = document.createElement("button")
+    b.className = "dotnav"; b.setAttribute("role", "tab"); b.setAttribute("aria-label", labels.step + " " + (i + 1))
+    b.addEventListener("click", () => go(i)); dotsWrap.appendChild(b)
+  })
+  const dots = [...dotsWrap.children]
+
+  function clearMarks() {
+    rcw.querySelectorAll(".spot-on").forEach((el) => el.classList.remove("spot-on"))
+    rcw.querySelectorAll(".observe-on").forEach((el) => el.classList.remove("observe-on"))
+  }
+  function render() {
+    const step = steps[idx]
+    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page)))
+    dots.forEach((d, i) => d.classList.toggle("on", i === idx))
+    stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
+    capText.textContent = step.text
+    navSources.classList.toggle("open", step.sources)
+    sourcesSub.classList.toggle("open", step.sources)
+
+    clearMarks()
+    const active = idx
+    setTimeout(() => {
+      if (active !== idx) return
+      if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
+      step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+    }, 260)
+
+    bar.classList.remove("run"); void bar.offsetWidth
+    bar.style.setProperty("--dur", DUR + "ms")
+    if (playing) bar.classList.add("run")
+  }
+  function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(() => go(idx + 1), DUR) }
+  function go(n) { idx = (n + steps.length) % steps.length; render(); schedule() }
+  function setPlaying(p) {
+    playing = p; playPause.textContent = p ? "⏸" : "▶"
+    if (p) { bar.classList.add("run"); schedule() } else { clearTimeout(timer); bar.classList.remove("run") }
+  }
+  prevBtn.addEventListener("click", () => go(idx - 1))
+  nextBtn.addEventListener("click", () => go(idx + 1))
+  playPause.addEventListener("click", () => setPlaying(!playing))
+
+  render(); schedule()
+</script>
+
+<style>
+  .rcw {
+    --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+    --primary: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --destructive: oklch(0.577 0.245 27.325);
+    --sidebar: oklch(0.985 0 0); --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-accent: oklch(0.97 0 0); --sidebar-accent-foreground: oklch(0.205 0 0); --sidebar-border: oklch(0.922 0 0);
+    --ready: oklch(0.62 0.17 150); --radius: 0.625rem;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
+    --spot: color-mix(in oklab, var(--primary) 55%, transparent);
+    display: block; margin: 1.5rem 0; color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  :global(html.dark) .rcw, :global(.dark) .rcw {
+    --background: oklch(0.145 0 0); --foreground: oklch(0.985 0 0);
+    --card: oklch(0.185 0 0); --card-foreground: oklch(0.985 0 0); --primary-foreground: oklch(0.145 0 0);
+    --secondary: oklch(0.269 0 0); --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0); --muted-foreground: oklch(0.708 0 0);
+    --border: oklch(0.269 0 0); --input: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0); --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0); --sidebar-accent-foreground: oklch(0.985 0 0); --sidebar-border: oklch(0.269 0 0);
+    --ready: oklch(0.72 0.17 150);
+    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 12px 32px rgba(0,0,0,0.5);
+  }
+  .rcw * { box-sizing: border-box; }
+  .rcw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+  .rcw svg circle[fill="currentColor"] { fill: currentColor; }
+
+  .rcw .shell { display: grid; grid-template-columns: 208px 1fr; height: 680px; background: var(--sidebar); color: var(--sidebar-foreground); border: 1px solid var(--sidebar-border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .rcw .sb { display: flex; flex-direction: column; padding: 0.5rem; min-height: 0; }
+  .rcw .sb-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.4rem 0.6rem; }
+  .rcw .logo { width: 1.9rem; height: 1.9rem; display: inline-flex; align-items: center; justify-content: center; }
+  .rcw .logo svg { width: 100%; height: 100%; stroke: none; }
+  .rcw .logo svg path { fill: #f18c6e; }
+  .rcw .logo svg circle { fill: #010101; }
+  .rcw .org { display: flex; flex-direction: column; line-height: 1.05; }
+  .rcw .org b { font-size: 0.92rem; font-weight: 700; }
+  .rcw .org small { color: var(--primary); font-size: 0.72rem; }
+  .rcw .sb-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
+  .rcw .grp-label { font-size: 0.66rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0.4rem 0.5rem 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
+  .rcw .grp-label .add { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+  .rcw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: 0.3rem; }
+  .rcw .grp-label.stack .name { color: var(--sidebar-foreground); font-size: 0.76rem; text-transform: none; font-weight: 700; }
+  .rcw .navitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.3rem 0.5rem; border-radius: 7px; font-size: 0.82rem; color: var(--sidebar-foreground); }
+  .rcw .navitem svg { font-size: 1rem; color: var(--muted-foreground); }
+  .rcw .navitem .chev { margin-left: auto; font-size: 0.9rem; transition: transform 0.25s; }
+  .rcw .navitem.open .chev { transform: rotate(90deg); }
+  .rcw .subwrap { overflow: hidden; max-height: 0; transition: max-height 0.3s ease; }
+  .rcw .subwrap.open { max-height: 140px; }
+  .rcw .subitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.28rem 0.5rem 0.28rem 1.9rem; border-radius: 7px; font-size: 0.79rem; color: var(--muted-foreground); }
+  .rcw .subitem svg { font-size: 0.92rem; color: var(--muted-foreground); }
+  .rcw .sb-user { display: flex; align-items: center; gap: 0.55rem; margin-top: auto; padding: 0.45rem 0.5rem; }
+  .rcw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
+  .rcw .who { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+  .rcw .who b { font-size: 0.76rem; font-weight: 600; }
+  .rcw .who small { font-size: 0.68rem; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rcw .updown { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+
+  .rcw .inset { position: relative; margin: 0.5rem 0.5rem 0.5rem 0; background: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; box-shadow: var(--shadow); }
+  .rcw .topbar { height: 3rem; flex-shrink: 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
+  .rcw .trig { color: var(--muted-foreground); font-size: 1.05rem; }
+  .rcw .canvas { position: relative; flex: 1; min-height: 0; background: radial-gradient(circle, color-mix(in oklab, var(--muted-foreground) 20%, transparent) 1px, transparent 1px) 0 0 / 22px 22px; }
+  .rcw .fab { position: absolute; right: 1rem; bottom: 1rem; width: 2.3rem; height: 2.3rem; border-radius: 999px; background: var(--primary); color: var(--primary-foreground); display: grid; place-items: center; box-shadow: var(--shadow); font-size: 1.1rem; z-index: 6; }
+
+  .rcw .page { position: absolute; inset: 0; padding: 1.1rem 1.2rem; overflow: auto; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
+  .rcw .page[data-active="true"] { opacity: 1; transform: none; pointer-events: auto; }
+
+  .rcw .spot-on { position: relative; z-index: 7; animation: rcw-spot 1.4s ease-in-out infinite; border-radius: 8px; }
+  @keyframes rcw-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
+  .rcw .observe-on { outline: 2px dashed var(--spot); outline-offset: 3px; border-radius: 10px; }
+
+  .rcw .btn { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--primary); color: var(--primary-foreground); border-radius: 8px; font-size: 0.8rem; font-weight: 500; padding: 0.4rem 0.7rem; }
+  .rcw .btn svg { font-size: 0.95rem; }
+  .rcw .btn.sm { font-size: 0.76rem; padding: 0.32rem 0.55rem; }
+  .rcw .btn.outline { background: var(--background); color: var(--foreground); border: 1px solid var(--border); }
+  .rcw .btn.ghost { background: transparent; color: var(--foreground); }
+  .rcw .btn.icon-round { border-radius: 999px; width: 2rem; height: 2rem; padding: 0; justify-content: center; background: var(--secondary); color: var(--secondary-foreground); }
+
+  .rcw .page-head { border-bottom: 1px solid var(--border); padding-bottom: 0.9rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.7rem; }
+  .rcw .page-head.plain { border: 0; }
+  .rcw .ttl { font-size: 1.3rem; font-weight: 600; line-height: 1.15; display: block; }
+  .rcw .desc { font-size: 0.88rem; color: var(--muted-foreground); margin-top: 0.2rem; display: block; }
+  .rcw .right { margin-left: auto; display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+
+  .rcw .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
+  .rcw .ecard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.8rem; min-height: 116px; display: flex; flex-direction: column; }
+  .rcw .ecard .cat { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-foreground); font-weight: 600; margin-bottom: 0.2rem; }
+  .rcw .ecard b { font-size: 0.88rem; }
+  .rcw .ecard b.ic { display: flex; align-items: center; gap: 0.35rem; }
+  .rcw .ecard b.ic svg { color: var(--muted-foreground); font-size: 0.95rem; }
+  .rcw .ecard p { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.2rem 0 0.6rem; }
+  .rcw .ecard .arrowbtn, .rcw .ecard .btn { margin-top: auto; align-self: flex-start; }
+  .rcw .arrowbtn { width: 1.8rem; height: 1.8rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); }
+  .rcw .bars { display: flex; align-items: flex-end; gap: 3px; height: 34px; margin-top: auto; }
+  .rcw .bars.big { height: 70px; margin-top: 0.5rem; }
+  .rcw .bars i { flex: 1; background: var(--primary); border-radius: 3px 3px 0 0; opacity: 0.85; }
+
+  .rcw .emptybox { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 2.2rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; text-align: center; }
+  .rcw .emptybox .empty-ico { color: var(--muted-foreground); font-size: 1.6rem; }
+  .rcw .emptybox b { font-size: 0.9rem; }
+  .rcw .emptybox p { font-size: 0.8rem; color: var(--muted-foreground); margin: 0 0 0.6rem; }
+
+  .rcw .lbl { font-size: 0.74rem; font-weight: 500; margin-bottom: 0.25rem; display: block; }
+  .rcw .row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .rcw .field { margin-bottom: 0.7rem; }
+  .rcw .input, .rcw .textarea, .rcw .select { display: block; width: 100%; border: 1px solid var(--input); border-radius: 8px; padding: 0.45rem 0.6rem; font-size: 0.8rem; color: var(--muted-foreground); background: var(--background); }
+  .rcw .input.filled, .rcw .select.filled { color: var(--foreground); }
+  .rcw .textarea { min-height: 3.2rem; }
+  .rcw .select { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+
+  /* bottom sheet */
+  .rcw .scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 4; }
+  .rcw .sheet { position: absolute; left: 0; right: 0; bottom: 0; top: 2.2rem; background: var(--card); border: 1px solid var(--border); border-bottom: 0; border-radius: 14px 14px 0 0; box-shadow: var(--shadow); z-index: 5; display: flex; flex-direction: column; overflow: hidden; }
+  .rcw .sheet-head { padding: 0.9rem 1.1rem; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 0.7rem; }
+  .rcw .sheet-head .h { flex: 1; min-width: 0; }
+  .rcw .sheet-head .h b { font-size: 1.02rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; }
+  .rcw .sheet-head .h p { font-size: 0.78rem; color: var(--muted-foreground); margin: 0.25rem 0 0; }
+  .rcw .sheet-actions { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+  .rcw .tabbar { display: flex; gap: 0.2rem; padding: 0.5rem 1.1rem 0; border-bottom: 1px solid var(--border); }
+  .rcw .tab { padding: 0.4rem 0.7rem; font-size: 0.8rem; color: var(--muted-foreground); border-bottom: 2px solid transparent; }
+  .rcw .tab.on { color: var(--foreground); border-bottom-color: var(--primary); font-weight: 600; }
+  .rcw .sheet-body { flex: 1; overflow: auto; padding: 1rem 1.1rem; }
+  .rcw .secttl { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.5rem; }
+  .rcw .invitebox { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem; background: var(--card); }
+
+  /* question editor */
+  .rcw .qsec { margin-bottom: 1.1rem; }
+  .rcw .qsec > h4 { font-size: 0.85rem; font-weight: 600; margin: 0; }
+  .rcw .qsec > .gdesc { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.15rem 0 0.55rem; }
+  .rcw .qcard { border: 1px solid var(--border); border-radius: 8px; padding: 0.65rem 0.7rem; margin-bottom: 0.5rem; display: flex; flex-direction: column; gap: 0.55rem; background: var(--card); }
+  .rcw .qtop { display: flex; gap: 0.7rem; align-items: flex-start; }
+  .rcw .qtop .qprompt { flex: 1; min-width: 0; }
+  .rcw .qtop .qtypefield { width: 9.5rem; flex-shrink: 0; }
+  .rcw .qbottom { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  .rcw .qtoggles { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .rcw .toggle { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.76rem; }
+  .rcw .toggle .hint { color: var(--muted-foreground); font-size: 0.7rem; }
+  .rcw .switch { width: 1.7rem; height: 0.95rem; border-radius: 999px; background: var(--border); position: relative; flex-shrink: 0; display: inline-block; }
+  .rcw .switch.on { background: var(--primary); }
+  .rcw .switch::after { content: ""; position: absolute; top: 0.13rem; left: 0.13rem; width: 0.6rem; height: 0.6rem; border-radius: 999px; background: #fff; }
+  .rcw .switch.on::after { left: auto; right: 0.13rem; }
+  .rcw .qacts { display: flex; align-items: center; gap: 0.25rem; }
+
+  .rcw table.res { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .rcw table.res th { text-align: left; font-weight: 500; color: var(--muted-foreground); font-size: 0.72rem; padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--border); background: var(--muted); }
+  .rcw table.res th.ta-r { text-align: right; }
+  .rcw table.res td { padding: 0.55rem 0.5rem; border-bottom: 1px solid var(--border); }
+  .rcw table.res .muted-cell { color: var(--muted-foreground); }
+  .rcw .rowacts { text-align: right; white-space: nowrap; }
+  .rcw .iconbtn { display: inline-grid; place-items: center; width: 1.7rem; height: 1.7rem; border: 1px solid var(--border); border-radius: 7px; color: var(--muted-foreground); margin-left: 0.25rem; }
+  .rcw .iconbtn.danger { color: var(--destructive); }
+  .rcw .linkbtn { font-size: 0.76rem; color: var(--destructive); }
+
+  .rcw .badge { display: inline-flex; align-items: center; font-size: 0.7rem; font-weight: 500; border-radius: 999px; padding: 0.12rem 0.5rem; }
+  .rcw .badge.draft { border: 1px solid var(--border); color: var(--muted-foreground); }
+  .rcw .badge.active { color: var(--ready); background: color-mix(in oklab, var(--ready) 15%, transparent); }
+  .rcw .badge.closed { background: var(--secondary); color: var(--secondary-foreground); }
+
+  .rcw .section { margin-top: 1.1rem; }
+  .rcw .sec-head { margin-bottom: 0.5rem; }
+  .rcw .sec-head b { font-size: 0.9rem; font-weight: 600; }
+  .rcw .sec-head p { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.15rem 0 0; }
+
+  .rcw .modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(380px, 84%); background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; box-shadow: var(--shadow); z-index: 8; }
+  .rcw .mhead b { font-size: 0.96rem; font-weight: 600; }
+  .rcw .mhead p { font-size: 0.78rem; color: var(--muted-foreground); margin: 0.3rem 0 0; }
+
+  .rcw .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; margin-bottom: 0.9rem; }
+  .rcw .tile { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.7rem 0.8rem; background: var(--card); }
+  .rcw .tile .k { font-size: 0.7rem; color: var(--muted-foreground); display: block; }
+  .rcw .tile .v { font-size: 1.2rem; font-weight: 600; display: block; margin-top: 0.2rem; }
+  .rcw .qgroup { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.7rem 0.8rem; background: var(--card); }
+  .rcw .qgroup > b { font-size: 0.82rem; }
+
+  .rcw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .rcw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+  .rcw .navbtn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .rcw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
+  .rcw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .rcw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
+  .rcw .cap .tx { font-size: 0.88rem; font-weight: 500; }
+  .rcw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 180px; }
+  .rcw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .rcw .dotnav.on { background: var(--primary); transform: scale(1.3); }
+  .rcw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+  .rcw .progress i { display: block; height: 100%; width: 0; background: var(--primary); }
+  .rcw .progress i.run { animation: rcw-fill var(--dur, 6000ms) linear forwards; }
+  @keyframes rcw-fill { to { width: 100%; } }
+
+  @media (max-width: 640px) {
+    .rcw .shell { grid-template-columns: 1fr; height: 560px; }
+    .rcw .sb { display: none; }
+    .rcw .inset { margin: 0.5rem; }
+    .rcw .cards3, .rcw .tiles { grid-template-columns: 1fr; }
+    .rcw .qtop { flex-direction: column; }
+    .rcw .qtop .qtypefield { width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rcw .page, .rcw .spot-on, .rcw .progress i, .rcw .subwrap { transition: none !important; animation: none !important; }
+  }
+</style>

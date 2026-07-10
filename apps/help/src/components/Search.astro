@@ -1,0 +1,145 @@
+---
+import Icon from "./Icon.astro"
+import { useTranslations } from "@/i18n/ui"
+import { getLocaleFromPath } from "@/i18n/utils"
+
+const locale = getLocaleFromPath(Astro.url.pathname)
+const t = useTranslations(locale)
+---
+
+<div class="w-full max-w-md" data-search data-locale={locale}>
+  <div class="relative">
+    <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+      <Icon name="search" size={16} />
+    </span>
+    <input
+      type="search"
+      role="combobox"
+      aria-expanded="false"
+      aria-controls="search-results"
+      autocomplete="off"
+      spellcheck="false"
+      placeholder={t("search.placeholder")}
+      aria-label={t("search.label")}
+      class="h-9 w-full rounded-md border border-border bg-background pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring"
+      data-search-input
+    />
+    <ul
+      id="search-results"
+      role="listbox"
+      class="absolute left-0 right-0 z-50 mt-1 hidden max-h-80 overflow-y-auto rounded-md border border-border bg-card p-1 shadow-lg"
+      data-search-results
+    >
+    </ul>
+  </div>
+</div>
+
+<template data-search-empty>
+  <li class="px-3 py-6 text-center text-sm text-muted-foreground">{t("search.noResults")}</li>
+</template>
+
+<script>
+  type SearchDoc = {
+    title: string
+    description: string
+    category: string
+    href: string
+    content: string
+  }
+
+  function normalize(value: string): string {
+    return value
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+  }
+
+  function scoreDoc(doc: SearchDoc, terms: string[]): number {
+    const title = normalize(doc.title)
+    const haystack = normalize(`${doc.title} ${doc.description} ${doc.content}`)
+    let score = 0
+    for (const term of terms) {
+      if (!haystack.includes(term)) return 0
+      if (title.includes(term)) score += 5
+      else score += 1
+    }
+    return score
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-search]")) {
+    const locale = root.dataset.locale ?? "en"
+    const input = root.querySelector<HTMLInputElement>("[data-search-input]")
+    const results = root.querySelector<HTMLElement>("[data-search-results]")
+    const emptyTemplate = document.querySelector<HTMLTemplateElement>("[data-search-empty]")
+    if (!input || !results || !emptyTemplate) continue
+
+    let index: SearchDoc[] | null = null
+    let loading = false
+
+    const loadIndex = async () => {
+      if (index || loading) return
+      loading = true
+      try {
+        const response = await fetch(`/${locale}/search.json`)
+        index = (await response.json()) as SearchDoc[]
+      } catch {
+        index = []
+      } finally {
+        loading = false
+      }
+    }
+
+    const close = () => {
+      results.classList.add("hidden")
+      input.setAttribute("aria-expanded", "false")
+    }
+
+    const render = (query: string) => {
+      if (!index) return
+      const terms = normalize(query).split(/\s+/).filter(Boolean)
+      if (terms.length === 0) {
+        close()
+        return
+      }
+      const matches = index
+        .map((doc) => ({ doc, score: scoreDoc(doc, terms) }))
+        .filter((entry) => entry.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 8)
+
+      results.innerHTML = ""
+      if (matches.length === 0) {
+        results.append(emptyTemplate.content.cloneNode(true))
+      } else {
+        for (const { doc } of matches) {
+          const li = document.createElement("li")
+          li.setAttribute("role", "option")
+          li.innerHTML = `
+            <a href="${doc.href}" class="block rounded-sm px-3 py-2 hover:bg-accent">
+              <span class="block text-sm font-medium text-foreground">${doc.title}</span>
+              <span class="block truncate text-xs text-muted-foreground">${doc.description}</span>
+            </a>`
+          results.append(li)
+        }
+      }
+      results.classList.remove("hidden")
+      input.setAttribute("aria-expanded", "true")
+    }
+
+    input.addEventListener("focus", loadIndex)
+    input.addEventListener("input", () => render(input.value))
+    document.addEventListener("click", (event) => {
+      if (!root.contains(event.target as Node)) close()
+    })
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        close()
+        input.blur()
+      }
+      if (event.key === "/" && document.activeElement !== input) {
+        event.preventDefault()
+        input.focus()
+      }
+    })
+  }
+</script>

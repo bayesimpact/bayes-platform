@@ -1,0 +1,186 @@
+---
+title: Campagnes d'évaluation
+description: Créez une campagne pour inviter des testeurs et des relecteurs à évaluer un agent, puis consultez les résultats agrégés.
+category: guides-eval
+order: 1
+updated: 2026-07-09
+---
+
+import ReviewCampaignsWalkthrough from "@/components/ReviewCampaignsWalkthrough.astro"
+
+Une **campagne d'évaluation** vous permet d'évaluer un agent avec l'aide de
+personnes invitées. Les **testeurs** ont de vraies conversations avec l'agent et
+répondent à des questions à leur sujet ; les **relecteurs** relisent ensuite ces
+sessions et donnent leur propre jugement indépendant. À la clôture de la campagne,
+leurs retours sont agrégés dans un rapport.
+
+Les campagnes d'évaluation s'ouvrent depuis la carte **Campagnes d'évaluation** de
+la vue d'ensemble de l'espace de travail, et appartiennent à l'**espace de
+travail**.
+
+## Comment fonctionne une campagne
+
+Une campagne passe par trois états : **Brouillon** → **Active** → **Clôturée**.
+Vous la construisez en brouillon (agent, questions et, éventuellement, une
+description), puis vous l'**Activez** pour commencer à inviter des participants et
+recueillir des retours. Une fois activée, la configuration est **verrouillée** afin
+que tout le monde évalue la même chose. Lorsque vous la **Clôturez**, les résultats
+sont agrégés et la campagne passe en lecture seule, prête à être consultée dans le
+rapport.
+
+Les participants ont l'un des deux rôles :
+
+- **Testeur** — discute avec l'agent et répond aux questions par session et de fin
+  de phase.
+- **Relecteur** — relit la session d'un testeur et répond aux questions relecteur.
+  La note du testeur reste masquée jusqu'à ce que le relecteur soumette la sienne,
+  pour que les jugements restent indépendants.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape met en valeur le
+bouton à cliquer et la zone à observer.
+
+<ReviewCampaignsWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir les campagnes d'évaluation
+
+Sur la vue d'ensemble de l'espace de travail, ouvrez la carte **Campagnes
+d'évaluation**. La page liste vos campagnes ; la première fois, elle affiche
+**Aucune campagne d'évaluation pour le moment**.
+
+### 2. Créer une campagne
+
+1. Cliquez sur **Nouvelle campagne** (en haut à droite). L'éditeur s'ouvre en
+   panneau depuis le bas de l'écran, organisé en onglets.
+2. Dans **Général**, donnez un **Nom** à la campagne et choisissez l'**Agent
+   ciblé** (l'agent évalué). Une **Description** est facultative.
+3. Ouvrez l'onglet **Questions** et construisez le questionnaire (détaillé
+   ci-dessous).
+4. Cliquez sur **Créer la campagne** (en haut à droite de l'éditeur). Elle est
+   enregistrée en **Brouillon**.
+
+### 3. Construire les questions
+
+L'onglet **Questions** comporte trois groupes, chacun avec son propre bouton
+**Ajouter une question** :
+
+- **Testeur — questions par session** — posées après chaque session terminée par le
+  testeur.
+- **Testeur — questions de fin de phase** — posées une fois lorsque le testeur
+  termine.
+- **Questions relecteur** — affichées aux relecteurs lorsqu'ils relisent une
+  session.
+
+Cliquez sur **Ajouter une question** dans un groupe pour ajouter une carte de
+question. Chaque carte contient :
+
+- **Question** (*Prompt*) — l'intitulé de la question (ex. *La réponse était-elle
+  claire ?*).
+- **Type** — un menu déroulant à droite de l'intitulé. **C'est ainsi que l'on change
+  le mode de la question.** Ouvrez-le et choisissez l'un de :
+  - **Note (1–5)** — une note de 1 à 5.
+  - **Choix unique** — choisir une option. Ce choix **fait apparaître un champ
+    Options** supplémentaire sous l'intitulé — saisissez les choix séparés par des
+    virgules (ex. `Oui, Non, Incertain`).
+  - **Texte libre** — une réponse rédigée.
+- **Obligatoire** — un interrupteur ; activez-le pour rendre la question
+  obligatoire.
+- **Factuelle** — un interrupteur affiché uniquement sur les questions **testeur par
+  session** qui ne sont pas en texte libre. Activez-le quand la question a une
+  réponse correcte ; elle reste *visible aux relecteurs en mode aveugle*.
+
+Réordonnez une question avec les boutons **↑ / ↓**, ou supprimez-la avec l'icône
+**corbeille**, à droite de la carte. Répétez par groupe pour couvrir ce que chaque
+rôle doit renseigner.
+
+### 4. Activer la campagne
+
+Depuis le tableau des campagnes, ouvrez le brouillon (icône **crayon** /
+**Modifier**). Dans l'**en-tête de l'éditeur, en haut à droite**, cliquez sur
+**Activer** (icône fusée), puis confirmez dans la boîte de dialogue. À partir de là,
+la configuration (agent, questions) est **verrouillée** — activez uniquement lorsque
+tout vous convient.
+
+> Vous devez activer une campagne **avant** d'inviter des participants : les
+> invitations envoient un véritable e-mail, et un invité doit arriver sur une
+> campagne déjà en cours.
+
+### 5. Inviter des testeurs et des relecteurs
+
+Dans l'onglet **Participants** de l'éditeur (disponible une fois la campagne
+**Active**) :
+
+1. Saisissez une ou plusieurs adresses dans **E-mails** (séparées par des virgules
+   ou des retours à la ligne).
+2. Choisissez le **Rôle** — **Testeur** ou **Relecteur**.
+3. Cliquez sur **Envoyer les invitations**. Un véritable e-mail est envoyé à chaque
+   adresse.
+
+Les personnes invitées apparaissent dans **Invitations en attente** jusqu'à ce
+qu'elles acceptent. Vous pouvez **Révoquer** une invitation non encore acceptée.
+
+### 6. Gérer les campagnes depuis le tableau
+
+Chaque campagne affiche son **Nom**, son **Statut**, le nombre de **Membres** et
+les dates **Créée** / **Modifiée**. Dans les **Actions** de la ligne (colonne de
+droite), vous pouvez :
+
+- **Modifier** (icône crayon) — rouvrir l'éditeur.
+- **Supprimer** (icône corbeille) — disponible uniquement tant que la campagne est
+  un **Brouillon**.
+
+### 7. Clôturer la campagne
+
+Le bouton **Clôturer** n'est **pas** dans le tableau — il se trouve **dans
+l'éditeur**. Pour le trouver :
+
+1. Dans le tableau des campagnes, cliquez sur l'icône **Modifier** (crayon) de la
+   campagne active pour ouvrir l'éditeur.
+2. Dans l'**en-tête de l'éditeur, en haut à droite**, cliquez sur **Clôturer** — ce
+   bouton n'apparaît que lorsque la campagne est **Active** (un brouillon affiche
+   **Activer** à la place ; une campagne clôturée n'affiche ni l'un ni l'autre).
+3. Confirmez dans la boîte de dialogue **Clôturer « … » ?** en cliquant sur
+   **Clôturer la campagne**.
+
+Une campagne clôturée est en **lecture seule** — vous ne pouvez plus la modifier ni
+inviter personne.
+
+### 8. Lire le rapport
+
+Une fois clôturée, l'éditeur gagne un onglet **Synthèse**, et les résultats agrégés
+de la campagne sont disponibles dans le **Rapport de campagne** — la **note moyenne
+des testeurs**, le nombre de **sessions**, les **enquêtes de fin de phase** et une
+répartition par question. Utilisez **Télécharger le CSV** pour exporter les données
+brutes.
+
+## Conseils
+
+- Gardez des questions courtes et ciblées — les testeurs y répondent après chaque
+  session.
+- Marquez une question comme **Factuelle** lorsqu'il existe une bonne réponse ; elle
+  reste visible aux relecteurs pendant la relecture en aveugle.
+- Invitez quelques testeurs et relecteurs plutôt que beaucoup d'un coup, afin
+  d'ajuster la campagne suivante selon ce que vous apprenez.
+
+## Dépannage
+
+- **Je ne peux inviter personne** — la campagne est encore un **Brouillon**.
+  **Activez**-la d'abord.
+- **Je ne peux pas modifier les questions ou l'agent** — la configuration se
+  verrouille dès que la campagne est **Active**. Créez une nouvelle campagne s'il
+  vous faut une configuration différente.
+- **Je ne peux pas supprimer une campagne** — seules les campagnes en **Brouillon**
+  peuvent être supprimées. **Clôturez** plutôt une campagne active.
+- **Je ne trouve pas le bouton Clôturer** — il n'est pas dans le tableau. Ouvrez la
+  campagne avec l'icône **Modifier** (crayon) ; **Clôturer** est dans l'**en-tête de
+  l'éditeur, en haut à droite**, et n'apparaît que lorsque la campagne est
+  **Active**.
+- **Je ne peux pas changer le type d'une question** — le menu **Type** est désactivé
+  dès que la campagne est **Active** (la configuration est verrouillée). Les types ne
+  peuvent être modifiés que tant que c'est un **Brouillon**.
+- **Les résultats sont vides** — les résultats agrégés deviennent disponibles une
+  fois la campagne **Clôturée**.

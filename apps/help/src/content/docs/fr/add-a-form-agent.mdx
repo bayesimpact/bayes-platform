@@ -1,0 +1,120 @@
+---
+title: Ajouter un agent de formulaire
+description: Créez un agent de formulaire qui guide un utilisateur pour remplir un formulaire, en collectant des réponses structurées conformes à un schéma que vous définissez.
+category: guides-agents
+order: 2
+updated: 2026-07-10
+---
+
+import AddFormAgentWalkthrough from "@/components/AddFormAgentWalkthrough.astro"
+
+Un **agent de formulaire** aide un utilisateur à **remplir un formulaire par la
+conversation**. Au lieu d'afficher des champs statiques, il pose les questions une à
+une et collecte des **réponses structurées** conformes à un schéma que vous
+définissez — combinant l'expérience d'un chat avec la sortie structurée d'un
+[agent d'extraction](/fr/add-an-extraction-agent).
+
+Les agents appartiennent à votre **espace de travail** et se créent depuis la carte
+**Nouvel agent** de la vue d'ensemble de l'espace de travail (ou le **+** à côté
+d'**Agents** dans la barre latérale gauche). C'est le choix du type **Formulaire**
+qui transforme l'agent en formulaire guidé.
+
+## Comment fonctionne un agent de formulaire
+
+Vous définissez une **Configuration du formulaire** (un schéma JSON listant les
+champs à collecter, par exemple `fullName` et `email`), un **Message d'accueil** par
+lequel l'agent commence, et un **Prompt par défaut** décrivant comment il doit
+guider l'utilisateur. Un agent de formulaire dispose de quatre onglets de
+configuration — **Général**, **Modèle**, **Formulaire** et **Resources** — ce qui
+lui permet aussi de proposer des entrées de vos bibliothèques de ressources pendant
+la conversation.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape
+met en valeur le bouton à cliquer et la zone à observer.
+
+<AddFormAgentWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir la boîte de dialogue Nouvel agent
+
+Sur la vue d'ensemble de l'espace de travail, repérez la carte **Nouvel agent** et
+cliquez sur **Créer** (vous pouvez aussi utiliser le **+** à côté d'**Agents** dans
+la barre latérale gauche).
+
+### 2. Choisir le type Formulaire
+
+Dans la boîte de dialogue **Nouvel agent**, sous **Type d'agent**, sélectionnez
+**Formulaire**. Le type détermine ce que fait l'agent : choisissez-le avant de
+continuer.
+
+### 3. Nommer l'agent et le créer
+
+Saisissez un **Nom** (au moins 3 caractères) dans le champ **Nom**, puis cliquez sur
+**Créer**. Votre agent est créé avec des valeurs par défaut pertinentes et s'ouvre
+dans l'éditeur.
+
+### 4. Régler l'essentiel dans Général
+
+L'éditeur s'ouvre sur l'onglet **Général**. Définissez :
+
+- le **Nom** — la façon dont l'agent apparaît dans votre espace de travail ;
+- la **Langue** — la langue dans laquelle l'agent travaille ;
+- le **Message d'accueil** — le premier message envoyé par l'agent au début d'une
+  conversation ;
+- le **Prompt par défaut** — les instructions indiquant à l'agent comment guider
+  l'utilisateur à travers le formulaire.
+
+### 5. Choisir le modèle dans Modèle
+
+Ouvrez l'onglet **Modèle** et choisissez le **Modèle** qui pilote l'agent, ainsi
+qu'une **Température** (une valeur basse donne des questions plus stables et
+prévisibles).
+
+### 6. Définir les champs dans Formulaire
+
+Ouvrez l'onglet **Formulaire** et modifiez la **Configuration du formulaire** — le
+schéma JSON qui décrit chaque champ à collecter. Listez vos champs sous
+`properties`, donnez à chacun un `type` et une `description`, et marquez les champs
+obligatoires dans `required`.
+
+### 7. Rattacher des ressources dans Resources
+
+Ouvrez l'onglet **Resources** pour rattacher les **bibliothèques de ressources** que
+l'agent peut proposer pendant la conversation. Cliquez sur **Add library**,
+choisissez une bibliothèque, et elle apparaît sous forme d'étiquette. Utilisez
+**Gérer les bibliothèques** pour ouvrir le gestionnaire dans un nouvel onglet. Voir
+[Bibliothèques de ressources](/fr/resource-libraries) pour les créer au préalable.
+
+### 8. Enregistrer votre agent
+
+Cliquez sur **Mettre à jour** pour enregistrer votre configuration. L'agent de
+formulaire est désormais prêt à l'emploi.
+
+## Conseils
+
+- Gardez des **descriptions** de champs claires — l'agent s'en sert pour formuler
+  chaque question et pour décider quoi enregistrer.
+- Le **Message d'accueil** donne le ton ; rédigez-le dans la même langue que la
+  **Langue** de l'agent.
+- Utilisez une **Température basse** (par exemple `0.2`) pour que l'agent pose des
+  questions cohérentes plutôt que d'improviser.
+- Ne rattachez que les **bibliothèques de ressources** pertinentes — l'agent propose
+  leurs entrées lorsqu'une demande de l'utilisateur correspond au titre ou à la
+  description d'une ressource.
+
+## Dépannage
+
+- **Le bouton Créer est désactivé** — le **Nom** doit comporter au moins 3
+  caractères.
+- **Ma Configuration du formulaire ne s'enregistre pas** — elle doit être un objet
+  JSON valide ; vérifiez une virgule en trop ou un guillemet manquant.
+- **Aucune bibliothèque à ajouter** — la liste **Add library** est vide tant que
+  vous n'avez pas créé de bibliothèques ; voir
+  [Bibliothèques de ressources](/fr/resource-libraries).
+- **Je ne vois pas d'onglet Formulaire** — assurez-vous d'avoir créé un agent
+  **Formulaire** (les agents conversationnels discutent, les agents d'extraction
+  affichent plutôt un onglet **Sortie**).

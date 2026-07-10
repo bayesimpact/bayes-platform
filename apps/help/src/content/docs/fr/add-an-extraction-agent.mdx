@@ -1,0 +1,107 @@
+---
+title: Ajouter un agent d'extraction
+description: Créez un agent d'extraction qui lit un document téléversé et renvoie des données structurées conformes à un schéma JSON que vous définissez.
+category: guides-agents
+order: 1
+updated: 2026-07-10
+---
+
+import AddExtractionAgentWalkthrough from "@/components/AddExtractionAgentWalkthrough.astro"
+
+Un **agent d'extraction** lit un document que vous lui fournissez et renvoie des
+**données structurées** — un objet JSON dont vous définissez les champs à l'avance.
+Au lieu de discuter, il remplit un schéma : vous décrivez les champs souhaités, et
+l'agent en extrait les valeurs de chaque document.
+
+Les agents appartiennent à votre **espace de travail** et se créent depuis la carte
+**Nouvel agent** de la vue d'ensemble de l'espace de travail (ou le **+** à côté
+d'**Agents** dans la barre latérale gauche). C'est le choix du type **Extraction**
+qui fait que l'agent extrait des données plutôt que de tenir une conversation.
+
+## Comment fonctionne un agent d'extraction
+
+Vous définissez un **Schéma JSON de sortie** listant les champs à capturer (par
+exemple `title` et `summary`) et un **Prompt par défaut** indiquant à l'agent quoi
+extraire. Lorsque l'agent s'exécute sur un document, il renvoie un objet JSON
+conforme à votre schéma. Un agent d'extraction dispose donc de trois onglets de
+configuration — **Général**, **Modèle** et **Sortie** — et n'a aucun réglage de
+conversation ou de message d'accueil.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape
+met en valeur le bouton à cliquer et la zone à observer.
+
+<AddExtractionAgentWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir la boîte de dialogue Nouvel agent
+
+Sur la vue d'ensemble de l'espace de travail, repérez la carte **Nouvel agent** et
+cliquez sur **Créer** (vous pouvez aussi utiliser le **+** à côté d'**Agents** dans
+la barre latérale gauche).
+
+### 2. Choisir le type Extraction
+
+Dans la boîte de dialogue **Nouvel agent**, sous **Type d'agent**, sélectionnez
+**Extraction**. Le type détermine ce que fait l'agent : choisissez-le avant de
+continuer.
+
+### 3. Nommer l'agent et le créer
+
+Saisissez un **Nom** (au moins 3 caractères) dans le champ **Nom**, puis cliquez sur
+**Créer**. Votre agent est créé avec des valeurs par défaut pertinentes et s'ouvre
+dans l'éditeur.
+
+### 4. Régler l'essentiel dans Général
+
+L'éditeur s'ouvre sur l'onglet **Général**. Définissez :
+
+- le **Nom** — la façon dont l'agent apparaît dans votre espace de travail ;
+- la **Langue** — la langue dans laquelle l'agent travaille ;
+- le **Prompt par défaut** — les instructions indiquant à l'agent quoi extraire de
+  chaque document.
+
+### 5. Choisir le modèle dans Modèle
+
+Ouvrez l'onglet **Modèle** et choisissez le **Modèle** qui pilote l'agent, ainsi
+qu'une **Température** (une valeur basse donne des extractions plus régulières et
+littérales).
+
+### 6. Définir la sortie dans Sortie
+
+Ouvrez l'onglet **Sortie** et modifiez le **Schéma JSON de sortie** — l'objet JSON
+qui décrit chaque champ à extraire. Listez vos champs sous `properties`, donnez à
+chacun un `type` et une `description`, et marquez les champs obligatoires dans
+`required`.
+
+### 7. Enregistrer votre agent
+
+Cliquez sur **Mettre à jour** pour enregistrer votre configuration. L'agent
+d'extraction est désormais prêt à s'exécuter sur des documents.
+
+## Conseils
+
+- Gardez des **descriptions** de champs claires dans le schéma — l'agent s'en sert
+  pour décider quoi mettre dans chaque champ.
+- Utilisez une **Température basse** (par exemple `0.2`) pour l'extraction : vous
+  voulez une sortie fidèle et reproductible plutôt que des réponses créatives.
+- Ne marquez comme **required** que les champs réellement obligatoires ; l'agent
+  renvoie `null` pour une valeur requise qu'il ne trouve pas.
+- Le schéma doit être un **JSON valide** — l'éditeur signale un schéma invalide
+  avant que vous puissiez enregistrer.
+
+## Dépannage
+
+- **Le bouton Créer est désactivé** — le **Nom** doit comporter au moins 3
+  caractères.
+- **Mon schéma ne s'enregistre pas** — le **Schéma JSON de sortie** doit être un
+  objet JSON valide ; vérifiez une virgule en trop ou un guillemet manquant.
+- **Je ne vois pas d'onglet Sortie** — seuls les agents non conversationnels en ont
+  un. Assurez-vous d'avoir créé un agent **Extraction** (les agents conversationnels
+  discutent à la place).
+- **Les valeurs extraites semblent incorrectes** — affinez les **descriptions** des
+  champs et le **Prompt par défaut**, puis cliquez sur **Mettre à jour** et
+  réessayez.

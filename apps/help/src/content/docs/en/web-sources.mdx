@@ -1,0 +1,107 @@
+---
+title: Web sources
+description: Crawl websites so their content becomes part of your agents' knowledge, and organize sources with tags.
+category: guides-sources
+order: 2
+updated: 2026-07-09
+---
+
+import WebSourcesWalkthrough from "@/components/WebSourcesWalkthrough.astro"
+
+A **web source** is a website you crawl so its content is indexed and added to
+your agents' knowledge. Once a source is crawled and ready, agents in the
+workspace can draw on its pages to answer users.
+
+Web sources live under **Sources**, alongside Documents and Resource libraries,
+and belong to the **workspace**.
+
+## How agents use web sources
+
+A crawled web source is indexed as knowledge in the workspace. Once its
+**Embedding Status** is **Ready**, agents can retrieve relevant pages from it to
+answer users. Use **tags** to organize your sources and control how they are used
+— for example, the reserved `public-documents` tag lets users download a source
+when it's surfaced in a conversation.
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click
+and the area to watch.
+
+<WebSourcesWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Open Web sources
+
+In **Studio**, open the left sidebar, expand the **Sources** section, then select
+**Web sources**.
+
+### 2. Crawl a website
+
+1. Click **Crawl Website** (top-right of the page).
+2. In the **Crawl a Website** dialog, enter the **Website URL** (for example
+   `https://example.com`). The entire website is indexed in the background.
+3. Optionally give the source a **Name** (otherwise the site is used).
+4. Click **Start Crawling**.
+
+The new source appears in the table right away.
+
+### 3. Wait until it's ready
+
+Each source shows an **Embedding Status**. It moves from **Crawling** to
+**Ready** once the pages have been indexed. Only a **Ready** source is fully
+usable by your agents. The table also shows the number of **Pages** crawled and
+the last update time.
+
+### 4. Manage a source
+
+Open the **⋮** menu at the end of a source's row to:
+
+- **View** — see the source's details.
+- **Edit** — rename the source and add tags (see below).
+- **Recrawl website** — crawl the site again to pick up changes.
+- **Delete** — remove the source and its indexed content.
+
+### 5. See the crawled pages
+
+Click the **arrow** (chevron) at the start of a source's row to expand it and
+list every page that was crawled, each linking to its URL.
+
+### 6. Tag a source
+
+Tags let you group and control sources.
+
+1. In the source's **⋮** menu, choose **Edit**.
+2. In the edit dialog, click **Add tag** and pick a tag.
+3. Click **Update**.
+
+The tag then appears in the source's **Tags** column.
+
+### 7. Create and manage tags
+
+1. On the **Web sources** page, click **Tags** (top-right) to open the tags panel.
+2. Click **Create tag**.
+3. Enter a **Name** and an optional **Description**, then click **Create**.
+4. From the tags panel you can **Edit** or **Delete** any tag at any time.
+
+> The reserved tag **`public-documents`** is special: when a document or source
+> carrying it is surfaced in a conversation, the user is allowed to download it.
+
+## Tips
+
+- Crawl the most relevant sections of a site — the whole site is indexed, so a
+  focused, well-structured site gives the best answers.
+- **Recrawl** after the website changes so your agents stay up to date.
+- Use tags to keep large sets of sources organized and to control which ones are
+  downloadable by users.
+
+## Troubleshooting
+
+- **An agent doesn't use a source** — check that its **Embedding Status** is
+  **Ready**; a source still **Crawling** isn't available yet.
+- **The site changed but answers are stale** — open the **⋮** menu and choose
+  **Recrawl website**.
+- **A crawl won't start** — the **Website URL** must be a valid `https://`
+  address.

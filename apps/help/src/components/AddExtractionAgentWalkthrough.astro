@@ -1,0 +1,452 @@
+---
+/**
+ * Animated, full-page walkthrough of the "add an extraction agent" flow, mirroring
+ * the real Studio interface (same shell, exact Lucide icons, real brand logo).
+ * Shares the exact FORM of the other help-center walkthroughs — only the content
+ * differs. Pass `lang="fr"` for the French copy.
+ */
+type Lang = "en" | "fr"
+const { lang = "en" } = Astro.props as { lang?: Lang }
+
+const SCHEMA = `{
+  "type": "object",
+  "properties": {
+    "title": { "type": "string" },
+    "summary": { "type": "string" }
+  },
+  "required": ["title", "summary"]
+}`
+
+const STRINGS = {
+  en: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Bayes Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Settings", evaluations: "Evaluations", analytics: "Analytics", sources: "Sources",
+    documents: "Documents", webSources: "Web sources", resourceLibraries: "Resource libraries", members: "Members", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    conversation: "Conversation", extraction: "Extraction", form: "Form",
+    newAgent: "New Agent", newAgentDesc: "An agent can perform specific tasks based on its type and configuration.",
+    create: "Create",
+    dialogDesc: "Choose the type before configuring your agent.",
+    typeLabel: "Agent type", typeConversation: "Conversation", typeExtraction: "Extraction", typeForm: "Form",
+    nameLabel: "Name", namePlaceholder: "Enter agent name", agentName: "Document Extractor",
+    editTitle: "Edit Extraction Agent", editDesc: "Edit details for this extraction agent",
+    tabGeneral: "General", tabModel: "Model", tabOutput: "Output",
+    localeLabel: "Locale", localeValue: "EN",
+    promptLabel: "Default Prompt",
+    promptValue: "Extract structured information from the uploaded document. Return ONLY the JSON object that matches the provided output schema.",
+    modelLabel: "Model", modelPlaceholder: "Select model", tempLabel: "Temperature", tempValue: "0.2",
+    schemaLabel: "Output JSON Schema", schemaValue: SCHEMA,
+    update: "Update",
+    prev: "Prev", next: "Next", step: "Step",
+    steps: [
+      "On the workspace overview, open the New Agent card and click Create.",
+      "In the New Agent dialog, choose the Extraction type.",
+      "Give your agent a name, then click Create.",
+      "Your agent opens in the editor. On General, set its Name, Locale and Default Prompt.",
+      "Open the Model tab to choose the Model and Temperature.",
+      "Open the Output tab and define the Output JSON Schema — the fields to extract.",
+      "Click Update to save your extraction agent.",
+    ],
+  },
+  fr: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Bayes Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Paramètres", evaluations: "Évaluations", analytics: "Analytique", sources: "Sources",
+    documents: "Documents", webSources: "Sites web", resourceLibraries: "Bibliothèques de ressources", members: "Membres", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    conversation: "Conversation", extraction: "Extraction", form: "Formulaire",
+    newAgent: "Nouvel agent", newAgentDesc: "Un agent peut effectuer des tâches spécifiques en fonction de son type et de sa configuration.",
+    create: "Créer",
+    dialogDesc: "Choisissez le type avant de configurer votre agent.",
+    typeLabel: "Type d'agent", typeConversation: "Conversation", typeExtraction: "Extraction", typeForm: "Formulaire",
+    nameLabel: "Nom", namePlaceholder: "Entrez le nom de l'agent", agentName: "Document Extractor",
+    editTitle: "Modifier l'agent d'extraction", editDesc: "Modifier les détails de cet agent d'extraction",
+    tabGeneral: "Général", tabModel: "Modèle", tabOutput: "Sortie",
+    localeLabel: "Langue", localeValue: "EN",
+    promptLabel: "Prompt par défaut",
+    promptValue: "Extrayez les informations structurées du document téléversé. Renvoyez UNIQUEMENT l'objet JSON conforme au schéma de sortie fourni.",
+    modelLabel: "Modèle", modelPlaceholder: "Sélectionnez le modèle", tempLabel: "Température", tempValue: "0.2",
+    schemaLabel: "Schéma JSON de sortie", schemaValue: SCHEMA,
+    update: "Mettre à jour",
+    prev: "Précédent", next: "Suivant", step: "Étape",
+    steps: [
+      "Sur la vue d'ensemble de l'espace de travail, ouvrez la carte Nouvel agent et cliquez sur Créer.",
+      "Dans la boîte de dialogue Nouvel agent, choisissez le type Extraction.",
+      "Donnez un nom à votre agent, puis cliquez sur Créer.",
+      "Votre agent s'ouvre dans l'éditeur. Dans Général, définissez son Nom, sa Langue et son Prompt par défaut.",
+      "Ouvrez l'onglet Modèle pour choisir le Modèle et la Température.",
+      "Ouvrez l'onglet Sortie et définissez le Schéma JSON de sortie — les champs à extraire.",
+      "Cliquez sur Mettre à jour pour enregistrer votre agent d'extraction.",
+    ],
+  },
+} as const
+
+const s = STRINGS[lang]
+
+const steps = [
+  { page: "overview", nav: "", spot: "btnCreate", observe: [] },
+  { page: "typeDialog", nav: "", spot: "btnTypeExtraction", observe: ["obsTypeRow"] },
+  { page: "typeDialog", nav: "", spot: "btnCreateConfirm", observe: ["obsNameField"] },
+  { page: "editorGeneral", nav: "", spot: "", observe: ["obsGeneral"] },
+  { page: "editorModel", nav: "", spot: "tabModel", observe: ["obsModel"] },
+  { page: "editorOutput", nav: "", spot: "tabOutput", observe: ["obsSchema"] },
+  { page: "editorOutput", nav: "", spot: "btnSave", observe: [] },
+].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const labels = { prev: s.prev, next: s.next, step: s.step }
+---
+
+<div class="eaw" role="group" aria-label={s.newAgent}>
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside class="sb">
+      <div class="sb-head">
+        <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
+        <span class="org"><b>{s.org}</b><small>{s.studio}</small></span>
+      </div>
+      <div class="sb-scroll">
+        <div class="grp-label">{s.agents}<span class="add" id="navAdd"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.agent1}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.conversationAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg><span>{s.extractionAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/></svg><span>{s.formAgent}</span></div>
+
+        <div class="grp-label stack"><span class="name">{s.settingsName}</span><span>{s.settings}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg><span>{s.evaluations}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg><span>{s.analytics}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 15 21.84"/><path d="M21 5V8"/><path d="M21 12L18 17H22L19 22"/><path d="M3 12A9 3 0 0 0 14.59 14.87"/></svg><span>{s.sources}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg><span>{s.members}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg><span>{s.admin}</span></div>
+      </div>
+      <div class="sb-user">
+        <span class="avatar">AM</span>
+        <span class="who"><b>{s.userName}</b><small>{s.userEmail}</small></span>
+        <span class="updown"><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+      </div>
+    </aside>
+
+    <!-- Main inset -->
+    <div class="inset">
+      <div class="topbar">
+        <span class="trig"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span>
+      </div>
+      <div class="canvas">
+        <span class="fab"><svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
+
+        <!-- workspace overview (step 1) -->
+        <div class="page" data-page="overview" data-active="true">
+          <div class="page-head plain">
+            <span><span class="ttl">{s.settingsName}</span><span class="desc">{s.studio}</span></span>
+          </div>
+          <div class="cards3">
+            <div class="ecard"><span class="cat">{s.conversation}</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg> {s.agent1}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.extraction}</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg> {s.extractionAgent}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard muted">
+              <b>{s.newAgent}</b>
+              <p>{s.newAgentDesc}</p>
+              <span class="btn sm" id="btnCreate">{s.create} <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- New Agent dialog (steps 2 & 3) -->
+        <div class="page" data-page="typeDialog">
+          <div class="scrim"></div>
+          <div class="modal">
+            <div class="mhead"><b>{s.newAgent}</b><p>{s.dialogDesc}</p></div>
+            <p class="lbl">{s.typeLabel}</p>
+            <div class="typegrid" id="obsTypeRow">
+              <span class="typebtn">{s.typeConversation}</span>
+              <span class="typebtn on" id="btnTypeExtraction">{s.typeExtraction}</span>
+              <span class="typebtn">{s.typeForm}</span>
+            </div>
+            <p class="lbl">{s.nameLabel}</p>
+            <div id="obsNameField"><span class="input block">{s.agentName}</span></div>
+            <div class="row" style="margin-top:1rem"><span class="btn wide" id="btnCreateConfirm">{s.create}</span></div>
+          </div>
+        </div>
+
+        <!-- editor: General tab (step 4) -->
+        <div class="page" data-page="editorGeneral">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
+          </div>
+          <div class="editor">
+            <div class="tablist">
+              <span class="tab on">{s.tabGeneral}</span>
+              <span class="tab">{s.tabModel}</span>
+              <span class="tab">{s.tabOutput}</span>
+            </div>
+            <div class="tabbody" id="obsGeneral">
+              <div class="grid2">
+                <div class="fld"><p class="lbl">{s.nameLabel}</p><span class="input block">{s.agentName}</span></div>
+                <div class="fld"><p class="lbl">{s.localeLabel}</p><span class="select"><span>{s.localeValue}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div>
+              </div>
+              <div class="fld"><p class="lbl">{s.promptLabel}</p><span class="textarea">{s.promptValue}</span></div>
+            </div>
+            <div class="editor-foot"><span class="btn">{s.update}</span></div>
+          </div>
+        </div>
+
+        <!-- editor: Model tab (step 5) -->
+        <div class="page" data-page="editorModel">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
+          </div>
+          <div class="editor">
+            <div class="tablist">
+              <span class="tab">{s.tabGeneral}</span>
+              <span class="tab on" id="tabModel">{s.tabModel}</span>
+              <span class="tab">{s.tabOutput}</span>
+            </div>
+            <div class="tabbody" id="obsModel">
+              <div class="grid2">
+                <div class="fld"><p class="lbl">{s.modelLabel}</p><span class="select muted-select"><span>{s.modelPlaceholder}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div>
+                <div class="fld"><p class="lbl">{s.tempLabel}</p><span class="input block">{s.tempValue}</span></div>
+              </div>
+            </div>
+            <div class="editor-foot"><span class="btn">{s.update}</span></div>
+          </div>
+        </div>
+
+        <!-- editor: Output tab (steps 6 & 7) -->
+        <div class="page" data-page="editorOutput">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
+          </div>
+          <div class="editor">
+            <div class="tablist">
+              <span class="tab">{s.tabGeneral}</span>
+              <span class="tab">{s.tabModel}</span>
+              <span class="tab on" id="tabOutput">{s.tabOutput}</span>
+            </div>
+            <div class="tabbody">
+              <div class="fld"><p class="lbl">{s.schemaLabel}</p><span class="textarea mono" id="obsSchema">{s.schemaValue}</span></div>
+            </div>
+            <div class="editor-foot"><span class="btn" id="btnSave">{s.update}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="navbtn" data-prev><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> {s.prev}</button>
+    <button class="ctrl" data-playpause aria-label="Play / pause">⏸</button>
+    <span class="cap"><span class="st" data-stepcount></span><span class="tx" data-captext></span></span>
+    <span class="dots-nav" data-dots role="tablist" aria-label="Steps"></span>
+    <button class="navbtn primary" data-next>{s.next} <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="progress"><i data-bar></i></div>
+</div>
+
+<script define:vars={{ steps, labels }}>
+  const cs = document.currentScript
+  const eaw =
+    cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("eaw")
+      ? cs.previousElementSibling
+      : document.querySelector(".eaw")
+  const q = (sel) => eaw.querySelector(sel)
+  const pages = [...eaw.querySelectorAll(".page")]
+  const dotsWrap = eaw.querySelector("[data-dots]")
+  const bar = eaw.querySelector("[data-bar]")
+  const capText = eaw.querySelector("[data-captext]")
+  const stepCount = eaw.querySelector("[data-stepcount]")
+  const playPause = eaw.querySelector("[data-playpause]")
+  const prevBtn = eaw.querySelector("[data-prev]")
+  const nextBtn = eaw.querySelector("[data-next]")
+  const DUR = 6000
+  let idx = 0, playing = true, timer = null
+
+  steps.forEach((_, i) => {
+    const b = document.createElement("button")
+    b.className = "dotnav"; b.setAttribute("role", "tab"); b.setAttribute("aria-label", labels.step + " " + (i + 1))
+    b.addEventListener("click", () => go(i)); dotsWrap.appendChild(b)
+  })
+  const dots = [...dotsWrap.children]
+
+  function clearMarks() {
+    eaw.querySelectorAll(".spot-on").forEach((el) => el.classList.remove("spot-on"))
+    eaw.querySelectorAll(".observe-on").forEach((el) => el.classList.remove("observe-on"))
+  }
+  function render() {
+    const step = steps[idx]
+    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page)))
+    dots.forEach((d, i) => d.classList.toggle("on", i === idx))
+    stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
+    capText.textContent = step.text
+
+    clearMarks()
+    const active = idx
+    setTimeout(() => {
+      if (active !== idx) return
+      if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
+      step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+    }, 260)
+
+    bar.classList.remove("run"); void bar.offsetWidth
+    bar.style.setProperty("--dur", DUR + "ms")
+    if (playing) bar.classList.add("run")
+  }
+  function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(() => go(idx + 1), DUR) }
+  function go(n) { idx = (n + steps.length) % steps.length; render(); schedule() }
+  function setPlaying(p) {
+    playing = p; playPause.textContent = p ? "⏸" : "▶"
+    if (p) { bar.classList.add("run"); schedule() } else { clearTimeout(timer); bar.classList.remove("run") }
+  }
+  prevBtn.addEventListener("click", () => go(idx - 1))
+  nextBtn.addEventListener("click", () => go(idx + 1))
+  playPause.addEventListener("click", () => setPlaying(!playing))
+
+  render(); schedule()
+</script>
+
+<style>
+  .eaw {
+    --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+    --primary: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --destructive: oklch(0.577 0.245 27.325);
+    --sidebar: oklch(0.985 0 0); --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-accent: oklch(0.97 0 0); --sidebar-accent-foreground: oklch(0.205 0 0); --sidebar-border: oklch(0.922 0 0);
+    --ready: oklch(0.62 0.17 150); --radius: 0.625rem;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
+    --spot: color-mix(in oklab, var(--primary) 55%, transparent);
+    display: block; margin: 1.5rem 0; color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  :global(html.dark) .eaw, :global(.dark) .eaw {
+    --background: oklch(0.145 0 0); --foreground: oklch(0.985 0 0);
+    --card: oklch(0.185 0 0); --card-foreground: oklch(0.985 0 0); --primary-foreground: oklch(0.145 0 0);
+    --secondary: oklch(0.269 0 0); --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0); --muted-foreground: oklch(0.708 0 0);
+    --border: oklch(0.269 0 0); --input: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0); --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0); --sidebar-accent-foreground: oklch(0.985 0 0); --sidebar-border: oklch(0.269 0 0);
+    --ready: oklch(0.72 0.17 150);
+    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 12px 32px rgba(0,0,0,0.5);
+  }
+  .eaw * { box-sizing: border-box; }
+  .eaw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+  .eaw svg circle[fill="currentColor"] { fill: currentColor; }
+
+  .eaw .shell { display: grid; grid-template-columns: 208px 1fr; height: 680px; background: var(--sidebar); color: var(--sidebar-foreground); border: 1px solid var(--sidebar-border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .eaw .sb { display: flex; flex-direction: column; padding: 0.5rem; min-height: 0; }
+  .eaw .sb-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.4rem 0.6rem; }
+  .eaw .logo { width: 1.9rem; height: 1.9rem; display: inline-flex; align-items: center; justify-content: center; }
+  .eaw .logo svg { width: 100%; height: 100%; stroke: none; }
+  .eaw .logo svg path { fill: #f18c6e; }
+  .eaw .logo svg circle { fill: #010101; }
+  .eaw .org { display: flex; flex-direction: column; line-height: 1.05; }
+  .eaw .org b { font-size: 0.92rem; font-weight: 700; }
+  .eaw .org small { color: var(--primary); font-size: 0.72rem; }
+  .eaw .sb-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
+  .eaw .grp-label { font-size: 0.66rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0.4rem 0.5rem 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
+  .eaw .grp-label .add { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+  .eaw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: 0.3rem; }
+  .eaw .grp-label.stack .name { color: var(--sidebar-foreground); font-size: 0.76rem; text-transform: none; font-weight: 700; }
+  .eaw .navitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.3rem 0.5rem; border-radius: 7px; font-size: 0.82rem; color: var(--sidebar-foreground); }
+  .eaw .navitem svg { font-size: 1rem; color: var(--muted-foreground); }
+  .eaw .navitem .chev { margin-left: auto; font-size: 0.9rem; }
+  .eaw .sb-user { display: flex; align-items: center; gap: 0.55rem; margin-top: auto; padding: 0.45rem 0.5rem; }
+  .eaw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
+  .eaw .who { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+  .eaw .who b { font-size: 0.76rem; font-weight: 600; }
+  .eaw .who small { font-size: 0.68rem; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .eaw .updown { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+
+  .eaw .inset { position: relative; margin: 0.5rem 0.5rem 0.5rem 0; background: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; box-shadow: var(--shadow); }
+  .eaw .topbar { height: 3rem; flex-shrink: 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
+  .eaw .trig { color: var(--muted-foreground); font-size: 1.05rem; }
+  .eaw .canvas { position: relative; flex: 1; min-height: 0; background: radial-gradient(circle, color-mix(in oklab, var(--muted-foreground) 20%, transparent) 1px, transparent 1px) 0 0 / 22px 22px; }
+  .eaw .fab { position: absolute; right: 1rem; bottom: 1rem; width: 2.3rem; height: 2.3rem; border-radius: 999px; background: var(--primary); color: var(--primary-foreground); display: grid; place-items: center; box-shadow: var(--shadow); font-size: 1.1rem; z-index: 6; }
+
+  .eaw .page { position: absolute; inset: 0; padding: 1.1rem 1.2rem; overflow: auto; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
+  .eaw .page[data-active="true"] { opacity: 1; transform: none; pointer-events: auto; }
+
+  .eaw .spot-on { position: relative; z-index: 7; animation: eaw-spot 1.4s ease-in-out infinite; border-radius: 8px; }
+  @keyframes eaw-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
+  .eaw .observe-on { outline: 2px dashed var(--spot); outline-offset: 3px; border-radius: 10px; }
+
+  .eaw .btn { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--primary); color: var(--primary-foreground); border-radius: 8px; font-size: 0.8rem; font-weight: 500; padding: 0.4rem 0.7rem; }
+  .eaw .btn svg { font-size: 0.95rem; }
+  .eaw .btn.sm { font-size: 0.76rem; padding: 0.32rem 0.55rem; }
+  .eaw .btn.wide { width: 100%; justify-content: center; }
+
+  .eaw .page-head { border-bottom: 1px solid var(--border); padding-bottom: 0.9rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.7rem; }
+  .eaw .page-head.plain { border: 0; }
+  .eaw .backbtn { width: 1.9rem; height: 1.9rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); flex-shrink: 0; }
+  .eaw .ttl { font-size: 1.3rem; font-weight: 600; line-height: 1.15; display: block; }
+  .eaw .desc { font-size: 0.88rem; color: var(--muted-foreground); margin-top: 0.2rem; display: block; }
+
+  .eaw .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
+  .eaw .ecard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.8rem; min-height: 116px; display: flex; flex-direction: column; }
+  .eaw .ecard.muted { background: color-mix(in oklab, var(--muted) 35%, var(--card)); }
+  .eaw .ecard .cat { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-foreground); font-weight: 600; margin-bottom: 0.2rem; }
+  .eaw .ecard b { font-size: 0.88rem; }
+  .eaw .ecard b.ic { display: flex; align-items: center; gap: 0.35rem; }
+  .eaw .ecard b.ic svg { color: var(--muted-foreground); font-size: 0.95rem; }
+  .eaw .ecard p { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.2rem 0 0.6rem; }
+  .eaw .ecard .arrowbtn, .eaw .ecard .btn { margin-top: auto; align-self: flex-start; }
+  .eaw .arrowbtn { width: 1.8rem; height: 1.8rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); }
+
+  .eaw .lbl { font-size: 0.78rem; font-weight: 500; margin: 0.6rem 0 0.3rem; }
+  .eaw .row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .eaw .input { border: 1px solid var(--input); border-radius: 8px; padding: 0.42rem 0.6rem; font-size: 0.8rem; color: var(--foreground); background: var(--background); }
+  .eaw .input.block { display: block; }
+  .eaw .select { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; border: 1px solid var(--input); border-radius: 8px; padding: 0.42rem 0.6rem; font-size: 0.8rem; color: var(--foreground); background: var(--background); }
+  .eaw .select.muted-select { color: var(--muted-foreground); }
+  .eaw .select svg { color: var(--muted-foreground); font-size: 0.95rem; }
+  .eaw .textarea { display: block; border: 1px solid var(--input); border-radius: 8px; padding: 0.55rem 0.7rem; font-size: 0.78rem; color: var(--foreground); background: var(--background); line-height: 1.5; }
+  .eaw .textarea.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre; overflow-x: auto; }
+
+  .eaw .scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 4; }
+  .eaw .modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(380px, 84%); background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; box-shadow: var(--shadow); z-index: 5; }
+  .eaw .mhead { margin-bottom: 0.5rem; }
+  .eaw .mhead b { font-size: 0.98rem; font-weight: 600; }
+  .eaw .mhead p { font-size: 0.78rem; color: var(--muted-foreground); margin: 0.2rem 0 0; }
+  .eaw .typegrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+  .eaw .typebtn { border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.4rem; font-size: 0.8rem; text-align: center; color: var(--foreground); background: var(--background); }
+  .eaw .typebtn.on { border-color: var(--primary); color: var(--primary); font-weight: 600; }
+
+  .eaw .editor { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 1rem; }
+  .eaw .tablist { display: flex; gap: 0.2rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+  .eaw .tab { padding: 0.4rem 0.7rem; font-size: 0.82rem; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .eaw .tab.on { color: var(--foreground); font-weight: 600; border-bottom-color: var(--primary); }
+  .eaw .tabbody { padding: 0.2rem 0; }
+  .eaw .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+  .eaw .fld .lbl { margin-top: 0.4rem; }
+  .eaw .editor-foot { display: flex; justify-content: flex-end; margin-top: 1rem; }
+
+  .eaw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .eaw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+  .eaw .navbtn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .eaw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
+  .eaw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .eaw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
+  .eaw .cap .tx { font-size: 0.88rem; font-weight: 500; }
+  .eaw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 180px; }
+  .eaw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .eaw .dotnav.on { background: var(--primary); transform: scale(1.3); }
+  .eaw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+  .eaw .progress i { display: block; height: 100%; width: 0; background: var(--primary); }
+  .eaw .progress i.run { animation: eaw-fill var(--dur, 6000ms) linear forwards; }
+  @keyframes eaw-fill { to { width: 100%; } }
+
+  @media (max-width: 640px) {
+    .eaw .shell { grid-template-columns: 1fr; height: 560px; }
+    .eaw .sb { display: none; }
+    .eaw .inset { margin: 0.5rem; }
+    .eaw .cards3, .eaw .grid2 { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .eaw .page, .eaw .spot-on, .eaw .progress i { transition: none !important; animation: none !important; }
+  }
+</style>

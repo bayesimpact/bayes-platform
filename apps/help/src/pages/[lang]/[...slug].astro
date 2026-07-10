@@ -1,0 +1,40 @@
+---
+import type { GetStaticPaths } from "astro"
+import { getCollection, render } from "astro:content"
+import { isLocale, type Locale } from "@/consts"
+import DocsLayout from "@/layouts/DocsLayout.astro"
+import { getDocsForLocale, groupByCategory, parseDocId } from "@/lib/docs"
+
+export const getStaticPaths = (async () => {
+  const docs = await getCollection("docs")
+  return docs
+    .filter((doc) => !doc.data.draft)
+    .map((doc) => {
+      const { locale, slug } = parseDocId(doc.id)
+      return { params: { lang: locale, slug }, props: { doc } }
+    })
+}) satisfies GetStaticPaths
+
+const { doc } = Astro.props
+const { lang } = Astro.params
+const locale: Locale = isLocale(lang) ? lang : "en"
+const { slug } = parseDocId(doc.id)
+
+const { Content, headings } = await render(doc)
+
+const localeDocs = await getDocsForLocale(locale)
+const groups = groupByCategory(localeDocs)
+---
+
+<DocsLayout
+  title={doc.data.title}
+  description={doc.data.description}
+  category={doc.data.category}
+  updated={doc.data.updated}
+  locale={locale}
+  currentSlug={slug}
+  groups={groups}
+  headings={headings}
+>
+  <Content />
+</DocsLayout>
