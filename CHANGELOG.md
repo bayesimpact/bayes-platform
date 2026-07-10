@@ -9,6 +9,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 -  (beta) Gemini 3.1 Flash Lite & Gemini 3.5 Flash available for all Agents
+- Shared UI library gains shadcn chat primitives — `message`, `bubble`, `marker`, `attachment`, and `message-scroller` — under `@caseai-connect/ui/shad`, plus `xs`/`icon-xs` button sizes
 
 ### Changed
 - Onboarding screen automatically refreshes pending invitations every 30 seconds, so newly received invitations appear without a manual page reload
