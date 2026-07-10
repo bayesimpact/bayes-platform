@@ -78,7 +78,7 @@ describe("EvaluationExtractionRuns - executeOne", () => {
               answer: { type: "string" },
             },
           },
-          model: AgentModel._MockGenerateStructuredOutput,
+          model: AgentModel._Mock,
           instructions: "Extract the answer from the input",
         },
       },

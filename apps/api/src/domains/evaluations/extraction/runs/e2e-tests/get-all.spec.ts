@@ -57,7 +57,7 @@ describe("EvaluationExtractionRuns - getAll", () => {
         agent: { type: "extraction" },
         agentSettings: {
           outputJsonSchema: { type: "object" },
-          model: AgentModel._MockGenerateStructuredOutput,
+          model: AgentModel._Mock,
         },
       },
     )

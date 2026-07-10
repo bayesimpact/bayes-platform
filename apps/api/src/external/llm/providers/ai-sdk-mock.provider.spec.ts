@@ -1,5 +1,6 @@
 import { AgentModel } from "@caseai-connect/api-contracts"
-import { afterAll, beforeAll } from "@jest/globals"
+import { afterAll, beforeAll, beforeEach } from "@jest/globals"
+import { tool } from "ai"
 import { v4 } from "uuid"
 import { z } from "zod"
 import type {
@@ -19,6 +20,7 @@ describe("AISDKMockProvider", () => {
   beforeAll(async () => {
     provider = new AISDKMockProvider()
     messages = [{ role: "user", content: "for test purpose" }]
+    config = { model: AgentModel._Mock, temperature: 1, systemPrompt: "" }
     metadata = {
       agentId: "agentId",
       agentSessionId: "agentSessionId",
@@ -30,89 +32,37 @@ describe("AISDKMockProvider", () => {
       revision: 1,
     }
   })
+  beforeEach(() => {
+    provider.resetMock()
+    metadata.traceId = v4()
+  })
   afterAll(async () => {
     await sdk.shutdown()
   })
+
   it("streamChatResponse - default mock value", async () => {
-    metadata.traceId = v4()
-    config = { model: AgentModel._MockStreamChatResponse, temperature: 1, systemPrompt: "" }
     const stream = provider.streamChatResponse({ messages, config, metadata })
     const results = await streamToStringArray(stream)
     expect(results).toBeDefined()
     expect(results.length).toBeGreaterThan(0)
-    expect(results.join("")).toBe("Hello, I'm the streamChatResponse default mock!")
+    expect(results.join("")).toBe("Hello, I'm the stream default mock value!")
   })
-  it("streamChatResponse - custom mock value", async () => {
-    metadata.traceId = v4()
-    config = {
-      model: AgentModel._MockStreamChatResponse,
-      temperature: 1,
-      systemPrompt: "",
-      mockResult: ["This te", "xt is from my", " custom streamChatResponse Mock!"],
-    }
-    const stream = provider.streamChatResponse({ messages, config, metadata })
-    const results = await streamToStringArray(stream)
-    expect(results).toBeDefined()
-    expect(results.length).toBeGreaterThan(0)
-    expect(results.join("")).toBe("This text is from my custom streamChatResponse Mock!")
-  })
+
   it("generateText - default mock value", async () => {
-    metadata.traceId = v4()
-    const prompt = ""
-    config = { model: AgentModel._MockGenerateText, temperature: 1, systemPrompt: "" }
-    const result = await provider.generateText({ prompt, config, metadata })
-    expect(result).toBeDefined()
-    expect(result).toBe("Hello, I'm the generateText default mock response!")
+    const result = await provider.generateText({ prompt: "", config, metadata })
+    expect(result).toBe("Hello, I'm the text default mock value!")
   })
-  it("generateText - custom mock value", async () => {
-    metadata.traceId = v4()
-    const prompt = ""
-    config = {
-      model: AgentModel._MockGenerateText,
-      temperature: 1,
-      systemPrompt: "",
-      mockResult: "This text is from my custom generateText Mock!",
-    }
-    const result = await provider.generateText({ prompt, config, metadata })
-    expect(result).toBeDefined()
-    expect(result).toBe("This text is from my custom generateText Mock!")
-  })
+
   it("generateObject - default mock value", async () => {
-    metadata.traceId = v4()
-    const prompt = ""
     const schema = z.object({ content: z.string(), source: z.string() })
-    config = { model: AgentModel._MockGenerateObject, temperature: 1, systemPrompt: "" }
-    const result = await provider.generateObject({ schema, prompt, config, metadata })
-    expect(result).toBeDefined()
+    const result = await provider.generateObject({ schema, prompt: "", config, metadata })
     expect(() => schema.parse(result)).not.toThrow()
     const parsed = schema.parse(result)
-    expect(parsed.source).toBe("MOCK")
-    expect(parsed.content).toBe("Hello, I'm the generateObject default mock response!")
+    expect(parsed.source).toBe("source-value")
+    expect(parsed.content).toBe("content-value")
   })
-  it("generateObject - custom mock value", async () => {
-    metadata.traceId = v4()
-    const prompt = ""
-    const schema = z.object({ content: z.string(), source: z.string() })
-    const mock: z.infer<typeof schema> = {
-      content: "This object is from my custom generateObject Mock!",
-      source: "MOCK",
-    }
-    config = {
-      model: AgentModel._MockGenerateObject,
-      temperature: 1,
-      systemPrompt: "",
-      mockResult: JSON.stringify(mock),
-    }
-    const result = await provider.generateObject({ schema, prompt, config, metadata })
-    expect(result).toBeDefined()
-    expect(() => schema.parse(result)).not.toThrow()
-    const parsed = schema.parse(result)
-    expect(parsed.source).toBe(mock.source)
-    expect(parsed.content).toBe(mock.content)
-  })
+
   it("generateStructuredOutput - default mock value", async () => {
-    metadata.traceId = v4()
-    const prompt = ""
     const schema = z.object({ content: z.string(), source: z.string() })
     const testFile: LLMFile = {
       type: "file",
@@ -123,7 +73,7 @@ describe("AISDKMockProvider", () => {
     const message: LLMChatMessage = {
       role: "user",
       content: [
-        { type: "text", text: prompt },
+        { type: "text", text: "" },
         {
           type: testFile.type as "file",
           mediaType: testFile.mediaType,
@@ -133,85 +83,100 @@ describe("AISDKMockProvider", () => {
       ],
     }
 
-    config = { model: AgentModel._MockGenerateStructuredOutput, temperature: 1, systemPrompt: "" }
     const result = await provider.generateStructuredOutput({
       message,
       schema: schema.toJSONSchema(),
       config,
       metadata,
     })
-    expect(result).toBeDefined()
     expect(() => schema.parse(result)).not.toThrow()
     const parsed = schema.parse(result)
-    expect(parsed.source).toBe("MOCK")
-    expect(parsed.content).toBe("Hello, I'm the generateStructuredOutput default mock response!")
-  })
-  it("generateStructuredOutput - custom mock value", async () => {
-    metadata.traceId = v4()
-    const prompt = ""
-    const schema = z.object({ content: z.string(), source: z.string() })
-    const testFile: LLMFile = {
-      type: "file",
-      name: "file1.pdf",
-      mediaType: "application/pdf",
-      content: Buffer.from("%PDF-1.4\n%%EOF"),
-    }
-    const message: LLMChatMessage = {
-      role: "user",
-      content: [
-        { type: "text", text: prompt },
-        {
-          type: testFile.type as "file",
-          mediaType: testFile.mediaType,
-          data: testFile.content,
-          filename: testFile.name,
-        },
-      ],
-    }
-    const mock: z.infer<typeof schema> = {
-      content: "This object is from my custom generateStructuredOutput Mock!",
-      source: "MOCK",
-    }
-    config = {
-      model: AgentModel._MockGenerateStructuredOutput,
-      temperature: 1,
-      systemPrompt: "",
-      mockResult: JSON.stringify(mock),
-    }
-    const result = await provider.generateStructuredOutput({
-      message,
-      schema: schema.toJSONSchema(),
-      config,
-      metadata,
-    })
-    expect(result).toBeDefined()
-    expect(() => schema.parse(result)).not.toThrow()
-    const parsed = schema.parse(result)
-    expect(parsed.source).toBe(mock.source)
-    expect(parsed.content).toBe(mock.content)
+    expect(parsed.source).toBe("source-value")
+    expect(parsed.content).toBe("content-value")
   })
 
-  it("rate - default mock value", async () => {
-    metadata.traceId = v4()
-    const prompt = ""
-    config = { model: AgentModel._MockRate, temperature: 1, systemPrompt: "" }
-    const result = await provider.generateText({ prompt, config, metadata })
-    expect(result).toBeDefined()
+  it("addTextTurn - returns the specified value", async () => {
+    provider.addTextTurn(metadata.agentId, "76")
+    const result = await provider.generateText({ prompt: "", config, metadata })
     expect(result).toBe("76")
   })
-  it("rate - custom mock value", async () => {
-    metadata.traceId = v4()
-    const prompt = ""
-    config = {
-      model: AgentModel._MockRate,
+
+  it("addTextTurn - returns the specified values in order", async () => {
+    provider.addTextTurn(metadata.agentId, "first", "second")
+
+    const first = await provider.generateText({ prompt: "", config, metadata })
+    const second = await provider.generateText({ prompt: "", config, metadata })
+    const third = await provider.generateText({ prompt: "", config, metadata })
+
+    expect(first).toBe("first")
+    expect(second).toBe("second")
+    expect(third).toBe("Hello, I'm the text default mock value!")
+  })
+
+  it("addTextTurn - should works with agentId", async () => {
+    provider.addTextTurn("agent-a", "from A")
+    provider.addTextTurn("agent-b", "from B")
+
+    const fromB = await provider.generateText({
+      prompt: "",
+      config,
+      metadata: { ...metadata, agentId: "agent-b" },
+    })
+    const fromA = await provider.generateText({
+      prompt: "",
+      config,
+      metadata: { ...metadata, agentId: "agent-a" },
+    })
+
+    expect(fromB).toBe("from B")
+    expect(fromA).toBe("from A")
+  })
+
+  it("addStreamTurn - should works", async () => {
+    provider.addStreamTurn(metadata.agentId, ["He", "l", "lo!"])
+    const results = await streamToStringArray(
+      provider.streamChatResponse({ messages, config, metadata }),
+    )
+    // The AI SDK may coalesce consecutive text deltas, so assert on the content.
+    expect(results.length).toBeGreaterThan(0)
+    expect(results.join("")).toBe("Hello!")
+  })
+
+  it("addObjectTurn - should works", async () => {
+    const schema = z.object({ content: z.string(), source: z.string() })
+    provider.addObjectTurn(metadata.agentId, { content: "hello", source: "queued" })
+    const result = await provider.generateObject({ schema, prompt: "", config, metadata })
+    expect(schema.parse(result)).toEqual({ content: "hello", source: "queued" })
+  })
+
+  it("addToolCallTurn - should works", async () => {
+    const executed: unknown[] = []
+    const toolConfig: LLMConfig = {
+      model: AgentModel._Mock,
       temperature: 1,
       systemPrompt: "",
-      mockResult: "42 is the answer to life, the universe and everything",
+      tools: {
+        echo: tool({
+          description: "echoes its input",
+          inputSchema: z.object({ text: z.string() }),
+          execute: async (input) => {
+            executed.push(input)
+            return { echoed: input.text }
+          },
+        }),
+      },
     }
-    const result = await provider.generateText({ prompt, config, metadata })
-    expect(result).toBeDefined()
-    expect(result).toBe("42 is the answer to life, the universe and everything")
+    provider.addToolCallTurn(metadata.agentId, "echo", { text: "hi" })
+    provider.addTextTurn(metadata.agentId, "final answer")
+
+    const results = await streamToStringArray(
+      provider.streamChatResponse({ messages, config: toolConfig, metadata }),
+    )
+
+    expect(executed).toEqual([{ text: "hi" }])
+    expect(results.join("")).toBe("final answer")
   })
+
   async function streamToStringArray(
     stream: AsyncGenerator<string, void, unknown>,
   ): Promise<string[]> {
