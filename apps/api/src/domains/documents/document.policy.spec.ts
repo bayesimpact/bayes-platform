@@ -3,7 +3,7 @@ import {
   testPolicyScopedByProject,
 } from "@/common/test/test-project-scoped-policy.helpers"
 import type { Organization } from "../organizations/organization.entity"
-import type { ProjectMembershipRole } from "../projects/memberships/project-membership.entity"
+import type { ProjectMembershipRole } from "../projects/memberships/project-membership.types"
 import type { Project } from "../projects/project.entity"
 import { documentFactory } from "./document.factory"
 import { DocumentPolicy } from "./document.policy"

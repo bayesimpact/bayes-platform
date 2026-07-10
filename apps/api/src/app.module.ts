@@ -6,6 +6,7 @@ import { getBullMqConnection } from "./bullmq.config"
 import { BullBoardAdminModule } from "./common/bull-board/bull-board-admin.module"
 import { DiagnosticsModule } from "./common/diagnostics/diagnostics.module"
 import { RequestLoggerMiddleware } from "./common/middleware/request-logger.middleware"
+import { TransactionModule } from "./common/transaction/transaction.module"
 import typeorm from "./config/typeorm"
 import { AgentsModule } from "./domains/agents/agents.module"
 import { ConversationAgentSessionsModule } from "./domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
@@ -48,6 +49,7 @@ import { UsersModule } from "./domains/users/users.module"
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => configService.get("typeorm")(),
     }),
+    TransactionModule,
     AgentEmbedConfigsManagementModule,
     AgentMessageFeedbackModule,
     AgentsAnalyticsModule,

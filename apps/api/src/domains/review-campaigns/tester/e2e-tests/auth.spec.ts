@@ -87,7 +87,6 @@ describe("ReviewCampaigns - Tester auth", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .tester()
-        .accepted()
         .transient({ organization, project, campaign, user })
         .build(),
     })
@@ -166,7 +165,6 @@ describe("ReviewCampaigns - Tester auth", () => {
         repositories,
         membership: reviewCampaignMembershipFactory
           .reviewer()
-          .accepted()
           .transient({ organization, project, campaign, user })
           .build(),
       })
@@ -191,7 +189,6 @@ describe("ReviewCampaigns - Tester auth", () => {
         repositories,
         membership: reviewCampaignMembershipFactory
           .reviewer()
-          .accepted()
           .transient({ organization, project, campaign, user })
           .build(),
       })

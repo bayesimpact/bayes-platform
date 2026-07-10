@@ -85,7 +85,6 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .reviewer()
-        .accepted()
         .transient({ organization, project, campaign, user: reviewer })
         .build(),
     })

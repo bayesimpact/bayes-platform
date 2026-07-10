@@ -5,13 +5,21 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import {
+  organizationMembershipFactory,
+  saveOrgMembership,
+} from "@/domains/organizations/memberships/organization-membership.factory"
+import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { AgentsModule } from "../agents.module"
-import { addUserToAgent } from "./agent-membership.factory"
+import {
+  addUserToAgent,
+  agentMembershipFactory,
+  saveAgentMembership,
+} from "./agent-membership.factory"
 import { AgentMembershipsService } from "./agent-memberships.service"
 
 describe("AgentMembershipsService", () => {
@@ -50,7 +58,7 @@ describe("AgentMembershipsService", () => {
         agentId: agent.id,
       })
 
-      const remaining = await repositories.agentMembershipRepository.findOne({
+      const remaining = await repositories.userMembershipRepository.findOne({
         where: { id: membership.id },
       })
       expect(remaining).toBeNull()
@@ -67,8 +75,12 @@ describe("AgentMembershipsService", () => {
         agentId: agent.id,
       })
 
-      const projectMembership = await repositories.projectMembershipRepository.findOne({
-        where: { projectId: project.id, userId: member.id },
+      const projectMembership = await repositories.userMembershipRepository.findOne({
+        where: {
+          resourceType: "project",
+          resourceId: project.id,
+          userId: member.id,
+        },
       })
       expect(projectMembership).not.toBeNull()
     })
@@ -77,13 +89,13 @@ describe("AgentMembershipsService", () => {
       const { agent, user, organization, project } = await createOrganizationWithAgent(repositories)
       const { membership, user: member } = await addUserToAgent({ repositories, agent })
       await addUserToProject({ repositories, project, user: member })
-      await repositories.organizationMembershipRepository.save(
-        repositories.organizationMembershipRepository.create({
-          userId: member.id,
-          organizationId: organization.id,
-          role: "member",
-        }),
-      )
+      await saveOrgMembership({
+        repositories,
+        membership: organizationMembershipFactory
+          .transient({ user: member, organization })
+          .member()
+          .build(),
+      })
 
       await service.removeAgentMembership({
         userId: user.id,
@@ -91,16 +103,24 @@ describe("AgentMembershipsService", () => {
         agentId: agent.id,
       })
 
-      const orgMembership = await repositories.organizationMembershipRepository.findOne({
-        where: { organizationId: organization.id, userId: member.id },
+      const orgMembership = await repositories.userMembershipRepository.findOne({
+        where: {
+          resourceType: "organization",
+          resourceId: organization.id,
+          userId: member.id,
+        },
       })
       expect(orgMembership).not.toBeNull()
     })
 
     it("throws when attempting to remove yourself", async () => {
       const { agent, user } = await createOrganizationWithAgent(repositories)
-      const ownerMembership = await repositories.agentMembershipRepository.findOneOrFail({
-        where: { agentId: agent.id, userId: user.id },
+      const ownerMembership = await repositories.userMembershipRepository.findOneOrFail({
+        where: {
+          resourceType: "agent",
+          resourceId: agent.id,
+          userId: user.id,
+        },
       })
 
       await expect(
@@ -115,13 +135,10 @@ describe("AgentMembershipsService", () => {
     it("throws when attempting to remove the owner", async () => {
       const { agent, user: requester } = await createOrganizationWithAgent(repositories)
       const { user: ownerUser } = await createOrganizationWithProject(repositories)
-      const ownerMembership = await repositories.agentMembershipRepository.save(
-        repositories.agentMembershipRepository.create({
-          agentId: agent.id,
-          userId: ownerUser.id,
-          role: "owner",
-        }),
-      )
+      const ownerMembership = await saveAgentMembership({
+        repositories,
+        membership: agentMembershipFactory.transient({ agent, user: ownerUser }).owner().build(),
+      })
 
       await expect(
         service.removeAgentMembership({

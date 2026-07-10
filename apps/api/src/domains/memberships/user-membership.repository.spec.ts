@@ -9,10 +9,10 @@ import { OrganizationsModule } from "@/domains/organizations/organizations.modul
 import { userFactory } from "@/domains/users/user.factory"
 import { MembershipsModule } from "./memberships.module"
 import { UserMembership } from "./user-membership.entity"
-import { UserMembershipService } from "./user-membership.service"
+import { UserMembershipRepository } from "./user-membership.repository"
 
-describe("UserMembershipService", () => {
-  let service: UserMembershipService
+describe("UserMembershipRepository", () => {
+  let repository: UserMembershipRepository
   let repositories: AllRepositories
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
 
@@ -21,7 +21,7 @@ describe("UserMembershipService", () => {
       additionalImports: [MembershipsModule, OrganizationsModule],
     })
     repositories = setup.getAllRepositories()
-    service = setup.module.get(UserMembershipService)
+    repository = setup.module.get(UserMembershipRepository)
   })
 
   beforeEach(async () => {
@@ -37,14 +37,15 @@ describe("UserMembershipService", () => {
       where: { userId, resourceId },
     })
 
-  describe("upsertOrganizationMembership", () => {
+  describe("upsertMembership", () => {
     it("creates a new organization membership row", async () => {
       const { organization, user } = await createOrganizationWithOwner(repositories)
 
       const anotherUser = await repositories.userRepository.save(userFactory.build())
-      await service.upsertOrganizationMembership({
+      await repository.upsertMembership({
         userId: anotherUser.id,
-        organizationId: organization.id,
+        resourceType: "organization",
+        resourceId: organization.id,
         role: "member",
       })
 
@@ -52,73 +53,42 @@ describe("UserMembershipService", () => {
       expect(row).not.toBeNull()
       expect(row?.resourceType).toBe("organization")
       expect(row?.role).toBe("member")
-      // suppress unused variable warning
       void user
     })
 
-    it("updates the role when the existing role is member", async () => {
-      const { organization } = await createOrganizationWithOwner(repositories)
-      const anotherUser = await repositories.userRepository.save(userFactory.build())
-
-      await service.upsertOrganizationMembership({
-        userId: anotherUser.id,
-        organizationId: organization.id,
-        role: "member",
-      })
-      await service.upsertOrganizationMembership({
-        userId: anotherUser.id,
-        organizationId: organization.id,
-        role: "admin",
-      })
-
-      const row = await getUserMembership(anotherUser.id, organization.id)
-      expect(row?.role).toBe("admin")
-    })
-
-    it("does not overwrite an owner role", async () => {
+    it("updates the role when the membership already exists", async () => {
       const { organization, user } = await createOrganizationWithOwner(repositories)
-      // saveOrgMembership already wrote an "owner" row to user_membership
 
-      await service.upsertOrganizationMembership({
+      await repository.upsertMembership({
         userId: user.id,
-        organizationId: organization.id,
+        resourceType: "organization",
+        resourceId: organization.id,
         role: "member",
+      })
+      await repository.upsertMembership({
+        userId: user.id,
+        resourceType: "organization",
+        resourceId: organization.id,
+        role: "admin",
       })
 
       const row = await getUserMembership(user.id, organization.id)
-      expect(row?.role).toBe("owner")
-    })
-
-    it("does not overwrite an admin role", async () => {
-      const { organization } = await createOrganizationWithOwner(repositories)
-      const anotherUser = await repositories.userRepository.save(userFactory.build())
-
-      await service.upsertOrganizationMembership({
-        userId: anotherUser.id,
-        organizationId: organization.id,
-        role: "admin",
-      })
-      await service.upsertOrganizationMembership({
-        userId: anotherUser.id,
-        organizationId: organization.id,
-        role: "member",
-      })
-
-      const row = await getUserMembership(anotherUser.id, organization.id)
       expect(row?.role).toBe("admin")
     })
 
     it("is idempotent when the role is unchanged", async () => {
       const { organization, user } = await createOrganizationWithOwner(repositories)
 
-      await service.upsertOrganizationMembership({
+      await repository.upsertMembership({
         userId: user.id,
-        organizationId: organization.id,
+        resourceType: "organization",
+        resourceId: organization.id,
         role: "owner",
       })
-      await service.upsertOrganizationMembership({
+      await repository.upsertMembership({
         userId: user.id,
-        organizationId: organization.id,
+        resourceType: "organization",
+        resourceId: organization.id,
         role: "owner",
       })
 
@@ -133,69 +103,69 @@ describe("UserMembershipService", () => {
 
       await expect(
         setup.dataSource.transaction(async (manager) => {
-          await service.upsertOrganizationMembership(
-            { userId: user.id, organizationId: organization.id, role: "member" },
+          await repository.upsertMembership(
+            {
+              userId: user.id,
+              resourceType: "organization",
+              resourceId: organization.id,
+              role: "member",
+            },
             manager,
           )
           throw new Error("forced rollback")
         }),
       ).rejects.toThrow("forced rollback")
 
-      // The "owner" row written by createOrganizationWithOwner is still present,
-      // but the rolled-back "member" upsert must not have mutated it.
       const row = await getUserMembership(user.id, organization.id)
       expect(row?.role).toBe("owner")
     })
-  })
 
-  describe("upsertProjectMembership", () => {
     it("creates a project membership row", async () => {
-      const { organization, user } = await createOrganizationWithOwner(repositories)
+      const { user } = await createOrganizationWithOwner(repositories)
       const projectId = "00000000-0000-0000-0000-000000000001"
 
-      await service.upsertProjectMembership({ userId: user.id, projectId, role: "owner" })
+      await repository.upsertMembership({
+        userId: user.id,
+        resourceType: "project",
+        resourceId: projectId,
+        role: "owner",
+      })
 
       const row = await getUserMembership(user.id, projectId)
       expect(row?.resourceType).toBe("project")
       expect(row?.role).toBe("owner")
-      void organization
     })
 
-    it("does not overwrite an existing admin role when accepting a campaign invitation", async () => {
-      const { user } = await createOrganizationWithOwner(repositories)
-      const projectId = "00000000-0000-0000-0000-000000000001"
-
-      await service.upsertProjectMembership({ userId: user.id, projectId, role: "admin" })
-      // Simulates what review-campaign / agent invitation handlers do: always pass "member"
-      await service.upsertProjectMembership({ userId: user.id, projectId, role: "member" })
-
-      const row = await getUserMembership(user.id, projectId)
-      expect(row?.role).toBe("admin")
-    })
-  })
-
-  describe("upsertAgentMembership", () => {
     it("creates an agent membership row", async () => {
       const { user } = await createOrganizationWithOwner(repositories)
       const agentId = "00000000-0000-0000-0000-000000000002"
 
-      await service.upsertAgentMembership({ userId: user.id, agentId, role: "admin" })
+      await repository.upsertMembership({
+        userId: user.id,
+        resourceType: "agent",
+        resourceId: agentId,
+        role: "admin",
+      })
 
       const row = await getUserMembership(user.id, agentId)
       expect(row?.resourceType).toBe("agent")
       expect(row?.role).toBe("admin")
     })
-  })
 
-  describe("ensureReviewCampaignMembership", () => {
     it("allows the same user to hold both tester and reviewer roles on one campaign", async () => {
       const { user } = await createOrganizationWithOwner(repositories)
       const campaignId = "00000000-0000-0000-0000-000000000003"
 
-      await service.ensureReviewCampaignMembership({ userId: user.id, campaignId, role: "tester" })
-      await service.ensureReviewCampaignMembership({
+      await repository.upsertMembership({
         userId: user.id,
-        campaignId,
+        resourceType: "review_campaign",
+        resourceId: campaignId,
+        role: "tester",
+      })
+      await repository.upsertMembership({
+        userId: user.id,
+        resourceType: "review_campaign",
+        resourceId: campaignId,
         role: "reviewer",
       })
 
@@ -207,12 +177,22 @@ describe("UserMembershipService", () => {
       expect(roles).toEqual(["reviewer", "tester"])
     })
 
-    it("is idempotent for the same role", async () => {
+    it("is idempotent for the same review campaign role", async () => {
       const { user } = await createOrganizationWithOwner(repositories)
       const campaignId = "00000000-0000-0000-0000-000000000004"
 
-      await service.ensureReviewCampaignMembership({ userId: user.id, campaignId, role: "tester" })
-      await service.ensureReviewCampaignMembership({ userId: user.id, campaignId, role: "tester" })
+      await repository.upsertMembership({
+        userId: user.id,
+        resourceType: "review_campaign",
+        resourceId: campaignId,
+        role: "tester",
+      })
+      await repository.upsertMembership({
+        userId: user.id,
+        resourceType: "review_campaign",
+        resourceId: campaignId,
+        role: "tester",
+      })
 
       const rows = await setup.dataSource.getRepository(UserMembership).find({
         where: { userId: user.id, resourceId: campaignId, resourceType: "review_campaign" },
@@ -221,18 +201,20 @@ describe("UserMembershipService", () => {
     })
   })
 
-  describe("deleteOrganizationMembership", () => {
+  describe("deleteMembership", () => {
     it("removes the row", async () => {
       const { organization, user } = await createOrganizationWithOwner(repositories)
 
-      await service.upsertOrganizationMembership({
+      await repository.upsertMembership({
         userId: user.id,
-        organizationId: organization.id,
+        resourceType: "organization",
+        resourceId: organization.id,
         role: "member",
       })
-      await service.deleteOrganizationMembership({
+      await repository.deleteMembership({
         userId: user.id,
-        organizationId: organization.id,
+        resourceType: "organization",
+        resourceId: organization.id,
       })
 
       const row = await getUserMembership(user.id, organization.id)
@@ -240,7 +222,7 @@ describe("UserMembershipService", () => {
     })
   })
 
-  describe("deleteAgentMembershipsForUser", () => {
+  describe("deleteMembershipsForUser", () => {
     it("removes rows for multiple agents at once", async () => {
       const { user } = await createOrganizationWithOwner(repositories)
       const agentIds = [
@@ -249,9 +231,18 @@ describe("UserMembershipService", () => {
       ]
 
       for (const agentId of agentIds) {
-        await service.upsertAgentMembership({ userId: user.id, agentId, role: "member" })
+        await repository.upsertMembership({
+          userId: user.id,
+          resourceType: "agent",
+          resourceId: agentId,
+          role: "member",
+        })
       }
-      await service.deleteAgentMembershipsForUser({ userId: user.id, agentIds })
+      await repository.deleteMembershipsForUser({
+        userId: user.id,
+        resourceType: "agent",
+        resourceIds: agentIds,
+      })
 
       const rows = await setup.dataSource.getRepository(UserMembership).find({
         where: { userId: user.id, resourceType: "agent" },
@@ -259,10 +250,14 @@ describe("UserMembershipService", () => {
       expect(rows).toHaveLength(0)
     })
 
-    it("is a no-op when agentIds is empty", async () => {
+    it("is a no-op when resourceIds is empty", async () => {
       const { user } = await createOrganizationWithOwner(repositories)
       await expect(
-        service.deleteAgentMembershipsForUser({ userId: user.id, agentIds: [] }),
+        repository.deleteMembershipsForUser({
+          userId: user.id,
+          resourceType: "agent",
+          resourceIds: [],
+        }),
       ).resolves.not.toThrow()
     })
   })

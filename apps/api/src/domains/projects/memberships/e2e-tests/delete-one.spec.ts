@@ -88,7 +88,7 @@ describe("Project membership - deleteOne", () => {
     expect(response.body).toEqual({ data: { success: true } })
 
     // Verify the membership is actually deleted from the database
-    const deletedMembership = await repositories.projectMembershipRepository.findOne({
+    const deletedMembership = await repositories.userMembershipRepository.findOne({
       where: { id: membershipId },
     })
     expect(deletedMembership).toBeNull()

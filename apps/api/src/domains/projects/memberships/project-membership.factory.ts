@@ -2,16 +2,16 @@ import { randomUUID } from "node:crypto"
 import { Factory } from "fishery"
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
 import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
-import type { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import {
   organizationMembershipFactory,
   saveOrgMembership,
 } from "@/domains/organizations/memberships/organization-membership.factory"
+import type { OrganizationMembershipFixture } from "@/domains/organizations/memberships/organization-membership.types"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import type { Project } from "../project.entity"
-import type { ProjectMembership, ProjectMembershipRole } from "./project-membership.entity"
+import type { ProjectMembershipFixture, ProjectMembershipRole } from "./project-membership.types"
 import { PLACEHOLDER_AUTH0_ID_PREFIX } from "./project-memberships.service"
 
 type ProjectMembershipTransientParams = {
@@ -20,7 +20,7 @@ type ProjectMembershipTransientParams = {
 }
 
 class ProjectMembershipFactory extends Factory<
-  ProjectMembership,
+  ProjectMembershipFixture,
   ProjectMembershipTransientParams
 > {
   member() {
@@ -56,32 +56,30 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
       project: transientParams.project,
       user: transientParams.user,
       role: (params.role || "member") as ProjectMembershipRole,
-    } satisfies ProjectMembership
+    } satisfies ProjectMembershipFixture
   },
 )
 
 /**
- * Saves a ProjectMembership to both the legacy table and user_memberships.
- * Use this in tests instead of `repositories.projectMembershipRepository.save()`
- * to keep user_memberships in sync during the dual-write transition period.
+ * Saves a project membership to `user_membership`.
  */
 export const saveProjectMembership = async ({
   repositories,
   membership,
 }: {
   repositories: AllRepositories
-  membership: ProjectMembership
+  membership: ProjectMembershipFixture
 }) => {
-  const saved = await repositories.projectMembershipRepository.save(membership)
-  await repositories.userMembershipRepository.save(
+  const saved = await repositories.userMembershipRepository.save(
     userMembershipFactory.build({
-      userId: saved.userId,
+      id: membership.id,
+      userId: membership.userId,
       resourceType: "project",
-      resourceId: saved.projectId,
-      role: saved.role,
+      resourceId: membership.projectId,
+      role: membership.role,
     }),
   )
-  return saved
+  return { ...membership, id: saved.id }
 }
 
 export const addUserToProject = async ({
@@ -93,7 +91,7 @@ export const addUserToProject = async ({
   repositories: AllRepositories
   project: Project
   user?: User
-  membership?: Partial<ProjectMembership>
+  membership?: Partial<ProjectMembershipFixture>
 }) => {
   const createMembership = async (user: User) => {
     const newMembership = await saveProjectMembership({
@@ -121,8 +119,8 @@ export const inviteUserToProject = async ({
   organization?: Organization
   project: Project
   user?: Partial<User>
-  organizationMembership?: Partial<OrganizationMembership>
-  projectMembership?: Partial<ProjectMembership>
+  organizationMembership?: Partial<OrganizationMembershipFixture>
+  projectMembership?: Partial<ProjectMembershipFixture>
 }) => {
   user = user ?? {
     email: "invited@example.com",

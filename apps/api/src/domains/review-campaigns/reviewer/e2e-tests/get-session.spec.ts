@@ -128,7 +128,6 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .reviewer()
-        .accepted()
         .transient({ organization, project, campaign, user: reviewer })
         .build(),
     })
@@ -222,7 +221,6 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .reviewer()
-        .accepted()
         .transient({ organization, project, campaign, user: otherReviewer })
         .build(),
     })
@@ -308,7 +306,6 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .reviewer()
-        .accepted()
         .transient({
           organization,
           project,
@@ -387,7 +384,6 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .reviewer()
-        .accepted()
         .transient({ organization, project, campaign, user: callerUser })
         .build(),
     })

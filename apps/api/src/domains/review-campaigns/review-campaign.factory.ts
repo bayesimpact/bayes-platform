@@ -60,7 +60,6 @@ export const reviewCampaignFactory = ReviewCampaignFactory.define(
       reviewerQuestions: params.reviewerQuestions || [],
       activatedAt: params.activatedAt ?? null,
       closedAt: params.closedAt ?? null,
-      memberships: params.memberships || [],
       testerSessionFeedbacks: params.testerSessionFeedbacks || [],
       testerCampaignSurveys: params.testerCampaignSurveys || [],
       reviewerSessionReviews: params.reviewerSessionReviews || [],

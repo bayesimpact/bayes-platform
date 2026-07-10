@@ -1,10 +1,13 @@
 import { randomUUID } from "node:crypto"
 import { Inject, Injectable, NotFoundException } from "@nestjs/common"
-import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
+import { InjectRepository } from "@nestjs/typeorm"
+import { In, type Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { DataSource, In, type Repository } from "typeorm"
+import { TransactionService } from "@/common/transaction/transaction.service"
 import { Agent } from "@/domains/agents/agent.entity"
-import { AgentMembership } from "@/domains/agents/memberships/agent-membership.entity"
+import type { AgentMembershipRole } from "@/domains/agents/memberships/agent-membership.types"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
 import {
   INVITATION_SENDER,
   type InvitationSender,
@@ -12,12 +15,9 @@ import {
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { InvitationPersistenceService } from "@/domains/invitations/invitation-persistence.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import {
-  type UserMembershipRole,
-  UserMembershipService,
-} from "@/domains/memberships/user-membership.service"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
-import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
+import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
 import { User } from "@/domains/users/user.entity"
 import { Invitation } from "../invitation.entity"
 import type {
@@ -26,10 +26,7 @@ import type {
 } from "./invitation-acceptance.handler"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { InvitationAcceptanceHelpersService } from "./invitation-acceptance-helpers.service"
-import type {
-  BaseAcceptanceRepositories,
-  BaseInviteMembersContext,
-} from "./invitation-handler.types"
+import type { BaseInviteMembersContext } from "./invitation-handler.types"
 import type {
   CreateInvitationsForTargetParams,
   InvitationTargetHandler,
@@ -37,14 +34,8 @@ import type {
 } from "./invitation-target.handler"
 
 type InviteMembersContext = BaseInviteMembersContext & {
-  membershipRepository: Repository<AgentMembership>
   agentOrganizationId: string
   agentProjectId: string
-}
-
-type AcceptanceRepositories = BaseAcceptanceRepositories & {
-  agentRepository: Repository<Agent>
-  membershipRepository: Repository<AgentMembership>
 }
 
 @Injectable()
@@ -57,16 +48,16 @@ export class AgentInvitationHandler
   constructor(
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
-    @InjectRepository(AgentMembership)
-    readonly _agentMembershipRepository: Repository<AgentMembership>,
     @InjectRepository(Invitation)
     private readonly invitationRepository: Repository<Invitation>,
     @Inject(INVITATION_SENDER)
     private readonly invitationSender: InvitationSender,
-    @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly transactionService: TransactionService,
     private readonly invitationPersistence: InvitationPersistenceService,
     private readonly acceptanceHelpers: InvitationAcceptanceHelpersService,
-    private readonly userMembershipService: UserMembershipService,
+    private readonly organizationMembershipsService: OrganizationMembershipsService,
+    private readonly projectMembershipsService: ProjectMembershipsService,
+    private readonly agentMembershipsService: AgentMembershipsService,
   ) {}
 
   async createInvitations(params: CreateInvitationsForTargetParams): Promise<Invitation[]> {
@@ -82,20 +73,18 @@ export class AgentInvitationHandler
     emails: string[]
     inviterName: string
   }): Promise<Invitation[]> {
-    return this.dataSource.transaction(async (manager) => {
-      const context: InviteMembersContext = {
-        userRepository: manager.getRepository(User),
-        membershipRepository: manager.getRepository(AgentMembership),
-        invitationRepository: manager.getRepository(Invitation),
-        agentOrganizationId: "",
-        agentProjectId: "",
-      }
+    return this.transactionService.run(async () => {
+      const manager = this.transactionService.getManager()
       const agent = await manager.getRepository(Agent).findOneOrFail({
         where: { id: params.agentId },
         select: { id: true, organizationId: true, projectId: true },
       })
-      context.agentOrganizationId = agent.organizationId
-      context.agentProjectId = agent.projectId
+      const context: InviteMembersContext = {
+        userRepository: manager.getRepository(User),
+        invitationRepository: manager.getRepository(Invitation),
+        agentOrganizationId: agent.organizationId,
+        agentProjectId: agent.projectId,
+      }
       const createdInvitations: Invitation[] = []
 
       for (const email of params.emails) {
@@ -166,8 +155,9 @@ export class AgentInvitationHandler
     context: InviteMembersContext
   }): Promise<boolean> {
     if (params.existingUser) {
-      const existingMembership = await params.context.membershipRepository.findOne({
-        where: { agentId: params.agentId, userId: params.existingUser.id },
+      const existingMembership = await this.agentMembershipsService.findAgentMembership({
+        agentId: params.agentId,
+        userId: params.existingUser.id,
       })
       if (existingMembership) return true
     }
@@ -222,71 +212,41 @@ export class AgentInvitationHandler
     auth0Sub: string
     email: string
   }): Promise<{ userId: string }> {
-    return this.dataSource.transaction(async (manager) => {
-      const repos: AcceptanceRepositories = {
-        agentRepository: manager.getRepository(Agent),
-        invitationRepository: manager.getRepository(Invitation),
-        membershipRepository: manager.getRepository(AgentMembership),
-        organizationMembershipRepository: manager.getRepository(OrganizationMembership),
-        projectMembershipRepository: manager.getRepository(ProjectMembership),
-        userRepository: manager.getRepository(User),
-      }
+    return this.transactionService.run(async () => {
+      const manager = this.transactionService.getManager()
+      const invitationRepository = manager.getRepository(Invitation)
+      const userRepository = manager.getRepository(User)
 
       const invitation = await this.acceptanceHelpers.findAndValidateInvitation(
-        repos.invitationRepository,
+        invitationRepository,
         params.ticketId,
         params.email,
         this.targetType,
       )
       const user = await this.acceptanceHelpers.resolveAcceptedUser(
-        repos.userRepository,
+        userRepository,
         params.auth0Sub,
         params.email,
       )
-      const agent = await repos.agentRepository.findOneOrFail({
+      const agent = await this.agentRepository.findOneOrFail({
         where: { id: invitation.targetId },
       })
 
-      await this.acceptanceHelpers.ensureOrganizationMembership(
-        repos.organizationMembershipRepository,
-        user.id,
-        agent.organizationId,
-      )
-      await this.userMembershipService.upsertOrganizationMembership(
-        { userId: user.id, organizationId: agent.organizationId, role: "member" },
-        manager,
-      )
-      await this.acceptanceHelpers.ensureProjectMembership(
-        repos.projectMembershipRepository,
-        user.id,
-        agent.projectId,
-      )
-      await this.userMembershipService.upsertProjectMembership(
-        { userId: user.id, projectId: agent.projectId, role: "member" },
-        manager,
-      )
-
-      const existingMembership = await repos.membershipRepository.findOne({
-        where: { agentId: invitation.targetId, userId: user.id },
+      await this.organizationMembershipsService.upsertOrganizationMemberMembership({
+        userId: user.id,
+        organizationId: agent.organizationId,
       })
-      if (!existingMembership) {
-        await repos.membershipRepository.save(
-          repos.membershipRepository.create({
-            agentId: invitation.targetId,
-            userId: user.id,
-            role: invitation.role as AgentMembership["role"],
-          }),
-        )
-        await this.userMembershipService.upsertAgentMembership(
-          {
-            userId: user.id,
-            agentId: invitation.targetId,
-            role: invitation.role as UserMembershipRole,
-          },
-          manager,
-        )
-      }
-      await repos.invitationRepository.update({ id: invitation.id }, { userId: user.id })
+      await this.projectMembershipsService.upsertProjectMemberMembership({
+        userId: user.id,
+        projectId: agent.projectId,
+      })
+      await this.agentMembershipsService.upsertAgentMemberMembership({
+        userId: user.id,
+        agentId: invitation.targetId,
+        role: invitation.role as AgentMembershipRole,
+      })
+      await invitationRepository.update({ id: invitation.id }, { userId: user.id })
+
       return { userId: user.id }
     })
   }

@@ -12,7 +12,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
 import { documentTagFactory } from "@/domains/documents/tags/document-tag.factory"
 import { createOrganizationWithDocument } from "@/domains/organizations/organization.factory"
-import type { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
+import type { ProjectMembershipFixture } from "@/domains/projects/memberships/project-membership.types"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { DocumentsModule } from "../documents.module"
 import { withDocumentAuthAndEmbeddingsMocks } from "../test-overrides"
@@ -57,7 +57,7 @@ describe("Documents - getTemporaryUrl", () => {
     projectMembership,
     isPublic = false,
   }: {
-    projectMembership?: Partial<ProjectMembership>
+    projectMembership?: Partial<ProjectMembershipFixture>
     isPublic?: boolean
   } = {}) => {
     const { user, organization, project, document } = await createOrganizationWithDocument(

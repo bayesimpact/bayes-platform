@@ -13,9 +13,7 @@ import { DocumentsModule } from "@/domains/documents/documents.module"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
 import { DocumentTagsModule } from "@/domains/documents/tags/document-tags.module"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
-import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { LlmModule } from "@/external/llm/llm.module"
@@ -24,10 +22,11 @@ import { ProjectsModule } from "../projects/projects.module"
 import { ResourceLibrariesModule } from "../resource-libraries/resource-libraries.module"
 import { Agent } from "./agent.entity"
 import { AgentGuard } from "./agent.guard"
+import { AgentRepository } from "./agent.repository"
 import { AgentsController } from "./agents.controller"
 import { AgentsService } from "./agents.service"
 import { BaseAgentSessionsService } from "./base-agent-sessions/base-agent-sessions.service"
-import { AgentMembership } from "./memberships/agent-membership.entity"
+import { AgentMembershipRepository } from "./memberships/agent-membership.repository"
 import { AgentMembershipsController } from "./memberships/agent-memberships.controller"
 import { AgentMembershipsGuard } from "./memberships/agent-memberships.guard"
 import { AgentMembershipsService } from "./memberships/agent-memberships.service"
@@ -49,10 +48,7 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
       AgentSessionCategory,
       AgentSubAgent,
       ProjectAgentSessionCategory,
-      AgentMembership,
       Project,
-      OrganizationMembership,
-      ProjectMembership,
       AgentSettings,
     ]),
     LlmModule,
@@ -72,13 +68,14 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
   ],
   providers: [
     AgentsService,
+    AgentRepository,
     AgentSessionCategoriesService,
     AgentSettingsService,
     AgentSubAgentsService,
     ProjectAgentSessionCategoriesService,
     BaseAgentSessionsService,
     AgentMembershipsService,
-    AgentSettingsService,
+    AgentMembershipRepository,
     AgentGuard,
     AgentMembershipsGuard,
     ProjectAgentSessionCategoriesGuard,
@@ -95,6 +92,7 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
   ],
   exports: [
     AgentsService,
+    AgentRepository,
     AgentSessionCategoriesService,
     AgentSettingsService,
     AgentMembershipsService,

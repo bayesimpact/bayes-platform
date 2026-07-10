@@ -1,6 +1,9 @@
 import { afterAll } from "@jest/globals"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import { organizationMembershipFactory } from "@/domains/organizations/memberships/organization-membership.factory"
+import {
+  organizationMembershipFactory,
+  saveOrgMembership,
+} from "@/domains/organizations/memberships/organization-membership.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { createChitChatConversation } from "../../shared/agent-session-messages/agent-messages.factory"
 import { agentSessionControllerTestSetup } from "./test-setup"
@@ -17,7 +20,7 @@ describe("listMessagesForSession", () => {
       testAgentSettings,
       testUser,
       testOrganization,
-      organizationMembershipRepository,
+      repositories,
       agentMessageRepository,
       testProject,
     } = getTestContext()
@@ -26,12 +29,13 @@ describe("listMessagesForSession", () => {
       projectId: testProject.id,
     }
 
-    await organizationMembershipRepository.save(
-      organizationMembershipFactory
+    await saveOrgMembership({
+      repositories,
+      membership: organizationMembershipFactory
         .transient({ organization: testOrganization, user: testUser })
         .owner()
         .build(),
-    )
+    })
 
     const session = await service.createSession({
       connectScope,

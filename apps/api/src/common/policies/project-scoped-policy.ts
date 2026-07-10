@@ -1,16 +1,16 @@
 import { BasePolicy } from "@/common/policies/base-policy"
-import type { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
-import type { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
+import type { OrganizationMembershipContextModel } from "@/domains/organizations/memberships/organization-membership.model"
+import type { ProjectMembershipFixture } from "@/domains/projects/memberships/project-membership.types"
 import type { Project } from "@/domains/projects/project.entity"
 
 export class ProjectScopedPolicy<T> extends BasePolicy<T> {
   protected readonly project?: Project
-  protected readonly projectMembership?: ProjectMembership
+  protected readonly projectMembership?: ProjectMembershipFixture
 
   constructor(
     protected readonly context: {
-      organizationMembership: OrganizationMembership
-      projectMembership?: ProjectMembership
+      organizationMembership: OrganizationMembershipContextModel
+      projectMembership?: ProjectMembershipFixture
       project?: Project
     },
     protected readonly entity?: T,

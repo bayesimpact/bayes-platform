@@ -6,8 +6,19 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { agentMembershipFactory } from "@/domains/agents/memberships/agent-membership.factory"
+import {
+  agentMembershipFactory,
+  saveAgentMembership,
+} from "@/domains/agents/memberships/agent-membership.factory"
+import {
+  organizationMembershipFactory,
+  saveOrgMembership,
+} from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import {
+  projectMembershipFactory,
+  saveProjectMembership,
+} from "@/domains/projects/memberships/project-membership.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { mockInvitationSender, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { InvitationsModule } from "../invitations.module"
@@ -302,20 +313,32 @@ describe("AgentInvitationHandler", () => {
       })
       expect(createdUser.email).toBe(inviteeEmail)
 
-      const agentMembership = await repositories.agentMembershipRepository.findOne({
-        where: { agentId: agent.id, userId: createdUser.id },
+      const agentMembership = await repositories.userMembershipRepository.findOne({
+        where: {
+          resourceType: "agent",
+          resourceId: agent.id,
+          userId: createdUser.id,
+        },
       })
       expect(agentMembership).not.toBeNull()
       expect(agentMembership!.role).toBe("member")
 
-      const projectMembership = await repositories.projectMembershipRepository.findOne({
-        where: { projectId: project.id, userId: createdUser.id },
+      const projectMembership = await repositories.userMembershipRepository.findOne({
+        where: {
+          resourceType: "project",
+          resourceId: project.id,
+          userId: createdUser.id,
+        },
       })
       expect(projectMembership).not.toBeNull()
       expect(projectMembership!.role).toBe("member")
 
-      const orgMembership = await repositories.organizationMembershipRepository.findOne({
-        where: { organizationId: organization.id, userId: createdUser.id },
+      const orgMembership = await repositories.userMembershipRepository.findOne({
+        where: {
+          resourceType: "organization",
+          resourceId: organization.id,
+          userId: createdUser.id,
+        },
       })
       expect(orgMembership).not.toBeNull()
       expect(orgMembership!.role).toBe("member")
@@ -457,7 +480,7 @@ describe("AgentInvitationHandler", () => {
         .member()
         .transient({ agent, user: inviteeUser })
         .build()
-      await repositories.agentMembershipRepository.save(membership)
+      await saveAgentMembership({ repositories, membership })
       await seedPendingInvitation({
         agentId: agent.id,
         organizationId: organization.id,
@@ -472,8 +495,12 @@ describe("AgentInvitationHandler", () => {
         email: inviteeUser.email,
       })
 
-      const memberships = await repositories.agentMembershipRepository.find({
-        where: { agentId: agent.id, userId: inviteeUser.id },
+      const memberships = await repositories.userMembershipRepository.find({
+        where: {
+          resourceType: "agent",
+          resourceId: agent.id,
+          userId: inviteeUser.id,
+        },
       })
       expect(memberships).toHaveLength(1)
     })
@@ -482,13 +509,13 @@ describe("AgentInvitationHandler", () => {
       const { agent, organization, project } = await createOrganizationWithAgent(repositories)
       const inviteeUser = userFactory.build({ email: "proj-member@example.com" })
       await repositories.userRepository.save(inviteeUser)
-      await repositories.projectMembershipRepository.save(
-        repositories.projectMembershipRepository.create({
-          projectId: project.id,
-          userId: inviteeUser.id,
-          role: "member",
-        }),
-      )
+      await saveProjectMembership({
+        repositories,
+        membership: projectMembershipFactory
+          .member()
+          .transient({ project, user: inviteeUser })
+          .build(),
+      })
       await seedPendingInvitation({
         agentId: agent.id,
         organizationId: organization.id,
@@ -503,8 +530,12 @@ describe("AgentInvitationHandler", () => {
         email: inviteeUser.email,
       })
 
-      const projectMemberships = await repositories.projectMembershipRepository.find({
-        where: { projectId: project.id, userId: inviteeUser.id },
+      const projectMemberships = await repositories.userMembershipRepository.find({
+        where: {
+          resourceType: "project",
+          resourceId: project.id,
+          userId: inviteeUser.id,
+        },
       })
       expect(projectMemberships).toHaveLength(1)
     })
@@ -513,13 +544,13 @@ describe("AgentInvitationHandler", () => {
       const { agent, organization, project } = await createOrganizationWithAgent(repositories)
       const inviteeUser = userFactory.build({ email: "org-member@example.com" })
       await repositories.userRepository.save(inviteeUser)
-      await repositories.organizationMembershipRepository.save(
-        repositories.organizationMembershipRepository.create({
-          userId: inviteeUser.id,
-          organizationId: organization.id,
-          role: "member",
-        }),
-      )
+      await saveOrgMembership({
+        repositories,
+        membership: organizationMembershipFactory
+          .member()
+          .transient({ user: inviteeUser, organization })
+          .build(),
+      })
       await seedPendingInvitation({
         agentId: agent.id,
         organizationId: organization.id,
@@ -534,8 +565,12 @@ describe("AgentInvitationHandler", () => {
         email: inviteeUser.email,
       })
 
-      const orgMemberships = await repositories.organizationMembershipRepository.find({
-        where: { organizationId: organization.id, userId: inviteeUser.id },
+      const orgMemberships = await repositories.userMembershipRepository.find({
+        where: {
+          resourceType: "organization",
+          resourceId: organization.id,
+          userId: inviteeUser.id,
+        },
       })
       expect(orgMemberships).toHaveLength(1)
     })

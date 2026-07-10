@@ -8,11 +8,11 @@ import {
 import type { EndpointRequestWithOrganizationMembership } from "@/common/context/request.interface"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { OrganizationMembershipService } from "./memberships/organization-membership.service"
+import { OrganizationMembershipsService } from "./memberships/organization-memberships.service"
 
 @Injectable()
 export class OrganizationGuard implements CanActivate {
-  constructor(readonly organizationMembershipService: OrganizationMembershipService) {}
+  constructor(readonly organizationMembershipsService: OrganizationMembershipsService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // since OrganizationGuard must be called after UserGuard, we can access the enhanced request object storing the user
@@ -31,7 +31,7 @@ export class OrganizationGuard implements CanActivate {
 
     // Step 2: Get the user membership for the user and organization
     const organizationMembership =
-      await this.organizationMembershipService.findOrganizationMembership({
+      await this.organizationMembershipsService.findOrganizationMembership({
         userId: request.user.id,
         organizationId,
       })

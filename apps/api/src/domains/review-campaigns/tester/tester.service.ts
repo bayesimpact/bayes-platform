@@ -18,7 +18,8 @@ import { FormAgentSessionsService } from "@/domains/agents/form-agent-sessions/f
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
-import { ReviewCampaignMembership } from "../memberships/review-campaign-membership.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ReviewCampaignMembershipsService } from "../memberships/review-campaign-memberships.service"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type { ReviewCampaignAgentType, ReviewCampaignAnswer } from "../review-campaigns.types"
 import { TesterCampaignSurvey } from "../tester-campaign-surveys/tester-campaign-survey.entity"
@@ -46,8 +47,7 @@ export type TesterSurveyFields = TesterFeedbackFields
 @Injectable()
 export class TesterService {
   constructor(
-    @InjectRepository(ReviewCampaignMembership)
-    private readonly membershipRepository: Repository<ReviewCampaignMembership>,
+    private readonly reviewCampaignMembershipsService: ReviewCampaignMembershipsService,
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
     @InjectRepository(ConversationAgentSession)
@@ -67,17 +67,7 @@ export class TesterService {
     userId: string,
     role: "tester" | "reviewer" = "tester",
   ): Promise<ReviewCampaign[]> {
-    const memberships = await this.membershipRepository.find({
-      where: { userId, role },
-      relations: ["campaign"],
-    })
-    return memberships
-      .map((membership) => membership.campaign)
-      .filter((campaign): campaign is ReviewCampaign => {
-        if (!campaign) return false
-        if (role === "reviewer") return campaign.status !== "draft"
-        return campaign.status === "active"
-      })
+    return this.reviewCampaignMembershipsService.listCampaignsForUser(userId, role)
   }
 
   async getAgentForCampaign({

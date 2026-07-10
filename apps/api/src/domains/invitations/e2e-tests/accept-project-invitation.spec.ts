@@ -113,8 +113,12 @@ describe("Invitations - acceptInvitation", () => {
 
     await subject({ payload: { ticketId } })
 
-    const orgMembership = await repositories.organizationMembershipRepository.findOne({
-      where: { userId: membership.userId, organizationId: organization.id },
+    const orgMembership = await repositories.userMembershipRepository.findOne({
+      where: {
+        userId: membership.userId,
+        resourceId: organization.id,
+        resourceType: "organization",
+      },
     })
 
     expect(orgMembership).toBeDefined()

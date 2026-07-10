@@ -12,7 +12,7 @@ import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
+import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { organizationFactory } from "@/domains/organizations/organization.factory"
 import { Project } from "@/domains/projects/project.entity"
@@ -43,7 +43,8 @@ export function agentSessionControllerTestSetup() {
   let userRepository: Repository<User>
   let organizationRepository: Repository<Organization>
   let projectRepository: Repository<Project>
-  let organizationMembershipRepository: Repository<OrganizationMembership>
+  let userMembershipRepository: Repository<UserMembership>
+  let repositories: AllRepositories
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
 
   // Test data
@@ -82,7 +83,8 @@ export function agentSessionControllerTestSetup() {
     featureFlagRepository = setup.getAllRepositories().featureFlagRepository
     organizationRepository = setup.getRepository(Organization)
     projectRepository = setup.getRepository(Project)
-    organizationMembershipRepository = setup.getRepository(OrganizationMembership)
+    userMembershipRepository = setup.getRepository(UserMembership)
+    repositories = setup.getAllRepositories()
 
     // Use unique identifier to avoid conflicts between tests
     const uniqueId = Date.now().toString()
@@ -135,7 +137,8 @@ export function agentSessionControllerTestSetup() {
       conversationAgentSessionCategoryRepository,
       featureFlagRepository,
       agentMessageRepository,
-      organizationMembershipRepository,
+      userMembershipRepository,
+      repositories,
       organizationRepository,
       projectRepository,
       service,
