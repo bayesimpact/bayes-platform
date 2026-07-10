@@ -9,6 +9,17 @@
     "pending": "Pending",
     "success": "Success",
     "thinking": "Thinking",
+    "activity": {
+      "default": "Thinking…",
+      "usingTool": "Calling a tool…",
+      "searchingResources": "Searching resources…",
+      "smartSearch": "Searching…",
+      "retrievingDocuments": "Searching across the knowledge base…",
+      "gatheringSources": "Gathering sources…",
+      "surfacingResources": "Surfacing resources…",
+      "fillingForm": "Filling in the form…",
+      "recalculating": "Updating the session…"
+    },
     "asyncLoading": "Loading...",
     "asyncError": "Error: {{statusCode}}",
     "asyncUnknownError": "Unknown error occurred.",

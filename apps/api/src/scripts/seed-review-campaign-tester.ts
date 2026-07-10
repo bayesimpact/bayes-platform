@@ -1,10 +1,10 @@
 import { Logger } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
-import { DataSource, In } from "typeorm"
+import { DataSource } from "typeorm"
 import { AppModule } from "@/app.module"
 import { Agent } from "@/domains/agents/agent.entity"
-import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
-import { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
+import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { Project } from "@/domains/projects/project.entity"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import { User } from "@/domains/users/user.entity"
 import { ask, confirmDatabaseTarget } from "@/scripts/script-bootstrap"
@@ -37,10 +37,10 @@ async function main(): Promise<void> {
   try {
     const dataSource = app.get(DataSource)
     const userRepo = dataSource.getRepository(User)
-    const projectMembershipRepo = dataSource.getRepository(ProjectMembership)
+    const userMembershipRepo = dataSource.getRepository(UserMembership)
+    const projectRepo = dataSource.getRepository(Project)
     const agentRepo = dataSource.getRepository(Agent)
     const campaignRepo = dataSource.getRepository(ReviewCampaign)
-    const membershipRepo = dataSource.getRepository(ReviewCampaignMembership)
 
     const user = await userRepo.findOne({ where: { email } })
     if (!user) {
@@ -48,12 +48,17 @@ async function main(): Promise<void> {
       process.exit(1)
     }
 
-    const projectMemberships = await projectMembershipRepo.find({
-      where: { userId: user.id, role: In(["owner", "admin"]) },
-      relations: ["project"],
+    const projectMemberships = await userMembershipRepo.find({
+      where: [
+        { userId: user.id, resourceType: "project", role: "owner" },
+        { userId: user.id, resourceType: "project", role: "admin" },
+      ],
       order: { createdAt: "DESC" },
     })
-    const firstProject = projectMemberships.find((m) => m.project)?.project
+    const firstProjectMembership = projectMemberships[0]
+    const firstProject = firstProjectMembership
+      ? await projectRepo.findOne({ where: { id: firstProjectMembership.resourceId } })
+      : null
     if (!firstProject) {
       logger.error(
         `User ${email} has no project where they are owner/admin. Create one via the studio UI first.`,
@@ -138,29 +143,26 @@ async function main(): Promise<void> {
       logger.log(`Created campaign ${campaign.name} (${campaign.id})`)
     }
 
-    const existingMembership = await membershipRepo.findOne({
-      where: { campaignId: campaign.id, userId: user.id, role: "tester" },
+    const existingMembership = await userMembershipRepo.findOne({
+      where: {
+        resourceType: "review_campaign",
+        resourceId: campaign.id,
+        userId: user.id,
+        role: "tester",
+      },
     })
     if (existingMembership) {
-      if (!existingMembership.acceptedAt) {
-        existingMembership.acceptedAt = new Date()
-        await membershipRepo.save(existingMembership)
-        logger.log(`Marked existing tester membership accepted`)
-      } else {
-        logger.log(`Tester membership already accepted`)
-      }
+      logger.log(`Tester membership already exists`)
     } else {
-      await membershipRepo.save(
-        membershipRepo.create({
-          organizationId: firstProject.organizationId,
-          projectId: firstProject.id,
-          campaignId: campaign.id,
+      await userMembershipRepo.save(
+        userMembershipRepo.create({
           userId: user.id,
+          resourceType: "review_campaign",
+          resourceId: campaign.id,
           role: "tester",
-          acceptedAt: new Date(),
         }),
       )
-      logger.log(`Created accepted tester membership for ${email}`)
+      logger.log(`Created tester membership for ${email}`)
     }
 
     const testerUrl = `/tester/o/${firstProject.organizationId}/p/${firstProject.id}/review-campaigns/${campaign.id}`

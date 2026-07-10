@@ -1,7 +1,7 @@
 import { ProjectScopedPolicy } from "@/common/policies/project-scoped-policy"
-import type { AgentMembership } from "./agent-membership.entity"
+import type { AgentMembershipModel } from "./agent-membership.model"
 
-export class AgentMembershipPolicy extends ProjectScopedPolicy<AgentMembership> {
+export class AgentMembershipPolicy extends ProjectScopedPolicy<AgentMembershipModel> {
   canList(): boolean {
     return this.canAccess() && this.isProjectAdminOrOwner() // FIXME: should be isAgentAdminOrOwner
   }

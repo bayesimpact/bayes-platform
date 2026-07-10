@@ -4,7 +4,6 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { organizationFactory } from "@/domains/organizations/organization.factory"
 import { Project } from "@/domains/projects/project.entity"
@@ -20,7 +19,6 @@ export function documentsControllerTestSetup() {
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let userRepository: Repository<User>
   let organizationRepository: Repository<Organization>
-  let organizationMembershipRepository: Repository<OrganizationMembership>
   let projectRepository: Repository<Project>
   let documentRepository: Repository<Document>
   let fileStorageService: IFileStorage
@@ -44,7 +42,6 @@ export function documentsControllerTestSetup() {
     fileStorageService = setup.module.get<IFileStorage>(FILE_STORAGE_SERVICE)
     userRepository = setup.getRepository(User)
     organizationRepository = setup.getRepository(Organization)
-    organizationMembershipRepository = setup.getRepository(OrganizationMembership)
     projectRepository = setup.getRepository(Project)
     documentRepository = setup.getRepository(Document)
 
@@ -64,7 +61,6 @@ export function documentsControllerTestSetup() {
     return {
       organizationRepository,
       userRepository,
-      organizationMembershipRepository,
       projectRepository,
       documentRepository,
       fileStorageService,

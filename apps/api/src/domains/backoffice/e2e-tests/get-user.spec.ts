@@ -76,9 +76,9 @@ describe("Backoffice - get user", () => {
   }
 
   it("returns the user detail with organization, agent, and review campaign memberships", async () => {
-    const { user, organization, project, agent } = await createAuthorizedContext()
+    const { user, organization, project, agent, agentSettings } = await createAuthorizedContext()
     const reviewCampaign = await repositories.reviewCampaignRepository.save(
-      reviewCampaignFactory.transient({ organization, project, agent }).build({
+      reviewCampaignFactory.transient({ organization, project, agent, agentSettings }).build({
         name: "Review campaign",
       }),
     )

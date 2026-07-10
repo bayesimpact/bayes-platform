@@ -66,7 +66,7 @@ export function createColumns({ t }: { t: TFunction }): ColumnDef<z.infer<typeof
             </div>
             <DefaultPromptDialog
               buttonProps={{ variant: "secondary", size: "sm", className: "w-fit" }}
-              prompt={row.original.agent.defaultPrompt}
+              prompt={row.original.agent.instructions}
             />
           </div>
         ) : null

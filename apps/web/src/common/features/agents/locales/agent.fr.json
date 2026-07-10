@@ -6,7 +6,7 @@
     "settings": "Paramètres de l'agent",
     "props": {
       "createdAt": "Créé le",
-      "defaultPrompt": "Prompt par défaut",
+      "instructions": "Instructions",
       "formConfiguration": "Configuration du formulaire",
       "greeting": "Message d'accueil",
       "documentsRagMode": "Source de réponse",
@@ -26,7 +26,7 @@
       },
       "placeholders": {
         "name": "Entrez le nom de l'agent",
-        "defaultPrompt": "Entrez le prompt par défaut",
+        "instructions": "Entrez les instructions que l'agent doit suivre pour répondre aux entrées de l'utilisateur",
         "greeting": "Message d'accueil facultatif envoyé par l'agent au début d'une nouvelle conversation",
         "documentsRagMode": "Sélectionnez l'usage des documents",
         "model": "Sélectionnez le modèle",
@@ -36,7 +36,7 @@
       },
       "validation": {
         "nameMinLength": "Le nom doit comporter au moins 3 caractères",
-        "promptRequired": "Le prompt par défaut est requis",
+        "promptRequired": "Les instructions sont requises",
         "temperatureInvalid": "La température doit être comprise entre 0,0 et 2,0",
         "outputJsonSchemaRequired": "Le schéma JSON de sortie est requis",
         "outputJsonSchemaInvalid": "Le schéma JSON de sortie doit être un objet JSON valide"
@@ -89,9 +89,9 @@
       "description": "Gérer les agents pour {{projectName}}"
     },
     "defaultPromptDialog": {
-      "title": "Prompt par défaut",
-      "description": "Ce prompt définit le comportement de l'agent.",
-      "button": "Voir le prompt"
+      "title": "Instructions",
+      "description": "Ces instructions définissent le comportement de l'agent.",
+      "button": "Voir les instructions"
     },
     "tabs": {
       "general": "Général",
@@ -99,9 +99,14 @@
       "output": "Sortie",
       "form": "Formulaire",
       "sources": "Sources",
+      "resourceLibraries": "Bibliothèques de ressources",
       "categories": "Catégories de conversation",
       "orchestration": "Orchestration",
       "embed": "Intégration"
+    },
+    "unsavedChanges": {
+      "title": "Modifications non enregistrées",
+      "description": "Vous avez des modifications non enregistrées qui seront perdues. Voulez-vous les abandonner ?"
     },
     "orchestration": {
       "selectedTitle": "Sous-agents",

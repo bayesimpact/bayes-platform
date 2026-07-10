@@ -22,13 +22,14 @@ import type {
   TimeType,
 } from "@caseai-connect/api-contracts"
 import type { Agent } from "@/domains/agents/agent.entity"
-import type { AgentMembership } from "@/domains/agents/memberships/agent-membership.entity"
+import type { AgentMembershipModel } from "@/domains/agents/memberships/agent-membership.model"
 import type { FeatureFlag } from "@/domains/feature-flags/feature-flag.entity"
-import type { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
+import type { OrganizationMembershipModel } from "@/domains/organizations/memberships/organization-membership.model"
 import type { Organization } from "@/domains/organizations/organization.entity"
-import type { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
+import type { ProjectMembershipModel } from "@/domains/projects/memberships/project-membership.model"
 import type { Project } from "@/domains/projects/project.entity"
 import type { User } from "@/domains/users/user.entity"
+import type { ReviewCampaignMembershipModel } from "../review-campaigns/memberships/review-campaign-membership.model"
 
 function toFeatureFlagsDto(featureFlags: FeatureFlag[] | undefined): FeatureFlagsDto {
   return (
@@ -59,7 +60,7 @@ export function toBackofficeOrganizationDto(organization: Organization): Backoff
 
 export function toBackofficeOrganizationDetailDto(
   organization: Organization,
-  members: OrganizationMembership[],
+  members: OrganizationMembershipModel[],
   projects: Project[],
 ): BackofficeOrganizationDetailDto {
   return {
@@ -105,7 +106,7 @@ export function toBackofficeAgentDetailDto(
       organization?: { id: string; name: string }
     }
   },
-  members: AgentMembership[],
+  members: AgentMembershipModel[],
 ): BackofficeAgentDetailDto {
   return {
     id: agent.id,
@@ -141,7 +142,7 @@ export function toBackofficeProjectListItemDto(
 
 export function toBackofficeProjectDetailDto(
   project: Project & { organization?: { name: string } },
-  members: ProjectMembership[],
+  members: ProjectMembershipModel[],
   agents: Agent[],
 ): BackofficeProjectDetailDto {
   return {
@@ -177,21 +178,63 @@ export function toBackofficeUserDto(user: User): BackofficeUserDto {
   }
 }
 
+export function toBackofficeUserOrganizationMembershipDto(
+  membership: OrganizationMembershipModel,
+): BackofficeUserOrganizationMembershipDto {
+  return {
+    organizationId: membership.organizationId,
+    organizationName: membership.organization?.name ?? "",
+    role: membership.role,
+  }
+}
+
+export function toBackofficeUserProjectMembershipDto(
+  membership: ProjectMembershipModel,
+): BackofficeUserProjectMembershipDto {
+  return {
+    projectId: membership.projectId,
+    projectName: membership.project?.name ?? "",
+    role: membership.role,
+  }
+}
+
+export function toBackofficeUserAgentMembershipDto(
+  membership: AgentMembershipModel,
+): BackofficeUserAgentMembershipDto {
+  return {
+    agentId: membership.agentId,
+    agentName: membership.agent?.name ?? "",
+    role: membership.role,
+  }
+}
+
+export function toBackofficeUserReviewCampaignMembershipDto(
+  membership: ReviewCampaignMembershipModel,
+): BackofficeUserReviewCampaignMembershipDto {
+  return {
+    campaignId: membership.campaignId,
+    campaignName: membership.campaign?.name ?? "",
+    role: membership.role,
+  }
+}
+
 export function toBackofficeUserDetailDto(
   user: User,
-  organizationMemberships: BackofficeUserOrganizationMembershipDto[],
-  projectMemberships: BackofficeUserProjectMembershipDto[],
-  agentMemberships: BackofficeUserAgentMembershipDto[],
-  reviewCampaignMemberships: BackofficeUserReviewCampaignMembershipDto[],
+  organizationMemberships: OrganizationMembershipModel[],
+  projectMemberships: ProjectMembershipModel[],
+  agentMemberships: AgentMembershipModel[],
+  reviewCampaignMemberships: ReviewCampaignMembershipModel[],
 ): BackofficeUserDetailDto {
   return {
     id: user.id,
     email: user.email,
     name: user.name,
     createdAt: user.createdAt.getTime() as TimeType,
-    organizationMemberships,
-    projectMemberships,
-    agentMemberships,
-    reviewCampaignMemberships,
+    organizationMemberships: organizationMemberships.map(toBackofficeUserOrganizationMembershipDto),
+    projectMemberships: projectMemberships.map(toBackofficeUserProjectMembershipDto),
+    agentMemberships: agentMemberships.map(toBackofficeUserAgentMembershipDto),
+    reviewCampaignMemberships: reviewCampaignMemberships.map(
+      toBackofficeUserReviewCampaignMembershipDto,
+    ),
   }
 }

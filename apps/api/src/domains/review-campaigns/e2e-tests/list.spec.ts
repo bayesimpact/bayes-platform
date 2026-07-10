@@ -9,9 +9,8 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { agentFactory } from "@/domains/agents/agent.factory"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import {
@@ -69,14 +68,19 @@ describe("ReviewCampaigns - list", () => {
     })
 
   it("lists campaigns scoped to the current project", async () => {
-    const { organization, project } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id },
-    })
-    const agent = agentFactory.transient({ organization, project }).build()
-    await repositories.agentRepository.save(agent)
+    const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        user: { auth0Id },
+      },
+    )
     await repositories.reviewCampaignRepository.save([
-      reviewCampaignFactory.transient({ organization, project, agent }).build({ name: "A" }),
-      reviewCampaignFactory.transient({ organization, project, agent }).build({ name: "B" }),
+      reviewCampaignFactory
+        .transient({ organization, project, agent, agentSettings })
+        .build({ name: "A" }),
+      reviewCampaignFactory
+        .transient({ organization, project, agent, agentSettings })
+        .build({ name: "B" }),
     ])
     organizationId = organization.id
     projectId = project.id
@@ -88,16 +92,19 @@ describe("ReviewCampaigns - list", () => {
   })
 
   it("returns memberCount for each campaign (0 when no members)", async () => {
-    const { organization, project, user } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id },
-    })
-    const agent = agentFactory.transient({ organization, project }).build()
-    await repositories.agentRepository.save(agent)
+    const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        user: { auth0Id },
+      },
+    )
     const [withMembers, empty] = await repositories.reviewCampaignRepository.save([
       reviewCampaignFactory
-        .transient({ organization, project, agent })
+        .transient({ organization, project, agent, agentSettings })
         .build({ name: "with-members" }),
-      reviewCampaignFactory.transient({ organization, project, agent }).build({ name: "empty" }),
+      reviewCampaignFactory
+        .transient({ organization, project, agent, agentSettings })
+        .build({ name: "empty" }),
     ])
     if (!withMembers || !empty) throw new Error("factory returned empty")
     await saveReviewCampaignMembership({
@@ -129,24 +136,32 @@ describe("ReviewCampaigns - list", () => {
   })
 
   it("does not leak campaigns from other projects", async () => {
-    const { organization, project } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id },
-    })
-    const agent = agentFactory.transient({ organization, project }).build()
-    await repositories.agentRepository.save(agent)
-    await repositories.reviewCampaignRepository.save(
-      reviewCampaignFactory.transient({ organization, project, agent }).build({ name: "mine" }),
+    const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        user: { auth0Id },
+      },
     )
-
-    const { organization: otherOrg, project: otherProject } =
-      await createOrganizationWithProject(repositories)
-    const otherAgent = agentFactory
-      .transient({ organization: otherOrg, project: otherProject })
-      .build()
-    await repositories.agentRepository.save(otherAgent)
     await repositories.reviewCampaignRepository.save(
       reviewCampaignFactory
-        .transient({ organization: otherOrg, project: otherProject, agent: otherAgent })
+        .transient({ organization, project, agent, agentSettings })
+        .build({ name: "mine" }),
+    )
+
+    const {
+      organization: otherOrg,
+      project: otherProject,
+      agent: otherAgent,
+      agentSettings: otherAgentSettings,
+    } = await createOrganizationWithAgent(repositories)
+    await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory
+        .transient({
+          organization: otherOrg,
+          project: otherProject,
+          agent: otherAgent,
+          agentSettings: otherAgentSettings,
+        })
         .build({ name: "other" }),
     )
 

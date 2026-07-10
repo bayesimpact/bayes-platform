@@ -3,13 +3,15 @@ import { Logger } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 import { DataSource } from "typeorm"
 import { AppModule } from "@/app.module"
+import { TransactionService } from "@/common/transaction/transaction.service"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
-import { UserMembershipService } from "@/domains/memberships/user-membership.service"
+import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 import {
   type InviteWorkspaceOwnerResult,
   type PreviewWorkspaceInvitationResult,
   WorkspaceInvitationService,
 } from "@/domains/organizations/provisioning/workspace-invitation.service"
+import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
 import { confirmDatabaseTarget } from "@/scripts/script-bootstrap"
 
 type CliOptions = {
@@ -195,11 +197,15 @@ async function bootstrapCli(): Promise<void> {
   try {
     const dataSource = app.get(DataSource)
     const invitationSender = app.get(INVITATION_SENDER)
-    const userMembershipService = app.get(UserMembershipService)
+    const organizationMembershipsService = app.get(OrganizationMembershipsService)
+    const projectMembershipsService = app.get(ProjectMembershipsService)
+    const transactionService = app.get(TransactionService)
     const invitationService = new WorkspaceInvitationService(
       invitationSender,
       dataSource,
-      userMembershipService,
+      organizationMembershipsService,
+      projectMembershipsService,
+      transactionService,
     )
     logger.log(`Processing ${rows.length} row(s)...`)
     const results = await runInvitationBatch({

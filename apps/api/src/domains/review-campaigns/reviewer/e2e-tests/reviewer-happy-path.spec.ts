@@ -9,10 +9,9 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -76,15 +75,18 @@ describe("ReviewCampaigns - Reviewer happy path", () => {
       organization,
       project,
       user: reviewer,
-    } = await createOrganizationWithProject(repositories, { user: { auth0Id } })
+      agent,
+      agentSettings,
+    } = await createOrganizationWithAgent(repositories, {
+      user: { auth0Id },
+      agent: { type: "conversation" },
+    })
     const tester = await repositories.userRepository.save(
       userFactory.build({ email: `tester-${randomUUID()}@example.com` }),
     )
-    const agent = agentFactory.transient({ organization, project }).build({ type: "conversation" })
-    await repositories.agentRepository.save(agent)
     const campaign = reviewCampaignFactory
       .active()
-      .transient({ organization, project, agent })
+      .transient({ organization, project, agent, agentSettings })
       .build({
         reviewerQuestions: [
           { id: "rv-1", prompt: "Factually correct?", type: "rating", required: true },
@@ -95,7 +97,6 @@ describe("ReviewCampaigns - Reviewer happy path", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .reviewer()
-        .accepted()
         .transient({ organization, project, campaign, user: reviewer })
         .build(),
     })
@@ -158,12 +159,15 @@ describe("ReviewCampaigns - Reviewer happy path", () => {
       organization,
       project,
       user: reviewer,
-    } = await createOrganizationWithProject(repositories, { user: { auth0Id } })
-    const agent = agentFactory.transient({ organization, project }).build({ type: "conversation" })
-    await repositories.agentRepository.save(agent)
+      agent,
+      agentSettings,
+    } = await createOrganizationWithAgent(repositories, {
+      user: { auth0Id },
+      agent: { type: "conversation" },
+    })
     const campaign = reviewCampaignFactory
       .active()
-      .transient({ organization, project, agent })
+      .transient({ organization, project, agent, agentSettings })
       .build({})
     await repositories.reviewCampaignRepository.save(campaign)
     // Same user is both reviewer AND the session owner (tester) — self-review.
@@ -171,7 +175,6 @@ describe("ReviewCampaigns - Reviewer happy path", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .reviewer()
-        .accepted()
         .transient({ organization, project, campaign, user: reviewer })
         .build(),
     })
@@ -265,7 +268,6 @@ describe("ReviewCampaigns - Reviewer happy path", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .reviewer()
-        .accepted()
         .transient({ organization, project, campaign, user: otherReviewer })
         .build(),
     })

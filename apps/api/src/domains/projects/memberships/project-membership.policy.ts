@@ -1,7 +1,7 @@
 import { ProjectScopedPolicy } from "@/common/policies/project-scoped-policy"
-import type { ProjectMembership } from "./project-membership.entity"
+import type { ProjectMembershipModel } from "./project-membership.model"
 
-export class ProjectMembershipPolicy extends ProjectScopedPolicy<ProjectMembership> {
+export class ProjectMembershipPolicy extends ProjectScopedPolicy<ProjectMembershipModel> {
   canList(): boolean {
     return this.canAccess() && this.isProjectAdminOrOwner()
   }

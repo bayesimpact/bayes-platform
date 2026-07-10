@@ -5,7 +5,7 @@ import { v4 } from "uuid"
 
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import { Agent } from "../agent.entity"
+import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 import type { AgentSessionCategory } from "../session-categories/agent-session-category.entity"
 import { AgentMessage } from "../shared/agent-session-messages/agent-message.entity"
@@ -18,7 +18,7 @@ const MAX_AUTO_SESSION_CATEGORIES = 5
 export class ConversationAgentSessionsService {
   private readonly conversationAgentSessionConnectRepository: ConnectRepository<ConversationAgentSession>
   private readonly agentMessageConnectRepository: ConnectRepository<AgentMessage>
-  private readonly agentConnectRepository: ConnectRepository<Agent>
+  private readonly agentSettingsConnectRepository: ConnectRepository<AgentSettings>
   private readonly conversationAgentSessionRepository: Repository<ConversationAgentSession>
   private readonly conversationAgentSessionCategoryRepository: Repository<ConversationAgentSessionCategory>
 
@@ -29,8 +29,8 @@ export class ConversationAgentSessionsService {
     @InjectRepository(AgentMessage)
     agentMessageRepository: Repository<AgentMessage>,
 
-    @InjectRepository(Agent)
-    agentRepository: Repository<Agent>,
+    @InjectRepository(AgentSettings)
+    agentSettingsRepository: Repository<AgentSettings>,
     @InjectRepository(ConversationAgentSessionCategory)
     conversationAgentSessionCategoryRepository: Repository<ConversationAgentSessionCategory>,
   ) {
@@ -42,7 +42,10 @@ export class ConversationAgentSessionsService {
       agentMessageRepository,
       "agentMessage",
     )
-    this.agentConnectRepository = new ConnectRepository(agentRepository, "agents")
+    this.agentSettingsConnectRepository = new ConnectRepository(
+      agentSettingsRepository,
+      "agentSettings",
+    )
     this.conversationAgentSessionRepository = conversationAgentSessionRepository
     this.conversationAgentSessionCategoryRepository = conversationAgentSessionCategoryRepository
   }
@@ -127,22 +130,26 @@ export class ConversationAgentSessionsService {
 
   async createSession({
     connectScope,
-    agentId,
+    agentSettingsId,
     userId,
     type,
   }: {
     connectScope: RequiredConnectScope
-    agentId: string
+    agentSettingsId: string
     userId: string
     type: BaseAgentSessionType
   }): Promise<ConversationAgentSession> {
-    const agent = await this.agentConnectRepository.getOneById(connectScope, agentId)
-    if (!agent) throw new NotFoundException(`Agent with id ${agentId} not found`)
+    const agentSettings = await this.agentSettingsConnectRepository.getOneById(
+      connectScope,
+      agentSettingsId,
+    )
+    if (!agentSettings)
+      throw new NotFoundException(`AgentSettings with id ${agentSettingsId} not found`)
 
     const session = await this.conversationAgentSessionConnectRepository.createAndSave(
       connectScope,
       {
-        agentId,
+        agentId: agentSettings.agentId,
         userId,
         type,
         expiresAt: null,
@@ -150,17 +157,22 @@ export class ConversationAgentSessionsService {
       },
     )
 
-    const greetingMessage = agent.greetingMessage
+    const greetingMessage = agentSettings.greetingMessage
     if (greetingMessage && greetingMessage.trim().length > 0) {
       const now = new Date()
-      await this.agentMessageConnectRepository.createAndSave(connectScope, {
-        sessionId: session.id,
-        role: "assistant",
-        content: greetingMessage,
-        status: "completed",
-        startedAt: now,
-        completedAt: now,
-      })
+      await this.agentMessageConnectRepository.createAndSave(
+        connectScope,
+
+        {
+          sessionId: session.id,
+          agentSettingsId: agentSettings.id,
+          role: "assistant",
+          content: greetingMessage,
+          status: "completed",
+          startedAt: now,
+          completedAt: now,
+        },
+      )
     }
 
     return session

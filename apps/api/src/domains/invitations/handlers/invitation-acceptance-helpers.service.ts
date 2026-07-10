@@ -5,8 +5,6 @@ import {
   UnauthorizedException,
 } from "@nestjs/common"
 import type { Repository } from "typeorm"
-import type { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
-import type { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import type { User } from "@/domains/users/user.entity"
 import type { Invitation, InvitationTargetType } from "../invitation.entity"
 
@@ -60,47 +58,5 @@ export class InvitationAcceptanceHelpersService {
       throw new UnauthorizedException(`No invitation found for email: ${email}`)
     }
     return invitation
-  }
-
-  /**
-   * Ensures the user has an organization membership at least at the given role.
-   * Upgrades an existing "member" to "admin" when role is "admin".
-   */
-  async ensureOrganizationMembership(
-    repository: Repository<OrganizationMembership>,
-    userId: string,
-    organizationId: string,
-    role: "member" | "admin" = "member",
-  ): Promise<void> {
-    const existing = await repository.findOne({ where: { userId, organizationId } })
-    if (existing) {
-      if (role === "admin" && existing.role === "member") {
-        existing.role = "admin"
-        await repository.save(existing)
-      }
-      return
-    }
-    await repository.save(repository.create({ userId, organizationId, role }))
-  }
-
-  /**
-   * Ensures the user has a project membership at least at the given role.
-   * Upgrades an existing non-admin membership to "admin" when role is "admin".
-   */
-  async ensureProjectMembership(
-    repository: Repository<ProjectMembership>,
-    userId: string,
-    projectId: string,
-    role: "member" | "admin" = "member",
-  ): Promise<void> {
-    const existing = await repository.findOne({ where: { userId, projectId } })
-    if (existing) {
-      if (role === "admin" && existing.role !== "admin") {
-        existing.role = "admin"
-        await repository.save(existing)
-      }
-      return
-    }
-    await repository.save(repository.create({ userId, projectId, role }))
   }
 }

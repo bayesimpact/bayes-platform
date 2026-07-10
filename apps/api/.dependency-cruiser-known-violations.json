@@ -33,44 +33,6 @@
   {
     "type": "cycle",
     "from": "src/domains/agents/agent.entity.ts",
-    "to": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/domains/agents/agent.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/domains/agents/agent.entity.ts",
-    "to": "src/domains/agents/memberships/agent-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/domains/agents/memberships/agent-membership.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/domains/agents/agent.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/domains/agents/agent.entity.ts",
     "to": "src/domains/agents/session-categories/agent-session-category.entity.ts",
     "rule": {
       "severity": "error",
@@ -811,14 +773,18 @@
   {
     "type": "cycle",
     "from": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
-    "to": "src/domains/documents/document.entity.ts",
+    "to": "src/domains/agents/agent.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-circular"
     },
     "cycle": [
       {
-        "name": "src/domains/documents/document.entity.ts",
+        "name": "src/domains/agents/agent.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
         "dependencyTypes": [
           "aliased",
           "aliased-tsconfig",
@@ -826,6 +792,76 @@
           "local",
           "import"
         ]
+      },
+      {
+        "name": "src/domains/users/user.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/review-campaigns/reviewer-session-reviews/reviewer-session-review.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/domains/agents/settings/agent-settings.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/agents/agent.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/documents/tags/document-tag.entity.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "src/domains/documents/document.entity.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
       },
       {
         "name": "src/domains/projects/project.entity.ts",
@@ -838,8 +874,26 @@
         ]
       },
       {
-        "name": "src/domains/review-campaigns/review-campaign.entity.ts",
+        "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
         "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/review-campaigns/review-campaign.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
       },
       {
         "name": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
@@ -934,8 +988,36 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
+        "name": "src/domains/documents/tags/document-tag.entity.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "src/domains/documents/document.entity.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "src/domains/projects/project.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/review-campaigns/review-campaign.entity.ts",
         "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
       }
     ]
   },
@@ -1110,37 +1192,6 @@
   },
   {
     "type": "cycle",
-    "from": "src/domains/agents/memberships/agent-membership.entity.ts",
-    "to": "src/domains/users/user.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/domains/users/user.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/domains/agents/memberships/agent-membership.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "import"
-        ]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
     "from": "src/domains/agents/session-categories/agent-session-category.entity.ts",
     "to": "src/domains/agents/session-categories/project-agent-session-category.entity.ts",
     "rule": {
@@ -1184,6 +1235,64 @@
           "aliased-tsconfig",
           "aliased-tsconfig-paths",
           "local",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/domains/agents/settings/agent-settings.entity.ts",
+    "to": "src/domains/agents/agent.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/domains/agents/agent.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/documents/tags/document-tag.entity.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "src/domains/documents/document.entity.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "src/domains/projects/project.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/settings/agent-settings.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
           "import"
         ]
       }
@@ -1313,34 +1422,6 @@
       },
       {
         "name": "src/domains/agents/agent.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/domains/review-campaigns/review-campaign.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/domains/review-campaigns/memberships/review-campaign-membership.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/domains/users/user.entity.ts",
         "dependencyTypes": [
           "aliased",
           "aliased-tsconfig",
@@ -1773,6 +1854,42 @@
   },
   {
     "type": "cycle",
+    "from": "src/domains/evaluations/reports/evaluation-report.entity.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/domains/agents/settings/agent-settings.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/agents/agent.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/evaluations/reports/evaluation-report.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
     "from": "src/domains/feature-flags/feature-flag.entity.ts",
     "to": "src/domains/projects/project.entity.ts",
     "rule": {
@@ -1895,26 +2012,7 @@
   },
   {
     "type": "cycle",
-    "from": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "to": "src/domains/organizations/organization.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/domains/organizations/organization.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/domains/organizations/memberships/organization-membership.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/domains/organizations/memberships/organization-membership.entity.ts",
+    "from": "src/domains/memberships/user-membership.entity.ts",
     "to": "src/domains/users/user.entity.ts",
     "rule": {
       "severity": "error",
@@ -1932,7 +2030,7 @@
         ]
       },
       {
-        "name": "src/domains/organizations/memberships/organization-membership.entity.ts",
+        "name": "src/domains/memberships/user-membership.entity.ts",
         "dependencyTypes": [
           "aliased",
           "aliased-tsconfig",
@@ -1976,56 +2074,6 @@
   },
   {
     "type": "cycle",
-    "from": "src/domains/projects/memberships/project-membership.entity.ts",
-    "to": "src/domains/projects/project.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/domains/projects/project.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/domains/projects/memberships/project-membership.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/domains/projects/memberships/project-membership.entity.ts",
-    "to": "src/domains/users/user.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/domains/users/user.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/domains/projects/memberships/project-membership.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "import"
-        ]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
     "from": "src/domains/projects/project.entity.ts",
     "to": "src/domains/review-campaigns/review-campaign.entity.ts",
     "rule": {
@@ -2051,34 +2099,26 @@
   },
   {
     "type": "cycle",
-    "from": "src/domains/review-campaigns/memberships/review-campaign-membership.entity.ts",
-    "to": "src/domains/review-campaigns/review-campaign.entity.ts",
+    "from": "src/domains/review-campaigns/review-campaign.entity.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-circular"
     },
     "cycle": [
       {
-        "name": "src/domains/review-campaigns/review-campaign.entity.ts",
-        "dependencyTypes": ["local", "import"]
+        "name": "src/domains/agents/settings/agent-settings.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
       },
       {
-        "name": "src/domains/review-campaigns/memberships/review-campaign-membership.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/domains/review-campaigns/memberships/review-campaign-membership.entity.ts",
-    "to": "src/domains/users/user.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/domains/users/user.entity.ts",
+        "name": "src/domains/agents/agent.entity.ts",
         "dependencyTypes": [
           "aliased",
           "aliased-tsconfig",
@@ -2088,7 +2128,7 @@
         ]
       },
       {
-        "name": "src/domains/review-campaigns/memberships/review-campaign-membership.entity.ts",
+        "name": "src/domains/review-campaigns/review-campaign.entity.ts",
         "dependencyTypes": [
           "aliased",
           "aliased-tsconfig",
@@ -2186,10 +2226,6 @@
         ]
       },
       {
-        "name": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
         "name": "src/domains/review-campaigns/review-campaign.entity.ts",
         "dependencyTypes": [
           "aliased",
@@ -2259,21 +2295,7 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/domains/organizations/organization.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/domains/organizations/memberships/organization-membership.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/domains/users/user.entity.ts",
+        "name": "src/domains/review-campaigns/review-campaign.entity.ts",
         "dependencyTypes": [
           "aliased",
           "aliased-tsconfig",
@@ -2284,13 +2306,7 @@
       },
       {
         "name": "src/domains/review-campaigns/reviewer-session-reviews/reviewer-session-review.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -2359,20 +2375,6 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/domains/organizations/organization.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/domains/organizations/memberships/organization-membership.entity.ts",
         "dependencyTypes": ["local", "import"]
       },
       {
@@ -2548,42 +2550,14 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/domains/organizations/organization.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/domains/organizations/memberships/organization-membership.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/domains/users/user.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/domains/review-campaigns/memberships/review-campaign-membership.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "import"
-        ]
-      },
-      {
         "name": "src/domains/review-campaigns/review-campaign.entity.ts",
-        "dependencyTypes": ["local", "import"]
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
       },
       {
         "name": "src/domains/review-campaigns/tester-session-feedbacks/tester-session-feedback.entity.ts",
@@ -2659,20 +2633,6 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/domains/organizations/organization.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/domains/organizations/memberships/organization-membership.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
         "name": "src/domains/users/user.entity.ts",
         "dependencyTypes": [
           "aliased",
@@ -2683,7 +2643,7 @@
         ]
       },
       {
-        "name": "src/domains/review-campaigns/memberships/review-campaign-membership.entity.ts",
+        "name": "src/domains/review-campaigns/reviewer-session-reviews/reviewer-session-review.entity.ts",
         "dependencyTypes": [
           "aliased",
           "aliased-tsconfig",
@@ -2701,42 +2661,6 @@
         "dependencyTypes": ["local", "import"]
       }
     ]
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/agent.policy.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/agent.policy.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/agents.module.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/agents.module.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
   },
   {
     "type": "dependency",
@@ -2768,7 +2692,7 @@
   {
     "type": "dependency",
     "from": "src/domains/agents/base-agent-sessions/base-agent-sessions-module.helpers.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
+    "to": "src/domains/memberships/user-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -2786,15 +2710,6 @@
   {
     "type": "dependency",
     "from": "src/domains/agents/base-agent-sessions/base-agent-sessions-module.helpers.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/base-agent-sessions/base-agent-sessions-module.helpers.ts",
     "to": "src/domains/projects/project.entity.ts",
     "rule": {
       "severity": "error",
@@ -2804,7 +2719,7 @@
   {
     "type": "dependency",
     "from": "src/domains/agents/conversation-agent-sessions/agent-sessions-service-tests/test-setup.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
+    "to": "src/domains/memberships/user-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -2840,25 +2755,7 @@
   {
     "type": "dependency",
     "from": "src/domains/agents/csv-extraction-runs/agent-csv-extraction-runs.module.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/csv-extraction-runs/agent-csv-extraction-runs.module.ts",
     "to": "src/domains/organizations/organization.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/csv-extraction-runs/agent-csv-extraction-runs.module.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -2884,8 +2781,8 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/agents/memberships/agent-memberships.service.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
+    "from": "src/domains/agents/memberships/agent-membership.model.ts",
+    "to": "src/domains/users/user.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -2893,7 +2790,16 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/agents/memberships/agent-memberships.service.ts",
+    "from": "src/domains/agents/memberships/agent-membership.repository.ts",
+    "to": "src/domains/memberships/user-membership.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/agents/memberships/agent-membership.types.ts",
     "to": "src/domains/users/user.entity.ts",
     "rule": {
       "severity": "error",
@@ -2903,25 +2809,7 @@
   {
     "type": "dependency",
     "from": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.module.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.module.ts",
     "to": "src/domains/organizations/organization.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.module.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -2966,15 +2854,6 @@
   {
     "type": "dependency",
     "from": "src/domains/analytics/agents-analytics/agents-analytics.module.ts",
-    "to": "src/domains/agents/memberships/agent-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/analytics/agents-analytics/agents-analytics.module.ts",
     "to": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
     "rule": {
       "severity": "error",
@@ -2984,25 +2863,7 @@
   {
     "type": "dependency",
     "from": "src/domains/analytics/agents-analytics/agents-analytics.module.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/analytics/agents-analytics/agents-analytics.module.ts",
     "to": "src/domains/organizations/organization.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/analytics/agents-analytics/agents-analytics.module.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3083,25 +2944,7 @@
   {
     "type": "dependency",
     "from": "src/domains/analytics/projects-analytics/projects-analytics.module.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/analytics/projects-analytics/projects-analytics.module.ts",
     "to": "src/domains/organizations/organization.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/analytics/projects-analytics/projects-analytics.module.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3173,15 +3016,6 @@
   {
     "type": "dependency",
     "from": "src/domains/backoffice/backoffice.helpers.ts",
-    "to": "src/domains/agents/memberships/agent-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/backoffice/backoffice.helpers.ts",
     "to": "src/domains/feature-flags/feature-flag.entity.ts",
     "rule": {
       "severity": "error",
@@ -3191,25 +3025,7 @@
   {
     "type": "dependency",
     "from": "src/domains/backoffice/backoffice.helpers.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/backoffice/backoffice.helpers.ts",
     "to": "src/domains/organizations/organization.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/backoffice/backoffice.helpers.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3245,15 +3061,6 @@
   {
     "type": "dependency",
     "from": "src/domains/backoffice/backoffice.module.ts",
-    "to": "src/domains/agents/memberships/agent-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/backoffice/backoffice.module.ts",
     "to": "src/domains/feature-flags/feature-flag.entity.ts",
     "rule": {
       "severity": "error",
@@ -3263,34 +3070,7 @@
   {
     "type": "dependency",
     "from": "src/domains/backoffice/backoffice.module.ts",
-    "to": "src/domains/memberships/user-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/backoffice/backoffice.module.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/backoffice/backoffice.module.ts",
     "to": "src/domains/organizations/organization.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/backoffice/backoffice.module.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3326,15 +3106,6 @@
   {
     "type": "dependency",
     "from": "src/domains/backoffice/backoffice.service.ts",
-    "to": "src/domains/agents/memberships/agent-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/backoffice/backoffice.service.ts",
     "to": "src/domains/feature-flags/feature-flag.entity.ts",
     "rule": {
       "severity": "error",
@@ -3344,34 +3115,7 @@
   {
     "type": "dependency",
     "from": "src/domains/backoffice/backoffice.service.ts",
-    "to": "src/domains/memberships/user-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/backoffice/backoffice.service.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/backoffice/backoffice.service.ts",
     "to": "src/domains/organizations/organization.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/backoffice/backoffice.service.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3398,15 +3142,6 @@
   {
     "type": "dependency",
     "from": "src/domains/documents/documents.module.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/documents/documents.module.ts",
     "to": "src/domains/organizations/organization.entity.ts",
     "rule": {
       "severity": "error",
@@ -3416,25 +3151,7 @@
   {
     "type": "dependency",
     "from": "src/domains/documents/documents.module.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/documents/documents.module.ts",
     "to": "src/domains/projects/project.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/documents/e2e-tests/test-setup.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3462,24 +3179,6 @@
     "type": "dependency",
     "from": "src/domains/documents/e2e-tests/test-setup.ts",
     "to": "src/domains/users/user.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/documents/tags/document-tags.module.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/documents/tags/document-tags.module.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3506,16 +3205,7 @@
   {
     "type": "dependency",
     "from": "src/domains/evaluations/evaluations.module.ts",
-    "to": "src/domains/agents/memberships/agent-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/evaluations/evaluations.module.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3525,15 +3215,6 @@
     "type": "dependency",
     "from": "src/domains/evaluations/evaluations.module.ts",
     "to": "src/domains/organizations/organization.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/evaluations/evaluations.module.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3578,6 +3259,15 @@
   {
     "type": "dependency",
     "from": "src/domains/evaluations/extraction/runs/e2e-tests/csv-dataset.helpers.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/evaluations/extraction/runs/e2e-tests/csv-dataset.helpers.ts",
     "to": "src/domains/organizations/organization.entity.ts",
     "rule": {
       "severity": "error",
@@ -3595,15 +3285,6 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-run-processor.service.ts",
-    "to": "src/domains/agents/agent.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
     "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-run-starter.service.ts",
     "to": "src/domains/agents/agent.entity.ts",
     "rule": {
@@ -3613,8 +3294,8 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-run.types.ts",
-    "to": "src/domains/agents/agent.entity.ts",
+    "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-run-starter.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3631,6 +3312,15 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-runs.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/evaluations/reports/evaluation-reports.service.ts",
     "to": "src/domains/agents/agent.entity.ts",
     "rule": {
@@ -3640,6 +3330,15 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/evaluations/reports/evaluation-reports.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/invitations/handlers/agent-invitation.handler.ts",
     "to": "src/domains/agents/agent.entity.ts",
     "rule": {
@@ -3650,52 +3349,7 @@
   {
     "type": "dependency",
     "from": "src/domains/invitations/handlers/agent-invitation.handler.ts",
-    "to": "src/domains/agents/memberships/agent-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/invitations/handlers/agent-invitation.handler.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/invitations/handlers/agent-invitation.handler.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/invitations/handlers/agent-invitation.handler.ts",
     "to": "src/domains/users/user.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/invitations/handlers/invitation-acceptance-helpers.service.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/invitations/handlers/invitation-acceptance-helpers.service.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3713,43 +3367,7 @@
   {
     "type": "dependency",
     "from": "src/domains/invitations/handlers/invitation-handler.types.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/invitations/handlers/invitation-handler.types.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/invitations/handlers/invitation-handler.types.ts",
     "to": "src/domains/users/user.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/invitations/handlers/project-invitation.handler.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/invitations/handlers/project-invitation.handler.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3768,33 +3386,6 @@
     "type": "dependency",
     "from": "src/domains/invitations/handlers/project-invitation.handler.ts",
     "to": "src/domains/users/user.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/invitations/handlers/review-campaign-invitation.handler.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/invitations/handlers/review-campaign-invitation.handler.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/invitations/handlers/review-campaign-invitation.handler.ts",
-    "to": "src/domains/review-campaigns/memberships/review-campaign-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3848,34 +3439,7 @@
   {
     "type": "dependency",
     "from": "src/domains/invitations/invitations.module.ts",
-    "to": "src/domains/agents/memberships/agent-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/invitations/invitations.module.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/invitations/invitations.module.ts",
     "to": "src/domains/organizations/organization.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/invitations/invitations.module.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3893,15 +3457,6 @@
   {
     "type": "dependency",
     "from": "src/domains/invitations/invitations.module.ts",
-    "to": "src/domains/review-campaigns/memberships/review-campaign-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/invitations/invitations.module.ts",
     "to": "src/domains/review-campaigns/review-campaign.entity.ts",
     "rule": {
       "severity": "error",
@@ -3910,8 +3465,8 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/me/me.module.ts",
-    "to": "src/domains/agents/memberships/agent-membership.entity.ts",
+    "from": "src/domains/organizations/memberships/organization-membership.model.ts",
+    "to": "src/domains/users/user.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3919,8 +3474,8 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/me/me.module.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
+    "from": "src/domains/organizations/memberships/organization-membership.repository.ts",
+    "to": "src/domains/memberships/user-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -3928,53 +3483,8 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/me/me.module.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/me/me.module.ts",
-    "to": "src/domains/review-campaigns/memberships/review-campaign-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/me/me.service.ts",
-    "to": "src/domains/agents/memberships/agent-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/me/me.service.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/me/me.service.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/me/me.service.ts",
-    "to": "src/domains/review-campaigns/memberships/review-campaign-membership.entity.ts",
+    "from": "src/domains/organizations/memberships/organization-membership.types.ts",
+    "to": "src/domains/users/user.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4037,15 +3547,6 @@
   {
     "type": "dependency",
     "from": "src/domains/organizations/provisioning/workspace-invitation.service.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/organizations/provisioning/workspace-invitation.service.ts",
     "to": "src/domains/projects/project.entity.ts",
     "rule": {
       "severity": "error",
@@ -4072,7 +3573,7 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/projects/memberships/project-memberships.service.ts",
+    "from": "src/domains/projects/memberships/project-membership.model.ts",
     "to": "src/domains/users/user.entity.ts",
     "rule": {
       "severity": "error",
@@ -4081,8 +3582,17 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/projects/project.policy.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
+    "from": "src/domains/projects/memberships/project-membership.repository.ts",
+    "to": "src/domains/memberships/user-membership.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/projects/memberships/project-membership.types.ts",
+    "to": "src/domains/users/user.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4092,15 +3602,6 @@
     "type": "dependency",
     "from": "src/domains/projects/projects.module.ts",
     "to": "src/domains/feature-flags/feature-flag.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/projects/projects.module.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4145,33 +3646,6 @@
   {
     "type": "dependency",
     "from": "src/domains/public-chat/agent-embed-configs/agent-embed-configs-management.module.ts",
-    "to": "src/domains/agents/memberships/agent-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/public-chat/agent-embed-configs/agent-embed-configs-management.module.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/public-chat/agent-embed-configs/agent-embed-configs-management.module.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/public-chat/agent-embed-configs/agent-embed-configs-management.module.ts",
     "to": "src/domains/projects/project.entity.ts",
     "rule": {
       "severity": "error",
@@ -4181,7 +3655,7 @@
   {
     "type": "dependency",
     "from": "src/domains/public-chat/public-agent-sessions/public-agent-sessions.service.ts",
-    "to": "src/domains/agents/agent.entity.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4208,6 +3682,15 @@
   {
     "type": "dependency",
     "from": "src/domains/public-chat/public-chat.module.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/public-chat/public-chat.module.ts",
     "to": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
     "rule": {
       "severity": "error",
@@ -4226,25 +3709,16 @@
   {
     "type": "dependency",
     "from": "src/domains/public-chat/public-chat.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/public-chat/public-chat.service.ts",
     "to": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/resource-libraries/resource-libraries.module.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/resource-libraries/resource-libraries.module.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4261,8 +3735,8 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/review-campaigns/reports/campaign-report.policy.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
+    "from": "src/domains/review-campaigns/memberships/review-campaign-membership.model.ts",
+    "to": "src/domains/users/user.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4270,8 +3744,17 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/review-campaigns/reports/campaign-report.policy.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
+    "from": "src/domains/review-campaigns/memberships/review-campaign-membership.repository.ts",
+    "to": "src/domains/memberships/user-membership.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/review-campaigns/memberships/review-campaign-membership.types.ts",
+    "to": "src/domains/users/user.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4299,6 +3782,15 @@
     "type": "dependency",
     "from": "src/domains/review-campaigns/reports/reports.service.ts",
     "to": "src/domains/agents/form-agent-sessions/form-agent-session.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/review-campaigns/review-campaign.repository.ts",
+    "to": "src/domains/memberships/user-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4343,6 +3835,15 @@
   {
     "type": "dependency",
     "from": "src/domains/review-campaigns/review-campaigns.module.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/review-campaigns/review-campaigns.module.ts",
     "to": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
     "rule": {
       "severity": "error",
@@ -4352,25 +3853,7 @@
   {
     "type": "dependency",
     "from": "src/domains/review-campaigns/review-campaigns.module.ts",
-    "to": "src/domains/organizations/memberships/organization-membership.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/review-campaigns/review-campaigns.module.ts",
     "to": "src/domains/organizations/organization.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/review-campaigns/review-campaigns.module.ts",
-    "to": "src/domains/projects/memberships/project-membership.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4442,6 +3925,15 @@
   {
     "type": "dependency",
     "from": "src/domains/review-campaigns/reviewer/reviewer.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/review-campaigns/reviewer/reviewer.service.ts",
     "to": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
     "rule": {
       "severity": "error",
@@ -4452,6 +3944,15 @@
     "type": "dependency",
     "from": "src/domains/review-campaigns/tester/tester.controller.ts",
     "to": "src/domains/agents/agent.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/review-campaigns/tester/tester.controller.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4479,6 +3980,15 @@
     "type": "dependency",
     "from": "src/domains/review-campaigns/tester/tester.service.ts",
     "to": "src/domains/agents/form-agent-sessions/form-agent-session.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/review-campaigns/tester/tester.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4531,34 +4041,7 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/agents/memberships/agent-memberships.service.ts",
-    "to": "src/domains/memberships/user-membership.service.ts",
-    "rule": {
-      "severity": "warn",
-      "name": "no-cross-domain-service-reach"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/shared/agent-session-messages/streaming/streaming.service.ts",
-    "to": "src/domains/documents/embeddings/document-chunk-retrieval.service.ts",
-    "rule": {
-      "severity": "warn",
-      "name": "no-cross-domain-service-reach"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/shared/agent-session-messages/streaming/streaming.service.ts",
-    "to": "src/domains/mcp-servers/mcp-servers.service.ts",
-    "rule": {
-      "severity": "warn",
-      "name": "no-cross-domain-service-reach"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/agents/shared/agent-session-messages/streaming/streaming.service.ts",
+    "from": "src/domains/agents/shared/agent-session-messages/streaming/sub-agent-tools.ts",
     "to": "src/domains/projects/projects.service.ts",
     "rule": {
       "severity": "warn",
@@ -4567,7 +4050,25 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/agents/shared/agent-session-messages/streaming/sub-agent-tools.ts",
+    "from": "src/domains/agents/shared/agent-session-messages/streaming/tools.service.ts",
+    "to": "src/domains/documents/embeddings/document-chunk-retrieval.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/agents/shared/agent-session-messages/streaming/tools.service.ts",
+    "to": "src/domains/mcp-servers/mcp-servers.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/agents/shared/agent-session-messages/streaming/tools.service.ts",
     "to": "src/domains/projects/projects.service.ts",
     "rule": {
       "severity": "warn",
@@ -4578,6 +4079,78 @@
     "type": "dependency",
     "from": "src/domains/agents/shared/agent-session-messages/streaming/tools/retrieve-project-document-chunks.tool.ts",
     "to": "src/domains/documents/embeddings/document-chunk-retrieval.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.module.ts",
+    "to": "src/domains/agents/memberships/agent-memberships.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.module.ts",
+    "to": "src/domains/organizations/memberships/organization-memberships.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.module.ts",
+    "to": "src/domains/projects/memberships/project-memberships.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.module.ts",
+    "to": "src/domains/review-campaigns/memberships/review-campaign-memberships.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.service.ts",
+    "to": "src/domains/agents/memberships/agent-memberships.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.service.ts",
+    "to": "src/domains/organizations/memberships/organization-memberships.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.service.ts",
+    "to": "src/domains/projects/memberships/project-memberships.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/backoffice/backoffice.service.ts",
+    "to": "src/domains/review-campaigns/memberships/review-campaign-memberships.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"
@@ -4603,8 +4176,8 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/invitations/handlers/agent-invitation.handler.ts",
-    "to": "src/domains/memberships/user-membership.service.ts",
+    "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-runs.controller.ts",
+    "to": "src/domains/agents/settings/agent-settings.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"
@@ -4612,7 +4185,16 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/invitations/handlers/project-invitation.handler.ts",
+    "from": "src/domains/evaluations/reports/evaluation-reports.controller.ts",
+    "to": "src/domains/agents/settings/agent-settings.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/invitations/handlers/agent-invitation.handler.ts",
     "to": "src/domains/agents/memberships/agent-memberships.service.ts",
     "rule": {
       "severity": "warn",
@@ -4621,8 +4203,35 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/invitations/handlers/agent-invitation.handler.ts",
+    "to": "src/domains/organizations/memberships/organization-memberships.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/invitations/handlers/agent-invitation.handler.ts",
+    "to": "src/domains/projects/memberships/project-memberships.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/invitations/handlers/project-invitation.handler.ts",
-    "to": "src/domains/memberships/user-membership.service.ts",
+    "to": "src/domains/organizations/memberships/organization-memberships.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/invitations/handlers/project-invitation.handler.ts",
+    "to": "src/domains/projects/memberships/project-memberships.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"
@@ -4631,7 +4240,34 @@
   {
     "type": "dependency",
     "from": "src/domains/invitations/handlers/review-campaign-invitation.handler.ts",
-    "to": "src/domains/memberships/user-membership.service.ts",
+    "to": "src/domains/organizations/memberships/organization-memberships.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/invitations/handlers/review-campaign-invitation.handler.ts",
+    "to": "src/domains/projects/memberships/project-memberships.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/invitations/handlers/review-campaign-invitation.handler.ts",
+    "to": "src/domains/review-campaigns/memberships/review-campaign-memberships.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/invitations/invitations.module.ts",
+    "to": "src/domains/review-campaigns/memberships/review-campaign-memberships.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"
@@ -4684,8 +4320,8 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/organizations/organizations.service.ts",
-    "to": "src/domains/memberships/user-membership.service.ts",
+    "from": "src/domains/me/me.service.ts",
+    "to": "src/domains/agents/memberships/agent-memberships.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"
@@ -4693,8 +4329,8 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/organizations/provisioning/organization-account-provisioning.service.ts",
-    "to": "src/domains/memberships/user-membership.service.ts",
+    "from": "src/domains/me/me.service.ts",
+    "to": "src/domains/organizations/memberships/organization-memberships.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"
@@ -4702,8 +4338,17 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/organizations/provisioning/workspace-invitation.service.ts",
-    "to": "src/domains/memberships/user-membership.service.ts",
+    "from": "src/domains/me/me.service.ts",
+    "to": "src/domains/projects/memberships/project-memberships.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/me/me.service.ts",
+    "to": "src/domains/review-campaigns/memberships/review-campaign-memberships.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"
@@ -4729,15 +4374,6 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/projects/memberships/project-memberships.service.ts",
-    "to": "src/domains/memberships/user-membership.service.ts",
-    "rule": {
-      "severity": "warn",
-      "name": "no-cross-domain-service-reach"
-    }
-  },
-  {
-    "type": "dependency",
     "from": "src/domains/projects/projects.service.ts",
     "to": "src/domains/documents/tags/document-tags.service.ts",
     "rule": {
@@ -4756,6 +4392,24 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/review-campaigns/review-campaigns.module.ts",
+    "to": "src/domains/agents/settings/agent-settings.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/review-campaigns/review-campaigns.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/review-campaigns/tester/tester.service.ts",
     "to": "src/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service.ts",
     "rule": {
@@ -4767,6 +4421,15 @@
     "type": "dependency",
     "from": "src/domains/review-campaigns/tester/tester.service.ts",
     "to": "src/domains/agents/form-agent-sessions/form-agent-sessions.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/review-campaigns/tester/tester.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"

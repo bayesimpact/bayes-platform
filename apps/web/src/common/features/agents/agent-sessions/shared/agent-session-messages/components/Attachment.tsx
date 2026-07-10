@@ -1,5 +1,12 @@
-import { Button } from "@caseai-connect/ui/shad/button"
-import { ExternalLinkIcon, PaperclipIcon } from "lucide-react"
+import {
+  AttachmentAction,
+  AttachmentActions,
+  Attachment as AttachmentCard,
+  AttachmentContent,
+  AttachmentMedia,
+  AttachmentTitle,
+} from "@caseai-connect/ui/shad/attachment"
+import { ExternalLinkIcon, FileTextIcon } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { AgentSessionMessage } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
@@ -26,10 +33,24 @@ export function Attachment({ message }: { message: AgentSessionMessage }) {
   }, [loadDocument])
 
   if (!message.attachmentDocumentId) return null
+
   return (
-    <Button variant="outline" size="sm" onClick={() => window.open(url, "_blank")} disabled={!url}>
-      <PaperclipIcon className="size-4" /> {t("attachment")}
-      <ExternalLinkIcon className="size-4" />
-    </Button>
+    <AttachmentCard size="sm" orientation="horizontal">
+      <AttachmentMedia>
+        <FileTextIcon />
+      </AttachmentMedia>
+      <AttachmentContent>
+        <AttachmentTitle>{t("attachment")}</AttachmentTitle>
+      </AttachmentContent>
+      <AttachmentActions>
+        <AttachmentAction
+          aria-label={t("attachment")}
+          disabled={!url}
+          onClick={() => window.open(url, "_blank", "noopener,noreferrer")}
+        >
+          <ExternalLinkIcon />
+        </AttachmentAction>
+      </AttachmentActions>
+    </AttachmentCard>
   )
 }

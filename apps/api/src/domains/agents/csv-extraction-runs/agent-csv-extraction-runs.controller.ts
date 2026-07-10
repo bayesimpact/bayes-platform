@@ -32,6 +32,8 @@ import { AddContext, RequireContext } from "@/common/context/require-context.dec
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "@/domains/documents/documents.service"
@@ -65,6 +67,7 @@ export class AgentCsvExtractionRunsController {
     private readonly runStatusStreamService: AgentCsvExtractionRunStatusStreamService,
     private readonly statusNotifierService: AgentCsvExtractionRunStatusNotifierService,
     private readonly documentsService: DocumentsService,
+    private readonly agentSettingsService: AgentSettingsService,
     @Inject(FILE_STORAGE_SERVICE)
     private readonly fileStorageService: IFileStorage,
   ) {}
@@ -77,14 +80,20 @@ export class AgentCsvExtractionRunsController {
     @Body() { payload }: typeof AgentCsvExtractionRunsRoutes.createOne.request,
   ): Promise<typeof AgentCsvExtractionRunsRoutes.createOne.response> {
     const connectScope = getRequiredConnectScope(request)
+    const agentSettings = await this.agentSettingsService.getLast({
+      connectScope,
+      agentId: request.agent.id,
+    })
     const run = await this.agentCsvExtractionRunsService.createRun({
       connectScope,
       fields: {
         agentId: request.agent.id,
+        agentSettingsId: agentSettings.id,
         csvDocumentId: payload.csvDocumentId,
         columnSchema: payload.columnSchema,
       },
     })
+    run.agentSettings = agentSettings
     return { data: toAgentCsvExtractionRunDto(run) }
   }
 
@@ -119,10 +128,16 @@ export class AgentCsvExtractionRunsController {
     const { agentCsvExtractionRun, agent } = request as EndpointRequestWithAgentCsvExtractionRun &
       EndpointRequestWithAgent
 
+    const agentSettings = await this.agentSettingsService.getLast({
+      connectScope,
+      agentId: agent.id,
+    })
+
     await this.agentCsvExtractionRunsService.retryRun({
       agentCsvExtractionRun,
       connectScope,
       agent,
+      agentSettings,
     })
 
     return { data: toAgentCsvExtractionRunDto(agentCsvExtractionRun) }
@@ -161,7 +176,7 @@ export class AgentCsvExtractionRunsController {
       agentCsvExtractionRunId: run.id,
       organizationId: run.organizationId,
       projectId: run.projectId,
-      agentId: run.agentId,
+      agentSettingsId: run.agentSettingsId,
       status: run.status,
       summary: run.summary,
       updatedAt: run.updatedAt.getTime(),
@@ -336,7 +351,8 @@ export class AgentCsvExtractionRunsController {
 function toAgentCsvExtractionRunDto(run: AgentCsvExtractionRun): AgentCsvExtractionRunDto {
   return {
     id: run.id,
-    agentId: run.agentId,
+    agentId: run.agentSettings.agentId,
+    agentSettingsId: run.agentSettingsId,
     csvDocumentId: run.csvDocumentId,
     columnSchema: run.columnSchema,
     status: run.status,

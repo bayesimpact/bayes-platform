@@ -1,5 +1,17 @@
-import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
-import { Field, FieldGroup, FieldLabel } from "@caseai-connect/ui/shad/field"
+import {
+  AgentModel,
+  AgentModelToAgentProvider,
+  AgentProvider,
+  updateAgentModelSchema,
+} from "@caseai-connect/api-contracts"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@caseai-connect/ui/shad/form"
 import { Input } from "@caseai-connect/ui/shad/input"
 import {
   Select,
@@ -8,12 +20,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@caseai-connect/ui/shad/select"
-import { Controller, useFormContext } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
+import type { z } from "zod"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useValue } from "@/common/hooks/use-value"
-import type { AgentFormValues } from "./agent-form.shared"
+import { useAppDispatch } from "@/common/store/hooks"
+import { updateAgentModel } from "../agents.thunks"
+import { AgentTabSaveButton } from "./AgentTabSaveButton"
+import { type AgentTabFormProps, useReportDirty } from "./agent-tab-form.shared"
+
+type FormValues = z.infer<typeof updateAgentModelSchema>
 
 function extractModelList(
   hasFeature: ReturnType<typeof useFeatureFlags>["hasFeature"],
@@ -48,61 +67,81 @@ function extractModelList(
   return [...defaultModels, ...medGemmaModels, ...gemmaModels, ...vertex3Models, ...mistralModels]
 }
 
-export function AgentModelTab() {
+export function AgentModelTab({ agent, onDirtyChange }: AgentTabFormProps) {
   const { t } = useTranslation()
-  const {
-    register,
-    control,
-    formState: { errors },
-  } = useFormContext<AgentFormValues>()
-
+  const dispatch = useAppDispatch()
   const project = useValue(selectCurrentProjectData)
   const { hasFeature } = useFeatureFlags(project)
   const models = extractModelList(hasFeature)
 
+  const form = useForm<FormValues>({
+    resolver: zodResolver(updateAgentModelSchema),
+    defaultValues: { model: agent.model, temperature: agent.temperature },
+  })
+  useReportDirty(form.formState.isDirty, onDirtyChange)
+
+  const handleSubmit = form.handleSubmit(async (values) => {
+    await dispatch(updateAgentModel({ agentId: agent.id, fields: values })).unwrap()
+    form.reset(values)
+  })
+
   return (
-    <FieldGroup>
-      <div className="grid gap-4 md:grid-cols-2">
-        <Field>
-          <FieldLabel htmlFor="model">{t("agent:props.model")}</FieldLabel>
-          <Controller
-            control={control}
+    <Form {...form}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2">
+          <FormField
+            control={form.control}
             name="model"
             render={({ field }) => (
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <SelectTrigger id="model" aria-invalid={errors.model ? "true" : "false"}>
-                  <SelectValue placeholder={t("agent:props.placeholders.model")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {models.map(([key, value]) => (
-                    <SelectItem key={key} value={value}>
-                      {value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormItem>
+                <FormLabel>{t("agent:props.model")}</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("agent:props.placeholders.model")} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {models.map(([key, value]) => (
+                      <SelectItem key={key} value={value}>
+                        {value}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
             )}
           />
-          {errors.model && <p className="text-sm text-destructive">{errors.model.message}</p>}
-        </Field>
 
-        <Field>
-          <FieldLabel htmlFor="temperature">{t("agent:props.temperature")}</FieldLabel>
-          <Input
-            id="temperature"
-            type="number"
-            step="0.01"
-            min="0"
-            max="2"
-            placeholder={t("agent:props.placeholders.temperature")}
-            {...register("temperature", { valueAsNumber: true })}
-            aria-invalid={errors.temperature ? "true" : "false"}
+          <FormField
+            control={form.control}
+            name="temperature"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("agent:props.temperature")}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="2"
+                    placeholder={t("agent:props.placeholders.temperature")}
+                    {...field}
+                    onChange={(event) => field.onChange(event.target.valueAsNumber)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          {errors.temperature && (
-            <p className="text-sm text-destructive">{errors.temperature.message}</p>
-          )}
-        </Field>
-      </div>
-    </FieldGroup>
+        </div>
+
+        <AgentTabSaveButton
+          isSubmitting={form.formState.isSubmitting}
+          isDirty={form.formState.isDirty}
+        />
+      </form>
+    </Form>
   )
 }

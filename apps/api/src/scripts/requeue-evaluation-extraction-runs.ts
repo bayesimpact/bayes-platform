@@ -4,6 +4,8 @@ import { getRepositoryToken } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import { AppModule } from "@/app.module"
 import { Agent } from "@/domains/agents/agent.entity"
+import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+import { toAgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.helper"
 import {
   EvaluationExtractionDataset,
   type EvaluationExtractionDatasetSchemaMapping,
@@ -73,6 +75,9 @@ async function bootstrapCli(): Promise<void> {
 
   try {
     const agentRepository = app.get<Repository<Agent>>(getRepositoryToken(Agent))
+    const agentSettingsRepository = app.get<Repository<AgentSettings>>(
+      getRepositoryToken(AgentSettings),
+    )
     const runRepository = app.get<Repository<EvaluationExtractionRun>>(
       getRepositoryToken(EvaluationExtractionRun),
     )
@@ -115,12 +120,22 @@ async function bootstrapCli(): Promise<void> {
       return evaluationExtractionRun
     }
 
-    async function getAgent(id: string): Promise<Agent> {
-      const agent = await agentRepository.findOneBy({ id })
+    async function getAgentWithSettings({
+      agentId,
+      agentSettingsId,
+    }: {
+      agentId: string
+      agentSettingsId: string
+    }): Promise<{ agent: Agent; agentSettings: AgentSettings }> {
+      const agent = await agentRepository.findOneBy({ id: agentId })
       if (!agent) {
-        throw logger.warn(`Agent with id=${id} not found.`)
+        throw logger.warn(`Agent with id=${agentId} not found.`)
       }
-      return agent
+      const agentSettings = await agentSettingsRepository.findOne({
+        where: { agentId, id: agentSettingsId },
+      })
+      if (!agentSettings) throw logger.warn(`AgentSettings for Agent with id=${agentId} not found`)
+      return { agent, agentSettings }
     }
 
     async function getDatasetSchemaMapping(
@@ -145,7 +160,10 @@ async function bootstrapCli(): Promise<void> {
             runRecord.evaluationExtractionRunId,
           )
 
-          const agent = await getAgent(evaluationExtractionRun.agentId)
+          const { agent, agentSettings } = await getAgentWithSettings({
+            agentId: evaluationExtractionRun.agentId,
+            agentSettingsId: evaluationExtractionRun.agentSettingsId,
+          })
 
           const schemaMapping = await getDatasetSchemaMapping(
             evaluationExtractionRun.evaluationExtractionDatasetId,
@@ -154,7 +172,7 @@ async function bootstrapCli(): Promise<void> {
           return {
             evaluationExtractionRun,
             runRecordId: runRecord.id,
-            agent,
+            agentWithSettings: toAgentWithSettingsRunJobPayload({ agent, agentSettings }),
             schemaMapping,
             connectScope,
           } satisfies ProcessEvaluationExtractionRunRecordJobPayload

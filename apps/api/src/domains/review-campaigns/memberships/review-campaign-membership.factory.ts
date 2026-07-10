@@ -5,7 +5,7 @@ import type { AllRepositories } from "@/common/test/test-transaction-manager"
 import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import type { User } from "@/domains/users/user.entity"
 import type { ReviewCampaign } from "../review-campaign.entity"
-import type { ReviewCampaignMembership } from "./review-campaign-membership.entity"
+import type { ReviewCampaignMembershipFixture } from "./review-campaign-membership.types"
 
 type ReviewCampaignMembershipTransientParams = RequiredScopeTransientParams & {
   campaign: ReviewCampaign
@@ -13,7 +13,7 @@ type ReviewCampaignMembershipTransientParams = RequiredScopeTransientParams & {
 }
 
 class ReviewCampaignMembershipFactory extends Factory<
-  ReviewCampaignMembership,
+  ReviewCampaignMembershipFixture,
   ReviewCampaignMembershipTransientParams
 > {
   tester() {
@@ -22,10 +22,6 @@ class ReviewCampaignMembershipFactory extends Factory<
 
   reviewer() {
     return this.params({ role: "reviewer" })
-  }
-
-  accepted() {
-    return this.params({ acceptedAt: new Date() })
   }
 }
 
@@ -57,31 +53,28 @@ export const reviewCampaignMembershipFactory = ReviewCampaignMembershipFactory.d
       userId: transientParams.user.id,
       user: transientParams.user,
       role: params.role || "tester",
-      acceptedAt: params.acceptedAt ?? null,
-    } satisfies ReviewCampaignMembership
+    } satisfies ReviewCampaignMembershipFixture
   },
 )
 
 /**
- * Saves a ReviewCampaignMembership to both the legacy table and user_memberships.
- * Use this in tests instead of `repositories.reviewCampaignMembershipRepository.save()`
- * to keep user_memberships in sync during the dual-write transition period.
+ * Saves a review-campaign membership to `user_membership`.
  */
 export const saveReviewCampaignMembership = async ({
   repositories,
   membership,
 }: {
   repositories: AllRepositories
-  membership: ReviewCampaignMembership
+  membership: ReviewCampaignMembershipFixture
 }) => {
-  const saved = await repositories.reviewCampaignMembershipRepository.save(membership)
-  await repositories.userMembershipRepository.save(
+  const saved = await repositories.userMembershipRepository.save(
     userMembershipFactory.build({
-      userId: saved.userId,
+      id: membership.id,
+      userId: membership.userId,
       resourceType: "review_campaign",
-      resourceId: saved.campaignId,
-      role: saved.role,
+      resourceId: membership.campaignId,
+      role: membership.role,
     }),
   )
-  return saved
+  return { ...membership, id: saved.id }
 }

@@ -3,10 +3,11 @@ import {
   testPolicyScopedByProject,
 } from "@/common/test/test-project-scoped-policy.helpers"
 import { agentFactory } from "@/domains/agents/agent.factory"
-import type { OrganizationMembershipRole } from "@/domains/organizations/memberships/organization-membership.entity"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import type { Organization } from "@/domains/organizations/organization.entity"
-import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.entity"
+import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
 import type { Project } from "@/domains/projects/project.entity"
+import type { OrganizationMembershipRole } from "../organizations/memberships/organization-membership.types"
 import type { ReviewCampaign } from "./review-campaign.entity"
 import { reviewCampaignFactory } from "./review-campaign.factory"
 import { ReviewCampaignPolicy } from "./review-campaign.policy"
@@ -15,7 +16,8 @@ describe("ReviewCampaignPolicy", () => {
   const { buildPolicy } = testPolicyScopedByProject<ReviewCampaignPolicy, ReviewCampaign>({
     buildResource: (params: { organization: Organization; project: Project }) => {
       const agent = agentFactory.transient(params).build()
-      return reviewCampaignFactory.transient({ ...params, agent }).build()
+      const agentSettings = agentSettingsFactory.transient({ ...params, agent }).build()
+      return reviewCampaignFactory.transient({ ...params, agent, agentSettings }).build()
     },
     ResourcePolicy: ReviewCampaignPolicy,
   })

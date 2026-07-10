@@ -16,6 +16,7 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
+import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
@@ -84,7 +85,7 @@ describe("Agents - createOne", () => {
       payload: {
         type: "conversation",
         name: "New Agent",
-        defaultPrompt: "This is a default prompt",
+        instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
         model: AgentModel.Gemini25Flash,
         temperature: 0,
@@ -96,7 +97,7 @@ describe("Agents - createOne", () => {
 
     expectResponse(response, 201)
     expect(response.body.data.name).toBe("New Agent")
-    expect(response.body.data.defaultPrompt).toBe("This is a default prompt")
+    expect(response.body.data.instructions).toBe("This is a default prompt")
     expect(response.body.data.model).toBe(AgentModel.Gemini25Flash)
     expect(response.body.data.locale).toBe(AgentLocale.EN)
     expect(response.body.data.documentsRagMode).toBe(DocumentsRagMode.All)
@@ -119,7 +120,7 @@ describe("Agents - createOne", () => {
       payload: {
         type: "conversation",
         name: "Greeter Agent",
-        defaultPrompt: "This is a default prompt",
+        instructions: "This is a default prompt",
         greetingMessage: "Hi! How can I help you today?",
         documentsRagMode: DocumentsRagMode.All,
         model: AgentModel.Gemini25Flash,
@@ -133,10 +134,10 @@ describe("Agents - createOne", () => {
     expectResponse(response, 201)
     expect(response.body.data.greetingMessage).toBe("Hi! How can I help you today?")
 
-    const agent = await setup.getRepository(Agent).findOne({
-      where: { id: response.body.data.id },
+    const agentSettings = await setup.getRepository(AgentSettings).findOne({
+      where: { agentId: response.body.data.id, revision: 1 },
     })
-    expect(agent?.greetingMessage).toBe("Hi! How can I help you today?")
+    expect(agentSettings?.greetingMessage).toBe("Hi! How can I help you today?")
   })
 
   it("should default greetingMessage to null when omitted", async () => {
@@ -146,7 +147,7 @@ describe("Agents - createOne", () => {
       payload: {
         type: "conversation",
         name: "Silent Agent",
-        defaultPrompt: "This is a default prompt",
+        instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
         model: AgentModel.Gemini25Flash,
         temperature: 0,
@@ -159,10 +160,10 @@ describe("Agents - createOne", () => {
     expectResponse(response, 201)
     expect(response.body.data.greetingMessage).toBeUndefined()
 
-    const agent = await setup.getRepository(Agent).findOne({
-      where: { id: response.body.data.id },
+    const agentSettings = await setup.getRepository(AgentSettings).findOne({
+      where: { agentId: response.body.data.id, revision: 1 },
     })
-    expect(agent?.greetingMessage).toBeNull()
+    expect(agentSettings?.greetingMessage).toBeNull()
   })
 
   it("should create a tagged agent when documentsRagMode is tags", async () => {
@@ -174,7 +175,7 @@ describe("Agents - createOne", () => {
       payload: {
         type: "conversation",
         name: "Tagged Agent",
-        defaultPrompt: "This is a default prompt",
+        instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.Tags,
         model: AgentModel.Gemini25Flash,
         temperature: 0,
@@ -202,7 +203,7 @@ describe("Agents - createOne", () => {
       payload: {
         type: "conversation",
         name: "Categorized Agent",
-        defaultPrompt: "This is a default prompt",
+        instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
         model: AgentModel.Gemini25Flash,
         temperature: 0,

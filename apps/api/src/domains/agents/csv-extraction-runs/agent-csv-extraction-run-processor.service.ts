@@ -16,7 +16,7 @@ import type {
   LLMMetadata,
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
-import type { Agent } from "@/domains/agents/agent.entity"
+import type { AgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.types"
 import { ServiceWithLLM } from "@/external/llm"
 import type {
   AgentCsvExtractionRunColumnSchema,
@@ -76,7 +76,7 @@ export class AgentCsvExtractionRunProcessorService extends ServiceWithLLM {
   }
 
   async processRunRecord(payload: ProcessAgentCsvExtractionRunRecordJobPayload): Promise<void> {
-    const { connectScope, agentCsvExtractionRun, runRecordId, agent } = payload
+    const { connectScope, agentCsvExtractionRun, runRecordId, agentWithSettings } = payload
 
     const runRecord = await this.runRecordConnectRepository.getOneById(connectScope, runRecordId)
     if (!runRecord) {
@@ -110,7 +110,7 @@ export class AgentCsvExtractionRunProcessorService extends ServiceWithLLM {
     await this.processOneRecord({
       runRecord,
       columnSchema: payload.columnSchema,
-      agent,
+      agentWithSettings,
       agentCsvExtractionRun,
       connectScope,
     })
@@ -262,13 +262,13 @@ export class AgentCsvExtractionRunProcessorService extends ServiceWithLLM {
   private async processOneRecord({
     runRecord,
     columnSchema,
-    agent,
+    agentWithSettings,
     agentCsvExtractionRun,
     connectScope,
   }: {
     runRecord: AgentCsvExtractionRunRecord
     columnSchema: AgentCsvExtractionRunColumnSchema
-    agent: Agent
+    agentWithSettings: AgentWithSettingsRunJobPayload
     agentCsvExtractionRun: AgentCsvExtractionRun
     connectScope: RequiredConnectScope
   }): Promise<void> {
@@ -279,7 +279,7 @@ export class AgentCsvExtractionRunProcessorService extends ServiceWithLLM {
       })
 
       const { output: agentOutput, traceId } = await this.invokeAgent({
-        agent,
+        agentWithSettings,
         inputText,
         connectScope,
       })
@@ -326,15 +326,15 @@ export class AgentCsvExtractionRunProcessorService extends ServiceWithLLM {
   }
 
   private async invokeAgent({
-    agent,
+    agentWithSettings,
     inputText,
     connectScope,
   }: {
-    agent: Agent
+    agentWithSettings: AgentWithSettingsRunJobPayload
     inputText: string
     connectScope: RequiredConnectScope
   }): Promise<{ output: Record<string, unknown>; traceId: string }> {
-    if (!agent.outputJsonSchema) {
+    if (!agentWithSettings.outputJsonSchema) {
       throw new UnprocessableEntityException(
         "Agent must have an outputJsonSchema for CSV extraction runs",
       )
@@ -346,12 +346,12 @@ export class AgentCsvExtractionRunProcessorService extends ServiceWithLLM {
       content: [{ type: "text", text: inputText }],
     }
 
-    const systemPrompt = `${agent.defaultPrompt}\n\nToday's date: ${new Date().toLocaleDateString()}`
+    const systemPrompt = `${agentWithSettings.instructions}\n\nToday's date: ${new Date().toLocaleDateString()}`
 
     const llmConfig = this.buildLLMConfig({
       systemPrompt,
-      model: agent.model,
-      temperature: agent.temperature,
+      model: agentWithSettings.model,
+      temperature: agentWithSettings.temperature,
     })
 
     const llmMetadata: LLMMetadata = {
@@ -359,17 +359,24 @@ export class AgentCsvExtractionRunProcessorService extends ServiceWithLLM {
       agentSessionId: traceId,
       currentTurn: 1,
       organizationId: connectScope.organizationId,
-      agentId: agent.id,
+      agentId: agentWithSettings.id,
+      revision: agentWithSettings.revision,
       projectId: connectScope.projectId,
-      tags: [agent.name, "agent-csv-extraction-run"],
+      tags: [
+        agentWithSettings.name,
+        `rev-${agentWithSettings.revision}`,
+        "agent-csv-extraction-run",
+      ],
     }
 
-    const output = await this.getProviderForModel(agent.model).generateStructuredOutput({
-      message: llmMessage,
-      schema: agent.outputJsonSchema,
-      config: llmConfig,
-      metadata: llmMetadata,
-    })
+    const output = await this.getProviderForModel(agentWithSettings.model).generateStructuredOutput(
+      {
+        message: llmMessage,
+        schema: agentWithSettings.outputJsonSchema,
+        config: llmConfig,
+        metadata: llmMetadata,
+      },
+    )
 
     return { output, traceId }
   }
@@ -390,7 +397,7 @@ export class AgentCsvExtractionRunProcessorService extends ServiceWithLLM {
       agentCsvExtractionRunId: agentCsvExtractionRun.id,
       organizationId: agentCsvExtractionRun.organizationId,
       projectId: agentCsvExtractionRun.projectId,
-      agentId: agentCsvExtractionRun.agentId,
+      agentSettingsId: agentCsvExtractionRun.agentSettingsId,
       status: agentCsvExtractionRun.status,
       summary: agentCsvExtractionRun.summary,
       updatedAt: agentCsvExtractionRun.updatedAt.getTime(),

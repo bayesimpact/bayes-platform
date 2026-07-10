@@ -9,10 +9,19 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 -  (beta) Gemini 3.1 Flash Lite & Gemini 3.5 Flash available for all Agents
+- Agent session chat shows a live activity timeline while the assistant is streaming, with descriptive per-tool statuses and a check once each step completes
+- Agent session chat has a message navigator to jump to any earlier message in the thread
 
 ### Changed
+- Onboarding screen automatically refreshes pending invitations every 30 seconds, so newly received invitations appear without a manual page reload
+- Agent session chat has a better message-scroller
+- Agent editor saves each configuration tab independently, so editing one tab no longer requires re-saving the whole agent; switching tabs with unsaved edits prompts to discard them
+- Backoffice feature flags are now managed through a searchable dialog with side-by-side Available/Enabled columns, reachable from both the projects list and the project detail page
 
 ### Fixed
+- Editing a single agent tab no longer clears the agent's greeting message
+- Agent temperature is returned as a number instead of a string, matching the API contract
+- Submitting a message in an agent session no longer jumps the transcript to the first message
 
 ### Security
 

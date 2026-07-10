@@ -4,6 +4,7 @@ import type { Repository } from "typeorm"
 import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "@/domains/documents/documents.service"
 import type { Agent } from "../agent.entity"
@@ -34,6 +35,7 @@ export class ExtractionAgentSessionsService {
   async executeExtraction({
     connectScope,
     agent,
+    agentSettings,
     userId,
     documentId,
     promptOverride,
@@ -41,6 +43,7 @@ export class ExtractionAgentSessionsService {
   }: {
     connectScope: RequiredConnectScope
     agent: Agent
+    agentSettings: AgentSettings
     userId: string
     documentId: string
     promptOverride?: string
@@ -50,18 +53,18 @@ export class ExtractionAgentSessionsService {
       throw new UnprocessableEntityException("Only extraction agents can run extraction")
     }
 
-    if (!agent.outputJsonSchema || !agent.defaultPrompt) {
+    if (!agentSettings.outputJsonSchema || !agentSettings.instructions) {
       throw new UnprocessableEntityException(
-        "Extraction agent configuration is invalid: missing outputJsonSchema or defaultPrompt",
+        "Extraction agent configuration is invalid: missing outputJsonSchema or instructions",
       )
     }
 
-    const effectivePrompt = promptOverride ?? agent.defaultPrompt
+    const effectivePrompt = promptOverride ?? agentSettings.instructions
     // Validate the document exists and is in scope before enqueuing the job.
     await this.assertDocumentExists({ connectScope, documentId })
 
     const run = await this.sessionConnectRepository.createAndSave(connectScope, {
-      agentId: agent.id,
+      agentSettingsId: agentSettings.id,
       userId,
       documentId,
       status: "pending",
@@ -70,8 +73,10 @@ export class ExtractionAgentSessionsService {
       errorCode: null,
       errorDetails: null,
       effectivePrompt,
-      schemaSnapshot: agent.outputJsonSchema,
       traceId: v4(),
+      //fixme DOO : to delete as the same time we delete the fields in db: it's just a security ...
+      _deleted_schemaSnapshot: agentSettings.outputJsonSchema,
+      agentId: agent.id,
     })
 
     // Hand off to a worker so the HTTP response is not blocked by the LLM call.
@@ -96,8 +101,8 @@ export class ExtractionAgentSessionsService {
     type: BaseAgentSessionType
   }): Promise<ExtractionAgentSession[]> {
     return this.sessionConnectRepository.find(connectScope, {
-      where: { agentId, type, userId },
-      relations: { document: true },
+      where: { agentSettings: { agentId }, type, userId },
+      relations: { agentSettings: true, document: true },
       order: { createdAt: "DESC" },
     })
   }
@@ -105,16 +110,14 @@ export class ExtractionAgentSessionsService {
   async findAgentSessionById({
     connectScope,
     agentSessionId,
-    agentId,
     type,
   }: {
     connectScope: RequiredConnectScope
     agentSessionId: string
-    agentId: string
     type: BaseAgentSessionType
   }): Promise<ExtractionAgentSession | null> {
     const runs = await this.sessionConnectRepository.find(connectScope, {
-      where: { id: agentSessionId, agentId, type },
+      where: { id: agentSessionId, type },
       relations: { document: true },
       take: 1,
     })

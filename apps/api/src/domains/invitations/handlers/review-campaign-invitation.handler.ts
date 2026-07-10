@@ -6,10 +6,11 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common"
-import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
-import type { EntityManager } from "typeorm"
+import { InjectRepository } from "@nestjs/typeorm"
+import type { EntityManager, Repository } from "typeorm"
+import { In } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { DataSource, In, type Repository } from "typeorm"
+import { TransactionService } from "@/common/transaction/transaction.service"
 import {
   INVITATION_SENDER,
   type InvitationSender,
@@ -17,10 +18,11 @@ import {
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { InvitationPersistenceService } from "@/domains/invitations/invitation-persistence.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { UserMembershipService } from "@/domains/memberships/user-membership.service"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
-import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
-import { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
+import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ReviewCampaignMembershipsService } from "@/domains/review-campaigns/memberships/review-campaign-memberships.service"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import type { ReviewCampaignMembershipRole } from "@/domains/review-campaigns/review-campaigns.types"
 import { User } from "@/domains/users/user.entity"
@@ -39,7 +41,6 @@ import type {
 } from "./invitation-target.handler"
 
 type InviteMembersContext = BaseInviteMembersContext & {
-  membershipRepository: Repository<ReviewCampaignMembership>
   reviewCampaign: Pick<ReviewCampaign, "id" | "organizationId" | "projectId" | "status">
 }
 
@@ -59,16 +60,16 @@ export class ReviewCampaignInvitationHandler
   constructor(
     @InjectRepository(ReviewCampaign)
     private readonly reviewCampaignRepository: Repository<ReviewCampaign>,
-    @InjectRepository(ReviewCampaignMembership)
-    readonly _reviewCampaignMembershipRepository: Repository<ReviewCampaignMembership>,
     @InjectRepository(Invitation)
     private readonly invitationRepository: Repository<Invitation>,
     @Inject(INVITATION_SENDER)
     private readonly invitationSender: InvitationSender,
-    @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly transactionService: TransactionService,
     private readonly invitationPersistence: InvitationPersistenceService,
     private readonly acceptanceHelpers: InvitationAcceptanceHelpersService,
-    private readonly userMembershipService: UserMembershipService,
+    private readonly organizationMembershipsService: OrganizationMembershipsService,
+    private readonly projectMembershipsService: ProjectMembershipsService,
+    private readonly reviewCampaignMembershipsService: ReviewCampaignMembershipsService,
   ) {}
 
   async createInvitations(params: CreateInvitationsForTargetParams): Promise<Invitation[]> {
@@ -92,7 +93,8 @@ export class ReviewCampaignInvitationHandler
     inviterName: string
     role: ReviewCampaignMembershipRole
   }): Promise<Invitation[]> {
-    return this.dataSource.transaction(async (manager) => {
+    return this.transactionService.run(async () => {
+      const manager = this.transactionService.getManager()
       const context = await this.buildInviteMembersContext({
         manager,
         reviewCampaignId: params.reviewCampaignId,
@@ -122,7 +124,6 @@ export class ReviewCampaignInvitationHandler
     }
     return {
       userRepository: params.manager.getRepository(User),
-      membershipRepository: params.manager.getRepository(ReviewCampaignMembership),
       invitationRepository: params.manager.getRepository(Invitation),
       reviewCampaign,
     }
@@ -205,13 +206,12 @@ export class ReviewCampaignInvitationHandler
     context: InviteMembersContext
   }): Promise<boolean> {
     if (params.existingUser) {
-      const existingMembership = await params.context.membershipRepository.findOne({
-        where: {
-          campaignId: params.context.reviewCampaign.id,
+      const existingMembership =
+        await this.reviewCampaignMembershipsService.findByUserCampaignAndRole({
           userId: params.existingUser.id,
+          campaignId: params.context.reviewCampaign.id,
           role: params.role,
-        },
-      })
+        })
       if (existingMembership) return true
     }
 
@@ -270,11 +270,9 @@ export class ReviewCampaignInvitationHandler
     auth0Sub: string
     email: string
   }): Promise<{ userId: string }> {
-    return this.dataSource.transaction(async (manager) => {
+    return this.transactionService.run(async () => {
+      const manager = this.transactionService.getManager()
       const invitationRepository = manager.getRepository(Invitation)
-      const membershipRepository = manager.getRepository(ReviewCampaignMembership)
-      const organizationMembershipRepository = manager.getRepository(OrganizationMembership)
-      const projectMembershipRepository = manager.getRepository(ProjectMembership)
       const reviewCampaignRepository = manager.getRepository(ReviewCampaign)
       const userRepository = manager.getRepository(User)
 
@@ -293,61 +291,24 @@ export class ReviewCampaignInvitationHandler
         where: { id: invitation.targetId },
       })
 
-      await this.acceptanceHelpers.ensureOrganizationMembership(
-        organizationMembershipRepository,
-        user.id,
-        campaign.organizationId,
-      )
-      await this.userMembershipService.upsertOrganizationMembership(
-        { userId: user.id, organizationId: campaign.organizationId, role: "member" },
-        manager,
-      )
-      await this.acceptanceHelpers.ensureProjectMembership(
-        projectMembershipRepository,
-        user.id,
-        campaign.projectId,
-      )
-      await this.userMembershipService.upsertProjectMembership(
-        { userId: user.id, projectId: campaign.projectId, role: "member" },
-        manager,
-      )
+      await this.organizationMembershipsService.upsertOrganizationMemberMembership({
+        userId: user.id,
+        organizationId: campaign.organizationId,
+      })
+      await this.projectMembershipsService.upsertProjectMemberMembership({
+        userId: user.id,
+        projectId: campaign.projectId,
+      })
       const role = invitation.role as ReviewCampaignMembershipRole
-      await this.upsertCampaignMembership(membershipRepository, invitation, user.id, campaign)
-      await this.userMembershipService.ensureReviewCampaignMembership(
-        { userId: user.id, campaignId: campaign.id, role },
-        manager,
-      )
+      await this.reviewCampaignMembershipsService.acceptCampaignMembership({
+        campaignId: campaign.id,
+        userId: user.id,
+        role,
+        organizationId: campaign.organizationId,
+        projectId: campaign.projectId,
+      })
       await invitationRepository.update({ id: invitation.id }, { userId: user.id })
       return { userId: user.id }
     })
-  }
-
-  private async upsertCampaignMembership(
-    repository: Repository<ReviewCampaignMembership>,
-    invitation: Invitation,
-    userId: string,
-    campaign: ReviewCampaign,
-  ): Promise<void> {
-    const role = invitation.role as ReviewCampaignMembershipRole
-    const existing = await repository.findOne({
-      where: { campaignId: invitation.targetId, userId, role },
-    })
-    if (existing) {
-      if (!existing.acceptedAt) {
-        existing.acceptedAt = new Date()
-        await repository.save(existing)
-      }
-      return
-    }
-    await repository.save(
-      repository.create({
-        organizationId: campaign.organizationId,
-        projectId: campaign.projectId,
-        campaignId: invitation.targetId,
-        userId,
-        role,
-        acceptedAt: new Date(),
-      }),
-    )
   }
 }

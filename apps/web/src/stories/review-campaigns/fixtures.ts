@@ -125,20 +125,17 @@ export const mockMemberships: ReviewCampaignMembershipDto[] = [
     userId: "user-1",
     userEmail: "alice@example.com",
     role: "tester",
-    acceptedAt: now - 4 * MS_PER_DAY,
   }),
   reviewCampaignMembershipFactory.transient({ campaign: mockActiveCampaign }).build({
     id: "membership-2",
     userId: "user-2",
     userEmail: "bob@example.com",
     role: "tester",
-    acceptedAt: null,
   }),
   reviewCampaignMembershipFactory.transient({ campaign: mockActiveCampaign }).build({
     id: "membership-3",
     userId: "user-3",
     userEmail: "carol@example.com",
     role: "reviewer",
-    acceptedAt: now - 1 * MS_PER_DAY,
   }),
 ]

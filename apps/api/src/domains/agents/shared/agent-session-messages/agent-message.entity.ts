@@ -1,5 +1,6 @@
 import { Column, JoinColumn, ManyToOne, OneToMany, OneToOne } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { Document } from "@/domains/documents/document.entity"
 import { ConversationAgentSession } from "../../conversation-agent-sessions/conversation-agent-session.entity"
 import { FormAgentSession } from "../../form-agent-sessions/form-agent-session.entity"
@@ -12,6 +13,14 @@ export type MessageStatus = "streaming" | "completed" | "aborted" | "error"
 export class AgentMessage extends ConnectEntityBase {
   @Column({ type: "uuid", name: "session_id" })
   sessionId!: string
+
+  @Column({ type: "uuid", name: "agent_settings_id", nullable: false })
+  agentSettingsId!: string
+  @ManyToOne("AgentSettings", (agentSettings: AgentSettings) => agentSettings.id, {
+    onDelete: "CASCADE",
+  })
+  @JoinColumn({ name: "agent_settings_id" })
+  agentSettings!: AgentSettings
 
   @Column({ type: "varchar" })
   role!: "user" | "assistant" | "tool"

@@ -9,8 +9,10 @@ import {
 import { Agent } from "@/domains/agents/agent.entity"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
+import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { organizationFactory } from "@/domains/organizations/organization.factory"
 import { Project } from "@/domains/projects/project.entity"
@@ -34,13 +36,15 @@ export function agentSessionControllerTestSetup() {
   let conversationAgentSessionCategoryRepository: Repository<ConversationAgentSessionCategory>
   let agentRepository: Repository<Agent>
   let agentSessionCategoryRepository: Repository<AgentSessionCategory>
+  let agentSettingsRepository: Repository<AgentSettings>
   let agentSubAgentRepository: Repository<AgentSubAgent>
   let agentMessageRepository: Repository<AgentMessage>
   let featureFlagRepository: AllRepositories["featureFlagRepository"]
   let userRepository: Repository<User>
   let organizationRepository: Repository<Organization>
   let projectRepository: Repository<Project>
-  let organizationMembershipRepository: Repository<OrganizationMembership>
+  let userMembershipRepository: Repository<UserMembership>
+  let repositories: AllRepositories
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
 
   // Test data
@@ -48,6 +52,7 @@ export function agentSessionControllerTestSetup() {
   let testOrganization: Organization
   let testProject: Project
   let testAgent: Agent
+  let testAgentSettings: AgentSettings
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
@@ -72,12 +77,14 @@ export function agentSessionControllerTestSetup() {
     agentMessageRepository = setup.getRepository(AgentMessage)
     agentRepository = setup.getRepository(Agent)
     agentSessionCategoryRepository = setup.getRepository(AgentSessionCategory)
+    agentSettingsRepository = setup.getRepository(AgentSettings)
     agentSubAgentRepository = setup.getRepository(AgentSubAgent)
     userRepository = setup.getRepository(User)
     featureFlagRepository = setup.getAllRepositories().featureFlagRepository
     organizationRepository = setup.getRepository(Organization)
     projectRepository = setup.getRepository(Project)
-    organizationMembershipRepository = setup.getRepository(OrganizationMembership)
+    userMembershipRepository = setup.getRepository(UserMembership)
+    repositories = setup.getAllRepositories()
 
     // Use unique identifier to avoid conflicts between tests
     const uniqueId = Date.now().toString()
@@ -106,27 +113,37 @@ export function agentSessionControllerTestSetup() {
       .transient({ organization: testOrganization, project: testProject })
       .build({
         name: `Test Agent ${uniqueId}`,
-        defaultPrompt: "You are a helpful assistant",
-        temperature: 0,
       })
     testAgent = agentRepository.create(agent)
     testAgent = await agentRepository.save(testAgent)
+
+    const agentSettings = agentSettingsFactory
+      .transient({ organization: testOrganization, project: testProject, agent: testAgent })
+      .build({
+        instructions: "You are a helpful assistant",
+        temperature: 0,
+      })
+    testAgentSettings = agentSettingsRepository.create(agentSettings)
+    testAgentSettings = await agentSettingsRepository.save(testAgentSettings)
   })
 
   return () => {
     return {
       agentRepository,
       agentSessionCategoryRepository,
+      agentSettingsRepository,
       agentSubAgentRepository,
       conversationAgentSessionRepository,
       conversationAgentSessionCategoryRepository,
       featureFlagRepository,
       agentMessageRepository,
-      organizationMembershipRepository,
+      userMembershipRepository,
+      repositories,
       organizationRepository,
       projectRepository,
       service,
       testAgent,
+      testAgentSettings,
       testOrganization,
       testProject,
       testUser,

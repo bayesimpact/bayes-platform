@@ -1,65 +1,52 @@
-import { ScrollArea } from "@caseai-connect/ui/shad/scroll-area"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@caseai-connect/ui/shad/sheet"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@caseai-connect/ui/shad/tabs"
+import { AlertTriangleIcon } from "lucide-react"
+import { type ReactNode, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useBlocker } from "react-router-dom"
+import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import type { Agent } from "@/common/features/agents/agents.models"
-import { useAppDispatch } from "@/common/store/hooks"
+import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
+import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
+import { usePreventLeave } from "@/common/hooks/use-prevent-leave"
+import { useValue } from "@/common/hooks/use-value"
+import { ErrorRoute } from "@/common/routes/ErrorRoute"
+import { AgentEmbedTab } from "@/studio/features/agent-embed-configs/components/AgentEmbedTab"
 import type { AgentSubAgent } from "@/studio/features/agent-sub-agents/agent-sub-agents.models"
-import { agentSubAgentsActions } from "@/studio/features/agent-sub-agents/agent-sub-agents.slice"
-import { updateAgent } from "../agents.thunks"
-import type { AgentSubAgentFormValue } from "./AgentSubAgentsTab"
-import type { AgentFormData } from "./agent-form.shared"
-import { BaseAgentForm } from "./BaseAgentForm"
+import { AgentGeneralTab } from "./AgentGeneralTab"
+import { AgentModelTab } from "./AgentModelTab"
+import { AgentOrchestrationTab } from "./AgentOrchestrationTab"
+import { AgentOutputTab } from "./AgentOutputTab"
+import { AgentResourceLibrariesTab } from "./AgentResourceLibrariesTab"
+import { AgentSessionCategoriesTab } from "./AgentSessionCategoriesTab"
+import { AgentSourcesTab } from "./AgentSourcesTab"
 
 export type AgentEditorOrchestration = {
   agents: Agent[]
   subAgents: AgentSubAgent[]
 }
 
-export function AgentEditorWithoutTrigger({
-  agent,
-  onClose,
-}: {
-  agent: Agent | null
-  onClose: () => void
-}) {
-  const handleSuccess = () => {
-    onClose()
-  }
+type TabKey =
+  | "general"
+  | "model"
+  | "output"
+  | "sources"
+  | "resourceLibraries"
+  | "categories"
+  | "orchestration"
+  | "embed"
 
-  if (!agent) return null
-  return (
-    <Sheet modal open={!!agent} onOpenChange={(open: boolean) => !open && onClose()}>
-      <Content agent={agent} onSuccess={handleSuccess} />
-    </Sheet>
-  )
+type DirtyHandler = (dirty: boolean) => void
+type TabConfig = {
+  value: TabKey
+  label: string
+  render: (onDirtyChange: DirtyHandler) => ReactNode
 }
 
-function Content({ agent, onSuccess }: { agent: Agent; onSuccess: () => void }) {
-  const { t } = useTranslation("agent", { keyPrefix: "update" })
-  const sheetTitle = t(`${agent.type}.title`)
-  const sheetDescription = t(`${agent.type}.description`)
-
-  return (
-    <SheetContent side="bottom" className="h-dvh">
-      <ScrollArea className="h-full">
-        <SheetHeader>
-          <SheetTitle>{sheetTitle}</SheetTitle>
-          <SheetDescription>{sheetDescription}</SheetDescription>
-        </SheetHeader>
-        <div className="px-4 pb-4">
-          <UpdateForm agent={agent} onSuccess={onSuccess} />
-        </div>
-      </ScrollArea>
-    </SheetContent>
-  )
-}
-
+/**
+ * Agent editor. Each tab is a self-contained form that owns its own save (see the per-tab
+ * components). Only the active tab is mounted, so leaving a tab discards its edits; we prompt
+ * with a ConfirmDialog before switching tabs or navigating away while a tab has unsaved changes.
+ */
 export function AgentEditor({
   agent,
   className,
@@ -69,84 +56,151 @@ export function AgentEditor({
   className?: string
   orchestration?: AgentEditorOrchestration
 }) {
-  return (
-    <div className={className}>
-      <UpdateForm agent={agent} orchestration={orchestration} />
-    </div>
-  )
-}
+  const { t } = useTranslation()
+  const project = useValue(selectCurrentProjectData)
+  const { hasFeature } = useFeatureFlags(project)
 
-function UpdateForm({
-  agent,
-  onSuccess,
-  orchestration,
-}: {
-  agent: Agent
-  onSuccess?: () => void
-  orchestration?: AgentEditorOrchestration
-}) {
-  const dispatch = useAppDispatch()
+  const tabs = useMemo<TabConfig[]>(() => {
+    const isConversation = agent.type === "conversation"
+    const list: TabConfig[] = [
+      {
+        value: "general",
+        label: t("agent:tabs.general"),
+        render: (onDirtyChange) => <AgentGeneralTab agent={agent} onDirtyChange={onDirtyChange} />,
+      },
+      {
+        value: "model",
+        label: t("agent:tabs.model"),
+        render: (onDirtyChange) => <AgentModelTab agent={agent} onDirtyChange={onDirtyChange} />,
+      },
+    ]
 
-  const handleSubmit = (fields: AgentFormData) => {
-    if (!("documentTagIds" in fields)) {
-      throw new Error("Missing documentTagIds in fields")
+    // For conversation agents, we show the sources, resource libraries, and categories tabs
+    if (isConversation) {
+      list.push({
+        value: "sources",
+        label: t("agent:tabs.sources"),
+        render: (onDirtyChange) => <AgentSourcesTab agent={agent} onDirtyChange={onDirtyChange} />,
+      })
+
+      list.push({
+        value: "resourceLibraries",
+        label: t("agent:tabs.resourceLibraries"),
+        render: (onDirtyChange) => (
+          <AgentResourceLibrariesTab agent={agent} onDirtyChange={onDirtyChange} />
+        ),
+      })
+
+      if (project.agentSessionCategories.length > 0) {
+        list.push({
+          value: "categories",
+          label: t("agent:tabs.categories"),
+          render: (onDirtyChange) => (
+            <AgentSessionCategoriesTab agent={agent} onDirtyChange={onDirtyChange} />
+          ),
+        })
+      }
+
+      if (hasFeature("agent-orchestration") && orchestration) {
+        list.push({
+          value: "orchestration",
+          label: t("agent:tabs.orchestration"),
+          render: (onDirtyChange) => (
+            <AgentOrchestrationTab
+              agent={agent}
+              availableAgents={orchestration.agents}
+              subAgents={orchestration.subAgents}
+              onDirtyChange={onDirtyChange}
+            />
+          ),
+        })
+      }
+
+      if (hasFeature("agent-embed")) {
+        list.push({
+          value: "embed",
+          label: t("agent:tabs.embed"),
+          render: (onDirtyChange) => <AgentEmbedTab onDirtyChange={onDirtyChange} />,
+        })
+      }
+    }
+    // For non-conversation agents, we only show the output tab
+    else {
+      list.push({
+        value: "output",
+        label: agent.type === "form" ? t("agent:tabs.form") : t("agent:tabs.output"),
+        render: (onDirtyChange) => <AgentOutputTab agent={agent} onDirtyChange={onDirtyChange} />,
+      })
     }
 
-    const originalTagIds = agent.documentTagIds
-    dispatch(
-      updateAgent({
-        agentId: agent.id,
-        fields: {
-          name: fields.name,
-          defaultPrompt: fields.defaultPrompt,
-          greetingMessage: fields.greetingMessage,
-          documentsRagMode: fields.documentsRagMode,
-          model: fields.model,
-          temperature: fields.temperature,
-          locale: fields.locale,
-          outputJsonSchema: fields.outputJsonSchema,
-          documentTagIds: fields.documentTagIds,
-          tagsToAdd: fields.documentTagIds.filter((id) => !originalTagIds.includes(id)),
-          tagsToRemove: originalTagIds.filter((id) => !fields.documentTagIds.includes(id)),
-          projectAgentSessionCategoryIds: fields.projectAgentSessionCategoryIds,
-          resourceLibraryIds: fields.resourceLibraryIds,
-        },
-      }),
-    )
-    onSuccess?.()
+    return list
+  }, [agent, project, hasFeature, orchestration, t])
+
+  const [nav, setNav] = useState<{ active: TabKey; pending: TabKey | null }>({
+    active: "general",
+    pending: null,
+  })
+  const [dirty, setDirty] = useState(false)
+
+  // Browser-level leave (refresh / close tab); in-app navigation is handled by the blocker below.
+  usePreventLeave(dirty)
+  const blocker = useBlocker(dirty)
+  const isLeavingEditor = blocker.state === "blocked"
+
+  const activeTab = tabs.find((tab) => tab.value === nav.active) ?? tabs[0]
+
+  if (!activeTab) return <ErrorRoute error="Tab not found" />
+
+  const requestTabChange = (next: string) => {
+    if (next === nav.active) return
+    if (dirty) {
+      setNav((prev) => ({ ...prev, pending: next as TabKey }))
+    } else {
+      setNav({ active: next as TabKey, pending: null })
+    }
   }
 
-  const handleSubAgentsSubmit = (values: AgentSubAgentFormValue[]) => {
-    dispatch(
-      agentSubAgentsActions.updateAll({
-        subAgents: values.map((subAgent) => ({
-          childAgentId: subAgent.agentId,
-          toolName: subAgent.toolName,
-          description: subAgent.description,
-          enabled: subAgent.enabled,
-        })),
-      }),
-    )
+  const handleConfirm = () => {
+    if (nav.pending) {
+      setNav({ active: nav.pending, pending: null })
+      setDirty(false)
+    } else if (isLeavingEditor) {
+      blocker.proceed?.()
+    }
+  }
+
+  const handleCancel = () => {
+    if (nav.pending) {
+      setNav((prev) => ({ ...prev, pending: null }))
+    } else if (isLeavingEditor) {
+      blocker.reset?.()
+    }
   }
 
   return (
-    <BaseAgentForm
-      agentType={agent.type}
-      editableAgent={agent}
-      onSubmit={handleSubmit}
-      availableAgents={orchestration?.agents}
-      subAgents={orchestration?.subAgents.map(toSubAgentFormValue)}
-      onSubAgentsSubmit={orchestration ? handleSubAgentsSubmit : undefined}
-    />
-  )
-}
+    <div className={className}>
+      <Tabs value={nav.active} onValueChange={requestTabChange}>
+        <TabsList>
+          {tabs.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value}>
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent key={activeTab.value} value={activeTab.value} className="mt-4">
+          {activeTab.render(setDirty)}
+        </TabsContent>
+      </Tabs>
 
-function toSubAgentFormValue(subAgent: AgentSubAgent): AgentSubAgentFormValue {
-  return {
-    id: subAgent.id,
-    agentId: subAgent.childAgentId,
-    toolName: subAgent.toolName,
-    description: subAgent.description,
-    enabled: subAgent.enabled,
-  }
+      <ConfirmDialog
+        open={nav.pending !== null || isLeavingEditor}
+        title={t("agent:unsavedChanges.title")}
+        description={t("agent:unsavedChanges.description")}
+        confirmLabel={t("actions:discard")}
+        confirmIcon={<AlertTriangleIcon className="size-5" />}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
+    </div>
+  )
 }

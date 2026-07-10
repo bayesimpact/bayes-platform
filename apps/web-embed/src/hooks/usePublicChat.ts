@@ -1,4 +1,4 @@
-import type { AgentSessionMessageDto } from "@caseai-connect/api-contracts"
+import type { AgentSessionMessageDto, PublicSessionMessageDto } from "@caseai-connect/api-contracts"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { ApiError, createSession, getSession, streamMessages } from "../api/public-chat-api"
 
@@ -41,13 +41,13 @@ function toDisplayMessage(msg: {
   content: string
   status?: string
   createdAt?: number
-}): AgentSessionMessageDto {
+}): PublicSessionMessageDto {
   return {
     id: msg.id,
     role: msg.role,
     content: msg.content,
-    status: msg.status as AgentSessionMessageDto["status"],
-    createdAt: msg.createdAt != null ? new Date(msg.createdAt).toISOString() : undefined,
+    status: msg.status as PublicSessionMessageDto["status"],
+    createdAt: msg.createdAt ?? Date.now(),
   }
 }
 

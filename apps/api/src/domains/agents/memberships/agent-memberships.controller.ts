@@ -14,7 +14,7 @@ import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
-import type { AgentMembership } from "./agent-membership.entity"
+import type { AgentMembershipModel } from "./agent-membership.model"
 import { AgentMembershipsGuard } from "./agent-memberships.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "./agent-memberships.service"
@@ -55,14 +55,14 @@ export class AgentMembershipsController {
   }
 }
 
-function toDto(entity: AgentMembership): AgentMembershipDto {
+function toDto(membership: AgentMembershipModel): AgentMembershipDto {
   return {
-    id: entity.id,
-    agentId: entity.agentId,
-    userId: entity.userId,
-    userName: entity.user.name ?? buildNameFromEmail(entity.user.email),
-    userEmail: entity.user.email,
-    role: entity.role,
-    createdAt: entity.createdAt.getTime(),
+    id: membership.id,
+    agentId: membership.agentId,
+    userId: membership.userId,
+    userName: membership.user.name ?? buildNameFromEmail(membership.user.email),
+    userEmail: membership.user.email,
+    role: membership.role,
+    createdAt: membership.createdAt.getTime(),
   }
 }

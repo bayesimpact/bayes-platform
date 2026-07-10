@@ -14,7 +14,7 @@ import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
-import type { ProjectMembership } from "./project-membership.entity"
+import type { ProjectMembershipModel } from "./project-membership.model"
 import { ProjectMembershipsGuard } from "./project-memberships.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipsService } from "./project-memberships.service"
@@ -82,14 +82,14 @@ export class ProjectMembershipsController {
   }
 }
 
-function toDto(entity: ProjectMembership): ProjectMembershipDto {
+function toDto(model: ProjectMembershipModel): ProjectMembershipDto {
   return {
-    id: entity.id,
-    projectId: entity.projectId,
-    userId: entity.userId,
-    userName: entity.user.name,
-    userEmail: entity.user.email,
-    createdAt: entity.createdAt.getTime(),
-    role: entity.role,
+    id: model.id,
+    projectId: model.projectId,
+    userId: model.userId,
+    userName: model.user.name,
+    userEmail: model.user.email,
+    createdAt: model.createdAt.getTime(),
+    role: model.role,
   }
 }

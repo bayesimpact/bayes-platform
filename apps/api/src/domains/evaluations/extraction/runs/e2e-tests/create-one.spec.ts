@@ -11,8 +11,7 @@ import {
 } from "@/common/test/test-transaction-manager"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
-import { agentFactory } from "@/domains/agents/agent.factory"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { EvaluationsModule } from "../../../evaluations.module"
@@ -57,8 +56,14 @@ describe("EvaluationExtractionRuns - createOne", () => {
     await app.close()
   })
 
-  const createContext = async () => {
-    const { user, organization, project } = await createOrganizationWithProject(repositories)
+  const createContext = async (agentType?: "conversation" | "extraction" | "form" | undefined) => {
+    const { user, organization, project, agent } = await createOrganizationWithAgent(repositories, {
+      agent: { type: agentType ?? "extraction" },
+      agentSettings: {
+        outputJsonSchema: { type: "object", properties: { age: { type: "string" } } },
+        model: AgentModel._MockGenerateStructuredOutput,
+      },
+    })
     organizationId = organization.id
     projectId = project.id
     auth0Id = user.auth0Id
@@ -67,13 +72,6 @@ describe("EvaluationExtractionRuns - createOne", () => {
       .transient({ organization, project })
       .build({ schemaMapping: {} })
     await setup.getRepository(EvaluationExtractionDataset).save(dataset)
-
-    const agent = agentFactory.transient({ organization, project }).build({
-      type: "extraction",
-      outputJsonSchema: { type: "object", properties: { age: { type: "string" } } },
-      model: AgentModel._MockGenerateStructuredOutput,
-    })
-    await repositories.agentRepository.save(agent)
 
     return { organization, project, dataset, agent }
   }
@@ -137,11 +135,7 @@ describe("EvaluationExtractionRuns - createOne", () => {
   })
 
   it("should reject if agent is not an extraction type", async () => {
-    const { dataset, agent } = await createContext()
-
-    // Update agent to conversation type
-    agent.type = "conversation"
-    await repositories.agentRepository.save(agent)
+    const { dataset, agent } = await createContext("conversation")
 
     const res = await subject({
       payload: {

@@ -1,17 +1,17 @@
 import { ProjectScopedPolicy } from "@/common/policies/project-scoped-policy"
-import type { OrganizationMembership } from "../organizations/memberships/organization-membership.entity"
-import type { ProjectMembership } from "../projects/memberships/project-membership.entity"
+import type { OrganizationMembershipContextModel } from "../organizations/memberships/organization-membership.model"
+import type { ProjectMembershipFixture } from "../projects/memberships/project-membership.types"
 import type { Agent } from "./agent.entity"
-import type { AgentMembership } from "./memberships/agent-membership.entity"
+import type { AgentMembershipFixture } from "./memberships/agent-membership.types"
 
 export class AgentPolicy extends ProjectScopedPolicy<Agent> {
-  protected readonly agentMembership?: AgentMembership
+  protected readonly agentMembership?: AgentMembershipFixture
 
   constructor(
     protected readonly context: {
-      organizationMembership: OrganizationMembership
-      projectMembership?: ProjectMembership
-      agentMembership?: AgentMembership
+      organizationMembership: OrganizationMembershipContextModel
+      projectMembership?: ProjectMembershipFixture
+      agentMembership?: AgentMembershipFixture
     },
     protected readonly entity?: Agent,
   ) {

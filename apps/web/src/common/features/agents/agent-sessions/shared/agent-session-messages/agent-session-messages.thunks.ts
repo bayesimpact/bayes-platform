@@ -108,7 +108,7 @@ export const sendMessage = createAsyncThunk<
       role: "user",
       content,
       attachmentDocumentId,
-      createdAt: new Date().toISOString(),
+      createdAt: Date.now(),
     }
 
     dispatch(agentSessionMessagesActions.startStreaming({ userMessage, assistantMessageId }))
@@ -140,6 +140,9 @@ export const sendMessage = createAsyncThunk<
             )
           },
           onNotifyClient(event) {
+            // Record the running tool so the UI can show a live status timeline.
+            dispatch(agentSessionMessagesActions.addStreamingToolStep({ toolName: event.toolName }))
+
             switch (event.toolName) {
               case ToolName.FillForm:
                 if (onFillFormToolEvent) onFillFormToolEvent()

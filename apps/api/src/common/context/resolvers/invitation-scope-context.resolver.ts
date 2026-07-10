@@ -7,10 +7,13 @@ import {
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import { Agent } from "@/domains/agents/agent.entity"
-import { AgentMembership } from "@/domains/agents/memberships/agent-membership.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
 import { Invitation, type InvitationTargetType } from "@/domains/invitations/invitation.entity"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
-import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
 import { Project } from "@/domains/projects/project.entity"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import type { ContextResolver, ResolvableRequest } from "../context-resolver.interface"
@@ -34,14 +37,11 @@ export class InvitationScopeContextResolver implements ContextResolver {
     private readonly projectRepository: Repository<Project>,
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
-    @InjectRepository(AgentMembership)
-    private readonly agentMembershipRepository: Repository<AgentMembership>,
     @InjectRepository(ReviewCampaign)
     private readonly reviewCampaignRepository: Repository<ReviewCampaign>,
-    @InjectRepository(OrganizationMembership)
-    private readonly organizationMembershipRepository: Repository<OrganizationMembership>,
-    @InjectRepository(ProjectMembership)
-    private readonly projectMembershipRepository: Repository<ProjectMembership>,
+    private readonly organizationMembershipsService: OrganizationMembershipsService,
+    private readonly projectMembershipsService: ProjectMembershipsService,
+    private readonly agentMembershipsService: AgentMembershipsService,
   ) {}
 
   async resolve(request: ResolvableRequest): Promise<void> {
@@ -60,16 +60,19 @@ export class InvitationScopeContextResolver implements ContextResolver {
       throw new NotFoundException()
     }
 
-    const organizationMembership = await this.organizationMembershipRepository.findOne({
-      where: { userId: request.user.id, organizationId: scope.organizationId },
-    })
+    const organizationMembership =
+      await this.organizationMembershipsService.findOrganizationMembership({
+        userId: request.user.id,
+        organizationId: scope.organizationId,
+      })
     if (!organizationMembership) {
       throw new ForbiddenException("You do not have access to this organization")
     }
 
     const projectMembership =
-      (await this.projectMembershipRepository.findOne({
-        where: { userId: request.user.id, projectId: scope.projectId },
+      (await this.projectMembershipsService.findProjectMembership({
+        userId: request.user.id,
+        projectId: scope.projectId,
       })) ?? undefined
 
     typedRequest.organizationId = scope.organizationId
@@ -82,8 +85,9 @@ export class InvitationScopeContextResolver implements ContextResolver {
 
     if (scope.targetType === "agent") {
       typedRequest.invitationAgentMembership =
-        (await this.agentMembershipRepository.findOne({
-          where: { agentId: scope.targetId, userId: request.user.id },
+        (await this.agentMembershipsService.findAgentMembership({
+          agentId: scope.targetId,
+          userId: request.user.id,
         })) ?? undefined
     }
   }

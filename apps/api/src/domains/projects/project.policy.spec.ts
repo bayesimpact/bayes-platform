@@ -1,10 +1,10 @@
-import type { OrganizationMembershipRole } from "@/domains/organizations/memberships/organization-membership.entity"
 import { organizationMembershipFactory } from "@/domains/organizations/memberships/organization-membership.factory"
+import type { OrganizationMembershipRole } from "@/domains/organizations/memberships/organization-membership.types"
 import { organizationFactory } from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import type { Organization } from "../organizations/organization.entity"
-import type { ProjectMembershipRole } from "./memberships/project-membership.entity"
 import { projectMembershipFactory } from "./memberships/project-membership.factory"
+import type { ProjectMembershipRole } from "./memberships/project-membership.types"
 import { projectFactory } from "./project.factory"
 import { ProjectPolicy } from "./project.policy"
 

@@ -8,8 +8,7 @@ import {
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { agentFactory } from "@/domains/agents/agent.factory"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { EvaluationsModule } from "../../../evaluations.module"
@@ -52,7 +51,16 @@ describe("EvaluationExtractionRuns - getAll", () => {
   })
 
   const createContext = async () => {
-    const { user, organization, project } = await createOrganizationWithProject(repositories)
+    const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        agent: { type: "extraction" },
+        agentSettings: {
+          outputJsonSchema: { type: "object" },
+          model: AgentModel._MockGenerateStructuredOutput,
+        },
+      },
+    )
     organizationId = organization.id
     projectId = project.id
     auth0Id = user.auth0Id
@@ -62,14 +70,7 @@ describe("EvaluationExtractionRuns - getAll", () => {
       .build({ schemaMapping: {} })
     await setup.getRepository(EvaluationExtractionDataset).save(dataset)
 
-    const agent = agentFactory.transient({ organization, project }).build({
-      type: "extraction",
-      outputJsonSchema: { type: "object" },
-      model: AgentModel._MockGenerateStructuredOutput,
-    })
-    await repositories.agentRepository.save(agent)
-
-    return { organization, project, dataset, agent }
+    return { organization, project, dataset, agent, agentSettings }
   }
 
   const subject = async () =>
@@ -89,13 +90,25 @@ describe("EvaluationExtractionRuns - getAll", () => {
   })
 
   it("should return all runs for the project", async () => {
-    const { organization, project, dataset, agent } = await createContext()
+    const { organization, project, dataset, agent, agentSettings } = await createContext()
 
     const run1 = evaluationExtractionRunFactory
-      .transient({ organization, project, agent, evaluationExtractionDataset: dataset })
+      .transient({
+        organization,
+        project,
+        agent,
+        agentSettings,
+        evaluationExtractionDataset: dataset,
+      })
       .build()
     const run2 = evaluationExtractionRunFactory
-      .transient({ organization, project, agent, evaluationExtractionDataset: dataset })
+      .transient({
+        organization,
+        project,
+        agent,
+        agentSettings,
+        evaluationExtractionDataset: dataset,
+      })
       .build()
     await setup.getRepository(EvaluationExtractionRun).save([run1, run2])
 

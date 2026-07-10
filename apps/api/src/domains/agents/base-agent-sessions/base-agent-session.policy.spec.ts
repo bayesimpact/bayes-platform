@@ -3,7 +3,7 @@ import {
   type ResourceState,
   testPolicyScopedByProject,
 } from "@/common/test/test-project-scoped-policy.helpers"
-import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.entity"
+import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
 import { BaseAgentSessionPolicy } from "./base-agent-session.policy"
 
 describe("BaseAgentSessionPolicy", () => {
