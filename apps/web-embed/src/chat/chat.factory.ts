@@ -14,7 +14,7 @@ export function buildUserMessage(
     role: "user",
     content,
     status: "completed",
-    createdAt: new Date().toISOString(),
+    createdAt: Date.now(),
     ...overrides,
   }
 }
@@ -28,7 +28,7 @@ export function buildAssistantMessage(
     role: "assistant",
     content,
     status: "completed",
-    createdAt: new Date().toISOString(),
+    createdAt: Date.now(),
     ...overrides,
   }
 }

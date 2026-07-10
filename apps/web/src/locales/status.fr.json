@@ -9,6 +9,17 @@
     "pending": "En attente",
     "success": "Succès",
     "thinking": "En réflexion",
+    "activity": {
+      "default": "En réflexion…",
+      "usingTool": "Appel d’un outil…",
+      "searchingResources": "Recherche de ressources…",
+      "smartSearch": "Recherche…",
+      "retrievingDocuments": "Recherche dans la base de connaissances…",
+      "gatheringSources": "Collecte des sources…",
+      "surfacingResources": "Mise en avant des ressources…",
+      "fillingForm": "Remplissage du formulaire…",
+      "recalculating": "Mise à jour de la session…"
+    },
     "asyncLoading": "Chargement...",
     "asyncError": "Erreur : {{statusCode}}",
     "asyncUnknownError": "Une erreur inconnue s'est produite.",

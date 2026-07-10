@@ -1,3 +1,5 @@
+import type { TimeType } from "../../../generic"
+
 export enum ToolName {
   FillForm = "fillForm",
   RetrieveProjectDocumentChunks = "retrieveProjectDocumentChunks",
@@ -16,9 +18,9 @@ export type AgentSessionMessageDto = {
   content: string
   attachmentDocumentId?: string
   status?: "streaming" | "completed" | "aborted" | "error"
-  createdAt?: string
-  startedAt?: string
-  completedAt?: string
+  createdAt?: TimeType
+  startedAt?: TimeType
+  completedAt?: TimeType
   toolCalls?: Array<{
     id: string
     name: AgentSessionToolName
