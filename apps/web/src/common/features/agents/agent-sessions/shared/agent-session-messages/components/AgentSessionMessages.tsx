@@ -4,9 +4,17 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@caseai-connect/ui/shad/collapsible"
+import {
+  MessageScroller,
+  MessageScrollerButton,
+  MessageScrollerContent,
+  MessageScrollerItem,
+  MessageScrollerProvider,
+  MessageScrollerViewport,
+} from "@caseai-connect/ui/shad/message-scroller"
 import { cn } from "@caseai-connect/ui/utils"
 import { ChevronDownIcon, FileCheckIcon, XIcon } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import type {
@@ -18,14 +26,12 @@ import { AgentSessionMessage } from "@/common/features/agents/agent-sessions/sha
 import {
   Chat,
   ChatActions,
-  ChatContent,
   ChatFooter,
   ChatInput,
   ChatSubmit,
 } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/Chat"
 import { Dictaphone } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/Dictaphone"
 import { FormSubSessionsProvider } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/form-sub-sessions-context"
-import { useScrollToEnd } from "@/common/hooks/use-scroll-to-end"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { AttachDocument } from "@/studio/features/documents/components/AttachDocument"
 import { selectStreaming } from "../agent-session-messages.selectors"
@@ -78,7 +84,7 @@ export function AgentSessionMessages({
       <div className="flex flex-1 p-2 sm:p-4 min-h-0 md:min-h-full">
         <Chat className="border shadow-none">
           <FormSubSessionsProvider value={formSubSessions}>
-            <Messages messages={messages} isStreaming={isStreaming} />
+            <Messages messages={messages} />
           </FormSubSessionsProvider>
 
           <Footer
@@ -92,28 +98,27 @@ export function AgentSessionMessages({
   )
 }
 
-function Messages({
-  messages,
-  isStreaming,
-}: {
-  messages: AgentSessionMessageType[]
-  isStreaming: boolean
-}) {
-  const chatEndRef = useRef<HTMLDivElement>(null)
-  const scrollToEnd = useScrollToEnd(chatEndRef)
-
-  useEffect(() => {
-    if (isStreaming) return
-    scrollToEnd()
-  }, [isStreaming, scrollToEnd])
-
+function Messages({ messages }: { messages: AgentSessionMessageType[] }) {
+  const lastMessageIndex = (messages?.length ?? 0) - 1
   return (
-    <ChatContent>
-      {messages?.map((message) => (
-        <AgentSessionMessage key={message.id} message={message} />
-      ))}
-      <div ref={chatEndRef} />
-    </ChatContent>
+    <MessageScrollerProvider autoScroll defaultScrollPosition="end">
+      <MessageScroller className="flex-1">
+        <MessageScrollerViewport className="p-6">
+          <MessageScrollerContent className="gap-4">
+            {messages?.map((message, messageIndex) => (
+              <MessageScrollerItem
+                key={message.id}
+                messageId={message.id}
+                scrollAnchor={messageIndex === lastMessageIndex}
+              >
+                <AgentSessionMessage message={message} />
+              </MessageScrollerItem>
+            ))}
+          </MessageScrollerContent>
+        </MessageScrollerViewport>
+        <MessageScrollerButton className="shadow-md" direction="end" />
+      </MessageScroller>
+    </MessageScrollerProvider>
   )
 }
 

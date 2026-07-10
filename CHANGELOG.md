@@ -10,8 +10,10 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Added
 -  (beta) Gemini 3.1 Flash Lite & Gemini 3.5 Flash available for all Agents
 - Shared UI library gains shadcn chat primitives — `message`, `bubble`, `marker`, `attachment`, and `message-scroller` — under `@caseai-connect/ui/shad`, plus `xs`/`icon-xs` button sizes
+- Agent session chat shows a live activity timeline while the assistant is streaming, with descriptive per-tool statuses (searching resources, gathering sources, filling in the form, …) and a check once each step completes
 
 ### Changed
+- Agent session chat now uses the shared message-scroller, adding auto-scroll to the latest message and a scroll-to-end button
 - Agent editor saves each configuration tab independently, so editing one tab no longer requires re-saving the whole agent; switching tabs with unsaved edits prompts to discard them
 - Backoffice feature flags are now managed through a searchable dialog with side-by-side Available/Enabled columns, reachable from both the projects list and the project detail page
 

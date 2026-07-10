@@ -140,6 +140,9 @@ export const sendMessage = createAsyncThunk<
             )
           },
           onNotifyClient(event) {
+            // Record the running tool so the UI can show a live status timeline.
+            dispatch(agentSessionMessagesActions.addStreamingToolStep({ toolName: event.toolName }))
+
             switch (event.toolName) {
               case ToolName.FillForm:
                 if (onFillFormToolEvent) onFillFormToolEvent()

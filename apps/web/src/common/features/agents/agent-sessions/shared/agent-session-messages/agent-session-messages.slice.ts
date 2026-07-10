@@ -1,3 +1,4 @@
+import type { AgentSessionToolName } from "@caseai-connect/api-contracts"
 import { createSlice, isAnyOf, type PayloadAction } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import { conversationAgentSessionsActions } from "../../conversation/conversation-agent-sessions.slice"
@@ -8,11 +9,14 @@ import { getMessage, listMessages } from "./agent-session-messages.thunks"
 type State = {
   data: AsyncData<AgentSessionMessage[]>
   isStreaming: boolean
+  /** Ordered tools the agent has run during the current streaming turn, driving the status timeline. */
+  streamingToolSteps: AgentSessionToolName[]
 }
 
 const initialState: State = {
   data: defaultAsyncData,
   isStreaming: false,
+  streamingToolSteps: [],
 }
 
 const slice = createSlice({
@@ -31,6 +35,7 @@ const slice = createSlice({
         state.data = { value: [], status: ADS.Fulfilled, error: null }
 
       state.isStreaming = true
+      state.streamingToolSteps = []
       state.data.value.push(action.payload.userMessage)
       state.data.value.push({
         id: action.payload.assistantMessageId,
@@ -48,6 +53,14 @@ const slice = createSlice({
       const message = state.data.value.find((msg) => msg.id === action.payload.oldMessageId)
       if (message && message.role === "assistant" && message.status === "streaming") {
         message.id = action.payload.newMessageId
+      }
+    },
+    addStreamingToolStep: (state, action: PayloadAction<{ toolName: AgentSessionToolName }>) => {
+      // Skip immediate duplicates so repeated notifications for the same tool
+      // don't stack up as separate timeline steps.
+      const lastStep = state.streamingToolSteps.at(-1)
+      if (lastStep !== action.payload.toolName) {
+        state.streamingToolSteps.push(action.payload.toolName)
       }
     },
     appendAssistantChunk: (state, action: PayloadAction<{ messageId: string; chunk: string }>) => {
@@ -73,6 +86,7 @@ const slice = createSlice({
         }
       }
       state.isStreaming = false
+      state.streamingToolSteps = []
     },
     failAssistantMessage: (state, action: PayloadAction<{ messageId: string; error: string }>) => {
       if (!ADS.isFulfilled(state.data)) return
@@ -86,6 +100,7 @@ const slice = createSlice({
         }
       }
       state.isStreaming = false
+      state.streamingToolSteps = []
     },
   },
   extraReducers: (builder) => {

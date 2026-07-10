@@ -1,13 +1,16 @@
 import { ToolName } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
+import { Marker, MarkerContent, MarkerIcon } from "@caseai-connect/ui/shad/marker"
 import { Spinner } from "@caseai-connect/ui/shad/spinner"
 import { cn } from "@caseai-connect/ui/utils"
-import { AlertCircleIcon, CopyIcon } from "lucide-react"
+import { AlertCircleIcon, CheckIcon, CopyIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { FeedbackCreator } from "@/common/components/FeedbackCreator"
 import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import type { AgentSessionMessage as AgentSessionMessageType } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import { useCopyToClipboard } from "@/common/hooks/use-copy-to-clipboard"
+import { useAppSelector } from "@/common/store/hooks"
+import { selectStreamingToolSteps } from "../agent-session-messages.selectors"
 import { Attachment } from "./Attachment"
 import { ChatBotMessage, ChatUserMessage } from "./Chat"
 import { useFormSubSessions } from "./form-sub-sessions-context"
@@ -47,7 +50,7 @@ export function AgentSessionMessage({ message }: { message: AgentSessionMessageT
                   isError && "bg-red-50 border border-red-200 text-red-800",
                 )}
               >
-                {isStreaming && <ThinkingMessage />}
+                {isStreaming && <ThinkingStatus hasContent={message.content.trim().length > 0} />}
                 {isError ? <ErrorMessage /> : <MarkdownWrapper content={message.content} />}
               </div>
             )}
@@ -102,12 +105,52 @@ function ErrorMessage() {
   )
 }
 
-function ThinkingMessage({ className }: { className?: string }) {
+/** Maps a running tool to a descriptive status key under the `status:activity` namespace. */
+const TOOL_ACTIVITY_KEY: Record<string, string> = {
+  [ToolName.McpSearchResources]: "activity.searchingResources",
+  [ToolName.McpSmartSearch]: "activity.smartSearch",
+  [ToolName.RetrieveProjectDocumentChunks]: "activity.retrievingDocuments",
+  [ToolName.Sources]: "activity.gatheringSources",
+  [ToolName.SurfaceResources]: "activity.surfacingResources",
+  [ToolName.FillForm]: "activity.fillingForm",
+  [ToolName.RecalculateConversationSessionMetadata]: "activity.recalculating",
+}
+
+/**
+ * Live status while the assistant is streaming. Each tool the agent runs is added as a
+ * timeline step: finished steps show a check, the current step shows a spinner. Once the
+ * answer text starts flowing every tool step is considered done.
+ */
+function ThinkingStatus({ hasContent, className }: { hasContent: boolean; className?: string }) {
   const { t } = useTranslation("status")
+  const toolSteps = useAppSelector(selectStreamingToolSteps)
+
+  // Nothing worth showing: the answer is already streaming and no tool ran.
+  if (hasContent && toolSteps.length === 0) return null
+
+  // With no tool activity yet, show a single generic "Thinking…" step.
+  const steps = toolSteps.length > 0 ? toolSteps : [null]
+
   return (
-    <div className={cn("flex items-center gap-2 mb-2 animate-pulse", className)}>
-      <Spinner />
-      <span>{t("thinking")}</span>
+    <div className={cn("mb-2 flex flex-col gap-1.5", className)}>
+      {steps.map((toolName, stepIndex) => {
+        const isActive = !hasContent && stepIndex === steps.length - 1
+        const labelKey =
+          toolName && TOOL_ACTIVITY_KEY[toolName] ? TOOL_ACTIVITY_KEY[toolName] : "activity.default"
+        return (
+          <Marker
+            key={`${stepIndex}-${toolName ?? "thinking"}`}
+            className={cn(isActive && "animate-pulse")}
+          >
+            <MarkerIcon>
+              {isActive ? <Spinner /> : <CheckIcon className="text-emerald-600" />}
+            </MarkerIcon>
+            <MarkerContent className={cn(!isActive && "text-muted-foreground")}>
+              {t(labelKey)}
+            </MarkerContent>
+          </Marker>
+        )
+      })}
     </div>
   )
 }
