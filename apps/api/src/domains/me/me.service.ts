@@ -1,29 +1,31 @@
 import { Injectable } from "@nestjs/common"
-import { InjectRepository } from "@nestjs/typeorm"
-import type { Repository } from "typeorm"
-import { AgentMembership } from "@/domains/agents/memberships/agent-membership.entity"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
-import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
-import { ReviewCampaignMembership } from "@/domains/review-campaigns/memberships/review-campaign-membership.entity"
+import type { AgentMembershipModel } from "@/domains/agents/memberships/agent-membership.model"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
+import type { OrganizationMembershipModel } from "@/domains/organizations/memberships/organization-membership.model"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
+import type { ProjectMembershipModel } from "@/domains/projects/memberships/project-membership.model"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
+import type { ReviewCampaignMembershipModel } from "@/domains/review-campaigns/memberships/review-campaign-membership.model"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ReviewCampaignMembershipsService } from "@/domains/review-campaigns/memberships/review-campaign-memberships.service"
 
 @Injectable()
 export class MeService {
   constructor(
-    @InjectRepository(OrganizationMembership)
-    private readonly organizationMembershipRepository: Repository<OrganizationMembership>,
-    @InjectRepository(ProjectMembership)
-    private readonly projectMembershipRepository: Repository<ProjectMembership>,
-    @InjectRepository(AgentMembership)
-    private readonly agentMembershipRepository: Repository<AgentMembership>,
-    @InjectRepository(ReviewCampaignMembership)
-    private readonly reviewCampaignMembershipRepository: Repository<ReviewCampaignMembership>,
+    private readonly organizationMembershipsService: OrganizationMembershipsService,
+    private readonly projectMembershipsService: ProjectMembershipsService,
+    private readonly agentMembershipsService: AgentMembershipsService,
+    private readonly reviewCampaignMembershipsService: ReviewCampaignMembershipsService,
   ) {}
 
   async getUserMemberships(userId: string): Promise<{
-    organizationMemberships: OrganizationMembership[]
-    projectMemberships: ProjectMembership[]
-    agentMemberships: AgentMembership[]
-    reviewCampaignMemberships: ReviewCampaignMembership[]
+    organizationMemberships: OrganizationMembershipModel[]
+    projectMemberships: ProjectMembershipModel[]
+    agentMemberships: AgentMembershipModel[]
+    reviewCampaignMemberships: ReviewCampaignMembershipModel[]
   }> {
     const [
       organizationMemberships,
@@ -31,22 +33,10 @@ export class MeService {
       agentMemberships,
       reviewCampaignMemberships,
     ] = await Promise.all([
-      this.organizationMembershipRepository.find({
-        where: { userId },
-        relations: ["organization"],
-      }),
-      this.projectMembershipRepository.find({
-        where: { userId },
-        relations: ["project"],
-      }),
-      this.agentMembershipRepository.find({
-        where: { userId },
-        relations: ["agent"],
-      }),
-      this.reviewCampaignMembershipRepository.find({
-        where: { userId },
-        relations: ["campaign"],
-      }),
+      this.organizationMembershipsService.listMembershipsForUser(userId),
+      this.projectMembershipsService.listMembershipsForUser(userId),
+      this.agentMembershipsService.listMembershipsForUser(userId),
+      this.reviewCampaignMembershipsService.listMembershipsForUser(userId),
     ])
 
     return {

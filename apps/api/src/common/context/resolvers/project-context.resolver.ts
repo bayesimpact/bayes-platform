@@ -4,7 +4,7 @@ import type { Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource } from "typeorm"
 import { UserMembership } from "@/domains/memberships/user-membership.entity"
-import type { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
+import type { ProjectMembershipFixture } from "@/domains/projects/memberships/project-membership.types"
 import { Project } from "@/domains/projects/project.entity"
 import type { ContextResolver, ResolvableRequest } from "../context-resolver.interface"
 import type { EndpointRequestWithProject } from "../request.interface"
@@ -58,7 +58,7 @@ export class ProjectContextResolver implements ContextResolver {
     // `satisfies ProjectMembership` because of those missing fields. At runtime
     // this is safe — ProjectScopedPolicy only reads `projectMembership.projectId`
     // and `projectMembership.role`; the relation fields are never accessed.
-    const projectMembership: ProjectMembership | undefined = userMembership
+    const projectMembership: ProjectMembershipFixture | undefined = userMembership
       ? ({
           id: userMembership.id,
           userId: userMembership.userId,
@@ -67,7 +67,7 @@ export class ProjectContextResolver implements ContextResolver {
           createdAt: userMembership.createdAt,
           updatedAt: userMembership.updatedAt,
           deletedAt: userMembership.deletedAt,
-        } as ProjectMembership)
+        } as ProjectMembershipFixture)
       : undefined
 
     requestWithProject.project = project

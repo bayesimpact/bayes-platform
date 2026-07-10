@@ -2,9 +2,9 @@ import {
   type ResourceState,
   testPolicyScopedByProject,
 } from "@/common/test/test-project-scoped-policy.helpers"
-import type { OrganizationMembershipRole } from "@/domains/organizations/memberships/organization-membership.entity"
+import type { OrganizationMembershipRole } from "@/domains/organizations/memberships/organization-membership.types"
 import type { Organization } from "../organizations/organization.entity"
-import type { ProjectMembershipRole } from "../projects/memberships/project-membership.entity"
+import type { ProjectMembershipRole } from "../projects/memberships/project-membership.types"
 import type { Project } from "../projects/project.entity"
 import type { Evaluation } from "./evaluation.entity"
 import { evaluationFactory } from "./evaluation.factory"

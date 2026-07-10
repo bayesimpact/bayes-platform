@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import type { ReviewCampaignMembership } from "../memberships/review-campaign-membership.entity"
+import type { ReviewCampaignMembershipFixture } from "../memberships/review-campaign-membership.types"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type { ReviewCampaignStatus } from "../review-campaigns.types"
 import { ReviewerPolicy } from "./reviewer.policy"
@@ -16,13 +16,13 @@ const campaign = (overrides: CampaignOverrides = {}): ReviewCampaign =>
     status: overrides.status ?? "active",
   }) as ReviewCampaign
 
-const membership = (overrides: MembershipOverrides): ReviewCampaignMembership =>
+const membership = (overrides: MembershipOverrides): ReviewCampaignMembershipFixture =>
   ({
     campaignId: overrides.campaignId ?? "campaign-1",
     role: overrides.role ?? "reviewer",
     userId: "user-1",
     id: randomUUID(),
-  }) as ReviewCampaignMembership
+  }) as ReviewCampaignMembershipFixture
 
 describe("ReviewerPolicy", () => {
   describe("canReview (write access)", () => {

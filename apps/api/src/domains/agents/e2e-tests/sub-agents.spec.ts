@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { AgentSubAgentsRoutes } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
@@ -25,7 +26,7 @@ describe("Agents - sub-agents", () => {
   let organizationId: string
   let projectId: string
   let agentId: string
-  let auth0Id = "auth0|123"
+  let auth0Id = `auth0|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
@@ -40,7 +41,7 @@ describe("Agents - sub-agents", () => {
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    auth0Id = "auth0|123"
+    auth0Id = `auth0|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -50,7 +51,9 @@ describe("Agents - sub-agents", () => {
   })
 
   const createContext = async () => {
-    const { user, organization, project, agent } = await createOrganizationWithAgent(repositories)
+    const { user, organization, project, agent } = await createOrganizationWithAgent(repositories, {
+      user: { auth0Id },
+    })
     organizationId = organization.id
     projectId = project.id
     agentId = agent.id

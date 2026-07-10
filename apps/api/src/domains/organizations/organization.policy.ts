@@ -1,10 +1,10 @@
-import type { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
+import type { OrganizationMembershipContextModel } from "@/domains/organizations/memberships/organization-membership.model"
 import type { User } from "@/domains/users/user.entity"
 
 export class OrganizationPolicy {
   constructor(
     private readonly user: User,
-    private readonly membership?: OrganizationMembership | null,
+    private readonly membership?: OrganizationMembershipContextModel | null,
   ) {}
 
   canCreate(): boolean {

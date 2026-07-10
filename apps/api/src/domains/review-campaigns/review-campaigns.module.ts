@@ -18,19 +18,20 @@ import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.s
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { InvitationsModule } from "@/domains/invitations/invitations.module"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
+import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
-import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
 import { User } from "@/domains/users/user.entity"
 import { UsersModule } from "@/domains/users/users.module"
-import { ReviewCampaignMembership } from "./memberships/review-campaign-membership.entity"
+import { ReviewCampaignMembershipRepository } from "./memberships/review-campaign-membership.repository"
+import { ReviewCampaignMembershipsService } from "./memberships/review-campaign-memberships.service"
 import { CampaignReportGuard } from "./reports/campaign-report.guard"
 import { ReportsController } from "./reports/reports.controller"
 import { ReportsService } from "./reports/reports.service"
 import { ReviewCampaign } from "./review-campaign.entity"
+import { ReviewCampaignRepository } from "./review-campaign.repository"
 import { ReviewCampaignsController } from "./review-campaigns.controller"
 import { ReviewCampaignsGuard } from "./review-campaigns.guard"
 import { ReviewCampaignsService } from "./review-campaigns.service"
@@ -60,11 +61,8 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
       ExtractionAgentSession,
       FormAgentSession,
       Organization,
-      OrganizationMembership,
       Project,
-      ProjectMembership,
       ReviewCampaign,
-      ReviewCampaignMembership,
       ReviewerSessionReview,
       TesterCampaignSurvey,
       TesterSessionFeedback,
@@ -72,6 +70,7 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
     ]),
     OrganizationsModule,
     ProjectsModule,
+    MembershipsModule,
     AgentsModule,
     forwardRef(() => InvitationsModule),
     UsersModule,
@@ -89,6 +88,9 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
     ResourceContextGuard,
     ReviewCampaignContextResolver,
     ReviewCampaignMembershipContextResolver,
+    ReviewCampaignMembershipRepository,
+    ReviewCampaignMembershipsService,
+    ReviewCampaignRepository,
     ReviewCampaignsGuard,
     ReviewCampaignsService,
     ReviewerGuard,
@@ -106,6 +108,14 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
     TesterMeController,
     TesterSessionFeedbackController,
   ],
-  exports: [ReportsService, ReviewCampaignsService, ReviewerService, TesterService],
+  exports: [
+    ReportsService,
+    ReviewCampaignsService,
+    ReviewCampaignRepository,
+    ReviewCampaignMembershipRepository,
+    ReviewCampaignMembershipsService,
+    ReviewerService,
+    TesterService,
+  ],
 })
 export class ReviewCampaignsModule {}

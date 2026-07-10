@@ -52,6 +52,9 @@ describe("Documents - updateOne", () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
     auth0Id = `auth0|${randomUUID()}`
+    organizationId = randomUUID()
+    projectId = randomUUID()
+    documentId = randomUUID()
   })
 
   afterAll(async () => {

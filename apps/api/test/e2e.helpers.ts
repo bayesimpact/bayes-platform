@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto"
+import { UnauthorizedException } from "@nestjs/common"
 import type { TestingModuleBuilder } from "@nestjs/testing"
+import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import { Auth0UserInfoService } from "@/domains/auth/auth0-userinfo.service"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
@@ -50,6 +52,10 @@ export const setupUserGuardForTesting = (
       // biome-ignore lint/suspicious/noExplicitAny: for test only
       canActivate: (context: any) => {
         const request = context.switchToHttp().getRequest()
+        const accessToken = request.headers?.authorization?.replace(/^Bearer /i, "")
+        if (!accessToken) {
+          throw new UnauthorizedException(AUTH_ERRORS.NO_ACCESS_TOKEN)
+        }
         request.user = { sub: buildAuth0Id() }
         return true
       },

@@ -12,20 +12,20 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
-import type { AgentMembershipRole } from "@/domains/agents/memberships/agent-membership.entity"
 import {
   agentMembershipFactory,
   saveAgentMembership,
 } from "@/domains/agents/memberships/agent-membership.factory"
+import type { AgentMembershipRole } from "@/domains/agents/memberships/agent-membership.types"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
-import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.entity"
 import {
   projectMembershipFactory,
   saveProjectMembership,
 } from "@/domains/projects/memberships/project-membership.factory"
+import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
 import { projectFactory } from "@/domains/projects/project.factory"
 import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"

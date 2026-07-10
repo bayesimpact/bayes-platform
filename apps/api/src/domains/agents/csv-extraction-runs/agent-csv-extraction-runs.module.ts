@@ -10,15 +10,12 @@ import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.s
 import { AuthModule } from "@/domains/auth/auth.module"
 import { DocumentsModule } from "@/domains/documents/documents.module"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
-import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { Agent } from "../agent.entity"
-import { AgentMembership } from "../memberships/agent-membership.entity"
 import { AgentCsvExtractionRun } from "./agent-csv-extraction-run.entity"
 import { AgentCsvExtractionRunGuard } from "./agent-csv-extraction-run.guard"
 import { AgentCsvExtractionRunBatchModule } from "./agent-csv-extraction-run-batch.module"
@@ -34,13 +31,10 @@ import { AgentCsvExtractionRunsService } from "./agent-csv-extraction-runs.servi
     TypeOrmModule.forFeature([
       Agent,
       AgentSettings,
-      AgentMembership,
       AgentCsvExtractionRun,
       AgentCsvExtractionRunRecord,
       Organization,
-      OrganizationMembership,
       Project,
-      ProjectMembership,
     ]),
     AgentCsvExtractionRunBatchModule,
     DocumentsModule,

@@ -5,9 +5,9 @@ import {
 import { userFactory } from "@/domains/users/user.factory"
 import type { Organization } from "../../organizations/organization.entity"
 import type { Project } from "../project.entity"
-import type { ProjectMembershipRole } from "./project-membership.entity"
 import { projectMembershipFactory } from "./project-membership.factory"
 import { ProjectMembershipPolicy } from "./project-membership.policy"
+import type { ProjectMembershipRole } from "./project-membership.types"
 
 describe("ProjectMembershipPolicy", () => {
   const { buildPolicy } = testPolicyScopedByProject({

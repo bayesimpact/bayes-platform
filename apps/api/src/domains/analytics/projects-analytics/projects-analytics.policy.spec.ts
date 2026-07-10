@@ -2,7 +2,7 @@ import {
   type ResourceState,
   testPolicyScopedByProject,
 } from "@/common/test/test-project-scoped-policy.helpers"
-import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.entity"
+import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
 import type { Project } from "@/domains/projects/project.entity"
 import { ProjectsAnalyticsPolicy } from "./projects-analytics.policy"
 

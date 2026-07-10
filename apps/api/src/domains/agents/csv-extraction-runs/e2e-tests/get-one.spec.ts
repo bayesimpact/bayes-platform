@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { AgentCsvExtractionRunsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -29,7 +30,7 @@ describe("AgentCsvExtractionRuns - getOne", () => {
   let agentCsvExtractionRunId: string
   let csvDocumentId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let auth0Id = `auth0|${randomUUID()}`
 
   const mockBatchService = buildMockBatchService()
   const mockFileStorageService = buildMockFileStorageService()
@@ -53,7 +54,7 @@ describe("AgentCsvExtractionRuns - getOne", () => {
     await clearTestDatabase(setup.dataSource)
     jest.clearAllMocks()
     accessToken = "token"
-    auth0Id = "auth0|123"
+    auth0Id = `auth0|${randomUUID()}`
   })
 
   afterAll(async () => {

@@ -6,9 +6,15 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { organizationMembershipFactory } from "@/domains/organizations/memberships/organization-membership.factory"
+import {
+  organizationMembershipFactory,
+  saveOrgMembership,
+} from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
-import { projectMembershipFactory } from "@/domains/projects/memberships/project-membership.factory"
+import {
+  projectMembershipFactory,
+  saveProjectMembership,
+} from "@/domains/projects/memberships/project-membership.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { mockInvitationSender, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { InvitationsModule } from "../invitations.module"
@@ -110,7 +116,7 @@ describe("ProjectInvitationHandler", () => {
         .member()
         .transient({ project, user: memberUser })
         .build()
-      await repositories.projectMembershipRepository.save(membership)
+      await saveProjectMembership({ repositories, membership })
 
       await handler.inviteMembers({
         projectId: project.id,
@@ -118,7 +124,7 @@ describe("ProjectInvitationHandler", () => {
         inviterName: user.name ?? "Inviter",
       })
 
-      const updatedMembership = await repositories.projectMembershipRepository.findOneOrFail({
+      const updatedMembership = await repositories.userMembershipRepository.findOneOrFail({
         where: { id: membership.id },
       })
       expect(updatedMembership.role).toBe("admin")
@@ -133,7 +139,7 @@ describe("ProjectInvitationHandler", () => {
         .admin()
         .transient({ project, user: adminUser })
         .build()
-      await repositories.projectMembershipRepository.save(membership)
+      await saveProjectMembership({ repositories, membership })
 
       await handler.inviteMembers({
         projectId: project.id,
@@ -141,7 +147,7 @@ describe("ProjectInvitationHandler", () => {
         inviterName: user.name ?? "Inviter",
       })
 
-      const updatedMembership = await repositories.projectMembershipRepository.findOneOrFail({
+      const updatedMembership = await repositories.userMembershipRepository.findOneOrFail({
         where: { id: membership.id },
       })
       expect(updatedMembership.role).toBe("admin")
@@ -322,14 +328,22 @@ describe("ProjectInvitationHandler", () => {
       })
       expect(createdUser.email).toBe(inviteeEmail)
 
-      const projectMembership = await repositories.projectMembershipRepository.findOne({
-        where: { projectId: project.id, userId: createdUser.id },
+      const projectMembership = await repositories.userMembershipRepository.findOne({
+        where: {
+          resourceType: "project",
+          resourceId: project.id,
+          userId: createdUser.id,
+        },
       })
       expect(projectMembership).not.toBeNull()
       expect(projectMembership!.role).toBe("admin")
 
-      const orgMembership = await repositories.organizationMembershipRepository.findOne({
-        where: { organizationId: organization.id, userId: createdUser.id },
+      const orgMembership = await repositories.userMembershipRepository.findOne({
+        where: {
+          resourceType: "organization",
+          resourceId: organization.id,
+          userId: createdUser.id,
+        },
       })
       expect(orgMembership).not.toBeNull()
       expect(orgMembership!.role).toBe("admin")
@@ -418,7 +432,7 @@ describe("ProjectInvitationHandler", () => {
         .member()
         .transient({ project, user: inviteeUser })
         .build()
-      await repositories.projectMembershipRepository.save(membership)
+      await saveProjectMembership({ repositories, membership })
       await createPendingInvitation({
         projectId: project.id,
         organizationId: organization.id,
@@ -432,7 +446,7 @@ describe("ProjectInvitationHandler", () => {
         email: inviteeUser.email,
       })
 
-      const updatedMembership = await repositories.projectMembershipRepository.findOneOrFail({
+      const updatedMembership = await repositories.userMembershipRepository.findOneOrFail({
         where: { id: membership.id },
       })
       expect(updatedMembership.role).toBe("admin")
@@ -446,7 +460,7 @@ describe("ProjectInvitationHandler", () => {
         .member()
         .transient({ user: inviteeUser, organization })
         .build()
-      await repositories.organizationMembershipRepository.save(orgMembership)
+      await saveOrgMembership({ repositories, membership: orgMembership })
       await createPendingInvitation({
         projectId: project.id,
         organizationId: organization.id,
@@ -460,10 +474,9 @@ describe("ProjectInvitationHandler", () => {
         email: inviteeUser.email,
       })
 
-      const updatedOrgMembership =
-        await repositories.organizationMembershipRepository.findOneOrFail({
-          where: { id: orgMembership.id },
-        })
+      const updatedOrgMembership = await repositories.userMembershipRepository.findOneOrFail({
+        where: { id: orgMembership.id },
+      })
       expect(updatedOrgMembership.role).toBe("admin")
     })
 
@@ -475,7 +488,7 @@ describe("ProjectInvitationHandler", () => {
         .admin()
         .transient({ user: inviteeUser, organization })
         .build()
-      await repositories.organizationMembershipRepository.save(orgMembership)
+      await saveOrgMembership({ repositories, membership: orgMembership })
       await createPendingInvitation({
         projectId: project.id,
         organizationId: organization.id,
@@ -489,10 +502,9 @@ describe("ProjectInvitationHandler", () => {
         email: inviteeUser.email,
       })
 
-      const updatedOrgMembership =
-        await repositories.organizationMembershipRepository.findOneOrFail({
-          where: { id: orgMembership.id },
-        })
+      const updatedOrgMembership = await repositories.userMembershipRepository.findOneOrFail({
+        where: { id: orgMembership.id },
+      })
       expect(updatedOrgMembership.role).toBe("admin")
     })
 

@@ -1,15 +1,15 @@
 import { BasePolicy } from "@/common/policies/base-policy"
-import type { ReviewCampaignMembership } from "../memberships/review-campaign-membership.entity"
+import type { ReviewCampaignMembershipModel } from "../memberships/review-campaign-membership.model"
 import type { ReviewCampaign } from "../review-campaign.entity"
 
 type ReviewerPolicyContext = {
   reviewCampaign: ReviewCampaign
-  reviewerMembership: ReviewCampaignMembership | undefined
+  reviewerMembership: ReviewCampaignMembershipModel | undefined
 }
 
 export class ReviewerPolicy extends BasePolicy<ReviewCampaign> {
   private readonly reviewCampaign: ReviewCampaign
-  private readonly reviewerMembership: ReviewCampaignMembership | undefined
+  private readonly reviewerMembership: ReviewCampaignMembershipModel | undefined
 
   constructor(context: ReviewerPolicyContext) {
     // Mirrors TesterPolicy: no organization-membership gate; access is

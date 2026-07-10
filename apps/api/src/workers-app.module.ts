@@ -3,6 +3,7 @@ import { Module, type Type } from "@nestjs/common"
 import { ConfigModule, ConfigService } from "@nestjs/config"
 import { TypeOrmModule } from "@nestjs/typeorm"
 import { getBullMqConnection } from "./bullmq.config"
+import { TransactionModule } from "./common/transaction/transaction.module"
 import { WorkersHealthModule } from "./common/workers-health/workers-health.module"
 import typeorm from "./config/typeorm"
 import {
@@ -87,6 +88,7 @@ const enabledWorkerModules = WORKER_MODULE_REGISTRY.filter((entry) =>
         connection: getBullMqConnection(),
       }),
     }),
+    TransactionModule,
     ...enabledWorkerModules,
     StorageModule,
     WorkersHealthModule,

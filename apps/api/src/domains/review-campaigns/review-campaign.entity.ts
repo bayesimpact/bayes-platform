@@ -6,7 +6,6 @@ import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessio
 import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { Project } from "@/domains/projects/project.entity"
-import { ReviewCampaignMembership } from "./memberships/review-campaign-membership.entity"
 import type { ReviewCampaignQuestion, ReviewCampaignStatus } from "./review-campaigns.types"
 import { ReviewerSessionReview } from "./reviewer-session-reviews/reviewer-session-review.entity"
 import { TesterCampaignSurvey } from "./tester-campaign-surveys/tester-campaign-survey.entity"
@@ -61,12 +60,6 @@ export class ReviewCampaign extends ConnectEntityBase {
 
   @Column({ type: "timestamp", name: "closed_at", nullable: true })
   closedAt!: Date | null
-
-  @OneToMany(
-    () => ReviewCampaignMembership,
-    (membership) => membership.campaign,
-  )
-  memberships!: ReviewCampaignMembership[]
 
   @OneToMany(
     () => TesterSessionFeedback,

@@ -142,7 +142,6 @@ describe("ReviewCampaigns - Report", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .reviewer()
-        .accepted()
         .transient({ organization, project, campaign, user: reviewerA })
         .build(),
     })
@@ -150,7 +149,6 @@ describe("ReviewCampaigns - Report", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .reviewer()
-        .accepted()
         .transient({ organization, project, campaign, user: reviewerB })
         .build(),
     })
@@ -391,7 +389,6 @@ describe("ReviewCampaigns - Report", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .tester()
-        .accepted()
         .transient({ organization, project, campaign, user: tester })
         .build(),
     })

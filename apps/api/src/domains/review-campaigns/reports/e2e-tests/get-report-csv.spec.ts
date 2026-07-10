@@ -106,7 +106,6 @@ describe("ReviewCampaigns - Report CSV", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .reviewer()
-        .accepted()
         .transient({ organization, project, campaign, user: reviewer })
         .build(),
     })

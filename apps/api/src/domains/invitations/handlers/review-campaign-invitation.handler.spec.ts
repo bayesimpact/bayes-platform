@@ -15,7 +15,10 @@ import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
-import { reviewCampaignMembershipFactory } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { mockInvitationSender, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
@@ -222,12 +225,13 @@ describe("ReviewCampaignInvitationHandler", () => {
       const { campaign, organization, project, user } = await createActiveCampaign()
       const memberUser = userFactory.build({ email: "member@example.com" })
       await repositories.userRepository.save(memberUser)
-      await repositories.reviewCampaignMembershipRepository.save(
-        reviewCampaignMembershipFactory
+      await saveReviewCampaignMembership({
+        repositories,
+        membership: reviewCampaignMembershipFactory
           .tester()
           .transient({ organization, project, campaign, user: memberUser })
           .build(),
-      )
+      })
 
       const invitations = await handler.inviteMembers({
         reviewCampaignId: campaign.id,
@@ -244,12 +248,13 @@ describe("ReviewCampaignInvitationHandler", () => {
       const { campaign, organization, project, user } = await createActiveCampaign()
       const memberUser = userFactory.build({ email: "tester@example.com" })
       await repositories.userRepository.save(memberUser)
-      await repositories.reviewCampaignMembershipRepository.save(
-        reviewCampaignMembershipFactory
+      await saveReviewCampaignMembership({
+        repositories,
+        membership: reviewCampaignMembershipFactory
           .tester()
           .transient({ organization, project, campaign, user: memberUser })
           .build(),
-      )
+      })
 
       const invitations = await handler.inviteMembers({
         reviewCampaignId: campaign.id,
@@ -410,7 +415,7 @@ describe("ReviewCampaignInvitationHandler", () => {
   // ─── acceptInvitation ─────────────────────────────────────────────────────
 
   describe("acceptInvitation", () => {
-    it("creates a new user, campaign membership (with acceptedAt), project membership, and org membership", async () => {
+    it("creates a new user, campaign membership, project membership, and org membership", async () => {
       const { campaign, organization, project } = await createActiveCampaign()
       const inviteeEmail = "invitee@example.com"
       await seedPendingInvitation({
@@ -433,20 +438,32 @@ describe("ReviewCampaignInvitationHandler", () => {
         where: { auth0Id: "auth0|new-user" },
       })
 
-      const campaignMembership = await repositories.reviewCampaignMembershipRepository.findOne({
-        where: { campaignId: campaign.id, userId: createdUser.id, role: "tester" },
+      const campaignMembership = await repositories.userMembershipRepository.findOne({
+        where: {
+          resourceType: "review_campaign",
+          resourceId: campaign.id,
+          userId: createdUser.id,
+          role: "tester",
+        },
       })
       expect(campaignMembership).not.toBeNull()
-      expect(campaignMembership!.acceptedAt).not.toBeNull()
 
-      const projectMembership = await repositories.projectMembershipRepository.findOne({
-        where: { projectId: project.id, userId: createdUser.id },
+      const projectMembership = await repositories.userMembershipRepository.findOne({
+        where: {
+          resourceType: "project",
+          resourceId: project.id,
+          userId: createdUser.id,
+        },
       })
       expect(projectMembership).not.toBeNull()
       expect(projectMembership!.role).toBe("member")
 
-      const orgMembership = await repositories.organizationMembershipRepository.findOne({
-        where: { organizationId: organization.id, userId: createdUser.id },
+      const orgMembership = await repositories.userMembershipRepository.findOne({
+        where: {
+          resourceType: "organization",
+          resourceId: organization.id,
+          userId: createdUser.id,
+        },
       })
       expect(orgMembership).not.toBeNull()
       expect(orgMembership!.role).toBe("member")
@@ -503,16 +520,17 @@ describe("ReviewCampaignInvitationHandler", () => {
       ).rejects.toThrow(UnauthorizedException)
     })
 
-    it("stamps acceptedAt when an existing membership has not yet been accepted", async () => {
+    it("reuses an existing campaign membership when accepting the invitation", async () => {
       const { campaign, organization, project } = await createActiveCampaign()
       const inviteeUser = userFactory.build({ email: "unaccepted@example.com" })
       await repositories.userRepository.save(inviteeUser)
-      const membership = await repositories.reviewCampaignMembershipRepository.save(
-        reviewCampaignMembershipFactory
+      const membership = await saveReviewCampaignMembership({
+        repositories,
+        membership: reviewCampaignMembershipFactory
           .tester()
           .transient({ organization, project, campaign, user: inviteeUser })
-          .build({ acceptedAt: null }),
-      )
+          .build(),
+      })
       await seedPendingInvitation({
         campaignId: campaign.id,
         organizationId: organization.id,
@@ -528,43 +546,10 @@ describe("ReviewCampaignInvitationHandler", () => {
         email: inviteeUser.email,
       })
 
-      const updated = await repositories.reviewCampaignMembershipRepository.findOneOrFail({
+      const updated = await repositories.userMembershipRepository.findOneOrFail({
         where: { id: membership.id },
       })
-      expect(updated.acceptedAt).not.toBeNull()
-    })
-
-    it("does not re-stamp acceptedAt when the membership is already accepted", async () => {
-      const { campaign, organization, project } = await createActiveCampaign()
-      const inviteeUser = userFactory.build({ email: "accepted@example.com" })
-      await repositories.userRepository.save(inviteeUser)
-      const originalAcceptedAt = new Date("2025-01-01T00:00:00.000Z")
-      const membership = await repositories.reviewCampaignMembershipRepository.save(
-        reviewCampaignMembershipFactory
-          .tester()
-          .accepted()
-          .transient({ organization, project, campaign, user: inviteeUser })
-          .build({ acceptedAt: originalAcceptedAt }),
-      )
-      await seedPendingInvitation({
-        campaignId: campaign.id,
-        organizationId: organization.id,
-        projectId: project.id,
-        invitedEmail: inviteeUser.email,
-        role: "tester",
-        userId: inviteeUser.id,
-      })
-
-      await handler.acceptInvitation({
-        ticketId: "accept-ticket",
-        auth0Sub: inviteeUser.auth0Id,
-        email: inviteeUser.email,
-      })
-
-      const updated = await repositories.reviewCampaignMembershipRepository.findOneOrFail({
-        where: { id: membership.id },
-      })
-      expect(updated.acceptedAt!.getTime()).toBe(originalAcceptedAt.getTime())
+      expect(updated.id).toBe(membership.id)
     })
 
     it("is case-insensitive when comparing email to invitedEmail", async () => {

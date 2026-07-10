@@ -4,7 +4,7 @@ import type { Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource } from "typeorm"
 import { Agent } from "@/domains/agents/agent.entity"
-import type { AgentMembership } from "@/domains/agents/memberships/agent-membership.entity"
+import type { AgentMembershipFixture } from "@/domains/agents/memberships/agent-membership.types"
 import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import type { ContextResolver, ResolvableRequest } from "../context-resolver.interface"
 import type { EndpointRequestWithAgent, EndpointRequestWithProject } from "../request.interface"
@@ -61,7 +61,7 @@ export class AgentContextResolver implements ContextResolver {
     // this is safe — AgentPolicy and InvitationPolicy only read
     // `agentMembership.agentId` and `agentMembership.role`; the relation
     // fields are never accessed.
-    const agentMembership: AgentMembership | undefined = userMembership
+    const agentMembership: AgentMembershipFixture | undefined = userMembership
       ? ({
           id: userMembership.id,
           userId: userMembership.userId,
@@ -70,7 +70,7 @@ export class AgentContextResolver implements ContextResolver {
           createdAt: userMembership.createdAt,
           updatedAt: userMembership.updatedAt,
           deletedAt: userMembership.deletedAt,
-        } as AgentMembership)
+        } as AgentMembershipFixture)
       : undefined
 
     const requestWithAgent = request as EndpointRequestWithAgent

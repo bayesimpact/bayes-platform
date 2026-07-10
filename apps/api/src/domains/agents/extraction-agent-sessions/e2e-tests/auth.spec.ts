@@ -15,7 +15,11 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { FILE_STORAGE_SERVICE } from "@/domains/documents/storage/file-storage.interface"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
-import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import {
+  mockAuth0EmailForSub,
+  mockForeignAuth0Id,
+  setupUserGuardForTesting,
+} from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { ExtractionAgentSessionsModule } from "../extraction-agent-sessions.module"
 
@@ -80,11 +84,11 @@ describe("ExtractionAgentSessions - Auth", () => {
   })
 
   const createContextForRole = async (role: ProjectMembershipRoleDto) => {
-    const { organization, project, agent, document, agentSession } =
+    const { organization, project, agent, document, agentSession, user } =
       await createOrganizationWithAgentSession({
         repositories,
         params: {
-          user: { auth0Id },
+          user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
           projectMembership: { role },
           agentSettings: {
             outputJsonSchema: {
@@ -96,6 +100,7 @@ describe("ExtractionAgentSessions - Auth", () => {
         },
         agentType: "extraction",
       })
+    auth0Id = user.auth0Id
     organizationId = organization.id
     projectId = project.id
     agentId = agent.id

@@ -19,23 +19,23 @@ import type { ExtractionAgentSession } from "../agents/extraction-agent-sessions
 import { extractionAgentSessionFactory } from "../agents/extraction-agent-sessions/extraction-agent-session.factory"
 import type { FormAgentSession } from "../agents/form-agent-sessions/form-agent-session.entity"
 import { formAgentSessionFactory } from "../agents/form-agent-sessions/form-agent-session.factory"
-import type { AgentMembership } from "../agents/memberships/agent-membership.entity"
 import {
   agentMembershipFactory,
   saveAgentMembership,
 } from "../agents/memberships/agent-membership.factory"
+import type { AgentMembershipFixture } from "../agents/memberships/agent-membership.types"
 import type { AgentMessage } from "../agents/shared/agent-session-messages/agent-message.entity"
 import { agentMessageFactory } from "../agents/shared/agent-session-messages/agent-messages.factory"
-import type { ProjectMembership } from "../projects/memberships/project-membership.entity"
 import {
   projectMembershipFactory,
   saveProjectMembership,
 } from "../projects/memberships/project-membership.factory"
-import type { OrganizationMembership } from "./memberships/organization-membership.entity"
+import type { ProjectMembershipFixture } from "../projects/memberships/project-membership.types"
 import {
   organizationMembershipFactory,
   saveOrgMembership,
 } from "./memberships/organization-membership.factory"
+import type { OrganizationMembershipFixture } from "./memberships/organization-membership.types"
 import type { Organization } from "./organization.entity"
 
 export const organizationFactory = Factory.define<Organization>(({ sequence, params }) => {
@@ -46,7 +46,6 @@ export const organizationFactory = Factory.define<Organization>(({ sequence, par
     createdAt: params.createdAt || now,
     updatedAt: params.updatedAt || now,
     deletedAt: null,
-    memberships: params.memberships || [],
     projects: params.projects || [],
     conversationAgentSessions: params.conversationAgentSessions || [],
     agentMessageFeedbacks: params.agentMessageFeedbacks || [],
@@ -56,13 +55,13 @@ export const organizationFactory = Factory.define<Organization>(({ sequence, par
 type OrganizationParams = {
   organization?: Partial<Organization>
   user?: Partial<User>
-  organizationMembership?: Partial<OrganizationMembership>
+  organizationMembership?: Partial<OrganizationMembershipFixture>
 }
 
 type OrganizationReturnType = {
   organization: Organization
   user: User
-  organizationMembership: OrganizationMembership
+  organizationMembership: OrganizationMembershipFixture
 }
 export function buildOrganizationWithOwner(
   params: OrganizationParams = {},
@@ -94,11 +93,11 @@ export async function createOrganizationWithOwner(
 
 type ProjectParams = OrganizationParams & {
   project?: Partial<Project>
-  projectMembership?: Partial<ProjectMembership>
+  projectMembership?: Partial<ProjectMembershipFixture>
 }
 type ProjectReturnType = OrganizationReturnType & {
   project: Project
-  projectMembership: ProjectMembership
+  projectMembership: ProjectMembershipFixture
 }
 export async function createOrganizationWithProject(
   repositories: AllRepositories,
@@ -121,13 +120,13 @@ export async function createOrganizationWithProject(
 
 type AgentParams = ProjectParams & {
   agent?: Partial<Agent>
+  agentMembership?: Partial<AgentMembershipFixture>
   agentSettings?: Partial<AgentSettings>
-  agentMembership?: Partial<AgentMembership>
 }
 type AgentReturnType = ProjectReturnType & {
   agent: Agent
   agentSettings: AgentSettings
-  agentMembership: AgentMembership
+  agentMembership: AgentMembershipFixture
   agentResourceLibraries: ResourceLibrary[]
 }
 export async function createOrganizationWithAgent(

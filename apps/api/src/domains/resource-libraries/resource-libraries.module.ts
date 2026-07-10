@@ -6,9 +6,7 @@ import { ResourceLibraryContextResolver } from "@/common/context/resolvers/resou
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
-import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
 import { UsersModule } from "@/domains/users/users.module"
@@ -20,7 +18,7 @@ import { ResourceLibraryFilesController } from "./resource-library-files.control
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ResourceLibrary, Project, OrganizationMembership, ProjectMembership]),
+    TypeOrmModule.forFeature([ResourceLibrary, Project]),
     OrganizationsModule,
     forwardRef(() => ProjectsModule),
     UsersModule,

@@ -43,7 +43,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
-      port: 5173,
+      port: Number(env.FRONT_PORT) || 5173,
       https: httpsConfig,
       allowedHosts: ["connect.localhost"],
     },
@@ -52,7 +52,7 @@ export default defineConfig(({ mode }) => {
     // connect.localhost) keep working when validating prod builds locally.
     // Port 5174 so dev (5173) and preview can run together.
     preview: {
-      port: 5174,
+      port: Number(env.FRONT_PREVIEW_PORT) || 5174,
       https: httpsConfig,
       allowedHosts: ["connect.localhost"],
     },

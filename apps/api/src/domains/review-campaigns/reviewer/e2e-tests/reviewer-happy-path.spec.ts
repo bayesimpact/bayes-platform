@@ -97,7 +97,6 @@ describe("ReviewCampaigns - Reviewer happy path", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .reviewer()
-        .accepted()
         .transient({ organization, project, campaign, user: reviewer })
         .build(),
     })
@@ -176,7 +175,6 @@ describe("ReviewCampaigns - Reviewer happy path", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .reviewer()
-        .accepted()
         .transient({ organization, project, campaign, user: reviewer })
         .build(),
     })
@@ -270,7 +268,6 @@ describe("ReviewCampaigns - Reviewer happy path", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .reviewer()
-        .accepted()
         .transient({ organization, project, campaign, user: otherReviewer })
         .build(),
     })

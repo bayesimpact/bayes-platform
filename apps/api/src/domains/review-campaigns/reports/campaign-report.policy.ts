@@ -1,17 +1,17 @@
-import type { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
-import type { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
+import type { OrganizationMembershipContextModel } from "@/domains/organizations/memberships/organization-membership.model"
+import type { ProjectMembershipFixture } from "@/domains/projects/memberships/project-membership.types"
 import type { Project } from "@/domains/projects/project.entity"
-import type { ReviewCampaignMembership } from "../memberships/review-campaign-membership.entity"
+import type { ReviewCampaignMembershipModel } from "../memberships/review-campaign-membership.model"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import { ReviewCampaignPolicy } from "../review-campaign.policy"
 import { ReviewerPolicy } from "../reviewer/reviewer.policy"
 
 type CampaignReportPolicyContext = {
-  organizationMembership: OrganizationMembership
+  organizationMembership: OrganizationMembershipContextModel
   project: Project | undefined
-  projectMembership: ProjectMembership | undefined
+  projectMembership: ProjectMembershipFixture | undefined
   reviewCampaign: ReviewCampaign
-  reviewerMembership: ReviewCampaignMembership | undefined
+  reviewerMembership: ReviewCampaignMembershipModel | undefined
 }
 
 /**

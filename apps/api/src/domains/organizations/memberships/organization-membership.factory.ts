@@ -6,9 +6,9 @@ import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "../../users/user.factory"
 import type { Organization } from "../organization.entity"
 import type {
-  OrganizationMembership,
+  OrganizationMembershipFixture,
   OrganizationMembershipRole,
-} from "./organization-membership.entity"
+} from "./organization-membership.types"
 
 type OrganizationMembershipTransientParams = {
   user: User
@@ -16,7 +16,7 @@ type OrganizationMembershipTransientParams = {
 }
 
 class OrganizationMembershipFactory extends Factory<
-  OrganizationMembership,
+  OrganizationMembershipFixture,
   OrganizationMembershipTransientParams
 > {
   member() {
@@ -52,32 +52,30 @@ export const organizationMembershipFactory = OrganizationMembershipFactory.defin
       deletedAt: params.deletedAt || null,
       user: transientParams.user,
       organization: transientParams.organization,
-    } satisfies OrganizationMembership
+    } satisfies OrganizationMembershipFixture
   },
 )
 
 /**
- * Saves an OrganizationMembership to both the legacy table and user_memberships.
- * Use this in tests instead of `repositories.organizationMembershipRepository.save()`
- * to keep user_memberships in sync during the dual-write transition period.
+ * Saves an organization membership to `user_membership`.
  */
 export const saveOrgMembership = async ({
   repositories,
   membership,
 }: {
   repositories: AllRepositories
-  membership: OrganizationMembership
+  membership: OrganizationMembershipFixture
 }) => {
-  const saved = await repositories.organizationMembershipRepository.save(membership)
-  await repositories.userMembershipRepository.save(
+  const saved = await repositories.userMembershipRepository.save(
     userMembershipFactory.build({
-      userId: saved.userId,
+      id: membership.id,
+      userId: membership.userId,
       resourceType: "organization",
-      resourceId: saved.organizationId,
-      role: saved.role,
+      resourceId: membership.organizationId,
+      role: membership.role,
     }),
   )
-  return saved
+  return { ...membership, id: saved.id }
 }
 
 export const addUserToOrganization = async ({
@@ -89,7 +87,7 @@ export const addUserToOrganization = async ({
   repositories: AllRepositories
   organization: Organization
   user?: Partial<User>
-  membership?: Partial<OrganizationMembership>
+  membership?: Partial<OrganizationMembershipFixture>
 }) => {
   const newUser = userFactory.build(user)
   await repositories.userRepository.save(newUser)
