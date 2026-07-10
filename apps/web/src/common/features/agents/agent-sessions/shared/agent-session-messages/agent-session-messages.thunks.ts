@@ -108,7 +108,7 @@ export const sendMessage = createAsyncThunk<
       role: "user",
       content,
       attachmentDocumentId,
-      createdAt: new Date().toISOString(),
+      createdAt: Date.now(),
     }
 
     dispatch(agentSessionMessagesActions.startStreaming({ userMessage, assistantMessageId }))

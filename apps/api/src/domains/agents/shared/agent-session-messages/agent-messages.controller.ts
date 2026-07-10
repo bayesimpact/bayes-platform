@@ -162,9 +162,9 @@ function toDto(message: AgentMessage): AgentSessionMessageDto {
     role: message.role,
     content: message.content,
     status: message.status ?? undefined,
-    createdAt: message.createdAt.toISOString(),
-    startedAt: message.startedAt?.toISOString(),
-    completedAt: message.completedAt?.toISOString(),
+    createdAt: message.createdAt.getTime(),
+    startedAt: message.startedAt?.getTime(),
+    completedAt: message.completedAt?.getTime(),
     toolCalls: (message.toolCalls as AgentSessionMessageDto["toolCalls"]) ?? undefined,
     attachmentDocumentId: message.attachmentDocumentId ?? undefined,
   }

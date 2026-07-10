@@ -82,7 +82,7 @@ const slice = createSlice({
         message.content = action.payload.fullContent
         message.status = "completed"
         if (message.completedAt === undefined) {
-          message.completedAt = new Date().toISOString()
+          message.completedAt = Date.now()
         }
       }
       state.isStreaming = false
@@ -96,7 +96,7 @@ const slice = createSlice({
         message.status = "error"
         message.content = action.payload.error
         if (message.completedAt === undefined) {
-          message.completedAt = new Date().toISOString()
+          message.completedAt = Date.now()
         }
       }
       state.isStreaming = false

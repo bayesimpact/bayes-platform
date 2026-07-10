@@ -1,0 +1,25 @@
+{
+  "agentSessionMessage": {
+    "attachment": "Pièce jointe",
+    "navigator": {
+      "title": "Aller à un message",
+      "trigger": "Aller à un message",
+      "search": "Rechercher un message…",
+      "empty": "Aucun message correspondant"
+    },
+    "thinking": [
+      "Réflexion en cours…",
+      "Toujours en réflexion…",
+      "Analyse en cours…",
+      "Je relie les éléments…",
+      "Je rassemble tout…",
+      "Rédaction en cours…"
+    ],
+    "steps": {
+      "working_one": "{{count}} étape en cours",
+      "working_other": "{{count}} étapes en cours",
+      "summary_one": "{{count}} étape effectuée",
+      "summary_other": "{{count}} étapes effectuées"
+    }
+  }
+}

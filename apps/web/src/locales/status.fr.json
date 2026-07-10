@@ -11,6 +11,7 @@
     "thinking": "En réflexion",
     "activity": {
       "default": "En réflexion…",
+      "usingTool": "Appel d’un outil…",
       "searchingResources": "Recherche de ressources…",
       "smartSearch": "Recherche…",
       "retrievingDocuments": "Recherche dans la base de connaissances…",

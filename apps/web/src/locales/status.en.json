@@ -11,6 +11,7 @@
     "thinking": "Thinking",
     "activity": {
       "default": "Thinking…",
+      "usingTool": "Calling a tool…",
       "searchingResources": "Searching resources…",
       "smartSearch": "Searching…",
       "retrievingDocuments": "Searching across the knowledge base…",
