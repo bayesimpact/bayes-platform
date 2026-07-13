@@ -84,6 +84,7 @@ function WithData() {
         header: () => <span className="text-muted-foreground">Feature flags</span>,
         cell: ({ row }) => (
           <FeatureFlagCell
+            projectName={row.original.name}
             enabledFlags={row.original.featureFlags}
             onAdd={(featureFlagKey) =>
               dispatch(
@@ -131,7 +132,11 @@ function WithData() {
   }
 
   const handleRowClick = (event: React.MouseEvent, projectId: string) => {
-    if ((event.target as HTMLElement).closest("[data-no-navigate]")) return
+    const target = event.target as HTMLElement
+    // Ignore clicks that bubble through the React tree from portaled UI (e.g. the
+    // feature-flags dialog/overlay), which are not DOM descendants of the row.
+    if (!event.currentTarget.contains(target)) return
+    if (target.closest("[data-no-navigate]")) return
     navigate(BackofficeProjectRoutes.project.build({ projectId }))
   }
 

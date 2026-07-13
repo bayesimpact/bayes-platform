@@ -251,7 +251,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
         metadata: this.buildMetadata({ config, metadata }),
       },
       providerOptions: {
-        custom: { callOrigin, metadata: this.buildMetadata({ config, metadata }) },
+        custom: this.buildCustomProviderOptions({ config, callOrigin, metadata }),
       },
     })
 
@@ -307,7 +307,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
         metadata: this.buildMetadata({ config, metadata }),
       },
       providerOptions: {
-        custom: { callOrigin, metadata: this.buildMetadata({ config, metadata }) },
+        custom: this.buildCustomProviderOptions({ config, callOrigin, metadata }),
       },
     })
     return result.text
@@ -334,7 +334,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
         metadata: this.buildMetadata({ config, metadata }),
       },
       providerOptions: {
-        custom: { callOrigin, metadata: this.buildMetadata({ config, metadata }) },
+        custom: this.buildCustomProviderOptions({ config, callOrigin, metadata }),
       },
     })
     return text
@@ -373,14 +373,12 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
         schema: schema,
       }),
       providerOptions: {
-        custom: {
+        custom: this.buildCustomProviderOptions({
+          config,
           callOrigin,
-          metadata: this.buildMetadata({
-            config,
-            metadata,
-            schema: schema.toJSONSchema() as JSONSchema7,
-          }),
-        },
+          metadata,
+          schema: schema.toJSONSchema() as JSONSchema7,
+        }),
       },
     })
     return schema.parse(res.output)
@@ -466,14 +464,12 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
         }),
       },
       providerOptions: {
-        custom: {
+        custom: this.buildCustomProviderOptions({
+          config,
           callOrigin,
-          metadata: this.buildMetadata({
-            config,
-            metadata,
-            schema,
-          }),
-        },
+          metadata,
+          schema,
+        }),
       },
     })
     if (
@@ -539,11 +535,30 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
       langfuseTraceId: metadata.traceId,
       sessionId: `as:${metadata.langfuseSessionId ?? metadata.agentSessionId}`,
       userId: `o:${metadata.organizationId} / p:${metadata.projectId}`,
-      tags: [...this.getTags(config), ...(metadata?.tags || [])],
+      tags: [...(metadata?.tags || []), ...this.getTags(config)],
       currentTurn: metadata.currentTurn,
+      revision: metadata.revision,
       outputSchema: JSON.stringify(schema),
       availableTools: JSON.stringify(config.tools),
     })
+  }
+
+  private buildCustomProviderOptions({
+    config,
+    callOrigin,
+    metadata,
+    schema,
+  }: {
+    config: LLMConfig
+    callOrigin: CallOrigin
+    metadata: LLMMetadata
+    schema?: JSONSchema7
+  }) {
+    return {
+      callOrigin,
+      agentId: metadata.agentId,
+      metadata: this.buildMetadata({ config, metadata, schema }),
+    }
   }
 
   abstract getLanguageModel({ config, callOrigin }: { config: LLMConfig; callOrigin: CallOrigin })

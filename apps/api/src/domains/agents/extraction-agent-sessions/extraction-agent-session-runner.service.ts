@@ -11,6 +11,7 @@ import type {
   LLMMetadata,
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { Document } from "@/domains/documents/document.entity"
 import {
   FILE_STORAGE_SERVICE,
@@ -73,7 +74,7 @@ export class ExtractionAgentSessionRunnerService extends ServiceWithLLM {
     const run = await this.sessionConnectRepository.getOneById(
       connectScope,
       extractionAgentSessionId,
-      { relations: ["document", "agent"] },
+      { relations: ["document", "agent", "agentSettings"] },
     )
     if (!run) {
       throw new NotFoundException(
@@ -85,6 +86,7 @@ export class ExtractionAgentSessionRunnerService extends ServiceWithLLM {
       document: run.document,
       effectivePrompt: run.effectivePrompt,
       agent: run.agent,
+      agentSettings: run.agentSettings,
       run,
       connectScope,
     })
@@ -94,37 +96,38 @@ export class ExtractionAgentSessionRunnerService extends ServiceWithLLM {
     document,
     effectivePrompt,
     agent,
+    agentSettings,
     run,
     connectScope,
   }: {
     document: Document
     effectivePrompt: string
     agent: Agent
+    agentSettings: AgentSettings
     run: ExtractionAgentSession
     connectScope: RequiredConnectScope
   }) {
-    if (!agent.outputJsonSchema) {
-      throw new UnprocessableEntityException("Extraction agent is missing outputJsonSchema")
-    }
-
     try {
+      if (!agentSettings.outputJsonSchema) {
+        throw new UnprocessableEntityException("Extraction agent is missing outputJsonSchema")
+      }
       const llmMessage = await this.buildLLMMessage({
         document,
         prompt: effectivePrompt,
       })
 
-      const result = await this.getProviderForModel(agent.model).generateStructuredOutput({
+      const result = await this.getProviderForModel(agentSettings.model).generateStructuredOutput({
         message: llmMessage,
-        schema: agent.outputJsonSchema,
+        schema: agentSettings.outputJsonSchema,
         config: this.buildLLMConfig({
           systemPrompt: `Today's date: ${new Date().toLocaleDateString()}`,
-          model: agent.model,
-          temperature: agent.temperature,
+          model: agentSettings.model,
+          temperature: agentSettings.temperature,
           // Extraction agent runs can be long-running; opt in to the extended
           // network timeouts on the provider fetch (see AISDKVertexProvider).
           useExtendedTimeouts: true,
         }),
-        metadata: this.buildLLMMetadata({ agent, run, connectScope }),
+        metadata: this.buildLLMMetadata({ agent, agentSettings, run, connectScope }),
       })
 
       run.status = "success"
@@ -232,10 +235,12 @@ export class ExtractionAgentSessionRunnerService extends ServiceWithLLM {
 
   private buildLLMMetadata({
     agent,
+    agentSettings,
     run,
     connectScope,
   }: {
     agent: Agent
+    agentSettings: AgentSettings
     run: ExtractionAgentSession
     connectScope: RequiredConnectScope
   }): LLMMetadata {
@@ -244,9 +249,10 @@ export class ExtractionAgentSessionRunnerService extends ServiceWithLLM {
       organizationId: connectScope.organizationId,
       agentSessionId: run.id,
       agentId: agent.id,
+      revision: agentSettings.revision,
       projectId: connectScope.projectId,
       currentTurn: 1,
-      tags: [agent.name, "extraction"],
+      tags: [agent.name, `rev-${agentSettings.revision}`, agent.type],
     }
   }
 }

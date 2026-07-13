@@ -75,7 +75,9 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
     const { user, organization, project, agent } = await createOrganizationWithAgent(repositories, {
       agent: {
         type: "extraction",
-        model: AgentModel._MockGenerateText,
+      },
+      agentSettings: {
+        model: AgentModel._Mock,
         outputJsonSchema: {
           type: "object",
           properties: { fullName: { type: "string" } },

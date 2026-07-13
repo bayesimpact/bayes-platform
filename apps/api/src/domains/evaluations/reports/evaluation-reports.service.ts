@@ -6,6 +6,7 @@ import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { LLMMetadata, LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { Evaluation } from "@/domains/evaluations/evaluation.entity"
 import { ServiceWithLLM } from "@/external/llm/service-with-llm"
 import { EvaluationReport } from "./evaluation-report.entity"
@@ -47,7 +48,7 @@ export class EvaluationReportsService extends ServiceWithLLM {
   }: {
     connectScope: RequiredConnectScope
     evaluationId: string
-    fields: Pick<EvaluationReport, "agentId" | "traceId" | "output" | "score">
+    fields: Pick<EvaluationReport, "agentId" | "agentSettingsId" | "traceId" | "output" | "score">
   }): Promise<EvaluationReport> {
     return await this.reportConnectRepository.createAndSave(connectScope, {
       ...fields,
@@ -141,26 +142,29 @@ export class EvaluationReportsService extends ServiceWithLLM {
 
   async processReport({
     agent,
+    agentSettings,
     evaluation,
     evaluationReport,
   }: {
     agent: Agent
+    agentSettings: AgentSettings
     evaluation: Evaluation
     evaluationReport: EvaluationReport
   }): Promise<string> {
     const llmConfig = this.buildLLMConfig({
-      systemPrompt: this.generateMasterPrompt(agent),
-      model: agent.model,
-      temperature: agent.temperature,
+      systemPrompt: this.generateMasterPrompt(agentSettings),
+      model: agentSettings.model,
+      temperature: agentSettings.temperature,
     })
 
     const llmMetadata: LLMMetadata = {
       traceId: evaluationReport.traceId,
       evaluationReportId: evaluationReport.id,
       agentId: agent.id,
+      revision: agentSettings.revision,
       projectId: agent.projectId,
       organizationId: evaluationReport.organizationId,
-      tags: [agent.name],
+      tags: [agent.name, `rev-${agentSettings.revision}`, agent.type],
     }
 
     return await this.getProviderForModel(llmConfig.model).generateText({
@@ -174,12 +178,12 @@ export class EvaluationReportsService extends ServiceWithLLM {
     evaluationReport,
     generatedValue,
     expectedValue,
-    generatorAgent,
+    generatorAgentSettings,
   }: {
     evaluationReport: EvaluationReport
     generatedValue: string
     expectedValue: string
-    generatorAgent: Agent
+    generatorAgentSettings: AgentSettings
   }): Promise<string> {
     const ratingAgent = {
       systemPrompt: `
@@ -200,14 +204,15 @@ export class EvaluationReportsService extends ServiceWithLLM {
       traceId: evaluationReport.traceId,
       evaluationReportId: evaluationReport.id,
       agentId: "Custom-Rating-Agent",
+      revision: 0,
       projectId: "*N/A*",
       organizationId: evaluationReport.organizationId,
       tags: ["*Rating Agent*"],
     }
 
     //fixme: remove when specific agent for rating(in db) for rating with mock
-    if (AgentModelToAgentProvider[generatorAgent.model] === AgentProvider._Mock) {
-      ratingAgent.model = AgentModel._MockRate
+    if (AgentModelToAgentProvider[generatorAgentSettings.model] === AgentProvider._Mock) {
+      ratingAgent.model = AgentModel._Mock
       llmMetadata.tags.unshift("**TEST**")
     }
 
@@ -229,13 +234,13 @@ return only the rating value (0 to 100), no sentence`,
     })
   }
 
-  private generateMasterPrompt(agent: Agent): string {
-    return `${agent.defaultPrompt}
+  private generateMasterPrompt(agentSettings: AgentSettings): string {
+    return `${agentSettings.instructions}
 
 # Attachment:
 If there is a file (image or pdf) attached to the user's chat message, answer the user's question or instruction reading the content of the file.
 
-Always answer in ${agent.locale}.
+Always answer in ${agentSettings.locale}.
 
 Today's date: ${new Date().toLocaleDateString()}`
   }

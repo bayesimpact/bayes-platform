@@ -8,8 +8,7 @@ import {
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { agentFactory } from "@/domains/agents/agent.factory"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { EvaluationsModule } from "../../../evaluations.module"
@@ -57,7 +56,16 @@ describe("EvaluationExtractionRuns - getRecords", () => {
   })
 
   const createContext = async () => {
-    const { user, organization, project } = await createOrganizationWithProject(repositories)
+    const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        agent: { type: "extraction" },
+        agentSettings: {
+          outputJsonSchema: { type: "object" },
+          model: AgentModel._Mock,
+        },
+      },
+    )
     organizationId = organization.id
     projectId = project.id
     auth0Id = user.auth0Id
@@ -72,15 +80,14 @@ describe("EvaluationExtractionRuns - getRecords", () => {
       .build({ data: { col1: "value1" } })
     await setup.getRepository(EvaluationExtractionDatasetRecord).save(datasetRecord)
 
-    const agent = agentFactory.transient({ organization, project }).build({
-      type: "extraction",
-      outputJsonSchema: { type: "object" },
-      model: AgentModel._MockGenerateStructuredOutput,
-    })
-    await repositories.agentRepository.save(agent)
-
     const run = evaluationExtractionRunFactory
-      .transient({ organization, project, agent, evaluationExtractionDataset: dataset })
+      .transient({
+        organization,
+        project,
+        agent,
+        agentSettings,
+        evaluationExtractionDataset: dataset,
+      })
       .build({ status: "completed" })
     await setup.getRepository(EvaluationExtractionRun).save(run)
     evaluationExtractionRunId = run.id
@@ -99,7 +106,7 @@ describe("EvaluationExtractionRuns - getRecords", () => {
       })
     await setup.getRepository(EvaluationExtractionRunRecord).save(runRecord)
 
-    return { organization, project, dataset, datasetRecord, agent, run, runRecord }
+    return { organization, project, dataset, datasetRecord, agent, agentSettings, run, runRecord }
   }
 
   const subject = async () =>
@@ -126,10 +133,16 @@ describe("EvaluationExtractionRuns - getRecords", () => {
   })
 
   it("should return empty list when no records exist", async () => {
-    const { organization, project, dataset, agent } = await createContext()
+    const { organization, project, dataset, agent, agentSettings } = await createContext()
 
     const emptyRun = evaluationExtractionRunFactory
-      .transient({ organization, project, agent, evaluationExtractionDataset: dataset })
+      .transient({
+        organization,
+        project,
+        agent,
+        agentSettings,
+        evaluationExtractionDataset: dataset,
+      })
       .build()
     await setup.getRepository(EvaluationExtractionRun).save(emptyRun)
     evaluationExtractionRunId = emptyRun.id

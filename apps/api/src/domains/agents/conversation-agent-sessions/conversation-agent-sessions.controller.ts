@@ -12,6 +12,8 @@ import { AddContext, RequireContext } from "@/common/context/require-context.dec
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
@@ -29,6 +31,7 @@ import { ConversationAgentSessionsService } from "./conversation-agent-sessions.
 export class ConversationAgentSessionsController {
   constructor(
     private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
+    private readonly agentSettingsService: AgentSettingsService,
     private readonly baseAgentSessionsService: BaseAgentSessionsService,
   ) {}
 
@@ -54,9 +57,13 @@ export class ConversationAgentSessionsController {
     @Req() request: EndpointRequestWithAgent,
     @Body() { payload }: typeof ConversationAgentSessionsRoutes.createOne.request,
   ): Promise<typeof ConversationAgentSessionsRoutes.createOne.response> {
-    const session = await this.conversationAgentSessionsService.createSession({
+    const agentSettings = await this.agentSettingsService.getLast({
       connectScope: getRequiredConnectScope(request),
       agentId: request.agent.id,
+    })
+    const session = await this.conversationAgentSessionsService.createSession({
+      connectScope: getRequiredConnectScope(request),
+      agentSettingsId: agentSettings.id,
       userId: request.user.id,
       type: payload.type,
     })

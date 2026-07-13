@@ -1,0 +1,104 @@
+---
+title: Add a form agent
+description: Create a form agent that guides a user through filling out a form, collecting structured answers that match a schema you define.
+category: guides-agents
+order: 2
+updated: 2026-07-10
+---
+
+import AddFormAgentWalkthrough from "@/components/AddFormAgentWalkthrough.astro"
+
+A **form agent** helps a user **fill out a form through conversation**. Instead of
+showing static fields, it asks questions one at a time and collects **structured
+answers** matching a schema you define — combining a chat experience with the
+structured output of an [extraction agent](/en/add-an-extraction-agent).
+
+Agents live in your **workspace** and are created from the **New Agent** card on the
+workspace overview (or the **+** next to **Agents** in the left sidebar). Choosing
+the **Form** type is what turns the agent into a guided form.
+
+## How a form agent works
+
+You define a **Form Configuration** (a JSON schema listing the fields to collect,
+for example `fullName` and `email`), a **Greeting** the agent opens with, and a
+**Default Prompt** describing how it should guide the user. A form agent has four
+configuration tabs — **General**, **Model**, **Form** and **Resources** — so it can
+also surface entries from your resource libraries during the conversation.
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click
+and the area to watch.
+
+<AddFormAgentWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Open the New Agent dialog
+
+On the workspace overview, find the **New Agent** card and click **Create** (you can
+also use the **+** next to **Agents** in the left sidebar).
+
+### 2. Choose the Form type
+
+In the **New Agent** dialog, under **Agent type**, select **Form**. The type
+determines what the agent does, so pick it before continuing.
+
+### 3. Name the agent and create it
+
+Type a **Name** (at least 3 characters) in the **Name** field, then click
+**Create**. Your agent is created with sensible defaults and opens in the editor.
+
+### 4. Set the basics on General
+
+The editor opens on the **General** tab. Set the:
+
+- **Name** — how the agent appears in your workspace.
+- **Locale** — the language the agent works in.
+- **Greeting** — the first message the agent sends when a conversation starts.
+- **Default Prompt** — the instructions telling the agent how to guide the user
+  through the form.
+
+### 5. Pick the model on Model
+
+Open the **Model** tab and choose the **Model** that powers the agent, and a
+**Temperature** (lower values give steadier, more predictable questions).
+
+### 6. Define the fields on Form
+
+Open the **Form** tab and edit the **Form Configuration** — the JSON schema that
+describes each field to collect. List your fields under `properties`, give each a
+`type` and a `description`, and mark the mandatory ones in `required`.
+
+### 7. Attach resources on Resources
+
+Open the **Resources** tab to attach **resource libraries** the agent can surface
+during the conversation. Click **Add library**, pick a library, and it appears as a
+tag. Use **Manage libraries** to open the library manager in a new tab. See
+[Resource libraries](/en/resource-libraries) to create them first.
+
+### 8. Save your agent
+
+Click **Update** to save your configuration. The form agent is now ready to use.
+
+## Tips
+
+- Keep field **descriptions** clear — the agent uses them to phrase each question
+  and to decide what to store.
+- The **Greeting** sets the tone; write it in the same language as the agent's
+  **Locale**.
+- Use a **low Temperature** (for example `0.2`) so the agent asks consistent
+  questions rather than improvising.
+- Attach only the **resource libraries** that are relevant — the agent surfaces
+  their entries when a user's request matches a resource's title or description.
+
+## Troubleshooting
+
+- **The Create button is disabled** — the **Name** must be at least 3 characters.
+- **My Form Configuration won't save** — it must be a valid JSON object; check for a
+  trailing comma or a missing quote.
+- **No libraries to add** — the **Add library** list is empty until you create
+  libraries; see [Resource libraries](/en/resource-libraries).
+- **I don't see a Form tab** — make sure you created a **Form** agent (conversation
+  agents chat, extraction agents show an **Output** tab instead).

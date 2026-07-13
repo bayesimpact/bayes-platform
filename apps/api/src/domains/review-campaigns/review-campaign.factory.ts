@@ -2,10 +2,12 @@ import { randomUUID } from "node:crypto"
 import { Factory } from "fishery"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"
 import type { Agent } from "@/domains/agents/agent.entity"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { ReviewCampaign } from "./review-campaign.entity"
 
 type ReviewCampaignTransientParams = RequiredScopeTransientParams & {
   agent: Agent
+  agentSettings: AgentSettings
 }
 
 class ReviewCampaignFactory extends Factory<ReviewCampaign, ReviewCampaignTransientParams> {
@@ -33,6 +35,9 @@ export const reviewCampaignFactory = ReviewCampaignFactory.define(
     if (!transientParams.agent) {
       throw new Error("agent transient is required")
     }
+    if (!transientParams.agentSettings) {
+      throw new Error("agentSettings transient is required")
+    }
 
     const now = new Date()
     return {
@@ -45,6 +50,8 @@ export const reviewCampaignFactory = ReviewCampaignFactory.define(
       project: transientParams.project,
       agentId: transientParams.agent.id,
       agent: transientParams.agent,
+      agentSettingsId: transientParams.agentSettings.id,
+      agentSettings: transientParams.agentSettings,
       name: params.name || `Test Review Campaign ${sequence}`,
       description: params.description ?? null,
       status: params.status || "draft",
@@ -53,7 +60,6 @@ export const reviewCampaignFactory = ReviewCampaignFactory.define(
       reviewerQuestions: params.reviewerQuestions || [],
       activatedAt: params.activatedAt ?? null,
       closedAt: params.closedAt ?? null,
-      memberships: params.memberships || [],
       testerSessionFeedbacks: params.testerSessionFeedbacks || [],
       testerCampaignSurveys: params.testerCampaignSurveys || [],
       reviewerSessionReviews: params.reviewerSessionReviews || [],

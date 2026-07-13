@@ -1,6 +1,7 @@
 import { Column, JoinColumn, ManyToOne, OneToMany } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import type { Agent } from "@/domains/agents/agent.entity"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { Document } from "@/domains/documents/document.entity"
 import { AgentCsvExtractionRunRecord } from "./agent-csv-extraction-run-record.entity"
 
@@ -38,15 +39,23 @@ export type AgentCsvExtractionRunSummary = {
 
 @ConnectEntity("agent_csv_extraction_run")
 export class AgentCsvExtractionRun extends ConnectEntityBase {
-  @Column({ type: "uuid", name: "agent_id", nullable: false })
-  agentId!: string
-  @ManyToOne("Agent", (agent: Agent) => agent.id)
+  @Column({ type: "uuid", name: "agent_id" })
+  _deleted_agentId!: string
+  @ManyToOne("Agent", (agent: Agent) => agent.id, { onDelete: "CASCADE" })
   @JoinColumn({ name: "agent_id" })
-  agent!: Agent
+  _deleted_agent!: Agent
+
+  @Column({ type: "uuid", name: "agent_settings_id", nullable: false })
+  agentSettingsId!: string
+  @ManyToOne("AgentSettings", (agentSettings: AgentSettings) => agentSettings.id, {
+    onDelete: "CASCADE",
+  })
+  @JoinColumn({ name: "agent_settings_id" })
+  agentSettings!: AgentSettings
 
   @Column({ type: "uuid", name: "csv_document_id", nullable: false })
   csvDocumentId!: string
-  @ManyToOne("Document", (document: Document) => document.id)
+  @ManyToOne("Document", (document: Document) => document.id, { onDelete: "CASCADE" })
   @JoinColumn({ name: "csv_document_id" })
   csvDocument!: Document
 

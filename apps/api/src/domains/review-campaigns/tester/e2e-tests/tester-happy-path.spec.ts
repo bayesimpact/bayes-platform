@@ -10,8 +10,9 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import {
@@ -65,14 +66,16 @@ describe("ReviewCampaigns - Tester happy path", () => {
   const seedActiveCampaignWithTester = async (
     agentType: "conversation" | "form" = "conversation",
   ) => {
-    const { organization, project, user } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id },
-    })
-    const agent = agentFactory.transient({ organization, project }).build({ type: agentType })
-    await repositories.agentRepository.save(agent)
+    const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        user: { auth0Id },
+        agent: { type: agentType },
+      },
+    )
     const campaign = reviewCampaignFactory
       .active()
-      .transient({ organization, project, agent })
+      .transient({ organization, project, agent, agentSettings })
       .build({
         testerPerSessionQuestions: [
           { id: "q1", prompt: "Was it clear?", type: "rating", required: true },
@@ -86,7 +89,6 @@ describe("ReviewCampaigns - Tester happy path", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .tester()
-        .accepted()
         .transient({ organization, project, campaign, user })
         .build(),
     })
@@ -95,7 +97,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
     projectId = project.id
     reviewCampaignId = campaign.id
 
-    return { organization, project, user, agent, campaign }
+    return { organization, project, user, agent, agentSettings, campaign }
   }
 
   it("getTesterContext returns campaign + agent snapshot + questions", async () => {
@@ -134,10 +136,19 @@ describe("ReviewCampaigns - Tester happy path", () => {
     // which the same caller is a reviewer.
     const reviewerAgent = agentFactory.transient({ organization, project }).build()
     await repositories.agentRepository.save(reviewerAgent)
+    const reviewerAgentSettings = agentSettingsFactory
+      .transient({ organization, project, agent: reviewerAgent })
+      .build()
+    await repositories.agentSettingsRepository.save(reviewerAgentSettings)
     const reviewerCampaign = await repositories.reviewCampaignRepository.save(
       reviewCampaignFactory
         .active()
-        .transient({ organization, project, agent: reviewerAgent })
+        .transient({
+          organization,
+          project,
+          agent: reviewerAgent,
+          agentSettings: reviewerAgentSettings,
+        })
         .build(),
     )
     const callerUser = await repositories.userRepository.findOneByOrFail({ auth0Id })
@@ -145,7 +156,6 @@ describe("ReviewCampaigns - Tester happy path", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .reviewer()
-        .accepted()
         .transient({ organization, project, campaign: reviewerCampaign, user: callerUser })
         .build(),
     })
@@ -171,24 +181,38 @@ describe("ReviewCampaigns - Tester happy path", () => {
   })
 
   it("getMyReviewCampaigns includes closed campaigns for reviewers only", async () => {
-    const { organization, project } = await seedActiveCampaignWithTester()
-    const reviewerAgent = agentFactory.transient({ organization, project }).build()
-    await repositories.agentRepository.save(reviewerAgent)
+    const {
+      organization,
+      project,
+      agent: reviewerAgent,
+      agentSettings: reviewerAgentSettings,
+    } = await seedActiveCampaignWithTester()
     const callerUser = await repositories.userRepository.findOneByOrFail({ auth0Id })
     const closedCampaign = await repositories.reviewCampaignRepository.save(
       reviewCampaignFactory
         .closed()
-        .transient({ organization, project, agent: reviewerAgent })
+        .transient({
+          organization,
+          project,
+          agent: reviewerAgent,
+          agentSettings: reviewerAgentSettings,
+        })
         .build(),
     )
     const draftCampaign = await repositories.reviewCampaignRepository.save(
-      reviewCampaignFactory.transient({ organization, project, agent: reviewerAgent }).build(),
+      reviewCampaignFactory
+        .transient({
+          organization,
+          project,
+          agent: reviewerAgent,
+          agentSettings: reviewerAgentSettings,
+        })
+        .build(),
     )
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
         .reviewer()
-        .accepted()
         .transient({ organization, project, campaign: closedCampaign, user: callerUser })
         .build(),
     })
@@ -196,7 +220,6 @@ describe("ReviewCampaigns - Tester happy path", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .reviewer()
-        .accepted()
         .transient({ organization, project, campaign: draftCampaign, user: callerUser })
         .build(),
     })

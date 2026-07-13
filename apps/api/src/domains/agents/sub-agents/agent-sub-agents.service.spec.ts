@@ -7,6 +7,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { agentFactory } from "@/domains/agents/agent.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
@@ -215,6 +216,10 @@ describe("AgentSubAgentsService", () => {
     const extractionAgent = await repositories.agentRepository.save(
       agentFactory.transient({ organization, project }).build({
         type: "extraction",
+      }),
+    )
+    const _extractionAgentSettings = await repositories.agentSettingsRepository.save(
+      agentSettingsFactory.transient({ organization, project, agent: extractionAgent }).build({
         outputJsonSchema: { type: "object", properties: {} },
       }),
     )
@@ -241,11 +246,16 @@ describe("AgentSubAgentsService", () => {
     const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
       agent: {
         type: "form",
+      },
+      agentSettings: {
         outputJsonSchema: { type: "object", properties: {} },
       },
     })
     const childAgent = await repositories.agentRepository.save(
       agentFactory.transient({ organization, project }).build({ type: "conversation" }),
+    )
+    const _childAgentSettings = await repositories.agentSettingsRepository.save(
+      agentSettingsFactory.transient({ organization, project, agent: childAgent }).build(),
     )
 
     await expect(
@@ -268,6 +278,8 @@ describe("AgentSubAgentsService", () => {
     const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
       agent: {
         type: "form",
+      },
+      agentSettings: {
         outputJsonSchema: { type: "object", properties: {} },
       },
     })

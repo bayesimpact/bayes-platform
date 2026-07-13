@@ -1,37 +1,45 @@
 import { randomUUID } from "node:crypto"
 import { Factory } from "fishery"
+import type { Repository } from "typeorm"
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+import type { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
+import { agentSubAgentFactory } from "@/domains/agents/sub-agents/agent-sub-agent.factory"
 import type { Document } from "@/domains/documents/document.entity"
 import { documentFactory } from "@/domains/documents/document.factory"
+import type { FeatureFlag } from "@/domains/feature-flags/feature-flag.entity"
 import type { Project } from "@/domains/projects/project.entity"
 import { projectFactory } from "@/domains/projects/project.factory"
+import type { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
+import { resourceLibraryFactory } from "@/domains/resource-libraries/resource-library.factory"
 import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import type { ExtractionAgentSession } from "../agents/extraction-agent-sessions/extraction-agent-session.entity"
 import { extractionAgentSessionFactory } from "../agents/extraction-agent-sessions/extraction-agent-session.factory"
 import type { FormAgentSession } from "../agents/form-agent-sessions/form-agent-session.entity"
 import { formAgentSessionFactory } from "../agents/form-agent-sessions/form-agent-session.factory"
-import type { AgentMembership } from "../agents/memberships/agent-membership.entity"
 import {
   agentMembershipFactory,
   saveAgentMembership,
 } from "../agents/memberships/agent-membership.factory"
+import type { AgentMembershipFixture } from "../agents/memberships/agent-membership.types"
 import type { AgentMessage } from "../agents/shared/agent-session-messages/agent-message.entity"
 import { agentMessageFactory } from "../agents/shared/agent-session-messages/agent-messages.factory"
-import type { ProjectMembership } from "../projects/memberships/project-membership.entity"
 import {
   projectMembershipFactory,
   saveProjectMembership,
 } from "../projects/memberships/project-membership.factory"
-import type { OrganizationMembership } from "./memberships/organization-membership.entity"
+import type { ProjectMembershipFixture } from "../projects/memberships/project-membership.types"
 import {
   organizationMembershipFactory,
   saveOrgMembership,
 } from "./memberships/organization-membership.factory"
+import type { OrganizationMembershipFixture } from "./memberships/organization-membership.types"
 import type { Organization } from "./organization.entity"
 
 export const organizationFactory = Factory.define<Organization>(({ sequence, params }) => {
@@ -42,7 +50,6 @@ export const organizationFactory = Factory.define<Organization>(({ sequence, par
     createdAt: params.createdAt || now,
     updatedAt: params.updatedAt || now,
     deletedAt: null,
-    memberships: params.memberships || [],
     projects: params.projects || [],
     conversationAgentSessions: params.conversationAgentSessions || [],
     agentMessageFeedbacks: params.agentMessageFeedbacks || [],
@@ -52,13 +59,13 @@ export const organizationFactory = Factory.define<Organization>(({ sequence, par
 type OrganizationParams = {
   organization?: Partial<Organization>
   user?: Partial<User>
-  organizationMembership?: Partial<OrganizationMembership>
+  organizationMembership?: Partial<OrganizationMembershipFixture>
 }
 
 type OrganizationReturnType = {
   organization: Organization
   user: User
-  organizationMembership: OrganizationMembership
+  organizationMembership: OrganizationMembershipFixture
 }
 export function buildOrganizationWithOwner(
   params: OrganizationParams = {},
@@ -90,11 +97,11 @@ export async function createOrganizationWithOwner(
 
 type ProjectParams = OrganizationParams & {
   project?: Partial<Project>
-  projectMembership?: Partial<ProjectMembership>
+  projectMembership?: Partial<ProjectMembershipFixture>
 }
 type ProjectReturnType = OrganizationReturnType & {
   project: Project
-  projectMembership: ProjectMembership
+  projectMembership: ProjectMembershipFixture
 }
 export async function createOrganizationWithProject(
   repositories: AllRepositories,
@@ -117,11 +124,16 @@ export async function createOrganizationWithProject(
 
 type AgentParams = ProjectParams & {
   agent?: Partial<Agent>
-  agentMembership?: Partial<AgentMembership>
+  agentMembership?: Partial<AgentMembershipFixture>
+  agentSettings?: Partial<AgentSettings>
+  withLiveConversationAgentSession?: true
 }
 type AgentReturnType = ProjectReturnType & {
   agent: Agent
-  agentMembership: AgentMembership
+  agentSettings: AgentSettings
+  agentMembership: AgentMembershipFixture
+  agentResourceLibraries: ResourceLibrary[]
+  conversationAgentSession?: ConversationAgentSession
 }
 export async function createOrganizationWithAgent(
   repositories: AllRepositories,
@@ -130,27 +142,53 @@ export async function createOrganizationWithAgent(
   const data = await createOrganizationWithProject(repositories, params)
   const { organization, user, project } = data
 
-  const agent = agentFactory.transient({ project, organization }).build(params.agent)
+  const resourceLibrary = resourceLibraryFactory.transient({ organization, project }).build()
+  await repositories.resourceLibraryRepository.save(resourceLibrary)
+
+  const agent = agentFactory
+    .transient({ project, organization })
+    .build({ ...params.agent, resourceLibraries: [resourceLibrary] })
   await repositories.agentRepository.save(agent)
+  const agentSettings = agentSettingsFactory
+    .transient({ project, organization, agent })
+    .build(params.agentSettings)
+  await repositories.agentSettingsRepository.save(agentSettings)
   const agentMembership = agentMembershipFactory
     .owner()
     .transient({ user, agent })
     .build(params.agentMembership)
   await saveAgentMembership({ repositories, membership: agentMembership })
 
+  let conversationAgentSession: ConversationAgentSession | undefined
+  if (params.withLiveConversationAgentSession) {
+    conversationAgentSession = conversationAgentSessionFactory
+      .transient({
+        organization,
+        project,
+        agent,
+        user,
+      })
+      .live()
+      .build()
+    await repositories.conversationAgentSessionRepository.save(conversationAgentSession)
+  }
+
   return {
     ...data,
     agent,
+    agentSettings,
     agentMembership,
+    agentResourceLibraries: [resourceLibrary],
+    ...(conversationAgentSession && { conversationAgentSession }),
   }
 }
-
 type AgentSessionParams = AgentParams & {
   agentSession?:
     | Partial<ConversationAgentSession>
     | Partial<FormAgentSession>
     | Partial<ExtractionAgentSession>
   document?: Partial<Document>
+  agentSettings?: Partial<AgentSettings>
 }
 type AgentSessionReturnType<T> = AgentReturnType & {
   agentSession: T
@@ -179,7 +217,7 @@ export async function createOrganizationWithAgentSession<T extends Agent["type"]
     ...params,
     agent: { ...params.agent, type: agentType },
   })
-  const { organization, user, agent, project } = data
+  const { organization, user, agent, agentSettings, project } = data
 
   switch (agentType) {
     case "conversation": {
@@ -196,7 +234,7 @@ export async function createOrganizationWithAgentSession<T extends Agent["type"]
       const document = documentFactory.transient({ organization, project }).build(params.document)
       await repositories.documentRepository.save(document)
       const agentSession = extractionAgentSessionFactory
-        .transient({ organization, project, user, agent, document })
+        .transient({ organization, project, user, agent, agentSettings, document })
         .build(params.agentSession)
       await repositories.extractionAgentSessionRepository.save(agentSession)
 
@@ -222,7 +260,15 @@ export async function createOrganizationWithAgentSession<T extends Agent["type"]
 type AgentMessageParams = AgentSessionParams & {
   agentMessage?: Partial<AgentMessage>
 }
-type AgentMessageReturnType<T extends Agent["type"]> = AgentSessionReturnType<T> & {
+type AgentMessageReturnType<T extends Agent["type"]> = AgentSessionReturnType<
+  T extends "conversation"
+    ? ConversationAgentSession
+    : T extends "extraction"
+      ? ExtractionAgentSession
+      : T extends "form"
+        ? FormAgentSession
+        : never
+> & {
   agentMessage: AgentMessage
 }
 export async function createOrganizationWithAgentMessage<T extends Agent["type"]>({
@@ -239,7 +285,7 @@ export async function createOrganizationWithAgentMessage<T extends Agent["type"]
   }
 
   const data = await createOrganizationWithAgentSession({ repositories, params, agentType })
-  const { organization, project, agentSession } = data
+  const { organization, project, agentSession, agentSettings } = data
 
   if (!agentSession) {
     throw new Error("Agent session is required to create an agent message")
@@ -250,11 +296,11 @@ export async function createOrganizationWithAgentMessage<T extends Agent["type"]
       organization,
       project,
       session: agentSession as ConversationAgentSession | FormAgentSession,
+      agentSettings,
     })
     .build(params.agentMessage)
   await repositories.agentMessageRepository.save(agentMessage)
 
-  // @ts-expect-error
   return { ...data, agentMessage, agentSession }
 }
 
@@ -275,4 +321,113 @@ export async function createOrganizationWithDocument(
   await repositories.documentRepository.save(document)
 
   return { ...data, document }
+}
+
+type AgentAndSubAgentsParams = ProjectParams & {
+  agent?: Partial<Agent>
+  agentSettings?: Partial<AgentSettings>
+  subAgents?: {
+    subAgent?: Partial<Agent>
+    subAgentSettings?: Partial<AgentSettings>
+    agentSubAgent?: Partial<AgentSubAgent>
+  }[]
+}
+type AgentAndSubAgentsReturnType = ProjectReturnType & {
+  agent: Agent
+  agentSettings: AgentSettings
+  subAgents: SubAgentItem[]
+}
+
+type SubAgentItem = {
+  subAgent: Agent
+  subAgentSettings: AgentSettings
+  agentSubAgent: AgentSubAgent
+}
+
+export async function addFeature({
+  featureFlagRepository,
+  projectId,
+  featureFlagKey,
+}: {
+  featureFlagRepository: Repository<FeatureFlag>
+  projectId: string
+  featureFlagKey: string
+}) {
+  const existingFlag = await featureFlagRepository.findOne({
+    where: { projectId, featureFlagKey },
+  })
+  if (!existingFlag) {
+    await featureFlagRepository.save(
+      featureFlagRepository.create({
+        projectId,
+        featureFlagKey,
+        enabled: true,
+      }),
+    )
+  } else {
+    await featureFlagRepository.save({ ...existingFlag, enabled: true })
+  }
+}
+export async function createOrganizationWithAgentAndSubAgents(
+  repositories: AllRepositories,
+  params: AgentAndSubAgentsParams = {},
+): Promise<AgentAndSubAgentsReturnType> {
+  const data = await createOrganizationWithProject(repositories, params)
+  const { organization, project } = data
+
+  await addFeature({
+    featureFlagRepository: repositories.featureFlagRepository,
+    projectId: project.id,
+    featureFlagKey: "agent-orchestration",
+  })
+
+  const agent = agentFactory.transient({ project, organization }).build(params.agent)
+  await repositories.agentRepository.save(agent)
+
+  const agentSettings = agentSettingsFactory
+    .transient({ project, organization, agent })
+    .build(params.agentSettings)
+  await repositories.agentSettingsRepository.save(agentSettings)
+
+  const subAgents: SubAgentItem[] = []
+  if (params.subAgents && params.subAgents.length > 0) {
+    for (const sub of params.subAgents) {
+      const subAgent = agentFactory.transient({ project, organization }).build(sub.subAgent)
+      await repositories.agentRepository.save(subAgent)
+
+      const subAgentSettings = agentSettingsFactory
+        .transient({ project, organization, agent: subAgent })
+        .build(sub.subAgentSettings)
+      await repositories.agentSettingsRepository.save(subAgentSettings)
+
+      const agentSubAgent = agentSubAgentFactory
+        .transient({ organization, project, childAgent: subAgent, parentAgent: agent })
+        .build(sub.agentSubAgent)
+      await repositories.agentSubAgentRepository.save(agentSubAgent)
+
+      subAgents.push({ subAgent, subAgentSettings, agentSubAgent })
+    }
+  } else {
+    const subAgent = agentFactory.transient({ project, organization }).build()
+    await repositories.agentRepository.save(subAgent)
+
+    const subAgentSettings = agentSettingsFactory
+      .transient({ project, organization, agent: subAgent })
+      .build()
+    await repositories.agentSettingsRepository.save(subAgentSettings)
+
+    const agentSubAgent = agentSubAgentFactory
+      .transient({ organization, project, childAgent: subAgent, parentAgent: agent })
+      .build()
+    await repositories.agentSubAgentRepository.save(agentSubAgent)
+
+    subAgents.push({ subAgent, subAgentSettings, agentSubAgent })
+  }
+
+  return {
+    ...data,
+    agent,
+    agentSettings,
+    subAgents,
+  }
 }

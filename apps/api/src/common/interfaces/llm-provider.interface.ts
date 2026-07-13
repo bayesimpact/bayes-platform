@@ -3,18 +3,19 @@ import type { ModelMessage, ToolSet } from "ai"
 import type { ZodObject, z } from "zod"
 export type LLMChatMessage = ModelMessage
 
-type MockModels =
-  | AgentModel._MockGenerateObject
-  | AgentModel._MockGenerateStructuredOutput
-  | AgentModel._MockGenerateText
-  | AgentModel._MockRate
-  | AgentModel._MockStreamChatResponse
+type MockModels = AgentModel._Mock
+
+export type MockValue =
+  | { type: "text"; value: string }
+  | { type: "object"; value: unknown }
+  | { type: "stream"; chunks: string[] }
+  | { type: "toolCall"; toolName: string; input: unknown }
+
 export type LLMConfig =
   | {
       model: MockModels
       temperature: number
       systemPrompt?: string
-      mockResult: string | string[]
       tools?: ToolSet
       useExtendedTimeouts?: never
     }
@@ -22,7 +23,6 @@ export type LLMConfig =
       model: Exclude<string, MockModels>
       temperature: number
       systemPrompt?: string
-      mockResult?: never
       tools?: ToolSet
       /**
        * Opt in to the extended network timeouts on the underlying provider fetch
@@ -46,6 +46,7 @@ export type LLMMetadata = (
   traceId: string
   organizationId: string
   agentId: string
+  revision: number
   projectId: string
   tags: string[]
   /**
@@ -87,7 +88,7 @@ export interface LLMProvider {
     config: LLMConfig
     metadata: LLMMetadata
   }): Promise<string>
-  // biome-ignore lint/suspicious/noExplicitAny: @Did ? une idée
+  // biome-ignore lint/suspicious/noExplicitAny: generic
   generateObject<T extends ZodObject<any>>({
     schema,
     prompt,

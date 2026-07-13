@@ -1,0 +1,113 @@
+---
+title: Sites web
+description: Explorez des sites web pour intégrer leur contenu aux connaissances de vos agents, et organisez les sources avec des étiquettes.
+category: guides-sources
+order: 2
+updated: 2026-07-09
+---
+
+import WebSourcesWalkthrough from "@/components/WebSourcesWalkthrough.astro"
+
+Une **source web** est un site web que vous explorez (crawl) pour indexer son
+contenu et l'ajouter aux connaissances de vos agents. Une fois une source
+explorée et prête, les agents de l'espace de travail peuvent s'appuyer sur ses
+pages pour répondre aux utilisateurs.
+
+Les sites web se trouvent dans **Sources**, aux côtés des Documents et des
+Bibliothèques de ressources, et appartiennent à l'**espace de travail**.
+
+## Comment les agents utilisent les sources web
+
+Une source web explorée est indexée comme connaissance dans l'espace de travail.
+Une fois son **statut des embeddings** à **Prêt**, les agents peuvent en récupérer
+les pages pertinentes pour répondre aux utilisateurs. Utilisez les **étiquettes**
+pour organiser vos sources et contrôler leur usage — par exemple, l'étiquette
+réservée `public-documents` autorise l'utilisateur à télécharger une source
+lorsqu'elle est proposée dans une conversation.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape
+met en valeur le bouton à cliquer et la zone à observer.
+
+<WebSourcesWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir Sites web
+
+Dans **Studio**, ouvrez la barre latérale de gauche, dépliez la section
+**Sources**, puis sélectionnez **Sites web**.
+
+### 2. Explorer un site web
+
+1. Cliquez sur **Explorer un site web** (en haut à droite de la page).
+2. Dans la boîte de dialogue **Explorer un site web**, saisissez l'**URL du site**
+   (par exemple `https://exemple.com`). L'intégralité du site est indexée en
+   arrière-plan.
+3. Donnez éventuellement un **Nom** à la source (sinon le site est utilisé).
+4. Cliquez sur **Lancer l'exploration**.
+
+La nouvelle source apparaît aussitôt dans le tableau.
+
+### 3. Attendre qu'elle soit prête
+
+Chaque source affiche un **Statut des embeddings**. Il passe de **Exploration** à
+**Prêt** une fois les pages indexées. Seule une source **Prêt** est pleinement
+exploitable par vos agents. Le tableau indique aussi le nombre de **Pages**
+explorées et la date de dernière mise à jour.
+
+### 4. Gérer une source
+
+Ouvrez le menu **⋮** en fin de ligne d'une source pour :
+
+- **Voir** — consulter les détails de la source.
+- **Modifier** — renommer la source et ajouter des étiquettes (voir ci-dessous).
+- **Ré-explorer le site** — relancer l'exploration pour récupérer les changements.
+- **Supprimer** — retirer la source et son contenu indexé.
+
+### 5. Voir les pages explorées
+
+Cliquez sur la **flèche** (chevron) au début de la ligne d'une source pour la
+déplier et lister toutes les pages explorées, chacune renvoyant vers son URL.
+
+### 6. Étiqueter une source
+
+Les étiquettes permettent de regrouper et de contrôler les sources.
+
+1. Dans le menu **⋮** de la source, choisissez **Modifier**.
+2. Dans la boîte de dialogue, cliquez sur **Ajouter une étiquette** et choisissez-en une.
+3. Cliquez sur **Mettre à jour**.
+
+L'étiquette apparaît alors dans la colonne **Tags** de la source.
+
+### 7. Créer et gérer les étiquettes
+
+1. Sur la page **Sites web**, cliquez sur **Étiquettes** (en haut à droite) pour
+   ouvrir le panneau des étiquettes.
+2. Cliquez sur **Créer une étiquette**.
+3. Saisissez un **Nom** et une **Description** facultative, puis cliquez sur **Créer**.
+4. Depuis ce panneau, vous pouvez **Modifier** ou **Supprimer** une étiquette à
+   tout moment.
+
+> L'étiquette réservée **`public-documents`** est spéciale : lorsqu'un document ou
+> une source qui la porte est proposé dans une conversation, l'utilisateur est
+> autorisé à le télécharger.
+
+## Conseils
+
+- Explorez les sections les plus pertinentes d'un site — tout le site est indexé,
+  donc un site ciblé et bien structuré donne les meilleures réponses.
+- **Ré-explorez** après une modification du site pour que vos agents restent à jour.
+- Utilisez les étiquettes pour organiser de grands ensembles de sources et
+  contrôler celles que les utilisateurs peuvent télécharger.
+
+## Dépannage
+
+- **Un agent n'utilise pas une source** — vérifiez que son **Statut des embeddings**
+  est **Prêt** ; une source encore en **Exploration** n'est pas encore disponible.
+- **Le site a changé mais les réponses sont périmées** — ouvrez le menu **⋮** et
+  choisissez **Ré-explorer le site**.
+- **L'exploration ne démarre pas** — l'**URL du site** doit être une adresse
+  `https://` valide.

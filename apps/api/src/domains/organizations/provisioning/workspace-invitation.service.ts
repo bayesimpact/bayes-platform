@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto"
 import type { DataSource, Repository } from "typeorm"
+import type { TransactionService } from "@/common/transaction/transaction.service"
 import type { InvitationSender } from "@/domains/auth/invitation-sender.interface"
 import { Invitation } from "@/domains/invitations/invitation.entity"
-import type { UserMembershipService } from "@/domains/memberships/user-membership.service"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
+import type { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 import { Organization } from "@/domains/organizations/organization.entity"
-import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
+import type { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
 import { PLACEHOLDER_AUTH0_ID_PREFIX } from "@/domains/projects/memberships/project-memberships.service"
 import { Project } from "@/domains/projects/project.entity"
 import { User } from "@/domains/users/user.entity"
@@ -38,7 +38,9 @@ export class WorkspaceInvitationService {
   constructor(
     private readonly invitationSender: InvitationSender,
     private readonly dataSource: DataSource,
-    private readonly userMembershipService: UserMembershipService,
+    private readonly organizationMembershipsService: OrganizationMembershipsService,
+    private readonly projectMembershipsService: ProjectMembershipsService,
+    private readonly transactionService: TransactionService,
   ) {}
 
   async inviteWorkspaceOwner(
@@ -48,11 +50,10 @@ export class WorkspaceInvitationService {
     const normalizedOrgName = input.organizationName.trim()
     const projectName = input.workspaceName?.trim() || normalizedOrgName
 
-    return this.dataSource.transaction(async (manager) => {
+    return this.transactionService.run(async () => {
+      const manager = this.transactionService.getManager()
       const organizationRepository = manager.getRepository(Organization)
-      const organizationMembershipRepository = manager.getRepository(OrganizationMembership)
       const projectRepository = manager.getRepository(Project)
-      const projectMembershipRepository = manager.getRepository(ProjectMembership)
       const userRepository = manager.getRepository(User)
 
       const organization = await this.findOrCreateOrganization({
@@ -66,12 +67,11 @@ export class WorkspaceInvitationService {
         userRepository,
       })
 
-      const existingProjectMembership = await this.findExistingProjectMembershipInOrganization({
-        userId: user.id,
-        organizationId: organization.id,
-        projectMembershipRepository,
-        projectRepository,
-      })
+      const existingProjectMembership =
+        await this.projectMembershipsService.findProjectMembershipInOrganization({
+          userId: user.id,
+          organizationId: organization.id,
+        })
 
       if (existingProjectMembership) {
         return {
@@ -91,22 +91,16 @@ export class WorkspaceInvitationService {
         projectRepository,
       })
 
-      // Ensure org membership exists for the user
-      const existingOrgMembership = await organizationMembershipRepository.findOne({
-        where: { userId: user.id, organizationId: organization.id },
-      })
+      const existingOrgMembership =
+        await this.organizationMembershipsService.findOrganizationMembership({
+          userId: user.id,
+          organizationId: organization.id,
+        })
       if (!existingOrgMembership) {
-        await organizationMembershipRepository.save(
-          organizationMembershipRepository.create({
-            userId: user.id,
-            organizationId: organization.id,
-            role: "admin",
-          }),
-        )
-        await this.userMembershipService.upsertOrganizationMembership(
-          { userId: user.id, organizationId: organization.id, role: "admin" },
-          manager,
-        )
+        await this.organizationMembershipsService.upsertOrganizationAdminMembership({
+          userId: user.id,
+          organizationId: organization.id,
+        })
       }
 
       const { ticketId } = await this.invitationSender.sendInvitation({
@@ -150,11 +144,9 @@ export class WorkspaceInvitationService {
     const normalizedEmail = input.email.trim().toLowerCase()
     const normalizedOrgName = input.organizationName.trim()
 
-    const userRepository = this.dataSource.getRepository(User)
-    const projectMembershipRepository = this.dataSource.getRepository(ProjectMembership)
-    const projectRepository = this.dataSource.getRepository(Project)
-
-    const user = await userRepository.findOne({ where: { email: normalizedEmail } })
+    const user = await this.dataSource.getRepository(User).findOne({
+      where: { email: normalizedEmail },
+    })
 
     if (user) {
       const organization = await this.dataSource
@@ -164,12 +156,11 @@ export class WorkspaceInvitationService {
         .getOne()
 
       if (organization) {
-        const existingProjectMembership = await this.findExistingProjectMembershipInOrganization({
-          userId: user.id,
-          organizationId: organization.id,
-          projectMembershipRepository,
-          projectRepository,
-        })
+        const existingProjectMembership =
+          await this.projectMembershipsService.findProjectMembershipInOrganization({
+            userId: user.id,
+            organizationId: organization.id,
+          })
 
         if (existingProjectMembership) {
           return {
@@ -241,31 +232,5 @@ export class WorkspaceInvitationService {
     if (existing) return existing
 
     return projectRepository.save(projectRepository.create({ organizationId, name: projectName }))
-  }
-
-  private async findExistingProjectMembershipInOrganization({
-    userId,
-    organizationId,
-    projectMembershipRepository,
-    projectRepository,
-  }: {
-    userId: string
-    organizationId: string
-    projectMembershipRepository: Repository<ProjectMembership>
-    projectRepository: Repository<Project>
-  }): Promise<ProjectMembership | null> {
-    const projects = await projectRepository.find({
-      where: { organizationId },
-      select: { id: true },
-    })
-
-    if (projects.length === 0) return null
-
-    const projectIds = projects.map((project) => project.id)
-    return projectMembershipRepository
-      .createQueryBuilder("membership")
-      .where("membership.userId = :userId", { userId })
-      .andWhere("membership.projectId IN (:...projectIds)", { projectIds })
-      .getOne()
   }
 }

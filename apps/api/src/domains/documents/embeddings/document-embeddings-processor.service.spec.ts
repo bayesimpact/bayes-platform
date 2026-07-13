@@ -152,4 +152,43 @@ describe("DocumentEmbeddingsProcessorService", () => {
     expect(sharedInternals.generateEmbeddingsByModel).not.toHaveBeenCalled()
     expect(sharedInternals.insertChunks).not.toHaveBeenCalled()
   })
+
+  it("processDocument - should works when document is not found", async () => {
+    const documentsService = {} as DocumentsService
+    const textExtractorService = {} as DocumentTextExtractorService
+    const embeddingStatusNotifierService = {} as DocumentEmbeddingStatusNotifierService
+    const fileStorage = {} as IFileStorage
+    const dataSource = { query: jest.fn() } as unknown as DataSource
+
+    const service = new DocumentEmbeddingsProcessorService(
+      documentsService,
+      textExtractorService,
+      embeddingStatusNotifierService,
+      fileStorage,
+      dataSource,
+    )
+
+    const serviceInternals = service as unknown as DocumentEmbeddingsProcessorInternals
+    jest.spyOn(serviceInternals, "findDocument").mockResolvedValue(null)
+    jest.spyOn(serviceInternals, "markDocumentStatus")
+    jest.spyOn(serviceInternals, "extractDocumentChunks")
+    jest.spyOn(serviceInternals, "generateEmbeddingsByModel")
+    jest.spyOn(serviceInternals, "insertChunks")
+
+    await expect(
+      service.processDocument({
+        documentId: "not-found-document-id",
+        organizationId: "organization-id",
+        projectId: "project-id",
+        uploadedByUserId: "user-id",
+        origin: "document-upload",
+        currentTraceId: "trace-id",
+      }),
+    ).resolves.toBeUndefined()
+
+    expect(serviceInternals.markDocumentStatus).not.toHaveBeenCalled()
+    expect(serviceInternals.extractDocumentChunks).not.toHaveBeenCalled()
+    expect(serviceInternals.generateEmbeddingsByModel).not.toHaveBeenCalled()
+    expect(serviceInternals.insertChunks).not.toHaveBeenCalled()
+  })
 })

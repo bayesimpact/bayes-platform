@@ -17,8 +17,8 @@ export function fillFormTool({
   formAgentSessionsService: FormAgentSessionsService
   onExecute: (toolExecution: ToolExecutionLog) => void
 }) {
-  const { agent, connectScope, session } = agentSessionScope
-  const schema = outputJsonSchemaSchema.parse(agent.outputJsonSchema) // validate the schema from the agent definition
+  const { agentSettings, connectScope, session } = agentSessionScope
+  const schema = outputJsonSchemaSchema.parse(agentSettings.outputJsonSchema) // validate the schema from the agent definition
 
   const inputSchema = buildFormFieldsZodSchema(schema.properties)
 

@@ -1,0 +1,104 @@
+---
+title: Documents
+description: Téléversez des documents pour intégrer leur contenu aux connaissances de vos agents, et gérez-les avec des étiquettes.
+category: guides-sources
+order: 1
+updated: 2026-07-09
+---
+
+import DocumentsWalkthrough from "@/components/DocumentsWalkthrough.astro"
+
+Un **document** est un fichier que vous téléversez pour indexer son contenu et
+l'ajouter aux connaissances de vos agents. Une fois un document téléversé et prêt,
+les agents de l'espace de travail peuvent s'appuyer dessus pour répondre aux
+utilisateurs.
+
+Les documents se trouvent dans **Sources**, aux côtés des Sites web et des
+Bibliothèques de ressources, et appartiennent à l'**espace de travail**.
+
+## Comment les agents utilisent les documents
+
+Un document téléversé est indexé comme connaissance dans l'espace de travail. Une
+fois son **statut des embeddings** à **Prêt**, les agents peuvent en récupérer les
+passages pertinents pour répondre aux utilisateurs. Utilisez les **étiquettes**
+pour organiser vos documents et contrôler leur usage — par exemple, l'étiquette
+réservée `public-documents` autorise l'utilisateur à télécharger un document
+lorsqu'il est proposé dans une conversation.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape
+met en valeur le bouton à cliquer et la zone à observer.
+
+<DocumentsWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir Documents
+
+Dans **Studio**, ouvrez la barre latérale de gauche, dépliez la section
+**Sources**, puis sélectionnez **Documents**.
+
+### 2. Téléverser un document
+
+1. Cliquez sur **Glissez ou téléversez un fichier** (en haut à droite de la page),
+   ou glissez un fichier sur la zone de dépôt.
+2. Dans la boîte de dialogue **Tags pour cet envoi**, cliquez éventuellement sur
+   **Ajouter une étiquette** pour appliquer des tags à chaque fichier de l'envoi.
+3. Cliquez sur **Téléverser**.
+
+Le document apparaît aussitôt dans le tableau.
+
+### 3. Attendre qu'il soit prêt
+
+Chaque document affiche un **Statut des embeddings**. Il passe de **En cours** à
+**Prêt** une fois le fichier indexé. Seul un document **Prêt** est pleinement
+exploitable par vos agents. Le tableau indique aussi les **Tags** du document et
+la date de dernière mise à jour.
+
+### 4. Gérer un document
+
+Ouvrez le menu **⋮** en fin de ligne d'un document pour :
+
+- **Télécharger le document** — télécharger le fichier d'origine.
+- **Voir** — consulter les détails et le contenu du document.
+- **Modifier** — renommer le document et changer ses étiquettes.
+- **Supprimer** — retirer le document et son contenu indexé.
+
+### 5. Gérer plusieurs documents à la fois
+
+1. Cochez la case de chaque ligne à gérer. Une barre indique le nombre d'éléments
+   **sélectionnés**.
+2. Depuis cette barre, choisissez **Ajouter une étiquette**, **Retirer un tag** ou
+   **Supprimer** pour appliquer l'action à tous les documents sélectionnés.
+3. Pour tout sélectionner, cochez la case de l'en-tête, à côté de **Titre**.
+
+### 6. Créer et gérer les étiquettes
+
+Les documents et les sites web partagent les mêmes étiquettes. Pour créer,
+modifier ou supprimer des étiquettes, ouvrez le panneau **Étiquettes** en haut à
+droite de la page — les étapes sont les mêmes que dans le guide
+[Sites web](/fr/web-sources).
+
+> L'étiquette réservée **`public-documents`** est spéciale : lorsqu'un document qui
+> la porte est proposé dans une conversation, l'utilisateur est autorisé à le
+> télécharger.
+
+## Conseils
+
+- Téléversez les documents les plus pertinents par rapport aux questions de vos
+  utilisateurs — des fichiers ciblés et bien nommés donnent les meilleures réponses.
+- Utilisez les étiquettes pour organiser de grands ensembles de documents et
+  contrôler ceux que les utilisateurs peuvent télécharger.
+- Sélectionnez plusieurs documents pour les étiqueter ou les nettoyer en une fois.
+
+## Dépannage
+
+- **Un agent n'utilise pas un document** — vérifiez que son **Statut des embeddings**
+  est **Prêt** ; un document encore **En cours** n'est pas encore disponible.
+- **Un document a échoué au traitement** — ouvrez le menu **⋮** pour l'inspecter,
+  puis re-téléversez-le si nécessaire.
+- **Je dois modifier les étiquettes de nombreux documents** — sélectionnez-les et
+  utilisez **Ajouter une étiquette** ou **Retirer un tag** dans la barre de
+  sélection.

@@ -5,6 +5,7 @@ import { Test, type TestingModule, type TestingModuleBuilder } from "@nestjs/tes
 import { getDataSourceToken, getRepositoryToken, TypeOrmModule } from "@nestjs/typeorm"
 import type { DataSource, EntityManager, ObjectLiteral, QueryRunner, Repository } from "typeorm"
 import { ALL_ENTITIES } from "../all-entities"
+import { TransactionModule } from "../transaction/transaction.module"
 import { type AllRepositories, buildAllRepositories } from "./test-all-repositories"
 
 export type { AllRepositories } from "./test-all-repositories"
@@ -78,6 +79,7 @@ export async function setupE2eTestDatabase(
         dropSchema: false,
       }),
       TypeOrmModule.forFeature(ALL_ENTITIES),
+      TransactionModule,
       ...additionalImports,
     ],
     providers,
@@ -160,19 +162,47 @@ export async function clearTestDatabase(dataSource: DataSource): Promise<void> {
       await queryRunner.query(`DELETE FROM "agent_message_attachment_document"`)
       await queryRunner.query(`DELETE FROM "tester_session_feedback"`)
       await queryRunner.query(`DELETE FROM "tester_campaign_survey"`)
-      await queryRunner.query(`DELETE FROM "review_campaign_membership"`)
       await queryRunner.query(`DELETE FROM "user_membership"`)
+      // Legacy membership tables are kept in production for now; test DBs may still
+      // have them from older migrations or synchronize.
+      await queryRunner.query(`
+        DO $$
+        BEGIN
+          IF EXISTS (
+            SELECT FROM information_schema.tables
+            WHERE table_schema = 'public' AND table_name = 'review_campaign_membership'
+          ) THEN
+            DELETE FROM "review_campaign_membership";
+          END IF;
+          IF EXISTS (
+            SELECT FROM information_schema.tables
+            WHERE table_schema = 'public' AND table_name = 'organization_membership'
+          ) THEN
+            DELETE FROM "organization_membership";
+          END IF;
+          IF EXISTS (
+            SELECT FROM information_schema.tables
+            WHERE table_schema = 'public' AND table_name = 'project_membership'
+          ) THEN
+            DELETE FROM "project_membership";
+          END IF;
+          IF EXISTS (
+            SELECT FROM information_schema.tables
+            WHERE table_schema = 'public' AND table_name = 'agent_membership'
+          ) THEN
+            DELETE FROM "agent_membership";
+          END IF;
+        END $$;
+      `)
       await queryRunner.query(`DELETE FROM "invitation"`)
       await queryRunner.query(`DELETE FROM "extraction_agent_session"`)
       await queryRunner.query(`DELETE FROM "form_agent_session"`)
       await queryRunner.query(`DELETE FROM "conversation_agent_session"`)
       await queryRunner.query(`DELETE FROM "review_campaign"`)
-      await queryRunner.query(`DELETE FROM "organization_membership"`)
-      await queryRunner.query(`DELETE FROM "project_membership"`)
       await queryRunner.query(`DELETE FROM "document"`)
       await queryRunner.query(`DELETE FROM "agent_mcp_server"`)
       await queryRunner.query(`DELETE FROM "agent_sub_agent"`)
-      await queryRunner.query(`DELETE FROM "agent_membership"`)
+      await queryRunner.query(`DELETE FROM "agent_settings"`)
       await queryRunner.query(`DELETE FROM "agent"`)
       await queryRunner.query(`DELETE FROM "mcp_server"`)
       await queryRunner.query(`DELETE FROM "project"`)

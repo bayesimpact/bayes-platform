@@ -48,13 +48,18 @@ describe("ExtractionAgentSessionsService", () => {
 
   it("creates a pending run and enqueues an execute job", async () => {
     const schema = z.object({ content: z.string(), source: z.string() })
-    const { organization, project, user, agent } = await createOrganizationWithAgent(repositories, {
-      agent: {
-        model: AgentModel._MockGenerateStructuredOutput,
-        type: "extraction",
-        outputJsonSchema: schema.toJSONSchema(),
+    const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        agent: {
+          type: "extraction",
+        },
+        agentSettings: {
+          model: AgentModel._Mock,
+          outputJsonSchema: schema.toJSONSchema(),
+        },
       },
-    })
+    )
 
     const document = documentFactory.transient({ organization, project }).build({
       mimeType: "application/pdf",
@@ -66,6 +71,7 @@ describe("ExtractionAgentSessionsService", () => {
     const run = await service.executeExtraction({
       connectScope: { organizationId: organization.id, projectId: project.id },
       agent,
+      agentSettings,
       userId: user.id,
       documentId: document.id,
       type: "playground",
@@ -82,13 +88,18 @@ describe("ExtractionAgentSessionsService", () => {
 
   it("should list and retrieve runs scoped by agent", async () => {
     const schema = z.object({ content: z.string(), source: z.string() })
-    const { organization, project, user, agent } = await createOrganizationWithAgent(repositories, {
-      agent: {
-        model: AgentModel._MockGenerateStructuredOutput,
-        type: "extraction",
-        outputJsonSchema: schema.toJSONSchema(),
+    const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        agent: {
+          type: "extraction",
+        },
+        agentSettings: {
+          model: AgentModel._Mock,
+          outputJsonSchema: schema.toJSONSchema(),
+        },
       },
-    })
+    )
     const document = documentFactory.transient({ organization, project }).build({
       mimeType: "application/pdf",
       sourceType: "extraction",
@@ -99,6 +110,7 @@ describe("ExtractionAgentSessionsService", () => {
     const createdRun = await service.executeExtraction({
       connectScope: { organizationId: organization.id, projectId: project.id },
       agent,
+      agentSettings,
       userId: user.id,
       documentId: document.id,
       type: "playground",
@@ -116,7 +128,6 @@ describe("ExtractionAgentSessionsService", () => {
     const run = await service.findAgentSessionById({
       connectScope: { organizationId: organization.id, projectId: project.id },
       agentSessionId: createdRun.id,
-      agentId: agent.id,
       type: "playground",
     })
     expect(run).not.toBeNull()

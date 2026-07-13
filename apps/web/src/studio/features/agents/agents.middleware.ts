@@ -3,7 +3,16 @@ import { listAgents } from "@/common/features/agents/agents.thunks"
 import { fetchMe } from "@/common/features/me/me.thunks"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
-import { createAgent, deleteAgent, updateAgent } from "@/studio/features/agents/agents.thunks"
+import {
+  createAgent,
+  deleteAgent,
+  updateAgentCategories,
+  updateAgentGeneral,
+  updateAgentModel,
+  updateAgentOutput,
+  updateAgentResources,
+  updateAgentSources,
+} from "@/studio/features/agents/agents.thunks"
 import {
   deleteDocumentTag,
   updateDocumentTag,
@@ -75,8 +84,17 @@ function registerListeners() {
   })
 
   listenerMiddleware.startListening({
-    actionCreator: updateAgent.fulfilled,
+    matcher: isAnyOf(
+      updateAgentGeneral.fulfilled,
+      updateAgentModel.fulfilled,
+      updateAgentOutput.fulfilled,
+      updateAgentSources.fulfilled,
+      updateAgentResources.fulfilled,
+      updateAgentCategories.fulfilled,
+    ),
     effect: async (_, listenerApi) => {
+      listenerApi.dispatch(listAgents())
+
       listenerApi.dispatch(
         notificationsActions.show({
           title: "Agent updated successfully",
@@ -86,7 +104,14 @@ function registerListeners() {
     },
   })
   listenerMiddleware.startListening({
-    actionCreator: updateAgent.rejected,
+    matcher: isAnyOf(
+      updateAgentGeneral.rejected,
+      updateAgentModel.rejected,
+      updateAgentOutput.rejected,
+      updateAgentSources.rejected,
+      updateAgentResources.rejected,
+      updateAgentCategories.rejected,
+    ),
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({

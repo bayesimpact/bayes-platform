@@ -15,7 +15,11 @@ import { ConversationAgentSessionsService } from "@/domains/agents/conversation-
 import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { FormAgentSessionsService } from "@/domains/agents/form-agent-sessions/form-agent-sessions.service"
-import { ReviewCampaignMembership } from "../memberships/review-campaign-membership.entity"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ReviewCampaignMembershipsService } from "../memberships/review-campaign-memberships.service"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type { ReviewCampaignAgentType, ReviewCampaignAnswer } from "../review-campaigns.types"
 import { TesterCampaignSurvey } from "../tester-campaign-surveys/tester-campaign-survey.entity"
@@ -43,8 +47,7 @@ export type TesterSurveyFields = TesterFeedbackFields
 @Injectable()
 export class TesterService {
   constructor(
-    @InjectRepository(ReviewCampaignMembership)
-    private readonly membershipRepository: Repository<ReviewCampaignMembership>,
+    private readonly reviewCampaignMembershipsService: ReviewCampaignMembershipsService,
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
     @InjectRepository(ConversationAgentSession)
@@ -56,6 +59,7 @@ export class TesterService {
     @InjectRepository(TesterCampaignSurvey)
     private readonly surveyRepository: Repository<TesterCampaignSurvey>,
     private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
+    private readonly agentSettingsService: AgentSettingsService,
     private readonly formAgentSessionsService: FormAgentSessionsService,
   ) {}
 
@@ -63,17 +67,7 @@ export class TesterService {
     userId: string,
     role: "tester" | "reviewer" = "tester",
   ): Promise<ReviewCampaign[]> {
-    const memberships = await this.membershipRepository.find({
-      where: { userId, role },
-      relations: ["campaign"],
-    })
-    return memberships
-      .map((membership) => membership.campaign)
-      .filter((campaign): campaign is ReviewCampaign => {
-        if (!campaign) return false
-        if (role === "reviewer") return campaign.status !== "draft"
-        return campaign.status === "active"
-      })
+    return this.reviewCampaignMembershipsService.listCampaignsForUser(userId, role)
   }
 
   async getAgentForCampaign({
@@ -82,7 +76,7 @@ export class TesterService {
   }: {
     connectScope: RequiredConnectScope
     campaign: ReviewCampaign
-  }): Promise<Agent> {
+  }): Promise<{ agent: Agent; agentSettings: AgentSettings }> {
     const agent = await this.agentRepository.findOne({
       where: {
         id: campaign.agentId,
@@ -91,7 +85,15 @@ export class TesterService {
       },
     })
     if (!agent) throw new NotFoundException(`Agent ${campaign.agentId} not found`)
-    return agent
+
+    const agentSettings = await this.agentSettingsService.getLast({
+      connectScope,
+      agentId: agent.id,
+    })
+    if (!agentSettings)
+      throw new NotFoundException(`AgentSettings for Agent ${campaign.agentId} not found`)
+
+    return { agent, agentSettings }
   }
 
   async listMyTesterSessions({
@@ -173,13 +175,13 @@ export class TesterService {
     userId: string
     type: BaseAgentSessionType
   }): Promise<{ id: string; agentType: ReviewCampaignAgentType }> {
-    const agent = await this.getAgentForCampaign({ connectScope, campaign })
+    const { agent, agentSettings } = await this.getAgentForCampaign({ connectScope, campaign })
 
     switch (agent.type) {
       case "conversation": {
         const session = await this.conversationAgentSessionsService.createSession({
           connectScope,
-          agentId: agent.id,
+          agentSettingsId: agentSettings.id,
           userId,
           type,
         })
@@ -191,7 +193,7 @@ export class TesterService {
       case "form": {
         const session = await this.formAgentSessionsService.createSession({
           connectScope,
-          agentId: agent.id,
+          agentSettingsId: agentSettings.id,
           userId,
           type,
         })

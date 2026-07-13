@@ -15,6 +15,8 @@ import { AddContext, RequireContext } from "@/common/context/require-context.dec
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
@@ -38,6 +40,7 @@ export class ExtractionAgentSessionsController {
     private readonly extractionAgentSessionsService: ExtractionAgentSessionsService,
     private readonly baseAgentSessionsService: BaseAgentSessionsService,
     private readonly sessionStatusStreamService: ExtractionAgentSessionStatusStreamService,
+    private readonly agentSettingsService: AgentSettingsService,
   ) {}
 
   @Post(ExtractionAgentSessionsRoutes.executeOne.path)
@@ -48,9 +51,14 @@ export class ExtractionAgentSessionsController {
     @Req() request: EndpointRequestWithAgent,
     @Body() { payload }: typeof ExtractionAgentSessionsRoutes.executeOne.request,
   ): Promise<typeof ExtractionAgentSessionsRoutes.executeOne.response> {
+    const agentSettings = await this.agentSettingsService.getLast({
+      connectScope: getRequiredConnectScope(request),
+      agentId: request.agent.id,
+    })
     const run = await this.extractionAgentSessionsService.executeExtraction({
       connectScope: getRequiredConnectScope(request),
       agent: request.agent,
+      agentSettings: agentSettings,
       userId: request.user.id,
       documentId: payload.documentId,
       type: payload.type,

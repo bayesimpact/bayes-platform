@@ -1,0 +1,113 @@
+---
+import type { Locale } from "@/consts"
+import { categoryLabel } from "@/i18n/categories"
+import type { CategoryGroup } from "@/lib/docs"
+import { docHref } from "@/lib/docs"
+
+interface Props {
+  groups: CategoryGroup[]
+  locale: Locale
+  currentSlug: string
+}
+
+const { groups, locale, currentSlug } = Astro.props
+---
+
+<aside
+  class="fixed inset-y-0 left-0 z-50 hidden w-72 -translate-x-full overflow-y-auto border-r border-border bg-background p-6 transition-transform lg:sticky lg:top-16 lg:z-0 lg:block lg:h-[calc(100vh-4rem)] lg:w-full lg:translate-x-0 lg:border-r-0 lg:p-0 lg:pr-6 lg:pt-8"
+  data-sidebar
+>
+  <nav class="space-y-6" aria-label="Help center">
+    {
+      groups.map((group) => (
+        <div>
+          <h2 class="mb-2 flex items-center gap-2 px-2 text-xs font-bold uppercase tracking-wider text-foreground">
+            <span class="h-3.5 w-1 rounded-full bg-primary" aria-hidden="true" />
+            {categoryLabel(group.id, locale)}
+          </h2>
+          {group.docs.length > 0 && (
+            <ul class="space-y-0.5">
+              {group.docs.map((doc) => {
+                const href = docHref(doc)
+                const isActive = href === `/${locale}/${currentSlug}`
+                return (
+                  <li>
+                    <a
+                      href={href}
+                      aria-current={isActive ? "page" : undefined}
+                      class:list={[
+                        "block rounded-md px-2 py-1.5 text-sm transition-colors",
+                        isActive
+                          ? "bg-accent font-medium text-foreground"
+                          : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                      ]}
+                    >
+                      {doc.data.title}
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+          {group.children.map((child) => (
+            <div class="mt-3 border-l border-border pl-3">
+              <h3 class="mb-1 px-2 text-[0.72rem] font-semibold uppercase tracking-wide text-foreground/90">
+                {categoryLabel(child.id, locale)}
+              </h3>
+              <ul class="space-y-0.5">
+                {child.docs.map((doc) => {
+                  const href = docHref(doc)
+                  const isActive = href === `/${locale}/${currentSlug}`
+                  return (
+                    <li>
+                      <a
+                        href={href}
+                        aria-current={isActive ? "page" : undefined}
+                        class:list={[
+                          "block rounded-md px-2 py-1.5 text-sm transition-colors",
+                          isActive
+                            ? "bg-accent font-medium text-foreground"
+                            : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                        ]}
+                      >
+                        {doc.data.title}
+                      </a>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
+      ))
+    }
+  </nav>
+</aside>
+
+<div class="fixed inset-0 z-40 hidden bg-black/40 lg:hidden" data-sidebar-backdrop></div>
+
+<script>
+  const sidebar = document.querySelector<HTMLElement>("[data-sidebar]")
+  const backdrop = document.querySelector<HTMLElement>("[data-sidebar-backdrop]")
+  const toggle = document.querySelector<HTMLElement>("[data-sidebar-toggle]")
+
+  const open = () => {
+    sidebar?.classList.remove("hidden", "-translate-x-full")
+    backdrop?.classList.remove("hidden")
+  }
+  const close = () => {
+    sidebar?.classList.add("-translate-x-full")
+    backdrop?.classList.add("hidden")
+    // Keep it display:none on mobile once the transition would be done.
+    if (window.innerWidth < 1024) sidebar?.classList.add("hidden")
+  }
+
+  toggle?.addEventListener("click", () => {
+    if (sidebar?.classList.contains("-translate-x-full")) open()
+    else close()
+  })
+  backdrop?.addEventListener("click", close)
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") close()
+  })
+</script>

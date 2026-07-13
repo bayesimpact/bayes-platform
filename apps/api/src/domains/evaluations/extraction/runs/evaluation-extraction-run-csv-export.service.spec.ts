@@ -8,10 +8,9 @@ import {
   setupTransactionalTestDatabase,
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
-import { agentFactory } from "@/domains/agents/agent.factory"
 import { Document } from "@/domains/documents/document.entity"
 import { FILE_STORAGE_SERVICE } from "@/domains/documents/storage/file-storage.interface"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { EvaluationsModule } from "../../evaluations.module"
 import { EvaluationExtractionDataset } from "../datasets/evaluation-extraction-dataset.entity"
 import { evaluationExtractionDatasetFactory } from "../datasets/evaluation-extraction-dataset.factory"
@@ -69,7 +68,16 @@ describe("EvaluationExtractionRunCsvExportService", () => {
   })
 
   const seedRun = async () => {
-    const { organization, project } = await createOrganizationWithProject(repositories)
+    const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        agent: { type: "extraction" },
+        agentSettings: {
+          outputJsonSchema: { type: "object" },
+          model: AgentModel._Mock,
+        },
+      },
+    )
 
     const targetColumnId = "col-answer"
     const dataset = evaluationExtractionDatasetFactory.transient({ organization, project }).build({
@@ -101,15 +109,14 @@ describe("EvaluationExtractionRunCsvExportService", () => {
     })
     await datasetRecordRepository.save(datasetRecord)
 
-    const agent = agentFactory.transient({ organization, project }).build({
-      type: "extraction",
-      outputJsonSchema: { type: "object" },
-      model: AgentModel._MockGenerateStructuredOutput,
-    })
-    await repositories.agentRepository.save(agent)
-
     const run = evaluationExtractionRunFactory
-      .transient({ organization, project, agent, evaluationExtractionDataset: dataset })
+      .transient({
+        organization,
+        project,
+        agent,
+        agentSettings,
+        evaluationExtractionDataset: dataset,
+      })
       .build({
         status: "completed",
         keyMapping: [{ agentOutputKey: "answer", datasetColumnId: targetColumnId, mode: "scored" }],

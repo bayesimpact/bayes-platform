@@ -65,8 +65,12 @@ describe("Project membership - getMemberAgents", () => {
     projectId = project.id
     auth0Id = user.auth0Id
 
-    const ownerMembership = await repositories.projectMembershipRepository.findOneOrFail({
-      where: { projectId: project.id, userId: user.id },
+    const ownerMembership = await repositories.userMembershipRepository.findOneOrFail({
+      where: {
+        resourceType: "project",
+        resourceId: project.id,
+        userId: user.id,
+      },
     })
     membershipId = ownerMembership.id
 

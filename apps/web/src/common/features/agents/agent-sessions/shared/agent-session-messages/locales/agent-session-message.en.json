@@ -1,0 +1,25 @@
+{
+  "agentSessionMessage": {
+    "attachment": "Attachment",
+    "navigator": {
+      "title": "Jump to a message",
+      "trigger": "Jump to a message",
+      "search": "Search prompts…",
+      "empty": "No matching prompt"
+    },
+    "thinking": [
+      "Thinking…",
+      "Still thinking…",
+      "Working through this…",
+      "Connecting the dots…",
+      "Putting it together…",
+      "Starting to write…"
+    ],
+    "steps": {
+      "working_one": "Working through {{count}} step",
+      "working_other": "Working through {{count}} steps",
+      "summary_one": "Worked through {{count}} step",
+      "summary_other": "Worked through {{count}} steps"
+    }
+  }
+}

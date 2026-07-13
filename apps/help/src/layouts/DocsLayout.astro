@@ -1,0 +1,63 @@
+---
+import type { MarkdownHeading } from "astro"
+import Sidebar from "@/components/Sidebar.astro"
+import TableOfContents from "@/components/TableOfContents.astro"
+import type { Locale } from "@/consts"
+import { categoryLabel } from "@/i18n/categories"
+import { useTranslations } from "@/i18n/ui"
+import type { CategoryGroup } from "@/lib/docs"
+import BaseLayout from "./BaseLayout.astro"
+
+interface Props {
+  title: string
+  description: string
+  category: string
+  updated?: Date
+  locale: Locale
+  currentSlug: string
+  groups: CategoryGroup[]
+  headings: MarkdownHeading[]
+}
+
+const { title, description, category, updated, locale, currentSlug, groups, headings } = Astro.props
+const t = useTranslations(locale)
+
+const dateFormatter = new Intl.DateTimeFormat(locale, {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+})
+---
+
+<BaseLayout title={title} description={description} locale={locale} showMenuToggle>
+  <div class="mx-auto max-w-[96rem] px-4 sm:px-6">
+    <div class="lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-6">
+      <Sidebar groups={groups} locale={locale} currentSlug={currentSlug} />
+
+      <div class="min-w-0 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_11rem] lg:gap-6">
+        <article class="min-w-0">
+          <p class="text-sm font-medium text-primary">{categoryLabel(category, locale)}</p>
+          <h1 class="mt-1 text-3xl font-bold tracking-tight">{title}</h1>
+          <p class="mt-2 text-lg text-muted-foreground">{description}</p>
+          <hr class="my-6 border-border" />
+          <div class="prose max-w-none">
+            <slot />
+          </div>
+          {
+            updated && (
+              <p class="mt-10 border-t border-border pt-4 text-sm text-muted-foreground">
+                {t("article.updated")}: {dateFormatter.format(updated)}
+              </p>
+            )
+          }
+        </article>
+
+        <div class="hidden lg:block">
+          <div class="sticky top-24">
+            <TableOfContents headings={headings} locale={locale} />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

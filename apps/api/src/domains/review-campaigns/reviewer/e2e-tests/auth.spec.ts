@@ -10,10 +10,9 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -80,13 +79,16 @@ describe("ReviewCampaigns - Reviewer auth", () => {
     const {
       organization,
       project,
+      agent,
+      agentSettings,
       user: caller,
-    } = await createOrganizationWithProject(repositories, { user: { auth0Id } })
+    } = await createOrganizationWithAgent(repositories, {
+      user: { auth0Id },
+      agent: { type: "conversation" },
+    })
     const tester = await repositories.userRepository.save(
       userFactory.build({ email: `tester-auth-${randomUUID()}@example.com` }),
     )
-    const agent = agentFactory.transient({ organization, project }).build({ type: "conversation" })
-    await repositories.agentRepository.save(agent)
     const factory =
       campaignStatus === "active"
         ? reviewCampaignFactory.active()
@@ -94,13 +96,12 @@ describe("ReviewCampaigns - Reviewer auth", () => {
           ? reviewCampaignFactory.closed()
           : reviewCampaignFactory
     const campaign = await repositories.reviewCampaignRepository.save(
-      factory.transient({ organization, project, agent }).build(),
+      factory.transient({ organization, project, agent, agentSettings }).build(),
     )
     if (callerRole !== "none") {
       await saveReviewCampaignMembership({
         repositories,
         membership: reviewCampaignMembershipFactory[callerRole]()
-          .accepted()
           .transient({ organization, project, campaign, user: caller })
           .build(),
       })

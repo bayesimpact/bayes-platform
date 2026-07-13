@@ -2,7 +2,7 @@ import crypto from "node:crypto"
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
-import { Agent } from "@/domains/agents/agent.entity"
+import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import type { AgentEmbedConfig } from "../agent-embed-configs/agent-embed-config.entity"
 import { PublicAgentSession } from "./public-agent-session.entity"
@@ -16,8 +16,8 @@ export class PublicAgentSessionsService {
     private readonly publicAgentSessionRepository: Repository<PublicAgentSession>,
     @InjectRepository(AgentMessage)
     private readonly agentMessageRepository: Repository<AgentMessage>,
-    @InjectRepository(Agent)
-    private readonly agentRepository: Repository<Agent>,
+    @InjectRepository(AgentSettings)
+    private readonly agentSettingsRepository: Repository<AgentSettings>,
   ) {}
 
   async createSession(
@@ -26,6 +26,15 @@ export class PublicAgentSessionsService {
   ): Promise<{ session: PublicAgentSession; sessionToken: string }> {
     const sessionToken = crypto.randomUUID()
     const sessionTokenHash = crypto.createHash("sha256").update(sessionToken).digest("hex")
+
+    const agentSettings = await this.agentSettingsRepository.findOne({
+      where: { agentId: embedConfig.agentId },
+      order: { revision: "DESC" }, //findOne + order DESC to get last revision
+    })
+    if (!agentSettings)
+      throw new NotFoundException(
+        `AgentSettings for Agent with id ${embedConfig.agentId} not found`,
+      )
 
     const session = this.publicAgentSessionRepository.create({
       embedConfigId: embedConfig.id,
@@ -39,16 +48,16 @@ export class PublicAgentSessionsService {
 
     const savedSession = await this.publicAgentSessionRepository.save(session)
 
-    const agent = await this.agentRepository.findOne({ where: { id: embedConfig.agentId } })
-    if (agent?.greetingMessage?.trim()) {
+    if (agentSettings.greetingMessage?.trim()) {
       const now = new Date()
       await this.agentMessageRepository.save(
         this.agentMessageRepository.create({
           sessionId: savedSession.id,
           organizationId: embedConfig.organizationId,
           projectId: embedConfig.projectId,
+          agentSettingsId: agentSettings.id,
           role: "assistant",
-          content: agent.greetingMessage,
+          content: agentSettings.greetingMessage,
           status: "completed",
           startedAt: now,
           completedAt: now,

@@ -4,6 +4,8 @@ import type { Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "@/domains/agents/agent.entity"
+import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+import { toAgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.helper"
 import { EvaluationExtractionDataset } from "../datasets/evaluation-extraction-dataset.entity"
 import {
   EvaluationExtractionRun,
@@ -33,6 +35,8 @@ export class EvaluationExtractionRunsService {
     evaluationExtractionDatasetRepository: Repository<EvaluationExtractionDataset>,
     @InjectRepository(Agent)
     agentRepository: Repository<Agent>,
+    @InjectRepository(AgentSettings)
+    private readonly agentSettingsRepository: Repository<AgentSettings>,
     @Inject(EVALUATION_EXTRACTION_RUN_BATCH_SERVICE)
     private readonly batchService: EvaluationExtractionRunBatchService,
   ) {
@@ -59,6 +63,7 @@ export class EvaluationExtractionRunsService {
     fields: {
       evaluationExtractionDatasetId: string
       agentId: string
+      agentSettingsId: string
       keyMapping: EvaluationExtractionRunKeyMapping
     }
   }): Promise<EvaluationExtractionRun> {
@@ -79,6 +84,7 @@ export class EvaluationExtractionRunsService {
     return this.runConnectRepository.createAndSave(connectScope, {
       evaluationExtractionDatasetId: fields.evaluationExtractionDatasetId,
       agentId: fields.agentId,
+      agentSettingsId: fields.agentSettingsId,
       keyMapping: fields.keyMapping,
       status: "pending",
       summary: null,
@@ -283,12 +289,19 @@ export class EvaluationExtractionRunsService {
   }: {
     connectScope: RequiredConnectScope
     agentId: string
-  }): Promise<Agent> {
+  }): Promise<{ agent: Agent; agentSettings: AgentSettings }> {
     const agent = await this.agentConnectRepository.getOneById(connectScope, agentId)
     if (!agent) {
       throw new NotFoundException(`Agent with id ${agentId} not found`)
     }
-    return agent
+    const agentSettings = await this.agentSettingsRepository.findOne({
+      where: { agentId },
+      order: { revision: "DESC" }, //findOne + order DESC to get last revision
+    })
+    if (!agentSettings)
+      throw new NotFoundException(`AgentSettings for Agent with id ${agentId} not found`)
+
+    return { agent, agentSettings }
   }
 
   async retryRun({
@@ -305,7 +318,10 @@ export class EvaluationExtractionRunsService {
     evaluationExtractionRun.status = "running"
     await this.runConnectRepository.saveOne(evaluationExtractionRun)
 
-    const agent = await this.getAgent({ connectScope, agentId: evaluationExtractionRun.agentId })
+    const { agent, agentSettings } = await this.getAgent({
+      connectScope,
+      agentId: evaluationExtractionRun.agentId,
+    })
 
     const unfinishedRecords = await this.runRecordConnectRepository.find(connectScope, {
       where: [
@@ -323,7 +339,7 @@ export class EvaluationExtractionRunsService {
           async (batch) =>
             await this.batchService.retryRunRecords(
               batch.map((runRecord) => ({
-                agent,
+                agentWithSettings: toAgentWithSettingsRunJobPayload({ agent, agentSettings }),
                 connectScope,
                 evaluationExtractionRun,
                 runRecordId: runRecord.id,

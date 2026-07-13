@@ -1,0 +1,18 @@
+---
+import { SITE_TITLE } from "@/consts"
+import { useTranslations } from "@/i18n/ui"
+import { getLocaleFromPath } from "@/i18n/utils"
+
+const locale = getLocaleFromPath(Astro.url.pathname)
+const t = useTranslations(locale)
+const year = new Date().getFullYear()
+---
+
+<footer class="border-t border-border">
+  <div
+    class="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6"
+  >
+    <span>{SITE_TITLE}</span>
+    <span>© {year} {t("footer.rights")}</span>
+  </div>
+</footer>

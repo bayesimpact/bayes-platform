@@ -5,17 +5,14 @@ import { OrganizationContextResolver } from "@/common/context/resolvers/organiza
 import { ProjectContextResolver } from "@/common/context/resolvers/project-context.resolver"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { AuthModule } from "@/domains/auth/auth.module"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
-import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { Agent } from "../../../agent.entity"
 import { AgentGuard } from "../../../agent.guard"
 import { AgentsModule } from "../../../agents.module"
-import { AgentMembership } from "../../../memberships/agent-membership.entity"
 import { AgentMessage } from "../agent-message.entity"
 import { AgentMessageFeedbackController } from "./agent-message-feedback.controller"
 import { AgentMessageFeedback } from "./agent-message-feedback.entity"
@@ -23,16 +20,7 @@ import { AgentMessageFeedbackService } from "./agent-message-feedback.service"
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      AgentMessageFeedback,
-      AgentMessage,
-      Organization,
-      Project,
-      Agent,
-      AgentMembership,
-      OrganizationMembership,
-      ProjectMembership,
-    ]),
+    TypeOrmModule.forFeature([AgentMessageFeedback, AgentMessage, Organization, Project, Agent]),
     AuthModule,
     UsersModule,
     OrganizationsModule,

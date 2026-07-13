@@ -1,5 +1,7 @@
 import { DocumentsRagMode, ToolName } from "@caseai-connect/api-contracts"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import { addFeature } from "@/domains/organizations/organization.factory"
 import type { StreamingService } from "../../shared/agent-session-messages/streaming/streaming.service"
 import { agentSessionControllerTestSetup } from "./test-setup"
 
@@ -28,7 +30,8 @@ type BuildToolsAccessor = {
 
 describe("buildTools", () => {
   it("should omit document retrieval when documentsRagMode is none", async () => {
-    const { toolsService, testAgent, testOrganization, testProject } = getTestContext()
+    const { toolsService, testAgent, testAgentSettings, testOrganization, testProject } =
+      getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
       projectId: testProject.id,
@@ -36,7 +39,8 @@ describe("buildTools", () => {
 
     const { tools } = await (toolsService as unknown as BuildToolsAccessor).buildTools({
       agentSessionScope: {
-        agent: { ...testAgent, documentsRagMode: DocumentsRagMode.None },
+        agent: testAgent,
+        agentSettings: { ...testAgentSettings, documentsRagMode: DocumentsRagMode.None },
         session: buildSessionStub("session-id"),
         connectScope,
       },
@@ -48,7 +52,8 @@ describe("buildTools", () => {
   })
 
   it("should expose document retrieval when documentsRagMode is all", async () => {
-    const { toolsService, testAgent, testOrganization, testProject } = getTestContext()
+    const { toolsService, testAgent, testAgentSettings, testOrganization, testProject } =
+      getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
       projectId: testProject.id,
@@ -56,7 +61,8 @@ describe("buildTools", () => {
 
     const { tools } = await (toolsService as unknown as BuildToolsAccessor).buildTools({
       agentSessionScope: {
-        agent: { ...testAgent, documentsRagMode: DocumentsRagMode.All },
+        agent: testAgent,
+        agentSettings: { ...testAgentSettings, documentsRagMode: DocumentsRagMode.All },
         session: buildSessionStub("session-id"),
         connectScope,
       },
@@ -68,7 +74,8 @@ describe("buildTools", () => {
   })
 
   it("should expose document retrieval when documentsRagMode is tags", async () => {
-    const { toolsService, testAgent, testOrganization, testProject } = getTestContext()
+    const { toolsService, testAgent, testAgentSettings, testOrganization, testProject } =
+      getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
       projectId: testProject.id,
@@ -76,7 +83,8 @@ describe("buildTools", () => {
 
     const { tools } = await (toolsService as unknown as BuildToolsAccessor).buildTools({
       agentSessionScope: {
-        agent: { ...testAgent, documentsRagMode: DocumentsRagMode.Tags },
+        agent: testAgent,
+        agentSettings: { ...testAgentSettings, documentsRagMode: DocumentsRagMode.Tags },
         session: buildSessionStub("session-id"),
         connectScope,
       },
@@ -92,36 +100,43 @@ describe("buildTools", () => {
       toolsService,
       service,
       testAgent,
+      testAgentSettings,
       testOrganization,
       testProject,
       testUser,
       agentSessionCategoryRepository,
+      agentRepository,
     } = getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
       projectId: testProject.id,
     }
 
-    const savedCategory = await agentSessionCategoryRepository.save(
+    await agentSessionCategoryRepository.save(
       agentSessionCategoryRepository.create({
         agentId: testAgent.id,
         name: "billing",
       }),
     )
+
     const session = await service.createSession({
       connectScope,
-      agentId: testAgent.id,
+      agentSettingsId: testAgentSettings.id,
       userId: testUser.id,
       type: "playground",
     })
 
+    //reload agent object to load new associated categories
+    const agent = await agentRepository.findOne({
+      where: { id: testAgent.id },
+      relations: ["sessionCategories"],
+    })
+    if (!agent) throw new Error("Agent not found")
+
     const { tools } = await (toolsService as unknown as BuildToolsAccessor).buildTools({
       agentSessionScope: {
-        agent: {
-          ...testAgent,
-          sessionCategories: [savedCategory],
-          documentsRagMode: DocumentsRagMode.None,
-        },
+        agent: agent,
+        agentSettings: { ...testAgentSettings, documentsRagMode: DocumentsRagMode.None },
         session,
         connectScope,
       },
@@ -134,9 +149,11 @@ describe("buildTools", () => {
   it("should omit configured sub-agent tools when orchestration feature is disabled", async () => {
     const {
       agentRepository,
+      agentSettingsRepository,
       agentSubAgentRepository,
       toolsService,
       testAgent,
+      testAgentSettings,
       testOrganization,
       testProject,
     } = getTestContext()
@@ -149,12 +166,20 @@ describe("buildTools", () => {
         organizationId: testOrganization.id,
         projectId: testProject.id,
         name: "Benefits Specialist",
-        defaultPrompt: "Answer benefits questions",
-        model: testAgent.model,
-        temperature: testAgent.temperature,
-        locale: testAgent.locale,
         type: "conversation",
+      }),
+    )
+    await agentSettingsRepository.save(
+      agentSettingsRepository.create({
+        organizationId: testOrganization.id,
+        projectId: testProject.id,
+        agentId: childAgent.id,
+        instructions: "Answer benefits questions",
+        model: testAgentSettings.model,
+        temperature: testAgentSettings.temperature,
+        locale: testAgentSettings.locale,
         documentsRagMode: DocumentsRagMode.None,
+        revision: 1,
       }),
     )
     await agentSubAgentRepository.save(
@@ -171,7 +196,8 @@ describe("buildTools", () => {
       toolsService as unknown as BuildToolsAccessor
     ).buildTools({
       agentSessionScope: {
-        agent: { ...testAgent, documentsRagMode: DocumentsRagMode.None },
+        agent: testAgent,
+        agentSettings: { ...testAgentSettings, documentsRagMode: DocumentsRagMode.None },
         session: buildSessionStub("session-id"),
         connectScope,
       },
@@ -185,10 +211,12 @@ describe("buildTools", () => {
   it("should expose enabled sub-agent tools when orchestration feature is enabled", async () => {
     const {
       agentRepository,
+      agentSettingsRepository,
       agentSubAgentRepository,
       featureFlagRepository,
       toolsService,
       testAgent,
+      testAgentSettings,
       testOrganization,
       testProject,
     } = getTestContext()
@@ -196,25 +224,29 @@ describe("buildTools", () => {
       organizationId: testOrganization.id,
       projectId: testProject.id,
     }
-    await featureFlagRepository.save(
-      featureFlagRepository.create({
-        projectId: testProject.id,
-        featureFlagKey: "agent-orchestration",
-        enabled: true,
-      }),
-    )
+    await addFeature({
+      featureFlagRepository,
+      projectId: testProject.id,
+      featureFlagKey: "agent-orchestration",
+    })
     const childAgent = await agentRepository.save(
       agentRepository.create({
         organizationId: testOrganization.id,
         projectId: testProject.id,
         name: "Benefits Specialist",
-        defaultPrompt: "Answer benefits questions",
-        model: testAgent.model,
-        temperature: testAgent.temperature,
-        locale: testAgent.locale,
         type: "conversation",
-        documentsRagMode: DocumentsRagMode.None,
       }),
+    )
+    const _childAgentSettings = await agentSettingsRepository.save(
+      agentSettingsRepository.create(
+        agentSettingsFactory
+          .transient({ organization: testOrganization, project: testProject, agent: childAgent })
+          .build({
+            instructions: "Answer benefits questions",
+            documentsRagMode: DocumentsRagMode.None,
+            outputJsonSchema: { type: "object", properties: { fullName: { type: "string" } } },
+          }),
+      ),
     )
     await agentSubAgentRepository.save(
       agentSubAgentRepository.create({
@@ -230,7 +262,8 @@ describe("buildTools", () => {
       toolsService as unknown as BuildToolsAccessor
     ).buildTools({
       agentSessionScope: {
-        agent: { ...testAgent, documentsRagMode: DocumentsRagMode.None },
+        agent: testAgent,
+        agentSettings: { ...testAgentSettings, documentsRagMode: DocumentsRagMode.None },
         session: buildSessionStub("session-id"),
         connectScope,
       },

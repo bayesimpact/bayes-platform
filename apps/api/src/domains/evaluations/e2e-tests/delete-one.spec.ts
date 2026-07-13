@@ -107,7 +107,7 @@ describe("Evaluations - deleteOne", () => {
     await expectActivityCreated("evaluation.delete")
   })
 
-  it("should return 500 when deleting non-existent evaluation", async () => {
+  it("should return 404 when deleting non-existent evaluation", async () => {
     await createContext()
     await createEvaluation({
       input: "test input",
@@ -119,11 +119,11 @@ describe("Evaluations - deleteOne", () => {
       pathParams: removeNullish({
         organizationId,
         projectId,
-        evaluationId: "non-existent-id",
+        evaluationId: "00000000-0000-0000-0000-000000000000",
       }),
       token: accessToken,
     })
-    expectResponse(res, 500)
+    expectResponse(res, 404)
   })
 
   it("should remove evaluation from list after deletion", async () => {

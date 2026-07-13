@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "nest start --watch",
     "dev:workers-main": "BULL_BOARD_ENABLED=false nest start --entryFile workers-main --watch",
-    "dev:workers-main-windows": "nest start --entryFile workers-main --watch",
+    "dev:workers-main-windows": "tsc -b ../../packages/api-contracts && nest start --entryFile workers-main --watch",
     "build": "nest build",
+    "build:test": "tsc -p tsconfig.build-test.json",
     "start": "nest start",
     "start:workers-main": "node dist/workers-main",
     "start:debug": "nest start --debug --watch",

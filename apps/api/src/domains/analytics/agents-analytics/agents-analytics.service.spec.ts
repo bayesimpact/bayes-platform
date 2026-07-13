@@ -10,6 +10,7 @@ import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { ConversationAgentSessionCategory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity"
 import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messages/agent-messages.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { AgentsAnalyticsModule } from "./agents-analytics.module"
@@ -46,6 +47,13 @@ describe("AgentsAnalyticsService", () => {
     const agentAlpha = agentFactory.transient({ organization, project }).build({ name: "Alpha" })
     const agentBeta = agentFactory.transient({ organization, project }).build({ name: "Beta" })
     await repositories.agentRepository.save([agentAlpha, agentBeta])
+    const agentSettingsAlpha = agentSettingsFactory
+      .transient({ organization, project, agent: agentAlpha })
+      .build()
+    const agentSettingsBeta = agentSettingsFactory
+      .transient({ organization, project, agent: agentBeta })
+      .build()
+    await repositories.agentSettingsRepository.save([agentSettingsAlpha, agentSettingsBeta])
 
     const sessionAlpha1 = conversationAgentSessionFactory
       .transient({ organization, project, agent: agentAlpha, user })
@@ -66,17 +74,32 @@ describe("AgentsAnalyticsService", () => {
     const userMessagesAlpha = [
       agentMessageFactory
         .user()
-        .transient({ organization, project, session: sessionAlpha1 })
+        .transient({
+          organization,
+          project,
+          session: sessionAlpha1,
+          agentSettings: agentSettingsAlpha,
+        })
         .build({ createdAt: minutes(10).after(day1Start) }),
       agentMessageFactory
         .user()
-        .transient({ organization, project, session: sessionAlpha1 })
+        .transient({
+          organization,
+          project,
+          session: sessionAlpha1,
+          agentSettings: agentSettingsAlpha,
+        })
         .build({ createdAt: minutes(20).after(day1Start) }),
     ]
     const userMessagesBeta = Array.from({ length: 6 }, (_unusedValue, messageIndex) =>
       agentMessageFactory
         .user()
-        .transient({ organization, project, session: sessionBeta1 })
+        .transient({
+          organization,
+          project,
+          session: sessionBeta1,
+          agentSettings: agentSettingsBeta,
+        })
         .build({
           createdAt: minutes((messageIndex + 1) * 5).after(day1Start),
         }),

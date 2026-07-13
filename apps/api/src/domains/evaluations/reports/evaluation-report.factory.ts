@@ -3,6 +3,7 @@ import { Factory } from "fishery"
 import type { Repository } from "typeorm"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"
 import type { Agent } from "@/domains/agents/agent.entity"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { Evaluation } from "@/domains/evaluations/evaluation.entity"
 import type { EvaluationReport } from "@/domains/evaluations/reports/evaluation-report.entity"
 import type { Organization } from "@/domains/organizations/organization.entity"
@@ -10,6 +11,7 @@ import type { Project } from "@/domains/projects/project.entity"
 
 type EvaluationReportTransientParams = RequiredScopeTransientParams & {
   agent: Agent
+  agentSettings: AgentSettings
   evaluation: Evaluation
 }
 
@@ -26,6 +28,9 @@ export const evaluationReportFactory = EvaluationReportFactory.define(
     if (!transientParams.agent) {
       throw new Error("agent transient is required")
     }
+    if (!transientParams.agentSettings) {
+      throw new Error("agentSettings transient is required")
+    }
     if (!transientParams.evaluation) {
       throw new Error("evaluation transient is required")
     }
@@ -39,8 +44,10 @@ export const evaluationReportFactory = EvaluationReportFactory.define(
       organizationId: transientParams.organization.id,
       projectId: transientParams.project.id,
       agentId: transientParams.agent.id,
+      agentSettingsId: transientParams.agentSettings.id,
       evaluationId: transientParams.evaluation.id,
       agent: transientParams.agent,
+      agentSettings: transientParams.agentSettings,
       evaluation: transientParams.evaluation,
       traceId: randomUUID(),
       output: params.output || "the output",

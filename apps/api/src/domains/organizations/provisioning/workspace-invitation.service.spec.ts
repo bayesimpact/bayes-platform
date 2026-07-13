@@ -3,10 +3,14 @@ import {
   setupTransactionalTestDatabase,
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
+import { TransactionService } from "@/common/transaction/transaction.service"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
-import { UserMembershipService } from "@/domains/memberships/user-membership.service"
+import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
+import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 import { organizationFactory } from "@/domains/organizations/organization.factory"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
+import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
+import { ProjectsModule } from "@/domains/projects/projects.module"
 import { userFactory } from "@/domains/users/user.factory"
 import { WorkspaceInvitationService } from "./workspace-invitation.service"
 
@@ -19,15 +23,12 @@ describe("WorkspaceInvitationService", () => {
   let organizationRepository: ReturnType<
     Awaited<ReturnType<typeof setupTransactionalTestDatabase>>["getAllRepositories"]
   >["organizationRepository"]
-  let organizationMembershipRepository: ReturnType<
-    Awaited<ReturnType<typeof setupTransactionalTestDatabase>>["getAllRepositories"]
-  >["organizationMembershipRepository"]
   let projectRepository: ReturnType<
     Awaited<ReturnType<typeof setupTransactionalTestDatabase>>["getAllRepositories"]
   >["projectRepository"]
-  let projectMembershipRepository: ReturnType<
+  let userMembershipRepository: ReturnType<
     Awaited<ReturnType<typeof setupTransactionalTestDatabase>>["getAllRepositories"]
-  >["projectMembershipRepository"]
+  >["userMembershipRepository"]
   let invitationRepository: ReturnType<
     Awaited<ReturnType<typeof setupTransactionalTestDatabase>>["getAllRepositories"]
   >["invitationRepository"]
@@ -38,20 +39,23 @@ describe("WorkspaceInvitationService", () => {
 
   beforeAll(async () => {
     setup = await setupTransactionalTestDatabase({
-      additionalImports: [OrganizationsModule, MembershipsModule],
+      additionalImports: [OrganizationsModule, MembershipsModule, ProjectsModule],
     })
     const repositories = setup.getAllRepositories()
     userRepository = repositories.userRepository
     organizationRepository = repositories.organizationRepository
-    organizationMembershipRepository = repositories.organizationMembershipRepository
+    userMembershipRepository = repositories.userMembershipRepository
     projectRepository = repositories.projectRepository
-    projectMembershipRepository = repositories.projectMembershipRepository
     invitationRepository = repositories.invitationRepository
-    const userMembershipService = setup.module.get(UserMembershipService)
+    const organizationMembershipsService = setup.module.get(OrganizationMembershipsService)
+    const projectMembershipsService = setup.module.get(ProjectMembershipsService)
+    const transactionService = setup.module.get(TransactionService)
     service = new WorkspaceInvitationService(
       mockInvitationSender,
       setup.dataSource,
-      userMembershipService,
+      organizationMembershipsService,
+      projectMembershipsService,
+      transactionService,
     )
   })
 
@@ -91,8 +95,12 @@ describe("WorkspaceInvitationService", () => {
       expect(project!.name).toBe("New Org")
       expect(project!.organizationId).toBe(result.organizationId)
 
-      const orgMembership = await organizationMembershipRepository.findOne({
-        where: { userId: result.userId, organizationId: result.organizationId },
+      const orgMembership = await userMembershipRepository.findOne({
+        where: {
+          userId: result.userId,
+          resourceId: result.organizationId,
+          resourceType: "organization",
+        },
       })
       expect(orgMembership).toBeDefined()
       expect(orgMembership!.role).toBe("admin")
@@ -147,10 +155,11 @@ describe("WorkspaceInvitationService", () => {
       })
       await projectRepository.save(project)
 
-      await projectMembershipRepository.save(
-        projectMembershipRepository.create({
-          projectId: project.id,
+      await userMembershipRepository.save(
+        userMembershipFactory.build({
           userId: existingUser.id,
+          resourceId: project.id,
+          resourceType: "project",
           role: "admin",
         }),
       )
@@ -222,10 +231,11 @@ describe("WorkspaceInvitationService", () => {
       })
       await projectRepository.save(project)
 
-      await projectMembershipRepository.save(
-        projectMembershipRepository.create({
-          projectId: project.id,
+      await userMembershipRepository.save(
+        userMembershipFactory.build({
           userId: existingUser.id,
+          resourceId: project.id,
+          resourceType: "project",
           role: "admin",
         }),
       )

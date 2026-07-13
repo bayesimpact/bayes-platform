@@ -1,65 +1,88 @@
-import { outputJsonSchemaSchema } from "@caseai-connect/api-contracts"
-import { Field, FieldGroup, FieldLabel } from "@caseai-connect/ui/shad/field"
+import { outputJsonSchemaSchema, updateAgentOutputSchema } from "@caseai-connect/api-contracts"
+import { Field, FieldLabel } from "@caseai-connect/ui/shad/field"
+import { Form, FormField } from "@caseai-connect/ui/shad/form"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
-import { Controller, type FieldError, useFormContext } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import { type AgentFormValues, useAgentType } from "./agent-form.shared"
+import type { z } from "zod"
+import { useAppDispatch } from "@/common/store/hooks"
+import { updateAgentOutput } from "../agents.thunks"
+import { AgentTabSaveButton } from "./AgentTabSaveButton"
+import { type AgentTabFormProps, useReportDirty } from "./agent-tab-form.shared"
 
-export function AgentOutputTab() {
+type FormValues = z.infer<typeof updateAgentOutputSchema>
+
+export function AgentOutputTab({ agent, onDirtyChange }: AgentTabFormProps) {
   const { t } = useTranslation()
-  const {
-    control,
-    formState: { errors },
-  } = useFormContext<AgentFormValues>()
+  const dispatch = useAppDispatch()
 
-  const agentType = useAgentType()
-  // outputJsonSchema is an object field; cast to FieldError to access .message from top-level refine errors
-  const outputJsonSchemaError = errors.outputJsonSchema as FieldError | undefined
+  const form = useForm<FormValues>({
+    resolver: zodResolver(updateAgentOutputSchema),
+    defaultValues: { outputJsonSchema: agent.outputJsonSchema ?? {} },
+  })
+  useReportDirty(form.formState.isDirty, onDirtyChange)
+
+  // The resolver validates outputJsonSchema as an object and nests errors under sub-paths,
+  // so we track the parse/validation error in local state for a reliable inline message.
+  const [jsonError, setJsonError] = useState<string | null>(null)
+
+  const handleSubmit = form.handleSubmit(async (values) => {
+    await dispatch(updateAgentOutput({ agentId: agent.id, fields: values })).unwrap()
+    form.reset(values)
+  })
 
   return (
-    <FieldGroup>
-      <Field>
-        <FieldLabel htmlFor="outputJsonSchema">
-          {agentType === "form"
-            ? t("agent:props.formConfiguration")
-            : t("agent:props.outputJsonSchema")}
-        </FieldLabel>
-        <Controller
-          control={control}
+    <Form {...form}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <FormField
+          control={form.control}
           name="outputJsonSchema"
           render={({ field }) => (
-            <Textarea
-              id="outputJsonSchema"
-              placeholder={t("agent:props.placeholders.outputJsonSchema")}
-              rows={10}
-              className="font-mono min-h-56"
-              defaultValue={!field.value ? "" : JSON.stringify(field.value, null, 2)}
-              onChange={async (e) => {
-                const raw = e.target.value
-                try {
-                  const parsed = JSON.parse(raw)
-                  const validationResult = outputJsonSchemaSchema.safeParse(parsed)
-                  if (validationResult.success) {
-                    field.onChange(parsed)
-                  } else {
-                    // @ts-expect-error - We know there is at least one error because validation failed
-                    const firstError = validationResult.error.errors[0]
-                    field.onChange(raw, {
-                      errors: [{ message: firstError.message }],
-                    })
+            <Field>
+              <FieldLabel htmlFor="outputJsonSchema">
+                {t("agent:props.outputJsonSchema")}
+              </FieldLabel>
+              <Textarea
+                id="outputJsonSchema"
+                rows={10}
+                className="font-mono min-h-56"
+                defaultValue={field.value ? JSON.stringify(field.value, null, 2) : ""}
+                aria-invalid={jsonError ? "true" : "false"}
+                onChange={(event) => {
+                  const raw = event.target.value
+                  if (raw.trim() === "") {
+                    field.onChange({}, { shouldDirty: true })
+                    setJsonError(null)
+                    return
                   }
-                } catch {
-                  field.onChange(raw, { errors: [{ message: "Invalid JSON" }] })
-                }
-              }}
-              aria-invalid={outputJsonSchemaError ? "true" : "false"}
-            />
+                  try {
+                    const parsed = JSON.parse(raw)
+                    const validationResult = outputJsonSchemaSchema.safeParse(parsed)
+                    field.onChange(parsed)
+                    setJsonError(
+                      validationResult.success
+                        ? null
+                        : (validationResult.error.issues.at(0)?.message ??
+                            t("agent:props.validation.outputJsonSchemaInvalid")),
+                    )
+                  } catch {
+                    field.onChange(raw)
+                    setJsonError(t("agent:props.validation.outputJsonSchemaInvalid"))
+                  }
+                }}
+              />
+              {jsonError && <p className="text-sm text-destructive">{jsonError}</p>}
+            </Field>
           )}
         />
-        {outputJsonSchemaError?.message && (
-          <p className="text-sm text-destructive">{outputJsonSchemaError.message}</p>
-        )}
-      </Field>
-    </FieldGroup>
+
+        <AgentTabSaveButton
+          isSubmitting={form.formState.isSubmitting}
+          isDirty={form.formState.isDirty}
+        />
+      </form>
+    </Form>
   )
 }

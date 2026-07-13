@@ -6,7 +6,7 @@
     "settings": "Agent Settings",
     "props": {
       "createdAt": "Created At",
-      "defaultPrompt": "Default Prompt",
+      "instructions": "Instructions",
       "formConfiguration": "Form Configuration",
       "greeting": "Greeting",
       "documentsRagMode": "Answer source",
@@ -26,7 +26,7 @@
       },
       "placeholders": {
         "name": "Enter agent name",
-        "defaultPrompt": "Enter default prompt",
+        "instructions": "Enter instructions for the agent to follow when responding to user input",
         "greeting": "Optional greeting the agent sends first when a new conversation starts",
         "documentsRagMode": "Select document usage",
         "model": "Select model",
@@ -36,7 +36,7 @@
       },
       "validation": {
         "nameMinLength": "Name must be at least 3 characters",
-        "promptRequired": "Default prompt is required",
+        "promptRequired": "Instructions are required",
         "temperatureInvalid": "Temperature must be between 0.0 and 2.0",
         "outputJsonSchemaRequired": "Output JSON schema is required",
         "outputJsonSchemaInvalid": "Output JSON schema must be a valid JSON object"
@@ -89,9 +89,9 @@
       "description": "Manage agents for {{projectName}}"
     },
     "defaultPromptDialog": {
-      "title": "Default Prompt",
-      "description": "This prompt defines the behavior of the agent.",
-      "button": "View Prompt"
+      "title": "Instructions",
+      "description": "These instructions define the behavior of the agent.",
+      "button": "View Instructions"
     },
     "tabs": {
       "general": "General",
@@ -99,9 +99,14 @@
       "output": "Output",
       "form": "Form",
       "sources": "Sources",
+      "resourceLibraries": "Resource libraries",
       "categories": "Conversation categories",
       "orchestration": "Orchestration",
       "embed": "Embed"
+    },
+    "unsavedChanges": {
+      "title": "Unsaved changes",
+      "description": "You have unsaved changes that will be lost. Do you want to discard them?"
     },
     "orchestration": {
       "selectedTitle": "Sub-agents",

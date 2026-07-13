@@ -4,7 +4,11 @@ import { tool } from "@ai-sdk/provider-utils"
 import type { ToolSet } from "ai"
 import { v4 } from "uuid"
 import { z } from "zod"
-import type { LLMChatMessage, LLMProvider } from "@/common/interfaces/llm-provider.interface"
+import type {
+  LLMChatMessage,
+  LLMMetadata,
+  LLMProvider,
+} from "@/common/interfaces/llm-provider.interface"
 import { castToolInputParameters, zNullableType } from "@/common/zod-helper"
 import {
   expectIncludes,
@@ -18,9 +22,10 @@ export class ProviderSpecs {
     "You're a chat bot named Elvis. Your goal is to answer to the user with the knowledge you have"
   private static temperature = 0
 
-  private static getMetadata() {
+  private static getMetadata(): LLMMetadata {
     return {
       agentId: "agentId",
+      revision: 0,
       agentSessionId: "agentSessionId",
       currentTurn: 0,
       organizationId: "organizationId",

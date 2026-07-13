@@ -1,6 +1,5 @@
 import { DocumentsRagMode } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { fn } from "storybook/test"
 import { withRouter } from "storybook-addon-remix-react-router"
 import { agentFactory, agentOutputJsonSchemaFactory } from "@/common/features/agents/agent.factory"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
@@ -10,7 +9,7 @@ import {
 } from "@/common/features/projects/projects.factory"
 import { withRedux } from "@/stories/decorators"
 import { mergeSeeds, seed } from "@/stories/seed"
-import { AgentEditorWithoutTrigger } from "@/studio/features/agents/components/AgentEditor"
+import { AgentEditor } from "@/studio/features/agents/components/AgentEditor"
 import { documentTagFactory } from "@/studio/features/document-tags/document-tags.factory"
 
 const organization = organizationFactory.build()
@@ -43,14 +42,14 @@ const conversationAgent = agentFactory.transient({ project }).build({
 const resourceAgent = agentFactory.transient({ project }).build({
   type: "conversation",
   name: "Resource Navigator",
-  defaultPrompt: "Find relevant services, contacts, and eligibility details.",
+  instructions: "Find relevant services, contacts, and eligibility details.",
   documentsRagMode: DocumentsRagMode.None,
 })
 
 const policyAgent = agentFactory.transient({ project }).build({
   type: "conversation",
   name: "Policy Analyst",
-  defaultPrompt: "Interpret policy documents and summarize operational constraints.",
+  instructions: "Interpret policy documents and summarize operational constraints.",
   documentsRagMode: DocumentsRagMode.Tags,
 })
 
@@ -72,7 +71,7 @@ const formAgent = agentFactory.transient({ project }).build({
 
 const meta = {
   title: "routes/studio/project/agent/AgentEditor",
-  component: AgentEditorWithoutTrigger,
+  component: AgentEditor,
   decorators: [
     withRouter,
     withRedux({
@@ -80,10 +79,8 @@ const meta = {
     }),
   ],
   parameters: { layout: "fullscreen" },
-  args: {
-    onClose: fn(),
-  },
-} satisfies Meta<typeof AgentEditorWithoutTrigger>
+  args: {},
+} satisfies Meta<typeof AgentEditor>
 
 export default meta
 type Story = StoryObj<typeof meta>
