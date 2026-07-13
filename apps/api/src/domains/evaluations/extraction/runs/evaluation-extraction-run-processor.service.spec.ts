@@ -80,7 +80,7 @@ describe("EvaluationExtractionRunProcessorService", () => {
           finalName: "question",
           role: "input",
         },
-        ["col-answer"]: {
+        "col-answer": {
           id: "col-answer",
           index: 1,
           originalName: "answer",
@@ -95,7 +95,7 @@ describe("EvaluationExtractionRunProcessorService", () => {
       organizationId: organization.id,
       projectId: project.id,
       evaluationExtractionDatasetId: dataset.id,
-      data: { "col-question": "1+1", ["col-answer"]: "2" },
+      data: { "col-question": "1+1", "col-answer": "2" },
     })
     await repositories.evaluationExtractionDatasetRecordRepository.save(datasetRecord)
 

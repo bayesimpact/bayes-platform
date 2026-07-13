@@ -1,3 +1,4 @@
+import { NotFoundException } from "@nestjs/common"
 import type { DataSource } from "typeorm"
 import type { Document } from "../document.entity"
 import type { DocumentsService } from "../documents.service"
@@ -153,27 +154,20 @@ describe("DocumentEmbeddingsProcessorService", () => {
     expect(sharedInternals.insertChunks).not.toHaveBeenCalled()
   })
 
-  it("processDocument - should works when document is not found", async () => {
-    const documentsService = {} as DocumentsService
-    const textExtractorService = {} as DocumentTextExtractorService
-    const embeddingStatusNotifierService = {} as DocumentEmbeddingStatusNotifierService
-    const fileStorage = {} as IFileStorage
-    const dataSource = { query: jest.fn() } as unknown as DataSource
+  it("processDocument - rejects when the document is not found", async () => {
+    const sharedService = buildSharedService()
+    const service = buildProcessorService(sharedService)
 
-    const service = new DocumentEmbeddingsProcessorService(
-      documentsService,
-      textExtractorService,
-      embeddingStatusNotifierService,
-      fileStorage,
-      dataSource,
-    )
+    const sharedInternals = sharedService as unknown as SharedServiceInternals
+    const processorInternals = service as unknown as ProcessorInternals
 
-    const serviceInternals = service as unknown as DocumentEmbeddingsProcessorInternals
-    jest.spyOn(serviceInternals, "findDocument").mockResolvedValue(null)
-    jest.spyOn(serviceInternals, "markDocumentStatus")
-    jest.spyOn(serviceInternals, "extractDocumentChunks")
-    jest.spyOn(serviceInternals, "generateEmbeddingsByModel")
-    jest.spyOn(serviceInternals, "insertChunks")
+    jest
+      .spyOn(sharedInternals, "findDocumentOrThrow")
+      .mockRejectedValue(new NotFoundException("Document not-found-document-id not found"))
+    jest.spyOn(sharedInternals, "markDocumentStatus")
+    jest.spyOn(processorInternals, "extractDocumentChunks")
+    jest.spyOn(sharedInternals, "generateEmbeddingsByModel")
+    jest.spyOn(sharedInternals, "insertChunks")
 
     await expect(
       service.processDocument({
@@ -184,11 +178,11 @@ describe("DocumentEmbeddingsProcessorService", () => {
         origin: "document-upload",
         currentTraceId: "trace-id",
       }),
-    ).resolves.toBeUndefined()
+    ).rejects.toThrow(NotFoundException)
 
-    expect(serviceInternals.markDocumentStatus).not.toHaveBeenCalled()
-    expect(serviceInternals.extractDocumentChunks).not.toHaveBeenCalled()
-    expect(serviceInternals.generateEmbeddingsByModel).not.toHaveBeenCalled()
-    expect(serviceInternals.insertChunks).not.toHaveBeenCalled()
+    expect(sharedInternals.markDocumentStatus).not.toHaveBeenCalled()
+    expect(processorInternals.extractDocumentChunks).not.toHaveBeenCalled()
+    expect(sharedInternals.generateEmbeddingsByModel).not.toHaveBeenCalled()
+    expect(sharedInternals.insertChunks).not.toHaveBeenCalled()
   })
 })
