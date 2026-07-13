@@ -15,8 +15,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@caseai-connect/ui/shad/dropdown-menu"
-import { Field, FieldGroup, FieldLabel, FieldSet } from "@caseai-connect/ui/shad/field"
-import { Input } from "@caseai-connect/ui/shad/input"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@caseai-connect/ui/shad/sheet"
 import {
   Table,
@@ -40,9 +38,8 @@ import {
   RotateCcwIcon,
   SquareIcon,
   Trash2Icon,
-  XIcon,
 } from "lucide-react"
-import { useReducer, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
@@ -54,16 +51,9 @@ import { buildDate, buildSince } from "@/common/utils/build-date"
 import { generateId } from "@/common/utils/generate-id"
 import { DocumentTagItem } from "@/studio/features/document-tags/components/DocumentTagItem"
 import { DocumentTagsSheet } from "@/studio/features/document-tags/components/DocumentTagsSheet"
-import {
-  getTagNameById,
-  useDocumentTags,
-} from "@/studio/features/document-tags/document-tags.helpers"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import { selectDocumentTagsData } from "@/studio/features/document-tags/document-tags.selectors"
-import { CrawlingStatusBadge } from "@/studio/features/documents/components/CrawlingStatusBadge"
-import { CrawlUrlButton } from "@/studio/features/documents/components/CrawlUrlButton"
-import { DocumentTagPicker } from "@/studio/features/documents/components/DocumentTagPicker"
-import { EmptyWebSources } from "@/studio/features/documents/components/EmptyWebSources"
+import { DocumentEditForm } from "@/studio/features/documents/components/DocumentEditForm"
 import type { Document } from "@/studio/features/documents/documents.models"
 import {
   selectCrawlProgressByDocumentId,
@@ -75,8 +65,10 @@ import {
   getDocumentTemporaryUrl,
   reCrawlUrl,
   reprocessDocument,
-  updateDocument,
 } from "@/studio/features/documents/documents.thunks"
+import { CrawlingStatusBadge } from "./CrawlingStatusBadge"
+import { CrawlUrlButton } from "./CrawlUrlButton"
+import { EmptyWebSources } from "./EmptyWebSources"
 
 export function WebSourcesDocumentList() {
   const documents = useValue(selectDocumentsData)
@@ -427,102 +419,6 @@ function DocumentActions({
         </SheetContent>
       </Sheet>
     </>
-  )
-}
-
-type EditorAction =
-  | { type: "SET_TITLE"; title: string }
-  | { type: "ADD_TAG"; tagId: string }
-  | { type: "REMOVE_TAG"; tagId: string }
-
-type EditorState = { title: string; tagIds: string[] }
-
-function editorReducer(state: EditorState, action: EditorAction): EditorState {
-  switch (action.type) {
-    case "SET_TITLE":
-      return { ...state, title: action.title }
-    case "ADD_TAG":
-      return { ...state, tagIds: [...state.tagIds, action.tagId] }
-    case "REMOVE_TAG":
-      return {
-        ...state,
-        tagIds: state.tagIds.filter((id) => id !== action.tagId),
-      }
-  }
-}
-
-function DocumentEditForm({ document, onSuccess }: { document: Document; onSuccess: () => void }) {
-  const dispatch = useAppDispatch()
-  const { t } = useTranslation()
-  const { documentTags } = useDocumentTags()
-
-  const [editorState, dispatchEditor] = useReducer(editorReducer, {
-    title: document.title,
-    tagIds: document.tagIds,
-  })
-
-  const handleSave = () => {
-    const originalTagIds = document.tagIds
-    const tagsToAdd = editorState.tagIds.filter((tagId) => !originalTagIds.includes(tagId))
-    const tagsToRemove = originalTagIds.filter((tagId) => !editorState.tagIds.includes(tagId))
-    dispatch(
-      updateDocument({
-        documentId: document.id,
-        fields: { title: editorState.title, tagsToAdd, tagsToRemove },
-        onSuccess,
-      }),
-    )
-  }
-
-  return (
-    <div className="flex flex-col gap-4">
-      <FieldGroup>
-        <FieldSet>
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="doc-title">{t("document:props.title")}</FieldLabel>
-              <Input
-                id="doc-title"
-                value={editorState.title}
-                onChange={(event) =>
-                  dispatchEditor({
-                    type: "SET_TITLE",
-                    title: event.target.value,
-                  })
-                }
-              />
-            </Field>
-          </FieldGroup>
-        </FieldSet>
-      </FieldGroup>
-
-      <div className="flex flex-col gap-2">
-        <FieldLabel>{t("document:props.tags")}</FieldLabel>
-        <div className="flex flex-wrap gap-2 items-center">
-          {editorState.tagIds.map((tagId) => (
-            <Badge key={tagId} variant="secondary" className="gap-1">
-              {getTagNameById(documentTags, tagId)}
-              <button
-                type="button"
-                onClick={() => dispatchEditor({ type: "REMOVE_TAG", tagId })}
-                className="opacity-60 hover:opacity-100"
-              >
-                <XIcon className="size-3" />
-              </button>
-            </Badge>
-          ))}
-          <DocumentTagPicker
-            documentTags={documentTags}
-            attachedTagIds={editorState.tagIds}
-            onAdd={(tagId) => dispatchEditor({ type: "ADD_TAG", tagId })}
-          />
-        </div>
-      </div>
-
-      <div className="flex justify-end">
-        <Button onClick={handleSave}>{t("actions:update")}</Button>
-      </div>
-    </div>
   )
 }
 

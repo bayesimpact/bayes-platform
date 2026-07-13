@@ -16,7 +16,7 @@ import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { z } from "zod"
 import { useAppDispatch } from "@/common/store/hooks"
-import { crawlUrl } from "../documents.thunks"
+import { crawlUrl } from "../../documents.thunks"
 
 const crawlUrlSchema = z.object({
   url: z.string().url(),

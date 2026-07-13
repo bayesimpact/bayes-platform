@@ -31,8 +31,8 @@ import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { buildDate } from "@/common/utils/build-date"
 import { DocumentTagItem } from "@/studio/features/document-tags/components/DocumentTagItem"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
-import { CrawlingStatusBadge } from "@/studio/features/documents/components/CrawlingStatusBadge"
 import { EmbeddingStatusBadge } from "@/studio/features/documents/components/EmbeddingStatusBadge"
+import { CrawlingStatusBadge } from "@/studio/features/documents/components/web-crawl/CrawlingStatusBadge"
 import type { Document } from "@/studio/features/documents/documents.models"
 import { selectCrawlProgressByDocumentId } from "@/studio/features/documents/documents.selectors"
 import {
@@ -42,7 +42,7 @@ import {
   reCrawlUrl,
   reprocessDocument,
 } from "@/studio/features/documents/documents.thunks"
-import { DocumentEditForm, DocumentMetaField } from "./DocumentEditDialog"
+import { DocumentEditForm, DocumentMetaField } from "./DocumentEditForm"
 
 export function FileDocumentActions({
   document,

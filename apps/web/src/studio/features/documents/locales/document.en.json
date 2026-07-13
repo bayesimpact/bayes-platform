@@ -32,7 +32,8 @@
       "pages": "Pages"
     },
     "update": {
-      "title": "Edit {{documentTitle}}"
+      "title": "Edit {{documentTitle}}",
+      "titleRequired": "A title is required"
     },
     "delete": {
       "title": "Delete {{documentTitle}}",
