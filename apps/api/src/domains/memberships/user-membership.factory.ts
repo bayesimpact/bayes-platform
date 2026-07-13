@@ -36,6 +36,8 @@ export const userMembershipFactory = UserMembershipFactory.define(({ params, tra
     resourceType: (params.resourceType ?? "organization") as UserMembershipResourceType,
     resourceId,
     role: params.role ?? "member",
+    roleId: params.roleId ?? null,
+    rbacRole: null,
     createdAt: params.createdAt ?? now,
     updatedAt: params.updatedAt ?? now,
     deletedAt: params.deletedAt ?? null,

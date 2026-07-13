@@ -9,6 +9,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm"
+import { Role } from "@/domains/rbac/role.entity"
 import { User } from "@/domains/users/user.entity"
 
 export type UserMembershipResourceType = "organization" | "project" | "agent" | "review_campaign"
@@ -66,6 +67,13 @@ export class UserMembership {
 
   @Column({ type: "varchar" })
   role!: UserMembershipRole
+
+  @Column({ type: "uuid", name: "role_id", nullable: true })
+  roleId!: string | null
+
+  @ManyToOne(() => Role, { nullable: true })
+  @JoinColumn({ name: "role_id" })
+  rbacRole!: Role | null
 
   @ManyToOne(() => User)
   @JoinColumn({ name: "user_id" })
