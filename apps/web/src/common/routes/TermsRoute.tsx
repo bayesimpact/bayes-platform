@@ -43,6 +43,7 @@ export function TermsRoute() {
     control,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm<TermsFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -59,6 +60,8 @@ export function TermsRoute() {
   }
 
   const showMandatoryError = !!(errors.generalConditionsAccepted || errors.privacyPolicyAccepted)
+
+  const disabled = !(watch("generalConditionsAccepted") && watch("privacyPolicyAccepted"))
 
   return (
     <FullPageCenterLayout className="min-h-screen p-4">
@@ -115,7 +118,9 @@ export function TermsRoute() {
               </p>
             )}
 
-            <Button type="submit">{t("termsAcceptance:submit")}</Button>
+            <Button disabled={disabled} type="submit">
+              {t("termsAcceptance:submit")}
+            </Button>
           </form>
         </CardContent>
       </Card>
