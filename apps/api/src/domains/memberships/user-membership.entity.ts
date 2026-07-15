@@ -12,7 +12,12 @@ import {
 import { Role } from "@/domains/rbac/role.entity"
 import { User } from "@/domains/users/user.entity"
 
-export type UserMembershipResourceType = "organization" | "project" | "agent" | "review_campaign"
+export type UserMembershipResourceType =
+  | "organization"
+  | "project"
+  | "agent"
+  | "review_campaign"
+  | "global"
 
 /** All roles that can appear in the unified membership table. */
 export type UserMembershipRole = "owner" | "admin" | "member" | "tester" | "reviewer"
@@ -62,9 +67,10 @@ export class UserMembership {
   @Column({ type: "varchar", name: "resource_type" })
   resourceType!: UserMembershipResourceType
 
-  @Column({ type: "uuid", name: "resource_id" })
-  resourceId!: string
+  @Column({ type: "uuid", name: "resource_id", nullable: true })
+  resourceId!: string | null
 
+  /** Legacy role column for backward compatibility with the old user_membership table. */
   @Column({ type: "varchar" })
   role!: UserMembershipRole
 
@@ -78,4 +84,15 @@ export class UserMembership {
   @ManyToOne(() => User)
   @JoinColumn({ name: "user_id" })
   user!: User
+}
+
+/** Resource id for scoped memberships; global rows have no resource. */
+export function getMembershipResourceId(membership: UserMembership): string {
+  if (membership.resourceId === null) {
+    throw new Error(
+      `Membership ${membership.id} with resource_type=${membership.resourceType} is missing resource_id`,
+    )
+  }
+
+  return membership.resourceId
 }

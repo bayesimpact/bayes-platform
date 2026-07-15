@@ -34,6 +34,27 @@ export class CheckPermissionGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest() as EndpointRequest
+
+    const isAllowed = metadata.resourceType
+      ? await this.checkScopedPermission(request, {
+          permission: metadata.permission,
+          resourceType: metadata.resourceType,
+        })
+      : await this.permissionService.hasGlobal(request.user.id, metadata.permission)
+
+    if (!isAllowed) {
+      throw new ForbiddenException(AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    }
+
+    return true
+  }
+
+  private async checkScopedPermission(
+    request: EndpointRequest,
+    metadata: CheckPermissionMetadata & {
+      resourceType: NonNullable<CheckPermissionMetadata["resourceType"]>
+    },
+  ): Promise<boolean> {
     const resourceId = resolvePermissionResourceId(
       request as Parameters<typeof resolvePermissionResourceId>[0],
       metadata.resourceType,
@@ -42,14 +63,9 @@ export class CheckPermissionGuard implements CanActivate {
       throw new BadRequestException(`Missing ${metadata.resourceType} context for permission check`)
     }
 
-    const isAllowed = await this.permissionService.has(request.user.id, metadata.permission, {
+    return this.permissionService.has(request.user.id, metadata.permission, {
       type: metadata.resourceType,
       id: resourceId,
     })
-    if (!isAllowed) {
-      throw new ForbiddenException(AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-    }
-
-    return true
   }
 }

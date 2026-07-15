@@ -6,7 +6,12 @@ export const ORGANIZATION_ROLES = {
   member: "org_member",
 } as const
 
+export const ORG_CREATOR_ROLE = "org_creator" as const
+
+export const ORGANIZATION_CREATE_PERMISSION = "organization.create" as const
+
 export const ORGANIZATION_PERMISSIONS = [
+  ORGANIZATION_CREATE_PERMISSION,
   "organization.read",
   "organization.update",
   "organization.delete",
@@ -14,7 +19,8 @@ export const ORGANIZATION_PERMISSIONS = [
 
 /** Permissions granted per org role key. */
 export const ORGANIZATION_ROLE_PERMISSIONS: Record<string, readonly string[]> = {
-  org_owner: ORGANIZATION_PERMISSIONS,
+  org_owner: ["organization.read", "organization.update", "organization.delete"],
   org_admin: ["organization.read", "organization.update"],
   org_member: ["organization.read"],
+  [ORG_CREATOR_ROLE]: [ORGANIZATION_CREATE_PERMISSION],
 }

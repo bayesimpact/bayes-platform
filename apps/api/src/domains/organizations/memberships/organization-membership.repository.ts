@@ -2,7 +2,10 @@ import { Injectable } from "@nestjs/common"
 import { In, type Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import {
+  getMembershipResourceId,
+  UserMembership,
+} from "@/domains/memberships/user-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import type { OrganizationMembershipModel } from "./organization-membership.model"
 import type { OrganizationMembershipRole } from "./organization-membership.types"
@@ -114,7 +117,7 @@ export class OrganizationMembershipRepository {
       .andWhere("membership.role = :role", { role: "owner" })
       .andWhere("LOWER(organization.name) = LOWER(:organizationName)", { organizationName })
       .getOne()
-    if (!membership) return null
+    if (!membership?.resourceId) return null
 
     const organization = await this.organizationRepo().findOneOrFail({
       where: { id: membership.resourceId },
@@ -202,7 +205,13 @@ export class OrganizationMembershipRepository {
   private async toModels(memberships: UserMembership[]): Promise<OrganizationMembershipModel[]> {
     if (memberships.length === 0) return []
 
-    const organizationIds = [...new Set(memberships.map((membership) => membership.resourceId))]
+    const organizationIds = [
+      ...new Set(
+        memberships
+          .map((membership) => membership.resourceId)
+          .filter((resourceId): resourceId is string => resourceId !== null),
+      ),
+    ]
     const organizations = await this.organizationRepo().find({
       where: { id: In(organizationIds) },
     })
@@ -211,6 +220,9 @@ export class OrganizationMembershipRepository {
     )
 
     return memberships.flatMap((membership) => {
+      if (!membership.resourceId) {
+        return []
+      }
       const organization = organizationById.get(membership.resourceId)
       return organization ? [this.toModel(membership, organization)] : []
     })
@@ -223,7 +235,7 @@ export class OrganizationMembershipRepository {
     return {
       id: membership.id,
       userId: membership.userId,
-      organizationId: membership.resourceId,
+      organizationId: getMembershipResourceId(membership),
       role: membership.role as OrganizationMembershipRole,
       createdAt: membership.createdAt,
       updatedAt: membership.updatedAt,

@@ -4,7 +4,6 @@ import type {
   EndpointRequest,
   EndpointRequestWithOrganizationMembership,
 } from "@/common/context/request.interface"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
@@ -15,15 +14,14 @@ import { OrganizationGuard } from "./organization.guard"
 import { toDto } from "./organization.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationsService } from "./organizations.service"
-import { OrganizationsPolicyGuard } from "./organizations-policy.guard"
 
 @Controller()
 export class OrganizationsController {
   constructor(private readonly organizationsService: OrganizationsService) {}
 
   @Post(OrganizationsRoutes.createOrganization.path)
-  @UseGuards(JwtAuthGuard, UserGuard, OrganizationsPolicyGuard)
-  @CheckPolicy((policy) => policy.canCreate())
+  @UseGuards(JwtAuthGuard, UserGuard, CheckPermissionGuard)
+  @CheckPermission("organization.create")
   @TrackActivity({ action: "organization.create" })
   async createOrganization(
     @Req() request: EndpointRequest,

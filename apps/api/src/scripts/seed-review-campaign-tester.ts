@@ -56,7 +56,7 @@ async function main(): Promise<void> {
       order: { createdAt: "DESC" },
     })
     const firstProjectMembership = projectMemberships[0]
-    const firstProject = firstProjectMembership
+    const firstProject = firstProjectMembership?.resourceId
       ? await projectRepo.findOne({ where: { id: firstProjectMembership.resourceId } })
       : null
     if (!firstProject) {

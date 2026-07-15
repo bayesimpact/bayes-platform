@@ -12,7 +12,6 @@ import { Organization } from "./organization.entity"
 import { OrganizationGuard } from "./organization.guard"
 import { OrganizationsController } from "./organizations.controller"
 import { OrganizationsService } from "./organizations.service"
-import { OrganizationsPolicyGuard } from "./organizations-policy.guard"
 import { OrganizationAccountProvisioningService } from "./provisioning/organization-account-provisioning.service"
 
 @Module({
@@ -29,7 +28,6 @@ import { OrganizationAccountProvisioningService } from "./provisioning/organizat
     OrganizationMembershipRepository,
     OrganizationMembershipsService,
     OrganizationGuard,
-    OrganizationsPolicyGuard,
     OrganizationAccountProvisioningService,
   ],
   controllers: [OrganizationsController],

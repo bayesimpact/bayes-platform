@@ -2,7 +2,10 @@ import { Injectable } from "@nestjs/common"
 import { In, type Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import {
+  getMembershipResourceId,
+  UserMembership,
+} from "@/domains/memberships/user-membership.entity"
 import { ReviewCampaign } from "../review-campaign.entity"
 import type { ReviewCampaignMembershipRole } from "../review-campaigns.types"
 import type { ReviewCampaignMembershipModel } from "./review-campaign-membership.model"
@@ -206,11 +209,20 @@ export class ReviewCampaignMembershipRepository {
   private async toModels(memberships: UserMembership[]): Promise<ReviewCampaignMembershipModel[]> {
     if (memberships.length === 0) return []
 
-    const campaignIds = [...new Set(memberships.map((membership) => membership.resourceId))]
+    const campaignIds = [
+      ...new Set(
+        memberships
+          .map((membership) => membership.resourceId)
+          .filter((resourceId): resourceId is string => resourceId !== null),
+      ),
+    ]
     const campaigns = await this.campaignRepo().find({ where: { id: In(campaignIds) } })
     const campaignById = new Map(campaigns.map((campaign) => [campaign.id, campaign]))
 
     return memberships.flatMap((membership) => {
+      if (!membership.resourceId) {
+        return []
+      }
       const campaign = campaignById.get(membership.resourceId)
       return campaign ? [this.toModel(membership, campaign)] : []
     })
@@ -223,7 +235,7 @@ export class ReviewCampaignMembershipRepository {
     return {
       id: membership.id,
       userId: membership.userId,
-      campaignId: membership.resourceId,
+      campaignId: getMembershipResourceId(membership),
       organizationId: campaign.organizationId,
       projectId: campaign.projectId,
       role: membership.role as ReviewCampaignMembershipRole,
