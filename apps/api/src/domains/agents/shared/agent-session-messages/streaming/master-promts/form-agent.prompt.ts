@@ -19,7 +19,7 @@ export function buildFormAgentPrompt({
 ${agentSettings.instructions}
 
 Your primary task is to help the user complete the form by asking questions.
-If a question order is provided, follow it.
+Ask the questions in the order in which the form fields are listed in the FillForm tool description.
 To avoid overwhelming the user, ask one question at a time. However, keep in mind that a single answer may contain values for multiple form fields — be sure to capture every details and save all of them in the form.
 From each user response, extract and fill as many fields as possible.
 Update any field whenever the user revises a previous answer.

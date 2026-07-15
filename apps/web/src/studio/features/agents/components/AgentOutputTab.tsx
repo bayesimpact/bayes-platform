@@ -1,6 +1,11 @@
-import { outputJsonSchemaSchema, updateAgentOutputSchema } from "@caseai-connect/api-contracts"
+import {
+  getOrderedPropertyEntries,
+  outputJsonSchemaSchema,
+  updateAgentOutputSchema,
+} from "@caseai-connect/api-contracts"
 import { Field, FieldLabel } from "@caseai-connect/ui/shad/field"
 import { Form, FormField } from "@caseai-connect/ui/shad/form"
+import { Switch } from "@caseai-connect/ui/shad/switch"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
@@ -11,6 +16,7 @@ import { useAppDispatch } from "@/common/store/hooks"
 import { updateAgentOutput } from "../agents.thunks"
 import { AgentTabSaveButton } from "./AgentTabSaveButton"
 import { type AgentTabFormProps, useReportDirty } from "./agent-tab-form.shared"
+import { QuestionOrderEditor } from "./QuestionOrderEditor"
 
 type FormValues = z.infer<typeof updateAgentOutputSchema>
 
@@ -27,6 +33,43 @@ export function AgentOutputTab({ agent, onDirtyChange }: AgentTabFormProps) {
   // The resolver validates outputJsonSchema as an object and nests errors under sub-paths,
   // so we track the parse/validation error in local state for a reliable inline message.
   const [jsonError, setJsonError] = useState<string | null>(null)
+  // The JSON textarea is uncontrolled (defaultValue) so free-form typing works; bump this to
+  // remount it when the question-order UI mutates the schema, so the text stays in sync.
+  const [schemaVersion, setSchemaVersion] = useState(0)
+
+  const currentSchema = form.watch("outputJsonSchema")
+  const parsedSchema = outputJsonSchemaSchema.safeParse(currentSchema)
+  const orderMatters = parsedSchema.success && (parsedSchema.data.propertyOrdering?.length ?? 0) > 0
+  const orderedQuestions = parsedSchema.success
+    ? getOrderedPropertyEntries(parsedSchema.data).map(([key, value]) => ({
+        key,
+        description: value.description,
+      }))
+    : []
+
+  const applySchemaChange = (nextSchema: z.infer<typeof outputJsonSchemaSchema>) => {
+    form.setValue("outputJsonSchema", nextSchema, { shouldDirty: true, shouldValidate: true })
+    setJsonError(null)
+    setSchemaVersion((version) => version + 1)
+  }
+
+  const handleToggleOrder = (checked: boolean) => {
+    if (!parsedSchema.success) return
+    if (checked) {
+      applySchemaChange({
+        ...parsedSchema.data,
+        propertyOrdering: getOrderedPropertyEntries(parsedSchema.data).map(([key]) => key),
+      })
+      return
+    }
+    const { propertyOrdering: _dropped, ...rest } = parsedSchema.data
+    applySchemaChange(rest)
+  }
+
+  const handleReorder = (orderedKeys: string[]) => {
+    if (!parsedSchema.success) return
+    applySchemaChange({ ...parsedSchema.data, propertyOrdering: orderedKeys })
+  }
 
   const handleSubmit = form.handleSubmit(async (values) => {
     await dispatch(updateAgentOutput({ agentId: agent.id, fields: values })).unwrap()
@@ -45,6 +88,7 @@ export function AgentOutputTab({ agent, onDirtyChange }: AgentTabFormProps) {
                 {t("agent:props.outputJsonSchema")}
               </FieldLabel>
               <Textarea
+                key={schemaVersion}
                 id="outputJsonSchema"
                 rows={10}
                 className="font-mono min-h-56"
@@ -77,6 +121,24 @@ export function AgentOutputTab({ agent, onDirtyChange }: AgentTabFormProps) {
             </Field>
           )}
         />
+
+        <Field>
+          <div className="flex items-center gap-2">
+            <Switch
+              id="questionOrderImportant"
+              checked={orderMatters}
+              disabled={!parsedSchema.success}
+              onCheckedChange={handleToggleOrder}
+            />
+            <FieldLabel htmlFor="questionOrderImportant" className="mb-0">
+              {t("agent:props.questionOrder.important")}
+            </FieldLabel>
+          </div>
+          <p className="text-sm text-muted-foreground">{t("agent:props.questionOrder.hint")}</p>
+          {orderMatters && (
+            <QuestionOrderEditor questions={orderedQuestions} onReorder={handleReorder} />
+          )}
+        </Field>
 
         <AgentTabSaveButton
           isSubmitting={form.formState.isSubmitting}

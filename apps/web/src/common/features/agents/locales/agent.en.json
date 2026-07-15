@@ -14,6 +14,12 @@
       "name": "Name",
       "model": "Model",
       "outputJsonSchema": "Output JSON Schema",
+      "questionOrder": {
+        "important": "Question order matters",
+        "hint": "When enabled, the agent asks the questions in the order below.",
+        "empty": "Add fields to the schema above to arrange their order.",
+        "dragHandle": "Drag to reorder"
+      },
       "temperature": "Temperature",
       "updatedAt": "Updated At",
       "documentTags": "Document Tags",

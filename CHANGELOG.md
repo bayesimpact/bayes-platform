@@ -11,6 +11,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 -  (beta) Gemini 3.1 Flash Lite & Gemini 3.5 Flash available for all Agents
 - Agent session chat shows a live activity timeline while the assistant is streaming, with descriptive per-tool statuses and a check once each step completes
 - Agent session chat has a message navigator to jump to any earlier message in the thread
+- Form agents let you set the order of questions with a drag-and-drop editor, and the assistant asks them in that order
 
 ### Changed
 - Onboarding screen automatically refreshes pending invitations every 30 seconds, so newly received invitations appear without a manual page reload

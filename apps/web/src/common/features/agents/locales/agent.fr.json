@@ -14,6 +14,12 @@
       "name": "Nom",
       "model": "Modèle",
       "outputJsonSchema": "Schéma JSON de sortie",
+      "questionOrder": {
+        "important": "L'ordre des questions est important",
+        "hint": "Lorsque cette option est activée, l'agent pose les questions dans l'ordre ci-dessous.",
+        "empty": "Ajoutez des champs au schéma ci-dessus pour définir leur ordre.",
+        "dragHandle": "Glisser pour réordonner"
+      },
       "temperature": "Température",
       "updatedAt": "Mis à jour le",
       "documentTags": "Étiquettes de document",
