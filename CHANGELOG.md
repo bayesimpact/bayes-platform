@@ -8,6 +8,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.07.1] - 2026-07-15
+
+### Added
 -  (beta) Gemini 3.1 Flash Lite & Gemini 3.5 Flash available for all Agents
 - Agent editor shows the settings version history: browse versions, compare changes, restore in one click
 - Agent session chat shows a live activity timeline while the assistant is streaming, with descriptive per-tool statuses and a check once each step completes
