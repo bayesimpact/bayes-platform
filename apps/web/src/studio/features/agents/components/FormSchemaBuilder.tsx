@@ -1,5 +1,6 @@
 import { getOrderedPropertyEntries, outputJsonSchemaSchema } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
+import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -8,6 +9,7 @@ import {
   DialogTitle,
 } from "@caseai-connect/ui/shad/dialog"
 import { Input } from "@caseai-connect/ui/shad/input"
+import { Label } from "@caseai-connect/ui/shad/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
 import {
   Select,
@@ -118,10 +120,11 @@ export function parseSchemaToFields(value: unknown): Omit<SchemaField, "id">[] {
 
 /**
  * Serializes the builder's field list back into an outputJsonSchema. Fields with a blank or
- * duplicate name are skipped. `propertyOrdering` always mirrors the field order so the LLM
- * asks the questions in the arranged sequence; `required` lists the toggled-required fields.
+ * duplicate name are skipped. When `includeOrdering` is true, `propertyOrdering` mirrors the
+ * field order so the LLM asks the questions in the arranged sequence; when false it is omitted
+ * and the assistant is free to choose the order. `required` lists the toggled-required fields.
  */
-export function fieldsToSchema(fields: SchemaField[]): OutputJsonSchema {
+export function fieldsToSchema(fields: SchemaField[], includeOrdering = true): OutputJsonSchema {
   const properties: OutputJsonSchema["properties"] = {}
   const propertyOrdering: string[] = []
   const required: string[] = []
@@ -142,9 +145,21 @@ export function fieldsToSchema(fields: SchemaField[]): OutputJsonSchema {
   return {
     type: "object",
     properties,
-    propertyOrdering,
+    ...(includeOrdering ? { propertyOrdering } : {}),
     ...(required.length > 0 ? { required } : {}),
   }
+}
+
+/**
+ * Whether the ordering toggle should start on for a stored schema. Fresh or invalid schemas
+ * default to on (the feature's default). A schema that already has fields but no
+ * `propertyOrdering` starts off, so opening it never silently imposes an order.
+ */
+export function schemaEnablesOrdering(value: unknown): boolean {
+  const parsed = outputJsonSchemaSchema.safeParse(value)
+  if (!parsed.success) return true
+  if (Object.keys(parsed.data.properties).length === 0) return true
+  return (parsed.data.propertyOrdering?.length ?? 0) > 0
 }
 
 const makeField = (): SchemaField => ({
@@ -166,6 +181,7 @@ export function FormSchemaBuilder({ value, onChange, disabled = false }: Props) 
   const [fields, setFields] = useState<SchemaField[]>(() =>
     parseSchemaToFields(value).map((field) => ({ ...field, id: crypto.randomUUID() })),
   )
+  const [orderingEnabled, setOrderingEnabled] = useState(() => schemaEnablesOrdering(value))
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -176,7 +192,12 @@ export function FormSchemaBuilder({ value, onChange, disabled = false }: Props) 
   // form stays pristine until the author actually changes something.
   const commit = (nextFields: SchemaField[]) => {
     setFields(nextFields)
-    onChange(fieldsToSchema(nextFields))
+    onChange(fieldsToSchema(nextFields, orderingEnabled))
+  }
+
+  const toggleOrdering = (enabled: boolean) => {
+    setOrderingEnabled(enabled)
+    onChange(fieldsToSchema(fields, enabled))
   }
 
   const updateField = (id: string, patch: Partial<SchemaField>) => {
@@ -202,23 +223,34 @@ export function FormSchemaBuilder({ value, onChange, disabled = false }: Props) 
 
   const columns = useMemo<ColumnDef<SchemaField>[]>(
     () => [
-      {
-        id: "drag",
-        header: () => <span className="sr-only">{t("agent:props.schemaBuilder.dragHandle")}</span>,
-        meta: { className: "w-8" } satisfies ColumnMeta,
-        cell: ({ row, table }) => (
-          <RowDragHandleCell
-            rowId={row.original.id}
-            disabled={(table.options.meta as SchemaTableMeta).disabled}
-          />
-        ),
-      },
-      {
-        id: "order",
-        header: () => <span className="text-muted-foreground">#</span>,
-        meta: { className: "w-8 text-muted-foreground text-sm tabular-nums" } satisfies ColumnMeta,
-        cell: ({ row }) => row.index + 1,
-      },
+      // Drag handle and order number only appear when the author controls the order. The
+      // description column (w-full) absorbs the freed width, so dropping these two columns
+      // doesn't reflow the rest of the table.
+      ...(orderingEnabled
+        ? ([
+            {
+              id: "drag",
+              header: () => (
+                <span className="sr-only">{t("agent:props.schemaBuilder.dragHandle")}</span>
+              ),
+              meta: { className: "w-8" } satisfies ColumnMeta,
+              cell: ({ row, table }) => (
+                <RowDragHandleCell
+                  rowId={row.original.id}
+                  disabled={(table.options.meta as SchemaTableMeta).disabled}
+                />
+              ),
+            },
+            {
+              id: "order",
+              header: () => <span className="text-muted-foreground">#</span>,
+              meta: {
+                className: "w-8 text-muted-foreground text-sm tabular-nums",
+              } satisfies ColumnMeta,
+              cell: ({ row }) => row.index + 1,
+            },
+          ] satisfies ColumnDef<SchemaField>[])
+        : []),
       {
         accessorKey: "name",
         header: () => (
@@ -331,7 +363,7 @@ export function FormSchemaBuilder({ value, onChange, disabled = false }: Props) 
         },
       },
     ],
-    [t],
+    [t, orderingEnabled],
   )
 
   const table = useReactTable({
@@ -344,6 +376,24 @@ export function FormSchemaBuilder({ value, onChange, disabled = false }: Props) 
 
   return (
     <div className="flex flex-col gap-3">
+      <div className="flex items-start gap-2">
+        <Checkbox
+          id="schema-ordering"
+          checked={orderingEnabled}
+          disabled={disabled}
+          className="mt-0.5"
+          onCheckedChange={(checked) => toggleOrdering(checked === true)}
+        />
+        <div className="flex flex-col gap-0.5">
+          <Label htmlFor="schema-ordering" className="font-medium text-sm">
+            {t("agent:props.schemaBuilder.orderQuestions")}
+          </Label>
+          <p className="text-muted-foreground text-xs">
+            {t("agent:props.schemaBuilder.orderQuestionsHint")}
+          </p>
+        </div>
+      </div>
+
       {fields.length === 0 ? (
         <p className="rounded-md border border-dashed p-6 text-center text-muted-foreground text-sm">
           {t("agent:props.schemaBuilder.empty")}
@@ -356,7 +406,7 @@ export function FormSchemaBuilder({ value, onChange, disabled = false }: Props) 
           onDragEnd={handleDragEnd}
         >
           <div className="overflow-hidden rounded-md border">
-            <Table key={i18n.language}>
+            <Table key={i18n.language + orderingEnabled.toString()}>
               <TableHeader className="bg-muted/50">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>

@@ -30,6 +30,8 @@
         "expandDescription": "Expand",
         "required": "Required",
         "dragHandle": "Drag to reorder",
+        "orderQuestions": "Ask questions in this order",
+        "orderQuestionsHint": "When on, the assistant asks for each field in the order below. Turn off to let it choose the order.",
         "types": {
           "string": "Text",
           "number": "Number",

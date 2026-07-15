@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest"
-import { fieldsToSchema, parseSchemaToFields, type SchemaField } from "./FormSchemaBuilder"
+import {
+  fieldsToSchema,
+  parseSchemaToFields,
+  type SchemaField,
+  schemaEnablesOrdering,
+} from "./FormSchemaBuilder"
 
 const field = (overrides: Partial<SchemaField>): SchemaField => ({
   id: overrides.id ?? "id",
@@ -39,6 +44,15 @@ describe("fieldsToSchema", () => {
   it("omits the required array when no field is required", () => {
     const schema = fieldsToSchema([field({ id: "1", name: "a" })])
     expect(schema.required).toBeUndefined()
+  })
+
+  it("omits propertyOrdering when ordering is disabled", () => {
+    const schema = fieldsToSchema(
+      [field({ id: "1", name: "a" }), field({ id: "2", name: "b" })],
+      false,
+    )
+    expect(schema.propertyOrdering).toBeUndefined()
+    expect(Object.keys(schema.properties)).toEqual(["a", "b"])
   })
 
   it("skips blank and duplicate field names", () => {
@@ -90,5 +104,31 @@ describe("parseSchemaToFields", () => {
       id: String(index),
     }))
     expect(fieldsToSchema(withIds)).toEqual(schema)
+  })
+})
+
+describe("schemaEnablesOrdering", () => {
+  it("defaults on for fresh or invalid schemas", () => {
+    expect(schemaEnablesOrdering("not a schema")).toBe(true)
+    expect(schemaEnablesOrdering({ type: "object", properties: {} })).toBe(true)
+  })
+
+  it("stays on when the schema already carries propertyOrdering", () => {
+    expect(
+      schemaEnablesOrdering({
+        type: "object",
+        properties: { a: { type: "string" }, b: { type: "string" } },
+        propertyOrdering: ["a", "b"],
+      }),
+    ).toBe(true)
+  })
+
+  it("starts off for a populated schema without propertyOrdering", () => {
+    expect(
+      schemaEnablesOrdering({
+        type: "object",
+        properties: { a: { type: "string" } },
+      }),
+    ).toBe(false)
   })
 })

@@ -30,6 +30,8 @@
         "expandDescription": "Agrandir",
         "required": "Obligatoire",
         "dragHandle": "Glisser pour réordonner",
+        "orderQuestions": "Poser les questions dans cet ordre",
+        "orderQuestionsHint": "Activé, l'assistant demande chaque champ dans l'ordre ci-dessous. Désactivez pour le laisser choisir l'ordre.",
         "types": {
           "string": "Texte",
           "number": "Nombre",
