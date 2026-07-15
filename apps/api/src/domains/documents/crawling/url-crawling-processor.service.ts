@@ -13,6 +13,8 @@ import {
   type WebSourceEmbeddingsBatchService,
 } from "./web-source-embeddings-batch.interface"
 
+const PROGRESS_LOG_INTERVAL = 25
+
 @Injectable()
 export class UrlCrawlingProcessorService {
   private readonly logger = new Logger(UrlCrawlingProcessorService.name)
@@ -27,7 +29,8 @@ export class UrlCrawlingProcessorService {
   ) {}
 
   async processCrawlJob(payload: CrawlUrlJobPayload): Promise<void> {
-    this.logger.log(`Processing full-site crawl job for ${payload.url}`)
+    const tag = `[doc:${payload.documentId}]`
+    this.logger.log(`${tag} Started crawl for ${payload.url}`)
 
     const connectScope = {
       organizationId: payload.organizationId,
@@ -35,12 +38,18 @@ export class UrlCrawlingProcessorService {
     }
 
     let pagesCrawled = 0
+    const startedAt = Date.now()
 
     try {
       const pages = await this.spiderClientService.crawlUrl({
         url: payload.url,
         onPage: () => {
           pagesCrawled += 1
+
+          if (pagesCrawled % PROGRESS_LOG_INTERVAL === 0) {
+            this.logger.log(`${tag} Progress: ${pagesCrawled} pages crawled from ${payload.url}`)
+          }
+
           this.crawlProgressNotifierService
             .notifyCrawlProgress({
               documentId: payload.documentId,
@@ -50,14 +59,24 @@ export class UrlCrawlingProcessorService {
               updatedAt: Date.now(),
             })
             .catch((error) => {
-              this.logger.error(
-                `Failed to emit crawl progress for ${payload.documentId}: ${(error as Error).message}`,
-              )
+              this.logger.error(`${tag} Failed to emit crawl progress: ${(error as Error).message}`)
             })
         },
       })
 
-      this.logger.log(`Crawled ${pages.length} pages from ${payload.url}`)
+      const durationSeconds = ((Date.now() - startedAt) / 1000).toFixed(1)
+      this.logger.log(
+        `${tag} Crawl complete: ${pages.length} pages in ${durationSeconds}s — storing content`,
+      )
+
+      const latestDoc = await this.documentsService.findById({
+        connectScope,
+        documentId: payload.documentId,
+      })
+      if (latestDoc?.embeddingStatus === "failed") {
+        this.logger.log(`${tag} Crawl was cancelled — skipping content save`)
+        return
+      }
 
       const contentPages = pages.map((page) => ({
         url: page.url,
@@ -81,11 +100,13 @@ export class UrlCrawlingProcessorService {
         currentTraceId: payload.currentTraceId,
       })
 
-      this.logger.log(
-        `Updated document ${payload.documentId} with ${pages.length} pages crawled at ${payload.url}`,
-      )
+      this.logger.log(`${tag} Embeddings enqueued for ${pages.length} pages`)
     } catch (error) {
-      this.logger.error(`Crawl failed for ${payload.url}: ${(error as Error).message}`)
+      const durationSeconds = ((Date.now() - startedAt) / 1000).toFixed(1)
+      this.logger.error(
+        `${tag} Crawl failed after ${durationSeconds}s at ${payload.url}: ${(error as Error).message}`,
+        (error as Error).stack,
+      )
       try {
         await this.documentsService.updateEmbeddingStatus({
           connectScope,
@@ -102,7 +123,7 @@ export class UrlCrawlingProcessorService {
         })
       } catch (notifyError) {
         this.logger.error(
-          `Failed to mark document ${payload.documentId} as failed: ${(notifyError as Error).message}`,
+          `${tag} Failed to mark document as failed: ${(notifyError as Error).message}`,
         )
       }
       throw error

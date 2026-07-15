@@ -12,6 +12,7 @@ import { AnalyticsButton } from "@/studio/features/agents/components/AnalyticsBu
 import { DocumentsButton } from "@/studio/features/agents/components/DocumentsButton"
 import { EvaluationButton } from "@/studio/features/agents/components/EvaluationButton"
 import { MembersButton } from "@/studio/features/agents/components/MembersButton"
+import { WebSourcesButton } from "@/studio/features/agents/components/WebSourcesButton"
 import { ProjectDeletor } from "@/studio/features/projects/components/ProjectDeletor"
 import { ReviewCampaignsButton } from "@/studio/features/review-campaigns/components/ReviewCampaignsButton"
 import { StudioRoutes } from "@/studio/routes/helpers"
@@ -58,6 +59,7 @@ export function AgentList() {
 
         <AgentCreatorButton project={project} />
         <DocumentsButton />
+        <WebSourcesButton />
         <MembersButton />
         <ReviewCampaignsButton />
         <AnalyticsButton />

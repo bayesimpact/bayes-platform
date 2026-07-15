@@ -12,10 +12,12 @@ import { selectDocumentsData, selectUploaderState } from "./documents.selectors"
 import { documentsActions } from "./documents.slice"
 import {
   addTagsToDocuments,
+  cancelCrawl,
   crawlUrl,
   deleteDocument,
   deleteDocuments,
   listDocuments,
+  reCrawlUrl,
   removeTagsFromDocuments,
   updateDocument,
   uploadDocument,
@@ -140,6 +142,8 @@ function registerListeners() {
       uploadDocument.fulfilled,
       uploadDocuments.fulfilled,
       crawlUrl.fulfilled,
+      reCrawlUrl.fulfilled,
+      cancelCrawl.fulfilled,
       updateDocument.fulfilled,
       deleteDocument.fulfilled,
       deleteDocuments.fulfilled,

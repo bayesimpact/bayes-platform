@@ -32,13 +32,15 @@
       "pages": "Pages"
     },
     "update": {
-      "title": "Edit {{documentTitle}}"
+      "title": "Edit {{documentTitle}}",
+      "titleRequired": "A title is required"
     },
     "delete": {
       "title": "Delete {{documentTitle}}",
       "description": "Are you sure you want to delete this document? This action cannot be undone."
     },
     "recrawl": "Recrawl website",
+    "stopCrawl": "Stop crawl",
     "crawl": {
       "button": "Crawl Website",
       "title": "Crawl a Website",
@@ -91,7 +93,11 @@
     },
     "webSources": {
       "title": "Web sources",
-      "description": "Enhance your agents' knowledge and capabilities by crawling websites."
+      "description": "Enhance your agents' knowledge and capabilities by crawling websites.",
+      "empty": {
+        "title": "No websites crawled yet",
+        "description": "Enter a URL to start crawling a website and indexing its content."
+      }
     },
     "filter": {
       "all": "All",

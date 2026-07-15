@@ -1,0 +1,51 @@
+import { Item } from "@caseai-connect/ui/shad/item"
+import { GlobeIcon } from "lucide-react"
+import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
+import { GridCard } from "@/common/components/grid/Grid"
+import { RestrictedFeature } from "@/common/components/RestrictedFeature"
+import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
+import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
+import { useCurrentId } from "@/common/hooks/use-value"
+import { StudioRoutes } from "@/studio/routes/helpers"
+
+export function WebSourcesButton() {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
+  const path = StudioRoutes.webSources.build({ organizationId, projectId })
+  const handleClick = () => {
+    navigate(path)
+  }
+  return (
+    <RestrictedFeature feature="web-sources" returnNull>
+      <GridCard className="bg-white">
+        <GridCard.Body>
+          <GridCard.Title>{t("document:webSources.title")}</GridCard.Title>
+          <GridCard.Description>{t("document:webSources.description")}</GridCard.Description>
+          <GridCard.GoButton onClick={handleClick} />
+        </GridCard.Body>
+        <GridCard.Footer>
+          <div className="mt-4 flex items-center flex-col max-h-20 overflow-hidden max-w-full bg-white">
+            <Item
+              variant="outline"
+              className="border-b-0 rounded-b-none flex-col w-full flex-1 gap-0"
+            >
+              <div className="flex flex-1 items-center gap-2 py-2 px-1 w-full">
+                <GlobeIcon className="size-4 shrink-0 text-muted-foreground" />
+                <div className="w-2/3 h-2.5 bg-muted rounded shrink" />
+                <div className="w-1/2 h-2.5 bg-muted rounded shrink" />
+              </div>
+              <div className="flex flex-1 items-center gap-2 py-2 px-1 w-full">
+                <GlobeIcon className="size-4 shrink-0 text-muted-foreground" />
+                <div className="w-1/2 h-2.5 bg-muted rounded shrink" />
+                <div className="w-3/4 h-2.5 bg-muted rounded shrink" />
+              </div>
+            </Item>
+          </div>
+        </GridCard.Footer>
+      </GridCard>
+    </RestrictedFeature>
+  )
+}
