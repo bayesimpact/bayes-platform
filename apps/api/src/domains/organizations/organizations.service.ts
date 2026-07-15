@@ -5,17 +5,26 @@ import { User } from "@/domains/users/user.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationMembershipsService } from "./memberships/organization-memberships.service"
 import { Organization } from "./organization.entity"
+import type { OrganizationModel } from "./organization.model"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { OrganizationRepository } from "./organization.repository"
 
 @Injectable()
 export class OrganizationsService {
   constructor(
-    @InjectRepository(Organization) readonly organizationRepository: Repository<Organization>,
+    @InjectRepository(Organization)
+    private readonly organizationEntityRepository: Repository<Organization>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly organizationMembershipsService: OrganizationMembershipsService,
+    private readonly organizationRepository: OrganizationRepository,
   ) {}
 
   async getUserOrganizations(userId: string): Promise<Organization[]> {
     return this.organizationMembershipsService.listOrganizationsForUser(userId)
+  }
+
+  async listUserOrganizations(userId: string): Promise<OrganizationModel[]> {
+    return this.organizationRepository.findAccessibleForUser(userId)
   }
 
   async createOrganization({
@@ -34,8 +43,8 @@ export class OrganizationsService {
       throw new Error(`User with id ${userId} not found`)
     }
 
-    const organization = this.organizationRepository.create({ name })
-    const savedOrganization = await this.organizationRepository.save(organization)
+    const organization = this.organizationEntityRepository.create({ name })
+    const savedOrganization = await this.organizationEntityRepository.save(organization)
 
     await this.organizationMembershipsService.createOrganizationOwnerMembership({
       userId: user.id,
@@ -52,7 +61,7 @@ export class OrganizationsService {
     organizationId: string
     name: string
   }): Promise<void> {
-    const organization = await this.organizationRepository.findOne({
+    const organization = await this.organizationEntityRepository.findOne({
       where: { id: organizationId },
     })
     if (!organization) {
@@ -60,6 +69,6 @@ export class OrganizationsService {
     }
 
     organization.name = name
-    await this.organizationRepository.save(organization)
+    await this.organizationEntityRepository.save(organization)
   }
 }

@@ -37,15 +37,30 @@ function buildData(args: StoryArgs) {
     withReviewCampaignMembershipsAsReviewer,
     featureFlags,
   } = args
-  const organizations = Array.from({ length: organizationCount }, () => organizationFactory.build())
+  const organizations = Array.from({ length: organizationCount }, () =>
+    organizationFactory.transient({ role: organizationMembershipRole }).build(),
+  )
+  const fullProjectsByOrganizationId = new Map(
+    organizations.map((organization) => [
+      organization.id,
+      projectFactory
+        .transient({ organization })
+        .buildList(projectsPerOrganization, { featureFlags }),
+    ]),
+  )
   const organizationsWithProjects = organizations.map((organization) => {
-    const projects = projectFactory
-      .transient({ organization })
-      .buildList(projectsPerOrganization, { featureFlags })
-    return { ...organization, projects }
+    const projects = fullProjectsByOrganizationId.get(organization.id) ?? []
+    return {
+      ...organization,
+      projects: projects.map((project) => ({
+        id: project.id,
+        name: project.name,
+        featureFlags: project.featureFlags,
+      })),
+    }
   })
 
-  const allProjects = organizationsWithProjects.flatMap((organization) => organization.projects)
+  const allProjects = [...fullProjectsByOrganizationId.values()].flat()
   const firstProject = allProjects[0]
 
   const organizationMemberships = organizationsWithProjects.map((organization) =>

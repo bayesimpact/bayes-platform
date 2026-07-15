@@ -7,7 +7,7 @@ import type {
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { Agent } from "@/common/features/agents/agents.models"
-import type { Organization } from "@/common/features/organizations/organizations.models"
+import type { OrganizationListItem } from "@/common/features/organizations/organizations.models"
 import type { Project } from "@/common/features/projects/projects.models"
 import type { User } from "./me.models"
 
@@ -35,6 +35,7 @@ export const userFactory = UserFactory.define(({ params, transientParams }) => {
     id: params.id ?? faker.string.uuid(),
     email: params.email ?? faker.internet.email({ firstName, lastName }).toLowerCase(),
     name: params.name ?? `${firstName} ${lastName}`,
+    globalPermissions: params.globalPermissions ?? [],
     isBackofficeAuthorized: params.isBackofficeAuthorized ?? false,
     isTermsManagementAuthorized: params.isTermsManagementAuthorized ?? false,
     termsAccepted: params.termsAccepted ?? true,
@@ -49,7 +50,7 @@ export const userFactory = UserFactory.define(({ params, transientParams }) => {
 })
 
 type OrganizationMembershipTransientParams = {
-  organization: Organization
+  organization: OrganizationListItem
   user?: User
 }
 

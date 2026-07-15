@@ -8,9 +8,10 @@ import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
+import { ensureOrganizationRbacCatalog } from "../../../test/rbac-test.helpers"
 import { FeatureFlag } from "../feature-flags/feature-flag.entity"
 import { Organization } from "./organization.entity"
-import { organizationFactory } from "./organization.factory"
+import { createOrganizationWithOwner, organizationFactory } from "./organization.factory"
 import { OrganizationsModule } from "./organizations.module"
 import { OrganizationsService } from "./organizations.service"
 
@@ -25,6 +26,7 @@ describe("OrganizationsService", () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [OrganizationsModule],
     })
+    await ensureOrganizationRbacCatalog(setup.module)
   })
 
   afterAll(async () => {
@@ -241,6 +243,28 @@ describe("OrganizationsService", () => {
           }),
         ]),
       )
+    })
+  })
+
+  describe("listUserOrganizations", () => {
+    it("returns organizations with permissions", async () => {
+      const repositories = setup.getAllRepositories()
+      const { user, organization } = await createOrganizationWithOwner(repositories)
+
+      const result = await service.listUserOrganizations(user.id)
+
+      expect(result).toHaveLength(1)
+      expect(result[0]).toMatchObject({
+        id: organization.id,
+        name: organization.name,
+        permissions: expect.arrayContaining([
+          "organization.read",
+          "organization.update",
+          "project.create",
+          "project.list_all",
+        ]),
+        projects: [],
+      })
     })
   })
 })

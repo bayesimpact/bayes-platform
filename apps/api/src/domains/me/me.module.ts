@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common"
 import { AgentsModule } from "@/domains/agents/agents.module"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { ReviewCampaignsModule } from "@/domains/review-campaigns/review-campaigns.module"
 import { AuthModule } from "../auth/auth.module"
 import { OrganizationsModule } from "../organizations/organizations.module"
@@ -18,6 +19,7 @@ import { MeService } from "./me.service"
     ReviewCampaignsModule,
     AuthModule,
     TermsComplianceModule,
+    RbacModule,
   ],
   controllers: [MeController],
   providers: [MeService],

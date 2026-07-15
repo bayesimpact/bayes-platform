@@ -1,14 +1,13 @@
-import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
+import type { FeatureFlagKey, FeatureFlagsDto } from "@caseai-connect/api-contracts"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import type { RootState } from "@/common/store"
 import { ADS } from "@/common/store/async-data-status"
-import type { Project } from "../features/projects/projects.models"
 
-function check(flags: FeatureFlagKey[], feature: FeatureFlagKey): boolean {
+function check(flags: FeatureFlagsDto, feature: FeatureFlagKey): boolean {
   return flags.some((flag) => flag === feature)
 }
 
-export function useFeatureFlags(project: Project) {
+export function useFeatureFlags(project: { featureFlags: FeatureFlagsDto }) {
   return {
     hasFeature: (feature: FeatureFlagKey): boolean => check(project.featureFlags || [], feature),
   }

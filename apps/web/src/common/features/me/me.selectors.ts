@@ -24,6 +24,9 @@ export const selectTermsAccepted = (state: RootState): boolean =>
 
 export const selectCurrentTerms = (state: RootState) => state.me.currentTerms
 
+export const selectCanCreateOrganization = (state: RootState): boolean =>
+  state.me.data.value?.globalPermissions.includes("organization.create") ?? false
+
 export const selectOrganizationMemberships = (state: RootState) =>
   state.me.data.value?.memberships.organizationMemberships
 

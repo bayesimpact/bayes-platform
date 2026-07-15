@@ -1,5 +1,6 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
+import { fetchOrganizations } from "@/common/features/organizations/organizations.thunks"
 import { startPolling } from "@/common/store/polling"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { logoutAuth0 } from "@/external/auth0Client"
@@ -27,7 +28,7 @@ listenerMiddleware.startListening({
   actionCreator: acceptInvitation.fulfilled,
   effect: async (_, listenerApi) => {
     listenerApi.dispatch(fetchPendingInvitations())
-    listenerApi.dispatch(fetchMe())
+    await Promise.all([listenerApi.dispatch(fetchMe()), listenerApi.dispatch(fetchOrganizations())])
   },
 })
 

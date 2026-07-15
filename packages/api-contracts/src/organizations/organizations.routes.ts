@@ -1,8 +1,16 @@
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
-import type { OrganizationDto, UpdateOrganizationRequestDto } from "./organizations.dto"
+import type {
+  OrganizationDto,
+  UpdateOrganizationRequestDto,
+  UserOrganizationListItemDto,
+} from "./organizations.dto"
 
 export const OrganizationsRoutes = {
+  listOrganizations: defineRoute<ResponseData<UserOrganizationListItemDto[]>>({
+    method: "get",
+    path: "organizations",
+  }),
   createOrganization: defineRoute<
     ResponseData<OrganizationDto>,
     RequestPayload<Pick<OrganizationDto, "name">>

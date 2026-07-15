@@ -1,6 +1,7 @@
-import type { Organization } from "./organizations.models"
+import type { OrganizationListItem } from "./organizations.models"
 
 export interface IOrganizationsSpi {
-  createOne: (payload: { name: string }) => Promise<Organization>
+  list: () => Promise<OrganizationListItem[]>
+  createOne: (payload: { name: string }) => Promise<{ id: string }>
   updateOne: (params: { organizationId: string }, payload: { name: string }) => Promise<void>
 }

@@ -1,10 +1,10 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
-import type { Organization } from "@/common/features/organizations/organizations.models"
+import type { OrganizationListItem } from "@/common/features/organizations/organizations.models"
 import type { Project, ProjectAgentSessionCategory } from "./projects.models"
 
 type ProjectTransientParams = {
-  organization: Organization
+  organization: OrganizationListItem
 }
 
 class ProjectFactory extends Factory<Project, ProjectTransientParams> {}

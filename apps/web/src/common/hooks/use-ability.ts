@@ -1,42 +1,46 @@
+import type { OrganizationPermission } from "@caseai-connect/api-contracts"
 import { useCallback, useMemo } from "react"
 import {
   selectAgentMemberships,
   selectIsPremiumMember,
-  selectOrganizationMemberships,
   selectProjectMemberships,
   selectReviewCampaignMemberships,
 } from "@/common/features/me/me.selectors"
+import { selectOrganizationsList } from "@/common/features/organizations/organizations.selectors"
 import { useAppSelector } from "@/common/store/hooks"
 import { SUPER_ROLES } from "../features/me/me.models"
 
 export function useAbility() {
-  const organizationMemberships = useAppSelector(selectOrganizationMemberships)
+  const organizations = useAppSelector(selectOrganizationsList)
   const projectMemberships = useAppSelector(selectProjectMemberships)
   const agentMemberships = useAppSelector(selectAgentMemberships)
   const reviewCampaignMemberships = useAppSelector(selectReviewCampaignMemberships)
 
-  const canCreateProject = useCallback(
-    ({ organizationId }: { organizationId: string | null }) => {
-      if (!organizationId) return false
-      const isOrganizationOwnerOrAdmin = [...(organizationMemberships ?? [])].some(
-        (membership) =>
-          membership.organizationId === organizationId && SUPER_ROLES.includes(membership.role),
-      )
-
-      return isOrganizationOwnerOrAdmin
+  const hasOrganizationPermission = useCallback(
+    ({
+      organizationId,
+      permission,
+    }: {
+      organizationId: string | null
+      permission: OrganizationPermission
+    }) => {
+      if (!organizationId || !organizations) return false
+      const organization = organizations.find((item) => item.id === organizationId)
+      return organization?.permissions.includes(permission) ?? false
     },
-    [organizationMemberships],
+    [organizations],
+  )
+
+  const canCreateProject = useCallback(
+    ({ organizationId }: { organizationId: string | null }) =>
+      hasOrganizationPermission({ organizationId, permission: "project.create" }),
+    [hasOrganizationPermission],
   )
 
   const canRenameOrganization = useCallback(
-    ({ organizationId }: { organizationId: string | null }) => {
-      if (!organizationId) return false
-      return [...(organizationMemberships ?? [])].some(
-        (membership) =>
-          membership.organizationId === organizationId && SUPER_ROLES.includes(membership.role),
-      )
-    },
-    [organizationMemberships],
+    ({ organizationId }: { organizationId: string | null }) =>
+      hasOrganizationPermission({ organizationId, permission: "organization.update" }),
+    [hasOrganizationPermission],
   )
 
   const canAccessStudio = useCallback(

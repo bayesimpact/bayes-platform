@@ -10,6 +10,7 @@ import { PermissionService } from "@/domains/rbac/permission.service"
 import {
   ORG_CREATOR_ROLE,
   ORGANIZATION_CREATE_PERMISSION,
+  ORGANIZATION_ROLE_PERMISSIONS,
   ORGANIZATION_ROLES,
 } from "@/domains/rbac/rbac.constants"
 import { RbacModule } from "@/domains/rbac/rbac.module"
@@ -124,6 +125,39 @@ describe("PermissionService", () => {
     await repositories.userRepository.save(user)
 
     await expect(service.hasGlobal(user.id, ORGANIZATION_CREATE_PERMISSION)).resolves.toBe(false)
+  })
+
+  it("lists global permissions for org_creator users", async () => {
+    const repositories = setup.getAllRepositories()
+    const user = userFactory.build({ email: "creator@bayesimpact.org" })
+    await repositories.userRepository.save(user)
+    const orgCreatorRole = await repositories.roleRepository.findOneOrFail({
+      where: { key: ORG_CREATOR_ROLE },
+    })
+    await repositories.userMembershipRepository.save(
+      userMembershipFactory.build({
+        userId: user.id,
+        resourceType: "global",
+        resourceId: null,
+        role: "member",
+        roleId: orgCreatorRole.id,
+      }),
+    )
+
+    await expect(service.listGlobalPermissions(user.id)).resolves.toEqual([
+      ORGANIZATION_CREATE_PERMISSION,
+    ])
+  })
+
+  it("lists organization permissions grouped by organization id", async () => {
+    const repositories = setup.getAllRepositories()
+    const { organization, user } = await createOrganizationWithOwner(repositories)
+
+    const permissionsByOrganizationId = await service.listOrganizationPermissionsForUser(user.id)
+
+    expect(permissionsByOrganizationId.get(organization.id)?.sort()).toEqual(
+      [...ORGANIZATION_ROLE_PERMISSIONS[ORGANIZATION_ROLES.owner]].sort(),
+    )
   })
 })
 

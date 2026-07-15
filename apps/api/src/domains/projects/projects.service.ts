@@ -50,17 +50,47 @@ export class ProjectsService {
     organizationId: string
     userId: string
   }): Promise<Project[]> {
+    const projectsByOrganizationId = await this.listProjectsForUserByOrganizationIds({
+      userId,
+      organizationIds: [organizationId],
+    })
+
+    return projectsByOrganizationId.get(organizationId) ?? []
+  }
+
+  async listProjectsForUserByOrganizationIds({
+    userId,
+    organizationIds,
+  }: {
+    userId: string
+    organizationIds: string[]
+  }): Promise<Map<string, Project[]>> {
+    const projectsByOrganizationId = new Map<string, Project[]>(
+      organizationIds.map((organizationId) => [organizationId, []]),
+    )
+    if (organizationIds.length === 0) {
+      return projectsByOrganizationId
+    }
+
     const memberships = await this.projectMembershipsService.listMembershipsForUser(userId)
     const projectIds = memberships.map((membership) => membership.projectId)
     if (projectIds.length === 0) {
-      return []
+      return projectsByOrganizationId
     }
 
-    return this.projectRepository.find({
-      where: { organizationId, id: In(projectIds) },
+    const projects = await this.projectRepository.find({
+      where: { organizationId: In(organizationIds), id: In(projectIds) },
       relations: { featureFlags: true, projectAgentSessionCategories: true },
       order: { createdAt: "DESC" },
     })
+
+    for (const project of projects) {
+      const organizationProjects = projectsByOrganizationId.get(project.organizationId) ?? []
+      organizationProjects.push(project)
+      projectsByOrganizationId.set(project.organizationId, organizationProjects)
+    }
+
+    return projectsByOrganizationId
   }
 
   async getProject(organizationId: string, projectId: string): Promise<Project | undefined> {

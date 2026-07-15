@@ -15,7 +15,7 @@ import type { AgentSessionMessage } from "@/common/features/agents/agent-session
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { User } from "@/common/features/me/me.models"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
-import type { Organization } from "@/common/features/organizations/organizations.models"
+import type { OrganizationListItem } from "@/common/features/organizations/organizations.models"
 import type { Project } from "@/common/features/projects/projects.models"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { AgentMembership } from "@/studio/features/agent-memberships/agent-memberships.models"
@@ -116,7 +116,7 @@ export const seed = {
   },
 
   organizations(
-    organizations: Organization[],
+    organizations: OrganizationListItem[],
     options: { currentId?: string | null } = {},
   ): StoryPreloadedState {
     const currentId = options.currentId ?? organizations[0]?.id ?? null

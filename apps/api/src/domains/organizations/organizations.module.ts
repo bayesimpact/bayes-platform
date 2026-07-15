@@ -10,6 +10,7 @@ import { OrganizationMembershipRepository } from "./memberships/organization-mem
 import { OrganizationMembershipsService } from "./memberships/organization-memberships.service"
 import { Organization } from "./organization.entity"
 import { OrganizationGuard } from "./organization.guard"
+import { OrganizationRepository } from "./organization.repository"
 import { OrganizationsController } from "./organizations.controller"
 import { OrganizationsService } from "./organizations.service"
 import { OrganizationAccountProvisioningService } from "./provisioning/organization-account-provisioning.service"
@@ -27,6 +28,7 @@ import { OrganizationAccountProvisioningService } from "./provisioning/organizat
     OrganizationsService,
     OrganizationMembershipRepository,
     OrganizationMembershipsService,
+    OrganizationRepository,
     OrganizationGuard,
     OrganizationAccountProvisioningService,
   ],

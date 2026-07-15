@@ -3,6 +3,7 @@ import { authActions } from "@/common/features/auth/auth.slice"
 import { meActions } from "@/common/features/me/me.slice"
 import { fetchMe, fetchPendingInvitations } from "@/common/features/me/me.thunks"
 import { organizationsActions } from "@/common/features/organizations/organizations.slice"
+import { fetchOrganizations } from "@/common/features/organizations/organizations.thunks"
 import { consumePendingInvitation } from "@/common/routes/HomeRoute"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { acceptInvitation } from "@/studio/features/invitations/invitations.thunks"
@@ -34,7 +35,10 @@ listenerMiddleware.startListening({
       }
 
       // Now fetch user data (will find the reconciled user, not create a new one)
-      await listenerApi.dispatch(fetchMe())
+      await Promise.all([
+        listenerApi.dispatch(fetchMe()),
+        listenerApi.dispatch(fetchOrganizations()),
+      ])
       listenerApi.dispatch(fetchPendingInvitations())
     } else {
       // User logged out - clear user and organizations state

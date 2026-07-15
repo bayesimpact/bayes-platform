@@ -2,6 +2,7 @@ import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
 import { listAgents } from "@/common/features/agents/agents.thunks"
 import { fetchMe } from "@/common/features/me/me.thunks"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
+import { fetchOrganizations } from "@/common/features/organizations/organizations.thunks"
 import { listProjects } from "@/common/features/projects/projects.thunks"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
@@ -18,7 +19,10 @@ function registerListeners() {
   listenerMiddleware.startListening({
     matcher: isAnyOf(deleteProject.fulfilled, updateProject.fulfilled),
     effect: async (_, listenerApi) => {
-      await listenerApi.dispatch(fetchMe())
+      await Promise.all([
+        listenerApi.dispatch(fetchMe()),
+        listenerApi.dispatch(fetchOrganizations()),
+      ])
       await listenerApi.dispatch(listProjects())
     },
   })

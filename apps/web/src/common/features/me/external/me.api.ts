@@ -1,5 +1,4 @@
 import { type MeResponseDto, MeRoutes, type UserDto } from "@caseai-connect/api-contracts"
-import { toOrganization } from "@/common/features/organizations/external/organizations.api"
 import { getAxiosInstance } from "@/external/axios"
 import type { Me, User } from "../me.models"
 import type { IMeSpi } from "../me.spi"
@@ -28,6 +27,7 @@ const toUser = (dto: UserDto): User => ({
   id: dto.id,
   email: dto.email,
   name: dto.name,
+  globalPermissions: dto.globalPermissions,
   memberships: dto.memberships,
   isBackofficeAuthorized: dto.isBackofficeAuthorized,
   isTermsManagementAuthorized: dto.isTermsManagementAuthorized,
@@ -36,6 +36,5 @@ const toUser = (dto: UserDto): User => ({
 
 const toMe = (dto: MeResponseDto): Me => ({
   user: toUser(dto.user),
-  organizations: dto.organizations.map(toOrganization),
   currentTerms: dto.currentTerms,
 })

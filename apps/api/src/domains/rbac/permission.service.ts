@@ -4,9 +4,54 @@ import { InjectDataSource } from "@nestjs/typeorm"
 import { DataSource } from "typeorm"
 import type { PermissionResource } from "./permission.types"
 
+type PermissionRow = { permissionKey: string }
+type OrganizationPermissionRow = { organizationId: string; permissionKey: string }
+
 @Injectable()
 export class PermissionService {
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
+
+  async listGlobalPermissions(userId: string): Promise<string[]> {
+    const rows: PermissionRow[] = await this.dataSource.query(
+      `SELECT DISTINCT permission.key AS "permissionKey"
+       FROM user_membership membership
+       INNER JOIN role_permission role_permission ON role_permission.role_id = membership.role_id
+       INNER JOIN permission ON permission.id = role_permission.permission_id
+       WHERE membership.user_id = $1
+         AND membership.resource_type = 'global'
+         AND membership.resource_id IS NULL
+         AND membership.role_id IS NOT NULL
+         AND membership.deleted_at IS NULL`,
+      [userId],
+    )
+
+    return rows.map((row) => row.permissionKey)
+  }
+
+  async listOrganizationPermissionsForUser(userId: string): Promise<Map<string, string[]>> {
+    const rows: OrganizationPermissionRow[] = await this.dataSource.query(
+      `SELECT membership.resource_id AS "organizationId", permission.key AS "permissionKey"
+       FROM user_membership membership
+       INNER JOIN role_permission role_permission ON role_permission.role_id = membership.role_id
+       INNER JOIN permission ON permission.id = role_permission.permission_id
+       WHERE membership.user_id = $1
+         AND membership.resource_type = 'organization'
+         AND membership.resource_id IS NOT NULL
+         AND membership.role_id IS NOT NULL
+         AND membership.deleted_at IS NULL
+       ORDER BY membership.resource_id, permission.key`,
+      [userId],
+    )
+
+    const permissionsByOrganizationId = new Map<string, string[]>()
+    for (const row of rows) {
+      const organizationPermissions = permissionsByOrganizationId.get(row.organizationId) ?? []
+      organizationPermissions.push(row.permissionKey)
+      permissionsByOrganizationId.set(row.organizationId, organizationPermissions)
+    }
+
+    return permissionsByOrganizationId
+  }
 
   async hasGlobal(userId: string, permission: string): Promise<boolean> {
     const matches: { allowed: number }[] = await this.dataSource.query(

@@ -1,9 +1,15 @@
 import { createSelector } from "@reduxjs/toolkit"
 import type { RootState } from "@/common/store"
 import { ADS, type AsyncData } from "@/common/store/async-data-status"
-import type { Organization } from "./organizations.models"
+import type { OrganizationListItem } from "./organizations.models"
 
 export const selectOrganizationsData = (state: RootState) => state.organizations.data
+
+export const selectOrganizationsList = createSelector(
+  selectOrganizationsData,
+  (organizationsData): OrganizationListItem[] | null =>
+    ADS.isFulfilled(organizationsData) ? organizationsData.value : null,
+)
 
 export const selectOrganizationsStatus = (state: RootState) => state.organizations.data.status
 
@@ -13,7 +19,7 @@ export const selectCurrentOrganizationId = (state: RootState) => state.currentId
 
 export const selectCurrentOrganization = createSelector(
   [selectOrganizationsData, selectCurrentOrganizationId],
-  (organizationsData, organizationId): AsyncData<Organization> => {
+  (organizationsData, organizationId): AsyncData<OrganizationListItem> => {
     if (!organizationId) {
       // Return loading on purpose
       return { status: ADS.Loading, value: null, error: null }

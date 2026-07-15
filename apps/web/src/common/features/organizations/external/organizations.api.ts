@@ -1,17 +1,27 @@
-import { type OrganizationDto, OrganizationsRoutes } from "@caseai-connect/api-contracts"
+import {
+  type OrganizationDto,
+  OrganizationsRoutes,
+  type UserOrganizationListItemDto,
+} from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
-import { toProject } from "../../projects/external/projects.api"
-import type { Organization } from "../organizations.models"
+import type { OrganizationListItem } from "../organizations.models"
 import type { IOrganizationsSpi } from "../organizations.spi"
 
 export default {
+  list: async () => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof OrganizationsRoutes.listOrganizations.response>(
+      OrganizationsRoutes.listOrganizations.getPath(),
+    )
+    return response.data.data.map(toOrganizationListItem)
+  },
   createOne: async (payload) => {
     const axios = getAxiosInstance()
     const response = await axios.post<typeof OrganizationsRoutes.createOrganization.response>(
       OrganizationsRoutes.createOrganization.getPath(),
       { payload } satisfies typeof OrganizationsRoutes.createOrganization.request,
     )
-    return toOrganization(response.data.data)
+    return { id: response.data.data.id }
   },
   updateOne: async (params, payload) => {
     const axios = getAxiosInstance()
@@ -21,9 +31,19 @@ export default {
   },
 } satisfies IOrganizationsSpi
 
-export const toOrganization = (dto: OrganizationDto): Organization => ({
+export const toOrganizationListItem = (dto: UserOrganizationListItemDto): OrganizationListItem => ({
   id: dto.id,
   name: dto.name,
-  createdAt: dto.createdAt,
-  projects: dto.projects.map(toProject),
+  permissions: dto.permissions,
+  projects: dto.projects.map((project) => ({
+    id: project.id,
+    name: project.name,
+    featureFlags: project.featureFlags,
+  })),
+})
+
+/** Maps legacy create response when full organization payload is needed. */
+export const toCreatedOrganization = (dto: OrganizationDto): { id: string; name: string } => ({
+  id: dto.id,
+  name: dto.name,
 })
