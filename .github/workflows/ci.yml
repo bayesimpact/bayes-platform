@@ -6,7 +6,32 @@ on:
       - main
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      help-only: ${{ steps.filter.outputs.help-only }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed paths
+        id: filter
+        run: |
+          BASE=${{ github.event.pull_request.base.sha }}
+          HEAD=${{ github.sha }}
+          CHANGED=$(git diff --name-only "$BASE" "$HEAD")
+          # Check if ALL changed files are under apps/help/
+          if echo "$CHANGED" | grep -qvE '^apps/help/'; then
+            echo "help-only=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "help-only=true" >> "$GITHUB_OUTPUT"
+          fi
+
   ci-checks:
+    needs: changes
+    if: needs.changes.outputs.help-only == 'false'
     runs-on: ubuntu-latest
     steps:
       - name: Use Node.js
@@ -23,20 +48,29 @@ jobs:
         run: make ci-checks
 
   tests:
-    runs-on: self-hosted
+    needs: changes
+    runs-on: ${{ needs.changes.outputs.help-only == 'true' && 'ubuntu-latest' || 'self-hosted' }}
     steps:
+      - name: Skip — only apps/help changed
+        if: needs.changes.outputs.help-only == 'true'
+        run: echo "Skipping tests — only apps/help changed"
+
       - name: Clean up Docker artifacts
+        if: needs.changes.outputs.help-only == 'false'
         run: docker ps -q | xargs -r docker stop; docker ps -aq | xargs -r docker rm; docker volume prune -f; sudo rm -rf infra/database/dontsave 2>/dev/null || true
 
       - name: Use Node.js
+        if: needs.changes.outputs.help-only == 'false'
         uses: actions/setup-node@v4
         with:
           node-version: '24.x'
 
       - name: Checkout code
+        if: needs.changes.outputs.help-only == 'false'
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - name: Run tests
+        if: needs.changes.outputs.help-only == 'false'
         run: TEST_WORKERS=6 make tests-only-parallel
