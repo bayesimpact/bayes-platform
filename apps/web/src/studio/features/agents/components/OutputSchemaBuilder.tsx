@@ -180,7 +180,7 @@ type Props = {
   allowOrdering?: boolean
 }
 
-export function FormSchemaBuilder({
+export function OutputSchemaBuilder({
   value,
   onChange,
   disabled = false,

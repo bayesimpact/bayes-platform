@@ -13,7 +13,7 @@ import { useAppDispatch } from "@/common/store/hooks"
 import { updateAgentOutput } from "../agents.thunks"
 import { AgentTabSaveButton } from "./AgentTabSaveButton"
 import { type AgentTabFormProps, useReportDirty } from "./agent-tab-form.shared"
-import { FormSchemaBuilder } from "./FormSchemaBuilder"
+import { OutputSchemaBuilder } from "./OutputSchemaBuilder"
 
 type FormValues = z.infer<typeof updateAgentOutputSchema>
 
@@ -118,7 +118,7 @@ export function AgentOutputTab({ agent, onDirtyChange }: AgentTabFormProps) {
                   {jsonError && <p className="text-sm text-destructive">{jsonError}</p>}
                 </>
               ) : (
-                <FormSchemaBuilder
+                <OutputSchemaBuilder
                   key={version}
                   value={field.value}
                   allowOrdering={agent.type === "form"}

@@ -4,7 +4,7 @@ import {
   parseSchemaToFields,
   type SchemaField,
   schemaEnablesOrdering,
-} from "./FormSchemaBuilder"
+} from "./OutputSchemaBuilder"
 
 const field = (overrides: Partial<SchemaField>): SchemaField => ({
   id: overrides.id ?? "id",
