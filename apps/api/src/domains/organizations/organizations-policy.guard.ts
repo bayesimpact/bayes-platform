@@ -17,7 +17,7 @@ export class OrganizationsPolicyGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest() as EndpointRequestWithOrganizationMembership
-    const policy = new OrganizationPolicy(request.user, request.organizationMembership ?? null)
+    const policy = new OrganizationPolicy(request.user)
 
     const policyHandler = this.reflector.getAllAndOverride<
       ((policy: OrganizationPolicy) => boolean) | undefined

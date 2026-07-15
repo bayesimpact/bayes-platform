@@ -12,7 +12,9 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithOwner } from "@/domains/organizations/organization.factory"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { ensureOrganizationRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { Organization } from "../organization.entity"
 import { OrganizationsModule } from "../organizations.module"
@@ -29,9 +31,10 @@ describe("Organizations - updateOne", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [OrganizationsModule],
+      additionalImports: [OrganizationsModule, RbacModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
+    await ensureOrganizationRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
     await app.init()

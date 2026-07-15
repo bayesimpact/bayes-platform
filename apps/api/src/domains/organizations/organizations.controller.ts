@@ -8,6 +8,8 @@ import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 import { OrganizationGuard } from "./organization.guard"
 import { toDto } from "./organization.helpers"
@@ -35,8 +37,8 @@ export class OrganizationsController {
   }
 
   @Patch(OrganizationsRoutes.updateOrganization.path)
-  @UseGuards(JwtAuthGuard, UserGuard, OrganizationGuard, OrganizationsPolicyGuard)
-  @CheckPolicy((policy) => policy.canUpdate())
+  @UseGuards(JwtAuthGuard, UserGuard, OrganizationGuard, CheckPermissionGuard)
+  @CheckPermission("organization.update", "organization")
   @UsePipes(new ZodValidationPipe(updateOrganizationSchema))
   async updateOrganization(
     @Req() request: EndpointRequestWithOrganizationMembership,
