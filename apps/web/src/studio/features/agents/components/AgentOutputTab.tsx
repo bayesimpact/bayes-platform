@@ -121,6 +121,7 @@ export function AgentOutputTab({ agent, onDirtyChange }: AgentTabFormProps) {
                 <FormSchemaBuilder
                   key={version}
                   value={field.value}
+                  allowOrdering={agent.type === "form"}
                   onChange={(schema) => field.onChange(schema)}
                 />
               )}

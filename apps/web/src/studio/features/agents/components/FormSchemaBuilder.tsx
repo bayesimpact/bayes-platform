@@ -174,14 +174,25 @@ type Props = {
   value: unknown
   onChange: (schema: OutputJsonSchema) => void
   disabled?: boolean
+  // Question order (propertyOrdering) is only meaningful for form agents that ask the fields
+  // one by one; extraction agents fill the whole schema at once, so the toggle is hidden and
+  // ordering is never emitted for them.
+  allowOrdering?: boolean
 }
 
-export function FormSchemaBuilder({ value, onChange, disabled = false }: Props) {
+export function FormSchemaBuilder({
+  value,
+  onChange,
+  disabled = false,
+  allowOrdering = true,
+}: Props) {
   const { t, i18n } = useTranslation()
   const [fields, setFields] = useState<SchemaField[]>(() =>
     parseSchemaToFields(value).map((field) => ({ ...field, id: crypto.randomUUID() })),
   )
-  const [orderingEnabled, setOrderingEnabled] = useState(() => schemaEnablesOrdering(value))
+  const [orderingEnabled, setOrderingEnabled] = useState(
+    () => allowOrdering && schemaEnablesOrdering(value),
+  )
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -376,23 +387,25 @@ export function FormSchemaBuilder({ value, onChange, disabled = false }: Props) 
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-start gap-2">
-        <Checkbox
-          id="schema-ordering"
-          checked={orderingEnabled}
-          disabled={disabled}
-          className="mt-0.5"
-          onCheckedChange={(checked) => toggleOrdering(checked === true)}
-        />
-        <div className="flex flex-col gap-0.5">
-          <Label htmlFor="schema-ordering" className="font-medium text-sm">
-            {t("agent:props.schemaBuilder.orderQuestions")}
-          </Label>
-          <p className="text-muted-foreground text-xs">
-            {t("agent:props.schemaBuilder.orderQuestionsHint")}
-          </p>
+      {allowOrdering && (
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="schema-ordering"
+            checked={orderingEnabled}
+            disabled={disabled}
+            className="mt-0.5"
+            onCheckedChange={(checked) => toggleOrdering(checked === true)}
+          />
+          <div className="flex flex-col gap-0.5">
+            <Label htmlFor="schema-ordering" className="font-medium text-sm">
+              {t("agent:props.schemaBuilder.orderQuestions")}
+            </Label>
+            <p className="text-muted-foreground text-xs">
+              {t("agent:props.schemaBuilder.orderQuestionsHint")}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {fields.length === 0 ? (
         <p className="rounded-md border border-dashed p-6 text-center text-muted-foreground text-sm">
