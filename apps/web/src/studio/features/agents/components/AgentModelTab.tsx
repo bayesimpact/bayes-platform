@@ -140,6 +140,7 @@ export function AgentModelTab({ agent, onDirtyChange }: AgentTabFormProps) {
         <AgentTabSaveButton
           isSubmitting={form.formState.isSubmitting}
           isDirty={form.formState.isDirty}
+          onCancel={() => form.reset()}
         />
       </form>
     </Form>

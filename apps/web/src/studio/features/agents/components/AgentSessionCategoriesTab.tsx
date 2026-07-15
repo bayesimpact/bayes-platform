@@ -110,6 +110,7 @@ export function AgentSessionCategoriesTab({ agent, onDirtyChange }: AgentTabForm
         <AgentTabSaveButton
           isSubmitting={form.formState.isSubmitting}
           isDirty={form.formState.isDirty}
+          onCancel={() => form.reset()}
         />
       </form>
     </Form>

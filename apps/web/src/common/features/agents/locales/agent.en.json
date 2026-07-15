@@ -14,11 +14,29 @@
       "name": "Name",
       "model": "Model",
       "outputJsonSchema": "Output JSON Schema",
-      "questionOrder": {
-        "important": "Question order matters",
-        "hint": "When enabled, the agent asks the questions in the order below.",
-        "empty": "Add fields to the schema above to arrange their order.",
-        "dragHandle": "Drag to reorder"
+      "schemaBuilder": {
+        "advancedMode": "Advanced mode",
+        "visualMode": "Visual editor",
+        "addField": "Add field",
+        "removeField": "Remove field",
+        "empty": "No fields yet. Add a field to get started.",
+        "fieldName": "Field name",
+        "fieldNameEmpty": "Set field name",
+        "fieldNamePlaceholder": "e.g. country",
+        "type": "Type",
+        "description": "Description",
+        "descriptionEmpty": "Add description",
+        "descriptionPlaceholder": "Question or hint the assistant uses to fill this field",
+        "expandDescription": "Expand",
+        "required": "Required",
+        "dragHandle": "Drag to reorder",
+        "types": {
+          "string": "Text",
+          "number": "Number",
+          "boolean": "Yes / No",
+          "array": "List",
+          "object": "Object"
+        }
       },
       "temperature": "Temperature",
       "updatedAt": "Updated At",

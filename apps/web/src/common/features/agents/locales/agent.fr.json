@@ -14,11 +14,29 @@
       "name": "Nom",
       "model": "Modèle",
       "outputJsonSchema": "Schéma JSON de sortie",
-      "questionOrder": {
-        "important": "L'ordre des questions est important",
-        "hint": "Lorsque cette option est activée, l'agent pose les questions dans l'ordre ci-dessous.",
-        "empty": "Ajoutez des champs au schéma ci-dessus pour définir leur ordre.",
-        "dragHandle": "Glisser pour réordonner"
+      "schemaBuilder": {
+        "advancedMode": "Mode avancé",
+        "visualMode": "Éditeur visuel",
+        "addField": "Ajouter un champ",
+        "removeField": "Supprimer le champ",
+        "empty": "Aucun champ pour le moment. Ajoutez un champ pour commencer.",
+        "fieldName": "Nom du champ",
+        "fieldNameEmpty": "Définir le nom du champ",
+        "fieldNamePlaceholder": "ex. pays",
+        "type": "Type",
+        "description": "Description",
+        "descriptionEmpty": "Ajouter une description",
+        "descriptionPlaceholder": "Question ou indice que l'assistant utilise pour remplir ce champ",
+        "expandDescription": "Agrandir",
+        "required": "Obligatoire",
+        "dragHandle": "Glisser pour réordonner",
+        "types": {
+          "string": "Texte",
+          "number": "Nombre",
+          "boolean": "Oui / Non",
+          "array": "Liste",
+          "object": "Objet"
+        }
       },
       "temperature": "Température",
       "updatedAt": "Mis à jour le",
