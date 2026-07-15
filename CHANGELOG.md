@@ -25,6 +25,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Editing a single agent tab no longer clears the agent's greeting message
 - Agent temperature is returned as a number instead of a string, matching the API contract
 - Submitting a message in an agent session no longer jumps the transcript to the first message
+- Accepting the terms now advances past the terms screen instead of leaving the user stuck on it
 
 ### Security
 

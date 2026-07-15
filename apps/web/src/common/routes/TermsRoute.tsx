@@ -56,7 +56,7 @@ export function TermsRoute() {
   if (!currentTerms) return null
 
   const onSubmit = ({ aiUsagePolicyAccepted }: TermsFormValues) => {
-    dispatch(acceptTerms({ aiUsagePolicyAccepted }))
+    dispatch(acceptTerms({ aiUsagePolicyAccepted, onSuccess: () => window.location.reload() }))
   }
 
   const showMandatoryError = !!(errors.generalConditionsAccepted || errors.privacyPolicyAccepted)
