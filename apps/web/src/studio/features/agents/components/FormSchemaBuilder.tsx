@@ -224,7 +224,7 @@ export function FormSchemaBuilder({ value, onChange, disabled = false }: Props) 
         header: () => (
           <span className="text-muted-foreground">{t("agent:props.schemaBuilder.fieldName")}</span>
         ),
-        meta: { className: "min-w-[12rem]" } satisfies ColumnMeta,
+        meta: { className: "w-0 whitespace-nowrap" } satisfies ColumnMeta,
         cell: ({ row, table }) => {
           const meta = table.options.meta as SchemaTableMeta
           return (
@@ -297,7 +297,7 @@ export function FormSchemaBuilder({ value, onChange, disabled = false }: Props) 
             {t("agent:props.schemaBuilder.description")}
           </span>
         ),
-        meta: { className: "max-w-88" } satisfies ColumnMeta,
+        meta: { className: "w-full max-w-0" } satisfies ColumnMeta,
         cell: ({ row, table }) => {
           const meta = table.options.meta as SchemaTableMeta
           return (
@@ -464,7 +464,7 @@ function FieldNameCell({
         <button
           type="button"
           disabled={disabled}
-          className="block w-full truncate text-left font-medium text-sm hover:underline disabled:cursor-not-allowed"
+          className="block text-left font-medium text-sm hover:underline disabled:cursor-not-allowed"
         >
           {field.name ? (
             field.name
@@ -507,7 +507,7 @@ function DescriptionCell({
           <button
             type="button"
             disabled={disabled}
-            className="block w-full max-w-88 truncate text-left text-sm hover:underline disabled:cursor-not-allowed"
+            className="block w-full truncate text-left text-sm hover:underline disabled:cursor-not-allowed"
           >
             {field.description ? (
               field.description
