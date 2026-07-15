@@ -319,6 +319,10 @@ export const seed = {
     agentSubAgents(subAgents: AgentSubAgent[]): StoryPreloadedState {
       return { agentSubAgents: { data: ads.fulfilled(subAgents) } }
     },
+
+    agentHistory(versions: Agent[]): StoryPreloadedState {
+      return { agentHistory: { data: ads.fulfilled(versions) } }
+    },
   },
 
   backoffice: {

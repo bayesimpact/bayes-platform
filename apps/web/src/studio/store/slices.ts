@@ -34,6 +34,7 @@ import { projectMembershipsSlice } from "@/studio/features/project-memberships/p
 import { reviewCampaignsMiddleware } from "@/studio/features/review-campaigns/review-campaigns.middleware"
 import { reviewCampaignsSlice } from "@/studio/features/review-campaigns/review-campaigns.slice"
 import { createSliceManager } from "../../common/store/dynamic-middleware"
+import { agentHistorySlice } from "../features/agents/agent-history.slice"
 import { studioAgentsMiddleware } from "../features/agents/agents.middleware"
 import { documentsMiddleware } from "../features/documents/documents.middleware"
 import { documentsSlice } from "../features/documents/documents.slice"
@@ -73,6 +74,7 @@ export const studioSliceList = [
   agentAnalyticsSlice,
   agentCsvExtractionRunsSlice,
   agentEmbedConfigsSlice,
+  agentHistorySlice,
   agentMembershipsSlice,
   agentMessageFeedbackSlice,
   agentSubAgentsSlice,

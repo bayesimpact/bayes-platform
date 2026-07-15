@@ -19,6 +19,7 @@ import { AgentOutputTab } from "./AgentOutputTab"
 import { AgentResourceLibrariesTab } from "./AgentResourceLibrariesTab"
 import { AgentSessionCategoriesTab } from "./AgentSessionCategoriesTab"
 import { AgentSourcesTab } from "./AgentSourcesTab"
+import { AgentVersionHistory } from "./AgentVersionHistory"
 
 export type AgentEditorOrchestration = {
   agents: Agent[]
@@ -180,14 +181,23 @@ export function AgentEditor({
   return (
     <div className={className}>
       <Tabs value={nav.active} onValueChange={requestTabChange}>
-        <TabsList>
-          {tabs.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value}>
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        <TabsContent key={activeTab.value} value={activeTab.value} className="mt-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <TabsList>
+            {tabs.map((tab) => (
+              <TabsTrigger key={tab.value} value={tab.value}>
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <AgentVersionHistory agent={agent} />
+        </div>
+        {/* Also keyed on the revision so the active tab form reloads fresh defaults after a
+            version is restored from the history sheet. */}
+        <TabsContent
+          key={`${activeTab.value}-${agent.revision}`}
+          value={activeTab.value}
+          className="mt-4"
+        >
           {activeTab.render(setDirty)}
         </TabsContent>
       </Tabs>
