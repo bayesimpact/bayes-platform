@@ -107,6 +107,12 @@ export default {
     )
     return response.data.data
   },
+  cancelCrawl: async ({ organizationId, projectId, documentId }) => {
+    const axios = getAxiosInstance()
+    await axios.post<typeof DocumentsRoutes.cancelCrawl.response>(
+      DocumentsRoutes.cancelCrawl.getPath({ organizationId, projectId, documentId }),
+    )
+  },
 } satisfies IDocumentsSpi
 
 // Presign → upload directly to GCS → confirm. Shared by uploadOne and uploadMany.

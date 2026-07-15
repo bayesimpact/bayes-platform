@@ -9,6 +9,7 @@ import { DocumentEmbeddingStatusNotifierService } from "./document-embedding-sta
 import { DOCUMENT_EMBEDDINGS_QUEUE_NAME } from "./document-embeddings.constants"
 import { DocumentEmbeddingsWorker } from "./document-embeddings.worker"
 import { DocumentEmbeddingsProcessorService } from "./document-embeddings-processor.service"
+import { DocumentEmbeddingsSharedService } from "./document-embeddings-shared.service"
 import { DocumentTextExtractorService } from "./document-text-extractor.service"
 import { QueueMetricsService } from "./queue-metrics.service"
 
@@ -23,6 +24,7 @@ import { QueueMetricsService } from "./queue-metrics.service"
   providers: [
     DocumentEmbeddingsWorker,
     DocumentEmbeddingsProcessorService,
+    DocumentEmbeddingsSharedService,
     DocumentEmbeddingStatusNotifierService,
     DocumentTextExtractorService,
     DocumentsService,

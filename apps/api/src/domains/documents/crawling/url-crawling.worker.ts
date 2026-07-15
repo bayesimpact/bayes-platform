@@ -24,18 +24,18 @@ export class UrlCrawlingWorker extends WorkerHost {
 
   @OnWorkerEvent("active")
   onActive(job: Job<CrawlUrlJobPayload>): void {
-    this.logger.log(`Job active: ${job.name} (${job.id})`)
+    this.logger.log(`Job active: ${job.name} (${job.id}) → ${job.data.url}`)
   }
 
   @OnWorkerEvent("completed")
   onCompleted(job: Job<CrawlUrlJobPayload>): void {
-    this.logger.log(`Job completed: ${job.name} (${job.id})`)
+    this.logger.log(`Job completed: ${job.name} (${job.id}) → ${job.data.url}`)
   }
 
   @OnWorkerEvent("failed")
   onFailed(job: Job<CrawlUrlJobPayload> | undefined, error: Error): void {
     this.logger.error(
-      `Job failed: ${job?.name ?? "unknown"} (${job?.id ?? "unknown"})`,
+      `Job failed: ${job?.name ?? "unknown"} (${job?.id ?? "unknown"}) → ${job?.data.url ?? "unknown url"}`,
       error.stack,
     )
   }

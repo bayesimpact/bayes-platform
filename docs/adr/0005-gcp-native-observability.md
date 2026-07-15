@@ -2,11 +2,11 @@
 
 **Status:** Accepted
 **Date:** 2026-03-19
-**Context:** Replace scattered observability tools with GCP-native solutions, keeping PostHog for product analytics only.
+**Context:** Replace scattered observability tools with GCP-native solutions.
 
 ## Decision
 
-Consolidate all operational observability (error reporting, tracing, monitoring, alerting) on GCP. PostHog remains for product analytics only. LangFuse remains for LLM-specific tracing.
+Consolidate all operational observability (error reporting, tracing, monitoring, alerting) on GCP. LangFuse remains for LLM-specific tracing.
 
 ## Current State
 
@@ -127,7 +127,6 @@ Notification channel: Slack (configured once in Cloud Monitoring → Notificatio
 
 | Concern | Tool | How |
 |---------|------|-----|
-| Product analytics | PostHog | Stays as-is |
 | LLM tracing | LangFuse | Stays as-is (OTEL exporter) |
 | Distributed tracing | Cloud Trace | New OTEL exporter + auto-instrumentations |
 | Logs | Cloud Logging | Structured JSON to stdout (no SDK) |

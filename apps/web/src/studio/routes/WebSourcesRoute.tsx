@@ -4,20 +4,20 @@ import { selectDocumentTagsData } from "@/studio/features/document-tags/document
 import { selectDocumentsData } from "@/studio/features/documents/documents.selectors"
 import { documentsActions } from "@/studio/features/documents/documents.slice"
 import { AsyncRoute } from "../../common/routes/AsyncRoute"
-import { DocumentList } from "../features/documents/components/DocumentList"
+import { WebSourcesDocumentList } from "../features/documents/components/web-crawl/WebSourcesDocumentList"
 
-export function ProjectDocumentsRoute() {
+export function WebSourcesRoute() {
   const documents = useAppSelector(selectDocumentsData)
   const documentTags = useAppSelector(selectDocumentTagsData)
   useMount({
     actions: {
-      mount: documentsActions.projectMount,
-      unmount: documentsActions.projectUnmount,
+      mount: documentsActions.webSourcesMount,
+      unmount: documentsActions.webSourcesUnmount,
     },
   })
   return (
     <AsyncRoute data={[documents, documentTags]}>
-      <DocumentList />
+      <WebSourcesDocumentList />
     </AsyncRoute>
   )
 }

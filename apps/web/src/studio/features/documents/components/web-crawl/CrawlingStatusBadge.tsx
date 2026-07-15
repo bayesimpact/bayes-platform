@@ -6,10 +6,10 @@ import type { Document } from "@/studio/features/documents/documents.models"
 type EmbeddingStatus = Document["embeddingStatus"]
 
 const LABEL_KEY: Record<EmbeddingStatus, string> = {
-  pending: "processing",
-  queued: "processing",
-  processing: "processing",
-  completed: "completed",
+  pending: "crawling",
+  queued: "crawling",
+  processing: "embedding",
+  completed: "ready",
   failed: "failed",
 }
 
@@ -21,14 +21,25 @@ const BADGE_VARIANT: Record<EmbeddingStatus, BadgeVariant> = {
   failed: "destructive",
 }
 
-export function EmbeddingStatusBadge({ status }: { status: EmbeddingStatus }) {
+export function CrawlingStatusBadge({
+  status,
+  pagesCrawled,
+}: {
+  status: EmbeddingStatus
+  pagesCrawled?: number
+}) {
   const { t } = useTranslation("document", { keyPrefix: "props.embeddingStatuses" })
+  const isCrawling = status === "pending" || status === "queued"
   const showSpinner = status === "pending" || status === "queued" || status === "processing"
+  const label =
+    isCrawling && typeof pagesCrawled === "number" && pagesCrawled > 0
+      ? t("crawlingWithCount", { count: pagesCrawled })
+      : t(LABEL_KEY[status])
 
   return (
     <Badge variant={BADGE_VARIANT[status]} className="gap-1.5">
       {showSpinner && <Loader2Icon className="size-3 animate-spin" />}
-      {t(LABEL_KEY[status])}
+      {label}
     </Badge>
   )
 }

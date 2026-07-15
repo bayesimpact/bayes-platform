@@ -54,7 +54,6 @@ graph TB
 
     subgraph "Observability"
         LANGFUSE["LangFuse<br/>LLM Tracing"]
-        POSTHOG["PostHog<br/>Analytics (EU)"]
     end
 
     %% Client flows
@@ -83,9 +82,6 @@ graph TB
     GH -- "migration:run<br/>via Cloud SQL Proxy" --> PG
     GH -- "Deploy notification" --> SLACK
 
-    %% Analytics
-    WEB -- "Event tracking" --> POSTHOG
-
     %% Styling
     classDef gcp fill:#4285F4,stroke:#333,color:#fff
     classDef external fill:#34A853,stroke:#333,color:#fff
@@ -93,7 +89,7 @@ graph TB
     classDef cicd fill:#EA4335,stroke:#333,color:#fff
 
     class API,WORKERS,PG,REDIS,GCS,AR,SM,VERTEX gcp
-    class AUTH0,LANGFUSE,POSTHOG,SLACK external
+    class AUTH0,LANGFUSE,SLACK external
     class WEB client
     class GH cicd
 ```
@@ -104,7 +100,6 @@ graph TB
 |--------|-------------|----------|---------|
 | Web App | API (Cloud Run) | HTTPS + JWT | All API requests |
 | Web App | Auth0 | HTTPS | Login, token refresh (SPA SDK) |
-| Web App | PostHog (EU) | HTTPS | Analytics events |
 | API | PostgreSQL (Cloud SQL) | Unix Socket (Cloud SQL Proxy) | Data persistence |
 | API | Redis | TCP 6379 (TLS in prod) | BullMQ job enqueue |
 | API | GCS | HTTPS | File upload/download |

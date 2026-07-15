@@ -32,13 +32,15 @@
       "pages": "Pages"
     },
     "update": {
-      "title": "Modifier {{documentTitle}}"
+      "title": "Modifier {{documentTitle}}",
+      "titleRequired": "Un titre est requis"
     },
     "delete": {
       "title": "Supprimer {{documentTitle}}",
       "description": "Êtes-vous sûr de vouloir supprimer ce document ? Cette action est irréversible."
     },
     "recrawl": "Ré-explorer le site",
+    "stopCrawl": "Arrêter l'exploration",
     "crawl": {
       "button": "Explorer un site web",
       "title": "Explorer un site web",
@@ -91,7 +93,11 @@
     },
     "webSources": {
       "title": "Sites web",
-      "description": "Améliorez les connaissances et les capacités de vos agents en explorant des sites web."
+      "description": "Améliorez les connaissances et les capacités de vos agents en explorant des sites web.",
+      "empty": {
+        "title": "Aucun site web exploré pour le moment",
+        "description": "Entrez une URL pour commencer à explorer un site web et indexer son contenu."
+      }
     },
     "filter": {
       "all": "Tous",
