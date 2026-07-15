@@ -79,6 +79,11 @@ export const outputJsonSchemaSchema = z
         description: z.string().optional(),
       }),
     ),
+    // Author-controlled question order. `properties` is a map, so its key order is not
+    // preserved through jsonb storage; `propertyOrdering` restores an explicit order and is
+    // the native Gemini/Vertex ordering mechanism. Partial lists are allowed — unlisted keys
+    // fall back to their `properties` key order. See `getOrderedPropertyEntries`.
+    propertyOrdering: z.array(z.string()).optional(),
   })
   .refine((data) => {
     if (data.required) {
@@ -86,6 +91,38 @@ export const outputJsonSchemaSchema = z
     }
     return true
   }, "All required keys must be defined in properties")
+  .refine((data) => {
+    if (data.propertyOrdering) {
+      return data.propertyOrdering.every((orderedKey) => orderedKey in data.properties)
+    }
+    return true
+  }, "All propertyOrdering keys must be defined in properties")
+
+type OutputJsonSchema = z.infer<typeof outputJsonSchemaSchema>
+type OutputJsonSchemaProperty = OutputJsonSchema["properties"][string]
+
+/**
+ * Returns `[key, property]` entries in the author-defined question order: keys listed in
+ * `propertyOrdering` first (in that order), then any remaining `properties` keys in their
+ * original insertion order. This is the single source of truth for form-agent question order.
+ */
+export function getOrderedPropertyEntries(
+  schema: OutputJsonSchema,
+): [string, OutputJsonSchemaProperty][] {
+  const { properties, propertyOrdering } = schema
+  if (!propertyOrdering || propertyOrdering.length === 0) {
+    return Object.entries(properties)
+  }
+
+  const orderedKeys = propertyOrdering.filter((orderedKey) => orderedKey in properties)
+  const seen = new Set(orderedKeys)
+  const remainingKeys = Object.keys(properties).filter((key) => !seen.has(key))
+
+  return [...orderedKeys, ...remainingKeys].map((key) => [key, properties[key]] as const) as [
+    string,
+    OutputJsonSchemaProperty,
+  ][]
+}
 
 const agentValidationSchema = z.object({
   greetingMessage: z.string().max(2000).optional(),

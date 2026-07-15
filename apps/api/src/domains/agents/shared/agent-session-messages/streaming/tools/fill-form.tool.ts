@@ -20,7 +20,7 @@ export function fillFormTool({
   const { agentSettings, connectScope, session } = agentSessionScope
   const schema = outputJsonSchemaSchema.parse(agentSettings.outputJsonSchema) // validate the schema from the agent definition
 
-  const inputSchema = buildFormFieldsZodSchema(schema.properties)
+  const inputSchema = buildFormFieldsZodSchema(schema)
 
   return tool({
     description: "Fill out a form. Get the values from user's answers.",

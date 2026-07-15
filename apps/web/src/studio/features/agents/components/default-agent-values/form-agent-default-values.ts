@@ -23,6 +23,7 @@ export const formAgentDefaultValues = {
         },
       },
       required: ["country", "language"],
+      propertyOrdering: ["country", "language"],
     }
 
     return buildOutputJsonSchema({ envSchema, defaultSchema })

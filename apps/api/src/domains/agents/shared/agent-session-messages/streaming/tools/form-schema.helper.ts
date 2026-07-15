@@ -1,12 +1,15 @@
-import type { outputJsonSchemaSchema } from "@caseai-connect/api-contracts"
+import {
+  getOrderedPropertyEntries,
+  type outputJsonSchemaSchema,
+} from "@caseai-connect/api-contracts"
 import { z } from "zod"
 import { zNullableType } from "@/common/zod-helper"
 
 export function buildFormFieldsZodSchema(
-  properties: z.infer<typeof outputJsonSchemaSchema>["properties"],
+  schema: z.infer<typeof outputJsonSchemaSchema>,
 ): z.ZodObject<Record<string, z.ZodTypeAny>> {
   const shape: Record<string, z.ZodTypeAny> = {}
-  for (const [key, value] of Object.entries(properties)) {
+  for (const [key, value] of getOrderedPropertyEntries(schema)) {
     const description = value.description ?? ""
     switch (value.type) {
       case "string":
