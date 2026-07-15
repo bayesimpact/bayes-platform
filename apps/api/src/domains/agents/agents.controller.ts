@@ -13,10 +13,13 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
+  Param,
   Patch,
   Post,
   Put,
   Req,
+  UnprocessableEntityException,
   UseGuards,
   UsePipes,
 } from "@nestjs/common"
@@ -30,6 +33,7 @@ import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
+import { extractAgentSettingsUpdateFields } from "@/domains/agents/settings/agent.settings.functions"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
@@ -129,6 +133,40 @@ export class AgentsController {
       return toAgentDto({ agent: request.agent, agentSettings: as })
     })
     return { data: results }
+  }
+
+  @Post(AgentHistoryRoutes.restoreOne.path)
+  @CheckPolicy((policy) => policy.canUpdate())
+  @AddContext("agent")
+  @TrackActivity({ action: "agent.update", entityFrom: "agent" })
+  async restoreOneHistory(
+    @Req() request: EndpointRequestWithAgent,
+    @Param("revision") revisionParam: string,
+  ): Promise<typeof AgentHistoryRoutes.restoreOne.response> {
+    const revision = Number(revisionParam)
+    if (!Number.isInteger(revision) || revision < 1) {
+      throw new UnprocessableEntityException(`Invalid revision "${revisionParam}"`)
+    }
+
+    const connectScope = getRequiredConnectScope(request)
+    const targetSettings = await this.agentSettingsService.get({
+      connectScope,
+      agentId: request.agent.id,
+      revision,
+    })
+    if (!targetSettings) {
+      throw new NotFoundException(
+        `Revision ${revision} not found for agent with id ${request.agent.id}`,
+      )
+    }
+
+    await this.agentsService.updateAgent({
+      connectScope,
+      agentId: request.agent.id,
+      fieldsToUpdate: extractAgentSettingsUpdateFields(targetSettings),
+    })
+
+    return { data: { success: true } }
   }
 
   @Get(AgentSubAgentsRoutes.getAll.path)

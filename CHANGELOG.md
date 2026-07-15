@@ -9,6 +9,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 -  (beta) Gemini 3.1 Flash Lite & Gemini 3.5 Flash available for all Agents
+- Agent editor shows the settings version history: browse versions, compare changes, restore in one click
 - Agent session chat shows a live activity timeline while the assistant is streaming, with descriptive per-tool statuses and a check once each step completes
 - Agent session chat has a message navigator to jump to any earlier message in the thread
 - Form agents have a visual output-schema editor: add fields, choose a type, mark them required, and drag to set the question order the assistant follows — with a toggle to let the assistant choose the order instead, and a raw-JSON advanced mode as a fallback

@@ -134,6 +134,26 @@
       "title": "Unsaved changes",
       "description": "You have unsaved changes that will be lost. Do you want to discard them?"
     },
+    "history": {
+      "button": "History",
+      "title": "Version history",
+      "description": "Browse, compare and restore previous settings of {{name}}.",
+      "loadError": "Failed to load version history",
+      "revisionLabel": "Version {{revision}}",
+      "currentBadge": "Current",
+      "compareWithPrevious": "Changes in this version",
+      "compareWithCurrent": "Compare with current",
+      "comparing": "Showing changes from version {{before}} to version {{after}}.",
+      "noChangesTitle": "No differences",
+      "noChangesDescription": "These two versions have identical settings.",
+      "onlyVersionTitle": "Only one version",
+      "onlyVersionDescription": "This agent has a single settings version, so there is nothing to compare yet.",
+      "restore": "Restore this version",
+      "restoreDialog": {
+        "title": "Restore version {{revision}}?",
+        "description": "The settings of version {{revision}} will be copied as a new version and become the current settings. No version is deleted."
+      }
+    },
     "orchestration": {
       "selectedTitle": "Sub-agents",
       "availableTitle": "Available conversation agents",

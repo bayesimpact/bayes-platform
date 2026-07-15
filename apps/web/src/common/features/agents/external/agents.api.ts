@@ -1,4 +1,4 @@
-import { type AgentDto, AgentsRoutes } from "@caseai-connect/api-contracts"
+import { type AgentDto, AgentHistoryRoutes, AgentsRoutes } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { Agent } from "../agents.models"
 import type { IAgentsSpi } from "../agents.spi"
@@ -28,6 +28,19 @@ export default {
   deleteOne: async (params) => {
     const axios = getAxiosInstance()
     await axios.delete(AgentsRoutes.deleteOne.getPath(params))
+  },
+  getHistory: async (params) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof AgentHistoryRoutes.getAll.response>(
+      AgentHistoryRoutes.getAll.getPath(params),
+    )
+    return response.data.data.map(toAgent)
+  },
+  restoreRevision: async ({ revision, ...params }) => {
+    const axios = getAxiosInstance()
+    await axios.post(
+      AgentHistoryRoutes.restoreOne.getPath({ ...params, revision: String(revision) }),
+    )
   },
 } satisfies IAgentsSpi
 

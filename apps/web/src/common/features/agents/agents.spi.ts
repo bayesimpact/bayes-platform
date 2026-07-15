@@ -16,4 +16,15 @@ export interface IAgentsSpi {
     projectId: string
     agentId: string
   }) => Promise<void>
+  getHistory: (params: {
+    organizationId: string
+    projectId: string
+    agentId: string
+  }) => Promise<Agent[]>
+  restoreRevision: (params: {
+    organizationId: string
+    projectId: string
+    agentId: string
+    revision: number
+  }) => Promise<void>
 }

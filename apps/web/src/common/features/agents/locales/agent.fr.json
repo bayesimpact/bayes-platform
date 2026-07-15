@@ -134,6 +134,26 @@
       "title": "Modifications non enregistrées",
       "description": "Vous avez des modifications non enregistrées qui seront perdues. Voulez-vous les abandonner ?"
     },
+    "history": {
+      "button": "Historique",
+      "title": "Historique des versions",
+      "description": "Parcourez, comparez et restaurez les paramètres précédents de {{name}}.",
+      "loadError": "Échec du chargement de l'historique des versions",
+      "revisionLabel": "Version {{revision}}",
+      "currentBadge": "Actuelle",
+      "compareWithPrevious": "Changements de cette version",
+      "compareWithCurrent": "Comparer avec l'actuelle",
+      "comparing": "Changements de la version {{before}} à la version {{after}}.",
+      "noChangesTitle": "Aucune différence",
+      "noChangesDescription": "Ces deux versions ont des paramètres identiques.",
+      "onlyVersionTitle": "Une seule version",
+      "onlyVersionDescription": "Cet agent n'a qu'une seule version de paramètres, il n'y a donc rien à comparer pour le moment.",
+      "restore": "Restaurer cette version",
+      "restoreDialog": {
+        "title": "Restaurer la version {{revision}} ?",
+        "description": "Les paramètres de la version {{revision}} seront copiés comme nouvelle version et deviendront les paramètres actuels. Aucune version n'est supprimée."
+      }
+    },
     "orchestration": {
       "selectedTitle": "Sous-agents",
       "availableTitle": "Agents conversationnels disponibles",

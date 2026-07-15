@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import type { Agent } from "@/common/features/agents/agents.models"
+import type { IAgentsSpi } from "@/common/features/agents/agents.spi"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -13,6 +15,38 @@ import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
   withSubAgents?: boolean
+}
+
+/** Older revisions of the agent so the version history sheet has content to compare. */
+function buildVersions(agent: Agent): Agent[] {
+  return [
+    { ...agent },
+    {
+      ...agent,
+      revision: 2,
+      temperature: 0.2,
+      instructions: `${agent.instructions}\nAlways cite your sources.`,
+    },
+    {
+      ...agent,
+      revision: 1,
+      instructions: "You are a helpful assistant.",
+    },
+  ]
+}
+
+/** Serves the seeded data back so history/restore interactions work inside the story. */
+function buildMockAgentsService(agents: Agent[], versions: Agent[]): IAgentsSpi {
+  return {
+    getAll: async () => agents,
+    createOne: async () => {
+      throw new Error("createOne is not supported in this story")
+    },
+    updateOne: async () => {},
+    deleteOne: async () => {},
+    getHistory: async () => versions,
+    restoreRevision: async () => {},
+  }
 }
 
 const meta = {
@@ -46,6 +80,7 @@ export const ConversationAgent: Story = {
         ...rawParentAgent,
         name: "Helpful Assistant",
         type: "conversation" as const,
+        revision: 3,
       }
       const childAgents = rawChildAgents.map((agent, index) => ({
         ...agent,
@@ -61,14 +96,20 @@ export const ConversationAgent: Story = {
               }),
             ]
           : []
+      const allAgents = [parentAgent, ...childAgents]
+      const versions = buildVersions(parentAgent)
 
       return {
         state: mergeSeeds(
           baseSeeds,
-          seed.agents([parentAgent, ...childAgents], { currentId: parentAgent.id }),
+          seed.agents(allAgents, { currentId: parentAgent.id }),
           seed.studio.agentSubAgents(subAgents),
           seed.studio.documentTags([]),
+          seed.studio.agentHistory(versions),
         ),
+        services: {
+          agents: buildMockAgentsService(allAgents, versions),
+        },
       }
     }),
   ],
