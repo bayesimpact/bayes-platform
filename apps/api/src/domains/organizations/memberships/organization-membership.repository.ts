@@ -7,9 +7,9 @@ import {
   UserMembership,
 } from "@/domains/memberships/user-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
+import { resolveOrganizationRoleId } from "@/domains/rbac/resolve-organization-role-id"
 import type { OrganizationMembershipModel } from "./organization-membership.model"
 import type { OrganizationMembershipRole } from "./organization-membership.types"
-import { resolveOrganizationRoleId } from "@/domains/rbac/resolve-organization-role-id"
 
 const ORGANIZATION_RESOURCE_TYPE = "organization" as const
 
