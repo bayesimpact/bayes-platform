@@ -68,17 +68,26 @@ export type AgentDto = {
   resourceLibraryIds: string[]
 }
 
+// Constraint keywords (enum/minimum/maximum/items) mirror the subset of JSON Schema
+// that Gemini/Vertex structured output understands. They are optional and not cross-checked
+// against `type` (e.g. an enum on a number) — the provider is the authority on those pairings.
+// `items` recurses so array properties can describe their element shape.
+export const outputJsonSchemaPropertySchema = z.object({
+  type: z.enum(["string", "number", "boolean", "object", "array"]),
+  description: z.string().optional(),
+  enum: z.array(z.string()).min(1).optional(),
+  minimum: z.number().optional(),
+  maximum: z.number().optional(),
+  get items() {
+    return outputJsonSchemaPropertySchema.optional()
+  },
+})
+
 export const outputJsonSchemaSchema = z
   .object({
     type: z.literal("object"),
     required: z.array(z.string()).optional(),
-    properties: z.record(
-      z.string(),
-      z.object({
-        type: z.enum(["string", "number", "boolean", "object", "array"]),
-        description: z.string().optional(),
-      }),
-    ),
+    properties: z.record(z.string(), outputJsonSchemaPropertySchema),
     // Author-controlled question order. `properties` is a map, so its key order is not
     // preserved through jsonb storage; `propertyOrdering` restores an explicit order and is
     // the native Gemini/Vertex ordering mechanism. Partial lists are allowed — unlisted keys
@@ -97,9 +106,19 @@ export const outputJsonSchemaSchema = z
     }
     return true
   }, "All propertyOrdering keys must be defined in properties")
+  .refine(
+    (data) =>
+      Object.values(data.properties).every(
+        (property) =>
+          property.minimum === undefined ||
+          property.maximum === undefined ||
+          property.minimum <= property.maximum,
+      ),
+    "minimum must be less than or equal to maximum",
+  )
 
 type OutputJsonSchema = z.infer<typeof outputJsonSchemaSchema>
-type OutputJsonSchemaProperty = OutputJsonSchema["properties"][string]
+export type OutputJsonSchemaProperty = z.infer<typeof outputJsonSchemaPropertySchema>
 
 /**
  * Returns `[key, property]` entries in the author-defined question order: keys listed in

@@ -1,4 +1,8 @@
-import { getOrderedPropertyEntries, outputJsonSchemaSchema } from "@caseai-connect/api-contracts"
+import {
+  getOrderedPropertyEntries,
+  type OutputJsonSchemaProperty,
+  outputJsonSchemaSchema,
+} from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
 import {
@@ -57,12 +61,15 @@ import {
 import {
   GripVerticalIcon,
   HashIcon,
+  ListChecksIcon,
+  ListIcon,
   type LucideIcon,
   Maximize2Icon,
   PlusIcon,
   ToggleLeftIcon,
   Trash2Icon,
   TypeIcon,
+  XIcon,
 } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -71,17 +78,40 @@ import type { z } from "zod"
 type OutputJsonSchema = z.infer<typeof outputJsonSchemaSchema>
 type PropertyType = OutputJsonSchema["properties"][string]["type"]
 
-// Only the types the form runtime can actually fill are offered here: buildFormFieldsZodSchema
-// supports string/number/boolean and throws on array/object. Those stay valid in the contract
-// and can still be set via advanced JSON mode (e.g. for extraction agents).
-const PROPERTY_TYPES: PropertyType[] = ["string", "number", "boolean"]
+// UI-facing field types. These are NOT the raw JSON Schema `type`s: "enum" is the builder's
+// promotion of the `enum` keyword to a first-class choice (it stores a `string` property carrying
+// an `enum` list), and `object` is intentionally not offered — nested objects stay in advanced
+// JSON mode. The form runtime (buildFormFieldsZodSchema) builds a zod type for every JSON type,
+// and extraction agents pass the schema straight to the provider.
+type FieldType = "string" | "number" | "boolean" | "array" | "enum"
+const FIELD_TYPES: FieldType[] = ["string", "number", "boolean", "array", "enum"]
 
-const TYPE_ICONS: Record<PropertyType, LucideIcon> = {
+const TYPE_ICONS: Record<FieldType, LucideIcon> = {
   string: TypeIcon,
   number: HashIcon,
   boolean: ToggleLeftIcon,
-  array: TypeIcon,
-  object: TypeIcon,
+  array: ListIcon,
+  enum: ListChecksIcon,
+}
+
+// A string property that carries an `enum` list is shown as the "enum" (Choice) type; everything
+// else maps to its JSON type. An `object` field (only creatable in advanced mode) has no matching
+// option, so the select renders blank until the author picks a listed type.
+function fieldUiType(field: SchemaField): string {
+  return field.constraints.enum !== undefined ? "enum" : field.type
+}
+
+// Switching TO enum seeds an empty `enum` list on a string property; switching AWAY drops it so a
+// number/boolean/array/list field never keeps stale allowed-values.
+function typeChangePatch(nextType: FieldType, field: SchemaField): Partial<SchemaField> {
+  if (nextType === "enum") {
+    return {
+      type: "string",
+      constraints: { ...field.constraints, enum: field.constraints.enum ?? [] },
+    }
+  }
+  const { enum: _removed, ...constraints } = field.constraints
+  return { type: nextType, constraints }
 }
 
 export type SchemaField = {
@@ -90,6 +120,10 @@ export type SchemaField = {
   type: PropertyType
   description: string
   required: boolean
+  // Constraint keywords (enum, minimum, maximum, items). Carried verbatim through the fields
+  // round-trip so touching a schema in visual mode never discards constraints authored in
+  // advanced JSON mode, including `items` which the visual builder does not edit.
+  constraints: Omit<OutputJsonSchemaProperty, "type" | "description">
 }
 
 // Per-column layout hints and the row handlers, both read from table meta so the column defs
@@ -110,12 +144,16 @@ export function parseSchemaToFields(value: unknown): Omit<SchemaField, "id">[] {
   const parsed = outputJsonSchemaSchema.safeParse(value)
   if (!parsed.success) return []
   const requiredKeys = new Set(parsed.data.required ?? [])
-  return getOrderedPropertyEntries(parsed.data).map(([name, property]) => ({
-    name,
-    type: property.type,
-    description: property.description ?? "",
-    required: requiredKeys.has(name),
-  }))
+  return getOrderedPropertyEntries(parsed.data).map(([name, property]) => {
+    const { type, description, ...constraints } = property
+    return {
+      name,
+      type,
+      description: description ?? "",
+      required: requiredKeys.has(name),
+      constraints,
+    }
+  })
 }
 
 /**
@@ -134,7 +172,12 @@ export function fieldsToSchema(fields: SchemaField[], includeOrdering = true): O
     const name = field.name.trim()
     if (!name || seen.has(name)) continue
     seen.add(name)
+    // An empty enum list is not a valid constraint (the contract requires at least one value), so
+    // an in-progress "Choice" field with no values yet serializes as a plain string property.
+    const { enum: enumValues, ...otherConstraints } = field.constraints
     properties[name] = {
+      ...otherConstraints,
+      ...(enumValues && enumValues.length > 0 ? { enum: enumValues } : {}),
       type: field.type,
       ...(field.description.trim() ? { description: field.description } : {}),
     }
@@ -168,6 +211,7 @@ const makeField = (): SchemaField => ({
   type: "string",
   description: "",
   required: false,
+  constraints: {},
 })
 
 type Props = {
@@ -288,28 +332,11 @@ export function OutputSchemaBuilder({
         cell: ({ row, table }) => {
           const meta = table.options.meta as SchemaTableMeta
           return (
-            <Select
-              value={row.original.type}
+            <TypeCell
+              field={row.original}
               disabled={meta.disabled}
-              onValueChange={(nextType) =>
-                meta.updateField(row.original.id, { type: nextType as PropertyType })
-              }
-            >
-              <SelectTrigger className="h-8 w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PROPERTY_TYPES.map((type) => {
-                  const TypeOptionIcon = TYPE_ICONS[type]
-                  return (
-                    <SelectItem key={type} value={type}>
-                      <TypeOptionIcon className="size-4" />
-                      {t(`agent:props.schemaBuilder.types.${type}`)}
-                    </SelectItem>
-                  )
-                })}
-              </SelectContent>
-            </Select>
+              onChange={(patch) => meta.updateField(row.original.id, patch)}
+            />
           )
         },
       },
@@ -507,6 +534,235 @@ function RowDragHandleCell({ rowId, disabled }: { rowId: string; disabled: boole
     >
       <GripVerticalIcon className="size-4" />
     </button>
+  )
+}
+
+function TypeCell({
+  field,
+  disabled,
+  onChange,
+}: {
+  field: SchemaField
+  disabled: boolean
+  onChange: (patch: Partial<SchemaField>) => void
+}) {
+  const { t } = useTranslation()
+  const uiType = fieldUiType(field)
+
+  return (
+    <div className="flex flex-col gap-1">
+      <Select
+        value={uiType}
+        disabled={disabled}
+        onValueChange={(nextType) => onChange(typeChangePatch(nextType as FieldType, field))}
+      >
+        <SelectTrigger className="h-8 w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {FIELD_TYPES.map((type) => {
+            const TypeOptionIcon = TYPE_ICONS[type]
+            return (
+              <SelectItem key={type} value={type}>
+                <TypeOptionIcon className="size-4" />
+                {t(`agent:props.schemaBuilder.types.${type}`)}
+              </SelectItem>
+            )
+          })}
+        </SelectContent>
+      </Select>
+      {uiType === "enum" && (
+        <EnumValuesEditor field={field} disabled={disabled} onChange={onChange} />
+      )}
+      {uiType === "number" && (
+        <NumberRangeEditor field={field} disabled={disabled} onChange={onChange} />
+      )}
+    </div>
+  )
+}
+
+// Edits a number field's optional minimum / maximum bounds. Either bound may be left blank; a
+// blank (or non-numeric) input clears that constraint so the field stays unbounded on that side.
+function NumberRangeEditor({
+  field,
+  disabled,
+  onChange,
+}: {
+  field: SchemaField
+  disabled: boolean
+  onChange: (patch: Partial<SchemaField>) => void
+}) {
+  const { t } = useTranslation()
+  const { minimum, maximum } = field.constraints
+
+  const setBound = (bound: "minimum" | "maximum", raw: string) => {
+    const { [bound]: _removed, ...rest } = field.constraints
+    const trimmed = raw.trim()
+    const parsed = Number(trimmed)
+    const constraints = trimmed === "" || Number.isNaN(parsed) ? rest : { ...rest, [bound]: parsed }
+    onChange({ constraints })
+  }
+
+  let label = t("agent:props.schemaBuilder.rangeEmpty")
+  if (minimum !== undefined && maximum !== undefined) {
+    label = t("agent:props.schemaBuilder.rangeBoth", { min: minimum, max: maximum })
+  } else if (minimum !== undefined) {
+    label = t("agent:props.schemaBuilder.rangeMinOnly", { min: minimum })
+  } else if (maximum !== undefined) {
+    label = t("agent:props.schemaBuilder.rangeMaxOnly", { max: maximum })
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          disabled={disabled}
+          className="truncate rounded border px-2 py-1 text-left text-muted-foreground text-xs hover:bg-muted disabled:cursor-not-allowed"
+        >
+          {label}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="flex w-72 flex-col gap-2">
+        <div className="flex items-start gap-2">
+          <div className="flex flex-1 flex-col gap-1">
+            <Label className="text-muted-foreground text-xs">
+              {t("agent:props.schemaBuilder.rangeMin")}
+            </Label>
+            <Input
+              type="number"
+              value={minimum ?? ""}
+              disabled={disabled}
+              aria-label={t("agent:props.schemaBuilder.rangeMin")}
+              className="h-8"
+              onChange={(event) => setBound("minimum", event.target.value)}
+            />
+          </div>
+          <div className="flex flex-1 flex-col gap-1">
+            <Label className="text-muted-foreground text-xs">
+              {t("agent:props.schemaBuilder.rangeMax")}
+            </Label>
+            <Input
+              type="number"
+              value={maximum ?? ""}
+              disabled={disabled}
+              aria-label={t("agent:props.schemaBuilder.rangeMax")}
+              className="h-8"
+              onChange={(event) => setBound("maximum", event.target.value)}
+            />
+          </div>
+        </div>
+        <p className="text-muted-foreground text-xs">{t("agent:props.schemaBuilder.rangeHint")}</p>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+// Edits a "Choice" field's allowed values as a list of removable chips. Each value is added
+// trimmed and de-duplicated; a pending draft is flushed when the popover closes.
+function EnumValuesEditor({
+  field,
+  disabled,
+  onChange,
+}: {
+  field: SchemaField
+  disabled: boolean
+  onChange: (patch: Partial<SchemaField>) => void
+}) {
+  const { t } = useTranslation()
+  const values = field.constraints.enum ?? []
+  const [draft, setDraft] = useState("")
+
+  const setValues = (nextValues: string[]) => {
+    onChange({ constraints: { ...field.constraints, enum: nextValues } })
+  }
+
+  // Returns whether the draft produced a new value, so key handlers can decide to keep focus.
+  const addDraft = () => {
+    const value = draft.trim()
+    setDraft("")
+    if (!value || values.includes(value)) return
+    setValues([...values, value])
+  }
+
+  const removeValue = (index: number) => {
+    setValues(values.filter((_, valueIndex) => valueIndex !== index))
+  }
+
+  return (
+    <Popover
+      onOpenChange={(open) => {
+        if (!open) addDraft()
+      }}
+    >
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          disabled={disabled}
+          className="truncate rounded border px-2 py-1 text-left text-muted-foreground text-xs hover:bg-muted disabled:cursor-not-allowed"
+        >
+          {values.length > 0
+            ? t("agent:props.schemaBuilder.enumValues", { count: values.length })
+            : t("agent:props.schemaBuilder.enumValuesEmpty")}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="flex w-72 flex-col gap-2">
+        {values.length > 0 && (
+          <ul className="flex max-h-52 flex-col gap-1 overflow-y-auto">
+            {values.map((value, index) => (
+              <li
+                key={value}
+                className="flex items-center gap-2 rounded border bg-muted/40 py-1 pr-1 pl-2"
+              >
+                <span className="flex-1 truncate text-sm">{value}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  disabled={disabled}
+                  aria-label={t("agent:props.schemaBuilder.enumValueRemove", { value })}
+                  className="size-6 shrink-0 text-muted-foreground hover:text-destructive"
+                  onClick={() => removeValue(index)}
+                >
+                  <XIcon />
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="flex items-center gap-1">
+          <Input
+            autoFocus
+            value={draft}
+            disabled={disabled}
+            aria-label={t("agent:props.schemaBuilder.enumValueAdd")}
+            placeholder={t("agent:props.schemaBuilder.enumValuesPlaceholder")}
+            className="h-8"
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault()
+                addDraft()
+              }
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-sm"
+            disabled={disabled || !draft.trim()}
+            aria-label={t("agent:props.schemaBuilder.enumValueAdd")}
+            className="size-8 shrink-0"
+            onClick={addDraft}
+          >
+            <PlusIcon />
+          </Button>
+        </div>
+        <p className="text-muted-foreground text-xs">
+          {t("agent:props.schemaBuilder.enumValuesHint")}
+        </p>
+      </PopoverContent>
+    </Popover>
   )
 }
 

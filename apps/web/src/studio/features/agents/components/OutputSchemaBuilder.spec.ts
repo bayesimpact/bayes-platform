@@ -12,6 +12,7 @@ const field = (overrides: Partial<SchemaField>): SchemaField => ({
   type: overrides.type ?? "string",
   description: overrides.description ?? "",
   required: overrides.required ?? false,
+  constraints: overrides.constraints ?? {},
 })
 
 describe("fieldsToSchema", () => {
@@ -55,6 +56,32 @@ describe("fieldsToSchema", () => {
     expect(Object.keys(schema.properties)).toEqual(["a", "b"])
   })
 
+  it("emits a non-empty enum list as a constraint on a string property", () => {
+    const schema = fieldsToSchema([
+      field({ id: "1", name: "status", constraints: { enum: ["open", "closed"] } }),
+    ])
+    expect(schema.properties.status).toEqual({ type: "string", enum: ["open", "closed"] })
+  })
+
+  it("omits an empty enum list so an in-progress Choice field stays valid", () => {
+    const schema = fieldsToSchema([field({ id: "1", name: "status", constraints: { enum: [] } })])
+    expect(schema.properties.status).toEqual({ type: "string" })
+  })
+
+  it("emits minimum and maximum bounds on a number property", () => {
+    const schema = fieldsToSchema([
+      field({ id: "1", name: "age", type: "number", constraints: { minimum: 0, maximum: 120 } }),
+    ])
+    expect(schema.properties.age).toEqual({ type: "number", minimum: 0, maximum: 120 })
+  })
+
+  it("emits a single bound when only one is set", () => {
+    const schema = fieldsToSchema([
+      field({ id: "1", name: "age", type: "number", constraints: { minimum: 18 } }),
+    ])
+    expect(schema.properties.age).toEqual({ type: "number", minimum: 18 })
+  })
+
   it("skips blank and duplicate field names", () => {
     const schema = fieldsToSchema([
       field({ id: "1", name: "  " }),
@@ -79,8 +106,43 @@ describe("parseSchemaToFields", () => {
     })
 
     expect(fields).toEqual([
-      { name: "age", type: "number", description: "", required: false },
-      { name: "country", type: "string", description: "Where?", required: true },
+      { name: "age", type: "number", description: "", required: false, constraints: {} },
+      { name: "country", type: "string", description: "Where?", required: true, constraints: {} },
+    ])
+  })
+
+  it("captures constraint keywords (enum, minimum, maximum, items) into constraints", () => {
+    const fields = parseSchemaToFields({
+      type: "object",
+      properties: {
+        status: { type: "string", enum: ["open", "closed"] },
+        score: { type: "number", minimum: 0, maximum: 10 },
+        tags: { type: "array", items: { type: "string" } },
+      },
+    })
+
+    expect(fields).toEqual([
+      {
+        name: "status",
+        type: "string",
+        description: "",
+        required: false,
+        constraints: { enum: ["open", "closed"] },
+      },
+      {
+        name: "score",
+        type: "number",
+        description: "",
+        required: false,
+        constraints: { minimum: 0, maximum: 10 },
+      },
+      {
+        name: "tags",
+        type: "array",
+        description: "",
+        required: false,
+        constraints: { items: { type: "string" } },
+      },
     ])
   })
 
@@ -98,6 +160,27 @@ describe("parseSchemaToFields", () => {
       },
       propertyOrdering: ["second", "first"],
       required: ["first"],
+    }
+    const withIds = parseSchemaToFields(schema).map((parsed, index) => ({
+      ...parsed,
+      id: String(index),
+    }))
+    expect(fieldsToSchema(withIds)).toEqual(schema)
+  })
+
+  it("round-trips constraint keywords the builder does not edit", () => {
+    const schema = {
+      type: "object" as const,
+      properties: {
+        status: {
+          type: "string" as const,
+          description: "Current status",
+          enum: ["open", "closed"],
+        },
+        score: { type: "number" as const, minimum: 0, maximum: 10 },
+        tags: { type: "array" as const, items: { type: "string" as const } },
+      },
+      propertyOrdering: ["status", "score", "tags"],
     }
     const withIds = parseSchemaToFields(schema).map((parsed, index) => ({
       ...parsed,

@@ -127,7 +127,7 @@ export class ProviderSpecs {
       hourOfSleep: zNullableType(z.int(), "How many sleep hours per day?"),
       weight: zNullableType(z.number(), "weight in kilogrammes (rounded .5)?"),
     })
-    let outputForm: Record<string, boolean | string | number | undefined> = {}
+    let outputForm: Record<string, unknown> = {}
     let status: string = "NOT_STARTED"
     const fillFormTool = tool({
       description: "Fill out a form. Get the values from user's answers.",
@@ -279,7 +279,7 @@ export class ProviderSpecs {
       hourOfSleep: zNullableType(z.int(), "How many sleep hours per day?"),
       weight: zNullableType(z.number(), "weight in kilogrammes (rounded .5)?"),
     })
-    let outputForm: Record<string, boolean | string | number | undefined> = {}
+    let outputForm: Record<string, unknown> = {}
     let status: string = "NOT_STARTED"
     const fillFormTool = tool({
       description: "Fill out a form. Get the values from user's answers.",
