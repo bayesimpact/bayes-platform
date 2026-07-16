@@ -15,6 +15,8 @@ const slice = createSlice({
   name: "agentHistory",
   initialState,
   reducers: {
+    mount: () => {},
+    unmount: () => {},
     reset: () => initialState,
   },
   extraReducers: (builder) => {

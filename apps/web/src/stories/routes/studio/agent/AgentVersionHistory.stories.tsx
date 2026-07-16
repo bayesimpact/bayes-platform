@@ -5,6 +5,7 @@ import type { Agent } from "@/common/features/agents/agents.models"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import { projectFactory } from "@/common/features/projects/projects.factory"
 import { withRedux } from "@/stories/decorators"
+import { seed } from "@/stories/seed"
 import { AgentVersionExplorer } from "@/studio/features/agents/components/AgentVersionExplorer"
 
 const organization = organizationFactory.build()
@@ -85,10 +86,9 @@ const schemaVersions: Agent[] = [
 const meta = {
   title: "routes/studio/project/agent/AgentVersionHistory",
   component: AgentVersionExplorer,
-  decorators: [withRedux({})],
-  render: (args) => (
+  render: () => (
     <div className="flex h-[600px] flex-col border">
-      <AgentVersionExplorer {...args} />
+      <AgentVersionExplorer />
     </div>
   ),
 } satisfies Meta<typeof AgentVersionExplorer>
@@ -97,13 +97,13 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const ManyVersions: Story = {
-  args: { versions },
+  decorators: [withRedux({ state: seed.studio.agentHistory(versions) })],
 }
 
 export const SchemaChange: Story = {
-  args: { versions: schemaVersions },
+  decorators: [withRedux({ state: seed.studio.agentHistory(schemaVersions) })],
 }
 
 export const SingleVersion: Story = {
-  args: { versions: [{ ...baseAgent, revision: 1 }] },
+  decorators: [withRedux({ state: seed.studio.agentHistory([{ ...baseAgent, revision: 1 }]) })],
 }
