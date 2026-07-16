@@ -15,6 +15,7 @@ import type { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.
 import type { AgentSubAgentsService } from "@/domains/agents/sub-agents/agent-sub-agents.service"
 import type { ProjectsService } from "@/domains/projects/projects.service"
 import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
+import { isLLMVisibleMessage } from "./llm-visible-message.helper"
 import type { AgentSessionScope, OnExecute, StreamingSession } from "./streaming-session.types"
 import { type SubAgentToolInput, subAgentTool } from "./tools/sub-agent.tool"
 
@@ -254,8 +255,14 @@ async function runSubAgentTool({
       { root: true },
       async (rootSpan) => {
         try {
+          const recentConversation = buildRecentParentConversation(agentSessionScope.session)
           const chunks = getProviderForModel(config.model).streamChatResponse({
-            messages: [{ role: "user", content: buildSubAgentPrompt(input, childAgent) }],
+            messages: [
+              {
+                role: "user",
+                content: buildSubAgentPrompt(input, childAgent, recentConversation),
+              },
+            ],
             config,
             metadata,
           })
@@ -333,37 +340,90 @@ async function resolveConversationSubSession({
 }
 
 /**
+ * Number of most-recent parent-session messages (user + assistant turns) surfaced
+ * to a sub-agent. The parent LLM's paraphrased task/context is often too vague, so
+ * the sub-agent also gets the verbatim tail of the real conversation to work from.
+ */
+const RECENT_PARENT_MESSAGE_LIMIT = 10
+
+/**
+ * Maximum characters of a single parent message reproduced in the sub-agent
+ * transcript. Message content is unbounded (text column), so without a cap a
+ * pasted document would be re-sent to the sub-agent on every delegation.
+ */
+const RECENT_PARENT_MESSAGE_MAX_LENGTH = 2_000
+
+/**
+ * Renders the tail of the parent conversation (the exchanges between the user and
+ * the parent assistant) as a plain transcript, applying the same message
+ * eligibility rules as the parent's own LLM history (isLLMVisibleMessage).
+ * Returns undefined when there is nothing to show.
+ */
+function buildRecentParentConversation(session: StreamingSession): string | undefined {
+  const turns = (session.messages ?? [])
+    .filter(isLLMVisibleMessage)
+    .slice(-RECENT_PARENT_MESSAGE_LIMIT)
+    .map(
+      (message) =>
+        `${message.role === "user" ? "User" : "Parent assistant"}: ${truncateMessageContent(message.content)}`,
+    )
+
+  return turns.length > 0 ? turns.join("\n\n") : undefined
+}
+
+function truncateMessageContent(content: string): string {
+  const trimmed = content.trim()
+  return trimmed.length > RECENT_PARENT_MESSAGE_MAX_LENGTH
+    ? `${trimmed.slice(0, RECENT_PARENT_MESSAGE_MAX_LENGTH)} […]`
+    : trimmed
+}
+
+/**
  * Builds the user-facing message handed to the sub-agent. The child agent's
  * master prompt is already supplied as the system prompt via the LLM config, so
- * this carries only the delegated task and any context the parent passed.
+ * this carries only the recent parent conversation, the delegated task, and the
+ * type-specific instructions.
  */
-function buildSubAgentPrompt(input: SubAgentToolInput, childAgent: Agent): string {
-  const context = input.context.trim()
-  const parts: (string | undefined)[] = [
-    context ? `Conversation context:\n${context}` : undefined,
-    `Delegated task:\n${input.task}`,
+function buildSubAgentPrompt(
+  input: SubAgentToolInput,
+  childAgent: Agent,
+  recentConversation: string | undefined,
+): string {
+  const sections: (string | undefined)[] = [
+    recentConversation
+      ? `## Recent conversation\n\nThe latest exchanges between the user and the parent assistant:\n\n${recentConversation}`
+      : undefined,
+    `## Delegated task\n\n${input.task}`,
+    input.context ? `## Task's context\n\n${input.context}` : undefined,
+    buildSubAgentInstructions(childAgent),
   ]
 
+  return sections.filter((section): section is string => section !== undefined).join("\n\n")
+}
+
+/**
+ * Type-specific instructions appended to the sub-agent prompt, telling the child
+ * agent how to act on the delegated task and what to reply to the parent.
+ */
+function buildSubAgentInstructions(childAgent: Agent): string {
   switch (childAgent.type) {
     case "form":
-      parts.push(
-        [
-          "The delegated task contains the user's latest answer(s).",
-          "Use the fillForm tool to record any field values you can extract from that answer, then read the resulting form state.",
-          "Reply to the parent assistant with:",
-          "1. The current form state (the fields filled so far and their values).",
-          "2. If the form is not complete, the single next question to ask the user for a still-missing field. If the form is complete, say so explicitly.",
-        ].join("\n"),
-      )
-      break
+      return [
+        "## Instructions",
+        "",
+        "1. Use the `fillForm` tool to record any field values you can extract from that user's latest answer(s).",
+        "2. Read the resulting form state.",
+        "3. Reply to the parent assistant with the single next question needed to fill a missing field — or, if nothing is missing, state explicitly that the form is complete.",
+      ].join("\n")
     case "conversation":
-      parts.push(
-        "The delegated task is to respond to the user on behalf of the parent assistant. The sub-agent should reply with a direct answer that the parent assistant can use for the user. The sub-agent has access to its own tools and context.",
-      )
-      break
+      return [
+        "## Instructions",
+        "",
+        "Respond to the user on behalf of the parent assistant. Reply with a direct answer that the parent assistant can relay to the user. You have access to your own tools and context.",
+      ].join("\n")
+    default:
+      throw new Error(`Unsupported agent type: ${childAgent.type}`)
   }
-
-  return parts.filter((part): part is string => part !== undefined).join("\n\n")
 }
 
 function buildSubAgentMetadata({

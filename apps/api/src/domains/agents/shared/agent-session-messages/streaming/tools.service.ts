@@ -301,7 +301,6 @@ export class ToolsService extends ServiceWithLLM {
     mcp: McpToolset
     onExecute: OnExecute
   }): BuiltTools {
-    const { agent } = agentSessionScope
     return {
       mcpClose: mcp.disconnect,
       toolDescriptions: {},
@@ -311,9 +310,6 @@ export class ToolsService extends ServiceWithLLM {
           formAgentSessionsService: this.formAgentSessionsService,
           onExecute,
         }),
-        ...((agent.resourceLibraries?.length ?? 0) > 0
-          ? { [ToolName.SurfaceResources]: surfaceResourcesTool({ onExecute }) }
-          : {}),
       } as ToolSet,
       hasSubAgentTools: false,
     }

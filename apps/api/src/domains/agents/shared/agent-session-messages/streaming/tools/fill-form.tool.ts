@@ -27,10 +27,15 @@ export function fillFormTool({
     inputSchema: z.object({
       formFields: inputSchema
         .describe(
-          "The form fields to be filled, with values provided by the user at this point, meaning can be a partial set of fields.",
+          "The form fields to fill, populated with values found in the user's last answer. May be a partial set of fields.",
         )
         .optional(),
-      getFormState: z.boolean().optional().describe("Whether to return the current form state."),
+      getFormState: z
+        .boolean()
+        .optional()
+        .describe(
+          "If no formFields are provided, you can use this to return the current state of the form.",
+        ),
     }),
     outputSchema: z.object({
       formState: inputSchema.describe(
@@ -49,7 +54,7 @@ export function fillFormTool({
         return { formState }
       }
 
-      onExecute({ toolName: ToolName.FillForm, arguments: {} })
+      onExecute({ toolName: ToolName.FillForm, arguments: input })
       assertFormAgentSessionResult(agentSessionScope)
       return { formState: agentSessionScope.session.result || {} }
     },

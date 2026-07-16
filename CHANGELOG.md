@@ -10,6 +10,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Added
 
 ### Changed
+- Agents delegating to a sub-agent share the recent conversation, so sub-agent replies stay on topic
 
 ### Fixed
 
