@@ -7,7 +7,10 @@ import { glob } from "astro/loaders"
  * generated entry `id` is `"{locale}/{slug}"` — we split it in page routes.
  */
 const docs = defineCollection({
-  loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/content/docs" }),
+  // Absolute base (resolved from this config file, not `process.cwd()`) so the
+  // glob still finds the docs when the build runs from the monorepo root — e.g.
+  // via `turbo build` or on Vercel — and not only from `apps/help`.
+  loader: glob({ pattern: "**/*.{md,mdx}", base: new URL("./content/docs", import.meta.url) }),
   schema: z.object({
     title: z.string(),
     description: z.string(),

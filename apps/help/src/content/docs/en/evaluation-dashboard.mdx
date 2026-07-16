@@ -1,0 +1,167 @@
+---
+title: Evaluation dashboard
+description: Test an extraction agent against a CSV dataset — upload your records, map the columns, run the agent, and read the match rate and per-record results.
+category: guides-eval
+order: 4
+updated: 2026-07-15
+---
+
+import EvaluationDashboardWalkthrough from "@/components/EvaluationDashboardWalkthrough.astro"
+
+The **Evaluation dashboard** lets you measure how accurately an **extraction agent**
+performs. You upload a **CSV dataset** of records — each with the values you expect
+the agent to return — run the agent over them, and get a **match rate** plus a
+per-record breakdown of where the agent's output matched, mismatched, or errored.
+
+The **Evaluation** app is opened from your **workspace** card on the home page (the
+**Evaluation** button, with a flask icon). It's an optional feature, and today it
+covers **extraction agents** only.
+
+> **Two different features share the word "Evaluation".** This guide covers the
+> **Evaluation dashboard** — the standalone app for bulk-testing an **extraction
+> agent** against a **CSV dataset**. If instead you want to spot-check any agent on a
+> single **input → expected output** case from your workspace overview, see
+> [Evaluations](/en/evaluations).
+
+## How an evaluation works
+
+There are three things to understand, and they build on each other:
+
+- **Dataset** — a named test set, created from an uploaded **CSV** file. Each column
+  is given a **role** so the app knows what it is (see below). A dataset holds
+  **records** (the rows of your file).
+- **Run** — one execution of a chosen **extraction agent** against a dataset. You map
+  the agent's **output fields** to the dataset's columns, then launch it. The run
+  compares what the agent returns to your expected values.
+- **Results** — the outcome of a run: a **Summary** (total records, perfect matches,
+  mismatches, errors, and an overall **match rate**) and a **Records** table showing
+  each record's status.
+
+### Column roles
+
+When you initialize a dataset you assign each column one of four roles:
+
+- **Target** — the **expected** value. This is the ground truth the agent's output is
+  compared against.
+- **Input** — data shown alongside the results for context.
+- **Reference** — extra context you want to keep visible but not compare.
+- **Ignore** — excluded from the evaluation.
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click and the area to
+watch.
+
+<EvaluationDashboardWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Open the Evaluation app
+
+On the home page, find your **workspace** card and open its **app menu** (the chevron
+next to the main **Studio** button). Choose **Evaluation** — the entry with the
+**flask** icon.
+
+> You can also jump straight here from an **extraction agent's** page in Studio,
+> where an **Evaluation** button opens the datasets list in a new tab.
+
+### 2. Open Evaluate Extraction Agent
+
+The app opens on the **Evaluation Dashboard**, with a single card — **Evaluate
+Extraction Agent**. Open it to reach your datasets.
+
+### 3. Create a dataset
+
+On the **Datasets** page, click **Create** (the **New Dataset** card, or the button
+in the empty state if you have none yet). In the dialog, enter a **Dataset Name** (at
+least 3 characters) and click **Create**. The dataset is created empty — it has no
+records yet.
+
+### 4. Upload a CSV file
+
+Open the new dataset. Because it's still empty, it opens in **Initialize dataset**
+mode and shows a **Files** section. Drag or upload a **CSV** file (one file at a
+time, up to 40 MB). Once it's uploaded, select it to move on to the columns.
+
+### 5. Set the column roles
+
+The app reads your file's columns. Here you:
+
+1. Confirm or edit the **Dataset Name**.
+2. Optionally expand **Preview** to see the file's contents.
+3. For **each column**, choose a role from the dropdown — **Target**, **Input**,
+   **Reference**, or **Ignore** (every column starts as **Ignore**). You can also
+   rename a column's final name. Use the checkboxes with **Apply a role to
+   selection** to set several columns at once.
+4. Click **Submit**. The dataset is now initialized and its **Records** appear.
+
+> Mark the columns holding your **expected answers** as **Target** — those are what
+> the agent's output is scored against. Without at least one Target column there's
+> nothing to compare.
+
+### 6. Run an evaluation
+
+On the initialized dataset, click **Run Evaluation** (top right). In the **Select an
+extraction agent** dialog:
+
+1. Pick an **extraction agent** from the **Agent** dropdown (only extraction agents
+   appear).
+2. Review the **Key Mapping** table. Each of the agent's **output keys** is matched
+   to a dataset column; the app auto-maps by name where it can. For each key, set the
+   **Mode**:
+   - **Scored** — compared against its mapped **Target** column and counted in the
+     match rate.
+   - **FYI** — shown in the results for information, but not scored (no column
+     needed).
+3. Under **Records to run**, choose **Run entire dataset** or **Run a subset of
+   records**.
+4. Click **Run Evaluation**. You're taken to the run page, which updates live as
+   records are processed.
+
+### 7. Read the results
+
+The run page has two parts:
+
+- **Summary** — **Total Records**, **Perfect Matches**, **Mismatches**, **Errors**,
+  and the overall **match rate**.
+- **Records** — a table with each record's inputs, the **Expected** value vs. the
+  **Agent Output**, and a status badge: **Match**, **Mismatch**, **Error**, or
+  **FYI**. You can sort, filter, and page through it, and open the agent's trace for
+  a record.
+
+While a run is in progress you'll see **Processing records…** with a live count; the
+run status moves through **Pending → Running → Completed** (or **Failed** /
+**Cancelled**).
+
+### 8. Compare runs over time
+
+Back on the dataset page, the **Run History** lists every past run with its status,
+**match rate**, and record count. From each row you can download the run's **CSV
+export**, view the **Agent Configuration** used, delete the run, or reopen its
+results — so you can compare how the agent improves as you change its prompt, model,
+or output schema.
+
+## Tips
+
+- Give **Target** roles to every column you expect the agent to reproduce; leave
+  free-text notes or IDs as **Input**, **Reference**, or **Ignore**.
+- Use **Run a subset of records** for a quick check before running the whole dataset.
+- Re-run after changing the agent's **prompt**, **model**, or **output schema**, then
+  compare the **match rate** in **Run History**.
+- Mark fields you only want to eyeball (not score) as **FYI** in the key mapping.
+
+## Troubleshooting
+
+- **I don't see the Evaluation button** — Evaluations are an optional feature; they
+  may not be enabled for your workspace. Ask your workspace **Owner** or an **Admin**.
+- **No agents in the Run dialog** — only **extraction** agents can be evaluated, and
+  they must exist in this workspace. Create an extraction agent first.
+- **“This agent has no output schema defined.”** — the run needs the agent's **output
+  schema** to know which fields to compare. Define the **Output JSON Schema** on the
+  extraction agent, then try again.
+- **I can't run the dataset** — a dataset must be **initialized** (a CSV uploaded and
+  column roles set) and needs at least one **Target** column before you can run it.
+- **The results are empty or still processing** — large datasets take a few minutes;
+  the page updates live. If records show **Error**, open the record for the error
+  details.

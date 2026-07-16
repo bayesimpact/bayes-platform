@@ -1,0 +1,114 @@
+---
+title: Evaluations
+description: Create input → expected-output test cases and run them against any agent to check its answers — each run adds a report with the agent's output, a score, and a status.
+category: guides-eval
+order: 3
+updated: 2026-07-15
+---
+
+import EvaluationsWalkthrough from "@/components/EvaluationsWalkthrough.astro"
+
+**Evaluations** are a quick way to check whether an agent produces the answer you
+expect. Each **evaluation** is a single test case — an **input** and the **expected
+output** — that you run against a chosen agent. Every run adds a **report** showing
+what the agent actually returned, a **score**, and a **status**, so you can compare
+agents and settings side by side.
+
+You open **Evaluations** from its card on your **workspace overview** in **Studio**
+(the card reads *Test the performance of your agents*). It's an optional feature and
+belongs to the **workspace**.
+
+> **Two different features share the word "Evaluation".** This guide covers
+> **Evaluations** — lightweight input → expected-output test cases you run against any
+> agent. If you instead want to bulk-test an **extraction agent** against a whole
+> **CSV dataset**, see the [Evaluation dashboard](/en/evaluation-dashboard).
+
+## How it works
+
+- An **evaluation** stores two things: an **Input** (what you send the agent) and the
+  **Expected Output** (what a good answer looks like).
+- **Running** an evaluation picks an **agent** and asks it to answer the input.
+- The result is an **evaluation report** — a row under the evaluation with the
+  agent's **Output**, a **Score**, a **Status** (still running vs. done), and the
+  **agent** and settings used. Running the same evaluation against several agents
+  stacks up several report rows to compare.
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click and the area to
+watch.
+
+<EvaluationsWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Open Evaluations
+
+On your **workspace overview** in **Studio**, open the **Evaluations** card. The page
+opens with a **Create Evaluation** button and a **Run All** button at the top right.
+The first time, it shows **No evaluations available**.
+
+### 2. Create an evaluation
+
+Click **Create Evaluation**. In the dialog, fill in:
+
+- **Input** — the text you want to send the agent (for example, a note to summarize).
+- **Expected Output** — the answer you'd consider correct.
+
+Both are required. Click **Create** to save it; the evaluation appears in the list.
+
+### 3. Review the evaluation
+
+Each evaluation is a card showing its **Input** and **Expected Output**, when it was
+created, and a set of actions: **Run**, an **edit** (pencil) icon, and a **delete**
+(trash) icon. Editing reopens the same form; deleting removes the evaluation right
+away.
+
+### 4. Run it against an agent
+
+Click **Run** on an evaluation. In the dialog, choose an agent from **Select Agent**.
+Once picked, its **Agent Settings** appear — **Locale**, **Model**, and
+**Temperature** — so you can confirm which configuration you're testing. Click
+**Run**.
+
+### 5. Read the report
+
+A new row appears in the evaluation's report table:
+
+- **Created At** — when the run happened.
+- **Status** — **done** once the agent has answered (it shows a spinner while it's
+  still working).
+- **Agent** — the agent, model, locale and temperature used (with a button to view
+  its prompt).
+- **Output** — what the agent actually returned.
+- **Score** — how the output rated against your expected output.
+
+Run the same evaluation against different agents to build up several rows and compare
+their outputs and scores.
+
+### 6. Run everything at once
+
+Use **Run All** (top right of the page) to run **every** evaluation against a single
+chosen agent in one go — handy for re-checking a whole test set after you change an
+agent's prompt or model.
+
+## Tips
+
+- Keep each evaluation focused on one thing you care about, with a clear **Expected
+  Output**.
+- Build a small set of evaluations, then use **Run All** to re-test them whenever you
+  tweak an agent.
+- Compare the **Output** and **Score** rows across agents to see which configuration
+  answers best.
+
+## Troubleshooting
+
+- **I don't see the Evaluations card** — Evaluations are an optional feature; they may
+  not be enabled for your workspace. Ask your workspace **Owner** or an **Admin**.
+- **Run All is greyed out** — you have no evaluations yet. **Create** at least one
+  first.
+- **The report status stays loading** — the agent hasn't returned its output yet; it
+  updates to **done** once the answer arrives.
+- **I meant to test against a CSV dataset** — that's the separate
+  [Evaluation dashboard](/en/evaluation-dashboard), for extraction agents.

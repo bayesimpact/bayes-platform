@@ -1,0 +1,185 @@
+---
+title: Tableau de bord d'évaluation
+description: Testez un agent d'extraction sur un dataset CSV — téléversez vos enregistrements, mappez les colonnes, lancez l'agent, et lisez le taux de correspondance et les résultats par enregistrement.
+category: guides-eval
+order: 4
+updated: 2026-07-15
+---
+
+import EvaluationDashboardWalkthrough from "@/components/EvaluationDashboardWalkthrough.astro"
+
+Le **tableau de bord d'évaluation** vous permet de mesurer la précision d'un **agent
+d'extraction**. Vous téléversez un **dataset CSV** d'enregistrements — chacun avec
+les valeurs que vous attendez de l'agent — vous lancez l'agent dessus, et vous
+obtenez un **taux de correspondance** ainsi qu'un détail, enregistrement par
+enregistrement, des endroits où la sortie de l'agent correspond, diffère, ou échoue.
+
+L'application **Évaluation** s'ouvre depuis la carte de votre **espace de travail**
+sur la page d'accueil (le bouton **Évaluation**, avec une icône de fiole). C'est une
+fonctionnalité optionnelle, et elle couvre aujourd'hui uniquement les **agents
+d'extraction**.
+
+> **Deux fonctionnalités différentes partagent le mot « Évaluation ».** Ce guide
+> couvre le **tableau de bord d'évaluation** — l'application autonome pour tester en
+> masse un **agent d'extraction** sur un **dataset CSV**. Si vous voulez plutôt tester
+> rapidement n'importe quel agent sur un seul cas **entrée → résultat attendu** depuis
+> la vue d'ensemble de votre espace de travail, consultez
+> [Évaluations](/fr/evaluations).
+
+## Comment fonctionne une évaluation
+
+Il y a trois notions à comprendre, et elles s'enchaînent :
+
+- **Dataset** — un jeu de test nommé, créé à partir d'un fichier **CSV** téléversé.
+  Chaque colonne reçoit un **rôle** pour que l'application sache ce qu'elle représente
+  (voir ci-dessous). Un dataset contient des **enregistrements** (les lignes de votre
+  fichier).
+- **Exécution** — un lancement d'un **agent d'extraction** choisi sur un dataset. Vous
+  associez les **champs de sortie** de l'agent aux colonnes du dataset, puis vous le
+  lancez. L'exécution compare ce que renvoie l'agent à vos valeurs attendues.
+- **Résultats** — le bilan d'une exécution : un **Résumé** (total, correspondances
+  parfaites, non-correspondances, erreurs, et un **taux de correspondance** global) et
+  un tableau des **enregistrements** montrant le statut de chacun.
+
+### Rôles des colonnes
+
+Lorsque vous initialisez un dataset, vous attribuez à chaque colonne l'un de quatre
+rôles :
+
+- **Cible** — la valeur **attendue**. C'est la référence à laquelle la sortie de
+  l'agent est comparée.
+- **Entrée** — des données affichées à côté des résultats, pour le contexte.
+- **Référence** — un contexte supplémentaire que vous voulez garder visible mais ne
+  pas comparer.
+- **Ignorer** — exclue de l'évaluation.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape met en valeur le
+bouton à cliquer et la zone à observer.
+
+<EvaluationDashboardWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir l'application Évaluation
+
+Sur la page d'accueil, repérez la carte de votre **espace de travail** et ouvrez son
+**menu d'applications** (le chevron à côté du bouton principal **Studio**).
+Choisissez **Évaluation** — l'entrée avec l'icône de **fiole**.
+
+> Vous pouvez aussi arriver directement ici depuis la page d'un **agent
+> d'extraction** dans Studio, où un bouton **Évaluation** ouvre la liste des datasets
+> dans un nouvel onglet.
+
+### 2. Ouvrir Évaluer l'agent d'extraction
+
+L'application s'ouvre sur le **Tableau de bord d'évaluation**, avec une seule carte —
+**Évaluer l'agent d'extraction**. Ouvrez-la pour accéder à vos datasets.
+
+### 3. Créer un dataset
+
+Sur la page **Datasets**, cliquez sur **Créer** (la carte **Nouveau dataset**, ou le
+bouton de l'état vide si vous n'en avez encore aucun). Dans la boîte de dialogue,
+saisissez un **Nom du dataset** (au moins 3 caractères) et cliquez sur **Créer**. Le
+dataset est créé vide — il n'a pas encore d'enregistrements.
+
+### 4. Téléverser un fichier CSV
+
+Ouvrez le nouveau dataset. Comme il est encore vide, il s'ouvre en mode
+**Initialiser le dataset** et affiche une section **Fichiers**. Glissez ou
+téléversez un fichier **CSV** (un fichier à la fois, jusqu'à 40 Mo). Une fois
+téléversé, sélectionnez-le pour passer aux colonnes.
+
+### 5. Attribuer les rôles des colonnes
+
+L'application lit les colonnes de votre fichier. Ici, vous :
+
+1. Confirmez ou modifiez le **Nom du dataset**.
+2. Dépliez éventuellement l'**Aperçu** pour voir le contenu du fichier.
+3. Pour **chaque colonne**, choisissez un rôle dans la liste déroulante — **Cible**,
+   **Entrée**, **Référence** ou **Ignorer** (chaque colonne démarre sur **Ignorer**).
+   Vous pouvez aussi renommer le nom final d'une colonne. Utilisez les cases à cocher
+   avec **Appliquer un rôle à la sélection** pour en régler plusieurs à la fois.
+4. Cliquez sur **Soumettre**. Le dataset est désormais initialisé et ses
+   **Enregistrements** apparaissent.
+
+> Marquez les colonnes contenant vos **réponses attendues** comme **Cible** — ce sont
+> elles auxquelles la sortie de l'agent est comparée. Sans au moins une colonne
+> **Cible**, il n'y a rien à comparer.
+
+### 6. Lancer une évaluation
+
+Sur le dataset initialisé, cliquez sur **Lancer l'évaluation** (en haut à droite).
+Dans la boîte de dialogue **Sélectionner un agent d'extraction** :
+
+1. Choisissez un **agent d'extraction** dans la liste **Agent** (seuls les agents
+   d'extraction apparaissent).
+2. Vérifiez le tableau **Mapping des clés**. Chaque **clé de sortie** de l'agent est
+   associée à une colonne du dataset ; l'application les mappe automatiquement par nom
+   quand elle le peut. Pour chaque clé, réglez le **Mode** :
+   - **Évalué** — comparé à sa colonne **Cible** associée et comptabilisé dans le taux
+     de correspondance.
+   - **Info** — affiché dans les résultats à titre indicatif, mais non évalué (aucune
+     colonne nécessaire).
+3. Sous **Enregistrements à exécuter**, choisissez **Exécuter le dataset entier** ou
+   **Exécuter un sous-ensemble d'enregistrements**.
+4. Cliquez sur **Lancer l'évaluation**. Vous êtes amené sur la page de l'exécution,
+   qui se met à jour en direct au fur et à mesure du traitement des enregistrements.
+
+### 7. Lire les résultats
+
+La page de l'exécution comporte deux parties :
+
+- **Résumé** — **Total**, **Correspondances parfaites**, **Non-correspondances**,
+  **Erreurs**, et le **taux de correspondance** global.
+- **Enregistrements** — un tableau avec les entrées de chaque enregistrement, la
+  valeur **Attendu** face à la **Sortie agent**, et un badge de statut :
+  **Correspondance**, **Non-correspondance**, **Erreur** ou **Info**. Vous pouvez le
+  trier, le filtrer et le parcourir, et ouvrir la trace de l'agent pour un
+  enregistrement.
+
+Pendant qu'une exécution est en cours, vous voyez **Traitement des enregistrements…**
+avec un décompte en direct ; le statut passe par **En attente → En cours → Terminé**
+(ou **Échoué** / **Annulé**).
+
+### 8. Comparer les exécutions dans le temps
+
+De retour sur la page du dataset, l'**Historique des exécutions** liste chaque
+exécution passée avec son statut, son **taux de correspondance** et son nombre
+d'enregistrements. Depuis chaque ligne, vous pouvez télécharger l'**export CSV** de
+l'exécution, consulter la **Configuration de l'agent** utilisée, supprimer
+l'exécution, ou rouvrir ses résultats — pour comparer comment l'agent s'améliore à
+mesure que vous changez son prompt, son modèle ou son schéma de sortie.
+
+## Conseils
+
+- Attribuez le rôle **Cible** à chaque colonne que l'agent est censé reproduire ;
+  laissez les notes en texte libre ou les identifiants en **Entrée**, **Référence** ou
+  **Ignorer**.
+- Utilisez **Exécuter un sous-ensemble d'enregistrements** pour une vérification
+  rapide avant de lancer tout le dataset.
+- Relancez après avoir changé le **prompt**, le **modèle** ou le **schéma de sortie**
+  de l'agent, puis comparez le **taux de correspondance** dans l'**Historique des
+  exécutions**.
+- Marquez en **Info** dans le mapping des clés les champs que vous voulez seulement
+  regarder (sans les évaluer).
+
+## Dépannage
+
+- **Je ne vois pas le bouton Évaluation** — les évaluations sont une fonctionnalité
+  optionnelle ; elle n'est peut-être pas activée pour votre espace de travail.
+  Demandez au **Owner** ou à un **Admin** de l'espace de travail.
+- **Aucun agent dans la boîte de dialogue d'exécution** — seuls les agents
+  **d'extraction** peuvent être évalués, et ils doivent exister dans cet espace de
+  travail. Créez d'abord un agent d'extraction.
+- **« Cet agent n'a pas de schéma de sortie défini. »** — l'exécution a besoin du
+  **schéma de sortie** de l'agent pour savoir quels champs comparer. Définissez le
+  **Schéma JSON de sortie** sur l'agent d'extraction, puis réessayez.
+- **Je ne peux pas exécuter le dataset** — un dataset doit être **initialisé** (un CSV
+  téléversé et les rôles des colonnes définis) et nécessite au moins une colonne
+  **Cible** avant de pouvoir être exécuté.
+- **Les résultats sont vides ou toujours en cours** — les gros datasets prennent
+  quelques minutes ; la page se met à jour en direct. Si des enregistrements affichent
+  **Erreur**, ouvrez l'enregistrement pour voir les détails de l'erreur.

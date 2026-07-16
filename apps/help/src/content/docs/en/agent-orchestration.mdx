@@ -1,0 +1,142 @@
+---
+title: Orchestration
+description: Turn a conversation agent into an orchestrator that delegates parts of a conversation to sub-agents — attach other agents as tools, describe when to use each, and enable or disable them.
+category: guides-agents
+order: 4
+updated: 2026-07-16
+---
+
+import OrchestrationWalkthrough from "@/components/OrchestrationWalkthrough.astro"
+
+**Orchestration** lets a **conversation agent** hand off parts of a conversation to
+other agents, called **sub-agents**. The main agent (the **orchestrator**) stays in
+charge of the conversation, but when a request matches a sub-agent's specialty it
+**delegates** to that sub-agent and folds the answer back into its reply.
+
+Orchestration is configured on the **Orchestration** tab of a **conversation
+agent's** editor, in **Studio**. It's an optional feature: the tab only appears when
+your workspace has orchestration enabled and you're editing a **conversation** agent
+(extraction and form agents don't have it). In the editor's tab row it sits after
+**Conversation categories** and before **Embed**.
+
+## How orchestration works
+
+- There's **no "make this an orchestrator" switch**. An agent becomes an orchestrator
+  simply by having **one or more enabled sub-agents**. With none, the empty state
+  reads *This agent answers directly without delegating to another agent.*
+- Each sub-agent is exposed to the orchestrator's model as a **tool**, defined by a
+  **Tool name** and a **Tool description**. On every turn, the model decides — based
+  on those descriptions — whether to call a sub-agent, and with what task. So the
+  **Tool description is what drives delegation**: write it to clearly state when the
+  sub-agent should be used.
+- A **sub-agent can be another conversation or form agent** in the same workspace.
+  Extraction agents cannot be sub-agents. An agent can't be its own sub-agent, and an
+  agent already added won't appear again in the available list.
+- **Disabled** sub-agents stay configured but are not offered to the model. You can
+  attach up to **20** sub-agents.
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click and the area to
+watch.
+
+<OrchestrationWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Open a conversation agent
+
+In **Studio**, open the **conversation** agent you want to turn into an orchestrator
+(from the **Agents** list in the left sidebar, or its card on the workspace
+overview). This opens the agent editor. You need permission to manage the agent.
+
+### 2. Open the Orchestration tab
+
+In the editor's tab row, click **Orchestration**. If you don't see it, the tab is
+either not enabled for your workspace or you're not on a **conversation** agent (see
+Troubleshooting).
+
+### 3. Read the starting point
+
+The tab has two sections:
+
+- **Sub-agents** (top) — the agents this orchestrator delegates to. Before you add
+  any, it shows an empty state: **No sub-agents** / *This agent answers directly
+  without delegating to another agent.*
+- **Available conversation agents** (below) — the agents you can attach.
+
+### 4. Add a sub-agent
+
+Under **Available conversation agents**, each candidate is shown as a card with its
+**name** and its instructions. Click **Add** on the one you want to delegate to. It
+moves up into the **Sub-agents** list with sensible defaults, and disappears from the
+available list.
+
+> The list holds your other **conversation and form** agents. If there are none, it
+> reads **No other conversation agents are available.** — create a conversation or
+> form agent first (extraction agents aren't eligible).
+
+### 5. Configure the sub-agent
+
+Each attached sub-agent has two fields:
+
+- **Tool name** — the identifier the model calls, pre-filled as `ask_<agent name>`
+  (placeholder **ask_specialist_agent**). It may contain only letters, numbers,
+  underscores and hyphens, 1–64 characters.
+- **Tool description** — pre-filled as *Route specialized requests to `<name>`.* This
+  is the most important field: the orchestrator's model reads it to decide **when** to
+  delegate, so describe the sub-agent's specialty precisely (up to 2000 characters).
+
+### 6. Enable, disable, or remove
+
+Each sub-agent row shows an **Enabled** / **Disabled** badge and a **Switch**:
+
+- Turn the **Switch** off to keep the sub-agent configured but stop offering it to the
+  model; turn it on to make it available again.
+- Click the **trash** icon (**Remove**) to detach it entirely — it returns to the
+  **Available conversation agents** list.
+
+### 7. Save
+
+Click **Save**. The button stays disabled until you've made a change, and the whole
+set of sub-agents is saved together. If you switch tabs or leave with unsaved changes,
+an **Unsaved changes** dialog asks whether to discard them.
+
+## What happens at runtime
+
+When a user talks to the orchestrator, the model sees each **enabled** sub-agent as a
+tool (named by its **Tool name**, explained by its **Tool description**). It decides
+on its own whether to call one — handing it a task and relevant context — then uses
+the sub-agent's answer to compose its reply. Conversation sub-agents reply directly;
+form sub-agents run their form flow. Delegation is driven entirely by the tool
+descriptions, so clear descriptions produce better routing.
+
+## Tips
+
+- Invest in the **Tool description** — vague descriptions lead to missed or wrong
+  delegations.
+- Give each sub-agent a distinct, readable **Tool name** (e.g. `ask_billing`,
+  `ask_scheduling`) so runs are easy to recognise.
+- **Disable** a sub-agent instead of removing it when you only want to pause it — its
+  configuration is preserved.
+- Use a **form** sub-agent when the specialised task is to collect structured
+  information, and a **conversation** sub-agent for question-answering.
+
+## Troubleshooting
+
+- **I don't see the Orchestration tab** — it appears only for **conversation** agents,
+  only when the workspace has orchestration enabled, and only if you can manage the
+  agent. Extraction and form agents never show it.
+- **No agents in Available conversation agents** — the message **No other conversation
+  agents are available.** means there are no eligible agents. Create another
+  **conversation** or **form** agent first; extraction agents and the agent you're
+  editing don't appear.
+- **Save fails on the tool name** — tool names accept only letters, numbers,
+  underscores and hyphens and must be 1–64 characters (the error message is in
+  English). Fix the name and save again.
+- **My sub-agent is never used** — check its **Switch** is **Enabled**, and make its
+  **Tool description** more specific about when it should handle a request.
+- **Related:** sub-agents are ordinary agents — see
+  [Add a conversation agent](/en/add-a-conversation-agent) to create the agents you
+  delegate to.

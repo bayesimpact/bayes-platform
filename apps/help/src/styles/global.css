@@ -1,46 +1,58 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
-
 /*
- * Design tokens mirrored from the platform UI (packages/ui/src/global.css),
- * with the Coral primary applied so the help center matches apps/web.
+ * Bayes Impact brand tokens (brand/tokens.css): warm-beige surface, black ink,
+ * gold hairlines. Gold is the accent; orange (#FF8400) is a punctuation accent
+ * only (dots, ticks, active). Walkthrough widgets re-declare the platform (coral)
+ * palette locally, so the animations keep matching apps/web.
  */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --primary: oklch(74.137% 0.13055 37.323);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(74.137% 0.13055 37.323);
-  --radius: 0.625rem;
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.185 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --primary: oklch(74.137% 0.13055 37.323);
-  --primary-foreground: oklch(0.145 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(74.137% 0.13055 37.323);
+  --background: #f2efe9;
+  --foreground: #000000;
+  --card: #ffffff;
+  --card-foreground: #000000;
+  --primary: #ff8400;
+  --primary-foreground: #ffffff;
+  --secondary: #f7f7f2;
+  --secondary-foreground: #000000;
+  --muted: #f7f7f2;
+  --muted-foreground: #657180;
+  --accent: color-mix(in oklab, #dbccaf 45%, #ffffff);
+  --accent-foreground: #000000;
+  --border: #dbccaf;
+  --input: #dbccaf;
+  --ring: #ff8400;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+  --destructive: #9a1b1b;
+  --destructive-foreground: #ffffff;
+  /* Brand extras used by the prose + accents */
+  --gold: #dbccaf;
+  --gold-mark: #ebe092;
+  --gold-deep: #9a6f24;
+  --cream: #f7f7f2;
+  --ink-soft: rgba(0, 0, 0, 0.78);
+  --ok: #1f7a3f;
+  --accent-orange: #ff8400;
+  --accent-blue: #1067fe;
+  --font-display: "Archivo Black", "Arial Black", system-ui, sans-serif;
+  --font-serif: "Kaisei Decol", Georgia, "Times New Roman", serif;
+  /* Chart + sidebar tokens below are consumed only by real-markup walkthrough
+     widgets, which override them locally to the platform palette. */
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 14px;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 @theme inline {
@@ -59,12 +71,30 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --font-sans:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
 }
 
 @layer base {
@@ -92,6 +122,100 @@
  * in @tailwindcss/typography, so the help center stays on the shared palette.
  */
 @layer components {
+  /* Brand component vocabulary (lifted from @bayes/ui/components.css). */
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 24px;
+    border-radius: 100px;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-size: 16px;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    transition:
+      transform 0.2s ease,
+      background 0.2s,
+      color 0.2s,
+      border-color 0.2s,
+      box-shadow 0.25s ease;
+  }
+  .btn-sm {
+    padding: 9px 16px;
+    font-size: 15px;
+  }
+  .btn-primary {
+    background: var(--color-foreground);
+    color: var(--color-background);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
+  }
+  .btn-outline {
+    border: 1px solid var(--color-foreground);
+    color: var(--color-foreground);
+  }
+  .btn-outline:hover {
+    background: var(--color-foreground);
+    color: var(--color-background);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6em;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    line-height: 1.2;
+    color: var(--eyebrow-color, var(--accent-orange));
+  }
+  .label {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    line-height: 1.2;
+    color: var(--eyebrow-color, var(--muted-foreground));
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    background: var(--card);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted-foreground);
+  }
+
   .prose {
     color: var(--color-foreground);
     line-height: 1.7;
@@ -101,27 +225,43 @@
     margin-top: 1.1em;
   }
   .prose h2 {
+    font-family: var(--font-display);
     font-size: 1.5rem;
-    font-weight: 600;
-    line-height: 1.3;
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
     margin-top: 2em;
     margin-bottom: 0.6em;
     scroll-margin-top: 5rem;
   }
   .prose h3 {
     font-size: 1.2rem;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: -0.01em;
     margin-top: 1.6em;
     margin-bottom: 0.5em;
     scroll-margin-top: 5rem;
   }
+  /* Brand marker-highlight for emphasised words (opt-in via `.hl` or <mark>). */
+  .prose :is(.hl, mark) {
+    background: linear-gradient(180deg, transparent 58%, var(--gold-mark) 58%);
+    color: inherit;
+    padding: 0 0.08em;
+    border-radius: 1px;
+  }
   .prose a {
-    color: var(--color-primary);
+    color: var(--color-foreground);
     text-decoration: underline;
-    text-underline-offset: 2px;
+    text-decoration-color: var(--gold-deep);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+    transition:
+      color 0.15s ease,
+      text-decoration-color 0.15s ease;
   }
   .prose a:hover {
-    text-decoration: none;
+    color: var(--color-primary);
+    text-decoration-color: var(--color-primary);
   }
   .prose strong {
     font-weight: 600;
@@ -168,9 +308,11 @@
   }
   .prose blockquote {
     border-left: 3px solid var(--color-primary);
-    padding-left: 1rem;
-    color: var(--color-muted-foreground);
-    font-style: italic;
+    background: var(--cream);
+    padding: 0.75rem 1.1rem;
+    border-radius: 0 8px 8px 0;
+    color: var(--ink-soft);
+    font-style: normal;
   }
   .prose img {
     border-radius: var(--radius-md);

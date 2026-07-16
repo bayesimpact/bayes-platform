@@ -1,12 +1,12 @@
 ---
 title: Manage your profile
-description: Update your name, language, and appearance preferences.
+description: Update your display name and language.
 category: account
 order: 1
 updated: 2026-07-08
 ---
 
-Your profile controls how you appear to teammates and how the app looks for you.
+Your profile controls your display name and the language the app uses for you.
 
 ## Update your details
 
@@ -18,8 +18,3 @@ there you can change your display name and other personal details.
 The app is available in several languages. Pick your preferred language from the
 user menu — the change applies immediately and is remembered next time you sign
 in.
-
-## Switch between light and dark mode
-
-Use the theme toggle to switch between light and dark appearance. Your choice is
-saved to this device.

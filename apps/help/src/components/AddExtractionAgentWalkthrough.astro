@@ -33,20 +33,20 @@ const STRINGS = {
     editTitle: "Edit Extraction Agent", editDesc: "Edit details for this extraction agent",
     tabGeneral: "General", tabModel: "Model", tabOutput: "Output",
     localeLabel: "Locale", localeValue: "EN",
-    promptLabel: "Default Prompt",
+    promptLabel: "Instructions",
     promptValue: "Extract structured information from the uploaded document. Return ONLY the JSON object that matches the provided output schema.",
     modelLabel: "Model", modelPlaceholder: "Select model", tempLabel: "Temperature", tempValue: "0.2",
     schemaLabel: "Output JSON Schema", schemaValue: SCHEMA,
-    update: "Update",
+    update: "Update", save: "Save",
     prev: "Prev", next: "Next", step: "Step",
     steps: [
       "On the workspace overview, open the New Agent card and click Create.",
       "In the New Agent dialog, choose the Extraction type.",
       "Give your agent a name, then click Create.",
-      "Your agent opens in the editor. On General, set its Name, Locale and Default Prompt.",
-      "Open the Model tab to choose the Model and Temperature.",
-      "Open the Output tab and define the Output JSON Schema — the fields to extract.",
-      "Click Update to save your extraction agent.",
+      "General: set the Name, Locale and Instructions, then Save.",
+      "Model: choose the Model and Temperature, then Save.",
+      "Output: define the Output JSON Schema — the fields to extract.",
+      "Each tab saves on its own — click Save to keep your changes.",
     ],
   },
   fr: {
@@ -64,20 +64,20 @@ const STRINGS = {
     editTitle: "Modifier l'agent d'extraction", editDesc: "Modifier les détails de cet agent d'extraction",
     tabGeneral: "Général", tabModel: "Modèle", tabOutput: "Sortie",
     localeLabel: "Langue", localeValue: "EN",
-    promptLabel: "Prompt par défaut",
+    promptLabel: "Instructions",
     promptValue: "Extrayez les informations structurées du document téléversé. Renvoyez UNIQUEMENT l'objet JSON conforme au schéma de sortie fourni.",
     modelLabel: "Modèle", modelPlaceholder: "Sélectionnez le modèle", tempLabel: "Température", tempValue: "0.2",
     schemaLabel: "Schéma JSON de sortie", schemaValue: SCHEMA,
-    update: "Mettre à jour",
+    update: "Mettre à jour", save: "Enregistrer",
     prev: "Précédent", next: "Suivant", step: "Étape",
     steps: [
       "Sur la vue d'ensemble de l'espace de travail, ouvrez la carte Nouvel agent et cliquez sur Créer.",
       "Dans la boîte de dialogue Nouvel agent, choisissez le type Extraction.",
       "Donnez un nom à votre agent, puis cliquez sur Créer.",
-      "Votre agent s'ouvre dans l'éditeur. Dans Général, définissez son Nom, sa Langue et son Prompt par défaut.",
-      "Ouvrez l'onglet Modèle pour choisir le Modèle et la Température.",
-      "Ouvrez l'onglet Sortie et définissez le Schéma JSON de sortie — les champs à extraire.",
-      "Cliquez sur Mettre à jour pour enregistrer votre agent d'extraction.",
+      "Général : définissez le Nom, la Langue et les Instructions, puis Enregistrez.",
+      "Modèle : choisissez le Modèle et la Température, puis Enregistrez.",
+      "Sortie : définissez le Schéma JSON de sortie — les champs à extraire.",
+      "Chaque onglet s'enregistre séparément — cliquez sur Enregistrer.",
     ],
   },
 } as const
@@ -107,6 +107,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
       </div>
       <div class="sb-scroll">
         <div class="grp-label">{s.agents}<span class="add" id="navAdd"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+        <div class="navitem hidden" id="navNewAgent"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg><span>{s.agentName}</span></div>
         <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.agent1}</span></div>
         <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.conversationAgent}</span></div>
         <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg><span>{s.extractionAgent}</span></div>
@@ -186,7 +187,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
               </div>
               <div class="fld"><p class="lbl">{s.promptLabel}</p><span class="textarea">{s.promptValue}</span></div>
             </div>
-            <div class="editor-foot"><span class="btn">{s.update}</span></div>
+            <div class="editor-foot"><span class="btn">{s.save}</span></div>
           </div>
         </div>
 
@@ -208,7 +209,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
                 <div class="fld"><p class="lbl">{s.tempLabel}</p><span class="input block">{s.tempValue}</span></div>
               </div>
             </div>
-            <div class="editor-foot"><span class="btn">{s.update}</span></div>
+            <div class="editor-foot"><span class="btn">{s.save}</span></div>
           </div>
         </div>
 
@@ -227,7 +228,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
             <div class="tabbody">
               <div class="fld"><p class="lbl">{s.schemaLabel}</p><span class="textarea mono" id="obsSchema">{s.schemaValue}</span></div>
             </div>
-            <div class="editor-foot"><span class="btn" id="btnSave">{s.update}</span></div>
+            <div class="editor-foot"><span class="btn" id="btnSave">{s.save}</span></div>
           </div>
         </div>
       </div>
@@ -281,6 +282,10 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
     stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
     capText.textContent = step.text
 
+    const created = step.page.indexOf("editor") === 0
+    const navNew = q("#navNewAgent")
+    if (navNew) { navNew.classList.toggle("hidden", !created); navNew.classList.toggle("on", created) }
+
     clearMarks()
     const active = idx
     setTimeout(() => {
@@ -322,17 +327,6 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
     display: block; margin: 1.5rem 0; color: var(--foreground);
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
-  :global(html.dark) .eaw, :global(.dark) .eaw {
-    --background: oklch(0.145 0 0); --foreground: oklch(0.985 0 0);
-    --card: oklch(0.185 0 0); --card-foreground: oklch(0.985 0 0); --primary-foreground: oklch(0.145 0 0);
-    --secondary: oklch(0.269 0 0); --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0); --muted-foreground: oklch(0.708 0 0);
-    --border: oklch(0.269 0 0); --input: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0); --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0); --sidebar-accent-foreground: oklch(0.985 0 0); --sidebar-border: oklch(0.269 0 0);
-    --ready: oklch(0.72 0.17 150);
-    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 12px 32px rgba(0,0,0,0.5);
-  }
   .eaw * { box-sizing: border-box; }
   .eaw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
   .eaw svg circle[fill="currentColor"] { fill: currentColor; }
@@ -350,11 +344,14 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   .eaw .sb-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
   .eaw .grp-label { font-size: 0.66rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0.4rem 0.5rem 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
   .eaw .grp-label .add { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
-  .eaw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: 0.3rem; }
+  .eaw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: auto; }
   .eaw .grp-label.stack .name { color: var(--sidebar-foreground); font-size: 0.76rem; text-transform: none; font-weight: 700; }
   .eaw .navitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.3rem 0.5rem; border-radius: 7px; font-size: 0.82rem; color: var(--sidebar-foreground); }
   .eaw .navitem svg { font-size: 1rem; color: var(--muted-foreground); }
   .eaw .navitem .chev { margin-left: auto; font-size: 0.9rem; }
+  .eaw .navitem.hidden { display: none; }
+  .eaw .navitem.on { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 600; }
+  .eaw .navitem.on svg { color: var(--sidebar-accent-foreground); }
   .eaw .sb-user { display: flex; align-items: center; gap: 0.55rem; margin-top: auto; padding: 0.45rem 0.5rem; }
   .eaw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
   .eaw .who { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }

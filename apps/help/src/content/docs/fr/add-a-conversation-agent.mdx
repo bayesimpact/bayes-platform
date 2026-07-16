@@ -1,0 +1,133 @@
+---
+title: Ajouter un agent conversationnel
+description: Créez un agent conversationnel qui discute avec les utilisateurs, en s'appuyant sur les documents et les bibliothèques de ressources de votre espace de travail.
+category: guides-agents
+order: 1
+updated: 2026-07-13
+---
+
+import AddConversationAgentWalkthrough from "@/components/AddConversationAgentWalkthrough.astro"
+
+Un **agent conversationnel** est le type d'agent principal de la plateforme : il
+**discute avec les utilisateurs** et répond à leurs questions. Vous pouvez ancrer
+ses réponses dans les connaissances de votre espace de travail — les **documents**
+téléversés — et lui permettre de proposer des entrées de vos **bibliothèques de
+ressources** pendant la conversation.
+
+Les agents appartiennent à votre **espace de travail** et se créent depuis la carte
+**Nouvel agent** de la vue d'ensemble (ou le **+** à côté d'**Agents** dans la barre
+latérale gauche). **Conversation** est le type par défaut.
+
+## Comment fonctionne l'éditeur
+
+Une fois créé, l'agent s'ouvre dans un éditeur à onglets — pour un agent
+conversationnel : **Général**, **Modèle**, **Sources**, **Bibliothèques de
+ressources**, et (quand ils sont disponibles) **Catégories de conversation**,
+**Orchestration** et **Intégration**. **Chaque onglet est un formulaire à part et
+s'enregistre séparément** — cliquez sur **Enregistrer** sur un onglet pour conserver
+ses modifications ; l'éditeur vous avertit avant de quitter un onglet non enregistré.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape
+met en valeur le bouton à cliquer et la zone à observer.
+
+<AddConversationAgentWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir la boîte de dialogue Nouvel agent
+
+Sur la vue d'ensemble de l'espace de travail, repérez la carte **Nouvel agent** et
+cliquez sur **Créer** (vous pouvez aussi utiliser le **+** à côté d'**Agents** dans
+la barre latérale gauche).
+
+### 2. Garder le type Conversation
+
+Dans la boîte de dialogue **Nouvel agent**, sous **Type d'agent**, gardez
+**Conversation** (sélectionné par défaut).
+
+### 3. Nommer l'agent et le créer
+
+Saisissez un **Nom** (au moins 3 caractères), puis cliquez sur **Créer**. Votre
+agent est créé avec des valeurs par défaut pertinentes et s'ouvre dans l'éditeur.
+
+### 4. Général
+
+Définissez le **Nom**, la **Langue** (la langue de travail de l'agent), le **Message
+d'accueil** (le premier message envoyé) et les **Instructions** (qui définissent son
+comportement et son ton). Cliquez sur **Enregistrer**.
+
+### 5. Modèle
+
+Ouvrez l'onglet **Modèle**, choisissez le **Modèle** et une **Température** (élevée =
+plus variée, basse = plus ciblée). **Enregistrez**.
+
+### 6. Sources
+
+Ouvrez l'onglet **Sources** et définissez la **Source de réponse** :
+
+- **Répondre sans consulter de documents** — aucun document consulté.
+- **Rechercher dans tous les documents** — tous les documents de l'espace de travail.
+- **Recherche dans les documents étiquetés** — uniquement les documents portant les
+  **Étiquettes de document** choisies.
+
+**Enregistrez**. Voir [Documents](/fr/documents) pour téléverser et étiqueter au
+préalable.
+
+### 7. Bibliothèques de ressources
+
+Ouvrez l'onglet **Bibliothèques de ressources** pour rattacher les **bibliothèques**
+que l'agent peut proposer. Cliquez sur **Add library**, choisissez-en une, et elle
+apparaît sous forme d'étiquette. Utilisez **Gérer les bibliothèques** pour ouvrir le
+gestionnaire. **Enregistrez**. Voir [Bibliothèques de ressources](/fr/resource-libraries)
+pour les créer au préalable.
+
+### 8. Catégories de conversation
+
+Si votre espace de travail a des catégories de conversation, ouvrez l'onglet
+**Catégories de conversation** et cochez celles qui s'appliquent (**Tout
+sélectionner** les ajoute toutes). Les catégories déjà utilisées dans les
+conversations de cet agent ne peuvent pas être décochées. **Enregistrez**.
+
+### 9. Orchestration
+
+Quand l'orchestration est activée, ouvrez l'onglet **Orchestration** pour ajouter des
+**sous-agents** auxquels cet agent peut déléguer. Choisissez parmi les **Agents
+conversationnels disponibles**, donnez à chacun un **Nom de l'outil** et une
+**Description de l'outil**, et activez-le. **Enregistrez**.
+
+### 10. Intégration
+
+Quand l'intégration est activée, ouvrez l'onglet **Intégration** pour placer l'agent
+sur un site externe : activez **Activer l'intégration**, copiez l'**Extrait
+d'intégration**, et réglez les **Origines autorisées**, le **Titre du widget**,
+l'**URL du logo** et la **Couleur principale**. Cliquez sur **Mettre à jour**.
+
+## Conseils
+
+- Rédigez les **Instructions** dans la même langue que la **Langue** de l'agent.
+- Utilisez **Recherche dans les documents étiquetés** pour cibler les bons documents
+  dans un grand espace de travail.
+- Pensez à **Enregistrer** chaque onglet — les modifications d'un onglet ne sont pas
+  conservées si vous passez à un autre sans enregistrer.
+- **Catégories de conversation**, **Orchestration** et **Intégration** n'apparaissent
+  que si l'espace de travail a des catégories ou si ces fonctionnalités sont activées
+  — vous verrez peut-être moins d'onglets.
+
+## Dépannage
+
+- **Le bouton Créer est désactivé** — le **Nom** doit comporter au moins 3
+  caractères.
+- **L'agent ignore mes documents** — vérifiez la **Source de réponse** dans
+  **Sources** ; « Répondre sans consulter de documents » ne consulte aucun document.
+- **Aucune étiquette à choisir** — l'option **Recherche dans les documents
+  étiquetés** et le sélecteur **Étiquettes de document** n'apparaissent qu'une fois
+  vos documents étiquetés ; voir [Documents](/fr/documents).
+- **Mes modifications ont disparu** — chaque onglet s'enregistre séparément. Cliquez
+  sur **Enregistrer** (ou **Mettre à jour** sur **Intégration**) avant de changer
+  d'onglet ; l'éditeur vous avertit en cas de modifications non enregistrées.
+- **Je ne vois pas l'onglet Orchestration ou Intégration** — ce sont des
+  fonctionnalités optionnelles ; demandez au **Owner** ou à un **Admin** de l'espace
+  de travail si elles ne sont pas activées.

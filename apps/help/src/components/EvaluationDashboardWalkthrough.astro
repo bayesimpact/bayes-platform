@@ -1,0 +1,639 @@
+---
+/**
+ * Animated, full-page walkthrough of the Evaluation app (evaluating an extraction
+ * agent against a CSV dataset), mirroring the real interface — the Evaluation app's
+ * top navbar (real brand logo, hardcoded "Evaluation" title), exact Lucide icons,
+ * and the centred panel. Shares the exact FORM of the other help-center
+ * walkthroughs — only the content differs. Pass `lang="fr"` for the French copy.
+ *
+ * Note: inside the app the top-bar title is a hardcoded literal, so it reads
+ * "Evaluation" in both languages — reproduced as-is here for fidelity.
+ *
+ * The first step depicts the home workspace card's app menu (WorkspaceItem.tsx,
+ * `goToEval` + FlaskConicalIcon) where the Evaluation app is opened. Sources:
+ * WorkspaceItem.tsx, EvalLayout/Dashboard, EvaluationExtractionDataset*, and
+ * RunEvaluationExtractionDialog / EvaluationExtractionRun* (verified 2026-07-15).
+ */
+type Lang = "en" | "fr"
+const { lang = "en" } = Astro.props as { lang?: Lang }
+
+const STRINGS = {
+  en: {
+    appName: "Evaluation",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    workspaces: "Workspaces", org: "Bayes Impact Demo", projectName: "Demo",
+    appStudio: "Studio", appApp: "App", appEval: "Evaluation", appTest: "Test",
+    dashTitle: "Evaluation Dashboard",
+    dashDesc: "Evaluate and test the performance of your agents.",
+    extraction: "Extraction",
+    evaluateExtraction: "Evaluate Extraction Agent",
+    manageDatasets: "Manage datasets and run evaluations",
+    datasetsTitle: "Datasets", datasetsDesc: "Evaluation datasets created from uploaded files",
+    newDataset: "New Dataset", newDatasetDesc: "Evaluate your agents using custom datasets.",
+    create: "Create", datasetBadge: "Dataset",
+    datasetName: "Dataset Name", datasetNamePlaceholder: "Enter dataset name",
+    sampleName: "Sample dataset", sampleName2: "Contracts batch",
+    date1: "just now", date2: "2 days ago",
+    initTitle: "Initialize dataset “Sample dataset”",
+    initDesc: "Configure the dataset columns and roles to prepare for evaluation.",
+    filesTitle: "Files", filesDesc: "Uploaded files for creating evaluation datasets",
+    dragOrUpload: "drag or upload a file", fileName: "records.csv",
+    columnRoles: "Column Roles", selectAll: "Select all",
+    bulkApply: "Apply a role to selection", preview: "Preview",
+    roleTarget: "Target", roleInput: "Input", roleReference: "Reference", roleIgnore: "Ignore",
+    submit: "Submit",
+    col1: "id", col2: "title", col3: "summary", col4: "notes",
+    selectAgent: "Select an extraction agent",
+    selectAgentDesc: "Choose which extraction agent to evaluate against this dataset.",
+    agent: "Agent", agentName: "Document Extractor",
+    keyMapping: "Key Mapping",
+    keyMappingDesc: "Map agent output fields to dataset columns for comparison.",
+    agentOutputKey: "Agent Output Key", datasetColumn: "Dataset Column", mode: "Mode",
+    scored: "Scored", fyi: "FYI",
+    scopeTitle: "Records to run", scopeAll: "Run entire dataset (120 records)",
+    scopeLimited: "Run a subset of records",
+    runEval: "Run Evaluation",
+    resultsTitle: "Run Results", completed: "Completed", matchRatePill: "89% match rate",
+    summary: "Summary",
+    total: "Total Records", perfectMatches: "Perfect Matches",
+    mismatches: "Mismatches", errors: "Errors",
+    totalV: "120", perfectV: "107", mismatchV: "11", errorsV: "2",
+    recordsTitle: "Records", expected: "Expected", agentOutput: "Agent Output", status: "Status",
+    badgeMatch: "Match", badgeMismatch: "Mismatch",
+    runHistory: "Run History", runsCount: "3 runs",
+    histMatch: "89% match", histMatch2: "84% match", histRecords: "120 records",
+    prev: "Prev", next: "Next", step: "Step",
+    steps: [
+      "On the home page, open your workspace's menu and choose Evaluation — the flask icon.",
+      "The Evaluation app opens on its Dashboard — click Evaluate Extraction Agent.",
+      "The Datasets page lists your datasets — click Create to add one.",
+      "Give the dataset a name, then click Create.",
+      "Open the new dataset and upload a CSV file.",
+      "Give each column a role — Target, Input, Reference or Ignore — then Submit.",
+      "Click Run Evaluation: pick an extraction agent and map its output keys.",
+      "Read the run results — summary, match rate, and per-record status.",
+    ],
+  },
+  fr: {
+    appName: "Evaluation",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    workspaces: "Espaces de travail", org: "Bayes Impact Demo", projectName: "Demo",
+    appStudio: "Studio", appApp: "Application", appEval: "Évaluation", appTest: "Test",
+    dashTitle: "Tableau de bord d'évaluation",
+    dashDesc: "Évaluez et testez les performances de vos agents.",
+    extraction: "Extraction",
+    evaluateExtraction: "Évaluer l'agent d'extraction",
+    manageDatasets: "Gérer les datasets et lancer les évaluations",
+    datasetsTitle: "Datasets", datasetsDesc: "Datasets d'évaluation créés à partir des fichiers téléversés",
+    newDataset: "Nouveau dataset", newDatasetDesc: "Evaluez vos agents en utilisant des datasets personnalisés.",
+    create: "Créer", datasetBadge: "Dataset",
+    datasetName: "Nom du dataset", datasetNamePlaceholder: "Entrez le nom du dataset",
+    sampleName: "Jeu de test", sampleName2: "Lot de contrats",
+    date1: "à l'instant", date2: "il y a 2 jours",
+    initTitle: "Initialiser le dataset « Jeu de test »",
+    initDesc: "Configurez les colonnes et les rôles du dataset pour préparer l'évaluation.",
+    filesTitle: "Fichiers", filesDesc: "Fichiers téléversés pour créer des datasets d'évaluation",
+    dragOrUpload: "glissez ou téléchargez un fichier", fileName: "records.csv",
+    columnRoles: "Rôles des colonnes", selectAll: "Tout sélectionner",
+    bulkApply: "Appliquer un rôle à la sélection", preview: "Aperçu",
+    roleTarget: "Cible", roleInput: "Entrée", roleReference: "Référence", roleIgnore: "Ignorer",
+    submit: "Soumettre",
+    col1: "id", col2: "title", col3: "summary", col4: "notes",
+    selectAgent: "Sélectionner un agent d'extraction",
+    selectAgentDesc: "Choisissez l'agent d'extraction à évaluer sur ce dataset.",
+    agent: "Agent", agentName: "Document Extractor",
+    keyMapping: "Mapping des clés",
+    keyMappingDesc: "Associez les champs de sortie de l'agent aux colonnes du dataset pour comparaison.",
+    agentOutputKey: "Clé de sortie agent", datasetColumn: "Colonne du dataset", mode: "Mode",
+    scored: "Évalué", fyi: "Info",
+    scopeTitle: "Enregistrements à exécuter", scopeAll: "Exécuter le dataset entier (120 enregistrements)",
+    scopeLimited: "Exécuter un sous-ensemble d'enregistrements",
+    runEval: "Lancer l'évaluation",
+    resultsTitle: "Résultats", completed: "Terminé", matchRatePill: "89% de taux de correspondance",
+    summary: "Résumé",
+    total: "Total", perfectMatches: "Correspondances parfaites",
+    mismatches: "Non-correspondances", errors: "Erreurs",
+    totalV: "120", perfectV: "107", mismatchV: "11", errorsV: "2",
+    recordsTitle: "Enregistrements", expected: "Attendu", agentOutput: "Sortie agent", status: "Statut",
+    badgeMatch: "Correspondance", badgeMismatch: "Non-correspondance",
+    runHistory: "Historique des exécutions", runsCount: "3 exécutions",
+    histMatch: "89% de correspondance", histMatch2: "84% de correspondance", histRecords: "120 enregistrements",
+    prev: "Précédent", next: "Suivant", step: "Étape",
+    steps: [
+      "Sur la page d'accueil, ouvrez le menu de votre espace de travail et choisissez Évaluation — l'icône de fiole.",
+      "L'application Évaluation s'ouvre sur son tableau de bord — cliquez sur Évaluer l'agent d'extraction.",
+      "La page Datasets liste vos datasets — cliquez sur Créer pour en ajouter un.",
+      "Donnez un nom au dataset, puis cliquez sur Créer.",
+      "Ouvrez le nouveau dataset et téléversez un fichier CSV.",
+      "Attribuez un rôle à chaque colonne — Cible, Entrée, Référence ou Ignorer — puis Soumettez.",
+      "Cliquez sur Lancer l'évaluation : choisissez un agent d'extraction et mappez ses clés de sortie.",
+      "Lisez les résultats — résumé, taux de correspondance et statut par enregistrement.",
+    ],
+  },
+} as const
+
+const s = STRINGS[lang]
+
+const roleRows = [
+  { name: s.col1, role: s.roleInput },
+  { name: s.col2, role: s.roleTarget },
+  { name: s.col3, role: s.roleTarget },
+  { name: s.col4, role: s.roleIgnore },
+]
+
+const mapRows = [
+  { key: s.col2, col: s.col2 },
+  { key: s.col3, col: s.col3 },
+]
+
+const recRows = [
+  { expected: "Invoice 2043", agent: "Invoice 2043", ok: true },
+  { expected: "Service report", agent: "Service report", ok: true },
+  { expected: "Annex B", agent: "Annex A", ok: false },
+]
+
+const steps = [
+  { page: "home", spot: "btnFlask", observe: [] },
+  { page: "dashboard", spot: "btnEvaluateExtraction", observe: [] },
+  { page: "datasets", spot: "btnCreate", observe: [] },
+  { page: "create", spot: "btnCreateConfirm", observe: ["obsName"] },
+  { page: "initialize", spot: "btnUpload", observe: ["obsFiles"] },
+  { page: "roles", spot: "btnSubmit", observe: ["obsRoles"] },
+  { page: "run", spot: "btnRun", observe: ["obsMapping"] },
+  { page: "results", spot: "", observe: ["obsSummary"] },
+].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, navHome: s.workspaces }
+---
+
+<div class="evw" role="group" aria-label={s.appName}>
+  <div class="frame">
+    <!-- App top navbar -->
+    <div class="nav">
+      <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
+      <span class="appname" id="navTitle">{s.appName}</span>
+      <span class="navuser"><span class="avatar">AM</span><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+    </div>
+
+    <!-- Centred panel -->
+    <div class="panel">
+      <div class="canvas">
+        <!-- Home: workspace app menu (step 1) -->
+        <div class="page" data-page="home" data-active="true">
+          <div class="page-head">
+            <span><span class="ttl">{s.workspaces}</span></span>
+          </div>
+          <div class="wscard">
+            <span class="ws-name">{s.projectName}</span>
+            <div class="openbtn">
+              <span class="split-main"><svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg> {s.appStudio}</span>
+              <span class="split-chev"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
+            </div>
+            <div class="menu">
+              <span class="menu-item"><svg viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg> {s.appApp}</span>
+              <span class="menu-item" id="btnFlask"><svg viewBox="0 0 24 24"><path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/></svg> {s.appEval}</span>
+              <span class="menu-item"><svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg> {s.appTest}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard (step 2) -->
+        <div class="page" data-page="dashboard">
+          <div class="page-head">
+            <span><span class="ttl">{s.dashTitle}</span><span class="desc">{s.dashDesc}</span></span>
+          </div>
+          <div class="cards">
+            <div class="ecard" id="btnEvaluateExtraction">
+              <span class="cat">{s.extraction}</span>
+              <b class="ic"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg> {s.evaluateExtraction}</b>
+              <p>{s.manageDatasets}</p>
+              <span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Datasets list (step 2) -->
+        <div class="page" data-page="datasets">
+          <div class="page-head">
+            <span><span class="ttl">{s.datasetsTitle}</span><span class="desc">{s.datasetsDesc}</span></span>
+          </div>
+          <div class="cards">
+            <div class="ecard muted">
+              <b>{s.newDataset}</b>
+              <p>{s.newDatasetDesc}</p>
+              <span class="btn primary big" id="btnCreate">{s.create} <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></span>
+            </div>
+            <div class="ecard">
+              <span class="cat">{s.datasetBadge}</span>
+              <b>{s.sampleName}</b><p>{s.date1}</p>
+              <span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+            </div>
+            <div class="ecard">
+              <span class="cat">{s.datasetBadge}</span>
+              <b>{s.sampleName2}</b><p>{s.date2}</p>
+              <span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Create dataset dialog (step 3) -->
+        <div class="page center" data-page="create">
+          <div class="dialog">
+            <div class="dl-head"><b>{s.newDataset}</b></div>
+            <div class="field" id="obsName">
+              <label>{s.datasetName}</label>
+              <div class="input">{s.sampleName}</div>
+            </div>
+            <div class="dl-foot"><span class="btn primary" id="btnCreateConfirm">{s.create}</span></div>
+          </div>
+        </div>
+
+        <!-- Initialize: upload CSV (step 4) -->
+        <div class="page" data-page="initialize">
+          <div class="page-head">
+            <span><span class="ttl small">{s.initTitle}</span><span class="desc">{s.initDesc}</span></span>
+          </div>
+          <div class="filecard" id="obsFiles">
+            <div class="fc-head">
+              <span><b>{s.filesTitle}</b><p>{s.filesDesc}</p></span>
+              <span class="btn outline" id="btnUpload"><svg viewBox="0 0 24 24"><path d="M12 13v8"/><path d="m8 17 4-4 4 4"/><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/></svg> {s.dragOrUpload}</span>
+            </div>
+            <div class="dropzone">
+              <svg viewBox="0 0 24 24"><path d="M12 13v8"/><path d="m8 17 4-4 4 4"/><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/></svg>
+              <span class="cap-first">{s.dragOrUpload}</span>
+            </div>
+            <div class="filerow">
+              <svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6"/></svg>
+              <span>{s.fileName}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Column roles (step 5) -->
+        <div class="page" data-page="roles">
+          <div class="page-head">
+            <span><span class="ttl small">{s.initTitle}</span><span class="desc">{s.initDesc}</span></span>
+          </div>
+          <div class="field tight">
+            <label>{s.datasetName}</label>
+            <div class="input">{s.sampleName}</div>
+          </div>
+          <div class="preview">{s.preview}</div>
+          <div class="roles" id="obsRoles">
+            <div class="roles-label">{s.columnRoles}</div>
+            <div class="bulk">
+              <span class="chk"></span><span class="muted-txt">{s.selectAll}</span>
+              <span class="select sm"><span>{s.bulkApply}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
+            </div>
+            <div class="roles-table">
+              {roleRows.map((row, i) => (
+                <div class="rr">
+                  <span class="chk"></span>
+                  <span class="idx">{i + 1}</span>
+                  <span class="cname">{row.name}</span>
+                  <div class="input sm">{row.name}</div>
+                  <span class="select sm role"><span>{row.role}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div class="dl-foot"><span class="btn primary" id="btnSubmit">{s.submit}</span></div>
+        </div>
+
+        <!-- Run evaluation dialog (step 6) -->
+        <div class="page center" data-page="run">
+          <div class="dialog wide">
+            <div class="dl-head"><b>{s.selectAgent}</b><p>{s.selectAgentDesc}</p></div>
+            <div class="field">
+              <label>{s.agent}</label>
+              <div class="select"><span>{s.agentName}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></div>
+            </div>
+            <div class="map" id="obsMapping">
+              <label>{s.keyMapping}</label>
+              <p class="muted-txt">{s.keyMappingDesc}</p>
+              <div class="map-table">
+                <div class="mh"><span>{s.agentOutputKey}</span><span>{s.datasetColumn}</span><span>{s.mode}</span></div>
+                {mapRows.map((row) => (
+                  <div class="mr">
+                    <span class="mono">{row.key}</span>
+                    <span class="select sm"><span>{row.col}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
+                    <span class="select sm"><span>{s.scored}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div class="scope">
+              <label>{s.scopeTitle}</label>
+              <span class="radio on"><i></i>{s.scopeAll}</span>
+              <span class="radio"><i></i>{s.scopeLimited}</span>
+            </div>
+            <div class="dl-foot"><span class="btn primary" id="btnRun"><svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></svg> {s.runEval}</span></div>
+          </div>
+        </div>
+
+        <!-- Run results (step 7) -->
+        <div class="page" data-page="results">
+          <div class="page-head">
+            <span><span class="ttl">{s.resultsTitle}</span></span>
+            <span class="right">
+              <span class="statuspill ok">{s.completed}</span>
+              <span class="pill">{s.matchRatePill}</span>
+            </span>
+          </div>
+          <div class="summary" id="obsSummary">
+            <div class="sm-head"><b>{s.summary}</b><p>{s.matchRatePill}</p></div>
+            <div class="statcards">
+              <div class="stat"><span class="sl">{s.total}</span><span class="sv">{s.totalV}</span></div>
+              <div class="stat"><span class="sl">{s.perfectMatches}</span><span class="sv ok">{s.perfectV}</span></div>
+              <div class="stat"><span class="sl">{s.mismatches}</span><span class="sv bad">{s.mismatchV}</span></div>
+              <div class="stat"><span class="sl">{s.errors}</span><span class="sv">{s.errorsV}</span></div>
+            </div>
+          </div>
+          <div class="reccard">
+            <div class="sm-head"><b>{s.recordsTitle}</b></div>
+            <div class="rec-table">
+              <div class="th"><span class="rh">#</span><span>{s.expected}</span><span>{s.agentOutput}</span><span>{s.status}</span></div>
+              {recRows.map((row, i) => (
+                <div class="td">
+                  <span class="rh">{i + 1}</span>
+                  <span class="mono">{row.expected}</span>
+                  <span class="mono">{row.agent}</span>
+                  <span>{row.ok ? <span class="sbadge ok">{s.badgeMatch}</span> : <span class="sbadge bad">{s.badgeMismatch}</span>}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div class="reccard">
+            <div class="sm-head"><b>{s.runHistory}</b><p>{s.runsCount}</p></div>
+            <div class="hist">
+              <div class="hr"><span class="statuspill ok">{s.completed}</span><span class="muted-txt">{s.date1}</span><b>{s.histMatch}</b><span class="muted-txt">{s.histRecords}</span></div>
+              <div class="hr"><span class="statuspill ok">{s.completed}</span><span class="muted-txt">{s.date2}</span><b>{s.histMatch2}</b><span class="muted-txt">{s.histRecords}</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="navbtn" data-prev><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> {s.prev}</button>
+    <button class="ctrl" data-playpause aria-label="Play / pause">⏸</button>
+    <span class="cap"><span class="st" data-stepcount></span><span class="tx" data-captext></span></span>
+    <span class="dots-nav" data-dots role="tablist" aria-label="Steps"></span>
+    <button class="navbtn primary" data-next>{s.next} <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="progress"><i data-bar></i></div>
+</div>
+
+<script define:vars={{ steps, labels }}>
+  const cs = document.currentScript
+  const evw =
+    cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("evw")
+      ? cs.previousElementSibling
+      : document.querySelector(".evw")
+  const q = (sel) => evw.querySelector(sel)
+  const pages = [...evw.querySelectorAll(".page")]
+  const dotsWrap = evw.querySelector("[data-dots]")
+  const bar = evw.querySelector("[data-bar]")
+  const capText = evw.querySelector("[data-captext]")
+  const stepCount = evw.querySelector("[data-stepcount]")
+  const playPause = evw.querySelector("[data-playpause]")
+  const prevBtn = evw.querySelector("[data-prev]")
+  const nextBtn = evw.querySelector("[data-next]")
+  const DUR = 6000
+  let idx = 0, playing = true, timer = null
+
+  steps.forEach((_, i) => {
+    const b = document.createElement("button")
+    b.className = "dotnav"; b.setAttribute("role", "tab"); b.setAttribute("aria-label", labels.step + " " + (i + 1))
+    b.addEventListener("click", () => go(i)); dotsWrap.appendChild(b)
+  })
+  const dots = [...dotsWrap.children]
+
+  function clearMarks() {
+    evw.querySelectorAll(".spot-on").forEach((el) => el.classList.remove("spot-on"))
+    evw.querySelectorAll(".observe-on").forEach((el) => el.classList.remove("observe-on"))
+  }
+  function render() {
+    const step = steps[idx]
+    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page)))
+    dots.forEach((d, i) => d.classList.toggle("on", i === idx))
+    stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
+    capText.textContent = step.text
+    const navTitle = q("#navTitle")
+    if (navTitle) navTitle.textContent = step.page === "home" ? labels.navHome : labels.navApp
+
+    clearMarks()
+    const active = idx
+    setTimeout(() => {
+      if (active !== idx) return
+      if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
+      step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+    }, 260)
+
+    bar.classList.remove("run"); void bar.offsetWidth
+    bar.style.setProperty("--dur", DUR + "ms")
+    if (playing) bar.classList.add("run")
+  }
+  function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(() => go(idx + 1), DUR) }
+  function go(n) { idx = (n + steps.length) % steps.length; render(); schedule() }
+  function setPlaying(p) {
+    playing = p; playPause.textContent = p ? "⏸" : "▶"
+    if (p) { bar.classList.add("run"); schedule() } else { clearTimeout(timer); bar.classList.remove("run") }
+  }
+  prevBtn.addEventListener("click", () => go(idx - 1))
+  nextBtn.addEventListener("click", () => go(idx + 1))
+  playPause.addEventListener("click", () => setPlaying(!playing))
+
+  render(); schedule()
+</script>
+
+<style>
+  .evw {
+    --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+    --primary: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0); --input: oklch(0.922 0 0);
+    --success: oklch(0.62 0.14 150); --destructive: oklch(0.577 0.245 27.325);
+    --radius: 0.625rem;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
+    --spot: color-mix(in oklab, var(--primary) 55%, transparent);
+    display: block; margin: 1.5rem 0; color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .evw * { box-sizing: border-box; }
+  .evw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+
+  .evw .frame { display: flex; flex-direction: column; height: 680px; background: var(--background); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+
+  /* Top navbar */
+  .evw .nav { height: 4rem; flex-shrink: 0; background: var(--background); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
+  .evw .logo { width: 2rem; height: 2rem; display: inline-flex; align-items: center; justify-content: center; padding: 0.15rem; }
+  .evw .logo svg { width: 100%; height: 100%; stroke: none; }
+  .evw .logo svg path { fill: #f18c6e; }
+  .evw .logo svg circle { fill: #010101; }
+  .evw .appname { flex: 1; color: var(--primary); font-weight: 500; font-size: 0.95rem; }
+  .evw .navuser { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--muted-foreground); }
+  .evw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
+  .evw .navuser svg { font-size: 0.9rem; }
+
+  /* Centred panel */
+  .evw .panel { flex: 1; min-height: 0; margin: 1.5rem 2.5rem 2rem; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--card); box-shadow: var(--shadow); }
+  .evw .canvas { position: relative; height: 100%; }
+
+  .evw .page { position: absolute; inset: 0; padding: 1.2rem 1.4rem; overflow: auto; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
+  .evw .page[data-active="true"] { opacity: 1; transform: none; pointer-events: auto; }
+  .evw .page.center { display: flex; align-items: center; justify-content: center; }
+
+  .evw .spot-on { position: relative; z-index: 7; animation: evw-spot 1.4s ease-in-out infinite; border-radius: 8px; }
+  @keyframes evw-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
+  .evw .observe-on { outline: 2px dashed var(--spot); outline-offset: 3px; border-radius: 10px; }
+
+  .evw .page-head { border-bottom: 1px solid var(--border); padding-bottom: 0.9rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.7rem; }
+  .evw .ttl { font-size: 1.3rem; font-weight: 600; line-height: 1.15; display: block; }
+  .evw .ttl.small { font-size: 1.05rem; }
+  .evw .desc { font-size: 0.85rem; color: var(--muted-foreground); margin-top: 0.2rem; display: block; max-width: 32rem; }
+  .evw .right { margin-left: auto; display: flex; gap: 0.4rem; align-items: center; }
+
+  /* Home: workspace card + app menu */
+  .evw .wscard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 1rem; display: inline-flex; flex-direction: column; gap: 0.8rem; min-width: 18rem; box-shadow: var(--shadow); }
+  .evw .ws-name { font-size: 1.05rem; font-weight: 600; }
+  .evw .openbtn { display: inline-flex; align-self: flex-start; }
+  .evw .split-main { display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border); border-right: 0; border-radius: 8px 0 0 8px; padding: 0.45rem 0.7rem; font-size: 0.82rem; font-weight: 500; background: var(--background); }
+  .evw .split-main svg { color: var(--muted-foreground); font-size: 0.95rem; }
+  .evw .split-chev { display: inline-grid; place-items: center; border: 1px solid var(--border); border-radius: 0 8px 8px 0; padding: 0 0.45rem; background: var(--background); color: var(--muted-foreground); }
+  .evw .menu { border: 1px solid var(--border); border-radius: 10px; background: var(--card); box-shadow: var(--shadow); padding: 0.3rem; display: flex; flex-direction: column; gap: 0.1rem; width: 12rem; }
+  .evw .menu-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.55rem; border-radius: 7px; font-size: 0.82rem; }
+  .evw .menu-item svg { color: var(--muted-foreground); font-size: 0.95rem; }
+
+  /* Cards grid */
+  .evw .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
+  .evw .ecard { position: relative; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.9rem; min-height: 130px; display: flex; flex-direction: column; }
+  .evw .ecard.muted { background: var(--muted); border-style: dashed; }
+  .evw .ecard .cat { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-foreground); font-weight: 600; margin-bottom: 0.35rem; }
+  .evw .ecard b { font-size: 0.92rem; }
+  .evw .ecard b.ic { display: flex; align-items: center; gap: 0.4rem; }
+  .evw .ecard b.ic svg { color: var(--muted-foreground); font-size: 1rem; }
+  .evw .ecard p { font-size: 0.75rem; color: var(--muted-foreground); margin: 0.25rem 0 0.7rem; }
+  .evw .arrowbtn { margin-top: auto; align-self: flex-start; width: 1.9rem; height: 1.9rem; border: 1px solid var(--border); border-radius: 999px; display: inline-grid; place-items: center; color: var(--foreground); }
+
+  /* Buttons */
+  .evw .btn { display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.4rem 0.7rem; font-size: 0.8rem; font-weight: 500; }
+  .evw .btn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .evw .btn.outline { color: var(--foreground); }
+  .evw .btn.big { padding: 0.55rem 0.9rem; font-size: 0.88rem; margin-top: auto; align-self: flex-start; }
+
+  /* Dialog */
+  .evw .dialog { width: min(420px, 92%); background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); padding: 1.1rem; display: flex; flex-direction: column; gap: 0.9rem; }
+  .evw .dialog.wide { width: min(560px, 96%); }
+  .evw .dl-head b { font-size: 1.05rem; font-weight: 600; }
+  .evw .dl-head p { font-size: 0.8rem; color: var(--muted-foreground); margin: 0.25rem 0 0; }
+  .evw .dl-foot { display: flex; justify-content: flex-end; }
+
+  /* Fields */
+  .evw .field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .evw .field.tight { max-width: 22rem; margin-bottom: 0.9rem; }
+  .evw .field label, .evw .roles-label, .evw .map label, .evw .scope label { font-size: 0.82rem; font-weight: 500; }
+  .evw .input { border: 1px solid var(--input); border-radius: 8px; padding: 0.45rem 0.6rem; font-size: 0.82rem; background: var(--background); color: var(--foreground); }
+  .evw .input.sm { padding: 0.3rem 0.5rem; font-size: 0.78rem; }
+  .evw .select { display: inline-flex; align-items: center; gap: 0.5rem; border: 1px solid var(--input); border-radius: 8px; padding: 0.45rem 0.6rem; font-size: 0.8rem; background: var(--background); color: var(--foreground); justify-content: space-between; }
+  .evw .select.sm { padding: 0.3rem 0.5rem; font-size: 0.76rem; }
+  .evw .select svg { color: var(--muted-foreground); font-size: 0.9rem; }
+  .evw .muted-txt { font-size: 0.76rem; color: var(--muted-foreground); }
+  .evw .cap-first::first-letter { text-transform: uppercase; }
+
+  /* Files */
+  .evw .filecard { border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+  .evw .fc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.8rem; }
+  .evw .fc-head b { font-size: 0.95rem; }
+  .evw .fc-head p { font-size: 0.75rem; color: var(--muted-foreground); margin: 0.15rem 0 0; }
+  .evw .dropzone { border: 1px dashed var(--input); border-radius: 10px; padding: 1.4rem; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; color: var(--muted-foreground); font-size: 0.82rem; }
+  .evw .dropzone svg { font-size: 1.5rem; }
+  .evw .filerow { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.7rem; border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.7rem; font-size: 0.82rem; }
+  .evw .filerow svg { color: var(--muted-foreground); }
+
+  /* Roles */
+  .evw .preview { font-size: 0.82rem; font-weight: 500; padding: 0.5rem 0; color: var(--foreground); border-bottom: 1px solid var(--border); margin-bottom: 0.9rem; }
+  .evw .preview::before { content: "▸ "; color: var(--muted-foreground); }
+  .evw .roles { display: flex; flex-direction: column; gap: 0.6rem; }
+  .evw .bulk { display: flex; align-items: center; gap: 0.6rem; border: 1px solid var(--border); border-radius: 8px; padding: 0.45rem 0.7rem; }
+  .evw .bulk .select { margin-left: auto; min-width: 190px; }
+  .evw .chk { width: 1rem; height: 1rem; border: 1px solid var(--input); border-radius: 4px; display: inline-block; flex-shrink: 0; }
+  .evw .roles-table { border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .evw .rr { display: grid; grid-template-columns: auto auto auto 1fr auto; align-items: center; gap: 0.7rem; }
+  .evw .idx, .evw .cname { font-size: 0.78rem; color: var(--muted-foreground); }
+  .evw .select.role { min-width: 8.5rem; }
+
+  /* Key mapping */
+  .evw .map { display: flex; flex-direction: column; gap: 0.4rem; }
+  .evw .map p { margin: 0 0 0.3rem; }
+  .evw .map-table { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .evw .mh, .evw .mr { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.6rem; align-items: center; padding: 0.5rem 0.7rem; }
+  .evw .mh { background: color-mix(in oklab, var(--muted) 60%, transparent); font-size: 0.7rem; font-weight: 600; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.03em; }
+  .evw .mr { border-top: 1px solid var(--border); }
+  .evw .mr .select { min-width: 6rem; }
+  .evw .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.78rem; }
+
+  /* Scope */
+  .evw .scope { display: flex; flex-direction: column; gap: 0.45rem; }
+  .evw .radio { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--foreground); }
+  .evw .radio i { width: 0.95rem; height: 0.95rem; border: 1px solid var(--input); border-radius: 999px; display: inline-block; flex-shrink: 0; }
+  .evw .radio.on i { border-color: var(--primary); box-shadow: inset 0 0 0 3px var(--primary); }
+
+  /* Results */
+  .evw .statuspill { font-size: 0.72rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 999px; }
+  .evw .statuspill.ok { background: color-mix(in oklab, var(--success) 16%, transparent); color: var(--success); }
+  .evw .pill { display: inline-flex; align-items: center; border: 1px solid var(--input); border-radius: 999px; padding: 0.15rem 0.6rem; font-size: 0.74rem; color: var(--muted-foreground); }
+  .evw .summary, .evw .reccard { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.9rem; margin-bottom: 0.9rem; }
+  .evw .sm-head b { font-size: 0.95rem; }
+  .evw .sm-head p { font-size: 0.75rem; color: var(--muted-foreground); margin: 0.15rem 0 0.7rem; }
+  .evw .statcards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.7rem; }
+  .evw .stat { border: 1px solid var(--border); border-radius: 10px; padding: 0.7rem; display: flex; flex-direction: column; gap: 0.2rem; }
+  .evw .stat .sl { font-size: 0.7rem; color: var(--muted-foreground); }
+  .evw .stat .sv { font-size: 1.5rem; font-weight: 700; }
+  .evw .sv.ok { color: var(--success); }
+  .evw .sv.bad { color: var(--destructive); }
+
+  .evw .rec-table { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .evw .th, .evw .td { display: grid; grid-template-columns: 2.2rem 1fr 1fr auto; gap: 0.6rem; align-items: center; padding: 0.5rem 0.7rem; font-size: 0.8rem; }
+  .evw .th { background: color-mix(in oklab, var(--muted) 60%, transparent); font-weight: 600; color: var(--muted-foreground); }
+  .evw .td { border-top: 1px solid var(--border); }
+  .evw .rh { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.72rem; color: var(--muted-foreground); }
+  .evw .sbadge { font-size: 0.7rem; font-weight: 600; padding: 0.12rem 0.5rem; border-radius: 6px; }
+  .evw .sbadge.ok { background: color-mix(in oklab, var(--success) 16%, transparent); color: var(--success); }
+  .evw .sbadge.bad { background: color-mix(in oklab, var(--destructive) 14%, transparent); color: var(--destructive); }
+  .evw .hist { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .evw .hr { display: flex; align-items: center; gap: 0.7rem; padding: 0.55rem 0.7rem; font-size: 0.8rem; }
+  .evw .hr + .hr { border-top: 1px solid var(--border); }
+  .evw .hr b { margin-left: auto; font-size: 0.8rem; }
+  .evw .hr .muted-txt:nth-of-type(2) { margin-left: 0; }
+
+  /* Controls (shared FORM) */
+  .evw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .evw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+  .evw .navbtn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .evw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
+  .evw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .evw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
+  .evw .cap .tx { font-size: 0.88rem; font-weight: 500; }
+  .evw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 180px; }
+  .evw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .evw .dotnav.on { background: var(--primary); transform: scale(1.3); }
+  .evw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+  .evw .progress i { display: block; height: 100%; width: 0; background: var(--primary); }
+  .evw .progress i.run { animation: evw-fill var(--dur, 6000ms) linear forwards; }
+  @keyframes evw-fill { to { width: 100%; } }
+
+  @media (max-width: 640px) {
+    .evw .frame { height: 600px; }
+    .evw .panel { margin: 1rem; }
+    .evw .cards, .evw .statcards { grid-template-columns: 1fr; }
+    .evw .statcards { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .evw .page, .evw .spot-on, .evw .progress i { transition: none !important; animation: none !important; }
+  }
+</style>

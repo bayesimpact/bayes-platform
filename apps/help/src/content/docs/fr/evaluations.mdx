@@ -1,0 +1,121 @@
+---
+title: Évaluations
+description: Créez des cas de test entrée → résultat attendu et lancez-les sur n'importe quel agent pour vérifier ses réponses — chaque exécution ajoute un rapport avec la sortie de l'agent, un score et un statut.
+category: guides-eval
+order: 3
+updated: 2026-07-15
+---
+
+import EvaluationsWalkthrough from "@/components/EvaluationsWalkthrough.astro"
+
+Les **évaluations** sont un moyen rapide de vérifier si un agent produit la réponse
+que vous attendez. Chaque **évaluation** est un cas de test unique — une **entrée** et
+le **résultat attendu** — que vous lancez sur un agent choisi. Chaque exécution
+ajoute un **rapport** montrant ce que l'agent a réellement renvoyé, un **score** et un
+**statut**, pour comparer agents et réglages côte à côte.
+
+Vous ouvrez les **Évaluations** depuis leur carte sur la **vue d'ensemble de votre
+espace de travail** dans **Studio** (la carte indique *Tester les performances de vos
+agents*). C'est une fonctionnalité optionnelle, rattachée à l'**espace de travail**.
+
+> **Deux fonctionnalités différentes partagent le mot « Évaluation ».** Ce guide
+> couvre les **Évaluations** — des cas de test légers entrée → résultat attendu que
+> vous lancez sur n'importe quel agent. Si vous voulez plutôt tester en masse un
+> **agent d'extraction** sur tout un **dataset CSV**, consultez le
+> [Tableau de bord d'évaluation](/fr/evaluation-dashboard).
+
+## Comment ça marche
+
+- Une **évaluation** stocke deux choses : une **Entrée** (ce que vous envoyez à
+  l'agent) et le **Résultat attendu** (à quoi ressemble une bonne réponse).
+- **Lancer** une évaluation consiste à choisir un **agent** et à lui demander de
+  répondre à l'entrée.
+- Le résultat est un **rapport d'évaluation** — une ligne sous l'évaluation avec la
+  **Sortie** de l'agent, un **Score**, un **Statut** (en cours ou terminé), ainsi que
+  l'**agent** et les réglages utilisés. Lancer la même évaluation sur plusieurs agents
+  empile plusieurs lignes de rapport à comparer.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape met en valeur le
+bouton à cliquer et la zone à observer.
+
+<EvaluationsWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir les Évaluations
+
+Sur la **vue d'ensemble de votre espace de travail** dans **Studio**, ouvrez la carte
+**Évaluations**. La page s'ouvre avec un bouton **Créer une évaluation** et un bouton
+**Exécuter tout** en haut à droite. La première fois, elle affiche **Aucune évaluation
+disponible**.
+
+### 2. Créer une évaluation
+
+Cliquez sur **Créer une évaluation**. Dans la boîte de dialogue, renseignez :
+
+- **Entrée** — le texte que vous voulez envoyer à l'agent (par exemple une note à
+  résumer).
+- **Résultat attendu** — la réponse que vous jugeriez correcte.
+
+Les deux sont obligatoires. Cliquez sur **Créer** pour l'enregistrer ; l'évaluation
+apparaît dans la liste.
+
+### 3. Consulter l'évaluation
+
+Chaque évaluation est une carte affichant son **Entrée** et son **Résultat attendu**,
+sa date de création, et un ensemble d'actions : **Exécuter**, une icône **modifier**
+(crayon) et une icône **supprimer** (corbeille). Modifier rouvre le même formulaire ;
+supprimer retire l'évaluation immédiatement.
+
+### 4. La lancer sur un agent
+
+Cliquez sur **Exécuter** sur une évaluation. Dans la boîte de dialogue, choisissez un
+agent via **Sélectionner un agent**. Une fois choisi, ses **Paramètres de l'agent**
+s'affichent — **Langue**, **Modèle** et **Température** — pour confirmer la
+configuration testée. Cliquez sur **Exécuter**.
+
+### 5. Lire le rapport
+
+Une nouvelle ligne apparaît dans le tableau de rapports de l'évaluation :
+
+- **Créé le** — quand l'exécution a eu lieu.
+- **Statut** — **done** une fois que l'agent a répondu (un indicateur tourne tant
+  qu'il travaille).
+- **Agent** — l'agent, le modèle, la langue et la température utilisés (avec un bouton
+  pour voir son prompt).
+- **Sortie** — ce que l'agent a réellement renvoyé.
+- **Score** — comment la sortie se compare à votre résultat attendu.
+
+Lancez la même évaluation sur différents agents pour accumuler plusieurs lignes et
+comparer leurs sorties et scores.
+
+### 6. Tout lancer d'un coup
+
+Utilisez **Exécuter tout** (en haut à droite de la page) pour lancer **toutes** les
+évaluations sur un seul agent choisi, en une fois — pratique pour re-vérifier tout un
+jeu de tests après avoir changé le prompt ou le modèle d'un agent.
+
+## Conseils
+
+- Gardez chaque évaluation centrée sur une seule chose qui vous importe, avec un
+  **Résultat attendu** clair.
+- Constituez un petit ensemble d'évaluations, puis utilisez **Exécuter tout** pour les
+  retester dès que vous ajustez un agent.
+- Comparez les lignes **Sortie** et **Score** entre agents pour voir quelle
+  configuration répond le mieux.
+
+## Dépannage
+
+- **Je ne vois pas la carte Évaluations** — les évaluations sont une fonctionnalité
+  optionnelle ; elle n'est peut-être pas activée pour votre espace de travail.
+  Demandez au **Owner** ou à un **Admin** de l'espace de travail.
+- **Exécuter tout est grisé** — vous n'avez encore aucune évaluation. **Créez**-en au
+  moins une d'abord.
+- **Le statut du rapport reste en cours** — l'agent n'a pas encore renvoyé sa sortie ;
+  il passe à **done** une fois la réponse arrivée.
+- **Je voulais tester sur un dataset CSV** — c'est le
+  [Tableau de bord d'évaluation](/fr/evaluation-dashboard), pour les agents
+  d'extraction.

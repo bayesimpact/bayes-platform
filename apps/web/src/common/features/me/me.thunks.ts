@@ -49,9 +49,11 @@ export const updateMe = createAsyncThunk<void, { name: string }, ThunkConfig>(
   },
 )
 
-export const acceptTerms = createAsyncThunk<void, { aiUsagePolicyAccepted: boolean }, ThunkConfig>(
-  "termsAcceptance/accept",
-  async (params, { extra: { services } }) => {
-    await services.me.acceptTerms(params)
-  },
-)
+export const acceptTerms = createAsyncThunk<
+  void,
+  { aiUsagePolicyAccepted: boolean; onSuccess: () => void },
+  ThunkConfig
+>("termsAcceptance/accept", async (params, { extra: { services } }) => {
+  await services.me.acceptTerms(params)
+  params.onSuccess()
+})

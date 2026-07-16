@@ -1,0 +1,617 @@
+---
+/**
+ * Walkthrough of the "add a conversation agent" flow. Derived from the real
+ * components (verified, not copied blind): AgentCreator.tsx (dialog),
+ * AgentEditor.tsx (tab order + conditions) and each tab component
+ * (AgentGeneralTab/ModelTab/SourcesTab/ResourceLibrariesTab/SessionCategoriesTab/
+ * OrchestrationTab + AgentEmbedTab). Labels are verbatim from the agent /
+ * resourceLibrary / actions locales (EN + FR). Depicts the fully-provisioned
+ * conversation agent (all 7 tabs: categories + orchestration + embed enabled).
+ * Uses the PRODUCT (coral) palette, pinned locally. Derived 2026-07-13.
+ */
+type Lang = "en" | "fr"
+const { lang = "en" } = Astro.props as { lang?: Lang }
+
+const STRINGS = {
+  en: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Bayes Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Settings", evaluations: "Evaluations", analytics: "Analytics", sources: "Sources",
+    documents: "Documents", webSources: "Web sources", resourceLibraries: "Resource libraries", members: "Members", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    conversation: "Conversation", extraction: "Extraction", form: "Form",
+    newAgent: "New Agent", newAgentDesc: "An agent can perform specific tasks based on its type and configuration.",
+    create: "Create",
+    dialogDesc: "Choose the type before configuring your agent.",
+    typeLabel: "Agent type", typeConversation: "Conversation", typeExtraction: "Extraction", typeForm: "Form",
+    nameLabel: "Name", namePlaceholder: "Enter agent name", agentName: "Helpful Assistant",
+    editTitle: "Edit Conversation Agent", editDesc: "Edit details for this conversation agent",
+    tabGeneral: "General", tabModel: "Model", tabSources: "Sources", tabResources: "Resource libraries",
+    tabCategories: "Conversation categories", tabOrchestration: "Orchestration", tabEmbed: "Embed",
+    localeLabel: "Locale", localeValue: "EN",
+    greetingLabel: "Greeting", greetingValue: "Hi! How can I help you today?",
+    instructionsLabel: "Instructions",
+    instructionsValue: "You are a helpful assistant. Answer the user's questions clearly and, when relevant, base your answers on the workspace's documents.",
+    modelLabel: "Model", modelPlaceholder: "Select model", tempLabel: "Temperature", tempValue: "0.7",
+    answerSourceLabel: "Answer source", answerSourceValue: "Search by document tags",
+    docTagsLabel: "Document Tags", tag1: "Getting started", tag2: "Product",
+    resourcesLabel: "Resource libraries", manage: "Manage libraries",
+    resourcesDesc: "The assistant can surface resources from the selected libraries when a user's request matches a resource's title or description.",
+    sampleLibrary: "Getting started", addLibrary: "Add library",
+    catInUse: "Categories already used in this agent's conversations cannot be unchecked.",
+    selectAll: "Select all", cat1: "Product", cat2: "Pricing", cat3: "Support",
+    subAgentsTitle: "Sub-agents", availableTitle: "Available conversation agents",
+    toolName: "Tool name", toolDesc: "Tool description", enabled: "Enabled", add: "Add",
+    subToolName: "ask_extraction_agent", subToolDesc: "Route document-extraction requests to Extraction Agent.",
+    embedEnabled: "Enable embed", embedSnippet: "Embed snippet",
+    embedSnippetValue: '<script src="https://app.example.com/launcher.js" data-token="agt_1a2b3c"></script>',
+    allowedOrigins: "Allowed origins", allowedOriginsValue: "https://app.example.com",
+    widgetTitle: "Widget title", logoUrl: "Logo URL", brandColor: "Brand color", brandColorValue: "#2563eb",
+    save: "Save", update: "Update",
+    prev: "Prev", next: "Next", step: "Step",
+    steps: [
+      "On the workspace overview, open the New Agent card and click Create.",
+      "In the New Agent dialog, keep the Conversation type.",
+      "Give your agent a name, then click Create.",
+      "General: set the Name, Locale, Greeting and Instructions, then Save.",
+      "Model: choose the Model and Temperature, then Save.",
+      "Sources: choose the Answer source — model only, all documents, or by tags.",
+      "Resource libraries: attach the libraries the agent can surface.",
+      "Conversation categories: tick the categories that apply to this agent.",
+      "Orchestration: add sub-agents this agent can delegate to.",
+      "Embed: enable the widget, copy the snippet, set origins and branding, then Update.",
+    ],
+  },
+  fr: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Bayes Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Paramètres", evaluations: "Évaluations", analytics: "Analytique", sources: "Sources",
+    documents: "Documents", webSources: "Sites web", resourceLibraries: "Bibliothèques de ressources", members: "Membres", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    conversation: "Conversation", extraction: "Extraction", form: "Formulaire",
+    newAgent: "Nouvel agent", newAgentDesc: "Un agent peut effectuer des tâches spécifiques en fonction de son type et de sa configuration.",
+    create: "Créer",
+    dialogDesc: "Choisissez le type avant de configurer votre agent.",
+    typeLabel: "Type d'agent", typeConversation: "Conversation", typeExtraction: "Extraction", typeForm: "Formulaire",
+    nameLabel: "Nom", namePlaceholder: "Entrez le nom de l'agent", agentName: "Helpful Assistant",
+    editTitle: "Modifier l'agent conversationnel", editDesc: "Modifier les détails de cet agent conversationnel",
+    tabGeneral: "Général", tabModel: "Modèle", tabSources: "Sources", tabResources: "Bibliothèques de ressources",
+    tabCategories: "Catégories de conversation", tabOrchestration: "Orchestration", tabEmbed: "Intégration",
+    localeLabel: "Langue", localeValue: "EN",
+    greetingLabel: "Message d'accueil", greetingValue: "Bonjour ! Comment puis-je vous aider aujourd'hui ?",
+    instructionsLabel: "Instructions",
+    instructionsValue: "Vous êtes un assistant utile. Répondez clairement aux questions de l'utilisateur et, si pertinent, appuyez vos réponses sur les documents de l'espace de travail.",
+    modelLabel: "Modèle", modelPlaceholder: "Sélectionnez le modèle", tempLabel: "Température", tempValue: "0.7",
+    answerSourceLabel: "Source de réponse", answerSourceValue: "Recherche dans les documents étiquetés",
+    docTagsLabel: "Étiquettes de document", tag1: "Getting started", tag2: "Product",
+    resourcesLabel: "Bibliothèques de ressources", manage: "Gérer les bibliothèques",
+    resourcesDesc: "L'assistant peut proposer des ressources des bibliothèques sélectionnées lorsqu'une demande de l'utilisateur correspond au titre ou à la description d'une ressource.",
+    sampleLibrary: "Getting started", addLibrary: "Add library",
+    catInUse: "Les catégories déjà utilisées dans les conversations de cet agent ne peuvent pas être décochées.",
+    selectAll: "Tout sélectionner", cat1: "Product", cat2: "Pricing", cat3: "Support",
+    subAgentsTitle: "Sous-agents", availableTitle: "Agents conversationnels disponibles",
+    toolName: "Nom de l'outil", toolDesc: "Description de l'outil", enabled: "Activé", add: "Ajouter",
+    subToolName: "ask_extraction_agent", subToolDesc: "Router les demandes d'extraction de documents vers Extraction Agent.",
+    embedEnabled: "Activer l'intégration", embedSnippet: "Extrait d'intégration",
+    embedSnippetValue: '<script src="https://app.example.com/launcher.js" data-token="agt_1a2b3c"></script>',
+    allowedOrigins: "Origines autorisées", allowedOriginsValue: "https://app.example.com",
+    widgetTitle: "Titre du widget", logoUrl: "URL du logo", brandColor: "Couleur principale", brandColorValue: "#2563eb",
+    save: "Enregistrer", update: "Mettre à jour",
+    prev: "Précédent", next: "Suivant", step: "Étape",
+    steps: [
+      "Sur la vue d'ensemble de l'espace de travail, ouvrez la carte Nouvel agent et cliquez sur Créer.",
+      "Dans la boîte de dialogue Nouvel agent, gardez le type Conversation.",
+      "Donnez un nom à votre agent, puis cliquez sur Créer.",
+      "Général : définissez le Nom, la Langue, le Message d'accueil et les Instructions, puis Enregistrez.",
+      "Modèle : choisissez le Modèle et la Température, puis Enregistrez.",
+      "Sources : choisissez la Source de réponse — le modèle, tous les documents, ou par étiquettes.",
+      "Bibliothèques de ressources : rattachez les bibliothèques que l'agent peut proposer.",
+      "Catégories de conversation : cochez les catégories qui s'appliquent à cet agent.",
+      "Orchestration : ajoutez des sous-agents auxquels cet agent peut déléguer.",
+      "Intégration : activez le widget, copiez l'extrait, réglez origines et marque, puis Mettez à jour.",
+    ],
+  },
+} as const
+
+const s = STRINGS[lang]
+
+const TABS = [
+  { key: "general", label: s.tabGeneral },
+  { key: "model", label: s.tabModel },
+  { key: "sources", label: s.tabSources },
+  { key: "resources", label: s.tabResources },
+  { key: "categories", label: s.tabCategories },
+  { key: "orchestration", label: s.tabOrchestration },
+  { key: "embed", label: s.tabEmbed },
+]
+
+const steps = [
+  { page: "overview", spot: "btnCreate", observe: [] },
+  { page: "typeDialog", spot: "btnTypeConversation", observe: ["obsTypeRow"] },
+  { page: "typeDialog", spot: "btnCreateConfirm", observe: ["obsNameField"] },
+  { page: "editorGeneral", spot: "", observe: ["obsGeneral"] },
+  { page: "editorModel", spot: "tab-model", observe: ["obsModel"] },
+  { page: "editorSources", spot: "tab-sources", observe: ["obsSources"] },
+  { page: "editorResources", spot: "tab-resources", observe: ["obsResources"] },
+  { page: "editorCategories", spot: "tab-categories", observe: ["obsCategories"] },
+  { page: "editorOrchestration", spot: "tab-orchestration", observe: ["obsOrchestration"] },
+  { page: "editorEmbed", spot: "tab-embed", observe: ["obsEmbed"] },
+].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const labels = { prev: s.prev, next: s.next, step: s.step }
+---
+
+<div class="caw" role="group" aria-label={s.newAgent}>
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside class="sb">
+      <div class="sb-head">
+        <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
+        <span class="org"><b>{s.org}</b><small>{s.studio}</small></span>
+      </div>
+      <div class="sb-scroll">
+        <div class="grp-label">{s.agents}<span class="add"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+        <div class="navitem hidden" id="navNewAgent"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.agentName}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.agent1}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.conversationAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg><span>{s.extractionAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/></svg><span>{s.formAgent}</span></div>
+
+        <div class="grp-label stack"><span class="name">{s.settingsName}</span><span>{s.settings}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg><span>{s.evaluations}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg><span>{s.analytics}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 15 21.84"/><path d="M21 5V8"/><path d="M21 12L18 17H22L19 22"/><path d="M3 12A9 3 0 0 0 14.59 14.87"/></svg><span>{s.sources}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg><span>{s.members}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg><span>{s.admin}</span></div>
+      </div>
+      <div class="sb-user">
+        <span class="avatar">AM</span>
+        <span class="who"><b>{s.userName}</b><small>{s.userEmail}</small></span>
+        <span class="updown"><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+      </div>
+    </aside>
+
+    <!-- Main inset -->
+    <div class="inset">
+      <div class="topbar">
+        <span class="trig"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span>
+      </div>
+      <div class="canvas">
+        <span class="fab"><svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
+
+        <!-- workspace overview (step 1) -->
+        <div class="page" data-page="overview" data-active="true">
+          <div class="page-head plain">
+            <span><span class="ttl">{s.settingsName}</span><span class="desc">{s.studio}</span></span>
+          </div>
+          <div class="cards3">
+            <div class="ecard"><span class="cat">{s.conversation}</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg> {s.agent1}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.extraction}</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg> {s.extractionAgent}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard muted">
+              <b>{s.newAgent}</b>
+              <p>{s.newAgentDesc}</p>
+              <span class="btn sm" id="btnCreate">{s.create} <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- New Agent dialog (steps 2 & 3) -->
+        <div class="page" data-page="typeDialog">
+          <div class="scrim"></div>
+          <div class="modal">
+            <div class="mhead"><b>{s.newAgent}</b><p>{s.dialogDesc}</p></div>
+            <p class="lbl">{s.typeLabel}</p>
+            <div class="typegrid" id="obsTypeRow">
+              <span class="typebtn on" id="btnTypeConversation">{s.typeConversation}</span>
+              <span class="typebtn">{s.typeExtraction}</span>
+              <span class="typebtn">{s.typeForm}</span>
+            </div>
+            <p class="lbl">{s.nameLabel}</p>
+            <div id="obsNameField"><span class="input block">{s.agentName}</span></div>
+            <div class="row" style="margin-top:1rem"><span class="btn wide" id="btnCreateConfirm">{s.create}</span></div>
+          </div>
+        </div>
+
+        <!-- editor: General (step 4) -->
+        <div class="page" data-page="editorGeneral">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
+          </div>
+          <div class="editor">
+            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "general" && "on"]}>{tb.label}</span>)}</div>
+            <div class="tabbody" id="obsGeneral">
+              <div class="grid2">
+                <div class="fld"><p class="lbl">{s.nameLabel}</p><span class="input block">{s.agentName}</span></div>
+                <div class="fld"><p class="lbl">{s.localeLabel}</p><span class="select"><span>{s.localeValue}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div>
+              </div>
+              <div class="fld"><p class="lbl">{s.greetingLabel}</p><span class="textarea">{s.greetingValue}</span></div>
+              <div class="fld"><p class="lbl">{s.instructionsLabel}</p><span class="textarea">{s.instructionsValue}</span></div>
+            </div>
+            <div class="editor-foot"><span class="btn">{s.save}</span></div>
+          </div>
+        </div>
+
+        <!-- editor: Model (step 5) -->
+        <div class="page" data-page="editorModel">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
+          </div>
+          <div class="editor">
+            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "model" && "on"]} id={tb.key === "model" ? "tab-model" : undefined}>{tb.label}</span>)}</div>
+            <div class="tabbody" id="obsModel">
+              <div class="grid2">
+                <div class="fld"><p class="lbl">{s.modelLabel}</p><span class="select muted-select"><span>{s.modelPlaceholder}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div>
+                <div class="fld"><p class="lbl">{s.tempLabel}</p><span class="input block">{s.tempValue}</span></div>
+              </div>
+            </div>
+            <div class="editor-foot"><span class="btn">{s.save}</span></div>
+          </div>
+        </div>
+
+        <!-- editor: Sources (step 6) -->
+        <div class="page" data-page="editorSources">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
+          </div>
+          <div class="editor">
+            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "sources" && "on"]} id={tb.key === "sources" ? "tab-sources" : undefined}>{tb.label}</span>)}</div>
+            <div class="tabbody" id="obsSources">
+              <div class="grid2">
+                <div class="fld"><p class="lbl">{s.answerSourceLabel}</p><span class="select"><span>{s.answerSourceValue}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div>
+              </div>
+              <div class="fld">
+                <p class="lbl">{s.docTagsLabel}</p>
+                <div class="row">
+                  <span class="badge">{s.tag1} <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
+                  <span class="badge">{s.tag2} <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
+                </div>
+              </div>
+            </div>
+            <div class="editor-foot"><span class="btn">{s.save}</span></div>
+          </div>
+        </div>
+
+        <!-- editor: Resource libraries (step 7) -->
+        <div class="page" data-page="editorResources">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
+          </div>
+          <div class="editor">
+            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "resources" && "on"]} id={tb.key === "resources" ? "tab-resources" : undefined}>{tb.label}</span>)}</div>
+            <div class="tabbody" id="obsResources">
+              <div class="res-head"><p class="lbl" style="margin:0">{s.resourcesLabel}</p><span class="manage">{s.manage} <svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span></div>
+              <p class="hint">{s.resourcesDesc}</p>
+              <div class="row">
+                <span class="badge">{s.sampleLibrary} <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
+                <span class="btn outline sm"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.addLibrary}</span>
+              </div>
+            </div>
+            <div class="editor-foot"><span class="btn">{s.save}</span></div>
+          </div>
+        </div>
+
+        <!-- editor: Conversation categories (step 8) -->
+        <div class="page" data-page="editorCategories">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
+          </div>
+          <div class="editor">
+            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "categories" && "on"]} id={tb.key === "categories" ? "tab-categories" : undefined}>{tb.label}</span>)}</div>
+            <div class="tabbody" id="obsCategories">
+              <div class="checks">
+                <span class="checkrow"><span class="cbx on"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>{s.cat1}</span>
+                <span class="checkrow"><span class="cbx on"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>{s.cat2}</span>
+                <span class="checkrow"><span class="cbx"></span>{s.cat3}</span>
+              </div>
+              <span class="btn outline sm" style="margin-top:0.7rem">{s.selectAll}</span>
+              <p class="hint">{s.catInUse}</p>
+            </div>
+            <div class="editor-foot"><span class="btn">{s.save}</span></div>
+          </div>
+        </div>
+
+        <!-- editor: Orchestration (step 9) -->
+        <div class="page" data-page="editorOrchestration">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
+          </div>
+          <div class="editor">
+            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "orchestration" && "on"]} id={tb.key === "orchestration" ? "tab-orchestration" : undefined}>{tb.label}</span>)}</div>
+            <div class="tabbody" id="obsOrchestration">
+              <p class="lbl" style="margin-top:0">{s.subAgentsTitle}</p>
+              <div class="subagent">
+                <span class="sa-head"><b class="ic"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg> {s.extractionAgent}</b><span class="switch on"><i></i></span><span class="sa-en">{s.enabled}</span></span>
+                <div class="grid2">
+                  <div class="fld"><p class="lbl">{s.toolName}</p><span class="input block mono">{s.subToolName}</span></div>
+                  <div class="fld"><p class="lbl">{s.toolDesc}</p><span class="input block">{s.subToolDesc}</span></div>
+                </div>
+              </div>
+              <p class="lbl">{s.availableTitle}</p>
+              <div class="avail">
+                <span class="pill">{s.conversationAgent}</span>
+                <span class="btn outline sm"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.add}</span>
+              </div>
+            </div>
+            <div class="editor-foot"><span class="btn">{s.save}</span></div>
+          </div>
+        </div>
+
+        <!-- editor: Embed (step 10) -->
+        <div class="page" data-page="editorEmbed">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
+          </div>
+          <div class="editor">
+            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "embed" && "on"]} id={tb.key === "embed" ? "tab-embed" : undefined}>{tb.label}</span>)}</div>
+            <div class="tabbody" id="obsEmbed">
+              <div class="switchrow"><span class="sw-lbl">{s.embedEnabled}</span><span class="switch on"><i></i></span></div>
+              <div class="fld"><p class="lbl">{s.embedSnippet}</p><span class="textarea mono">{s.embedSnippetValue}</span></div>
+              <div class="grid2">
+                <div class="fld"><p class="lbl">{s.allowedOrigins}</p><span class="input block">{s.allowedOriginsValue}</span></div>
+                <div class="fld"><p class="lbl">{s.widgetTitle}</p><span class="input block">{s.agentName}</span></div>
+              </div>
+              <div class="grid2">
+                <div class="fld"><p class="lbl">{s.logoUrl}</p><span class="input block muted-select">https://…/logo.png</span></div>
+                <div class="fld"><p class="lbl">{s.brandColor}</p><span class="colorrow"><i class="swatch"></i><span class="input block mono">{s.brandColorValue}</span></span></div>
+              </div>
+            </div>
+            <div class="editor-foot"><span class="btn" id="btnSave">{s.update}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="navbtn" data-prev><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> {s.prev}</button>
+    <button class="ctrl" data-playpause aria-label="Play / pause">⏸</button>
+    <span class="cap"><span class="st" data-stepcount></span><span class="tx" data-captext></span></span>
+    <span class="dots-nav" data-dots role="tablist" aria-label="Steps"></span>
+    <button class="navbtn primary" data-next>{s.next} <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="progress"><i data-bar></i></div>
+</div>
+
+<script define:vars={{ steps, labels }}>
+  const cs = document.currentScript
+  const caw =
+    cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("caw")
+      ? cs.previousElementSibling
+      : document.querySelector(".caw")
+  const q = (sel) => caw.querySelector(sel)
+  const pages = [...caw.querySelectorAll(".page")]
+  const dotsWrap = caw.querySelector("[data-dots]")
+  const bar = caw.querySelector("[data-bar]")
+  const capText = caw.querySelector("[data-captext]")
+  const stepCount = caw.querySelector("[data-stepcount]")
+  const playPause = caw.querySelector("[data-playpause]")
+  const prevBtn = caw.querySelector("[data-prev]")
+  const nextBtn = caw.querySelector("[data-next]")
+  const DUR = 6000
+  let idx = 0, playing = true, timer = null
+
+  steps.forEach((_, i) => {
+    const b = document.createElement("button")
+    b.className = "dotnav"; b.setAttribute("role", "tab"); b.setAttribute("aria-label", labels.step + " " + (i + 1))
+    b.addEventListener("click", () => go(i)); dotsWrap.appendChild(b)
+  })
+  const dots = [...dotsWrap.children]
+
+  function clearMarks() {
+    caw.querySelectorAll(".spot-on").forEach((el) => el.classList.remove("spot-on"))
+    caw.querySelectorAll(".observe-on").forEach((el) => el.classList.remove("observe-on"))
+  }
+  function render() {
+    const step = steps[idx]
+    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page)))
+    dots.forEach((d, i) => d.classList.toggle("on", i === idx))
+    stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
+    capText.textContent = step.text
+
+    // Actions have consequences: once the agent is created (editor steps), it
+    // appears in the AGENTS sidebar list and becomes the active item.
+    const created = step.page.indexOf("editor") === 0
+    const navNew = q("#navNewAgent")
+    if (navNew) {
+      navNew.classList.toggle("hidden", !created)
+      navNew.classList.toggle("on", created)
+    }
+
+    clearMarks()
+    const active = idx
+    setTimeout(() => {
+      if (active !== idx) return
+      if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
+      step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+    }, 260)
+
+    bar.classList.remove("run"); void bar.offsetWidth
+    bar.style.setProperty("--dur", DUR + "ms")
+    if (playing) bar.classList.add("run")
+  }
+  function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(() => go(idx + 1), DUR) }
+  function go(n) { idx = (n + steps.length) % steps.length; render(); schedule() }
+  function setPlaying(p) {
+    playing = p; playPause.textContent = p ? "⏸" : "▶"
+    if (p) { bar.classList.add("run"); schedule() } else { clearTimeout(timer); bar.classList.remove("run") }
+  }
+  prevBtn.addEventListener("click", () => go(idx - 1))
+  nextBtn.addEventListener("click", () => go(idx + 1))
+  playPause.addEventListener("click", () => setPlaying(!playing))
+
+  render(); schedule()
+</script>
+
+<style>
+  .caw {
+    --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+    --primary: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --destructive: oklch(0.577 0.245 27.325);
+    --sidebar: oklch(0.985 0 0); --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-accent: oklch(0.97 0 0); --sidebar-accent-foreground: oklch(0.205 0 0); --sidebar-border: oklch(0.922 0 0);
+    --radius: 0.625rem;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
+    --spot: color-mix(in oklab, var(--primary) 55%, transparent);
+    display: block; margin: 1.5rem 0; color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .caw * { box-sizing: border-box; }
+  .caw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+
+  .caw .shell { display: grid; grid-template-columns: 208px 1fr; height: 680px; background: var(--sidebar); color: var(--sidebar-foreground); border: 1px solid var(--sidebar-border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .caw .sb { display: flex; flex-direction: column; padding: 0.5rem; min-height: 0; }
+  .caw .sb-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.4rem 0.6rem; }
+  .caw .logo { width: 1.9rem; height: 1.9rem; display: inline-flex; align-items: center; justify-content: center; }
+  .caw .logo svg { width: 100%; height: 100%; stroke: none; }
+  .caw .logo svg path { fill: #f18c6e; }
+  .caw .logo svg circle { fill: #010101; }
+  .caw .org { display: flex; flex-direction: column; line-height: 1.05; }
+  .caw .org b { font-size: 0.92rem; font-weight: 700; }
+  .caw .org small { color: var(--primary); font-size: 0.72rem; }
+  .caw .sb-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
+  .caw .grp-label { font-size: 0.66rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0.4rem 0.5rem 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
+  .caw .grp-label .add { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+  .caw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: auto; }
+  .caw .grp-label.stack .name { color: var(--sidebar-foreground); font-size: 0.76rem; text-transform: none; font-weight: 700; }
+  .caw .navitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.3rem 0.5rem; border-radius: 7px; font-size: 0.82rem; color: var(--sidebar-foreground); }
+  .caw .navitem svg { font-size: 1rem; color: var(--muted-foreground); }
+  .caw .navitem .chev { margin-left: auto; font-size: 0.9rem; }
+  .caw .navitem.hidden { display: none; }
+  .caw .navitem.on { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 600; }
+  .caw .navitem.on svg { color: var(--sidebar-accent-foreground); }
+  .caw .sb-user { display: flex; align-items: center; gap: 0.55rem; margin-top: auto; padding: 0.45rem 0.5rem; }
+  .caw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
+  .caw .who { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+  .caw .who b { font-size: 0.76rem; font-weight: 600; }
+  .caw .who small { font-size: 0.68rem; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .caw .updown { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+
+  .caw .inset { position: relative; margin: 0.5rem 0.5rem 0.5rem 0; background: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; box-shadow: var(--shadow); }
+  .caw .topbar { height: 3rem; flex-shrink: 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
+  .caw .trig { color: var(--muted-foreground); font-size: 1.05rem; }
+  .caw .canvas { position: relative; flex: 1; min-height: 0; background: radial-gradient(circle, color-mix(in oklab, var(--muted-foreground) 20%, transparent) 1px, transparent 1px) 0 0 / 22px 22px; }
+  .caw .fab { position: absolute; right: 1rem; bottom: 1rem; width: 2.3rem; height: 2.3rem; border-radius: 999px; background: var(--primary); color: var(--primary-foreground); display: grid; place-items: center; box-shadow: var(--shadow); font-size: 1.1rem; z-index: 6; }
+
+  .caw .page { position: absolute; inset: 0; padding: 1.1rem 1.2rem; overflow: auto; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
+  .caw .page[data-active="true"] { opacity: 1; transform: none; pointer-events: auto; }
+
+  .caw .spot-on { position: relative; z-index: 7; animation: caw-spot 1.4s ease-in-out infinite; border-radius: 8px; }
+  @keyframes caw-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
+  .caw .observe-on { outline: 2px dashed var(--spot); outline-offset: 3px; border-radius: 10px; }
+
+  .caw .btn { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--primary); color: var(--primary-foreground); border-radius: 8px; font-size: 0.8rem; font-weight: 500; padding: 0.4rem 0.7rem; }
+  .caw .btn svg { font-size: 0.95rem; }
+  .caw .btn.sm { font-size: 0.76rem; padding: 0.32rem 0.55rem; }
+  .caw .btn.outline { background: var(--background); color: var(--foreground); border: 1px solid var(--border); }
+  .caw .btn.wide { width: 100%; justify-content: center; }
+
+  .caw .page-head { border-bottom: 1px solid var(--border); padding-bottom: 0.9rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.7rem; }
+  .caw .page-head.plain { border: 0; }
+  .caw .backbtn { width: 1.9rem; height: 1.9rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); flex-shrink: 0; }
+  .caw .ttl { font-size: 1.3rem; font-weight: 600; line-height: 1.15; display: block; }
+  .caw .desc { font-size: 0.88rem; color: var(--muted-foreground); margin-top: 0.2rem; display: block; }
+
+  .caw .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
+  .caw .ecard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.8rem; min-height: 116px; display: flex; flex-direction: column; }
+  .caw .ecard.muted { background: color-mix(in oklab, var(--muted) 35%, var(--card)); }
+  .caw .ecard .cat { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-foreground); font-weight: 600; margin-bottom: 0.2rem; }
+  .caw .ecard b { font-size: 0.88rem; }
+  .caw .ecard b.ic { display: flex; align-items: center; gap: 0.35rem; }
+  .caw .ecard b.ic svg { color: var(--muted-foreground); font-size: 0.95rem; }
+  .caw .ecard p { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.2rem 0 0.6rem; }
+  .caw .ecard .arrowbtn, .caw .ecard .btn { margin-top: auto; align-self: flex-start; }
+  .caw .arrowbtn { width: 1.8rem; height: 1.8rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); }
+
+  .caw .lbl { font-size: 0.78rem; font-weight: 500; margin: 0.6rem 0 0.3rem; }
+  .caw .row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .caw .input { border: 1px solid var(--input); border-radius: 8px; padding: 0.42rem 0.6rem; font-size: 0.8rem; color: var(--foreground); background: var(--background); }
+  .caw .input.block { display: block; }
+  .caw .input.mono, .caw .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .caw .select { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; border: 1px solid var(--input); border-radius: 8px; padding: 0.42rem 0.6rem; font-size: 0.8rem; color: var(--foreground); background: var(--background); }
+  .caw .select.muted-select, .caw .input.muted-select { color: var(--muted-foreground); }
+  .caw .select svg { color: var(--muted-foreground); font-size: 0.95rem; }
+  .caw .textarea { display: block; border: 1px solid var(--input); border-radius: 8px; padding: 0.55rem 0.7rem; font-size: 0.78rem; color: var(--foreground); background: var(--background); line-height: 1.5; }
+  .caw .textarea.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-all; }
+
+  .caw .scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 4; }
+  .caw .modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(380px, 84%); background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; box-shadow: var(--shadow); z-index: 5; }
+  .caw .mhead { margin-bottom: 0.5rem; }
+  .caw .mhead b { font-size: 0.98rem; font-weight: 600; }
+  .caw .mhead p { font-size: 0.78rem; color: var(--muted-foreground); margin: 0.2rem 0 0; }
+  .caw .typegrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+  .caw .typebtn { border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.4rem; font-size: 0.8rem; text-align: center; color: var(--foreground); background: var(--background); }
+  .caw .typebtn.on { border-color: var(--primary); color: var(--primary); font-weight: 600; }
+
+  .caw .editor { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 1rem; }
+  .caw .tablist { display: flex; gap: 0.1rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; flex-wrap: wrap; }
+  .caw .tab { padding: 0.4rem 0.6rem; font-size: 0.8rem; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+  .caw .tab.on { color: var(--foreground); font-weight: 600; border-bottom-color: var(--primary); }
+  .caw .tabbody { padding: 0.2rem 0; }
+  .caw .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+  .caw .fld .lbl { margin-top: 0.4rem; }
+  .caw .editor-foot { display: flex; justify-content: flex-end; margin-top: 1rem; }
+  .caw .res-head { display: flex; align-items: center; justify-content: space-between; }
+  .caw .manage { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.78rem; color: var(--muted-foreground); }
+  .caw .hint { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.3rem 0 0; }
+  .caw .badge { display: inline-flex; align-items: center; gap: 0.3rem; background: var(--secondary); color: var(--secondary-foreground); border-radius: 8px; padding: 0.25rem 0.5rem; font-size: 0.76rem; }
+  .caw .badge svg { font-size: 0.78rem; color: var(--muted-foreground); }
+  .caw .pill { display: inline-flex; align-items: center; gap: 0.3rem; border: 1px solid var(--border); border-radius: 999px; padding: 0.3rem 0.7rem; font-size: 0.76rem; background: var(--background); }
+
+  .caw .checks { display: flex; flex-direction: column; gap: 0.55rem; }
+  .caw .checkrow { display: flex; align-items: center; gap: 0.55rem; font-size: 0.82rem; }
+  .caw .cbx { width: 1.05rem; height: 1.05rem; border: 1px solid var(--input); border-radius: 5px; display: inline-grid; place-items: center; color: var(--primary-foreground); flex-shrink: 0; }
+  .caw .cbx.on { background: var(--primary); border-color: var(--primary); }
+  .caw .cbx svg { font-size: 0.7rem; }
+
+  .caw .subagent { border: 1px solid var(--border); border-radius: 10px; padding: 0.7rem 0.8rem; }
+  .caw .sa-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+  .caw .sa-head b.ic { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.84rem; }
+  .caw .sa-head b.ic svg { color: var(--muted-foreground); }
+  .caw .sa-en { font-size: 0.72rem; color: var(--muted-foreground); }
+  .caw .avail { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .caw .switch { width: 1.9rem; height: 1.1rem; border-radius: 999px; background: var(--muted); position: relative; display: inline-block; flex-shrink: 0; }
+  .caw .switch i { position: absolute; top: 2px; left: 2px; width: 0.8rem; height: 0.8rem; border-radius: 999px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: left .2s; }
+  .caw .switch.on { background: var(--primary); }
+  .caw .switch.on i { left: calc(100% - 0.9rem); }
+  .caw .switchrow { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; padding: 0.2rem 0 0.4rem; }
+  .caw .switchrow .sw-lbl { font-size: 0.82rem; font-weight: 500; }
+  .caw .colorrow { display: flex; align-items: center; gap: 0.4rem; }
+  .caw .colorrow .swatch { width: 1.6rem; height: 1.6rem; border-radius: 6px; border: 1px solid var(--border); background: #2563eb; flex-shrink: 0; }
+  .caw .colorrow .input { flex: 1; }
+
+  .caw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .caw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+  .caw .navbtn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .caw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
+  .caw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .caw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
+  .caw .cap .tx { font-size: 0.88rem; font-weight: 500; }
+  .caw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 200px; }
+  .caw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .caw .dotnav.on { background: var(--primary); transform: scale(1.3); }
+  .caw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+  .caw .progress i { display: block; height: 100%; width: 0; background: var(--primary); }
+  .caw .progress i.run { animation: caw-fill var(--dur, 6000ms) linear forwards; }
+  @keyframes caw-fill { to { width: 100%; } }
+
+  @media (max-width: 640px) {
+    .caw .shell { grid-template-columns: 1fr; height: 560px; }
+    .caw .sb { display: none; }
+    .caw .inset { margin: 0.5rem; }
+    .caw .cards3, .caw .grid2 { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .caw .page, .caw .spot-on, .caw .progress i { transition: none !important; animation: none !important; }
+  }
+</style>

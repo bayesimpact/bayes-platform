@@ -8,6 +8,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.07.1] - 2026-07-15
+
+### Added
 -  (beta) Gemini 3.1 Flash Lite & Gemini 3.5 Flash available for all Agents
 - Agent editor shows the settings version history: browse versions, compare changes, restore in one click
 - Agent session chat shows a live activity timeline while the assistant is streaming, with descriptive per-tool statuses and a check once each step completes
@@ -19,11 +29,13 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Agent session chat has a better message-scroller
 - Agent editor saves each configuration tab independently, so editing one tab no longer requires re-saving the whole agent; switching tabs with unsaved edits prompts to discard them
 - Backoffice feature flags are now managed through a searchable dialog with side-by-side Available/Enabled columns, reachable from both the projects list and the project detail page
+- Terms acceptance submit button stays disabled until both the general conditions and privacy policy are accepted
 
 ### Fixed
 - Editing a single agent tab no longer clears the agent's greeting message
 - Agent temperature is returned as a number instead of a string, matching the API contract
 - Submitting a message in an agent session no longer jumps the transcript to the first message
+- Accepting the terms now advances past the terms screen instead of leaving the user stuck on it
 
 ### Security
 
