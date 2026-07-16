@@ -6,9 +6,8 @@
  * pane, the active sidebar item and the highlighted click target change per
  * step. Reusable: pass `lang="fr"` for the French copy.
  *
- * Tokens are declared locally on `.rlw` (with a `.dark` override) so the widget
- * renders correctly regardless of the host page, while still following the help
- * center's light/dark toggle.
+ * Tokens are declared locally on `.rlw` so the widget renders correctly
+ * regardless of the host page.
  */
 type Lang = "en" | "fr"
 const { lang = "en" } = Astro.props as { lang?: Lang }
@@ -436,17 +435,6 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
     display: block; margin: 1.5rem 0; color: var(--foreground);
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
-  :global(html.dark) .rlw, :global(.dark) .rlw {
-    --background: oklch(0.145 0 0); --foreground: oklch(0.985 0 0);
-    --card: oklch(0.185 0 0); --card-foreground: oklch(0.985 0 0);
-    --primary-foreground: oklch(0.145 0 0);
-    --secondary: oklch(0.269 0 0); --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0); --muted-foreground: oklch(0.708 0 0);
-    --border: oklch(0.269 0 0); --input: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0); --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0); --sidebar-accent-foreground: oklch(0.985 0 0); --sidebar-border: oklch(0.269 0 0);
-    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 12px 32px rgba(0,0,0,0.5);
-  }
   .rlw * { box-sizing: border-box; }
   .rlw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
 
@@ -465,7 +453,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   .rlw .sb-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
   .rlw .grp-label { font-size: 0.66rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0.4rem 0.5rem 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
   .rlw .grp-label .add { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
-  .rlw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: 0.3rem; }
+  .rlw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: auto; }
   .rlw .grp-label.stack .name { color: var(--sidebar-foreground); font-size: 0.76rem; text-transform: none; font-weight: 700; }
   .rlw .navitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.3rem 0.5rem; border-radius: 7px; font-size: 0.82rem; color: var(--sidebar-foreground); }
   .rlw .navitem svg { font-size: 1rem; color: var(--muted-foreground); }

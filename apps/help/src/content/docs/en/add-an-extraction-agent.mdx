@@ -2,7 +2,7 @@
 title: Add an extraction agent
 description: Create an extraction agent that reads an uploaded document and returns structured data matching a JSON schema you define.
 category: guides-agents
-order: 1
+order: 2
 updated: 2026-07-10
 ---
 
@@ -21,10 +21,11 @@ conversation.
 ## How an extraction agent works
 
 You define an **Output JSON Schema** listing the fields to capture (for example
-`title` and `summary`) and a **Default Prompt** telling the agent what to extract.
+`title` and `summary`) and **Instructions** telling the agent what to extract.
 When the agent runs on a document, it returns one JSON object matching your schema.
-An extraction agent therefore has three configuration tabs — **General**, **Model**
-and **Output** — and no conversation or greeting settings.
+An extraction agent has three configuration tabs — **General**, **Model** and
+**Output** — no conversation or greeting settings — and **each tab saves on its
+own** (the editor warns you before you leave a tab with unsaved changes).
 
 ## The full flow at a glance
 
@@ -57,24 +58,25 @@ The editor opens on the **General** tab. Set the:
 
 - **Name** — how the agent appears in your workspace.
 - **Locale** — the language the agent works in.
-- **Default Prompt** — the instructions telling the agent what to extract from each
-  document.
+- **Instructions** — what the agent should extract from each document.
+
+Click **Save**.
 
 ### 5. Pick the model on Model
 
 Open the **Model** tab and choose the **Model** that powers the agent, and a
-**Temperature** (lower values give more consistent, literal extractions).
+**Temperature** (lower values give more consistent, literal extractions). **Save**.
 
 ### 6. Define the output on Output
 
 Open the **Output** tab and edit the **Output JSON Schema** — the JSON object that
 describes each field to extract. List your fields under `properties`, give each a
-`type` and a `description`, and mark the mandatory ones in `required`.
+`type` and a `description`, and mark the mandatory ones in `required`. **Save**.
 
-### 7. Save your agent
+### 7. Save each tab
 
-Click **Update** to save your configuration. The extraction agent is now ready to
-run on documents.
+Because each tab is its own form, click **Save** on every tab you change. The
+extraction agent is then ready to run on documents.
 
 ## Tips
 
@@ -95,4 +97,4 @@ run on documents.
 - **I don't see an Output tab** — only non-conversation agents have one. Make sure
   you created an **Extraction** agent (conversation agents chat instead).
 - **The extracted values look wrong** — refine the field **descriptions** and the
-  **Default Prompt**, then click **Update** and try again.
+  **Instructions**, then click **Save** and try again.

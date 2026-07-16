@@ -34,9 +34,10 @@ const STRINGS = {
     tabGeneral: "General", tabModel: "Model", tabForm: "Form", tabResources: "Resources",
     localeLabel: "Locale", localeValue: "EN",
     greetingLabel: "Greeting", greetingValue: "Hi! I'll help you fill out this form. Let's get started.",
-    promptLabel: "Default Prompt",
+    promptLabel: "Instructions",
     promptValue: "Your main task is to help the user fill out the form by asking questions and providing guidance. Ask one question at a time.",
     modelLabel: "Model", modelPlaceholder: "Select model", tempLabel: "Temperature", tempValue: "0.2",
+    save: "Save",
     formConfigLabel: "Form Configuration", schemaValue: SCHEMA,
     resourcesLabel: "Resource libraries", manage: "Manage libraries",
     resourcesDesc: "The assistant can surface resources from the selected libraries when a user's request matches a resource's title or description.",
@@ -47,11 +48,10 @@ const STRINGS = {
       "On the workspace overview, open the New Agent card and click Create.",
       "In the New Agent dialog, choose the Form type.",
       "Give your agent a name, then click Create.",
-      "Your agent opens in the editor. On General, set its Name, Locale, Greeting and Default Prompt.",
-      "Open the Model tab to choose the Model and Temperature.",
-      "Open the Form tab and define the Form Configuration — the fields to collect.",
-      "On Resources, attach the resource libraries the agent can surface.",
-      "Click Update to save your form agent.",
+      "General: set the Name, Locale, Greeting and Instructions, then Save.",
+      "Model: choose the Model and Temperature, then Save.",
+      "Form: define the Form Configuration — the fields to collect.",
+      "Each tab saves on its own — click Save to keep your changes.",
     ],
   },
   fr: {
@@ -70,9 +70,10 @@ const STRINGS = {
     tabGeneral: "Général", tabModel: "Modèle", tabForm: "Formulaire", tabResources: "Resources",
     localeLabel: "Langue", localeValue: "EN",
     greetingLabel: "Message d'accueil", greetingValue: "Bonjour ! Je vais vous aider à remplir ce formulaire. Commençons.",
-    promptLabel: "Prompt par défaut",
+    promptLabel: "Instructions",
     promptValue: "Votre tâche principale est d'aider l'utilisateur à remplir le formulaire en posant des questions et en le guidant. Posez une question à la fois.",
     modelLabel: "Modèle", modelPlaceholder: "Sélectionnez le modèle", tempLabel: "Température", tempValue: "0.2",
+    save: "Enregistrer",
     formConfigLabel: "Configuration du formulaire", schemaValue: SCHEMA,
     resourcesLabel: "Bibliothèques de ressources", manage: "Gérer les bibliothèques",
     resourcesDesc: "L'assistant peut proposer des ressources des bibliothèques sélectionnées lorsqu'une demande de l'utilisateur correspond au titre ou à la description d'une ressource.",
@@ -83,11 +84,10 @@ const STRINGS = {
       "Sur la vue d'ensemble de l'espace de travail, ouvrez la carte Nouvel agent et cliquez sur Créer.",
       "Dans la boîte de dialogue Nouvel agent, choisissez le type Formulaire.",
       "Donnez un nom à votre agent, puis cliquez sur Créer.",
-      "Votre agent s'ouvre dans l'éditeur. Dans Général, définissez son Nom, sa Langue, son Message d'accueil et son Prompt par défaut.",
-      "Ouvrez l'onglet Modèle pour choisir le Modèle et la Température.",
-      "Ouvrez l'onglet Formulaire et définissez la Configuration du formulaire — les champs à collecter.",
-      "Dans Resources, rattachez les bibliothèques de ressources que l'agent peut proposer.",
-      "Cliquez sur Mettre à jour pour enregistrer votre agent de formulaire.",
+      "Général : définissez le Nom, la Langue, le Message d'accueil et les Instructions, puis Enregistrez.",
+      "Modèle : choisissez le Modèle et la Température, puis Enregistrez.",
+      "Formulaire : définissez la Configuration du formulaire — les champs à collecter.",
+      "Chaque onglet s'enregistre séparément — cliquez sur Enregistrer.",
     ],
   },
 } as const
@@ -101,8 +101,7 @@ const steps = [
   { page: "editorGeneral", spot: "", observe: ["obsGeneral"] },
   { page: "editorModel", spot: "tabModel", observe: ["obsModel"] },
   { page: "editorForm", spot: "tabForm", observe: ["obsSchema"] },
-  { page: "editorResources", spot: "tabResources", observe: ["obsResources"] },
-  { page: "editorResources", spot: "btnSave", observe: [] },
+  { page: "editorForm", spot: "btnSave", observe: [] },
 ].map((step, i) => ({ ...step, text: s.steps[i] }))
 
 const labels = { prev: s.prev, next: s.next, step: s.step }
@@ -118,6 +117,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
       </div>
       <div class="sb-scroll">
         <div class="grp-label">{s.agents}<span class="add" id="navAdd"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+        <div class="navitem hidden" id="navNewAgent"><svg viewBox="0 0 24 24"><path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/></svg><span>{s.agentName}</span></div>
         <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.agent1}</span></div>
         <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.conversationAgent}</span></div>
         <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg><span>{s.extractionAgent}</span></div>
@@ -189,7 +189,6 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
               <span class="tab on">{s.tabGeneral}</span>
               <span class="tab">{s.tabModel}</span>
               <span class="tab">{s.tabForm}</span>
-              <span class="tab">{s.tabResources}</span>
             </div>
             <div class="tabbody" id="obsGeneral">
               <div class="grid2">
@@ -199,7 +198,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
               <div class="fld"><p class="lbl">{s.greetingLabel}</p><span class="textarea">{s.greetingValue}</span></div>
               <div class="fld"><p class="lbl">{s.promptLabel}</p><span class="textarea">{s.promptValue}</span></div>
             </div>
-            <div class="editor-foot"><span class="btn">{s.update}</span></div>
+            <div class="editor-foot"><span class="btn">{s.save}</span></div>
           </div>
         </div>
 
@@ -214,7 +213,6 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
               <span class="tab">{s.tabGeneral}</span>
               <span class="tab on" id="tabModel">{s.tabModel}</span>
               <span class="tab">{s.tabForm}</span>
-              <span class="tab">{s.tabResources}</span>
             </div>
             <div class="tabbody" id="obsModel">
               <div class="grid2">
@@ -222,7 +220,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
                 <div class="fld"><p class="lbl">{s.tempLabel}</p><span class="input block">{s.tempValue}</span></div>
               </div>
             </div>
-            <div class="editor-foot"><span class="btn">{s.update}</span></div>
+            <div class="editor-foot"><span class="btn">{s.save}</span></div>
           </div>
         </div>
 
@@ -237,39 +235,14 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
               <span class="tab">{s.tabGeneral}</span>
               <span class="tab">{s.tabModel}</span>
               <span class="tab on" id="tabForm">{s.tabForm}</span>
-              <span class="tab">{s.tabResources}</span>
             </div>
             <div class="tabbody">
               <div class="fld"><p class="lbl">{s.formConfigLabel}</p><span class="textarea mono" id="obsSchema">{s.schemaValue}</span></div>
             </div>
-            <div class="editor-foot"><span class="btn">{s.update}</span></div>
+            <div class="editor-foot"><span class="btn" id="btnSave">{s.save}</span></div>
           </div>
         </div>
 
-        <!-- editor: Resources tab (steps 7 & 8) -->
-        <div class="page" data-page="editorResources">
-          <div class="page-head">
-            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
-            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
-          </div>
-          <div class="editor">
-            <div class="tablist">
-              <span class="tab">{s.tabGeneral}</span>
-              <span class="tab">{s.tabModel}</span>
-              <span class="tab">{s.tabForm}</span>
-              <span class="tab on" id="tabResources">{s.tabResources}</span>
-            </div>
-            <div class="tabbody" id="obsResources">
-              <div class="res-head"><p class="lbl" style="margin:0">{s.resourcesLabel}</p><span class="manage">{s.manage} <svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span></div>
-              <p class="hint">{s.resourcesDesc}</p>
-              <div class="row">
-                <span class="badge">{s.sampleLibrary} <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
-                <span class="btn outline sm"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.addLibrary}</span>
-              </div>
-            </div>
-            <div class="editor-foot"><span class="btn" id="btnSave">{s.update}</span></div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -321,6 +294,10 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
     stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
     capText.textContent = step.text
 
+    const created = step.page.indexOf("editor") === 0
+    const navNew = q("#navNewAgent")
+    if (navNew) { navNew.classList.toggle("hidden", !created); navNew.classList.toggle("on", created) }
+
     clearMarks()
     const active = idx
     setTimeout(() => {
@@ -362,17 +339,6 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
     display: block; margin: 1.5rem 0; color: var(--foreground);
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
-  :global(html.dark) .faw, :global(.dark) .faw {
-    --background: oklch(0.145 0 0); --foreground: oklch(0.985 0 0);
-    --card: oklch(0.185 0 0); --card-foreground: oklch(0.985 0 0); --primary-foreground: oklch(0.145 0 0);
-    --secondary: oklch(0.269 0 0); --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0); --muted-foreground: oklch(0.708 0 0);
-    --border: oklch(0.269 0 0); --input: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0); --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0); --sidebar-accent-foreground: oklch(0.985 0 0); --sidebar-border: oklch(0.269 0 0);
-    --ready: oklch(0.72 0.17 150);
-    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 12px 32px rgba(0,0,0,0.5);
-  }
   .faw * { box-sizing: border-box; }
   .faw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
   .faw svg circle[fill="currentColor"] { fill: currentColor; }
@@ -390,11 +356,14 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   .faw .sb-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
   .faw .grp-label { font-size: 0.66rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0.4rem 0.5rem 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
   .faw .grp-label .add { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
-  .faw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: 0.3rem; }
+  .faw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: auto; }
   .faw .grp-label.stack .name { color: var(--sidebar-foreground); font-size: 0.76rem; text-transform: none; font-weight: 700; }
   .faw .navitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.3rem 0.5rem; border-radius: 7px; font-size: 0.82rem; color: var(--sidebar-foreground); }
   .faw .navitem svg { font-size: 1rem; color: var(--muted-foreground); }
   .faw .navitem .chev { margin-left: auto; font-size: 0.9rem; }
+  .faw .navitem.hidden { display: none; }
+  .faw .navitem.on { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 600; }
+  .faw .navitem.on svg { color: var(--sidebar-accent-foreground); }
   .faw .sb-user { display: flex; align-items: center; gap: 0.55rem; margin-top: auto; padding: 0.45rem 0.5rem; }
   .faw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
   .faw .who { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }

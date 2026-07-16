@@ -1,0 +1,111 @@
+---
+title: Analytique
+description: Consultez les analyses de conversation de votre espace de travail — conversations par jour, questions moyennes par session, sessions par catégorie — et filtrez par agent et par plage de dates.
+category: guides-eval
+order: 2
+updated: 2026-07-13
+---
+
+import AnalyticsWalkthrough from "@/components/AnalyticsWalkthrough.astro"
+
+**Analytique** montre comment vos agents sont utilisés. C'est un tableau de bord en
+lecture seule des **indicateurs de conversation** de votre espace de travail —
+combien de conversations ont lieu, à quel point les utilisateurs sont engagés, et
+comment les sessions se répartissent par catégorie — que vous pouvez filtrer par
+**agent** et par **plage de dates**.
+
+Vous l'ouvrez depuis **Analytique** dans la barre latérale gauche de **Studio**. Le
+tableau de bord couvre tout l'**espace de travail** ; chaque agent conversationnel
+possède aussi sa propre vue Analytique, accessible depuis la page de l'agent.
+
+## Ce que montre le tableau de bord
+
+La page comporte une **rangée de filtres** en haut à droite et trois graphiques :
+
+- **Conversations par jour** — le nombre de sessions conversationnelles démarrées
+  chaque jour.
+- **Questions utilisateur moy. par session** — le nombre moyen de messages
+  utilisateur par session, par jour.
+- **Sessions par jour par catégorie** — un graphique à barres empilées répartissant
+  le volume quotidien de sessions par **catégorie de conversation**.
+
+Chaque graphique affiche un chiffre clé et un histogramme sur la période
+sélectionnée. Les graphiques lisent les sessions qu'ont eues vos agents : un espace
+de travail tout neuf, sans conversation, affichera donc des données vides ou à zéro.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape
+met en valeur le bouton à cliquer et la zone à observer.
+
+<AnalyticsWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir Analytique
+
+Dans **Studio**, ouvrez la barre latérale de gauche et sélectionnez **Analytique**.
+Le tableau de bord s'ouvre pour tout votre espace de travail.
+
+### 2. Lire la rangée de filtres
+
+En haut à droite se trouvent deux contrôles : un **filtre par agent** et un
+sélecteur **Plage de dates**. Ils s'appliquent à tous les graphiques ci-dessous.
+
+### 3. Filtrer par agent
+
+Utilisez la liste déroulante des agents pour vous concentrer sur un seul agent, ou
+gardez **Tous les agents** pour voir l'ensemble de l'espace de travail.
+
+### 4. Choisir la période
+
+Ouvrez le sélecteur **Plage de dates** et choisissez une période (les 7 derniers
+jours par défaut). Tous les graphiques se mettent à jour sur cette plage.
+
+### 5. Conversations par jour
+
+Le graphique **Conversations par jour** montre combien de sessions
+conversationnelles ont démarré chaque jour, avec **Total des conversations** comme
+chiffre clé de la période.
+
+### 6. Questions utilisateur moy. par session
+
+Le graphique **Questions utilisateur moy. par session** montre le nombre moyen de
+messages utilisateur par session — une mesure des échanges au sein de chaque
+conversation.
+
+### 7. Sessions par jour par catégorie
+
+Le graphique **Sessions par jour par catégorie** empile les sessions de chaque jour
+par catégorie de conversation, avec une **légende** en couleurs. Les sessions sans
+catégorie apparaissent en **Non categorise**. Avec **Tous les agents** sélectionné,
+les catégories sont combinées sur l'ensemble des agents.
+
+## Conseils
+
+- Commencez avec **Tous les agents** pour la vue d'ensemble, puis filtrez sur un
+  agent pour repérer ceux qui génèrent le plus d'activité.
+- Comparez des périodes en changeant la **Plage de dates** — par exemple cette
+  semaine contre la semaine dernière.
+- Le graphique **par catégorie** est surtout utile quand vos agents conversationnels
+  utilisent des catégories ; sinon, la plupart des sessions tombent sous
+  **Non categorise**.
+- Chaque **agent conversationnel** possède aussi sa propre vue Analytique (depuis la
+  page de l'agent) si vous voulez creuser un agent en particulier.
+
+## Dépannage
+
+- **Je ne vois pas Analytique dans la barre latérale** — Analytique est une
+  fonctionnalité optionnelle ; elle n'est peut-être pas activée pour votre espace de
+  travail. Demandez au **Owner** ou à un **Admin** de l'espace de travail si elle
+  manque.
+- **Les graphiques sont vides** — il n'y a peut-être aucune conversation sur la
+  période sélectionnée. Élargissez la **Plage de dates**, ou vérifiez que l'agent
+  sélectionné a eu des sessions.
+- **Tout est en Non categorise** — les catégories proviennent de la configuration de
+  vos agents conversationnels ; les sessions ne sont réparties qu'une fois que les
+  agents leur attribuent des catégories.
+- **Les dates semblent en anglais** — les libellés de date des graphiques sont
+  actuellement affichés dans un format anglais fixe, quelle que soit la langue de
+  l'interface.

@@ -2,8 +2,8 @@
 title: Add a form agent
 description: Create a form agent that guides a user through filling out a form, collecting structured answers that match a schema you define.
 category: guides-agents
-order: 2
-updated: 2026-07-10
+order: 3
+updated: 2026-07-13
 ---
 
 import AddFormAgentWalkthrough from "@/components/AddFormAgentWalkthrough.astro"
@@ -20,10 +20,11 @@ the **Form** type is what turns the agent into a guided form.
 ## How a form agent works
 
 You define a **Form Configuration** (a JSON schema listing the fields to collect,
-for example `fullName` and `email`), a **Greeting** the agent opens with, and a
-**Default Prompt** describing how it should guide the user. A form agent has four
-configuration tabs — **General**, **Model**, **Form** and **Resources** — so it can
-also surface entries from your resource libraries during the conversation.
+for example `fullName` and `email`), a **Greeting** the agent opens with, and
+**Instructions** describing how it should guide the user. A form agent has three
+configuration tabs — **General**, **Model** and **Form** — and **each tab is its own
+form that saves on its own** (the editor warns you before you leave a tab with
+unsaved changes).
 
 ## The full flow at a glance
 
@@ -57,30 +58,22 @@ The editor opens on the **General** tab. Set the:
 - **Name** — how the agent appears in your workspace.
 - **Locale** — the language the agent works in.
 - **Greeting** — the first message the agent sends when a conversation starts.
-- **Default Prompt** — the instructions telling the agent how to guide the user
-  through the form.
+- **Instructions** — how the agent should guide the user through the form.
+
+Click **Save**.
 
 ### 5. Pick the model on Model
 
-Open the **Model** tab and choose the **Model** that powers the agent, and a
-**Temperature** (lower values give steadier, more predictable questions).
+Open the **Model** tab, choose the **Model** that powers the agent and a
+**Temperature** (lower values give steadier, more predictable questions). **Save**.
 
 ### 6. Define the fields on Form
 
 Open the **Form** tab and edit the **Form Configuration** — the JSON schema that
 describes each field to collect. List your fields under `properties`, give each a
-`type` and a `description`, and mark the mandatory ones in `required`.
-
-### 7. Attach resources on Resources
-
-Open the **Resources** tab to attach **resource libraries** the agent can surface
-during the conversation. Click **Add library**, pick a library, and it appears as a
-tag. Use **Manage libraries** to open the library manager in a new tab. See
-[Resource libraries](/en/resource-libraries) to create them first.
-
-### 8. Save your agent
-
-Click **Update** to save your configuration. The form agent is now ready to use.
+`type` and a `description`, and mark the mandatory ones in `required`. Click
+**Save**. Because each tab saves on its own, remember to **Save** every tab you
+change.
 
 ## Tips
 
@@ -90,15 +83,15 @@ Click **Update** to save your configuration. The form agent is now ready to use.
   **Locale**.
 - Use a **low Temperature** (for example `0.2`) so the agent asks consistent
   questions rather than improvising.
-- Attach only the **resource libraries** that are relevant — the agent surfaces
-  their entries when a user's request matches a resource's title or description.
+- Each tab saves separately — changes on one tab aren't kept when you move to
+  another without saving.
 
 ## Troubleshooting
 
 - **The Create button is disabled** — the **Name** must be at least 3 characters.
 - **My Form Configuration won't save** — it must be a valid JSON object; check for a
   trailing comma or a missing quote.
-- **No libraries to add** — the **Add library** list is empty until you create
-  libraries; see [Resource libraries](/en/resource-libraries).
+- **My changes disappeared** — each tab saves separately; click **Save** before
+  switching tabs (the editor warns you when changes are unsaved).
 - **I don't see a Form tab** — make sure you created a **Form** agent (conversation
   agents chat, extraction agents show an **Output** tab instead).

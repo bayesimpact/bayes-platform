@@ -1,0 +1,137 @@
+---
+title: Intégration
+description: Placez un agent conversationnel sur votre propre site comme widget de chat — activez l'intégration, copiez l'extrait de script, restreignez les sites autorisés, et adaptez la marque.
+category: guides-agents
+order: 5
+updated: 2026-07-16
+---
+
+import EmbedWalkthrough from "@/components/EmbedWalkthrough.astro"
+
+L'**intégration** vous permet de placer un **agent conversationnel** sur votre propre
+site web comme **widget de chat**. Vous activez l'intégration, copiez un petit extrait
+`<script>` dans votre site, et l'agent apparaît sous forme de bulle de chat (ou de
+panneau latéral) avec laquelle vos visiteurs peuvent discuter.
+
+L'intégration se configure sur l'onglet **Intégration** de l'éditeur d'un **agent
+conversationnel**, dans **Studio**. C'est une fonctionnalité optionnelle : l'onglet
+n'apparaît que si l'intégration est activée pour votre espace de travail et que vous
+modifiez un agent **conversationnel** (les agents d'extraction et de formulaire ne
+l'ont pas). Dans la barre d'onglets de l'éditeur, c'est le **dernier** onglet, après
+**Orchestration**.
+
+## Comment fonctionne l'intégration
+
+- Chaque agent conversationnel possède son propre **extrait d'intégration** — une
+  balise `<script>` portant un jeton unique. Ajouter cet extrait à une page web y
+  charge le widget de chat de cet agent.
+- L'extrait existe que l'intégration soit activée ou non, mais le widget ne se charge
+  qu'une fois **Activer l'intégration** activé.
+- Vous contrôlez **quels sites** peuvent charger le widget avec les **Origines
+  autorisées**, et vous pouvez **personnaliser son apparence** (titre, logo, couleur
+  principale) ainsi que quelques attributs `data-` optionnels sur la balise de script.
+- Les modifications sont enregistrées avec **Mettre à jour** (cet onglet utilise
+  **Mettre à jour**, pas Enregistrer).
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape met en valeur le
+bouton à cliquer et la zone à observer.
+
+<EmbedWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir un agent conversationnel
+
+Dans **Studio**, ouvrez l'agent **conversationnel** que vous voulez intégrer (depuis
+la liste **Agents** de la barre latérale gauche, ou sa carte sur la vue d'ensemble de
+l'espace de travail). L'éditeur de l'agent s'ouvre. Vous devez avoir le droit de gérer
+l'agent.
+
+### 2. Ouvrir l'onglet Intégration
+
+Dans la barre d'onglets de l'éditeur, cliquez sur **Intégration** — c'est le dernier
+onglet. Si vous ne le voyez pas, l'onglet n'est pas activé pour votre espace de
+travail, ou vous n'êtes pas sur un agent **conversationnel** (voir Dépannage).
+
+### 3. Activer l'intégration
+
+Activez **Activer l'intégration**. Sa description indique *Permettre à `<nom de
+l'agent>` d'être intégré sur des sites externes via un iframe.* Tant qu'elle est
+désactivée, l'extrait est tout de même généré mais le widget ne se charge pas sur
+votre site.
+
+### 4. Copier l'extrait d'intégration
+
+Sous **Extrait d'intégration**, vous trouvez une balise `<script>` en lecture seule.
+Cliquez sur le bouton **copier** à côté, puis, comme l'indique la description,
+*collez cette balise `<script>` avant la balise `</body>` fermante* sur chaque page où
+vous voulez afficher le widget.
+
+L'indication liste les **attributs optionnels** à ajouter à la balise pour ajuster le
+widget :
+
+- **`data-color`** — la couleur du bouton de chat (ex. `#2563eb`).
+- **`data-locale`** — la langue du widget (ex. `fr`).
+- **`data-display-mode`** — mettez `drawer` pour un panneau latéral au lieu d'une
+  bulle.
+- **`data-hint`** — une infobulle affichée au chargement et au survol (ex. `Besoin
+  d'aide ?`).
+
+### 5. Restreindre les origines autorisées
+
+Dans **Origines autorisées**, saisissez une **liste séparée par des virgules** des
+sites autorisés à charger le widget (par exemple `https://app.example.com,
+https://staging.example.com`). Comme le précise la description, **laissez vide pour
+autoriser toutes les origines** — mais en production, il est plus sûr de ne lister que
+vos propres domaines.
+
+### 6. Personnaliser l'apparence du widget
+
+Trois champs optionnels contrôlent l'aspect du widget :
+
+- **Titre du widget** — le titre affiché dans l'en-tête du chat. Laissé vide, il
+  **correspond au nom de l'agent**.
+- **URL du logo** — l'URL d'une image de logo affichée dans l'en-tête du chat (ex.
+  `https://example.com/logo.png`).
+- **Couleur principale** — la couleur principale de l'en-tête du chat. Choisissez-la
+  avec le sélecteur de couleur ou saisissez une **valeur hexadécimale** (ex.
+  `#2563eb`).
+
+### 7. Mettre à jour
+
+Cliquez sur **Mettre à jour** pour enregistrer la configuration. Vos modifications —
+état d'activation, origines autorisées, titre, logo et couleur — prennent effet pour
+le widget intégré.
+
+## Conseils
+
+- Laissez **Activer l'intégration** désactivé jusqu'à ce que vous ayez réglé vos
+  **Origines autorisées** et votre marque, pour que le widget ne soit publié qu'une
+  fois prêt.
+- Listez vos vrais domaines dans **Origines autorisées** en production ; une liste vide
+  autorise **n'importe quel** site à intégrer l'agent.
+- Utilisez `data-display-mode="drawer"` pour un panneau latéral plutôt qu'une bulle
+  flottante, et `data-locale` pour forcer la langue du widget.
+- Le **Titre du widget** reprend le nom de l'agent — définissez-le explicitement si
+  vous voulez un autre en-tête pour les visiteurs.
+
+## Dépannage
+
+- **Je ne vois pas l'onglet Intégration** — il n'apparaît que pour les agents
+  **conversationnels**, uniquement si l'intégration est activée pour l'espace de
+  travail, et seulement si vous pouvez gérer l'agent. Les agents d'extraction et de
+  formulaire ne l'affichent jamais.
+- **Le widget n'apparaît pas sur mon site** — vérifiez que **Activer l'intégration**
+  est activé, que l'extrait est collé avant `</body>`, et que l'origine de votre site
+  figure dans les **Origines autorisées** (ou que la liste est vide).
+- **Le widget se charge sur les mauvais sites** — une liste **Origines autorisées**
+  vide autorise toutes les origines ; ajoutez vos domaines spécifiques pour la
+  restreindre.
+- **L'en-tête affiche le nom de l'agent, pas mon titre** — le **Titre du widget** est
+  vide, il reprend donc le nom de l'agent ; saisissez un titre et **Mettez à jour**.
+- **En lien :** le widget intégré est un agent conversationnel — voir
+  [Ajouter un agent conversationnel](/fr/add-a-conversation-agent) pour configurer ce
+  qu'il dit.

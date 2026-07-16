@@ -21,28 +21,27 @@ const groups = groupByCategory(docs)
 ---
 
 <BaseLayout title={t("site.title")} locale={locale}>
-  <section class="border-b border-border bg-muted/40">
-    <div class="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6 sm:py-20">
-      <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">{t("home.heading")}</h1>
-      <p class="mx-auto mt-3 max-w-xl text-lg text-muted-foreground">{t("site.tagline")}</p>
-      <div class="mx-auto mt-8 flex max-w-md justify-center">
+  <section class="border-b border-border">
+    <div class="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6 sm:py-28">
+      <p class="eyebrow justify-center">{locale === "fr" ? "Centre d'aide" : "Help center"}</p>
+      <h1 class="font-display mt-4 text-4xl leading-[1.05] sm:text-6xl">{t("home.heading")}</h1>
+      <p class="mx-auto mt-5 max-w-xl text-lg text-muted-foreground">{t("site.tagline")}</p>
+      <div class="mx-auto mt-9 flex max-w-md justify-center">
         <Search />
       </div>
     </div>
   </section>
 
-  <section class="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-    <h2 class="mb-6 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-      {t("home.categories")}
-    </h2>
+  <section class="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+    <p class="label mb-6">{t("home.categories")}</p>
     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
       {
         groups.map((group) => {
           const category = getCategory(group.id)
           return (
-            <div class="rounded-xl border border-border bg-card p-6">
+            <div class="rounded-[14px] border border-border bg-card p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-[0_10px_24px_rgba(0,0,0,0.08)]">
               <div class="flex items-center gap-3">
-                <span class="grid size-10 place-items-center rounded-lg bg-primary/10 text-primary">
+                <span class="grid size-10 place-items-center rounded-lg border border-border bg-secondary text-foreground">
                   <Icon name={category?.icon ?? "book-open"} />
                 </span>
                 <div>
