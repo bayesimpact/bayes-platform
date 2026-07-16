@@ -93,7 +93,8 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --font-sans:
-    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
 }
 
 @layer base {
@@ -138,7 +139,11 @@
     font-size: 16px;
     letter-spacing: -0.02em;
     line-height: 1;
-    transition: transform 0.2s ease, background 0.2s, color 0.2s, border-color 0.2s,
+    transition:
+      transform 0.2s ease,
+      background 0.2s,
+      color 0.2s,
+      border-color 0.2s,
       box-shadow 0.25s ease;
   }
   .btn-sm {
@@ -250,7 +255,9 @@
     text-decoration-color: var(--gold-deep);
     text-decoration-thickness: 2px;
     text-underline-offset: 3px;
-    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+    transition:
+      color 0.15s ease,
+      text-decoration-color 0.15s ease;
   }
   .prose a:hover {
     color: var(--color-primary);
