@@ -14,6 +14,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Agents delegating to a sub-agent share the recent conversation, so sub-agent replies stay on topic
 
 ### Fixed
+- Agent version history now shows the diff on the first open instead of a blank panel
 
 ### Security
 

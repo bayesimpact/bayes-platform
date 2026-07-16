@@ -34,6 +34,7 @@ import { projectMembershipsSlice } from "@/studio/features/project-memberships/p
 import { reviewCampaignsMiddleware } from "@/studio/features/review-campaigns/review-campaigns.middleware"
 import { reviewCampaignsSlice } from "@/studio/features/review-campaigns/review-campaigns.slice"
 import { createSliceManager } from "../../common/store/dynamic-middleware"
+import { agentHistoryMiddleware } from "../features/agents/agent-history.middleware"
 import { agentHistorySlice } from "../features/agents/agent-history.slice"
 import { studioAgentsMiddleware } from "../features/agents/agents.middleware"
 import { documentsMiddleware } from "../features/documents/documents.middleware"
@@ -49,6 +50,7 @@ const studioMiddlewareList = [
   agentAnalyticsMiddleware,
   agentCsvExtractionRunsMiddleware,
   agentEmbedConfigsMiddleware,
+  agentHistoryMiddleware,
   agentMembershipsMiddleware,
   agentMessageFeedbackMiddleware,
   agentsMiddleware,
@@ -63,8 +65,8 @@ const studioMiddlewareList = [
   formAgentSessionsMiddleware,
   projectAnalyticsMiddleware,
   projectMembershipsMiddleware,
-  reviewCampaignsMiddleware,
   resourceLibrariesMiddleware,
+  reviewCampaignsMiddleware,
   reviewCampaignsReportsMiddleware,
   studioAgentsMiddleware,
   studioProjectsMiddleware,
@@ -77,9 +79,9 @@ export const studioSliceList = [
   agentHistorySlice,
   agentMembershipsSlice,
   agentMessageFeedbackSlice,
-  agentSubAgentsSlice,
   agentSessionMessagesSlice,
   agentsSlice,
+  agentSubAgentsSlice,
   conversationAgentSessionsSlice,
   currentIdsSlice,
   documentsSlice,

@@ -1,4 +1,3 @@
-import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
@@ -9,15 +8,15 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@caseai-connect/ui/shad/sheet"
-import { Skeleton } from "@caseai-connect/ui/shad/skeleton"
-import { AlertTriangleIcon, HistoryIcon } from "lucide-react"
+import { HistoryIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { Agent } from "@/common/features/agents/agents.models"
-import { ADS } from "@/common/store/async-data-status"
-import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import { useMount } from "@/common/hooks/use-mount"
+import { AsyncRoute } from "@/common/routes/AsyncRoute"
+import { useAppSelector } from "@/common/store/hooks"
 import { selectAgentHistoryData } from "../agent-history.selectors"
-import { listAgentHistory } from "../agent-history.thunks"
+import { agentHistoryActions } from "../agent-history.slice"
 import { AgentVersionExplorer } from "./AgentVersionExplorer"
 
 /**
@@ -26,13 +25,16 @@ import { AgentVersionExplorer } from "./AgentVersionExplorer"
  */
 export function AgentVersionHistory({ agent }: { agent: Agent }) {
   const { t } = useTranslation()
-  const dispatch = useAppDispatch()
   const [open, setOpen] = useState(false)
   const history = useAppSelector(selectAgentHistoryData)
 
+  useMount({
+    actions: agentHistoryActions,
+    refreshOn: [agent.id],
+  })
+
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen)
-    if (nextOpen) dispatch(listAgentHistory())
   }
 
   return (
@@ -52,21 +54,9 @@ export function AgentVersionHistory({ agent }: { agent: Agent }) {
           </SheetDescription>
         </SheetHeader>
 
-        {ADS.isFulfilled(history) ? (
-          <AgentVersionExplorer versions={history.value} />
-        ) : ADS.isError(history) ? (
-          <Alert variant="destructive" className="m-4 w-auto">
-            <AlertTriangleIcon className="size-4" />
-            <AlertTitle>{t("agent:history.loadError")}</AlertTitle>
-            <AlertDescription>{history.error}</AlertDescription>
-          </Alert>
-        ) : (
-          <div className="space-y-3 p-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        )}
+        <AsyncRoute data={[history]}>
+          <AgentVersionExplorer />
+        </AsyncRoute>
       </SheetContent>
     </Sheet>
   )
