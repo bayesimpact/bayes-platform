@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { NavUser } from "@/common/components/sidebar/nav/NavUser"
-import { Logo } from "@/common/components/themes/Logo"
+
 import type { User } from "@/common/features/me/me.models"
 import { RouteNames } from "@/common/routes/helpers"
 import { EditProfileDialog } from "./EditProfileDialog"
@@ -22,7 +22,7 @@ export function HorizontalNavbar({
   return (
     <div className="w-full h-16 bg-white border-b flex items-center justify-between px-4 gap-2">
       <button type="button" className="p-1 size-10 contain-content" onClick={goHome}>
-        <Logo />
+        <img src="/theme/logo.svg" alt="Logo" className="max-h-10 w-auto" />
       </button>
 
       <button type="button" onClick={goHome} className="flex-1">

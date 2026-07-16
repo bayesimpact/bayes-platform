@@ -1,5 +1,4 @@
 import { Auth0Provider } from "@auth0/auth0-react"
-import { ThemeProvider } from "next-themes"
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import { Provider } from "react-redux"
@@ -8,21 +7,12 @@ import { store } from "./common/store/index.ts"
 import { auth0ProviderConfig } from "./config/auth0.config.ts"
 import "./i18n"
 import "./index.css"
-import { defaultTheme } from "./common/components/themes/helpers.ts"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={store}>
       <Auth0Provider {...auth0ProviderConfig}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme={defaultTheme}
-          storageKey="tpk"
-          disableTransitionOnChange={false}
-          forcedTheme={defaultTheme}
-        >
-          <App />
-        </ThemeProvider>
+        <App />
       </Auth0Provider>
     </Provider>
   </StrictMode>,

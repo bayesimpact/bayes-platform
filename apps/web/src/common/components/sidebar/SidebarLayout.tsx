@@ -17,7 +17,7 @@ import type { Organization } from "@/common/features/organizations/organizations
 import { RouteNames } from "@/common/routes/helpers"
 import type { DeskRoutes } from "@/desk/routes/helpers"
 import { isStudioInterface, type StudioRoutes } from "@/studio/routes/helpers"
-import { Logo } from "../themes/Logo"
+
 import { EditProfileDialog } from "./nav/EditProfileDialog"
 import { NavUserMenuItems } from "./nav/NavUserMenuItems"
 import { SidebarBreadcrumb } from "./SidebarBreadcrumb"
@@ -97,7 +97,7 @@ export function HeaderWithLogo({ organization }: { organization?: Organization }
   return (
     <div className="flex flex-1 gap-2 items-center">
       <button type="button" onClick={onClick} className="p-1 size-10 contain-content">
-        <Logo />
+        <img src="/theme/logo.svg" alt="Logo" className="max-h-10 w-auto" />
       </button>
 
       <button type="button" onClick={onClick} className="flex-1">
