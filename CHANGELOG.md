@@ -8,6 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- Visual output-schema editor: set an optional min/max range on number fields, allow enum and array types
 
 ### Changed
 

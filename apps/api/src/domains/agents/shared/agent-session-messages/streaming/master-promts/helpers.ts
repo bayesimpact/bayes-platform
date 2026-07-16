@@ -75,7 +75,14 @@ ${names
           : []
         return `[${name}]: Use the ${name} tool to fill the form progressively. Call it with getFormState: true at any time — including alongside partial field updates — to retrieve the current form state and know which fields are already filled. Only pass fields that are new or have changed — never re-send fields already stored. Ask the user for any missing information until the form is complete. Ask the questions in the order listed below. Form fields:
 ${orderedFields
-  .map(([key, value]) => `- ${key}: ${value.description ?? "No description"}`)
+  .map(([key, value]) => {
+    const hints: string[] = []
+    if (value.enum && value.enum.length > 0) hints.push(`allowed values: ${value.enum.join(", ")}`)
+    if (value.minimum !== undefined) hints.push(`minimum: ${value.minimum}`)
+    if (value.maximum !== undefined) hints.push(`maximum: ${value.maximum}`)
+    const hintSuffix = hints.length > 0 ? ` (${hints.join("; ")})` : ""
+    return `- ${key}: ${value.description ?? "No description"}${hintSuffix}`
+  })
   .join("\n")}\n\n`
       }
 
