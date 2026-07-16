@@ -1,0 +1,393 @@
+---
+/**
+ * Animated, full-page walkthrough of the Analytics dashboard, mirroring the real
+ * Studio interface (same shell, exact Lucide icons, real brand logo). Shares the
+ * exact FORM of the other help-center walkthroughs — only the content differs.
+ * Pass `lang="fr"` for the French copy.
+ */
+type Lang = "en" | "fr"
+const { lang = "en" } = Astro.props as { lang?: Lang }
+
+const STRINGS = {
+  en: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Bayes Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Settings", evaluations: "Evaluations", analytics: "Analytics", sources: "Sources",
+    documents: "Documents", webSources: "Web sources", resourceLibraries: "Resource libraries", members: "Members", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    pageTitle: "Analytics",
+    pageDesc: "View analytics for your workspace — conversations, average questions per session, and more.",
+    allAgents: "All agents", dateRange: "Date range",
+    convTitle: "Conversations per day", convDesc: "Number of conversational sessions started each day",
+    convMetricLabel: "Total conversations", convMetric: "128",
+    avgTitle: "Avg. user questions per session", avgDesc: "Average user messages per session per day",
+    avgMetricLabel: "Per day", avgMetric: "3.4",
+    catTitle: "Sessions per day by category", catDesc: "Daily session volume, split by category (all agents or selected agent)",
+    catProduct: "Product", catPricing: "Pricing", catSupport: "Support", catUncat: "Uncategorized",
+    prev: "Prev", next: "Next", step: "Step",
+    steps: [
+      "Open Analytics in the left sidebar.",
+      "The Analytics dashboard opens, with filters at the top right.",
+      "Filter the data by agent — or keep All agents.",
+      "Choose the period with the Date range picker.",
+      "Conversations per day shows the sessions started each day.",
+      "Avg. user questions per session shows engagement within each session.",
+      "Sessions per day by category breaks the volume down by conversation category.",
+    ],
+  },
+  fr: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Bayes Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Paramètres", evaluations: "Évaluations", analytics: "Analytique", sources: "Sources",
+    documents: "Documents", webSources: "Sites web", resourceLibraries: "Bibliothèques de ressources", members: "Membres", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    pageTitle: "Analytique",
+    pageDesc: "Consultez les analyses de votre espace de travail — conversations, questions moyennes par session, et plus encore.",
+    allAgents: "Tous les agents", dateRange: "Plage de dates",
+    convTitle: "Conversations par jour", convDesc: "Nombre de sessions conversationnelles démarrées chaque jour",
+    convMetricLabel: "Total des conversations", convMetric: "128",
+    avgTitle: "Questions utilisateur moy. par session", avgDesc: "Moyenne des messages utilisateur par session et par jour",
+    avgMetricLabel: "Par jour", avgMetric: "3.4",
+    catTitle: "Sessions par jour par categorie", catDesc: "Volume quotidien des sessions, reparti par categorie (tous les agents ou agent selectionne)",
+    catProduct: "Product", catPricing: "Pricing", catSupport: "Support", catUncat: "Non categorise",
+    prev: "Précédent", next: "Suivant", step: "Étape",
+    steps: [
+      "Ouvrez Analytique dans la barre latérale gauche.",
+      "Le tableau de bord Analytique s'ouvre, avec des filtres en haut à droite.",
+      "Filtrez les données par agent — ou gardez Tous les agents.",
+      "Choisissez la période avec le sélecteur Plage de dates.",
+      "Conversations par jour montre les sessions démarrées chaque jour.",
+      "Questions utilisateur moy. par session montre l'engagement au sein de chaque session.",
+      "Sessions par jour par catégorie répartit le volume par catégorie de conversation.",
+    ],
+  },
+} as const
+
+const s = STRINGS[lang]
+
+const conv = [40, 62, 48, 80, 55, 72, 90]
+const avg = [55, 40, 68, 50, 75, 60, 82]
+const cat = [
+  { p: 40, r: 25, su: 20, u: 10 },
+  { p: 30, r: 35, su: 15, u: 12 },
+  { p: 50, r: 20, su: 25, u: 8 },
+  { p: 35, r: 30, su: 30, u: 10 },
+  { p: 55, r: 25, su: 18, u: 14 },
+  { p: 45, r: 40, su: 22, u: 9 },
+  { p: 60, r: 30, su: 28, u: 12 },
+]
+
+const steps = [
+  { page: "overview", nav: "", spot: "navAnalytics", observe: [] },
+  { page: "dashboard", nav: "analytics", spot: "", observe: ["obsFilters"] },
+  { page: "dashboard", nav: "analytics", spot: "selAgent", observe: [] },
+  { page: "dashboard", nav: "analytics", spot: "pillDate", observe: [] },
+  { page: "dashboard", nav: "analytics", spot: "", observe: ["obsConv"] },
+  { page: "dashboard", nav: "analytics", spot: "", observe: ["obsAvg"] },
+  { page: "dashboard", nav: "analytics", spot: "", observe: ["obsCat"] },
+].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const labels = { prev: s.prev, next: s.next, step: s.step }
+---
+
+<div class="anw" role="group" aria-label={s.pageTitle}>
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside class="sb">
+      <div class="sb-head">
+        <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
+        <span class="org"><b>{s.org}</b><small>{s.studio}</small></span>
+      </div>
+      <div class="sb-scroll">
+        <div class="grp-label">{s.agents}<span class="add"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.agent1}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.conversationAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg><span>{s.extractionAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/></svg><span>{s.formAgent}</span></div>
+
+        <div class="grp-label stack"><span class="name">{s.settingsName}</span><span>{s.settings}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg><span>{s.evaluations}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem" id="navAnalytics"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg><span>{s.analytics}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 15 21.84"/><path d="M21 5V8"/><path d="M21 12L18 17H22L19 22"/><path d="M3 12A9 3 0 0 0 14.59 14.87"/></svg><span>{s.sources}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg><span>{s.members}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg><span>{s.admin}</span></div>
+      </div>
+      <div class="sb-user">
+        <span class="avatar">AM</span>
+        <span class="who"><b>{s.userName}</b><small>{s.userEmail}</small></span>
+        <span class="updown"><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+      </div>
+    </aside>
+
+    <!-- Main inset -->
+    <div class="inset">
+      <div class="topbar">
+        <span class="trig"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span>
+      </div>
+      <div class="canvas">
+        <span class="fab"><svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
+
+        <!-- workspace overview (step 1) -->
+        <div class="page" data-page="overview" data-active="true">
+          <div class="page-head plain">
+            <span><span class="ttl">{s.settingsName}</span><span class="desc">{s.studio}</span></span>
+          </div>
+          <div class="cards3">
+            <div class="ecard"><span class="cat">Conversation</span><b class="ic"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg> {s.agent1}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><b>{s.analytics}</b><p>View analytics for your workspace, including conversations and more.</p><div class="minibars"><i style="height:40%"></i><i style="height:65%"></i><i style="height:30%"></i><i style="height:80%"></i><i style="height:55%"></i><i style="height:70%"></i><i style="height:90%"></i></div></div>
+            <div class="ecard"><b>{s.members}</b><p>Invite members to your workspace.</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+          </div>
+        </div>
+
+        <!-- analytics dashboard (steps 2-7) -->
+        <div class="page" data-page="dashboard">
+          <div class="page-head">
+            <span><span class="ttl">{s.pageTitle}</span><span class="desc">{s.pageDesc}</span></span>
+            <span class="right" id="obsFilters">
+              <span class="select" id="selAgent"><span>{s.allAgents}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
+              <span class="pill" id="pillDate"><svg viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg> {s.dateRange}</span>
+            </span>
+          </div>
+
+          <div class="chart-grid">
+            <div class="chartcard" id="obsConv">
+              <div class="ch-head"><b>{s.convTitle}</b><p>{s.convDesc}</p></div>
+              <div class="ch-metric"><span class="num">{s.convMetric}</span><span class="ml">{s.convMetricLabel}</span></div>
+              <div class="bars">{conv.map((h) => <i style={`height:${h}%`}></i>)}</div>
+            </div>
+            <div class="chartcard" id="obsAvg">
+              <div class="ch-head"><b>{s.avgTitle}</b><p>{s.avgDesc}</p></div>
+              <div class="ch-metric"><span class="num">{s.avgMetric}</span><span class="ml">{s.avgMetricLabel}</span></div>
+              <div class="bars">{avg.map((h) => <i style={`height:${h}%`}></i>)}</div>
+            </div>
+          </div>
+
+          <div class="chartcard wide" id="obsCat">
+            <div class="ch-head"><b>{s.catTitle}</b><p>{s.catDesc}</p></div>
+            <div class="stack-wrap">
+              <div class="stack-bars">
+                {cat.map((d) => (
+                  <span class="col">
+                    <i class="seg u" style={`height:${d.u}%`}></i>
+                    <i class="seg su" style={`height:${d.su}%`}></i>
+                    <i class="seg r" style={`height:${d.r}%`}></i>
+                    <i class="seg p" style={`height:${d.p}%`}></i>
+                  </span>
+                ))}
+              </div>
+              <div class="legend">
+                <span class="lg"><i class="dot p"></i>{s.catProduct}</span>
+                <span class="lg"><i class="dot r"></i>{s.catPricing}</span>
+                <span class="lg"><i class="dot su"></i>{s.catSupport}</span>
+                <span class="lg"><i class="dot u"></i>{s.catUncat}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="navbtn" data-prev><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> {s.prev}</button>
+    <button class="ctrl" data-playpause aria-label="Play / pause">⏸</button>
+    <span class="cap"><span class="st" data-stepcount></span><span class="tx" data-captext></span></span>
+    <span class="dots-nav" data-dots role="tablist" aria-label="Steps"></span>
+    <button class="navbtn primary" data-next>{s.next} <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="progress"><i data-bar></i></div>
+</div>
+
+<script define:vars={{ steps, labels }}>
+  const cs = document.currentScript
+  const anw =
+    cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("anw")
+      ? cs.previousElementSibling
+      : document.querySelector(".anw")
+  const q = (sel) => anw.querySelector(sel)
+  const pages = [...anw.querySelectorAll(".page")]
+  const dotsWrap = anw.querySelector("[data-dots]")
+  const bar = anw.querySelector("[data-bar]")
+  const capText = anw.querySelector("[data-captext]")
+  const stepCount = anw.querySelector("[data-stepcount]")
+  const playPause = anw.querySelector("[data-playpause]")
+  const prevBtn = anw.querySelector("[data-prev]")
+  const nextBtn = anw.querySelector("[data-next]")
+  const DUR = 6000
+  let idx = 0, playing = true, timer = null
+
+  steps.forEach((_, i) => {
+    const b = document.createElement("button")
+    b.className = "dotnav"; b.setAttribute("role", "tab"); b.setAttribute("aria-label", labels.step + " " + (i + 1))
+    b.addEventListener("click", () => go(i)); dotsWrap.appendChild(b)
+  })
+  const dots = [...dotsWrap.children]
+
+  function clearMarks() {
+    anw.querySelectorAll(".spot-on").forEach((el) => el.classList.remove("spot-on"))
+    anw.querySelectorAll(".observe-on").forEach((el) => el.classList.remove("observe-on"))
+  }
+  function render() {
+    const step = steps[idx]
+    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page)))
+    dots.forEach((d, i) => d.classList.toggle("on", i === idx))
+    stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
+    capText.textContent = step.text
+    q("#navAnalytics").classList.toggle("on", step.nav === "analytics")
+
+    clearMarks()
+    const active = idx
+    setTimeout(() => {
+      if (active !== idx) return
+      if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
+      step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+    }, 260)
+
+    bar.classList.remove("run"); void bar.offsetWidth
+    bar.style.setProperty("--dur", DUR + "ms")
+    if (playing) bar.classList.add("run")
+  }
+  function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(() => go(idx + 1), DUR) }
+  function go(n) { idx = (n + steps.length) % steps.length; render(); schedule() }
+  function setPlaying(p) {
+    playing = p; playPause.textContent = p ? "⏸" : "▶"
+    if (p) { bar.classList.add("run"); schedule() } else { clearTimeout(timer); bar.classList.remove("run") }
+  }
+  prevBtn.addEventListener("click", () => go(idx - 1))
+  nextBtn.addEventListener("click", () => go(idx + 1))
+  playPause.addEventListener("click", () => setPlaying(!playing))
+
+  render(); schedule()
+</script>
+
+<style>
+  .anw {
+    --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+    --primary: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --destructive: oklch(0.577 0.245 27.325);
+    --sidebar: oklch(0.985 0 0); --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-accent: oklch(0.97 0 0); --sidebar-accent-foreground: oklch(0.205 0 0); --sidebar-border: oklch(0.922 0 0);
+    --cat-product: var(--primary); --cat-pricing: oklch(0.62 0.13 250); --cat-support: oklch(0.66 0.14 160); --cat-uncat: oklch(0.72 0 0);
+    --radius: 0.625rem;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
+    --spot: color-mix(in oklab, var(--primary) 55%, transparent);
+    display: block; margin: 1.5rem 0; color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .anw * { box-sizing: border-box; }
+  .anw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+
+  .anw .shell { display: grid; grid-template-columns: 208px 1fr; height: 680px; background: var(--sidebar); color: var(--sidebar-foreground); border: 1px solid var(--sidebar-border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .anw .sb { display: flex; flex-direction: column; padding: 0.5rem; min-height: 0; }
+  .anw .sb-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.4rem 0.6rem; }
+  .anw .logo { width: 1.9rem; height: 1.9rem; display: inline-flex; align-items: center; justify-content: center; }
+  .anw .logo svg { width: 100%; height: 100%; stroke: none; }
+  .anw .logo svg path { fill: #f18c6e; }
+  .anw .logo svg circle { fill: #010101; }
+  .anw .org { display: flex; flex-direction: column; line-height: 1.05; }
+  .anw .org b { font-size: 0.92rem; font-weight: 700; }
+  .anw .org small { color: var(--primary); font-size: 0.72rem; }
+  .anw .sb-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
+  .anw .grp-label { font-size: 0.66rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0.4rem 0.5rem 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
+  .anw .grp-label .add { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+  .anw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: auto; }
+  .anw .grp-label.stack .name { color: var(--sidebar-foreground); font-size: 0.76rem; text-transform: none; font-weight: 700; }
+  .anw .navitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.3rem 0.5rem; border-radius: 7px; font-size: 0.82rem; color: var(--sidebar-foreground); }
+  .anw .navitem svg { font-size: 1rem; color: var(--muted-foreground); }
+  .anw .navitem .chev { margin-left: auto; font-size: 0.9rem; }
+  .anw .navitem.on { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 600; }
+  .anw .navitem.on svg { color: var(--sidebar-accent-foreground); }
+  .anw .sb-user { display: flex; align-items: center; gap: 0.55rem; margin-top: auto; padding: 0.45rem 0.5rem; }
+  .anw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
+  .anw .who { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+  .anw .who b { font-size: 0.76rem; font-weight: 600; }
+  .anw .who small { font-size: 0.68rem; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .anw .updown { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+
+  .anw .inset { position: relative; margin: 0.5rem 0.5rem 0.5rem 0; background: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; box-shadow: var(--shadow); }
+  .anw .topbar { height: 3rem; flex-shrink: 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
+  .anw .trig { color: var(--muted-foreground); font-size: 1.05rem; }
+  .anw .canvas { position: relative; flex: 1; min-height: 0; background: radial-gradient(circle, color-mix(in oklab, var(--muted-foreground) 20%, transparent) 1px, transparent 1px) 0 0 / 22px 22px; }
+  .anw .fab { position: absolute; right: 1rem; bottom: 1rem; width: 2.3rem; height: 2.3rem; border-radius: 999px; background: var(--primary); color: var(--primary-foreground); display: grid; place-items: center; box-shadow: var(--shadow); font-size: 1.1rem; z-index: 6; }
+
+  .anw .page { position: absolute; inset: 0; padding: 1.1rem 1.2rem; overflow: auto; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
+  .anw .page[data-active="true"] { opacity: 1; transform: none; pointer-events: auto; }
+
+  .anw .spot-on { position: relative; z-index: 7; animation: anw-spot 1.4s ease-in-out infinite; border-radius: 8px; }
+  @keyframes anw-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
+  .anw .observe-on { outline: 2px dashed var(--spot); outline-offset: 3px; border-radius: 10px; }
+
+  .anw .page-head { border-bottom: 1px solid var(--border); padding-bottom: 0.9rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.7rem; }
+  .anw .page-head.plain { border: 0; }
+  .anw .ttl { font-size: 1.3rem; font-weight: 600; line-height: 1.15; display: block; }
+  .anw .desc { font-size: 0.88rem; color: var(--muted-foreground); margin-top: 0.2rem; display: block; max-width: 30rem; }
+  .anw .right { margin-left: auto; display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+  .anw .select { display: inline-flex; align-items: center; gap: 0.5rem; border: 1px solid var(--input); border-radius: 8px; padding: 0.4rem 0.6rem; font-size: 0.78rem; color: var(--foreground); background: var(--background); min-width: 130px; justify-content: space-between; }
+  .anw .select svg { color: var(--muted-foreground); font-size: 0.9rem; }
+  .anw .pill { display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid var(--input); border-radius: 8px; padding: 0.4rem 0.6rem; font-size: 0.78rem; color: var(--muted-foreground); background: var(--background); }
+  .anw .pill svg { font-size: 0.9rem; }
+
+  .anw .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
+  .anw .ecard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.8rem; min-height: 116px; display: flex; flex-direction: column; }
+  .anw .ecard .cat { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-foreground); font-weight: 600; margin-bottom: 0.2rem; }
+  .anw .ecard b { font-size: 0.88rem; }
+  .anw .ecard b.ic { display: flex; align-items: center; gap: 0.35rem; }
+  .anw .ecard b.ic svg { color: var(--muted-foreground); font-size: 0.95rem; }
+  .anw .ecard p { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.2rem 0 0.6rem; }
+  .anw .ecard .arrowbtn { margin-top: auto; align-self: flex-start; }
+  .anw .arrowbtn { width: 1.8rem; height: 1.8rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); }
+  .anw .minibars { display: flex; align-items: flex-end; gap: 3px; height: 34px; margin-top: auto; }
+  .anw .minibars i { flex: 1; background: var(--primary); border-radius: 3px 3px 0 0; opacity: 0.85; }
+
+  .anw .chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; margin-bottom: 0.8rem; }
+  .anw .chartcard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.9rem; }
+  .anw .ch-head b { font-size: 0.9rem; font-weight: 600; }
+  .anw .ch-head p { font-size: 0.72rem; color: var(--muted-foreground); margin: 0.15rem 0 0; }
+  .anw .ch-metric { display: flex; align-items: baseline; gap: 0.4rem; margin: 0.6rem 0 0.5rem; }
+  .anw .ch-metric .num { font-size: 1.5rem; font-weight: 700; }
+  .anw .ch-metric .ml { font-size: 0.72rem; color: var(--muted-foreground); }
+  .anw .bars { display: flex; align-items: flex-end; gap: 5px; height: 90px; }
+  .anw .bars i { flex: 1; background: var(--primary); border-radius: 3px 3px 0 0; opacity: 0.88; }
+
+  .anw .chartcard.wide .stack-wrap { display: flex; flex-direction: column; gap: 0.7rem; }
+  .anw .stack-bars { display: flex; align-items: flex-end; gap: 8px; height: 150px; margin-top: 0.7rem; }
+  .anw .stack-bars .col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+  .anw .stack-bars .seg { display: block; width: 100%; }
+  .anw .stack-bars .col .seg:first-child { border-radius: 3px 3px 0 0; }
+  .anw .seg.p, .anw .dot.p { background: var(--cat-product); }
+  .anw .seg.r, .anw .dot.r { background: var(--cat-pricing); }
+  .anw .seg.su, .anw .dot.su { background: var(--cat-support); }
+  .anw .seg.u, .anw .dot.u { background: var(--cat-uncat); }
+  .anw .legend { display: flex; flex-wrap: wrap; gap: 0.8rem; }
+  .anw .legend .lg { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.74rem; color: var(--muted-foreground); }
+  .anw .legend .dot { width: 0.7rem; height: 0.7rem; border-radius: 3px; display: inline-block; }
+
+  .anw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .anw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+  .anw .navbtn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .anw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
+  .anw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .anw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
+  .anw .cap .tx { font-size: 0.88rem; font-weight: 500; }
+  .anw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 180px; }
+  .anw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .anw .dotnav.on { background: var(--primary); transform: scale(1.3); }
+  .anw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+  .anw .progress i { display: block; height: 100%; width: 0; background: var(--primary); }
+  .anw .progress i.run { animation: anw-fill var(--dur, 6000ms) linear forwards; }
+  @keyframes anw-fill { to { width: 100%; } }
+
+  @media (max-width: 640px) {
+    .anw .shell { grid-template-columns: 1fr; height: 560px; }
+    .anw .sb { display: none; }
+    .anw .inset { margin: 0.5rem; }
+    .anw .cards3, .anw .chart-grid { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .anw .page, .anw .spot-on, .anw .progress i { transition: none !important; animation: none !important; }
+  }
+</style>

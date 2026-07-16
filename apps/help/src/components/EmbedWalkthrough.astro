@@ -1,0 +1,439 @@
+---
+/**
+ * Walkthrough of the agent Embed tab (embedding a conversation agent as a chat
+ * widget on external sites). Derived from the real components (verified, not copied
+ * blind): AgentEditor.tsx (tab gating: conversation-only, flag `agent-embed`, last
+ * tab after Orchestration) and AgentEmbedTab.tsx (Enable embed switch, read-only
+ * Embed snippet + Copy, snippet hint, Allowed origins, Widget title, Logo URL,
+ * Brand color, Update). Labels verbatim from the agent / actions locales (EN + FR).
+ * Uses the PRODUCT (coral) palette, pinned locally. Derived 2026-07-16.
+ */
+type Lang = "en" | "fr"
+const { lang = "en" } = Astro.props as { lang?: Lang }
+
+const SNIPPET = '<script src="https://app.example.com/launcher.js" data-token="emb_1a2b3c4d"></script>'
+
+const STRINGS = {
+  en: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Settings", evaluations: "Evaluations", analytics: "Analytics", sources: "Sources",
+    members: "Members", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    conversation: "Conversation", form: "Form",
+    agentName: "Helpful Assistant", agent2: "Billing Assistant", agent3: "Feedback Form",
+    editTitle: "Edit Conversation Agent", editDesc: "Edit details for this conversation agent",
+    tabGeneral: "General", tabModel: "Model", tabSources: "Sources", tabResources: "Resource libraries",
+    tabCategories: "Conversation categories", tabOrchestration: "Orchestration", tabEmbed: "Embed",
+    enabledLabel: "Enable embed",
+    enabledDescription: "Allow Helpful Assistant to be embedded on external websites via an iframe.",
+    snippetLabel: "Embed snippet",
+    snippetDescription: "Paste this <script> tag before the closing </body> tag on any page where you want the chat widget to appear.",
+    snippetValue: SNIPPET,
+    snippetHint: "Optional attributes: data-color, data-locale, data-display-mode, data-hint.",
+    allowedOriginsLabel: "Allowed origins",
+    allowedOriginsDescription: "Comma-separated list of allowed origins (e.g. https://app.example.com). Leave empty to allow all origins.",
+    allowedOriginsPlaceholder: "https://app.example.com, https://staging.example.com",
+    titleLabel: "Widget title",
+    titleDescription: "Title shown in the chat header. Defaults to Helpful Assistant when left empty.",
+    logoUrlLabel: "Logo URL",
+    logoUrlDescription: "URL of the logo image shown in the chat header.",
+    logoUrlPlaceholder: "https://example.com/logo.png",
+    primaryColorLabel: "Brand color",
+    primaryColorDescription: "Primary color used in the chat widget header. Enter a hex value (e.g. #2563eb).",
+    colorValue: "#2563eb",
+    update: "Update",
+    prev: "Prev", next: "Next", step: "Step",
+    steps: [
+      "In Studio, open a conversation agent to edit it.",
+      "Open the Embed tab — it appears only for conversation agents.",
+      "Turn on Enable embed to allow the agent on external sites.",
+      "Copy the Embed snippet and paste it before </body> on your site.",
+      "Set Allowed origins to control which sites may embed the widget.",
+      "Customize the Widget title, Logo URL and Brand color.",
+      "Click Update to save the embed configuration.",
+    ],
+  },
+  fr: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Paramètres", evaluations: "Évaluations", analytics: "Analytique", sources: "Sources",
+    members: "Membres", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    conversation: "Conversation", form: "Form",
+    agentName: "Helpful Assistant", agent2: "Billing Assistant", agent3: "Feedback Form",
+    editTitle: "Modifier l'agent conversationnel", editDesc: "Modifier les détails de cet agent conversationnel",
+    tabGeneral: "Général", tabModel: "Modèle", tabSources: "Sources", tabResources: "Bibliothèques de ressources",
+    tabCategories: "Catégories de conversation", tabOrchestration: "Orchestration", tabEmbed: "Intégration",
+    enabledLabel: "Activer l'intégration",
+    enabledDescription: "Permettre à Helpful Assistant d'être intégré sur des sites externes via un iframe.",
+    snippetLabel: "Extrait d'intégration",
+    snippetDescription: "Collez cette balise <script> avant la balise </body> fermante sur chaque page où vous souhaitez afficher le widget de chat.",
+    snippetValue: SNIPPET,
+    snippetHint: "Attributs optionnels : data-color, data-locale, data-display-mode, data-hint.",
+    allowedOriginsLabel: "Origines autorisées",
+    allowedOriginsDescription: "Liste d'origines autorisées séparées par des virgules (ex. https://app.example.com). Laissez vide pour autoriser toutes les origines.",
+    allowedOriginsPlaceholder: "https://app.example.com, https://staging.example.com",
+    titleLabel: "Titre du widget",
+    titleDescription: "Titre affiché dans l'en-tête du chat. Correspond au nom Helpful Assistant si laissé vide.",
+    logoUrlLabel: "URL du logo",
+    logoUrlDescription: "URL de l'image du logo affichée dans l'en-tête du chat.",
+    logoUrlPlaceholder: "https://example.com/logo.png",
+    primaryColorLabel: "Couleur principale",
+    primaryColorDescription: "Couleur principale utilisée dans l'en-tête du widget de chat. Saisissez une valeur hexadécimale (ex. #2563eb).",
+    colorValue: "#2563eb",
+    update: "Mettre à jour",
+    prev: "Précédent", next: "Suivant", step: "Étape",
+    steps: [
+      "Dans Studio, ouvrez un agent conversationnel pour le modifier.",
+      "Ouvrez l'onglet Intégration — il n'apparaît que pour les agents conversationnels.",
+      "Activez « Activer l'intégration » pour autoriser l'agent sur des sites externes.",
+      "Copiez l'extrait d'intégration et collez-le avant </body> sur votre site.",
+      "Définissez les Origines autorisées pour contrôler quels sites peuvent intégrer le widget.",
+      "Personnalisez le Titre du widget, l'URL du logo et la Couleur principale.",
+      "Cliquez sur Mettre à jour pour enregistrer la configuration d'intégration.",
+    ],
+  },
+} as const
+
+const s = STRINGS[lang]
+
+const convIcon = '<path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/>'
+const formIcon = '<path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/>'
+
+const TABS = [
+  { key: "general", label: s.tabGeneral },
+  { key: "model", label: s.tabModel },
+  { key: "sources", label: s.tabSources },
+  { key: "resources", label: s.tabResources },
+  { key: "categories", label: s.tabCategories },
+  { key: "orchestration", label: s.tabOrchestration },
+  { key: "embed", label: s.tabEmbed },
+]
+
+const steps = [
+  { page: "overview", spot: "navAgent1", observe: [] },
+  { page: "embed", spot: "tab-embed", observe: [] },
+  { page: "embed", spot: "", observe: ["obsEnable"] },
+  { page: "embed", spot: "", observe: ["obsSnippet"] },
+  { page: "embed", spot: "", observe: ["obsOrigins"] },
+  { page: "embed", spot: "", observe: ["obsBranding"] },
+  { page: "embed", spot: "btnUpdate", observe: [] },
+].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const labels = { prev: s.prev, next: s.next, step: s.step }
+---
+
+<div class="ebw" role="group" aria-label={s.tabEmbed}>
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside class="sb">
+      <div class="sb-head">
+        <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
+        <span class="org"><b>{s.org}</b><small>{s.studio}</small></span>
+      </div>
+      <div class="sb-scroll">
+        <div class="grp-label">{s.agents}<span class="add"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+        <div class="navitem" id="navAgent1"><svg viewBox="0 0 24 24" set:html={convIcon}></svg><span>{s.agentName}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24" set:html={convIcon}></svg><span>{s.agent2}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24" set:html={formIcon}></svg><span>{s.agent3}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg><span>{s.extractionAgent}</span></div>
+
+        <div class="grp-label stack"><span class="name">{s.settingsName}</span><span>{s.settings}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg><span>{s.evaluations}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg><span>{s.analytics}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 15 21.84"/><path d="M21 5V8"/><path d="M21 12L18 17H22L19 22"/><path d="M3 12A9 3 0 0 0 14.59 14.87"/></svg><span>{s.sources}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg><span>{s.members}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg><span>{s.admin}</span></div>
+      </div>
+      <div class="sb-user">
+        <span class="avatar">AM</span>
+        <span class="who"><b>{s.userName}</b><small>{s.userEmail}</small></span>
+        <span class="updown"><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+      </div>
+    </aside>
+
+    <!-- Main inset -->
+    <div class="inset">
+      <div class="topbar">
+        <span class="trig"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span>
+      </div>
+      <div class="canvas">
+        <span class="fab"><svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
+
+        <!-- workspace overview (step 1) -->
+        <div class="page" data-page="overview" data-active="true">
+          <div class="page-head plain">
+            <span><span class="ttl">{s.settingsName}</span><span class="desc">{s.studio}</span></span>
+          </div>
+          <div class="cards3">
+            <div class="ecard"><span class="cat">{s.conversation}</span><b class="ic"><svg viewBox="0 0 24 24" set:html={convIcon}></svg> {s.agentName}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.conversation}</span><b class="ic"><svg viewBox="0 0 24 24" set:html={convIcon}></svg> {s.agent2}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.form}</span><b class="ic"><svg viewBox="0 0 24 24" set:html={formIcon}></svg> {s.agent3}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+          </div>
+        </div>
+
+        <!-- editor: Embed (steps 2-7) -->
+        <div class="page" data-page="embed">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
+          </div>
+          <div class="editor">
+            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "embed" && "on"]} id={tb.key === "embed" ? "tab-embed" : undefined}>{tb.label}</span>)}</div>
+            <div class="tabbody">
+              <div class="switchrow" id="obsEnable">
+                <span class="sw-txt"><b>{s.enabledLabel}</b><small>{s.enabledDescription}</small></span>
+                <span class="switch on"><i></i></span>
+              </div>
+
+              <div class="fld" id="obsSnippet">
+                <p class="lbl">{s.snippetLabel}</p>
+                <p class="hint">{s.snippetDescription}</p>
+                <div class="snippet-row">
+                  <span class="textarea mono">{s.snippetValue}</span>
+                  <span class="iconbtn"><svg viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span>
+                </div>
+                <p class="hint">{s.snippetHint}</p>
+              </div>
+
+              <div class="fld" id="obsOrigins">
+                <p class="lbl">{s.allowedOriginsLabel}</p>
+                <p class="hint">{s.allowedOriginsDescription}</p>
+                <span class="input block muted-txt">{s.allowedOriginsPlaceholder}</span>
+              </div>
+
+              <div id="obsBranding">
+                <div class="fld">
+                  <p class="lbl">{s.titleLabel}</p>
+                  <p class="hint">{s.titleDescription}</p>
+                  <span class="input block muted-txt">{s.agentName}</span>
+                </div>
+                <div class="fld">
+                  <p class="lbl">{s.logoUrlLabel}</p>
+                  <p class="hint">{s.logoUrlDescription}</p>
+                  <span class="input block muted-txt">{s.logoUrlPlaceholder}</span>
+                </div>
+                <div class="fld">
+                  <p class="lbl">{s.primaryColorLabel}</p>
+                  <p class="hint">{s.primaryColorDescription}</p>
+                  <span class="colorrow"><i class="swatch"></i><span class="input block mono">{s.colorValue}</span></span>
+                </div>
+              </div>
+            </div>
+            <div class="editor-foot"><span class="btn" id="btnUpdate">{s.update}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="navbtn" data-prev><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> {s.prev}</button>
+    <button class="ctrl" data-playpause aria-label="Play / pause">⏸</button>
+    <span class="cap"><span class="st" data-stepcount></span><span class="tx" data-captext></span></span>
+    <span class="dots-nav" data-dots role="tablist" aria-label="Steps"></span>
+    <button class="navbtn primary" data-next>{s.next} <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="progress"><i data-bar></i></div>
+</div>
+
+<script define:vars={{ steps, labels }}>
+  const cs = document.currentScript
+  const ebw =
+    cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("ebw")
+      ? cs.previousElementSibling
+      : document.querySelector(".ebw")
+  const q = (sel) => ebw.querySelector(sel)
+  const pages = [...ebw.querySelectorAll(".page")]
+  const dotsWrap = ebw.querySelector("[data-dots]")
+  const bar = ebw.querySelector("[data-bar]")
+  const capText = ebw.querySelector("[data-captext]")
+  const stepCount = ebw.querySelector("[data-stepcount]")
+  const playPause = ebw.querySelector("[data-playpause]")
+  const prevBtn = ebw.querySelector("[data-prev]")
+  const nextBtn = ebw.querySelector("[data-next]")
+  const DUR = 6000
+  let idx = 0, playing = true, timer = null
+
+  steps.forEach((_, i) => {
+    const b = document.createElement("button")
+    b.className = "dotnav"; b.setAttribute("role", "tab"); b.setAttribute("aria-label", labels.step + " " + (i + 1))
+    b.addEventListener("click", () => go(i)); dotsWrap.appendChild(b)
+  })
+  const dots = [...dotsWrap.children]
+
+  function clearMarks() {
+    ebw.querySelectorAll(".spot-on").forEach((el) => el.classList.remove("spot-on"))
+    ebw.querySelectorAll(".observe-on").forEach((el) => el.classList.remove("observe-on"))
+  }
+  function render() {
+    const step = steps[idx]
+    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page)))
+    dots.forEach((d, i) => d.classList.toggle("on", i === idx))
+    stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
+    capText.textContent = step.text
+
+    // Actions have consequences: once the editor is open, the edited agent is the
+    // active item in the AGENTS sidebar list.
+    const editing = step.page === "embed"
+    q("#navAgent1")?.classList.toggle("on", editing)
+
+    clearMarks()
+    const active = idx
+    setTimeout(() => {
+      if (active !== idx) return
+      if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
+      step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+    }, 260)
+
+    bar.classList.remove("run"); void bar.offsetWidth
+    bar.style.setProperty("--dur", DUR + "ms")
+    if (playing) bar.classList.add("run")
+  }
+  function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(() => go(idx + 1), DUR) }
+  function go(n) { idx = (n + steps.length) % steps.length; render(); schedule() }
+  function setPlaying(p) {
+    playing = p; playPause.textContent = p ? "⏸" : "▶"
+    if (p) { bar.classList.add("run"); schedule() } else { clearTimeout(timer); bar.classList.remove("run") }
+  }
+  prevBtn.addEventListener("click", () => go(idx - 1))
+  nextBtn.addEventListener("click", () => go(idx + 1))
+  playPause.addEventListener("click", () => setPlaying(!playing))
+
+  render(); schedule()
+</script>
+
+<style>
+  .ebw {
+    --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+    --primary: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --destructive: oklch(0.577 0.245 27.325);
+    --sidebar: oklch(0.985 0 0); --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-accent: oklch(0.97 0 0); --sidebar-accent-foreground: oklch(0.205 0 0); --sidebar-border: oklch(0.922 0 0);
+    --radius: 0.625rem;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
+    --spot: color-mix(in oklab, var(--primary) 55%, transparent);
+    display: block; margin: 1.5rem 0; color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .ebw * { box-sizing: border-box; }
+  .ebw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+
+  .ebw .shell { display: grid; grid-template-columns: 208px 1fr; height: 680px; background: var(--sidebar); color: var(--sidebar-foreground); border: 1px solid var(--sidebar-border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .ebw .sb { display: flex; flex-direction: column; padding: 0.5rem; min-height: 0; }
+  .ebw .sb-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.4rem 0.6rem; }
+  .ebw .logo { width: 1.9rem; height: 1.9rem; display: inline-flex; align-items: center; justify-content: center; }
+  .ebw .logo svg { width: 100%; height: 100%; stroke: none; }
+  .ebw .logo svg path { fill: #f18c6e; }
+  .ebw .logo svg circle { fill: #010101; }
+  .ebw .org { display: flex; flex-direction: column; line-height: 1.05; }
+  .ebw .org b { font-size: 0.92rem; font-weight: 700; }
+  .ebw .org small { color: var(--primary); font-size: 0.72rem; }
+  .ebw .sb-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
+  .ebw .grp-label { font-size: 0.66rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0.4rem 0.5rem 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
+  .ebw .grp-label .add { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+  .ebw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: auto; }
+  .ebw .grp-label.stack .name { color: var(--sidebar-foreground); font-size: 0.76rem; text-transform: none; font-weight: 700; }
+  .ebw .navitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.3rem 0.5rem; border-radius: 7px; font-size: 0.82rem; color: var(--sidebar-foreground); }
+  .ebw .navitem svg { font-size: 1rem; color: var(--muted-foreground); }
+  .ebw .navitem .chev { margin-left: auto; font-size: 0.9rem; }
+  .ebw .navitem.on { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 600; }
+  .ebw .navitem.on svg { color: var(--sidebar-accent-foreground); }
+  .ebw .sb-user { display: flex; align-items: center; gap: 0.55rem; margin-top: auto; padding: 0.45rem 0.5rem; }
+  .ebw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
+  .ebw .who { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+  .ebw .who b { font-size: 0.76rem; font-weight: 600; }
+  .ebw .who small { font-size: 0.68rem; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ebw .updown { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+
+  .ebw .inset { position: relative; margin: 0.5rem 0.5rem 0.5rem 0; background: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; box-shadow: var(--shadow); }
+  .ebw .topbar { height: 3rem; flex-shrink: 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
+  .ebw .trig { color: var(--muted-foreground); font-size: 1.05rem; }
+  .ebw .canvas { position: relative; flex: 1; min-height: 0; background: radial-gradient(circle, color-mix(in oklab, var(--muted-foreground) 20%, transparent) 1px, transparent 1px) 0 0 / 22px 22px; }
+  .ebw .fab { position: absolute; right: 1rem; bottom: 1rem; width: 2.3rem; height: 2.3rem; border-radius: 999px; background: var(--primary); color: var(--primary-foreground); display: grid; place-items: center; box-shadow: var(--shadow); font-size: 1.1rem; z-index: 6; }
+
+  .ebw .page { position: absolute; inset: 0; padding: 1.1rem 1.2rem; overflow: auto; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
+  .ebw .page[data-active="true"] { opacity: 1; transform: none; pointer-events: auto; }
+
+  .ebw .spot-on { position: relative; z-index: 7; animation: ebw-spot 1.4s ease-in-out infinite; border-radius: 8px; }
+  @keyframes ebw-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
+  .ebw .observe-on { outline: 2px dashed var(--spot); outline-offset: 3px; border-radius: 10px; }
+
+  .ebw .btn { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--primary); color: var(--primary-foreground); border-radius: 8px; font-size: 0.8rem; font-weight: 500; padding: 0.4rem 0.7rem; }
+  .ebw .btn svg { font-size: 0.95rem; }
+
+  .ebw .page-head { border-bottom: 1px solid var(--border); padding-bottom: 0.9rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.7rem; }
+  .ebw .page-head.plain { border: 0; }
+  .ebw .backbtn { width: 1.9rem; height: 1.9rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); flex-shrink: 0; }
+  .ebw .ttl { font-size: 1.3rem; font-weight: 600; line-height: 1.15; display: block; }
+  .ebw .desc { font-size: 0.88rem; color: var(--muted-foreground); margin-top: 0.2rem; display: block; }
+
+  .ebw .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
+  .ebw .ecard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.8rem; min-height: 116px; display: flex; flex-direction: column; }
+  .ebw .ecard .cat { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-foreground); font-weight: 600; margin-bottom: 0.2rem; }
+  .ebw .ecard b { font-size: 0.88rem; }
+  .ebw .ecard b.ic { display: flex; align-items: center; gap: 0.35rem; }
+  .ebw .ecard b.ic svg { color: var(--muted-foreground); font-size: 0.95rem; }
+  .ebw .arrowbtn { margin-top: auto; align-self: flex-start; width: 1.8rem; height: 1.8rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); }
+
+  .ebw .lbl { font-size: 0.82rem; font-weight: 600; margin: 0 0 0.15rem; }
+  .ebw .hint { font-size: 0.73rem; color: var(--muted-foreground); margin: 0 0 0.35rem; line-height: 1.45; }
+  .ebw .input { border: 1px solid var(--input); border-radius: 8px; padding: 0.42rem 0.6rem; font-size: 0.8rem; color: var(--foreground); background: var(--background); }
+  .ebw .input.block { display: block; }
+  .ebw .muted-txt { color: var(--muted-foreground); }
+  .ebw .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .ebw .textarea { display: block; flex: 1; border: 1px solid var(--input); border-radius: 8px; padding: 0.55rem 0.7rem; font-size: 0.74rem; color: var(--foreground); background: var(--background); line-height: 1.5; white-space: pre-wrap; word-break: break-all; }
+
+  .ebw .editor { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 1rem; }
+  .ebw .tablist { display: flex; gap: 0.1rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; flex-wrap: wrap; }
+  .ebw .tab { padding: 0.4rem 0.6rem; font-size: 0.8rem; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+  .ebw .tab.on { color: var(--foreground); font-weight: 600; border-bottom-color: var(--primary); }
+  .ebw .tabbody { padding: 0.2rem 0; display: flex; flex-direction: column; gap: 1rem; }
+  .ebw .fld { display: block; }
+  .ebw .editor-foot { display: flex; justify-content: flex-end; margin-top: 1rem; }
+
+  .ebw .switchrow { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+  .ebw .sw-txt { display: flex; flex-direction: column; gap: 0.2rem; }
+  .ebw .sw-txt b { font-size: 0.82rem; }
+  .ebw .sw-txt small { font-size: 0.73rem; color: var(--muted-foreground); line-height: 1.45; }
+  .ebw .switch { width: 1.9rem; height: 1.1rem; border-radius: 999px; background: var(--muted); position: relative; display: inline-block; flex-shrink: 0; margin-top: 0.15rem; }
+  .ebw .switch i { position: absolute; top: 2px; left: 2px; width: 0.8rem; height: 0.8rem; border-radius: 999px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .ebw .switch.on { background: var(--primary); }
+  .ebw .switch.on i { left: calc(100% - 0.9rem); }
+
+  .ebw .snippet-row { display: flex; align-items: stretch; gap: 0.5rem; }
+  .ebw .iconbtn { width: 2rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); background: var(--background); flex-shrink: 0; }
+  .ebw .colorrow { display: flex; align-items: center; gap: 0.4rem; }
+  .ebw .colorrow .swatch { width: 1.9rem; height: 1.9rem; border-radius: 6px; border: 1px solid var(--border); background: #2563eb; flex-shrink: 0; }
+  .ebw .colorrow .input { flex: 1; }
+
+  .ebw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .ebw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+  .ebw .navbtn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .ebw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
+  .ebw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .ebw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
+  .ebw .cap .tx { font-size: 0.88rem; font-weight: 500; }
+  .ebw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 200px; }
+  .ebw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .ebw .dotnav.on { background: var(--primary); transform: scale(1.3); }
+  .ebw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+  .ebw .progress i { display: block; height: 100%; width: 0; background: var(--primary); }
+  .ebw .progress i.run { animation: ebw-fill var(--dur, 6000ms) linear forwards; }
+  @keyframes ebw-fill { to { width: 100%; } }
+
+  @media (max-width: 640px) {
+    .ebw .shell { grid-template-columns: 1fr; height: 560px; }
+    .ebw .sb { display: none; }
+    .ebw .inset { margin: 0.5rem; }
+    .ebw .cards3 { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ebw .page, .ebw .spot-on, .ebw .progress i { transition: none !important; animation: none !important; }
+  }
+</style>

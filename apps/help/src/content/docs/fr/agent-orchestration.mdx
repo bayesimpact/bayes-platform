@@ -1,0 +1,156 @@
+---
+title: Orchestration
+description: Transformez un agent conversationnel en orchestrateur qui délègue des parties de la conversation à des sous-agents — rattachez d'autres agents comme outils, décrivez quand utiliser chacun, et activez-les ou désactivez-les.
+category: guides-agents
+order: 4
+updated: 2026-07-16
+---
+
+import OrchestrationWalkthrough from "@/components/OrchestrationWalkthrough.astro"
+
+L'**orchestration** permet à un **agent conversationnel** de confier des parties de
+la conversation à d'autres agents, appelés **sous-agents**. L'agent principal
+(l'**orchestrateur**) reste maître de la conversation, mais lorsqu'une demande
+correspond à la spécialité d'un sous-agent, il lui **délègue** et réintègre sa réponse
+dans la sienne.
+
+L'orchestration se configure sur l'onglet **Orchestration** de l'éditeur d'un **agent
+conversationnel**, dans **Studio**. C'est une fonctionnalité optionnelle : l'onglet
+n'apparaît que si l'orchestration est activée pour votre espace de travail et que vous
+modifiez un agent **conversationnel** (les agents d'extraction et de formulaire ne
+l'ont pas). Dans la barre d'onglets de l'éditeur, il se situe après **Catégories de
+conversation** et avant **Intégration**.
+
+## Comment fonctionne l'orchestration
+
+- Il n'y a **pas de bouton « transformer en orchestrateur »**. Un agent devient
+  orchestrateur simplement en ayant **un ou plusieurs sous-agents activés**. Sans
+  aucun, l'état vide indique *Cet agent répond directement sans déléguer à un autre
+  agent.*
+- Chaque sous-agent est exposé au modèle de l'orchestrateur comme un **outil**, défini
+  par un **Nom de l'outil** et une **Description de l'outil**. À chaque tour, le modèle
+  décide — d'après ces descriptions — s'il appelle un sous-agent, et avec quelle tâche.
+  La **Description de l'outil est donc ce qui pilote la délégation** : rédigez-la pour
+  indiquer clairement quand le sous-agent doit être utilisé.
+- Un **sous-agent peut être un autre agent conversationnel ou de formulaire** du même
+  espace de travail. Les agents d'extraction ne peuvent pas être sous-agents. Un agent
+  ne peut pas être son propre sous-agent, et un agent déjà ajouté ne réapparaît pas
+  dans la liste des disponibles.
+- Les sous-agents **désactivés** restent configurés mais ne sont pas proposés au
+  modèle. Vous pouvez rattacher jusqu'à **20** sous-agents.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape met en valeur le
+bouton à cliquer et la zone à observer.
+
+<OrchestrationWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir un agent conversationnel
+
+Dans **Studio**, ouvrez l'agent **conversationnel** que vous voulez transformer en
+orchestrateur (depuis la liste **Agents** de la barre latérale gauche, ou sa carte sur
+la vue d'ensemble de l'espace de travail). L'éditeur de l'agent s'ouvre. Vous devez
+avoir le droit de gérer l'agent.
+
+### 2. Ouvrir l'onglet Orchestration
+
+Dans la barre d'onglets de l'éditeur, cliquez sur **Orchestration**. Si vous ne le
+voyez pas, l'onglet n'est pas activé pour votre espace de travail, ou vous n'êtes pas
+sur un agent **conversationnel** (voir Dépannage).
+
+### 3. Comprendre le point de départ
+
+L'onglet comporte deux sections :
+
+- **Sous-agents** (en haut) — les agents auxquels cet orchestrateur délègue. Avant
+  d'en ajouter, un état vide s'affiche : **Aucun sous-agent** / *Cet agent répond
+  directement sans déléguer à un autre agent.*
+- **Agents conversationnels disponibles** (en dessous) — les agents que vous pouvez
+  rattacher.
+
+### 4. Ajouter un sous-agent
+
+Sous **Agents conversationnels disponibles**, chaque candidat est présenté sur une
+carte avec son **nom** et ses instructions. Cliquez sur **Ajouter** sur celui auquel
+vous voulez déléguer. Il remonte dans la liste **Sous-agents** avec des valeurs par
+défaut et disparaît de la liste des disponibles.
+
+> La liste contient vos autres agents **conversationnels et de formulaire**. S'il n'y
+> en a aucun, elle affiche **Aucun autre agent conversationnel n'est disponible.** —
+> créez d'abord un agent conversationnel ou de formulaire (les agents d'extraction ne
+> sont pas éligibles).
+
+### 5. Configurer le sous-agent
+
+Chaque sous-agent rattaché a deux champs :
+
+- **Nom de l'outil** — l'identifiant que le modèle appelle, prérempli en
+  `ask_<nom de l'agent>` (placeholder **ask_specialist_agent**). Il n'accepte que des
+  lettres, chiffres, tirets bas et traits d'union, de 1 à 64 caractères.
+- **Description de l'outil** — préremplie par *Transmettre les demandes spécialisées à
+  `<nom>`.* C'est le champ le plus important : le modèle de l'orchestrateur le lit pour
+  décider **quand** déléguer, alors décrivez précisément la spécialité du sous-agent
+  (jusqu'à 2000 caractères).
+
+### 6. Activer, désactiver ou retirer
+
+Chaque ligne de sous-agent affiche un badge **Activé** / **Désactivé** et un
+**interrupteur** :
+
+- Éteignez l'**interrupteur** pour garder le sous-agent configuré tout en cessant de le
+  proposer au modèle ; rallumez-le pour le rendre à nouveau disponible.
+- Cliquez sur l'icône **corbeille** (**Retirer**) pour le détacher complètement — il
+  revient dans la liste **Agents conversationnels disponibles**.
+
+### 7. Enregistrer
+
+Cliquez sur **Enregistrer**. Le bouton reste désactivé tant que vous n'avez rien
+modifié, et l'ensemble des sous-agents est enregistré d'un bloc. Si vous changez
+d'onglet ou quittez avec des modifications non enregistrées, une boîte de dialogue
+**Modifications non enregistrées** vous demande si vous voulez les abandonner.
+
+## Ce qui se passe à l'exécution
+
+Quand un utilisateur parle à l'orchestrateur, le modèle voit chaque sous-agent
+**activé** comme un outil (nommé par son **Nom de l'outil**, expliqué par sa
+**Description de l'outil**). Il décide seul d'en appeler un — en lui confiant une
+tâche et le contexte utile — puis utilise la réponse du sous-agent pour composer la
+sienne. Les sous-agents conversationnels répondent directement ; les sous-agents de
+formulaire déroulent leur formulaire. La délégation dépend entièrement des
+descriptions d'outils : des descriptions claires produisent un meilleur routage.
+
+## Conseils
+
+- Soignez la **Description de l'outil** — des descriptions vagues entraînent des
+  délégations manquées ou erronées.
+- Donnez à chaque sous-agent un **Nom de l'outil** distinct et lisible (par ex.
+  `ask_billing`, `ask_scheduling`) pour reconnaître facilement les appels.
+- **Désactivez** un sous-agent plutôt que de le retirer si vous voulez seulement le
+  mettre en pause — sa configuration est conservée.
+- Utilisez un sous-agent **de formulaire** quand la tâche spécialisée consiste à
+  recueillir des informations structurées, et un sous-agent **conversationnel** pour
+  répondre à des questions.
+
+## Dépannage
+
+- **Je ne vois pas l'onglet Orchestration** — il n'apparaît que pour les agents
+  **conversationnels**, uniquement si l'orchestration est activée pour l'espace de
+  travail, et seulement si vous pouvez gérer l'agent. Les agents d'extraction et de
+  formulaire ne l'affichent jamais.
+- **Aucun agent dans Agents conversationnels disponibles** — le message **Aucun autre
+  agent conversationnel n'est disponible.** signifie qu'il n'y a aucun agent éligible.
+  Créez d'abord un autre agent **conversationnel** ou **de formulaire** ; les agents
+  d'extraction et l'agent que vous modifiez n'apparaissent pas.
+- **L'enregistrement échoue sur le nom de l'outil** — les noms d'outils n'acceptent que
+  lettres, chiffres, tirets bas et traits d'union, et doivent faire de 1 à 64
+  caractères (le message d'erreur est en anglais). Corrigez le nom et réenregistrez.
+- **Mon sous-agent n'est jamais utilisé** — vérifiez que son **interrupteur** est sur
+  **Activé**, et rendez sa **Description de l'outil** plus précise sur les cas où il
+  doit traiter une demande.
+- **En lien :** les sous-agents sont des agents ordinaires — voir
+  [Ajouter un agent conversationnel](/fr/add-a-conversation-agent) pour créer les
+  agents auxquels vous déléguez.

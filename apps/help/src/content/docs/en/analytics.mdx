@@ -1,0 +1,104 @@
+---
+title: Analytics
+description: Read your workspace's conversation analytics — daily conversations, average questions per session, and sessions by category — and filter by agent and date range.
+category: guides-eval
+order: 2
+updated: 2026-07-13
+---
+
+import AnalyticsWalkthrough from "@/components/AnalyticsWalkthrough.astro"
+
+**Analytics** shows how your agents are being used. It's a read-only dashboard of
+**conversation metrics** for your workspace — how many conversations happen, how
+engaged users are, and how sessions break down by category — that you can filter by
+**agent** and by **date range**.
+
+You open it from **Analytics** in the left sidebar of **Studio**. The dashboard
+covers the whole **workspace**; each conversation agent also has its own Analytics
+view, reached from the agent's page.
+
+## What the dashboard shows
+
+The page has a **filter row** at the top right and three charts:
+
+- **Conversations per day** — the number of conversational sessions started each
+  day.
+- **Avg. user questions per session** — the average number of user messages per
+  session, per day.
+- **Sessions per day by category** — a stacked bar chart splitting daily session
+  volume by **conversation category**.
+
+Each chart shows a headline number and a bar chart over the selected period. The
+charts read the sessions your agents have had, so a brand-new workspace with no
+conversations yet will show empty or zero data.
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click
+and the area to watch.
+
+<AnalyticsWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Open Analytics
+
+In **Studio**, open the left sidebar and select **Analytics**. The dashboard opens
+for your whole workspace.
+
+### 2. Read the filter row
+
+At the top right you'll find two controls: an **agent filter** and a **Date range**
+picker. They apply to every chart below.
+
+### 3. Filter by agent
+
+Use the agent dropdown to focus on a single agent, or keep **All agents** to see the
+whole workspace combined.
+
+### 4. Choose the period
+
+Open the **Date range** picker and pick a period (it defaults to the last 7 days).
+All charts update to that range.
+
+### 5. Conversations per day
+
+The **Conversations per day** chart shows how many conversational sessions started
+each day, with **Total conversations** as the headline number for the period.
+
+### 6. Avg. user questions per session
+
+The **Avg. user questions per session** chart shows the average number of user
+messages per session — a measure of how much back-and-forth each conversation
+involves.
+
+### 7. Sessions per day by category
+
+The **Sessions per day by category** chart stacks each day's sessions by
+conversation category, with a color-coded **legend**. Sessions without a category
+appear as **Uncategorized**. With **All agents** selected, categories are combined
+across every agent.
+
+## Tips
+
+- Start with **All agents** for the big picture, then filter to one agent to spot
+  which agents drive the most activity.
+- Compare periods by changing the **Date range** — for example this week vs. last
+  week.
+- The **by category** chart is most useful once your conversation agents use
+  categories; otherwise most sessions fall under **Uncategorized**.
+- Each **conversation agent** also has its own Analytics view (from the agent's
+  page) if you want to drill into a single agent.
+
+## Troubleshooting
+
+- **I don't see Analytics in the sidebar** — Analytics is an optional feature; it
+  may not be enabled for your workspace. Ask your workspace **Owner** or an **Admin**
+  if it's missing.
+- **The charts are empty** — there may be no conversations in the selected period.
+  Widen the **Date range**, or check that the selected agent has had sessions.
+- **Everything is Uncategorized** — categories come from your conversation agents'
+  configuration; sessions are only split out once agents assign categories.
+- **The dates look English** — chart date labels are currently shown in a fixed
+  English format regardless of the interface language.

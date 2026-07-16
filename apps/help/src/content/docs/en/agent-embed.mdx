@@ -1,0 +1,122 @@
+---
+title: Embed
+description: Put a conversation agent on your own website as a chat widget — enable embedding, copy the script snippet, restrict which sites can load it, and match your branding.
+category: guides-agents
+order: 5
+updated: 2026-07-16
+---
+
+import EmbedWalkthrough from "@/components/EmbedWalkthrough.astro"
+
+**Embed** lets you place a **conversation agent** on your own website as a **chat
+widget**. You turn embedding on, copy a small `<script>` **snippet** into your site,
+and the agent appears as a chat bubble (or a side panel) that your visitors can talk
+to.
+
+Embedding is configured on the **Embed** tab of a **conversation agent's** editor, in
+**Studio**. It's an optional feature: the tab only appears when your workspace has
+embedding enabled and you're editing a **conversation** agent (extraction and form
+agents don't have it). In the editor's tab row it's the **last** tab, after
+**Orchestration**.
+
+## How embedding works
+
+- Each conversation agent has its own **embed snippet** — a `<script>` tag carrying a
+  unique token. Adding that snippet to a web page loads the chat widget for that
+  agent.
+- The snippet exists whether or not embedding is on, but the widget only loads once
+  **Enable embed** is turned on.
+- You control **which sites** may load the widget with **Allowed origins**, and you
+  can **customize its appearance** (title, logo, brand color) plus a few optional
+  `data-` attributes on the script tag.
+- Changes are saved with **Update** (this tab uses **Update**, not Save).
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click and the area to
+watch.
+
+<EmbedWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Open a conversation agent
+
+In **Studio**, open the **conversation** agent you want to embed (from the **Agents**
+list in the left sidebar, or its card on the workspace overview). This opens the agent
+editor. You need permission to manage the agent.
+
+### 2. Open the Embed tab
+
+In the editor's tab row, click **Embed** — it's the last tab. If you don't see it, the
+tab is either not enabled for your workspace or you're not on a **conversation** agent
+(see Troubleshooting).
+
+### 3. Enable embed
+
+Turn on **Enable embed**. Its description reads *Allow `<agent name>` to be embedded on
+external websites via an iframe.* While it's off, the snippet is still generated but
+the widget won't load on your site.
+
+### 4. Copy the embed snippet
+
+Under **Embed snippet**, you'll find a read-only `<script>` tag. Click the **copy**
+button next to it, then, as the description says, *paste this `<script>` tag before the
+closing `</body>` tag* on any page where you want the widget to appear.
+
+The hint lists **optional attributes** you can add to the tag to tweak the widget:
+
+- **`data-color`** — the chat button color (e.g. `#2563eb`).
+- **`data-locale`** — the widget language (e.g. `fr`).
+- **`data-display-mode`** — set to `drawer` for a side panel instead of a bubble.
+- **`data-hint`** — a tooltip shown on load and on hover (e.g. `Need help?`).
+
+### 5. Restrict the allowed origins
+
+In **Allowed origins**, enter a **comma-separated list** of the sites permitted to
+load the widget (for example `https://app.example.com, https://staging.example.com`).
+As the description notes, **leave it empty to allow all origins** — but for production
+it's safer to list only your own domains.
+
+### 6. Customize the widget's appearance
+
+Three optional fields control how the widget looks:
+
+- **Widget title** — the title shown in the chat header. Left empty, it **defaults to
+  the agent's name**.
+- **Logo URL** — the URL of a logo image shown in the chat header (e.g.
+  `https://example.com/logo.png`).
+- **Brand color** — the primary color of the chat header. Pick it with the color
+  swatch or type a **hex value** (e.g. `#2563eb`).
+
+### 7. Update
+
+Click **Update** to save the configuration. Your changes — enabled state, allowed
+origins, title, logo and color — take effect for the embedded widget.
+
+## Tips
+
+- Keep **Enable embed** off until you've set your **Allowed origins** and branding, so
+  the widget only goes live once it's ready.
+- List your real domains in **Allowed origins** for production; an empty list allows
+  **any** site to embed the agent.
+- Use `data-display-mode="drawer"` when you want a side panel rather than a floating
+  bubble, and `data-locale` to force the widget's language.
+- The **Widget title** falls back to the agent's name — set it explicitly if you want
+  a different heading for visitors.
+
+## Troubleshooting
+
+- **I don't see the Embed tab** — it appears only for **conversation** agents, only
+  when the workspace has embedding enabled, and only if you can manage the agent.
+  Extraction and form agents never show it.
+- **The widget doesn't appear on my site** — check that **Enable embed** is on, that
+  the snippet is pasted before `</body>`, and that your site's origin is in **Allowed
+  origins** (or that the list is empty).
+- **The widget loads on the wrong sites** — an empty **Allowed origins** list allows
+  every origin; add your specific domains to restrict it.
+- **The header shows the agent's name, not my title** — **Widget title** is empty, so
+  it defaults to the agent's name; enter a title and **Update**.
+- **Related:** the embedded widget is a conversation agent — see
+  [Add a conversation agent](/en/add-a-conversation-agent) to configure what it says.

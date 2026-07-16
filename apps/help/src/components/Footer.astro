@@ -2,17 +2,75 @@
 import { SITE_TITLE } from "@/consts"
 import { useTranslations } from "@/i18n/ui"
 import { getLocaleFromPath } from "@/i18n/utils"
+import LogoFull from "./LogoFull.astro"
 
 const locale = getLocaleFromPath(Astro.url.pathname)
 const t = useTranslations(locale)
 const year = new Date().getFullYear()
+const appUrl = import.meta.env.PUBLIC_APP_URL as string | undefined
+const isFr = locale === "fr"
 ---
 
-<footer class="border-t border-border">
+{/* Brand footer — near-black surface, mirroring bayesimpact.org's contact footer. */}
+<footer class="relative mt-16 overflow-hidden bg-[#0e0e13] text-white/75">
   <div
-    class="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6"
+    class="pointer-events-none absolute inset-0 opacity-70"
+    style="background: radial-gradient(120% 90% at 50% 120%, rgba(255,132,0,0.10), transparent 60%);"
   >
-    <span>{SITE_TITLE}</span>
-    <span>© {year} {t("footer.rights")}</span>
+  </div>
+
+  <div class="relative mx-auto max-w-6xl px-4 py-16 sm:px-6">
+    <div class="flex flex-col gap-12 sm:flex-row sm:justify-between">
+      <div class="max-w-sm">
+        <LogoFull class="h-7 w-auto text-white" />
+        <p class="mt-5 text-sm leading-relaxed text-white/55">{t("site.tagline")}</p>
+      </div>
+
+      <div class="flex gap-14 sm:gap-20">
+        <div>
+          <p class="label mb-4" style="--eyebrow-color: rgba(255,255,255,0.5);">
+            {isFr ? "Liens" : "Links"}
+          </p>
+          <ul class="space-y-2.5 text-sm">
+            {
+              appUrl && (
+                <li>
+                  <a class="text-white/70 transition-colors hover:text-white" href={appUrl}>
+                    {t("nav.backToApp")}
+                  </a>
+                </li>
+              )
+            }
+            <li>
+              <a
+                class="text-white/70 transition-colors hover:text-white"
+                href="https://www.bayesimpact.org"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                bayesimpact.org
+              </a>
+            </li>
+            <li>
+              <a
+                class="text-white/70 transition-colors hover:text-white"
+                href="https://github.com/bayesimpact"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GitHub
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="mt-14 flex flex-col gap-2 border-t border-white/12 pt-6 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <span>© {year} Bayes Impact · {t("footer.rights")}</span>
+      <span>{SITE_TITLE}</span>
+    </div>
   </div>
 </footer>

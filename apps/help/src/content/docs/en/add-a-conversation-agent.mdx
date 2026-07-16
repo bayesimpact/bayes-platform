@@ -1,0 +1,121 @@
+---
+title: Add a conversation agent
+description: Create a conversation agent that chats with users, grounded in your workspace's documents and resource libraries.
+category: guides-agents
+order: 1
+updated: 2026-07-13
+---
+
+import AddConversationAgentWalkthrough from "@/components/AddConversationAgentWalkthrough.astro"
+
+A **conversation agent** is the platform's core agent type: it **chats with users**
+and answers their questions. You can ground its answers in your workspace's
+knowledge — the **documents** you've uploaded — and let it surface entries from your
+**resource libraries** during the conversation.
+
+Agents live in your **workspace** and are created from the **New Agent** card on the
+workspace overview (or the **+** next to **Agents** in the left sidebar).
+**Conversation** is the default type.
+
+## How the editor works
+
+Once created, the agent opens in an editor with tabs — for a conversation agent:
+**General**, **Model**, **Sources**, **Resource libraries**, and (when they're
+available) **Conversation categories**, **Orchestration** and **Embed**.
+**Each tab is its own form and saves on its own** — click **Save** on a tab to keep
+its changes; the editor warns you before you leave a tab with unsaved changes.
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click
+and the area to watch.
+
+<AddConversationAgentWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Open the New Agent dialog
+
+On the workspace overview, find the **New Agent** card and click **Create** (you can
+also use the **+** next to **Agents** in the left sidebar).
+
+### 2. Keep the Conversation type
+
+In the **New Agent** dialog, under **Agent type**, keep **Conversation** (selected
+by default).
+
+### 3. Name the agent and create it
+
+Type a **Name** (at least 3 characters), then click **Create**. Your agent is
+created with sensible defaults and opens in the editor.
+
+### 4. General
+
+Set the **Name**, the **Locale** (the language the agent works in), the **Greeting**
+(the first message it sends) and the **Instructions** (what defines its behaviour
+and tone). Click **Save**.
+
+### 5. Model
+
+Open the **Model** tab, choose the **Model** and a **Temperature** (higher = more
+varied, lower = more focused). **Save**.
+
+### 6. Sources
+
+Open the **Sources** tab and set the **Answer source**:
+
+- **Answer from model knowledge only** — no documents consulted.
+- **Search across all documents** — every document in the workspace.
+- **Search by document tags** — only documents with the **Document Tags** you pick.
+
+**Save**. See [Documents](/en/documents) to upload and tag documents first.
+
+### 7. Resource libraries
+
+Open the **Resource libraries** tab to attach the **libraries** the agent can
+surface during a conversation. Click **Add library**, pick one, and it appears as a
+tag. Use **Manage libraries** to open the library manager. **Save**. See
+[Resource libraries](/en/resource-libraries) to create them first.
+
+### 8. Conversation categories
+
+If your workspace has conversation categories, open the **Conversation categories**
+tab and tick those that apply to this agent (**Select all** adds them all).
+Categories already used in this agent's conversations can't be unchecked. **Save**.
+
+### 9. Orchestration
+
+When orchestration is enabled, open the **Orchestration** tab to add **sub-agents**
+this agent can delegate to. Pick from **Available conversation agents**, give each a
+**Tool name** and **Tool description**, and enable it. **Save**.
+
+### 10. Embed
+
+When embedding is enabled, open the **Embed** tab to put the agent on an external
+site: toggle **Enable embed**, copy the **Embed snippet**, and set the **Allowed
+origins**, **Widget title**, **Logo URL** and **Brand color**. Click **Update**.
+
+## Tips
+
+- Write the **Instructions** in the same language as the agent's **Locale**.
+- Use **Search by document tags** to keep answers scoped to the right documents in a
+  large workspace.
+- Remember to **Save** each tab — changes on one tab aren't kept when you move to
+  another without saving.
+- **Conversation categories**, **Orchestration** and **Embed** only appear when the
+  workspace has categories or those features are enabled — you may see fewer tabs.
+
+## Troubleshooting
+
+- **The Create button is disabled** — the **Name** must be at least 3 characters.
+- **The agent ignores my documents** — check the **Answer source** on **Sources**;
+  "Answer from model knowledge only" consults no documents.
+- **No tags to choose** — the **Search by document tags** option and the
+  **Document Tags** picker only show once your documents are tagged; see
+  [Documents](/en/documents).
+- **My changes disappeared** — each tab saves separately. Click **Save** (or
+  **Update** on **Embed**) before switching; the editor warns you when changes are
+  unsaved.
+- **I don't see the Orchestration or Embed tab** — they're optional features; ask
+  your workspace **Owner** or an **Admin** if they aren't enabled.

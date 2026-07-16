@@ -1,0 +1,458 @@
+---
+/**
+ * Walkthrough of agent Orchestration (attaching sub-agents to a conversation
+ * agent). Derived from the real components (verified, not copied blind):
+ * AgentEditor.tsx (tab order + gating: conversation-only, flag `agent-orchestration`,
+ * after Conversation categories, before Embed), AgentOrchestrationTab.tsx,
+ * AgentSubAgentsTab.tsx (two sections + candidate filter: conversation OR form,
+ * never extraction), AgentSubAgentItem.tsx (per-row: Enabled badge, Switch, Remove,
+ * Tool name, Tool description), AgentTabSaveButton.tsx (actions:save). Labels are
+ * verbatim from the agent / actions locales (EN + FR). Uses the PRODUCT (coral)
+ * palette, pinned locally. Derived 2026-07-16.
+ */
+type Lang = "en" | "fr"
+const { lang = "en" } = Astro.props as { lang?: Lang }
+
+const STRINGS = {
+  en: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Settings", evaluations: "Evaluations", analytics: "Analytics", sources: "Sources",
+    members: "Members", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    conversation: "Conversation",
+    agentName: "Helpful Assistant",
+    editTitle: "Edit Conversation Agent", editDesc: "Edit details for this conversation agent",
+    tabGeneral: "General", tabModel: "Model", tabSources: "Sources", tabResources: "Resource libraries",
+    tabCategories: "Conversation categories", tabOrchestration: "Orchestration", tabEmbed: "Embed",
+    selectedTitle: "Sub-agents", availableTitle: "Available conversation agents",
+    emptyTitle: "No sub-agents",
+    emptyDescription: "This agent answers directly without delegating to another agent.",
+    noAvailableAgents: "No other conversation agents are available.",
+    add: "Add", remove: "Remove", enabled: "Enabled", disabled: "Disabled",
+    toolName: "Tool name", toolNamePlaceholder: "ask_specialist_agent", description: "Tool description",
+    save: "Save",
+    subA: "Billing Assistant", subAInstr: "Answers billing and invoice questions.",
+    subB: "Feedback Form", subBInstr: "Collects structured feedback from users.",
+    subToolName: "ask_billing_assistant", subToolDesc: "Route specialized requests to Billing Assistant.",
+    prev: "Prev", next: "Next", step: "Step",
+    steps: [
+      "In Studio, open a conversation agent to edit it.",
+      "Open the Orchestration tab — it appears only for conversation agents.",
+      "With no sub-agents, the agent answers on its own. This is the starting point.",
+      "Under Available conversation agents, click Add to delegate to an agent.",
+      "Set the sub-agent's Tool name and Tool description — the model reads these to decide when to delegate.",
+      "Toggle Enabled to turn a sub-agent on or off, or Remove it with the trash icon.",
+      "Click Save to store the orchestration setup.",
+    ],
+  },
+  fr: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Paramètres", evaluations: "Évaluations", analytics: "Analytique", sources: "Sources",
+    members: "Membres", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    conversation: "Conversation",
+    agentName: "Helpful Assistant",
+    editTitle: "Modifier l'agent conversationnel", editDesc: "Modifier les détails de cet agent conversationnel",
+    tabGeneral: "Général", tabModel: "Modèle", tabSources: "Sources", tabResources: "Bibliothèques de ressources",
+    tabCategories: "Catégories de conversation", tabOrchestration: "Orchestration", tabEmbed: "Intégration",
+    selectedTitle: "Sous-agents", availableTitle: "Agents conversationnels disponibles",
+    emptyTitle: "Aucun sous-agent",
+    emptyDescription: "Cet agent répond directement sans déléguer à un autre agent.",
+    noAvailableAgents: "Aucun autre agent conversationnel n'est disponible.",
+    add: "Ajouter", remove: "Retirer", enabled: "Activé", disabled: "Désactivé",
+    toolName: "Nom de l'outil", toolNamePlaceholder: "ask_specialist_agent", description: "Description de l'outil",
+    save: "Enregistrer",
+    subA: "Billing Assistant", subAInstr: "Répond aux questions de facturation.",
+    subB: "Feedback Form", subBInstr: "Recueille des retours structurés des utilisateurs.",
+    subToolName: "ask_billing_assistant", subToolDesc: "Transmettre les demandes spécialisées à Billing Assistant.",
+    prev: "Précédent", next: "Suivant", step: "Étape",
+    steps: [
+      "Dans Studio, ouvrez un agent conversationnel pour le modifier.",
+      "Ouvrez l'onglet Orchestration — il n'apparaît que pour les agents conversationnels.",
+      "Sans sous-agent, l'agent répond seul. C'est le point de départ.",
+      "Sous Agents conversationnels disponibles, cliquez sur Ajouter pour déléguer à un agent.",
+      "Réglez le Nom de l'outil et la Description de l'outil du sous-agent — le modèle les lit pour décider quand déléguer.",
+      "Basculez Activé pour activer/désactiver un sous-agent, ou Retirez-le avec l'icône corbeille.",
+      "Cliquez sur Enregistrer pour sauvegarder la configuration d'orchestration.",
+    ],
+  },
+} as const
+
+const s = STRINGS[lang]
+
+const TABS = [
+  { key: "general", label: s.tabGeneral },
+  { key: "model", label: s.tabModel },
+  { key: "sources", label: s.tabSources },
+  { key: "resources", label: s.tabResources },
+  { key: "categories", label: s.tabCategories },
+  { key: "orchestration", label: s.tabOrchestration },
+  { key: "embed", label: s.tabEmbed },
+]
+
+const convIcon = '<path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/>'
+const formIcon = '<path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/>'
+
+const steps = [
+  { page: "overview", spot: "navAgent1", observe: [] },
+  { page: "orchEmpty", spot: "tab-orchestration", observe: [] },
+  { page: "orchEmpty", spot: "", observe: ["obsEmpty"] },
+  { page: "orchEmpty", spot: "btnAdd", observe: [] },
+  { page: "orchFilled", spot: "", observe: ["obsFields"] },
+  { page: "orchFilled", spot: "", observe: ["obsRow"] },
+  { page: "orchFilled", spot: "btnSave", observe: [] },
+].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const labels = { prev: s.prev, next: s.next, step: s.step }
+---
+
+<div class="orw" role="group" aria-label={s.tabOrchestration}>
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside class="sb">
+      <div class="sb-head">
+        <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
+        <span class="org"><b>{s.org}</b><small>{s.studio}</small></span>
+      </div>
+      <div class="sb-scroll">
+        <div class="grp-label">{s.agents}<span class="add"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+        <div class="navitem" id="navAgent1"><svg viewBox="0 0 24 24" set:html={convIcon}></svg><span>{s.agentName}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24" set:html={convIcon}></svg><span>{s.subA}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24" set:html={formIcon}></svg><span>{s.subB}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg><span>{s.extractionAgent}</span></div>
+
+        <div class="grp-label stack"><span class="name">{s.settingsName}</span><span>{s.settings}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg><span>{s.evaluations}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg><span>{s.analytics}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 15 21.84"/><path d="M21 5V8"/><path d="M21 12L18 17H22L19 22"/><path d="M3 12A9 3 0 0 0 14.59 14.87"/></svg><span>{s.sources}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg><span>{s.members}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg><span>{s.admin}</span></div>
+      </div>
+      <div class="sb-user">
+        <span class="avatar">AM</span>
+        <span class="who"><b>{s.userName}</b><small>{s.userEmail}</small></span>
+        <span class="updown"><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+      </div>
+    </aside>
+
+    <!-- Main inset -->
+    <div class="inset">
+      <div class="topbar">
+        <span class="trig"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span>
+      </div>
+      <div class="canvas">
+        <span class="fab"><svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
+
+        <!-- workspace overview (step 1) -->
+        <div class="page" data-page="overview" data-active="true">
+          <div class="page-head plain">
+            <span><span class="ttl">{s.settingsName}</span><span class="desc">{s.studio}</span></span>
+          </div>
+          <div class="cards3">
+            <div class="ecard"><span class="cat">{s.conversation}</span><b class="ic"><svg viewBox="0 0 24 24" set:html={convIcon}></svg> {s.agentName}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.conversation}</span><b class="ic"><svg viewBox="0 0 24 24" set:html={convIcon}></svg> {s.subA}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">Form</span><b class="ic"><svg viewBox="0 0 24 24" set:html={formIcon}></svg> {s.subB}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+          </div>
+        </div>
+
+        <!-- editor: Orchestration — empty (steps 2-4) -->
+        <div class="page" data-page="orchEmpty">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
+          </div>
+          <div class="editor">
+            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "orchestration" && "on"]} id={tb.key === "orchestration" ? "tab-orchestration" : undefined}>{tb.label}</span>)}</div>
+            <div class="tabbody">
+              <p class="lbl" style="margin-top:0">{s.selectedTitle}</p>
+              <div class="empty" id="obsEmpty">
+                <span class="empty-ic"><svg viewBox="0 0 24 24"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg></span>
+                <b>{s.emptyTitle}</b>
+                <p>{s.emptyDescription}</p>
+              </div>
+              <p class="lbl">{s.availableTitle}</p>
+              <div class="avail-grid">
+                <div class="acard">
+                  <span class="ac-media"><svg viewBox="0 0 24 24" set:html={convIcon}></svg></span>
+                  <span class="ac-body"><b>{s.subA}</b><small>{s.subAInstr}</small></span>
+                  <span class="btn outline sm" id="btnAdd"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.add}</span>
+                </div>
+                <div class="acard">
+                  <span class="ac-media"><svg viewBox="0 0 24 24" set:html={formIcon}></svg></span>
+                  <span class="ac-body"><b>{s.subB}</b><small>{s.subBInstr}</small></span>
+                  <span class="btn outline sm"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.add}</span>
+                </div>
+              </div>
+            </div>
+            <div class="editor-foot"><span class="btn">{s.save}</span></div>
+          </div>
+        </div>
+
+        <!-- editor: Orchestration — one sub-agent (steps 5-7) -->
+        <div class="page" data-page="orchFilled">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
+          </div>
+          <div class="editor">
+            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "orchestration" && "on"]}>{tb.label}</span>)}</div>
+            <div class="tabbody">
+              <p class="lbl" style="margin-top:0">{s.selectedTitle}</p>
+              <div class="sa-card">
+                <div class="sa-head" id="obsRow">
+                  <span class="sa-media"><svg viewBox="0 0 24 24" set:html={convIcon}></svg></span>
+                  <span class="sa-title"><b>{s.subA}</b><span class="badge-on">{s.enabled}</span><small>{s.subToolName}</small></span>
+                  <span class="sa-actions">
+                    <span class="switch on"><i></i></span>
+                    <span class="iconbtn"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></span>
+                  </span>
+                </div>
+                <div class="sa-body grid2" id="obsFields">
+                  <div class="fld"><p class="lbl">{s.toolName}</p><span class="input block mono">{s.subToolName}</span></div>
+                  <div class="fld"><p class="lbl">{s.description}</p><span class="textarea">{s.subToolDesc}</span></div>
+                </div>
+              </div>
+              <p class="lbl">{s.availableTitle}</p>
+              <div class="avail-grid">
+                <div class="acard">
+                  <span class="ac-media"><svg viewBox="0 0 24 24" set:html={formIcon}></svg></span>
+                  <span class="ac-body"><b>{s.subB}</b><small>{s.subBInstr}</small></span>
+                  <span class="btn outline sm"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.add}</span>
+                </div>
+              </div>
+            </div>
+            <div class="editor-foot"><span class="btn" id="btnSave">{s.save}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="navbtn" data-prev><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> {s.prev}</button>
+    <button class="ctrl" data-playpause aria-label="Play / pause">⏸</button>
+    <span class="cap"><span class="st" data-stepcount></span><span class="tx" data-captext></span></span>
+    <span class="dots-nav" data-dots role="tablist" aria-label="Steps"></span>
+    <button class="navbtn primary" data-next>{s.next} <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="progress"><i data-bar></i></div>
+</div>
+
+<script define:vars={{ steps, labels }}>
+  const cs = document.currentScript
+  const orw =
+    cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("orw")
+      ? cs.previousElementSibling
+      : document.querySelector(".orw")
+  const q = (sel) => orw.querySelector(sel)
+  const pages = [...orw.querySelectorAll(".page")]
+  const dotsWrap = orw.querySelector("[data-dots]")
+  const bar = orw.querySelector("[data-bar]")
+  const capText = orw.querySelector("[data-captext]")
+  const stepCount = orw.querySelector("[data-stepcount]")
+  const playPause = orw.querySelector("[data-playpause]")
+  const prevBtn = orw.querySelector("[data-prev]")
+  const nextBtn = orw.querySelector("[data-next]")
+  const DUR = 6000
+  let idx = 0, playing = true, timer = null
+
+  steps.forEach((_, i) => {
+    const b = document.createElement("button")
+    b.className = "dotnav"; b.setAttribute("role", "tab"); b.setAttribute("aria-label", labels.step + " " + (i + 1))
+    b.addEventListener("click", () => go(i)); dotsWrap.appendChild(b)
+  })
+  const dots = [...dotsWrap.children]
+
+  function clearMarks() {
+    orw.querySelectorAll(".spot-on").forEach((el) => el.classList.remove("spot-on"))
+    orw.querySelectorAll(".observe-on").forEach((el) => el.classList.remove("observe-on"))
+  }
+  function render() {
+    const step = steps[idx]
+    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page)))
+    dots.forEach((d, i) => d.classList.toggle("on", i === idx))
+    stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
+    capText.textContent = step.text
+
+    // Actions have consequences: once the editor is open, the edited agent is the
+    // active item in the AGENTS sidebar list.
+    const editing = step.page.indexOf("orch") === 0
+    q("#navAgent1")?.classList.toggle("on", editing)
+
+    clearMarks()
+    const active = idx
+    setTimeout(() => {
+      if (active !== idx) return
+      if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
+      step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+    }, 260)
+
+    bar.classList.remove("run"); void bar.offsetWidth
+    bar.style.setProperty("--dur", DUR + "ms")
+    if (playing) bar.classList.add("run")
+  }
+  function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(() => go(idx + 1), DUR) }
+  function go(n) { idx = (n + steps.length) % steps.length; render(); schedule() }
+  function setPlaying(p) {
+    playing = p; playPause.textContent = p ? "⏸" : "▶"
+    if (p) { bar.classList.add("run"); schedule() } else { clearTimeout(timer); bar.classList.remove("run") }
+  }
+  prevBtn.addEventListener("click", () => go(idx - 1))
+  nextBtn.addEventListener("click", () => go(idx + 1))
+  playPause.addEventListener("click", () => setPlaying(!playing))
+
+  render(); schedule()
+</script>
+
+<style>
+  .orw {
+    --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+    --primary: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --destructive: oklch(0.577 0.245 27.325);
+    --sidebar: oklch(0.985 0 0); --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-accent: oklch(0.97 0 0); --sidebar-accent-foreground: oklch(0.205 0 0); --sidebar-border: oklch(0.922 0 0);
+    --radius: 0.625rem;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
+    --spot: color-mix(in oklab, var(--primary) 55%, transparent);
+    display: block; margin: 1.5rem 0; color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .orw * { box-sizing: border-box; }
+  .orw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+
+  .orw .shell { display: grid; grid-template-columns: 208px 1fr; height: 680px; background: var(--sidebar); color: var(--sidebar-foreground); border: 1px solid var(--sidebar-border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .orw .sb { display: flex; flex-direction: column; padding: 0.5rem; min-height: 0; }
+  .orw .sb-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.4rem 0.6rem; }
+  .orw .logo { width: 1.9rem; height: 1.9rem; display: inline-flex; align-items: center; justify-content: center; }
+  .orw .logo svg { width: 100%; height: 100%; stroke: none; }
+  .orw .logo svg path { fill: #f18c6e; }
+  .orw .logo svg circle { fill: #010101; }
+  .orw .org { display: flex; flex-direction: column; line-height: 1.05; }
+  .orw .org b { font-size: 0.92rem; font-weight: 700; }
+  .orw .org small { color: var(--primary); font-size: 0.72rem; }
+  .orw .sb-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
+  .orw .grp-label { font-size: 0.66rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0.4rem 0.5rem 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
+  .orw .grp-label .add { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+  .orw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: auto; }
+  .orw .grp-label.stack .name { color: var(--sidebar-foreground); font-size: 0.76rem; text-transform: none; font-weight: 700; }
+  .orw .navitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.3rem 0.5rem; border-radius: 7px; font-size: 0.82rem; color: var(--sidebar-foreground); }
+  .orw .navitem svg { font-size: 1rem; color: var(--muted-foreground); }
+  .orw .navitem .chev { margin-left: auto; font-size: 0.9rem; }
+  .orw .navitem.on { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 600; }
+  .orw .navitem.on svg { color: var(--sidebar-accent-foreground); }
+  .orw .sb-user { display: flex; align-items: center; gap: 0.55rem; margin-top: auto; padding: 0.45rem 0.5rem; }
+  .orw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
+  .orw .who { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+  .orw .who b { font-size: 0.76rem; font-weight: 600; }
+  .orw .who small { font-size: 0.68rem; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .orw .updown { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+
+  .orw .inset { position: relative; margin: 0.5rem 0.5rem 0.5rem 0; background: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; box-shadow: var(--shadow); }
+  .orw .topbar { height: 3rem; flex-shrink: 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
+  .orw .trig { color: var(--muted-foreground); font-size: 1.05rem; }
+  .orw .canvas { position: relative; flex: 1; min-height: 0; background: radial-gradient(circle, color-mix(in oklab, var(--muted-foreground) 20%, transparent) 1px, transparent 1px) 0 0 / 22px 22px; }
+  .orw .fab { position: absolute; right: 1rem; bottom: 1rem; width: 2.3rem; height: 2.3rem; border-radius: 999px; background: var(--primary); color: var(--primary-foreground); display: grid; place-items: center; box-shadow: var(--shadow); font-size: 1.1rem; z-index: 6; }
+
+  .orw .page { position: absolute; inset: 0; padding: 1.1rem 1.2rem; overflow: auto; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
+  .orw .page[data-active="true"] { opacity: 1; transform: none; pointer-events: auto; }
+
+  .orw .spot-on { position: relative; z-index: 7; animation: orw-spot 1.4s ease-in-out infinite; border-radius: 8px; }
+  @keyframes orw-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
+  .orw .observe-on { outline: 2px dashed var(--spot); outline-offset: 3px; border-radius: 10px; }
+
+  .orw .btn { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--primary); color: var(--primary-foreground); border-radius: 8px; font-size: 0.8rem; font-weight: 500; padding: 0.4rem 0.7rem; }
+  .orw .btn svg { font-size: 0.95rem; }
+  .orw .btn.sm { font-size: 0.76rem; padding: 0.32rem 0.55rem; }
+  .orw .btn.outline { background: var(--background); color: var(--foreground); border: 1px solid var(--border); }
+
+  .orw .page-head { border-bottom: 1px solid var(--border); padding-bottom: 0.9rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.7rem; }
+  .orw .page-head.plain { border: 0; }
+  .orw .backbtn { width: 1.9rem; height: 1.9rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); flex-shrink: 0; }
+  .orw .ttl { font-size: 1.3rem; font-weight: 600; line-height: 1.15; display: block; }
+  .orw .desc { font-size: 0.88rem; color: var(--muted-foreground); margin-top: 0.2rem; display: block; }
+
+  .orw .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
+  .orw .ecard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.8rem; min-height: 116px; display: flex; flex-direction: column; }
+  .orw .ecard .cat { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-foreground); font-weight: 600; margin-bottom: 0.2rem; }
+  .orw .ecard b { font-size: 0.88rem; }
+  .orw .ecard b.ic { display: flex; align-items: center; gap: 0.35rem; }
+  .orw .ecard b.ic svg { color: var(--muted-foreground); font-size: 0.95rem; }
+  .orw .arrowbtn { margin-top: auto; align-self: flex-start; width: 1.8rem; height: 1.8rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); }
+
+  .orw .lbl { font-size: 0.78rem; font-weight: 500; margin: 0.6rem 0 0.3rem; }
+  .orw .input { border: 1px solid var(--input); border-radius: 8px; padding: 0.42rem 0.6rem; font-size: 0.8rem; color: var(--foreground); background: var(--background); }
+  .orw .input.block { display: block; }
+  .orw .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .orw .textarea { display: block; border: 1px solid var(--input); border-radius: 8px; padding: 0.55rem 0.7rem; font-size: 0.78rem; color: var(--foreground); background: var(--background); line-height: 1.5; }
+
+  .orw .editor { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 1rem; }
+  .orw .tablist { display: flex; gap: 0.1rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; flex-wrap: wrap; }
+  .orw .tab { padding: 0.4rem 0.6rem; font-size: 0.8rem; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+  .orw .tab.on { color: var(--foreground); font-weight: 600; border-bottom-color: var(--primary); }
+  .orw .tabbody { padding: 0.2rem 0; }
+  .orw .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+  .orw .fld .lbl { margin-top: 0.4rem; }
+  .orw .editor-foot { display: flex; justify-content: flex-end; margin-top: 1rem; }
+
+  /* Empty state */
+  .orw .empty { border: 1px solid var(--border); border-radius: 10px; padding: 1.4rem 1rem; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.35rem; }
+  .orw .empty-ic { width: 2.4rem; height: 2.4rem; border-radius: 10px; background: var(--muted); display: grid; place-items: center; color: var(--muted-foreground); font-size: 1.15rem; margin-bottom: 0.2rem; }
+  .orw .empty b { font-size: 0.86rem; }
+  .orw .empty p { font-size: 0.76rem; color: var(--muted-foreground); margin: 0; max-width: 24rem; }
+
+  /* Available agents grid */
+  .orw .avail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem; }
+  .orw .acard { display: flex; align-items: center; gap: 0.6rem; border: 1px solid var(--border); border-radius: 10px; padding: 0.6rem 0.7rem; }
+  .orw .ac-media { width: 2rem; height: 2rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; color: var(--muted-foreground); flex-shrink: 0; }
+  .orw .ac-body { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+  .orw .ac-body b { font-size: 0.82rem; }
+  .orw .ac-body small { font-size: 0.72rem; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .orw .acard .btn { flex-shrink: 0; }
+
+  /* Sub-agent card */
+  .orw .sa-card { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 0.4rem; }
+  .orw .sa-head { display: flex; align-items: center; gap: 0.6rem; padding: 0.7rem 0.8rem; }
+  .orw .sa-media { width: 2rem; height: 2rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; color: var(--muted-foreground); flex-shrink: 0; }
+  .orw .sa-title { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem; flex: 1; min-width: 0; }
+  .orw .sa-title b { font-size: 0.84rem; }
+  .orw .sa-title small { width: 100%; font-size: 0.72rem; color: var(--muted-foreground); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .orw .badge-on { background: var(--primary); color: var(--primary-foreground); border-radius: 6px; padding: 0.05rem 0.4rem; font-size: 0.68rem; font-weight: 600; }
+  .orw .sa-actions { display: flex; align-items: center; gap: 0.5rem; }
+  .orw .iconbtn { width: 1.9rem; height: 1.9rem; border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); }
+  .orw .sa-body { border-top: 1px solid var(--border); padding: 0.8rem; }
+  .orw .switch { width: 1.9rem; height: 1.1rem; border-radius: 999px; background: var(--muted); position: relative; display: inline-block; flex-shrink: 0; }
+  .orw .switch i { position: absolute; top: 2px; left: 2px; width: 0.8rem; height: 0.8rem; border-radius: 999px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .orw .switch.on { background: var(--primary); }
+  .orw .switch.on i { left: calc(100% - 0.9rem); }
+
+  .orw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .orw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+  .orw .navbtn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .orw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
+  .orw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .orw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
+  .orw .cap .tx { font-size: 0.88rem; font-weight: 500; }
+  .orw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 200px; }
+  .orw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .orw .dotnav.on { background: var(--primary); transform: scale(1.3); }
+  .orw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+  .orw .progress i { display: block; height: 100%; width: 0; background: var(--primary); }
+  .orw .progress i.run { animation: orw-fill var(--dur, 6000ms) linear forwards; }
+  @keyframes orw-fill { to { width: 100%; } }
+
+  @media (max-width: 640px) {
+    .orw .shell { grid-template-columns: 1fr; height: 560px; }
+    .orw .sb { display: none; }
+    .orw .inset { margin: 0.5rem; }
+    .orw .cards3, .orw .grid2, .orw .avail-grid { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .orw .page, .orw .spot-on, .orw .progress i { transition: none !important; animation: none !important; }
+  }
+</style>

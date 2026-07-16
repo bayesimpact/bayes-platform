@@ -2,7 +2,7 @@
 title: Ajouter un agent d'extraction
 description: Créez un agent d'extraction qui lit un document téléversé et renvoie des données structurées conformes à un schéma JSON que vous définissez.
 category: guides-agents
-order: 1
+order: 2
 updated: 2026-07-10
 ---
 
@@ -21,11 +21,12 @@ qui fait que l'agent extrait des données plutôt que de tenir une conversation.
 ## Comment fonctionne un agent d'extraction
 
 Vous définissez un **Schéma JSON de sortie** listant les champs à capturer (par
-exemple `title` et `summary`) et un **Prompt par défaut** indiquant à l'agent quoi
+exemple `title` et `summary`) et des **Instructions** indiquant à l'agent quoi
 extraire. Lorsque l'agent s'exécute sur un document, il renvoie un objet JSON
-conforme à votre schéma. Un agent d'extraction dispose donc de trois onglets de
-configuration — **Général**, **Modèle** et **Sortie** — et n'a aucun réglage de
-conversation ou de message d'accueil.
+conforme à votre schéma. Un agent d'extraction dispose de trois onglets de
+configuration — **Général**, **Modèle** et **Sortie** — aucun réglage de conversation
+ou de message d'accueil — et **chaque onglet s'enregistre séparément** (l'éditeur
+vous avertit avant de quitter un onglet non enregistré).
 
 ## Le parcours complet en un coup d'œil
 
@@ -61,26 +62,27 @@ L'éditeur s'ouvre sur l'onglet **Général**. Définissez :
 
 - le **Nom** — la façon dont l'agent apparaît dans votre espace de travail ;
 - la **Langue** — la langue dans laquelle l'agent travaille ;
-- le **Prompt par défaut** — les instructions indiquant à l'agent quoi extraire de
-  chaque document.
+- les **Instructions** — ce que l'agent doit extraire de chaque document.
+
+Cliquez sur **Enregistrer**.
 
 ### 5. Choisir le modèle dans Modèle
 
 Ouvrez l'onglet **Modèle** et choisissez le **Modèle** qui pilote l'agent, ainsi
 qu'une **Température** (une valeur basse donne des extractions plus régulières et
-littérales).
+littérales). **Enregistrez**.
 
 ### 6. Définir la sortie dans Sortie
 
 Ouvrez l'onglet **Sortie** et modifiez le **Schéma JSON de sortie** — l'objet JSON
 qui décrit chaque champ à extraire. Listez vos champs sous `properties`, donnez à
 chacun un `type` et une `description`, et marquez les champs obligatoires dans
-`required`.
+`required`. **Enregistrez**.
 
-### 7. Enregistrer votre agent
+### 7. Enregistrer chaque onglet
 
-Cliquez sur **Mettre à jour** pour enregistrer votre configuration. L'agent
-d'extraction est désormais prêt à s'exécuter sur des documents.
+Comme chaque onglet est un formulaire à part, cliquez sur **Enregistrer** sur chaque
+onglet modifié. L'agent d'extraction est alors prêt à s'exécuter sur des documents.
 
 ## Conseils
 
@@ -103,5 +105,4 @@ d'extraction est désormais prêt à s'exécuter sur des documents.
   un. Assurez-vous d'avoir créé un agent **Extraction** (les agents conversationnels
   discutent à la place).
 - **Les valeurs extraites semblent incorrectes** — affinez les **descriptions** des
-  champs et le **Prompt par défaut**, puis cliquez sur **Mettre à jour** et
-  réessayez.
+  champs et les **Instructions**, puis cliquez sur **Enregistrer** et réessayez.

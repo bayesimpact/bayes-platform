@@ -26,6 +26,13 @@ const canonical = new URL(Astro.url.pathname, Astro.site).toString()
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {/* Bayes brand fonts — Inter (body), Archivo Black (display), Kaisei Decol (serif). */}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&family=Kaisei+Decol:wght@700&display=swap"
+      rel="stylesheet"
+    />
     <title>{fullTitle}</title>
     <meta name="description" content={metaDescription} />
     <link rel="canonical" href={canonical} />
@@ -33,14 +40,6 @@ const canonical = new URL(Astro.url.pathname, Astro.site).toString()
     <meta property="og:description" content={metaDescription} />
     <meta property="og:type" content="website" />
     <meta name="generator" content={Astro.generator} />
-    {/* Apply the persisted theme before first paint to avoid a flash. */}
-    <script is:inline>
-      const stored = localStorage.getItem("help-theme")
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
-      if (stored === "dark" || (!stored && prefersDark)) {
-        document.documentElement.classList.add("dark")
-      }
-    </script>
   </head>
   <body class="min-h-screen">
     <a
