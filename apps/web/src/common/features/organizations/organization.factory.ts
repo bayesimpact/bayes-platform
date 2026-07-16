@@ -12,14 +12,14 @@ const OWNER_PERMISSIONS: OrganizationPermission[] = [
   "organization.update",
   "organization.delete",
   "project.create",
-  "project.list_all",
+  "project.read",
 ]
 
 const ADMIN_PERMISSIONS: OrganizationPermission[] = [
   "organization.read",
   "organization.update",
   "project.create",
-  "project.list_all",
+  "project.read",
 ]
 
 const MEMBER_PERMISSIONS: OrganizationPermission[] = ["organization.read"]

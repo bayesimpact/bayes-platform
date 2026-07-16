@@ -261,7 +261,7 @@ describe("OrganizationsService", () => {
           "organization.read",
           "organization.update",
           "project.create",
-          "project.list_all",
+          "project.read",
         ]),
         projects: [],
       })

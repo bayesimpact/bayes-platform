@@ -4,7 +4,7 @@ import { In, type Repository } from "typeorm"
 import { TransactionService } from "@/common/transaction/transaction.service"
 import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
-import { PROJECT_LIST_ALL_PERMISSION } from "@/domains/rbac/rbac.constants"
+import { PROJECT_READ_PERMISSION } from "@/domains/rbac/rbac.constants"
 import { Organization } from "./organization.entity"
 import type { OrganizationModel, OrganizationProjectModel } from "./organization.model"
 
@@ -75,16 +75,16 @@ export class OrganizationRepository {
     organizationIds: string[],
     permissionsByOrganizationId: Map<string, string[]>,
   ): Promise<Map<string, OrganizationProjectModel[]>> {
-    const listAllOrganizationIds = organizationIds.filter((organizationId) =>
-      permissionsByOrganizationId.get(organizationId)?.includes(PROJECT_LIST_ALL_PERMISSION),
+    const organizationIdsWithProjectRead = organizationIds.filter((organizationId) =>
+      permissionsByOrganizationId.get(organizationId)?.includes(PROJECT_READ_PERMISSION),
     )
-    const membershipOrganizationIds = organizationIds.filter(
-      (organizationId) => !listAllOrganizationIds.includes(organizationId),
+    const membershipOnlyOrganizationIds = organizationIds.filter(
+      (organizationId) => !organizationIdsWithProjectRead.includes(organizationId),
     )
 
     const projects = [
-      ...(await this.findProjectsByOrganizationIds(listAllOrganizationIds)),
-      ...(await this.findMemberProjectsByOrganizationIds(userId, membershipOrganizationIds)),
+      ...(await this.findProjectsByOrganizationIds(organizationIdsWithProjectRead)),
+      ...(await this.findMemberProjectsByOrganizationIds(userId, membershipOnlyOrganizationIds)),
     ]
 
     return this.groupProjectsByOrganizationId(organizationIds, projects)
