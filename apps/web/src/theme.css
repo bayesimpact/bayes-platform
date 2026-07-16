@@ -1,0 +1,4 @@
+/* Dev default — intentionally distinct so local dev is never mistaken for a tenant. Overridden by CI before deploy. */
+:root {
+  --primary: oklch(62.8% 0.2 303.9);
+}
