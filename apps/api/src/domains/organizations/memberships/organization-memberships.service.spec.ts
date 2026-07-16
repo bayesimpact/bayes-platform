@@ -15,6 +15,9 @@ import {
   organizationFactory,
 } from "@/domains/organizations/organization.factory"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
+import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
+import { RbacModule } from "@/domains/rbac/rbac.module"
+import { ensureOrganizationRbacCatalog } from "../../../../test/rbac-test.helpers"
 
 describe("OrganizationMembershipsService", () => {
   let service: OrganizationMembershipsService
@@ -23,8 +26,9 @@ describe("OrganizationMembershipsService", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [OrganizationsModule],
+      additionalImports: [OrganizationsModule, RbacModule],
     })
+    await ensureOrganizationRbacCatalog(setup.module)
   })
 
   afterAll(async () => {
@@ -155,6 +159,10 @@ describe("OrganizationMembershipsService", () => {
         },
       })
       expect(membership?.role).toBe("admin")
+      const orgAdminRole = await repositories.roleRepository.findOneOrFail({
+        where: { key: ORGANIZATION_ROLES.admin },
+      })
+      expect(membership?.roleId).toBe(orgAdminRole.id)
     })
 
     it("promotes a member to admin", async () => {
@@ -175,6 +183,10 @@ describe("OrganizationMembershipsService", () => {
         },
       })
       expect(membership.role).toBe("admin")
+      const orgAdminRole = await repositories.roleRepository.findOneOrFail({
+        where: { key: ORGANIZATION_ROLES.admin },
+      })
+      expect(membership.roleId).toBe(orgAdminRole.id)
     })
 
     it("is a no-op when the user is already admin or owner", async () => {
@@ -214,6 +226,35 @@ describe("OrganizationMembershipsService", () => {
         },
       })
       expect(userMembership.role).toBe("owner")
+      const orgOwnerRole = await repositories.roleRepository.findOneOrFail({
+        where: { key: ORGANIZATION_ROLES.owner },
+      })
+      expect(userMembership.roleId).toBe(orgOwnerRole.id)
+    })
+  })
+
+  describe("upsertOrganizationMemberMembership", () => {
+    it("creates a member organization membership with role_id", async () => {
+      const { user, organization } = await createOrganizationWithOwner(repositories)
+      await repositories.userMembershipRepository.delete({ userId: user.id })
+
+      await service.upsertOrganizationMemberMembership({
+        userId: user.id,
+        organizationId: organization.id,
+      })
+
+      const membership = await repositories.userMembershipRepository.findOneOrFail({
+        where: {
+          userId: user.id,
+          resourceId: organization.id,
+          resourceType: "organization",
+        },
+      })
+      expect(membership.role).toBe("member")
+      const orgMemberRole = await repositories.roleRepository.findOneOrFail({
+        where: { key: ORGANIZATION_ROLES.member },
+      })
+      expect(membership.roleId).toBe(orgMemberRole.id)
     })
   })
 })

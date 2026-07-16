@@ -9,6 +9,7 @@ import {
 import { Organization } from "@/domains/organizations/organization.entity"
 import type { OrganizationMembershipModel } from "./organization-membership.model"
 import type { OrganizationMembershipRole } from "./organization-membership.types"
+import { resolveOrganizationRoleId } from "./resolve-organization-role-id"
 
 const ORGANIZATION_RESOURCE_TYPE = "organization" as const
 
@@ -134,12 +135,15 @@ export class OrganizationMembershipRepository {
     organizationId: string
     role: OrganizationMembershipRole
   }): Promise<OrganizationMembershipModel> {
+    const manager = this.transactionService.getManager()
+    const roleId = await resolveOrganizationRoleId(manager, role)
     const saved = await this.userMembershipRepo().save(
       this.userMembershipRepo().create({
         userId,
         resourceType: ORGANIZATION_RESOURCE_TYPE,
         resourceId: organizationId,
         role,
+        roleId,
       }),
     )
     const withUser = await this.userMembershipRepo().findOneOrFail({
@@ -162,13 +166,15 @@ export class OrganizationMembershipRepository {
     organizationId: string
     role: OrganizationMembershipRole
   }): Promise<void> {
+    const manager = this.transactionService.getManager()
+    const roleId = await resolveOrganizationRoleId(manager, role)
     await this.userMembershipRepo().update(
       {
         id: membershipId,
         resourceType: ORGANIZATION_RESOURCE_TYPE,
         resourceId: organizationId,
       },
-      { role },
+      { role, roleId },
     )
   }
 
