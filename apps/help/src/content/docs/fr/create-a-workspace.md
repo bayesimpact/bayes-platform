@@ -2,7 +2,7 @@
 title: Créez votre premier espace de travail
 description: Découvrez comment créer un espace de travail et organiser votre travail.
 category: getting-started
-order: 2
+order: 5
 updated: 2026-07-08
 ---
 

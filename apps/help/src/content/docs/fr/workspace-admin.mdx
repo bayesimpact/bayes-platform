@@ -1,0 +1,103 @@
+---
+title: Administrer l'espace de travail
+description: Utilisez la page Admin pour renommer votre espace de travail et gérer ses catégories de conversation — les étiquettes qui classent les conversations et alimentent l'analytique par catégorie.
+category: guides-team
+order: 3
+updated: 2026-07-16
+---
+
+import WorkspaceAdminWalkthrough from "@/components/WorkspaceAdminWalkthrough.astro"
+
+La page **Admin** est l'endroit où le propriétaire ou les admins d'un espace de
+travail gèrent ses paramètres. Elle comporte deux onglets : **Général** — renommer
+l'espace de travail — et **Catégories de conversation** — créer les étiquettes
+utilisées pour classer les sessions de vos agents conversationnels.
+
+Vous l'ouvrez depuis **Admin** dans la barre latérale gauche de **Studio**. Elle
+s'applique à tout l'**espace de travail**.
+
+## Ce que sont les catégories de conversation
+
+Les **catégories de conversation** sont des étiquettes au niveau de l'espace de
+travail (par exemple *Product*, *Pricing*, *Support*) utilisées pour **classer
+automatiquement** les sessions de vos agents conversationnels. Une fois les catégories
+activées sur un agent conversationnel, ses sessions y sont réparties, et les totaux
+apparaissent dans le graphique **Sessions par jour par catégorie** de
+l'[Analytique](/fr/analytics). La **gestion de la liste** des catégories se fait ici,
+dans Admin ; leur **activation sur un agent donné** se fait dans l'onglet **Catégories
+de conversation** de cet agent.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape met en valeur le
+bouton à cliquer et la zone à observer.
+
+<WorkspaceAdminWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir Admin
+
+Dans **Studio**, ouvrez **Admin** dans la barre latérale gauche. La page s'ouvre avec
+un onglet **Général** et un onglet **Catégories de conversation**. (Elle est destinée
+aux **propriétaires** et **admins** de l'espace de travail.)
+
+### 2. Renommer l'espace de travail (Général)
+
+Sur l'onglet **Général**, modifiez le champ **Nom de l'espace de travail** et cliquez
+sur **Enregistrer**. Le nouveau nom est utilisé dans toute la plateforme.
+
+### 3. Gérer les catégories (Catégories de conversation)
+
+Ouvrez l'onglet **Catégories de conversation**. Vos catégories existantes s'affichent
+sous forme de badges ; s'il n'y en a aucune, la page indique **Aucune catégorie pour
+l'instant.** Cliquez sur **Ajouter une catégorie** pour en créer une.
+
+### 4. Ajouter une catégorie
+
+Dans la boîte de dialogue **Ajouter une catégorie de conversation**, saisissez un
+**Nom de la catégorie**. Cochez **Activer également pour tous les agents
+conversationnels existants** si vous voulez que tous les agents conversationnels
+commencent à l'utiliser tout de suite (sinon, vous l'activerez agent par agent plus
+tard). Cliquez sur **Ajouter**.
+
+### 5. Supprimer une catégorie
+
+Pour supprimer une catégorie, cliquez sur le **✕** de son badge. Une confirmation —
+**Supprimer la catégorie de conversation ?** — vous est demandée avant de la retirer
+de la liste des catégories de l'espace de travail.
+
+### 6. Activer les catégories sur un agent
+
+Les catégories ne classent les conversations d'un agent qu'une fois **activées sur cet
+agent**. Ouvrez un **agent conversationnel**, allez dans son onglet **Catégories de
+conversation**, et cochez celles qui s'appliquent (**Tout sélectionner** les ajoute
+toutes). **Les catégories déjà utilisées dans les conversations de cet agent ne
+peuvent pas être décochées.** Cliquez sur **Enregistrer**. (Voir
+[Ajouter un agent conversationnel](/fr/add-a-conversation-agent).)
+
+## Conseils
+
+- Gardez la liste des catégories **courte et distincte** — quelques étiquettes claires
+  classent mieux que de nombreuses catégories qui se recoupent.
+- Cochez **Activer également pour tous les agents conversationnels existants** quand
+  une catégorie doit s'appliquer partout, pour éviter de l'activer agent par agent.
+- Une fois les catégories utilisées, consultez le graphique **Sessions par jour par
+  catégorie** de l'[Analytique](/fr/analytics) pour voir la répartition des
+  conversations.
+
+## Dépannage
+
+- **Je ne vois pas l'onglet Catégories de conversation sur un agent** — l'onglet
+  n'apparaît que sur les agents **conversationnels**, et seulement lorsque l'espace de
+  travail a **au moins une** catégorie. Créez d'abord une catégorie dans Admin.
+- **Le graphique d'analytique n'affiche que Non catégorisé** — les catégories ne
+  classent les sessions qu'une fois **activées sur l'agent** ; activez-les dans
+  l'onglet de l'agent et laissez arriver de nouvelles sessions.
+- **Je ne peux pas décocher une catégorie sur un agent** — les catégories déjà
+  **utilisées** dans les conversations de cet agent sont verrouillées, pour que les
+  sessions passées conservent leurs étiquettes.
+- **Je ne vois pas la page Admin** — administrer l'espace de travail est réservé à son
+  **propriétaire** et à ses **admins** ; demandez-leur si vous avez besoin d'une
+  modification.

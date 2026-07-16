@@ -1,0 +1,94 @@
+---
+title: Manage your workspace
+description: Use the Admin page to rename your workspace and manage its conversation categories — the labels that classify conversations and power the by-category analytics.
+category: guides-team
+order: 3
+updated: 2026-07-16
+---
+
+import WorkspaceAdminWalkthrough from "@/components/WorkspaceAdminWalkthrough.astro"
+
+The **Admin** page is where a workspace's owner or admins manage its settings. It has
+two tabs: **General** — rename the workspace — and **Conversation categories** —
+create the labels used to classify your conversation agents' sessions.
+
+You open it from **Admin** in the left sidebar of **Studio**. It applies to the whole
+**workspace**.
+
+## What conversation categories are
+
+**Conversation categories** are workspace-level labels (for example *Product*,
+*Pricing*, *Support*) used to **automatically classify** the sessions your
+conversation agents have. Once a conversation agent has categories enabled, its
+sessions are sorted into them, and the totals appear in the **Sessions per day by
+category** chart in [Analytics](/en/analytics). Managing the list of categories
+happens here in Admin; **turning them on for a given agent** happens on that agent's
+**Conversation categories** tab.
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click and the area to
+watch.
+
+<WorkspaceAdminWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Open Admin
+
+In **Studio**, open **Admin** in the left sidebar. The page opens with a **General**
+tab and a **Conversation categories** tab. (It's meant for workspace **owners** and
+**admins**.)
+
+### 2. Rename the workspace (General)
+
+On the **General** tab, edit the **Workspace name** field and click **Save**. The new
+name is used across the platform.
+
+### 3. Manage categories (Conversation categories)
+
+Open the **Conversation categories** tab. Your existing categories are shown as
+badges; if there are none yet it reads **No categories yet.** Click **Add category**
+to create one.
+
+### 4. Add a category
+
+In the **Add conversation category** dialog, type a **Category name**. Tick **Also
+enable for all existing conversation agents** if you want every conversation agent to
+start using it right away (otherwise you enable it per agent later). Click **Add**.
+
+### 5. Remove a category
+
+To delete a category, click the **✕** on its badge. A confirmation — **Remove
+conversation category?** — asks before removing it from the workspace's category list.
+
+### 6. Enable categories on an agent
+
+Categories only classify an agent's conversations once they're **enabled on that
+agent**. Open a **conversation agent**, go to its **Conversation categories** tab, and
+tick the ones that apply (**Select all** adds them all). **Categories already used in
+this agent's conversations cannot be unchecked.** Click **Save**. (See
+[Add a conversation agent](/en/add-a-conversation-agent).)
+
+## Tips
+
+- Keep the category list **short and distinct** — a handful of clear labels classifies
+  better than many overlapping ones.
+- Tick **Also enable for all existing conversation agents** when a category should
+  apply everywhere, to save enabling it agent by agent.
+- After categories are in use, review the **Sessions per day by category** chart in
+  [Analytics](/en/analytics) to see how conversations break down.
+
+## Troubleshooting
+
+- **I don't see the Conversation categories tab on an agent** — the tab only appears on
+  **conversation** agents, and only once the workspace has **at least one** category.
+  Create a category in Admin first.
+- **The analytics chart shows only Uncategorized** — categories classify sessions only
+  after they're **enabled on the agent**; enable them on the agent's tab and let new
+  sessions come in.
+- **I can't uncheck a category on an agent** — categories already **used** in that
+  agent's conversations are locked on, so past sessions keep their labels.
+- **I don't see the Admin page** — administering the workspace is reserved for its
+  **owner** and **admins**; ask them if you need a change.

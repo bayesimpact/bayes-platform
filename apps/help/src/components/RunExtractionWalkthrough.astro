@@ -1,0 +1,489 @@
+---
+/**
+ * Walkthrough of running an extraction agent on documents (single PDF/image runs and
+ * CSV batch runs). Derived from the real components (verified, not copied blind):
+ * AgentSessionList.tsx (ExtractionAgentSessionList — New Extraction card + history),
+ * ExtractionAgentSessionItem.tsx (PDF/Image & CSV history rows, View/Download JSON),
+ * AgentExtractionRoute.tsx (uploader PDF/image/CSV + DocumentList), AgentExtractionRunRoute.tsx
+ * (single-doc result: status + duration), CsvExtractor + AgentCsvExtractionRun* (CSV dialog
+ * steps + results table). Labels verbatim from extractionAgentSession / agentCsvExtractionRun /
+ * status / actions locales (EN + FR). Uses the PRODUCT (coral) palette, pinned locally.
+ * Derived 2026-07-16.
+ */
+type Lang = "en" | "fr"
+const { lang = "en" } = Astro.props as { lang?: Lang }
+
+const STRINGS = {
+  en: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Document Extractor", conversationAgent: "Conversation Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Settings", evaluations: "Evaluations", analytics: "Analytics", sources: "Sources",
+    members: "Members", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    typeExtraction: "Extraction",
+    newTitle: "New Extraction", newDesc: "Select a document to run extraction.",
+    run: "Run", dragOrUpload: "drag or upload a file", open: "Open",
+    doc1: "invoice.pdf", doc2: "records.csv",
+    resultTitle: "invoice.pdf", statusSuccess: "Success", duration: "Duration: 8s",
+    viewJson: "View JSON", downloadJson: "Download JSON",
+    resultJson: '{\n  "title": "Invoice 2043",\n  "total": "€1,240.00"\n}',
+    csvDialogTitle: "Run CSV Extraction", csvDialogDesc: "Run each record through the agent.",
+    stepUpload: "Upload CSV", stepColumns: "Configure Columns", stepScope: "Run Settings",
+    colTitle: "Configure column roles", colDesc: "Select the role for each column in your CSV file.",
+    colHeader: "Column", roleHeader: "Role",
+    roleInput: "Input", roleReference: "Reference", roleIgnore: "Ignore",
+    col_a: "customer", col_b: "invoice_text", col_c: "notes",
+    back: "Back", next: "Next", csvRun: "Run",
+    csvResTitle: "CSV Extraction Results", summary: "Summary",
+    total: "Total", processed: "Processed", errors: "Errors",
+    downloadDoc: "Download Document", statusHeader: "Status", outputHeader: "Output",
+    badgeSuccess: "Success", badgeError: "Error",
+    histPdf: "PDF / Image", histCsv: "CSV", histProcessed: "118 of 120 records processed.",
+    prev: "Prev", next2: "Next", step: "Step",
+    steps: [
+      "Open an extraction agent, then click Run on the New Extraction card.",
+      "Drop or select a document — a PDF or image runs straight away; a CSV starts a batch.",
+      "For a single document, the result page shows the status, duration, and View / Download JSON.",
+      "For a CSV, the Run CSV Extraction dialog lets you set each column's role, then Run.",
+      "The CSV results show a summary (Total, Processed, Errors) and each record's status; download the results when done.",
+      "Every run is kept in the history — reopen it (Open) or delete it later.",
+    ],
+  },
+  fr: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Document Extractor", conversationAgent: "Conversation Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Paramètres", evaluations: "Évaluations", analytics: "Analytique", sources: "Sources",
+    members: "Membres", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    typeExtraction: "Extraction",
+    newTitle: "Nouvelle extraction", newDesc: "Sélectionnez un document pour lancer l'extraction.",
+    run: "Exécuter", dragOrUpload: "glissez ou téléchargez un fichier", open: "Ouvrir",
+    doc1: "invoice.pdf", doc2: "records.csv",
+    resultTitle: "invoice.pdf", statusSuccess: "Succès", duration: "Durée : 8 s",
+    viewJson: "Voir JSON", downloadJson: "Télécharger JSON",
+    resultJson: '{\n  "title": "Facture 2043",\n  "total": "1 240,00 €"\n}',
+    csvDialogTitle: "Lancer l'extraction CSV", csvDialogDesc: "Exécutez chaque enregistrement via l'agent.",
+    stepUpload: "Téléverser le CSV", stepColumns: "Configurer les colonnes", stepScope: "Paramètres d'exécution",
+    colTitle: "Configurer les rôles des colonnes", colDesc: "Sélectionnez le rôle de chaque colonne de votre fichier CSV.",
+    colHeader: "Colonne", roleHeader: "Rôle",
+    roleInput: "Entrée", roleReference: "Référence", roleIgnore: "Ignorer",
+    col_a: "customer", col_b: "invoice_text", col_c: "notes",
+    back: "Retour", next: "Suivant", csvRun: "Lancer",
+    csvResTitle: "Résultats de l'extraction CSV", summary: "Résumé",
+    total: "Total", processed: "Traités", errors: "Erreurs",
+    downloadDoc: "Télécharger le document", statusHeader: "Statut", outputHeader: "Sortie",
+    badgeSuccess: "Succès", badgeError: "Erreur",
+    histPdf: "PDF / Image", histCsv: "CSV", histProcessed: "118 sur 120 enregistrements traités.",
+    prev: "Précédent", next2: "Suivant", step: "Étape",
+    steps: [
+      "Ouvrez un agent d'extraction, puis cliquez sur Exécuter sur la carte Nouvelle extraction.",
+      "Glissez ou sélectionnez un document — un PDF ou une image se lance aussitôt ; un CSV démarre un lot.",
+      "Pour un document seul, la page de résultat affiche le statut, la durée, et Voir / Télécharger JSON.",
+      "Pour un CSV, la boîte Lancer l'extraction CSV permet de régler le rôle de chaque colonne, puis Exécuter.",
+      "Les résultats CSV montrent un résumé (Total, Traités, Erreurs) et le statut de chaque enregistrement ; téléchargez les résultats une fois terminé.",
+      "Chaque exécution est conservée dans l'historique — rouvrez-la (Ouvrir) ou supprimez-la plus tard.",
+    ],
+  },
+} as const
+
+const s = STRINGS[lang]
+
+const scanIcon = '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/>'
+const convIcon = '<path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/>'
+const formIcon = '<path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/>'
+const fileIcon = '<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6"/>'
+
+const roleRows = [
+  { name: s.col_a, role: s.roleInput },
+  { name: s.col_b, role: s.roleInput },
+  { name: s.col_c, role: s.roleIgnore },
+]
+
+const csvRecords = [
+  { i: 1, ok: true, out: '{ "total": "€1,240.00" }' },
+  { i: 2, ok: true, out: '{ "total": "€86.50" }' },
+  { i: 3, ok: false, out: "—" },
+]
+
+const steps = [
+  { page: "landing", spot: "btnRun", observe: ["obsHistory"] },
+  { page: "newpage", spot: "", observe: ["obsUpload"] },
+  { page: "result", spot: "", observe: ["obsResult"] },
+  { page: "csvDialog", spot: "", observe: ["obsColumns"] },
+  { page: "csvResults", spot: "", observe: ["obsCsvResults"] },
+  { page: "landing", spot: "", observe: ["obsHistory"] },
+].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const labels = { prev: s.prev, next: s.next2, step: s.step }
+---
+
+<div class="rxw" role="group" aria-label={s.newTitle}>
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside class="sb">
+      <div class="sb-head">
+        <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
+        <span class="org"><b>{s.org}</b><small>{s.studio}</small></span>
+      </div>
+      <div class="sb-scroll">
+        <div class="grp-label">{s.agents}<span class="add"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+        <div class="navitem on"><svg viewBox="0 0 24 24" set:html={scanIcon}></svg><span>{s.agent1}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24" set:html={convIcon}></svg><span>{s.conversationAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24" set:html={formIcon}></svg><span>{s.formAgent}</span></div>
+
+        <div class="grp-label stack"><span class="name">{s.settingsName}</span><span>{s.settings}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg><span>{s.evaluations}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg><span>{s.analytics}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 15 21.84"/><path d="M21 5V8"/><path d="M21 12L18 17H22L19 22"/><path d="M3 12A9 3 0 0 0 14.59 14.87"/></svg><span>{s.sources}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg><span>{s.members}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg><span>{s.admin}</span></div>
+      </div>
+      <div class="sb-user">
+        <span class="avatar">AM</span>
+        <span class="who"><b>{s.userName}</b><small>{s.userEmail}</small></span>
+        <span class="updown"><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+      </div>
+    </aside>
+
+    <!-- Main inset -->
+    <div class="inset">
+      <div class="topbar"><span class="trig"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span></div>
+      <div class="canvas">
+        <!-- Agent landing: New Extraction card + history (steps 1 & 6) -->
+        <div class="page" data-page="landing" data-active="true">
+          <div class="page-head"><span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><span><span class="ttl">{s.agent1}</span><span class="desc">{s.typeExtraction} <svg viewBox="0 0 24 24" set:html={scanIcon}></svg></span></span></div>
+          <div class="colstack">
+            <div class="newcard">
+              <div><b>{s.newTitle}</b><p>{s.newDesc}</p></div>
+              <span class="btn" id="btnRun">{s.run} <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></span>
+            </div>
+            <div class="hist" id="obsHistory">
+              <div class="hcard">
+                <div class="badges"><span class="badge">{s.histPdf}</span><span class="badge ok">{s.statusSuccess}</span></div>
+                <b>{s.doc1}</b>
+                <div class="hactions"><span class="btn outline sm">{s.open}</span><span class="iconbtn"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span></div>
+              </div>
+              <div class="hcard">
+                <div class="badges"><span class="badge">{s.histCsv}</span><span class="badge ok">{s.statusSuccess}</span></div>
+                <b>{s.doc2}</b><small>{s.histProcessed}</small>
+                <div class="hactions"><span class="btn outline sm">{s.open}</span><span class="iconbtn"><svg viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6"/></svg></span><span class="iconbtn"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- New Extraction page: uploader + documents (step 2) -->
+        <div class="page" data-page="newpage">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.newTitle}</span><span class="desc">{s.newDesc}</span></span>
+          </div>
+          <div class="colstack" id="obsUpload">
+            <div class="dropzone">
+              <svg viewBox="0 0 24 24"><path d="M12 13v8"/><path d="m8 17 4-4 4 4"/><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/></svg>
+              <span class="cap-first">{s.dragOrUpload}</span>
+              <span class="hint">PDF · JPEG · CSV</span>
+            </div>
+            <div class="doclist">
+              <div class="docrow"><svg viewBox="0 0 24 24" set:html={fileIcon}></svg><span>{s.doc1}</span></div>
+              <div class="docrow"><svg viewBox="0 0 24 24" set:html={fileIcon}></svg><span>{s.doc2}</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Single-document result (step 3) -->
+        <div class="page" data-page="result">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.resultTitle}</span><span class="desc"><span class="badge ok">{s.statusSuccess}</span> <span class="badge">{s.duration}</span></span></span>
+          </div>
+          <div class="resultbox" id="obsResult">
+            <div class="res-actions"><span class="btn outline sm">{s.viewJson}</span><span class="btn outline sm">{s.downloadJson}</span></div>
+            <pre class="jsonbox">{s.resultJson}</pre>
+          </div>
+        </div>
+
+        <!-- CSV dialog (step 4) -->
+        <div class="page center" data-page="csvDialog">
+          <div class="scrim"></div>
+          <div class="modal" id="obsColumns">
+            <div class="m-head"><b>{s.csvDialogTitle}</b><p>{s.csvDialogDesc}</p></div>
+            <div class="stepper"><span class="sc done">{s.stepUpload}</span><span class="sc on">{s.stepColumns}</span><span class="sc">{s.stepScope}</span></div>
+            <p class="col-desc">{s.colDesc}</p>
+            <div class="coltable">
+              <div class="ct-head"><span>{s.colHeader}</span><span>{s.roleHeader}</span></div>
+              {roleRows.map((r) => (
+                <div class="ct-row"><span class="mono">{r.name}</span><span class="select"><span>{r.role}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div>
+              ))}
+            </div>
+            <div class="m-foot"><span class="btn outline">{s.back}</span><span class="btn">{s.csvRun}</span></div>
+          </div>
+        </div>
+
+        <!-- CSV results (step 5) -->
+        <div class="page" data-page="csvResults">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.csvResTitle}</span></span>
+            <span class="right"><span class="btn outline"><svg viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg> {s.downloadDoc}</span></span>
+          </div>
+          <div class="colstack" id="obsCsvResults">
+            <div class="summary">
+              <div class="sm-head"><b>{s.summary}</b></div>
+              <div class="statcards">
+                <div class="stat"><span class="sl">{s.total}</span><span class="sv">120</span></div>
+                <div class="stat"><span class="sl">{s.processed}</span><span class="sv">118</span></div>
+                <div class="stat"><span class="sl">{s.errors}</span><span class="sv bad">2</span></div>
+              </div>
+            </div>
+            <div class="rec-table">
+              <div class="th"><span class="rh">#</span><span>{s.statusHeader}</span><span>{s.outputHeader}</span></div>
+              {csvRecords.map((r) => (
+                <div class="td">
+                  <span class="rh">{r.i}</span>
+                  <span>{r.ok ? <span class="sbadge ok">{s.badgeSuccess}</span> : <span class="sbadge bad">{s.badgeError}</span>}</span>
+                  <span class="mono clamp">{r.out}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="navbtn" data-prev><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> {s.prev}</button>
+    <button class="ctrl" data-playpause aria-label="Play / pause">⏸</button>
+    <span class="cap"><span class="st" data-stepcount></span><span class="tx" data-captext></span></span>
+    <span class="dots-nav" data-dots role="tablist" aria-label="Steps"></span>
+    <button class="navbtn primary" data-next>{s.next2} <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="progress"><i data-bar></i></div>
+</div>
+
+<script define:vars={{ steps, labels }}>
+  const cs = document.currentScript
+  const rxw =
+    cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("rxw")
+      ? cs.previousElementSibling
+      : document.querySelector(".rxw")
+  const q = (sel) => rxw.querySelector(sel)
+  const pages = [...rxw.querySelectorAll(".page")]
+  const dotsWrap = rxw.querySelector("[data-dots]")
+  const bar = rxw.querySelector("[data-bar]")
+  const capText = rxw.querySelector("[data-captext]")
+  const stepCount = rxw.querySelector("[data-stepcount]")
+  const playPause = rxw.querySelector("[data-playpause]")
+  const prevBtn = rxw.querySelector("[data-prev]")
+  const nextBtn = rxw.querySelector("[data-next]")
+  const DUR = 6000
+  let idx = 0, playing = true, timer = null
+
+  steps.forEach((_, i) => {
+    const b = document.createElement("button")
+    b.className = "dotnav"; b.setAttribute("role", "tab"); b.setAttribute("aria-label", labels.step + " " + (i + 1))
+    b.addEventListener("click", () => go(i)); dotsWrap.appendChild(b)
+  })
+  const dots = [...dotsWrap.children]
+
+  function clearMarks() {
+    rxw.querySelectorAll(".spot-on").forEach((el) => el.classList.remove("spot-on"))
+    rxw.querySelectorAll(".observe-on").forEach((el) => el.classList.remove("observe-on"))
+  }
+  function render() {
+    const step = steps[idx]
+    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page)))
+    dots.forEach((d, i) => d.classList.toggle("on", i === idx))
+    stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
+    capText.textContent = step.text
+
+    clearMarks()
+    const active = idx
+    setTimeout(() => {
+      if (active !== idx) return
+      if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
+      step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+    }, 260)
+
+    bar.classList.remove("run"); void bar.offsetWidth
+    bar.style.setProperty("--dur", DUR + "ms")
+    if (playing) bar.classList.add("run")
+  }
+  function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(() => go(idx + 1), DUR) }
+  function go(n) { idx = (n + steps.length) % steps.length; render(); schedule() }
+  function setPlaying(p) {
+    playing = p; playPause.textContent = p ? "⏸" : "▶"
+    if (p) { bar.classList.add("run"); schedule() } else { clearTimeout(timer); bar.classList.remove("run") }
+  }
+  prevBtn.addEventListener("click", () => go(idx - 1))
+  nextBtn.addEventListener("click", () => go(idx + 1))
+  playPause.addEventListener("click", () => setPlaying(!playing))
+
+  render(); schedule()
+</script>
+
+<style>
+  .rxw {
+    --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+    --primary: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --destructive: oklch(0.577 0.245 27.325);
+    --success: oklch(0.62 0.14 150);
+    --sidebar: oklch(0.985 0 0); --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-accent: oklch(0.97 0 0); --sidebar-accent-foreground: oklch(0.205 0 0); --sidebar-border: oklch(0.922 0 0);
+    --radius: 0.625rem;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
+    --spot: color-mix(in oklab, var(--primary) 55%, transparent);
+    display: block; margin: 1.5rem 0; color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .rxw * { box-sizing: border-box; }
+  .rxw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+
+  .rxw .shell { display: grid; grid-template-columns: 208px 1fr; height: 680px; background: var(--sidebar); color: var(--sidebar-foreground); border: 1px solid var(--sidebar-border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .rxw .sb { display: flex; flex-direction: column; padding: 0.5rem; min-height: 0; }
+  .rxw .sb-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.4rem 0.6rem; }
+  .rxw .logo { width: 1.9rem; height: 1.9rem; display: inline-flex; align-items: center; justify-content: center; }
+  .rxw .logo svg { width: 100%; height: 100%; stroke: none; }
+  .rxw .logo svg path { fill: #f18c6e; }
+  .rxw .logo svg circle { fill: #010101; }
+  .rxw .org { display: flex; flex-direction: column; line-height: 1.05; }
+  .rxw .org b { font-size: 0.92rem; font-weight: 700; }
+  .rxw .org small { color: var(--primary); font-size: 0.72rem; }
+  .rxw .sb-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
+  .rxw .grp-label { font-size: 0.66rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0.4rem 0.5rem 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
+  .rxw .grp-label .add { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+  .rxw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: auto; }
+  .rxw .grp-label.stack .name { color: var(--sidebar-foreground); font-size: 0.76rem; text-transform: none; font-weight: 700; }
+  .rxw .navitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.3rem 0.5rem; border-radius: 7px; font-size: 0.82rem; color: var(--sidebar-foreground); }
+  .rxw .navitem svg { font-size: 1rem; color: var(--muted-foreground); }
+  .rxw .navitem .chev { margin-left: auto; font-size: 0.9rem; }
+  .rxw .navitem.on { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 600; }
+  .rxw .navitem.on svg { color: var(--sidebar-accent-foreground); }
+  .rxw .sb-user { display: flex; align-items: center; gap: 0.55rem; margin-top: auto; padding: 0.45rem 0.5rem; }
+  .rxw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
+  .rxw .who { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+  .rxw .who b { font-size: 0.76rem; font-weight: 600; }
+  .rxw .who small { font-size: 0.68rem; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rxw .updown { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+
+  .rxw .inset { position: relative; margin: 0.5rem 0.5rem 0.5rem 0; background: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; box-shadow: var(--shadow); }
+  .rxw .topbar { height: 3rem; flex-shrink: 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
+  .rxw .trig { color: var(--muted-foreground); font-size: 1.05rem; }
+  .rxw .canvas { position: relative; flex: 1; min-height: 0; background: radial-gradient(circle, color-mix(in oklab, var(--muted-foreground) 20%, transparent) 1px, transparent 1px) 0 0 / 22px 22px; }
+
+  .rxw .page { position: absolute; inset: 0; padding: 1.1rem 1.2rem; overflow: auto; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
+  .rxw .page[data-active="true"] { opacity: 1; transform: none; pointer-events: auto; }
+  .rxw .page.center { display: flex; align-items: center; justify-content: center; }
+
+  .rxw .spot-on { position: relative; z-index: 7; animation: rxw-spot 1.4s ease-in-out infinite; border-radius: 8px; }
+  @keyframes rxw-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
+  .rxw .observe-on { outline: 2px dashed var(--spot); outline-offset: 3px; border-radius: 10px; }
+
+  .rxw .page-head { border-bottom: 1px solid var(--border); padding-bottom: 0.9rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.7rem; }
+  .rxw .backbtn { width: 1.9rem; height: 1.9rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); flex-shrink: 0; }
+  .rxw .ttl { font-size: 1.25rem; font-weight: 600; line-height: 1.15; display: block; }
+  .rxw .desc { font-size: 0.85rem; color: var(--muted-foreground); margin-top: 0.25rem; display: flex; align-items: center; gap: 0.4rem; }
+  .rxw .right { margin-left: auto; }
+  .rxw .colstack { display: flex; flex-direction: column; gap: 1rem; }
+
+  .rxw .btn { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--primary); color: var(--primary-foreground); border-radius: 8px; font-size: 0.82rem; font-weight: 500; padding: 0.45rem 0.75rem; }
+  .rxw .btn.outline { background: var(--background); color: var(--foreground); border: 1px solid var(--border); }
+  .rxw .btn.sm { padding: 0.3rem 0.55rem; font-size: 0.76rem; }
+  .rxw .iconbtn { width: 1.8rem; height: 1.8rem; border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); border: 1px solid var(--border); background: var(--background); }
+  .rxw .badge { display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: 999px; padding: 0.1rem 0.5rem; font-size: 0.7rem; color: var(--muted-foreground); }
+  .rxw .badge.ok { border-color: transparent; background: color-mix(in oklab, var(--success) 16%, transparent); color: var(--success); font-weight: 600; }
+  .rxw .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+  /* Landing */
+  .rxw .newcard { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; border: 1px solid var(--border); border-radius: var(--radius); background: color-mix(in oklab, var(--muted) 35%, var(--card)); padding: 0.9rem; }
+  .rxw .newcard b { font-size: 0.92rem; }
+  .rxw .newcard p { font-size: 0.76rem; color: var(--muted-foreground); margin: 0.2rem 0 0; }
+  .rxw .hist { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+  .rxw .hcard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.8rem; display: flex; flex-direction: column; gap: 0.35rem; }
+  .rxw .badges { display: flex; gap: 0.4rem; }
+  .rxw .hcard b { font-size: 0.82rem; }
+  .rxw .hcard small { font-size: 0.72rem; color: var(--muted-foreground); }
+  .rxw .hactions { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.2rem; }
+
+  /* New page uploader */
+  .rxw .dropzone { border: 1px dashed var(--input); border-radius: 12px; padding: 1.6rem; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; color: var(--muted-foreground); font-size: 0.85rem; }
+  .rxw .dropzone svg { font-size: 1.6rem; }
+  .rxw .dropzone .hint { font-size: 0.72rem; }
+  .rxw .cap-first::first-letter { text-transform: uppercase; }
+  .rxw .doclist { display: flex; flex-direction: column; gap: 0.4rem; }
+  .rxw .docrow { display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.7rem; font-size: 0.82rem; }
+  .rxw .docrow svg { color: var(--muted-foreground); }
+
+  /* Single result */
+  .rxw .resultbox { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.9rem; display: flex; flex-direction: column; gap: 0.7rem; }
+  .rxw .res-actions { display: flex; gap: 0.5rem; }
+  .rxw .jsonbox { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.8rem; background: var(--muted); border: 1px solid var(--border); border-radius: 8px; padding: 0.7rem 0.9rem; margin: 0; white-space: pre; overflow-x: auto; }
+
+  /* CSV dialog */
+  .rxw .modal { position: relative; z-index: 5; width: min(480px, 94%); background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); padding: 1.1rem; display: flex; flex-direction: column; gap: 0.8rem; }
+  .rxw .scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 4; }
+  .rxw .m-head b { font-size: 1rem; font-weight: 600; }
+  .rxw .m-head p { font-size: 0.78rem; color: var(--muted-foreground); margin: 0.25rem 0 0; }
+  .rxw .stepper { display: flex; gap: 0.4rem; }
+  .rxw .sc { flex: 1; text-align: center; font-size: 0.7rem; border: 1px solid var(--border); border-radius: 999px; padding: 0.25rem 0.4rem; color: var(--muted-foreground); }
+  .rxw .sc.on { border-color: var(--primary); color: var(--primary); font-weight: 600; }
+  .rxw .sc.done { background: var(--secondary); color: var(--foreground); }
+  .rxw .col-desc { font-size: 0.78rem; color: var(--muted-foreground); margin: 0; }
+  .rxw .coltable { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .rxw .ct-head, .rxw .ct-row { display: grid; grid-template-columns: 1fr 9rem; gap: 0.6rem; align-items: center; padding: 0.45rem 0.7rem; }
+  .rxw .ct-head { background: color-mix(in oklab, var(--muted) 60%, transparent); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted-foreground); font-weight: 600; }
+  .rxw .ct-row { border-top: 1px solid var(--border); font-size: 0.78rem; }
+  .rxw .select { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; border: 1px solid var(--input); border-radius: 8px; padding: 0.3rem 0.5rem; font-size: 0.76rem; background: var(--background); }
+  .rxw .select svg { color: var(--muted-foreground); font-size: 0.9rem; }
+  .rxw .m-foot { display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+  /* CSV results */
+  .rxw .summary, .rxw .rec-table { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+  .rxw .summary { padding: 0.9rem; }
+  .rxw .sm-head b { font-size: 0.9rem; }
+  .rxw .statcards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; margin-top: 0.6rem; }
+  .rxw .stat { border: 1px solid var(--border); border-radius: 10px; padding: 0.6rem; display: flex; flex-direction: column; gap: 0.15rem; }
+  .rxw .stat .sl { font-size: 0.68rem; color: var(--muted-foreground); }
+  .rxw .stat .sv { font-size: 1.35rem; font-weight: 700; }
+  .rxw .stat .sv.bad { color: var(--destructive); }
+  .rxw .rec-table { overflow: hidden; }
+  .rxw .th, .rxw .td { display: grid; grid-template-columns: 2.2rem 6rem 1fr; gap: 0.6rem; align-items: center; padding: 0.5rem 0.7rem; font-size: 0.78rem; }
+  .rxw .th { background: color-mix(in oklab, var(--muted) 60%, transparent); font-weight: 600; color: var(--muted-foreground); }
+  .rxw .td { border-top: 1px solid var(--border); }
+  .rxw .rh { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; color: var(--muted-foreground); }
+  .rxw .sbadge { font-size: 0.7rem; font-weight: 600; padding: 0.12rem 0.5rem; border-radius: 6px; }
+  .rxw .sbadge.ok { background: color-mix(in oklab, var(--success) 16%, transparent); color: var(--success); }
+  .rxw .sbadge.bad { background: color-mix(in oklab, var(--destructive) 14%, transparent); color: var(--destructive); }
+  .rxw .clamp { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Controls */
+  .rxw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .rxw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+  .rxw .navbtn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .rxw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
+  .rxw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .rxw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
+  .rxw .cap .tx { font-size: 0.88rem; font-weight: 500; }
+  .rxw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 200px; }
+  .rxw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .rxw .dotnav.on { background: var(--primary); transform: scale(1.3); }
+  .rxw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+  .rxw .progress i { display: block; height: 100%; width: 0; background: var(--primary); }
+  .rxw .progress i.run { animation: rxw-fill var(--dur, 6000ms) linear forwards; }
+  @keyframes rxw-fill { to { width: 100%; } }
+
+  @media (max-width: 640px) {
+    .rxw .shell { grid-template-columns: 1fr; height: 600px; }
+    .rxw .sb { display: none; }
+    .rxw .inset { margin: 0.5rem; }
+    .rxw .hist, .rxw .statcards { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rxw .page, .rxw .spot-on, .rxw .progress i { transition: none !important; animation: none !important; }
+  }
+</style>

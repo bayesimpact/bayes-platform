@@ -3,7 +3,7 @@ title: Add a form agent
 description: Create a form agent that guides a user through filling out a form, collecting structured answers that match a schema you define.
 category: guides-agents
 order: 3
-updated: 2026-07-13
+updated: 2026-07-16
 ---
 
 import AddFormAgentWalkthrough from "@/components/AddFormAgentWalkthrough.astro"
@@ -19,12 +19,11 @@ the **Form** type is what turns the agent into a guided form.
 
 ## How a form agent works
 
-You define a **Form Configuration** (a JSON schema listing the fields to collect,
-for example `fullName` and `email`), a **Greeting** the agent opens with, and
-**Instructions** describing how it should guide the user. A form agent has three
-configuration tabs — **General**, **Model** and **Form** — and **each tab is its own
-form that saves on its own** (the editor warns you before you leave a tab with
-unsaved changes).
+You define the **fields to collect** on the **Form** tab (for example `full_name` and
+`email`), a **Greeting** the agent opens with, and **Instructions** describing how it
+should guide the user. A form agent has three configuration tabs — **General**,
+**Model** and **Form** — and **each tab is its own form that saves on its own** (the
+editor warns you before you leave a tab with unsaved changes).
 
 ## The full flow at a glance
 
@@ -67,18 +66,39 @@ Click **Save**.
 Open the **Model** tab, choose the **Model** that powers the agent and a
 **Temperature** (lower values give steadier, more predictable questions). **Save**.
 
-### 6. Define the fields on Form
+### 6. Build the form on Form
 
-Open the **Form** tab and edit the **Form Configuration** — the JSON schema that
-describes each field to collect. List your fields under `properties`, give each a
-`type` and a `description`, and mark the mandatory ones in `required`. Click
-**Save**. Because each tab saves on its own, remember to **Save** every tab you
-change.
+Open the **Form** tab and build the fields the agent collects **visually** — no JSON
+required. Click **Add field** and, for each field, set:
+
+- **Field name** — the key the answer is stored under (e.g. `full_name`).
+- **Type** — **Text**, **Number**, or **Yes / No**.
+- **Description** — the question or hint the agent uses to ask for this field.
+- **Required** — toggle on for mandatory answers.
+
+Remove a field with its **trash** icon.
+
+To control the order in which the agent asks, turn on **Ask questions in this order**
+and **drag** the rows into the order you want; turn it off to let the assistant choose
+the order itself. Need finer control? Click **Advanced mode** (top right) to edit the
+raw JSON, and **Visual editor** to switch back. Click **Save** — and remember each tab
+saves on its own.
+
+## Version history
+
+Every save creates a new **version** of the agent. Open **History** (top right of the
+editor, showing the current **v number**) to browse past versions in a side panel,
+**compare** what changed (**Changes in this version** or **Compare with current**),
+and **Restore this version** — which copies those settings as a new current version
+without deleting anything. See [Version history](/en/agent-version-history) for the
+full walkthrough.
 
 ## Tips
 
 - Keep field **descriptions** clear — the agent uses them to phrase each question
   and to decide what to store.
+- Use **Ask questions in this order** when the sequence matters (e.g. ask for a name
+  before a preference); leave it off to let the agent adapt.
 - The **Greeting** sets the tone; write it in the same language as the agent's
   **Locale**.
 - Use a **low Temperature** (for example `0.2`) so the agent asks consistent
@@ -89,8 +109,11 @@ change.
 ## Troubleshooting
 
 - **The Create button is disabled** — the **Name** must be at least 3 characters.
-- **My Form Configuration won't save** — it must be a valid JSON object; check for a
-  trailing comma or a missing quote.
+- **I don't see the field type I need** — the visual editor covers **Text**,
+  **Number** and **Yes / No**; use **Advanced mode** (raw JSON) for lists or nested
+  objects.
+- **The agent asks questions in the wrong order** — turn on **Ask questions in this
+  order** and drag the fields into the sequence you want.
 - **My changes disappeared** — each tab saves separately; click **Save** before
   switching tabs (the editor warns you when changes are unsaved).
 - **I don't see a Form tab** — make sure you created a **Form** agent (conversation

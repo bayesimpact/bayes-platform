@@ -3,7 +3,7 @@ title: Ajouter un agent d'extraction
 description: Créez un agent d'extraction qui lit un document téléversé et renvoie des données structurées conformes à un schéma JSON que vous définissez.
 category: guides-agents
 order: 2
-updated: 2026-07-10
+updated: 2026-07-16
 ---
 
 import AddExtractionAgentWalkthrough from "@/components/AddExtractionAgentWalkthrough.astro"
@@ -20,10 +20,10 @@ qui fait que l'agent extrait des données plutôt que de tenir une conversation.
 
 ## Comment fonctionne un agent d'extraction
 
-Vous définissez un **Schéma JSON de sortie** listant les champs à capturer (par
-exemple `title` et `summary`) et des **Instructions** indiquant à l'agent quoi
+Vous définissez les **champs à capturer** dans l'onglet **Sortie** (par exemple
+`title` et `summary`) et rédigez des **Instructions** indiquant à l'agent quoi
 extraire. Lorsque l'agent s'exécute sur un document, il renvoie un objet JSON
-conforme à votre schéma. Un agent d'extraction dispose de trois onglets de
+conforme à ces champs. Un agent d'extraction dispose de trois onglets de
 configuration — **Général**, **Modèle** et **Sortie** — aucun réglage de conversation
 ou de message d'accueil — et **chaque onglet s'enregistre séparément** (l'éditeur
 vous avertit avant de quitter un onglet non enregistré).
@@ -74,15 +74,34 @@ littérales). **Enregistrez**.
 
 ### 6. Définir la sortie dans Sortie
 
-Ouvrez l'onglet **Sortie** et modifiez le **Schéma JSON de sortie** — l'objet JSON
-qui décrit chaque champ à extraire. Listez vos champs sous `properties`, donnez à
-chacun un `type` et une `description`, et marquez les champs obligatoires dans
-`required`. **Enregistrez**.
+Ouvrez l'onglet **Sortie** et construisez les champs à extraire **visuellement** —
+sans JSON. Cliquez sur **Ajouter un champ** et, pour chaque champ, définissez :
+
+- **Nom du champ** — la clé sous laquelle il est stocké (par ex. `title`).
+- **Type** — **Texte**, **Nombre** ou **Oui / Non**.
+- **Description** — l'indice que l'agent utilise pour décider quoi y mettre.
+- **Obligatoire** — activez-le pour les champs que l'agent doit remplir.
+
+Supprimez un champ avec son icône **corbeille**. Vous préférez éditer le schéma à la
+main ? Cliquez sur **Mode avancé** (en haut à droite) pour passer à un éditeur JSON
+brut, et **Éditeur visuel** pour revenir. Cliquez sur **Enregistrer**.
 
 ### 7. Enregistrer chaque onglet
 
 Comme chaque onglet est un formulaire à part, cliquez sur **Enregistrer** sur chaque
-onglet modifié. L'agent d'extraction est alors prêt à s'exécuter sur des documents.
+onglet modifié (ou **Annuler** pour abandonner les modifications d'un onglet). L'agent
+d'extraction est alors prêt à s'exécuter sur des documents — voir
+[Lancer une extraction](/fr/run-an-extraction).
+
+## Historique des versions
+
+Chaque enregistrement crée une nouvelle **version** de l'agent. Ouvrez **Historique**
+(en haut à droite de l'éditeur, avec le **v numéro** actuel) pour parcourir les
+versions passées dans un panneau latéral, **comparer** les changements
+(**Changements de cette version** ou **Comparer avec l'actuelle**), et **Restaurer
+cette version** — ce qui copie ces paramètres comme nouvelle version actuelle sans
+rien supprimer. Voir [Historique des versions](/fr/agent-version-history) pour le
+guide complet.
 
 ## Conseils
 
@@ -90,17 +109,22 @@ onglet modifié. L'agent d'extraction est alors prêt à s'exécuter sur des doc
   pour décider quoi mettre dans chaque champ.
 - Utilisez une **Température basse** (par exemple `0.2`) pour l'extraction : vous
   voulez une sortie fidèle et reproductible plutôt que des réponses créatives.
-- Ne marquez comme **required** que les champs réellement obligatoires ; l'agent
-  renvoie `null` pour une valeur requise qu'il ne trouve pas.
-- Le schéma doit être un **JSON valide** — l'éditeur signale un schéma invalide
-  avant que vous puissiez enregistrer.
+- Ne marquez comme **Obligatoire** que les champs réellement requis ; l'agent
+  renvoie `null` pour une valeur obligatoire qu'il ne trouve pas.
+- L'éditeur visuel propose des champs **Texte**, **Nombre** et **Oui / Non**. Pour
+  des formes plus riches (listes, objets imbriqués), passez en **Mode avancé** et
+  éditez le JSON.
 
 ## Dépannage
 
 - **Le bouton Créer est désactivé** — le **Nom** doit comporter au moins 3
   caractères.
-- **Mon schéma ne s'enregistre pas** — le **Schéma JSON de sortie** doit être un
-  objet JSON valide ; vérifiez une virgule en trop ou un guillemet manquant.
+- **Je ne vois pas le type de champ dont j'ai besoin** — l'éditeur visuel couvre
+  **Texte**, **Nombre** et **Oui / Non** ; utilisez le **Mode avancé** (JSON brut)
+  pour des listes ou des objets imbriqués.
+- **Mon schéma ne s'enregistre pas en Mode avancé** — il doit être un objet JSON
+  valide ; l'éditeur affiche *Le schéma JSON de sortie doit être un objet JSON valide*
+  et vous maintient en Mode avancé jusqu'à correction.
 - **Je ne vois pas d'onglet Sortie** — seuls les agents non conversationnels en ont
   un. Assurez-vous d'avoir créé un agent **Extraction** (les agents conversationnels
   discutent à la place).

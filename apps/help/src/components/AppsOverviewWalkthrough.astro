@@ -1,0 +1,222 @@
+---
+/**
+ * Orientation walkthrough of the workspace "apps" (App / Studio / Evaluation / Test /
+ * Review) opened from the home workspace card. Derived from WorkspaceItem.tsx
+ * (useAvailableApps + OpenButton split-button/dropdown; goToApp/goToStudio/goToEval/
+ * goToTester/goToReviewer labels + LayoutGrid/Settings/FlaskConical/ListChecks/
+ * HatGlasses icons + gating). Labels verbatim from the actions locale (EN + FR). Uses
+ * the PRODUCT (coral) palette, pinned locally. Derived 2026-07-16.
+ */
+type Lang = "en" | "fr"
+const { lang = "en" } = Astro.props as { lang?: Lang }
+
+const STRINGS = {
+  en: {
+    workspaces: "Workspaces", org: "Bayes Impact Demo", projectName: "Demo",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    appStudio: "Studio", appApp: "App", appEval: "Evaluation", appTest: "Test", appReview: "Review",
+    prev: "Prev", next: "Next", step: "Step",
+    steps: [
+      "From the home page, your workspace card opens your main app; the chevron reveals every app you can access.",
+      "Studio — where admins build and configure agents, sources, members and settings.",
+      "App — where everyone uses the agents: chat, forms, and extractions.",
+      "Evaluation — test extraction agents against datasets (shown when it's enabled).",
+      "Test — appears when you're invited as a tester to a review campaign.",
+      "Review — appears when you're invited as a reviewer to a review campaign.",
+    ],
+  },
+  fr: {
+    workspaces: "Espaces de travail", org: "Bayes Impact Demo", projectName: "Demo",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    appStudio: "Studio", appApp: "Application", appEval: "Évaluation", appTest: "Test", appReview: "Révision",
+    prev: "Précédent", next: "Suivant", step: "Étape",
+    steps: [
+      "Depuis la page d'accueil, la carte de votre espace de travail ouvre votre application principale ; le chevron révèle toutes les applications accessibles.",
+      "Studio — là où les admins créent et configurent les agents, les sources, les membres et les réglages.",
+      "Application — là où tout le monde utilise les agents : chat, formulaires et extractions.",
+      "Évaluation — testez les agents d'extraction sur des datasets (affiché si activé).",
+      "Test — apparaît quand vous êtes invité comme testeur à une campagne de relecture.",
+      "Révision — apparaît quand vous êtes invité comme relecteur à une campagne de relecture.",
+    ],
+  },
+} as const
+
+const s = STRINGS[lang]
+
+const steps = [
+  { spot: "btnOpen", observe: [] },
+  { spot: "itemStudio", observe: [] },
+  { spot: "itemApp", observe: [] },
+  { spot: "itemEval", observe: [] },
+  { spot: "itemTest", observe: [] },
+  { spot: "itemReview", observe: [] },
+].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const labels = { prev: s.prev, next: s.next, step: s.step }
+---
+
+<div class="aow" role="group" aria-label={s.workspaces}>
+  <div class="frame">
+    <div class="nav">
+      <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
+      <span class="appname">{s.workspaces}</span>
+      <span class="navuser"><span class="avatar">AM</span><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+    </div>
+
+    <div class="panel">
+      <div class="page-head"><span><span class="ttl">{s.workspaces}</span></span></div>
+      <div class="wscard">
+        <span class="ws-name">{s.projectName}</span>
+        <div class="openbtn" id="btnOpen">
+          <span class="split-main" id="itemStudio"><svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg> {s.appStudio}</span>
+          <span class="split-chev"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
+        </div>
+        <div class="menu">
+          <span class="menu-item" id="itemApp"><svg viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg> {s.appApp}</span>
+          <span class="menu-item" id="itemEval"><svg viewBox="0 0 24 24"><path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/></svg> {s.appEval}</span>
+          <span class="menu-item" id="itemTest"><svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg> {s.appTest}</span>
+          <span class="menu-item" id="itemReview"><svg viewBox="0 0 24 24"><path d="M14 18a2 2 0 0 0-4 0"/><path d="m19 11-2.11-6.657a2 2 0 0 0-2.752-1.148l-1.276.61A2 2 0 0 1 12 4H8.5a2 2 0 0 0-1.925 1.456L5 11"/><path d="M2 11h20"/><circle cx="17" cy="18" r="3"/><circle cx="7" cy="18" r="3"/></svg> {s.appReview}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="navbtn" data-prev><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> {s.prev}</button>
+    <button class="ctrl" data-playpause aria-label="Play / pause">⏸</button>
+    <span class="cap"><span class="st" data-stepcount></span><span class="tx" data-captext></span></span>
+    <span class="dots-nav" data-dots role="tablist" aria-label="Steps"></span>
+    <button class="navbtn primary" data-next>{s.next} <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="progress"><i data-bar></i></div>
+</div>
+
+<script define:vars={{ steps, labels }}>
+  const cs = document.currentScript
+  const aow =
+    cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("aow")
+      ? cs.previousElementSibling
+      : document.querySelector(".aow")
+  const q = (sel) => aow.querySelector(sel)
+  const dotsWrap = aow.querySelector("[data-dots]")
+  const bar = aow.querySelector("[data-bar]")
+  const capText = aow.querySelector("[data-captext]")
+  const stepCount = aow.querySelector("[data-stepcount]")
+  const playPause = aow.querySelector("[data-playpause]")
+  const prevBtn = aow.querySelector("[data-prev]")
+  const nextBtn = aow.querySelector("[data-next]")
+  const DUR = 6000
+  let idx = 0, playing = true, timer = null
+
+  steps.forEach((_, i) => {
+    const b = document.createElement("button")
+    b.className = "dotnav"; b.setAttribute("role", "tab"); b.setAttribute("aria-label", labels.step + " " + (i + 1))
+    b.addEventListener("click", () => go(i)); dotsWrap.appendChild(b)
+  })
+  const dots = [...dotsWrap.children]
+
+  function clearMarks() {
+    aow.querySelectorAll(".spot-on").forEach((el) => el.classList.remove("spot-on"))
+    aow.querySelectorAll(".observe-on").forEach((el) => el.classList.remove("observe-on"))
+  }
+  function render() {
+    const step = steps[idx]
+    dots.forEach((d, i) => d.classList.toggle("on", i === idx))
+    stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
+    capText.textContent = step.text
+
+    clearMarks()
+    const active = idx
+    setTimeout(() => {
+      if (active !== idx) return
+      if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
+      step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+    }, 260)
+
+    bar.classList.remove("run"); void bar.offsetWidth
+    bar.style.setProperty("--dur", DUR + "ms")
+    if (playing) bar.classList.add("run")
+  }
+  function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(() => go(idx + 1), DUR) }
+  function go(n) { idx = (n + steps.length) % steps.length; render(); schedule() }
+  function setPlaying(p) {
+    playing = p; playPause.textContent = p ? "⏸" : "▶"
+    if (p) { bar.classList.add("run"); schedule() } else { clearTimeout(timer); bar.classList.remove("run") }
+  }
+  prevBtn.addEventListener("click", () => go(idx - 1))
+  nextBtn.addEventListener("click", () => go(idx + 1))
+  playPause.addEventListener("click", () => setPlaying(!playing))
+
+  render(); schedule()
+</script>
+
+<style>
+  .aow {
+    --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+    --primary: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0); --input: oklch(0.922 0 0);
+    --radius: 0.625rem;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
+    --spot: color-mix(in oklab, var(--primary) 55%, transparent);
+    display: block; margin: 1.5rem 0; color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .aow * { box-sizing: border-box; }
+  .aow svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+
+  .aow .frame { display: flex; flex-direction: column; height: 560px; background: var(--background); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .aow .nav { height: 4rem; flex-shrink: 0; background: var(--background); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
+  .aow .logo { width: 2rem; height: 2rem; display: inline-flex; align-items: center; justify-content: center; padding: 0.15rem; }
+  .aow .logo svg { width: 100%; height: 100%; stroke: none; }
+  .aow .logo svg path { fill: #f18c6e; }
+  .aow .logo svg circle { fill: #010101; }
+  .aow .appname { flex: 1; color: var(--primary); font-weight: 500; font-size: 0.95rem; }
+  .aow .navuser { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--muted-foreground); }
+  .aow .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
+  .aow .navuser svg { font-size: 0.9rem; }
+
+  .aow .panel { flex: 1; min-height: 0; padding: 1.6rem 2rem; overflow: auto; }
+  .aow .page-head { margin-bottom: 1.2rem; }
+  .aow .ttl { font-size: 1.4rem; font-weight: 600; }
+
+  .aow .wscard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 1.1rem; display: inline-flex; flex-direction: column; gap: 0.9rem; min-width: 19rem; box-shadow: var(--shadow); }
+  .aow .ws-name { font-size: 1.1rem; font-weight: 600; }
+  .aow .openbtn { display: inline-flex; align-self: flex-start; border-radius: 8px; }
+  .aow .split-main { display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border); border-right: 0; border-radius: 8px 0 0 8px; padding: 0.5rem 0.75rem; font-size: 0.85rem; font-weight: 500; background: var(--background); }
+  .aow .split-main svg { color: var(--muted-foreground); }
+  .aow .split-chev { display: inline-grid; place-items: center; border: 1px solid var(--border); border-radius: 0 8px 8px 0; padding: 0 0.5rem; color: var(--muted-foreground); background: var(--background); }
+  .aow .menu { border: 1px solid var(--border); border-radius: 10px; background: var(--card); box-shadow: var(--shadow); padding: 0.35rem; display: flex; flex-direction: column; gap: 0.1rem; width: 13rem; }
+  .aow .menu-item { display: flex; align-items: center; gap: 0.55rem; padding: 0.5rem 0.6rem; border-radius: 7px; font-size: 0.85rem; }
+  .aow .menu-item svg { color: var(--muted-foreground); font-size: 1rem; }
+
+  .aow .spot-on { position: relative; z-index: 7; animation: aow-spot 1.4s ease-in-out infinite; border-radius: 8px; }
+  @keyframes aow-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
+  .aow .observe-on { outline: 2px dashed var(--spot); outline-offset: 3px; border-radius: 10px; }
+
+  .aow .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .aow .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+  .aow .navbtn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .aow .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
+  .aow .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .aow .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
+  .aow .cap .tx { font-size: 0.88rem; font-weight: 500; }
+  .aow .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 200px; }
+  .aow .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .aow .dotnav.on { background: var(--primary); transform: scale(1.3); }
+  .aow .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+  .aow .progress i { display: block; height: 100%; width: 0; background: var(--primary); }
+  .aow .progress i.run { animation: aow-fill var(--dur, 6000ms) linear forwards; }
+  @keyframes aow-fill { to { width: 100%; } }
+
+  @media (max-width: 640px) {
+    .aow .frame { height: 520px; }
+    .aow .panel { padding: 1rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .aow .spot-on, .aow .progress i { animation: none !important; }
+  }
+</style>

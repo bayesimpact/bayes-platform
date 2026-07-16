@@ -1,0 +1,107 @@
+---
+title: Vue d'ensemble des applications
+description: Comprenez les différentes applications que vous ouvrez depuis un espace de travail — Application, Studio, Évaluation, Test et Révision — à quoi sert chacune, et pourquoi vous n'en voyez parfois que certaines.
+category: getting-started
+order: 3
+updated: 2026-07-16
+---
+
+import AppsOverviewWalkthrough from "@/components/AppsOverviewWalkthrough.astro"
+
+Un **espace de travail** s'utilise à travers plusieurs **applications**, chacune pour
+une tâche différente. Vous les ouvrez depuis la **carte de votre espace de travail**
+sur la page d'accueil. Les applications visibles dépendent de votre **rôle** et de ce
+à quoi vous avez été **invité** — la plupart des gens n'en utilisent qu'une ou deux.
+
+## Les applications
+
+- **Application** — là où vous **utilisez** les agents : discuter, remplir des
+  formulaires et lancer des extractions. Toute personne ayant accès à un espace de
+  travail l'a. Voir [Discuter avec un agent](/fr/chat-with-an-agent).
+- **Studio** — là où les **admins** construisent et configurent l'espace de travail :
+  agents, sources (documents, sites web, bibliothèques de ressources), membres,
+  catégories et réglages. Seuls les utilisateurs qui peuvent gérer l'espace de travail
+  le voient.
+- **Évaluation** — l'application autonome pour **tester les agents d'extraction sur un
+  dataset CSV** et lire un taux de correspondance. Affichée si la fonctionnalité est
+  activée. Voir [Tableau de bord d'évaluation](/fr/evaluation-dashboard).
+- **Test** — l'expérience **testeur** : apparaît quand vous avez été invité comme
+  testeur à une [campagne de relecture](/fr/review-campaigns). Voir
+  [Participer comme testeur](/fr/participate-as-a-tester).
+- **Révision** — l'expérience **relecteur** : apparaît quand vous avez été invité comme
+  relecteur à une campagne de relecture. Voir
+  [Évaluer comme relecteur](/fr/review-as-a-reviewer).
+
+## Comment ouvrir une application
+
+Sur la page d'accueil, chaque espace de travail a un bouton d'**ouverture**. Si vous
+avez accès à plusieurs applications, c'est un **bouton divisé** : la partie principale
+ouvre votre application principale, et le **chevron** à côté ouvre un menu avec toutes
+les autres applications accessibles. Choisissez celle qu'il vous faut.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape met en valeur le
+bouton à cliquer et la zone à observer.
+
+<AppsOverviewWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir les applications de votre espace de travail
+
+Sur la page d'accueil, repérez la **carte de votre espace de travail**. Cliquez sur le
+bouton principal pour ouvrir votre application principale, ou sur le **chevron** à côté
+pour voir toutes les applications accessibles.
+
+### 2. Studio
+
+**Studio** est le côté admin/configuration — créer les agents, ajouter des sources,
+gérer les membres, les catégories et les réglages de l'espace de travail. Vous ne le
+voyez que si vous pouvez gérer l'espace de travail.
+
+### 3. Application
+
+**Application** est le côté quotidien, utilisateur final — vous parlez aux agents créés
+par un admin, remplissez des formulaires et lancez des extractions. Toujours
+disponible pour les membres de l'espace de travail.
+
+### 4. Évaluation
+
+**Évaluation** est une application distincte pour tester un **agent d'extraction** sur
+un **dataset CSV** et lire sa précision. Elle apparaît quand la fonctionnalité est
+activée pour l'espace de travail.
+
+### 5. Test
+
+**Test** ouvre l'application **testeur**. Elle n'apparaît qu'une fois que quelqu'un
+vous invite comme **testeur** à une campagne de relecture ; vous y discutez avec
+l'agent et donnez un retour.
+
+### 6. Révision
+
+**Révision** ouvre l'application **relecteur**. Elle n'apparaît qu'une fois que
+quelqu'un vous invite comme **relecteur** ; vous y lisez les sessions des testeurs et
+donnez votre propre note indépendante.
+
+## Conseils
+
+- Si vous ne faites qu'**utiliser** les agents, celle qu'il vous faut est
+  **Application**.
+- Si vous **construisez** les agents, vous passerez votre temps dans **Studio** ; les
+  deux s'ouvrent dans des onglets séparés pour garder les deux.
+- **Test** et **Révision** sont sur invitation — elles n'apparaissent pas tant qu'un
+  propriétaire de campagne ne vous a pas ajouté.
+
+## Dépannage
+
+- **Je ne vois qu'un seul bouton** — vous avez accès à une seule application ; elle
+  s'ouvre directement, sans menu.
+- **Je ne vois pas Studio** — il est réservé aux **admins/propriétaires** de l'espace
+  de travail ; demandez à un admin si vous devez configurer quelque chose.
+- **Je ne vois pas Test ni Révision** — elles n'apparaissent qu'après avoir été
+  **invité** à une campagne de relecture comme testeur ou relecteur (les invitations
+  arrivent par email).
+- **Je ne vois pas Évaluation** — c'est une fonctionnalité optionnelle ; demandez au
+  **Owner** ou à un **Admin** de l'espace de travail si elle doit être activée.

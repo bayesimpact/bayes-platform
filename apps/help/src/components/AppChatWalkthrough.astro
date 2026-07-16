@@ -1,0 +1,436 @@
+---
+/**
+ * Walkthrough of the App (Desk) — the end-user chat experience. Derived from the
+ * real components (verified, not copied blind): WorkspaceItem.tsx (`goToApp` +
+ * LayoutGridIcon), DeskRoutes/DeskLayout (SidebarLayout + SidebarAgentList),
+ * AgentList/AgentSessionList/AgentSessionListHeader, DeskAgentSessionRoute →
+ * AgentSessionMessages/Chat/AgentSessionMessage (composer placeholder, send,
+ * AttachDocument, Dictaphone, MessageNavigator, copy, feedback thumbs, SourcesTool,
+ * activity/tool timeline), FormResult panel. Labels verbatim from the
+ * conversationAgentSession / formAgentSession / agentSessionMessage / agent / actions
+ * locales (EN + FR). Uses the PRODUCT (coral) palette, pinned locally.
+ * Derived 2026-07-16.
+ */
+type Lang = "en" | "fr"
+const { lang = "en" } = Astro.props as { lang?: Lang }
+
+const STRINGS = {
+  en: {
+    appName: "App", workspaces: "Workspaces", org: "Bayes Impact Demo", projectName: "Demo", projectWord: "Workspace",
+    appStudio: "Studio", appApp: "App", appEval: "Evaluation",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    agentsLabel: "Agents",
+    agent1: "Helpful Assistant", agent2: "Intake Form", agent3: "Document Extractor",
+    typeConversation: "Conversation", typeForm: "Form", typeExtraction: "Extraction",
+    newChat: "New Chat", newChatDesc: "Start a chat with your agent.", create: "Create",
+    newForm: "New Form Session", newFormDesc: "Start a form session with your agent.",
+    sessionTime: "2 minutes ago", sessionTime2: "just now",
+    placeholder: "Ask your question...",
+    userMsg: "How do I reset my password?",
+    botMsg: "Go to **Settings → Security** and click **Reset password**. You'll get an email with a secure link.",
+    activitySummary: "Worked through 2 steps",
+    sources: "2 sources", jumpTo: "Jump to a message",
+    formResult: "Form Result",
+    fName1: "full_name", fVal1: "Alex Martin", fName2: "email", fVal2: "alex.martin@example.com", fName3: "topic", fVal3: "—",
+    prev: "Prev", next: "Next", step: "Step",
+    steps: [
+      "From the home page, open the App — this is where you chat with your agents.",
+      "The App lists the agents built for your workspace, in the sidebar and as cards. Pick one.",
+      "Click New Chat to start a session (your past sessions are listed here too).",
+      "Type your question in the box and send it; the agent replies in the thread.",
+      "The composer also has attach a file, voice input, and Jump to a message.",
+      "On each answer you can leave feedback, copy it, view its sources, and expand the steps it took.",
+      "A form agent works the same way, plus a Form Result panel that fills in as you chat.",
+    ],
+  },
+  fr: {
+    appName: "Application", workspaces: "Espaces de travail", org: "Bayes Impact Demo", projectName: "Demo", projectWord: "Espace de travail",
+    appStudio: "Studio", appApp: "Application", appEval: "Évaluation",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    agentsLabel: "Agents",
+    agent1: "Helpful Assistant", agent2: "Intake Form", agent3: "Document Extractor",
+    typeConversation: "Conversation", typeForm: "Formulaire", typeExtraction: "Extraction",
+    newChat: "Nouvelle discussion", newChatDesc: "Démarrez une discussion avec votre agent.", create: "Créer",
+    newForm: "Nouvelle session de formulaire", newFormDesc: "Démarrez une session de formulaire avec votre agent.",
+    sessionTime: "il y a 2 minutes", sessionTime2: "à l'instant",
+    placeholder: "Posez votre question...",
+    userMsg: "Comment réinitialiser mon mot de passe ?",
+    botMsg: "Allez dans **Paramètres → Sécurité** et cliquez sur **Réinitialiser le mot de passe**. Vous recevrez un email avec un lien sécurisé.",
+    activitySummary: "2 étapes effectuées",
+    sources: "2 sources", jumpTo: "Aller à un message",
+    formResult: "Résultat du formulaire",
+    fName1: "full_name", fVal1: "Alex Martin", fName2: "email", fVal2: "alex.martin@example.com", fName3: "topic", fVal3: "—",
+    prev: "Précédent", next: "Suivant", step: "Étape",
+    steps: [
+      "Depuis la page d'accueil, ouvrez l'Application — c'est là que vous discutez avec vos agents.",
+      "L'Application liste les agents créés pour votre espace de travail, dans la barre latérale et sous forme de cartes. Choisissez-en un.",
+      "Cliquez sur Nouvelle discussion pour démarrer une session (vos sessions passées sont aussi listées ici).",
+      "Saisissez votre question dans le champ et envoyez-la ; l'agent répond dans le fil.",
+      "Le champ propose aussi joindre un fichier, la saisie vocale, et Aller à un message.",
+      "Sur chaque réponse, vous pouvez donner un retour, la copier, voir ses sources, et déplier les étapes suivies.",
+      "Un agent de formulaire fonctionne pareil, avec en plus un panneau Résultat du formulaire qui se remplit au fil de la discussion.",
+    ],
+  },
+} as const
+
+const s = STRINGS[lang]
+
+const convIcon = '<path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/>'
+const formIcon = '<path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/>'
+const scanIcon = '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/>'
+const msgIcon = '<path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/>'
+
+const steps = [
+  { page: "home", agent: "", spot: "btnApp", observe: [] },
+  { page: "agents", agent: "", spot: "cardAgent1", observe: [] },
+  { page: "sessions", agent: "a1", spot: "btnNewChat", observe: [] },
+  { page: "chat", agent: "a1", spot: "spotComposer", observe: ["obsChat"] },
+  { page: "chat", agent: "a1", spot: "", observe: ["obsActions"] },
+  { page: "chat", agent: "a1", spot: "", observe: ["obsFooter"] },
+  { page: "form", agent: "a2", spot: "", observe: ["obsFormPanel"] },
+].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const labels = { prev: s.prev, next: s.next, step: s.step }
+---
+
+<div class="dkw" role="group" aria-label={s.appName}>
+  <div class="shell">
+    <!-- Sidebar (the App: agents + sessions) -->
+    <aside class="sb">
+      <div class="sb-head">
+        <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
+        <span class="org"><b>{s.org}</b></span>
+      </div>
+      <div class="sb-scroll">
+        <div class="grp-label">{s.agentsLabel}</div>
+
+        <div class="navitem" id="navA1"><svg viewBox="0 0 24 24" set:html={convIcon}></svg><span>{s.agent1}</span></div>
+        <div class="subwrap" id="subA1">
+          <div class="subitem new"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg><span>{s.newChat}</span></div>
+          <div class="subitem on"><svg viewBox="0 0 24 24" set:html={msgIcon}></svg><span>{s.sessionTime2}</span></div>
+          <div class="subitem"><svg viewBox="0 0 24 24" set:html={msgIcon}></svg><span>{s.sessionTime}</span></div>
+        </div>
+
+        <div class="navitem" id="navA2"><svg viewBox="0 0 24 24" set:html={formIcon}></svg><span>{s.agent2}</span></div>
+        <div class="subwrap" id="subA2">
+          <div class="subitem new"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg><span>{s.newForm}</span></div>
+          <div class="subitem on"><svg viewBox="0 0 24 24" set:html={msgIcon}></svg><span>{s.sessionTime2}</span></div>
+        </div>
+
+        <div class="navitem" id="navA3"><svg viewBox="0 0 24 24" set:html={scanIcon}></svg><span>{s.agent3}</span></div>
+      </div>
+      <div class="sb-user">
+        <span class="avatar">AM</span>
+        <span class="who"><b>{s.userName}</b><small>{s.userEmail}</small></span>
+        <span class="updown"><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+      </div>
+    </aside>
+
+    <!-- Main inset -->
+    <div class="inset">
+      <div class="topbar"><span class="trig"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span><span class="crumb">{s.projectName}</span></div>
+      <div class="canvas">
+        <!-- Home: open the App (step 1) -->
+        <div class="page" data-page="home" data-active="true">
+          <div class="page-head plain"><span><span class="ttl">{s.workspaces}</span></span></div>
+          <div class="wscard">
+            <span class="ws-name">{s.projectName}</span>
+            <span class="btn openapp" id="btnApp"><svg viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg> {s.appApp} <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+          </div>
+        </div>
+
+        <!-- App landing: agent grid (step 2) -->
+        <div class="page" data-page="agents">
+          <div class="page-head"><span><span class="ttl">{s.projectName}</span><span class="desc">{s.projectWord}</span></span></div>
+          <div class="cards3">
+            <div class="ecard" id="cardAgent1"><span class="cat">{s.typeConversation}</span><b class="ic"><svg viewBox="0 0 24 24" set:html={convIcon}></svg> {s.agent1}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.typeForm}</span><b class="ic"><svg viewBox="0 0 24 24" set:html={formIcon}></svg> {s.agent2}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.typeExtraction}</span><b class="ic"><svg viewBox="0 0 24 24" set:html={scanIcon}></svg> {s.agent3}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+          </div>
+        </div>
+
+        <!-- Session list (step 3) -->
+        <div class="page" data-page="sessions">
+          <div class="page-head"><span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><span><span class="ttl">{s.agent1}</span><span class="desc">{s.typeConversation} <svg viewBox="0 0 24 24" set:html={convIcon}></svg></span></span></div>
+          <div class="cards3">
+            <div class="ecard muted">
+              <b>{s.newChat}</b>
+              <p>{s.newChatDesc}</p>
+              <span class="btn big" id="btnNewChat">{s.create} <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></span>
+            </div>
+            <div class="ecard"><span class="cat">{s.sessionTime}</span><b class="ic"><svg viewBox="0 0 24 24" set:html={msgIcon}></svg> {s.userMsg}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+          </div>
+        </div>
+
+        <!-- Chat (steps 4-6) -->
+        <div class="page chatpage" data-page="chat">
+          <div class="page-head"><span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><span><span class="ttl">{s.sessionTime2}</span><span class="desc">{s.agent1} • {s.typeConversation}</span></span><span class="right"><span class="iconbtn"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span></span></div>
+          <div class="chat" id="obsChat">
+            <div class="msg user"><span>{s.userMsg}</span></div>
+            <div class="msg-block">
+              <div class="activity" id="obsFooterTop"><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg><svg class="ck" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg> <span>{s.activitySummary}</span></div>
+              <div class="msg bot"><span set:html={s.botMsg.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}></span></div>
+              <div class="msg-foot" id="obsFooter">
+                <span class="fb"><svg viewBox="0 0 24 24"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg></span>
+                <span class="fb"><svg viewBox="0 0 24 24"><path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/></svg></span>
+                <span class="fb"><svg viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span>
+                <span class="srcpill"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="10" ry="4"/><path d="M12 2a10 10 0 0 0 0 20"/><path d="M2 12h20"/></svg> {s.sources}</span>
+              </div>
+            </div>
+          </div>
+          <div class="composer" id="spotComposer">
+            <span class="ci muted-txt">{s.placeholder}</span>
+            <div class="ci-actions" id="obsActions">
+              <span class="iconbtn sm"><svg viewBox="0 0 24 24"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></span>
+              <span class="iconbtn sm"><svg viewBox="0 0 24 24"><path d="M12 19v3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><rect x="9" y="2" width="6" height="13" rx="3"/></svg></span>
+              <span class="iconbtn sm" title={s.jumpTo}><svg viewBox="0 0 24 24"><path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/></svg></span>
+              <span class="send"><svg viewBox="0 0 24 24"><path d="M3.714 3.048a.498.498 0 0 0-.683.627l2.843 7.627a2 2 0 0 1 0 1.396l-2.842 7.627a.498.498 0 0 0 .682.627l18-8.5a.5.5 0 0 0 0-.904z"/><path d="M6 12h16"/></svg></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form agent chat + result panel (step 7) -->
+        <div class="page chatpage" data-page="form">
+          <div class="page-head"><span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><span><span class="ttl">{s.sessionTime2}</span><span class="desc">{s.agent2} • {s.typeForm}</span></span></div>
+          <div class="form-split">
+            <div class="chat">
+              <div class="msg bot"><span>{lang === "fr" ? "Bonjour ! Quel est votre nom complet ?" : "Hi! What's your full name?"}</span></div>
+              <div class="msg user"><span>{s.fVal1}</span></div>
+              <div class="composer sm"><span class="ci muted-txt">{s.placeholder}</span><span class="send"><svg viewBox="0 0 24 24"><path d="M3.714 3.048a.498.498 0 0 0-.683.627l2.843 7.627a2 2 0 0 1 0 1.396l-2.842 7.627a.498.498 0 0 0 .682.627l18-8.5a.5.5 0 0 0 0-.904z"/><path d="M6 12h16"/></svg></span></div>
+            </div>
+            <div class="form-panel" id="obsFormPanel">
+              <b>{s.formResult}</b>
+              <div class="frow"><span class="fk">{s.fName1}</span><span class="fv">{s.fVal1}</span></div>
+              <div class="frow"><span class="fk">{s.fName2}</span><span class="fv">{s.fVal2}</span></div>
+              <div class="frow"><span class="fk">{s.fName3}</span><span class="fv empty">{s.fVal3}</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="navbtn" data-prev><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> {s.prev}</button>
+    <button class="ctrl" data-playpause aria-label="Play / pause">⏸</button>
+    <span class="cap"><span class="st" data-stepcount></span><span class="tx" data-captext></span></span>
+    <span class="dots-nav" data-dots role="tablist" aria-label="Steps"></span>
+    <button class="navbtn primary" data-next>{s.next} <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="progress"><i data-bar></i></div>
+</div>
+
+<script define:vars={{ steps, labels }}>
+  const cs = document.currentScript
+  const dkw =
+    cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("dkw")
+      ? cs.previousElementSibling
+      : document.querySelector(".dkw")
+  const q = (sel) => dkw.querySelector(sel)
+  const pages = [...dkw.querySelectorAll(".page")]
+  const dotsWrap = dkw.querySelector("[data-dots]")
+  const bar = dkw.querySelector("[data-bar]")
+  const capText = dkw.querySelector("[data-captext]")
+  const stepCount = dkw.querySelector("[data-stepcount]")
+  const playPause = dkw.querySelector("[data-playpause]")
+  const prevBtn = dkw.querySelector("[data-prev]")
+  const nextBtn = dkw.querySelector("[data-next]")
+  const DUR = 6000
+  let idx = 0, playing = true, timer = null
+
+  steps.forEach((_, i) => {
+    const b = document.createElement("button")
+    b.className = "dotnav"; b.setAttribute("role", "tab"); b.setAttribute("aria-label", labels.step + " " + (i + 1))
+    b.addEventListener("click", () => go(i)); dotsWrap.appendChild(b)
+  })
+  const dots = [...dotsWrap.children]
+
+  function clearMarks() {
+    dkw.querySelectorAll(".spot-on").forEach((el) => el.classList.remove("spot-on"))
+    dkw.querySelectorAll(".observe-on").forEach((el) => el.classList.remove("observe-on"))
+  }
+  function render() {
+    const step = steps[idx]
+    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page)))
+    dots.forEach((d, i) => d.classList.toggle("on", i === idx))
+    stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
+    capText.textContent = step.text
+
+    // Sidebar reflects the active agent + reveals its sessions.
+    q("#navA1").classList.toggle("on", step.agent === "a1")
+    q("#navA2").classList.toggle("on", step.agent === "a2")
+    q("#subA1").classList.toggle("open", step.agent === "a1")
+    q("#subA2").classList.toggle("open", step.agent === "a2")
+
+    clearMarks()
+    const active = idx
+    setTimeout(() => {
+      if (active !== idx) return
+      if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
+      step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+    }, 260)
+
+    bar.classList.remove("run"); void bar.offsetWidth
+    bar.style.setProperty("--dur", DUR + "ms")
+    if (playing) bar.classList.add("run")
+  }
+  function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(() => go(idx + 1), DUR) }
+  function go(n) { idx = (n + steps.length) % steps.length; render(); schedule() }
+  function setPlaying(p) {
+    playing = p; playPause.textContent = p ? "⏸" : "▶"
+    if (p) { bar.classList.add("run"); schedule() } else { clearTimeout(timer); bar.classList.remove("run") }
+  }
+  prevBtn.addEventListener("click", () => go(idx - 1))
+  nextBtn.addEventListener("click", () => go(idx + 1))
+  playPause.addEventListener("click", () => setPlaying(!playing))
+
+  render(); schedule()
+</script>
+
+<style>
+  .dkw {
+    --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+    --primary: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --destructive: oklch(0.577 0.245 27.325);
+    --sidebar: oklch(0.985 0 0); --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-accent: oklch(0.97 0 0); --sidebar-accent-foreground: oklch(0.205 0 0); --sidebar-border: oklch(0.922 0 0);
+    --radius: 0.625rem;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
+    --spot: color-mix(in oklab, var(--primary) 55%, transparent);
+    display: block; margin: 1.5rem 0; color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .dkw * { box-sizing: border-box; }
+  .dkw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+
+  .dkw .shell { display: grid; grid-template-columns: 208px 1fr; height: 680px; background: var(--sidebar); color: var(--sidebar-foreground); border: 1px solid var(--sidebar-border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .dkw .sb { display: flex; flex-direction: column; padding: 0.5rem; min-height: 0; }
+  .dkw .sb-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.4rem 0.6rem; }
+  .dkw .logo { width: 1.9rem; height: 1.9rem; display: inline-flex; align-items: center; justify-content: center; }
+  .dkw .logo svg { width: 100%; height: 100%; stroke: none; }
+  .dkw .logo svg path { fill: #f18c6e; }
+  .dkw .logo svg circle { fill: #010101; }
+  .dkw .org b { font-size: 0.9rem; font-weight: 700; }
+  .dkw .sb-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
+  .dkw .grp-label { font-size: 0.66rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0.4rem 0.5rem 0.2rem; }
+  .dkw .navitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.35rem 0.5rem; border-radius: 7px; font-size: 0.82rem; color: var(--sidebar-foreground); }
+  .dkw .navitem svg { font-size: 1rem; color: var(--muted-foreground); }
+  .dkw .navitem.on { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 600; }
+  .dkw .navitem.on svg { color: var(--sidebar-accent-foreground); }
+  .dkw .subwrap { display: none; flex-direction: column; gap: 0.05rem; margin: 0.1rem 0 0.2rem 0.9rem; padding-left: 0.5rem; border-left: 1px solid var(--sidebar-border); }
+  .dkw .subwrap.open { display: flex; }
+  .dkw .subitem { display: flex; align-items: center; gap: 0.45rem; padding: 0.28rem 0.45rem; border-radius: 6px; font-size: 0.76rem; color: var(--muted-foreground); }
+  .dkw .subitem svg { font-size: 0.85rem; }
+  .dkw .subitem.on { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 600; }
+  .dkw .subitem.new { color: var(--primary); }
+  .dkw .sb-user { display: flex; align-items: center; gap: 0.55rem; margin-top: auto; padding: 0.45rem 0.5rem; }
+  .dkw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
+  .dkw .who { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+  .dkw .who b { font-size: 0.76rem; font-weight: 600; }
+  .dkw .who small { font-size: 0.68rem; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dkw .updown { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+
+  .dkw .inset { position: relative; margin: 0.5rem 0.5rem 0.5rem 0; background: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; box-shadow: var(--shadow); }
+  .dkw .topbar { height: 3rem; flex-shrink: 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
+  .dkw .trig { color: var(--muted-foreground); font-size: 1.05rem; }
+  .dkw .crumb { font-size: 0.82rem; color: var(--muted-foreground); }
+  .dkw .canvas { position: relative; flex: 1; min-height: 0; background: radial-gradient(circle, color-mix(in oklab, var(--muted-foreground) 20%, transparent) 1px, transparent 1px) 0 0 / 22px 22px; }
+
+  .dkw .page { position: absolute; inset: 0; padding: 1.1rem 1.2rem; overflow: auto; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
+  .dkw .page[data-active="true"] { opacity: 1; transform: none; pointer-events: auto; }
+  .dkw .chatpage { display: flex; flex-direction: column; overflow: hidden; }
+
+  .dkw .spot-on { position: relative; z-index: 7; animation: dkw-spot 1.4s ease-in-out infinite; border-radius: 8px; }
+  @keyframes dkw-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
+  .dkw .observe-on { outline: 2px dashed var(--spot); outline-offset: 3px; border-radius: 10px; }
+
+  .dkw .page-head { border-bottom: 1px solid var(--border); padding-bottom: 0.9rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.7rem; flex-shrink: 0; }
+  .dkw .page-head.plain { border: 0; }
+  .dkw .backbtn { width: 1.9rem; height: 1.9rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); flex-shrink: 0; }
+  .dkw .ttl { font-size: 1.25rem; font-weight: 600; line-height: 1.15; display: block; }
+  .dkw .desc { font-size: 0.85rem; color: var(--muted-foreground); margin-top: 0.2rem; display: flex; align-items: center; gap: 0.35rem; }
+  .dkw .right { margin-left: auto; }
+
+  .dkw .btn { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--primary); color: var(--primary-foreground); border-radius: 8px; font-size: 0.82rem; font-weight: 500; padding: 0.45rem 0.75rem; }
+  .dkw .btn.openapp { border: 1px solid var(--border); background: var(--background); color: var(--foreground); }
+  .dkw .btn.openapp svg:first-child { color: var(--muted-foreground); }
+  .dkw .btn.big { margin-top: auto; align-self: flex-start; }
+  .dkw .iconbtn { width: 1.9rem; height: 1.9rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); background: var(--background); }
+  .dkw .iconbtn.sm { width: 1.7rem; height: 1.7rem; border: 0; }
+
+  .dkw .wscard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 1rem; display: inline-flex; flex-direction: column; gap: 0.8rem; min-width: 17rem; box-shadow: var(--shadow); }
+  .dkw .ws-name { font-size: 1.05rem; font-weight: 600; }
+  .dkw .openapp { align-self: flex-start; }
+
+  .dkw .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
+  .dkw .ecard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.8rem; min-height: 116px; display: flex; flex-direction: column; }
+  .dkw .ecard.muted { background: color-mix(in oklab, var(--muted) 35%, var(--card)); }
+  .dkw .ecard .cat { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-foreground); font-weight: 600; margin-bottom: 0.2rem; }
+  .dkw .ecard b { font-size: 0.86rem; }
+  .dkw .ecard b.ic { display: flex; align-items: center; gap: 0.35rem; }
+  .dkw .ecard b.ic svg { color: var(--muted-foreground); font-size: 0.95rem; }
+  .dkw .ecard p { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.2rem 0 0.6rem; }
+  .dkw .arrowbtn { margin-top: auto; align-self: flex-start; width: 1.8rem; height: 1.8rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); }
+
+  /* Chat */
+  .dkw .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 0.7rem; overflow: auto; padding: 0.2rem 0.1rem; }
+  .dkw .msg { max-width: 82%; padding: 0.55rem 0.8rem; border-radius: 12px; font-size: 0.82rem; line-height: 1.5; }
+  .dkw .msg.user { align-self: flex-end; background: var(--primary); color: var(--primary-foreground); border-bottom-right-radius: 4px; }
+  .dkw .msg.bot { align-self: flex-start; background: var(--muted); border-bottom-left-radius: 4px; }
+  .dkw .msg.bot b { font-weight: 600; }
+  .dkw .msg-block { display: flex; flex-direction: column; gap: 0.35rem; align-items: flex-start; max-width: 88%; }
+  .dkw .activity { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.74rem; color: var(--muted-foreground); }
+  .dkw .activity .ck { color: oklch(0.62 0.14 150); font-size: 0.85rem; }
+  .dkw .activity .chev { font-size: 0.85rem; }
+  .dkw .msg-foot { display: flex; align-items: center; gap: 0.5rem; padding-left: 0.2rem; }
+  .dkw .fb { color: var(--muted-foreground); font-size: 0.9rem; }
+  .dkw .srcpill { display: inline-flex; align-items: center; gap: 0.3rem; border: 1px solid var(--border); border-radius: 999px; padding: 0.1rem 0.5rem; font-size: 0.72rem; color: var(--muted-foreground); }
+
+  .dkw .composer { margin-top: 0.6rem; flex-shrink: 0; display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--input); border-radius: 12px; padding: 0.55rem 0.7rem; }
+  .dkw .composer.sm { margin-top: 0.4rem; }
+  .dkw .ci { flex: 1; font-size: 0.82rem; }
+  .dkw .muted-txt { color: var(--muted-foreground); }
+  .dkw .ci-actions { display: flex; align-items: center; gap: 0.3rem; }
+  .dkw .send { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--primary); color: var(--primary-foreground); display: grid; place-items: center; }
+
+  /* Form split */
+  .dkw .form-split { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 15rem; gap: 0.8rem; overflow: hidden; }
+  .dkw .form-split .chat { display: flex; }
+  .dkw .form-panel { border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem; display: flex; flex-direction: column; gap: 0.5rem; background: var(--card); overflow: auto; }
+  .dkw .form-panel b { font-size: 0.84rem; }
+  .dkw .frow { display: flex; flex-direction: column; gap: 0.15rem; }
+  .dkw .fk { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted-foreground); font-weight: 600; }
+  .dkw .fv { font-size: 0.8rem; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; border: 1px solid var(--border); border-radius: 6px; padding: 0.2rem 0.45rem; width: fit-content; }
+  .dkw .fv.empty { color: var(--muted-foreground); }
+
+  /* Controls */
+  .dkw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .dkw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+  .dkw .navbtn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .dkw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
+  .dkw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .dkw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
+  .dkw .cap .tx { font-size: 0.88rem; font-weight: 500; }
+  .dkw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 200px; }
+  .dkw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .dkw .dotnav.on { background: var(--primary); transform: scale(1.3); }
+  .dkw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+  .dkw .progress i { display: block; height: 100%; width: 0; background: var(--primary); }
+  .dkw .progress i.run { animation: dkw-fill var(--dur, 6000ms) linear forwards; }
+  @keyframes dkw-fill { to { width: 100%; } }
+
+  @media (max-width: 640px) {
+    .dkw .shell { grid-template-columns: 1fr; height: 600px; }
+    .dkw .sb { display: none; }
+    .dkw .inset { margin: 0.5rem; }
+    .dkw .cards3 { grid-template-columns: 1fr; }
+    .dkw .form-split { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dkw .page, .dkw .spot-on, .dkw .progress i { transition: none !important; animation: none !important; }
+  }
+</style>

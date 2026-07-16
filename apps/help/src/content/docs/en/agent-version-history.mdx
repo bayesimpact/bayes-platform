@@ -1,0 +1,95 @@
+---
+title: Version history
+description: Every time you save an agent, its settings are versioned — browse past versions, compare exactly what changed, and restore any earlier version in one click.
+category: guides-agents
+order: 7
+updated: 2026-07-16
+---
+
+import VersionHistoryWalkthrough from "@/components/VersionHistoryWalkthrough.astro"
+
+Every agent keeps a **version history** of its settings. Each time you save a tab in
+the editor, the platform records a new **version** — so you can look back at how the
+agent was configured before, **compare** what changed, and **restore** an earlier
+version if a change didn't work out.
+
+It's available on **every agent** (conversation, extraction, form) from the **History**
+button in the top right of the agent editor — no matter which tab you're on.
+
+## What's tracked
+
+A version captures the agent's saved settings, and the comparison highlights exactly
+which of them changed between two versions, field by field — for example
+**Instructions**, **Greeting**, **Model**, **Temperature**, **Language**, the document
+**search** mode, and the **output schema**. Restoring never deletes anything: it
+copies an old version's settings into a **new** current version.
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click and the area to
+watch.
+
+<VersionHistoryWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Open History
+
+In the agent editor, click **History** at the top right. The button carries a badge
+showing the **current version** (e.g. **v3**). A panel slides in from the right.
+
+### 2. Browse the versions
+
+The **Version history** panel lists every saved version, **newest first**. Each row
+shows **Version *n*** and when it was saved; the latest one is marked **Current**.
+
+### 3. Choose what to compare
+
+Select an older version, then pick a comparison mode:
+
+- **Changes in this version** — what changed between the selected version and the one
+  just before it.
+- **Compare with current** — the difference between the selected version and the
+  current settings.
+
+A caption tells you which two versions you're comparing. If there's only one version,
+you'll see **Only one version**; if two versions are identical, **No differences**.
+
+### 4. Read the diff
+
+The comparison shows a **field-by-field diff** of everything that changed — removed
+text in red, added text in green — so you can see exactly how the settings differed
+(instructions, model, temperature, and so on).
+
+### 5. Restore a version
+
+Found a version you want back? Click **Restore this version**. (The button is
+disabled on the **Current** version — there's nothing to restore.)
+
+### 6. Confirm the restore
+
+A dialog — **Restore version *n*?** — explains that the version's settings will be
+**copied as a new version** and become the current settings, and that **no version is
+deleted**. Confirm to apply it; the editor reloads with the restored settings as the
+new current version.
+
+## Tips
+
+- Save often — each save is a restore point, so you can experiment freely and roll
+  back.
+- Use **Compare with current** to review everything that changed since a known-good
+  version before restoring.
+- Restoring is safe and reversible: it creates a new version, so you can always
+  restore forward again.
+
+## Troubleshooting
+
+- **I don't see the History button** — it's in the top right of the **agent editor**;
+  open an agent and make sure you're on its edit screen.
+- **The panel says "Only one version"** — the agent has been saved just once; there's
+  nothing to compare until you save a change.
+- **Restore is disabled** — you've selected the **Current** version; pick an older one
+  to restore it.
+- **A change broke the agent** — open **History**, find the last good version, and
+  **Restore** it — nothing you've saved is lost.

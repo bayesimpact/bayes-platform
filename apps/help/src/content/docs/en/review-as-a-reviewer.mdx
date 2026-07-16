@@ -1,0 +1,119 @@
+---
+title: Review as a reviewer
+description: You've been invited as a reviewer in a review campaign — open the Reviewer app, read a tester's session, give your own independent (blind) rating, and consult the campaign report.
+category: guides-eval
+order: 6
+updated: 2026-07-16
+---
+
+import ReviewerWalkthrough from "@/components/ReviewerWalkthrough.astro"
+
+When someone invites you as a **reviewer** to a **review campaign**, you read the
+sessions that **testers** had with an agent and give your own independent judgement.
+Reviews are **blind**: the tester's rating and comment stay hidden until you submit
+yours, so your judgement isn't influenced. You do this in the **Reviewer** app, and
+you can also consult the campaign's aggregated **report**.
+
+The **Reviewer** app opens from your **workspace** card on the home page. Its button
+(with a glasses icon) only appears once you've been invited to review a campaign in
+that workspace.
+
+> This guide is for **reviewers**. If you were invited as a **tester** (to chat with
+> the agent), see [Participate as a tester](/en/participate-as-a-tester). If you're
+> **setting up** the campaign, see [Review campaigns](/en/review-campaigns).
+
+## How it works
+
+- A campaign has **testers' sessions** waiting to be reviewed. You open one, read its
+  **transcript**, and submit **Your review**: an overall **star rating** (required),
+  an optional comment, and the campaign's reviewer questions.
+- **Blind review** — until you submit, the tester's rating/comment are hidden. You
+  only see the objective **Session facts** and the transcript. After you submit, the
+  **Tester feedback** and **Other reviewers** become visible, and you can still edit
+  your review (**Save changes**).
+- You **can't review your own** tester sessions — those rows are marked *your session*
+  and their action is disabled.
+- The **Campaign report** aggregates everything: mean ratings, per-question
+  distributions, and a per-session matrix, with **Download CSV**.
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click and the area to
+watch.
+
+<ReviewerWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Open the Reviewer app
+
+On the home page, find your **workspace** card and open its **app menu** (the chevron
+next to the main button). Choose **Review** — the entry with the glasses icon. (If you
+don't see it, you haven't been invited to review a campaign in that workspace yet.)
+
+### 2. Open your campaign
+
+The **My review campaigns** page lists campaigns where you're a reviewer, each with
+the note *Review tester sessions and submit your own rating*. Click one to open it. If
+you have none yet, it shows **No review campaigns yet**.
+
+### 3. Pick a session to review
+
+The campaign page shows the agent and **Sessions to review** — a table with columns
+**Session**, **Started**, **Messages**, **Reviewers**, and **My review** (**Pending**
+or **Submitted**). Click **Review** on a pending session (or **View** on one you've
+already done). Rows marked *your session* are disabled — you can't review your own.
+
+### 4. Read and submit your review (blind)
+
+The session opens with two panes:
+
+- On the left, the **Session facts** (objective answers the tester gave) and the
+  **Transcript** of the conversation. A banner reminds you that the tester's rating
+  and comment are **hidden until you submit** — this keeps your judgement independent.
+- On the right, **Your review**: an overall **Your rating** (1–5 stars, **required**),
+  an optional **Comment**, and the campaign's reviewer questions (rating / single
+  choice / free text). Fill it in and click **Submit review**.
+
+### 5. See the revealed feedback
+
+Once you've submitted, the review is no longer blind. The **Tester feedback** (their
+overall rating and comment) and any **Other reviewers** appear on the left. Your own
+review stays editable — adjust it and click **Save changes** if needed.
+
+### 6. Open the campaign report
+
+From the campaign page, click **Campaign report** (top right) to see the aggregated
+results across all sessions and reviewers.
+
+### 7. Read the report
+
+The report shows headline stats — **Sessions**, **Mean tester rating**, **Mean
+reviewer rating**, **Mean end-of-phase** — a per-question breakdown, and a **Session
+matrix** (per session: tester, reviewers, mean reviewer rating and spread). Use
+**Download CSV** to export the raw data.
+
+## Tips
+
+- Form your opinion from the **transcript and Session facts first** — that's the point
+  of the blind review. The tester's rating only appears afterwards.
+- Answer every reviewer question thoughtfully; your responses feed the report's
+  per-question breakdown.
+- Compare your rating with **Other reviewers** (visible after you submit) to see where
+  judgements agree or differ.
+
+## Troubleshooting
+
+- **I don't see the Reviewer app** — its button only appears after you've been
+  **invited as a reviewer** to a campaign in that workspace (invitations arrive by
+  email). Unlike testers, reviewers keep access to **closed** campaigns too.
+- **The Review button is disabled on a row** — that's **your own** tester session
+  (marked *your session*); reviewers can't review their own sessions.
+- **I can't submit / edit my review** — an overall **Your rating** plus every required
+  question is needed to submit. If the campaign is **closed**, sessions become
+  **read-only** and can no longer be edited.
+- **The tester's rating is hidden** — that's intentional (**blind review**); it appears
+  once you submit your own review.
+- **Related:** the sessions you review come from [testers](/en/participate-as-a-tester),
+  and the campaign itself is set up in [Review campaigns](/en/review-campaigns).

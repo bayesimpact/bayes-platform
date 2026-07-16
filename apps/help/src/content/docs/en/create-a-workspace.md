@@ -2,7 +2,7 @@
 title: Create your first workspace
 description: Learn how to create a workspace and organize your work.
 category: getting-started
-order: 2
+order: 5
 updated: 2026-07-08
 ---
 

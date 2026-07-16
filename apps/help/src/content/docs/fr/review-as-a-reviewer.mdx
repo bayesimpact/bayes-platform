@@ -1,0 +1,134 @@
+---
+title: Évaluer comme relecteur
+description: Vous avez été invité comme relecteur dans une campagne d'évaluation — ouvrez l'app Relecteur, lisez la session d'un testeur, donnez votre propre note indépendante (à l'aveugle), et consultez le rapport de la campagne.
+category: guides-eval
+order: 6
+updated: 2026-07-16
+---
+
+import ReviewerWalkthrough from "@/components/ReviewerWalkthrough.astro"
+
+Lorsqu'on vous invite comme **relecteur** à une **campagne d'évaluation**, vous lisez
+les sessions que les **testeurs** ont eues avec un agent et vous donnez votre propre
+jugement indépendant. Les relectures sont **à l'aveugle** : la note et le commentaire
+du testeur restent masqués jusqu'à ce que vous soumettiez les vôtres, afin que votre
+jugement ne soit pas influencé. Cela se passe dans l'application **Relecteur**, et
+vous pouvez aussi consulter le **rapport** agrégé de la campagne.
+
+L'application **Relecteur** s'ouvre depuis la carte de votre **espace de travail** sur
+la page d'accueil. Son bouton (avec une icône de lunettes) n'apparaît qu'une fois que
+vous avez été invité à relire une campagne dans cet espace de travail.
+
+> Ce guide s'adresse aux **relecteurs**. Si vous avez été invité comme **testeur**
+> (pour discuter avec l'agent), voir [Participer comme testeur](/fr/participate-as-a-tester).
+> Si vous **configurez** la campagne, voir [Campagnes de relecture](/fr/review-campaigns).
+
+## Comment ça marche
+
+- Une campagne comporte des **sessions de testeurs** à relire. Vous en ouvrez une,
+  lisez sa **transcription**, et soumettez **Votre relecture** : une **note** globale
+  en étoiles (obligatoire), un commentaire optionnel, et les questions relecteur de la
+  campagne.
+- **Relecture à l'aveugle** — tant que vous n'avez pas soumis, la note/le commentaire
+  du testeur sont masqués. Vous ne voyez que les **Faits de la session** objectifs et
+  la transcription. Après l'envoi, le **Retour du testeur** et les **Autres
+  relecteurs** deviennent visibles, et vous pouvez encore modifier votre relecture
+  (**Enregistrer les modifications**).
+- Vous **ne pouvez pas relire vos propres** sessions de testeur — ces lignes sont
+  marquées *votre session* et leur action est désactivée.
+- Le **Rapport de la campagne** agrège tout : notes moyennes, répartitions par
+  question et une matrice par session, avec **Télécharger le CSV**.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape met en valeur le
+bouton à cliquer et la zone à observer.
+
+<ReviewerWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir l'application Relecteur
+
+Sur la page d'accueil, repérez la carte de votre **espace de travail** et ouvrez son
+**menu d'applications** (le chevron à côté du bouton principal). Choisissez
+**Révision** — l'entrée avec l'icône de lunettes. (Si vous ne la voyez pas, c'est que
+vous n'avez pas encore été invité à relire une campagne dans cet espace de travail.)
+
+### 2. Ouvrir votre campagne
+
+La page **Mes campagnes d'évaluation** liste les campagnes où vous êtes relecteur,
+chacune avec la mention *Relisez les sessions des testeurs et soumettez votre propre
+évaluation*. Cliquez sur l'une d'elles. Si vous n'en avez aucune, la page affiche
+**Aucune campagne d'évaluation pour le moment**.
+
+### 3. Choisir une session à relire
+
+La page de la campagne présente l'agent et **Sessions à relire** — un tableau avec les
+colonnes **Session**, **Démarrée**, **Messages**, **Relecteurs** et **Ma relecture**
+(**En attente** ou **Soumise**). Cliquez sur **Relire** pour une session en attente
+(ou **Voir** pour une déjà faite). Les lignes marquées *votre session* sont
+désactivées — vous ne pouvez pas relire les vôtres.
+
+### 4. Lire et soumettre votre relecture (à l'aveugle)
+
+La session s'ouvre en deux volets :
+
+- À gauche, les **Faits de la session** (réponses objectives du testeur) et la
+  **Transcription** de la conversation. Un bandeau rappelle que la note et le
+  commentaire du testeur sont **masqués jusqu'à votre envoi** — pour garder votre
+  jugement indépendant.
+- À droite, **Votre relecture** : une **Votre note** globale (1 à 5 étoiles,
+  **obligatoire**), un **Commentaire** optionnel, et les questions relecteur de la
+  campagne (note / choix unique / texte libre). Remplissez-la et cliquez sur
+  **Soumettre la relecture**.
+
+### 5. Voir le retour révélé
+
+Une fois soumise, la relecture n'est plus à l'aveugle. Le **Retour du testeur** (sa
+note globale et son commentaire) et les éventuels **Autres relecteurs** apparaissent à
+gauche. Votre propre relecture reste modifiable — ajustez-la et cliquez sur
+**Enregistrer les modifications** si besoin.
+
+### 6. Ouvrir le rapport de la campagne
+
+Depuis la page de la campagne, cliquez sur **Rapport de la campagne** (en haut à
+droite) pour voir les résultats agrégés sur l'ensemble des sessions et des relecteurs.
+
+### 7. Lire le rapport
+
+Le rapport affiche des chiffres clés — **Sessions**, **Note moyenne des testeurs**,
+**Note moyenne des relecteurs**, **Moyenne fin de phase** — une répartition par
+question, et une **Matrice des sessions** (par session : testeur, relecteurs, moyenne
+des relecteurs et écart). Utilisez **Télécharger le CSV** pour exporter les données
+brutes.
+
+## Conseils
+
+- Forgez-vous une opinion à partir de la **transcription et des Faits de la session
+  d'abord** — c'est tout l'intérêt de la relecture à l'aveugle. La note du testeur
+  n'apparaît qu'ensuite.
+- Répondez soigneusement à chaque question relecteur ; vos réponses alimentent la
+  répartition par question du rapport.
+- Comparez votre note à celle des **Autres relecteurs** (visibles après votre envoi)
+  pour voir où les jugements convergent ou divergent.
+
+## Dépannage
+
+- **Je ne vois pas l'application Relecteur** — son bouton n'apparaît qu'après avoir été
+  **invité comme relecteur** à une campagne dans cet espace de travail (les
+  invitations arrivent par email). Contrairement aux testeurs, les relecteurs gardent
+  l'accès aux campagnes **clôturées**.
+- **Le bouton Relire est désactivé sur une ligne** — c'est **votre propre** session de
+  testeur (marquée *votre session*) ; les relecteurs ne peuvent pas relire leurs
+  propres sessions.
+- **Je ne peux pas soumettre / modifier ma relecture** — une **Votre note** globale et
+  chaque question obligatoire sont nécessaires pour soumettre. Si la campagne est
+  **clôturée**, les sessions deviennent en **lecture seule** et ne peuvent plus être
+  modifiées.
+- **La note du testeur est masquée** — c'est intentionnel (**relecture à l'aveugle**) ;
+  elle apparaît une fois votre relecture soumise.
+- **En lien :** les sessions que vous relisez proviennent des
+  [testeurs](/fr/participate-as-a-tester), et la campagne elle-même se configure dans
+  [Campagnes de relecture](/fr/review-campaigns).

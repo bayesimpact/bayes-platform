@@ -3,7 +3,7 @@ title: Ajouter un agent de formulaire
 description: Créez un agent de formulaire qui guide un utilisateur pour remplir un formulaire, en collectant des réponses structurées conformes à un schéma que vous définissez.
 category: guides-agents
 order: 3
-updated: 2026-07-13
+updated: 2026-07-16
 ---
 
 import AddFormAgentWalkthrough from "@/components/AddFormAgentWalkthrough.astro"
@@ -21,13 +21,12 @@ formulaire guidé.
 
 ## Comment fonctionne un agent de formulaire
 
-Vous définissez une **Configuration du formulaire** (un schéma JSON listant les
-champs à collecter, par exemple `fullName` et `email`), un **Message d'accueil** par
-lequel l'agent commence, et des **Instructions** décrivant comment il doit guider
-l'utilisateur. Un agent de formulaire dispose de trois onglets de configuration —
-**Général**, **Modèle** et **Formulaire** — et **chaque onglet est un formulaire à
-part qui s'enregistre séparément** (l'éditeur vous avertit avant de quitter un onglet
-non enregistré).
+Vous définissez les **champs à collecter** dans l'onglet **Formulaire** (par exemple
+`full_name` et `email`), un **Message d'accueil** par lequel l'agent commence, et des
+**Instructions** décrivant comment il doit guider l'utilisateur. Un agent de
+formulaire dispose de trois onglets de configuration — **Général**, **Modèle** et
+**Formulaire** — et **chaque onglet est un formulaire à part qui s'enregistre
+séparément** (l'éditeur vous avertit avant de quitter un onglet non enregistré).
 
 ## Le parcours complet en un coup d'œil
 
@@ -75,18 +74,45 @@ Ouvrez l'onglet **Modèle**, choisissez le **Modèle** qui pilote l'agent et une
 **Température** (une valeur basse donne des questions plus stables et prévisibles).
 **Enregistrez**.
 
-### 6. Définir les champs dans Formulaire
+### 6. Construire le formulaire dans Formulaire
 
-Ouvrez l'onglet **Formulaire** et modifiez la **Configuration du formulaire** — le
-schéma JSON qui décrit chaque champ à collecter. Listez vos champs sous
-`properties`, donnez à chacun un `type` et une `description`, et marquez les champs
-obligatoires dans `required`. Cliquez sur **Enregistrer**. Comme chaque onglet
-s'enregistre séparément, pensez à **Enregistrer** chaque onglet modifié.
+Ouvrez l'onglet **Formulaire** et construisez les champs que l'agent collecte
+**visuellement** — sans JSON. Cliquez sur **Ajouter un champ** et, pour chaque champ,
+définissez :
+
+- **Nom du champ** — la clé sous laquelle la réponse est stockée (par ex.
+  `full_name`).
+- **Type** — **Texte**, **Nombre** ou **Oui / Non**.
+- **Description** — la question ou l'indice que l'agent utilise pour demander ce
+  champ.
+- **Obligatoire** — activez-le pour les réponses obligatoires.
+
+Supprimez un champ avec son icône **corbeille**.
+
+Pour contrôler l'ordre dans lequel l'agent pose les questions, activez **Poser les
+questions dans cet ordre** et **glissez** les lignes dans l'ordre souhaité ;
+désactivez-le pour laisser l'assistant choisir l'ordre lui-même. Besoin d'un contrôle
+plus fin ? Cliquez sur **Mode avancé** (en haut à droite) pour éditer le JSON brut, et
+**Éditeur visuel** pour revenir. Cliquez sur **Enregistrer** — et rappelez-vous que
+chaque onglet s'enregistre séparément.
+
+## Historique des versions
+
+Chaque enregistrement crée une nouvelle **version** de l'agent. Ouvrez **Historique**
+(en haut à droite de l'éditeur, avec le **v numéro** actuel) pour parcourir les
+versions passées dans un panneau latéral, **comparer** les changements
+(**Changements de cette version** ou **Comparer avec l'actuelle**), et **Restaurer
+cette version** — ce qui copie ces paramètres comme nouvelle version actuelle sans
+rien supprimer. Voir [Historique des versions](/fr/agent-version-history) pour le
+guide complet.
 
 ## Conseils
 
 - Gardez des **descriptions** de champs claires — l'agent s'en sert pour formuler
   chaque question et pour décider quoi enregistrer.
+- Utilisez **Poser les questions dans cet ordre** quand la séquence compte (par ex.
+  demander un nom avant une préférence) ; laissez-le désactivé pour que l'agent
+  s'adapte.
 - Le **Message d'accueil** donne le ton ; rédigez-le dans la même langue que la
   **Langue** de l'agent.
 - Utilisez une **Température basse** (par exemple `0.2`) pour que l'agent pose des
@@ -98,8 +124,11 @@ s'enregistre séparément, pensez à **Enregistrer** chaque onglet modifié.
 
 - **Le bouton Créer est désactivé** — le **Nom** doit comporter au moins 3
   caractères.
-- **Ma Configuration du formulaire ne s'enregistre pas** — elle doit être un objet
-  JSON valide ; vérifiez une virgule en trop ou un guillemet manquant.
+- **Je ne vois pas le type de champ dont j'ai besoin** — l'éditeur visuel couvre
+  **Texte**, **Nombre** et **Oui / Non** ; utilisez le **Mode avancé** (JSON brut)
+  pour des listes ou des objets imbriqués.
+- **L'agent pose les questions dans le mauvais ordre** — activez **Poser les questions
+  dans cet ordre** et glissez les champs dans la séquence voulue.
 - **Mes modifications ont disparu** — chaque onglet s'enregistre séparément ; cliquez
   sur **Enregistrer** avant de changer d'onglet (l'éditeur vous avertit).
 - **Je ne vois pas d'onglet Formulaire** — assurez-vous d'avoir créé un agent
