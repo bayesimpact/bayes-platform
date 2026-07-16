@@ -19,6 +19,7 @@
     "check:deps:baseline": "depcruise src --output-type baseline --output-to .dependency-cruiser-known-violations.json",
     "check:boundaries": "npm run check:circular && npm run check:deps",
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --colors --runInBand",
+    "test:coverage": "node --experimental-vm-modules --max-old-space-size=16384 ../../node_modules/jest/bin/jest.js --colors --runInBand --forceExit --coverage",
     "test:workers:prepare": "ts-node -r tsconfig-paths/register src/scripts/prepare-test-worker-dbs.ts",
     "test:workers:cleanup": "ts-node -r tsconfig-paths/register src/scripts/cleanup-test-worker-dbs.ts",
     "test:parallel": "ts-node -r tsconfig-paths/register src/scripts/run-test-parallel.ts",
