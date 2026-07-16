@@ -3,11 +3,22 @@ import { z } from "zod"
 import type { ToolExecutionLog } from "./tool-execution-log"
 
 const inputSchema = z.object({
-  task: z.string().min(1).describe("The precise task or question to delegate to the sub-agent."),
+  task: z
+    .string()
+    .min(1)
+    .describe(
+      "The precise instruction the sub-agent must carry out — what it should do or produce right now. " +
+        "The recent user/assistant conversation is attached automatically, so do not restate what was " +
+        "already said; give the concrete objective (e.g. what to collect, decide, or answer).",
+    ),
   context: z
     .string()
-    .default("")
-    .describe("Relevant conversation context the sub-agent needs to answer accurately."),
+    .optional()
+    .describe(
+      "Optional extra background the task alone does not convey (earlier decisions, the " +
+        "user's underlying goal). The recent user/assistant messages are attached " +
+        "automatically, so do not restate them here.",
+    ),
 })
 const outputSchema = z.object({
   answer: z.string().describe("The sub-agent response."),

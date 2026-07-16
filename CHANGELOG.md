@@ -11,6 +11,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Visual output-schema editor: set an optional min/max range on number fields, allow enum and array types
 
 ### Changed
+- Agents delegating to a sub-agent share the recent conversation, so sub-agent replies stay on topic
 
 ### Fixed
 

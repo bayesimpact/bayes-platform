@@ -25,6 +25,7 @@ import { ServiceWithLLM } from "@/external/llm"
 import { AgentMessage } from "../agent-message.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMessageAttachmentDocumentsService } from "../agent-message-attachment-documents.service"
+import { isLLMVisibleMessage } from "./llm-visible-message.helper"
 import { generateMasterPrompt } from "./master-promts/generate-master-prompt"
 import type {
   AgentSessionScope,
@@ -443,33 +444,10 @@ export class StreamingService extends ServiceWithLLM {
   private async convertToLLMFormat(
     messages: ConversationAgentSession["messages"],
   ): Promise<LLMChatMessage[]> {
-    const llmMessages: LLMChatMessage[] = []
-
-    for (const message of messages) {
-      // Skip streaming messages (they're not complete yet)
-      if (message.status === "streaming") {
-        continue
-      }
-
-      // Skip aborted messages
-      if (message.status === "aborted") {
-        continue
-      }
-
-      // Skip messages with empty content (AI SDK requires non-empty content)
-      if (!message.content || message.content.trim().length === 0) {
-        continue
-      }
-
-      if (message.role === "user" || message.role === "assistant") {
-        llmMessages.push({
-          role: message.role,
-          content: message.content,
-        })
-      }
-    }
-
-    return llmMessages
+    return messages.filter(isLLMVisibleMessage).map((message) => ({
+      role: message.role,
+      content: message.content,
+    }))
   }
 
   /**
