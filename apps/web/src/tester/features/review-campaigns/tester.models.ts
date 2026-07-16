@@ -18,7 +18,9 @@ export type TesterCampaignSurvey = TesterCampaignSurveyDto
 export type StartTesterSessionResult = StartTesterSessionResponseDto
 export type MyTesterSessionSummary = MyTesterSessionSummaryDto
 
-export type { SubmitTesterSessionFeedbackRequestDto as SubmitTesterFeedbackFields }
-export type { UpdateTesterSessionFeedbackRequestDto as UpdateTesterFeedbackFields }
-export type { SubmitTesterCampaignSurveyRequestDto as SubmitTesterSurveyFields }
-export type { UpdateTesterCampaignSurveyRequestDto as UpdateTesterSurveyFields }
+export type {
+  SubmitTesterCampaignSurveyRequestDto as SubmitTesterSurveyFields,
+  SubmitTesterSessionFeedbackRequestDto as SubmitTesterFeedbackFields,
+  UpdateTesterCampaignSurveyRequestDto as UpdateTesterSurveyFields,
+  UpdateTesterSessionFeedbackRequestDto as UpdateTesterFeedbackFields,
+}

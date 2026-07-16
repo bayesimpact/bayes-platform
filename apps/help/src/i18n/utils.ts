@@ -29,4 +29,4 @@ export function switchLocalePath(pathname: string, target: Locale): string {
   return `/${segments.join("/")}`
 }
 
-export { LOCALES, DEFAULT_LOCALE }
+export { DEFAULT_LOCALE, LOCALES }
