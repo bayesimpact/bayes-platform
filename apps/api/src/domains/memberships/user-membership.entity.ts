@@ -31,6 +31,8 @@ export type UserMembershipRole = "owner" | "admin" | "member" | "tester" | "revi
  *    (a user holds exactly one role per resource).
  *  - One row per (userId, resourceId, resourceType, role) for review_campaign
  *    (a user can simultaneously hold both "tester" and "reviewer" roles on the same campaign).
+ *  - One row per (userId, roleId) for global assignments
+ *    (a user holds a given global role at most once).
  *
  * NOTE: We deliberately do NOT extend Base4AllEntity here to avoid a PK constraint name
  * collision.  The historical "user_membership" table (later renamed to "organization_membership"
@@ -47,6 +49,10 @@ export type UserMembershipRole = "owner" | "admin" | "member" | "tester" | "revi
 @Index("UQ_user_membership_campaign", ["userId", "resourceId", "resourceType", "role"], {
   unique: true,
   where: `"resource_type" = 'review_campaign'`,
+})
+@Index("UQ_user_membership_global", ["userId", "roleId"], {
+  unique: true,
+  where: `"resource_type" = 'global'`,
 })
 export class UserMembership {
   @PrimaryGeneratedColumn("uuid", { primaryKeyConstraintName: "PK_user_membership_id" })
