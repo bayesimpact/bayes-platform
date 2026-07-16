@@ -10,24 +10,24 @@ import type { IOrganizationsSpi } from "../organizations.spi"
 export default {
   list: async () => {
     const axios = getAxiosInstance()
-    const response = await axios.get<typeof OrganizationsRoutes.listOrganizations.response>(
-      OrganizationsRoutes.listOrganizations.getPath(),
+    const response = await axios.get<typeof OrganizationsRoutes.getAll.response>(
+      OrganizationsRoutes.getAll.getPath(),
     )
     return response.data.data.map(toOrganizationListItem)
   },
   createOne: async (payload) => {
     const axios = getAxiosInstance()
-    const response = await axios.post<typeof OrganizationsRoutes.createOrganization.response>(
-      OrganizationsRoutes.createOrganization.getPath(),
-      { payload } satisfies typeof OrganizationsRoutes.createOrganization.request,
+    const response = await axios.post<typeof OrganizationsRoutes.createOne.response>(
+      OrganizationsRoutes.createOne.getPath(),
+      { payload } satisfies typeof OrganizationsRoutes.createOne.request,
     )
     return { id: response.data.data.id }
   },
   updateOne: async (params, payload) => {
     const axios = getAxiosInstance()
-    await axios.patch(OrganizationsRoutes.updateOrganization.getPath(params), {
+    await axios.patch(OrganizationsRoutes.updateOne.getPath(params), {
       payload,
-    } satisfies typeof OrganizationsRoutes.updateOrganization.request)
+    } satisfies typeof OrganizationsRoutes.updateOne.request)
   },
 } satisfies IOrganizationsSpi
 

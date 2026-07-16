@@ -57,7 +57,7 @@ describe("Organizations - listOrganizations", () => {
 
   const subject = async () =>
     request({
-      route: OrganizationsRoutes.listOrganizations,
+      route: OrganizationsRoutes.getAll,
       token: accessToken,
     })
 

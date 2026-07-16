@@ -19,23 +19,23 @@ import { OrganizationsService } from "./organizations.service"
 export class OrganizationsController {
   constructor(private readonly organizationsService: OrganizationsService) {}
 
-  @Get(OrganizationsRoutes.listOrganizations.path)
+  @Get(OrganizationsRoutes.getAll.path)
   @UseGuards(JwtAuthGuard, UserGuard)
   async listOrganizations(
     @Req() request: EndpointRequest,
-  ): Promise<typeof OrganizationsRoutes.listOrganizations.response> {
+  ): Promise<typeof OrganizationsRoutes.getAll.response> {
     const organizations = await this.organizationsService.listUserOrganizations(request.user.id)
     return { data: organizations.map(toUserOrganizationListItemDto) }
   }
 
-  @Post(OrganizationsRoutes.createOrganization.path)
+  @Post(OrganizationsRoutes.createOne.path)
   @UseGuards(JwtAuthGuard, UserGuard, CheckPermissionGuard)
   @CheckPermission("organization.create")
   @TrackActivity({ action: "organization.create" })
   async createOrganization(
     @Req() request: EndpointRequest,
-    @Body() body: typeof OrganizationsRoutes.createOrganization.request,
-  ): Promise<typeof OrganizationsRoutes.createOrganization.response> {
+    @Body() body: typeof OrganizationsRoutes.createOne.request,
+  ): Promise<typeof OrganizationsRoutes.createOne.response> {
     const organization = await this.organizationsService.createOrganization({
       userId: request.user.id,
       name: body.payload.name,
@@ -43,14 +43,14 @@ export class OrganizationsController {
     return { data: toDto(organization, []) }
   }
 
-  @Patch(OrganizationsRoutes.updateOrganization.path)
+  @Patch(OrganizationsRoutes.updateOne.path)
   @UseGuards(JwtAuthGuard, UserGuard, OrganizationGuard, CheckPermissionGuard)
   @CheckPermission("organization.update", "organization")
   @UsePipes(new ZodValidationPipe(updateOrganizationSchema))
   async updateOrganization(
     @Req() request: EndpointRequestWithOrganizationMembership,
-    @Body() body: typeof OrganizationsRoutes.updateOrganization.request,
-  ): Promise<typeof OrganizationsRoutes.updateOrganization.response> {
+    @Body() body: typeof OrganizationsRoutes.updateOne.request,
+  ): Promise<typeof OrganizationsRoutes.updateOne.response> {
     await this.organizationsService.updateOrganizationName({
       organizationId: request.organizationId,
       name: body.payload.name,

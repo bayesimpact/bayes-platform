@@ -60,9 +60,9 @@ describe("Organizations - updateOne", () => {
     return { organization, user }
   }
 
-  const subject = async (payload?: typeof OrganizationsRoutes.updateOrganization.request) =>
+  const subject = async (payload?: typeof OrganizationsRoutes.updateOne.request) =>
     request({
-      route: OrganizationsRoutes.updateOrganization,
+      route: OrganizationsRoutes.updateOne,
       pathParams: removeNullish({ organizationId }),
       token: accessToken,
       request: payload,

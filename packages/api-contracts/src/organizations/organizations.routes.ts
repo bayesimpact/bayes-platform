@@ -7,18 +7,18 @@ import type {
 } from "./organizations.dto"
 
 export const OrganizationsRoutes = {
-  listOrganizations: defineRoute<ResponseData<UserOrganizationListItemDto[]>>({
+  getAll: defineRoute<ResponseData<UserOrganizationListItemDto[]>>({
     method: "get",
     path: "organizations",
   }),
-  createOrganization: defineRoute<
+  createOne: defineRoute<
     ResponseData<OrganizationDto>,
     RequestPayload<Pick<OrganizationDto, "name">>
   >({
     method: "post",
     path: "organizations",
   }),
-  updateOrganization: defineRoute<
+  updateOne: defineRoute<
     ResponseData<SuccessResponseDTO>,
     RequestPayload<UpdateOrganizationRequestDto>
   >({

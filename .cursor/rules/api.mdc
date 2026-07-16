@@ -135,37 +135,65 @@ import type { CreateProjectRequestDto } from "@caseai-connect/api-contracts"
 
 All NestJS controllers MUST use the `defineRoute` strategy for type-safe route definitions. This ensures consistency and enables type inference across the codebase.
 
+#### Route key naming (CRUD)
+
+**Rule**: Standard CRUD keys on `*Routes` objects MUST use these exact names (same as frontend SPI methods):
+
+| Operation | Route key | HTTP |
+|-----------|-----------|------|
+| List collection | `getAll` | GET |
+| Get single resource | `getOne` | GET |
+| Create | `createOne` | POST |
+| Update | `updateOne` | PATCH |
+| Delete | `deleteOne` | DELETE |
+
+**Forbidden** for CRUD: domain-prefixed keys like `listOrganizations`, `createOrganization`, `updateProject`. Prefer `OrganizationsRoutes.getAll` / `createOne`, not `listOrganizations` / `createOrganization`.
+
+Non-CRUD / singleton routes may use descriptive keys (`getMe`, `acceptTerms`, `listPendingMine`). When in doubt for resource CRUD, use the table above. Pattern: `packages/api-contracts/src/agents/agents.routes.ts`, `projects/projects.routes.ts`.
+
 #### Step 1: Create a Routes File
 
-Create a `*.routes.ts` file in your domain directory (e.g., `me.routes.ts`, `protected.routes.ts`).
+Create a `*.routes.ts` file in your domain directory (e.g., `organizations.routes.ts`, `projects.routes.ts`).
 
-**For GET/DELETE routes:**
+**For list / get-one / delete:**
 ```typescript
-import type { ResponseData } from "../generic"
+import type { ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
-import type { MyResponseDto } from "./my.dto"
+import type { MyDto } from "./my.dto"
 
 export const MyRoutes = {
-  getSomething: defineRoute<ResponseData<MyResponseDto>>({
+  getAll: defineRoute<ResponseData<MyDto[]>>({
     method: "get",
-    path: "my/path",  // No leading slash - it gets normalized automatically
+    path: "my/path", // No leading slash - it gets normalized automatically
+  }),
+  getOne: defineRoute<ResponseData<MyDto>>({
+    method: "get",
+    path: "my/path/:myId",
+  }),
+  deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
+    method: "delete",
+    path: "my/path/:myId",
   }),
 }
 ```
 
-**For POST/PUT/PATCH routes:**
+**For create / update:**
 ```typescript
-import type { RequestPayload, ResponseData } from "../generic"
+import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
-import type { MyRequestDto, MyResponseDto } from "./my.dto"
+import type { MyDto, UpdateMyRequestDto } from "./my.dto"
 
 export const MyRoutes = {
-  createSomething: defineRoute<
-    ResponseData<MyResponseDto>,
-    RequestPayload<MyRequestDto>
-  >({
+  createOne: defineRoute<ResponseData<MyDto>, RequestPayload<Pick<MyDto, "name">>>({
     method: "post",
     path: "my/path",
+  }),
+  updateOne: defineRoute<
+    ResponseData<SuccessResponseDTO>,
+    RequestPayload<UpdateMyRequestDto>
+  >({
+    method: "patch",
+    path: "my/path/:myId",
   }),
 }
 ```
@@ -183,10 +211,10 @@ Import the routes in your controller and use them in decorators:
 import { Controller, Get } from "@nestjs/common"
 import { MyRoutes } from "./my.routes"
 
-@Controller()  // No prefix - paths come from route definitions
+@Controller() // No prefix - paths come from route definitions
 export class MyController {
-  @Get(MyRoutes.getSomething.path)  // Use route path directly
-  async getSomething(): Promise<typeof MyRoutes.getSomething.response> {
+  @Get(MyRoutes.getAll.path) // Use route path directly
+  async list(): Promise<typeof MyRoutes.getAll.response> {
     // Always wrap response in { data: ... }
     return {
       data: {
@@ -203,6 +231,7 @@ export class MyController {
 - Use `typeof Routes.routeName.response` for return type annotation
 - Always wrap response objects in `{ data: ... }` to match `ResponseData<T>` structure
 - For POST/PUT/PATCH, request bodies should match `RequestPayload<T>` (wrapped in `{ payload: ... }`)
+- Controller method names may be descriptive (`listOrganizations`); route **keys** stay `getAll` / `createOne` / etc.
 
 ### Context Resolver Architecture (Required)
 

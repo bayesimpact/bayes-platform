@@ -73,9 +73,9 @@ describe("Organizations - createOrganization", () => {
     return { user }
   }
 
-  const subject = async (payload?: typeof OrganizationsRoutes.createOrganization.request) =>
+  const subject = async (payload?: typeof OrganizationsRoutes.createOne.request) =>
     request({
-      route: OrganizationsRoutes.createOrganization,
+      route: OrganizationsRoutes.createOne,
       token: accessToken,
       request: payload,
     })

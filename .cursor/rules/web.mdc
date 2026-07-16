@@ -69,8 +69,10 @@ alwaysApply: false
   - Components and slices should use these models, not raw DTOs
 - Define a **feature SPI** in `features/{domain}/{domain}.spi.ts`
   - The interface should expose domain models and hide transport details
+  - For resource CRUD, SPI method names MUST match api-contracts route keys: `getAll`, `getOne`, `createOne`, `updateOne`, `deleteOne` (not `list` / `create` / domain-prefixed names). Non-CRUD methods may stay descriptive (`getMe`, `acceptTerms`).
 - Implement the SPI in `features/{domain}/external/{domain}.api.ts`
   - Use `@caseai-connect/api-contracts` routes and DTOs
+  - Call `{Domain}Routes.getAll` / `createOne` / etc. — same keys as the SPI
   - Perform DTO → domain mapping in small, explicit functions
   - Ensure the implementation `satisfies I{Domain}Spi`
 - Register the implementation in `external/axios.services.ts`
