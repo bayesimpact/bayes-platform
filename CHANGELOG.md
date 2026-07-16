@@ -8,6 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- Visual output-schema editor: set an optional min/max range on number fields, allow enum and array types
 
 ### Changed
 
@@ -22,7 +23,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Agent editor shows the settings version history: browse versions, compare changes, restore in one click
 - Agent session chat shows a live activity timeline while the assistant is streaming, with descriptive per-tool statuses and a check once each step completes
 - Agent session chat has a message navigator to jump to any earlier message in the thread
-- Form agents have a visual output-schema editor: add fields, choose a type, mark them required, set an optional min/max range on number fields, and drag to set the question order the assistant follows — with a toggle to let the assistant choose the order instead, and a raw-JSON advanced mode as a fallback
+- Form agents have a visual output-schema editor: add fields, choose a type, mark them required, and drag to set the question order the assistant follows — with a toggle to let the assistant choose the order instead, and a raw-JSON advanced mode as a fallback
 
 ### Changed
 - Onboarding screen automatically refreshes pending invitations every 30 seconds, so newly received invitations appear without a manual page reload
