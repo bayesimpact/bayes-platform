@@ -11,6 +11,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Visual output-schema editor: set an optional min/max range on number fields, allow enum and array types
 
 ### Changed
+- Branding is now file-based: `public/theme/` contains `theme.css`, `logo.svg`, and `favicon.svg` — replace these files to rebrand the app, no env vars needed
 - Agents delegating to a sub-agent share the recent conversation, so sub-agent replies stay on topic
 
 ### Fixed
@@ -21,7 +22,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [26.07.1] - 2026-07-15
 
 ### Added
--  (beta) Gemini 3.1 Flash Lite & Gemini 3.5 Flash available for all Agents
+- (beta) Gemini 3.1 Flash Lite & Gemini 3.5 Flash available for all Agents
 - Agent editor shows the settings version history: browse versions, compare changes, restore in one click
 - Agent session chat shows a live activity timeline while the assistant is streaming, with descriptive per-tool statuses and a check once each step completes
 - Agent session chat has a message navigator to jump to any earlier message in the thread

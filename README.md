@@ -149,6 +149,18 @@ Set these two variables to embed a floating help chat bubble inside the Studio. 
 | `VITE_HELP_AGENT_EMBED_TOKEN` | Embed token of the help agent (found in the agent's Embed tab in the Studio). When absent, no bubble is shown. |
 | `VITE_HELP_AGENT_EMBED_COLOR` | Optional hex color for the launcher button (e.g. `#f18c6e`). Falls back to the launcher's default when not set. |
 
+#### Theming
+
+Visual branding (logo, favicon, primary color) is controlled by static files in `apps/web/public/theme/`:
+
+| File | Purpose |
+|------|---------|
+| `theme.css` | CSS overrides — primarily `--primary` (the accent color used across the UI) |
+| `logo.svg` | Logo displayed in the sidebar, navbar, and onboarding screen |
+| `favicon.svg` | Browser tab icon |
+
+The repository ships defaults (coral accent). To rebrand for a specific deployment, replace these files before building — no env vars or code changes needed.
+
 ### 3.1 Install Docling for Worker Extraction (macOS, Linux, Windows)
 
 The embedding worker uses Docling in-process for document extraction.

@@ -21,7 +21,7 @@ import {
 } from "../components/home/SearchWorkspaces"
 import { WorkspaceItem } from "../components/home/WorkspaceItem"
 import { Wrap } from "../components/layouts/Wrap"
-import { Logo } from "../components/themes/Logo"
+
 import type { User } from "../features/me/me.models"
 import { selectMe, selectPendingInvitations } from "../features/me/me.selectors"
 import { meActions } from "../features/me/me.slice"
@@ -92,7 +92,7 @@ function Main({
             title={
               <div className="flex items-center gap-4">
                 <div className="size-9">
-                  <Logo />
+                  <img src="/theme/logo.svg" alt="Logo" className="max-h-10 w-auto" />
                 </div>
                 {t("organization:list:title", { name: user.name })}
               </div>
