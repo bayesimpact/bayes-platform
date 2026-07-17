@@ -10,8 +10,6 @@ import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { usePreventLeave } from "@/common/hooks/use-prevent-leave"
 import { useValue } from "@/common/hooks/use-value"
 import { ErrorRoute } from "@/common/routes/ErrorRoute"
-import { ADS } from "@/common/store/async-data-status"
-import { useAppSelector } from "@/common/store/hooks"
 import { AgentEmbedTab } from "@/studio/features/agent-embed-configs/components/AgentEmbedTab"
 import type { AgentSubAgent } from "@/studio/features/agent-sub-agents/agent-sub-agents.models"
 import { selectMcpServersData } from "@/studio/features/mcp-servers/mcp-servers.selectors"
@@ -65,7 +63,7 @@ export function AgentEditor({
   const { t } = useTranslation()
   const project = useValue(selectCurrentProjectData)
   const { hasFeature } = useFeatureFlags(project)
-  const projectMcpServersData = useAppSelector(selectMcpServersData)
+  const projectMcpServers = useValue(selectMcpServersData)
 
   const tabs = useMemo<TabConfig[]>(() => {
     const isConversation = agent.type === "conversation"
@@ -140,11 +138,7 @@ export function AgentEditor({
       })
     }
 
-    if (
-      hasFeature("agent-mcp") &&
-      ADS.isFulfilled(projectMcpServersData) &&
-      projectMcpServersData.value.length > 0
-    ) {
+    if (hasFeature("agent-mcp") && projectMcpServers.length > 0) {
       list.push({
         value: "mcpServers",
         label: t("agent:tabs.mcpServers"),
@@ -153,7 +147,7 @@ export function AgentEditor({
     }
 
     return list
-  }, [agent, project, hasFeature, orchestration, projectMcpServersData, t])
+  }, [agent, project, hasFeature, orchestration, projectMcpServers, t])
 
   const [nav, setNav] = useState<{ active: TabKey; pending: TabKey | null }>({
     active: "general",
