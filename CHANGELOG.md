@@ -8,6 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- (beta) MCP Servers: connect external MCP tool servers to a project and enable/disable them per agent (conversation and form).
 
 ### Changed
 
