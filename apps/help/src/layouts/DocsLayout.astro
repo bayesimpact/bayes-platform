@@ -1,15 +1,19 @@
 ---
 import type { MarkdownHeading } from "astro"
+import Icon from "@/components/Icon.astro"
 import Sidebar from "@/components/Sidebar.astro"
 import TableOfContents from "@/components/TableOfContents.astro"
 import type { Locale } from "@/consts"
-import { categoryLabel } from "@/i18n/categories"
+import { categoryLabel, categoryParent } from "@/i18n/categories"
 import { useTranslations } from "@/i18n/ui"
-import type { CategoryGroup } from "@/lib/docs"
+import { type CategoryGroup, type Doc, docHref } from "@/lib/docs"
+import { highlightKeyword } from "@/lib/highlight"
 import BaseLayout from "./BaseLayout.astro"
 
 interface Props {
   title: string
+  /** Keyword within `title` to emphasise with the brand marker-highlight. */
+  highlight?: string
   description: string
   category: string
   updated?: Date
@@ -17,10 +21,34 @@ interface Props {
   currentSlug: string
   groups: CategoryGroup[]
   headings: MarkdownHeading[]
+  prev?: Doc
+  next?: Doc
+  related?: Doc[]
+  readingMinutes?: number
 }
 
-const { title, description, category, updated, locale, currentSlug, groups, headings } = Astro.props
+const {
+  title,
+  highlight,
+  description,
+  category,
+  updated,
+  locale,
+  currentSlug,
+  groups,
+  headings,
+  prev,
+  next,
+  related = [],
+  readingMinutes,
+} = Astro.props
 const t = useTranslations(locale)
+
+// Breadcrumb trail of categories: [parent, category] for a sub-category, else
+// just [category]. Home links to the locale root; category labels are plain text
+// (there are no per-category landing pages).
+const parentCategory = categoryParent(category)
+const trail = parentCategory ? [parentCategory, category] : [category]
 
 const dateFormatter = new Intl.DateTimeFormat(locale, {
   year: "numeric",
@@ -36,8 +64,26 @@ const dateFormatter = new Intl.DateTimeFormat(locale, {
 
       <div class="min-w-0 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_11rem] lg:gap-6">
         <article class="min-w-0">
-          <p class="eyebrow">{categoryLabel(category, locale)}</p>
-          <h1 class="font-display mt-3 text-4xl leading-[1.1]">{title}</h1>
+          <nav aria-label="Breadcrumb" class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-muted-foreground">
+            <a href={`/${locale}`} class="transition-colors hover:text-foreground">{t("breadcrumb.home")}</a>
+            {
+              trail.map((crumb) => (
+                <>
+                  <Icon name="chevron-right" size={14} class="shrink-0 opacity-50" />
+                  <span>{categoryLabel(crumb, locale)}</span>
+                </>
+              ))
+            }
+          </nav>
+          <h1 class="font-display mt-3 text-4xl leading-[1.1]" set:html={highlightKeyword(title, highlight)}></h1>
+          {
+            readingMinutes && (
+              <p class="mt-3 flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Icon name="clock" size={14} />
+                {readingMinutes} {t("article.readingTime")}
+              </p>
+            )
+          }
           <p class="mt-3 text-lg text-muted-foreground">{description}</p>
           <hr class="my-6 border-border" />
           <div class="prose max-w-none">
@@ -50,6 +96,80 @@ const dateFormatter = new Intl.DateTimeFormat(locale, {
               </p>
             )
           }
+
+          <div class="mt-10 border-t border-border pt-6" data-feedback data-slug={currentSlug}>
+            <div class="flex flex-wrap items-center gap-4" data-feedback-prompt>
+              <p class="text-sm font-medium">{t("feedback.question")}</p>
+              <div class="flex gap-2">
+                <button type="button" class="btn btn-outline btn-sm" data-feedback-value="yes">
+                  <Icon name="thumbs-up" size={15} />
+                  {t("feedback.yes")}
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" data-feedback-value="no">
+                  <Icon name="thumbs-down" size={15} />
+                  {t("feedback.no")}
+                </button>
+              </div>
+            </div>
+            <p class="hidden text-sm font-medium text-muted-foreground" data-feedback-thanks>
+              {t("feedback.thanks")}
+            </p>
+          </div>
+
+          {
+            (related.length > 0 || prev || next) && (
+              <nav aria-label="Article navigation" class="mt-12 border-t border-border pt-8">
+                {related.length > 0 && (
+                  <div class="mb-8">
+                    <p class="label mb-3">{t("article.related")}</p>
+                    <ul class="grid gap-2 sm:grid-cols-2">
+                      {related.map((entry) => (
+                        <li>
+                          <a
+                            href={docHref(entry)}
+                            class="flex items-center justify-between gap-2 rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium transition-all hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-[0_10px_24px_rgba(0,0,0,0.08)]"
+                          >
+                            {entry.data.title}
+                            <Icon name="chevron-right" size={16} class="shrink-0 opacity-60" />
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <div class="grid gap-4 sm:grid-cols-2">
+                  {prev ? (
+                    <a
+                      href={docHref(prev)}
+                      class="group flex flex-col gap-1 rounded-lg border border-border bg-card px-4 py-3 transition-all hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-[0_10px_24px_rgba(0,0,0,0.08)]"
+                    >
+                      <span class="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Icon name="arrow-left" size={14} />
+                        {t("article.prev")}
+                      </span>
+                      <span class="font-medium">{prev.data.title}</span>
+                    </a>
+                  ) : (
+                    <span />
+                  )}
+                  {next ? (
+                    <a
+                      href={docHref(next)}
+                      class="group flex flex-col items-end gap-1 rounded-lg border border-border bg-card px-4 py-3 text-right transition-all hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-[0_10px_24px_rgba(0,0,0,0.08)]"
+                    >
+                      <span class="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        {t("article.next")}
+                        <Icon name="arrow-right" size={14} />
+                      </span>
+                      <span class="font-medium">{next.data.title}</span>
+                    </a>
+                  ) : (
+                    <span />
+                  )}
+                </div>
+              </nav>
+            )
+          }
         </article>
 
         <div class="hidden lg:block">
@@ -60,4 +180,25 @@ const dateFormatter = new Intl.DateTimeFormat(locale, {
       </div>
     </div>
   </div>
+
+  <script>
+    // Article feedback: no backend — record the choice as a CustomEvent that an
+    // analytics layer can subscribe to later, then swap the buttons for a thank-you.
+    for (const root of document.querySelectorAll<HTMLElement>("[data-feedback]")) {
+      const prompt = root.querySelector<HTMLElement>("[data-feedback-prompt]")
+      const thanks = root.querySelector<HTMLElement>("[data-feedback-thanks]")
+      for (const button of root.querySelectorAll<HTMLButtonElement>("[data-feedback-value]")) {
+        button.addEventListener("click", () => {
+          const helpful = button.dataset.feedbackValue === "yes"
+          window.dispatchEvent(
+            new CustomEvent("help-feedback", {
+              detail: { slug: root.dataset.slug, helpful },
+            }),
+          )
+          prompt?.classList.add("hidden")
+          thanks?.classList.remove("hidden")
+        })
+      }
+    }
+  </script>
 </BaseLayout>

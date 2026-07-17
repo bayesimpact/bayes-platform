@@ -1,5 +1,6 @@
 ---
 title: Bienvenue dans le centre d'aide
+highlight: Bienvenue
 description: Un aperçu rapide de ce que vous pouvez faire sur la plateforme et où trouver de l'aide.
 category: getting-started
 order: 1
@@ -11,9 +12,9 @@ aux questions fréquentes pour tirer le meilleur parti de la plateforme.
 
 ## Ce que vous trouverez ici
 
-- **Premiers pas** — configurez votre espace de travail et apprenez les bases.
+- **Premiers pas** — [configurez votre espace de travail](/fr/create-a-workspace) et apprenez les bases.
 - **Guides** — instructions étape par étape pour les tâches courantes.
-- **Compte et paramètres** — gérez votre profil, vos membres et vos préférences.
+- **Compte et paramètres** — [gérez votre profil](/fr/manage-your-profile), vos membres et vos préférences.
 - **FAQ** — réponses rapides aux questions les plus fréquentes.
 
 ## Trouver un article

@@ -84,3 +84,17 @@ export function groupByCategory(docs: Doc[]): CategoryGroup[] {
   for (const node of result) node.children.sort((a, b) => a.order - b.order)
   return result.sort((a, b) => a.order - b.order)
 }
+
+/**
+ * Flattens a category tree into a single reading-order list of docs, matching the
+ * sidebar order (top-level groups by `order`, each group's own docs then its
+ * children's docs). Used to compute Previous / Next links across the whole site.
+ */
+export function flattenDocsInOrder(groups: CategoryGroup[]): Doc[] {
+  const ordered: Doc[] = []
+  for (const group of groups) {
+    ordered.push(...group.docs)
+    for (const child of group.children) ordered.push(...child.docs)
+  }
+  return ordered
+}

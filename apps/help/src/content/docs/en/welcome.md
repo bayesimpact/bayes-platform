@@ -1,5 +1,6 @@
 ---
 title: Welcome to the help center
+highlight: Welcome
 description: A quick overview of what you can do on the platform and where to find help.
 category: getting-started
 order: 1
@@ -11,9 +12,9 @@ questions so you can get the most out of the platform.
 
 ## What you'll find here
 
-- **Getting started** — set up your workspace and learn the basics.
+- **Getting started** — [set up your workspace](/en/create-a-workspace) and learn the basics.
 - **Guides** — step-by-step instructions for everyday tasks.
-- **Account & settings** — manage your profile, members, and preferences.
+- **Account & settings** — [manage your profile](/en/manage-your-profile), members, and preferences.
 - **FAQ** — quick answers to the questions we hear most often.
 
 ## Finding an article

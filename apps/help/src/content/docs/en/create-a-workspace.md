@@ -1,5 +1,6 @@
 ---
 title: Create your first workspace
+highlight: workspace
 description: Learn how to create a workspace and organize your work.
 category: getting-started
 order: 5
