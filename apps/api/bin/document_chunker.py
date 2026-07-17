@@ -35,6 +35,11 @@ from pathlib import Path
 from typing import Any
 
 
+# Below this average per-page character count, a PDF is treated as having no
+# usable native text layer and full-page OCR is forced.
+TEXT_CHARS_PER_PAGE_THRESHOLD = 20
+
+
 def _resolve_docling_sdk_version() -> str:
     """Return the installed Docling SDK version string via importlib.metadata."""
     try:
@@ -76,6 +81,100 @@ def _import_docling_components() -> tuple[Any, Any, Any, Any, Any]:
         + "docling llama-index-core llama-index-readers-docling "
         + "llama-index-node-parser-docling"
     )
+
+
+def _pdf_has_no_usable_text_layer(doc_path: Path) -> bool:
+    """
+    Detect PDFs whose pages carry (almost) no native text layer — e.g. scans
+    whose content is drawn as vector glyph outlines instead of embedded text
+    or bitmap images. Docling's default OCR trigger keys on bitmap coverage
+    (`bitmap_area_threshold`), which is 0% on such pages, so without forcing
+    full-page OCR they produce empty output.
+
+    Reuses docling's own PDF backend for the check instead of a second parse
+    with pypdf (~160ms/file vs ~800ms/file, and pypdf is slowest exactly on
+    the vector-path files this needs to catch).
+
+    Returns False on any classification error so conversion falls back to the
+    default pipeline.
+    """
+    from docling.backend.docling_parse_backend import DoclingParseDocumentBackend
+    from docling.datamodel.base_models import InputFormat
+    from docling.datamodel.document import InputDocument
+
+    backend = None
+    try:
+        input_document = InputDocument(
+            path_or_stream=doc_path,
+            format=InputFormat.PDF,
+            backend=DoclingParseDocumentBackend,
+            filename=doc_path.name,
+        )
+        if not input_document.valid:
+            return False
+        backend = input_document._backend
+        page_count = backend.page_count()
+        if page_count == 0:
+            return False
+
+        # Once the running total reaches the threshold for the whole document,
+        # the average cannot drop back below it — stop early (page 1 for most
+        # native-text PDFs).
+        native_chars_needed = TEXT_CHARS_PER_PAGE_THRESHOLD * page_count
+        native_chars = 0
+        for page_index in range(page_count):
+            page_backend = backend.load_page(page_index)
+            native_chars += sum(len(cell.text) for cell in page_backend.get_text_cells())
+            page_backend.unload()
+            if native_chars >= native_chars_needed:
+                return False
+        return True
+    except Exception as error:  # noqa: BLE001
+        print(
+            f"Warning: could not classify PDF text layer for {doc_path.name} ({error}); "
+            "using the default docling pipeline.",
+            file=sys.stderr,
+        )
+        return False
+    finally:
+        if backend is not None:
+            backend.unload()
+
+
+def _build_force_ocr_pdf_converter() -> Any:
+    """
+    Build a DocumentConverter whose PDF pipeline always rasterizes and OCRs
+    the full page, for PDFs with no usable native text layer.
+
+    force_full_page_ocr must be set on pipeline_options.ocr_options — passing
+    it as a PdfPipelineOptions(...) kwarg is silently dropped by pydantic.
+    """
+    from docling.datamodel.base_models import InputFormat
+    from docling.datamodel.pipeline_options import PdfPipelineOptions
+    from docling.document_converter import DocumentConverter, PdfFormatOption
+
+    pipeline_options = PdfPipelineOptions(do_ocr=True)
+    pipeline_options.ocr_options.force_full_page_ocr = True
+    return DocumentConverter(
+        format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)},
+    )
+
+
+def _create_docling_reader(docling_reader_class: Any, doc_path: Path) -> tuple[Any, bool]:
+    """
+    Create the DoclingReader for a document, forcing full-page OCR only for
+    PDFs classified as having no usable native text layer. Every other
+    document keeps docling's default (faster) extraction path.
+
+    Returns:
+        A (reader, forced_full_page_ocr) tuple.
+    """
+    if doc_path.suffix.lower() == ".pdf" and _pdf_has_no_usable_text_layer(doc_path):
+        return (
+            docling_reader_class(export_type="json", doc_converter=_build_force_ocr_pdf_converter()),
+            True,
+        )
+    return docling_reader_class(export_type="json"), False
 
 
 def _enrich_nodes(
@@ -480,6 +579,8 @@ def main() -> int:
     is_tabular = suffix in (".csv", ".xlsx", ".xls")
     is_plain_text = suffix == ".txt"
 
+    forced_full_page_ocr = False
+
     try:
         started_at = time.perf_counter()
         if is_tabular:
@@ -494,7 +595,9 @@ def main() -> int:
                 metadata_mode_class,
                 text_node_class,
             ) = _import_docling_components()
-            docling_reader = docling_reader_class(export_type="json")
+            docling_reader, forced_full_page_ocr = _create_docling_reader(
+                docling_reader_class, doc_path
+            )
             chunker = (
                 hybrid_chunker_class(max_tokens=arguments.max_tokens)
                 if arguments.max_tokens is not None
@@ -532,6 +635,7 @@ def main() -> int:
         }
         if not is_tabular and not is_plain_text:
             runtime_event["docling_version"] = _resolve_docling_sdk_version()
+            runtime_event["force_full_page_ocr"] = forced_full_page_ocr
         print(json.dumps(runtime_event, ensure_ascii=False))
 
     if is_tabular:
