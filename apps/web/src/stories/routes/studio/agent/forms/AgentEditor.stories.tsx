@@ -11,6 +11,7 @@ import { withRedux } from "@/stories/decorators"
 import { mergeSeeds, seed } from "@/stories/seed"
 import { AgentEditor } from "@/studio/features/agents/components/AgentEditor"
 import { documentTagFactory } from "@/studio/features/document-tags/document-tags.factory"
+import { mcpServerFactory } from "@/studio/features/mcp-servers/mcp-servers.factory"
 
 const organization = organizationFactory.build()
 const billingCategory = projectAgentSessionCategoryFactory.build({ name: "Billing" })
@@ -22,6 +23,11 @@ const projectWithOrchestration = {
   ...project,
   featureFlags: ["agent-orchestration" as const],
 }
+const projectWithMcp = {
+  ...project,
+  featureFlags: ["agent-mcp" as const],
+}
+const mcpServers = mcpServerFactory.transient({ project }).buildList(3)
 
 const productTag = documentTagFactory.transient({ project }).build({ name: "Product" })
 const pricingTag = documentTagFactory.transient({ project }).build({ name: "Pricing" })
@@ -129,5 +135,51 @@ export const FormEdit: Story = {
   ],
   args: {
     agent: formAgent,
+  },
+}
+
+export const WithMcpServers: Story = {
+  decorators: [
+    withRedux({
+      state: mergeSeeds(
+        seed.currentProject(projectWithMcp),
+        seed.studio.documentTags(documentTags),
+        seed.studio.mcpServers(mcpServers),
+        seed.agents([conversationAgent], { currentId: conversationAgent.id }),
+      ),
+    }),
+  ],
+  args: {
+    agent: {
+      ...conversationAgent,
+      mcpServers: mcpServers.map((server) => ({
+        id: server.id,
+        name: server.name,
+        enabled: true,
+      })),
+    },
+  },
+}
+
+export const FormWithMcpServers: Story = {
+  decorators: [
+    withRedux({
+      state: mergeSeeds(
+        seed.currentProject(projectWithMcp),
+        seed.studio.documentTags(documentTags),
+        seed.studio.mcpServers(mcpServers),
+        seed.agents([formAgent], { currentId: formAgent.id }),
+      ),
+    }),
+  ],
+  args: {
+    agent: {
+      ...formAgent,
+      mcpServers: mcpServers.map((server) => ({
+        id: server.id,
+        name: server.name,
+        enabled: true,
+      })),
+    },
   },
 }

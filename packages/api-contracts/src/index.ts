@@ -67,6 +67,9 @@ export { defineRoute } from "./helpers"
 // Invitations
 export type * from "./invitations/invitations.dto"
 export { InvitationsRoutes } from "./invitations/invitations.routes"
+// MCP Servers
+export * from "./mcp-servers/mcp-servers.dto"
+export { McpServersRoutes } from "./mcp-servers/mcp-servers.routes"
 // Me
 export * from "./me/me.dto"
 export { MeRoutes } from "./me/me.routes"

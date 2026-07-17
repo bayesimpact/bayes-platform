@@ -72,7 +72,7 @@ jobs:
       - name: Trivy scan summary
         if: always()
         run: |
-          MAX_SIZE=400000
+          MAX_SIZE=300000
           print_report() {
             local label="$1" file="$2"
             echo "### $label"

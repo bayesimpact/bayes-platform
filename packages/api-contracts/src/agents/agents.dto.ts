@@ -46,6 +46,12 @@ export enum DocumentsRagMode {
   Tags = "tags",
 }
 
+export type AgentMcpServerDto = {
+  id: string
+  name: string
+  enabled: boolean
+}
+
 export type AgentDto = {
   createdAt: TimeType
   greetingMessage?: string
@@ -66,6 +72,7 @@ export type AgentDto = {
   projectAgentSessionCategoryIds: string[]
   usedProjectAgentSessionCategoryIds: string[]
   resourceLibraryIds: string[]
+  mcpServers: AgentMcpServerDto[]
 }
 
 // Constraint keywords (enum/minimum/maximum/items) mirror the subset of JSON Schema

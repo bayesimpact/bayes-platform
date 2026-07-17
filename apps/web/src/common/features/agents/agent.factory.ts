@@ -67,5 +67,6 @@ export const agentFactory = AgentFactory.define(({ params, transientParams }) =>
     type: params.type ?? type,
     updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
     usedProjectAgentSessionCategoryIds: params.usedProjectAgentSessionCategoryIds ?? [],
+    mcpServers: params.mcpServers ?? [],
   }
 })

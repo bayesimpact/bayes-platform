@@ -12,7 +12,9 @@ import { useValue } from "@/common/hooks/use-value"
 import { ErrorRoute } from "@/common/routes/ErrorRoute"
 import { AgentEmbedTab } from "@/studio/features/agent-embed-configs/components/AgentEmbedTab"
 import type { AgentSubAgent } from "@/studio/features/agent-sub-agents/agent-sub-agents.models"
+import { selectMcpServersData } from "@/studio/features/mcp-servers/mcp-servers.selectors"
 import { AgentGeneralTab } from "./AgentGeneralTab"
+import { AgentMcpServersTab } from "./AgentMcpServersTab"
 import { AgentModelTab } from "./AgentModelTab"
 import { AgentOrchestrationTab } from "./AgentOrchestrationTab"
 import { AgentOutputTab } from "./AgentOutputTab"
@@ -34,6 +36,7 @@ type TabKey =
   | "resourceLibraries"
   | "categories"
   | "orchestration"
+  | "mcpServers"
   | "embed"
 
 type DirtyHandler = (dirty: boolean) => void
@@ -60,6 +63,7 @@ export function AgentEditor({
   const { t } = useTranslation()
   const project = useValue(selectCurrentProjectData)
   const { hasFeature } = useFeatureFlags(project)
+  const projectMcpServers = useValue(selectMcpServersData)
 
   const tabs = useMemo<TabConfig[]>(() => {
     const isConversation = agent.type === "conversation"
@@ -134,8 +138,16 @@ export function AgentEditor({
       })
     }
 
+    if (hasFeature("agent-mcp") && projectMcpServers.length > 0) {
+      list.push({
+        value: "mcpServers",
+        label: t("agent:tabs.mcpServers"),
+        render: () => <AgentMcpServersTab agentId={agent.id} agentMcpServers={agent.mcpServers} />,
+      })
+    }
+
     return list
-  }, [agent, project, hasFeature, orchestration, t])
+  }, [agent, project, hasFeature, orchestration, projectMcpServers, t])
 
   const [nav, setNav] = useState<{ active: TabKey; pending: TabKey | null }>({
     active: "general",
