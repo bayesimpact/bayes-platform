@@ -12,7 +12,6 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
-import { mcpServerFactory } from "../mcp-server.factory"
 import { McpServersModule } from "../mcp-servers.module"
 
 describe("McpServers - list", () => {
@@ -56,6 +55,14 @@ describe("McpServers - list", () => {
     return { organization, project }
   }
 
+  const createServer = async (name: string, url: string) =>
+    request({
+      route: McpServersRoutes.createOne,
+      pathParams: removeNullish({ organizationId, projectId }),
+      token: accessToken,
+      request: { payload: { name, url } },
+    })
+
   const subject = async () =>
     request({
       route: McpServersRoutes.getAll,
@@ -64,11 +71,10 @@ describe("McpServers - list", () => {
     })
 
   it("should return MCP servers for a project", async () => {
-    const { project } = await createContext()
+    await createContext()
 
-    const server1 = mcpServerFactory.build({ name: "Alpha Server", projectId: project.id })
-    const server2 = mcpServerFactory.build({ name: "Beta Server", projectId: project.id })
-    await repositories.mcpServerRepository.save([server1, server2])
+    await createServer("Alpha Server", "https://alpha.example.com")
+    await createServer("Beta Server", "https://beta.example.com")
 
     const response = await subject()
 

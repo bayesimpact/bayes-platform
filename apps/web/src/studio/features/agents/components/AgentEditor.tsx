@@ -148,9 +148,7 @@ export function AgentEditor({
       list.push({
         value: "mcpServers",
         label: t("agent:tabs.mcpServers"),
-        render: () => (
-          <AgentMcpServersTab agentId={agent.id} agentMcpServers={agent.mcpServers} />
-        ),
+        render: () => <AgentMcpServersTab agentId={agent.id} agentMcpServers={agent.mcpServers} />,
       })
     }
 

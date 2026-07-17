@@ -1,4 +1,4 @@
-import { forwardRef, Module } from "@nestjs/common"
+import { Module } from "@nestjs/common"
 import { ConfigModule } from "@nestjs/config"
 import { TypeOrmModule } from "@nestjs/typeorm"
 import { McpServerContextResolver } from "@/common/context/resolvers/mcp-server-context.resolver"
@@ -9,7 +9,6 @@ import { AuthModule } from "@/domains/auth/auth.module"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { Project } from "@/domains/projects/project.entity"
-import { ProjectsModule } from "@/domains/projects/projects.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { AgentMcpServer } from "./agent-mcp-server.entity"
 import { EncryptionService } from "./encryption.service"
@@ -24,7 +23,6 @@ import { McpServersService } from "./mcp-servers.service"
     ConfigModule,
     MembershipsModule,
     OrganizationsModule,
-    forwardRef(() => ProjectsModule),
     UsersModule,
     AuthModule,
   ],
