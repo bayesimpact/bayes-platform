@@ -70,7 +70,6 @@ describe("ExtractionAgentSessionRunnerService", () => {
         type: "playground",
         result: null,
         effectivePrompt: agentSettings.instructions ?? "Extract the document",
-        _deleted_schemaSnapshot: agentSettings.outputJsonSchema ?? {},
       })
 
     await repositories.extractionAgentSessionRepository.save(pendingSession)

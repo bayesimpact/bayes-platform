@@ -74,8 +74,6 @@ export class ExtractionAgentSessionsService {
       errorDetails: null,
       effectivePrompt,
       traceId: v4(),
-      //fixme DOO : to delete as the same time we delete the fields in db: it's just a security ...
-      _deleted_schemaSnapshot: agentSettings.outputJsonSchema,
       agentId: agent.id,
     })
 

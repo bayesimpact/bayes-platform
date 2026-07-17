@@ -49,9 +49,6 @@ export class ExtractionAgentSession extends ConnectEntityBase {
   @Column({ type: "text", name: "effective_prompt" })
   effectivePrompt!: string
 
-  @Column({ type: "jsonb", name: "_deleted_schema_snapshot" })
-  _deleted_schemaSnapshot!: Record<string, unknown>
-
   @Column({ type: "uuid", name: "trace_id" })
   traceId!: string
 
