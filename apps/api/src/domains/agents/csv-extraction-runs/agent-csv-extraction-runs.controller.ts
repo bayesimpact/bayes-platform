@@ -153,7 +153,8 @@ export class AgentCsvExtractionRunsController {
     const connectScope = getRequiredConnectScope(request)
     const agentCsvExtractionRunId = request.agentCsvExtractionRun.id
 
-    this.agentCsvExtractionRunsService.removePendingJobsForRun({
+    //remove pending asap - do not wait for completion, continue in parallel
+    const removePendingJobsForRunDone = this.agentCsvExtractionRunsService.removePendingJobsForRun({
       agentCsvExtractionRunId,
       connectScope,
     })
@@ -181,6 +182,9 @@ export class AgentCsvExtractionRunsController {
       summary: run.summary,
       updatedAt: run.updatedAt.getTime(),
     })
+
+    //wait completion
+    await removePendingJobsForRunDone
 
     return { data: toAgentCsvExtractionRunDto(run) }
   }

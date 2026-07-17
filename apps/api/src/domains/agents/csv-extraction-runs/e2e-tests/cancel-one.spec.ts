@@ -106,6 +106,8 @@ describe("AgentCsvExtractionRuns - cancelOne", () => {
 
     expectResponse(response, 201)
     expect(response.body.data.status).toBe("cancelled")
+    // @ts-expect-error
+    await mockBatchService.removePendingRunRecords.mock.results[0].value
     expect(mockBatchService.removePendingRunRecords).toHaveBeenCalled()
 
     const persisted = await repositories.agentCsvExtractionRunRepository.findOne({
