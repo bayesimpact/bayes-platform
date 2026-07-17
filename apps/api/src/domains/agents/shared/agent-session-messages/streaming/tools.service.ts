@@ -301,16 +301,23 @@ export class ToolsService extends ServiceWithLLM {
     mcp: McpToolset
     onExecute: OnExecute
   }): BuiltTools {
+    const tools: ToolSet = {
+      [ToolName.FillForm]: fillFormTool({
+        agentSessionScope,
+        formAgentSessionsService: this.formAgentSessionsService,
+        onExecute,
+      }),
+    } as ToolSet
+
+    this.addToolsWithoutCollisions({ target: tools, source: mcp.tools, sourceLabel: "MCP" })
+
     return {
       mcpClose: mcp.disconnect,
-      toolDescriptions: {},
-      tools: {
-        [ToolName.FillForm]: fillFormTool({
-          agentSessionScope,
-          formAgentSessionsService: this.formAgentSessionsService,
-          onExecute,
-        }),
-      } as ToolSet,
+      toolDescriptions: this.filterToolDescriptions({
+        descriptions: mcp.toolDescriptions,
+        tools,
+      }),
+      tools,
       hasSubAgentTools: false,
     }
   }

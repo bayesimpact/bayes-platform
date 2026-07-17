@@ -11,6 +11,7 @@ import type { EvaluationExtractionDataset } from "@/domains/evaluations/extracti
 import type { EvaluationExtractionRun } from "@/domains/evaluations/extraction/runs/evaluation-extraction-run.entity"
 import type { EvaluationReport } from "@/domains/evaluations/reports/evaluation-report.entity"
 import type { Invitation } from "@/domains/invitations/invitation.entity"
+import type { McpServer } from "@/domains/mcp-servers/mcp-server.entity"
 import type { OrganizationMembershipContextModel } from "@/domains/organizations/memberships/organization-membership.model"
 import type { ProjectMembershipModel } from "@/domains/projects/memberships/project-membership.model"
 import type { Project } from "@/domains/projects/project.entity"
@@ -113,6 +114,10 @@ export interface EndpointRequestWithAgentSessionInCampaign extends EndpointReque
     agentType: ReviewCampaignAgentType
     userId: string
   }
+}
+
+export interface EndpointRequestWithMcpServer extends EndpointRequestWithProject {
+  mcpServer: McpServer
 }
 
 export interface EndpointRequestWithInvitationScope extends EndpointRequestWithProject {

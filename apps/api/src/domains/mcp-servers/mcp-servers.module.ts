@@ -6,9 +6,8 @@ import { OrganizationContextResolver } from "@/common/context/resolvers/organiza
 import { ProjectContextResolver } from "@/common/context/resolvers/project-context.resolver"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { AuthModule } from "@/domains/auth/auth.module"
-import { OrganizationMembership } from "@/domains/organizations/memberships/organization-membership.entity"
+import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
-import { ProjectMembership } from "@/domains/projects/memberships/project-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
 import { UsersModule } from "@/domains/users/users.module"
@@ -21,14 +20,9 @@ import { McpServersService } from "./mcp-servers.service"
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      McpServer,
-      AgentMcpServer,
-      Project,
-      OrganizationMembership,
-      ProjectMembership,
-    ]),
+    TypeOrmModule.forFeature([McpServer, AgentMcpServer, Project]),
     ConfigModule,
+    MembershipsModule,
     OrganizationsModule,
     forwardRef(() => ProjectsModule),
     UsersModule,
