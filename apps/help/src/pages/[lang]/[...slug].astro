@@ -3,7 +3,7 @@ import type { GetStaticPaths } from "astro"
 import { getCollection, render } from "astro:content"
 import { isLocale, type Locale } from "@/consts"
 import DocsLayout from "@/layouts/DocsLayout.astro"
-import { getDocsForLocale, groupByCategory, parseDocId } from "@/lib/docs"
+import { flattenDocsInOrder, getDocsForLocale, groupByCategory, parseDocId } from "@/lib/docs"
 
 export const getStaticPaths = (async () => {
   const docs = await getCollection("docs")
@@ -24,10 +24,34 @@ const { Content, headings } = await render(doc)
 
 const localeDocs = await getDocsForLocale(locale)
 const groups = groupByCategory(localeDocs)
+
+// Previous / Next follow the sidebar reading order across the whole site.
+const ordered = flattenDocsInOrder(groups)
+const currentIndex = ordered.findIndex((entry) => entry.id === doc.id)
+const prev = currentIndex > 0 ? ordered[currentIndex - 1] : undefined
+const next =
+  currentIndex >= 0 && currentIndex < ordered.length - 1 ? ordered[currentIndex + 1] : undefined
+
+// Related guides = other docs in the same (sub-)category, in their own order.
+const related = localeDocs
+  .filter((entry) => entry.data.category === doc.data.category && entry.id !== doc.id)
+  .sort((a, b) => a.data.order - b.data.order)
+  .slice(0, 3)
+
+// Reading time = readable words ÷ 200 wpm. Strip code blocks, the walkthrough
+// `import` line and JSX tags, and Markdown punctuation so only prose is counted.
+const readableText = (doc.body ?? "")
+  .replace(/```[\s\S]*?```/g, " ")
+  .replace(/^import .*$/gm, " ")
+  .replace(/<[^>]+>/g, " ")
+  .replace(/[#>*_`~[\]()!|-]/g, " ")
+const wordCount = readableText.split(/\s+/).filter(Boolean).length
+const readingMinutes = Math.max(1, Math.round(wordCount / 200))
 ---
 
 <DocsLayout
   title={doc.data.title}
+  highlight={doc.data.highlight}
   description={doc.data.description}
   category={doc.data.category}
   updated={doc.data.updated}
@@ -35,6 +59,10 @@ const groups = groupByCategory(localeDocs)
   currentSlug={slug}
   groups={groups}
   headings={headings}
+  prev={prev}
+  next={next}
+  related={related}
+  readingMinutes={readingMinutes}
 >
   <Content />
 </DocsLayout>

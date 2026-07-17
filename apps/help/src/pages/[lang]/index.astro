@@ -7,6 +7,7 @@ import { categoryLabel, getCategory } from "@/i18n/categories"
 import { useTranslations } from "@/i18n/ui"
 import BaseLayout from "@/layouts/BaseLayout.astro"
 import { docHref, getDocsForLocale, groupByCategory } from "@/lib/docs"
+import { highlightKeyword } from "@/lib/highlight"
 
 export const getStaticPaths = (() => {
   return LOCALES.map((lang) => ({ params: { lang } }))
@@ -24,7 +25,7 @@ const groups = groupByCategory(docs)
   <section class="border-b border-border">
     <div class="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6 sm:py-28">
       <p class="eyebrow justify-center">{locale === "fr" ? "Centre d'aide" : "Help center"}</p>
-      <h1 class="font-display mt-4 text-4xl leading-[1.05] sm:text-6xl">{t("home.heading")}</h1>
+      <h1 class="font-display mt-4 text-4xl leading-[1.05] sm:text-6xl" set:html={highlightKeyword(t("home.heading"), t("home.highlight"))}></h1>
       <p class="mx-auto mt-5 max-w-xl text-lg text-muted-foreground">{t("site.tagline")}</p>
       <div class="mx-auto mt-9 flex max-w-md justify-center">
         <Search />
@@ -34,25 +35,82 @@ const groups = groupByCategory(docs)
 
   <section class="mx-auto max-w-6xl px-4 py-14 sm:px-6">
     <p class="label mb-6">{t("home.categories")}</p>
-    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
+    <div class="space-y-8">
       {
         groups.map((group) => {
           const category = getCategory(group.id)
+
+          // Parent category (has children): a container card that lays its
+          // sub-categories out as a grid of compact sub-cards, so the group
+          // reads as one balanced block instead of a single very long list.
+          if (group.children.length > 0) {
+            return (
+              <section class="rounded-[14px] border border-border bg-card p-6 sm:p-8">
+                <div class="flex items-center gap-3">
+                  <span class="grid size-10 place-items-center rounded-lg border border-border bg-secondary text-foreground">
+                    <Icon name={category?.icon ?? "book-open"} />
+                  </span>
+                  <div>
+                    <h2 class="font-display text-xl">{categoryLabel(group.id, locale)}</h2>
+                    {category && (
+                      <p class="text-sm text-muted-foreground">{category.description[locale]}</p>
+                    )}
+                  </div>
+                </div>
+                <div class="mt-6 grid items-start gap-4 sm:grid-cols-2">
+                  {group.children.map((child) => {
+                    const childCategory = getCategory(child.id)
+                    return (
+                      <div class="rounded-[12px] border border-border bg-secondary/40 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-[0_10px_24px_rgba(0,0,0,0.08)]">
+                        <div class="flex items-center gap-2.5">
+                          <span class="grid size-8 place-items-center rounded-md border border-border bg-card text-foreground">
+                            <Icon name={childCategory?.icon ?? "book-open"} size={16} />
+                          </span>
+                          <div>
+                            <h3 class="font-semibold leading-tight">{categoryLabel(child.id, locale)}</h3>
+                            {childCategory && (
+                              <p class="text-xs text-muted-foreground">{childCategory.description[locale]}</p>
+                            )}
+                          </div>
+                        </div>
+                        <ul class="mt-3 space-y-0.5">
+                          {child.docs.map((doc) => (
+                            <li>
+                              <a
+                                href={docHref(doc)}
+                                class="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                              >
+                                {doc.data.title}
+                                <Icon name="chevron-right" size={16} class="shrink-0 opacity-60" />
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
+            )
+          }
+
+          // Leaf top-level category: a single card whose links flow into two
+          // columns so a short list still fills the block width.
           return (
-            <div class="rounded-[14px] border border-border bg-card p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-[0_10px_24px_rgba(0,0,0,0.08)]">
+            <section class="rounded-[14px] border border-border bg-card p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-[0_10px_24px_rgba(0,0,0,0.08)] sm:p-8">
               <div class="flex items-center gap-3">
                 <span class="grid size-10 place-items-center rounded-lg border border-border bg-secondary text-foreground">
                   <Icon name={category?.icon ?? "book-open"} />
                 </span>
                 <div>
-                  <h3 class="font-semibold">{categoryLabel(group.id, locale)}</h3>
+                  <h2 class="font-display text-xl">{categoryLabel(group.id, locale)}</h2>
                   {category && (
                     <p class="text-sm text-muted-foreground">{category.description[locale]}</p>
                   )}
                 </div>
               </div>
               {group.docs.length > 0 && (
-                <ul class="mt-4 space-y-1">
+                <ul class="mt-4 grid gap-x-6 gap-y-0.5 sm:grid-cols-2">
                   {group.docs.map((doc) => (
                     <li>
                       <a
@@ -66,31 +124,7 @@ const groups = groupByCategory(docs)
                   ))}
                 </ul>
               )}
-              {group.children.map((child) => {
-                const childCategory = getCategory(child.id)
-                return (
-                  <div class="mt-4">
-                    <div class="flex items-center gap-2 px-2 text-sm font-medium text-foreground">
-                      <Icon name={childCategory?.icon ?? "book-open"} size={16} class="text-primary" />
-                      {categoryLabel(child.id, locale)}
-                    </div>
-                    <ul class="mt-1 space-y-1">
-                      {child.docs.map((doc) => (
-                        <li>
-                          <a
-                            href={docHref(doc)}
-                            class="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                          >
-                            {doc.data.title}
-                            <Icon name="chevron-right" size={16} class="shrink-0 opacity-60" />
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )
-              })}
-            </div>
+            </section>
           )
         })
       }

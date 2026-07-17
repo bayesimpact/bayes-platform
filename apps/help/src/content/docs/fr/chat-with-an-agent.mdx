@@ -1,0 +1,147 @@
+---
+title: Discuter avec un agent
+highlight: Discuter
+description: Utilisez l'Application pour parler aux agents créés pour votre espace de travail — choisissez un agent, démarrez une discussion, envoyez des messages, joignez des fichiers ou dictez, et utilisez le retour, la copie et les sources de chaque réponse.
+category: getting-started
+order: 4
+updated: 2026-07-16
+---
+
+import AppChatWalkthrough from "@/components/AppChatWalkthrough.astro"
+
+L'**Application** est l'endroit où vous **utilisez** réellement les agents qu'un admin
+a créés pour votre espace de travail — vous conversez avec eux, remplissez des
+formulaires par le chat, et lancez des extractions. C'est la partie quotidienne,
+côté utilisateur, de la plateforme (Studio est l'endroit distinct où les agents sont
+*configurés*).
+
+Vous ouvrez l'**Application** depuis la carte de votre **espace de travail** sur la
+page d'accueil — son bouton est intitulé **Application** (icône en grille). Toute
+personne ayant accès à un espace de travail peut l'ouvrir.
+
+## Comment ça marche
+
+- La **barre latérale gauche** de l'Application liste tous les **agents** de l'espace
+  de travail ; la zone principale affiche les mêmes agents sous forme de cartes. Vous
+  en choisissez un pour lui parler.
+- Chaque agent conserve ses propres **sessions** (discussions passées). Vous démarrez
+  une **Nouvelle discussion** ou rouvrez une session précédente — elles sont
+  enregistrées et listées sous l'agent.
+- Il existe trois types d'agents, et l'Application s'adapte à chacun :
+  - **Conversation** — un chat classique.
+  - **Formulaire** — un chat qui remplit aussi un panneau **Résultat du formulaire** au
+    fil de vos réponses.
+  - **Extraction** — au lieu de discuter, vous [lancez une **extraction**](/fr/run-an-extraction) sur un
+    document.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape met en valeur le
+bouton à cliquer et la zone à observer.
+
+<AppChatWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir l'Application
+
+Sur la page d'accueil, repérez la carte de votre **espace de travail** et cliquez sur
+**Application** (l'icône en grille). L'Application s'ouvre avec les agents de l'espace
+de travail dans la barre latérale gauche et sous forme de cartes dans la zone
+principale.
+
+### 2. Choisir un agent
+
+Choisissez l'agent auquel vous voulez parler — cliquez sur sa carte dans la zone
+principale, ou sur son nom dans la barre latérale. Chaque agent indique son **type**
+(Conversation, Formulaire ou Extraction).
+
+### 3. Démarrer ou rouvrir une session
+
+Sur la page de l'agent, cliquez sur **Nouvelle discussion** (**Nouvelle session de
+formulaire** pour un agent de formulaire, ou **Nouvelle extraction** pour un agent
+d'extraction) pour commencer. Vos **sessions passées** sont listées à côté — cliquez
+sur l'une d'elles pour la rouvrir. Dans la barre latérale, les sessions d'un agent
+apparaissent imbriquées sous lui, les plus récentes en premier.
+
+### 4. Envoyer un message
+
+Saisissez votre question dans le champ en bas (**Posez votre question...**) et appuyez
+sur **Entrée** (ou le bouton **envoyer**) pour l'envoyer. La réponse de l'agent
+s'affiche en streaming juste sous votre message. Utilisez **Maj + Entrée** pour un
+retour à la ligne.
+
+### 5. Utiliser les outils du champ de saisie
+
+À côté du champ, vous trouverez :
+
+- **Joindre** (trombone) — ajoutez un fichier (par ex. un PDF ou une image) à votre
+  message.
+- **Saisie vocale** (microphone) — dictez au lieu de taper (affiché uniquement si
+  votre navigateur le prend en charge).
+- **Aller à un message** (icône liste) — dans les fils longs, revenez rapidement à
+  l'une de vos questions précédentes.
+
+### 6. Exploiter une réponse
+
+Pendant que l'agent travaille, un statut en direct indique ce qu'il fait (par ex. *2
+étapes en cours*) ; une fois terminé, il se replie en un résumé **… étapes
+effectuées** que vous pouvez déplier pour voir chaque étape. Sous chaque réponse
+terminée, vous pouvez :
+
+- **Retour** — un bouton pouce ouvre *Signaler un problème avec ce message* pour
+  envoyer un commentaire à l'équipe.
+- **Copier** — copier la réponse dans le presse-papiers.
+- **Sources** — lorsque l'agent a utilisé les documents de votre espace de travail, un
+  bouton **… sources** ouvre un panneau qui les liste (avec un lien de téléchargement
+  pour les documents publics). Il n'apparaît que si la fonctionnalité sources est
+  activée pour l'espace de travail.
+
+### 7. Agents de formulaire : suivre le Résultat du formulaire
+
+Un **agent de formulaire** utilise le même chat, avec en plus un panneau **Résultat du
+formulaire** à droite. À mesure que vous répondez aux questions de l'agent, le panneau
+remplit chaque champ ; les champs pas encore collectés affichent un **—**. Sur un
+écran étroit, le panneau devient une bande dépliable au-dessus du chat.
+
+## Gérer les sessions
+
+- **Rouvrez** n'importe quelle session passée depuis la liste de l'agent ou la barre
+  latérale — tout est enregistré.
+- **Supprimez** une session avec l'icône **corbeille** (sur la carte de session, dans
+  le menu de session de la barre latérale, ou dans l'en-tête du chat). Il n'y a **pas
+  de renommage**.
+
+## Agents d'extraction
+
+Un **agent d'extraction** ne discute pas. Sur sa page, vous cliquez sur **Nouvelle
+extraction**, choisissez ou téléversez un document (PDF/image, ou un CSV pour les
+traitements par lot), et lisez le résultat extrait sur une page d'exécution dédiée.
+Ses exécutions sont listées comme un historique, et non comme des sessions de chat.
+
+## Conseils
+
+- Donnez du contexte à l'agent dès votre premier message — plus la question est
+  claire, meilleure est la réponse.
+- Utilisez les **Sources** pour vérifier d'où vient une réponse avant de vous y fier.
+- Laissez un **retour** sur une réponse insatisfaisante ; cela aide l'équipe à
+  améliorer l'agent.
+- Démarrez une **Nouvelle discussion** pour un nouveau sujet, afin que chaque
+  conversation reste ciblée.
+
+## Dépannage
+
+- **Je ne vois aucun agent** — aucun agent n'a encore été créé dans cet espace de
+  travail, ou vous n'y avez pas accès. Demandez à un **Admin** de l'espace de travail
+  (les agents se créent dans **Studio**).
+- **Le bouton vocal est absent** — la dictée n'apparaît que si votre navigateur prend
+  en charge la reconnaissance vocale ; essayez une version récente de Chrome ou Edge.
+- **Il n'y a pas de bouton Sources** — soit l'agent n'a utilisé aucun document pour
+  cette réponse, soit la fonctionnalité sources n'est pas activée pour l'espace de
+  travail.
+- **Je ne peux pas renommer une session** — le renommage n'est pas disponible ; les
+  sessions sont identifiées par leur heure. Vous pouvez **supprimer** une session dont
+  vous n'avez plus besoin.
+- **J'ai ouvert Studio par erreur** — Studio est la partie admin/configuration. Si
+  vous voulez seulement utiliser les agents, revenez à l'**Application**.

@@ -1,9 +1,10 @@
 ---
 title: Add an extraction agent
+highlight: extraction
 description: Create an extraction agent that reads an uploaded document and returns structured data matching a JSON schema you define.
 category: guides-agents
 order: 2
-updated: 2026-07-10
+updated: 2026-07-16
 ---
 
 import AddExtractionAgentWalkthrough from "@/components/AddExtractionAgentWalkthrough.astro"
@@ -20,10 +21,10 @@ conversation.
 
 ## How an extraction agent works
 
-You define an **Output JSON Schema** listing the fields to capture (for example
-`title` and `summary`) and **Instructions** telling the agent what to extract.
-When the agent runs on a document, it returns one JSON object matching your schema.
-An extraction agent has three configuration tabs — **General**, **Model** and
+You define the **fields to capture** on the **Output** tab (for example `title` and
+`summary`) and write **Instructions** telling the agent what to extract. When the
+agent runs on a document, it returns one JSON object matching those fields. An
+extraction agent has three configuration tabs — **General**, **Model** and
 **Output** — no conversation or greeting settings — and **each tab saves on its
 own** (the editor warns you before you leave a tab with unsaved changes).
 
@@ -69,14 +70,32 @@ Open the **Model** tab and choose the **Model** that powers the agent, and a
 
 ### 6. Define the output on Output
 
-Open the **Output** tab and edit the **Output JSON Schema** — the JSON object that
-describes each field to extract. List your fields under `properties`, give each a
-`type` and a `description`, and mark the mandatory ones in `required`. **Save**.
+Open the **Output** tab and build the fields to extract **visually** — no JSON
+required. Click **Add field** and, for each field, set:
+
+- **Field name** — the key it's stored under (e.g. `title`).
+- **Type** — **Text**, **Number**, or **Yes / No**.
+- **Description** — the hint the agent uses to decide what to put there.
+- **Required** — toggle on for fields the agent must fill.
+
+Remove a field with its **trash** icon. Prefer to edit the schema by hand? Click
+**Advanced mode** (top right) to switch to a raw JSON editor, and **Visual editor**
+to switch back. Click **Save**.
 
 ### 7. Save each tab
 
-Because each tab is its own form, click **Save** on every tab you change. The
-extraction agent is then ready to run on documents.
+Because each tab is its own form, click **Save** on every tab you change (or
+**Cancel** to discard a tab's edits). The extraction agent is then ready to run on
+documents — see [Run an extraction](/en/run-an-extraction).
+
+## Version history
+
+Every save creates a new **version** of the agent. Open **History** (top right of the
+editor, showing the current **v number**) to browse past versions in a side panel,
+**compare** what changed (**Changes in this version** or **Compare with current**),
+and **Restore this version** — which copies those settings as a new current version
+without deleting anything. See [Version history](/en/agent-version-history) for the
+full walkthrough.
 
 ## Tips
 
@@ -84,16 +103,20 @@ extraction agent is then ready to run on documents.
   what to put in each field.
 - Use a **low Temperature** (for example `0.2`) for extraction: you want faithful,
   repeatable output rather than creative answers.
-- Mark only genuinely mandatory fields as **required**; the agent returns `null`
+- Mark only genuinely mandatory fields as **Required**; the agent returns `null`
   for a required value it can't find.
-- The schema must be **valid JSON** — the editor flags an invalid schema before you
-  can save.
+- The visual editor offers **Text**, **Number** and **Yes / No** fields. For richer
+  shapes (lists, nested objects) switch to **Advanced mode** and edit the JSON.
 
 ## Troubleshooting
 
 - **The Create button is disabled** — the **Name** must be at least 3 characters.
-- **My schema won't save** — the **Output JSON Schema** must be a valid JSON object;
-  check for a trailing comma or a missing quote.
+- **I don't see the field type I need** — the visual editor covers **Text**,
+  **Number** and **Yes / No**; use **Advanced mode** (raw JSON) for lists or nested
+  objects.
+- **My schema won't save in Advanced mode** — it must be a valid JSON object; the
+  editor shows *Output JSON schema must be a valid JSON object* and keeps you in
+  Advanced mode until you fix it.
 - **I don't see an Output tab** — only non-conversation agents have one. Make sure
   you created an **Extraction** agent (conversation agents chat instead).
 - **The extracted values look wrong** — refine the field **descriptions** and the

@@ -1,0 +1,410 @@
+---
+/**
+ * Walkthrough of the workspace Admin page (rename the workspace + manage conversation
+ * categories) and where categories are applied on a conversation agent. Derived from
+ * the real components (verified, not copied blind): SidebarFooterChildren.tsx (Admin
+ * nav item), ProjectAdminPage.tsx (General + Conversation categories tabs),
+ * ProjectGeneralForm.tsx (Workspace name), ProjectAgentSessionCategoriesForm.tsx
+ * (badges, Add category dialog, remove confirm), AgentSessionCategoriesTab.tsx.
+ * Labels verbatim from projectAdmin / agent / actions locales (EN + FR). Uses the
+ * PRODUCT (coral) palette, pinned locally. Derived 2026-07-16.
+ */
+type Lang = "en" | "fr"
+const { lang = "en" } = Astro.props as { lang?: Lang }
+
+const STRINGS = {
+  en: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Bayes Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Settings", evaluations: "Evaluations", analytics: "Analytics", sources: "Sources",
+    members: "Members", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    adminTitle: "Admin", adminDesc: "Manage your workspace settings.",
+    tabGeneral: "General", tabCategories: "Conversation categories",
+    genDesc: "Update the general settings for this workspace.", workspaceName: "Workspace name", wsValue: "Demo", save: "Save",
+    catTitle: "Conversation categories",
+    catDesc: "Manage the categories used to automatically classify this workspace's conversations.",
+    addCategory: "Add category",
+    cat1: "Product", cat2: "Pricing", cat3: "Support",
+    addDialogTitle: "Add conversation category", namePh: "Category name", nameVal: "Billing",
+    assignAll: "Also enable for all existing conversation agents", add: "Add", cancel: "Cancel",
+    editTitle: "Edit Conversation Agent", editDesc: "Edit details for this conversation agent",
+    eTabGeneral: "General", eTabModel: "Model", eTabSources: "Sources", eTabCategories: "Conversation categories",
+    selectAll: "Select all",
+    catsNote: "Categories already used in this agent's conversations cannot be unchecked.",
+    prev: "Prev", next: "Next", step: "Step",
+    steps: [
+      "In Studio, open Admin from the sidebar to manage your workspace.",
+      "General: rename your workspace in the Workspace name field, then Save.",
+      "Conversation categories: your categories are listed here — click Add category.",
+      "Name the category, optionally enable it for all conversation agents, then Add.",
+      "Remove a category with the ✕ on its badge (a confirmation asks first).",
+      "On a conversation agent, the Conversation categories tab is where you tick which apply.",
+    ],
+  },
+  fr: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Bayes Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Paramètres", evaluations: "Évaluations", analytics: "Analytique", sources: "Sources",
+    members: "Membres", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    adminTitle: "Admin", adminDesc: "Gérez les paramètres de votre espace de travail.",
+    tabGeneral: "Général", tabCategories: "Catégories de conversation",
+    genDesc: "Mettez à jour les paramètres généraux de cet espace de travail.", workspaceName: "Nom de l'espace de travail", wsValue: "Demo", save: "Enregistrer",
+    catTitle: "Catégories de conversation",
+    catDesc: "Gérez les catégories utilisées pour classer automatiquement les conversations de cet espace de travail.",
+    addCategory: "Ajouter une catégorie",
+    cat1: "Product", cat2: "Pricing", cat3: "Support",
+    addDialogTitle: "Ajouter une catégorie de conversation", namePh: "Nom de la catégorie", nameVal: "Billing",
+    assignAll: "Activer également pour tous les agents conversationnels existants", add: "Ajouter", cancel: "Annuler",
+    editTitle: "Modifier l'agent conversationnel", editDesc: "Modifier les détails de cet agent conversationnel",
+    eTabGeneral: "Général", eTabModel: "Modèle", eTabSources: "Sources", eTabCategories: "Catégories de conversation",
+    selectAll: "Tout sélectionner",
+    catsNote: "Les catégories déjà utilisées dans les conversations de cet agent ne peuvent pas être décochées.",
+    prev: "Précédent", next: "Suivant", step: "Étape",
+    steps: [
+      "Dans Studio, ouvrez Admin depuis la barre latérale pour administrer votre espace de travail.",
+      "Général : renommez votre espace dans le champ Nom de l'espace de travail, puis Enregistrez.",
+      "Catégories de conversation : vos catégories sont listées ici — cliquez sur Ajouter une catégorie.",
+      "Nommez la catégorie, activez-la éventuellement pour tous les agents conversationnels, puis Ajouter.",
+      "Supprimez une catégorie avec le ✕ sur son badge (une confirmation est demandée).",
+      "Sur un agent conversationnel, l'onglet Catégories de conversation permet de cocher celles qui s'appliquent.",
+    ],
+  },
+} as const
+
+const s = STRINGS[lang]
+
+const convIcon = '<path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/>'
+
+const eTabs = [s.eTabGeneral, s.eTabModel, s.eTabSources, s.eTabCategories]
+
+const steps = [
+  { page: "overview", nav: "", spot: "navAdmin", observe: [] },
+  { page: "general", nav: "admin", spot: "", observe: ["obsGeneral"] },
+  { page: "categories", nav: "admin", spot: "btnAddCategory", observe: ["obsCatList"] },
+  { page: "addDialog", nav: "admin", spot: "btnAddConfirm", observe: ["obsAddFields"] },
+  { page: "categories", nav: "admin", spot: "btnRemove", observe: [] },
+  { page: "agentTab", nav: "agent", spot: "", observe: ["obsAgentCats"] },
+].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const labels = { prev: s.prev, next: s.next, step: s.step }
+---
+
+<div class="waw" role="group" aria-label={s.adminTitle}>
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside class="sb">
+      <div class="sb-head">
+        <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
+        <span class="org"><b>{s.org}</b><small>{s.studio}</small></span>
+      </div>
+      <div class="sb-scroll">
+        <div class="grp-label">{s.agents}<span class="add"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+        <div class="navitem" id="navAgent1"><svg viewBox="0 0 24 24" set:html={convIcon}></svg><span>{s.agent1}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24" set:html={convIcon}></svg><span>{s.conversationAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg><span>{s.extractionAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/></svg><span>{s.formAgent}</span></div>
+
+        <div class="grp-label stack"><span class="name">{s.settingsName}</span><span>{s.settings}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg><span>{s.evaluations}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg><span>{s.analytics}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 15 21.84"/><path d="M21 5V8"/><path d="M21 12L18 17H22L19 22"/><path d="M3 12A9 3 0 0 0 14.59 14.87"/></svg><span>{s.sources}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg><span>{s.members}</span></div>
+        <div class="navitem" id="navAdmin"><svg viewBox="0 0 24 24"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg><span>{s.admin}</span></div>
+      </div>
+      <div class="sb-user">
+        <span class="avatar">AM</span>
+        <span class="who"><b>{s.userName}</b><small>{s.userEmail}</small></span>
+        <span class="updown"><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+      </div>
+    </aside>
+
+    <!-- Main inset -->
+    <div class="inset">
+      <div class="topbar"><span class="trig"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span></div>
+      <div class="canvas">
+        <!-- workspace overview (step 1) -->
+        <div class="page" data-page="overview" data-active="true">
+          <div class="page-head plain"><span><span class="ttl">{s.settingsName}</span><span class="desc">{s.studio}</span></span></div>
+          <div class="cards3">
+            <div class="ecard"><span class="cat">{s.conversationAgent}</span><b class="ic"><svg viewBox="0 0 24 24" set:html={convIcon}></svg> {s.agent1}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><b>{s.analytics}</b><p>View analytics for your workspace.</p></div>
+            <div class="ecard"><b>{s.members}</b><p>Invite members to your workspace.</p></div>
+          </div>
+        </div>
+
+        <!-- Admin — General tab (step 2) -->
+        <div class="page" data-page="general">
+          <div class="page-head"><span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><span><span class="ttl">{s.adminTitle}</span><span class="desc">{s.adminDesc}</span></span></div>
+          <div class="editor">
+            <div class="tablist"><span class="tab on">{s.tabGeneral}</span><span class="tab">{s.tabCategories}</span></div>
+            <div class="tabbody" id="obsGeneral">
+              <p class="hint">{s.genDesc}</p>
+              <div class="grid2"><div class="fld"><p class="lbl">{s.workspaceName}</p><span class="input block">{s.wsValue}</span></div></div>
+              <div class="editor-foot"><span class="btn">{s.save}</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin — Conversation categories tab (steps 3 & 5) -->
+        <div class="page" data-page="categories">
+          <div class="page-head"><span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><span><span class="ttl">{s.adminTitle}</span><span class="desc">{s.adminDesc}</span></span></div>
+          <div class="editor">
+            <div class="tablist"><span class="tab">{s.tabGeneral}</span><span class="tab on">{s.tabCategories}</span></div>
+            <div class="tabbody">
+              <p class="lbl" style="margin-top:0">{s.catTitle}</p>
+              <p class="hint">{s.catDesc}</p>
+              <div class="cat-badges" id="obsCatList">
+                <span class="catbadge">{s.cat1} <span class="x" id="btnRemove"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span></span>
+                <span class="catbadge">{s.cat2} <span class="x"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span></span>
+                <span class="catbadge">{s.cat3} <span class="x"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span></span>
+              </div>
+              <span class="btn outline sm" id="btnAddCategory"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.addCategory}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add category dialog (step 4) -->
+        <div class="page center" data-page="addDialog">
+          <div class="scrim"></div>
+          <div class="modal">
+            <div class="m-head"><b>{s.addDialogTitle}</b></div>
+            <div id="obsAddFields">
+              <div class="fld"><span class="input block">{s.nameVal}</span></div>
+              <div class="checkrow"><span class="cbx"></span><span>{s.assignAll}</span></div>
+            </div>
+            <div class="m-foot"><span class="btn outline">{s.cancel}</span><span class="btn" id="btnAddConfirm">{s.add}</span></div>
+          </div>
+        </div>
+
+        <!-- Conversation agent editor — Conversation categories tab (step 6) -->
+        <div class="page" data-page="agentTab">
+          <div class="page-head"><span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span></div>
+          <div class="editor">
+            <div class="tablist">{eTabs.map((label) => <span class:list={["tab", label === s.eTabCategories && "on"]}>{label}</span>)}</div>
+            <div class="tabbody" id="obsAgentCats">
+              <div class="checks">
+                <span class="checkrow disabled"><span class="cbx on"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>{s.cat1}</span>
+                <span class="checkrow"><span class="cbx on"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>{s.cat2}</span>
+                <span class="checkrow"><span class="cbx"></span>{s.cat3}</span>
+              </div>
+              <span class="btn outline sm" style="margin-top:0.6rem">{s.selectAll}</span>
+              <p class="hint">{s.catsNote}</p>
+              <div class="editor-foot"><span class="btn">{s.save}</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="navbtn" data-prev><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> {s.prev}</button>
+    <button class="ctrl" data-playpause aria-label="Play / pause">⏸</button>
+    <span class="cap"><span class="st" data-stepcount></span><span class="tx" data-captext></span></span>
+    <span class="dots-nav" data-dots role="tablist" aria-label="Steps"></span>
+    <button class="navbtn primary" data-next>{s.next} <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="progress"><i data-bar></i></div>
+</div>
+
+<script define:vars={{ steps, labels }}>
+  const cs = document.currentScript
+  const waw =
+    cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("waw")
+      ? cs.previousElementSibling
+      : document.querySelector(".waw")
+  const q = (sel) => waw.querySelector(sel)
+  const pages = [...waw.querySelectorAll(".page")]
+  const dotsWrap = waw.querySelector("[data-dots]")
+  const bar = waw.querySelector("[data-bar]")
+  const capText = waw.querySelector("[data-captext]")
+  const stepCount = waw.querySelector("[data-stepcount]")
+  const playPause = waw.querySelector("[data-playpause]")
+  const prevBtn = waw.querySelector("[data-prev]")
+  const nextBtn = waw.querySelector("[data-next]")
+  const DUR = 6000
+  let idx = 0, playing = true, timer = null
+
+  steps.forEach((_, i) => {
+    const b = document.createElement("button")
+    b.className = "dotnav"; b.setAttribute("role", "tab"); b.setAttribute("aria-label", labels.step + " " + (i + 1))
+    b.addEventListener("click", () => go(i)); dotsWrap.appendChild(b)
+  })
+  const dots = [...dotsWrap.children]
+
+  function clearMarks() {
+    waw.querySelectorAll(".spot-on").forEach((el) => el.classList.remove("spot-on"))
+    waw.querySelectorAll(".observe-on").forEach((el) => el.classList.remove("observe-on"))
+  }
+  function render() {
+    const step = steps[idx]
+    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page)))
+    dots.forEach((d, i) => d.classList.toggle("on", i === idx))
+    stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
+    capText.textContent = step.text
+    q("#navAdmin").classList.toggle("on", step.nav === "admin")
+    q("#navAgent1").classList.toggle("on", step.nav === "agent")
+
+    clearMarks()
+    const active = idx
+    setTimeout(() => {
+      if (active !== idx) return
+      if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
+      step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+    }, 260)
+
+    bar.classList.remove("run"); void bar.offsetWidth
+    bar.style.setProperty("--dur", DUR + "ms")
+    if (playing) bar.classList.add("run")
+  }
+  function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(() => go(idx + 1), DUR) }
+  function go(n) { idx = (n + steps.length) % steps.length; render(); schedule() }
+  function setPlaying(p) {
+    playing = p; playPause.textContent = p ? "⏸" : "▶"
+    if (p) { bar.classList.add("run"); schedule() } else { clearTimeout(timer); bar.classList.remove("run") }
+  }
+  prevBtn.addEventListener("click", () => go(idx - 1))
+  nextBtn.addEventListener("click", () => go(idx + 1))
+  playPause.addEventListener("click", () => setPlaying(!playing))
+
+  render(); schedule()
+</script>
+
+<style>
+  .waw {
+    --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+    --primary: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --destructive: oklch(0.577 0.245 27.325);
+    --sidebar: oklch(0.985 0 0); --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-accent: oklch(0.97 0 0); --sidebar-accent-foreground: oklch(0.205 0 0); --sidebar-border: oklch(0.922 0 0);
+    --radius: 0.625rem;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
+    --spot: color-mix(in oklab, var(--primary) 55%, transparent);
+    display: block; margin: 1.5rem 0; color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .waw * { box-sizing: border-box; }
+  .waw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+
+  .waw .shell { display: grid; grid-template-columns: 208px 1fr; height: 680px; background: var(--sidebar); color: var(--sidebar-foreground); border: 1px solid var(--sidebar-border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .waw .sb { display: flex; flex-direction: column; padding: 0.5rem; min-height: 0; }
+  .waw .sb-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.4rem 0.6rem; }
+  .waw .logo { width: 1.9rem; height: 1.9rem; display: inline-flex; align-items: center; justify-content: center; }
+  .waw .logo svg { width: 100%; height: 100%; stroke: none; }
+  .waw .logo svg path { fill: #f18c6e; }
+  .waw .logo svg circle { fill: #010101; }
+  .waw .org { display: flex; flex-direction: column; line-height: 1.05; }
+  .waw .org b { font-size: 0.92rem; font-weight: 700; }
+  .waw .org small { color: var(--primary); font-size: 0.72rem; }
+  .waw .sb-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
+  .waw .grp-label { font-size: 0.66rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0.4rem 0.5rem 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
+  .waw .grp-label .add { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+  .waw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: auto; }
+  .waw .grp-label.stack .name { color: var(--sidebar-foreground); font-size: 0.76rem; text-transform: none; font-weight: 700; }
+  .waw .navitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.3rem 0.5rem; border-radius: 7px; font-size: 0.82rem; color: var(--sidebar-foreground); }
+  .waw .navitem svg { font-size: 1rem; color: var(--muted-foreground); }
+  .waw .navitem .chev { margin-left: auto; font-size: 0.9rem; }
+  .waw .navitem.on { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 600; }
+  .waw .navitem.on svg { color: var(--sidebar-accent-foreground); }
+  .waw .sb-user { display: flex; align-items: center; gap: 0.55rem; margin-top: auto; padding: 0.45rem 0.5rem; }
+  .waw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
+  .waw .who { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+  .waw .who b { font-size: 0.76rem; font-weight: 600; }
+  .waw .who small { font-size: 0.68rem; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .waw .updown { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+
+  .waw .inset { position: relative; margin: 0.5rem 0.5rem 0.5rem 0; background: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; box-shadow: var(--shadow); }
+  .waw .topbar { height: 3rem; flex-shrink: 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
+  .waw .trig { color: var(--muted-foreground); font-size: 1.05rem; }
+  .waw .canvas { position: relative; flex: 1; min-height: 0; background: radial-gradient(circle, color-mix(in oklab, var(--muted-foreground) 20%, transparent) 1px, transparent 1px) 0 0 / 22px 22px; }
+
+  .waw .page { position: absolute; inset: 0; padding: 1.1rem 1.2rem; overflow: auto; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
+  .waw .page[data-active="true"] { opacity: 1; transform: none; pointer-events: auto; }
+  .waw .page.center { display: flex; align-items: center; justify-content: center; }
+
+  .waw .spot-on { position: relative; z-index: 7; animation: waw-spot 1.4s ease-in-out infinite; border-radius: 8px; }
+  @keyframes waw-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
+  .waw .observe-on { outline: 2px dashed var(--spot); outline-offset: 3px; border-radius: 10px; }
+
+  .waw .page-head { border-bottom: 1px solid var(--border); padding-bottom: 0.9rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.7rem; }
+  .waw .page-head.plain { border: 0; }
+  .waw .backbtn { width: 1.9rem; height: 1.9rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); flex-shrink: 0; }
+  .waw .ttl { font-size: 1.3rem; font-weight: 600; line-height: 1.15; display: block; }
+  .waw .desc { font-size: 0.85rem; color: var(--muted-foreground); margin-top: 0.2rem; display: block; }
+
+  .waw .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
+  .waw .ecard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.8rem; min-height: 110px; display: flex; flex-direction: column; }
+  .waw .ecard .cat { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-foreground); font-weight: 600; margin-bottom: 0.2rem; }
+  .waw .ecard b { font-size: 0.88rem; }
+  .waw .ecard b.ic { display: flex; align-items: center; gap: 0.35rem; }
+  .waw .ecard b.ic svg { color: var(--muted-foreground); font-size: 0.95rem; }
+  .waw .ecard p { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.2rem 0 0; }
+  .waw .arrowbtn { margin-top: auto; align-self: flex-start; width: 1.8rem; height: 1.8rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); }
+
+  .waw .btn { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--primary); color: var(--primary-foreground); border-radius: 8px; font-size: 0.8rem; font-weight: 500; padding: 0.45rem 0.7rem; }
+  .waw .btn.outline { background: var(--background); color: var(--foreground); border: 1px solid var(--border); }
+  .waw .btn.sm { font-size: 0.76rem; padding: 0.35rem 0.6rem; }
+
+  .waw .editor { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 1rem; }
+  .waw .tablist { display: flex; gap: 0.1rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; flex-wrap: wrap; }
+  .waw .tab { padding: 0.4rem 0.7rem; font-size: 0.8rem; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+  .waw .tab.on { color: var(--foreground); font-weight: 600; border-bottom-color: var(--primary); }
+  .waw .tabbody { padding: 0.2rem 0; }
+  .waw .lbl { font-size: 0.82rem; font-weight: 600; margin: 0 0 0.15rem; }
+  .waw .hint { font-size: 0.75rem; color: var(--muted-foreground); margin: 0.1rem 0 0.7rem; }
+  .waw .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+  .waw .fld .lbl { font-weight: 500; margin-bottom: 0.3rem; }
+  .waw .input { border: 1px solid var(--input); border-radius: 8px; padding: 0.45rem 0.6rem; font-size: 0.82rem; background: var(--background); }
+  .waw .input.block { display: block; }
+  .waw .editor-foot { display: flex; justify-content: flex-end; margin-top: 1rem; }
+
+  .waw .cat-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.8rem; }
+  .waw .catbadge { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--secondary); color: var(--secondary-foreground); border-radius: 999px; padding: 0.25rem 0.35rem 0.25rem 0.7rem; font-size: 0.78rem; }
+  .waw .catbadge .x { display: inline-grid; place-items: center; width: 1rem; height: 1rem; border-radius: 999px; color: var(--muted-foreground); }
+  .waw .catbadge .x svg { font-size: 0.75rem; }
+
+  .waw .checks { display: flex; flex-direction: column; gap: 0.55rem; }
+  .waw .checkrow { display: flex; align-items: center; gap: 0.55rem; font-size: 0.82rem; }
+  .waw .checkrow.disabled { color: var(--muted-foreground); opacity: 0.7; }
+  .waw .cbx { width: 1.05rem; height: 1.05rem; border: 1px solid var(--input); border-radius: 5px; display: inline-grid; place-items: center; color: var(--primary-foreground); flex-shrink: 0; }
+  .waw .cbx.on { background: var(--primary); border-color: var(--primary); }
+  .waw .cbx svg { font-size: 0.7rem; }
+
+  .waw .scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 4; }
+  .waw .modal { position: relative; z-index: 5; width: min(400px, 92%); background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); padding: 1.1rem; display: flex; flex-direction: column; gap: 0.9rem; }
+  .waw .m-head b { font-size: 1rem; font-weight: 600; }
+  .waw .m-foot { display: flex; justify-content: flex-end; gap: 0.5rem; }
+  .waw .m-foot + *, .waw .modal .fld { margin: 0; }
+  .waw .modal .checkrow { margin-top: 0.7rem; font-size: 0.8rem; }
+
+  .waw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .waw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+  .waw .navbtn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .waw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
+  .waw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .waw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
+  .waw .cap .tx { font-size: 0.88rem; font-weight: 500; }
+  .waw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 200px; }
+  .waw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .waw .dotnav.on { background: var(--primary); transform: scale(1.3); }
+  .waw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+  .waw .progress i { display: block; height: 100%; width: 0; background: var(--primary); }
+  .waw .progress i.run { animation: waw-fill var(--dur, 6000ms) linear forwards; }
+  @keyframes waw-fill { to { width: 100%; } }
+
+  @media (max-width: 640px) {
+    .waw .shell { grid-template-columns: 1fr; height: 560px; }
+    .waw .sb { display: none; }
+    .waw .inset { margin: 0.5rem; }
+    .waw .cards3, .waw .grid2 { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .waw .page, .waw .spot-on, .waw .progress i { transition: none !important; animation: none !important; }
+  }
+</style>

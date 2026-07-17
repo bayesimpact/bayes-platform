@@ -1,0 +1,437 @@
+---
+/**
+ * Walkthrough of the agent settings Version history. Derived from the real
+ * components (verified, not copied blind): AgentEditor.tsx (the History button in the
+ * editor header, right of the tab list), AgentVersionHistory.tsx (side sheet),
+ * AgentVersionList.tsx (version rows + Current badge), AgentVersionCompare.tsx
+ * (compare toggle + per-field diffs), AgentVersionRestoreButton.tsx (Restore + confirm
+ * dialog). Labels verbatim from the agent:history / props / actions locales (EN + FR).
+ * Uses the PRODUCT (coral) palette, pinned locally. Derived 2026-07-16.
+ */
+type Lang = "en" | "fr"
+const { lang = "en" } = Astro.props as { lang?: Lang }
+
+const STRINGS = {
+  en: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Helpful Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Settings", evaluations: "Evaluations", analytics: "Analytics", sources: "Sources",
+    members: "Members", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    editTitle: "Edit Conversation Agent", editDesc: "Edit details for this conversation agent",
+    tabGeneral: "General", tabModel: "Model", tabSources: "Sources",
+    nameLabel: "Name", localeLabel: "Locale", localeValue: "EN", instructionsLabel: "Instructions",
+    instructionsValue: "You are a helpful assistant. Answer concisely and cite sources.",
+    save: "Save",
+    historyBtn: "History", vBadge: "v3",
+    panelTitle: "Version history",
+    panelDesc: "Browse, compare and restore previous settings of Helpful Assistant.",
+    vLabel3: "Version 3", vLabel2: "Version 2", vLabel1: "Version 1",
+    t3: "just now", t2: "2 days ago", t1: "last week",
+    current: "Current",
+    cmpPrev: "Changes in this version", cmpCur: "Compare with current",
+    comparing: "Showing changes from version 1 to version 2.",
+    fInstructions: "Instructions", fTemperature: "Temperature",
+    diffInsDel: "You are a helpful assistant.",
+    diffInsAdd: "You are a helpful assistant. Answer concisely and cite sources.",
+    diffTempDel: "0.7", diffTempAdd: "0.2",
+    restore: "Restore this version", cancel: "Cancel",
+    confirmTitle: "Restore version 2?",
+    confirmDesc: "The settings of version 2 will be copied as a new version and become the current settings. No version is deleted.",
+    prev: "Prev", next: "Next", step: "Step",
+    steps: [
+      "In an agent's editor, click History (top right) — the badge shows the current version.",
+      "The Version history panel lists every saved version, newest first; the current one is marked Current.",
+      "Pick an older version, then choose Changes in this version or Compare with current.",
+      "The diff shows exactly which settings changed — instructions, model, temperature, and more.",
+      "Happy with an older version? Click Restore this version.",
+      "Confirm: its settings are copied as a new current version — nothing is deleted.",
+    ],
+  },
+  fr: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Helpful Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
+    settingsName: "Demo", settings: "Paramètres", evaluations: "Évaluations", analytics: "Analytique", sources: "Sources",
+    members: "Membres", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    editTitle: "Modifier l'agent conversationnel", editDesc: "Modifier les détails de cet agent conversationnel",
+    tabGeneral: "Général", tabModel: "Modèle", tabSources: "Sources",
+    nameLabel: "Nom", localeLabel: "Langue", localeValue: "EN", instructionsLabel: "Instructions",
+    instructionsValue: "Vous êtes un assistant utile. Répondez de façon concise et citez vos sources.",
+    save: "Enregistrer",
+    historyBtn: "Historique", vBadge: "v3",
+    panelTitle: "Historique des versions",
+    panelDesc: "Parcourez, comparez et restaurez les paramètres précédents de Helpful Assistant.",
+    vLabel3: "Version 3", vLabel2: "Version 2", vLabel1: "Version 1",
+    t3: "à l'instant", t2: "il y a 2 jours", t1: "la semaine dernière",
+    current: "Actuelle",
+    cmpPrev: "Changements de cette version", cmpCur: "Comparer avec l'actuelle",
+    comparing: "Changements de la version 1 à la version 2.",
+    fInstructions: "Instructions", fTemperature: "Température",
+    diffInsDel: "Vous êtes un assistant utile.",
+    diffInsAdd: "Vous êtes un assistant utile. Répondez de façon concise et citez vos sources.",
+    diffTempDel: "0.7", diffTempAdd: "0.2",
+    restore: "Restaurer cette version", cancel: "Annuler",
+    confirmTitle: "Restaurer la version 2 ?",
+    confirmDesc: "Les paramètres de la version 2 seront copiés comme nouvelle version et deviendront les paramètres actuels. Aucune version n'est supprimée.",
+    prev: "Précédent", next: "Suivant", step: "Étape",
+    steps: [
+      "Dans l'éditeur d'un agent, cliquez sur Historique (en haut à droite) — le badge indique la version actuelle.",
+      "Le panneau Historique des versions liste chaque version enregistrée, la plus récente en premier ; l'actuelle est marquée Actuelle.",
+      "Choisissez une version antérieure, puis Changements de cette version ou Comparer avec l'actuelle.",
+      "La comparaison montre exactement quels paramètres ont changé — instructions, modèle, température, et plus.",
+      "Une ancienne version vous convient ? Cliquez sur Restaurer cette version.",
+      "Confirmez : ses paramètres sont copiés comme nouvelle version actuelle — rien n'est supprimé.",
+    ],
+  },
+} as const
+
+const s = STRINGS[lang]
+
+const convIcon = '<path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/>'
+
+const steps = [
+  { page: "editor", spot: "btnHistory", observe: [] },
+  { page: "panel", spot: "", observe: ["obsList"] },
+  { page: "panel", spot: "", observe: ["obsToggle"] },
+  { page: "panel", spot: "", observe: ["obsDiff"] },
+  { page: "panel", spot: "btnRestore", observe: [] },
+  { page: "confirm", spot: "", observe: ["obsConfirm"] },
+].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const labels = { prev: s.prev, next: s.next, step: s.step }
+---
+
+<div class="vhw" role="group" aria-label={s.panelTitle}>
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside class="sb">
+      <div class="sb-head">
+        <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
+        <span class="org"><b>{s.org}</b><small>{s.studio}</small></span>
+      </div>
+      <div class="sb-scroll">
+        <div class="grp-label">{s.agents}<span class="add"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+        <div class="navitem on"><svg viewBox="0 0 24 24" set:html={convIcon}></svg><span>{s.agent1}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24" set:html={convIcon}></svg><span>{s.conversationAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg><span>{s.extractionAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/></svg><span>{s.formAgent}</span></div>
+
+        <div class="grp-label stack"><span class="name">{s.settingsName}</span><span>{s.settings}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg><span>{s.evaluations}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg><span>{s.analytics}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 15 21.84"/><path d="M21 5V8"/><path d="M21 12L18 17H22L19 22"/><path d="M3 12A9 3 0 0 0 14.59 14.87"/></svg><span>{s.sources}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg><span>{s.members}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg><span>{s.admin}</span></div>
+      </div>
+      <div class="sb-user">
+        <span class="avatar">AM</span>
+        <span class="who"><b>{s.userName}</b><small>{s.userEmail}</small></span>
+        <span class="updown"><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+      </div>
+    </aside>
+
+    <!-- Main inset -->
+    <div class="inset">
+      <div class="topbar"><span class="trig"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span></div>
+      <div class="canvas">
+        <!-- Editor with History button (step 1); also the backdrop for panel/confirm -->
+        <div class="page" data-page="editor" data-active="true">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
+          </div>
+          <div class="editor">
+            <div class="ed-head">
+              <div class="tablist">
+                <span class="tab on">{s.tabGeneral}</span>
+                <span class="tab">{s.tabModel}</span>
+                <span class="tab">{s.tabSources}</span>
+              </div>
+              <span class="histbtn" id="btnHistory"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg> {s.historyBtn} <span class="vbadge">{s.vBadge}</span></span>
+            </div>
+            <div class="tabbody">
+              <div class="grid2">
+                <div class="fld"><p class="lbl">{s.nameLabel}</p><span class="input block">{s.agent1}</span></div>
+                <div class="fld"><p class="lbl">{s.localeLabel}</p><span class="select"><span>{s.localeValue}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div>
+              </div>
+              <div class="fld"><p class="lbl">{s.instructionsLabel}</p><span class="textarea">{s.instructionsValue}</span></div>
+            </div>
+            <div class="editor-foot"><span class="btn">{s.save}</span></div>
+          </div>
+        </div>
+
+        <!-- Version history sheet (steps 2-5) -->
+        <div class="page" data-page="panel">
+          <div class="scrim"></div>
+          <div class="sheet">
+            <div class="sheet-head"><span><b>{s.panelTitle}</b><p>{s.panelDesc}</p></span><span class="closex"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span></div>
+            <div class="sheet-body">
+              <div class="vlist" id="obsList">
+                <div class="vrow"><span class="vr-main"><b>{s.vLabel3}</b><small>{s.t3}</small></span><span class="cbadge">{s.current}</span></div>
+                <div class="vrow on"><span class="vr-main"><b>{s.vLabel2}</b><small>{s.t2}</small></span></div>
+                <div class="vrow"><span class="vr-main"><b>{s.vLabel1}</b><small>{s.t1}</small></span></div>
+              </div>
+              <div class="vcompare">
+                <div class="toggle" id="obsToggle">
+                  <span class="tg on">{s.cmpPrev}</span>
+                  <span class="tg">{s.cmpCur}</span>
+                </div>
+                <p class="cmp-cap">{s.comparing}</p>
+                <div class="diffs" id="obsDiff">
+                  <div class="diffcard">
+                    <div class="diff-field">{s.fInstructions}</div>
+                    <div class="diff-line del"><span class="sign">−</span>{s.diffInsDel}</div>
+                    <div class="diff-line add"><span class="sign">+</span>{s.diffInsAdd}</div>
+                  </div>
+                  <div class="diffcard">
+                    <div class="diff-field">{s.fTemperature}</div>
+                    <div class="diff-line del"><span class="sign">−</span>{s.diffTempDel}</div>
+                    <div class="diff-line add"><span class="sign">+</span>{s.diffTempAdd}</div>
+                  </div>
+                </div>
+                <div class="vc-foot"><span class="btn" id="btnRestore"><svg viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg> {s.restore}</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Restore confirm dialog (step 6) -->
+        <div class="page center" data-page="confirm">
+          <div class="scrim"></div>
+          <div class="modal" id="obsConfirm">
+            <div class="m-head"><b>{s.confirmTitle}</b><p>{s.confirmDesc}</p></div>
+            <div class="m-foot"><span class="btn outline">{s.cancel}</span><span class="btn"><svg viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg> {s.restore}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="navbtn" data-prev><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> {s.prev}</button>
+    <button class="ctrl" data-playpause aria-label="Play / pause">⏸</button>
+    <span class="cap"><span class="st" data-stepcount></span><span class="tx" data-captext></span></span>
+    <span class="dots-nav" data-dots role="tablist" aria-label="Steps"></span>
+    <button class="navbtn primary" data-next>{s.next} <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="progress"><i data-bar></i></div>
+</div>
+
+<script define:vars={{ steps, labels }}>
+  const cs = document.currentScript
+  const vhw =
+    cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("vhw")
+      ? cs.previousElementSibling
+      : document.querySelector(".vhw")
+  const q = (sel) => vhw.querySelector(sel)
+  const pages = [...vhw.querySelectorAll(".page")]
+  const dotsWrap = vhw.querySelector("[data-dots]")
+  const bar = vhw.querySelector("[data-bar]")
+  const capText = vhw.querySelector("[data-captext]")
+  const stepCount = vhw.querySelector("[data-stepcount]")
+  const playPause = vhw.querySelector("[data-playpause]")
+  const prevBtn = vhw.querySelector("[data-prev]")
+  const nextBtn = vhw.querySelector("[data-next]")
+  const DUR = 6000
+  let idx = 0, playing = true, timer = null
+
+  steps.forEach((_, i) => {
+    const b = document.createElement("button")
+    b.className = "dotnav"; b.setAttribute("role", "tab"); b.setAttribute("aria-label", labels.step + " " + (i + 1))
+    b.addEventListener("click", () => go(i)); dotsWrap.appendChild(b)
+  })
+  const dots = [...dotsWrap.children]
+
+  function clearMarks() {
+    vhw.querySelectorAll(".spot-on").forEach((el) => el.classList.remove("spot-on"))
+    vhw.querySelectorAll(".observe-on").forEach((el) => el.classList.remove("observe-on"))
+  }
+  function render() {
+    const step = steps[idx]
+    // The editor stays visible under the sheet/confirm overlays.
+    pages.forEach((p) => {
+      const active = p.dataset.page === step.page || p.dataset.page === "editor"
+      p.setAttribute("data-active", String(active))
+    })
+    dots.forEach((d, i) => d.classList.toggle("on", i === idx))
+    stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
+    capText.textContent = step.text
+
+    clearMarks()
+    const active = idx
+    setTimeout(() => {
+      if (active !== idx) return
+      if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
+      step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+    }, 260)
+
+    bar.classList.remove("run"); void bar.offsetWidth
+    bar.style.setProperty("--dur", DUR + "ms")
+    if (playing) bar.classList.add("run")
+  }
+  function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(() => go(idx + 1), DUR) }
+  function go(n) { idx = (n + steps.length) % steps.length; render(); schedule() }
+  function setPlaying(p) {
+    playing = p; playPause.textContent = p ? "⏸" : "▶"
+    if (p) { bar.classList.add("run"); schedule() } else { clearTimeout(timer); bar.classList.remove("run") }
+  }
+  prevBtn.addEventListener("click", () => go(idx - 1))
+  nextBtn.addEventListener("click", () => go(idx + 1))
+  playPause.addEventListener("click", () => setPlaying(!playing))
+
+  render(); schedule()
+</script>
+
+<style>
+  .vhw {
+    --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+    --primary: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --destructive: oklch(0.577 0.245 27.325);
+    --sidebar: oklch(0.985 0 0); --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-accent: oklch(0.97 0 0); --sidebar-accent-foreground: oklch(0.205 0 0); --sidebar-border: oklch(0.922 0 0);
+    --add-bg: color-mix(in oklab, oklch(0.62 0.14 150) 14%, transparent); --add-fg: oklch(0.45 0.12 150);
+    --del-bg: color-mix(in oklab, var(--destructive) 12%, transparent); --del-fg: oklch(0.5 0.18 27);
+    --radius: 0.625rem;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
+    --spot: color-mix(in oklab, var(--primary) 55%, transparent);
+    display: block; margin: 1.5rem 0; color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .vhw * { box-sizing: border-box; }
+  .vhw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+
+  .vhw .shell { display: grid; grid-template-columns: 208px 1fr; height: 680px; background: var(--sidebar); color: var(--sidebar-foreground); border: 1px solid var(--sidebar-border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .vhw .sb { display: flex; flex-direction: column; padding: 0.5rem; min-height: 0; }
+  .vhw .sb-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.4rem 0.6rem; }
+  .vhw .logo { width: 1.9rem; height: 1.9rem; display: inline-flex; align-items: center; justify-content: center; }
+  .vhw .logo svg { width: 100%; height: 100%; stroke: none; }
+  .vhw .logo svg path { fill: #f18c6e; }
+  .vhw .logo svg circle { fill: #010101; }
+  .vhw .org { display: flex; flex-direction: column; line-height: 1.05; }
+  .vhw .org b { font-size: 0.92rem; font-weight: 700; }
+  .vhw .org small { color: var(--primary); font-size: 0.72rem; }
+  .vhw .sb-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
+  .vhw .grp-label { font-size: 0.66rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0.4rem 0.5rem 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
+  .vhw .grp-label .add { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+  .vhw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: auto; }
+  .vhw .grp-label.stack .name { color: var(--sidebar-foreground); font-size: 0.76rem; text-transform: none; font-weight: 700; }
+  .vhw .navitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.3rem 0.5rem; border-radius: 7px; font-size: 0.82rem; color: var(--sidebar-foreground); }
+  .vhw .navitem svg { font-size: 1rem; color: var(--muted-foreground); }
+  .vhw .navitem .chev { margin-left: auto; font-size: 0.9rem; }
+  .vhw .navitem.on { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 600; }
+  .vhw .navitem.on svg { color: var(--sidebar-accent-foreground); }
+  .vhw .sb-user { display: flex; align-items: center; gap: 0.55rem; margin-top: auto; padding: 0.45rem 0.5rem; }
+  .vhw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
+  .vhw .who { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+  .vhw .who b { font-size: 0.76rem; font-weight: 600; }
+  .vhw .who small { font-size: 0.68rem; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vhw .updown { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+
+  .vhw .inset { position: relative; margin: 0.5rem 0.5rem 0.5rem 0; background: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; box-shadow: var(--shadow); }
+  .vhw .topbar { height: 3rem; flex-shrink: 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
+  .vhw .trig { color: var(--muted-foreground); font-size: 1.05rem; }
+  .vhw .canvas { position: relative; flex: 1; min-height: 0; background: radial-gradient(circle, color-mix(in oklab, var(--muted-foreground) 20%, transparent) 1px, transparent 1px) 0 0 / 22px 22px; }
+
+  .vhw .page { position: absolute; inset: 0; padding: 1.1rem 1.2rem; overflow: auto; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
+  .vhw .page[data-active="true"] { opacity: 1; transform: none; pointer-events: auto; }
+  .vhw .page.center { display: flex; align-items: center; justify-content: center; }
+  .vhw .page[data-page="panel"], .vhw .page[data-page="confirm"] { padding: 0; }
+
+  .vhw .spot-on { position: relative; z-index: 7; animation: vhw-spot 1.4s ease-in-out infinite; border-radius: 8px; }
+  @keyframes vhw-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
+  .vhw .observe-on { outline: 2px dashed var(--spot); outline-offset: 3px; border-radius: 10px; }
+
+  .vhw .page-head { border-bottom: 1px solid var(--border); padding-bottom: 0.9rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.7rem; }
+  .vhw .backbtn { width: 1.9rem; height: 1.9rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); flex-shrink: 0; }
+  .vhw .ttl { font-size: 1.25rem; font-weight: 600; line-height: 1.15; display: block; }
+  .vhw .desc { font-size: 0.85rem; color: var(--muted-foreground); margin-top: 0.2rem; display: block; }
+
+  .vhw .btn { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--primary); color: var(--primary-foreground); border-radius: 8px; font-size: 0.8rem; font-weight: 500; padding: 0.45rem 0.75rem; }
+  .vhw .btn.outline { background: var(--background); color: var(--foreground); border: 1px solid var(--border); }
+
+  .vhw .editor { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 1rem; }
+  .vhw .ed-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+  .vhw .tablist { display: flex; gap: 0.1rem; flex-wrap: wrap; }
+  .vhw .tab { padding: 0.4rem 0.6rem; font-size: 0.8rem; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+  .vhw .tab.on { color: var(--foreground); font-weight: 600; border-bottom-color: var(--primary); }
+  .vhw .histbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); border-radius: 8px; padding: 0.3rem 0.55rem; font-size: 0.78rem; margin-bottom: 0.3rem; background: var(--background); }
+  .vhw .histbtn svg { color: var(--muted-foreground); }
+  .vhw .vbadge { background: var(--secondary); color: var(--secondary-foreground); border-radius: 999px; padding: 0.02rem 0.4rem; font-size: 0.68rem; font-weight: 600; }
+  .vhw .tabbody { padding: 0.2rem 0; }
+  .vhw .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+  .vhw .lbl { font-size: 0.78rem; font-weight: 500; margin: 0.4rem 0 0.3rem; }
+  .vhw .input { border: 1px solid var(--input); border-radius: 8px; padding: 0.42rem 0.6rem; font-size: 0.8rem; background: var(--background); }
+  .vhw .input.block { display: block; }
+  .vhw .select { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; border: 1px solid var(--input); border-radius: 8px; padding: 0.42rem 0.6rem; font-size: 0.8rem; background: var(--background); }
+  .vhw .select svg { color: var(--muted-foreground); font-size: 0.95rem; }
+  .vhw .textarea { display: block; border: 1px solid var(--input); border-radius: 8px; padding: 0.55rem 0.7rem; font-size: 0.78rem; line-height: 1.5; }
+  .vhw .editor-foot { display: flex; justify-content: flex-end; margin-top: 1rem; }
+
+  /* Sheet */
+  .vhw .scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 4; }
+  .vhw .sheet { position: absolute; top: 0; right: 0; bottom: 0; width: min(88%, 640px); background: var(--card); border-left: 1px solid var(--border); box-shadow: var(--shadow); z-index: 5; display: flex; flex-direction: column; }
+  .vhw .sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; padding: 1rem 1.1rem; border-bottom: 1px solid var(--border); }
+  .vhw .sheet-head b { font-size: 1rem; font-weight: 600; }
+  .vhw .sheet-head p { font-size: 0.76rem; color: var(--muted-foreground); margin: 0.25rem 0 0; }
+  .vhw .closex { color: var(--muted-foreground); }
+  .vhw .sheet-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 12rem 1fr; overflow: hidden; }
+  .vhw .vlist { border-right: 1px solid var(--border); padding: 0.6rem; display: flex; flex-direction: column; gap: 0.35rem; overflow: auto; }
+  .vhw .vrow { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; border: 1px solid transparent; border-radius: 8px; padding: 0.45rem 0.55rem; }
+  .vhw .vrow.on { border-color: var(--border); background: var(--secondary); }
+  .vhw .vr-main { display: flex; flex-direction: column; line-height: 1.2; }
+  .vhw .vr-main b { font-size: 0.8rem; }
+  .vhw .vr-main small { font-size: 0.68rem; color: var(--muted-foreground); }
+  .vhw .cbadge { background: var(--primary); color: var(--primary-foreground); border-radius: 999px; padding: 0.05rem 0.45rem; font-size: 0.64rem; font-weight: 600; }
+  .vhw .vcompare { padding: 0.8rem; overflow: auto; display: flex; flex-direction: column; gap: 0.7rem; }
+  .vhw .toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; width: fit-content; }
+  .vhw .tg { font-size: 0.74rem; padding: 0.35rem 0.6rem; color: var(--muted-foreground); }
+  .vhw .tg.on { background: var(--secondary); color: var(--foreground); font-weight: 600; }
+  .vhw .cmp-cap { font-size: 0.74rem; color: var(--muted-foreground); margin: 0; }
+  .vhw .diffs { display: flex; flex-direction: column; gap: 0.6rem; }
+  .vhw .diffcard { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .vhw .diff-field { font-size: 0.72rem; font-weight: 600; padding: 0.35rem 0.6rem; background: var(--muted); border-bottom: 1px solid var(--border); }
+  .vhw .diff-line { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; padding: 0.25rem 0.6rem; display: flex; gap: 0.4rem; line-height: 1.4; }
+  .vhw .diff-line .sign { flex-shrink: 0; }
+  .vhw .diff-line.del { background: var(--del-bg); color: var(--del-fg); }
+  .vhw .diff-line.add { background: var(--add-bg); color: var(--add-fg); }
+  .vhw .vc-foot { display: flex; justify-content: flex-end; }
+
+  /* Confirm modal */
+  .vhw .modal { position: relative; z-index: 5; width: min(420px, 90%); background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); padding: 1.1rem; display: flex; flex-direction: column; gap: 1rem; }
+  .vhw .m-head b { font-size: 1rem; font-weight: 600; }
+  .vhw .m-head p { font-size: 0.8rem; color: var(--muted-foreground); margin: 0.3rem 0 0; }
+  .vhw .m-foot { display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+  /* Controls */
+  .vhw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .vhw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+  .vhw .navbtn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .vhw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
+  .vhw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .vhw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
+  .vhw .cap .tx { font-size: 0.88rem; font-weight: 500; }
+  .vhw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 200px; }
+  .vhw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .vhw .dotnav.on { background: var(--primary); transform: scale(1.3); }
+  .vhw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+  .vhw .progress i { display: block; height: 100%; width: 0; background: var(--primary); }
+  .vhw .progress i.run { animation: vhw-fill var(--dur, 6000ms) linear forwards; }
+  @keyframes vhw-fill { to { width: 100%; } }
+
+  @media (max-width: 640px) {
+    .vhw .shell { grid-template-columns: 1fr; height: 600px; }
+    .vhw .sb { display: none; }
+    .vhw .inset { margin: 0.5rem; }
+    .vhw .grid2 { grid-template-columns: 1fr; }
+    .vhw .sheet-body { grid-template-columns: 1fr; }
+    .vhw .vlist { border-right: 0; border-bottom: 1px solid var(--border); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .vhw .page, .vhw .spot-on, .vhw .progress i { transition: none !important; animation: none !important; }
+  }
+</style>

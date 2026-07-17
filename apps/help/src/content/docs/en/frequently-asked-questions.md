@@ -1,5 +1,6 @@
 ---
 title: Frequently asked questions
+highlight: questions
 description: Quick answers to the questions we hear most often.
 category: faq
 order: 1

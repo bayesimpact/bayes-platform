@@ -1,0 +1,295 @@
+---
+/**
+ * Walkthrough of first sign-in onboarding: the Terms acceptance gate, then the home
+ * page with Pending invitations and your organizations. Derived from the real
+ * components (verified, not copied blind): TermsRoute.tsx (3 checkboxes + Accept and
+ * continue), OnboardingRoute.tsx (Welcome header, org cards, rename pencil),
+ * PendingInvitationList.tsx (invitation cards + Accept). Labels verbatim from the
+ * termsAcceptance / me:invitations / organization / actions locales (EN + FR). Uses
+ * the PRODUCT (coral) palette, pinned locally. Derived 2026-07-16.
+ */
+type Lang = "en" | "fr"
+const { lang = "en" } = Astro.props as { lang?: Lang }
+
+const STRINGS = {
+  en: {
+    brand: "Bayes Impact", userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    termsTitle: "Terms & Compliance",
+    termsIntro: "To continue, please review and accept the following documents.",
+    cbGeneral: "I accept the General Conditions of Service (required)",
+    cbPrivacy: "I accept the Privacy Policy (required)",
+    cbAi: "I accept the AI Systems Usage Policy (optional)",
+    open: "Open", termsSubmit: "Accept and continue",
+    welcome: "Welcome, Alex Martin!",
+    invTitle: "Pending invitations", invDesc: "Invitations waiting for you to accept.",
+    badgeProject: "Project", roleLabel: "Role", accept: "Accept",
+    invName: "Demo", invOrg: "Bayes Impact Demo", invRole: "member",
+    orgName: "Bayes Impact Demo", wsName: "Demo", openApp: "App",
+    prev: "Prev", next: "Next", step: "Step",
+    steps: [
+      "On your first sign-in, review and accept the Terms — the General Conditions and Privacy Policy are required.",
+      "On the home page, Pending invitations shows everything you've been invited to.",
+      "Click Accept on an invitation to join that workspace, agent or campaign.",
+      "The workspace then appears under your organizations, ready to open.",
+      "Organization owners and admins can rename the organization with the pencil.",
+    ],
+  },
+  fr: {
+    brand: "Bayes Impact", userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    termsTitle: "Conditions d'utilisation",
+    termsIntro: "Pour continuer, veuillez prendre connaissance et accepter les documents suivants.",
+    cbGeneral: "J'accepte les Conditions Générales de Service (obligatoire)",
+    cbPrivacy: "J'accepte la Politique de Confidentialité (obligatoire)",
+    cbAi: "J'accepte la Politique d'Utilisation des Systèmes d'Intelligence Artificielle (facultatif)",
+    open: "Ouvrir", termsSubmit: "Valider et continuer",
+    welcome: "Bienvenue, Alex Martin !",
+    invTitle: "Invitations en attente", invDesc: "Invitations qui attendent votre acceptation.",
+    badgeProject: "Projet", roleLabel: "Rôle", accept: "Accepter",
+    invName: "Demo", invOrg: "Bayes Impact Demo", invRole: "member",
+    orgName: "Bayes Impact Demo", wsName: "Demo", openApp: "Application",
+    prev: "Précédent", next: "Suivant", step: "Étape",
+    steps: [
+      "À votre première connexion, prenez connaissance et acceptez les Conditions — les Conditions Générales et la Politique de Confidentialité sont obligatoires.",
+      "Sur la page d'accueil, Invitations en attente affiche tout ce à quoi vous êtes invité.",
+      "Cliquez sur Accepter sur une invitation pour rejoindre cet espace, cet agent ou cette campagne.",
+      "L'espace de travail apparaît alors sous vos organisations, prêt à ouvrir.",
+      "Les propriétaires et admins d'organisation peuvent la renommer avec le crayon.",
+    ],
+  },
+} as const
+
+const s = STRINGS[lang]
+
+const steps = [
+  { page: "terms", spot: "btnAccept", observe: ["obsTerms"] },
+  { page: "home", spot: "", observe: ["obsInvites"] },
+  { page: "home", spot: "btnAcceptInvite", observe: [] },
+  { page: "home", spot: "", observe: ["obsOrgs"] },
+  { page: "home", spot: "btnRename", observe: [] },
+].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const labels = { prev: s.prev, next: s.next, step: s.step }
+---
+
+<div class="oiw" role="group" aria-label={s.termsTitle}>
+  <div class="frame">
+    <div class="nav">
+      <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
+      <span class="appname">{s.brand}</span>
+      <span class="navuser"><span class="avatar">AM</span><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+    </div>
+
+    <div class="panel">
+      <!-- Terms gate (step 1) -->
+      <div class="page center" data-page="terms" data-active="true">
+        <div class="termscard">
+          <div class="tc-head"><b>{s.termsTitle}</b><p>{s.termsIntro}</p></div>
+          <div class="tc-body" id="obsTerms">
+            <div class="cbrow"><span class="cbx on"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><span class="cbtxt">{s.cbGeneral}<a class="doclink"><svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> {s.open}</a></span></div>
+            <div class="cbrow"><span class="cbx on"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><span class="cbtxt">{s.cbPrivacy}<a class="doclink"><svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> {s.open}</a></span></div>
+            <div class="cbrow"><span class="cbx"></span><span class="cbtxt">{s.cbAi}<a class="doclink"><svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> {s.open}</a></span></div>
+          </div>
+          <span class="btn wide" id="btnAccept">{s.termsSubmit}</span>
+        </div>
+      </div>
+
+      <!-- Home: welcome + pending invitations + organizations (steps 2-5) -->
+      <div class="page" data-page="home">
+        <div class="welcome"><span class="wlogo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span><b>{s.welcome}</b></div>
+
+        <div class="sec" id="obsInvites">
+          <div class="sec-head"><span><b>{s.invTitle}</b><p>{s.invDesc}</p></span><span class="cbadge"><svg viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg> 1</span></div>
+          <div class="invcard">
+            <span class="badge">{s.badgeProject}</span>
+            <b>{s.invName}</b>
+            <small>{s.invOrg} · {s.roleLabel}: {s.invRole}</small>
+            <span class="btn" id="btnAcceptInvite">{s.accept} <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg></span>
+          </div>
+        </div>
+
+        <div class="orgcard" id="obsOrgs">
+          <div class="org-head"><b>{s.orgName}</b><span class="iconbtn" id="btnRename"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span></div>
+          <div class="ws-grid">
+            <div class="wscard">
+              <span class="ws-name">{s.wsName}</span>
+              <span class="btn outline sm"><svg viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg> {s.openApp} <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="navbtn" data-prev><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> {s.prev}</button>
+    <button class="ctrl" data-playpause aria-label="Play / pause">⏸</button>
+    <span class="cap"><span class="st" data-stepcount></span><span class="tx" data-captext></span></span>
+    <span class="dots-nav" data-dots role="tablist" aria-label="Steps"></span>
+    <button class="navbtn primary" data-next>{s.next} <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="progress"><i data-bar></i></div>
+</div>
+
+<script define:vars={{ steps, labels }}>
+  const cs = document.currentScript
+  const oiw =
+    cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("oiw")
+      ? cs.previousElementSibling
+      : document.querySelector(".oiw")
+  const q = (sel) => oiw.querySelector(sel)
+  const pages = [...oiw.querySelectorAll(".page")]
+  const dotsWrap = oiw.querySelector("[data-dots]")
+  const bar = oiw.querySelector("[data-bar]")
+  const capText = oiw.querySelector("[data-captext]")
+  const stepCount = oiw.querySelector("[data-stepcount]")
+  const playPause = oiw.querySelector("[data-playpause]")
+  const prevBtn = oiw.querySelector("[data-prev]")
+  const nextBtn = oiw.querySelector("[data-next]")
+  const DUR = 6000
+  let idx = 0, playing = true, timer = null
+
+  steps.forEach((_, i) => {
+    const b = document.createElement("button")
+    b.className = "dotnav"; b.setAttribute("role", "tab"); b.setAttribute("aria-label", labels.step + " " + (i + 1))
+    b.addEventListener("click", () => go(i)); dotsWrap.appendChild(b)
+  })
+  const dots = [...dotsWrap.children]
+
+  function clearMarks() {
+    oiw.querySelectorAll(".spot-on").forEach((el) => el.classList.remove("spot-on"))
+    oiw.querySelectorAll(".observe-on").forEach((el) => el.classList.remove("observe-on"))
+  }
+  function render() {
+    const step = steps[idx]
+    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page)))
+    dots.forEach((d, i) => d.classList.toggle("on", i === idx))
+    stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
+    capText.textContent = step.text
+
+    clearMarks()
+    const active = idx
+    setTimeout(() => {
+      if (active !== idx) return
+      if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
+      step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+    }, 260)
+
+    bar.classList.remove("run"); void bar.offsetWidth
+    bar.style.setProperty("--dur", DUR + "ms")
+    if (playing) bar.classList.add("run")
+  }
+  function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(() => go(idx + 1), DUR) }
+  function go(n) { idx = (n + steps.length) % steps.length; render(); schedule() }
+  function setPlaying(p) {
+    playing = p; playPause.textContent = p ? "⏸" : "▶"
+    if (p) { bar.classList.add("run"); schedule() } else { clearTimeout(timer); bar.classList.remove("run") }
+  }
+  prevBtn.addEventListener("click", () => go(idx - 1))
+  nextBtn.addEventListener("click", () => go(idx + 1))
+  playPause.addEventListener("click", () => setPlaying(!playing))
+
+  render(); schedule()
+</script>
+
+<style>
+  .oiw {
+    --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+    --primary: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0); --input: oklch(0.922 0 0);
+    --radius: 0.625rem;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
+    --spot: color-mix(in oklab, var(--primary) 55%, transparent);
+    display: block; margin: 1.5rem 0; color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .oiw * { box-sizing: border-box; }
+  .oiw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+
+  .oiw .frame { display: flex; flex-direction: column; height: 620px; background: var(--background); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .oiw .nav { height: 4rem; flex-shrink: 0; background: var(--background); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
+  .oiw .logo, .oiw .wlogo { width: 2rem; height: 2rem; display: inline-flex; align-items: center; justify-content: center; padding: 0.15rem; }
+  .oiw .logo svg, .oiw .wlogo svg { width: 100%; height: 100%; stroke: none; }
+  .oiw .logo svg path, .oiw .wlogo svg path { fill: #f18c6e; }
+  .oiw .logo svg circle, .oiw .wlogo svg circle { fill: #010101; }
+  .oiw .appname { flex: 1; font-weight: 600; font-size: 0.95rem; }
+  .oiw .navuser { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--muted-foreground); }
+  .oiw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
+  .oiw .navuser svg { font-size: 0.9rem; }
+
+  .oiw .panel { flex: 1; min-height: 0; position: relative; }
+  .oiw .page { position: absolute; inset: 0; padding: 1.4rem 1.6rem; overflow: auto; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
+  .oiw .page[data-active="true"] { opacity: 1; transform: none; pointer-events: auto; }
+  .oiw .page.center { display: flex; align-items: center; justify-content: center; }
+
+  .oiw .spot-on { position: relative; z-index: 7; animation: oiw-spot 1.4s ease-in-out infinite; border-radius: 8px; }
+  @keyframes oiw-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
+  .oiw .observe-on { outline: 2px dashed var(--spot); outline-offset: 3px; border-radius: 10px; }
+
+  .oiw .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; background: var(--primary); color: var(--primary-foreground); border-radius: 8px; font-size: 0.82rem; font-weight: 500; padding: 0.5rem 0.8rem; }
+  .oiw .btn.wide { width: 100%; }
+  .oiw .btn.outline { background: var(--background); color: var(--foreground); border: 1px solid var(--border); }
+  .oiw .btn.sm { padding: 0.4rem 0.65rem; font-size: 0.78rem; }
+  .oiw .badge { display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: 999px; padding: 0.1rem 0.5rem; font-size: 0.68rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; width: fit-content; }
+  .oiw .iconbtn { width: 1.7rem; height: 1.7rem; border-radius: 7px; display: inline-grid; place-items: center; color: var(--muted-foreground); }
+
+  /* Terms card */
+  .oiw .termscard { width: min(520px, 96%); border: 1px solid var(--border); border-radius: 14px; background: var(--card); box-shadow: var(--shadow); padding: 1.3rem; display: flex; flex-direction: column; gap: 1.1rem; }
+  .oiw .tc-head b { font-size: 1.1rem; font-weight: 600; }
+  .oiw .tc-head p { font-size: 0.82rem; color: var(--muted-foreground); margin: 0.3rem 0 0; }
+  .oiw .tc-body { display: flex; flex-direction: column; gap: 0.9rem; }
+  .oiw .cbrow { display: flex; align-items: flex-start; gap: 0.6rem; }
+  .oiw .cbx { width: 1.1rem; height: 1.1rem; border: 1px solid var(--input); border-radius: 5px; display: inline-grid; place-items: center; color: var(--primary-foreground); flex-shrink: 0; margin-top: 0.1rem; }
+  .oiw .cbx.on { background: var(--primary); border-color: var(--primary); }
+  .oiw .cbx svg { font-size: 0.72rem; }
+  .oiw .cbtxt { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.82rem; line-height: 1.4; }
+  .oiw .doclink { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--primary); font-size: 0.76rem; width: fit-content; }
+
+  /* Home */
+  .oiw .welcome { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 1.2rem; }
+  .oiw .welcome b { font-size: 1.3rem; font-weight: 600; }
+  .oiw .sec { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.9rem; margin-bottom: 1.2rem; }
+  .oiw .sec-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.7rem; }
+  .oiw .sec-head b { font-size: 0.95rem; }
+  .oiw .sec-head p { font-size: 0.76rem; color: var(--muted-foreground); margin: 0.15rem 0 0; }
+  .oiw .cbadge { display: inline-flex; align-items: center; gap: 0.3rem; background: var(--primary); color: var(--primary-foreground); border-radius: 999px; padding: 0.1rem 0.5rem; font-size: 0.74rem; font-weight: 600; }
+  .oiw .invcard { border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem; display: flex; flex-direction: column; gap: 0.3rem; align-items: flex-start; max-width: 22rem; }
+  .oiw .invcard b { font-size: 0.92rem; }
+  .oiw .invcard small { font-size: 0.76rem; color: var(--muted-foreground); }
+  .oiw .invcard .btn { margin-top: 0.4rem; }
+
+  .oiw .orgcard { border: 1px solid var(--border); border-radius: var(--radius); background: color-mix(in oklab, var(--muted) 25%, var(--card)); padding: 0.9rem; }
+  .oiw .org-head { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.7rem; }
+  .oiw .org-head b { font-size: 1rem; font-weight: 600; }
+  .oiw .ws-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+  .oiw .wscard { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 0.8rem; display: flex; flex-direction: column; gap: 0.7rem; }
+  .oiw .ws-name { font-size: 0.95rem; font-weight: 600; }
+  .oiw .wscard .btn { align-self: flex-start; }
+
+  /* Controls */
+  .oiw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .oiw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+  .oiw .navbtn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .oiw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
+  .oiw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .oiw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
+  .oiw .cap .tx { font-size: 0.88rem; font-weight: 500; }
+  .oiw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 200px; }
+  .oiw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .oiw .dotnav.on { background: var(--primary); transform: scale(1.3); }
+  .oiw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+  .oiw .progress i { display: block; height: 100%; width: 0; background: var(--primary); }
+  .oiw .progress i.run { animation: oiw-fill var(--dur, 6000ms) linear forwards; }
+  @keyframes oiw-fill { to { width: 100%; } }
+
+  @media (max-width: 640px) {
+    .oiw .frame { height: 640px; }
+    .oiw .ws-grid { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .oiw .page, .oiw .spot-on, .oiw .progress i { transition: none !important; animation: none !important; }
+  }
+</style>

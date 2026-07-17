@@ -1,0 +1,129 @@
+---
+title: Lancer une extraction
+highlight: extraction
+description: Lancez un agent d'extraction sur un document — un seul PDF ou image, ou un lot CSV — et lisez, téléchargez et gérez les résultats extraits.
+category: guides-agents
+order: 4
+updated: 2026-07-16
+---
+
+import RunExtractionWalkthrough from "@/components/RunExtractionWalkthrough.astro"
+
+Une fois votre [agent d'extraction](/fr/add-an-extraction-agent) créé, voici comment
+le **lancer** concrètement sur des documents. Vous téléversez (ou choisissez) un
+document et l'agent renvoie des **données structurées** conformes à son schéma de
+sortie. Deux modes :
+
+- **Document seul** — un **PDF** ou une **image** : l'agent s'exécute une fois et vous
+  donne un résultat JSON.
+- **Lot CSV** — un **CSV** où chaque ligne est un enregistrement : l'agent s'exécute
+  sur chaque ligne, et vous obtenez un tableau de résultats téléchargeable.
+
+Les extractions se lancent depuis la page de l'agent d'extraction, dans l'**App**
+(et, pour les admins, dans **Studio** — le parcours est identique). C'est différent de
+la [configuration de l'agent](/fr/add-an-extraction-agent) (définir son schéma de
+sortie) et du [Tableau de bord d'évaluation](/fr/evaluation-dashboard) (mesurer la
+précision sur un dataset annoté).
+
+## Comment ça marche
+
+- Ouvrez l'agent d'extraction et démarrez une **Nouvelle extraction**. Glissez un
+  fichier ou choisissez-en un déjà téléversé (**PDF**, **image** ou **CSV**, un
+  fichier à la fois).
+- Un **PDF/image** s'exécute immédiatement et ouvre une **page de résultat** avec le
+  JSON extrait. Un **CSV** ouvre une courte boîte de dialogue pour définir le rôle de
+  chaque colonne, puis exécute chaque ligne.
+- Chaque exécution est enregistrée dans l'**historique** sur la page de l'agent,
+  étiquetée **PDF / Image** ou **CSV**, pour la rouvrir ou la supprimer plus tard.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape met en valeur le
+bouton à cliquer et la zone à observer.
+
+<RunExtractionWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Démarrer une nouvelle extraction
+
+Ouvrez votre **agent d'extraction**. Sa page affiche une carte **Nouvelle extraction**
+(*Sélectionnez un document pour lancer l'extraction*) et l'historique des exécutions
+en dessous. Cliquez sur **Exécuter** pour commencer.
+
+### 2. Ajouter un document
+
+Sur la page **Nouvelle extraction**, vous pouvez soit **glisser ou téléverser un
+fichier**, soit en choisir un dans votre liste de documents déjà téléversés. Les
+types acceptés sont **PDF**, **image** (JPEG) et **CSV** — un fichier à la fois. Votre
+choix détermine le mode :
+
+- **PDF / image** → une exécution sur un document seul (étape 3).
+- **CSV** → une exécution par lot (étape 4).
+
+### 3. Lire le résultat d'un document seul
+
+Pour un PDF ou une image, l'agent s'exécute et ouvre la **page de résultat**. Elle
+affiche un **statut** (**En attente** pendant le traitement, puis **Succès** ou
+**Échec**) et, une fois terminé, la **Durée**. Utilisez :
+
+- **Voir JSON** — ouvrir les données extraites (l'objet structuré renvoyé par l'agent).
+- **Télécharger JSON** — l'enregistrer sous forme de fichier.
+
+Pendant le traitement, vous voyez *Traitement en cours... Cela peut prendre un certain
+temps...*
+
+### 4. Configurer et lancer un lot CSV
+
+Pour un CSV, la boîte de dialogue **Lancer l'extraction CSV** s'ouvre (*Exécutez
+chaque enregistrement via l'agent*). Dans **Configurer les rôles des colonnes**,
+attribuez un rôle à chaque colonne :
+
+- **Entrée** — envoyée à l'agent pour cet enregistrement.
+- **Référence** — conservée à côté des résultats mais non envoyée.
+- **Ignorer** — exclue.
+
+Vous pouvez aussi choisir combien d'**enregistrements exécuter** (tous, ou un
+sous-ensemble). Cliquez sur **Lancer** pour traiter chaque ligne.
+
+### 5. Lire les résultats CSV
+
+La page **Résultats de l'extraction CSV** affiche un **Résumé** — **Total**,
+**Traités** et **Erreurs** — et un tableau avec le **Statut** de chaque enregistrement
+(**Succès** / **Erreur**) et sa **Sortie**. Pendant l'exécution, un badge indique
+combien d'enregistrements **restent** ; vous pouvez **Annuler** un lot en cours ou
+**Réessayer** un lot échoué. Une fois terminé, utilisez **Télécharger le document**
+pour récupérer les résultats en CSV.
+
+### 6. Retrouver les exécutions dans l'historique
+
+De retour sur la page de l'agent, chaque exécution passée est listée avec un badge
+**PDF / Image** ou **CSV**, sa date et son statut. Cliquez sur **Ouvrir** pour rouvrir
+le résultat d'une exécution, télécharger l'export CSV, ou utilisez l'icône
+**corbeille** pour la supprimer (une confirmation est demandée).
+
+## Conseils
+
+- Utilisez un **document seul** pour vérifier rapidement la sortie de l'agent ; un
+  **CSV** pour traiter de nombreux enregistrements d'un coup.
+- Si une exécution échoue, ouvrez-la et regardez l'erreur, affinez les
+  **Instructions** ou le **schéma de sortie** de l'agent (voir
+  [Ajouter un agent d'extraction](/fr/add-an-extraction-agent)), puis relancez.
+- Pour un gros CSV, exécutez d'abord **un sous-ensemble d'enregistrements** pour
+  confirmer que les colonnes sont bien mappées avant de tout traiter.
+
+## Dépannage
+
+- **Mon fichier a été refusé** — seuls les **PDF**, **images JPEG** et **CSV** sont
+  acceptés, un fichier à la fois, dans la limite de taille. Convertissez ou divisez le
+  fichier et réessayez.
+- **Le résultat est vide ou incorrect** — l'agent extrait selon son **schéma de
+  sortie** ; affinez les **descriptions** des champs et les **Instructions** de
+  l'agent, puis relancez.
+- **Une colonne CSV n'est pas utilisée** — réglez son rôle sur **Entrée** dans
+  *Configurer les rôles des colonnes* ; les colonnes **Référence** et **Ignorer** ne
+  sont pas envoyées à l'agent.
+- **Le lot est long** — les gros CSV se traitent en arrière-plan ; vous pouvez quitter
+  la page et revenir, **Annuler** une exécution, ou **Réessayer** un lot échoué depuis
+  sa page de résultat.

@@ -1,0 +1,105 @@
+---
+title: Historique des versions
+highlight: Historique
+description: À chaque enregistrement d'un agent, ses paramètres sont versionnés — parcourez les versions passées, comparez précisément ce qui a changé, et restaurez n'importe quelle version antérieure en un clic.
+category: guides-agents
+order: 7
+updated: 2026-07-16
+---
+
+import VersionHistoryWalkthrough from "@/components/VersionHistoryWalkthrough.astro"
+
+Chaque agent conserve un **historique des versions** de ses paramètres. À chaque fois
+que vous enregistrez un onglet de l'éditeur, la plateforme enregistre une nouvelle
+**version** — vous pouvez donc revoir comment l'agent était configuré auparavant,
+**comparer** ce qui a changé, et **restaurer** une version antérieure si une
+modification ne convient pas.
+
+C'est disponible sur **tous les agents** (conversationnel, extraction, formulaire)
+depuis le bouton **Historique** en haut à droite de l'éditeur d'agent — quel que soit
+l'onglet ouvert.
+
+## Ce qui est suivi
+
+Une version capture les paramètres enregistrés de l'agent, et la comparaison met en
+évidence précisément lesquels ont changé entre deux versions, champ par champ — par
+exemple les **Instructions**, le **Message d'accueil**, le **Modèle**, la
+**Température**, la **Langue**, le mode de **recherche** documentaire, et le **schéma
+de sortie**. Restaurer ne supprime jamais rien : cela copie les paramètres d'une
+ancienne version dans une **nouvelle** version actuelle.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape met en valeur le
+bouton à cliquer et la zone à observer.
+
+<VersionHistoryWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir l'Historique
+
+Dans l'éditeur d'agent, cliquez sur **Historique** en haut à droite. Le bouton porte
+un badge indiquant la **version actuelle** (par ex. **v3**). Un panneau apparaît
+depuis la droite.
+
+### 2. Parcourir les versions
+
+Le panneau **Historique des versions** liste chaque version enregistrée, **la plus
+récente en premier**. Chaque ligne indique **Version *n*** et sa date
+d'enregistrement ; la plus récente est marquée **Actuelle**.
+
+### 3. Choisir ce qu'on compare
+
+Sélectionnez une version antérieure, puis choisissez un mode de comparaison :
+
+- **Changements de cette version** — ce qui a changé entre la version sélectionnée et
+  celle juste avant.
+- **Comparer avec l'actuelle** — la différence entre la version sélectionnée et les
+  paramètres actuels.
+
+Une légende indique quelles deux versions vous comparez. S'il n'y a qu'une version,
+vous verrez **Une seule version** ; si deux versions sont identiques, **Aucune
+différence**.
+
+### 4. Lire la comparaison
+
+La comparaison montre une **différence champ par champ** de tout ce qui a changé — le
+texte supprimé en rouge, le texte ajouté en vert — pour voir exactement comment les
+paramètres diffèrent (instructions, modèle, température, etc.).
+
+### 5. Restaurer une version
+
+Vous avez trouvé une version à récupérer ? Cliquez sur **Restaurer cette version**.
+(Le bouton est désactivé sur la version **Actuelle** — il n'y a rien à restaurer.)
+
+### 6. Confirmer la restauration
+
+Une boîte de dialogue — **Restaurer la version *n* ?** — explique que les paramètres
+de cette version seront **copiés comme nouvelle version** et deviendront les
+paramètres actuels, et qu'**aucune version n'est supprimée**. Confirmez pour
+l'appliquer ; l'éditeur se recharge avec les paramètres restaurés comme nouvelle
+version actuelle.
+
+## Conseils
+
+- Enregistrez souvent — chaque enregistrement est un point de restauration, vous
+  pouvez donc expérimenter librement et revenir en arrière.
+- Utilisez **Comparer avec l'actuelle** pour passer en revue tout ce qui a changé
+  depuis une version fiable avant de restaurer.
+- La restauration est sûre et réversible : elle crée une nouvelle version, vous
+  pourrez toujours restaurer de nouveau en avant.
+
+## Dépannage
+
+- **Je ne vois pas le bouton Historique** — il est en haut à droite de l'**éditeur
+  d'agent** ; ouvrez un agent et placez-vous sur son écran d'édition.
+- **Le panneau indique « Une seule version »** — l'agent n'a été enregistré qu'une
+  fois ; il n'y a rien à comparer tant que vous n'avez pas enregistré une
+  modification.
+- **Restaurer est désactivé** — vous avez sélectionné la version **Actuelle** ;
+  choisissez-en une plus ancienne pour la restaurer.
+- **Une modification a cassé l'agent** — ouvrez l'**Historique**, trouvez la dernière
+  bonne version, et **Restaurez**-la — rien de ce que vous avez enregistré n'est
+  perdu.

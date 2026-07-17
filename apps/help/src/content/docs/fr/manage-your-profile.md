@@ -1,5 +1,6 @@
 ---
 title: Gérez votre profil
+highlight: profil
 description: Modifiez votre nom d'affichage et votre langue.
 category: account
 order: 1

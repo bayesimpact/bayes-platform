@@ -1,0 +1,118 @@
+---
+title: Run an extraction
+highlight: extraction
+description: Run an extraction agent on a document — a single PDF or image, or a CSV batch — and read, download, and manage the extracted results.
+category: guides-agents
+order: 4
+updated: 2026-07-16
+---
+
+import RunExtractionWalkthrough from "@/components/RunExtractionWalkthrough.astro"
+
+Once you've built an [extraction agent](/en/add-an-extraction-agent), this is how you
+actually **run** it on documents. You upload (or pick) a document and the agent
+returns **structured data** matching its output schema. Two modes:
+
+- **Single document** — a **PDF** or **image**: the agent runs once and gives you one
+  JSON result.
+- **CSV batch** — a **CSV** where each row is a record: the agent runs on every row,
+  and you get a results table you can download.
+
+You run extractions from the extraction agent's page, in the **App** (and, for admins,
+in **Studio** — the flow is the same). This is different from
+[configuring the agent](/en/add-an-extraction-agent) (defining its output schema) and
+from the [Evaluation dashboard](/en/evaluation-dashboard) (measuring accuracy against
+a labelled dataset).
+
+## How it works
+
+- Open the extraction agent and start a **New Extraction**. Drop a file or pick one
+  you've already uploaded (**PDF**, **image**, or **CSV**, one file at a time).
+- A **PDF/image** runs immediately and opens a **result page** with the extracted
+  JSON. A **CSV** opens a short dialog to set each column's role, then runs every row.
+- Every run is saved to the **history** on the agent's page, tagged **PDF / Image** or
+  **CSV**, so you can reopen or delete it later.
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click and the area to
+watch.
+
+<RunExtractionWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Start a new extraction
+
+Open your **extraction agent**. Its page shows a **New Extraction** card
+(*Select a document to run extraction*) and the history of past runs below. Click
+**Run** to begin.
+
+### 2. Add a document
+
+On the **New Extraction** page you can either **drag or upload a file**, or pick one
+from your list of already-uploaded documents. Accepted types are **PDF**, **image**
+(JPEG), and **CSV** — one file at a time. What you choose decides the mode:
+
+- **PDF / image** → a single-document run (step 3).
+- **CSV** → a batch run (step 4).
+
+### 3. Read a single-document result
+
+For a PDF or image, the agent runs and opens the **result page**. It shows a **status**
+(**Pending** while it works, then **Success** or **Failed**) and, when finished, the
+**Duration**. Use:
+
+- **View JSON** — open the extracted data (the structured object the agent returned).
+- **Download JSON** — save it as a file.
+
+While it's still running you'll see *Processing... This may take a while...*
+
+### 4. Configure and run a CSV batch
+
+For a CSV, the **Run CSV Extraction** dialog opens (*Run each record through the
+agent*). In **Configure column roles**, set a role for each column:
+
+- **Input** — sent to the agent for that record.
+- **Reference** — kept alongside the results but not sent.
+- **Ignore** — left out.
+
+You can also choose how many **Records to run** (all, or a subset). Click **Run** to
+process every row.
+
+### 5. Read the CSV results
+
+The **CSV Extraction Results** page shows a **Summary** — **Total**, **Processed**,
+and **Errors** — and a table with each record's **Status** (**Success** / **Error**)
+and its **Output**. While it runs, a badge shows how many records **remain**; you can
+**Cancel** a running batch or **Retry** a failed one. When it's done, use **Download
+Document** to get the results as a CSV.
+
+### 6. Find runs in the history
+
+Back on the agent's page, every past run is listed with a **PDF / Image** or **CSV**
+badge, its date and status. Click **Open** to reopen a run's result, download the CSV
+export, or use the **trash** icon to delete it (a confirmation asks first).
+
+## Tips
+
+- Use a **single document** to spot-check the agent's output; use a **CSV** to process
+  many records at once.
+- If a run fails, open it and check the error, refine the agent's **Instructions** or
+  **output schema** (see [Add an extraction agent](/en/add-an-extraction-agent)), then
+  run again.
+- For a large CSV, run **a subset of records** first to confirm the columns are mapped
+  correctly before processing everything.
+
+## Troubleshooting
+
+- **My file was rejected** — only **PDF**, **JPEG images**, and **CSV** are accepted,
+  one file at a time, within the size limit. Convert or split the file and retry.
+- **The result is empty or wrong** — the agent extracts against its **output schema**;
+  refine the field **descriptions** and **Instructions** on the agent, then run again.
+- **A CSV column isn't being used** — set its role to **Input** in *Configure column
+  roles*; **Reference** and **Ignore** columns aren't sent to the agent.
+- **The batch is taking long** — large CSVs process in the background; you can leave
+  the page and come back, **Cancel** a run, or **Retry** a failed one from its result
+  page.

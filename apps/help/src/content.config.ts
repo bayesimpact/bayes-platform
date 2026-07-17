@@ -13,6 +13,10 @@ const docs = defineCollection({
   loader: glob({ pattern: "**/*.{md,mdx}", base: new URL("./content/docs", import.meta.url) }),
   schema: z.object({
     title: z.string(),
+    // Keyword within `title` to emphasise with the brand marker-highlight in the
+    // article H1 (see `highlightKeyword` + `.hl`). Must be a substring of `title`;
+    // if absent or not found, the title renders without a highlight.
+    highlight: z.string().optional(),
     description: z.string(),
     // Category id — see `src/i18n/categories.ts` for labels/order.
     category: z.string(),

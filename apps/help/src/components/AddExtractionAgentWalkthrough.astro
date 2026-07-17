@@ -37,6 +37,10 @@ const STRINGS = {
     promptValue: "Extract structured information from the uploaded document. Return ONLY the JSON object that matches the provided output schema.",
     modelLabel: "Model", modelPlaceholder: "Select model", tempLabel: "Temperature", tempValue: "0.2",
     schemaLabel: "Output JSON Schema", schemaValue: SCHEMA,
+    builderAdvanced: "Advanced mode", builderAddField: "Add field",
+    bName: "Field name", bType: "Type", bReq: "Required",
+    tText: "Text", tNumber: "Number", tYesNo: "Yes / No",
+    field1: "title", field2: "summary",
     update: "Update", save: "Save",
     prev: "Prev", next: "Next", step: "Step",
     steps: [
@@ -45,8 +49,8 @@ const STRINGS = {
       "Give your agent a name, then click Create.",
       "General: set the Name, Locale and Instructions, then Save.",
       "Model: choose the Model and Temperature, then Save.",
-      "Output: define the Output JSON Schema — the fields to extract.",
-      "Each tab saves on its own — click Save to keep your changes.",
+      "Output: add the fields to extract — a name, a type, and Required — then Save.",
+      "Prefer JSON? Advanced mode opens the raw schema editor.",
     ],
   },
   fr: {
@@ -68,6 +72,10 @@ const STRINGS = {
     promptValue: "Extrayez les informations structurées du document téléversé. Renvoyez UNIQUEMENT l'objet JSON conforme au schéma de sortie fourni.",
     modelLabel: "Modèle", modelPlaceholder: "Sélectionnez le modèle", tempLabel: "Température", tempValue: "0.2",
     schemaLabel: "Schéma JSON de sortie", schemaValue: SCHEMA,
+    builderAdvanced: "Mode avancé", builderAddField: "Ajouter un champ",
+    bName: "Nom du champ", bType: "Type", bReq: "Obligatoire",
+    tText: "Texte", tNumber: "Nombre", tYesNo: "Oui / Non",
+    field1: "title", field2: "summary",
     update: "Mettre à jour", save: "Enregistrer",
     prev: "Précédent", next: "Suivant", step: "Étape",
     steps: [
@@ -76,8 +84,8 @@ const STRINGS = {
       "Donnez un nom à votre agent, puis cliquez sur Créer.",
       "Général : définissez le Nom, la Langue et les Instructions, puis Enregistrez.",
       "Modèle : choisissez le Modèle et la Température, puis Enregistrez.",
-      "Sortie : définissez le Schéma JSON de sortie — les champs à extraire.",
-      "Chaque onglet s'enregistre séparément — cliquez sur Enregistrer.",
+      "Sortie : ajoutez les champs à extraire — un nom, un type et Obligatoire — puis Enregistrez.",
+      "Vous préférez le JSON ? Le Mode avancé ouvre l'éditeur de schéma brut.",
     ],
   },
 } as const
@@ -225,8 +233,24 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
               <span class="tab">{s.tabModel}</span>
               <span class="tab on" id="tabOutput">{s.tabOutput}</span>
             </div>
-            <div class="tabbody">
-              <div class="fld"><p class="lbl">{s.schemaLabel}</p><span class="textarea mono" id="obsSchema">{s.schemaValue}</span></div>
+            <div class="tabbody" id="obsSchema">
+              <div class="builder-top"><span class="modebtn"><svg viewBox="0 0 24 24"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg> {s.builderAdvanced}</span></div>
+              <div class="sbuilder">
+                <div class="sb-head"><span>{s.bName}</span><span>{s.bType}</span><span class="ta-c">{s.bReq}</span><span></span></div>
+                <div class="sb-row">
+                  <span class="input block mono">{s.field1}</span>
+                  <span class="select"><span>{s.tText}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
+                  <span class="ta-c"><span class="switch on"><i></i></span></span>
+                  <span class="ta-c trash"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
+                </div>
+                <div class="sb-row">
+                  <span class="input block mono">{s.field2}</span>
+                  <span class="select"><span>{s.tText}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
+                  <span class="ta-c"><span class="switch"><i></i></span></span>
+                  <span class="ta-c trash"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
+                </div>
+                <span class="btn outline sm addfield"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.builderAddField}</span>
+              </div>
             </div>
             <div class="editor-foot"><span class="btn" id="btnSave">{s.save}</span></div>
           </div>
@@ -421,6 +445,20 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   .eaw .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
   .eaw .fld .lbl { margin-top: 0.4rem; }
   .eaw .editor-foot { display: flex; justify-content: flex-end; margin-top: 1rem; }
+  .eaw .builder-top { display: flex; justify-content: flex-end; margin-bottom: 0.6rem; }
+  .eaw .modebtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); border-radius: 8px; padding: 0.3rem 0.55rem; font-size: 0.76rem; color: var(--foreground); background: var(--background); }
+  .eaw .modebtn svg { color: var(--muted-foreground); }
+  .eaw .sbuilder { border: 1px solid var(--border); border-radius: 10px; padding: 0.7rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .eaw .sb-head, .eaw .sb-row { display: grid; grid-template-columns: 1.4fr 1fr auto auto; gap: 0.6rem; align-items: center; }
+  .eaw .sb-head { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted-foreground); font-weight: 600; padding: 0 0.1rem; }
+  .eaw .sb-row .select { min-width: 6.5rem; }
+  .eaw .ta-c { text-align: center; display: inline-flex; justify-content: center; }
+  .eaw .trash { color: var(--muted-foreground); }
+  .eaw .switch { width: 1.9rem; height: 1.1rem; border-radius: 999px; background: var(--muted); position: relative; display: inline-block; flex-shrink: 0; }
+  .eaw .switch i { position: absolute; top: 2px; left: 2px; width: 0.8rem; height: 0.8rem; border-radius: 999px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .eaw .switch.on { background: var(--primary); }
+  .eaw .switch.on i { left: calc(100% - 0.9rem); }
+  .eaw .addfield { align-self: flex-start; margin-top: 0.2rem; }
 
   .eaw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
   .eaw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }

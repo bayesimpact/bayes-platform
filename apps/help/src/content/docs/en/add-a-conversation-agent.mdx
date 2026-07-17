@@ -1,9 +1,10 @@
 ---
 title: Add a conversation agent
+highlight: conversation
 description: Create a conversation agent that chats with users, grounded in your workspace's documents and resource libraries.
 category: guides-agents
 order: 1
-updated: 2026-07-13
+updated: 2026-07-16
 ---
 
 import AddConversationAgentWalkthrough from "@/components/AddConversationAgentWalkthrough.astro"
@@ -21,7 +22,7 @@ workspace overview (or the **+** next to **Agents** in the left sidebar).
 
 Once created, the agent opens in an editor with tabs — for a conversation agent:
 **General**, **Model**, **Sources**, **Resource libraries**, and (when they're
-available) **Conversation categories**, **Orchestration** and **Embed**.
+available) **Conversation categories**, [**Orchestration**](/en/agent-orchestration) and [**Embed**](/en/agent-embed).
 **Each tab is its own form and saves on its own** — click **Save** on a tab to keep
 its changes; the editor warns you before you leave a tab with unsaved changes.
 
@@ -95,6 +96,15 @@ this agent can delegate to. Pick from **Available conversation agents**, give ea
 When embedding is enabled, open the **Embed** tab to put the agent on an external
 site: toggle **Enable embed**, copy the **Embed snippet**, and set the **Allowed
 origins**, **Widget title**, **Logo URL** and **Brand color**. Click **Update**.
+
+## Version history
+
+Every save creates a new **version** of the agent. Open **History** (top right of the
+editor, showing the current **v number**) to browse past versions in a side panel,
+**compare** what changed (**Changes in this version** or **Compare with current**),
+and **Restore this version** — which copies those settings as a new current version
+without deleting anything. See [Version history](/en/agent-version-history) for the
+full walkthrough.
 
 ## Tips
 

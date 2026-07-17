@@ -1,5 +1,6 @@
 ---
 title: Questions fréquentes
+highlight: Questions
 description: Réponses rapides aux questions les plus fréquentes.
 category: faq
 order: 1

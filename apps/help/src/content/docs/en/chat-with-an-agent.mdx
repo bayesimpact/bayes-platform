@@ -1,0 +1,126 @@
+---
+title: Chat with an agent
+highlight: Chat
+description: Use the App to talk to the agents built for your workspace — pick an agent, start a chat, send messages, attach files or dictate, and use each answer's feedback, copy, and sources.
+category: getting-started
+order: 4
+updated: 2026-07-16
+---
+
+import AppChatWalkthrough from "@/components/AppChatWalkthrough.astro"
+
+The **App** is where you actually **use** the agents an admin built for your
+workspace — you hold conversations with them, fill forms through chat, and run
+extractions. It's the everyday, end-user side of the platform (Studio is the
+separate place where agents are *configured*).
+
+You open the **App** from your **workspace** card on the home page — its button is
+labelled **App** (grid icon). Everyone with access to a workspace can open it.
+
+## How it works
+
+- The App's **left sidebar** lists every **agent** in the workspace; the main area
+  shows the same agents as cards. You pick one to talk to.
+- Each agent keeps its own **sessions** (past chats). You start a **New Chat** or
+  reopen a previous session — they're saved and listed under the agent.
+- Agents come in three types, and the App adapts to each:
+  - **Conversation** — a normal chat.
+  - **Form** — a chat that also fills a **Form Result** panel as you answer.
+  - **Extraction** — instead of chatting, you [run an **extraction**](/en/run-an-extraction) on a document.
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click and the area to
+watch.
+
+<AppChatWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Open the App
+
+On the home page, find your **workspace** card and click **App** (the grid icon). The
+App opens with the workspace's agents in the left sidebar and as cards in the main
+area.
+
+### 2. Pick an agent
+
+Choose the agent you want to talk to — click its card in the main area, or its name
+in the sidebar. Each agent shows its **type** (Conversation, Form, or Extraction).
+
+### 3. Start or reopen a session
+
+On the agent's page, click **New Chat** (**New Form Session** for a form agent, or
+**New Extraction** for an extraction agent) to begin. Your **past sessions** are
+listed alongside — click one to reopen it. In the sidebar, an agent's sessions appear
+nested under it, newest first.
+
+### 4. Send a message
+
+Type your question in the box at the bottom (**Ask your question...**) and press
+**Enter** (or the **send** button) to send it. The agent's reply streams into the
+thread just below your message. Use **Shift + Enter** for a line break.
+
+### 5. Use the composer tools
+
+Next to the input you'll find:
+
+- **Attach** (paperclip) — add a file (e.g. a PDF or image) to your message.
+- **Voice input** (microphone) — dictate instead of typing (shown only if your
+  browser supports it).
+- **Jump to a message** (list icon) — in longer threads, quickly jump back to any of
+  your earlier questions.
+
+### 6. Work with an answer
+
+While the agent works, a live status shows what it's doing (e.g. *Working through 2
+steps*); once done it collapses to a **Worked through … steps** summary you can expand
+to see each step. Under each finished answer you can:
+
+- **Feedback** — a thumbs button opens *Report a problem with this message* to send a
+  comment to the team.
+- **Copy** — copy the answer to your clipboard.
+- **Sources** — when the agent used your workspace's documents, a **… sources** button
+  opens a panel listing them (with a download link for public documents). This appears
+  only when the workspace has the sources feature enabled.
+
+### 7. Form agents: watch the Form Result
+
+A **form agent** uses the same chat, plus a **Form Result** panel on the right. As you
+answer the agent's questions, the panel fills in each field; fields not yet collected
+show a **—**. On a narrow screen the panel becomes a collapsible strip above the chat.
+
+## Managing sessions
+
+- **Reopen** any past session from the agent's list or the sidebar — everything is
+  saved.
+- **Delete** a session with the **trash** icon (on the session card, in the sidebar's
+  session menu, or in the chat header). There is **no rename**.
+
+## Extraction agents
+
+An **extraction agent** doesn't chat. On its page you click **New Extraction**, pick or
+upload a document (PDF/image, or a CSV for batch runs), and read the extracted result
+on a dedicated run page. Its runs are listed as history rather than chat sessions.
+
+## Tips
+
+- Give the agent context in your first message — the clearer the question, the better
+  the answer.
+- Use **Sources** to check where an answer came from before relying on it.
+- Leave **feedback** on a weak answer; it helps the team improve the agent.
+- Start a **New Chat** for a new topic so each conversation stays focused.
+
+## Troubleshooting
+
+- **I don't see any agents** — no agents have been created in this workspace yet, or
+  you don't have access. Ask a workspace **Admin** (they build agents in **Studio**).
+- **The voice button is missing** — dictation only appears when your browser supports
+  speech recognition; try a recent Chrome or Edge.
+- **There's no Sources button** — the agent either didn't use any documents for that
+  answer, or the workspace doesn't have the sources feature enabled.
+- **I can't rename a session** — renaming isn't available; sessions are labelled by
+  their time. You can **delete** a session you no longer need.
+- **I opened Studio by mistake** — Studio is the admin/configuration side. If you only
+  want to use the agents, go back to the **App**.

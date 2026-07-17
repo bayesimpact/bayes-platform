@@ -1,5 +1,6 @@
 ---
 title: Manage your profile
+highlight: profile
 description: Update your display name and language.
 category: account
 order: 1

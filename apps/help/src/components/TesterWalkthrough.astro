@@ -1,0 +1,462 @@
+---
+/**
+ * Walkthrough of the Tester app (participating in a review campaign as a tester).
+ * Derived from the real components (verified, not copied blind): WorkspaceItem.tsx
+ * (`goToTester` + ListChecksIcon), TesterRoute.tsx (HorizontalNavbar appName =
+ * testerCampaigns:shell.title), CampaignList.tsx, CampaignLanding.tsx,
+ * TesterAgentSession.tsx, TesterFeedbackModal.tsx, DynamicQuestionField.tsx,
+ * SessionCard.tsx, FinishParticipatingDialog.tsx, EndOfPhaseSurveyForm.tsx. Labels
+ * verbatim from tester-campaigns / actions locales (EN + FR). Uses the PRODUCT
+ * (coral) palette, pinned locally. Derived 2026-07-16.
+ */
+type Lang = "en" | "fr"
+const { lang = "en" } = Astro.props as { lang?: Lang }
+
+const STRINGS = {
+  en: {
+    appName: "Tester", workspaces: "Workspaces", org: "Bayes Impact Demo", projectName: "Demo",
+    appStudio: "Studio", appApp: "App", appEval: "Evaluation", appTest: "Test",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    myTitle: "My review campaigns", mySubtitle: "Active campaigns you've been invited to test.",
+    invited: "Invited to evaluate this agent.",
+    campaignName: "Agent pilot", campaignDesc: "Help us evaluate the assistant before launch.",
+    agentName: "Helpful Assistant", agentType: "Conversation agent",
+    greeting: "Hi! How can I help you today?",
+    startSession: "Start a conversation",
+    pastTitle: "Your past sessions", pastEmpty: "You haven't started any sessions yet. Your past sessions and their feedback status will appear here.",
+    countOne: "1 session", countZero: "0 sessions",
+    endTitle: "End-of-phase survey",
+    endDesc: "When you're done testing, share an overall rating and thoughts about the experience. This is optional — your per-session feedback already counts.",
+    finishParticipating: "Finish participating",
+    reviewBadge: "Review campaign", endSession: "End session & give feedback",
+    userMsg: "How do I reset my password?",
+    botMsg: "Go to Settings → Security and click “Reset password”. You'll get an email with a link.",
+    composer: "Type your message…",
+    fbTitle: "How was this session?",
+    fbDesc: "Your feedback helps improve the agent. Rate the session and fill in the questions below before finishing.",
+    overallRating: "Overall rating", comment: "Comment", commentPh: "Anything we should know about this session?",
+    submitFeedback: "Submit feedback", back: "Back",
+    q1: "Was the answer accurate?", q2: "Anything the agent missed?", q2ph: "Your answer…",
+    statusSubmitted: "Feedback submitted", statusPending: "Feedback pending",
+    giveFeedback: "Give feedback", open: "Open",
+    surveyTitle: "End-of-phase survey", surveyDesc: "Share your overall experience so the team can evaluate this agent.",
+    surveyComment: "What went well? What could be better?",
+    q3: "Would you recommend this agent?", q3a: "Yes", q3b: "No", q3c: "Not sure",
+    submitSurvey: "Submit survey",
+    prev: "Prev", next: "Next", step: "Step",
+    steps: [
+      "From the home page, open your workspace's menu and choose Test — the tester app.",
+      "My review campaigns lists the campaigns you were invited to. Open one.",
+      "On the campaign page, click Start a conversation to test the agent.",
+      "Chat with the agent, then click End session & give feedback.",
+      "Give an Overall rating, a comment, and answer the per-session questions, then Submit feedback.",
+      "Your session appears under Your past sessions with its status. When done, click Finish participating.",
+      "Fill in the End-of-phase survey and Submit survey.",
+    ],
+  },
+  fr: {
+    appName: "Testeur", workspaces: "Espaces de travail", org: "Bayes Impact Demo", projectName: "Demo",
+    appStudio: "Studio", appApp: "Application", appEval: "Évaluation", appTest: "Test",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    myTitle: "Mes campagnes d'évaluation", mySubtitle: "Campagnes actives auxquelles vous avez été invité à participer.",
+    invited: "Invité à évaluer cet agent.",
+    campaignName: "Pilote agent", campaignDesc: "Aidez-nous à évaluer l'assistant avant son lancement.",
+    agentName: "Helpful Assistant", agentType: "Agent conversationnel",
+    greeting: "Bonjour ! Comment puis-je vous aider ?",
+    startSession: "Démarrer une conversation",
+    pastTitle: "Vos sessions passées", pastEmpty: "Vous n'avez pas encore démarré de session. Vos sessions passées et leur statut de retour apparaîtront ici.",
+    countOne: "1 session", countZero: "0 session",
+    endTitle: "Questionnaire de fin de phase",
+    endDesc: "Lorsque vos tests sont terminés, partagez une note globale et vos impressions sur l'expérience. C'est optionnel — vos retours par session sont déjà pris en compte.",
+    finishParticipating: "Terminer ma participation",
+    reviewBadge: "Campagne d'évaluation", endSession: "Terminer la session et donner un retour",
+    userMsg: "Comment réinitialiser mon mot de passe ?",
+    botMsg: "Allez dans Paramètres → Sécurité et cliquez sur « Réinitialiser le mot de passe ». Vous recevrez un email avec un lien.",
+    composer: "Écrivez votre message…",
+    fbTitle: "Comment s'est passée cette session ?",
+    fbDesc: "Vos retours aident à améliorer l'agent. Notez la session et répondez aux questions ci-dessous avant de terminer.",
+    overallRating: "Note globale", comment: "Commentaire", commentPh: "Y a-t-il quelque chose à signaler sur cette session ?",
+    submitFeedback: "Envoyer le retour", back: "Retour",
+    q1: "La réponse était-elle exacte ?", q2: "Quelque chose a-t-il manqué ?", q2ph: "Votre réponse…",
+    statusSubmitted: "Retour envoyé", statusPending: "Retour en attente",
+    giveFeedback: "Donner un retour", open: "Ouvrir",
+    surveyTitle: "Questionnaire de fin de phase", surveyDesc: "Partagez votre expérience globale afin que l'équipe puisse évaluer cet agent.",
+    surveyComment: "Qu'est-ce qui a bien fonctionné ? Que peut-on améliorer ?",
+    q3: "Recommanderiez-vous cet agent ?", q3a: "Oui", q3b: "Non", q3c: "Pas sûr",
+    submitSurvey: "Envoyer le questionnaire",
+    prev: "Précédent", next: "Suivant", step: "Étape",
+    steps: [
+      "Sur la page d'accueil, ouvrez le menu de votre espace de travail et choisissez Test — l'application testeur.",
+      "Mes campagnes d'évaluation liste les campagnes auxquelles vous êtes invité. Ouvrez-en une.",
+      "Sur la page de la campagne, cliquez sur Démarrer une conversation pour tester l'agent.",
+      "Discutez avec l'agent, puis cliquez sur Terminer la session et donner un retour.",
+      "Donnez une Note globale, un commentaire, répondez aux questions par session, puis Envoyez le retour.",
+      "Votre session apparaît sous Vos sessions passées avec son statut. Une fois terminé, cliquez sur Terminer ma participation.",
+      "Remplissez le Questionnaire de fin de phase et Envoyez le questionnaire.",
+    ],
+  },
+} as const
+
+const s = STRINGS[lang]
+
+const steps = [
+  { page: "home", spot: "btnTest", observe: [] },
+  { page: "campaigns", spot: "cardOpen", observe: [] },
+  { page: "landingEmpty", spot: "btnStart", observe: [] },
+  { page: "session", spot: "btnEnd", observe: [] },
+  { page: "feedback", spot: "", observe: ["obsFeedback"] },
+  { page: "landingFilled", spot: "btnFinish", observe: ["obsSessions"] },
+  { page: "survey", spot: "", observe: ["obsSurvey"] },
+].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, navHome: s.workspaces }
+---
+
+<div class="tsw" role="group" aria-label={s.appName}>
+  <div class="frame">
+    <div class="nav">
+      <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
+      <span class="appname" id="navTitle">{s.appName}</span>
+      <span class="navuser"><span class="avatar">AM</span><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+    </div>
+
+    <div class="panel">
+      <div class="canvas">
+        <!-- Home: workspace app menu (step 1) -->
+        <div class="page" data-page="home" data-active="true">
+          <div class="page-head"><span><span class="ttl">{s.workspaces}</span></span></div>
+          <div class="wscard">
+            <span class="ws-name">{s.projectName}</span>
+            <div class="openbtn">
+              <span class="split-main"><svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg> {s.appStudio}</span>
+              <span class="split-chev"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>
+            </div>
+            <div class="menu">
+              <span class="menu-item"><svg viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg> {s.appApp}</span>
+              <span class="menu-item"><svg viewBox="0 0 24 24"><path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/></svg> {s.appEval}</span>
+              <span class="menu-item" id="btnTest"><svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg> {s.appTest}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- My review campaigns (step 2) -->
+        <div class="page" data-page="campaigns">
+          <div class="page-head"><span><span class="ttl">{s.myTitle}</span><span class="desc">{s.mySubtitle}</span></span></div>
+          <div class="cards2">
+            <div class="ccard">
+              <b>{s.campaignName}</b>
+              <p>{s.campaignDesc}</p>
+              <p class="muted-txt">{s.invited}</p>
+              <span class="arrowbtn" id="cardOpen"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campaign landing, no sessions yet (step 3) -->
+        <div class="page" data-page="landingEmpty">
+          <div class="page-head"><span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><span><span class="ttl">{s.campaignName}</span><span class="desc">{s.campaignDesc}</span></span></div>
+          <div class="body">
+            <div class="startcard">
+              <div class="sc-head"><span><b>{s.agentName}</b><span class="badge">{s.agentType}</span></span><span class="btn" id="btnStart">{s.startSession} <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+              <p class="greeting">“{s.greeting}”</p>
+            </div>
+            <section class="sec">
+              <header class="sec-head"><h3>{s.pastTitle}</h3><span class="muted-txt">{s.countZero}</span></header>
+              <p class="muted-txt italic">{s.pastEmpty}</p>
+            </section>
+            <section class="survey-sec">
+              <h3 class="flag"><svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg> {s.endTitle}</h3>
+              <p class="muted-txt">{s.endDesc}</p>
+              <span class="btn">{s.finishParticipating}</span>
+            </section>
+          </div>
+        </div>
+
+        <!-- Chat session (step 4) -->
+        <div class="page" data-page="session">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.campaignName}</span><span class="desc"><span class="badge">{s.reviewBadge}</span> {s.agentName}</span></span>
+            <span class="right"><span class="btn" id="btnEnd"><svg viewBox="0 0 24 24"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg> {s.endSession}</span></span>
+          </div>
+          <div class="chat">
+            <div class="msg user"><span>{s.userMsg}</span></div>
+            <div class="msg bot"><span>{s.botMsg}</span></div>
+            <div class="composer"><span class="muted-txt">{s.composer}</span><span class="send"><svg viewBox="0 0 24 24"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg></span></div>
+          </div>
+        </div>
+
+        <!-- Feedback modal (step 5) -->
+        <div class="page center" data-page="feedback">
+          <div class="scrim"></div>
+          <div class="modal" id="obsFeedback">
+            <div class="m-head"><b>{s.fbTitle}</b><p>{s.fbDesc}</p></div>
+            <div class="m-body">
+              <div class="fld"><p class="lbl">{s.overallRating} <span class="req">*</span></p><span class="stars"><i class="star on"></i><i class="star on"></i><i class="star on"></i><i class="star on"></i><i class="star"></i></span></div>
+              <div class="fld"><p class="lbl">{s.comment}</p><span class="textarea muted-txt">{s.commentPh}</span></div>
+              <div class="fld"><p class="lbl">{s.q1} <span class="req">*</span></p><span class="stars"><i class="star on"></i><i class="star on"></i><i class="star on"></i><i class="star on"></i><i class="star on"></i></span></div>
+              <div class="fld"><p class="lbl">{s.q2}</p><span class="textarea muted-txt">{s.q2ph}</span></div>
+            </div>
+            <div class="m-foot"><span class="btn wide">{s.submitFeedback}</span><span class="btn ghost wide">{s.back}</span></div>
+          </div>
+        </div>
+
+        <!-- Campaign landing with a submitted session (step 6) -->
+        <div class="page" data-page="landingFilled">
+          <div class="page-head"><span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><span><span class="ttl">{s.campaignName}</span><span class="desc">{s.campaignDesc}</span></span></div>
+          <div class="body">
+            <div class="startcard">
+              <div class="sc-head"><span><b>{s.agentName}</b><span class="badge">{s.agentType}</span></span><span class="btn">{s.startSession} <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            </div>
+            <section class="sec" id="obsSessions">
+              <header class="sec-head"><h3>{s.pastTitle}</h3><span class="muted-txt">{s.countOne}</span></header>
+              <div class="scard">
+                <span class="sc-left"><span class="sc-date"><svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg> now</span><span class="statusbadge ok"><svg viewBox="0 0 24 24"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg> {s.statusSubmitted}</span></span>
+                <span class="sc-actions"><span class="btn ghost sm">{s.open}</span></span>
+              </div>
+            </section>
+            <section class="survey-sec">
+              <h3 class="flag"><svg viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg> {s.endTitle}</h3>
+              <p class="muted-txt">{s.endDesc}</p>
+              <span class="btn" id="btnFinish">{s.finishParticipating}</span>
+            </section>
+          </div>
+        </div>
+
+        <!-- End-of-phase survey (step 7) -->
+        <div class="page" data-page="survey">
+          <div class="page-head"><span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><span><span class="ttl">{s.surveyTitle}</span><span class="desc">{s.surveyDesc}</span></span></div>
+          <div class="body" id="obsSurvey">
+            <div class="fld"><p class="lbl">{s.overallRating} <span class="req">*</span></p><span class="stars"><i class="star on"></i><i class="star on"></i><i class="star on"></i><i class="star on"></i><i class="star"></i></span></div>
+            <div class="fld"><p class="lbl">{s.comment}</p><span class="textarea muted-txt">{s.surveyComment}</span></div>
+            <div class="fld"><p class="lbl">{s.q3}</p>
+              <span class="radio on"><i></i>{s.q3a}</span>
+              <span class="radio"><i></i>{s.q3b}</span>
+              <span class="radio"><i></i>{s.q3c}</span>
+            </div>
+            <div class="foot-right"><span class="btn">{s.submitSurvey}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="navbtn" data-prev><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> {s.prev}</button>
+    <button class="ctrl" data-playpause aria-label="Play / pause">⏸</button>
+    <span class="cap"><span class="st" data-stepcount></span><span class="tx" data-captext></span></span>
+    <span class="dots-nav" data-dots role="tablist" aria-label="Steps"></span>
+    <button class="navbtn primary" data-next>{s.next} <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="progress"><i data-bar></i></div>
+</div>
+
+<script define:vars={{ steps, labels }}>
+  const cs = document.currentScript
+  const tsw =
+    cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("tsw")
+      ? cs.previousElementSibling
+      : document.querySelector(".tsw")
+  const q = (sel) => tsw.querySelector(sel)
+  const pages = [...tsw.querySelectorAll(".page")]
+  const dotsWrap = tsw.querySelector("[data-dots]")
+  const bar = tsw.querySelector("[data-bar]")
+  const capText = tsw.querySelector("[data-captext]")
+  const stepCount = tsw.querySelector("[data-stepcount]")
+  const playPause = tsw.querySelector("[data-playpause]")
+  const prevBtn = tsw.querySelector("[data-prev]")
+  const nextBtn = tsw.querySelector("[data-next]")
+  const DUR = 6000
+  let idx = 0, playing = true, timer = null
+
+  steps.forEach((_, i) => {
+    const b = document.createElement("button")
+    b.className = "dotnav"; b.setAttribute("role", "tab"); b.setAttribute("aria-label", labels.step + " " + (i + 1))
+    b.addEventListener("click", () => go(i)); dotsWrap.appendChild(b)
+  })
+  const dots = [...dotsWrap.children]
+
+  function clearMarks() {
+    tsw.querySelectorAll(".spot-on").forEach((el) => el.classList.remove("spot-on"))
+    tsw.querySelectorAll(".observe-on").forEach((el) => el.classList.remove("observe-on"))
+  }
+  function render() {
+    const step = steps[idx]
+    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page)))
+    dots.forEach((d, i) => d.classList.toggle("on", i === idx))
+    stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
+    capText.textContent = step.text
+    const navTitle = q("#navTitle")
+    if (navTitle) navTitle.textContent = step.page === "home" ? labels.navHome : labels.navApp
+
+    clearMarks()
+    const active = idx
+    setTimeout(() => {
+      if (active !== idx) return
+      if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
+      step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+    }, 260)
+
+    bar.classList.remove("run"); void bar.offsetWidth
+    bar.style.setProperty("--dur", DUR + "ms")
+    if (playing) bar.classList.add("run")
+  }
+  function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(() => go(idx + 1), DUR) }
+  function go(n) { idx = (n + steps.length) % steps.length; render(); schedule() }
+  function setPlaying(p) {
+    playing = p; playPause.textContent = p ? "⏸" : "▶"
+    if (p) { bar.classList.add("run"); schedule() } else { clearTimeout(timer); bar.classList.remove("run") }
+  }
+  prevBtn.addEventListener("click", () => go(idx - 1))
+  nextBtn.addEventListener("click", () => go(idx + 1))
+  playPause.addEventListener("click", () => setPlaying(!playing))
+
+  render(); schedule()
+</script>
+
+<style>
+  .tsw {
+    --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+    --primary: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --destructive: oklch(0.577 0.245 27.325);
+    --success: oklch(0.62 0.14 150);
+    --radius: 0.625rem;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
+    --spot: color-mix(in oklab, var(--primary) 55%, transparent);
+    display: block; margin: 1.5rem 0; color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .tsw * { box-sizing: border-box; }
+  .tsw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+
+  .tsw .frame { display: flex; flex-direction: column; height: 680px; background: var(--background); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .tsw .nav { height: 4rem; flex-shrink: 0; background: var(--background); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
+  .tsw .logo { width: 2rem; height: 2rem; display: inline-flex; align-items: center; justify-content: center; padding: 0.15rem; }
+  .tsw .logo svg { width: 100%; height: 100%; stroke: none; }
+  .tsw .logo svg path { fill: #f18c6e; }
+  .tsw .logo svg circle { fill: #010101; }
+  .tsw .appname { flex: 1; color: var(--primary); font-weight: 500; font-size: 0.95rem; }
+  .tsw .navuser { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--muted-foreground); }
+  .tsw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
+  .tsw .navuser svg { font-size: 0.9rem; }
+
+  .tsw .panel { flex: 1; min-height: 0; margin: 1.5rem 2.5rem 2rem; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: var(--card); box-shadow: var(--shadow); }
+  .tsw .canvas { position: relative; height: 100%; }
+  .tsw .page { position: absolute; inset: 0; padding: 1.2rem 1.4rem; overflow: auto; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; display: flex; flex-direction: column; }
+  .tsw .page[data-active="true"] { opacity: 1; transform: none; pointer-events: auto; }
+  .tsw .page.center { align-items: center; justify-content: center; }
+
+  .tsw .spot-on { position: relative; z-index: 7; animation: tsw-spot 1.4s ease-in-out infinite; border-radius: 8px; }
+  @keyframes tsw-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
+  .tsw .observe-on { outline: 2px dashed var(--spot); outline-offset: 3px; border-radius: 10px; }
+
+  .tsw .page-head { border-bottom: 1px solid var(--border); padding-bottom: 0.9rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.7rem; flex-shrink: 0; }
+  .tsw .backbtn { width: 1.9rem; height: 1.9rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); flex-shrink: 0; }
+  .tsw .ttl { font-size: 1.25rem; font-weight: 600; line-height: 1.15; display: block; }
+  .tsw .desc { font-size: 0.85rem; color: var(--muted-foreground); margin-top: 0.2rem; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+  .tsw .right { margin-left: auto; }
+  .tsw .body { display: flex; flex-direction: column; gap: 1.1rem; }
+  .tsw .muted-txt { color: var(--muted-foreground); font-size: 0.8rem; }
+  .tsw .italic { font-style: italic; }
+
+  .tsw .btn { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--primary); color: var(--primary-foreground); border-radius: 8px; font-size: 0.82rem; font-weight: 500; padding: 0.45rem 0.75rem; }
+  .tsw .btn.ghost { background: transparent; color: var(--foreground); }
+  .tsw .btn.sm { padding: 0.3rem 0.55rem; font-size: 0.76rem; }
+  .tsw .btn.wide { width: 100%; justify-content: center; }
+  .tsw .badge { display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: 999px; padding: 0.1rem 0.5rem; font-size: 0.7rem; color: var(--muted-foreground); }
+  .tsw .arrowbtn { align-self: flex-start; margin-top: auto; width: 2rem; height: 2rem; border-radius: 999px; background: var(--primary); color: var(--primary-foreground); display: inline-grid; place-items: center; }
+
+  /* Home */
+  .tsw .wscard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 1rem; display: inline-flex; flex-direction: column; gap: 0.8rem; min-width: 18rem; align-self: flex-start; box-shadow: var(--shadow); }
+  .tsw .ws-name { font-size: 1.05rem; font-weight: 600; }
+  .tsw .openbtn { display: inline-flex; align-self: flex-start; }
+  .tsw .split-main { display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border); border-right: 0; border-radius: 8px 0 0 8px; padding: 0.45rem 0.7rem; font-size: 0.82rem; font-weight: 500; }
+  .tsw .split-main svg { color: var(--muted-foreground); }
+  .tsw .split-chev { display: inline-grid; place-items: center; border: 1px solid var(--border); border-radius: 0 8px 8px 0; padding: 0 0.45rem; color: var(--muted-foreground); }
+  .tsw .menu { border: 1px solid var(--border); border-radius: 10px; background: var(--card); box-shadow: var(--shadow); padding: 0.3rem; display: flex; flex-direction: column; gap: 0.1rem; width: 12rem; }
+  .tsw .menu-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.55rem; border-radius: 7px; font-size: 0.82rem; }
+  .tsw .menu-item svg { color: var(--muted-foreground); }
+
+  /* Campaigns */
+  .tsw .cards2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+  .tsw .ccard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.9rem; min-height: 130px; display: flex; flex-direction: column; gap: 0.2rem; }
+  .tsw .ccard b { font-size: 0.95rem; }
+  .tsw .ccard p { font-size: 0.8rem; color: var(--muted-foreground); margin: 0.1rem 0; }
+
+  /* Landing */
+  .tsw .startcard { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.9rem; }
+  .tsw .sc-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+  .tsw .sc-head b { font-size: 0.95rem; margin-right: 0.5rem; }
+  .tsw .greeting { font-size: 0.82rem; color: var(--muted-foreground); font-style: italic; margin: 0.6rem 0 0; }
+  .tsw .sec-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+  .tsw .sec-head h3, .tsw .survey-sec h3 { font-size: 1rem; font-weight: 600; margin: 0; }
+  .tsw .survey-sec { border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+  .tsw .flag { display: flex; align-items: center; gap: 0.4rem; }
+  .tsw .flag svg { color: var(--muted-foreground); }
+  .tsw .scard { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; border: 1px solid var(--border); border-radius: 10px; padding: 0.6rem 0.8rem; }
+  .tsw .sc-left { display: flex; flex-direction: column; gap: 0.35rem; }
+  .tsw .sc-date { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; font-weight: 500; }
+  .tsw .sc-date svg { color: var(--muted-foreground); }
+  .tsw .statusbadge { display: inline-flex; align-items: center; gap: 0.3rem; width: fit-content; border-radius: 999px; padding: 0.1rem 0.5rem; font-size: 0.72rem; font-weight: 600; }
+  .tsw .statusbadge.ok { background: color-mix(in oklab, var(--success) 16%, transparent); color: var(--success); }
+
+  /* Chat */
+  .tsw .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 0.6rem; padding-top: 0.3rem; }
+  .tsw .msg { max-width: 78%; padding: 0.55rem 0.8rem; border-radius: 12px; font-size: 0.82rem; line-height: 1.45; }
+  .tsw .msg.user { align-self: flex-end; background: var(--primary); color: var(--primary-foreground); border-bottom-right-radius: 4px; }
+  .tsw .msg.bot { align-self: flex-start; background: var(--muted); border-bottom-left-radius: 4px; }
+  .tsw .composer { margin-top: auto; display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--input); border-radius: 10px; padding: 0.55rem 0.7rem; }
+  .tsw .composer .muted-txt { flex: 1; }
+  .tsw .send { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--primary); color: var(--primary-foreground); display: grid; place-items: center; }
+
+  /* Fields / forms */
+  .tsw .fld { display: flex; flex-direction: column; gap: 0.4rem; }
+  .tsw .lbl { font-size: 0.82rem; font-weight: 600; margin: 0; }
+  .tsw .req { color: var(--destructive); }
+  .tsw .textarea { display: block; border: 1px solid var(--input); border-radius: 8px; padding: 0.5rem 0.7rem; font-size: 0.8rem; min-height: 2.6rem; }
+  .tsw .stars { display: inline-flex; gap: 0.2rem; }
+  .tsw .stars .star { width: 1.15rem; height: 1.15rem; clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); background: var(--border); }
+  .tsw .stars .star.on { background: var(--primary); }
+  .tsw .radio { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; }
+  .tsw .radio i { width: 0.95rem; height: 0.95rem; border: 1px solid var(--input); border-radius: 999px; display: inline-block; flex-shrink: 0; }
+  .tsw .radio.on i { border-color: var(--primary); box-shadow: inset 0 0 0 3px var(--primary); }
+  .tsw .foot-right { display: flex; justify-content: flex-end; }
+
+  /* Modal */
+  .tsw .scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 4; }
+  .tsw .modal { position: relative; z-index: 5; width: min(460px, 94%); max-height: 92%; background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; }
+  .tsw .m-head { padding: 1rem 1.1rem 0.4rem; }
+  .tsw .m-head b { font-size: 1rem; font-weight: 600; }
+  .tsw .m-head p { font-size: 0.78rem; color: var(--muted-foreground); margin: 0.25rem 0 0; }
+  .tsw .m-body { padding: 0.6rem 1.1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem; }
+  .tsw .m-foot { padding: 0.6rem 1.1rem 1rem; display: flex; flex-direction: column; gap: 0.4rem; }
+
+  /* Controls */
+  .tsw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .tsw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+  .tsw .navbtn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .tsw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
+  .tsw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .tsw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
+  .tsw .cap .tx { font-size: 0.88rem; font-weight: 500; }
+  .tsw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 200px; }
+  .tsw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .tsw .dotnav.on { background: var(--primary); transform: scale(1.3); }
+  .tsw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+  .tsw .progress i { display: block; height: 100%; width: 0; background: var(--primary); }
+  .tsw .progress i.run { animation: tsw-fill var(--dur, 6000ms) linear forwards; }
+  @keyframes tsw-fill { to { width: 100%; } }
+
+  @media (max-width: 640px) {
+    .tsw .frame { height: 620px; }
+    .tsw .panel { margin: 1rem; }
+    .tsw .cards2 { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tsw .page, .tsw .spot-on, .tsw .progress i { transition: none !important; animation: none !important; }
+  }
+</style>

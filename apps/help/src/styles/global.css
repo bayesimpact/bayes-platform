@@ -190,6 +190,15 @@
     line-height: 1.2;
     color: var(--eyebrow-color, var(--muted-foreground));
   }
+  /* Brand marker-highlight, usable anywhere (hero + article H1). Mirrors the
+     in-prose `<mark>`/`.hl` rule below so emphasised keywords look identical
+     inside and outside article body copy. */
+  .hl {
+    background: linear-gradient(180deg, transparent 58%, var(--gold-mark) 58%);
+    color: inherit;
+    padding: 0 0.08em;
+    border-radius: 1px;
+  }
   .pill {
     display: inline-flex;
     align-items: center;
