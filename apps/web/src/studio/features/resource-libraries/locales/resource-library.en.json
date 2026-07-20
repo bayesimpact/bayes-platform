@@ -57,6 +57,11 @@
     "agentTab": {
       "label": "Resource libraries",
       "description": "The assistant can surface resources from the selected libraries when a user's request matches a resource's title or description."
+    },
+    "picker": {
+      "addLibrary": "Add library",
+      "searchPlaceholder": "Search libraries...",
+      "noResults": "No libraries found"
     }
   }
 }
