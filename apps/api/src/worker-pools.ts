@@ -8,6 +8,10 @@ import { WEB_SOURCE_EMBEDDINGS_QUEUE_NAME } from "./domains/documents/crawling/w
 import { DOCUMENT_EMBEDDINGS_QUEUE_NAME } from "./domains/documents/embeddings/document-embeddings.constants"
 import { DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME } from "./domains/documents/embeddings/document-embeddings-stuck.constants"
 import {
+  EVALUATION_CONVERSATION_RUN_EXECUTE_QUEUE_NAME,
+  EVALUATION_CONVERSATION_RUN_QUEUE_NAME,
+} from "./domains/evaluations/conversation/runs/evaluation-conversation-run.constants"
+import {
   EVALUATION_EXTRACTION_RUN_EXECUTE_QUEUE_NAME,
   EVALUATION_EXTRACTION_RUN_QUEUE_NAME,
 } from "./domains/evaluations/extraction/runs/evaluation-extraction-run.constants"
@@ -18,6 +22,8 @@ import {
  * list in sync with the modules that register the queues.
  */
 export const KNOWN_WORKER_QUEUE_NAMES: readonly string[] = [
+  EVALUATION_CONVERSATION_RUN_QUEUE_NAME,
+  EVALUATION_CONVERSATION_RUN_EXECUTE_QUEUE_NAME,
   EVALUATION_EXTRACTION_RUN_QUEUE_NAME,
   EVALUATION_EXTRACTION_RUN_EXECUTE_QUEUE_NAME,
   AGENT_CSV_EXTRACTION_RUN_QUEUE_NAME,

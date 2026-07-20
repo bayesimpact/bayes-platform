@@ -1,0 +1,75 @@
+{
+  "evaluationConversationDataset": {
+    "dashboard": {
+      "evaluateConversationAgent": "Evaluate Conversation Agent",
+      "manageDatasets": "Manage datasets and run evaluations"
+    },
+    "dataset": {
+      "dataset": "Dataset",
+      "title": "Conversation Datasets",
+      "description": "Evaluation datasets of input and expected output pairs",
+      "create": {
+        "title": "New Dataset",
+        "description": "Evaluate your conversation agents using custom datasets."
+      },
+      "rename": {
+        "title": "Rename dataset",
+        "submit": "Rename"
+      },
+      "delete": {
+        "button": "Delete dataset",
+        "confirm": {
+          "title": "Delete dataset",
+          "description": "This action cannot be undone. All records and runs of this dataset will be permanently deleted."
+        }
+      },
+      "props": {
+        "name": "Dataset Name",
+        "placeholders": {
+          "name": "Enter dataset name"
+        }
+      },
+      "list": {
+        "empty": {
+          "title": "No datasets available",
+          "description": "Create your first conversation dataset."
+        }
+      }
+    },
+    "record": {
+      "view": {
+        "title": "Records",
+        "description": "{{count}} records"
+      },
+      "create": {
+        "button": "Add Record",
+        "title": "New Record",
+        "description": "Add an input and the output you expect from the agent."
+      },
+      "update": {
+        "button": "Edit record",
+        "title": "Edit Record"
+      },
+      "delete": {
+        "button": "Delete record",
+        "confirm": {
+          "title": "Delete record",
+          "description": "This action cannot be undone. The record will be permanently deleted."
+        }
+      },
+      "props": {
+        "input": "Input",
+        "expectedOutput": "Expected Output",
+        "placeholders": {
+          "input": "Enter the input sent to the agent",
+          "expectedOutput": "Enter the expected agent answer"
+        }
+      }
+    },
+    "validation": {
+      "minNameLength": "Name must be at least 3 characters",
+      "inputRequired": "Input is required",
+      "expectedOutputRequired": "Expected output is required"
+    }
+  }
+}

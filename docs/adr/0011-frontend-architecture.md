@@ -42,19 +42,19 @@ apps/web/src/
 └── external/                          axios singleton, axios.services (concrete SPI wiring), auth0 client
 ```
 
-The studio is the reference. Open [apps/web/src/studio/](../../apps/web/src/studio/) when you're unsure — `evaluations` is the canonical feature, `EvaluationRoute` is the canonical sub-route, `StudioRoute` + `StudioRoutes.tsx` are the canonical scope root.
+The studio is the reference. Open [apps/web/src/studio/](../../apps/web/src/studio/) when you're unsure — `documents` is the canonical feature, `DocumentsRoute` is the canonical sub-route, `StudioRoute` + `StudioRoutes.tsx` are the canonical scope root.
 
 ---
 
 ## 3. The render flow (read this first)
 
-Before any rules, understand what happens when a user lands on `/studio/o/:organizationId/p/:projectId/eval`:
+Before any rules, understand what happens when a user lands on `/studio/o/:organizationId/p/:projectId/d`:
 
 1. `Router.tsx` matches `studioRoutes` because the path starts with `/studio`.
 2. `<StudioRoute />` mounts. It calls `useInitStore({ inject: injectStudioSlices, reset: resetStudioSlices })`. The studio's slices and listener middleware are now in the live store. `initDone` flips to `true`.
 3. After `initDone`, `<StudioRoute>` renders an inner `<Route />` component that calls `useSetCurrentIds(currentIdsActions)`. This reads every URL param (`:organizationId`, `:projectId`, …) and dispatches one `setOrganizationId` / `setProjectId` action per param. The studio's `currentIds` slice is now populated.
 4. `<Outlet />` renders the matched child. Shared wrappers `<OrganizationRoute>` and `<ProjectRoute>` block with `<LoadingRoute />` until their selectors return data; sibling listener middlewares pick up the `projectsActions.mount` (or `mount`/`unmount` from a sub-route) and fetch.
-5. The leaf sub-route (e.g. `<EvaluationRoute />`) runs `useMount(...)` (if it owns data) and gates the page with `<AsyncRoute data={[…]}>` — its inner `<WithData />` only renders once every async slice is `Fulfilled`, then uses `useValue(...)` to read those values without null checks.
+5. The leaf sub-route (e.g. `<DocumentsRoute />`) runs `useMount(...)` (if it owns data) and gates the page with `<AsyncRoute data={[…]}>` — its inner `<WithData />` only renders once every async slice is `Fulfilled`, then uses `useValue(...)` to read those values without null checks.
 
 **Two-phase rendering is the entire trick.** Phase 1 (`initDone === false`) injects slices and sets IDs. Phase 2 (`initDone === true`) renders children that assume both are in place. If you skip phase 1, every selector below crashes on first navigation.
 
@@ -103,8 +103,8 @@ export const studioRoutes = {
         </OrganizationRoute>
       ),
       children: [
-        { path: StudioRoutes.evaluation.path, element: <RestrictedFeature feature="evaluation" returnNull={false}><EvaluationRoute /></RestrictedFeature> },
         { path: StudioRoutes.documents.path,  element: <DocumentsRoute /> },
+        { path: StudioRoutes.webSources.path, element: <RestrictedFeature feature="web-sources"><WebSourcesRoute /></RestrictedFeature> },
         // ...
       ],
     },
@@ -190,21 +190,21 @@ export function DocumentsRoute() {
 And when a leaf needs hooks that themselves require data (`useValue`, `useCurrentId`, `useGetXxxRoute`), split it into an outer gate and an inner `<WithData />`:
 
 ```tsx
-// apps/web/src/studio/routes/EvaluationRoute.tsx
-export function EvaluationRoute() {
-  const evaluations = useAppSelector(selectEvaluationsData)
-  const agents      = useAppSelector(selectAgentsData)
-   useMount({ actions: evaluationsActions })             // signals "load my data"
+// apps/web/src/studio/routes/DocumentsRoute.tsx
+export function DocumentsRoute() {
+  const documents    = useAppSelector(selectDocumentsData)
+  const documentTags = useAppSelector(selectDocumentTagsData)
+  useMount({ actions: documentsActions })               // signals "load my data"
   return (
-    <AsyncRoute data={[agents, evaluations]}>
+    <AsyncRoute data={[documents, documentTags]}>
       <WithData />
     </AsyncRoute>
   )
 }
 
 function WithData() {
-  const agents      = useValue(selectAgentsData)        // safe: AsyncRoute already proved Fulfilled
-  const evaluations = useValue(selectEvaluationsData)
+  const documents    = useValue(selectDocumentsData)    // safe: AsyncRoute already proved Fulfilled
+  const documentTags = useValue(selectDocumentTagsData)
   const projectRoute = useGetProjectRoute()             // safe: currentIds are set
   // ...
 }
@@ -250,7 +250,7 @@ These hooks read currentIds via `useCurrentId(...)` (which throws if missing —
 
 ## 5. Feature modules
 
-A "feature" is a domain (`evaluations`, `documents`, `agent-memberships`, …). One folder per feature: `apps/web/src/<scope>/features/<domain>/`. The folder MUST contain these eight files (plus components, locales, and tests as needed):
+A "feature" is a domain (`documents`, `mcp-servers`, `agent-memberships`, …). One folder per feature: `apps/web/src/<scope>/features/<domain>/`. The folder MUST contain these eight files (plus components, locales, and tests as needed):
 
 ```
 <domain>.models.ts        domain types
@@ -263,13 +263,13 @@ external/<domain>.api.ts  the SPI implementation (Axios + api-contracts)
 <domain>.factory.ts       fishery factory (see ADR 0010)
 ```
 
-Reference: [studio/features/evaluations/](../../apps/web/src/studio/features/evaluations/). When in doubt, copy this folder.
+Reference: [studio/features/documents/](../../apps/web/src/studio/features/documents/). When in doubt, copy this folder.
 
 ### 5.1 `models.ts` — domain types, not DTOs
 
 ```ts
-import type { EvaluationDto } from "@caseai-connect/api-contracts"
-export type Evaluation = EvaluationDto
+import type { DocumentDto } from "@caseai-connect/api-contracts"
+export type Document = DocumentDto
 ```
 
 **Rules**:
@@ -280,11 +280,11 @@ export type Evaluation = EvaluationDto
 ### 5.2 `spi.ts` — the Service Provider Interface
 
 ```ts
-export interface IEvaluationsSpi {
-  getAll(params: { organizationId: string; projectId: string }): Promise<Evaluation[]>
-  createOne(params: { organizationId: string; projectId: string }, payload: Pick<Evaluation, "input" | "expectedOutput">): Promise<Evaluation>
-  updateOne(params: { organizationId: string; projectId: string; evaluationId: string }, payload: Partial<Pick<Evaluation, "input" | "expectedOutput">>): Promise<void>
-  deleteOne(params: { organizationId: string; projectId: string; evaluationId: string }): Promise<void>
+export interface IDocumentsSpi {
+  getAll(params: { organizationId: string; projectId: string }): Promise<Document[]>
+  createOne(params: { organizationId: string; projectId: string }, payload: Pick<Document, "name">): Promise<Document>
+  updateOne(params: { organizationId: string; projectId: string; documentId: string }, payload: Partial<Pick<Document, "name">>): Promise<void>
+  deleteOne(params: { organizationId: string; projectId: string; documentId: string }): Promise<void>
 }
 ```
 
@@ -300,19 +300,19 @@ export interface IEvaluationsSpi {
 export default {
   getAll: async ({ organizationId, projectId }) => {
     const axios = getAxiosInstance()
-    const response = await axios.get<typeof EvaluationsRoutes.getAll.response>(
-      EvaluationsRoutes.getAll.getPath({ organizationId, projectId }),
+    const response = await axios.get<typeof DocumentsRoutes.getAll.response>(
+      DocumentsRoutes.getAll.getPath({ organizationId, projectId }),
     )
-    return response.data.data.evaluations.map(fromDto)
+    return response.data.data.documents.map(fromDto)
   },
   // ...
-} satisfies IEvaluationsSpi
+} satisfies IDocumentsSpi
 
-const fromDto = (dto: EvaluationDto): Evaluation => ({ /* ... */ })
+const fromDto = (dto: DocumentDto): Document => ({ /* ... */ })
 ```
 
 **Rules**:
-- Default export, `satisfies IEvaluationsSpi`. Don't annotate the object type directly — `satisfies` keeps each method's inference tight.
+- Default export, `satisfies IDocumentsSpi`. Don't annotate the object type directly — `satisfies` keeps each method's inference tight.
 - Route paths and DTO types come from `@caseai-connect/api-contracts`. Never hand-build a URL.
 - DTO ↔ model mapping (`fromDto` / `toCreateDto` / `toUpdateDto`) lives here. The slice / thunks / selectors never see a DTO.
 - Then wire the implementation in [external/axios.services.ts](../../apps/web/src/external/axios.services.ts) and add the SPI to the typed [di/services.ts](../../apps/web/src/di/services.ts) `Services` object. Forgetting either step is a typecheck error.
@@ -321,13 +321,13 @@ const fromDto = (dto: EvaluationDto): Evaluation => ({ /* ... */ })
 
 ```ts
 interface State {
-  data: AsyncData<Evaluation[]>
+  data: AsyncData<Document[]>
 }
 
 const initialState: State = { data: defaultAsyncData }
 
 const slice = createSlice({
-  name: "evaluations",
+  name: "documents",
   initialState,
   reducers: {
     mount: () => {},          // marker action; middleware reacts to it
@@ -336,14 +336,14 @@ const slice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(listEvaluations.pending,   (state) => { if (!ADS.isFulfilled(state.data)) state.data.status = ADS.Loading; state.data.error = null })
-      .addCase(listEvaluations.fulfilled, (state, action) => { state.data = { status: ADS.Fulfilled, error: null, value: action.payload } })
-      .addCase(listEvaluations.rejected,  (state, action) => { state.data.status = ADS.Error; state.data.error = action.error.message || "Failed to list evaluations" })
+      .addCase(listDocuments.pending,   (state) => { if (!ADS.isFulfilled(state.data)) state.data.status = ADS.Loading; state.data.error = null })
+      .addCase(listDocuments.fulfilled, (state, action) => { state.data = { status: ADS.Fulfilled, error: null, value: action.payload } })
+      .addCase(listDocuments.rejected,  (state, action) => { state.data.status = ADS.Error; state.data.error = action.error.message || "Failed to list documents" })
   },
 })
 
-export const evaluationsActions = { ...slice.actions }   // optionally + thunks (§5.7)
-export const evaluationsSlice = slice
+export const documentsActions = { ...slice.actions }   // optionally + thunks (§5.7)
+export const documentsSlice = slice
 ```
 
 **Rules**:
@@ -357,20 +357,20 @@ export const evaluationsSlice = slice
 ```ts
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
 
-export const listEvaluations = createAsyncThunk<Evaluation[], void, ThunkConfig>(
-  "evaluations/list",
+export const listDocuments = createAsyncThunk<Document[], void, ThunkConfig>(
+  "documents/list",
   async (_, { extra: { services }, getState }) => {
     const state = getState()
-    hasFeatureOrThrow({ state, feature: "evaluation" })            // if the feature is flag-gated
+    hasFeatureOrThrow({ state, feature: "web-sources" })           // if the feature is flag-gated
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId      = getCurrentId({ state, name: "projectId" })
-    return await services.evaluations.getAll({ organizationId, projectId })
+    return await services.documents.getAll({ organizationId, projectId })
   },
 )
 ```
 
 **Rules**:
-- Action type prefix is `<domain>/<verb>` (`evaluations/list`, `evaluations/create`). Be consistent — Redux DevTools is unusable otherwise.
+- Action type prefix is `<domain>/<verb>` (`documents/list`, `documents/create`). Be consistent — Redux DevTools is unusable otherwise.
 - Generics ALWAYS in this order: `<ReturnType, ArgType, ThunkConfig>` with `ThunkConfig = { state: RootState; extra: ThunkExtraArg }`.
 - Read URL-derived IDs via [`getCurrentId({ state, name })`](../../apps/web/src/common/features/helpers.ts) — NEVER accept them as thunk arguments. The thunk runs in the context of `state.currentIds`, which the root route already populated. Passing IDs as args means callers (components) handle them — that's how out-of-sync IDs sneak in.
 - The thunk argument is for the **payload** of the operation (the body to send), not for IDs.
@@ -383,23 +383,23 @@ const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
 function registerListeners() {
   listenerMiddleware.startListening({
-    actionCreator: evaluationsActions.mount,                     // page mounted → fetch
-    effect: async (_, api) => { await api.dispatch(listEvaluations()) },
+    actionCreator: documentsActions.mount,                       // page mounted → fetch
+    effect: async (_, api) => { await api.dispatch(listDocuments()) },
   })
 
   listenerMiddleware.startListening({
-    matcher: isAnyOf(createEvaluation.fulfilled, updateEvaluation.fulfilled, deleteEvaluation.fulfilled),
-    effect: async (_, api) => { await api.dispatch(listEvaluations()) },   // refresh on mutation
+    matcher: isAnyOf(createDocument.fulfilled, updateDocument.fulfilled, deleteDocument.fulfilled),
+    effect: async (_, api) => { await api.dispatch(listDocuments()) },   // refresh on mutation
   })
 
   listenerMiddleware.startListening({
-    actionCreator: createEvaluation.fulfilled,
+    actionCreator: createDocument.fulfilled,
     effect: async (_, api) => api.dispatch(notificationsActions.show({ title: "Created", type: "success" })),
   })
   // ...one rejected listener per mutation → notification (red)
 }
 
-export const evaluationsMiddleware = { listenerMiddleware, registerListeners }
+export const documentsMiddleware = { listenerMiddleware, registerListeners }
 ```
 
 **Rules**:
@@ -416,8 +416,8 @@ Two patterns exist for the actions bundle:
 **Pattern A — only `slice.actions`** (default; use this unless you have a reason):
 
 ```ts
-export const evaluationsActions = { ...slice.actions }
-// thunks are exported separately: export const listEvaluations = createAsyncThunk(...)
+export const documentsActions = { ...slice.actions }
+// thunks are exported separately: export const listDocuments = createAsyncThunk(...)
 ```
 
 **Pattern B — slice actions + thunks bundled** (when a sub-route's `useMount` action is itself a thunk):
@@ -437,14 +437,14 @@ Pattern B is what powers `agentMembershipsActions.list` (a thunk) being treated 
 ### 5.8 `selectors.ts` — the only way to read state
 
 ```ts
-export const selectEvaluationsData   = (state: RootState) => state.evaluations.data         // AsyncData<Evaluation[]>
-export const selectEvaluationsStatus = (state: RootState) => state.evaluations.data.status
-export const selectEvaluationsError  = (state: RootState) => state.evaluations.data.error
+export const selectDocumentsData   = (state: RootState) => state.documents.data         // AsyncData<Document[]>
+export const selectDocumentsStatus = (state: RootState) => state.documents.data.status
+export const selectDocumentsError  = (state: RootState) => state.documents.data.error
 ```
 
 **Rules**:
 - Selectors return `AsyncData<T>` for fetched values — components decide how to unwrap (via `useValue` after `AsyncRoute`, or `useAppSelector` for the raw envelope when gating).
-- Components MUST NOT do `state.evaluations.data.value` directly — always go through a selector. That's what makes slice-shape refactors local.
+- Components MUST NOT do `state.documents.data.value` directly — always go through a selector. That's what makes slice-shape refactors local.
 - Use `createSelector` only when you actually need memoised derived values. For a `(state) => state.X.Y` selector, plain functions are cheaper and clearer.
 - The `useValue(selectXxxData)` helper is the standard read inside a `<WithData />` (gated by `AsyncRoute`) — it returns the unwrapped value and throws if not `Fulfilled`. The throw is intentional: it's a programming error to use `useValue` outside a gate.
 
@@ -467,8 +467,8 @@ Everything else is scope-specific and lives in `apps/web/src/<scope>/store/slice
 [dynamic-middleware.ts](../../apps/web/src/common/store/dynamic-middleware.ts) exposes `createSliceManager({ middlewares, slices })`. Each scope's `store/slices.ts` calls it:
 
 ```ts
-const studioMiddlewareList = [evaluationsMiddleware, documentsMiddleware, /* ... */]
-export const studioSliceList = [evaluationsSlice, documentsSlice, /* ... */, currentIdsSlice]
+const studioMiddlewareList = [documentsMiddleware, mcpServersMiddleware, /* ... */]
+export const studioSliceList = [documentsSlice, mcpServersSlice, /* ... */, currentIdsSlice]
 
 export const { injectSlices: injectStudioSlices, resetSlices: resetStudioSlices } =
   createSliceManager({ middlewares: studioMiddlewareList, slices: studioSliceList })
@@ -566,12 +566,12 @@ Forgetting steps 3 or 4 is a typecheck error; that's by design.
 
 ## 8. End-to-end render flow, annotated
 
-Walk through `GET /studio/o/<orgId>/p/<projectId>/eval`:
+Walk through `GET /studio/o/<orgId>/p/<projectId>/d`:
 
 1. **`Router.tsx`** matches `studioRoutes` (path starts with `/studio`).
 2. **`<StudioRoute />` mounts.**
    - `useInitStore({ inject: injectStudioSlices, reset: resetStudioSlices, condition: true })` runs.
-   - `injectStudioSlices()` adds `evaluations`, `documents`, …, `currentIds` to the reducer; adds each feature's listener middleware; calls each feature's `registerListeners()`.
+   - `injectStudioSlices()` adds `documents`, `mcpServers`, …, `currentIds` to the reducer; adds each feature's listener middleware; calls each feature's `registerListeners()`.
    - `initDone` flips to `true`.
    - The inner `<Route />` mounts.
 3. **`useSetCurrentIds(currentIdsActions)`** reads `useParams()`. Sees `:organizationId` and `:projectId`. Dispatches `setOrganizationId(orgId)` and `setProjectId(projectId)`. `state.currentIds` is now populated.
@@ -579,13 +579,12 @@ Walk through `GET /studio/o/<orgId>/p/<projectId>/eval`:
 5. **`<Outlet />`** renders the matched child: the `StudioRoutes.project` element.
 6. **`<OrganizationRoute>`** gates on `selectCurrentOrganization`. The organization is on `me` (already fetched at app boot), so it's `Fulfilled` immediately. Renders children.
 7. **`<ProjectRoute>`** gates on `selectCurrentProjectData` + `selectAgentsData`. The `projectsActions.mount` listener (registered by step 2) sees the slice arrive, dispatches `listProjects`. Project becomes `Fulfilled`. Agents follow. Renders children.
-8. **`<StudioLayout>`** + `<RoutesBuilderProvider>` render. The leaf `<Outlet />` resolves to `StudioRoutes.evaluation`.
-9. **`<RestrictedFeature feature="evaluation">`** checks the project's feature flags. If `evaluation` is not in the project's flags, renders `<NotFoundRoute />`. Otherwise renders `<EvaluationRoute />`.
-10. **`<EvaluationRoute />`** reads `selectEvaluationsData` + `selectAgentsData` from Redux. Neither has been fetched. Renders `<AsyncRoute data={[agents, evaluations]}>`.
-11. `<AsyncRoute>` sees both are `Uninitialized`/`Loading`, renders `<LoadingRoute />`. Meanwhile a sibling listener could be triggering the fetch — for `EvaluationRoute`, the fetch is wired off `projectsActions.mount` in `evaluationsMiddleware`. (For sub-routes without a global trigger, the route itself calls `useMount({ actions })` to signal "I need my data now.")
-12. `listEvaluations` runs, dispatches `pending` → `fulfilled`. The slice transitions `data.status` to `Fulfilled`.
-13. `<AsyncRoute>` re-renders with everything `Fulfilled`, mounts `<WithData />`.
-14. **`<WithData />`** calls `useValue(selectEvaluationsData)` — safe now. Renders the page.
+8. **`<StudioLayout>`** + `<RoutesBuilderProvider>` render. The leaf `<Outlet />` resolves to `StudioRoutes.documents`. (For flag-gated routes like `StudioRoutes.webSources`, a `<RestrictedFeature feature="...">` wrapper checks the project's feature flags here and renders `<NotFoundRoute />` when the flag is missing.)
+9. **`<DocumentsRoute />`** reads `selectDocumentsData` + `selectDocumentTagsData` from Redux. Neither has been fetched. Renders `<AsyncRoute data={[documents, documentTags]}>`.
+10. `<AsyncRoute>` sees both are `Uninitialized`/`Loading`, renders `<LoadingRoute />`. Meanwhile the route's `useMount({ actions })` has dispatched the mount action; the `documentsMiddleware` listener translates it into the fetch.
+11. `listDocuments` runs, dispatches `pending` → `fulfilled`. The slice transitions `data.status` to `Fulfilled`.
+12. `<AsyncRoute>` re-renders with everything `Fulfilled`, mounts `<WithData />`.
+13. **`<WithData />`** calls `useValue(selectDocumentsData)` — safe now. Renders the page.
 
 If at any step the data fails, `<AsyncRoute>` renders `<ErrorRoute>` instead. If `currentIds.projectId` was never set, every `useCurrentId` call would throw, which is the loud signal you forgot the scope root. **The pattern is designed to fail loud and early.**
 
@@ -596,7 +595,7 @@ If at any step the data fails, `<AsyncRoute>` renders `<ErrorRoute>` instead. If
 - **`dispatch(listXxx())` inside a component's `useEffect`.** Use `useMount({ actions })` instead; let the middleware do the fetch. The route layer is the only place mount/unmount belongs.
 - **`useParams()` inside a leaf component.** URL → state is the scope root's job. Inside a feature, read from `currentIds` selectors. (Exceptions: `useSetCurrentIds` itself, and `<Navigate>`-style components that translate params to redirects.)
 - **`useEffect(() => dispatch(setCurrentXxxId(params.xxxId)))`.** That's what `useSetCurrentIds` exists for. If you find yourself writing this in a sub-route, you missed Rule 4.4.
-- **Storing a bare value in a slice (`state.evaluations: Evaluation[]`)**. Wrap in `AsyncData<T>`. Otherwise components can't tell "loading" from "empty list."
+- **Storing a bare value in a slice (`state.documents: Document[]`)**. Wrap in `AsyncData<T>`. Otherwise components can't tell "loading" from "empty list."
 - **A thunk argument that's an ID.** `createAsyncThunk<X, { projectId, ...}>` is wrong. The thunk reads IDs from `currentIds` via `getCurrentId(...)`. Args are payloads.
 - **Importing `getAxiosInstance` inside a thunk or component.** Axios only appears in `external/<domain>.api.ts`. Thunks call `extra.services.<domain>`; components dispatch thunks.
 - **A `*Route.tsx` imported from a `features/.../components/` file.** Route wrappers are not reusable UI. If you need the rendered tree, extract a UI component (without the `Route` suffix) and import that.

@@ -44,18 +44,18 @@ export { DocumentTagsRoutes } from "./document-tags/document-tag.routes"
 // Documents
 export * from "./documents/documents.dto"
 export { DocumentsRoutes } from "./documents/documents.routes"
+// Evaluation Conversation Datasets
+export type * from "./evaluations/evaluation-conversation-datasets.dto"
+export { EvaluationConversationDatasetsRoutes } from "./evaluations/evaluation-conversation-datasets.routes"
+// Evaluation Conversation Runs
+export * from "./evaluations/evaluation-conversation-runs.dto"
+export { EvaluationConversationRunsRoutes } from "./evaluations/evaluation-conversation-runs.routes"
 // Evaluation Datasets
 export * from "./evaluations/evaluation-extraction-datasets.dto"
 export { EvaluationExtractionDatasetsRoutes } from "./evaluations/evaluation-extraction-datasets.routes"
 // Evaluation Runs
 export * from "./evaluations/evaluation-extraction-runs.dto"
 export { EvaluationExtractionRunsRoutes } from "./evaluations/evaluation-extraction-runs.routes"
-// Evaluation Reports
-export * from "./evaluations/evaluation-reports.dto"
-export { EvaluationReportsRoutes } from "./evaluations/evaluation-reports.routes"
-// Evaluations
-export * from "./evaluations/evaluations.dto"
-export { EvaluationsRoutes } from "./evaluations/evaluations.routes"
 // Feature Flags
 export * from "./feature-flags/feature-flags.dto"
 export { FeatureFlagsRoutes } from "./feature-flags/feature-flags.routes"

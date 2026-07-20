@@ -27,7 +27,6 @@ import { AgentAnalyticsRoute } from "./AgentAnalyticsRoute"
 import { AgentEditorRoute } from "./AgentEditorRoute"
 import { AgentMembershipsRoute } from "./AgentMembershipsRoute"
 import { ProjectDocumentsRoute } from "./DocumentsRoute"
-import { EvaluationRoute } from "./EvaluationRoute"
 import { FeedbackRoute } from "./FeedbackRoute"
 import { StudioRoutes } from "./helpers"
 import { McpServersRoute } from "./McpServersRoute"
@@ -71,14 +70,6 @@ export const studioRoutes = {
         </OrganizationRoute>
       ),
       children: [
-        {
-          path: StudioRoutes.evaluation.path,
-          element: (
-            <RestrictedFeature feature="evaluation" returnNull={false}>
-              <EvaluationRoute />
-            </RestrictedFeature>
-          ),
-        },
         {
           path: StudioRoutes.documents.path,
           element: <ProjectDocumentsRoute />,

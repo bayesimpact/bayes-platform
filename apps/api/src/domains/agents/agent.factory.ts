@@ -28,7 +28,6 @@ export const agentFactory = AgentFactory.define(({ sequence, params, transientPa
     deletedAt: params.deletedAt || null,
     project: transientParams.project,
     conversationAgentSessions: params.conversationAgentSessions || [],
-    evaluationReports: params.evaluationReports || [],
     // _deleted_extractionSessions: params._deleted_extractionSessions || [],
     documentTags: params.documentTags || [],
     agentMcpServers: params.agentMcpServers || [],

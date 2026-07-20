@@ -1,0 +1,71 @@
+{
+  "evaluationConversationRun": {
+    "title": "Evaluation Runs",
+    "run": "Run Evaluation",
+    "running": "Running evaluation...",
+    "selectAgent": "Select a conversation agent",
+    "selectAgentDescription": "Choose which conversation agent to evaluate against this dataset.",
+    "agent": "Agent",
+    "agentPlaceholder": "Select an agent",
+    "noAgents": "No conversation agents available in this project.",
+    "results": {
+      "title": "Run Results",
+      "summary": "Summary",
+      "total": "Total Records",
+      "gradedCount": "Graded",
+      "errors": "Errors",
+      "averageScore": "Average Score",
+      "averageScoreDescription": "Average score: {{averageScore}}/100",
+      "noScore": "No score",
+      "records": "Records",
+      "recordsDescription": "{{count}} records",
+      "status": "Status",
+      "input": "Input",
+      "expectedOutput": "Expected Output",
+      "output": "Agent Output",
+      "score": "Score",
+      "error": "Error",
+      "noRecords": "No records found",
+      "processing": "Processing records...",
+      "processingDescription": "{{processed}} of {{total}} records processed. This may take a few minutes.",
+      "errorDetails": "Error Details",
+      "pending": "Pending",
+      "running": "Running",
+      "graded": "Graded",
+      "completed": "Completed",
+      "failed": "Failed",
+      "cancelled": "Cancelled",
+      "cancel": "Cancel run",
+      "retry": "Retry run",
+      "remaining_one": "{{count}} record remaining",
+      "remaining_other": "{{count}} records remaining",
+      "remaining_zero": "{{count}} record remaining",
+      "duration": "Took {{duration}}"
+    },
+    "history": {
+      "title": "Run History",
+      "empty": "No evaluation runs yet",
+      "description": "{{count}} runs",
+      "averageScore": "{{averageScore}}/100 average score",
+      "recordCount": "{{count}} records",
+      "delete": {
+        "button": "Delete run",
+        "confirm": {
+          "title": "Delete run",
+          "description": "This action cannot be undone. All run records will be permanently deleted."
+        }
+      }
+    },
+    "agentMetadata": {
+      "title": "Agent Configuration",
+      "viewAgent": "View Agent",
+      "openInStudio": "Open in Studio",
+      "notFound": "Agent not found",
+      "model": "Model",
+      "temperature": "Temperature",
+      "locale": "Language",
+      "documentsRagMode": "Document search",
+      "prompt": "System prompt"
+    }
+  }
+}

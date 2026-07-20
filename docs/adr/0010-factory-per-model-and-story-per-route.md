@@ -44,25 +44,22 @@ When a new slice is introduced, a matching `seed.{scope}.{slice}()` helper MUST 
 
 ## 3. Concrete Reference
 
-The evaluations slice (added 2026-05) is the canonical reference:
+The conversation evaluation datasets slice is the canonical reference:
 
 ```
-apps/web/src/studio/features/evaluations/
-  evaluations.models.ts      ── domain model
-  evaluations.factory.ts     ── 1:1 sibling factory (this ADR)
-
-apps/web/src/studio/features/evaluation-reports/
-  evaluation-reports.models.ts
-  evaluation-reports.factory.ts  ── transient params: { evaluation, agent }
+apps/web/src/eval/features/evaluation-conversation-datasets/
+  evaluation-conversation-datasets.models.ts   ── domain models
+  evaluation-conversation-datasets.factory.ts  ── 1:1 sibling factories (this ADR)
+                                                  transient params: { project } / { dataset }
 
 apps/web/src/stories/seed.ts
-  seed.studio.evaluations(...)         ── slice-shape helper
-  seed.studio.evaluationReports(...)   ── slice-shape helper
+  seed.eval.conversationDatasets(...)   ── slice-shape helper
+  seed.eval.conversationRuns(...)       ── slice-shape helper
 
-apps/web/src/stories/routes/studio/EvaluationRoute.stories.tsx
-  ── mounts studioRoutes via createMemoryRouter
+apps/web/src/stories/routes/eval/EvaluationConversationDatasetsRoute.stories.tsx
+  ── mounts evalRoutes via createMemoryRouter
   ── seeds project with featureFlags: ["evaluation"]
-  ── argTypes: { role, withEvaluations, withEvaluationReports }
+  ── argTypes: { role, withDatasets }
 ```
 
 ## 4. Why Not Alternatives?

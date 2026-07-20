@@ -18,9 +18,9 @@ export type TrackActivityEntityFrom =
   | "documentTag"
   | "resourceLibrary"
   | "agentSession"
-  | "evaluation"
+  | "evaluationConversationDataset"
+  | "evaluationConversationRun"
   | "evaluationExtractionDataset"
-  | "evaluationReport"
 
 export type TrackActivityOptions = {
   action: string

@@ -258,8 +258,8 @@ See [ADR 0010](../../docs/adr/0010-factory-per-model-and-story-per-route.md) for
 
 **Rule**: when you create or rename `features/{domain}/{domain}.models.ts`, you MUST create the sibling factory file `features/{domain}/{domain}.factory.ts` (or `{domain}/{singular}.factory.ts` — match the existing siblings in the same folder) in the same commit. No model ships without a factory.
 
-- Pattern: [evaluations.factory.ts](src/studio/features/evaluations/evaluations.factory.ts) and [documents.factory.ts](src/studio/features/documents/documents.factory.ts) are canonical references.
-- Use `fishery`'s `Factory.define`. Transient params carry the parent scope (e.g. `{ project: Project }`, `{ evaluation: Evaluation, agent: Agent }`). Throw if a required transient param is missing — silent fallback defaults make seeded stories drift from real shapes.
+- Pattern: [evaluation-conversation-datasets.factory.ts](src/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.factory.ts) and [documents.factory.ts](src/studio/features/documents/documents.factory.ts) are canonical references.
+- Use `fishery`'s `Factory.define`. Transient params carry the parent scope (e.g. `{ project: Project }`, `{ dataset: EvaluationConversationDataset }`). Throw if a required transient param is missing — silent fallback defaults make seeded stories drift from real shapes.
 - Use `faker` for values. Keep samples **domain-neutral** (see the root CLAUDE.md "Neutral Sample Data" rule) — `faker.lorem.sentence()`, `faker.commerce.productName()`, never a vertical-specific term unless asked.
 - Every field on the model MUST be defaulted in the factory, with `params.X ?? <default>` so callers can override.
 
@@ -267,10 +267,10 @@ See [ADR 0010](../../docs/adr/0010-factory-per-model-and-story-per-route.md) for
 
 **Rule**: when you add an entry to `{scope}/routes/{Scope}Routes.tsx` (e.g. `studioRoutes`, `testerRoutes`), you MUST create a matching story under `apps/web/src/stories/routes/{scope}/{RouteName}.stories.tsx` in the same commit. Pure redirects/aliases are exempt; anything that renders UI is not.
 
-- Pattern: [EvaluationRoute.stories.tsx](src/stories/routes/studio/EvaluationRoute.stories.tsx) and [DocumentsRoute.stories.tsx](src/stories/routes/studio/DocumentsRoute.stories.tsx) are canonical references.
+- Pattern: [EvaluationConversationDatasetsRoute.stories.tsx](src/stories/routes/eval/EvaluationConversationDatasetsRoute.stories.tsx) and [DocumentsRoute.stories.tsx](src/stories/routes/studio/DocumentsRoute.stories.tsx) are canonical references.
 - The story must mount the **real** route tree (`createMemoryRouter([studioRoutes], { initialEntries: [path] })`), not just the leaf component. This catches breakage in route wrappers, `useMount`, `AsyncRoute`, and feature-flag gates.
 - Seed Redux via `buildMockStore` + `mergeSeeds(seed.X(...), ...)`. Use the feature factories — never inline literal fixtures. If the seed helper you need is missing, add it to [seed.ts](src/stories/seed.ts).
-- Expose toggles via `argTypes` for every data dependency the route reads (e.g. `withEvaluations`, `withEvaluationReports`) so the empty AND populated states are both reachable from the Storybook controls panel.
+- Expose toggles via `argTypes` for every data dependency the route reads (e.g. `withDatasets`, `withRuns`) so the empty AND populated states are both reachable from the Storybook controls panel.
 - If the route is wrapped in `<RestrictedFeature feature="X">`, the seeded project MUST have `featureFlags: ["X"]` or the story renders blank.
 
 ### When the seed helper is missing, add it

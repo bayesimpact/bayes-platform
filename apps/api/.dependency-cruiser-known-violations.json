@@ -84,31 +84,6 @@
   {
     "type": "cycle",
     "from": "src/domains/agents/agent.entity.ts",
-    "to": "src/domains/evaluations/reports/evaluation-report.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/domains/evaluations/reports/evaluation-report.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/domains/agents/agent.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "import"
-        ]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/domains/agents/agent.entity.ts",
     "to": "src/domains/mcp-servers/agent-mcp-server.entity.ts",
     "rule": {
       "severity": "error",
@@ -1413,22 +1388,12 @@
         ]
       },
       {
-        "name": "src/domains/evaluations/evaluation.entity.ts",
+        "name": "src/domains/review-campaigns/review-campaign.entity.ts",
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/domains/evaluations/reports/evaluation-report.entity.ts",
+        "name": "src/domains/review-campaigns/reviewer-session-reviews/reviewer-session-review.entity.ts",
         "dependencyTypes": ["local", "import"]
-      },
-      {
-        "name": "src/domains/agents/agent.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "import"
-        ]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
@@ -1753,44 +1718,38 @@
   },
   {
     "type": "cycle",
-    "from": "src/domains/evaluations/evaluation.entity.ts",
-    "to": "src/domains/evaluations/reports/evaluation-report.entity.ts",
+    "from": "src/domains/evaluations/conversation/datasets/evaluation-conversation-dataset.entity.ts",
+    "to": "src/domains/evaluations/conversation/datasets/records/evaluation-conversation-dataset-record.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-circular"
     },
     "cycle": [
       {
-        "name": "src/domains/evaluations/reports/evaluation-report.entity.ts",
+        "name": "src/domains/evaluations/conversation/datasets/records/evaluation-conversation-dataset-record.entity.ts",
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/domains/evaluations/evaluation.entity.ts",
+        "name": "src/domains/evaluations/conversation/datasets/evaluation-conversation-dataset.entity.ts",
         "dependencyTypes": ["local", "import"]
       }
     ]
   },
   {
     "type": "cycle",
-    "from": "src/domains/evaluations/evaluation.entity.ts",
-    "to": "src/domains/projects/project.entity.ts",
+    "from": "src/domains/evaluations/conversation/runs/evaluation-conversation-run.entity.ts",
+    "to": "src/domains/evaluations/conversation/runs/records/evaluation-conversation-run-record.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-circular"
     },
     "cycle": [
       {
-        "name": "src/domains/projects/project.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "import"
-        ]
+        "name": "src/domains/evaluations/conversation/runs/records/evaluation-conversation-run-record.entity.ts",
+        "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/domains/evaluations/evaluation.entity.ts",
+        "name": "src/domains/evaluations/conversation/runs/evaluation-conversation-run.entity.ts",
         "dependencyTypes": ["local", "import"]
       }
     ]
@@ -1848,42 +1807,6 @@
       },
       {
         "name": "src/domains/evaluations/extraction/runs/evaluation-extraction-run.entity.ts",
-        "dependencyTypes": ["local", "import"]
-      }
-    ]
-  },
-  {
-    "type": "cycle",
-    "from": "src/domains/evaluations/reports/evaluation-report.entity.ts",
-    "to": "src/domains/agents/settings/agent-settings.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-circular"
-    },
-    "cycle": [
-      {
-        "name": "src/domains/agents/settings/agent-settings.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "type-only",
-          "import"
-        ]
-      },
-      {
-        "name": "src/domains/agents/agent.entity.ts",
-        "dependencyTypes": [
-          "aliased",
-          "aliased-tsconfig",
-          "aliased-tsconfig-paths",
-          "local",
-          "import"
-        ]
-      },
-      {
-        "name": "src/domains/evaluations/reports/evaluation-report.entity.ts",
         "dependencyTypes": ["local", "import"]
       }
     ]
@@ -3195,6 +3118,78 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/evaluations/conversation/runs/e2e-tests/conversation-dataset.helpers.ts",
+    "to": "src/domains/agents/agent.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/evaluations/conversation/runs/e2e-tests/conversation-dataset.helpers.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/evaluations/conversation/runs/e2e-tests/conversation-dataset.helpers.ts",
+    "to": "src/domains/organizations/organization.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/evaluations/conversation/runs/e2e-tests/conversation-dataset.helpers.ts",
+    "to": "src/domains/projects/project.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/evaluations/conversation/runs/evaluation-conversation-run-starter.service.ts",
+    "to": "src/domains/agents/agent.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/evaluations/conversation/runs/evaluation-conversation-run-starter.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/evaluations/conversation/runs/evaluation-conversation-runs.service.ts",
+    "to": "src/domains/agents/agent.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/evaluations/conversation/runs/evaluation-conversation-runs.service.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/evaluations/evaluations.module.ts",
     "to": "src/domains/agents/agent.entity.ts",
     "rule": {
@@ -3313,24 +3308,6 @@
   {
     "type": "dependency",
     "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-runs.service.ts",
-    "to": "src/domains/agents/settings/agent-settings.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/evaluations/reports/evaluation-reports.service.ts",
-    "to": "src/domains/agents/agent.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/evaluations/reports/evaluation-reports.service.ts",
     "to": "src/domains/agents/settings/agent-settings.entity.ts",
     "rule": {
       "severity": "error",
@@ -4167,6 +4144,15 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/evaluations/conversation/runs/evaluation-conversation-runs.controller.ts",
+    "to": "src/domains/agents/settings/agent-settings.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/evaluations/extraction/datasets/evaluation-extraction-datasets.service.ts",
     "to": "src/domains/documents/documents.service.ts",
     "rule": {
@@ -4186,15 +4172,6 @@
   {
     "type": "dependency",
     "from": "src/domains/evaluations/extraction/runs/evaluation-extraction-runs.controller.ts",
-    "to": "src/domains/agents/settings/agent-settings.service.ts",
-    "rule": {
-      "severity": "warn",
-      "name": "no-cross-domain-service-reach"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/evaluations/reports/evaluation-reports.controller.ts",
     "to": "src/domains/agents/settings/agent-settings.service.ts",
     "rule": {
       "severity": "warn",
