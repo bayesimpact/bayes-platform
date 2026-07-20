@@ -100,15 +100,6 @@ export class AgentsService {
       type: agentFields.type,
       documentTags,
       resourceLibraries,
-
-      //fixme DOO : to delete as the same time we delete the fields in db: it's just a security ...
-      _deleted_model: agentFields.model,
-      _deleted_locale: agentFields.locale,
-      _deleted_defaultPrompt: agentFields.instructions,
-      _deleted_temperature: agentFields.temperature,
-      _deleted_documentsRagMode: agentFields.documentsRagMode,
-      _deleted_outputJsonSchema: agentFields.outputJsonSchema,
-      _deleted_greetingMessage: agentFields.greetingMessage,
     })
     const agentSettingsValues = extractAgentSettingsCreateFields(agentFields)
     const agentSettings = await this.agentSettingsService.createSettingsIfChanged({
@@ -292,32 +283,6 @@ export class AgentsService {
     Object.assign(agent, {
       ...(name !== undefined && { name }),
       ...(type !== undefined && { type }),
-      //fixme DOO : to delete as the same time we delete the fields in db: it's just a security ...
-      ...(agentSettingsFieldsToUpdate.model !== undefined && {
-        _deleted_model: agentSettingsFieldsToUpdate.model,
-      }),
-      ...(agentSettingsFieldsToUpdate.locale !== undefined && {
-        _deleted_locale: agentSettingsFieldsToUpdate.locale,
-      }),
-      ...(agentSettingsFieldsToUpdate.instructions !== undefined && {
-        _deleted_defaultPrompt: agentSettingsFieldsToUpdate.instructions,
-      }),
-      ...(agentSettingsFieldsToUpdate.temperature !== undefined && {
-        _deleted_temperature: agentSettingsFieldsToUpdate.temperature,
-      }),
-      ...(agentSettingsFieldsToUpdate.documentsRagMode !== undefined && {
-        _deleted_documentsRagMode: agentSettingsFieldsToUpdate.documentsRagMode,
-      }),
-      ...(agentSettingsFieldsToUpdate.outputJsonSchema !== undefined && {
-        _deleted_outputJsonSchema: agentSettingsFieldsToUpdate.outputJsonSchema,
-      }),
-      // Only touch greetingMessage when the caller provided it, so partial (per-tab)
-      // updates that omit it don't wipe an existing greeting. Sending `null` clears it.
-      ...(agentSettingsFieldsToUpdate.greetingMessage !== undefined && {
-        _deleted_greetingMessage: normalizeGreetingMessage(
-          agentSettingsFieldsToUpdate.greetingMessage,
-        ),
-      }),
     })
 
     const updatedAgent = await this.agentConnectRepository.saveOne(agent)

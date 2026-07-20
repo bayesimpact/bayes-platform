@@ -71,9 +71,6 @@ export const agentCsvExtractionRunFactory = AgentCsvExtractionRunFactory.define(
       records: params.records || [],
       csvExportDocumentId: params.csvExportDocumentId ?? null,
       csvExportDocument: null,
-      //fixme DOO : to delete as the same time we delete the fields in db: it's just a security ...
-      _deleted_agentId: transientParams.agent.id,
-      _deleted_agent: transientParams.agent, //fixme DOO
     } satisfies AgentCsvExtractionRun
   },
 )
