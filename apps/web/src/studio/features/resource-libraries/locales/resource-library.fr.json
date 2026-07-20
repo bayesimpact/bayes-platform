@@ -57,6 +57,11 @@
     "agentTab": {
       "label": "Bibliothèques de ressources",
       "description": "L'assistant peut proposer des ressources des bibliothèques sélectionnées lorsqu'une demande de l'utilisateur correspond au titre ou à la description d'une ressource."
+    },
+    "picker": {
+      "addLibrary": "Ajouter une bibliothèque",
+      "searchPlaceholder": "Rechercher des bibliothèques...",
+      "noResults": "Aucune bibliothèque trouvée"
     }
   }
 }
