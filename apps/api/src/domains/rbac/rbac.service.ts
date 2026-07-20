@@ -33,7 +33,11 @@ export class RbacService {
     private readonly configService: ConfigService,
   ) {}
 
-  /** Idempotent catalog seed for the organization domain. */
+  /**
+   * Idempotent catalog seed for the organization domain.
+   * Production/deploy also seeds via migration `SeedOrganizationRbacRoles1783955500000`.
+   * Kept for tests (`synchronize: true`) and local `seed:rbac`.
+   */
   async seedOrganizationRolesAndPermissions(): Promise<void> {
     const rolesByKey = await this.upsertOrganizationRoles()
     await this.linkRolePermissions(rolesByKey)
