@@ -11,6 +11,8 @@ export interface IEvaluationConversationRunsSpi {
     params: BaseParams & {
       payload: {
         agentId: string
+        // Agent-settings revision to pin on the run; null pins the latest revision.
+        agentSettingsRevision: number | null
         datasetId: string
       }
     },

@@ -1,4 +1,5 @@
 import {
+  type EvaluationConversationRunAgentSettingsDto,
   type EvaluationConversationRunDto,
   type EvaluationConversationRunRecordDto,
   type EvaluationConversationRunStatusChangedEventDto,
@@ -10,6 +11,7 @@ import {
   Delete,
   Get,
   Logger,
+  NotFoundException,
   Post,
   Query,
   Req,
@@ -26,8 +28,10 @@ import type {
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
+import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
@@ -63,19 +67,49 @@ export class EvaluationConversationRunsController {
     @Req() request: EndpointRequestWithProject,
     @Body() { payload }: typeof EvaluationConversationRunsRoutes.createOne.request,
   ): Promise<typeof EvaluationConversationRunsRoutes.createOne.response> {
-    const agentSettings = await this.agentSettingsService.getLast({
-      connectScope: getRequiredConnectScope(request),
+    const connectScope = getRequiredConnectScope(request)
+    const agentSettings = await this.resolveAgentSettings({
+      connectScope,
       agentId: payload.agentId,
+      agentSettingsRevision: payload.agentSettingsRevision,
     })
     const run = await this.evaluationConversationRunsService.createRun({
-      connectScope: getRequiredConnectScope(request),
+      connectScope,
       fields: {
         evaluationConversationDatasetId: payload.datasetId,
         agentId: payload.agentId,
         agentSettingsId: agentSettings.id,
       },
     })
+    // The freshly created run has no relations loaded; attach the settings we
+    // just resolved so the response exposes the pinned revision.
+    run.agentSettings = agentSettings
     return { data: toEvaluationConversationRunDto(run) }
+  }
+
+  private async resolveAgentSettings({
+    connectScope,
+    agentId,
+    agentSettingsRevision,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+    agentSettingsRevision: number | null | undefined
+  }): Promise<AgentSettings> {
+    if (typeof agentSettingsRevision !== "number") {
+      return this.agentSettingsService.getLast({ connectScope, agentId })
+    }
+    const agentSettings = await this.agentSettingsService.get({
+      connectScope,
+      agentId,
+      revision: agentSettingsRevision,
+    })
+    if (!agentSettings) {
+      throw new NotFoundException(
+        `Revision ${agentSettingsRevision} not found for agent with id ${agentId}`,
+      )
+    }
+    return agentSettings
   }
 
   @Post(EvaluationConversationRunsRoutes.executeOne.path)
@@ -247,11 +281,27 @@ function toEvaluationConversationRunDto(
     id: run.id,
     evaluationConversationDatasetId: run.evaluationConversationDatasetId,
     agentId: run.agentId,
+    agentSettings: toEvaluationConversationRunAgentSettingsDto(run.agentSettings),
     status: run.status,
     summary: run.summary,
     projectId: run.projectId,
     createdAt: run.createdAt.getTime(),
     updatedAt: run.updatedAt.getTime(),
+  }
+}
+
+function toEvaluationConversationRunAgentSettingsDto(
+  agentSettings: AgentSettings,
+): EvaluationConversationRunAgentSettingsDto {
+  return {
+    documentsRagMode: agentSettings.documentsRagMode,
+    instructions: agentSettings.instructions,
+    locale: agentSettings.locale,
+    model: agentSettings.model,
+    revision: agentSettings.revision,
+    // The column is a decimal with a read transformer; Number() keeps the DTO
+    // numeric even if a raw string slips through (mirrors agents.controller.ts).
+    temperature: Number(agentSettings.temperature),
   }
 }
 

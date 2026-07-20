@@ -8,6 +8,7 @@ import {
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
@@ -80,7 +81,7 @@ describe("EvaluationConversationRuns - getOne", () => {
     await setup.getRepository(EvaluationConversationRun).save(run)
     evaluationConversationRunId = run.id
 
-    return { organization, project, dataset, agent, run }
+    return { organization, project, dataset, agent, agentSettings, run }
   }
 
   const subject = async () =>
@@ -100,6 +101,26 @@ describe("EvaluationConversationRuns - getOne", () => {
     expect(res.body.data.evaluationConversationDatasetId).toBe(dataset.id)
     expect(res.body.data.agentId).toBe(agent.id)
     expect(res.body.data.status).toBe("pending")
+  })
+
+  it("should keep exposing the pinned agent settings after the agent advances to a newer revision", async () => {
+    const { organization, project, agent, agentSettings } = await createContext()
+    const newerSettings = agentSettingsFactory
+      .transient({ organization, project, agent })
+      .build({ revision: 2, instructions: "Newer helpful assistant instructions" })
+    await repositories.agentSettingsRepository.save(newerSettings)
+
+    const res = await subject()
+
+    expectResponse(res, 200)
+    expect(res.body.data.agentSettings).toEqual({
+      documentsRagMode: agentSettings.documentsRagMode,
+      instructions: agentSettings.instructions,
+      locale: agentSettings.locale,
+      model: agentSettings.model,
+      revision: agentSettings.revision,
+      temperature: Number(agentSettings.temperature),
+    })
   })
 
   it("should return 404 for a non-existent run", async () => {

@@ -113,6 +113,7 @@ function WithData() {
             <AgentMetadataDialog
               buttonProps={{ variant: "outline", size: "sm" }}
               agentId={run.agentId}
+              agentSettings={run.agentSettings}
             />
             <DeleteEvaluationConversationRunButton
               buttonProps={{ variant: "secondary", size: "icon" }}

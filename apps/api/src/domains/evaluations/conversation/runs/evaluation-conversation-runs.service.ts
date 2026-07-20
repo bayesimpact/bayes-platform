@@ -149,6 +149,8 @@ export class EvaluationConversationRunsService {
   }): Promise<EvaluationConversationRun[]> {
     const runs = await this.runConnectRepository.find(connectScope, {
       order: { createdAt: "DESC" },
+      // Run responses expose the pinned agent-settings snapshot.
+      relations: { agentSettings: true },
     })
     return runs
   }

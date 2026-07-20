@@ -55,6 +55,15 @@ export const evaluationConversationRunFactory = EvaluationConversationRunFactory
       id: params.id ?? faker.string.uuid(),
       evaluationConversationDatasetId: dataset.id,
       agentId: agent.id,
+      // Snapshot of the agent settings pinned on the run, defaulted from the transient agent.
+      agentSettings: {
+        documentsRagMode: params.agentSettings?.documentsRagMode ?? agent.documentsRagMode,
+        instructions: params.agentSettings?.instructions ?? agent.instructions,
+        locale: params.agentSettings?.locale ?? agent.locale,
+        model: params.agentSettings?.model ?? agent.model,
+        revision: params.agentSettings?.revision ?? agent.revision,
+        temperature: params.agentSettings?.temperature ?? agent.temperature,
+      },
       status: params.status ?? "completed",
       summary:
         params.summary === null

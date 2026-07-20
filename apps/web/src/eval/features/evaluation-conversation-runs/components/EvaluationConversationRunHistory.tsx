@@ -103,6 +103,7 @@ function RunItem({
           <AgentMetadataDialog
             buttonProps={{ variant: "secondary", size: "sm" }}
             agentId={run.agentId}
+            agentSettings={run.agentSettings}
           />
           <DeleteEvaluationConversationRunButton
             buttonProps={{ variant: "secondary", size: "icon-sm" }}

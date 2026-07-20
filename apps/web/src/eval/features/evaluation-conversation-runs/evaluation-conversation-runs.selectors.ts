@@ -13,6 +13,9 @@ export const selectCurrentConversationRunData = (state: RootState) =>
 export const selectCurrentConversationRunRecords = (state: RootState) =>
   state.conversationRuns.currentRunRecords
 
+export const selectConversationRunAgentHistory = (state: RootState) =>
+  state.conversationRuns.agentHistory
+
 export const selectIsExecutingConversationRun = (state: RootState) =>
   state.conversationRuns.isExecuting
 

@@ -8,6 +8,14 @@
     "agent": "Agent",
     "agentPlaceholder": "Sélectionner un agent",
     "noAgents": "Aucun agent de conversation disponible dans ce projet.",
+    "version": {
+      "label": "Version",
+      "placeholder": "Sélectionner une version",
+      "loading": "Chargement des versions...",
+      "latest": "Dernière version — v{{revision}}",
+      "item": "v{{revision}} — {{date}}",
+      "revision": "v{{revision}}"
+    },
     "results": {
       "title": "Résultats",
       "summary": "Résumé",

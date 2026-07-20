@@ -1,4 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
+import type { Agent } from "@/common/features/agents/agents.models"
 import { getCurrentId } from "@/common/features/helpers"
 import type { ThunkConfig } from "@/common/store/types"
 import type {
@@ -62,11 +63,22 @@ const getRecords = createAsyncThunk<
   },
 )
 
+const getAgentHistory = createAsyncThunk<Agent[], { agentId: string }, ThunkConfig>(
+  "conversationRuns/getAgentHistory",
+  async ({ agentId }, { extra: { services }, getState }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    return await services.agents.getHistory({ organizationId, projectId, agentId })
+  },
+)
+
 const createAndExecute = createAsyncThunk<
   EvaluationConversationRun,
   {
     datasetId: string
     agentId: string
+    agentSettingsRevision: number
     recordLimit: number | null
   },
   ThunkConfig
@@ -80,6 +92,7 @@ const createAndExecute = createAsyncThunk<
     ...params,
     payload: {
       agentId: payload.agentId,
+      agentSettingsRevision: payload.agentSettingsRevision,
       datasetId: payload.datasetId,
     },
   })
@@ -173,6 +186,7 @@ export const evaluationConversationRunsThunks = {
   createAndExecute,
   deleteOne,
   retryOne,
+  getAgentHistory,
   getAll,
   getOne,
   getRecords,

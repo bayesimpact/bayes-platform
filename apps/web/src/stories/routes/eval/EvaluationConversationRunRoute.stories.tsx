@@ -104,9 +104,12 @@ const decorator = buildDecorator<StoryArgs>(({ runStatus, withRecords, ...args }
     .transient({ project })
     .build({ recordCount: RECORD_TOTAL })
   const agent = agents[0] ?? agentFactory.transient({ project }).build()
-  const run = evaluationConversationRunFactory
-    .transient({ dataset, agent })
-    .build({ status: runStatus, summary: buildSummary(runStatus) })
+  // Pin an explicit agent-settings revision so the metadata dialog shows the version row.
+  const run = evaluationConversationRunFactory.transient({ dataset, agent }).build({
+    status: runStatus,
+    summary: buildSummary(runStatus),
+    agentSettings: { revision: 2 },
+  })
   const records = withRecords ? buildRunRecords(run, runStatus) : []
   const paginatedRecords = {
     records,

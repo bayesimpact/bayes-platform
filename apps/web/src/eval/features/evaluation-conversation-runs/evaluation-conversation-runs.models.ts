@@ -1,4 +1,5 @@
 import type {
+  EvaluationConversationRunAgentSettingsDto,
   EvaluationConversationRunDto,
   EvaluationConversationRunRecordDto,
   EvaluationConversationRunRecordStatusDto,
@@ -8,6 +9,7 @@ import type {
 } from "@caseai-connect/api-contracts"
 
 export type EvaluationConversationRun = EvaluationConversationRunDto
+export type EvaluationConversationRunAgentSettings = EvaluationConversationRunAgentSettingsDto
 export type EvaluationConversationRunRecord = EvaluationConversationRunRecordDto
 export type EvaluationConversationRunStatus = EvaluationConversationRunStatusDto
 export type EvaluationConversationRunRecordStatus = EvaluationConversationRunRecordStatusDto

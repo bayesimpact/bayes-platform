@@ -37,6 +37,8 @@ export class EvaluationConversationRunContextResolver implements ContextResolver
           organizationId: requestWithProject.organizationId,
           projectId: requestWithProject.project.id,
         },
+        // Controllers expose the pinned agent-settings snapshot on every run response.
+        relations: { agentSettings: true },
       })) ?? undefined
     if (!evaluationConversationRun) throw new NotFoundException()
 

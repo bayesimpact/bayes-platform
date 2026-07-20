@@ -1,3 +1,9 @@
+import type {
+  AgentLocale,
+  AgentModel,
+  AgentTemperature,
+  DocumentsRagMode,
+} from "../agents/agents.dto"
 import type { TimeType } from "../generic"
 
 export const EVALUATION_CONVERSATION_RUN_STATUS_CHANGED_CHANNEL_DTO =
@@ -20,11 +26,22 @@ export type EvaluationConversationRunSummaryDto = {
   total: number
 }
 
+// Snapshot of the agent-settings revision pinned on a run at creation time.
+export type EvaluationConversationRunAgentSettingsDto = {
+  documentsRagMode: DocumentsRagMode
+  instructions: string
+  locale: AgentLocale
+  model: AgentModel
+  revision: number
+  temperature: AgentTemperature
+}
+
 // DTOs
 export type EvaluationConversationRunDto = {
   id: string
   evaluationConversationDatasetId: string
   agentId: string
+  agentSettings: EvaluationConversationRunAgentSettingsDto
   status: EvaluationConversationRunStatusDto
   summary: EvaluationConversationRunSummaryDto | null
   projectId: string
@@ -52,6 +69,8 @@ export type EvaluationConversationRunRecordDto = {
 // Request DTOs
 export type CreateEvaluationConversationRunRequestDto = {
   agentId: string
+  // Agent-settings revision to pin on the run; null pins the latest revision.
+  agentSettingsRevision: number | null
   datasetId: string
 }
 

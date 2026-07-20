@@ -95,6 +95,7 @@ describe("EvaluationConversationRuns - Auth", () => {
       payload: {
         datasetId: randomUUID(),
         agentId: randomUUID(),
+        agentSettingsRevision: null,
       },
     }
 

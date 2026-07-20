@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
+import type { Agent } from "@/common/features/agents/agents.models"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import { currentIdsActions } from "@/eval/store/currentIds.slice"
 import type {
@@ -21,6 +22,8 @@ interface State {
   currentRun: AsyncData<EvaluationConversationRun>
   currentRunRecords: AsyncData<PaginatedEvaluationConversationRunRecords>
   currentRecordsQuery: RecordsQuery
+  // Settings-version history of the agent selected in the run dialog.
+  agentHistory: AsyncData<Agent[]>
   isExecuting: boolean
   isRetrying: boolean
   isCancelling: boolean
@@ -35,6 +38,7 @@ const initialState: State = {
   currentRun: defaultAsyncData,
   currentRunRecords: defaultAsyncData,
   currentRecordsQuery: defaultRecordsQuery,
+  agentHistory: defaultAsyncData,
   isExecuting: false,
   isRetrying: false,
   isCancelling: false,
@@ -48,6 +52,9 @@ const slice = createSlice({
     mount: () => {},
     unmount: () => {},
     reset: () => initialState,
+    resetAgentHistory: (state) => {
+      state.agentHistory = defaultAsyncData
+    },
     startRunStatusStream: (state) => {
       state.runStatusStream.isActive = true
     },
@@ -144,6 +151,20 @@ const slice = createSlice({
         if (action.meta.arg.evaluationConversationRunId !== state.currentRunId) return
         state.currentRunRecords.status = ADS.Error
         state.currentRunRecords.error = action.error.message || "Failed to get run records"
+      })
+
+    // getAgentHistory
+    builder
+      .addCase(evaluationConversationRunsThunks.getAgentHistory.pending, (state) => {
+        if (!ADS.isFulfilled(state.agentHistory)) state.agentHistory.status = ADS.Loading
+        state.agentHistory.error = null
+      })
+      .addCase(evaluationConversationRunsThunks.getAgentHistory.fulfilled, (state, action) => {
+        state.agentHistory = { status: ADS.Fulfilled, error: null, value: action.payload }
+      })
+      .addCase(evaluationConversationRunsThunks.getAgentHistory.rejected, (state, action) => {
+        state.agentHistory.status = ADS.Error
+        state.agentHistory.error = action.error.message || "Failed to load agent version history"
       })
 
     // createAndExecute

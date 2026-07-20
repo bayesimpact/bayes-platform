@@ -16,7 +16,11 @@ import {
   studioStoryArgTypes,
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
-import { buildMockConversationDatasetsService, buildMockConversationRunsService } from "./helpers"
+import {
+  buildMockAgentsService,
+  buildMockConversationDatasetsService,
+  buildMockConversationRunsService,
+} from "./helpers"
 
 type StoryArgs = StudioStoryArgs & {
   withRecords?: boolean
@@ -49,6 +53,7 @@ const decorator = buildDecorator<StoryArgs>(({ withRecords, withRuns, ...args })
       seed.eval.conversationRuns(runs),
     ),
     services: {
+      agents: buildMockAgentsService({ agents }),
       evaluationConversationDatasets: buildMockConversationDatasetsService({
         datasets: [dataset],
         records: paginatedRecords,

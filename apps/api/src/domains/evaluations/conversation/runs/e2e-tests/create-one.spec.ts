@@ -11,6 +11,7 @@ import {
 } from "@/common/test/test-transaction-manager"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
@@ -57,10 +58,13 @@ describe("EvaluationConversationRuns - createOne", () => {
   })
 
   const createContext = async (agentType?: "conversation" | "extraction" | "form" | undefined) => {
-    const { user, organization, project, agent } = await createOrganizationWithAgent(repositories, {
-      agent: { type: agentType ?? "conversation" },
-      agentSettings: { model: AgentModel._Mock },
-    })
+    const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        agent: { type: agentType ?? "conversation" },
+        agentSettings: { model: AgentModel._Mock },
+      },
+    )
     organizationId = organization.id
     projectId = project.id
     auth0Id = user.auth0Id
@@ -70,7 +74,7 @@ describe("EvaluationConversationRuns - createOne", () => {
       .build()
     await setup.getRepository(EvaluationConversationDataset).save(dataset)
 
-    return { organization, project, dataset, agent }
+    return { organization, project, dataset, agent, agentSettings }
   }
 
   const subject = async (payload?: typeof EvaluationConversationRunsRoutes.createOne.request) =>
@@ -88,6 +92,7 @@ describe("EvaluationConversationRuns - createOne", () => {
       payload: {
         datasetId: dataset.id,
         agentId: agent.id,
+        agentSettingsRevision: null,
       },
     })
 
@@ -102,23 +107,63 @@ describe("EvaluationConversationRuns - createOne", () => {
     await expectActivityCreated("evaluationConversationRun.create")
   })
 
-  it("should pin the latest agent settings revision on the run", async () => {
+  it("should pin the latest agent settings revision on the run when agentSettingsRevision is null", async () => {
+    const { organization, project, dataset, agent } = await createContext()
+    const newerSettings = agentSettingsFactory
+      .transient({ organization, project, agent })
+      .build({ revision: 2, instructions: "Newer helpful assistant instructions" })
+    await repositories.agentSettingsRepository.save(newerSettings)
+
+    const res = await subject({
+      payload: {
+        datasetId: dataset.id,
+        agentId: agent.id,
+        agentSettingsRevision: null,
+      },
+    })
+
+    expectResponse(res, 201)
+    expect(res.body.data.agentSettings.revision).toBe(2)
+    const runs = await evaluationConversationRunRepository.find()
+    expect(runs[0]!.agentSettingsId).toBe(newerSettings.id)
+  })
+
+  it("should pin the requested agent settings revision on the run", async () => {
+    const { organization, project, dataset, agent, agentSettings } = await createContext()
+    const newerSettings = agentSettingsFactory
+      .transient({ organization, project, agent })
+      .build({ revision: 2, instructions: "Newer helpful assistant instructions" })
+    await repositories.agentSettingsRepository.save(newerSettings)
+
+    const res = await subject({
+      payload: {
+        datasetId: dataset.id,
+        agentId: agent.id,
+        agentSettingsRevision: 1,
+      },
+    })
+
+    expectResponse(res, 201)
+    expect(res.body.data.agentSettings.revision).toBe(1)
+    expect(res.body.data.agentSettings.instructions).toBe(agentSettings.instructions)
+    const runs = await evaluationConversationRunRepository.find()
+    expect(runs[0]!.agentSettingsId).toBe(agentSettings.id)
+  })
+
+  it("should reject if the requested agent settings revision does not exist", async () => {
     const { dataset, agent } = await createContext()
 
     const res = await subject({
       payload: {
         datasetId: dataset.id,
         agentId: agent.id,
+        agentSettingsRevision: 999,
       },
     })
 
-    expectResponse(res, 201)
+    expectResponse(res, 404)
     const runs = await evaluationConversationRunRepository.find()
-    const latestSettings = await repositories.agentSettingsRepository.findOne({
-      where: { agentId: agent.id },
-      order: { revision: "DESC" },
-    })
-    expect(runs[0]!.agentSettingsId).toBe(latestSettings!.id)
+    expect(runs).toHaveLength(0)
   })
 
   it("should reject if dataset does not exist", async () => {
@@ -128,6 +173,7 @@ describe("EvaluationConversationRuns - createOne", () => {
       payload: {
         datasetId: "00000000-0000-0000-0000-000000000000",
         agentId: agent.id,
+        agentSettingsRevision: null,
       },
     })
 
@@ -141,6 +187,7 @@ describe("EvaluationConversationRuns - createOne", () => {
       payload: {
         datasetId: dataset.id,
         agentId: "00000000-0000-0000-0000-000000000000",
+        agentSettingsRevision: null,
       },
     })
 
@@ -154,6 +201,7 @@ describe("EvaluationConversationRuns - createOne", () => {
       payload: {
         datasetId: dataset.id,
         agentId: agent.id,
+        agentSettingsRevision: null,
       },
     })
 

@@ -1,4 +1,6 @@
 import { DEFAULT_PAGE_SIZE } from "@/common/components/shared/RecordTableParts"
+import type { Agent } from "@/common/features/agents/agents.models"
+import type { IAgentsSpi } from "@/common/features/agents/agents.spi"
 import type {
   EvaluationConversationDataset,
   PaginatedEvaluationConversationDatasetRecords,
@@ -52,6 +54,28 @@ export function buildMockConversationDatasetsService(
       return { success: true }
     },
     async deleteRecord() {},
+  }
+}
+
+/** Serves the seeded agents back so the run dialog's version history loads inside the story. */
+export function buildMockAgentsService(
+  overrides: { agents?: Agent[]; versions?: Agent[] } = {},
+): IAgentsSpi {
+  const agents = overrides.agents ?? []
+  const versions = overrides.versions ?? agents
+  return {
+    async getAll() {
+      return agents
+    },
+    async createOne() {
+      throw new Error("createOne is not supported in eval stories")
+    },
+    async updateOne() {},
+    async deleteOne() {},
+    async getHistory() {
+      return versions
+    },
+    async restoreRevision() {},
   }
 }
 
