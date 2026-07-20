@@ -16,6 +16,7 @@ import {
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { RbacService } from "@/domains/rbac/rbac.service"
 import { Role } from "@/domains/rbac/role.entity"
+import { RolePermission } from "@/domains/rbac/role-permission.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import { ensureOrganizationRbacCatalog } from "../../../test/rbac-test.helpers"
 
@@ -188,6 +189,13 @@ describe("RbacService", () => {
     const roles = await setup.getRepository(Role).find()
     expect(roles.map((role) => role.key).sort()).toEqual(
       [...Object.values(ORGANIZATION_ROLES), ORG_CREATOR_ROLE].sort(),
+    )
+
+    const rolePermissions = await setup.getRepository(RolePermission).find()
+    const expectedLinks = Object.values(ORGANIZATION_ROLE_PERMISSIONS).flatMap((keys) => [...keys])
+    expect(rolePermissions).toHaveLength(expectedLinks.length)
+    expect([...new Set(rolePermissions.map((row) => row.permissionKey))].sort()).toEqual(
+      [...new Set(expectedLinks)].sort(),
     )
   })
 

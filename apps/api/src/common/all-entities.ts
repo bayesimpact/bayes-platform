@@ -37,7 +37,6 @@ import { Organization } from "@/domains/organizations/organization.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { AgentEmbedConfig } from "@/domains/public-chat/agent-embed-configs/agent-embed-config.entity"
 import { PublicAgentSession } from "@/domains/public-chat/public-agent-sessions/public-agent-session.entity"
-import { Permission } from "@/domains/rbac/permission.entity"
 import { Role } from "@/domains/rbac/role.entity"
 import { RolePermission } from "@/domains/rbac/role-permission.entity"
 import { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
@@ -87,7 +86,6 @@ export const ALL_ENTITIES = [
   Project,
   AgentEmbedConfig,
   PublicAgentSession,
-  Permission,
   ResourceLibrary,
   Role,
   RolePermission,
