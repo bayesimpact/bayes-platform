@@ -13,6 +13,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+- Tags management panel: the tag list scrolls, so long or nested tag lists stay reachable
 
 ### Security
 
