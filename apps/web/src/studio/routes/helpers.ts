@@ -16,7 +16,6 @@ const resourceLibrary = resourceLibraries.extend("/:resourceLibraryId")
 const resourceNew = resourceLibrary.extend("/resources/new")
 const resource = resourceLibrary.extend("/resources/:resourceId")
 const projectAnalytics = project.extend("/analytics")
-const evaluation = project.extend("/evaluation")
 const projectMemberships = project.extend("/members")
 const projectMembership = projectMemberships.extend("/:membershipId")
 const reviewCampaigns = project.extend("/review-campaigns")
@@ -44,7 +43,6 @@ export const StudioRoutes = {
   agentSession,
   document,
   documents,
-  evaluation,
   feedback,
   home,
   mcpServers,

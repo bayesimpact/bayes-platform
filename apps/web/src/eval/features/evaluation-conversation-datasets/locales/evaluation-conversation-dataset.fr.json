@@ -1,0 +1,82 @@
+{
+  "evaluationConversationDataset": {
+    "dashboard": {
+      "evaluateConversationAgent": "Évaluer l'agent de conversation",
+      "manageDatasets": "Gérer les datasets et lancer les évaluations"
+    },
+    "dataset": {
+      "dataset": "Dataset",
+      "title": "Datasets de conversation",
+      "description": "Datasets d'évaluation composés de paires entrée / résultat attendu",
+      "create": {
+        "title": "Nouveau dataset",
+        "description": "Évaluez vos agents de conversation en utilisant des datasets personnalisés."
+      },
+      "rename": {
+        "title": "Renommer le dataset",
+        "submit": "Renommer"
+      },
+      "delete": {
+        "button": "Supprimer le dataset",
+        "confirm": {
+          "title": "Supprimer le dataset",
+          "description": "Cette action est irréversible. Tous les enregistrements et exécutions de ce dataset seront définitivement supprimés."
+        }
+      },
+      "props": {
+        "name": "Nom du dataset",
+        "placeholders": {
+          "name": "Entrez le nom du dataset"
+        }
+      },
+      "list": {
+        "empty": {
+          "title": "Aucun dataset disponible",
+          "description": "Créez votre premier dataset de conversation."
+        }
+      }
+    },
+    "record": {
+      "view": {
+        "title": "Enregistrements",
+        "description": "{{count}} enregistrements"
+      },
+      "quickAdd": {
+        "addButton": "Ajouter l'enregistrement",
+        "hint": "Ajoutez un enregistrement : saisissez une entrée et le résultat attendu, puis appuyez sur Entrée."
+      },
+      "bulk": {
+        "button": "Ajout en masse",
+        "title": "Ajouter des enregistrements en masse",
+        "description": "Collez un enregistrement par ligne au format CSV : l'entrée et le résultat attendu séparés par une virgule. Vous pouvez ainsi coller directement depuis un tableur.",
+        "placeholder": "entrée,résultat attendu\nautre entrée,autre résultat attendu",
+        "parsedCount": "{{count}} enregistrements prêts à être ajoutés",
+        "invalidRows": "Résultat attendu manquant à la (aux) ligne(s) : {{lines}}"
+      },
+      "update": {
+        "button": "Modifier l'enregistrement",
+        "title": "Modifier l'enregistrement"
+      },
+      "delete": {
+        "button": "Supprimer l'enregistrement",
+        "confirm": {
+          "title": "Supprimer l'enregistrement",
+          "description": "Cette action est irréversible. L'enregistrement sera définitivement supprimé."
+        }
+      },
+      "props": {
+        "input": "Entrée",
+        "expectedOutput": "Résultat attendu",
+        "placeholders": {
+          "input": "Entrez le message envoyé à l'agent",
+          "expectedOutput": "Entrez la réponse attendue de l'agent"
+        }
+      }
+    },
+    "validation": {
+      "minNameLength": "Le nom doit contenir au moins 3 caractères",
+      "inputRequired": "L'entrée est requise",
+      "expectedOutputRequired": "Le résultat attendu est requis"
+    }
+  }
+}

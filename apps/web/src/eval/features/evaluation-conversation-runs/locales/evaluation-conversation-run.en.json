@@ -1,0 +1,124 @@
+{
+  "evaluationConversationRun": {
+    "title": "Evaluation Runs",
+    "run": "Run Evaluation",
+    "running": "Running evaluation...",
+    "selectAgent": "Select a conversation agent",
+    "selectAgentDescription": "Choose which conversation agent to evaluate against this dataset.",
+    "agent": "Agent",
+    "agentPlaceholder": "Select an agent",
+    "noAgents": "No conversation agents available in this project.",
+    "version": {
+      "label": "Version",
+      "placeholder": "Select a version",
+      "loading": "Loading versions...",
+      "latest": "Latest — v{{revision}}",
+      "item": "v{{revision}} — {{date}}",
+      "revision": "v{{revision}}"
+    },
+    "judgeModel": {
+      "label": "Judge model",
+      "placeholder": "Select a judge model",
+      "description": "Model used to grade the agent's answers against the expected output."
+    },
+    "judgeInstructions": {
+      "label": "Judge instructions (optional)",
+      "placeholder": "e.g. Penalize answers that are not in the expected language",
+      "description": "Extra instructions injected into the judge's grading prompt, on top of the expected output."
+    },
+    "results": {
+      "title": "Run Results",
+      "summary": "Summary",
+      "total": "Total Records",
+      "gradedCount": "Graded",
+      "errors": "Errors",
+      "averageScore": "Average Score",
+      "judgeModel": "Judge model",
+      "averageScoreDescription": "Average score: {{averageScore}}/5",
+      "judgeInstructions": "Judge instructions",
+      "noScore": "No score",
+      "records": "Records",
+      "recordsDescription": "{{count}} records",
+      "status": "Status",
+      "input": "Input",
+      "expectedOutput": "Expected Output",
+      "output": "Agent Output",
+      "score": "Score",
+      "noRecords": "No records found",
+      "processing": "Processing records...",
+      "processingDescription": "{{processed}} of {{total}} records processed. This may take a few minutes.",
+      "errorDetails": "Error Details",
+      "pending": "Pending",
+      "running": "Running",
+      "graded": "Graded",
+      "completed": "Completed",
+      "failed": "Failed",
+      "cancelled": "Cancelled",
+      "cancel": "Cancel run",
+      "retry": "Retry run",
+      "remaining_one": "{{count}} record remaining",
+      "remaining_other": "{{count}} records remaining",
+      "remaining_zero": "{{count}} record remaining",
+      "duration": "Took {{duration}}"
+    },
+    "history": {
+      "title": "Run History",
+      "description": "{{count}} runs",
+      "delete": {
+        "button": "Delete run",
+        "confirm": {
+          "title": "Delete run",
+          "description": "This action cannot be undone. All run records will be permanently deleted."
+        }
+      },
+      "columns": {
+        "id": "ID",
+        "status": "Status",
+        "date": "Date",
+        "agent": "Agent",
+        "version": "Version",
+        "model": "Model",
+        "judgeModel": "Judge model",
+        "averageScore": "Average score",
+        "records": "Records"
+      },
+      "averageScoreValue": "{{averageScore}}/5",
+      "compare": "Compare runs",
+      "compareSelected": "Compare {{count}} runs"
+    },
+    "comparison": {
+      "title": "Compare Runs",
+      "description": "Comparing {{count}} runs",
+      "summary": "Summary",
+      "records": "Per-record scores",
+      "recordsDescription": "{{count}} records",
+      "metric": "Metric",
+      "input": "Input",
+      "expectedOutput": "Expected Output",
+      "notFound": "No runs selected to compare.",
+      "metrics": {
+        "status": "Status",
+        "agent": "Agent",
+        "version": "Version",
+        "model": "Model",
+        "judgeModel": "Judge model",
+        "judgeInstructions": "Judge instructions",
+        "averageScore": "Average score",
+        "total": "Total records",
+        "graded": "Graded",
+        "errors": "Errors"
+      }
+    },
+    "agentMetadata": {
+      "title": "Agent Configuration",
+      "viewAgent": "View Agent",
+      "openInStudio": "Open in Studio",
+      "notFound": "Agent not found",
+      "model": "Model",
+      "temperature": "Temperature",
+      "locale": "Language",
+      "documentsRagMode": "Document search",
+      "prompt": "System prompt"
+    }
+  }
+}

@@ -14,6 +14,8 @@ import type { RootState } from "@/common/store"
 import { useAppSelector } from "@/common/store/hooks"
 import { rootSliceList } from "@/common/store/root-slices"
 import type { Services } from "@/di/services"
+import { selectCurrentDatasetId } from "@/eval/features/evaluation-extraction-datasets/evaluation-extraction-datasets.selectors"
+import { selectCurrentRunId } from "@/eval/features/evaluation-extraction-runs/evaluation-extraction-runs.selectors"
 import { evalSliceList } from "@/eval/store/slices"
 import { reviewerSliceList } from "@/reviewer/store/slices"
 import {
@@ -139,6 +141,8 @@ function useReplaceIds(path: string) {
   const reviewerSessionId = useAppSelector(selectCurrentReviewerSessionId)
   const resourceLibraryId = useAppSelector(selectCurrentResourceLibraryId)
   const resourceId = useAppSelector(selectCurrentResourceId)
+  const datasetId = useAppSelector(selectCurrentDatasetId)
+  const runId = useAppSelector(selectCurrentRunId)
 
   if (organizationId) path = path.replace(":organizationId", organizationId)
   if (projectId) path = path.replace(":projectId", projectId)
@@ -148,6 +152,8 @@ function useReplaceIds(path: string) {
   if (reviewerSessionId) path = path.replace(":reviewerSessionId", reviewerSessionId)
   if (resourceLibraryId) path = path.replace(":resourceLibraryId", resourceLibraryId)
   if (resourceId) path = path.replace(":resourceId", resourceId)
+  if (datasetId) path = path.replace(":datasetId", datasetId)
+  if (runId) path = path.replace(":runId", runId)
 
   return path
 }

@@ -18,6 +18,15 @@ import { organizationFactory } from "@/common/features/organizations/organizatio
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import type { Project } from "@/common/features/projects/projects.models"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
+import type {
+  EvaluationConversationDataset,
+  PaginatedEvaluationConversationDatasetRecords,
+} from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.models"
+import type {
+  EvaluationConversationRun,
+  EvaluationConversationRunRecord,
+  PaginatedEvaluationConversationRunRecords,
+} from "@/eval/features/evaluation-conversation-runs/evaluation-conversation-runs.models"
 import type { AgentMembership } from "@/studio/features/agent-memberships/agent-memberships.models"
 import type { AgentMessageFeedback } from "@/studio/features/agent-message-feedback/agent-message-feedback.models"
 import type { AgentSubAgent } from "@/studio/features/agent-sub-agents/agent-sub-agents.models"
@@ -27,8 +36,6 @@ import type {
 } from "@/studio/features/analytics/project/analytics.models"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import type { Document } from "@/studio/features/documents/documents.models"
-import type { EvaluationReport } from "@/studio/features/evaluation-reports/evaluation-reports.models"
-import type { Evaluation } from "@/studio/features/evaluations/evaluations.models"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import type { McpServer } from "@/studio/features/mcp-servers/mcp-servers.models"
 import type {
@@ -253,16 +260,6 @@ export const seed = {
       return { resourceLibraries: { data: ads.fulfilled(resourceLibraries) } }
     },
 
-    evaluations(evaluations: Evaluation[]): StoryPreloadedState {
-      return { evaluations: { data: ads.fulfilled(evaluations) } }
-    },
-
-    evaluationReports(
-      reportsByEvaluationId: Record<string, EvaluationReport[]>,
-    ): StoryPreloadedState {
-      return { evaluationReports: { data: ads.fulfilled(reportsByEvaluationId) } }
-    },
-
     projectAnalytics(value: {
       conversationsPerDay: AnalyticsDailyPoint[]
       avgUserQuestionsPerSessionPerDay: AnalyticsDailyPoint[]
@@ -373,6 +370,62 @@ export const seed = {
 
     termsDocuments(termsDocuments: TermsDocuments): StoryPreloadedState {
       return { backoffice: { termsDocuments: ads.fulfilled(termsDocuments) } }
+    },
+  },
+
+  eval: {
+    conversationDatasets(
+      datasets: EvaluationConversationDataset[],
+      options: { currentId?: string | null } = {},
+    ): StoryPreloadedState {
+      const currentId = options.currentId ?? null
+      return mergeSeeds(
+        { conversationDatasets: { data: ads.fulfilled(datasets) } },
+        { currentIds: { datasetId: currentId } },
+      )
+    },
+
+    conversationDatasetRecords(
+      records: PaginatedEvaluationConversationDatasetRecords,
+    ): StoryPreloadedState {
+      return { conversationDatasets: { records: ads.fulfilled(records) } }
+    },
+
+    conversationRuns(
+      runs: EvaluationConversationRun[],
+      options: { currentId?: string | null } = {},
+    ): StoryPreloadedState {
+      const currentId = options.currentId ?? null
+      const currentRun = runs.find((run) => run.id === currentId)
+      return mergeSeeds(
+        { conversationRuns: { data: ads.fulfilled(runs), currentRunId: currentId } },
+        currentRun ? { conversationRuns: { currentRun: ads.fulfilled(currentRun) } } : {},
+        { currentIds: { runId: currentId } },
+      )
+    },
+
+    conversationRunRecords(
+      records: PaginatedEvaluationConversationRunRecords,
+    ): StoryPreloadedState {
+      return {
+        conversationRuns: {
+          currentRunRecords: ads.fulfilled(records),
+          currentRecordsQuery: { page: records.page, limit: records.limit },
+        },
+      }
+    },
+
+    conversationRunsComparison(
+      recordsByRunId: Record<string, EvaluationConversationRunRecord[]>,
+    ): StoryPreloadedState {
+      return {
+        conversationRuns: {
+          // Seed the run ids too so the route's setComparisonRunIds sees the
+          // same comparison and does not reset the seeded records on mount.
+          comparisonRunIds: Object.keys(recordsByRunId),
+          comparisonRecords: ads.fulfilled(recordsByRunId),
+        },
+      }
     },
   },
 

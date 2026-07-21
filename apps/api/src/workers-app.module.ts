@@ -23,6 +23,11 @@ import { DocumentEmbeddingsStuckSweepWorkersModule } from "./domains/documents/e
 import { DocumentEmbeddingsWorkersModule } from "./domains/documents/embeddings/document-embeddings-workers.module"
 import { StorageModule } from "./domains/documents/storage/storage.module"
 import {
+  EVALUATION_CONVERSATION_RUN_EXECUTE_QUEUE_NAME,
+  EVALUATION_CONVERSATION_RUN_QUEUE_NAME,
+} from "./domains/evaluations/conversation/runs/evaluation-conversation-run.constants"
+import { EvaluationConversationRunWorkersModule } from "./domains/evaluations/conversation/runs/evaluation-conversation-run-workers.module"
+import {
   EVALUATION_EXTRACTION_RUN_EXECUTE_QUEUE_NAME,
   EVALUATION_EXTRACTION_RUN_QUEUE_NAME,
 } from "./domains/evaluations/extraction/runs/evaluation-extraction-run.constants"
@@ -39,6 +44,13 @@ const WORKER_MODULE_REGISTRY: { module: Type<unknown>; queues: string[] }[] = [
   {
     module: EvaluationExtractionRunWorkersModule,
     queues: [EVALUATION_EXTRACTION_RUN_QUEUE_NAME, EVALUATION_EXTRACTION_RUN_EXECUTE_QUEUE_NAME],
+  },
+  {
+    module: EvaluationConversationRunWorkersModule,
+    queues: [
+      EVALUATION_CONVERSATION_RUN_QUEUE_NAME,
+      EVALUATION_CONVERSATION_RUN_EXECUTE_QUEUE_NAME,
+    ],
   },
   {
     module: AgentCsvExtractionRunWorkersModule,

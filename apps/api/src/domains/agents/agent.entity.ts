@@ -6,7 +6,6 @@ import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-
 import { Project } from "@/domains/projects/project.entity"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import type { DocumentTag } from "../documents/tags/document-tag.entity"
-import { EvaluationReport } from "../evaluations/reports/evaluation-report.entity"
 import { AgentMcpServer } from "../mcp-servers/agent-mcp-server.entity"
 import { ResourceLibrary } from "../resource-libraries/resource-library.entity"
 
@@ -35,12 +34,6 @@ export class Agent extends ConnectEntityBase {
     (conversationAgentSession) => conversationAgentSession.agent,
   )
   conversationAgentSessions!: ConversationAgentSession[]
-
-  @OneToMany(
-    () => EvaluationReport,
-    (evaluationReport) => evaluationReport.agent,
-  )
-  evaluationReports!: EvaluationReport[]
 
   @ManyToMany("DocumentTag", (tag: DocumentTag) => tag.agents)
   @JoinTable({

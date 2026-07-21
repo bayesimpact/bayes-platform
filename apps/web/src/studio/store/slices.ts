@@ -25,10 +25,6 @@ import { projectAnalyticsMiddleware } from "@/studio/features/analytics/project/
 import { projectAnalyticsSlice } from "@/studio/features/analytics/project/analytics.slice"
 import { documentTagsMiddleware } from "@/studio/features/document-tags/document-tags.middleware"
 import { documentTagsSlice } from "@/studio/features/document-tags/document-tags.slice"
-import { evaluationReportsMiddleware } from "@/studio/features/evaluation-reports/evaluation-reports.middleware"
-import { evaluationReportsSlice } from "@/studio/features/evaluation-reports/evaluation-reports.slice"
-import { evaluationsMiddleware } from "@/studio/features/evaluations/evaluations.middleware"
-import { evaluationsSlice } from "@/studio/features/evaluations/evaluations.slice"
 import { projectMembershipsMiddleware } from "@/studio/features/project-memberships/project-memberships.middleware"
 import { projectMembershipsSlice } from "@/studio/features/project-memberships/project-memberships.slice"
 import { reviewCampaignsMiddleware } from "@/studio/features/review-campaigns/review-campaigns.middleware"
@@ -61,8 +57,6 @@ const studioMiddlewareList = [
   conversationAgentSessionsMiddleware,
   documentsMiddleware,
   documentTagsMiddleware,
-  evaluationReportsMiddleware,
-  evaluationsMiddleware,
   extractionAgentSessionsMiddleware,
   formAgentSessionsMiddleware,
   mcpServersMiddleware,
@@ -89,8 +83,6 @@ export const studioSliceList = [
   currentIdsSlice,
   documentsSlice,
   documentTagsSlice,
-  evaluationReportsSlice,
-  evaluationsSlice,
   extractionAgentSessionsSlice,
   formAgentSessionsSlice,
   mcpServersSlice,
