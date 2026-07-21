@@ -12,5 +12,16 @@ export function useEvaluationConversationRunPath() {
   const buildConversationRunPath = ({ runId }: { runId: string }): string => {
     return EvalRoutes.conversationRun.build({ organizationId, projectId, datasetId, runId })
   }
-  return { buildConversationRunPath }
+
+  const buildConversationComparePath = ({ runIds }: { runIds: string[] }): string => {
+    const path = EvalRoutes.conversationDatasetCompare.build({
+      organizationId,
+      projectId,
+      datasetId,
+    })
+    const search = new URLSearchParams({ runs: runIds.join(",") }).toString()
+    return `${path}?${search}`
+  }
+
+  return { buildConversationRunPath, buildConversationComparePath }
 }

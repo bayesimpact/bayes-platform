@@ -70,6 +70,7 @@
         }
       },
       "columns": {
+        "id": "ID",
         "status": "Status",
         "date": "Date",
         "agent": "Agent",
@@ -79,7 +80,31 @@
         "averageScore": "Average score",
         "records": "Records"
       },
-      "averageScoreValue": "{{averageScore}}/5"
+      "averageScoreValue": "{{averageScore}}/5",
+      "compare": "Compare runs",
+      "compareSelected": "Compare {{count}} runs"
+    },
+    "comparison": {
+      "title": "Compare Runs",
+      "description": "Comparing {{count}} runs",
+      "summary": "Summary",
+      "records": "Per-record scores",
+      "recordsDescription": "{{count}} records",
+      "metric": "Metric",
+      "input": "Input",
+      "expectedOutput": "Expected Output",
+      "notFound": "No runs selected to compare.",
+      "metrics": {
+        "status": "Status",
+        "agent": "Agent",
+        "version": "Version",
+        "model": "Model",
+        "judgeModel": "Judge model",
+        "averageScore": "Average score",
+        "total": "Total records",
+        "graded": "Graded",
+        "errors": "Errors"
+      }
     },
     "agentMetadata": {
       "title": "Agent Configuration",

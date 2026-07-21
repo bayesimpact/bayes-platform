@@ -24,6 +24,7 @@ import type {
 } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.models"
 import type {
   EvaluationConversationRun,
+  EvaluationConversationRunRecord,
   PaginatedEvaluationConversationRunRecords,
 } from "@/eval/features/evaluation-conversation-runs/evaluation-conversation-runs.models"
 import type { AgentMembership } from "@/studio/features/agent-memberships/agent-memberships.models"
@@ -412,6 +413,12 @@ export const seed = {
           currentRecordsQuery: { page: records.page, limit: records.limit },
         },
       }
+    },
+
+    conversationRunsComparison(
+      recordsByRunId: Record<string, EvaluationConversationRunRecord[]>,
+    ): StoryPreloadedState {
+      return { conversationRuns: { comparisonRecords: ads.fulfilled(recordsByRunId) } }
     },
   },
 

@@ -19,6 +19,7 @@ import { DeleteEvaluationConversationRunButton } from "../features/evaluation-co
 import { EvaluationConversationRunRecordsTable } from "../features/evaluation-conversation-runs/components/EvaluationConversationRunResults"
 import { EvaluationConversationRunSummary } from "../features/evaluation-conversation-runs/components/EvaluationConversationRunSummary"
 import { RunStatusBadge } from "../features/evaluation-conversation-runs/components/RunStatusBadge"
+import { shortRunId } from "../features/evaluation-conversation-runs/evaluation-conversation-runs.helpers"
 import {
   selectCurrentConversationRunData,
   selectCurrentConversationRunId,
@@ -73,7 +74,14 @@ function WithData() {
   return (
     <div>
       <GridHeader
-        title={t("evaluationConversationRun:results.title")}
+        title={
+          <span className="flex items-center gap-2">
+            {t("evaluationConversationRun:results.title")}
+            <Badge variant="secondary" className="font-mono font-normal">
+              {shortRunId(run.id)}
+            </Badge>
+          </span>
+        }
         description={
           <div className="flex flex-col gap-2">
             {buildSince(run.updatedAt)}

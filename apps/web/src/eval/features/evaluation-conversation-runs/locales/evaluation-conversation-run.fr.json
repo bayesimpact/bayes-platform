@@ -70,6 +70,7 @@
         }
       },
       "columns": {
+        "id": "ID",
         "status": "Statut",
         "date": "Date",
         "agent": "Agent",
@@ -79,7 +80,31 @@
         "averageScore": "Score moyen",
         "records": "Enregistrements"
       },
-      "averageScoreValue": "{{averageScore}}/5"
+      "averageScoreValue": "{{averageScore}}/5",
+      "compare": "Comparer les exécutions",
+      "compareSelected": "Comparer {{count}} exécutions"
+    },
+    "comparison": {
+      "title": "Comparer les exécutions",
+      "description": "Comparaison de {{count}} exécutions",
+      "summary": "Résumé",
+      "records": "Scores par enregistrement",
+      "recordsDescription": "{{count}} enregistrements",
+      "metric": "Métrique",
+      "input": "Entrée",
+      "expectedOutput": "Sortie attendue",
+      "notFound": "Aucune exécution sélectionnée à comparer.",
+      "metrics": {
+        "status": "Statut",
+        "agent": "Agent",
+        "version": "Version",
+        "model": "Modèle",
+        "judgeModel": "Modèle du juge",
+        "averageScore": "Score moyen",
+        "total": "Total des enregistrements",
+        "graded": "Notés",
+        "errors": "Erreurs"
+      }
     },
     "agentMetadata": {
       "title": "Configuration de l'agent",

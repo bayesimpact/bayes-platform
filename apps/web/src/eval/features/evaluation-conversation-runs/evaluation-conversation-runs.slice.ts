@@ -4,6 +4,7 @@ import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data
 import { currentIdsActions } from "@/eval/store/currentIds.slice"
 import type {
   EvaluationConversationRun,
+  EvaluationConversationRunRecord,
   EvaluationConversationRunStatus,
   EvaluationConversationRunSummary,
   PaginatedEvaluationConversationRunRecords,
@@ -22,6 +23,9 @@ interface State {
   currentRun: AsyncData<EvaluationConversationRun>
   currentRunRecords: AsyncData<PaginatedEvaluationConversationRunRecords>
   currentRecordsQuery: RecordsQuery
+  // Records for the runs being compared, keyed by run id (compare page).
+  comparisonRecords: AsyncData<Record<string, EvaluationConversationRunRecord[]>>
+
   // Settings-version history of the agent selected in the run dialog.
   agentHistory: AsyncData<Agent[]>
   isExecuting: boolean
@@ -38,6 +42,7 @@ const initialState: State = {
   currentRun: defaultAsyncData,
   currentRunRecords: defaultAsyncData,
   currentRecordsQuery: defaultRecordsQuery,
+  comparisonRecords: defaultAsyncData,
   agentHistory: defaultAsyncData,
   isExecuting: false,
   isRetrying: false,
@@ -151,6 +156,22 @@ const slice = createSlice({
         if (action.meta.arg.evaluationConversationRunId !== state.currentRunId) return
         state.currentRunRecords.status = ADS.Error
         state.currentRunRecords.error = action.error.message || "Failed to get run records"
+      })
+
+    // getComparisonRecords
+    builder
+      .addCase(evaluationConversationRunsThunks.getComparisonRecords.pending, (state) => {
+        if (!ADS.isFulfilled(state.comparisonRecords)) {
+          state.comparisonRecords.status = ADS.Loading
+        }
+        state.comparisonRecords.error = null
+      })
+      .addCase(evaluationConversationRunsThunks.getComparisonRecords.fulfilled, (state, action) => {
+        state.comparisonRecords = { status: ADS.Fulfilled, error: null, value: action.payload }
+      })
+      .addCase(evaluationConversationRunsThunks.getComparisonRecords.rejected, (state, action) => {
+        state.comparisonRecords.status = ADS.Error
+        state.comparisonRecords.error = action.error.message || "Failed to load runs to compare"
       })
 
     // getAgentHistory

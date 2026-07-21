@@ -1,19 +1,22 @@
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@caseai-connect/ui/shad/card"
+import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
-import { ArrowRightIcon } from "lucide-react"
-import { useCallback, useMemo } from "react"
+import { ArrowRightIcon, GitCompareIcon } from "lucide-react"
+import { useCallback, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
 import { useValue } from "@/common/hooks/use-value"
 import { buildSince } from "@/common/utils/build-date"
+import { shortRunId } from "@/eval/features/evaluation-conversation-runs/evaluation-conversation-runs.helpers"
 import type { EvaluationConversationRun } from "@/eval/features/evaluation-conversation-runs/evaluation-conversation-runs.models"
 import { useEvaluationConversationRunPath } from "@/eval/hooks/use-evaluation-conversation-run-path"
 import { AgentMetadataDialog } from "./AgentMetadataDialog"
@@ -23,8 +26,11 @@ import { RunStatusBadge } from "./RunStatusBadge"
 export function EvaluationConversationRunHistory({ runs }: { runs: EvaluationConversationRun[] }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { buildConversationRunPath } = useEvaluationConversationRunPath()
+  const { buildConversationRunPath, buildConversationComparePath } =
+    useEvaluationConversationRunPath()
   const agents = useValue(selectAgentsData)
+
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({})
 
   const agentNameById = useMemo(
     () => new Map(agents.map((agent) => [agent.id, agent.name])),
@@ -40,6 +46,40 @@ export function EvaluationConversationRunHistory({ runs }: { runs: EvaluationCon
 
   const columns = useMemo<ColumnDef<EvaluationConversationRun>[]>(
     () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllRowsSelected()
+                ? true
+                : table.getIsSomeRowsSelected()
+                  ? "indeterminate"
+                  : false
+            }
+            onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
+            aria-label={t("actions:selectAll")}
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label={t("actions:select")}
+          />
+        ),
+        size: 40,
+      },
+      {
+        id: "id",
+        header: () => t("evaluationConversationRun:history.columns.id"),
+        cell: ({ row }) => (
+          <span className="text-sm font-mono text-muted-foreground whitespace-nowrap">
+            {shortRunId(row.original.id)}
+          </span>
+        ),
+        size: 120,
+      },
       {
         id: "status",
         header: () => t("evaluationConversationRun:history.columns.status"),
@@ -152,8 +192,19 @@ export function EvaluationConversationRunHistory({ runs }: { runs: EvaluationCon
   const table = useReactTable({
     data: runs,
     columns,
+    state: { rowSelection },
+    onRowSelectionChange: setRowSelection,
+    enableRowSelection: true,
+    getRowId: (run) => run.id,
     getCoreRowModel: getCoreRowModel(),
   })
+
+  const selectedRunIds = table.getSelectedRowModel().rows.map((row) => row.original.id)
+  const canCompare = selectedRunIds.length >= 2
+
+  const handleCompare = () => {
+    navigate(buildConversationComparePath({ runIds: selectedRunIds }))
+  }
 
   if (runs.length === 0) return null
 
@@ -164,6 +215,16 @@ export function EvaluationConversationRunHistory({ runs }: { runs: EvaluationCon
         <CardDescription>
           {t("evaluationConversationRun:history.description", { count: runs.length })}
         </CardDescription>
+        <CardAction>
+          <Button variant="outline" size="sm" onClick={handleCompare} disabled={!canCompare}>
+            <GitCompareIcon className="size-4" />
+            {selectedRunIds.length > 0
+              ? t("evaluationConversationRun:history.compareSelected", {
+                  count: selectedRunIds.length,
+                })
+              : t("evaluationConversationRun:history.compare")}
+          </Button>
+        </CardAction>
       </CardHeader>
       <CardContent>
         <div className="rounded-lg border overflow-x-auto">

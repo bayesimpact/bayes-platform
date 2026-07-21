@@ -86,10 +86,13 @@ export function buildMockConversationRunsService(
   overrides: {
     runs?: EvaluationConversationRun[]
     records?: PaginatedEvaluationConversationRunRecords
+    // Per-run records, keyed by run id, so the compare page can show differing scores.
+    recordsByRunId?: Record<string, PaginatedEvaluationConversationRunRecords>
   } = {},
 ): IEvaluationConversationRunsSpi {
   const runs = overrides.runs ?? []
   const records = overrides.records ?? buildEmptyRecordsPage()
+  const recordsByRunId = overrides.recordsByRunId ?? {}
 
   const findRun = (evaluationConversationRunId: string): EvaluationConversationRun => {
     const run = runs.find((candidate) => candidate.id === evaluationConversationRunId)
@@ -118,8 +121,8 @@ export function buildMockConversationRunsService(
     async getAll() {
       return runs
     },
-    async getRecords() {
-      return records
+    async getRecords({ evaluationConversationRunId }) {
+      return recordsByRunId[evaluationConversationRunId] ?? records
     },
     async streamRunStatus() {},
     async deleteOne() {},

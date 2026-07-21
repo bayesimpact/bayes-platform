@@ -5,6 +5,7 @@ import { getCurrentId } from "@/common/features/helpers"
 import type { ThunkConfig } from "@/common/store/types"
 import type {
   EvaluationConversationRun,
+  EvaluationConversationRunRecord,
   PaginatedEvaluationConversationRunRecords,
 } from "./evaluation-conversation-runs.models"
 import { evaluationConversationRunsActions } from "./evaluation-conversation-runs.slice"
@@ -61,6 +62,37 @@ const getRecords = createAsyncThunk<
       page,
       limit,
     })
+  },
+)
+
+// Loads every record for each selected run so the compare page can align scores
+// per dataset record. Runs of the same dataset share small record counts, so a
+// single high-limit page per run is enough.
+const COMPARISON_RECORD_LIMIT = 1000
+
+const getComparisonRecords = createAsyncThunk<
+  Record<string, EvaluationConversationRunRecord[]>,
+  { evaluationConversationRunIds: string[] },
+  ThunkConfig
+>(
+  "conversationRuns/getComparisonRecords",
+  async ({ evaluationConversationRunIds }, { extra: { services }, getState }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const entries = await Promise.all(
+      evaluationConversationRunIds.map(async (evaluationConversationRunId) => {
+        const page = await services.evaluationConversationRuns.getRecords({
+          organizationId,
+          projectId,
+          evaluationConversationRunId,
+          page: 0,
+          limit: COMPARISON_RECORD_LIMIT,
+        })
+        return [evaluationConversationRunId, page.records] as const
+      }),
+    )
+    return Object.fromEntries(entries)
   },
 )
 
@@ -191,6 +223,7 @@ export const evaluationConversationRunsThunks = {
   retryOne,
   getAgentHistory,
   getAll,
+  getComparisonRecords,
   getOne,
   getRecords,
   streamRunStatus,

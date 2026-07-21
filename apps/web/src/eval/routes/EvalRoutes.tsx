@@ -7,6 +7,7 @@ import { EvalRoute } from "./EvalRoute"
 import { EvaluationConversationDatasetRoute } from "./EvaluationConversationDatasetRoute"
 import { EvaluationConversationDatasetsRoute } from "./EvaluationConversationDatasetsRoute"
 import { EvaluationConversationRunRoute } from "./EvaluationConversationRunRoute"
+import { EvaluationConversationRunsCompareRoute } from "./EvaluationConversationRunsCompareRoute"
 import { EvaluationExtractionDatasetRoute } from "./EvaluationExtractionDatasetRoute"
 import { EvaluationExtractionDatasetsRoute } from "./EvaluationExtractionDatasetsRoute"
 import { EvaluationExtractionRunRoute } from "./EvaluationExtractionRunRoute"
@@ -54,6 +55,10 @@ export const evalRoutes = {
               path: EvalRoutes.conversationDataset.path,
               element: <EvaluationConversationDatasetRoute />,
               children: [
+                {
+                  path: EvalRoutes.conversationDatasetCompare.path,
+                  element: <EvaluationConversationRunsCompareRoute />,
+                },
                 {
                   path: EvalRoutes.conversationRun.path,
                   element: <EvaluationConversationRunRoute />,
