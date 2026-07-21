@@ -51,10 +51,7 @@
       },
       {
         "name": "src/domains/agents/agent.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -69,11 +66,7 @@
     "cycle": [
       {
         "name": "src/domains/documents/tags/document-tag.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
+        "dependencyTypes": ["local", "type-only", "import"]
       },
       {
         "name": "src/domains/agents/agent.entity.ts",
@@ -99,10 +92,7 @@
     "cycle": [
       {
         "name": "src/domains/mcp-servers/agent-mcp-server.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/agent.entity.ts",
@@ -158,10 +148,7 @@
     "cycle": [
       {
         "name": "src/domains/resource-libraries/resource-library.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/agent.entity.ts",
@@ -228,17 +215,11 @@
       },
       {
         "name": "src/domains/agents/base-agent-sessions/base-agent-sessions-module.helpers.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/agents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "require"
-        ]
+        "dependencyTypes": ["local", "require"]
       }
     ]
   },
@@ -263,17 +244,11 @@
       },
       {
         "name": "src/domains/agents/base-agent-sessions/base-agent-sessions-module.helpers.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/agents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "require"
-        ]
+        "dependencyTypes": ["local", "require"]
       }
     ]
   },
@@ -298,17 +273,11 @@
       },
       {
         "name": "src/domains/agents/base-agent-sessions/base-agent-sessions-module.helpers.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/agents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "require"
-        ]
+        "dependencyTypes": ["local", "require"]
       }
     ]
   },
@@ -333,10 +302,7 @@
       },
       {
         "name": "src/domains/documents/tags/document-tags.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/projects/projects.module.ts",
@@ -350,10 +316,7 @@
       },
       {
         "name": "src/domains/agents/agents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -388,10 +351,7 @@
       },
       {
         "name": "src/domains/agents/agents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -406,10 +366,7 @@
     "cycle": [
       {
         "name": "src/domains/invitations/invitations.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/agents.module.ts",
@@ -434,17 +391,11 @@
     "cycle": [
       {
         "name": "src/domains/projects/projects.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/agents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -459,10 +410,7 @@
     "cycle": [
       {
         "name": "src/domains/resource-libraries/resource-libraries.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/projects/projects.module.ts",
@@ -476,10 +424,7 @@
       },
       {
         "name": "src/domains/agents/agents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -494,17 +439,11 @@
     "cycle": [
       {
         "name": "src/domains/documents/documents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "require"
-        ]
+        "dependencyTypes": ["local", "require"]
       },
       {
         "name": "src/domains/documents/tags/document-tags.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/projects/projects.module.ts",
@@ -518,10 +457,7 @@
       },
       {
         "name": "src/domains/agents/agents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module.ts",
@@ -535,10 +471,7 @@
       },
       {
         "name": "src/domains/agents/base-agent-sessions/base-agent-sessions-module.helpers.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -553,17 +486,11 @@
     "cycle": [
       {
         "name": "src/domains/projects/projects.module.ts",
-        "dependencyTypes": [
-          "local",
-          "require"
-        ]
+        "dependencyTypes": ["local", "require"]
       },
       {
         "name": "src/domains/agents/agents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module.ts",
@@ -577,10 +504,7 @@
       },
       {
         "name": "src/domains/agents/base-agent-sessions/base-agent-sessions-module.helpers.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -595,17 +519,11 @@
     "cycle": [
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -682,17 +600,11 @@
     "cycle": [
       {
         "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -800,10 +712,7 @@
     "cycle": [
       {
         "name": "src/domains/agents/shared/agent-session-messages/streaming/streaming.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module.ts",
@@ -828,17 +737,11 @@
     "cycle": [
       {
         "name": "src/domains/agents/csv-extraction-runs/agent-csv-extraction-run.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/csv-extraction-runs/agent-csv-extraction-run-record.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -853,10 +756,7 @@
     "cycle": [
       {
         "name": "src/domains/agents/agent.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
@@ -932,19 +832,11 @@
       },
       {
         "name": "src/domains/documents/tags/document-tag.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
+        "dependencyTypes": ["local", "type-only", "import"]
       },
       {
         "name": "src/domains/documents/document.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
+        "dependencyTypes": ["local", "type-only", "import"]
       },
       {
         "name": "src/domains/projects/project.entity.ts",
@@ -958,24 +850,15 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/review-campaigns/review-campaign.entity.ts",
@@ -1051,31 +934,19 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/session-categories/agent-session-category.entity.ts",
@@ -1089,26 +960,15 @@
       },
       {
         "name": "src/domains/agents/agent.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/documents/tags/document-tag.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
+        "dependencyTypes": ["local", "type-only", "import"]
       },
       {
         "name": "src/domains/documents/document.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
+        "dependencyTypes": ["local", "type-only", "import"]
       },
       {
         "name": "src/domains/projects/project.entity.ts",
@@ -1122,10 +982,7 @@
       },
       {
         "name": "src/domains/review-campaigns/review-campaign.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/extraction-agent-sessions/extraction-agent-session.entity.ts",
@@ -1150,24 +1007,15 @@
     "cycle": [
       {
         "name": "src/domains/agents/base-agent-sessions/base-agent-sessions-module.helpers.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/documents/documents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "require"
-        ]
+        "dependencyTypes": ["local", "require"]
       },
       {
         "name": "src/domains/documents/tags/document-tags.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/projects/projects.module.ts",
@@ -1181,10 +1029,7 @@
       },
       {
         "name": "src/domains/agents/agents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/extraction-agent-sessions/extraction-agent-sessions.module.ts",
@@ -1209,17 +1054,11 @@
     "cycle": [
       {
         "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/form-agent-sessions/form-agent-session.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -1265,24 +1104,15 @@
     "cycle": [
       {
         "name": "src/domains/agents/base-agent-sessions/base-agent-sessions-module.helpers.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/documents/documents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "require"
-        ]
+        "dependencyTypes": ["local", "require"]
       },
       {
         "name": "src/domains/documents/tags/document-tags.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/projects/projects.module.ts",
@@ -1296,10 +1126,7 @@
       },
       {
         "name": "src/domains/agents/agents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/form-agent-sessions/form-agent-sessions.module.ts",
@@ -1324,10 +1151,7 @@
     "cycle": [
       {
         "name": "src/domains/agents/shared/agent-session-messages/streaming/streaming.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/form-agent-sessions/form-agent-sessions.module.ts",
@@ -1352,17 +1176,11 @@
     "cycle": [
       {
         "name": "src/domains/agents/session-categories/project-agent-session-category.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/session-categories/agent-session-category.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -1418,19 +1236,11 @@
       },
       {
         "name": "src/domains/documents/tags/document-tag.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
+        "dependencyTypes": ["local", "type-only", "import"]
       },
       {
         "name": "src/domains/documents/document.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
+        "dependencyTypes": ["local", "type-only", "import"]
       },
       {
         "name": "src/domains/projects/project.entity.ts",
@@ -1444,17 +1254,11 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/settings/agent-settings.entity.ts",
@@ -1490,24 +1294,15 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/agent-message-attachment-document.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -1532,24 +1327,15 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/agent-message-attachment-document.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -1564,17 +1350,11 @@
     "cycle": [
       {
         "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -1609,17 +1389,11 @@
       },
       {
         "name": "src/domains/review-campaigns/review-campaign.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/review-campaigns/reviewer-session-reviews/reviewer-session-review.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
@@ -1633,10 +1407,7 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -1661,10 +1432,7 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -1689,10 +1457,7 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -1717,10 +1482,7 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -1745,17 +1507,11 @@
       },
       {
         "name": "src/domains/documents/documents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "require"
-        ]
+        "dependencyTypes": ["local", "require"]
       },
       {
         "name": "src/domains/documents/tags/document-tags.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/projects/projects.module.ts",
@@ -1769,10 +1525,7 @@
       },
       {
         "name": "src/domains/agents/agents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module.ts",
@@ -1786,17 +1539,11 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/streaming/streaming.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/streaming/agent-llm.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -1821,17 +1568,11 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/streaming/streaming.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/streaming/agent-llm.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -1856,24 +1597,15 @@
       },
       {
         "name": "src/domains/agents/base-agent-sessions/base-agent-sessions-module.helpers.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/documents/documents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "require"
-        ]
+        "dependencyTypes": ["local", "require"]
       },
       {
         "name": "src/domains/documents/tags/document-tags.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/projects/projects.module.ts",
@@ -1887,10 +1619,7 @@
       },
       {
         "name": "src/domains/agents/agents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module.ts",
@@ -1904,17 +1633,11 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/streaming/streaming.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/streaming/agent-llm.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -1939,17 +1662,11 @@
       },
       {
         "name": "src/domains/documents/documents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "require"
-        ]
+        "dependencyTypes": ["local", "require"]
       },
       {
         "name": "src/domains/documents/tags/document-tags.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/projects/projects.module.ts",
@@ -1963,10 +1680,7 @@
       },
       {
         "name": "src/domains/agents/agents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module.ts",
@@ -1980,10 +1694,7 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/streaming/streaming.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -2030,19 +1741,11 @@
     "cycle": [
       {
         "name": "src/domains/documents/tags/document-tag.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
+        "dependencyTypes": ["local", "type-only", "import"]
       },
       {
         "name": "src/domains/documents/document.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
+        "dependencyTypes": ["local", "type-only", "import"]
       }
     ]
   },
@@ -2129,10 +1832,7 @@
       },
       {
         "name": "src/domains/agents/agents.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/documents/documents.module.ts",
@@ -2167,10 +1867,7 @@
       },
       {
         "name": "src/domains/documents/tags/document-tags.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -2185,17 +1882,11 @@
     "cycle": [
       {
         "name": "src/domains/evaluations/conversation/datasets/records/evaluation-conversation-dataset-record.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/evaluations/conversation/datasets/evaluation-conversation-dataset.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -2210,17 +1901,11 @@
     "cycle": [
       {
         "name": "src/domains/evaluations/conversation/runs/records/evaluation-conversation-run-record.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/evaluations/conversation/runs/evaluation-conversation-run.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -2235,17 +1920,11 @@
     "cycle": [
       {
         "name": "src/domains/evaluations/extraction/datasets/evaluation-extraction-dataset.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/evaluations/extraction/datasets/evaluation-extraction-dataset-document.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -2260,17 +1939,11 @@
     "cycle": [
       {
         "name": "src/domains/evaluations/extraction/datasets/records/evaluation-extraction-dataset-record.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/evaluations/extraction/datasets/evaluation-extraction-dataset.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -2285,17 +1958,11 @@
     "cycle": [
       {
         "name": "src/domains/evaluations/extraction/runs/records/evaluation-extraction-run-record.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/evaluations/extraction/runs/evaluation-extraction-run.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -2310,17 +1977,11 @@
     "cycle": [
       {
         "name": "src/domains/projects/project.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/feature-flags/feature-flag.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -2345,10 +2006,7 @@
       },
       {
         "name": "src/domains/invitations/invitations.module.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -2363,17 +2021,11 @@
     "cycle": [
       {
         "name": "src/domains/mcp-servers/mcp-server.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/mcp-servers/agent-mcp-server.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -2398,31 +2050,19 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/session-categories/agent-session-category.entity.ts",
@@ -2436,24 +2076,15 @@
       },
       {
         "name": "src/domains/agents/agent.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/mcp-servers/agent-mcp-server.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/mcp-servers/mcp-server.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -2530,10 +2161,7 @@
     "cycle": [
       {
         "name": "src/domains/review-campaigns/review-campaign.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/projects/project.entity.ts",
@@ -2600,17 +2228,11 @@
     "cycle": [
       {
         "name": "src/domains/review-campaigns/reviewer-session-reviews/reviewer-session-review.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/review-campaigns/review-campaign.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -2625,17 +2247,11 @@
     "cycle": [
       {
         "name": "src/domains/review-campaigns/tester-campaign-surveys/tester-campaign-survey.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/review-campaigns/review-campaign.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -2650,17 +2266,11 @@
     "cycle": [
       {
         "name": "src/domains/review-campaigns/tester-session-feedbacks/tester-session-feedback.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/review-campaigns/review-campaign.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -2705,10 +2315,7 @@
       },
       {
         "name": "src/domains/review-campaigns/reviewer-session-reviews/reviewer-session-review.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -2733,26 +2340,15 @@
       },
       {
         "name": "src/domains/agents/agent.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/documents/tags/document-tag.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
+        "dependencyTypes": ["local", "type-only", "import"]
       },
       {
         "name": "src/domains/documents/document.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
+        "dependencyTypes": ["local", "type-only", "import"]
       },
       {
         "name": "src/domains/projects/project.entity.ts",
@@ -2766,24 +2362,15 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/review-campaigns/review-campaign.entity.ts",
@@ -2797,10 +2384,7 @@
       },
       {
         "name": "src/domains/review-campaigns/reviewer-session-reviews/reviewer-session-review.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -2825,24 +2409,15 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/session-categories/agent-session-category.entity.ts",
@@ -2856,26 +2431,15 @@
       },
       {
         "name": "src/domains/agents/agent.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/documents/tags/document-tag.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
+        "dependencyTypes": ["local", "type-only", "import"]
       },
       {
         "name": "src/domains/documents/document.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
+        "dependencyTypes": ["local", "type-only", "import"]
       },
       {
         "name": "src/domains/projects/project.entity.ts",
@@ -2889,10 +2453,7 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/users/user.entity.ts",
@@ -3009,10 +2570,7 @@
       },
       {
         "name": "src/domains/review-campaigns/tester-session-feedbacks/tester-session-feedback.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -3037,26 +2595,15 @@
       },
       {
         "name": "src/domains/agents/agent.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/documents/tags/document-tag.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
+        "dependencyTypes": ["local", "type-only", "import"]
       },
       {
         "name": "src/domains/documents/document.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
+        "dependencyTypes": ["local", "type-only", "import"]
       },
       {
         "name": "src/domains/projects/project.entity.ts",
@@ -3070,24 +2617,15 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/review-campaigns/review-campaign.entity.ts",
@@ -3101,10 +2639,7 @@
       },
       {
         "name": "src/domains/review-campaigns/tester-session-feedbacks/tester-session-feedback.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
@@ -3129,24 +2664,15 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/agents/session-categories/agent-session-category.entity.ts",
@@ -3160,26 +2686,15 @@
       },
       {
         "name": "src/domains/agents/agent.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/documents/tags/document-tag.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
+        "dependencyTypes": ["local", "type-only", "import"]
       },
       {
         "name": "src/domains/documents/document.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "type-only",
-          "import"
-        ]
+        "dependencyTypes": ["local", "type-only", "import"]
       },
       {
         "name": "src/domains/projects/project.entity.ts",
@@ -3193,10 +2708,7 @@
       },
       {
         "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/users/user.entity.ts",
@@ -3220,17 +2732,11 @@
       },
       {
         "name": "src/domains/review-campaigns/review-campaign.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/review-campaigns/tester-session-feedbacks/tester-session-feedback.entity.ts",
-        "dependencyTypes": [
-          "local",
-          "import"
-        ]
+        "dependencyTypes": ["local", "import"]
       }
     ]
   },
