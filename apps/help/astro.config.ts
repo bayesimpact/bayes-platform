@@ -15,9 +15,6 @@ const vitePlugins = [tailwindcss()] as unknown as VitePlugins
 // https://astro.build/config
 export default defineConfig({
   site: SITE_URL,
-  // Overridable so we can build several themed variants side by side (e.g. a coral
-  // and a blue preview). Defaults to the standard `dist`.
-  outDir: process.env.OUT_DIR ?? "dist",
   output: "static",
   trailingSlash: "ignore",
   i18n: {
