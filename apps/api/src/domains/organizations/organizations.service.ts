@@ -12,6 +12,11 @@ import type { OrganizationModel, OrganizationProjectModel } from "./organization
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationRepository } from "./organization.repository"
 
+type AccessibleOrganization = {
+  organization: Organization
+  permissions: string[]
+}
+
 @Injectable()
 export class OrganizationsService {
   constructor(
@@ -28,22 +33,66 @@ export class OrganizationsService {
   }
 
   async listUserOrganizations(userId: string): Promise<OrganizationModel[]> {
-    // 1. Ask RBAC which organizations the user belongs to.
+    const accessibleOrganizations = await this.listAccessibleOrganizations(userId)
+    if (accessibleOrganizations.length === 0) {
+      return []
+    }
+
+    const permissionsByOrganizationId = new Map(
+      accessibleOrganizations.map(({ organization, permissions }) => [
+        organization.id,
+        permissions,
+      ]),
+    )
+    const organizationIds = accessibleOrganizations.map(({ organization }) => organization.id)
+
+    const projectsByOrganizationId = await this.loadProjectsByOrganizationId(
+      userId,
+      organizationIds,
+      permissionsByOrganizationId,
+    )
+
+    return accessibleOrganizations.map(({ organization, permissions }) => ({
+      id: organization.id,
+      name: organization.name,
+      permissions,
+      projects: projectsByOrganizationId.get(organization.id) ?? [],
+    }))
+  }
+
+  /**
+   * Returns organizations the user can access, paired with their per-org permissions.
+   * Only orgs where the user has at least one permission are included.
+   */
+  private async listAccessibleOrganizations(userId: string): Promise<AccessibleOrganization[]> {
     const organizationIds = await this.permissionService.listResourceIds(userId, "organization")
     if (organizationIds.length === 0) {
       return []
     }
 
-    // 2. Fetch in parallel: per-org permissions, project membership IDs, and org entities.
-    const [permissionsByOrganizationId, projectIds, organizations] = await Promise.all([
+    const [permissionsByOrganizationId, organizations] = await Promise.all([
       this.permissionService.listPermissionsForResourceIds(userId, "organization", organizationIds),
-      this.permissionService.listResourceIds(userId, "project"),
       this.organizationRepository.findByIds(organizationIds),
     ])
 
-    // 3. Split orgs into two buckets based on `project.read`:
-    //    - owners/admins (project.read) → see every project in the org
-    //    - members without it → see only their project memberships (see ADR 0013)
+    return organizations
+      .map((organization) => ({
+        organization,
+        permissions: permissionsByOrganizationId.get(organization.id) ?? [],
+      }))
+      .filter(({ permissions }) => permissions.length > 0)
+  }
+
+  /**
+   * Loads projects grouped by organization, using the two-bucket strategy (see ADR 0013):
+   * - orgs where user has `project.read` → all projects in the org
+   * - orgs without it → only projects the user has a direct membership on
+   */
+  private async loadProjectsByOrganizationId(
+    userId: string,
+    organizationIds: string[],
+    permissionsByOrganizationId: Map<string, string[]>,
+  ): Promise<Map<string, OrganizationProjectModel[]>> {
     const organizationIdsWithProjectRead = organizationIds.filter((organizationId) =>
       permissionsByOrganizationId.get(organizationId)?.includes(PROJECT_READ_PERMISSION),
     )
@@ -51,29 +100,26 @@ export class OrganizationsService {
       (organizationId) => !organizationIdsWithProjectRead.includes(organizationId),
     )
 
-    // 4. Hydrate projects for each bucket in parallel.
-    const [allProjectsForPrivilegedOrgs, membershipProjects] = await Promise.all([
-      this.organizationRepository.findProjectsByOrganizationIds(organizationIdsWithProjectRead),
-      this.organizationRepository.findProjectsByIdsInOrganizations({
+    const allProjectsForPrivilegedOrgs =
+      await this.organizationRepository.findProjectsByOrganizationIds(
+        organizationIdsWithProjectRead,
+      )
+
+    let membershipProjects: Awaited<
+      ReturnType<OrganizationRepository["findProjectsByIdsInOrganizations"]>
+    > = []
+    if (membershipOnlyOrganizationIds.length > 0) {
+      const projectIds = await this.permissionService.listResourceIds(userId, "project")
+      membershipProjects = await this.organizationRepository.findProjectsByIdsInOrganizations({
         projectIds,
         organizationIds: membershipOnlyOrganizationIds,
-      }),
-    ])
+      })
+    }
 
-    // 5. Group projects under their org and assemble the response DTOs.
-    const projectsByOrganizationId = this.groupProjectsByOrganizationId(organizationIds, [
+    return this.groupProjectsByOrganizationId(organizationIds, [
       ...allProjectsForPrivilegedOrgs,
       ...membershipProjects,
     ])
-
-    return organizations
-      .map((organization) => ({
-        id: organization.id,
-        name: organization.name,
-        permissions: permissionsByOrganizationId.get(organization.id) ?? [],
-        projects: projectsByOrganizationId.get(organization.id) ?? [],
-      }))
-      .filter((organization) => organization.permissions.length > 0)
   }
 
   async createOrganization({
