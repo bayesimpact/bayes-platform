@@ -16,6 +16,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Renaming an agent no longer creates an extra settings version in the agent's history
 - Tags management panel: the tag list scrolls, so long or nested tag lists stay reachable
 - French UI: the "Add library" button on an agent's Resources tab is now translated
+- Resource library link field accepts only a single file upload
 
 ### Security
 
