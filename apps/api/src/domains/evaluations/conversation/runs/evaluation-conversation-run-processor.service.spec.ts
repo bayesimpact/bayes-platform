@@ -6,6 +6,7 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { AgentLlmModule } from "@/domains/agents/shared/agent-session-messages/streaming/agent-llm.module"
 import { toAgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.helper"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { LlmModule } from "@/external/llm/llm.module"
@@ -31,7 +32,7 @@ describe("EvaluationConversationRunProcessorService", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [LlmModule],
+      additionalImports: [LlmModule, AgentLlmModule],
       providers: [
         EvaluationConversationRunProcessorService,
         EvaluationConversationRunGraderService,

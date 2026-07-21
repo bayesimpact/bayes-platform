@@ -2,6 +2,7 @@ import { BullModule } from "@nestjs/bullmq"
 import { Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
 import { ALL_ENTITIES } from "@/common/all-entities"
+import { AgentLlmModule } from "@/domains/agents/shared/agent-session-messages/streaming/agent-llm.module"
 import { LlmModule } from "@/external/llm/llm.module"
 import {
   EVALUATION_CONVERSATION_RUN_EXECUTE_QUEUE_NAME,
@@ -21,6 +22,7 @@ import { QueueMetricsService } from "./queue-metrics.service"
     BullModule.registerQueue({ name: EVALUATION_CONVERSATION_RUN_QUEUE_NAME }),
     TypeOrmModule.forFeature(ALL_ENTITIES),
     LlmModule,
+    AgentLlmModule,
   ],
   providers: [
     EvaluationConversationRunExecuteWorker,

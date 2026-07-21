@@ -2,6 +2,7 @@ import { BullModule } from "@nestjs/bullmq"
 import { Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
 import { ALL_ENTITIES } from "@/common/all-entities"
+import { StructuredExtractionAgentRunnerService } from "@/domains/agents/shared/structured-extraction-agent-runner.service"
 import { DocumentsModule } from "@/domains/documents/documents.module"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
 import { LlmModule } from "@/external/llm/llm.module"
@@ -31,6 +32,7 @@ import { AgentCsvExtractionRunQueueMetricsService } from "./queue-metrics.servic
     AgentCsvExtractionRunStarterService,
     AgentCsvExtractionRunWorker,
     AgentCsvExtractionRunProcessorService,
+    StructuredExtractionAgentRunnerService,
     AgentCsvExtractionRunStatusNotifierService,
     AgentCsvExtractionRunCsvExportService,
     AgentCsvExtractionRunQueueMetricsService,

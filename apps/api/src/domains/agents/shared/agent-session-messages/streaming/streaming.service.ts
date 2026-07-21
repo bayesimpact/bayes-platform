@@ -1,46 +1,26 @@
-import { URL } from "node:url"
 import type { StreamEvent, StreamEventPayload } from "@caseai-connect/api-contracts"
-import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common"
+import { Inject, Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import type { FilePart, ImagePart } from "ai"
 import type { Repository } from "typeorm/repository/Repository"
 import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type {
-  LLMChatMessage,
-  LLMMetadata,
-  LLMProvider,
-} from "@/common/interfaces/llm-provider.interface"
+import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
-import {
-  FILE_STORAGE_SERVICE,
-  type IFileStorage,
-} from "@/domains/documents/storage/file-storage.interface"
-import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
 import { ServiceWithLLM } from "@/external/llm"
 import { AgentMessage } from "../agent-message.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { AgentMessageAttachmentDocumentsService } from "../agent-message-attachment-documents.service"
-import { isLLMVisibleMessage } from "./llm-visible-message.helper"
-import { generateMasterPrompt } from "./master-promts/generate-master-prompt"
-import type {
-  AgentSessionScope,
-  PublicStreamingSessionProxy,
-  StreamingSession,
-} from "./streaming-session.types"
+import { AgentLlmRequestService } from "./agent-llm-request.service"
+import type { AgentSessionScope, PublicStreamingSessionProxy } from "./streaming-session.types"
 import type { ToolExecutionLog } from "./tools/tool-execution-log"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { ToolsService } from "./tools.service"
 
 type NotifyClient = (event: Extract<StreamEvent, { type: "notify_client" }>) => void
 
 @Injectable()
 export class StreamingService extends ServiceWithLLM {
-  private readonly logger = new Logger(StreamingService.name)
   private readonly STREAM_TIMEOUT_MS = 5 * 60 * 1000 // 5 minutes
   private readonly agentMessageRepository: Repository<AgentMessage>
   private readonly agentMessageConnectRepository: ConnectRepository<AgentMessage>
@@ -48,11 +28,7 @@ export class StreamingService extends ServiceWithLLM {
   private readonly formAgentSessionRepository: Repository<FormAgentSession>
 
   constructor(
-    @Inject(FILE_STORAGE_SERVICE)
-    private readonly fileStorageService: IFileStorage,
-    private readonly agentMessageAttachmentDocumentsService: AgentMessageAttachmentDocumentsService,
-
-    private readonly toolsService: ToolsService,
+    private readonly agentLlmRequestService: AgentLlmRequestService,
 
     @InjectRepository(ConversationAgentSession)
     conversationAgentSessionRepository: Repository<ConversationAgentSession>,
@@ -128,11 +104,17 @@ export class StreamingService extends ServiceWithLLM {
     let mcpClose: (() => Promise<void>) | undefined
 
     try {
-      const llmRequest = await this.buildLLMRequest({
+      const llmRequest = await this.agentLlmRequestService.buildLLMRequest({
         agentSessionScope,
-        notifyClient,
         attachmentDocumentId,
-        assistantMessageId,
+        onToolExecute: async (toolExecution) => {
+          await this.persistToolExecutionAndNotifyClient({
+            agentSessionScope,
+            assistantMessageId,
+            notifyClient,
+            toolExecution,
+          })
+        },
       })
       mcpClose = llmRequest.mcpClose
 
@@ -235,10 +217,22 @@ export class StreamingService extends ServiceWithLLM {
     let mcpClose: (() => Promise<void>) | undefined
 
     try {
-      const llmRequest = await this.buildLLMRequest({
-        agentSessionScope: { session: sessionProxy, agent, agentSettings, connectScope },
-        notifyClient,
-        assistantMessageId,
+      const agentSessionScope: AgentSessionScope = {
+        session: sessionProxy,
+        agent,
+        agentSettings,
+        connectScope,
+      }
+      const llmRequest = await this.agentLlmRequestService.buildLLMRequest({
+        agentSessionScope,
+        onToolExecute: async (toolExecution) => {
+          await this.persistToolExecutionAndNotifyClient({
+            agentSessionScope,
+            assistantMessageId,
+            notifyClient,
+            toolExecution,
+          })
+        },
       })
       mcpClose = llmRequest.mcpClose
 
@@ -279,175 +273,6 @@ export class StreamingService extends ServiceWithLLM {
     payload: Extract<StreamEventPayload, { type: T }>,
   ): Extract<StreamEvent, { type: T }> {
     return { data: JSON.stringify(payload) } as Extract<StreamEvent, { type: T }>
-  }
-
-  private async buildLLMRequest({
-    agentSessionScope,
-    notifyClient,
-    attachmentDocumentId,
-    assistantMessageId,
-  }: {
-    agentSessionScope: AgentSessionScope
-    assistantMessageId: string
-    notifyClient: NotifyClient
-    attachmentDocumentId?: string
-  }) {
-    const { session, agent, agentSettings, connectScope } = agentSessionScope
-
-    const { tools, mcpClose, toolDescriptions, hasSubAgentTools } =
-      await this.toolsService.buildTools({
-        agentSessionScope,
-        onExecute: async (toolExecution) => {
-          await this.persistToolExecutionAndNotifyClient({
-            agentSessionScope,
-            assistantMessageId,
-            notifyClient,
-            toolExecution,
-          })
-        },
-      })
-
-    const toolNames = tools ? Object.keys(tools) : []
-    const config = this.buildLLMConfig({
-      systemPrompt: generateMasterPrompt({
-        agent,
-        agentSettings,
-        toolNames,
-        toolDescriptions,
-      }),
-      model: agentSettings.model,
-      temperature: agentSettings.temperature,
-      tools,
-    })
-
-    const metadata: LLMMetadata = this.buildLLMData({
-      session,
-      agent,
-      agentSettings,
-      hasSubAgentTools,
-    })
-
-    const messages = await this.convertToLLMFormat(session.messages)
-
-    // If there's an attachment document, we need to handle it and add it to the LLM messages
-    if (attachmentDocumentId)
-      await this.handleAttachmentDocumentInLLMMessage({
-        llmMessages: messages,
-        attachmentDocumentId,
-        connectScope,
-      })
-
-    return { config, metadata, messages, mcpClose }
-  }
-
-  private buildLLMData({
-    session,
-    agent,
-    agentSettings,
-    hasSubAgentTools,
-  }: {
-    session: StreamingSession
-    agent: Agent
-    agentSettings: AgentSettings
-    hasSubAgentTools: boolean
-  }): LLMMetadata {
-    this.logger.log(
-      `Agent "${agent.name}" (${agent.id}) trace: ${getTraceUrl(session.traceId)} (session ${session.id})`,
-    )
-    const tags = [agent.name, `rev-${agentSettings.revision}`, agent.type]
-    return {
-      traceId: session.traceId,
-      agentSessionId: session.id,
-      agentId: agent.id,
-      revision: agentSettings.revision,
-      projectId: agent.projectId,
-      organizationId: session.organizationId,
-      currentTurn: session.messages.filter((message) => message.role === "user").length,
-      tags: hasSubAgentTools ? [...tags, "parent-agent"] : tags,
-    }
-  }
-
-  private async handleAttachmentDocumentInLLMMessage({
-    llmMessages,
-    attachmentDocumentId,
-    connectScope,
-  }: {
-    llmMessages: LLMChatMessage[]
-    attachmentDocumentId: string
-    connectScope: RequiredConnectScope
-  }) {
-    const message = llmMessages.pop()
-    if (!message) return
-
-    const attachmentDocument = await this.agentMessageAttachmentDocumentsService.findById({
-      connectScope,
-      attachmentDocumentId,
-    })
-    if (!attachmentDocument) {
-      throw new Error(`Attachment document with ID ${attachmentDocumentId} not found`)
-    }
-
-    const url = await this.fileStorageService.getTemporaryUrl(
-      attachmentDocument.storageRelativePath,
-    )
-    const llmMessage: LLMChatMessage = {
-      role: "user",
-      content: [{ type: "text", text: message.content as string }],
-    }
-
-    const hasStorageBucketName: boolean = !!process.env.GCS_STORAGE_BUCKET_NAME
-
-    switch (attachmentDocument.mimeType) {
-      case "application/pdf":
-        {
-          const data = new URL(
-            hasStorageBucketName
-              ? url
-              : "https://www.impots.gouv.fr/sites/default/files/formulaires/2042/2025/2042_5180.pdf",
-          )
-
-          const content = llmMessage.content as Array<FilePart>
-          content.push({
-            type: "file",
-            mediaType: "application/pdf",
-            data,
-            filename: attachmentDocument.fileName,
-          })
-        }
-        break
-
-      case "image/png":
-      case "image/jpeg":
-      case "image/jpg":
-        {
-          const image = new URL(
-            hasStorageBucketName
-              ? url
-              : "https://www.oiseaux.net/photos/marc.fasol/images/id/canard.colvert.mafa.3p.230.h.jpg",
-          )
-
-          const content = llmMessage.content as Array<ImagePart>
-          content.push({ type: "image", image })
-        }
-        break
-
-      default:
-        throw new Error(`Unsupported attachment document type: ${attachmentDocument.mimeType}`)
-    }
-
-    llmMessages.push(llmMessage)
-  }
-
-  /**
-   * Converts ConversationAgentSession messages to LLM provider format
-   */
-  private async convertToLLMFormat(
-    messages: ConversationAgentSession["messages"],
-  ): Promise<LLMChatMessage[]> {
-    return messages.filter(isLLMVisibleMessage).map((message) => ({
-      role: message.role,
-      content: message.content,
-    }))
   }
 
   /**

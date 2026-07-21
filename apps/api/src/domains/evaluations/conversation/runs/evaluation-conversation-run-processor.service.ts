@@ -1,13 +1,13 @@
-import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common"
+import { Injectable, Logger, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: DataSource required at runtime for NestJS DI
 import { DataSource, type Repository } from "typeorm"
-import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type { LLMMetadata, LLMProvider } from "@/common/interfaces/llm-provider.interface"
-import type { AgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.types"
-import { ServiceWithLLM } from "@/external/llm"
+import { Agent } from "@/domains/agents/agent.entity"
+import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentLlmRequestService } from "@/domains/agents/shared/agent-session-messages/streaming/agent-llm-request.service"
 import {
   EvaluationConversationRun,
   type EvaluationConversationRunSummary,
@@ -23,40 +23,27 @@ import {
 } from "./records/evaluation-conversation-run-record.entity"
 
 @Injectable()
-export class EvaluationConversationRunProcessorService extends ServiceWithLLM {
+export class EvaluationConversationRunProcessorService {
   private readonly logger = new Logger(EvaluationConversationRunProcessorService.name)
   private readonly evaluationConversationRunConnectRepository: ConnectRepository<EvaluationConversationRun>
   private readonly runRecordConnectRepository: ConnectRepository<EvaluationConversationRunRecord>
+  private readonly agentConnectRepository: ConnectRepository<Agent>
+  private readonly agentSettingsConnectRepository: ConnectRepository<AgentSettings>
 
   constructor(
     @InjectRepository(EvaluationConversationRun)
     evaluationConversationRunRepository: Repository<EvaluationConversationRun>,
     @InjectRepository(EvaluationConversationRunRecord)
     evaluationConversationRunRecordRepository: Repository<EvaluationConversationRunRecord>,
+    @InjectRepository(Agent)
+    agentRepository: Repository<Agent>,
+    @InjectRepository(AgentSettings)
+    agentSettingsRepository: Repository<AgentSettings>,
+    private readonly agentLlmRequestService: AgentLlmRequestService,
     private readonly graderService: EvaluationConversationRunGraderService,
     private readonly statusNotifierService: EvaluationConversationRunStatusNotifierService,
-    @Inject("_MockLLMProvider")
-    mockLlmProvider: LLMProvider,
-    @Inject("VertexLLMProvider")
-    vertexLlmProvider: LLMProvider,
-    @Inject("Vertex3LLMProvider")
-    vertex3LlmProvider: LLMProvider,
-    @Inject("MistralLLMProvider")
-    mistralLlmProvider: LLMProvider,
-    @Inject("MedGemmaLLMProvider")
-    medGemmaLlmProvider: LLMProvider,
-    @Inject("GemmaLLMProvider")
-    gemmaLlmProvider: LLMProvider,
     private readonly dataSource: DataSource,
   ) {
-    super({
-      mockLlmProvider,
-      vertexLlmProvider,
-      vertex3LlmProvider,
-      medGemmaLlmProvider,
-      gemmaLlmProvider,
-      mistralLlmProvider,
-    })
     this.evaluationConversationRunConnectRepository = new ConnectRepository(
       evaluationConversationRunRepository,
       "evaluationConversationRun",
@@ -65,10 +52,15 @@ export class EvaluationConversationRunProcessorService extends ServiceWithLLM {
       evaluationConversationRunRecordRepository,
       "evaluationConversationRunRecord",
     )
+    this.agentConnectRepository = new ConnectRepository(agentRepository, "agent")
+    this.agentSettingsConnectRepository = new ConnectRepository(
+      agentSettingsRepository,
+      "agentSettings",
+    )
   }
 
   async processRunRecord(payload: ProcessEvaluationConversationRunRecordJobPayload): Promise<void> {
-    const { connectScope, evaluationConversationRun, runRecordId, agentWithSettings } = payload
+    const { connectScope, evaluationConversationRun, runRecordId } = payload
 
     const runRecord = await this.runRecordConnectRepository.getOneById(connectScope, runRecordId)
     if (!runRecord) {
@@ -101,7 +93,6 @@ export class EvaluationConversationRunProcessorService extends ServiceWithLLM {
 
     await this.processOneRecord({
       runRecord,
-      agentWithSettings,
       evaluationConversationRun,
       connectScope,
     })
@@ -258,26 +249,34 @@ export class EvaluationConversationRunProcessorService extends ServiceWithLLM {
 
   private async processOneRecord({
     runRecord,
-    agentWithSettings,
     evaluationConversationRun,
     connectScope,
   }: {
     runRecord: EvaluationConversationRunRecord
-    agentWithSettings: AgentWithSettingsRunJobPayload
     evaluationConversationRun: EvaluationConversationRun
     connectScope: RequiredConnectScope
   }): Promise<void> {
     try {
-      const { output, traceId } = await this.invokeAgent({
-        agentWithSettings,
-        inputText: runRecord.input,
+      const { agent, agentSettings } = await this.loadAgentWithSettings({
+        evaluationConversationRun,
         connectScope,
+      })
+
+      // Run the agent through the exact same request building as Studio
+      // (tools, master prompt, streaming provider call), so the evaluation
+      // measures the agent as users actually experience it.
+      const { output, traceId } = await this.agentLlmRequestService.runSingleTurn({
+        agent,
+        agentSettings,
+        connectScope,
+        userContent: runRecord.input,
+        extraTags: ["evaluation-conversation-run"],
       })
 
       const score = await this.graderService.gradeOutput({
         expectedOutput: runRecord.expectedOutput,
         generatedOutput: output,
-        generatorModel: agentWithSettings.model,
+        generatorModel: agentSettings.model,
         judgeModel: evaluationConversationRun.judgeModel,
         traceId,
         connectScope,
@@ -307,6 +306,39 @@ export class EvaluationConversationRunProcessorService extends ServiceWithLLM {
     })
   }
 
+  /**
+   * Loads the evaluated agent with the same relations as Studio's
+   * AgentContextResolver, so tools and the master prompt build identically.
+   */
+  private async loadAgentWithSettings({
+    evaluationConversationRun,
+    connectScope,
+  }: {
+    evaluationConversationRun: EvaluationConversationRun
+    connectScope: RequiredConnectScope
+  }): Promise<{ agent: Agent; agentSettings: AgentSettings }> {
+    const agent = await this.agentConnectRepository.getOneById(
+      connectScope,
+      evaluationConversationRun.agentId,
+      { relations: ["documentTags", "sessionCategories", "resourceLibraries"] },
+    )
+    if (!agent) {
+      throw new NotFoundException(`Agent with id ${evaluationConversationRun.agentId} not found`)
+    }
+
+    const agentSettings = await this.agentSettingsConnectRepository.getOneById(
+      connectScope,
+      evaluationConversationRun.agentSettingsId,
+    )
+    if (!agentSettings) {
+      throw new NotFoundException(
+        `AgentSettings with id ${evaluationConversationRun.agentSettingsId} not found`,
+      )
+    }
+
+    return { agent, agentSettings }
+  }
+
   private async notifyStatusChanged(
     evaluationConversationRun: EvaluationConversationRun,
   ): Promise<void> {
@@ -318,63 +350,5 @@ export class EvaluationConversationRunProcessorService extends ServiceWithLLM {
       summary: evaluationConversationRun.summary,
       updatedAt: evaluationConversationRun.updatedAt.getTime(),
     })
-  }
-
-  private async invokeAgent({
-    agentWithSettings,
-    inputText,
-    connectScope,
-  }: {
-    agentWithSettings: AgentWithSettingsRunJobPayload
-    inputText: string
-    connectScope: RequiredConnectScope
-  }): Promise<{ output: string; traceId: string }> {
-    const traceId = v4()
-
-    const llmConfig = this.buildLLMConfig({
-      systemPrompt: this.generateMasterPrompt(agentWithSettings),
-      model: agentWithSettings.model,
-      temperature: agentWithSettings.temperature,
-    })
-
-    const llmMetadata: LLMMetadata = {
-      traceId,
-      agentSessionId: traceId,
-      currentTurn: 1,
-      organizationId: connectScope.organizationId,
-      agentId: agentWithSettings.id,
-      revision: agentWithSettings.revision,
-      projectId: connectScope.projectId,
-      tags: [
-        agentWithSettings.name,
-        `rev-${agentWithSettings.revision}`,
-        agentWithSettings.type,
-        "evaluation-conversation-run",
-      ],
-    }
-
-    const output = await this.getProviderForModel(agentWithSettings.model).generateText({
-      prompt: inputText,
-      config: llmConfig,
-      metadata: llmMetadata,
-    })
-
-    return { output, traceId }
-  }
-
-  /**
-   * Ported from the legacy EvaluationReportsService.generateMasterPrompt so results stay
-   * comparable with the legacy studio evaluation reports. The volatile date stays at the
-   * end of the prompt for provider prompt caching.
-   */
-  private generateMasterPrompt(agentWithSettings: AgentWithSettingsRunJobPayload): string {
-    return `${agentWithSettings.instructions}
-
-# Attachment:
-If there is a file (image or pdf) attached to the user's chat message, answer the user's question or instruction reading the content of the file.
-
-Always answer in ${agentWithSettings.locale}.
-
-Today's date: ${new Date().toLocaleDateString()}`
   }
 }

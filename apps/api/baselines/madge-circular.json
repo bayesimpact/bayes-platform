@@ -8,6 +8,11 @@
     "domains/agents/form-agent-sessions/form-agent-sessions.module.ts"
   ],
   [
+    "domains/agents/conversation-agent-sessions/conversation-agent-sessions.module.ts",
+    "domains/agents/shared/agent-session-messages/streaming/streaming.module.ts",
+    "domains/agents/shared/agent-session-messages/streaming/agent-llm.module.ts"
+  ],
+  [
     "domains/agents/shared/agent-session-messages/streaming/tools/retrieve-project-document-chunks.tool.ts",
     "domains/documents/embeddings/document-chunk-retrieval.service.ts"
   ],
@@ -17,7 +22,10 @@
     "domains/documents/tags/document-tags.module.ts",
     "domains/projects/projects.module.ts"
   ],
-  ["domains/documents/tags/document-tags.module.ts", "domains/projects/projects.module.ts"],
+  [
+    "domains/documents/tags/document-tags.module.ts",
+    "domains/projects/projects.module.ts"
+  ],
   [
     "domains/agents/agents.module.ts",
     "domains/documents/documents.module.ts",
@@ -25,5 +33,8 @@
     "domains/projects/projects.module.ts",
     "domains/invitations/invitations.module.ts"
   ],
-  ["domains/projects/projects.module.ts", "domains/invitations/invitations.module.ts"]
+  [
+    "domains/projects/projects.module.ts",
+    "domains/invitations/invitations.module.ts"
+  ]
 ]
