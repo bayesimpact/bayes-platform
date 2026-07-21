@@ -16,27 +16,15 @@ export const SITE_TITLE =
 export const TENANT = (import.meta.env.TENANT as string | undefined) ?? "connect"
 
 /**
- * Platform brand theme. The platform picks a theme *key* (`coral` / `blue`) at build
- * time via `VITE_THEME_KEY`; each key only changes `--primary`. These values MUST
- * mirror `apps/web/src/index.css` (`.coral` / `.blue`) so the help center's walkthrough
- * animations match the platform they were opened from.
+ * Brand primary colour of the walkthrough animations, injected as `--brand-primary`.
+ * Mirrors the platform's theme mechanism (`apps/web/src/theme.css` → `:root{--primary}`):
+ * a single colour, **purple by default so local dev is never mistaken for a tenant**,
+ * overridden per tenant at build time via the `BRAND_PRIMARY` env (the tenant's
+ * `--primary` from infra `assets/{tenant}/theme.css`). Keep the dev default in sync with
+ * `apps/web/src/theme.css`.
  */
-const THEMES = {
-  coral: { primary: "oklch(74.137% 0.13055 37.323)" },
-  blue: { primary: "oklch(76.123% 0.07152 212.136)" },
-} as const
-
-export const THEME_KEY = (import.meta.env.THEME_KEY as string | undefined) ?? "coral"
-
-const theme = THEMES[THEME_KEY as keyof typeof THEMES] ?? THEMES.coral
-
-/**
- * Brand primary colour, injected as `--brand-primary` and consumed by the animations.
- * An explicit `BRAND_PRIMARY` env wins over the `THEME_KEY` map — this is the single
- * source of truth: infra can pass the tenant's `--primary` (from its
- * `assets/{tenant}/theme.css`) directly, with no key mapping to keep in sync.
- */
-export const BRAND_PRIMARY = (import.meta.env.BRAND_PRIMARY as string | undefined) ?? theme.primary
+export const BRAND_PRIMARY =
+  (import.meta.env.BRAND_PRIMARY as string | undefined) ?? "oklch(62.8% 0.2 303.9)"
 
 /**
  * Brand logo mark colour, injected as `--brand-logo-color` for the animation logos.
