@@ -1,9 +1,10 @@
 import { useEffect, useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
+import { useMount } from "@/common/hooks/use-mount"
 import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
@@ -27,23 +28,39 @@ function useCompareRunIds(): string[] {
 }
 
 export function EvaluationConversationRunsCompareRoute() {
-  const datasetId = useAppSelector(selectCurrentConversationDatasetId)
+  const datasetId = useCurrentId(selectCurrentConversationDatasetId)
   const dataset = useAppSelector(selectCurrentConversationDatasetData)
   const runs = useAppSelector(selectConversationRunsData)
   const comparison = useAppSelector(selectConversationRunsComparison)
   const dispatch = useAppDispatch()
   const runIds = useCompareRunIds()
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
+  const runIdsKey = runIds.join(",")
 
+  // URL-driven id setting (same role as useSetCurrentIds, ADR 0009); declared
+  // before useMount so the ids are in the store when compareMount fires.
   useEffect(() => {
-    if (runIds.length === 0) return
-    dispatch(
-      evaluationConversationRunsActions.getComparisonRecords({
-        evaluationConversationRunIds: runIds,
-      }),
-    )
+    dispatch(evaluationConversationRunsActions.setComparisonRunIds(runIds))
   }, [dispatch, runIds])
 
+  useMount({
+    actions: {
+      mount: evaluationConversationRunsActions.compareMount,
+      unmount: evaluationConversationRunsActions.compareUnmount,
+    },
+    condition: runIds.length > 0,
+    refreshOn: [runIdsKey],
+  })
+
+  const parentPath = EvalRoutes.conversationDataset.build({
+    organizationId,
+    projectId,
+    datasetId,
+  })
+
   if (!datasetId) return <LoadingRoute />
+  if (runIds.length === 0) return <Navigate to={parentPath} replace />
   return (
     <AsyncRoute data={[dataset, runs, comparison]}>
       <WithData runIds={runIds} />

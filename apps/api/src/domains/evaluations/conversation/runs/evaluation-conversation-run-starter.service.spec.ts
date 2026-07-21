@@ -128,6 +128,34 @@ describe("EvaluationConversationRunStarterService", () => {
     })
   })
 
+  it("startRun - should skip fan-out when the run is no longer pending", async () => {
+    const { organizationId, projectId, run } = await seedRunAndDatasetRecords(2)
+
+    // A cancel that lands before the execute worker picks the job up.
+    await repositories.evaluationConversationRunRepository.update(
+      { id: run.id },
+      { status: "cancelled" },
+    )
+
+    await service.startRun({
+      evaluationConversationRunId: run.id,
+      organizationId,
+      projectId,
+      recordLimit: null,
+    })
+
+    const records = await repositories.evaluationConversationRunRecordRepository.find({
+      where: { evaluationConversationRunId: run.id },
+    })
+    expect(records).toHaveLength(0)
+    expect(mockQueue.addBulk).not.toHaveBeenCalled()
+
+    const updatedRun = await repositories.evaluationConversationRunRepository.findOneByOrFail({
+      id: run.id,
+    })
+    expect(updatedRun.status).toBe("cancelled")
+  })
+
   it("startRun - should only process recordLimit", async () => {
     const { organizationId, projectId, run } = await seedRunAndDatasetRecords(3)
 

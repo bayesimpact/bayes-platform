@@ -2,6 +2,7 @@ import {
   AgentModel,
   AgentModelToAgentProvider,
   AgentProvider,
+  createEvaluationConversationRunSchema,
   EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH,
 } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
@@ -14,7 +15,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@caseai-connect/ui/shad/dialog"
-import { Label } from "@caseai-connect/ui/shad/label"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@caseai-connect/ui/shad/form"
 import {
   Select,
   SelectContent,
@@ -23,10 +32,13 @@ import {
   SelectValue,
 } from "@caseai-connect/ui/shad/select"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { PlayIcon } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
+import { type Control, useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
+import { z } from "zod"
 import { RunScopeSelector } from "@/common/components/shared/RunScopeSelector"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
@@ -44,8 +56,8 @@ import {
 import { evaluationConversationRunsActions } from "@/eval/features/evaluation-conversation-runs/evaluation-conversation-runs.slice"
 import { useEvaluationConversationRunPath } from "@/eval/hooks/use-evaluation-conversation-run-path"
 
-type RunSettings = {
-  selectedAgentId: string | null
+type RunFormValues = {
+  agentId: string
   // null = no explicit choice yet; the newest revision is used once history loads.
   selectedRevision: number | null
   judgeModel: AgentModel
@@ -54,8 +66,8 @@ type RunSettings = {
   limitedCount: number
 }
 
-const defaultRunSettings: RunSettings = {
-  selectedAgentId: null,
+const defaultRunFormValues: RunFormValues = {
+  agentId: "",
   selectedRevision: null,
   judgeModel: AgentModel.Gemini25Flash,
   judgeInstructions: "",
@@ -97,15 +109,6 @@ export function RunEvaluationConversationDialog({
   const agentHistoryData = useAppSelector(selectConversationRunAgentHistory)
   const isExecuting = useAppSelector(selectIsExecutingConversationRun)
   const [open, setOpen] = useState(false)
-  const [settings, setSettings] = useState<RunSettings>(defaultRunSettings)
-  const {
-    selectedAgentId,
-    selectedRevision,
-    judgeModel,
-    judgeInstructions,
-    runScope,
-    limitedCount,
-  } = settings
 
   const judgeModels = useMemo(() => extractJudgeModelList(hasFeature), [hasFeature])
 
@@ -120,87 +123,96 @@ export function RunEvaluationConversationDialog({
     )
   }, [agentHistoryData])
 
-  const isHistoryLoading = selectedAgentId !== null && !ADS.isFulfilled(agentHistoryData)
   const latestRevision = agentHistory[0]?.revision ?? null
+
+  // Contract schema extended with the dialog-only fields and translated
+  // validation messages (ADR 0012). Depends on latestRevision so the version
+  // rule re-validates once the agent history loads.
+  const formSchema = useMemo(
+    () =>
+      createEvaluationConversationRunSchema
+        .omit({ datasetId: true, agentSettingsRevision: true, judgeInstructions: true })
+        .extend({
+          selectedRevision: z.number().int().nullable(),
+          judgeInstructions: z
+            .string()
+            .max(EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH),
+          runScope: z.enum(["all", "limited"]),
+          limitedCount: z.number().int().min(1),
+        })
+        .refine((values) => values.agentId.length > 0, {
+          path: ["agentId"],
+          message: t("evaluationConversationRun:agentPlaceholder"),
+        })
+        .refine((values) => values.selectedRevision !== null || latestRevision !== null, {
+          path: ["selectedRevision"],
+          message: t("evaluationConversationRun:version.placeholder"),
+        }),
+    [t, latestRevision],
+  )
+
+  const form = useForm<RunFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: defaultRunFormValues,
+  })
+  const { control, watch, setValue } = form
+
+  const selectedAgentId = watch("agentId")
+  const selectedRevision = watch("selectedRevision")
+  const runScope = watch("runScope")
+  const limitedCount = watch("limitedCount")
+
+  const isHistoryLoading = selectedAgentId !== "" && !ADS.isFulfilled(agentHistoryData)
   const effectiveRevision = selectedRevision ?? latestRevision
 
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {
       setOpen(nextOpen)
       if (!nextOpen) {
-        setSettings(defaultRunSettings)
+        form.reset(defaultRunFormValues)
         dispatch(evaluationConversationRunsActions.resetAgentHistory())
       }
     },
-    [dispatch],
+    [dispatch, form],
   )
 
   const handleAgentChange = useCallback(
     (agentId: string) => {
-      setSettings((previous) => ({ ...previous, selectedAgentId: agentId, selectedRevision: null }))
+      setValue("selectedRevision", null)
       dispatch(evaluationConversationRunsActions.resetAgentHistory())
       dispatch(evaluationConversationRunsActions.getAgentHistory({ agentId }))
     },
-    [dispatch],
+    [dispatch, setValue],
   )
-
-  const handleRevisionChange = useCallback((value: string) => {
-    const parsed = Number.parseInt(value, 10)
-    if (!Number.isNaN(parsed)) {
-      setSettings((previous) => ({ ...previous, selectedRevision: parsed }))
-    }
-  }, [])
-
-  const handleRunScopeChange = useCallback((scope: "all" | "limited") => {
-    setSettings((previous) => ({ ...previous, runScope: scope }))
-  }, [])
-
-  const handleJudgeModelChange = useCallback((value: string) => {
-    setSettings((previous) => ({ ...previous, judgeModel: value as AgentModel }))
-  }, [])
-
-  const handleJudgeInstructionsChange = useCallback((value: string) => {
-    setSettings((previous) => ({ ...previous, judgeInstructions: value }))
-  }, [])
 
   const handleLimitedCountChange = useCallback(
     (value: string) => {
       const parsed = Number.parseInt(value, 10)
       if (!Number.isNaN(parsed)) {
-        setSettings((previous) => ({
-          ...previous,
-          limitedCount: Math.min(Math.max(1, parsed), dataset.recordCount),
-        }))
+        setValue("limitedCount", Math.min(Math.max(1, parsed), dataset.recordCount))
       }
     },
-    [dataset.recordCount],
+    [setValue, dataset.recordCount],
   )
 
-  const isValid = useMemo(() => {
-    if (!selectedAgentId) return false
-    if (effectiveRevision === null) return false
-    if (runScope === "limited" && (limitedCount < 1 || limitedCount > dataset.recordCount))
-      return false
-    return true
-  }, [selectedAgentId, effectiveRevision, runScope, limitedCount, dataset.recordCount])
-
-  const handleRun = async () => {
-    if (!selectedAgentId || effectiveRevision === null || !isValid) return
+  const handleRun = form.handleSubmit(async (values) => {
+    const agentSettingsRevision = values.selectedRevision ?? latestRevision
+    if (agentSettingsRevision === null) return
 
     const result = await dispatch(
       evaluationConversationRunsActions.createAndExecute({
         datasetId: dataset.id,
-        agentId: selectedAgentId,
-        agentSettingsRevision: effectiveRevision,
-        judgeModel,
-        judgeInstructions: judgeInstructions.trim() || null,
-        recordLimit: runScope === "limited" ? limitedCount : null,
+        agentId: values.agentId,
+        agentSettingsRevision,
+        judgeModel: values.judgeModel,
+        judgeInstructions: values.judgeInstructions.trim() || null,
+        recordLimit: values.runScope === "limited" ? values.limitedCount : null,
       }),
     ).unwrap()
 
     setOpen(false)
     navigate(buildConversationRunPath({ runId: result.id }))
-  }
+  })
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -211,201 +223,232 @@ export function RunEvaluationConversationDialog({
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{t("evaluationConversationRun:selectAgent")}</DialogTitle>
-          <DialogDescription>
-            {t("evaluationConversationRun:selectAgentDescription")}
-          </DialogDescription>
-        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={handleRun}>
+            <DialogHeader>
+              <DialogTitle>{t("evaluationConversationRun:selectAgent")}</DialogTitle>
+              <DialogDescription>
+                {t("evaluationConversationRun:selectAgentDescription")}
+              </DialogDescription>
+            </DialogHeader>
 
-        <div className="flex flex-col gap-4">
-          <AgentSelector
-            agents={conversationAgents}
-            selectedAgentId={selectedAgentId}
-            onAgentChange={handleAgentChange}
-          />
+            <div className="flex flex-col gap-4 py-4">
+              <AgentField
+                control={control}
+                agents={conversationAgents}
+                onAgentChange={handleAgentChange}
+              />
 
-          {conversationAgents.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              {t("evaluationConversationRun:noAgents")}
-            </p>
-          )}
+              {conversationAgents.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  {t("evaluationConversationRun:noAgents")}
+                </p>
+              )}
 
-          {selectedAgentId && (
-            <AgentVersionSelector
-              history={agentHistory}
-              isLoading={isHistoryLoading}
-              selectedRevision={effectiveRevision}
-              onRevisionChange={handleRevisionChange}
-            />
-          )}
+              {selectedAgentId && (
+                <AgentVersionField
+                  control={control}
+                  history={agentHistory}
+                  isLoading={isHistoryLoading}
+                  effectiveRevision={effectiveRevision}
+                />
+              )}
 
-          <JudgeModelSelector
-            models={judgeModels}
-            selectedModel={judgeModel}
-            onModelChange={handleJudgeModelChange}
-          />
+              <JudgeModelField control={control} models={judgeModels} />
 
-          <JudgeInstructionsField
-            value={judgeInstructions}
-            onValueChange={handleJudgeInstructionsChange}
-          />
+              <JudgeInstructionsField control={control} />
 
-          <RunScopeSelector
-            recordCount={dataset.recordCount}
-            runScope={runScope}
-            limitedCount={limitedCount}
-            onRunScopeChange={handleRunScopeChange}
-            onLimitedCountChange={handleLimitedCountChange}
-          />
-        </div>
+              <RunScopeSelector
+                recordCount={dataset.recordCount}
+                runScope={runScope}
+                limitedCount={limitedCount}
+                onRunScopeChange={(scope) => setValue("runScope", scope)}
+                onLimitedCountChange={handleLimitedCountChange}
+              />
+            </div>
 
-        <DialogFooter>
-          <Button onClick={handleRun} disabled={!isValid || isExecuting}>
-            {isExecuting
-              ? t("evaluationConversationRun:running")
-              : t("evaluationConversationRun:run")}
-          </Button>
-        </DialogFooter>
+            <DialogFooter>
+              <Button type="submit" disabled={form.formState.isSubmitting || isExecuting}>
+                {isExecuting
+                  ? t("evaluationConversationRun:running")
+                  : t("evaluationConversationRun:run")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   )
 }
 
-function AgentVersionSelector({
-  history,
-  isLoading,
-  selectedRevision,
-  onRevisionChange,
-}: {
-  history: Agent[]
-  isLoading: boolean
-  selectedRevision: number | null
-  onRevisionChange: (value: string) => void
-}) {
-  const { t } = useTranslation()
-
-  return (
-    <div className="flex flex-col gap-2">
-      <Label>{t("evaluationConversationRun:version.label")}</Label>
-      <Select
-        value={selectedRevision !== null ? String(selectedRevision) : undefined}
-        onValueChange={onRevisionChange}
-        disabled={isLoading || history.length === 0}
-      >
-        <SelectTrigger className="w-full">
-          <SelectValue
-            placeholder={
-              isLoading
-                ? t("evaluationConversationRun:version.loading")
-                : t("evaluationConversationRun:version.placeholder")
-            }
-          />
-        </SelectTrigger>
-        <SelectContent>
-          {history.map((agentVersion, index) => (
-            <SelectItem key={agentVersion.revision} value={String(agentVersion.revision)}>
-              {index === 0
-                ? t("evaluationConversationRun:version.latest", {
-                    revision: agentVersion.revision,
-                  })
-                : t("evaluationConversationRun:version.item", {
-                    revision: agentVersion.revision,
-                    date: buildDate(agentVersion.updatedAt),
-                  })}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  )
-}
-
-function JudgeModelSelector({
-  models,
-  selectedModel,
-  onModelChange,
-}: {
-  models: [string, AgentModel][]
-  selectedModel: AgentModel
-  onModelChange: (value: string) => void
-}) {
-  const { t } = useTranslation()
-
-  return (
-    <div className="flex flex-col gap-2">
-      <Label>{t("evaluationConversationRun:judgeModel.label")}</Label>
-      <Select value={selectedModel} onValueChange={onModelChange}>
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder={t("evaluationConversationRun:judgeModel.placeholder")} />
-        </SelectTrigger>
-        <SelectContent>
-          {models.map(([key, value]) => (
-            <SelectItem key={key} value={value}>
-              {value}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <p className="text-sm text-muted-foreground">
-        {t("evaluationConversationRun:judgeModel.description")}
-      </p>
-    </div>
-  )
-}
-
-function JudgeInstructionsField({
-  value,
-  onValueChange,
-}: {
-  value: string
-  onValueChange: (value: string) => void
-}) {
-  const { t } = useTranslation()
-
-  return (
-    <div className="flex flex-col gap-2">
-      <Label>{t("evaluationConversationRun:judgeInstructions.label")}</Label>
-      <Textarea
-        value={value}
-        onChange={(event) => onValueChange(event.target.value)}
-        placeholder={t("evaluationConversationRun:judgeInstructions.placeholder")}
-        rows={3}
-        maxLength={EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH}
-      />
-      <p className="text-sm text-muted-foreground">
-        {t("evaluationConversationRun:judgeInstructions.description")}
-      </p>
-    </div>
-  )
-}
-
-function AgentSelector({
+function AgentField({
+  control,
   agents,
-  selectedAgentId,
   onAgentChange,
 }: {
+  control: Control<RunFormValues>
   agents: Agent[]
-  selectedAgentId: string | null
   onAgentChange: (agentId: string) => void
 }) {
   const { t } = useTranslation()
 
   return (
-    <div className="flex flex-col gap-2">
-      <Label>{t("evaluationConversationRun:agent")}</Label>
-      <Select value={selectedAgentId ?? undefined} onValueChange={onAgentChange}>
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder={t("evaluationConversationRun:agentPlaceholder")} />
-        </SelectTrigger>
-        <SelectContent>
-          {agents.map((agent) => (
-            <SelectItem key={agent.id} value={agent.id}>
-              {agent.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+    <FormField
+      control={control}
+      name="agentId"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{t("evaluationConversationRun:agent")}</FormLabel>
+          <Select
+            value={field.value || undefined}
+            onValueChange={(agentId) => {
+              field.onChange(agentId)
+              onAgentChange(agentId)
+            }}
+          >
+            <FormControl>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={t("evaluationConversationRun:agentPlaceholder")} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {agents.map((agent) => (
+                <SelectItem key={agent.id} value={agent.id}>
+                  {agent.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  )
+}
+
+function AgentVersionField({
+  control,
+  history,
+  isLoading,
+  effectiveRevision,
+}: {
+  control: Control<RunFormValues>
+  history: Agent[]
+  isLoading: boolean
+  effectiveRevision: number | null
+}) {
+  const { t } = useTranslation()
+
+  return (
+    <FormField
+      control={control}
+      name="selectedRevision"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{t("evaluationConversationRun:version.label")}</FormLabel>
+          <Select
+            value={effectiveRevision !== null ? String(effectiveRevision) : undefined}
+            onValueChange={(value) => {
+              const parsed = Number.parseInt(value, 10)
+              if (!Number.isNaN(parsed)) field.onChange(parsed)
+            }}
+            disabled={isLoading || history.length === 0}
+          >
+            <FormControl>
+              <SelectTrigger className="w-full">
+                <SelectValue
+                  placeholder={
+                    isLoading
+                      ? t("evaluationConversationRun:version.loading")
+                      : t("evaluationConversationRun:version.placeholder")
+                  }
+                />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {history.map((agentVersion, index) => (
+                <SelectItem key={agentVersion.revision} value={String(agentVersion.revision)}>
+                  {index === 0
+                    ? t("evaluationConversationRun:version.latest", {
+                        revision: agentVersion.revision,
+                      })
+                    : t("evaluationConversationRun:version.item", {
+                        revision: agentVersion.revision,
+                        date: buildDate(agentVersion.updatedAt),
+                      })}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  )
+}
+
+function JudgeModelField({
+  control,
+  models,
+}: {
+  control: Control<RunFormValues>
+  models: [string, AgentModel][]
+}) {
+  const { t } = useTranslation()
+
+  return (
+    <FormField
+      control={control}
+      name="judgeModel"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{t("evaluationConversationRun:judgeModel.label")}</FormLabel>
+          <Select value={field.value} onValueChange={field.onChange}>
+            <FormControl>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={t("evaluationConversationRun:judgeModel.placeholder")} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {models.map(([key, value]) => (
+                <SelectItem key={key} value={value}>
+                  {value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormDescription>{t("evaluationConversationRun:judgeModel.description")}</FormDescription>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  )
+}
+
+function JudgeInstructionsField({ control }: { control: Control<RunFormValues> }) {
+  const { t } = useTranslation()
+
+  return (
+    <FormField
+      control={control}
+      name="judgeInstructions"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{t("evaluationConversationRun:judgeInstructions.label")}</FormLabel>
+          <FormControl>
+            <Textarea
+              placeholder={t("evaluationConversationRun:judgeInstructions.placeholder")}
+              rows={3}
+              maxLength={EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH}
+              {...field}
+            />
+          </FormControl>
+          <FormDescription>
+            {t("evaluationConversationRun:judgeInstructions.description")}
+          </FormDescription>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   )
 }

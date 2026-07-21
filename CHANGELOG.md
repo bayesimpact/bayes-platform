@@ -17,6 +17,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 - (beta) Evaluations: conversation and extraction runs now execute the agent exactly as the Studio does — same master prompt and same tools (document retrieval, sources, resource libraries, MCP servers, sub-agents) — so evaluation scores reflect the agent's real behaviour; previously evaluated agents ran with a legacy prompt and no tools at all
+- (beta) Evaluations: cancelling and retrying conversation-evaluation runs is now reliable — a cancelled run can no longer restart itself, a failed retry no longer leaves records stuck, and the run page updates live after a retry instead of freezing on "pending"
 - Renaming an agent no longer creates an extra settings version in the agent's history
 - Tags management panel: the tag list scrolls, so long or nested tag lists stay reachable
 - French UI: the "Add library" button on an agent's Resources tab is now translated

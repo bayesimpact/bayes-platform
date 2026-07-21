@@ -60,7 +60,7 @@ export class EvaluationConversationRunProcessorService {
   }
 
   async processRunRecord(payload: ProcessEvaluationConversationRunRecordJobPayload): Promise<void> {
-    const { connectScope, evaluationConversationRun, runRecordId } = payload
+    const { connectScope, runRecordId } = payload
 
     const runRecord = await this.runRecordConnectRepository.getOneById(connectScope, runRecordId)
     if (!runRecord) {
@@ -73,6 +73,13 @@ export class EvaluationConversationRunProcessorService {
       )
       return
     }
+
+    // Re-read the run: the payload carries an enqueue-time snapshot whose
+    // status is always pending/running, so checking it would never skip.
+    const evaluationConversationRun = await this.getEvaluationConversationRun({
+      id: payload.evaluationConversationRun.id,
+      connectScope,
+    })
 
     if (
       evaluationConversationRun.status === "cancelled" ||
@@ -220,12 +227,18 @@ export class EvaluationConversationRunProcessorService {
 
     if (runRecord.status !== "running") return
 
-    runRecord.status = "error"
-    runRecord.errorDetails = error.message ?? "Unknown error"
-    runRecord.output = null
-    runRecord.score = null
-    runRecord.traceId = null
-    await this.runRecordConnectRepository.saveOne(runRecord)
+    // Conditional update: never overwrite a record cancelled since the read above.
+    await this.runRecordConnectRepository.updateManyBy({
+      connectScope,
+      where: { id: runRecord.id, status: "running" },
+      fields: {
+        status: "error",
+        errorDetails: error.message ?? "Unknown error",
+        output: null,
+        score: null,
+        traceId: null,
+      },
+    })
 
     await this.recomputeSummaryAndMaybeComplete({
       connectScope,
@@ -283,22 +296,29 @@ export class EvaluationConversationRunProcessorService {
         connectScope,
       })
 
-      runRecord.status = "graded"
-      runRecord.output = output
-      runRecord.score = score
-      runRecord.errorDetails = null
-      runRecord.traceId = traceId
-      await this.runRecordConnectRepository.saveOne(runRecord)
+      // Conditional update instead of a save: a cancel can flip the record to
+      // "cancelled" while the LLM calls are in flight, and grading results
+      // must not overwrite that terminal status.
+      await this.runRecordConnectRepository.updateManyBy({
+        connectScope,
+        where: { id: runRecord.id, status: "running" },
+        fields: { status: "graded", output, score, errorDetails: null, traceId },
+      })
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error during agent invocation"
 
-      runRecord.status = "error"
-      runRecord.output = null
-      runRecord.score = null
-      runRecord.errorDetails = errorMessage
-      runRecord.traceId = null
-      await this.runRecordConnectRepository.saveOne(runRecord)
+      await this.runRecordConnectRepository.updateManyBy({
+        connectScope,
+        where: { id: runRecord.id, status: "running" },
+        fields: {
+          status: "error",
+          output: null,
+          score: null,
+          errorDetails: errorMessage,
+          traceId: null,
+        },
+      })
     }
 
     await this.recomputeSummaryAndMaybeComplete({

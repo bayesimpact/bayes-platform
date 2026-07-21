@@ -45,7 +45,7 @@ export { DocumentTagsRoutes } from "./document-tags/document-tag.routes"
 export * from "./documents/documents.dto"
 export { DocumentsRoutes } from "./documents/documents.routes"
 // Evaluation Conversation Datasets
-export type * from "./evaluations/evaluation-conversation-datasets.dto"
+export * from "./evaluations/evaluation-conversation-datasets.dto"
 export { EvaluationConversationDatasetsRoutes } from "./evaluations/evaluation-conversation-datasets.routes"
 // Evaluation Conversation Runs
 export * from "./evaluations/evaluation-conversation-runs.dto"

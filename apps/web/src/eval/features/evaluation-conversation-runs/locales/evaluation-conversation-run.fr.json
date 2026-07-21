@@ -44,7 +44,6 @@
       "expectedOutput": "Résultat attendu",
       "output": "Sortie agent",
       "score": "Score",
-      "error": "Erreur",
       "noRecords": "Aucun enregistrement trouvé",
       "processing": "Traitement des enregistrements...",
       "processingDescription": "{{processed}} sur {{total}} enregistrements traités. Cela peut prendre quelques minutes.",
@@ -64,10 +63,7 @@
     },
     "history": {
       "title": "Historique des exécutions",
-      "empty": "Aucune exécution d'évaluation",
       "description": "{{count}} exécutions",
-      "averageScore": "{{averageScore}}/5 de score moyen",
-      "recordCount": "{{count}} enregistrements",
       "delete": {
         "button": "Supprimer l'exécution",
         "confirm": {

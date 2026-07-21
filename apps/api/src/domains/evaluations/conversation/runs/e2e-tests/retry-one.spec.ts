@@ -45,6 +45,7 @@ describe("EvaluationConversationRuns - retryOne", () => {
           .overrideProvider(EVALUATION_CONVERSATION_RUN_BATCH_SERVICE)
           .useValue({
             enqueueExecuteRun: jest.fn().mockResolvedValue(undefined),
+            removePendingExecuteRun: jest.fn().mockResolvedValue(undefined),
             enqueueRunRecords: jest.fn().mockResolvedValue(undefined),
             retryRunRecords: mockRetryRunRecords,
             removePendingRunRecords: jest.fn().mockResolvedValue(undefined),
@@ -177,6 +178,43 @@ describe("EvaluationConversationRuns - retryOne", () => {
     expect(untouchedRecord.score).toBe(4)
 
     await expectActivityCreated("evaluationConversationRun.retry")
+  })
+
+  it("restores the records and the run when enqueueing the retry jobs fails", async () => {
+    const { errorRecord, gradedRecord, cancelledRecord } = await createContext()
+    mockRetryRunRecords.mockRejectedValueOnce(new Error("redis down"))
+
+    const res = await subject()
+
+    expectResponse(res, 422)
+
+    // The retried records are restored to their pre-retry state instead of
+    // being stranded "running" with no queue job (which would make them
+    // impossible to retry or cancel).
+    const runRecordRepository = setup.getRepository(EvaluationConversationRunRecord)
+    const restoredErrorRecord = await runRecordRepository.findOneByOrFail({ id: errorRecord.id })
+    expect(restoredErrorRecord.status).toBe("error")
+    expect(restoredErrorRecord.errorDetails).toBe("boom")
+    const restoredCancelledRecord = await runRecordRepository.findOneByOrFail({
+      id: cancelledRecord.id,
+    })
+    expect(restoredCancelledRecord.status).toBe("cancelled")
+    const untouchedRecord = await runRecordRepository.findOneByOrFail({ id: gradedRecord.id })
+    expect(untouchedRecord.status).toBe("graded")
+
+    const run = await setup
+      .getRepository(EvaluationConversationRun)
+      .findOneBy({ id: evaluationConversationRunId })
+    expect(run?.status).toBe("failed")
+
+    // A second retry still works on the restored records.
+    mockRetryRunRecords.mockResolvedValueOnce(undefined)
+    const secondRes = await subject()
+    expectResponse(secondRes, 201)
+    const retriedRun = await setup
+      .getRepository(EvaluationConversationRun)
+      .findOneBy({ id: evaluationConversationRunId })
+    expect(retriedRun?.status).toBe("running")
   })
 
   it("is a no-op when the run has no error or cancelled records", async () => {

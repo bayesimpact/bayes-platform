@@ -44,7 +44,6 @@
       "expectedOutput": "Expected Output",
       "output": "Agent Output",
       "score": "Score",
-      "error": "Error",
       "noRecords": "No records found",
       "processing": "Processing records...",
       "processingDescription": "{{processed}} of {{total}} records processed. This may take a few minutes.",
@@ -64,10 +63,7 @@
     },
     "history": {
       "title": "Run History",
-      "empty": "No evaluation runs yet",
       "description": "{{count}} runs",
-      "averageScore": "{{averageScore}}/5 average score",
-      "recordCount": "{{count}} records",
       "delete": {
         "button": "Delete run",
         "confirm": {

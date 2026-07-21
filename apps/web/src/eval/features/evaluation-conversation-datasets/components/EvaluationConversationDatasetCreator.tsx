@@ -1,3 +1,7 @@
+import {
+  EVALUATION_CONVERSATION_DATASET_NAME_MIN_LENGTH,
+  evaluationConversationDatasetNameSchema,
+} from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Dialog,
@@ -7,14 +11,21 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@caseai-connect/ui/shad/dialog"
-import { Field, FieldGroup, FieldLabel, FieldSet } from "@caseai-connect/ui/shad/field"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@caseai-connect/ui/shad/form"
 import { Input } from "@caseai-connect/ui/shad/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { PlusCircleIcon } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import z from "zod"
+import type { z } from "zod"
 import { useAppDispatch } from "@/common/store/hooks"
 import { evaluationConversationDatasetsActions } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.slice"
 
@@ -36,66 +47,65 @@ export function EvaluationConversationDatasetCreator() {
   )
 }
 
+type FormValues = z.infer<typeof evaluationConversationDatasetNameSchema>
+
 function FormCreation({ onSubmit }: { onSubmit: () => void }) {
   const dispatch = useAppDispatch()
   const { t } = useTranslation()
 
-  const schema = z.object({
-    name: z.string().min(3, t("evaluationConversationDataset:validation.minNameLength")),
-  })
+  // Contract schema + UI-only minimum-length rule with a translated message (ADR 0012).
+  const schema = useMemo(
+    () =>
+      evaluationConversationDatasetNameSchema.refine(
+        (values) => values.name.length >= EVALUATION_CONVERSATION_DATASET_NAME_MIN_LENGTH,
+        { path: ["name"], message: t("evaluationConversationDataset:validation.minNameLength") },
+      ),
+    [t],
+  )
 
-  type FormData = z.infer<typeof schema>
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isValid },
-    reset: resetForm,
-  } = useForm<FormData>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    mode: "onChange",
-    defaultValues: {
-      name: "",
-    },
+    defaultValues: { name: "" },
   })
 
-  const handleFormSubmit = (data: FormData) => {
+  const handleFormSubmit = (data: FormValues) => {
     dispatch(evaluationConversationDatasetsActions.createOne({ name: data.name }))
-
-    resetForm()
+    form.reset()
     onSubmit()
   }
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)}>
-      <DialogHeader>
-        <DialogTitle>{t("evaluationConversationDataset:dataset.create.title")}</DialogTitle>
-      </DialogHeader>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleFormSubmit)}>
+        <DialogHeader>
+          <DialogTitle>{t("evaluationConversationDataset:dataset.create.title")}</DialogTitle>
+        </DialogHeader>
 
-      <FieldGroup className="py-4">
-        <FieldSet>
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="conversation-dataset-name">
-                {t("evaluationConversationDataset:dataset.props.name")}
-              </FieldLabel>
-              <Input
-                id="conversation-dataset-name"
-                placeholder={t("evaluationConversationDataset:dataset.props.placeholders.name")}
-                {...register("name")}
-                aria-invalid={errors.name ? "true" : "false"}
-              />
-              {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
-            </Field>
-          </FieldGroup>
-        </FieldSet>
-      </FieldGroup>
+        <div className="py-4">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("evaluationConversationDataset:dataset.props.name")}</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder={t("evaluationConversationDataset:dataset.props.placeholders.name")}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-      <DialogFooter>
-        <Button type="submit" disabled={!isValid}>
-          {t("actions:create")}
-        </Button>
-      </DialogFooter>
-    </form>
+        <DialogFooter>
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            {t("actions:create")}
+          </Button>
+        </DialogFooter>
+      </form>
+    </Form>
   )
 }

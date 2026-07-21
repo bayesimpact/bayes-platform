@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
+import { currentIdsActions } from "@/eval/store/currentIds.slice"
 import type {
   EvaluationConversationDataset,
   PaginatedEvaluationConversationDatasetRecords,
@@ -7,11 +8,14 @@ import type {
 import { evaluationConversationDatasetsThunks } from "./evaluation-conversation-datasets.thunks"
 
 interface State {
+  // Mirrors state.currentIds.datasetId; kept locally so reducers can guard stale responses.
+  currentDatasetId: string | null
   data: AsyncData<EvaluationConversationDataset[]>
   records: AsyncData<PaginatedEvaluationConversationDatasetRecords>
 }
 
 const initialState: State = {
+  currentDatasetId: null,
   data: defaultAsyncData,
   records: defaultAsyncData,
 }
@@ -32,6 +36,15 @@ const slice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    // Sync currentDatasetId from the URL-driven currentIds slice and clear
+    // stale per-dataset state on change.
+    builder.addCase(currentIdsActions.setDatasetId, (state, action) => {
+      if (state.currentDatasetId !== action.payload) {
+        state.currentDatasetId = action.payload
+        state.records = defaultAsyncData
+      }
+    })
+
     builder
       .addCase(evaluationConversationDatasetsThunks.listDatasets.pending, (state) => {
         if (!ADS.isFulfilled(state.data)) state.data.status = ADS.Loading
@@ -49,12 +62,16 @@ const slice = createSlice({
         state.data.error = action.error.message || "Failed to list datasets"
       })
 
+    // Responses for a dataset other than the current one are stale (the user
+    // already switched dataset) and are discarded.
     builder
-      .addCase(evaluationConversationDatasetsThunks.listRecords.pending, (state) => {
+      .addCase(evaluationConversationDatasetsThunks.listRecords.pending, (state, action) => {
+        if (action.meta.arg.datasetId !== state.currentDatasetId) return
         if (!ADS.isFulfilled(state.records)) state.records.status = ADS.Loading
         state.records.error = null
       })
       .addCase(evaluationConversationDatasetsThunks.listRecords.fulfilled, (state, action) => {
+        if (action.meta.arg.datasetId !== state.currentDatasetId) return
         state.records = {
           status: ADS.Fulfilled,
           error: null,
@@ -62,6 +79,7 @@ const slice = createSlice({
         }
       })
       .addCase(evaluationConversationDatasetsThunks.listRecords.rejected, (state, action) => {
+        if (action.meta.arg.datasetId !== state.currentDatasetId) return
         state.records.status = ADS.Error
         state.records.error = action.error.message || "Failed to list records"
       })

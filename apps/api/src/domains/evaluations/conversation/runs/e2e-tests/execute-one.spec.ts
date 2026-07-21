@@ -41,6 +41,7 @@ describe("EvaluationConversationRuns - executeOne", () => {
           .overrideProvider(EVALUATION_CONVERSATION_RUN_BATCH_SERVICE)
           .useValue({
             enqueueExecuteRun: mockEnqueueExecuteRun,
+            removePendingExecuteRun: jest.fn().mockResolvedValue(undefined),
             enqueueRunRecords: jest.fn().mockResolvedValue(undefined),
             retryRunRecords: jest.fn().mockResolvedValue(undefined),
             removePendingRunRecords: jest.fn().mockResolvedValue(undefined),

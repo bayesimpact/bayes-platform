@@ -7,7 +7,6 @@ import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "@/domains/agents/agent.entity"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
-import { toAgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.helper"
 import { EvaluationConversationDataset } from "../datasets/evaluation-conversation-dataset.entity"
 import { EvaluationConversationDatasetRecord } from "../datasets/records/evaluation-conversation-dataset-record.entity"
 import {
@@ -87,6 +86,16 @@ export class EvaluationConversationRunStarterService {
       )
     }
 
+    // Only pending runs may fan out. Without this guard, an execute job picked
+    // up after a cancel (or a re-enqueued job after queue cleanup) would
+    // resurrect the run: create records and flip it back to "running".
+    if (run.status !== "pending") {
+      this.logger.log(
+        `Evaluation run ${run.id} is "${run.status}" (expected "pending"); skipping fan-out`,
+      )
+      return
+    }
+
     const dataset = await this.datasetConnectRepository.getOneById(
       connectScope,
       run.evaluationConversationDatasetId,
@@ -121,6 +130,8 @@ export class EvaluationConversationRunStarterService {
       return
     }
 
+    // Validation only: the processor reloads the pinned agent + settings per
+    // record, but failing here avoids fanning out hundreds of doomed jobs.
     const agent = await this.agentConnectRepository.getOneById(connectScope, run.agentId)
     if (!agent) {
       throw new NotFoundException(`Agent with id ${run.agentId} not found`)
@@ -179,10 +190,6 @@ export class EvaluationConversationRunStarterService {
                 evaluationConversationRun: run,
                 runRecordId: runRecord.id,
                 connectScope,
-                agentWithSettings: toAgentWithSettingsRunJobPayload({
-                  agent,
-                  agentSettings,
-                }),
               },
               opts: { jobId: runRecord.id },
             })),

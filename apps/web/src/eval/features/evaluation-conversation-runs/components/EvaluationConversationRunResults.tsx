@@ -15,7 +15,7 @@ import {
   type PaginationState,
   useReactTable,
 } from "@tanstack/react-table"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Loader } from "@/common/components/Loader"
 import { ADS } from "@/common/store/async-data-status"
@@ -30,7 +30,10 @@ import type {
   EvaluationConversationRunRecord,
   EvaluationConversationRunRecordStatus,
 } from "@/eval/features/evaluation-conversation-runs/evaluation-conversation-runs.models"
-import { selectCurrentConversationRunRecords } from "@/eval/features/evaluation-conversation-runs/evaluation-conversation-runs.selectors"
+import {
+  selectCurrentConversationRecordsQuery,
+  selectCurrentConversationRunRecords,
+} from "@/eval/features/evaluation-conversation-runs/evaluation-conversation-runs.selectors"
 import { evaluationConversationRunsActions } from "@/eval/features/evaluation-conversation-runs/evaluation-conversation-runs.slice"
 import { TraceUrlOpener } from "@/studio/components/TraceUrlOpener"
 
@@ -56,21 +59,23 @@ export function EvaluationConversationRunRecordsTable({ run }: { run: Evaluation
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const recordsData = useAppSelector(selectCurrentConversationRunRecords)
+  const recordsQuery = useAppSelector(selectCurrentConversationRecordsQuery)
 
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: DEFAULT_PAGE_SIZE,
-  })
+  // The initial page is loaded by the run route via mount (ADR 0009); the leaf
+  // only refetches when the user changes page. Pagination lives in the slice's
+  // records query, so it resets with the run instead of surviving run switches.
+  const pagination: PaginationState = { pageIndex: recordsQuery.page, pageSize: recordsQuery.limit }
 
-  useEffect(() => {
+  const handlePaginationChange: OnChangeFn<PaginationState> = (updater) => {
+    const next = typeof updater === "function" ? updater(pagination) : updater
     dispatch(
       evaluationConversationRunsActions.getRecords({
         evaluationConversationRunId: run.id,
-        page: pagination.pageIndex,
-        limit: DEFAULT_PAGE_SIZE,
+        page: next.pageIndex,
+        limit: next.pageSize,
       }),
     )
-  }, [dispatch, run.id, pagination.pageIndex])
+  }
 
   const records = ADS.isFulfilled(recordsData) ? recordsData.value.records : []
   const total = ADS.isFulfilled(recordsData) ? recordsData.value.total : 0
@@ -92,7 +97,7 @@ export function EvaluationConversationRunRecordsTable({ run }: { run: Evaluation
           records={records}
           total={total}
           pagination={pagination}
-          onPaginationChange={setPagination}
+          onPaginationChange={handlePaginationChange}
         />
       )}
     </Card>

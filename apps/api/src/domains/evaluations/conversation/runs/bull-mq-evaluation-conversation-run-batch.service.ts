@@ -32,6 +32,29 @@ export class BullMqEvaluationConversationRunBatchService {
     })
   }
 
+  async removePendingExecuteRun(evaluationConversationRunId: string): Promise<void> {
+    const job = await this.executeQueue.getJob(`execute-run-${evaluationConversationRunId}`)
+    if (!job) return
+
+    const state = await job.getState()
+    if (state === "active") {
+      // The starter re-checks the run status before fanning out, so an active
+      // job sees the cancellation and skips on its own.
+      this.logger.log(
+        `Execute job for run "${evaluationConversationRunId}" is active — relying on the starter's status guard`,
+      )
+      return
+    }
+
+    try {
+      await job.remove()
+    } catch (error) {
+      this.logger.warn(
+        `Failed to remove execute job for run "${evaluationConversationRunId}" (state=${state}): ${error instanceof Error ? error.message : error}`,
+      )
+    }
+  }
+
   async enqueueRunRecords(
     payloads: ProcessEvaluationConversationRunRecordJobPayload[],
   ): Promise<void> {

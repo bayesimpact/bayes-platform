@@ -3,6 +3,7 @@ import { notificationsActions } from "@/common/features/notifications/notificati
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { evaluationConversationDatasetsActions } from "../evaluation-conversation-datasets/evaluation-conversation-datasets.slice"
 import {
+  selectComparisonRunIds,
   selectCurrentConversationRecordsQuery,
   selectCurrentConversationRunId,
   selectHasConversationRunsInProgress,
@@ -54,7 +55,30 @@ function registerListeners() {
       listenerApi.dispatch(
         evaluationConversationRunsActions.getOne({ evaluationConversationRunId: runId }),
       )
+      // Load the first records page here (ADR 0009) — the records table only
+      // refetches on page changes. setRunId reset the query to page 0.
+      listenerApi.dispatch(
+        evaluationConversationRunsActions.getRecords({
+          evaluationConversationRunId: runId,
+          ...selectCurrentConversationRecordsQuery(state),
+        }),
+      )
       listenerApi.dispatch(evaluationConversationRunsActions.startRunStatusStream())
+    },
+  })
+
+  // Compare page: fetch the records of the compared runs once the route has
+  // pushed the URL-driven run ids into the slice (setComparisonRunIds).
+  listenerMiddleware.startListening({
+    actionCreator: evaluationConversationRunsActions.compareMount,
+    effect: async (_, listenerApi) => {
+      const runIds = selectComparisonRunIds(listenerApi.getState())
+      if (runIds.length === 0) return
+      listenerApi.dispatch(
+        evaluationConversationRunsActions.getComparisonRecords({
+          evaluationConversationRunIds: runIds,
+        }),
+      )
     },
   })
   listenerMiddleware.startListening({
@@ -89,6 +113,40 @@ function registerListeners() {
       listenerApi.dispatch(evaluationConversationRunsActions.getAll())
       // Start SSE stream to track progress
       listenerApi.dispatch(evaluationConversationRunsActions.startRunStatusStream())
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: evaluationConversationRunsActions.retryOne.fulfilled,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "Evaluation run restarted",
+          type: "info",
+        }),
+      )
+      // A retry puts the run back in progress: refetch it and the run history,
+      // and restart the SSE stream — it was stopped when the run first failed,
+      // so without this the page would stay frozen on the pre-retry state.
+      listenerApi.dispatch(
+        evaluationConversationRunsActions.getOne({
+          evaluationConversationRunId: action.payload.id,
+        }),
+      )
+      listenerApi.dispatch(evaluationConversationRunsActions.getAll())
+      listenerApi.dispatch(evaluationConversationRunsActions.startRunStatusStream())
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: evaluationConversationRunsActions.retryOne.rejected,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "Evaluation run failed to restart",
+          type: "error",
+        }),
+      )
     },
   })
 
@@ -188,7 +246,10 @@ function registerListeners() {
     actionCreator: evaluationConversationRunsActions.cancelOne.fulfilled,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(notificationsActions.show({ title: "Run cancelled", type: "success" }))
-      stopConversationRunStatusStream()
+      // Dispatch the action (not the raw stop function) so runStatusStream.isActive
+      // stays in sync; the getAll listener restarts the stream if other runs are
+      // still in progress.
+      listenerApi.dispatch(evaluationConversationRunsActions.stopRunStatusStream())
       listenerApi.dispatch(evaluationConversationRunsActions.getAll())
     },
   })

@@ -7,7 +7,6 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { AgentLlmModule } from "@/domains/agents/shared/agent-session-messages/streaming/agent-llm.module"
-import { toAgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.helper"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { LlmModule } from "@/external/llm/llm.module"
 import { sdk } from "@/external/llm/open-telemetry-init"
@@ -106,7 +105,6 @@ describe("EvaluationConversationRunProcessorService", () => {
       connectScope,
       evaluationConversationRun: run,
       runRecordId: record.id,
-      agentWithSettings: toAgentWithSettingsRunJobPayload({ agent, agentSettings }),
     }
 
     return { connectScope, agent, run, record, payload }
@@ -186,13 +184,17 @@ describe("EvaluationConversationRunProcessorService", () => {
     expect(updatedRecord.status).toBe("graded")
   })
 
-  it("processRunRecord - should skip when the run is cancelled", async () => {
-    const { record, payload } = await seedRunRecord({ recordStatus: "running" })
+  it("processRunRecord - should skip when the run was cancelled after enqueue", async () => {
+    const { run, record, payload } = await seedRunRecord({ recordStatus: "running" })
 
-    await service.processRunRecord({
-      ...payload,
-      evaluationConversationRun: { ...payload.evaluationConversationRun, status: "cancelled" },
-    })
+    // Cancel in the DB only: the payload still carries the enqueue-time
+    // "running" snapshot, so this proves the processor re-reads the run.
+    await repositories.evaluationConversationRunRepository.update(
+      { id: run.id },
+      { status: "cancelled" },
+    )
+
+    await service.processRunRecord(payload)
 
     expect(mockProvider.getCalls()).toHaveLength(0)
     const updatedRecord =

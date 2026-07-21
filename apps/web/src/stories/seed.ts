@@ -418,7 +418,14 @@ export const seed = {
     conversationRunsComparison(
       recordsByRunId: Record<string, EvaluationConversationRunRecord[]>,
     ): StoryPreloadedState {
-      return { conversationRuns: { comparisonRecords: ads.fulfilled(recordsByRunId) } }
+      return {
+        conversationRuns: {
+          // Seed the run ids too so the route's setComparisonRunIds sees the
+          // same comparison and does not reset the seeded records on mount.
+          comparisonRunIds: Object.keys(recordsByRunId),
+          comparisonRecords: ads.fulfilled(recordsByRunId),
+        },
+      }
     },
   },
 

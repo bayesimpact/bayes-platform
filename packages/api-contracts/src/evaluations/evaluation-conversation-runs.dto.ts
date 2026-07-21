@@ -1,8 +1,9 @@
-import type {
-  AgentLocale,
+import { z } from "zod"
+import {
+  type AgentLocale,
   AgentModel,
-  AgentTemperature,
-  DocumentsRagMode,
+  type AgentTemperature,
+  type DocumentsRagMode,
 } from "../agents/agents.dto"
 import type { TimeType } from "../generic"
 
@@ -74,16 +75,24 @@ export type EvaluationConversationRunRecordDto = {
 }
 
 // Request DTOs
-export type CreateEvaluationConversationRunRequestDto = {
-  agentId: string
+export const createEvaluationConversationRunSchema = z.object({
+  agentId: z.string(),
   // Agent-settings revision to pin on the run; null pins the latest revision.
-  agentSettingsRevision: number | null
-  datasetId: string
+  agentSettingsRevision: z.number().int().nullable(),
+  datasetId: z.string(),
   // LLM judge model used to grade this run's records.
-  judgeModel: AgentModel
+  judgeModel: z.nativeEnum(AgentModel),
   // Optional extra instructions injected into the judge's grading prompt.
-  judgeInstructions: string | null
-}
+  judgeInstructions: z
+    .string()
+    .trim()
+    .max(EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH)
+    .nullable(),
+})
+
+export type CreateEvaluationConversationRunRequestDto = z.infer<
+  typeof createEvaluationConversationRunSchema
+>
 
 export type ExecuteEvaluationConversationRunRequestDto = {
   recordLimit: number | null

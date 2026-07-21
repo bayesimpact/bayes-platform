@@ -111,6 +111,8 @@ function registerListeners() {
       listenerApi.dispatch(
         notificationsActions.show({ title: "Failed to delete dataset", type: "error" }),
       )
+      // Roll back the optimistic removal: the dataset still exists server-side.
+      listenerApi.dispatch(evaluationConversationDatasetsActions.listDatasets())
     },
   })
 

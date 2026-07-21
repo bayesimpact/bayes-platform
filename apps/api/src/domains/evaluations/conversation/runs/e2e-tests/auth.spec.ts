@@ -295,6 +295,27 @@ describe("EvaluationConversationRuns - Auth", () => {
     })
   })
 
+  describe("EvaluationConversationRunsRoutes.streamRunStatus", () => {
+    // Only immediate rejections are testable here: an authorized request holds
+    // the SSE connection open. The happy path is covered by stream-run-status.spec.ts.
+    const subject = async () =>
+      request({
+        route: EvaluationConversationRunsRoutes.streamRunStatus,
+        pathParams: removeNullish({ organizationId, projectId }),
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("owner")
+      auth0Id = "another-auth0-id"
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+  })
+
   describe("EvaluationConversationRunsRoutes.getRecords", () => {
     const subject = async () =>
       request({

@@ -79,6 +79,8 @@ export class EvaluationConversationDatasetsService {
         { datasetId },
       )
       .orderBy("evaluationConversationDatasetRecords.created_at", "ASC")
+      // Bulk-inserted records share created_at; the id tiebreaker keeps pages stable.
+      .addOrderBy("evaluationConversationDatasetRecords.id", "ASC")
       .skip(page * limit)
       .take(limit)
 

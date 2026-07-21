@@ -1,4 +1,12 @@
+import { z } from "zod"
 import type { TimeType } from "../generic"
+
+// Minimum length UI forms enforce on a dataset name.
+export const EVALUATION_CONVERSATION_DATASET_NAME_MIN_LENGTH = 3
+
+export const evaluationConversationDatasetNameSchema = z.object({
+  name: z.string().trim(),
+})
 
 // EVALUATION DATASET
 export type EvaluationConversationDatasetDto = {

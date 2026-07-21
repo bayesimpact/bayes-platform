@@ -17,11 +17,11 @@ const recordPayload = (runRecordId: string): ProcessEvaluationConversationRunRec
 
 describe("BullMqEvaluationConversationRunBatchService", () => {
   let service: BullMqEvaluationConversationRunBatchService
-  let executeQueue: { add: jest.Mock }
+  let executeQueue: { add: jest.Mock; getJob: jest.Mock }
   let recordQueue: { add: jest.Mock; addBulk: jest.Mock; getJob: jest.Mock }
 
   beforeEach(() => {
-    executeQueue = { add: jest.fn() }
+    executeQueue = { add: jest.fn(), getJob: jest.fn() }
     recordQueue = { add: jest.fn(), addBulk: jest.fn(), getJob: jest.fn() }
     service = new BullMqEvaluationConversationRunBatchService(
       executeQueue as unknown as Queue<ExecuteEvaluationConversationRunJobPayload>,
@@ -42,6 +42,41 @@ describe("BullMqEvaluationConversationRunBatchService", () => {
     expect(executeQueue.add).toHaveBeenCalledWith(EVALUATION_CONVERSATION_RUN_JOB_NAME, payload, {
       jobId: "execute-run-run-1",
     })
+  })
+
+  it("removePendingExecuteRun - should remove a waiting execute job", async () => {
+    const job = { getState: jest.fn().mockResolvedValue("waiting"), remove: jest.fn() }
+    executeQueue.getJob.mockResolvedValue(job)
+
+    await service.removePendingExecuteRun("run-1")
+
+    expect(executeQueue.getJob).toHaveBeenCalledWith("execute-run-run-1")
+    expect(job.remove).toHaveBeenCalled()
+  })
+
+  it("removePendingExecuteRun - should leave an active execute job to the starter's guard", async () => {
+    const job = { getState: jest.fn().mockResolvedValue("active"), remove: jest.fn() }
+    executeQueue.getJob.mockResolvedValue(job)
+
+    await service.removePendingExecuteRun("run-1")
+
+    expect(job.remove).not.toHaveBeenCalled()
+  })
+
+  it("removePendingExecuteRun - should ignore a missing execute job", async () => {
+    executeQueue.getJob.mockResolvedValue(undefined)
+
+    await expect(service.removePendingExecuteRun("run-1")).resolves.toBeUndefined()
+  })
+
+  it("removePendingExecuteRun - should not throw when removal fails", async () => {
+    const job = {
+      getState: jest.fn().mockResolvedValue("waiting"),
+      remove: jest.fn().mockRejectedValue(new Error("locked")),
+    }
+    executeQueue.getJob.mockResolvedValue(job)
+
+    await expect(service.removePendingExecuteRun("run-1")).resolves.toBeUndefined()
   })
 
   it("enqueueRunRecords - should works", async () => {

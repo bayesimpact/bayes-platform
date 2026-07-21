@@ -35,6 +35,7 @@ describe("EvaluationConversationRuns - cancelOne", () => {
   let auth0Id = `auth0|${randomUUID()}`
 
   const mockRemovePendingRunRecords = jest.fn().mockResolvedValue(undefined)
+  const mockRemovePendingExecuteRun = jest.fn().mockResolvedValue(undefined)
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
@@ -44,6 +45,7 @@ describe("EvaluationConversationRuns - cancelOne", () => {
           .overrideProvider(EVALUATION_CONVERSATION_RUN_BATCH_SERVICE)
           .useValue({
             enqueueExecuteRun: jest.fn().mockResolvedValue(undefined),
+            removePendingExecuteRun: mockRemovePendingExecuteRun,
             enqueueRunRecords: jest.fn().mockResolvedValue(undefined),
             retryRunRecords: jest.fn().mockResolvedValue(undefined),
             removePendingRunRecords: mockRemovePendingRunRecords,
@@ -60,6 +62,8 @@ describe("EvaluationConversationRuns - cancelOne", () => {
     await clearTestDatabase(setup.dataSource)
     mockRemovePendingRunRecords.mockClear()
     mockRemovePendingRunRecords.mockResolvedValue(undefined)
+    mockRemovePendingExecuteRun.mockClear()
+    mockRemovePendingExecuteRun.mockResolvedValue(undefined)
     accessToken = "token"
     auth0Id = `auth0|${randomUUID()}`
   })
@@ -124,6 +128,10 @@ describe("EvaluationConversationRuns - cancelOne", () => {
       .getRepository(EvaluationConversationRun)
       .findOneBy({ id: evaluationConversationRunId })
     expect(run?.status).toBe("cancelled")
+
+    // The pending execute-run job is removed so the starter cannot fan the
+    // cancelled run out afterwards.
+    expect(mockRemovePendingExecuteRun).toHaveBeenCalledWith(evaluationConversationRunId)
 
     await expectActivityCreated("evaluationConversationRun.cancel")
   })

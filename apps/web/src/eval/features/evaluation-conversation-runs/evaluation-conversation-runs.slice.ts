@@ -23,11 +23,14 @@ interface State {
   currentRun: AsyncData<EvaluationConversationRun>
   currentRunRecords: AsyncData<PaginatedEvaluationConversationRunRecords>
   currentRecordsQuery: RecordsQuery
-  // Records for the runs being compared, keyed by run id (compare page).
+  // Run ids being compared (URL-driven, compare page) and their records keyed by run id.
+  comparisonRunIds: string[]
   comparisonRecords: AsyncData<Record<string, EvaluationConversationRunRecord[]>>
 
-  // Settings-version history of the agent selected in the run dialog.
+  // Settings-version history of the agent selected in the run dialog, plus the
+  // agent id of the latest request so stale responses can be discarded.
   agentHistory: AsyncData<Agent[]>
+  agentHistoryAgentId: string | null
   isExecuting: boolean
   isRetrying: boolean
   isCancelling: boolean
@@ -36,14 +39,23 @@ interface State {
 
 const defaultRecordsQuery: RecordsQuery = { page: 0, limit: 10 }
 
+function isCurrentComparison(
+  comparisonRunIds: string[],
+  requestArg: { evaluationConversationRunIds: string[] },
+): boolean {
+  return comparisonRunIds.join(",") === requestArg.evaluationConversationRunIds.join(",")
+}
+
 const initialState: State = {
   currentRunId: null,
   data: defaultAsyncData,
   currentRun: defaultAsyncData,
   currentRunRecords: defaultAsyncData,
   currentRecordsQuery: defaultRecordsQuery,
+  comparisonRunIds: [],
   comparisonRecords: defaultAsyncData,
   agentHistory: defaultAsyncData,
+  agentHistoryAgentId: null,
   isExecuting: false,
   isRetrying: false,
   isCancelling: false,
@@ -56,9 +68,23 @@ const slice = createSlice({
   reducers: {
     mount: () => {},
     unmount: () => {},
+    // Compare-page lifecycle (ADR 0009): the middleware fetches on compareMount;
+    // unmounting clears the comparison so a later visit never flashes stale data.
+    compareMount: () => {},
+    compareUnmount: (state) => {
+      state.comparisonRunIds = []
+      state.comparisonRecords = defaultAsyncData
+    },
+    // URL-driven, set by the compare route (same role as useSetCurrentIds).
+    setComparisonRunIds: (state, action: PayloadAction<string[]>) => {
+      if (state.comparisonRunIds.join(",") === action.payload.join(",")) return
+      state.comparisonRunIds = action.payload
+      state.comparisonRecords = defaultAsyncData
+    },
     reset: () => initialState,
     resetAgentHistory: (state) => {
       state.agentHistory = defaultAsyncData
+      state.agentHistoryAgentId = null
     },
     startRunStatusStream: (state) => {
       state.runStatusStream.isActive = true
@@ -158,32 +184,40 @@ const slice = createSlice({
         state.currentRunRecords.error = action.error.message || "Failed to get run records"
       })
 
-    // getComparisonRecords
+    // getComparisonRecords — responses for run ids other than the current
+    // comparison are stale (the user already navigated on) and are discarded.
     builder
-      .addCase(evaluationConversationRunsThunks.getComparisonRecords.pending, (state) => {
+      .addCase(evaluationConversationRunsThunks.getComparisonRecords.pending, (state, action) => {
+        if (!isCurrentComparison(state.comparisonRunIds, action.meta.arg)) return
         if (!ADS.isFulfilled(state.comparisonRecords)) {
           state.comparisonRecords.status = ADS.Loading
         }
         state.comparisonRecords.error = null
       })
       .addCase(evaluationConversationRunsThunks.getComparisonRecords.fulfilled, (state, action) => {
+        if (!isCurrentComparison(state.comparisonRunIds, action.meta.arg)) return
         state.comparisonRecords = { status: ADS.Fulfilled, error: null, value: action.payload }
       })
       .addCase(evaluationConversationRunsThunks.getComparisonRecords.rejected, (state, action) => {
+        if (!isCurrentComparison(state.comparisonRunIds, action.meta.arg)) return
         state.comparisonRecords.status = ADS.Error
         state.comparisonRecords.error = action.error.message || "Failed to load runs to compare"
       })
 
-    // getAgentHistory
+    // getAgentHistory — only the response for the most recently selected agent
+    // applies; a slower response for a previously selected agent is discarded.
     builder
-      .addCase(evaluationConversationRunsThunks.getAgentHistory.pending, (state) => {
+      .addCase(evaluationConversationRunsThunks.getAgentHistory.pending, (state, action) => {
+        state.agentHistoryAgentId = action.meta.arg.agentId
         if (!ADS.isFulfilled(state.agentHistory)) state.agentHistory.status = ADS.Loading
         state.agentHistory.error = null
       })
       .addCase(evaluationConversationRunsThunks.getAgentHistory.fulfilled, (state, action) => {
+        if (action.meta.arg.agentId !== state.agentHistoryAgentId) return
         state.agentHistory = { status: ADS.Fulfilled, error: null, value: action.payload }
       })
       .addCase(evaluationConversationRunsThunks.getAgentHistory.rejected, (state, action) => {
+        if (action.meta.arg.agentId !== state.agentHistoryAgentId) return
         state.agentHistory.status = ADS.Error
         state.agentHistory.error = action.error.message || "Failed to load agent version history"
       })
