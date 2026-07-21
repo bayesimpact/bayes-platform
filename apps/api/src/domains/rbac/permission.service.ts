@@ -2,10 +2,11 @@ import { Injectable } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource } from "typeorm"
-import type { PermissionResource } from "./permission.types"
+import type { PermissionResource, PermissionResourceType } from "./permission.types"
 
 type PermissionRow = { permissionKey: string }
-type OrganizationPermissionRow = { organizationId: string; permissionKey: string }
+type ResourcePermissionRow = { resourceId: string; permissionKey: string }
+type ResourceIdRow = { resourceId: string }
 
 @Injectable()
 export class PermissionService {
@@ -27,29 +28,47 @@ export class PermissionService {
     return rows.map((row) => row.permissionKey)
   }
 
-  async listOrganizationPermissionsForUser(userId: string): Promise<Map<string, string[]>> {
-    const rows: OrganizationPermissionRow[] = await this.dataSource.query(
-      `SELECT membership.resource_id AS "organizationId",
+  async listResourceIds(userId: string, resourceType: PermissionResourceType): Promise<string[]> {
+    const requiresRoleId = resourceType === "organization"
+    const rows: ResourceIdRow[] = await this.dataSource.query(
+      `SELECT DISTINCT membership.resource_id AS "resourceId"
+       FROM user_membership membership
+       WHERE membership.user_id = $1
+         AND membership.resource_type = $2
+         AND membership.resource_id IS NOT NULL
+         ${requiresRoleId ? "AND membership.role_id IS NOT NULL" : ""}
+         AND membership.deleted_at IS NULL
+       ORDER BY membership.resource_id`,
+      [userId, resourceType],
+    )
+
+    return rows.map((row) => row.resourceId)
+  }
+
+  async listPermissionsForResourceIds(
+    userId: string,
+    resourceType: PermissionResourceType,
+    resourceIds: string[],
+  ): Promise<Map<string, string[]>> {
+    if (resourceIds.length === 0) {
+      return new Map()
+    }
+
+    const rows: ResourcePermissionRow[] = await this.dataSource.query(
+      `SELECT membership.resource_id AS "resourceId",
               role_permission.permission_key AS "permissionKey"
        FROM user_membership membership
        INNER JOIN role_permission ON role_permission.role_id = membership.role_id
        WHERE membership.user_id = $1
-         AND membership.resource_type = 'organization'
-         AND membership.resource_id IS NOT NULL
+         AND membership.resource_type = $2
+         AND membership.resource_id = ANY($3)
          AND membership.role_id IS NOT NULL
          AND membership.deleted_at IS NULL
        ORDER BY membership.resource_id, role_permission.permission_key`,
-      [userId],
+      [userId, resourceType, resourceIds],
     )
 
-    const permissionsByOrganizationId = new Map<string, string[]>()
-    for (const row of rows) {
-      const organizationPermissions = permissionsByOrganizationId.get(row.organizationId) ?? []
-      organizationPermissions.push(row.permissionKey)
-      permissionsByOrganizationId.set(row.organizationId, organizationPermissions)
-    }
-
-    return permissionsByOrganizationId
+    return this.groupPermissionsByResourceId(rows)
   }
 
   async hasGlobal(userId: string, permission: string): Promise<boolean> {
@@ -86,5 +105,16 @@ export class PermissionService {
     )
 
     return matches.length > 0
+  }
+
+  private groupPermissionsByResourceId(rows: ResourcePermissionRow[]): Map<string, string[]> {
+    const permissionsByResourceId = new Map<string, string[]>()
+    for (const row of rows) {
+      const resourcePermissions = permissionsByResourceId.get(row.resourceId) ?? []
+      resourcePermissions.push(row.permissionKey)
+      permissionsByResourceId.set(row.resourceId, resourcePermissions)
+    }
+
+    return permissionsByResourceId
   }
 }

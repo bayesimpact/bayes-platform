@@ -5,7 +5,10 @@ import {
 } from "@/common/test/test-database"
 import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
-import { createOrganizationWithOwner } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithOwner,
+  organizationFactory,
+} from "@/domains/organizations/organization.factory"
 import { PermissionService } from "@/domains/rbac/permission.service"
 import {
   ORG_CREATOR_ROLE,
@@ -150,15 +153,53 @@ describe("PermissionService", () => {
     ])
   })
 
-  it("lists organization permissions grouped by organization id", async () => {
+  it("lists organization resource ids for a user", async () => {
     const repositories = setup.getAllRepositories()
     const { organization, user } = await createOrganizationWithOwner(repositories)
 
-    const permissionsByOrganizationId = await service.listOrganizationPermissionsForUser(user.id)
+    await expect(service.listResourceIds(user.id, "organization")).resolves.toEqual([
+      organization.id,
+    ])
+  })
+
+  it("lists project resource ids for a user", async () => {
+    const repositories = setup.getAllRepositories()
+    const { organization, user } = await createOrganizationWithOwner(repositories)
+    const project = await repositories.projectRepository.save(
+      repositories.projectRepository.create({
+        name: "Listed Project",
+        organizationId: organization.id,
+      }),
+    )
+    await repositories.userMembershipRepository.save(
+      userMembershipFactory.build({
+        userId: user.id,
+        resourceType: "project",
+        resourceId: project.id,
+        role: "member",
+      }),
+    )
+
+    await expect(service.listResourceIds(user.id, "project")).resolves.toEqual([project.id])
+  })
+
+  it("lists permissions for requested organization ids only", async () => {
+    const repositories = setup.getAllRepositories()
+    const { organization, user } = await createOrganizationWithOwner(repositories)
+    const otherOrganization = await repositories.organizationRepository.save(
+      organizationFactory.build({ name: "Other Org" }),
+    )
+
+    const permissionsByOrganizationId = await service.listPermissionsForResourceIds(
+      user.id,
+      "organization",
+      [organization.id, otherOrganization.id],
+    )
 
     expect(permissionsByOrganizationId.get(organization.id)?.sort()).toEqual(
       [...ORGANIZATION_ROLE_PERMISSIONS[ORGANIZATION_ROLES.owner]].sort(),
     )
+    expect(permissionsByOrganizationId.has(otherOrganization.id)).toBe(false)
   })
 })
 
