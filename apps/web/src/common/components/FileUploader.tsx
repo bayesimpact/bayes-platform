@@ -5,6 +5,7 @@ import { Loader2Icon, UploadCloudIcon } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { useDropzone } from "react-dropzone"
 import { useTranslation } from "react-i18next"
+import { buildAccept } from "@/common/components/file-uploader-mime"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import { useAppDispatch } from "@/common/store/hooks"
 
@@ -143,18 +144,4 @@ export function FileUploader({
       <input {...getInputProps()} />
     </div>
   )
-}
-
-function buildAccept(
-  allowedMimeTypes: Partial<Record<(typeof AllowedMimeTypes)[number], boolean>>,
-) {
-  return Object.keys(allowedMimeTypes)
-    .filter((mime) => allowedMimeTypes[mime as (typeof AllowedMimeTypes)[number]])
-    .reduce(
-      (acc, mime) => {
-        acc[mime] = []
-        return acc
-      },
-      {} as Record<string, string[]>,
-    )
 }

@@ -118,6 +118,7 @@ export enum MimeTypes {
   js = "text/javascript",
   json = "application/json",
   jsonld = "application/ld+json",
+  md = "text/markdown",
   mid = "audio/midi",
   // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
   midi = "audio/midi",
@@ -186,6 +187,7 @@ export const AllowedMimeTypes = [
   MimeTypes.ppt,
   MimeTypes.csv,
   MimeTypes.txt,
+  MimeTypes.md,
 ] as const
 
 const ALLOWED_MIME_TYPE_STRINGS = [...new Set(AllowedMimeTypes as readonly string[])]

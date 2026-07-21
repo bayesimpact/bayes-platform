@@ -56,6 +56,54 @@ describe("DocumentTextExtractorService", () => {
     expect(mockExtractTextWithDocling).toHaveBeenCalledTimes(1)
   })
 
+  it("uses the chunker script for text/markdown", async () => {
+    const extractor = new DocumentTextExtractorService()
+    mockExtractTextWithDocling.mockResolvedValue({
+      child_chunks: [
+        {
+          chunk_id: "uuid",
+          embed_text: "Sample Title",
+          text: "Sample Title",
+          parent_id: null,
+          prev_chunk_id: null,
+          next_chunk_id: null,
+          headings: [],
+          captions: [],
+          metadata: {},
+        },
+      ],
+      parent_chunks: [],
+    })
+
+    const result = await extractor.extract(Buffer.from("# Sample Title"), "text/markdown")
+
+    expect(result).toEqual({
+      text: "Sample Title",
+      chunks: ["Sample Title"],
+      doclingChunks: expect.any(Array),
+      doclingParentChunks: expect.any(Array),
+      extractionEngine: "docling@2.51.0",
+    })
+    expect(mockExtractTextWithDocling).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    "text/plain",
+    "text/csv",
+    "text/markdown",
+  ])("decodes %s from the buffer when docling is disabled", async (mimeType) => {
+    const extractor = new DocumentTextExtractorService()
+    mockIsDoclingEnabled.mockReturnValue(false)
+
+    const result = await extractor.extract(Buffer.from("# Sample Title"), mimeType)
+
+    expect(result).toEqual({
+      text: "# Sample Title",
+      extractionEngine: null,
+    })
+    expect(mockExtractTextWithDocling).not.toHaveBeenCalled()
+  })
+
   it("uses docling for supported non-text mime types", async () => {
     const extractor = new DocumentTextExtractorService()
     mockExtractTextWithDocling.mockResolvedValue({
