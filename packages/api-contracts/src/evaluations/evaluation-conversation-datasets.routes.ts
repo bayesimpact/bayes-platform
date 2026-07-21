@@ -1,6 +1,7 @@
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
 import type {
+  BulkCreateEvaluationConversationDatasetRecordsRequestDto,
   CreateEvaluationConversationDatasetRecordRequestDto,
   EvaluationConversationDatasetDto,
   PaginatedEvaluationConversationDatasetRecordsDto,
@@ -35,6 +36,13 @@ export const EvaluationConversationDatasetsRoutes = {
   >({
     method: "post",
     path: `${prefix}/:datasetId/records`,
+  }),
+  createRecords: defineRoute<
+    ResponseData<SuccessResponseDTO>,
+    RequestPayload<BulkCreateEvaluationConversationDatasetRecordsRequestDto>
+  >({
+    method: "post",
+    path: `${prefix}/:datasetId/records/bulk`,
   }),
   updateRecord: defineRoute<
     ResponseData<SuccessResponseDTO>,

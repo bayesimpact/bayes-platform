@@ -11,7 +11,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) MCP Servers: connect external MCP tool servers to a project and enable/disable them per agent (conversation and form).
 
 ### Changed
-- (beta) Evaluations: conversation-agent evaluation moved from the Studio into the Evaluation app — create datasets of input/expected-output records, run them against an agent's settings in the background, and follow each run's scores live on its own report page; existing Studio evaluations are migrated into a "Studio evaluations" dataset per project
+- (beta) Evaluations: conversation-agent evaluation moved from the Studio into the Evaluation app — build datasets of input/expected-output records (add them inline one after another or paste a batch as CSV), run them against a chosen version of an agent's settings in the background, and follow each run's scores live on its own report page; the run's "view agent" panel shows the exact settings version that was scored, and existing Studio evaluations are migrated into a "Studio evaluations" dataset per project
 
 ### Fixed
 

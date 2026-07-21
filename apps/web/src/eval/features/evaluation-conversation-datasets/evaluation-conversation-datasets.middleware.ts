@@ -159,6 +159,12 @@ function registerRecordListeners() {
     },
   })
   listenerMiddleware.startListening({
+    actionCreator: evaluationConversationDatasetsActions.createRecords.fulfilled,
+    effect: async (action, listenerApi) => {
+      await refetchAfterRecordCountChange(action.meta.arg.datasetId, listenerApi)
+    },
+  })
+  listenerMiddleware.startListening({
     actionCreator: evaluationConversationDatasetsActions.updateRecord.fulfilled,
     effect: async (action, listenerApi) => {
       await refetchCurrentRecordsPage(action.meta.arg.datasetId, listenerApi)
@@ -182,6 +188,21 @@ function registerRecordListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({ title: "Failed to create record", type: "error" }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: evaluationConversationDatasetsActions.createRecords.fulfilled,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(notificationsActions.show({ title: "Records created", type: "success" }))
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: evaluationConversationDatasetsActions.createRecords.rejected,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({ title: "Failed to create records", type: "error" }),
       )
     },
   })

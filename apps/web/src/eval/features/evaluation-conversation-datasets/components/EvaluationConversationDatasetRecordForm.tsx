@@ -5,12 +5,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@caseai-connect/ui/shad/dialog"
-import { Field, FieldGroup, FieldLabel, FieldSet } from "@caseai-connect/ui/shad/field"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@caseai-connect/ui/shad/form"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import z from "zod"
+import { z } from "zod"
 
 export type EvaluationConversationDatasetRecordFormValues = {
   input: string
@@ -32,72 +40,77 @@ export function EvaluationConversationDatasetRecordForm({
 }) {
   const { t } = useTranslation()
 
-  const schema = z.object({
-    input: z.string().min(1, t("evaluationConversationDataset:validation.inputRequired")),
-    expectedOutput: z
-      .string()
-      .min(1, t("evaluationConversationDataset:validation.expectedOutputRequired")),
-  })
+  const schema = useMemo(
+    () =>
+      z.object({
+        input: z.string().min(1, t("evaluationConversationDataset:validation.inputRequired")),
+        expectedOutput: z
+          .string()
+          .min(1, t("evaluationConversationDataset:validation.expectedOutputRequired")),
+      }),
+    [t],
+  )
 
   type FormData = z.infer<typeof schema>
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isValid },
-  } = useForm<FormData>({
+  const form = useForm<FormData>({
     resolver: zodResolver(schema),
-    mode: "onChange",
     defaultValues,
   })
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <DialogHeader>
-        <DialogTitle>{title}</DialogTitle>
-        {description && <DialogDescription>{description}</DialogDescription>}
-      </DialogHeader>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          {description && <DialogDescription>{description}</DialogDescription>}
+        </DialogHeader>
 
-      <FieldGroup className="py-4">
-        <FieldSet>
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="conversation-record-input">
-                {t("evaluationConversationDataset:record.props.input")}
-              </FieldLabel>
-              <Textarea
-                id="conversation-record-input"
-                placeholder={t("evaluationConversationDataset:record.props.placeholders.input")}
-                {...register("input")}
-                aria-invalid={errors.input ? "true" : "false"}
-              />
-              {errors.input && <p className="text-sm text-destructive">{errors.input.message}</p>}
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="conversation-record-expected-output">
-                {t("evaluationConversationDataset:record.props.expectedOutput")}
-              </FieldLabel>
-              <Textarea
-                id="conversation-record-expected-output"
-                placeholder={t(
-                  "evaluationConversationDataset:record.props.placeholders.expectedOutput",
-                )}
-                {...register("expectedOutput")}
-                aria-invalid={errors.expectedOutput ? "true" : "false"}
-              />
-              {errors.expectedOutput && (
-                <p className="text-sm text-destructive">{errors.expectedOutput.message}</p>
-              )}
-            </Field>
-          </FieldGroup>
-        </FieldSet>
-      </FieldGroup>
+        <div className="flex flex-col gap-4 py-4">
+          <FormField
+            control={form.control}
+            name="input"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("evaluationConversationDataset:record.props.input")}</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder={t("evaluationConversationDataset:record.props.placeholders.input")}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="expectedOutput"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {t("evaluationConversationDataset:record.props.expectedOutput")}
+                </FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder={t(
+                      "evaluationConversationDataset:record.props.placeholders.expectedOutput",
+                    )}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-      <DialogFooter>
-        <Button type="submit" disabled={!isValid}>
-          {submitLabel}
-        </Button>
-      </DialogFooter>
-    </form>
+        <DialogFooter>
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            {submitLabel}
+          </Button>
+        </DialogFooter>
+      </form>
+    </Form>
   )
 }

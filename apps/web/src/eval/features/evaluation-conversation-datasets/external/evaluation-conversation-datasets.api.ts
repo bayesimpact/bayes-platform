@@ -76,6 +76,15 @@ export default {
     } satisfies typeof EvaluationConversationDatasetsRoutes.createRecord.request)
     return response.data.data
   },
+  createRecords: async ({ payload, ...params }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<
+      typeof EvaluationConversationDatasetsRoutes.createRecords.response
+    >(EvaluationConversationDatasetsRoutes.createRecords.getPath(params), {
+      payload,
+    } satisfies typeof EvaluationConversationDatasetsRoutes.createRecords.request)
+    return response.data.data
+  },
   updateRecord: async ({ payload, ...params }) => {
     const axios = getAxiosInstance()
     const response = await axios.patch<

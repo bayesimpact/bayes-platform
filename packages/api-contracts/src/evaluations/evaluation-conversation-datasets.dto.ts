@@ -25,6 +25,10 @@ export type CreateEvaluationConversationDatasetRecordRequestDto = {
   input: string
 }
 
+export type BulkCreateEvaluationConversationDatasetRecordsRequestDto = {
+  records: CreateEvaluationConversationDatasetRecordRequestDto[]
+}
+
 export type UpdateEvaluationConversationDatasetRecordRequestDto = {
   expectedOutput: string
   input: string

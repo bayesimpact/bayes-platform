@@ -100,6 +100,24 @@ const createRecord = createAsyncThunk<
   },
 )
 
+const createRecords = createAsyncThunk<
+  { success: true },
+  { datasetId: string; records: { input: string; expectedOutput: string }[] },
+  ThunkConfig
+>(
+  "conversationDatasets/createRecords",
+  async ({ datasetId, records }, { extra: { services }, getState }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const params = { organizationId, projectId, datasetId }
+    return await services.evaluationConversationDatasets.createRecords({
+      ...params,
+      payload: { records },
+    })
+  },
+)
+
 const updateRecord = createAsyncThunk<
   { success: true },
   { datasetId: string; recordId: string; input: string; expectedOutput: string },
@@ -140,6 +158,7 @@ export const evaluationConversationDatasetsThunks = {
   renameOne,
   deleteOne,
   createRecord,
+  createRecords,
   updateRecord,
   deleteRecord,
 }

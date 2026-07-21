@@ -41,10 +41,17 @@
         "title": "Records",
         "description": "{{count}} records"
       },
-      "create": {
-        "button": "Add Record",
-        "title": "New Record",
-        "description": "Add an input and the output you expect from the agent."
+      "quickAdd": {
+        "addButton": "Add record",
+        "hint": "Add a record: type an input and the expected output, then press Enter."
+      },
+      "bulk": {
+        "button": "Bulk add",
+        "title": "Bulk add records",
+        "description": "Paste one record per line as CSV: the input and expected output separated by a comma. This lets you paste straight from a spreadsheet.",
+        "placeholder": "input,expected output\nanother input,another expected output",
+        "parsedCount": "{{count}} records ready to add",
+        "invalidRows": "Missing expected output on line(s): {{lines}}"
       },
       "update": {
         "button": "Edit record",

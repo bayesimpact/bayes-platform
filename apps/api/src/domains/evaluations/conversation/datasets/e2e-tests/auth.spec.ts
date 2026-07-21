@@ -308,6 +308,52 @@ describe("EvaluationConversationDatasets - Auth", () => {
     })
   })
 
+  describe("EvaluationConversationDatasetsRoutes.createRecords", () => {
+    const payload: typeof EvaluationConversationDatasetsRoutes.createRecords.request = {
+      payload: {
+        records: [{ input: "Sample question", expectedOutput: "Sample expected answer" }],
+      },
+    }
+
+    const subject = async (
+      requestPayload?: typeof EvaluationConversationDatasetsRoutes.createRecords.request,
+    ) =>
+      request({
+        route: EvaluationConversationDatasetsRoutes.createRecords,
+        pathParams: removeNullish({ organizationId, projectId, datasetId }),
+        token: accessToken ?? undefined,
+        request: requestPayload,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(payload), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("requires a valid organization ID", async () => {
+      organizationId = null
+      expectResponse(await subject(payload), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    })
+    it("requires a valid project ID", async () => {
+      await createContextForRole("owner")
+      projectId = null
+      expectResponse(await subject(payload), 404)
+    })
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("owner")
+      auth0Id = mockForeignAuth0Id()
+      expectResponse(await subject(payload), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+    it("requires the dataset to exist in the project", async () => {
+      await createContextForRole("owner")
+      expectResponse(await subject(payload), 404)
+    })
+    it("doesn't allow a simple member to create records", async () => {
+      const { organization, project } = await createContextForRole("member")
+      await createDataset({ organization, project })
+      expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
   describe("EvaluationConversationDatasetsRoutes.updateRecord", () => {
     const payload: typeof EvaluationConversationDatasetsRoutes.updateRecord.request = {
       payload: { input: "Updated question", expectedOutput: "Updated expected answer" },

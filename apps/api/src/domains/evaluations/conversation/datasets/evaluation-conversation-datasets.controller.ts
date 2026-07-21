@@ -155,6 +155,24 @@ export class EvaluationConversationDatasetsController {
     return { data: { success: true } }
   }
 
+  @Post(EvaluationConversationDatasetsRoutes.createRecords.path)
+  @AddContext("evaluationConversationDataset")
+  @CheckPolicy((policy) => policy.canUpdate())
+  @TrackActivity({ action: "evaluationConversationDataset.createRecords" })
+  async createRecords(
+    @Req() request: EndpointRequestWithEvaluationConversationDataset,
+    @Body()
+    { payload }: typeof EvaluationConversationDatasetsRoutes.createRecords.request,
+  ): Promise<typeof EvaluationConversationDatasetsRoutes.createRecords.response> {
+    await this.evaluationConversationDatasetsService.createRecords({
+      connectScope: getRequiredConnectScope(request),
+      datasetId: request.evaluationConversationDataset.id,
+      records: payload.records,
+    })
+
+    return { data: { success: true } }
+  }
+
   @Patch(EvaluationConversationDatasetsRoutes.updateRecord.path)
   @AddContext("evaluationConversationDataset")
   @CheckPolicy((policy) => policy.canUpdate())

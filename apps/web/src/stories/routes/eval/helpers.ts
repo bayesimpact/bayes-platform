@@ -50,6 +50,9 @@ export function buildMockConversationDatasetsService(
     async createRecord() {
       return { success: true }
     },
+    async createRecords() {
+      return { success: true }
+    },
     async updateRecord() {
       return { success: true }
     },

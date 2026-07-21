@@ -41,10 +41,17 @@
         "title": "Enregistrements",
         "description": "{{count}} enregistrements"
       },
-      "create": {
-        "button": "Ajouter un enregistrement",
-        "title": "Nouvel enregistrement",
-        "description": "Ajoutez une entrée et le résultat que vous attendez de l'agent."
+      "quickAdd": {
+        "addButton": "Ajouter l'enregistrement",
+        "hint": "Ajoutez un enregistrement : saisissez une entrée et le résultat attendu, puis appuyez sur Entrée."
+      },
+      "bulk": {
+        "button": "Ajout en masse",
+        "title": "Ajouter des enregistrements en masse",
+        "description": "Collez un enregistrement par ligne au format CSV : l'entrée et le résultat attendu séparés par une virgule. Vous pouvez ainsi coller directement depuis un tableur.",
+        "placeholder": "entrée,résultat attendu\nautre entrée,autre résultat attendu",
+        "parsedCount": "{{count}} enregistrements prêts à être ajoutés",
+        "invalidRows": "Résultat attendu manquant à la (aux) ligne(s) : {{lines}}"
       },
       "update": {
         "button": "Modifier l'enregistrement",

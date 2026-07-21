@@ -21,8 +21,9 @@ import type {
 } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.models"
 import { selectConversationDatasetRecordsData } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.selectors"
 import { evaluationConversationDatasetsActions } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.slice"
-import { CreateEvaluationConversationDatasetRecordDialog } from "./CreateEvaluationConversationDatasetRecordDialog"
+import { BulkAddEvaluationConversationDatasetRecordsDialog } from "./BulkAddEvaluationConversationDatasetRecordsDialog"
 import { DeleteEvaluationConversationDatasetRecordButton } from "./DeleteEvaluationConversationDatasetRecordButton"
+import { QuickAddEvaluationConversationDatasetRecordRow } from "./QuickAddEvaluationConversationDatasetRecordRow"
 import { UpdateEvaluationConversationDatasetRecordDialog } from "./UpdateEvaluationConversationDatasetRecordDialog"
 
 export function EvaluationConversationDatasetRecordList({
@@ -59,9 +60,12 @@ export function EvaluationConversationDatasetRecordList({
           {t("evaluationConversationDataset:record.view.description", { count: total })}
         </CardDescription>
         <CardAction>
-          <CreateEvaluationConversationDatasetRecordDialog datasetId={dataset.id} />
+          <BulkAddEvaluationConversationDatasetRecordsDialog datasetId={dataset.id} />
         </CardAction>
       </CardHeader>
+      <CardContent className="pb-0">
+        <QuickAddEvaluationConversationDatasetRecordRow datasetId={dataset.id} />
+      </CardContent>
       {isLoading ? (
         <Loader />
       ) : (

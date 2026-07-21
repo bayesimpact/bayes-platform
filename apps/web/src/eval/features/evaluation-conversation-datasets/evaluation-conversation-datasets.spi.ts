@@ -24,6 +24,11 @@ export interface IEvaluationConversationDatasetsSpi {
       payload: { input: string; expectedOutput: string }
     },
   ): Promise<SuccessResponseDTO>
+  createRecords(
+    params: BaseParams & { datasetId: string } & {
+      payload: { records: { input: string; expectedOutput: string }[] }
+    },
+  ): Promise<SuccessResponseDTO>
   updateRecord(
     params: BaseParams & { datasetId: string; recordId: string } & {
       payload: { input: string; expectedOutput: string }

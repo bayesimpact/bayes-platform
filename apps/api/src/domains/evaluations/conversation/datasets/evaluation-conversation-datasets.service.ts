@@ -187,6 +187,42 @@ export class EvaluationConversationDatasetsService {
     })
   }
 
+  async createRecords({
+    connectScope,
+    datasetId,
+    records,
+  }: {
+    connectScope: RequiredConnectScope
+    datasetId: string
+    records: Array<{ input: string; expectedOutput: string }>
+  }): Promise<EvaluationConversationDatasetRecord[]> {
+    if (records.length === 0) {
+      throw new UnprocessableEntityException("At least one record is required")
+    }
+    for (const record of records) {
+      if (!record.input.trim()) {
+        throw new UnprocessableEntityException("Record input is required")
+      }
+      if (!record.expectedOutput.trim()) {
+        throw new UnprocessableEntityException("Record expected output is required")
+      }
+    }
+
+    const dataset = await this.datasetConnectRepository.getOneById(connectScope, datasetId)
+    if (!dataset) {
+      throw new NotFoundException(`Evaluation dataset with id ${datasetId} not found`)
+    }
+
+    return this.recordConnectRepository.createAndSaveMany({
+      connectScope,
+      entities: records.map((record) => ({
+        evaluationConversationDatasetId: datasetId,
+        input: record.input,
+        expectedOutput: record.expectedOutput,
+      })),
+    })
+  }
+
   async updateRecord({
     connectScope,
     datasetId,
