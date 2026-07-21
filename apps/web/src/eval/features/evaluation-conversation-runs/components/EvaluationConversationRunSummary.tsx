@@ -15,7 +15,7 @@ export function EvaluationConversationRunSummary({ run }: { run: EvaluationConve
   if (!run.summary) return null
 
   const averageScore =
-    run.summary.averageScore !== null ? Math.round(run.summary.averageScore) : null
+    run.summary.averageScore !== null ? Math.round(run.summary.averageScore * 10) / 10 : null
 
   const stats = [
     { label: t("evaluationConversationRun:results.total"), value: run.summary.total },
@@ -23,7 +23,7 @@ export function EvaluationConversationRunSummary({ run }: { run: EvaluationConve
     { label: t("evaluationConversationRun:results.errors"), value: run.summary.errors },
     {
       label: t("evaluationConversationRun:results.averageScore"),
-      value: averageScore !== null ? `${averageScore}/100` : "-",
+      value: averageScore !== null ? `${averageScore}/5` : "-",
     },
   ]
 

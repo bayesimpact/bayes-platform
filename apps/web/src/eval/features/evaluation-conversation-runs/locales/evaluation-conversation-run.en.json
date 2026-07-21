@@ -23,7 +23,7 @@
       "gradedCount": "Graded",
       "errors": "Errors",
       "averageScore": "Average Score",
-      "averageScoreDescription": "Average score: {{averageScore}}/100",
+      "averageScoreDescription": "Average score: {{averageScore}}/5",
       "noScore": "No score",
       "records": "Records",
       "recordsDescription": "{{count}} records",
@@ -54,7 +54,7 @@
       "title": "Run History",
       "empty": "No evaluation runs yet",
       "description": "{{count}} runs",
-      "averageScore": "{{averageScore}}/100 average score",
+      "averageScore": "{{averageScore}}/5 average score",
       "recordCount": "{{count}} records",
       "delete": {
         "button": "Delete run",
@@ -72,7 +72,7 @@
         "averageScore": "Average score",
         "records": "Records"
       },
-      "averageScoreValue": "{{averageScore}}/100"
+      "averageScoreValue": "{{averageScore}}/5"
     },
     "agentMetadata": {
       "title": "Agent Configuration",

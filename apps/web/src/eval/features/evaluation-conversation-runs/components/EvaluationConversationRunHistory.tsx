@@ -99,7 +99,7 @@ export function EvaluationConversationRunHistory({ runs }: { runs: EvaluationCon
           return (
             <span className="text-sm font-medium whitespace-nowrap">
               {t("evaluationConversationRun:history.averageScoreValue", {
-                averageScore: Math.round(summary.averageScore),
+                averageScore: Math.round(summary.averageScore * 10) / 10,
               })}
             </span>
           )

@@ -114,7 +114,7 @@ describe("EvaluationConversationRunProcessorService", () => {
   it("processRunRecord - should works", async () => {
     const { agent, run, record, payload } = await seedRunRecord({ recordStatus: "running" })
     mockProvider.addTextTurn(agent.id, "The answer is 2")
-    mockProvider.addTextTurn(RATING_AGENT_ID, "95")
+    mockProvider.addTextTurn(RATING_AGENT_ID, "5")
 
     await service.processRunRecord(payload)
 
@@ -124,7 +124,7 @@ describe("EvaluationConversationRunProcessorService", () => {
       })
     expect(updatedRecord.status).toBe("graded")
     expect(updatedRecord.output).toBe("The answer is 2")
-    expect(updatedRecord.score).toBe(95)
+    expect(updatedRecord.score).toBe(5)
     expect(updatedRecord.errorDetails).toBeNull()
     expect(updatedRecord.traceId).toEqual(expect.any(String))
 
@@ -137,7 +137,7 @@ describe("EvaluationConversationRunProcessorService", () => {
       graded: 1,
       errors: 0,
       running: 0,
-      averageScore: 95,
+      averageScore: 5,
     })
 
     expect(mockStatusNotifier.notifyRunStatusChanged).toHaveBeenCalled()

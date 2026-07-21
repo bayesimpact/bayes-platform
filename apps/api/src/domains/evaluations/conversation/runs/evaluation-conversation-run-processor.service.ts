@@ -167,7 +167,9 @@ export class EvaluationConversationRunProcessorService extends ServiceWithLLM {
         Number(rows.find((row) => row.status === status)?.count ?? 0)
 
       const rawAverageScore = rows.find((row) => row.status === "graded")?.averageScore ?? null
-      const averageScore = rawAverageScore != null ? Math.round(Number(rawAverageScore)) : null
+      // Scores are integers 0-5; keep one decimal on the average so it stays meaningful.
+      const averageScore =
+        rawAverageScore != null ? Math.round(Number(rawAverageScore) * 10) / 10 : null
 
       const summary: EvaluationConversationRunSummary = {
         total: run.summary.total,

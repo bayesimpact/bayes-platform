@@ -23,7 +23,7 @@
       "gradedCount": "Notés",
       "errors": "Erreurs",
       "averageScore": "Score moyen",
-      "averageScoreDescription": "Score moyen : {{averageScore}}/100",
+      "averageScoreDescription": "Score moyen : {{averageScore}}/5",
       "noScore": "Aucun score",
       "records": "Enregistrements",
       "recordsDescription": "{{count}} enregistrements",
@@ -54,7 +54,7 @@
       "title": "Historique des exécutions",
       "empty": "Aucune exécution d'évaluation",
       "description": "{{count}} exécutions",
-      "averageScore": "{{averageScore}}/100 de score moyen",
+      "averageScore": "{{averageScore}}/5 de score moyen",
       "recordCount": "{{count}} enregistrements",
       "delete": {
         "button": "Supprimer l'exécution",
@@ -72,7 +72,7 @@
         "averageScore": "Score moyen",
         "records": "Enregistrements"
       },
-      "averageScoreValue": "{{averageScore}}/100"
+      "averageScoreValue": "{{averageScore}}/5"
     },
     "agentMetadata": {
       "title": "Configuration de l'agent",

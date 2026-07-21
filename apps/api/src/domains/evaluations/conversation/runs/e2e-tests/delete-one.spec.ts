@@ -110,7 +110,7 @@ describe("EvaluationConversationRuns - deleteOne", () => {
         evaluationConversationRun: run,
         evaluationConversationDatasetRecord: datasetRecords[0],
       })
-      .build({ status: "graded", output: "answer", score: 100 })
+      .build({ status: "graded", output: "answer", score: 5 })
     await setup.getRepository(EvaluationConversationRunRecord).save(runRecord)
 
     const recordsBefore = await setup

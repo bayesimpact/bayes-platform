@@ -111,7 +111,7 @@ describe("EvaluationConversationRuns - retryOne", () => {
         evaluationConversationRun: run,
         evaluationConversationDatasetRecord: datasetRecords[1],
       })
-      .build({ status: "graded", output: "answer", score: 80 })
+      .build({ status: "graded", output: "answer", score: 4 })
     await setup.getRepository(EvaluationConversationRunRecord).save(gradedRecord)
 
     const cancelledRecord = evaluationConversationRunRecordFactory
@@ -150,7 +150,7 @@ describe("EvaluationConversationRuns - retryOne", () => {
       graded: 1,
       errors: 0,
       running: 2,
-      averageScore: 80,
+      averageScore: 4,
     })
 
     expect(mockRetryRunRecords).toHaveBeenCalledTimes(1)
@@ -174,7 +174,7 @@ describe("EvaluationConversationRuns - retryOne", () => {
     // Graded records are left untouched.
     const untouchedRecord = await runRecordRepository.findOneByOrFail({ id: gradedRecord.id })
     expect(untouchedRecord.status).toBe("graded")
-    expect(untouchedRecord.score).toBe(80)
+    expect(untouchedRecord.score).toBe(4)
 
     await expectActivityCreated("evaluationConversationRun.retry")
   })
@@ -182,8 +182,8 @@ describe("EvaluationConversationRuns - retryOne", () => {
   it("is a no-op when the run has no error or cancelled records", async () => {
     const { errorRecord, cancelledRecord } = await createContext()
     const runRecordRepository = setup.getRepository(EvaluationConversationRunRecord)
-    await runRecordRepository.update({ id: errorRecord.id }, { status: "graded", score: 100 })
-    await runRecordRepository.update({ id: cancelledRecord.id }, { status: "graded", score: 100 })
+    await runRecordRepository.update({ id: errorRecord.id }, { status: "graded", score: 5 })
+    await runRecordRepository.update({ id: cancelledRecord.id }, { status: "graded", score: 5 })
     await setup
       .getRepository(EvaluationConversationRun)
       .update({ id: evaluationConversationRunId }, { status: "completed" })

@@ -8,7 +8,7 @@ import { ServiceWithLLM } from "@/external/llm"
  * LLM judge for conversation evaluation runs, ported from the legacy
  * EvaluationReportsService.rateReport: same prompts, same hardcoded rating agent
  * (Gemini 2.5 Flash at temperature 0), same mock swap for tests. Unlike the legacy
- * version, the raw response is parsed into an integer score clamped to 0-100 and an
+ * version, the raw response is parsed into an integer score clamped to 0-5 and an
  * unparsable response throws (the run record then becomes status "error").
  */
 @Injectable()
@@ -52,13 +52,13 @@ export class EvaluationConversationRunGraderService extends ServiceWithLLM {
   }): Promise<number> {
     const ratingAgent = {
       systemPrompt: `
- You are a rating agent. Your job is to evaluate a string value and return a score from 0 to 100.
+ You are a rating agent. Your job is to evaluate a string value and return a score from 0 to 5.
  The string value is '%value'.
  The instructions to do the rating are '%ratingInstructions'
  You have to consider the '%ratingInstructions' and only them to evaluate the '%value'
  Your rating rules are the following:
-    - return a value between 0 and 100, step 1
-    - 100 is the maximum and signify that the '%value' completely satisfies the '%ratingInstructions'.
+    - return a value between 0 and 5, step 1
+    - 5 is the maximum and signify that the '%value' completely satisfies the '%ratingInstructions'.
     - 0 signifies that the '%value' is fully far away the '%ratingInstructions'.
 `,
       model: AgentModel.Gemini25Flash,
@@ -94,7 +94,7 @@ ${expectedOutput}
 ${generatedOutput}
 </%value>
 
-return only the rating value (0 to 100), no sentence`,
+return only the rating value (0 to 5), no sentence`,
       config: llmConfig,
       metadata: llmMetadata,
     })
@@ -109,6 +109,6 @@ return only the rating value (0 to 100), no sentence`,
         `Rating agent returned an unparsable score: "${response}"`,
       )
     }
-    return Math.min(100, Math.max(0, Math.round(parsedScore)))
+    return Math.min(5, Math.max(0, Math.round(parsedScore)))
   }
 }

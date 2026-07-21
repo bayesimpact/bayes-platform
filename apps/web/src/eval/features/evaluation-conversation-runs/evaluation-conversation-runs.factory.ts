@@ -19,7 +19,7 @@ export const evaluationConversationRunSummaryFactory =
       averageScore:
         params.averageScore !== undefined
           ? params.averageScore
-          : faker.number.int({ min: 0, max: 100 }),
+          : faker.number.int({ min: 0, max: 5 }),
       errors,
       graded,
       running,
@@ -106,7 +106,7 @@ export const evaluationConversationRunRecordFactory = EvaluationConversationRunR
       input: params.input ?? faker.lorem.sentence(),
       expectedOutput: params.expectedOutput ?? faker.lorem.sentence(),
       output: params.output !== undefined ? params.output : faker.lorem.sentence(),
-      score: params.score !== undefined ? params.score : faker.number.int({ min: 0, max: 100 }),
+      score: params.score !== undefined ? params.score : faker.number.int({ min: 0, max: 5 }),
       errorDetails: params.errorDetails ?? null,
       traceUrl: params.traceUrl ?? null,
       createdAt: params.createdAt ?? faker.date.past().getTime(),

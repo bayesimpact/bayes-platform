@@ -99,7 +99,7 @@ describe("EvaluationConversationRuns - getRecords", () => {
       .build({
         status: "graded",
         output: "The answer is 2",
-        score: 90,
+        score: 4,
         traceId: "trace-1",
       })
     await setup.getRepository(EvaluationConversationRunRecord).save(runRecord)
@@ -126,7 +126,7 @@ describe("EvaluationConversationRuns - getRecords", () => {
     expect(res.body.data.records[0]!.input).toBe("What is 1+1?")
     expect(res.body.data.records[0]!.expectedOutput).toBe("2")
     expect(res.body.data.records[0]!.output).toBe("The answer is 2")
-    expect(res.body.data.records[0]!.score).toBe(90)
+    expect(res.body.data.records[0]!.score).toBe(4)
     expect(res.body.data.records[0]!.traceUrl).toEqual(expect.any(String))
     expect(res.body.data.total).toBe(1)
     expect(res.body.data.page).toBe(0)

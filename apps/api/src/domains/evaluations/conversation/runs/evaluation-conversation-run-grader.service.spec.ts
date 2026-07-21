@@ -36,27 +36,27 @@ describe("EvaluationConversationRunGraderService", () => {
     })
 
   it("should parse an integer score from the rating agent response", async () => {
-    vertexProvider.generateText.mockResolvedValue("85")
+    vertexProvider.generateText.mockResolvedValue("4")
 
-    await expect(gradeWith()).resolves.toBe(85)
+    await expect(gradeWith()).resolves.toBe(4)
   })
 
   it("should trim whitespace around the score", async () => {
-    vertexProvider.generateText.mockResolvedValue("  92\n")
+    vertexProvider.generateText.mockResolvedValue("  3\n")
 
-    await expect(gradeWith()).resolves.toBe(92)
+    await expect(gradeWith()).resolves.toBe(3)
   })
 
   it("should round a non-integer score to an integer", async () => {
-    vertexProvider.generateText.mockResolvedValue("85.6")
+    vertexProvider.generateText.mockResolvedValue("3.6")
 
-    await expect(gradeWith()).resolves.toBe(86)
+    await expect(gradeWith()).resolves.toBe(4)
   })
 
-  it("should clamp scores above 100", async () => {
-    vertexProvider.generateText.mockResolvedValue("150")
+  it("should clamp scores above 5", async () => {
+    vertexProvider.generateText.mockResolvedValue("8")
 
-    await expect(gradeWith()).resolves.toBe(100)
+    await expect(gradeWith()).resolves.toBe(5)
   })
 
   it("should clamp scores below 0", async () => {
@@ -72,7 +72,7 @@ describe("EvaluationConversationRunGraderService", () => {
   })
 
   it("should use the rating agent config with the expected and generated values in the prompt", async () => {
-    vertexProvider.generateText.mockResolvedValue("50")
+    vertexProvider.generateText.mockResolvedValue("3")
 
     await gradeWith()
 
@@ -89,9 +89,9 @@ describe("EvaluationConversationRunGraderService", () => {
   })
 
   it("should swap to the mock model with a **TEST** tag when the generator uses the mock provider", async () => {
-    mockProvider.generateText.mockResolvedValue("70")
+    mockProvider.generateText.mockResolvedValue("5")
 
-    await expect(gradeWith(AgentModel._Mock)).resolves.toBe(70)
+    await expect(gradeWith(AgentModel._Mock)).resolves.toBe(5)
 
     expect(vertexProvider.generateText).not.toHaveBeenCalled()
     expect(mockProvider.generateText).toHaveBeenCalledTimes(1)
