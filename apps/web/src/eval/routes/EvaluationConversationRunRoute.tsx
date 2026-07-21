@@ -33,7 +33,7 @@ export function EvaluationConversationRunRoute() {
   const runData = useAppSelector(selectCurrentConversationRunData)
   const datasetData = useAppSelector(selectCurrentConversationDatasetData)
 
-  useMount({ actions: evaluationConversationRunsActions, condition: !!runId })
+  useMount({ actions: evaluationConversationRunsActions, condition: !!runId, refreshOn: [runId] })
 
   if (!runId) return <LoadingRoute />
   return (

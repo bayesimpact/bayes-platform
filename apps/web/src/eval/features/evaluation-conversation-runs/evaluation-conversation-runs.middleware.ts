@@ -5,6 +5,7 @@ import { evaluationConversationDatasetsActions } from "../evaluation-conversatio
 import {
   selectCurrentConversationRecordsQuery,
   selectCurrentConversationRunId,
+  selectHasConversationRunsInProgress,
 } from "./evaluation-conversation-runs.selectors"
 import { evaluationConversationRunsActions } from "./evaluation-conversation-runs.slice"
 import {
@@ -24,6 +25,26 @@ function registerListeners() {
   })
 
   listenerMiddleware.startListening({
+    actionCreator: evaluationConversationDatasetsActions.unmount,
+    effect: async (_, listenerApi) => {
+      // Left the conversation datasets area entirely: tear down the SSE stream.
+      listenerApi.dispatch(evaluationConversationRunsActions.stopRunStatusStream())
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: evaluationConversationRunsActions.getAll.fulfilled,
+    effect: async (_, listenerApi) => {
+      // Once the runs list is loaded (e.g. on the dataset page, where the run route
+      // is not mounted), keep the SSE stream running while any run is still in
+      // progress so the run history updates live without a manual reload.
+      if (selectHasConversationRunsInProgress(listenerApi.getState())) {
+        listenerApi.dispatch(evaluationConversationRunsActions.startRunStatusStream())
+      }
+    },
+  })
+
+  listenerMiddleware.startListening({
     actionCreator: evaluationConversationRunsActions.mount,
     effect: async (_, listenerApi) => {
       const state = listenerApi.getState()
@@ -39,7 +60,12 @@ function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: evaluationConversationRunsActions.unmount,
     effect: async (_, listenerApi) => {
-      listenerApi.dispatch(evaluationConversationRunsActions.stopRunStatusStream())
+      // Leaving a run page keeps the stream alive when a run is still in progress —
+      // the dataset page's run history relies on it for live updates. Only stop when
+      // there is nothing left to watch (the dataset-area unmount is the full teardown).
+      if (!selectHasConversationRunsInProgress(listenerApi.getState())) {
+        listenerApi.dispatch(evaluationConversationRunsActions.stopRunStatusStream())
+      }
     },
   })
 
@@ -57,6 +83,10 @@ function registerListeners() {
           evaluationConversationRunId: action.payload.id,
         }),
       )
+      // Refresh the runs list so the new run shows in the dataset page's run history
+      // immediately (the run route is nested under the dataset route, so navigating
+      // back does not remount it and re-trigger the list fetch).
+      listenerApi.dispatch(evaluationConversationRunsActions.getAll())
       // Start SSE stream to track progress
       listenerApi.dispatch(evaluationConversationRunsActions.startRunStatusStream())
     },
