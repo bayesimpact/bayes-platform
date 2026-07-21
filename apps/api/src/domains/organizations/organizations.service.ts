@@ -38,33 +38,21 @@ export class OrganizationsService {
       return []
     }
 
-    const permissionsByOrganizationId = new Map(
-      accessibleOrganizations.map(({ organization, permissions }) => [
-        organization.id,
-        permissions,
-      ]),
-    )
-    const organizationIds = accessibleOrganizations.map(({ organization }) => organization.id)
-
-    const projectsByOrganizationId = await this.loadProjectsByOrganizationId(
-      userId,
-      organizationIds,
-      permissionsByOrganizationId,
-    )
-
-    return accessibleOrganizations.map(({ organization, permissions }) => ({
+    return accessibleOrganizations.map(({ organization, permissions, projects }) => ({
       id: organization.id,
       name: organization.name,
       permissions,
-      projects: projectsByOrganizationId.get(organization.id) ?? [],
+      projects,
     }))
   }
 
   /**
-   * Returns organizations the user can access, paired with their per-org permissions.
-   * Only orgs where the user has at least one permission are included.
+   * Returns organizations the user can access, paired with their per-org permissions
+   * and accessible projects (see ADR 0013 for the two-bucket project strategy).
    */
-  private async listAccessibleOrganizations(userId: string): Promise<AccessibleOrganization[]> {
+  private async listAccessibleOrganizations(
+    userId: string,
+  ): Promise<(AccessibleOrganization & { projects: OrganizationProjectModel[] })[]> {
     const organizationIds = await this.permissionService.listResourceIds(userId, "organization")
     if (organizationIds.length === 0) {
       return []
@@ -75,16 +63,21 @@ export class OrganizationsService {
       this.organizationRepository.findByIds(organizationIds),
     ])
 
-    return organizations
-      .map((organization) => ({
-        organization,
-        permissions: permissionsByOrganizationId.get(organization.id) ?? [],
-      }))
-      .filter(({ permissions }) => permissions.length > 0)
+    const projectsByOrganizationId = await this.loadProjectsByOrganizationId(
+      userId,
+      organizationIds,
+      permissionsByOrganizationId,
+    )
+
+    return organizations.map((organization) => ({
+      organization,
+      permissions: permissionsByOrganizationId.get(organization.id) ?? [],
+      projects: projectsByOrganizationId.get(organization.id) ?? [],
+    }))
   }
 
   /**
-   * Loads projects grouped by organization, using the two-bucket strategy (see ADR 0013):
+   * Loads projects grouped by organization using the two-bucket strategy (ADR 0013):
    * - orgs where user has `project.read` → all projects in the org
    * - orgs without it → only projects the user has a direct membership on
    */
