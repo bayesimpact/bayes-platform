@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto"
-import { AgentLocale, AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { Factory } from "fishery"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"
 import type { Agent } from "./agent.entity"
@@ -28,7 +27,6 @@ export const agentFactory = AgentFactory.define(({ sequence, params, transientPa
     deletedAt: params.deletedAt || null,
     project: transientParams.project,
     conversationAgentSessions: params.conversationAgentSessions || [],
-    // _deleted_extractionSessions: params._deleted_extractionSessions || [],
     documentTags: params.documentTags || [],
     agentMcpServers: params.agentMcpServers || [],
     reviewCampaigns: params.reviewCampaigns || [],
@@ -36,13 +34,5 @@ export const agentFactory = AgentFactory.define(({ sequence, params, transientPa
     childSubAgents: params.childSubAgents || [],
     parentSubAgents: params.parentSubAgents || [],
     resourceLibraries: params.resourceLibraries || [],
-    _deleted_defaultPrompt: `This is a test default prompt for bot ${sequence}`,
-    _deleted_model: AgentModel._Mock,
-    _deleted_temperature: 0.7,
-    _deleted_locale: AgentLocale.EN,
-    _deleted_documentsRagMode: DocumentsRagMode.All,
-    _deleted_instructionPrompt: null,
-    _deleted_greetingMessage: null,
-    _deleted_outputJsonSchema: null,
   } satisfies Agent
 })

@@ -4,7 +4,7 @@ highlight: web
 description: Explorez des sites web pour intégrer leur contenu aux connaissances de vos agents, et organisez les sources avec des étiquettes.
 category: guides-sources
 order: 2
-updated: 2026-07-09
+updated: 2026-07-20
 ---
 
 import WebSourcesWalkthrough from "@/components/WebSourcesWalkthrough.astro"
@@ -54,10 +54,18 @@ La nouvelle source apparaît aussitôt dans le tableau.
 
 ### 3. Attendre qu'elle soit prête
 
-Chaque source affiche un **Statut des embeddings**. Il passe de **Exploration** à
-**Prêt** une fois les pages indexées. Seule une source **Prêt** est pleinement
-exploitable par vos agents. Le tableau indique aussi le nombre de **Pages**
-explorées et la date de dernière mise à jour.
+Chaque source affiche un **Statut des embeddings** qui évolue ainsi :
+
+- **Exploration** — les pages sont en cours de récupération. Dès que le décompte
+  commence, il affiche **Exploration — N pages**.
+- **Indexation** — les pages récupérées sont en cours d'indexation.
+- **Prêt** — l'indexation est terminée ; la source est pleinement exploitable par
+  vos agents.
+- **Échoué** — l'indexation a échoué ; relancez-la avec **Relancer le traitement**
+  (voir l'étape 4).
+
+Seule une source **Prêt** est pleinement exploitable par vos agents. Le tableau
+indique aussi le nombre de **Pages** explorées et la date de dernière mise à jour.
 
 ### 4. Gérer une source
 
@@ -65,7 +73,16 @@ Ouvrez le menu **⋮** en fin de ligne d'une source pour :
 
 - **Voir** — consulter les détails de la source.
 - **Modifier** — renommer la source et ajouter des étiquettes (voir ci-dessous).
+- **Relancer le traitement** — relancer l'indexation d'une source. Cet élément
+  n'apparaît **que** lorsque le **Statut des embeddings** est **Échoué**, et
+  démarre aussitôt (sans confirmation).
+- **Arrêter l'exploration** — annuler une exploration encore en cours. Cet élément
+  n'apparaît **que tant que la source est en Exploration** et prend effet aussitôt
+  (sans confirmation).
 - **Ré-explorer le site** — relancer l'exploration pour récupérer les changements.
+  Affiché lorsque la source n'est **pas** en cours d'exploration. (**Arrêter
+  l'exploration** et **Ré-explorer le site** n'apparaissent jamais ensemble — l'un
+  remplace l'autre selon qu'une exploration est en cours.)
 - **Supprimer** — retirer la source et son contenu indexé.
 
 ### 5. Voir les pages explorées
@@ -107,8 +124,14 @@ L'étiquette apparaît alors dans la colonne **Tags** de la source.
 ## Dépannage
 
 - **Un agent n'utilise pas une source** — vérifiez que son **Statut des embeddings**
-  est **Prêt** ; une source encore en **Exploration** n'est pas encore disponible.
+  est **Prêt** ; une source encore en **Exploration** ou en **Indexation** n'est pas
+  encore disponible.
 - **Le site a changé mais les réponses sont périmées** — ouvrez le menu **⋮** et
   choisissez **Ré-explorer le site**.
+- **Une exploration est bloquée ou lancée par erreur** — ouvrez le menu **⋮** et
+  choisissez **Arrêter l'exploration** (affiché uniquement tant que la source est
+  encore en **Exploration**).
+- **Une source affiche Échoué** — ouvrez le menu **⋮** et choisissez **Relancer le
+  traitement** pour relancer l'indexation.
 - **L'exploration ne démarre pas** — l'**URL du site** doit être une adresse
   `https://` valide.

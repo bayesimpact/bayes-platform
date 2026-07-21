@@ -60,7 +60,7 @@ const patchAgent = async (
 
 export const updateAgentGeneral = createAsyncThunk<
   void,
-  { agentId: string; fields: UpdateAgentGeneralDto },
+  { agentId: string; fields: Partial<UpdateAgentGeneralDto> },
   ThunkConfig
 >("agents/updateGeneral", async ({ agentId, fields }, { extra: { services }, getState }) => {
   await patchAgent(agentId, fields, { services, state: getState() })
@@ -68,7 +68,7 @@ export const updateAgentGeneral = createAsyncThunk<
 
 export const updateAgentModel = createAsyncThunk<
   void,
-  { agentId: string; fields: UpdateAgentModelDto },
+  { agentId: string; fields: Partial<UpdateAgentModelDto> },
   ThunkConfig
 >("agents/updateModel", async ({ agentId, fields }, { extra: { services }, getState }) => {
   await patchAgent(agentId, fields, { services, state: getState() })

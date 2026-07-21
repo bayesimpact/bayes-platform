@@ -1,5 +1,5 @@
 ---
-import { SITE_TITLE } from "@/consts"
+import Icon from "@/components/Icon.astro"
 import { useTranslations } from "@/i18n/ui"
 import { getLocaleFromPath } from "@/i18n/utils"
 import LogoFull from "./LogoFull.astro"
@@ -8,10 +8,19 @@ const locale = getLocaleFromPath(Astro.url.pathname)
 const t = useTranslations(locale)
 const year = new Date().getFullYear()
 const appUrl = import.meta.env.PUBLIC_APP_URL as string | undefined
-const isFr = locale === "fr"
+
+// Legal entity + registered address, mirroring bayesimpact.org's footer verbatim.
+const legalLine = `Association de loi 1901 (SIREN 813 821 279, FR) · 501(c)(3) (EIN 47-1102475, US) · 12 rue des Jeûneurs, 75002 Paris`
+
+const social = [
+  { name: "linkedin", label: "LinkedIn", href: "https://www.linkedin.com/company/bayes-impact/" },
+  { name: "x-logo", label: "X", href: "https://x.com/bayesimpact", filled: true },
+  { name: "github", label: "GitHub", href: "https://github.com/bayesimpact" },
+]
 ---
 
-{/* Brand footer — near-black surface, mirroring bayesimpact.org's contact footer. */}
+{/* Brand footer — near-black surface, laid out exactly like bayesimpact.org's footer:
+    an upper band (socials left · links right) over a main band (logo + legal line). */}
 <footer class="relative mt-16 overflow-hidden bg-[#0e0e13] text-white/75">
   <div
     class="pointer-events-none absolute inset-0 opacity-70"
@@ -19,58 +28,74 @@ const isFr = locale === "fr"
   >
   </div>
 
-  <div class="relative mx-auto max-w-6xl px-4 py-16 sm:px-6">
-    <div class="flex flex-col gap-12 sm:flex-row sm:justify-between">
-      <div class="max-w-sm">
-        <LogoFull class="h-7 w-auto text-white" />
-        <p class="mt-5 text-sm leading-relaxed text-white/55">{t("site.tagline")}</p>
+  <div class="relative mx-auto max-w-[1360px] px-6 pt-14 sm:px-10">
+    {/* Upper band — socials left, navigation links right (newsletter's slot). */}
+    <div
+      class="flex flex-col items-center gap-4 border-y border-white/12 py-6 sm:flex-row sm:justify-between sm:gap-6"
+    >
+      <div class="flex items-center gap-6">
+        {
+          social.map((entry) => (
+            <a
+              class="flex items-center justify-center text-white/70 opacity-70 transition-opacity hover:opacity-100"
+              href={entry.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={entry.label}
+            >
+              <Icon name={entry.name} size={entry.filled ? 18 : 20} filled={entry.filled} />
+            </a>
+          ))
+        }
       </div>
 
-      <div class="flex gap-14 sm:gap-20">
-        <div>
-          <p class="label mb-4" style="--eyebrow-color: rgba(255,255,255,0.5);">
-            {isFr ? "Liens" : "Links"}
-          </p>
-          <ul class="space-y-2.5 text-sm">
-            {
-              appUrl && (
-                <li>
-                  <a class="text-white/70 transition-colors hover:text-white" href={appUrl}>
-                    {t("nav.backToApp")}
-                  </a>
-                </li>
-              )
-            }
-            <li>
-              <a
-                class="text-white/70 transition-colors hover:text-white"
-                href="https://www.bayesimpact.org"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                bayesimpact.org
-              </a>
-            </li>
-            <li>
-              <a
-                class="text-white/70 transition-colors hover:text-white"
-                href="https://github.com/bayesimpact"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                GitHub
-              </a>
-            </li>
-          </ul>
-        </div>
+      <div class="flex items-center gap-4 text-sm text-white/70 sm:gap-5">
+        {
+          appUrl && (
+            <a class="transition-colors hover:text-white" href={appUrl}>
+              {t("nav.backToApp")}
+            </a>
+          )
+        }
+        {appUrl && <span class="text-white/25">·</span>}
+        <a
+          class="transition-colors hover:text-white"
+          href="https://www.bayesimpact.org"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          bayesimpact.org
+        </a>
       </div>
     </div>
 
-    <div
-      class="mt-14 flex flex-col gap-2 border-t border-white/12 pt-6 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between"
-    >
-      <span>© {year} Bayes Impact · {t("footer.rights")}</span>
-      <span>{SITE_TITLE}</span>
+    {/* Main band — logo (+ tagline) stacked above the legal line. */}
+    <div class="grid gap-10 pb-16 pt-14">
+      <div class="flex flex-col items-start gap-4">
+        <LogoFull class="h-7 w-auto text-white" />
+        <p class="max-w-sm text-sm leading-relaxed text-white/55">{t("site.tagline")}</p>
+      </div>
+
+      <p class="text-xs leading-relaxed text-white/45">
+        © {year} Bayes Impact — {legalLine} —{" "}
+        <a
+          class="underline underline-offset-[3px] opacity-80 transition-opacity hover:opacity-100"
+          href="https://www.bayesimpact.org/legal-notices/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {t("footer.legalNotice")}
+        </a>
+        {" · "}
+        <a
+          class="underline underline-offset-[3px] opacity-80 transition-opacity hover:opacity-100"
+          href="https://www.bayesimpact.org/privacy-policy/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {t("footer.privacyPolicy")}
+        </a>
+      </p>
     </div>
   </div>
 </footer>

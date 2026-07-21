@@ -33,16 +33,18 @@ export function DocumentTagsSheet({ documentTags }: { documentTags: DocumentTag[
         <SheetHeader>
           <SheetTitle>{t("sheet.title")}</SheetTitle>
         </SheetHeader>
-        <div className="flex flex-col gap-3 px-4 pb-4">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 px-4 pb-4">
           <div className="flex justify-end">
             <DocumentTagCreator allTags={documentTags} />
           </div>
           {documentTags.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("sheet.empty")}</p>
           ) : (
-            tagTree.map((tag) => (
-              <DocumentTagSheetNode key={tag.id} tag={tag} allTags={documentTags} />
-            ))
+            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+              {tagTree.map((tag) => (
+                <DocumentTagSheetNode key={tag.id} tag={tag} allTags={documentTags} />
+              ))}
+            </div>
           )}
         </div>
       </SheetContent>

@@ -4,7 +4,7 @@ highlight: libraries
 description: Create libraries of links and files your agents can surface to users during a conversation, and attach them to an agent.
 category: guides-sources
 order: 3
-updated: 2026-07-09
+updated: 2026-07-20
 ---
 
 import ResourceLibrariesWalkthrough from "@/components/ResourceLibrariesWalkthrough.astro"
@@ -70,9 +70,18 @@ validated before you can save. Add as many resources as you need.
 
 ### 4. Preview, edit or delete a resource
 
-In the library's **Resources** table, use the **⋯** menu at the end of a row to
-**Preview**, **Edit**, or **Delete** that resource. You can build several
-specialized libraries this way.
+In the library's **Resources** table, use the **⋯** menu at the end of a row to:
+
+- **Preview** — open the **Resource preview** dialog, which renders the resource
+  as the **card end users see** in a conversation (its title, description and
+  link). Close it by clicking outside.
+- **Edit** — open the full **Edit resource** form (**Title**, **Description**,
+  **Matching hints**, **Link**); click **Save** to apply.
+- **Delete** — open the **Remove resource** confirmation (*Remove "…" from this
+  library?*); confirm with **Delete**.
+
+In the **Description** column, a long description is truncated — click it to
+expand the full text in a popover. Build as many specialized libraries as you need.
 
 ### 5. Attach a library to an agent
 

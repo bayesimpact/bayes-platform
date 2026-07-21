@@ -1,10 +1,4 @@
-import type {
-  AgentLocale,
-  AgentModel,
-  AgentTemperature,
-  AgentType,
-  DocumentsRagMode,
-} from "@caseai-connect/api-contracts"
+import type { AgentType } from "@caseai-connect/api-contracts"
 import { Column, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
@@ -40,13 +34,6 @@ export class Agent extends ConnectEntityBase {
     (conversationAgentSession) => conversationAgentSession.agent,
   )
   conversationAgentSessions!: ConversationAgentSession[]
-
-  //fixme DOO : ensure useless
-  // @OneToMany(
-  //   () => ExtractionAgentSession,
-  //   (extractionAgentSession) => extractionAgentSession._deleted_agent,
-  // )
-  // _deleted_extractionSessions!: ExtractionAgentSession[]
 
   @ManyToMany("DocumentTag", (tag: DocumentTag) => tag.agents)
   @JoinTable({
@@ -90,27 +77,4 @@ export class Agent extends ConnectEntityBase {
     inverseJoinColumn: { name: "resource_library_id", referencedColumnName: "id" },
   })
   resourceLibraries!: ResourceLibrary[]
-
-  @Column({ type: "text", name: "_deleted_default_prompt", nullable: true })
-  _deleted_defaultPrompt!: string | null
-
-  @Column({ type: "varchar", nullable: true })
-  _deleted_model!: AgentModel | null
-
-  @Column({ type: "decimal", precision: 3, scale: 2, default: 0, nullable: true })
-  _deleted_temperature!: AgentTemperature | null
-
-  @Column({ type: "varchar", nullable: true })
-  _deleted_locale!: AgentLocale | null
-  @Column({ type: "varchar", name: "_deleted_documents_rag_mode", default: "all", nullable: true })
-  _deleted_documentsRagMode!: DocumentsRagMode | null
-
-  @Column({ type: "text", nullable: true, name: "_deleted_instruction_prompt" })
-  _deleted_instructionPrompt!: string | null
-
-  @Column({ type: "text", nullable: true, name: "_deleted_greeting_message" })
-  _deleted_greetingMessage!: string | null
-
-  @Column({ type: "jsonb", nullable: true, name: "_deleted_output_json_schema" })
-  _deleted_outputJsonSchema!: Record<string, unknown> | null
 }
