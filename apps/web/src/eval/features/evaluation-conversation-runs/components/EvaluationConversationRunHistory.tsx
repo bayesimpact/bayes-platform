@@ -89,6 +89,14 @@ export function EvaluationConversationRunHistory({ runs }: { runs: EvaluationCon
         size: 200,
       },
       {
+        id: "judgeModel",
+        header: () => t("evaluationConversationRun:history.columns.judgeModel"),
+        cell: ({ row }) => (
+          <span className="text-sm font-mono whitespace-nowrap">{row.original.judgeModel}</span>
+        ),
+        size: 200,
+      },
+      {
         id: "averageScore",
         header: () => t("evaluationConversationRun:history.columns.averageScore"),
         cell: ({ row }) => {

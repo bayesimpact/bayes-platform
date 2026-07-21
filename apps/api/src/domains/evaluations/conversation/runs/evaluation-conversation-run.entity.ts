@@ -1,3 +1,4 @@
+import type { AgentModel } from "@caseai-connect/api-contracts"
 import { Column, JoinColumn, ManyToOne, OneToMany } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import type { Agent } from "@/domains/agents/agent.entity"
@@ -50,6 +51,9 @@ export class EvaluationConversationRun extends ConnectEntityBase {
 
   @Column({ type: "varchar", default: "pending" })
   status!: EvaluationConversationRunStatus
+
+  @Column({ type: "varchar", name: "judge_model", default: "gemini-2.5-flash" })
+  judgeModel!: AgentModel
 
   @Column({ name: "summary", type: "jsonb", nullable: true })
   summary!: EvaluationConversationRunSummary | null

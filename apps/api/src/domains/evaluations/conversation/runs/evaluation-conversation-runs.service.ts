@@ -1,3 +1,4 @@
+import { AgentModel } from "@caseai-connect/api-contracts"
 import { Inject, Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"
@@ -65,8 +66,13 @@ export class EvaluationConversationRunsService {
       evaluationConversationDatasetId: string
       agentId: string
       agentSettingsId: string
+      judgeModel: AgentModel
     }
   }): Promise<EvaluationConversationRun> {
+    if (!Object.values(AgentModel).includes(fields.judgeModel)) {
+      throw new UnprocessableEntityException(`Invalid judge model: ${fields.judgeModel}`)
+    }
+
     // Ensure dataset exists and belongs to the same project/organization before creating run to avoid orphaned runs and to validate access upfront
     await this.getDataset({ id: fields.evaluationConversationDatasetId, connectScope })
 
@@ -85,6 +91,7 @@ export class EvaluationConversationRunsService {
       evaluationConversationDatasetId: fields.evaluationConversationDatasetId,
       agentId: fields.agentId,
       agentSettingsId: fields.agentSettingsId,
+      judgeModel: fields.judgeModel,
       status: "pending",
       summary: null,
     })

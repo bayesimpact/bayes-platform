@@ -1,3 +1,4 @@
+import type { AgentModel } from "@caseai-connect/api-contracts"
 import type {
   EvaluationConversationRun,
   EvaluationConversationRunStatusChangedEvent,
@@ -14,6 +15,7 @@ export interface IEvaluationConversationRunsSpi {
         // Agent-settings revision to pin on the run; null pins the latest revision.
         agentSettingsRevision: number | null
         datasetId: string
+        judgeModel: AgentModel
       }
     },
   ): Promise<EvaluationConversationRun>

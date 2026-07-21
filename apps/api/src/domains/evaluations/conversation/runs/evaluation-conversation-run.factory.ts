@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto"
+import { AgentModel } from "@caseai-connect/api-contracts"
 import { Factory } from "fishery"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"
 import type { Agent } from "@/domains/agents/agent.entity"
@@ -48,6 +49,7 @@ export const evaluationConversationRunFactory = EvaluationConversationRunFactory
       agentSettingsId: transientParams.agentSettings.id,
       agentSettings: transientParams.agentSettings,
       status: params.status || "pending",
+      judgeModel: params.judgeModel ?? AgentModel.Gemini25Flash,
       summary: (params.summary as EvaluationConversationRunSummary) || null,
       organizationId: transientParams.organization.id,
       projectId: transientParams.project.id,

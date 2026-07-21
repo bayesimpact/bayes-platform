@@ -16,6 +16,11 @@
       "item": "v{{revision}} — {{date}}",
       "revision": "v{{revision}}"
     },
+    "judgeModel": {
+      "label": "Judge model",
+      "placeholder": "Select a judge model",
+      "description": "Model used to grade the agent's answers against the expected output."
+    },
     "results": {
       "title": "Run Results",
       "summary": "Summary",
@@ -23,6 +28,7 @@
       "gradedCount": "Graded",
       "errors": "Errors",
       "averageScore": "Average Score",
+      "judgeModel": "Judge model",
       "averageScoreDescription": "Average score: {{averageScore}}/5",
       "noScore": "No score",
       "records": "Records",
@@ -69,6 +75,7 @@
         "agent": "Agent",
         "version": "Version",
         "model": "Model",
+        "judgeModel": "Judge model",
         "averageScore": "Average score",
         "records": "Records"
       },

@@ -46,7 +46,7 @@ export function EvaluationConversationRunSummary({ run }: { run: EvaluationConve
           )}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-col gap-4">
         <div className="grid grid-cols-4 gap-4">
           {stats.map((stat) => (
             <div key={stat.label} className="flex flex-col gap-1 rounded-lg border p-3">
@@ -54,6 +54,12 @@ export function EvaluationConversationRunSummary({ run }: { run: EvaluationConve
               <span className="text-2xl font-bold">{stat.value}</span>
             </div>
           ))}
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-muted-foreground">
+            {t("evaluationConversationRun:results.judgeModel")}
+          </span>
+          <span className="font-mono">{run.judgeModel}</span>
         </div>
       </CardContent>
     </Card>

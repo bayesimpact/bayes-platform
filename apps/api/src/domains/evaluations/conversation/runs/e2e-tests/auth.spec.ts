@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { EvaluationConversationRunsRoutes } from "@caseai-connect/api-contracts"
+import { AgentModel, EvaluationConversationRunsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
@@ -96,6 +96,7 @@ describe("EvaluationConversationRuns - Auth", () => {
         datasetId: randomUUID(),
         agentId: randomUUID(),
         agentSettingsRevision: null,
+        judgeModel: AgentModel.Gemini25Flash,
       },
     }
 

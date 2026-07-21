@@ -6,10 +6,12 @@ import { ServiceWithLLM } from "@/external/llm"
 
 /**
  * LLM judge for conversation evaluation runs, ported from the legacy
- * EvaluationReportsService.rateReport: same prompts, same hardcoded rating agent
- * (Gemini 2.5 Flash at temperature 0), same mock swap for tests. Unlike the legacy
- * version, the raw response is parsed into an integer score clamped to 0-5 and an
- * unparsable response throws (the run record then becomes status "error").
+ * EvaluationReportsService.rateReport: same prompts, same rating agent at
+ * temperature 0, same mock swap for tests. The judge model is now selectable
+ * per run (defaulting to Gemini 2.5 Flash) and passed in via `judgeModel`.
+ * Unlike the legacy version, the raw response is parsed into an integer score
+ * clamped to 0-5 and an unparsable response throws (the run record then becomes
+ * status "error").
  */
 @Injectable()
 export class EvaluationConversationRunGraderService extends ServiceWithLLM {
@@ -41,12 +43,14 @@ export class EvaluationConversationRunGraderService extends ServiceWithLLM {
     expectedOutput,
     generatedOutput,
     generatorModel,
+    judgeModel,
     traceId,
     connectScope,
   }: {
     expectedOutput: string
     generatedOutput: string
     generatorModel: AgentModel
+    judgeModel: AgentModel
     traceId: string
     connectScope: RequiredConnectScope
   }): Promise<number> {
@@ -61,7 +65,7 @@ export class EvaluationConversationRunGraderService extends ServiceWithLLM {
     - 5 is the maximum and signify that the '%value' completely satisfies the '%ratingInstructions'.
     - 0 signifies that the '%value' is fully far away the '%ratingInstructions'.
 `,
-      model: AgentModel.Gemini25Flash,
+      model: judgeModel,
       temperature: 0,
     }
 

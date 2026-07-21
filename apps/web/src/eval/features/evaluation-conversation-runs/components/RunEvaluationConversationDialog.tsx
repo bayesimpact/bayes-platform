@@ -1,3 +1,4 @@
+import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Dialog,
@@ -23,6 +24,8 @@ import { useNavigate } from "react-router-dom"
 import { RunScopeSelector } from "@/common/components/shared/RunScopeSelector"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
+import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
+import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useValue } from "@/common/hooks/use-value"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
@@ -39,6 +42,7 @@ type RunSettings = {
   selectedAgentId: string | null
   // null = no explicit choice yet; the newest revision is used once history loads.
   selectedRevision: number | null
+  judgeModel: AgentModel
   runScope: "all" | "limited"
   limitedCount: number
 }
@@ -46,8 +50,28 @@ type RunSettings = {
 const defaultRunSettings: RunSettings = {
   selectedAgentId: null,
   selectedRevision: null,
+  judgeModel: AgentModel.Gemini25Flash,
   runScope: "all",
   limitedCount: 1,
+}
+
+// Mirrors AgentModelTab.extractModelList: the Vertex provider models are always
+// available; the other provider groups are gated behind the matching project
+// feature flag. AgentModel._Mock is naturally excluded (its provider is _Mock).
+function extractJudgeModelList(
+  hasFeature: ReturnType<typeof useFeatureFlags>["hasFeature"],
+): [string, AgentModel][] {
+  const allEntries = Object.entries(AgentModel) as [string, AgentModel][]
+  const byProvider = (provider: AgentProvider) =>
+    allEntries.filter(([_key, value]) => AgentModelToAgentProvider[value] === provider)
+
+  const defaultModels = byProvider(AgentProvider.Vertex)
+  const medGemmaModels = hasFeature("medgemma") ? byProvider(AgentProvider.MedGemma) : []
+  const gemmaModels = hasFeature("gemma") ? byProvider(AgentProvider.Gemma) : []
+  const vertex3Models = hasFeature("vertex-3") ? byProvider(AgentProvider.Vertex3) : []
+  const mistralModels = hasFeature("mistral") ? byProvider(AgentProvider.Mistral) : []
+
+  return [...defaultModels, ...medGemmaModels, ...gemmaModels, ...vertex3Models, ...mistralModels]
 }
 
 export function RunEvaluationConversationDialog({
@@ -60,11 +84,15 @@ export function RunEvaluationConversationDialog({
   const navigate = useNavigate()
   const { buildConversationRunPath } = useEvaluationConversationRunPath()
   const agentsData = useValue(selectAgentsData)
+  const project = useValue(selectCurrentProjectData)
+  const { hasFeature } = useFeatureFlags(project)
   const agentHistoryData = useAppSelector(selectConversationRunAgentHistory)
   const isExecuting = useAppSelector(selectIsExecutingConversationRun)
   const [open, setOpen] = useState(false)
   const [settings, setSettings] = useState<RunSettings>(defaultRunSettings)
-  const { selectedAgentId, selectedRevision, runScope, limitedCount } = settings
+  const { selectedAgentId, selectedRevision, judgeModel, runScope, limitedCount } = settings
+
+  const judgeModels = useMemo(() => extractJudgeModelList(hasFeature), [hasFeature])
 
   const conversationAgents = useMemo(() => {
     return agentsData.filter((agent) => agent.type === "conversation")
@@ -112,6 +140,10 @@ export function RunEvaluationConversationDialog({
     setSettings((previous) => ({ ...previous, runScope: scope }))
   }, [])
 
+  const handleJudgeModelChange = useCallback((value: string) => {
+    setSettings((previous) => ({ ...previous, judgeModel: value as AgentModel }))
+  }, [])
+
   const handleLimitedCountChange = useCallback(
     (value: string) => {
       const parsed = Number.parseInt(value, 10)
@@ -141,6 +173,7 @@ export function RunEvaluationConversationDialog({
         datasetId: dataset.id,
         agentId: selectedAgentId,
         agentSettingsRevision: effectiveRevision,
+        judgeModel,
         recordLimit: runScope === "limited" ? limitedCount : null,
       }),
     ).unwrap()
@@ -186,6 +219,12 @@ export function RunEvaluationConversationDialog({
               onRevisionChange={handleRevisionChange}
             />
           )}
+
+          <JudgeModelSelector
+            models={judgeModels}
+            selectedModel={judgeModel}
+            onModelChange={handleJudgeModelChange}
+          />
 
           <RunScopeSelector
             recordCount={dataset.recordCount}
@@ -253,6 +292,39 @@ function AgentVersionSelector({
           ))}
         </SelectContent>
       </Select>
+    </div>
+  )
+}
+
+function JudgeModelSelector({
+  models,
+  selectedModel,
+  onModelChange,
+}: {
+  models: [string, AgentModel][]
+  selectedModel: AgentModel
+  onModelChange: (value: string) => void
+}) {
+  const { t } = useTranslation()
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Label>{t("evaluationConversationRun:judgeModel.label")}</Label>
+      <Select value={selectedModel} onValueChange={onModelChange}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder={t("evaluationConversationRun:judgeModel.placeholder")} />
+        </SelectTrigger>
+        <SelectContent>
+          {models.map(([key, value]) => (
+            <SelectItem key={key} value={value}>
+              {value}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <p className="text-sm text-muted-foreground">
+        {t("evaluationConversationRun:judgeModel.description")}
+      </p>
     </div>
   )
 }

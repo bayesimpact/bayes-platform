@@ -101,6 +101,7 @@ function toEvaluationConversationRun(dto: EvaluationConversationRunDto): Evaluat
       revision: dto.agentSettings.revision,
       temperature: dto.agentSettings.temperature,
     },
+    judgeModel: dto.judgeModel,
     status: dto.status,
     summary: dto.summary,
     projectId: dto.projectId,

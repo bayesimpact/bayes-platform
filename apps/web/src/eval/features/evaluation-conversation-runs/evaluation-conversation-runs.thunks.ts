@@ -1,3 +1,4 @@
+import type { AgentModel } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getCurrentId } from "@/common/features/helpers"
@@ -79,6 +80,7 @@ const createAndExecute = createAsyncThunk<
     datasetId: string
     agentId: string
     agentSettingsRevision: number
+    judgeModel: AgentModel
     recordLimit: number | null
   },
   ThunkConfig
@@ -94,6 +96,7 @@ const createAndExecute = createAsyncThunk<
       agentId: payload.agentId,
       agentSettingsRevision: payload.agentSettingsRevision,
       datasetId: payload.datasetId,
+      judgeModel: payload.judgeModel,
     },
   })
   await services.evaluationConversationRuns.executeOne({

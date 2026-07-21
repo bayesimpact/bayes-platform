@@ -16,6 +16,11 @@
       "item": "v{{revision}} — {{date}}",
       "revision": "v{{revision}}"
     },
+    "judgeModel": {
+      "label": "Modèle du juge",
+      "placeholder": "Sélectionner un modèle de juge",
+      "description": "Modèle utilisé pour noter les réponses de l'agent par rapport au résultat attendu."
+    },
     "results": {
       "title": "Résultats",
       "summary": "Résumé",
@@ -23,6 +28,7 @@
       "gradedCount": "Notés",
       "errors": "Erreurs",
       "averageScore": "Score moyen",
+      "judgeModel": "Modèle du juge",
       "averageScoreDescription": "Score moyen : {{averageScore}}/5",
       "noScore": "Aucun score",
       "records": "Enregistrements",
@@ -69,6 +75,7 @@
         "agent": "Agent",
         "version": "Version",
         "model": "Modèle",
+        "judgeModel": "Modèle du juge",
         "averageScore": "Score moyen",
         "records": "Enregistrements"
       },

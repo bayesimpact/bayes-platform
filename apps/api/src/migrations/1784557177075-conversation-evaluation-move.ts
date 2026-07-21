@@ -23,7 +23,7 @@ export class ConversationEvaluationMove1784557177075 implements MigrationInterfa
       `CREATE INDEX "IDX_8c5d527881d9033e695a756537" ON "evaluation_conversation_run_record" ("organization_id", "project_id", "evaluation_conversation_run_id", "status") `,
     )
     await queryRunner.query(
-      `CREATE TABLE "evaluation_conversation_run" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "deleted_at" TIMESTAMP, "organization_id" uuid NOT NULL, "project_id" uuid NOT NULL, "evaluation_conversation_dataset_id" uuid NOT NULL, "agent_id" uuid NOT NULL, "agent_settings_id" uuid NOT NULL, "status" character varying NOT NULL DEFAULT 'pending', "summary" jsonb, CONSTRAINT "PK_9c31de3e646edc0d255672e8c33" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "evaluation_conversation_run" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "deleted_at" TIMESTAMP, "organization_id" uuid NOT NULL, "project_id" uuid NOT NULL, "evaluation_conversation_dataset_id" uuid NOT NULL, "agent_id" uuid NOT NULL, "agent_settings_id" uuid NOT NULL, "status" character varying NOT NULL DEFAULT 'pending', "judge_model" character varying NOT NULL DEFAULT 'gemini-2.5-flash', "summary" jsonb, CONSTRAINT "PK_9c31de3e646edc0d255672e8c33" PRIMARY KEY ("id"))`,
     )
     await queryRunner.query(
       `CREATE INDEX "IDX_b97c4ba43d49c1c858c41d342b" ON "evaluation_conversation_run" ("organization_id", "project_id") `,

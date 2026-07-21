@@ -26,11 +26,15 @@ describe("EvaluationConversationRunGraderService", () => {
     )
   })
 
-  const gradeWith = (generatorModel: AgentModel = AgentModel.Gemini25Flash) =>
+  const gradeWith = (
+    generatorModel: AgentModel = AgentModel.Gemini25Flash,
+    judgeModel: AgentModel = AgentModel.Gemini25Flash,
+  ) =>
     grader.gradeOutput({
       expectedOutput: "The expected answer",
       generatedOutput: "The generated answer",
       generatorModel,
+      judgeModel,
       traceId: "trace-1",
       connectScope,
     })
@@ -86,6 +90,16 @@ describe("EvaluationConversationRunGraderService", () => {
     expect(callArguments.prompt).toContain("The generated answer")
     expect(callArguments.metadata.tags).toEqual(["*Rating Agent*"])
     expect(callArguments.metadata.traceId).toBe("trace-1")
+  })
+
+  it("should use the selected judge model as the rating agent config model", async () => {
+    vertexProvider.generateText.mockResolvedValue("3")
+
+    await gradeWith(AgentModel.Gemini25Flash, AgentModel.Gemini25Pro)
+
+    expect(vertexProvider.generateText).toHaveBeenCalledTimes(1)
+    const callArguments = vertexProvider.generateText.mock.calls[0]![0]
+    expect(callArguments.config.model).toBe(AgentModel.Gemini25Pro)
   })
 
   it("should swap to the mock model with a **TEST** tag when the generator uses the mock provider", async () => {

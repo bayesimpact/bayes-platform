@@ -278,6 +278,7 @@ export class EvaluationConversationRunProcessorService extends ServiceWithLLM {
         expectedOutput: runRecord.expectedOutput,
         generatedOutput: output,
         generatorModel: agentWithSettings.model,
+        judgeModel: evaluationConversationRun.judgeModel,
         traceId,
         connectScope,
       })

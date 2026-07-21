@@ -93,6 +93,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         datasetId: dataset.id,
         agentId: agent.id,
         agentSettingsRevision: null,
+        judgeModel: AgentModel.Gemini25Pro,
       },
     })
 
@@ -100,10 +101,12 @@ describe("EvaluationConversationRuns - createOne", () => {
     expect(res.body.data.status).toBe("pending")
     expect(res.body.data.evaluationConversationDatasetId).toBe(dataset.id)
     expect(res.body.data.agentId).toBe(agent.id)
+    expect(res.body.data.judgeModel).toBe(AgentModel.Gemini25Pro)
     expect(res.body.data.summary).toBeNull()
 
     const runs = await evaluationConversationRunRepository.find()
     expect(runs).toHaveLength(1)
+    expect(runs[0]!.judgeModel).toBe(AgentModel.Gemini25Pro)
     await expectActivityCreated("evaluationConversationRun.create")
   })
 
@@ -119,6 +122,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         datasetId: dataset.id,
         agentId: agent.id,
         agentSettingsRevision: null,
+        judgeModel: AgentModel.Gemini25Flash,
       },
     })
 
@@ -140,6 +144,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         datasetId: dataset.id,
         agentId: agent.id,
         agentSettingsRevision: 1,
+        judgeModel: AgentModel.Gemini25Flash,
       },
     })
 
@@ -158,6 +163,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         datasetId: dataset.id,
         agentId: agent.id,
         agentSettingsRevision: 999,
+        judgeModel: AgentModel.Gemini25Flash,
       },
     })
 
@@ -174,6 +180,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         datasetId: "00000000-0000-0000-0000-000000000000",
         agentId: agent.id,
         agentSettingsRevision: null,
+        judgeModel: AgentModel.Gemini25Flash,
       },
     })
 
@@ -188,6 +195,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         datasetId: dataset.id,
         agentId: "00000000-0000-0000-0000-000000000000",
         agentSettingsRevision: null,
+        judgeModel: AgentModel.Gemini25Flash,
       },
     })
 
@@ -202,9 +210,27 @@ describe("EvaluationConversationRuns - createOne", () => {
         datasetId: dataset.id,
         agentId: agent.id,
         agentSettingsRevision: null,
+        judgeModel: AgentModel.Gemini25Flash,
       },
     })
 
     expectResponse(res, 422)
+  })
+
+  it("should reject an invalid judge model", async () => {
+    const { dataset, agent } = await createContext()
+
+    const res = await subject({
+      payload: {
+        datasetId: dataset.id,
+        agentId: agent.id,
+        agentSettingsRevision: null,
+        judgeModel: "not-a-real-model" as AgentModel,
+      },
+    })
+
+    expectResponse(res, 422)
+    const runs = await evaluationConversationRunRepository.find()
+    expect(runs).toHaveLength(0)
   })
 })

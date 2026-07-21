@@ -43,6 +43,8 @@ export type EvaluationConversationRunDto = {
   agentId: string
   agentSettings: EvaluationConversationRunAgentSettingsDto
   status: EvaluationConversationRunStatusDto
+  // LLM judge model used to grade this run's records.
+  judgeModel: AgentModel
   summary: EvaluationConversationRunSummaryDto | null
   projectId: string
   createdAt: TimeType
@@ -72,6 +74,8 @@ export type CreateEvaluationConversationRunRequestDto = {
   // Agent-settings revision to pin on the run; null pins the latest revision.
   agentSettingsRevision: number | null
   datasetId: string
+  // LLM judge model used to grade this run's records.
+  judgeModel: AgentModel
 }
 
 export type ExecuteEvaluationConversationRunRequestDto = {
