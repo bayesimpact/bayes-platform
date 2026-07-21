@@ -2,10 +2,10 @@ import { Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
 import { AgentContextResolver } from "@/common/context/resolvers/agent-context.resolver"
 import { DocumentContextResolver } from "@/common/context/resolvers/document-context.resolver"
-import { EvaluationContextResolver } from "@/common/context/resolvers/evaluation-context.resolver"
+import { EvaluationConversationDatasetContextResolver } from "@/common/context/resolvers/evaluation-conversation-dataset-context.resolver"
+import { EvaluationConversationRunContextResolver } from "@/common/context/resolvers/evaluation-conversation-run-context.resolver"
 import { EvaluationExtractionDatasetContextResolver } from "@/common/context/resolvers/evaluation-extraction-dataset-context.resolver"
 import { EvaluationExtractionRunContextResolver } from "@/common/context/resolvers/evaluation-extraction-run-context.resolver"
-import { EvaluationReportContextResolver } from "@/common/context/resolvers/evaluation-report-context.resolver"
 import { OrganizationContextResolver } from "@/common/context/resolvers/organization-context.resolver"
 import { ProjectContextResolver } from "@/common/context/resolvers/project-context.resolver"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
@@ -21,10 +21,20 @@ import { ProjectsModule } from "@/domains/projects/projects.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { LlmModule } from "@/external/llm/llm.module"
 import { Agent } from "../agents/agent.entity"
-import { Evaluation } from "./evaluation.entity"
-import { EvaluationGuard } from "./evaluation.guard"
-import { EvaluationsController } from "./evaluations.controller"
-import { EvaluationsService } from "./evaluations.service"
+import { EvaluationConversationDataset } from "./conversation/datasets/evaluation-conversation-dataset.entity"
+import { EvaluationConversationDatasetGuard } from "./conversation/datasets/evaluation-conversation-dataset.guard"
+import { EvaluationConversationDatasetsController } from "./conversation/datasets/evaluation-conversation-datasets.controller"
+import { EvaluationConversationDatasetsService } from "./conversation/datasets/evaluation-conversation-datasets.service"
+import { EvaluationConversationDatasetRecord } from "./conversation/datasets/records/evaluation-conversation-dataset-record.entity"
+import { EvaluationConversationRun } from "./conversation/runs/evaluation-conversation-run.entity"
+import { EvaluationConversationRunGuard } from "./conversation/runs/evaluation-conversation-run.guard"
+import { EvaluationConversationRunBatchModule } from "./conversation/runs/evaluation-conversation-run-batch.module"
+import { EvaluationConversationRunGraderService } from "./conversation/runs/evaluation-conversation-run-grader.service"
+import { EvaluationConversationRunStatusNotifierService } from "./conversation/runs/evaluation-conversation-run-status-notifier.service"
+import { EvaluationConversationRunStatusStreamService } from "./conversation/runs/evaluation-conversation-run-status-stream.service"
+import { EvaluationConversationRunsController } from "./conversation/runs/evaluation-conversation-runs.controller"
+import { EvaluationConversationRunsService } from "./conversation/runs/evaluation-conversation-runs.service"
+import { EvaluationConversationRunRecord } from "./conversation/runs/records/evaluation-conversation-run-record.entity"
 import { EvaluationExtractionDataset } from "./extraction/datasets/evaluation-extraction-dataset.entity"
 import { EvaluationExtractionDatasetGuard } from "./extraction/datasets/evaluation-extraction-dataset.guard"
 import { EvaluationExtractionDatasetDocument } from "./extraction/datasets/evaluation-extraction-dataset-document.entity"
@@ -41,10 +51,6 @@ import { EvaluationExtractionRunStatusStreamService } from "./extraction/runs/ev
 import { EvaluationExtractionRunsController } from "./extraction/runs/evaluation-extraction-runs.controller"
 import { EvaluationExtractionRunsService } from "./extraction/runs/evaluation-extraction-runs.service"
 import { EvaluationExtractionRunRecord } from "./extraction/runs/records/evaluation-extraction-run-record.entity"
-import { EvaluationReport } from "./reports/evaluation-report.entity"
-import { EvaluationReportGuard } from "./reports/evaluation-report.guard"
-import { EvaluationReportsController } from "./reports/evaluation-reports.controller"
-import { EvaluationReportsService } from "./reports/evaluation-reports.service"
 
 @Module({
   imports: [
@@ -52,17 +58,20 @@ import { EvaluationReportsService } from "./reports/evaluation-reports.service"
     TypeOrmModule.forFeature([
       Agent,
       AgentSettings,
-      Evaluation,
+      EvaluationConversationDataset,
+      EvaluationConversationDatasetRecord,
+      EvaluationConversationRun,
+      EvaluationConversationRunRecord,
       EvaluationExtractionDataset,
       EvaluationExtractionDatasetDocument,
       EvaluationExtractionDatasetRecord,
-      EvaluationReport,
       EvaluationExtractionRun,
       EvaluationExtractionRunRecord,
       Organization,
       Project,
     ]),
     AgentsModule,
+    EvaluationConversationRunBatchModule,
     EvaluationExtractionRunBatchModule,
     DocumentsModule,
     StorageModule,
@@ -73,12 +82,19 @@ import { EvaluationReportsService } from "./reports/evaluation-reports.service"
   ],
   providers: [
     AgentContextResolver,
-    EvaluationContextResolver,
     DocumentContextResolver,
+    EvaluationConversationDatasetContextResolver,
+    EvaluationConversationDatasetGuard,
+    EvaluationConversationDatasetsService,
+    EvaluationConversationRunContextResolver,
+    EvaluationConversationRunGraderService,
+    EvaluationConversationRunGuard,
+    EvaluationConversationRunStatusNotifierService,
+    EvaluationConversationRunStatusStreamService,
+    EvaluationConversationRunsService,
     EvaluationExtractionDatasetContextResolver,
     EvaluationExtractionDatasetGuard,
     EvaluationExtractionDatasetsService,
-    EvaluationGuard,
     EvaluationExtractionRunContextResolver,
     EvaluationExtractionRunCsvExportService,
     EvaluationExtractionRunGraderService,
@@ -86,24 +102,20 @@ import { EvaluationReportsService } from "./reports/evaluation-reports.service"
     EvaluationExtractionRunStatusNotifierService,
     EvaluationExtractionRunStatusStreamService,
     EvaluationExtractionRunsService,
-    EvaluationReportContextResolver,
-    EvaluationReportGuard,
-    EvaluationReportsService,
-    EvaluationsService,
     OrganizationContextResolver,
     ProjectContextResolver,
     ResourceContextGuard,
   ],
   controllers: [
-    EvaluationsController,
+    EvaluationConversationDatasetsController,
     EvaluationExtractionDatasetsController,
-    EvaluationReportsController,
+    EvaluationConversationRunsController,
     EvaluationExtractionRunsController,
   ],
   exports: [
-    EvaluationsService,
+    EvaluationConversationDatasetsService,
     EvaluationExtractionDatasetsService,
-    EvaluationReportsService,
+    EvaluationConversationRunsService,
     EvaluationExtractionRunsService,
   ],
 })

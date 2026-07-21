@@ -14,13 +14,15 @@ import { AgentMessageAttachmentDocument } from "@/domains/agents/shared/agent-se
 import { AgentMessageFeedback } from "@/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity"
 import { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
 import { Document } from "@/domains/documents/document.entity"
-import { Evaluation } from "@/domains/evaluations/evaluation.entity"
+import { EvaluationConversationDataset } from "@/domains/evaluations/conversation/datasets/evaluation-conversation-dataset.entity"
+import { EvaluationConversationDatasetRecord } from "@/domains/evaluations/conversation/datasets/records/evaluation-conversation-dataset-record.entity"
+import { EvaluationConversationRun } from "@/domains/evaluations/conversation/runs/evaluation-conversation-run.entity"
+import { EvaluationConversationRunRecord } from "@/domains/evaluations/conversation/runs/records/evaluation-conversation-run-record.entity"
 import { EvaluationExtractionDataset } from "@/domains/evaluations/extraction/datasets/evaluation-extraction-dataset.entity"
 import { EvaluationExtractionDatasetDocument } from "@/domains/evaluations/extraction/datasets/evaluation-extraction-dataset-document.entity"
 import { EvaluationExtractionDatasetRecord } from "@/domains/evaluations/extraction/datasets/records/evaluation-extraction-dataset-record.entity"
 import { EvaluationExtractionRun } from "@/domains/evaluations/extraction/runs/evaluation-extraction-run.entity"
 import { EvaluationExtractionRunRecord } from "@/domains/evaluations/extraction/runs/records/evaluation-extraction-run-record.entity"
-import { EvaluationReport } from "@/domains/evaluations/reports/evaluation-report.entity"
 import { FeatureFlag } from "@/domains/feature-flags/feature-flag.entity"
 import { Invitation } from "@/domains/invitations/invitation.entity"
 import { AgentMcpServer } from "@/domains/mcp-servers/agent-mcp-server.entity"
@@ -56,13 +58,15 @@ export type AllRepositories = {
   agentCsvExtractionRunRepository: Repository<AgentCsvExtractionRun>
   agentCsvExtractionRunRecordRepository: Repository<AgentCsvExtractionRunRecord>
   documentRepository: Repository<Document>
+  evaluationConversationDatasetRecordRepository: Repository<EvaluationConversationDatasetRecord>
+  evaluationConversationDatasetRepository: Repository<EvaluationConversationDataset>
+  evaluationConversationRunRecordRepository: Repository<EvaluationConversationRunRecord>
+  evaluationConversationRunRepository: Repository<EvaluationConversationRun>
   evaluationExtractionDatasetDocumentRepository: Repository<EvaluationExtractionDatasetDocument>
   evaluationExtractionDatasetRecordRepository: Repository<EvaluationExtractionDatasetRecord>
   evaluationExtractionDatasetRepository: Repository<EvaluationExtractionDataset>
   evaluationExtractionRunRecordRepository: Repository<EvaluationExtractionRunRecord>
   evaluationExtractionRunRepository: Repository<EvaluationExtractionRun>
-  evaluationReportRepository: Repository<EvaluationReport>
-  evaluationRepository: Repository<Evaluation>
   extractionAgentSessionRepository: Repository<ExtractionAgentSession>
   featureFlagRepository: Repository<FeatureFlag>
   formAgentSessionRepository: Repository<FormAgentSession>
@@ -102,6 +106,12 @@ export function buildAllRepositories(
     agentCsvExtractionRunRepository: getRepository(AgentCsvExtractionRun),
     agentCsvExtractionRunRecordRepository: getRepository(AgentCsvExtractionRunRecord),
     documentRepository: getRepository(Document),
+    evaluationConversationDatasetRecordRepository: getRepository(
+      EvaluationConversationDatasetRecord,
+    ),
+    evaluationConversationDatasetRepository: getRepository(EvaluationConversationDataset),
+    evaluationConversationRunRecordRepository: getRepository(EvaluationConversationRunRecord),
+    evaluationConversationRunRepository: getRepository(EvaluationConversationRun),
     evaluationExtractionDatasetDocumentRepository: getRepository(
       EvaluationExtractionDatasetDocument,
     ),
@@ -109,8 +119,6 @@ export function buildAllRepositories(
     evaluationExtractionDatasetRepository: getRepository(EvaluationExtractionDataset),
     evaluationExtractionRunRecordRepository: getRepository(EvaluationExtractionRunRecord),
     evaluationExtractionRunRepository: getRepository(EvaluationExtractionRun),
-    evaluationReportRepository: getRepository(EvaluationReport),
-    evaluationRepository: getRepository(Evaluation),
     extractionAgentSessionRepository: getRepository(ExtractionAgentSession),
     featureFlagRepository: getRepository(FeatureFlag),
     formAgentSessionRepository: getRepository(FormAgentSession),

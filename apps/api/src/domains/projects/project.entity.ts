@@ -5,7 +5,6 @@ import { ProjectAgentSessionCategory } from "@/domains/agents/session-categories
 import { Document } from "@/domains/documents/document.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { AgentMessageFeedback } from "../agents/shared/agent-session-messages/feedback/agent-message-feedback.entity"
-import { Evaluation } from "../evaluations/evaluation.entity"
 import { FeatureFlag } from "../feature-flags/feature-flag.entity"
 import { ReviewCampaign } from "../review-campaigns/review-campaign.entity"
 
@@ -41,12 +40,6 @@ export class Project extends Base4AllEntity {
     (document) => document.project,
   )
   documents!: Document[]
-
-  @OneToMany(
-    () => Evaluation,
-    (evaluation) => evaluation.project,
-  )
-  evaluations!: Evaluation[]
 
   @OneToMany(
     () => AgentMessageFeedback,

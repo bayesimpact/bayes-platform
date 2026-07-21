@@ -6,10 +6,10 @@ import type { FormAgentSession } from "@/domains/agents/form-agent-sessions/form
 import type { AgentMembershipModel } from "@/domains/agents/memberships/agent-membership.model"
 import type { Document } from "@/domains/documents/document.entity"
 import type { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
-import type { Evaluation } from "@/domains/evaluations/evaluation.entity"
+import type { EvaluationConversationDataset } from "@/domains/evaluations/conversation/datasets/evaluation-conversation-dataset.entity"
+import type { EvaluationConversationRun } from "@/domains/evaluations/conversation/runs/evaluation-conversation-run.entity"
 import type { EvaluationExtractionDataset } from "@/domains/evaluations/extraction/datasets/evaluation-extraction-dataset.entity"
 import type { EvaluationExtractionRun } from "@/domains/evaluations/extraction/runs/evaluation-extraction-run.entity"
-import type { EvaluationReport } from "@/domains/evaluations/reports/evaluation-report.entity"
 import type { Invitation } from "@/domains/invitations/invitation.entity"
 import type { McpServer } from "@/domains/mcp-servers/mcp-server.entity"
 import type { OrganizationMembershipContextModel } from "@/domains/organizations/memberships/organization-membership.model"
@@ -81,12 +81,13 @@ export interface EndpointRequestWithEvaluationExtractionDataset extends Endpoint
   evaluationExtractionDataset: EvaluationExtractionDataset
 }
 
-export interface EndpointRequestWithEvaluation extends EndpointRequestWithProject {
-  evaluation: Evaluation
+export interface EndpointRequestWithEvaluationConversationDataset
+  extends EndpointRequestWithProject {
+  evaluationConversationDataset: EvaluationConversationDataset
 }
 
-export interface EndpointRequestWithEvaluationReport extends EndpointRequestWithEvaluation {
-  evaluationReport: EvaluationReport
+export interface EndpointRequestWithEvaluationConversationRun extends EndpointRequestWithProject {
+  evaluationConversationRun: EvaluationConversationRun
 }
 
 export interface EndpointRequestWithEvaluationExtractionRun extends EndpointRequestWithProject {

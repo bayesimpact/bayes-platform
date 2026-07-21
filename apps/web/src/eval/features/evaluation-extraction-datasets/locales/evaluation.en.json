@@ -1,0 +1,87 @@
+{
+  "evaluation": {
+    "evaluations": "Evaluations",
+    "file": {
+      "title": "Files",
+      "description": "Uploaded files for creating evaluation datasets",
+      "empty": {
+        "title": "No files uploaded",
+        "description": "Upload a file to start creating evaluation datasets."
+      },
+      "props": {
+        "name": "Name",
+        "createdAt": "Created At"
+      },
+      "actions": {
+        "createDataset": "Create Dataset"
+      }
+    },
+    "dataset": {
+      "dataset": "Dataset",
+      "title": "Datasets",
+      "description": "Evaluation datasets created from uploaded files",
+      "create": {
+        "title": "New Dataset",
+        "description": "Evaluate your agents using custom datasets."
+      },
+      "update": {
+        "title": "Initialize dataset {{datasetName}}",
+        "description": "Configure the dataset columns and roles to prepare for evaluation."
+      },
+      "rename": {
+        "title": "Rename dataset",
+        "submit": "Rename"
+      },
+      "delete": {
+        "button": "Delete dataset",
+        "confirm": {
+          "title": "Delete dataset",
+          "description": "This action cannot be undone. All records, files and runs of this dataset will be permanently deleted.",
+          "submit": "Delete"
+        }
+      },
+      "props": {
+        "name": "Dataset Name",
+        "createdAt": "Created At",
+        "placeholders": {
+          "name": "Enter dataset name"
+        }
+      },
+      "list": {
+        "empty": {
+          "title": "No datasets available",
+          "description": "Create your first dataset."
+        }
+      },
+      "records": {
+        "view": {
+          "title": "Records",
+          "description": "{{count}} records"
+        }
+      },
+      "columns": {
+        "noColumns": "Error: No columns detected in the file.",
+        "preview": "Preview",
+        "roles": {
+          "title": "Column Roles",
+          "selectAll": "Select all",
+          "selectedCount": "{{count}} selected",
+          "bulkApply": "Apply a role to selection",
+          "target": "Target",
+          "input": "Input",
+          "reference": "Reference",
+          "ignore": "Ignore"
+        }
+      }
+    },
+    "validation": {
+      "minNameLength": "Name must be at least 3 characters"
+    },
+    "dashboard": {
+      "title": "Evaluation Dashboard",
+      "description": "Evaluate and test the performance of your agents.",
+      "evaluateExtractionAgent": "Evaluate Extraction Agent",
+      "manageDatasets": "Manage datasets and run evaluations"
+    }
+  }
+}

@@ -91,7 +91,7 @@ services:
       DOCUMENT_EXTRACTOR_DOCLING_ENABLED: "false"
       LOCAL_STORAGE_SERVER_BASE_URL: http://api:3000
       MCP_ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
-      WORKER_QUEUE_NAMES: "evaluation-extraction-run-queue,evaluation-extraction-run-execute-queue,agent-csv-extraction-run-queue,agent-csv-extraction-run-execute-queue,url-crawling"
+      WORKER_QUEUE_NAMES: "evaluation-extraction-run-queue,evaluation-extraction-run-execute-queue,evaluation-conversation-run-queue,evaluation-conversation-run-execute-queue,agent-csv-extraction-run-queue,agent-csv-extraction-run-execute-queue,url-crawling"
       WORKERS_HEALTH_QUEUE_NAME: evaluation-extraction-run-queue
     restart: "no"
 

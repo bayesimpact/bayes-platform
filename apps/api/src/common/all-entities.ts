@@ -21,13 +21,15 @@ import { DocumentChunk } from "@/domains/documents/embeddings/document-chunk.ent
 import { DocumentChunkEmbedding } from "@/domains/documents/embeddings/document-chunk-embedding.entity"
 import { DocumentParentChunk } from "@/domains/documents/embeddings/document-parent-chunk.entity"
 import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
-import { Evaluation } from "@/domains/evaluations/evaluation.entity"
+import { EvaluationConversationDataset } from "@/domains/evaluations/conversation/datasets/evaluation-conversation-dataset.entity"
+import { EvaluationConversationDatasetRecord } from "@/domains/evaluations/conversation/datasets/records/evaluation-conversation-dataset-record.entity"
+import { EvaluationConversationRun } from "@/domains/evaluations/conversation/runs/evaluation-conversation-run.entity"
+import { EvaluationConversationRunRecord } from "@/domains/evaluations/conversation/runs/records/evaluation-conversation-run-record.entity"
 import { EvaluationExtractionDataset } from "@/domains/evaluations/extraction/datasets/evaluation-extraction-dataset.entity"
 import { EvaluationExtractionDatasetDocument } from "@/domains/evaluations/extraction/datasets/evaluation-extraction-dataset-document.entity"
 import { EvaluationExtractionDatasetRecord } from "@/domains/evaluations/extraction/datasets/records/evaluation-extraction-dataset-record.entity"
 import { EvaluationExtractionRun } from "@/domains/evaluations/extraction/runs/evaluation-extraction-run.entity"
 import { EvaluationExtractionRunRecord } from "@/domains/evaluations/extraction/runs/records/evaluation-extraction-run-record.entity"
-import { EvaluationReport } from "@/domains/evaluations/reports/evaluation-report.entity"
 import { FeatureFlag } from "@/domains/feature-flags/feature-flag.entity"
 import { Invitation } from "@/domains/invitations/invitation.entity"
 import { AgentMcpServer } from "@/domains/mcp-servers/agent-mcp-server.entity"
@@ -67,11 +69,13 @@ export const ALL_ENTITIES = [
   DocumentChunkEmbedding,
   DocumentParentChunk,
   DocumentTag,
-  Evaluation,
+  EvaluationConversationDataset,
+  EvaluationConversationDatasetRecord,
+  EvaluationConversationRun,
+  EvaluationConversationRunRecord,
   EvaluationExtractionDataset,
   EvaluationExtractionDatasetRecord,
   EvaluationExtractionDatasetDocument,
-  EvaluationReport,
   EvaluationExtractionRun,
   EvaluationExtractionRunRecord,
   ExtractionAgentSession,

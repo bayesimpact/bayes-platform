@@ -9,10 +9,15 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 - (beta) MCP Servers: connect external MCP tool servers to a project and enable/disable them per agent (conversation and form).
+- (beta) Evaluations: compare conversation-evaluation runs — select runs from the run history and open a side-by-side comparison of their settings and summary scores, plus a per-record table showing how each run scored on every case (best score highlighted); runs now carry a short id shown in the history, on the run report, and on the comparison, and clicking it opens that run in a new tab; the run-history, run-report, and comparison pages use a wider full-width layout for their tables.
+- (beta) Evaluations: optional judge instructions per conversation-evaluation run — add extra grading guidance in the run dialog and the LLM judge applies it on top of the expected output when scoring; the instructions used are shown on the run report and, when they differ, in the run comparison
 
 ### Changed
+- (beta) Evaluations: conversation-agent evaluation moved from the Studio into the Evaluation app — build datasets of input/expected-output records (add them inline one after another or paste a batch as CSV), run them against a chosen version of an agent's settings in the background, and follow each run's scores (rated 0–5 by an LLM judge whose model you pick per run) live on its own report page; the run's "view agent" panel shows the exact settings version that was scored, and existing Studio evaluations are migrated into a "Studio evaluations" dataset per project
 
 ### Fixed
+- (beta) Evaluations: conversation and extraction runs now execute the agent exactly as the Studio does — same master prompt and same tools (document retrieval, sources, resource libraries, MCP servers, sub-agents) — so evaluation scores reflect the agent's real behaviour; previously evaluated agents ran with a legacy prompt and no tools at all
+- (beta) Evaluations: cancelling and retrying conversation-evaluation runs is now reliable — a cancelled run can no longer restart itself, a failed retry no longer leaves records stuck, and the run page updates live after a retry instead of freezing on "pending"
 - Renaming an agent no longer creates an extra settings version in the agent's history
 - Tags management panel: the tag list scrolls, so long or nested tag lists stay reachable
 - French UI: the "Add library" button on an agent's Resources tab is now translated
