@@ -66,6 +66,7 @@ export const evaluationConversationRunFactory = EvaluationConversationRunFactory
         temperature: params.agentSettings?.temperature ?? agent.temperature,
       },
       judgeModel: params.judgeModel ?? AgentModel.Gemini25Flash,
+      judgeInstructions: params.judgeInstructions ?? null,
       status: params.status ?? "completed",
       summary:
         params.summary === null

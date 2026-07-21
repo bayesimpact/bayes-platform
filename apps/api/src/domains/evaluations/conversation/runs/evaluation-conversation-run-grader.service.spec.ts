@@ -92,6 +92,36 @@ describe("EvaluationConversationRunGraderService", () => {
     expect(callArguments.metadata.traceId).toBe("trace-1")
   })
 
+  it("should inject the judge instructions into the prompt when provided", async () => {
+    vertexProvider.generateText.mockResolvedValue("3")
+
+    await grader.gradeOutput({
+      expectedOutput: "The expected answer",
+      generatedOutput: "The generated answer",
+      generatorModel: AgentModel.Gemini25Flash,
+      judgeModel: AgentModel.Gemini25Flash,
+      judgeInstructions: "Penalize answers longer than two sentences",
+      traceId: "trace-1",
+      connectScope,
+    })
+
+    expect(vertexProvider.generateText).toHaveBeenCalledTimes(1)
+    const callArguments = vertexProvider.generateText.mock.calls[0]![0]
+    expect(callArguments.prompt).toContain("<%judgeInstructions>")
+    expect(callArguments.prompt).toContain("Penalize answers longer than two sentences")
+    expect(callArguments.config.systemPrompt).toContain("'%judgeInstructions'")
+  })
+
+  it("should omit the judge instructions block when none are provided", async () => {
+    vertexProvider.generateText.mockResolvedValue("3")
+
+    await gradeWith()
+
+    const callArguments = vertexProvider.generateText.mock.calls[0]![0]
+    expect(callArguments.prompt).not.toContain("<%judgeInstructions>")
+    expect(callArguments.config.systemPrompt).not.toContain("'%judgeInstructions'")
+  })
+
   it("should use the selected judge model as the rating agent config model", async () => {
     vertexProvider.generateText.mockResolvedValue("3")
 

@@ -97,6 +97,7 @@ describe("EvaluationConversationRuns - Auth", () => {
         agentId: randomUUID(),
         agentSettingsRevision: null,
         judgeModel: AgentModel.Gemini25Flash,
+        judgeInstructions: null,
       },
     }
 

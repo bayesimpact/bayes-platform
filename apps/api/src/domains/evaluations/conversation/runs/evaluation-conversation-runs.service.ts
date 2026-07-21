@@ -1,4 +1,7 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
+import {
+  AgentModel,
+  EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH,
+} from "@caseai-connect/api-contracts"
 import { Inject, Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"
@@ -67,11 +70,28 @@ export class EvaluationConversationRunsService {
       agentId: string
       agentSettingsId: string
       judgeModel: AgentModel
+      judgeInstructions: string | null
     }
   }): Promise<EvaluationConversationRun> {
     if (!Object.values(AgentModel).includes(fields.judgeModel)) {
       throw new UnprocessableEntityException(`Invalid judge model: ${fields.judgeModel}`)
     }
+
+    // The request body is not schema-validated, so guard the type at runtime
+    // before calling string methods on it.
+    if (fields.judgeInstructions != null && typeof fields.judgeInstructions !== "string") {
+      throw new UnprocessableEntityException("judgeInstructions must be a string or null")
+    }
+    if (
+      fields.judgeInstructions != null &&
+      fields.judgeInstructions.length > EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH
+    ) {
+      throw new UnprocessableEntityException(
+        `judgeInstructions must be at most ${EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH} characters`,
+      )
+    }
+    // Blank instructions are stored as null so the grader can skip them.
+    const judgeInstructions = fields.judgeInstructions?.trim() || null
 
     // Ensure dataset exists and belongs to the same project/organization before creating run to avoid orphaned runs and to validate access upfront
     await this.getDataset({ id: fields.evaluationConversationDatasetId, connectScope })
@@ -92,6 +112,7 @@ export class EvaluationConversationRunsService {
       agentId: fields.agentId,
       agentSettingsId: fields.agentSettingsId,
       judgeModel: fields.judgeModel,
+      judgeInstructions,
       status: "pending",
       summary: null,
     })

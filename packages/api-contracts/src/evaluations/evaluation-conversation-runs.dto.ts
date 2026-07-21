@@ -9,6 +9,9 @@ import type { TimeType } from "../generic"
 export const EVALUATION_CONVERSATION_RUN_STATUS_CHANGED_CHANNEL_DTO =
   "evaluation_conversation_run_status_changed"
 
+// Max length accepted for the optional judge instructions on run creation.
+export const EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH = 4000
+
 // Types
 export type EvaluationConversationRunStatusDto =
   | "pending"
@@ -45,6 +48,8 @@ export type EvaluationConversationRunDto = {
   status: EvaluationConversationRunStatusDto
   // LLM judge model used to grade this run's records.
   judgeModel: AgentModel
+  // Optional extra instructions injected into the judge's grading prompt.
+  judgeInstructions: string | null
   summary: EvaluationConversationRunSummaryDto | null
   projectId: string
   createdAt: TimeType
@@ -76,6 +81,8 @@ export type CreateEvaluationConversationRunRequestDto = {
   datasetId: string
   // LLM judge model used to grade this run's records.
   judgeModel: AgentModel
+  // Optional extra instructions injected into the judge's grading prompt.
+  judgeInstructions: string | null
 }
 
 export type ExecuteEvaluationConversationRunRequestDto = {

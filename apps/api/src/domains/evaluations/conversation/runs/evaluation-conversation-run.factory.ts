@@ -50,6 +50,7 @@ export const evaluationConversationRunFactory = EvaluationConversationRunFactory
       agentSettings: transientParams.agentSettings,
       status: params.status || "pending",
       judgeModel: params.judgeModel ?? AgentModel.Gemini25Flash,
+      judgeInstructions: params.judgeInstructions ?? null,
       summary: (params.summary as EvaluationConversationRunSummary) || null,
       organizationId: transientParams.organization.id,
       projectId: transientParams.project.id,

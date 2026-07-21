@@ -21,6 +21,11 @@
       "placeholder": "Select a judge model",
       "description": "Model used to grade the agent's answers against the expected output."
     },
+    "judgeInstructions": {
+      "label": "Judge instructions (optional)",
+      "placeholder": "e.g. Penalize answers that are not in the expected language",
+      "description": "Extra instructions injected into the judge's grading prompt, on top of the expected output."
+    },
     "results": {
       "title": "Run Results",
       "summary": "Summary",
@@ -30,6 +35,7 @@
       "averageScore": "Average Score",
       "judgeModel": "Judge model",
       "averageScoreDescription": "Average score: {{averageScore}}/5",
+      "judgeInstructions": "Judge instructions",
       "noScore": "No score",
       "records": "Records",
       "recordsDescription": "{{count}} records",
@@ -100,6 +106,7 @@
         "version": "Version",
         "model": "Model",
         "judgeModel": "Judge model",
+        "judgeInstructions": "Judge instructions",
         "averageScore": "Average score",
         "total": "Total records",
         "graded": "Graded",

@@ -278,6 +278,7 @@ export class EvaluationConversationRunProcessorService {
         generatedOutput: output,
         generatorModel: agentSettings.model,
         judgeModel: evaluationConversationRun.judgeModel,
+        judgeInstructions: evaluationConversationRun.judgeInstructions,
         traceId,
         connectScope,
       })

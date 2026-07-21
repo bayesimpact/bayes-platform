@@ -1,4 +1,9 @@
-import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
+import {
+  AgentModel,
+  AgentModelToAgentProvider,
+  AgentProvider,
+  EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH,
+} from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Dialog,
@@ -17,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@caseai-connect/ui/shad/select"
+import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { PlayIcon } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -43,6 +49,7 @@ type RunSettings = {
   // null = no explicit choice yet; the newest revision is used once history loads.
   selectedRevision: number | null
   judgeModel: AgentModel
+  judgeInstructions: string
   runScope: "all" | "limited"
   limitedCount: number
 }
@@ -51,6 +58,7 @@ const defaultRunSettings: RunSettings = {
   selectedAgentId: null,
   selectedRevision: null,
   judgeModel: AgentModel.Gemini25Flash,
+  judgeInstructions: "",
   runScope: "all",
   limitedCount: 1,
 }
@@ -90,7 +98,14 @@ export function RunEvaluationConversationDialog({
   const isExecuting = useAppSelector(selectIsExecutingConversationRun)
   const [open, setOpen] = useState(false)
   const [settings, setSettings] = useState<RunSettings>(defaultRunSettings)
-  const { selectedAgentId, selectedRevision, judgeModel, runScope, limitedCount } = settings
+  const {
+    selectedAgentId,
+    selectedRevision,
+    judgeModel,
+    judgeInstructions,
+    runScope,
+    limitedCount,
+  } = settings
 
   const judgeModels = useMemo(() => extractJudgeModelList(hasFeature), [hasFeature])
 
@@ -144,6 +159,10 @@ export function RunEvaluationConversationDialog({
     setSettings((previous) => ({ ...previous, judgeModel: value as AgentModel }))
   }, [])
 
+  const handleJudgeInstructionsChange = useCallback((value: string) => {
+    setSettings((previous) => ({ ...previous, judgeInstructions: value }))
+  }, [])
+
   const handleLimitedCountChange = useCallback(
     (value: string) => {
       const parsed = Number.parseInt(value, 10)
@@ -174,6 +193,7 @@ export function RunEvaluationConversationDialog({
         agentId: selectedAgentId,
         agentSettingsRevision: effectiveRevision,
         judgeModel,
+        judgeInstructions: judgeInstructions.trim() || null,
         recordLimit: runScope === "limited" ? limitedCount : null,
       }),
     ).unwrap()
@@ -224,6 +244,11 @@ export function RunEvaluationConversationDialog({
             models={judgeModels}
             selectedModel={judgeModel}
             onModelChange={handleJudgeModelChange}
+          />
+
+          <JudgeInstructionsField
+            value={judgeInstructions}
+            onValueChange={handleJudgeInstructionsChange}
           />
 
           <RunScopeSelector
@@ -324,6 +349,32 @@ function JudgeModelSelector({
       </Select>
       <p className="text-sm text-muted-foreground">
         {t("evaluationConversationRun:judgeModel.description")}
+      </p>
+    </div>
+  )
+}
+
+function JudgeInstructionsField({
+  value,
+  onValueChange,
+}: {
+  value: string
+  onValueChange: (value: string) => void
+}) {
+  const { t } = useTranslation()
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Label>{t("evaluationConversationRun:judgeInstructions.label")}</Label>
+      <Textarea
+        value={value}
+        onChange={(event) => onValueChange(event.target.value)}
+        placeholder={t("evaluationConversationRun:judgeInstructions.placeholder")}
+        rows={3}
+        maxLength={EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH}
+      />
+      <p className="text-sm text-muted-foreground">
+        {t("evaluationConversationRun:judgeInstructions.description")}
       </p>
     </div>
   )

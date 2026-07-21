@@ -148,6 +148,24 @@ function SummaryComparison({
         <span className="text-sm font-mono whitespace-nowrap">{run.judgeModel}</span>
       ),
     },
+    // Only shown when at least one run graded with extra judge instructions,
+    // since differing instructions make average scores non-comparable.
+    ...(runs.some((run) => run.judgeInstructions)
+      ? [
+          {
+            key: "judgeInstructions",
+            label: t("evaluationConversationRun:comparison.metrics.judgeInstructions"),
+            render: (run: EvaluationConversationRun) =>
+              run.judgeInstructions ? (
+                <div style={{ maxWidth: 250 }}>
+                  <TruncatedCell value={run.judgeInstructions} />
+                </div>
+              ) : (
+                <span className="text-muted-foreground">-</span>
+              ),
+          },
+        ]
+      : []),
     {
       key: "averageScore",
       label: t("evaluationConversationRun:comparison.metrics.averageScore"),

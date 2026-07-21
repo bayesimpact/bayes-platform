@@ -113,6 +113,7 @@ const createAndExecute = createAsyncThunk<
     agentId: string
     agentSettingsRevision: number
     judgeModel: AgentModel
+    judgeInstructions: string | null
     recordLimit: number | null
   },
   ThunkConfig
@@ -129,6 +130,7 @@ const createAndExecute = createAsyncThunk<
       agentSettingsRevision: payload.agentSettingsRevision,
       datasetId: payload.datasetId,
       judgeModel: payload.judgeModel,
+      judgeInstructions: payload.judgeInstructions,
     },
   })
   await services.evaluationConversationRuns.executeOne({

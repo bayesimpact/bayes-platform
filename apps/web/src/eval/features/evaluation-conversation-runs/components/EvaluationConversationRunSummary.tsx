@@ -61,6 +61,16 @@ export function EvaluationConversationRunSummary({ run }: { run: EvaluationConve
           </span>
           <span className="font-mono">{run.judgeModel}</span>
         </div>
+        {run.judgeInstructions && (
+          <div className="flex flex-col gap-1 text-sm">
+            <span className="text-muted-foreground">
+              {t("evaluationConversationRun:results.judgeInstructions")}
+            </span>
+            <p className="whitespace-pre-wrap italic bg-muted p-2 w-fit rounded-lg">
+              {run.judgeInstructions}
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

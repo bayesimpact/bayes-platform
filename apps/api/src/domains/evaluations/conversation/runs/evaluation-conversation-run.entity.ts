@@ -55,6 +55,10 @@ export class EvaluationConversationRun extends ConnectEntityBase {
   @Column({ type: "varchar", name: "judge_model", default: "gemini-2.5-flash" })
   judgeModel!: AgentModel
 
+  // Optional extra instructions injected into the judge's grading prompt.
+  @Column({ type: "text", name: "judge_instructions", nullable: true })
+  judgeInstructions!: string | null
+
   @Column({ name: "summary", type: "jsonb", nullable: true })
   summary!: EvaluationConversationRunSummary | null
 

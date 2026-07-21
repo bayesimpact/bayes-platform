@@ -80,6 +80,7 @@ export class EvaluationConversationRunsController {
         agentId: payload.agentId,
         agentSettingsId: agentSettings.id,
         judgeModel: payload.judgeModel,
+        judgeInstructions: payload.judgeInstructions ?? null,
       },
     })
     // The freshly created run has no relations loaded; attach the settings we
@@ -285,6 +286,7 @@ function toEvaluationConversationRunDto(
     agentSettings: toEvaluationConversationRunAgentSettingsDto(run.agentSettings),
     status: run.status,
     judgeModel: run.judgeModel,
+    judgeInstructions: run.judgeInstructions,
     summary: run.summary,
     projectId: run.projectId,
     createdAt: run.createdAt.getTime(),

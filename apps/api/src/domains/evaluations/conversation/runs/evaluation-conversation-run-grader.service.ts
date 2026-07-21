@@ -8,7 +8,8 @@ import { ServiceWithLLM } from "@/external/llm"
  * LLM judge for conversation evaluation runs, ported from the legacy
  * EvaluationReportsService.rateReport: same prompts, same rating agent at
  * temperature 0, same mock swap for tests. The judge model is now selectable
- * per run (defaulting to Gemini 2.5 Flash) and passed in via `judgeModel`.
+ * per run (defaulting to Gemini 2.5 Flash) and passed in via `judgeModel`, and
+ * optional per-run `judgeInstructions` are injected into the grading prompt.
  * Unlike the legacy version, the raw response is parsed into an integer score
  * clamped to 0-5 and an unparsable response throws (the run record then becomes
  * status "error").
@@ -44,6 +45,7 @@ export class EvaluationConversationRunGraderService extends ServiceWithLLM {
     generatedOutput,
     generatorModel,
     judgeModel,
+    judgeInstructions,
     traceId,
     connectScope,
   }: {
@@ -51,6 +53,7 @@ export class EvaluationConversationRunGraderService extends ServiceWithLLM {
     generatedOutput: string
     generatorModel: AgentModel
     judgeModel: AgentModel
+    judgeInstructions?: string | null
     traceId: string
     connectScope: RequiredConnectScope
   }): Promise<number> {
@@ -64,7 +67,12 @@ export class EvaluationConversationRunGraderService extends ServiceWithLLM {
     - return a value between 0 and 5, step 1
     - 5 is the maximum and signify that the '%value' completely satisfies the '%ratingInstructions'.
     - 0 signifies that the '%value' is fully far away the '%ratingInstructions'.
-`,
+${
+  judgeInstructions
+    ? ` Additional judge instructions may be provided in '%judgeInstructions'; apply them on top of the '%ratingInstructions' when rating.
+`
+    : ""
+}`,
       model: judgeModel,
       temperature: 0,
     }
@@ -93,7 +101,15 @@ export class EvaluationConversationRunGraderService extends ServiceWithLLM {
 <%ratingInstructions>
 ${expectedOutput}
 <%/ratingInstructions>
-
+${
+  judgeInstructions
+    ? `
+<%judgeInstructions>
+${judgeInstructions}
+</%judgeInstructions>
+`
+    : ""
+}
 <%value>
 ${generatedOutput}
 </%value>

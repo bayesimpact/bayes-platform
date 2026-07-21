@@ -16,6 +16,8 @@ export interface IEvaluationConversationRunsSpi {
         agentSettingsRevision: number | null
         datasetId: string
         judgeModel: AgentModel
+        // Optional extra instructions injected into the judge's grading prompt.
+        judgeInstructions: string | null
       }
     },
   ): Promise<EvaluationConversationRun>

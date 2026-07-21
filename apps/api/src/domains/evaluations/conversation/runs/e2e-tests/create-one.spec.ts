@@ -1,4 +1,8 @@
-import { AgentModel, EvaluationConversationRunsRoutes } from "@caseai-connect/api-contracts"
+import {
+  AgentModel,
+  EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH,
+  EvaluationConversationRunsRoutes,
+} from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import type { Repository } from "typeorm"
@@ -94,6 +98,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         agentId: agent.id,
         agentSettingsRevision: null,
         judgeModel: AgentModel.Gemini25Pro,
+        judgeInstructions: null,
       },
     })
 
@@ -102,12 +107,86 @@ describe("EvaluationConversationRuns - createOne", () => {
     expect(res.body.data.evaluationConversationDatasetId).toBe(dataset.id)
     expect(res.body.data.agentId).toBe(agent.id)
     expect(res.body.data.judgeModel).toBe(AgentModel.Gemini25Pro)
+    expect(res.body.data.judgeInstructions).toBeNull()
     expect(res.body.data.summary).toBeNull()
 
     const runs = await evaluationConversationRunRepository.find()
     expect(runs).toHaveLength(1)
     expect(runs[0]!.judgeModel).toBe(AgentModel.Gemini25Pro)
     await expectActivityCreated("evaluationConversationRun.create")
+  })
+
+  it("should persist trimmed judge instructions and store blank ones as null", async () => {
+    const { dataset, agent } = await createContext()
+
+    const res = await subject({
+      payload: {
+        datasetId: dataset.id,
+        agentId: agent.id,
+        agentSettingsRevision: null,
+        judgeModel: AgentModel.Gemini25Flash,
+        judgeInstructions: "  Grade strictly on factual accuracy.  ",
+      },
+    })
+
+    expectResponse(res, 201)
+    expect(res.body.data.judgeInstructions).toBe("Grade strictly on factual accuracy.")
+
+    const blankRes = await subject({
+      payload: {
+        datasetId: dataset.id,
+        agentId: agent.id,
+        agentSettingsRevision: null,
+        judgeModel: AgentModel.Gemini25Flash,
+        judgeInstructions: "   ",
+      },
+    })
+
+    expectResponse(blankRes, 201)
+    expect(blankRes.body.data.judgeInstructions).toBeNull()
+
+    const runs = await evaluationConversationRunRepository.find({ order: { createdAt: "ASC" } })
+    expect(runs).toHaveLength(2)
+    expect(runs[0]!.judgeInstructions).toBe("Grade strictly on factual accuracy.")
+    expect(runs[1]!.judgeInstructions).toBeNull()
+  })
+
+  it("should reject a non-string judgeInstructions value", async () => {
+    const { dataset, agent } = await createContext()
+
+    const res = await subject({
+      payload: {
+        datasetId: dataset.id,
+        agentId: agent.id,
+        agentSettingsRevision: null,
+        judgeModel: AgentModel.Gemini25Flash,
+        judgeInstructions: 123 as unknown as string,
+      },
+    })
+
+    expectResponse(res, 422)
+    const runs = await evaluationConversationRunRepository.find()
+    expect(runs).toHaveLength(0)
+  })
+
+  it("should reject judge instructions above the max length", async () => {
+    const { dataset, agent } = await createContext()
+
+    const res = await subject({
+      payload: {
+        datasetId: dataset.id,
+        agentId: agent.id,
+        agentSettingsRevision: null,
+        judgeModel: AgentModel.Gemini25Flash,
+        judgeInstructions: "a".repeat(
+          EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH + 1,
+        ),
+      },
+    })
+
+    expectResponse(res, 422)
+    const runs = await evaluationConversationRunRepository.find()
+    expect(runs).toHaveLength(0)
   })
 
   it("should pin the latest agent settings revision on the run when agentSettingsRevision is null", async () => {
@@ -123,6 +202,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         agentId: agent.id,
         agentSettingsRevision: null,
         judgeModel: AgentModel.Gemini25Flash,
+        judgeInstructions: null,
       },
     })
 
@@ -145,6 +225,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         agentId: agent.id,
         agentSettingsRevision: 1,
         judgeModel: AgentModel.Gemini25Flash,
+        judgeInstructions: null,
       },
     })
 
@@ -164,6 +245,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         agentId: agent.id,
         agentSettingsRevision: 999,
         judgeModel: AgentModel.Gemini25Flash,
+        judgeInstructions: null,
       },
     })
 
@@ -181,6 +263,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         agentId: agent.id,
         agentSettingsRevision: null,
         judgeModel: AgentModel.Gemini25Flash,
+        judgeInstructions: null,
       },
     })
 
@@ -196,6 +279,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         agentId: "00000000-0000-0000-0000-000000000000",
         agentSettingsRevision: null,
         judgeModel: AgentModel.Gemini25Flash,
+        judgeInstructions: null,
       },
     })
 
@@ -211,6 +295,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         agentId: agent.id,
         agentSettingsRevision: null,
         judgeModel: AgentModel.Gemini25Flash,
+        judgeInstructions: null,
       },
     })
 
@@ -226,6 +311,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         agentId: agent.id,
         agentSettingsRevision: null,
         judgeModel: "not-a-real-model" as AgentModel,
+        judgeInstructions: null,
       },
     })
 

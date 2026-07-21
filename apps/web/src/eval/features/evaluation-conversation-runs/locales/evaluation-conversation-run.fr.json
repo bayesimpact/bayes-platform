@@ -21,6 +21,11 @@
       "placeholder": "Sélectionner un modèle de juge",
       "description": "Modèle utilisé pour noter les réponses de l'agent par rapport au résultat attendu."
     },
+    "judgeInstructions": {
+      "label": "Instructions du juge (optionnel)",
+      "placeholder": "ex. Pénaliser les réponses qui ne sont pas dans la langue attendue",
+      "description": "Instructions supplémentaires injectées dans le prompt de notation du juge, en plus du résultat attendu."
+    },
     "results": {
       "title": "Résultats",
       "summary": "Résumé",
@@ -30,6 +35,7 @@
       "averageScore": "Score moyen",
       "judgeModel": "Modèle du juge",
       "averageScoreDescription": "Score moyen : {{averageScore}}/5",
+      "judgeInstructions": "Instructions du juge",
       "noScore": "Aucun score",
       "records": "Enregistrements",
       "recordsDescription": "{{count}} enregistrements",
@@ -100,6 +106,7 @@
         "version": "Version",
         "model": "Modèle",
         "judgeModel": "Modèle du juge",
+        "judgeInstructions": "Instructions du juge",
         "averageScore": "Score moyen",
         "total": "Total des enregistrements",
         "graded": "Notés",
