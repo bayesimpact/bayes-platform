@@ -62,7 +62,17 @@
           "title": "Supprimer l'exécution",
           "description": "Cette action est irréversible. Tous les enregistrements de l'exécution seront définitivement supprimés."
         }
-      }
+      },
+      "columns": {
+        "status": "Statut",
+        "date": "Date",
+        "agent": "Agent",
+        "version": "Version",
+        "model": "Modèle",
+        "averageScore": "Score moyen",
+        "records": "Enregistrements"
+      },
+      "averageScoreValue": "{{averageScore}}/100"
     },
     "agentMetadata": {
       "title": "Configuration de l'agent",
