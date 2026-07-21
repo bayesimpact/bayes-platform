@@ -23,7 +23,7 @@ import type { z } from "zod"
 import { useAppDispatch } from "@/common/store/hooks"
 import { updateAgentGeneral } from "../agents.thunks"
 import { AgentTabSaveButton } from "./AgentTabSaveButton"
-import { type AgentTabFormProps, useReportDirty } from "./agent-tab-form.shared"
+import { type AgentTabFormProps, pickDirtyFields, useReportDirty } from "./agent-tab-form.shared"
 
 type FormValues = z.infer<typeof updateAgentGeneralSchema>
 
@@ -44,7 +44,8 @@ export function AgentGeneralTab({ agent, onDirtyChange }: AgentTabFormProps) {
   useReportDirty(form.formState.isDirty, onDirtyChange)
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    await dispatch(updateAgentGeneral({ agentId: agent.id, fields: values })).unwrap()
+    const fields = pickDirtyFields(values, form.formState.dirtyFields)
+    await dispatch(updateAgentGeneral({ agentId: agent.id, fields })).unwrap()
     form.reset(values)
   })
 

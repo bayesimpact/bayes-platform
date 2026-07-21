@@ -13,6 +13,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+- Renaming an agent no longer creates an extra settings version in the agent's history
 
 ### Security
 
