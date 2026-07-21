@@ -347,7 +347,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, na
   .rvw {
     --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
-    --primary: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --primary: var(--brand-primary, oklch(62.8% 0.2 303.9)); --player-accent: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
     --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
     --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
     --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --destructive: oklch(0.577 0.245 27.325);
@@ -365,7 +365,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, na
   .rvw .nav { height: 4rem; flex-shrink: 0; background: var(--background); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
   .rvw .logo { width: 2rem; height: 2rem; display: inline-flex; align-items: center; justify-content: center; padding: 0.15rem; }
   .rvw .logo svg { width: 100%; height: 100%; stroke: none; }
-  .rvw .logo svg path { fill: #f18c6e; }
+  .rvw .logo svg path { fill: var(--brand-primary, #f18c6e); }
   .rvw .logo svg circle { fill: #010101; }
   .rvw .appname { flex: 1; color: var(--primary); font-weight: 500; font-size: 0.95rem; }
   .rvw .navuser { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--muted-foreground); }
@@ -470,16 +470,16 @@ const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, na
   /* Controls */
   .rvw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
   .rvw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
-  .rvw .navbtn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .rvw .navbtn.primary { background: var(--player-accent); color: var(--primary-foreground); border-color: transparent; }
   .rvw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
   .rvw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   .rvw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
   .rvw .cap .tx { font-size: 0.88rem; font-weight: 500; }
   .rvw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 200px; }
   .rvw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
-  .rvw .dotnav.on { background: var(--primary); transform: scale(1.3); }
+  .rvw .dotnav.on { background: var(--player-accent); transform: scale(1.3); }
   .rvw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
-  .rvw .progress i { display: block; height: 100%; width: 0; background: var(--primary); }
+  .rvw .progress i { display: block; height: 100%; width: 0; background: var(--player-accent); }
   .rvw .progress i.run { animation: rvw-fill var(--dur, 6000ms) linear forwards; }
   @keyframes rvw-fill { to { width: 100%; } }
 
