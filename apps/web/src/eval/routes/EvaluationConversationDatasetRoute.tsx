@@ -8,6 +8,7 @@ import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { useAppSelector } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
+import { useEvalLayoutWidth } from "../components/EvalLayout"
 import { DeleteEvaluationConversationDatasetButton } from "../features/evaluation-conversation-datasets/components/DeleteEvaluationConversationDatasetButton"
 import { EvaluationConversationDatasetRecordList } from "../features/evaluation-conversation-datasets/components/EvaluationConversationDatasetRecordList"
 import { RenameEvaluationConversationDatasetDialog } from "../features/evaluation-conversation-datasets/components/RenameEvaluationConversationDatasetDialog"
@@ -29,6 +30,8 @@ export function EvaluationConversationDatasetRoute() {
   const dataset = useAppSelector(selectCurrentConversationDatasetData)
   const runs = useAppSelector(selectConversationRunsData)
   const outlet = useOutlet()
+
+  useEvalLayoutWidth("wide")
 
   // Load the current dataset's records via middleware (ADR 0009); refreshOn
   // re-runs unmount/mount when navigating from one dataset to another in place.

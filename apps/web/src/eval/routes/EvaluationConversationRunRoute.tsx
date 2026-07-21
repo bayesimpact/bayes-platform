@@ -13,6 +13,7 @@ import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { buildDuration, buildSince } from "@/common/utils/build-date"
+import { useEvalLayoutWidth } from "../components/EvalLayout"
 import { selectCurrentConversationDatasetData } from "../features/evaluation-conversation-datasets/evaluation-conversation-datasets.selectors"
 import { AgentMetadataDialog } from "../features/evaluation-conversation-runs/components/AgentMetadataDialog"
 import { DeleteEvaluationConversationRunButton } from "../features/evaluation-conversation-runs/components/DeleteEvaluationConversationRunButton"
@@ -54,6 +55,8 @@ function WithData() {
   const { t } = useTranslation()
   const isCancelling = useAppSelector(selectIsCancellingConversationRun)
   const isRetrying = useAppSelector(selectIsRetryingConversationRun)
+
+  useEvalLayoutWidth("wide")
 
   const handleBack = () =>
     navigate(

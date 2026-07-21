@@ -9,7 +9,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 - (beta) MCP Servers: connect external MCP tool servers to a project and enable/disable them per agent (conversation and form).
-- (beta) Evaluations: compare conversation-evaluation runs — select runs from the run history and open a side-by-side comparison of their settings and summary scores, plus a per-record table showing how each run scored on every case (best score highlighted); runs now carry a short id shown in the history, on the run report, and on the comparison, and clicking it opens that run in a new tab.
+- (beta) Evaluations: compare conversation-evaluation runs — select runs from the run history and open a side-by-side comparison of their settings and summary scores, plus a per-record table showing how each run scored on every case (best score highlighted); runs now carry a short id shown in the history, on the run report, and on the comparison, and clicking it opens that run in a new tab; the run-history, run-report, and comparison pages use a wider full-width layout for their tables.
 
 ### Changed
 - (beta) Evaluations: conversation-agent evaluation moved from the Studio into the Evaluation app — build datasets of input/expected-output records (add them inline one after another or paste a batch as CSV), run them against a chosen version of an agent's settings in the background, and follow each run's scores (rated 0–5 by an LLM judge whose model you pick per run) live on its own report page; the run's "view agent" panel shows the exact settings version that was scored, and existing Studio evaluations are migrated into a "Studio evaluations" dataset per project

@@ -8,6 +8,7 @@ import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import { useEvalLayoutWidth } from "../components/EvalLayout"
 import {
   selectCurrentConversationDatasetData,
   selectCurrentConversationDatasetId,
@@ -59,6 +60,8 @@ function WithData({ runIds }: { runIds: string[] }) {
   const allRuns = useValue(selectConversationRunsData)
   const recordsByRunId = useValue(selectConversationRunsComparison)
   const navigate = useNavigate()
+
+  useEvalLayoutWidth("wide")
 
   // Preserve the order the user selected the runs in.
   const runs = useMemo(
