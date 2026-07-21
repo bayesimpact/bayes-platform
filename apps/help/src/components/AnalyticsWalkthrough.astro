@@ -265,7 +265,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   .anw {
     --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
-    --primary: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --primary: var(--brand-primary, oklch(74.137% 0.13055 37.323)); --player-accent: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
     --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
     --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
     --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --destructive: oklch(0.577 0.245 27.325);
@@ -286,7 +286,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   .anw .sb-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.4rem 0.6rem; }
   .anw .logo { width: 1.9rem; height: 1.9rem; display: inline-flex; align-items: center; justify-content: center; }
   .anw .logo svg { width: 100%; height: 100%; stroke: none; }
-  .anw .logo svg path { fill: #f18c6e; }
+  .anw .logo svg path { fill: var(--brand-logo-color, #f18c6e); }
   .anw .logo svg circle { fill: #010101; }
   .anw .org { display: flex; flex-direction: column; line-height: 1.05; }
   .anw .org b { font-size: 0.92rem; font-weight: 700; }
@@ -368,16 +368,16 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
 
   .anw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
   .anw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
-  .anw .navbtn.primary { background: var(--primary); color: var(--primary-foreground); border-color: transparent; }
+  .anw .navbtn.primary { background: var(--player-accent); color: var(--primary-foreground); border-color: transparent; }
   .anw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
   .anw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   .anw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
   .anw .cap .tx { font-size: 0.88rem; font-weight: 500; }
   .anw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 180px; }
   .anw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
-  .anw .dotnav.on { background: var(--primary); transform: scale(1.3); }
+  .anw .dotnav.on { background: var(--player-accent); transform: scale(1.3); }
   .anw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
-  .anw .progress i { display: block; height: 100%; width: 0; background: var(--primary); }
+  .anw .progress i { display: block; height: 100%; width: 0; background: var(--player-accent); }
   .anw .progress i.run { animation: anw-fill var(--dur, 6000ms) linear forwards; }
   @keyframes anw-fill { to { width: 100%; } }
 

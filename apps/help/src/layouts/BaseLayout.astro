@@ -1,7 +1,7 @@
 ---
 import Footer from "@/components/Footer.astro"
 import Header from "@/components/Header.astro"
-import { DEFAULT_LOCALE, type Locale, SITE_TITLE } from "@/consts"
+import { BRAND_LOGO_COLOR, BRAND_PRIMARY, DEFAULT_LOCALE, type Locale, SITE_TITLE } from "@/consts"
 import { useTranslations } from "@/i18n/ui"
 import "@/styles/global.css"
 
@@ -25,6 +25,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site).toString()
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {/* Per-tenant brand theme (build-time). Drives the walkthrough animations so they
+        match the platform that opened this help center. Defaults to coral. */}
+    <style set:html={`:root{--brand-primary:${BRAND_PRIMARY};--brand-logo-color:${BRAND_LOGO_COLOR};}`}></style>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     {/* Bayes brand fonts — Inter (body), Archivo Black (display), Kaisei Decol (serif). */}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
