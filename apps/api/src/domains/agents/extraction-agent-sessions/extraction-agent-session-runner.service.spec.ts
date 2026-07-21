@@ -8,6 +8,10 @@ import {
 } from "@/common/test/test-database"
 import type { Document } from "@/domains/documents/document.entity"
 import { documentFactory } from "@/domains/documents/document.factory"
+import {
+  FILE_STORAGE_SERVICE,
+  type IFileStorage,
+} from "@/domains/documents/storage/file-storage.interface"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { LlmModule } from "@/external/llm/llm.module"
@@ -164,12 +168,45 @@ describe("ExtractionAgentSessionRunnerService", () => {
     expect(run.errorDetails?.message).toContain("missing outputJsonSchema")
   })
 
-  it("runById - should throw EXTRACTION_PROVIDER_ERROR when txt", async () => {
+  it.each([
+    "text/plain",
+    "text/markdown",
+    "text/csv",
+  ])("runById - should works - %s", async (mimeType) => {
+    const fileStorageService = setup.module.get<IFileStorage>(FILE_STORAGE_SERVICE)
+    const readFileSpy = jest
+      .spyOn(fileStorageService, "readFile")
+      .mockResolvedValue(Buffer.from("# Sample document\n\nSome content."))
+
+    const { organization, project, schema, pendingSession } = await seedPendingSessionWithDocument({
+      documentDesc: {
+        mimeType,
+        sourceType: "extraction",
+        storageRelativePath: "test/file",
+      },
+    })
+    await service.runById({
+      extractionAgentSessionId: pendingSession.id,
+      organizationId: organization.id,
+      projectId: project.id,
+    })
+
+    const run = await repositories.extractionAgentSessionRepository.findOneByOrFail({
+      id: pendingSession.id,
+    })
+    expect(run.status).toBe("success")
+    expect(readFileSpy).toHaveBeenCalledWith("test/file")
+    const parsed = schema.parse(run.result)
+    expect(parsed.source).toBe("source-value")
+    expect(parsed.content).toBe("content-value")
+  })
+
+  it("runById - should throw EXTRACTION_PROVIDER_ERROR when unsupported type", async () => {
     const { organization, project, pendingSession } = await seedPendingSessionWithDocument({
       documentDesc: {
-        mimeType: "text/plain",
+        mimeType: "application/zip",
         sourceType: "extraction",
-        storageRelativePath: "test/file.txt",
+        storageRelativePath: "test/file.zip",
       },
     })
     await expect(
