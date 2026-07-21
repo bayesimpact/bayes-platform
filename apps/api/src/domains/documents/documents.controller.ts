@@ -92,7 +92,7 @@ export class DocumentsController {
       }
       if (!isAllowedMimeType(fileInfo.mimeType)) {
         throw new UnprocessableEntityException(
-          `Invalid file type: ${fileInfo.mimeType}. Allowed types: PDF, Microsoft Office (Word, Excel, PowerPoint), images (PNG, JPEG, TIFF, BMP, WebP), CSV, or plain text.`,
+          `Invalid file type: ${fileInfo.mimeType}. Allowed types: PDF, Microsoft Office (Word, Excel, PowerPoint), images (PNG, JPEG, TIFF, BMP, WebP), CSV, plain text, or Markdown.`,
         )
       }
 

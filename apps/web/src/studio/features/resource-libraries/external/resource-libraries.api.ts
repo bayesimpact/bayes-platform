@@ -67,7 +67,9 @@ export default {
   uploadResourceFile: async ({ organizationId, projectId }, file) => {
     const axios = getAxiosInstance()
     const formData = new FormData()
-    formData.append("file", file)
+    // Re-wrap so the multipart part carries `file.type` even when the dropzone
+    // normalized it from the extension (browsers report no MIME type for .md).
+    formData.append("file", new File([file], file.name, { type: file.type }))
     const response = await axios.post<typeof ResourceLibrariesRoutes.uploadResourceFile.response>(
       ResourceLibrariesRoutes.uploadResourceFile.getPath({ organizationId, projectId }),
       formData,

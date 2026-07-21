@@ -15,6 +15,8 @@ import type { DoclingChunk, DoclingParentChunk } from "@/external/docling/doclin
 
 const DOCUMENT_CHUNKER_MAX_BUFFER = 50 * 1024 * 1024
 
+const PLAIN_TEXT_MIME_TYPES = new Set(["text/plain", "text/csv", "text/markdown"])
+
 export type DocumentExtractionEngine = string | null
 
 export type DocumentTextExtractionResult = {
@@ -50,6 +52,14 @@ export class DocumentTextExtractorService {
         doclingChunks: nonEmptyChunks,
         doclingParentChunks: parent_chunks,
         extractionEngine: `docling@${doclingVersion}`,
+      }
+    }
+
+    // as a fallback, plain-text formats are decoded straight from the buffer
+    if (PLAIN_TEXT_MIME_TYPES.has(mimeType)) {
+      return {
+        text: buffer.toString("utf-8"),
+        extractionEngine: null,
       }
     }
 
