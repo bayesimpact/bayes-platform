@@ -4,7 +4,7 @@ highlight: Documents
 description: Upload documents so their content becomes part of your agents' knowledge, and manage them with tags.
 category: guides-sources
 order: 1
-updated: 2026-07-09
+updated: 2026-07-20
 ---
 
 import DocumentsWalkthrough from "@/components/DocumentsWalkthrough.astro"
@@ -61,8 +61,15 @@ update time.
 Open the **⋮** menu at the end of a document's row to:
 
 - **Download Document** — download the original file.
-- **View** — see the document's details and content.
-- **Edit** — rename the document and change its tags.
+- **View** — open a details panel showing the document's metadata (**Created At**,
+  **Updated At**, **File Name**, **Size**, **Language**, **MIME Type**), its
+  **Embedding Status**, any **Embedding Error**, its **Tags**, and the extracted
+  content.
+- **Edit** — rename the document (**Title**) and change its **Tags**, then click
+  **Update**.
+- **Reprocess** — re-run indexing on a document. This item appears **only** when
+  the **Embedding Status** is **Failed**, and starts again immediately (no
+  confirmation).
 - **Delete** — remove the document and its indexed content.
 
 ### 5. Manage several documents at once
@@ -75,9 +82,19 @@ Open the **⋮** menu at the end of a document's row to:
 
 ### 6. Create and manage tags
 
-Documents and web sources share the same tags. To create, edit or delete tags,
-open the **Tags** panel from the top-right of the page — the steps are the same as
-in the [Web sources](/en/web-sources) guide.
+Documents and web sources share the same tags. Open the **Tags** panel from the
+top-right of the page to manage them; it lists your tags as a **tree**, so a tag
+can be nested under a **parent tag**.
+
+1. Click **Create tag**. In the **Create tag** dialog, enter a **Name** and an
+   optional **Description**.
+2. To nest it, open the **Parent tag** picker and choose a parent (leave it
+   **None** for a top-level tag). The **Parent tag** field only appears once at
+   least one other tag exists.
+3. Click **Create**. The new tag appears in the tree, indented under its parent.
+
+Hover any tag to **edit** it (pencil) or **delete** it (trash). The reserved
+**`public-documents`** tag can't be edited or deleted.
 
 > The reserved tag **`public-documents`** is special: when a document carrying it
 > is surfaced in a conversation, the user is allowed to download it.
@@ -94,7 +111,7 @@ in the [Web sources](/en/web-sources) guide.
 
 - **An agent doesn't use a document** — check that its **Embedding Status** is
   **Ready**; a document still **Processing** isn't available yet.
-- **A document failed to process** — open the **⋮** menu to review it, then
-  re-upload it if needed.
+- **A document failed to process** — its **Embedding Status** shows **Failed**;
+  open the **⋮** menu and choose **Reprocess** to try indexing again.
 - **I need to change many documents' tags** — select them and use **Add tag** or
   **Remove tag** from the selection toolbar.
