@@ -4,7 +4,7 @@ highlight: Web
 description: Crawl websites so their content becomes part of your agents' knowledge, and organize sources with tags.
 category: guides-sources
 order: 2
-updated: 2026-07-09
+updated: 2026-07-20
 ---
 
 import WebSourcesWalkthrough from "@/components/WebSourcesWalkthrough.astro"
@@ -51,10 +51,16 @@ The new source appears in the table right away.
 
 ### 3. Wait until it's ready
 
-Each source shows an **Embedding Status**. It moves from **Crawling** to
-**Ready** once the pages have been indexed. Only a **Ready** source is fully
-usable by your agents. The table also shows the number of **Pages** crawled and
-the last update time.
+Each source shows an **Embedding Status** that moves through these values:
+
+- **Crawling** — pages are being fetched. Once counting starts it reads
+  **Crawling — N pages**.
+- **Embedding** — the fetched pages are being indexed.
+- **Ready** — indexing is done; the source is fully usable by your agents.
+- **Failed** — indexing failed; re-run it with **Reprocess** (see step 4).
+
+Only a **Ready** source is fully usable by your agents. The table also shows the
+number of **Pages** crawled and the last update time.
 
 ### 4. Manage a source
 
@@ -62,7 +68,15 @@ Open the **⋮** menu at the end of a source's row to:
 
 - **View** — see the source's details.
 - **Edit** — rename the source and add tags (see below).
-- **Recrawl website** — crawl the site again to pick up changes.
+- **Reprocess** — re-run indexing on a source. This item appears **only** when
+  the **Embedding Status** is **Failed**, and starts again immediately (no
+  confirmation).
+- **Stop crawl** — cancel a crawl that's still running. This item appears **only
+  while the source is Crawling** and takes effect immediately (no confirmation).
+- **Recrawl website** — crawl the site again to pick up changes. Shown when the
+  source is **not** currently crawling. (**Stop crawl** and **Recrawl website**
+  never appear together — one replaces the other depending on whether a crawl is
+  running.)
 - **Delete** — remove the source and its indexed content.
 
 ### 5. See the crawled pages
@@ -101,8 +115,12 @@ The tag then appears in the source's **Tags** column.
 ## Troubleshooting
 
 - **An agent doesn't use a source** — check that its **Embedding Status** is
-  **Ready**; a source still **Crawling** isn't available yet.
+  **Ready**; a source still **Crawling** or **Embedding** isn't available yet.
 - **The site changed but answers are stale** — open the **⋮** menu and choose
   **Recrawl website**.
+- **A crawl is stuck or was started by mistake** — open the **⋮** menu and choose
+  **Stop crawl** (shown only while the source is still **Crawling**).
+- **A source shows Failed** — open the **⋮** menu and choose **Reprocess** to
+  re-run indexing.
 - **A crawl won't start** — the **Website URL** must be a valid `https://`
   address.

@@ -75,8 +75,6 @@ export const extractionAgentSessionFactory = ExtractionAgentSessionFactory.defin
       traceId: v4(),
       campaignId: params.campaignId ?? null,
       reviewCampaign: null,
-      //fixme DOO : to delete as the same time we delete the fields in db: it's just a security ...
-      _deleted_schemaSnapshot: params._deleted_schemaSnapshot || {},
     } satisfies ExtractionAgentSession
   },
 )

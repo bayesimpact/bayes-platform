@@ -47,7 +47,6 @@ export class AgentCsvExtractionRunsService {
     }
   }): Promise<AgentCsvExtractionRun> {
     return this.runConnectRepository.createAndSave(connectScope, {
-      _deleted_agentId: fields.agentId,
       agentSettingsId: fields.agentSettingsId,
       csvDocumentId: fields.csvDocumentId,
       columnSchema: fields.columnSchema,

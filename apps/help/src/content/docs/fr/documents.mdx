@@ -4,7 +4,7 @@ highlight: Documents
 description: Téléversez des documents pour intégrer leur contenu aux connaissances de vos agents, et gérez-les avec des étiquettes.
 category: guides-sources
 order: 1
-updated: 2026-07-09
+updated: 2026-07-20
 ---
 
 import DocumentsWalkthrough from "@/components/DocumentsWalkthrough.astro"
@@ -63,8 +63,15 @@ la date de dernière mise à jour.
 Ouvrez le menu **⋮** en fin de ligne d'un document pour :
 
 - **Télécharger le document** — télécharger le fichier d'origine.
-- **Voir** — consulter les détails et le contenu du document.
-- **Modifier** — renommer le document et changer ses étiquettes.
+- **Voir** — ouvrir un panneau de détails affichant les métadonnées du document
+  (**Créé le**, **Mis à jour le**, **Nom de fichier**, **Taille**, **Langue**,
+  **Type MIME**), son **Statut des embeddings**, une éventuelle **Erreur des
+  embeddings**, ses **Tags** et le contenu extrait.
+- **Modifier** — renommer le document (**Titre**) et changer ses **Tags**, puis
+  cliquer sur **Mettre à jour**.
+- **Relancer le traitement** — relancer l'indexation d'un document. Cet élément
+  n'apparaît **que** lorsque le **Statut des embeddings** est **Échoué**, et
+  démarre aussitôt (sans confirmation).
 - **Supprimer** — retirer le document et son contenu indexé.
 
 ### 5. Gérer plusieurs documents à la fois
@@ -77,10 +84,22 @@ Ouvrez le menu **⋮** en fin de ligne d'un document pour :
 
 ### 6. Créer et gérer les étiquettes
 
-Les documents et les sites web partagent les mêmes étiquettes. Pour créer,
-modifier ou supprimer des étiquettes, ouvrez le panneau **Étiquettes** en haut à
-droite de la page — les étapes sont les mêmes que dans le guide
-[Sites web](/fr/web-sources).
+Les documents et les sites web partagent les mêmes étiquettes. Ouvrez le panneau
+**Étiquettes** en haut à droite de la page pour les gérer ; il présente vos
+étiquettes sous forme d'**arborescence**, une étiquette pouvant être imbriquée
+sous une **étiquette parente**.
+
+1. Cliquez sur **Ajouter une étiquette**. Dans la boîte de dialogue **Créer une
+   étiquette**, saisissez un **Nom** et une **Description** facultative.
+2. Pour l'imbriquer, ouvrez le sélecteur **Étiquette parente** et choisissez un
+   parent (laissez **Aucune** pour une étiquette de premier niveau). Le champ
+   **Étiquette parente** n'apparaît que lorsqu'au moins une autre étiquette existe.
+3. Cliquez sur **Créer**. La nouvelle étiquette apparaît dans l'arborescence,
+   indentée sous son parent.
+
+Survolez une étiquette pour la **modifier** (crayon) ou la **supprimer**
+(corbeille). L'étiquette réservée **`public-documents`** ne peut être ni modifiée
+ni supprimée.
 
 > L'étiquette réservée **`public-documents`** est spéciale : lorsqu'un document qui
 > la porte est proposé dans une conversation, l'utilisateur est autorisé à le
@@ -98,8 +117,9 @@ droite de la page — les étapes sont les mêmes que dans le guide
 
 - **Un agent n'utilise pas un document** — vérifiez que son **Statut des embeddings**
   est **Prêt** ; un document encore **En cours** n'est pas encore disponible.
-- **Un document a échoué au traitement** — ouvrez le menu **⋮** pour l'inspecter,
-  puis re-téléversez-le si nécessaire.
+- **Un document a échoué au traitement** — son **Statut des embeddings** affiche
+  **Échoué** ; ouvrez le menu **⋮** et choisissez **Relancer le traitement** pour
+  relancer l'indexation.
 - **Je dois modifier les étiquettes de nombreux documents** — sélectionnez-les et
   utilisez **Ajouter une étiquette** ou **Retirer un tag** dans la barre de
   sélection.

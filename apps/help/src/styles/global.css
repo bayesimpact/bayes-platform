@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./theme.css";
 
 /*
  * Bayes Impact brand tokens (brand/tokens.css): warm-beige surface, black ink,
