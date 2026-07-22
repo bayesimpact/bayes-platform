@@ -1,7 +1,7 @@
 import { URL } from "node:url"
 import { Inject, Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import type { FilePart, ImagePart } from "ai"
+import type { FilePart, ImagePart, TextPart } from "ai"
 import { JSONParseError, TypeValidationError } from "ai"
 import type { Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
@@ -198,7 +198,6 @@ export class ExtractionAgentSessionRunnerService extends ServiceWithLLM {
     document: Document
     prompt: string
   }): Promise<LLMChatMessage> {
-    const url = await this.fileStorageService.getTemporaryUrl(document.storageRelativePath)
     const llmMessage: LLMChatMessage = {
       role: "user",
       content: [{ type: "text", text: prompt }],
@@ -206,6 +205,7 @@ export class ExtractionAgentSessionRunnerService extends ServiceWithLLM {
 
     switch (document.mimeType) {
       case "application/pdf": {
+        const url = await this.fileStorageService.getTemporaryUrl(document.storageRelativePath)
         const content = llmMessage.content as Array<FilePart>
         content.push({
           type: "file",
@@ -218,10 +218,22 @@ export class ExtractionAgentSessionRunnerService extends ServiceWithLLM {
       case "image/png":
       case "image/jpeg":
       case "image/jpg": {
+        const url = await this.fileStorageService.getTemporaryUrl(document.storageRelativePath)
         const content = llmMessage.content as Array<ImagePart>
         content.push({
           type: "image",
           image: new URL(url),
+        })
+        break
+      }
+      case "text/plain":
+      case "text/markdown":
+      case "text/csv": {
+        const fileBuffer = await this.fileStorageService.readFile(document.storageRelativePath)
+        const content = llmMessage.content as Array<TextPart>
+        content.push({
+          type: "text",
+          text: fileBuffer.toString("utf-8"),
         })
         break
       }

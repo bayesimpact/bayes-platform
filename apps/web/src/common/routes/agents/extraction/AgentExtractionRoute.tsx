@@ -138,6 +138,8 @@ function FileManager({
               "application/pdf": true,
               "image/jpeg": true,
               "text/csv": true,
+              "text/markdown": true,
+              "text/plain": true,
             }}
             onDropFiles={(files) => {
               const file = files[0]
