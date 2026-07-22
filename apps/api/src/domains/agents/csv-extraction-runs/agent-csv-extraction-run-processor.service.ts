@@ -1,23 +1,12 @@
-import {
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnprocessableEntityException,
-} from "@nestjs/common"
+import { Injectable, Logger, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: DataSource required at runtime for NestJS DI
 import { DataSource, type Repository } from "typeorm"
-import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type {
-  LLMChatMessage,
-  LLMMetadata,
-  LLMProvider,
-} from "@/common/interfaces/llm-provider.interface"
 import type { AgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.types"
-import { ServiceWithLLM } from "@/external/llm"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { StructuredExtractionAgentRunnerService } from "@/domains/agents/shared/structured-extraction-agent-runner.service"
 import type {
   AgentCsvExtractionRunColumnSchema,
   AgentCsvExtractionRunSummary,
@@ -34,7 +23,7 @@ import {
 import { AgentCsvExtractionRunStatusNotifierService } from "./agent-csv-extraction-run-status-notifier.service"
 
 @Injectable()
-export class AgentCsvExtractionRunProcessorService extends ServiceWithLLM {
+export class AgentCsvExtractionRunProcessorService {
   private readonly logger = new Logger(AgentCsvExtractionRunProcessorService.name)
   private readonly runConnectRepository: ConnectRepository<AgentCsvExtractionRun>
   private readonly runRecordConnectRepository: ConnectRepository<AgentCsvExtractionRunRecord>
@@ -46,28 +35,9 @@ export class AgentCsvExtractionRunProcessorService extends ServiceWithLLM {
     runRecordRepository: Repository<AgentCsvExtractionRunRecord>,
     private readonly statusNotifierService: AgentCsvExtractionRunStatusNotifierService,
     private readonly csvExportService: AgentCsvExtractionRunCsvExportService,
-    @Inject("_MockLLMProvider")
-    mockLlmProvider: LLMProvider,
-    @Inject("VertexLLMProvider")
-    vertexLlmProvider: LLMProvider,
-    @Inject("Vertex3LLMProvider")
-    vertex3LlmProvider: LLMProvider,
-    @Inject("MistralLLMProvider")
-    mistralLlmProvider: LLMProvider,
-    @Inject("MedGemmaLLMProvider")
-    medGemmaLlmProvider: LLMProvider,
-    @Inject("GemmaLLMProvider")
-    gemmaLlmProvider: LLMProvider,
+    private readonly structuredExtractionAgentRunner: StructuredExtractionAgentRunnerService,
     private readonly dataSource: DataSource,
   ) {
-    super({
-      mockLlmProvider,
-      vertexLlmProvider,
-      vertex3LlmProvider,
-      medGemmaLlmProvider,
-      gemmaLlmProvider,
-      mistralLlmProvider,
-    })
     this.runConnectRepository = new ConnectRepository(runRepository, "agentCsvExtractionRun")
     this.runRecordConnectRepository = new ConnectRepository(
       runRecordRepository,
@@ -273,16 +243,18 @@ export class AgentCsvExtractionRunProcessorService extends ServiceWithLLM {
     connectScope: RequiredConnectScope
   }): Promise<void> {
     try {
-      const inputText = this.buildInputText({
-        inputData: runRecord.inputData ?? {},
+      const inputText = this.structuredExtractionAgentRunner.buildInputText({
+        rowData: runRecord.inputData ?? {},
         columnSchema,
       })
 
-      const { output: agentOutput, traceId } = await this.invokeAgent({
-        agentWithSettings,
-        inputText,
-        connectScope,
-      })
+      const { output: agentOutput, traceId } =
+        await this.structuredExtractionAgentRunner.invokeAgent({
+          agentWithSettings,
+          inputText,
+          connectScope,
+          runTag: "agent-csv-extraction-run",
+        })
 
       runRecord.status = "success"
       runRecord.agentRawOutput = agentOutput
@@ -304,81 +276,6 @@ export class AgentCsvExtractionRunProcessorService extends ServiceWithLLM {
       connectScope,
       agentCsvExtractionRunId: agentCsvExtractionRun.id,
     })
-  }
-
-  private buildInputText({
-    inputData,
-    columnSchema,
-  }: {
-    inputData: Record<string, unknown>
-    columnSchema: AgentCsvExtractionRunColumnSchema
-  }): string {
-    const inputColumns = Object.values(columnSchema)
-      .filter((column) => column.role === "input")
-      .sort((columnA, columnB) => columnA.index - columnB.index)
-
-    const lines: string[] = []
-    for (const column of inputColumns) {
-      const value = inputData[column.id]
-      lines.push(`${column.finalName}: ${value ?? ""}`)
-    }
-    return lines.join("\n")
-  }
-
-  private async invokeAgent({
-    agentWithSettings,
-    inputText,
-    connectScope,
-  }: {
-    agentWithSettings: AgentWithSettingsRunJobPayload
-    inputText: string
-    connectScope: RequiredConnectScope
-  }): Promise<{ output: Record<string, unknown>; traceId: string }> {
-    if (!agentWithSettings.outputJsonSchema) {
-      throw new UnprocessableEntityException(
-        "Agent must have an outputJsonSchema for CSV extraction runs",
-      )
-    }
-
-    const traceId = v4()
-    const llmMessage: LLMChatMessage = {
-      role: "user",
-      content: [{ type: "text", text: inputText }],
-    }
-
-    const systemPrompt = `${agentWithSettings.instructions}\n\nToday's date: ${new Date().toLocaleDateString()}`
-
-    const llmConfig = this.buildLLMConfig({
-      systemPrompt,
-      model: agentWithSettings.model,
-      temperature: agentWithSettings.temperature,
-    })
-
-    const llmMetadata: LLMMetadata = {
-      traceId,
-      agentSessionId: traceId,
-      currentTurn: 1,
-      organizationId: connectScope.organizationId,
-      agentId: agentWithSettings.id,
-      revision: agentWithSettings.revision,
-      projectId: connectScope.projectId,
-      tags: [
-        agentWithSettings.name,
-        `rev-${agentWithSettings.revision}`,
-        "agent-csv-extraction-run",
-      ],
-    }
-
-    const output = await this.getProviderForModel(agentWithSettings.model).generateStructuredOutput(
-      {
-        message: llmMessage,
-        schema: agentWithSettings.outputJsonSchema,
-        config: llmConfig,
-        metadata: llmMetadata,
-      },
-    )
-
-    return { output, traceId }
   }
 
   private async generateCsv(agentCsvExtractionRun: AgentCsvExtractionRun): Promise<void> {

@@ -7,9 +7,7 @@ export function EvalLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <HorizontalNavbar user={user} appName="Evaluation" />
-      <div className="w-4/5 lg:w-3/4 mx-auto my-10 relative border rounded-2xl overflow-hidden">
-        {children}
-      </div>
+      <div className="mx-auto relative border-b">{children}</div>
     </>
   )
 }

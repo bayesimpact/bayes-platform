@@ -1,27 +1,13 @@
-import {
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-  UnprocessableEntityException,
-} from "@nestjs/common"
+import { Injectable, Logger, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: DataSource required at runtime for NestJS DI
 import { DataSource, type Repository } from "typeorm"
-import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type {
-  LLMChatMessage,
-  LLMMetadata,
-  LLMProvider,
-} from "@/common/interfaces/llm-provider.interface"
 import type { AgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.types"
-import { ServiceWithLLM } from "@/external/llm"
-import type {
-  DatasetSchemaColumn,
-  EvaluationExtractionDatasetSchemaMapping,
-} from "../datasets/evaluation-extraction-dataset.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { StructuredExtractionAgentRunnerService } from "@/domains/agents/shared/structured-extraction-agent-runner.service"
+import type { EvaluationExtractionDatasetSchemaMapping } from "../datasets/evaluation-extraction-dataset.entity"
 import type { EvaluationExtractionDatasetRecord } from "../datasets/records/evaluation-extraction-dataset-record.entity"
 import {
   EvaluationExtractionRun,
@@ -40,7 +26,7 @@ import {
 } from "./records/evaluation-extraction-run-record.entity"
 
 @Injectable()
-export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
+export class EvaluationExtractionRunProcessorService {
   private readonly logger = new Logger(EvaluationExtractionRunProcessorService.name)
   private readonly evaluationExtractionRunConnectRepository: ConnectRepository<EvaluationExtractionRun>
   private readonly runRecordConnectRepository: ConnectRepository<EvaluationExtractionRunRecord>
@@ -53,28 +39,9 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
     private readonly graderService: EvaluationExtractionRunGraderService,
     private readonly statusNotifierService: EvaluationExtractionRunStatusNotifierService,
     private readonly csvExportService: EvaluationExtractionRunCsvExportService,
-    @Inject("_MockLLMProvider")
-    mockLlmProvider: LLMProvider,
-    @Inject("VertexLLMProvider")
-    vertexLlmProvider: LLMProvider,
-    @Inject("Vertex3LLMProvider")
-    vertex3LlmProvider: LLMProvider,
-    @Inject("MistralLLMProvider")
-    mistralLlmProvider: LLMProvider,
-    @Inject("MedGemmaLLMProvider")
-    medGemmaLlmProvider: LLMProvider,
-    @Inject("GemmaLLMProvider")
-    gemmaLlmProvider: LLMProvider,
+    private readonly structuredExtractionAgentRunner: StructuredExtractionAgentRunnerService,
     private readonly dataSource: DataSource,
   ) {
-    super({
-      mockLlmProvider,
-      vertexLlmProvider,
-      vertex3LlmProvider,
-      medGemmaLlmProvider,
-      gemmaLlmProvider,
-      mistralLlmProvider,
-    })
     this.evaluationExtractionRunConnectRepository = new ConnectRepository(
       evaluationExtractionRunRepository,
       "evaluationExtractionRun",
@@ -300,16 +267,20 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
     connectScope: RequiredConnectScope
   }): Promise<void> {
     try {
-      const inputText = this.buildInputText({
-        datasetRecord,
-        schemaMapping,
+      // Build the input and invoke the agent through the same runner as Studio
+      // CSV extraction runs, so evaluation and Studio behave identically.
+      const inputText = this.structuredExtractionAgentRunner.buildInputText({
+        rowData: datasetRecord.data,
+        columnSchema: schemaMapping,
       })
 
-      const { output: agentOutput, traceId } = await this.invokeAgent({
-        agentWithSettings,
-        inputText,
-        connectScope,
-      })
+      const { output: agentOutput, traceId } =
+        await this.structuredExtractionAgentRunner.invokeAgent({
+          agentWithSettings,
+          inputText,
+          connectScope,
+          runTag: "evaluation-extraction-run",
+        })
 
       const gradeResult = this.graderService.gradeRecord({
         agentOutput,
@@ -363,82 +334,5 @@ export class EvaluationExtractionRunProcessorService extends ServiceWithLLM {
       summary: evaluationExtractionRun.summary,
       updatedAt: evaluationExtractionRun.updatedAt.getTime(),
     })
-  }
-
-  private buildInputText({
-    datasetRecord,
-    schemaMapping,
-  }: {
-    datasetRecord: EvaluationExtractionDatasetRecord
-    schemaMapping: EvaluationExtractionDatasetSchemaMapping
-  }): string {
-    const inputColumns: DatasetSchemaColumn[] = Object.values(schemaMapping).filter(
-      (column) => column.role === "input",
-    )
-
-    const lines: string[] = []
-    for (const column of inputColumns) {
-      const value = datasetRecord.data[column.id]
-      lines.push(`${column.finalName}: ${value ?? ""}`)
-    }
-
-    return lines.join("\n")
-  }
-
-  private async invokeAgent({
-    agentWithSettings,
-    inputText,
-    connectScope,
-  }: {
-    agentWithSettings: AgentWithSettingsRunJobPayload
-    inputText: string
-    connectScope: RequiredConnectScope
-  }): Promise<{ output: Record<string, unknown>; traceId: string }> {
-    if (!agentWithSettings.outputJsonSchema) {
-      throw new UnprocessableEntityException(
-        "AgentSettings for Agent must have an outputJsonSchema for evaluation runs",
-      )
-    }
-
-    const traceId = v4()
-    const llmMessage: LLMChatMessage = {
-      role: "user",
-      content: [{ type: "text", text: inputText }],
-    }
-
-    const systemPrompt = `${agentWithSettings.instructions}\n\nToday's date: ${new Date().toLocaleDateString()}`
-
-    const llmConfig = this.buildLLMConfig({
-      systemPrompt,
-      model: agentWithSettings.model,
-      temperature: agentWithSettings.temperature,
-    })
-
-    const llmMetadata: LLMMetadata = {
-      traceId,
-      agentSessionId: traceId,
-      currentTurn: 1,
-      organizationId: connectScope.organizationId,
-      agentId: agentWithSettings.id,
-      revision: agentWithSettings.revision,
-      projectId: connectScope.projectId,
-      tags: [
-        agentWithSettings.name,
-        `rev-${agentWithSettings.revision}`,
-        agentWithSettings.type,
-        "evaluation-extraction-run",
-      ],
-    }
-
-    const output = await this.getProviderForModel(agentWithSettings.model).generateStructuredOutput(
-      {
-        message: llmMessage,
-        schema: agentWithSettings.outputJsonSchema,
-        config: llmConfig,
-        metadata: llmMetadata,
-      },
-    )
-
-    return { output, traceId }
   }
 }

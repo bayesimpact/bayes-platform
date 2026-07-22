@@ -7,6 +7,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { toAgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.helper"
+import { StructuredExtractionAgentRunnerService } from "@/domains/agents/shared/structured-extraction-agent-runner.service"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { LlmModule } from "@/external/llm/llm.module"
 import { sdk } from "@/external/llm/open-telemetry-init"
@@ -33,6 +34,7 @@ describe("EvaluationExtractionRunProcessorService", () => {
       additionalImports: [LlmModule],
       providers: [
         EvaluationExtractionRunProcessorService,
+        StructuredExtractionAgentRunnerService,
         EvaluationExtractionRunGraderService,
         { provide: EvaluationExtractionRunStatusNotifierService, useValue: mockStatusNotifier },
         { provide: EvaluationExtractionRunCsvExportService, useValue: mockCsvExport },

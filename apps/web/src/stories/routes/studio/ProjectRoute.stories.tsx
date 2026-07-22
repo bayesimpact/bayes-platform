@@ -62,7 +62,7 @@ export const WithAllFeatures: Story = {
     organizationMembershipRole: "owner",
     projectMembershipRole: "owner",
     agentMembershipRole: "owner",
-    featureFlags: ["evaluation", "project-analytics"],
+    featureFlags: ["project-analytics"],
     withAgents: true,
   },
 

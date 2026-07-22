@@ -8,6 +8,8 @@ import agents from "@/common/features/agents/external/agents.api"
 import me from "@/common/features/me/external/me.api"
 import organizations from "@/common/features/organizations/external/organizations.api"
 import projects from "@/common/features/projects/external/projects.api"
+import evaluationConversationDatasets from "@/eval/features/evaluation-conversation-datasets/external/evaluation-conversation-datasets.api"
+import evaluationConversationRuns from "@/eval/features/evaluation-conversation-runs/external/evaluation-conversation-runs.api"
 import evaluationExtractionDatasets from "@/eval/features/evaluation-extraction-datasets/external/evaluation-extraction-datasets.api"
 import evaluationExtractionRuns from "@/eval/features/evaluation-extraction-runs/external/evaluation-extraction-runs.api"
 import reviewCampaignsReviewer from "@/reviewer/features/review-campaigns/external/reviewer.api"
@@ -19,8 +21,6 @@ import agentAnalytics from "@/studio/features/analytics/agent/external/agent-ana
 import projectAnalytics from "@/studio/features/analytics/project/external/analytics.api"
 import documentTags from "@/studio/features/document-tags/external/document-tags.api"
 import documents from "@/studio/features/documents/external/documents.api"
-import evaluationReports from "@/studio/features/evaluation-reports/external/evaluation-reports.api"
-import evaluations from "@/studio/features/evaluations/external/evaluations.api"
 import invitations from "@/studio/features/invitations/external/invitations.api"
 import mcpServers from "@/studio/features/mcp-servers/external/mcp-servers.api"
 import projectMemberships from "@/studio/features/project-memberships/external/project-memberships.api"
@@ -42,10 +42,10 @@ export const services = {
   conversationAgentSessions,
   documents,
   documentTags,
+  evaluationConversationDatasets,
+  evaluationConversationRuns,
   evaluationExtractionDatasets,
-  evaluationReports,
   evaluationExtractionRuns,
-  evaluations,
   extractionAgentSessions,
   formAgentSessions,
   invitations,

@@ -28,7 +28,9 @@ import { DocumentContextResolver } from "./resolvers/document-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentTagContextResolver } from "./resolvers/document-tag-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { EvaluationContextResolver } from "./resolvers/evaluation-context.resolver"
+import { EvaluationConversationDatasetContextResolver } from "./resolvers/evaluation-conversation-dataset-context.resolver"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { EvaluationConversationRunContextResolver } from "./resolvers/evaluation-conversation-run-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationExtractionDatasetContextResolver } from "./resolvers/evaluation-extraction-dataset-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -62,7 +64,8 @@ const RESOLUTION_ORDER: ContextResource[] = [
   "documentTag",
   "resourceLibrary",
   "mcpServer",
-  "evaluation",
+  "evaluationConversationDataset",
+  "evaluationConversationRun",
   "evaluationExtractionDataset",
   "evaluationExtractionRun",
   "agentSessionInCampaign",
@@ -88,7 +91,10 @@ export class ResourceContextGuard implements CanActivate {
     @Optional() documentTagContextResolver?: DocumentTagContextResolver,
     @Optional() resourceLibraryContextResolver?: ResourceLibraryContextResolver,
     @Optional() mcpServerContextResolver?: McpServerContextResolver,
-    @Optional() evaluationContextResolver?: EvaluationContextResolver,
+    @Optional()
+    evaluationConversationDatasetContextResolver?: EvaluationConversationDatasetContextResolver,
+    @Optional()
+    evaluationConversationRunContextResolver?: EvaluationConversationRunContextResolver,
     @Optional()
     evaluationExtractionDatasetContextResolver?: EvaluationExtractionDatasetContextResolver,
     @Optional() evaluationExtractionRunContextResolver?: EvaluationExtractionRunContextResolver,
@@ -146,8 +152,17 @@ export class ResourceContextGuard implements CanActivate {
     if (mcpServerContextResolver) {
       resolverEntries.push([mcpServerContextResolver.resource, mcpServerContextResolver])
     }
-    if (evaluationContextResolver) {
-      resolverEntries.push([evaluationContextResolver.resource, evaluationContextResolver])
+    if (evaluationConversationDatasetContextResolver) {
+      resolverEntries.push([
+        evaluationConversationDatasetContextResolver.resource,
+        evaluationConversationDatasetContextResolver,
+      ])
+    }
+    if (evaluationConversationRunContextResolver) {
+      resolverEntries.push([
+        evaluationConversationRunContextResolver.resource,
+        evaluationConversationRunContextResolver,
+      ])
     }
     if (evaluationExtractionDatasetContextResolver) {
       resolverEntries.push([

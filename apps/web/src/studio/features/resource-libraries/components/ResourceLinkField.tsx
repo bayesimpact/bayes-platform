@@ -62,7 +62,8 @@ export function ResourceLinkField({
         <div className="flex items-center gap-3">
           <FileUploader
             allowedMimeTypes={allowedDocumentUploadMimeTypesForFileUploader}
-            maxSize={25 * 1024 * 1024}
+            maxSize={25 * 1024 * 1024} // 25MB
+            maxFiles={1}
             onProcessFiles={handleUpload}
           />
           {resource.file && (
