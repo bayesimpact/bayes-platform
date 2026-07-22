@@ -93,10 +93,19 @@ def _pdf_has_no_usable_text_layer(doc_path: Path) -> bool:
 
     Reuses docling's own PDF backend for the check instead of a second parse
     with pypdf (~160ms/file vs ~800ms/file, and pypdf is slowest exactly on
-    the vector-path files this needs to catch).
+    the vector-path files this needs to catch). Uses DoclingParseDocumentBackend,
+    which is also DocumentConverter's own default PDF backend as of docling
+    2.91.0 (DoclingParseV4DocumentBackend is a deprecated alias kept only to
+    warn callers back onto this one), so the classifier's notion of "text
+    cells" matches what conversion will see.
 
     Returns False on any classification error so conversion falls back to the
     default pipeline.
+
+    Known limitation: this averages native characters across the whole
+    document, so a PDF mixing a few native-text pages with many appended
+    scanned/vector pages can stay above the threshold and keep the fast path,
+    leaving the scanned pages empty.
     """
     from docling.backend.docling_parse_backend import DoclingParseDocumentBackend
     from docling.datamodel.base_models import InputFormat

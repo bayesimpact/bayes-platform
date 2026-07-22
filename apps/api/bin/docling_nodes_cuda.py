@@ -291,16 +291,27 @@ def main() -> int:
         print(f"Error: Document file does not exist: {doc_path}", file=sys.stderr)
         return 1
 
+    # Shared with document_chunker.py (same bin/ directory): PDFs whose
+    # content is vector-drawn (no text layer, no bitmaps) never trip
+    # docling's bitmap-coverage OCR trigger and come back empty unless
+    # full-page OCR is forced. Classification is best-effort: any failure
+    # (including this import) must degrade to the default pipeline rather
+    # than fail the whole conversion.
+    force_full_page_ocr = False
     try:
-        # Shared with document_chunker.py (same bin/ directory): PDFs whose
-        # content is vector-drawn (no text layer, no bitmaps) never trip
-        # docling's bitmap-coverage OCR trigger and come back empty unless
-        # full-page OCR is forced.
         from document_chunker import _pdf_has_no_usable_text_layer
 
         force_full_page_ocr = (
             doc_path.suffix.lower() == ".pdf" and _pdf_has_no_usable_text_layer(doc_path)
         )
+    except Exception as error:  # noqa: BLE001
+        print(
+            f"Warning: could not classify PDF text layer for {doc_path.name} ({error}); "
+            "using the default docling pipeline.",
+            file=sys.stderr,
+        )
+
+    try:
         docling_reader_class, docling_node_parser_class = _import_docling_components()
         doc_converter = _build_doc_converter(force_full_page_ocr=force_full_page_ocr)
         docling_reader = docling_reader_class(export_type="json", doc_converter=doc_converter)
