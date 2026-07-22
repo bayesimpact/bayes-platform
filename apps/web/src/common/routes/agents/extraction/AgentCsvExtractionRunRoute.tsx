@@ -37,7 +37,11 @@ export function AgentCsvExtractionRunRoute() {
     return () => setOpen(true)
   }, [setOpen])
 
-  useMount({ actions: agentCsvExtractionRunsActions, condition: !!runId && !open })
+  useMount({
+    actions: agentCsvExtractionRunsActions,
+    condition: !!runId && !open,
+    refreshOn: [runId],
+  })
 
   if (!runId) return <LoadingRoute />
   return (
