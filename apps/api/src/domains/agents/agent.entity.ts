@@ -29,6 +29,7 @@ export class Agent extends ConnectEntityBase {
   @Column({ type: "varchar", default: "conversation" })
   type!: AgentType
 
+  // NOTE: We kept this because the agentSettingsId is linked on the Message, not the session. (specific case for public chat bot)
   @OneToMany(
     () => ConversationAgentSession,
     (conversationAgentSession) => conversationAgentSession.agent,

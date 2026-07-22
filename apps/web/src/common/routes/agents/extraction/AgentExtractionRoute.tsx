@@ -134,6 +134,7 @@ function FileManager({
         action={
           <FileUploader
             maxFiles={1}
+            maxSize={25 * 1024 * 1024} // 25 MB
             allowedMimeTypes={{
               "application/pdf": true,
               "image/jpeg": true,

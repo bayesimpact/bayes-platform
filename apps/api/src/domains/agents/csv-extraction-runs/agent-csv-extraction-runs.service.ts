@@ -104,7 +104,14 @@ export class AgentCsvExtractionRunsService {
       fields: { status: "cancelled" },
     })
 
-    return this.runConnectRepository.saveOne(agentCsvExtractionRun)
+    await this.runConnectRepository.saveOne(agentCsvExtractionRun)
+    const run = await this.runConnectRepository.getOneById(connectScope, agentCsvExtractionRun.id, {
+      relations: ["agentSettings"],
+    })
+    if (!run) {
+      throw new NotFoundException(`Agent CSV run with id ${agentCsvExtractionRun.id} not found`)
+    }
+    return run
   }
 
   async enqueueExecuteRun({

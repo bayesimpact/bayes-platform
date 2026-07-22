@@ -222,7 +222,9 @@ export class AgentCsvExtractionRunProcessorService {
     id: string
     connectScope: RequiredConnectScope
   }): Promise<AgentCsvExtractionRun> {
-    const run = await this.runConnectRepository.getOneById(connectScope, id)
+    const run = await this.runConnectRepository.getOneById(connectScope, id, {
+      relations: ["agentSettings"],
+    })
     if (!run) {
       throw new NotFoundException(`Agent CSV run with id ${id} not found`)
     }
@@ -294,7 +296,7 @@ export class AgentCsvExtractionRunProcessorService {
       agentCsvExtractionRunId: agentCsvExtractionRun.id,
       organizationId: agentCsvExtractionRun.organizationId,
       projectId: agentCsvExtractionRun.projectId,
-      agentSettingsId: agentCsvExtractionRun.agentSettingsId,
+      agentId: agentCsvExtractionRun.agentSettings.agentId,
       status: agentCsvExtractionRun.status,
       summary: agentCsvExtractionRun.summary,
       updatedAt: agentCsvExtractionRun.updatedAt.getTime(),

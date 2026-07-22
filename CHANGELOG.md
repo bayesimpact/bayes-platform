@@ -16,6 +16,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) Evaluations: conversation-agent evaluation moved from the Studio into the Evaluation app — build datasets of input/expected-output records (add them inline one after another or paste a batch as CSV), run them against a chosen version of an agent's settings in the background, and follow each run's scores (rated 0–5 by an LLM judge whose model you pick per run) live on its own report page; the run's "view agent" panel shows the exact settings version that was scored, and existing Studio evaluations are migrated into a "Studio evaluations" dataset per project
 
 ### Fixed
+- Extraction runs: the run page updates live after cancelling a run, and refreshes when switching runs
+- Extraction document uploads are capped at 25 MB, with files over the limit rejected upfront
 - (beta) Evaluations: conversation and extraction runs now execute the agent exactly as the Studio does — same master prompt and same tools (document retrieval, sources, resource libraries, MCP servers, sub-agents) — so evaluation scores reflect the agent's real behaviour; previously evaluated agents ran with a legacy prompt and no tools at all
 - (beta) Evaluations: cancelling and retrying conversation-evaluation runs is now reliable — a cancelled run can no longer restart itself, a failed retry no longer leaves records stuck, and the run page updates live after a retry instead of freezing on "pending"
 - Renaming an agent no longer creates an extra settings version in the agent's history

@@ -18,7 +18,7 @@ export class AgentCsvExtractionRunStatusNotifierService extends PostgresStatusNo
     agentCsvExtractionRunId: string
     organizationId: string
     projectId: string
-    agentSettingsId: string
+    agentId: string
     status: AgentCsvExtractionRunStatusDto
     summary: AgentCsvExtractionRunSummaryDto | null
     updatedAt: number
@@ -28,7 +28,7 @@ export class AgentCsvExtractionRunStatusNotifierService extends PostgresStatusNo
       agentCsvExtractionRunId: params.agentCsvExtractionRunId,
       organizationId: params.organizationId,
       projectId: params.projectId,
-      agentSettingsId: params.agentSettingsId,
+      agentId: params.agentId,
       status: params.status,
       summary: params.summary,
       updatedAt: params.updatedAt,
