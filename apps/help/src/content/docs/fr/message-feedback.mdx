@@ -1,0 +1,90 @@
+---
+title: Retours utilisateurs
+highlight: Retours
+description: Consultez les problèmes signalés par les utilisateurs sur les messages d'un agent — chaque signalement montre le message exact, ses ID de session et de message, et le commentaire du rapporteur.
+category: guides-eval
+order: 7
+updated: 2026-07-22
+---
+
+import MessageFeedbackWalkthrough from "@/components/MessageFeedbackWalkthrough.astro"
+
+Pendant une conversation, un utilisateur peut signaler une réponse faible ou erronée
+avec **Signaler un problème avec ce message**. Les **Retours utilisateurs** sont
+l'endroit où vous — en tant que personne qui gère l'agent — lisez ces signalements,
+pour repérer les problèmes récurrents et améliorer l'agent.
+
+Les retours sont **par agent** : vous les ouvrez depuis la page d'un agent dans
+**Studio**, et ils listent chaque signalement laissé sur les messages de cet agent.
+Ils ne sont visibles que par les personnes qui peuvent **gérer** l'agent
+(propriétaires et administrateurs de l'espace de travail) ; ce n'est pas derrière un
+drapeau de fonctionnalité.
+
+## D'où viennent les retours
+
+Les signalements sont créés par les utilisateurs finaux dans une **conversation**, pas
+dans Studio. Sous n'importe quelle réponse de l'assistant, un bouton pouce ouvre
+**Signaler un problème avec ce message** ; l'utilisateur écrit un commentaire libre et
+clique sur **Envoyer**. Chaque commentaire devient une entrée sur cette page. Voir
+[Discuter avec un agent](/fr/chat-with-an-agent) pour le côté utilisateur.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape met en valeur le
+bouton à cliquer et la zone à observer.
+
+<MessageFeedbackWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir la carte Retours utilisateurs
+
+Ouvrez l'agent depuis la liste **Agents** de la barre latérale gauche. Sur la page de
+l'agent, repérez la carte **Retours utilisateurs** — *Gérez les retours sur les
+messages de l'agent.* — et cliquez sur son bouton **flèche** rond pour l'ouvrir. (La
+carte n'apparaît que si vous pouvez gérer l'agent.)
+
+### 2. Lire la liste des signalements
+
+La page **Retours utilisateurs** s'ouvre, titrée **Retours utilisateurs** avec le nom
+et le type de l'agent en dessous. C'est une simple liste — **du plus récent au plus
+ancien**, une entrée par message signalé. Quand il n'y a encore rien, vous voyez
+l'état vide à la place (étape 5).
+
+### 3. Voir le message signalé
+
+La carte du haut de chaque entrée est le **message exact de l'agent** qui a été
+signalé, tel qu'il est apparu à l'utilisateur. En dessous, une petite ligne donne
+l'**ID de session** et l'**ID de message** pour retrouver de quelle conversation et de
+quel message il provient.
+
+### 4. Lire le signalement
+
+La carte en dessous est le signalement lui-même : la **date** d'envoi, puis le
+**commentaire** libre du rapporteur. Il n'y a ni note ni catégorie — juste le message
+et le commentaire. L'identité du rapporteur n'est pas affichée, et il n'y a aucune
+action par ligne.
+
+### 5. L'état vide
+
+Tant que personne n'a signalé de message, la page affiche **Pas encore de retours** —
+*Aucun avis sur les messages de l'agent.*
+
+## Conseils
+
+- Consultez les retours régulièrement : des commentaires récurrents sur la même
+  réponse pointent souvent vers une instruction, une source ou un réglage de modèle à
+  ajuster.
+- Servez-vous de l'**ID de session** et de l'**ID de message** pour retrouver la
+  conversation d'où vient le signalement quand vous avez besoin du contexte complet.
+
+## Dépannage
+
+- **Il n'y a pas de carte Retours utilisateurs sur la page de l'agent** — la carte et
+  la page ne sont accessibles qu'aux personnes qui peuvent **gérer** l'agent
+  (propriétaire/administrateur). Demandez à un administrateur de l'espace de travail si
+  vous avez besoin d'un accès.
+- **La page est vide** — personne n'a encore signalé de message sur cet agent. Les
+  signalements viennent de l'action utilisateur **Signaler un problème avec ce
+  message** dans une conversation (voir [Discuter avec un agent](/fr/chat-with-an-agent)).

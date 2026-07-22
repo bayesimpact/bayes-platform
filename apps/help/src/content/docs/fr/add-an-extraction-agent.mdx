@@ -4,7 +4,7 @@ highlight: extraction
 description: Créez un agent d'extraction qui lit un document téléversé et renvoie des données structurées conformes à un schéma JSON que vous définissez.
 category: guides-agents
 order: 2
-updated: 2026-07-16
+updated: 2026-07-22
 ---
 
 import AddExtractionAgentWalkthrough from "@/components/AddExtractionAgentWalkthrough.astro"
@@ -79,7 +79,9 @@ Ouvrez l'onglet **Sortie** et construisez les champs à extraire **visuellement*
 sans JSON. Cliquez sur **Ajouter un champ** et, pour chaque champ, définissez :
 
 - **Nom du champ** — la clé sous laquelle il est stocké (par ex. `title`).
-- **Type** — **Texte**, **Nombre** ou **Oui / Non**.
+- **Type** — **Texte**, **Nombre**, **Oui / Non**, **Liste** ou **Choix**. **Nombre**
+  propose une plage min/max optionnelle, et **Choix** permet de définir les valeurs
+  autorisées.
 - **Description** — l'indice que l'agent utilise pour décider quoi y mettre.
 - **Obligatoire** — activez-le pour les champs que l'agent doit remplir.
 
@@ -112,17 +114,17 @@ guide complet.
   voulez une sortie fidèle et reproductible plutôt que des réponses créatives.
 - Ne marquez comme **Obligatoire** que les champs réellement requis ; l'agent
   renvoie `null` pour une valeur obligatoire qu'il ne trouve pas.
-- L'éditeur visuel propose des champs **Texte**, **Nombre** et **Oui / Non**. Pour
-  des formes plus riches (listes, objets imbriqués), passez en **Mode avancé** et
-  éditez le JSON.
+- L'éditeur visuel propose des champs **Texte**, **Nombre**, **Oui / Non**, **Liste**
+  et **Choix**. Pour des **objets imbriqués**, passez en **Mode avancé** et éditez le
+  JSON.
 
 ## Dépannage
 
 - **Le bouton Créer est désactivé** — le **Nom** doit comporter au moins 3
   caractères.
 - **Je ne vois pas le type de champ dont j'ai besoin** — l'éditeur visuel couvre
-  **Texte**, **Nombre** et **Oui / Non** ; utilisez le **Mode avancé** (JSON brut)
-  pour des listes ou des objets imbriqués.
+  **Texte**, **Nombre**, **Oui / Non**, **Liste** et **Choix** ; utilisez le **Mode
+  avancé** (JSON brut) pour des **objets imbriqués**.
 - **Mon schéma ne s'enregistre pas en Mode avancé** — il doit être un objet JSON
   valide ; l'éditeur affiche *Le schéma JSON de sortie doit être un objet JSON valide*
   et vous maintient en Mode avancé jusqu'à correction.

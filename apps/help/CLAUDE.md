@@ -63,6 +63,9 @@ detail. Everything here was learned the hard way — don't skip a step.
    no step omitted** (§Writing style → Level of detail): from the entry point to the
    final result, every screen/dialog/tab/field/label in bold verbatim, serving end
    users *and* AI agents. If it's not in the guide, the AI cannot answer it.
+   **If the feature is feature-flagged, add the flag callout** (§Feature-flag
+   callout) — a blockquote in both EN + FR telling the reader the feature is optional
+   and how to get it enabled.
 8. **Verify — the gate** (§Fidelity Phase 5, §Validate): `astro build` **and**
    `astro check` at 0 errors; grep the built HTML for **every** tab/label; **diff the
    tab set (count + order) against the component**; confirm the pages render.
@@ -147,8 +150,9 @@ platform palette (coral `--primary`, neutral greys) on its **own scoped root cla
 (`.msw` / `.anw` / `.caw` / …), so the site-wide Bayes beige/gold rebrand never leaks
 in — the animation must look like **apps/web / `packages/ui`** Studio, NOT the brand
 DA. Do NOT restyle animations to beige/gold, and do NOT mix in a different form:
-every widget shares the same shell (208px sidebar, 680px height), controls,
-`DUR = 6000`, and mechanics (see "Consistency" below). A one-off that uses global
+every widget shares the same shell (208px sidebar, 680px height — save the non-Studio
+exception in §Walkthrough component spec), controls, `DUR = 6000`, and mechanics (see
+"Consistency" below). A one-off that uses global
 tokens or the real component markup will clash with the other guides — don't.
 
 ---
@@ -337,6 +341,52 @@ FR headings are fixed translations: `## Le parcours complet en un coup d'œil`,
 `## Étape par étape`, `## Conseils`, `## Dépannage`. The concept heading is
 feature-specific (e.g. `## Comment les agents utilisent les documents`).
 
+**Extra `##` sections are allowed, additively.** Beyond this spine a guide MAY add
+feature-specific sections when the feature has real content that doesn't fit the
+canonical ones: one or more extra **concept** `##` *before* the walkthrough (as in
+apps-overview), and/or feature sections *after* `## Step by step` and before
+`## Tips` (e.g. `## Version history`, `## What happens at runtime`). Extras must carry
+genuine content (not padding), be mirrored EN + FR, and **never reorder, rename, or
+replace a canonical section**.
+
+## Feature-flag callout (MANDATORY when the feature is flagged)
+
+Some features only render when a **feature flag** is enabled on the project — the
+Phase-1 render inventory records this (§Fidelity Phase 1). Flags live in `apps/web`:
+grep `feature="<key>"` and `hasFeature("<key>")` (e.g. in `StudioRoutes.tsx`,
+`SidebarFooterChildren.tsx`, `AgentEditor.tsx`, the `*Button.tsx` gates). Known
+flags that gate a documented feature: `web-sources`, `project-analytics`,
+`evaluation` (Evaluations **and** Evaluation dashboard), `agent-orchestration`,
+`agent-embed`, `agent-mcp`.
+
+If the guide's feature is behind a flag, you **MUST** add a **blockquote callout**
+right after the intro/placement paragraph (before the first `##` heading, or before
+any existing disambiguation blockquote), in **both** EN and FR. It states the feature
+is optional and how to get it enabled — flags are set platform-side, so the reader
+must ask the Bayes team (a workspace admin cannot toggle them). Tailor the "if you
+don't see it" locator to the feature (sidebar item / workspace-card button / editor
+tab), and reuse the exact bold label from the locales.
+
+Templates (adapt the feature name + locator, keep the form byte-consistent):
+
+```
+> **Optional feature — ask to have it enabled.** <Feature> is turned on per
+> workspace. If you don't see <exact bold locator> in Studio, the feature isn't
+> enabled for your workspace yet — contact the Bayes team to request it.
+```
+```
+> **Fonctionnalité optionnelle — à faire activer.** <Fonctionnalité> s'active espace
+> de travail par espace de travail. Si vous ne voyez pas <repère exact en gras> dans
+> Studio, c'est que la fonctionnalité n'est pas encore activée pour votre espace de
+> travail — contactez l'équipe Bayes pour en faire la demande.
+```
+
+When the guide's intro already says "It's an optional feature", keep that sentence
+and still add the callout — the sentence states the fact, the callout states the
+**action** (how to get it turned on). Shorten the callout's opening to
+**`> **Ask to have it enabled.**`** / **`> **À faire activer.**`** in that case to
+avoid repeating "optional".
+
 ## Guide categories (a `guides` parent with nested sub-categories)
 
 Categories form a **two-level tree** (`src/i18n/categories.ts`): a top-level
@@ -382,9 +432,14 @@ Therefore:
   action. If clicking something opens a dialog, the dialog is its own step. If a page
   has three tabs, all three are covered. "Obvious" intermediate steps are still
   written — the AI agent and the first-time user do not find them obvious.
-- **One numbered `### n` sub-section per discrete action or screen**, matching the
-  walkthrough steps 1:1 (see §Deriving the flow & cutting the steps). A screen shown
-  in the animation with no matching prose section is a gap to fix.
+- **Numbered `### n` sub-sections track the walkthrough steps — 1:1 by default.**
+  You MAY fold a short run of *adjacent, closely-related* animation steps (e.g. the
+  `⋮` row menu + bulk-select + select-all) into one numbered step — but only when the
+  fold drops **no** content: every action, screen, dialog and label those steps show
+  must still appear, in bold, in that step's prose. Never the reverse: a paragraph
+  must not describe a screen the animation doesn't show, and no animated action may be
+  left undocumented. A screen shown in the animation whose content appears in **no**
+  prose step is a gap to fix.
 - **Every on-screen label appears verbatim and in bold** — buttons, tabs, fields,
   menu items, empty-state text, status badges, validation messages — in both EN and
   FR, taken from the locale files (§Fidelity Phase 2). Never paraphrase a label.
@@ -425,6 +480,13 @@ not, a step or label is missing.
 - **Shell** (platform `variant="inset"`): `grid-template-columns: 208px 1fr;
   height: 680px`. Left sidebar (see below) + inset card (`.inset`) with a top bar
   (`panel-left` toggle) + dotted `.canvas` + a coral `.fab`.
+  - **Exception — non-Studio surfaces.** A walkthrough for a screen that isn't inside
+    the Studio sidebar layout — the app launcher, login/onboarding, and the full-page
+    Evaluation / Test / Review dashboards — MAY drop the 208px sidebar and use its own
+    `.frame` layout. It MUST still keep the **680px height** and every other shared
+    element (controls, `DUR = 6000`, spot/observe mechanics, coral palette). This
+    exception is limited to genuinely non-Studio views; **every walkthrough of a
+    Studio page keeps the `208px 1fr` / 680px shell.**
 - **Controls**: **Prev / Next** buttons + `Step X / N` counter + clickable dots +
   play/pause + a progress bar. `const DUR = 6000` (the `progress i.run` CSS
   `var(--dur, 6000ms)` default MUST match).
@@ -485,8 +547,11 @@ tags (button) `tags` · single tag `tag` · external link `external-link` · che
 All guides share the **exact same form**, only content differs: the MDX `##`
 skeleton, the component shell (208px sidebar, 680px height), controls, `DUR = 6000`,
 highlight mechanics, theme handling, terminology, and sample identity must be
-byte-for-byte consistent with the existing guides. When adding one, diff its
-skeleton and its `DUR`/`grid-template-columns` against the siblings.
+byte-for-byte consistent with the existing guides — save the three documented
+exceptions: the **non-Studio shell** (§Walkthrough component spec), **additive extra
+`##` sections** (§MDX skeleton), and **step folding** (§Writing style → Level of
+detail). When adding one, diff its skeleton and its `DUR`/`grid-template-columns`
+against the siblings.
 
 ## Validate (Astro build; `npx` is NOT on PATH)
 

@@ -4,7 +4,7 @@ highlight: Web
 description: Crawl websites so their content becomes part of your agents' knowledge, and organize sources with tags.
 category: guides-sources
 order: 2
-updated: 2026-07-20
+updated: 2026-07-22
 ---
 
 import WebSourcesWalkthrough from "@/components/WebSourcesWalkthrough.astro"
@@ -16,13 +16,19 @@ workspace can draw on its pages to answer users.
 Web sources live under **Sources**, alongside [Documents](/en/documents) and [Resource libraries](/en/resource-libraries),
 and belong to the **workspace**.
 
+> **Optional feature — ask to have it enabled.** Web sources are turned on per
+> workspace. If you don't see **Web sources** under **Sources** in Studio, the
+> feature isn't enabled for your workspace yet — contact the Bayes team to request
+> it.
+
 ## How agents use web sources
 
 A crawled web source is indexed as knowledge in the workspace. Once its
 **Embedding Status** is **Ready**, agents can retrieve relevant pages from it to
-answer users. Use **tags** to organize your sources and control how they are used
-— for example, the reserved `public-documents` tag lets users download a source
-when it's surfaced in a conversation.
+answer users. Use **tags** to organize your sources and control how they are used.
+Note that, unlike an uploaded [document](/en/documents), a **crawled web source is
+never offered to users as a download** — its pages have no stored file — so the
+reserved `public-documents` tag has no download effect on a web source.
 
 ## The full flow at a glance
 
@@ -101,16 +107,18 @@ The tag then appears in the source's **Tags** column.
 3. Enter a **Name** and an optional **Description**, then click **Create**.
 4. From the tags panel you can **Edit** or **Delete** any tag at any time.
 
-> The reserved tag **`public-documents`** is special: when a document or source
-> carrying it is surfaced in a conversation, the user is allowed to download it.
+> The reserved **`public-documents`** tag only makes **uploaded
+> [Documents](/en/documents)** downloadable by users in a conversation. A crawled
+> web source can't be downloaded even when tagged, because its pages have no stored
+> file.
 
 ## Tips
 
 - Crawl the most relevant sections of a site — the whole site is indexed, so a
   focused, well-structured site gives the best answers.
 - **Recrawl** after the website changes so your agents stay up to date.
-- Use tags to keep large sets of sources organized and to control which ones are
-  downloadable by users.
+- Use tags to keep large sets of sources organized and to control how your agents
+  use them.
 
 ## Troubleshooting
 

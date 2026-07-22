@@ -4,7 +4,7 @@ highlight: Intégration
 description: Placez un agent conversationnel sur votre propre site comme widget de chat — activez l'intégration, copiez l'extrait de script, restreignez les sites autorisés, et adaptez la marque.
 category: guides-agents
 order: 6
-updated: 2026-07-16
+updated: 2026-07-22
 ---
 
 import EmbedWalkthrough from "@/components/EmbedWalkthrough.astro"
@@ -18,8 +18,14 @@ L'intégration se configure sur l'onglet **Intégration** de l'éditeur d'un **a
 conversationnel**, dans **Studio**. C'est une fonctionnalité optionnelle : l'onglet
 n'apparaît que si l'intégration est activée pour votre espace de travail et que vous
 modifiez un agent **conversationnel** (les agents d'extraction et de formulaire ne
-l'ont pas). Dans la barre d'onglets de l'éditeur, c'est le **dernier** onglet, après
-[**Orchestration**](/fr/agent-orchestration).
+l'ont pas). Dans la barre d'onglets de l'éditeur, c'est le dernier onglet, après
+[**Orchestration**](/fr/agent-orchestration) — sauf si l'onglet **Serveurs MCP** est
+activé, qui se place après lui.
+
+> **À faire activer.** L'intégration s'active espace de travail par espace de
+> travail. Si l'éditeur de votre agent conversationnel n'a pas d'onglet
+> **Intégration**, c'est que la fonctionnalité n'est pas encore activée — contactez
+> l'équipe Bayes pour en faire la demande.
 
 ## Comment fonctionne l'intégration
 
@@ -53,8 +59,9 @@ l'agent.
 
 ### 2. Ouvrir l'onglet Intégration
 
-Dans la barre d'onglets de l'éditeur, cliquez sur **Intégration** — c'est le dernier
-onglet. Si vous ne le voyez pas, l'onglet n'est pas activé pour votre espace de
+Dans la barre d'onglets de l'éditeur, cliquez sur **Intégration** — le dernier onglet
+(sauf si l'onglet **Serveurs MCP** est activé, qui se place après lui). Si vous ne le
+voyez pas, l'onglet n'est pas activé pour votre espace de
 travail, ou vous n'êtes pas sur un agent **conversationnel** (voir Dépannage).
 
 ### 3. Activer l'intégration

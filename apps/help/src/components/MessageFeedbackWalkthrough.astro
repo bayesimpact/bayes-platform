@@ -1,0 +1,397 @@
+---
+/**
+ * Walkthrough of the admin view of agent message feedback (the "Report a problem
+ * with this message" reports). Derived from the real components (verified, not
+ * copied blind): AgentSessionListHeader.tsx (Feedback card, shown when
+ * canManageAgent), FeedbackButton.tsx (card title/description + GoButton), the
+ * feedback route StudioRoutes.feedback (`/a/:agentId/f`, RestrictedAccess
+ * ability="canManageAgent" — NOT a feature flag), FeedbackRoute.tsx +
+ * FeedbackItem.tsx (per-row: outline card = reported message + Session ID/Message
+ * ID; muted card = date + free-text content), EmptyFeedback.tsx
+ * (MessageSquareWarningIcon + empty title/description). Labels verbatim from the
+ * agent-message-feedback locales (EN + FR). The sibling agent-page cards (Analytics,
+ * Playground) are representative context. Uses the PRODUCT (coral) palette, pinned
+ * locally. Derived 2026-07-22.
+ */
+type Lang = "en" | "fr"
+const { lang = "en" } = Astro.props as { lang?: Lang }
+
+const STRINGS = {
+  en: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Helpful Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent",
+    settingsName: "Demo", settings: "Settings", evaluations: "Evaluations", analytics: "Analytics", sources: "Sources",
+    members: "Members", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    conversation: "Conversation",
+    cardFeedback: "Feedback", cardFeedbackDesc: "Manage feedback on agent messages.",
+    cardAnalytics: "Analytics", cardAnalyticsDesc: "See how this agent is used.",
+    cardPlayground: "Playground", cardPlaygroundDesc: "Chat with this agent to test it.",
+    pageTitle: "Feedback",
+    sessionId: "Session ID:", messageId: "Message ID:",
+    msg1: "To reset your password, open Settings and choose Security.",
+    sid1: "sess_8f2a", mid1: "msg_1c7d", date1: "14 May 2026",
+    comment1: "This points to the wrong menu — there is no Security tab.",
+    msg2: "Our office hours are Monday to Friday, 9am–5pm.",
+    sid2: "sess_3b9e", mid2: "msg_4a2f", date2: "12 May 2026",
+    comment2: "These hours are out of date.",
+    emptyTitle: "No feedback yet", emptyDesc: "No feedback on the agent's messages.",
+    prev: "Prev", next: "Next", step: "Step",
+    steps: [
+      "From the agent's page, open the Feedback card.",
+      "The Feedback page lists every reported message, newest first.",
+      "Each entry shows the exact agent message that was reported, with its Session ID and Message ID.",
+      "Below it sits the report itself — the date it was sent and the reporter's comment.",
+      "Until someone reports a message, the page shows No feedback yet.",
+    ],
+  },
+  fr: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Helpful Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent",
+    settingsName: "Demo", settings: "Paramètres", evaluations: "Évaluations", analytics: "Analytique", sources: "Sources",
+    members: "Membres", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    conversation: "Conversation",
+    cardFeedback: "Retours utilisateurs", cardFeedbackDesc: "Gérez les retours sur les messages de l'agent.",
+    cardAnalytics: "Analytique", cardAnalyticsDesc: "Voyez comment cet agent est utilisé.",
+    cardPlayground: "Playground", cardPlaygroundDesc: "Discutez avec cet agent pour le tester.",
+    pageTitle: "Retours utilisateurs",
+    sessionId: "ID de session :", messageId: "ID de message :",
+    msg1: "Pour réinitialiser votre mot de passe, ouvrez Paramètres puis Sécurité.",
+    sid1: "sess_8f2a", mid1: "msg_1c7d", date1: "14 mai 2026",
+    comment1: "Cela pointe vers le mauvais menu — il n'y a pas d'onglet Sécurité.",
+    msg2: "Nos horaires sont du lundi au vendredi, 9h–17h.",
+    sid2: "sess_3b9e", mid2: "msg_4a2f", date2: "12 mai 2026",
+    comment2: "Ces horaires ne sont plus à jour.",
+    emptyTitle: "Pas encore de retours", emptyDesc: "Aucun avis sur les messages de l'agent.",
+    prev: "Précédent", next: "Suivant", step: "Étape",
+    steps: [
+      "Depuis la page de l'agent, ouvrez la carte Retours utilisateurs.",
+      "La page Retours utilisateurs liste chaque message signalé, du plus récent au plus ancien.",
+      "Chaque entrée montre le message exact de l'agent qui a été signalé, avec son ID de session et son ID de message.",
+      "En dessous se trouve le signalement lui-même — la date d'envoi et le commentaire du rapporteur.",
+      "Tant que personne n'a signalé de message, la page affiche Pas encore de retours.",
+    ],
+  },
+} as const
+
+const s = STRINGS[lang]
+
+const convIcon = '<path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/>'
+const extractIcon = '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/>'
+const warnIcon = '<path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/><path d="M12 15h.01"/><path d="M12 7v4"/>'
+const thumbsDownIcon = '<path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/><path d="M17 14V2"/>'
+
+const steps = [
+  { page: "agent", spot: "cardFeedback", observe: [] },
+  { page: "list", spot: "", observe: ["obsList"] },
+  { page: "list", spot: "", observe: ["obsMsg"] },
+  { page: "list", spot: "", observe: ["obsReport"] },
+  { page: "empty", spot: "", observe: ["obsEmpty"] },
+].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const labels = { prev: s.prev, next: s.next, step: s.step }
+---
+
+<div class="fbw" role="group" aria-label={s.cardFeedback}>
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside class="sb">
+      <div class="sb-head">
+        <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
+        <span class="org"><b>{s.org}</b><small>{s.studio}</small></span>
+      </div>
+      <div class="sb-scroll">
+        <div class="grp-label">{s.agents}<span class="add"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+        <div class="navitem" id="navAgent1"><svg viewBox="0 0 24 24" set:html={convIcon}></svg><span>{s.agent1}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24" set:html={convIcon}></svg><span>{s.conversationAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24" set:html={extractIcon}></svg><span>{s.extractionAgent}</span></div>
+
+        <div class="grp-label stack"><span class="name">{s.settingsName}</span><span>{s.settings}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg><span>{s.evaluations}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg><span>{s.analytics}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 15 21.84"/><path d="M21 5V8"/><path d="M21 12L18 17H22L19 22"/><path d="M3 12A9 3 0 0 0 14.59 14.87"/></svg><span>{s.sources}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg><span>{s.members}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg><span>{s.admin}</span></div>
+      </div>
+      <div class="sb-user">
+        <span class="avatar">AM</span>
+        <span class="who"><b>{s.userName}</b><small>{s.userEmail}</small></span>
+        <span class="updown"><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+      </div>
+    </aside>
+
+    <!-- Main inset -->
+    <div class="inset">
+      <div class="topbar">
+        <span class="trig"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span>
+      </div>
+      <div class="canvas">
+        <span class="fab"><svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
+
+        <!-- agent page (step 1) -->
+        <div class="page" data-page="agent" data-active="true">
+          <div class="page-head plain">
+            <span><span class="ttl">{s.agent1}</span><span class="desc">{s.conversation}</span></span>
+          </div>
+          <div class="cards3">
+            <div class="ecard" id="cardFeedback">
+              <b class="ic"><svg viewBox="0 0 24 24" set:html={warnIcon}></svg> {s.cardFeedback}</b>
+              <p>{s.cardFeedbackDesc}</p>
+              <div class="mock"><span class="mockline"><svg class="tdn" viewBox="0 0 24 24" set:html={thumbsDownIcon}></svg><i></i></span><span class="mockline"><svg viewBox="0 0 24 24" set:html={warnIcon}></svg><i></i></span></div>
+              <span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+            </div>
+            <div class="ecard">
+              <b class="ic"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg> {s.cardAnalytics}</b>
+              <p>{s.cardAnalyticsDesc}</p>
+              <span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+            </div>
+            <div class="ecard">
+              <b class="ic"><svg viewBox="0 0 24 24" set:html={convIcon}></svg> {s.cardPlayground}</b>
+              <p>{s.cardPlaygroundDesc}</p>
+              <span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- feedback list (steps 2-4) -->
+        <div class="page" data-page="list">
+          <div class="page-head">
+            <span class="btn icon-round"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.pageTitle}</span><span class="desc"><svg class="dsc-ic" viewBox="0 0 24 24" set:html={convIcon}></svg> {s.agent1} · {s.conversation}</span></span>
+          </div>
+          <div class="fb-list" id="obsList">
+            <div class="fb-item">
+              <div class="fb-msg" id="obsMsg">
+                <p class="fb-body">{s.msg1}</p>
+                <p class="fb-meta">{s.sessionId} {s.sid1} · {s.messageId} {s.mid1}</p>
+              </div>
+              <div class="fb-report" id="obsReport">
+                <p class="fb-date">{s.date1}</p>
+                <p class="fb-comment">{s.comment1}</p>
+              </div>
+            </div>
+            <div class="fb-item">
+              <div class="fb-msg">
+                <p class="fb-body">{s.msg2}</p>
+                <p class="fb-meta">{s.sessionId} {s.sid2} · {s.messageId} {s.mid2}</p>
+              </div>
+              <div class="fb-report">
+                <p class="fb-date">{s.date2}</p>
+                <p class="fb-comment">{s.comment2}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- empty state (step 5) -->
+        <div class="page" data-page="empty">
+          <div class="page-head">
+            <span class="btn icon-round"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.pageTitle}</span><span class="desc"><svg class="dsc-ic" viewBox="0 0 24 24" set:html={convIcon}></svg> {s.agent1} · {s.conversation}</span></span>
+          </div>
+          <div class="emptybox" id="obsEmpty">
+            <svg class="empty-ico" viewBox="0 0 24 24" set:html={warnIcon}></svg>
+            <b>{s.emptyTitle}</b>
+            <p>{s.emptyDesc}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="navbtn" data-prev><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> {s.prev}</button>
+    <button class="ctrl" data-playpause aria-label="Play / pause">⏸</button>
+    <span class="cap"><span class="st" data-stepcount></span><span class="tx" data-captext></span></span>
+    <span class="dots-nav" data-dots role="tablist" aria-label="Steps"></span>
+    <button class="navbtn primary" data-next>{s.next} <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="progress"><i data-bar></i></div>
+</div>
+
+<script define:vars={{ steps, labels }}>
+  const cs = document.currentScript
+  const fbw =
+    cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("fbw")
+      ? cs.previousElementSibling
+      : document.querySelector(".fbw")
+  const q = (sel) => fbw.querySelector(sel)
+  const pages = [...fbw.querySelectorAll(".page")]
+  const dotsWrap = fbw.querySelector("[data-dots]")
+  const bar = fbw.querySelector("[data-bar]")
+  const capText = fbw.querySelector("[data-captext]")
+  const stepCount = fbw.querySelector("[data-stepcount]")
+  const playPause = fbw.querySelector("[data-playpause]")
+  const prevBtn = fbw.querySelector("[data-prev]")
+  const nextBtn = fbw.querySelector("[data-next]")
+  const DUR = 6000
+  let idx = 0, playing = true, timer = null
+
+  steps.forEach((_, i) => {
+    const b = document.createElement("button")
+    b.className = "dotnav"; b.setAttribute("role", "tab"); b.setAttribute("aria-label", labels.step + " " + (i + 1))
+    b.addEventListener("click", () => go(i)); dotsWrap.appendChild(b)
+  })
+  const dots = [...dotsWrap.children]
+
+  function clearMarks() {
+    fbw.querySelectorAll(".spot-on").forEach((el) => el.classList.remove("spot-on"))
+    fbw.querySelectorAll(".observe-on").forEach((el) => el.classList.remove("observe-on"))
+  }
+  function render() {
+    const step = steps[idx]
+    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page)))
+    dots.forEach((d, i) => d.classList.toggle("on", i === idx))
+    stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
+    capText.textContent = step.text
+
+    // The agent whose feedback we're reading stays active in the AGENTS list.
+    q("#navAgent1")?.classList.add("on")
+
+    clearMarks()
+    const active = idx
+    setTimeout(() => {
+      if (active !== idx) return
+      if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
+      step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+    }, 260)
+
+    bar.classList.remove("run"); void bar.offsetWidth
+    bar.style.setProperty("--dur", DUR + "ms")
+    if (playing) bar.classList.add("run")
+  }
+  function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(() => go(idx + 1), DUR) }
+  function go(n) { idx = (n + steps.length) % steps.length; render(); schedule() }
+  function setPlaying(p) {
+    playing = p; playPause.textContent = p ? "⏸" : "▶"
+    if (p) { bar.classList.add("run"); schedule() } else { clearTimeout(timer); bar.classList.remove("run") }
+  }
+  prevBtn.addEventListener("click", () => go(idx - 1))
+  nextBtn.addEventListener("click", () => go(idx + 1))
+  playPause.addEventListener("click", () => setPlaying(!playing))
+
+  render(); schedule()
+</script>
+
+<style>
+  .fbw {
+    --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+    --primary: var(--brand-primary, oklch(62.8% 0.2 303.9)); --player-accent: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --destructive: oklch(0.577 0.245 27.325);
+    --sidebar: oklch(0.985 0 0); --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-accent: oklch(0.97 0 0); --sidebar-accent-foreground: oklch(0.205 0 0); --sidebar-border: oklch(0.922 0 0);
+    --radius: 0.625rem;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
+    --spot: color-mix(in oklab, var(--primary) 55%, transparent);
+    display: block; margin: 1.5rem 0; color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .fbw * { box-sizing: border-box; }
+  .fbw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+
+  .fbw .shell { display: grid; grid-template-columns: 208px 1fr; height: 680px; background: var(--sidebar); color: var(--sidebar-foreground); border: 1px solid var(--sidebar-border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .fbw .sb { display: flex; flex-direction: column; padding: 0.5rem; min-height: 0; }
+  .fbw .sb-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.4rem 0.6rem; }
+  .fbw .logo { width: 1.9rem; height: 1.9rem; display: inline-flex; align-items: center; justify-content: center; }
+  .fbw .logo svg { width: 100%; height: 100%; stroke: none; }
+  .fbw .logo svg path { fill: var(--brand-primary, #f18c6e); }
+  .fbw .logo svg circle { fill: #010101; }
+  .fbw .org { display: flex; flex-direction: column; line-height: 1.05; }
+  .fbw .org b { font-size: 0.92rem; font-weight: 700; }
+  .fbw .org small { color: var(--primary); font-size: 0.72rem; }
+  .fbw .sb-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
+  .fbw .grp-label { font-size: 0.66rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0.4rem 0.5rem 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
+  .fbw .grp-label .add { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+  .fbw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: auto; }
+  .fbw .grp-label.stack .name { color: var(--sidebar-foreground); font-size: 0.76rem; text-transform: none; font-weight: 700; }
+  .fbw .navitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.3rem 0.5rem; border-radius: 7px; font-size: 0.82rem; color: var(--sidebar-foreground); }
+  .fbw .navitem svg { font-size: 1rem; color: var(--muted-foreground); }
+  .fbw .navitem .chev { margin-left: auto; font-size: 0.9rem; }
+  .fbw .navitem.on { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 600; }
+  .fbw .navitem.on svg { color: var(--sidebar-accent-foreground); }
+  .fbw .sb-user { display: flex; align-items: center; gap: 0.55rem; margin-top: auto; padding: 0.45rem 0.5rem; }
+  .fbw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
+  .fbw .who { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+  .fbw .who b { font-size: 0.76rem; font-weight: 600; }
+  .fbw .who small { font-size: 0.68rem; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fbw .updown { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+
+  .fbw .inset { position: relative; margin: 0.5rem 0.5rem 0.5rem 0; background: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; box-shadow: var(--shadow); }
+  .fbw .topbar { height: 3rem; flex-shrink: 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
+  .fbw .trig { color: var(--muted-foreground); font-size: 1.05rem; }
+  .fbw .canvas { position: relative; flex: 1; min-height: 0; background: radial-gradient(circle, color-mix(in oklab, var(--muted-foreground) 20%, transparent) 1px, transparent 1px) 0 0 / 22px 22px; }
+  .fbw .fab { position: absolute; right: 1rem; bottom: 1rem; width: 2.3rem; height: 2.3rem; border-radius: 999px; background: var(--primary); color: var(--primary-foreground); display: grid; place-items: center; box-shadow: var(--shadow); font-size: 1.1rem; z-index: 6; }
+
+  .fbw .page { position: absolute; inset: 0; padding: 1.1rem 1.2rem; overflow: auto; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
+  .fbw .page[data-active="true"] { opacity: 1; transform: none; pointer-events: auto; }
+
+  .fbw .spot-on { position: relative; z-index: 7; animation: fbw-spot 1.4s ease-in-out infinite; border-radius: 8px; }
+  @keyframes fbw-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
+  .fbw .observe-on { outline: 2px dashed var(--spot); outline-offset: 3px; border-radius: 10px; }
+
+  .fbw .btn { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--primary); color: var(--primary-foreground); border-radius: 8px; font-size: 0.8rem; font-weight: 500; padding: 0.4rem 0.7rem; }
+  .fbw .btn.icon-round { border-radius: 999px; width: 2rem; height: 2rem; padding: 0; justify-content: center; background: var(--secondary); color: var(--secondary-foreground); }
+
+  .fbw .page-head { border-bottom: 1px solid var(--border); padding-bottom: 0.9rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.7rem; }
+  .fbw .page-head.plain { border: 0; }
+  .fbw .ttl { font-size: 1.3rem; font-weight: 600; line-height: 1.15; display: block; }
+  .fbw .desc { font-size: 0.88rem; color: var(--muted-foreground); margin-top: 0.2rem; display: flex; align-items: center; gap: 0.35rem; }
+  .fbw .desc .dsc-ic { font-size: 0.95rem; }
+
+  .fbw .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
+  .fbw .ecard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.8rem; min-height: 140px; display: flex; flex-direction: column; }
+  .fbw .ecard b { font-size: 0.88rem; }
+  .fbw .ecard b.ic { display: flex; align-items: center; gap: 0.35rem; }
+  .fbw .ecard b.ic svg { color: var(--muted-foreground); font-size: 0.95rem; }
+  .fbw .ecard p { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.2rem 0 0.6rem; }
+  .fbw .ecard .arrowbtn { margin-top: auto; align-self: flex-start; width: 1.8rem; height: 1.8rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); }
+  .fbw .mock { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.4rem; }
+  .fbw .mockline { display: flex; align-items: center; gap: 0.4rem; }
+  .fbw .mockline svg { font-size: 0.85rem; color: var(--muted-foreground); }
+  .fbw .mockline .tdn { color: var(--destructive); }
+  .fbw .mockline i { flex: 1; height: 0.4rem; border-radius: 999px; background: var(--muted); }
+
+  .fbw .emptybox { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 2.2rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; text-align: center; }
+  .fbw .emptybox .empty-ico { color: var(--muted-foreground); font-size: 1.6rem; }
+  .fbw .emptybox b { font-size: 0.9rem; }
+  .fbw .emptybox p { font-size: 0.8rem; color: var(--muted-foreground); margin: 0; }
+
+  .fbw .fb-list { display: flex; flex-direction: column; gap: 1rem; }
+  .fbw .fb-item { display: flex; flex-direction: column; gap: 0.5rem; }
+  .fbw .fb-msg { border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 0.75rem 0.85rem; }
+  .fbw .fb-body { font-size: 0.82rem; margin: 0; line-height: 1.5; }
+  .fbw .fb-meta { font-size: 0.68rem; color: var(--muted-foreground); margin: 0.5rem 0 0; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .fbw .fb-report { border: 1px solid var(--border); border-radius: 10px; background: var(--muted); padding: 0.7rem 0.85rem; }
+  .fbw .fb-date { font-size: 0.7rem; color: var(--muted-foreground); font-weight: 600; margin: 0 0 0.3rem; }
+  .fbw .fb-comment { font-size: 0.82rem; margin: 0; line-height: 1.5; }
+
+  .fbw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .fbw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+  .fbw .navbtn.primary { background: var(--player-accent); color: var(--primary-foreground); border-color: transparent; }
+  .fbw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
+  .fbw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .fbw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
+  .fbw .cap .tx { font-size: 0.88rem; font-weight: 500; }
+  .fbw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 200px; }
+  .fbw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .fbw .dotnav.on { background: var(--player-accent); transform: scale(1.3); }
+  .fbw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+  .fbw .progress i { display: block; height: 100%; width: 0; background: var(--player-accent); }
+  .fbw .progress i.run { animation: fbw-fill var(--dur, 6000ms) linear forwards; }
+  @keyframes fbw-fill { to { width: 100%; } }
+
+  @media (max-width: 640px) {
+    .fbw .shell { grid-template-columns: 1fr; height: 560px; }
+    .fbw .sb { display: none; }
+    .fbw .inset { margin: 0.5rem; }
+    .fbw .cards3 { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fbw .page, .fbw .spot-on, .fbw .progress i { transition: none !important; animation: none !important; }
+  }
+</style>

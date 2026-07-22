@@ -1,22 +1,30 @@
 ---
 title: Gérez votre profil
 highlight: profil
-description: Modifiez votre nom d'affichage et votre langue.
+description: Modifiez votre nom et changez la langue de l'application depuis le menu utilisateur.
 category: account
 order: 1
-updated: 2026-07-08
+updated: 2026-07-22
 ---
 
-Votre profil détermine votre nom d'affichage et la langue de l'application.
+Les paramètres de votre profil se trouvent dans le **menu utilisateur** — la carte en
+**bas de la barre latérale gauche** affichant votre nom et votre email. Cliquez dessus
+pour ouvrir le menu.
 
-## Mettre à jour vos informations
+## Modifier votre nom
 
-Ouvrez le menu utilisateur en haut à droite et sélectionnez **Modifier le
-profil**. Vous pouvez y changer votre nom d'affichage et d'autres informations
-personnelles.
+1. Ouvrez le **menu utilisateur** (en bas de la barre latérale gauche).
+2. Sélectionnez **Modifier le profil**.
+3. Dans la boîte de dialogue **Modifier le profil**, mettez à jour le champ **Nom**.
+4. Cliquez sur **Enregistrer**.
 
 ## Changer de langue
 
-L'application est disponible en plusieurs langues. Choisissez votre langue
-préférée depuis le menu utilisateur — le changement s'applique immédiatement et
-est mémorisé à votre prochaine connexion.
+Le même menu contient une bascule de langue entre **anglais** et **français**. Elle
+affiche **Switch to English** quand l'application est en français, et **Choisir le
+Français** quand elle est en anglais. La sélectionner change la langue immédiatement.
+
+## Également dans le menu utilisateur
+
+- **Centre d'aide** — ouvre ce centre d'aide.
+- **Se déconnecter** — vous déconnecte.

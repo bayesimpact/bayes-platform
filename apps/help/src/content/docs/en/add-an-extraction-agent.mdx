@@ -4,7 +4,7 @@ highlight: extraction
 description: Create an extraction agent that reads an uploaded document and returns structured data matching a JSON schema you define.
 category: guides-agents
 order: 2
-updated: 2026-07-16
+updated: 2026-07-22
 ---
 
 import AddExtractionAgentWalkthrough from "@/components/AddExtractionAgentWalkthrough.astro"
@@ -74,7 +74,8 @@ Open the **Output** tab and build the fields to extract **visually** — no JSON
 required. Click **Add field** and, for each field, set:
 
 - **Field name** — the key it's stored under (e.g. `title`).
-- **Type** — **Text**, **Number**, or **Yes / No**.
+- **Type** — **Text**, **Number**, **Yes / No**, **List**, or **Choice**. **Number**
+  offers an optional min/max range, and **Choice** lets you define the allowed values.
 - **Description** — the hint the agent uses to decide what to put there.
 - **Required** — toggle on for fields the agent must fill.
 
@@ -105,15 +106,16 @@ full walkthrough.
   repeatable output rather than creative answers.
 - Mark only genuinely mandatory fields as **Required**; the agent returns `null`
   for a required value it can't find.
-- The visual editor offers **Text**, **Number** and **Yes / No** fields. For richer
-  shapes (lists, nested objects) switch to **Advanced mode** and edit the JSON.
+- The visual editor offers **Text**, **Number**, **Yes / No**, **List** and
+  **Choice** fields. For **nested objects**, switch to **Advanced mode** and edit the
+  JSON.
 
 ## Troubleshooting
 
 - **The Create button is disabled** — the **Name** must be at least 3 characters.
 - **I don't see the field type I need** — the visual editor covers **Text**,
-  **Number** and **Yes / No**; use **Advanced mode** (raw JSON) for lists or nested
-  objects.
+  **Number**, **Yes / No**, **List** and **Choice**; use **Advanced mode** (raw JSON)
+  for **nested objects**.
 - **My schema won't save in Advanced mode** — it must be a valid JSON object; the
   editor shows *Output JSON schema must be a valid JSON object* and keeps you in
   Advanced mode until you fix it.
