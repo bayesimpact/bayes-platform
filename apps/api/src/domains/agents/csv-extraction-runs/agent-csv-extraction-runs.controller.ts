@@ -153,8 +153,7 @@ export class AgentCsvExtractionRunsController {
     const connectScope = getRequiredConnectScope(request)
     const agentCsvExtractionRunId = request.agentCsvExtractionRun.id
 
-    // NOTE: Do not await -> shoot and forget -> no db transaction, it just kills workers jobs
-    this.agentCsvExtractionRunsService.removePendingJobsForRun({
+    await this.agentCsvExtractionRunsService.removePendingJobsForRun({
       agentCsvExtractionRunId,
       connectScope,
     })

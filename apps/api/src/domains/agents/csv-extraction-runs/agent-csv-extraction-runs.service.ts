@@ -248,18 +248,11 @@ export class AgentCsvExtractionRunsService {
 
     const batches = batchArray(unfinishedRecords, BATCH_SIZE)
 
-    try {
-      await Promise.all(
-        batches.map(
-          async (batch) =>
-            await this.batchService.removePendingRunRecords(batch.map((runRecord) => runRecord.id)),
-        ),
-      )
-    } catch (error) {
-      throw new UnprocessableEntityException(
-        `Failed to remove pending jobs for run ${agentCsvExtractionRunId}. Error: ${error instanceof Error ? error.message : "No error message"}`,
-      )
-    }
+    // NOTE: Do not await -> shoot and forget -> it just kills workers jobs and nobody cares if it fails, the run will be marked as cancelled anyway
+    batches.map(
+      async (batch) =>
+        await this.batchService.removePendingRunRecords(batch.map((runRecord) => runRecord.id)),
+    )
   }
 
   async deleteRun({
