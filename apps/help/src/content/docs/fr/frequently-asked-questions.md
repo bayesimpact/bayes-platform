@@ -4,7 +4,7 @@ highlight: Questions
 description: Réponses rapides aux questions les plus fréquentes.
 category: faq
 order: 1
-updated: 2026-07-08
+updated: 2026-07-22
 ---
 
 ## Comment réinitialiser mon mot de passe ?
@@ -26,5 +26,5 @@ membres de votre espace de travail.
 
 ## Qui contacter pour plus d'aide ?
 
-Contactez l'administrateur de votre espace de travail, ou le support depuis
-l'application si le problème persiste.
+Contactez l'administrateur de votre espace de travail, ou l'équipe Bayes si le
+problème persiste.

@@ -1,0 +1,150 @@
+---
+title: Serveurs MCP
+highlight: MCP
+description: Connectez des serveurs d'outils MCP externes à votre espace de travail et activez-les par agent, pour qu'un agent puisse appeler des outils externes pendant qu'il répond.
+category: guides-agents
+order: 8
+updated: 2026-07-22
+---
+
+import McpServersWalkthrough from "@/components/McpServersWalkthrough.astro"
+
+Un **serveur MCP** est un service externe qui expose des **outils** qu'un agent peut
+appeler pendant qu'il travaille — par exemple pour rechercher une information ou
+déclencher une action dans un autre système. Vous connectez un serveur une seule fois
+au niveau de l'**espace de travail**, puis vous l'activez pour chacun des agents qui
+doivent l'utiliser.
+
+Les serveurs MCP ont deux surfaces dans **Studio** : une page **Serveurs MCP** au
+niveau de l'espace de travail (son propre élément dans la barre latérale gauche, à
+côté de **Membres** et **Admin**), où vous connectez et supprimez des serveurs ; et un
+onglet **Serveurs MCP** dans l'éditeur d'un **agent conversationnel**, où vous activez
+un serveur connecté pour cet agent.
+
+> **Fonctionnalité optionnelle — à faire activer.** Les serveurs MCP s'activent espace
+> de travail par espace de travail. Si vous ne voyez pas **Serveurs MCP** dans la
+> barre latérale de Studio, c'est que la fonctionnalité n'est pas encore activée pour
+> votre espace de travail — contactez l'équipe Bayes pour en faire la demande.
+
+## Comment fonctionnent les serveurs MCP
+
+- Un serveur est connecté à l'**espace de travail** avec un **Nom**, une **URL** et
+  une **Clé API** facultative. La clé est stockée chiffrée et n'est plus jamais
+  affichée après l'enregistrement.
+- Connecter un serveur ne donne **pas** à lui seul accès à un agent. Vous activez
+  chaque serveur **par agent** depuis l'onglet **Serveurs MCP** de l'agent — un
+  serveur désactivé pour un agent lui est invisible.
+- Il n'y a **pas de modification** : un serveur ne propose que **connecter** et
+  **supprimer**. Pour changer une URL ou une clé, supprimez le serveur et
+  reconnectez-le.
+- Supprimer un serveur le retire pour **tous** les agents qui l'utilisaient — ces
+  agents perdent aussitôt l'accès à ses outils.
+
+## Le parcours complet en un coup d'œil
+
+La démonstration ci-dessous rejoue chaque étape dans l'interface réelle. Utilisez
+**Précédent / Suivant** pour avancer à votre rythme ; chaque étape met en valeur le
+bouton à cliquer et la zone à observer.
+
+<McpServersWalkthrough lang="fr" />
+
+## Étape par étape
+
+### 1. Ouvrir Serveurs MCP
+
+Dans **Studio**, ouvrez la barre latérale de gauche et sélectionnez **Serveurs MCP**
+(icône serveur). Elle se trouve dans le groupe des paramètres, sous **Sources**, aux
+côtés de **Membres** et **Admin**.
+
+### 2. Commencer à connecter un serveur
+
+La page liste les serveurs déjà connectés à l'espace de travail, avec une courte
+description : **Gérer les serveurs d'outils externes connectés à cet espace de
+travail.** Quand il n'y en a aucun, un état vide indique **Aucun serveur MCP
+configuré. Ajoutez-en un pour donner à vos agents accès à des outils externes.**
+Cliquez sur **Nouveau serveur** (en haut à droite) pour en connecter un.
+
+### 3. Renseigner les détails du serveur
+
+La boîte de dialogue **Ajouter un serveur MCP** s'ouvre (**Connecter un serveur MCP
+externe à cet espace de travail.**). Renseignez :
+
+- **Nom** — un libellé pour le serveur (indication **Entrez le nom du serveur**).
+  Obligatoire.
+- **URL** — l'adresse du serveur, par ex. `https://mcp.example.com`. Obligatoire, et
+  doit être une URL valide.
+- **Clé API** — une clé d'authentification facultative (indication **Clé
+  d'authentification optionnelle**). En écriture seule : stockée chiffrée et jamais
+  réaffichée.
+
+Cliquez sur **Créer** pour connecter le serveur (ou sur **Annuler** pour fermer sans
+enregistrer).
+
+### 4. Voir le serveur connecté
+
+Le serveur apparaît sous forme de **carte** dans la liste, affichant son **Nom** et
+son **URL**. Répétez **Nouveau serveur** pour autant de serveurs que nécessaire.
+
+### 5. Supprimer un serveur
+
+Chaque carte a une seule action : l'**icône corbeille** à sa droite. Il n'y a ni
+modification ni menu d'options — connecter et supprimer sont les seules actions.
+
+### 6. Confirmer la suppression
+
+Cliquer sur l'icône corbeille ouvre la confirmation **Supprimer le serveur MCP** :
+*Êtes-vous sûr de vouloir supprimer « … » ? Les agents utilisant ce serveur perdront
+l'accès à ses outils.* Confirmez avec **Supprimer**, ou **Annuler** pour le
+conserver.
+
+### 7. Ouvrir un agent pour lui activer un serveur
+
+Connecter un serveur ne l'active encore nulle part. Dans **Studio**, ouvrez un **agent
+conversationnel** pour le modifier (depuis la liste **Agents** de la barre latérale ou
+sa carte sur la vue d'ensemble de l'espace de travail).
+
+### 8. Ouvrir l'onglet Serveurs MCP
+
+Dans l'éditeur de l'agent, ouvrez l'onglet **Serveurs MCP**. C'est le **dernier**
+onglet, après [**Orchestration**](/fr/agent-orchestration) et
+[**Intégration**](/fr/agent-embed), et il n'apparaît **que** lorsque l'espace de
+travail a au moins un serveur connecté.
+
+### 9. Activer un serveur pour cet agent
+
+L'onglet liste tous les serveurs connectés à l'espace de travail, chacun avec un
+**interrupteur**. Basculez un serveur **sur activé** pour donner à cet agent accès à
+ses outils ; basculez-le **sur désactivé** pour retirer cet accès. Le changement prend
+effet immédiatement — il n'y a pas de bouton Enregistrer distinct sur cet onglet.
+
+### 10. Revenir à la gestion des serveurs
+
+L'en-tête de l'onglet contient un lien **Gérer les serveurs** (icône lien externe) qui
+ouvre la page **Serveurs MCP** de l'espace de travail dans un nouvel onglet, pour
+connecter ou supprimer des serveurs sans perdre votre place dans l'éditeur.
+
+## Conseils
+
+- Donnez à chaque serveur un **Nom** clair — c'est ce que vous voyez (et ce
+  qu'affiche la liste d'interrupteurs par agent), il doit donc dire ce que fait le
+  serveur.
+- Gardez la **Clé API** ailleurs à portée de main : comme elle n'est jamais
+  réaffichée, la seule façon de la changer est de supprimer puis reconnecter le
+  serveur.
+- N'activez un serveur que pour les agents qui en ont réellement besoin — un serveur
+  laissé désactivé pour un agent lui est invisible.
+
+## Dépannage
+
+- **Aucun élément Serveurs MCP dans la barre latérale** — la fonctionnalité n'est pas
+  activée pour votre espace de travail ; contactez l'équipe Bayes pour en faire la
+  demande.
+- **Un agent n'a pas d'onglet Serveurs MCP** — l'onglet n'apparaît que lorsque
+  l'espace de travail a au moins un serveur connecté. Connectez-en un sur la page
+  **Serveurs MCP** d'abord.
+- **Créer est bloqué** — l'**URL** doit être une adresse valide (par exemple
+  commençant par `https://`), et le **Nom** ne peut pas être vide.
+- **Un agent n'utilise plus les outils d'un serveur** — vérifiez que le serveur est
+  toujours **activé** pour cet agent dans son onglet **Serveurs MCP**, et qu'il n'a
+  pas été supprimé sur la page de l'espace de travail (la suppression le retire pour
+  tous les agents).

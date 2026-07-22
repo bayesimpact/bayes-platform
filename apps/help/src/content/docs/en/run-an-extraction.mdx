@@ -4,7 +4,7 @@ highlight: extraction
 description: Run an extraction agent on a document — a single PDF or image, or a CSV batch — and read, download, and manage the extracted results.
 category: guides-agents
 order: 4
-updated: 2026-07-16
+updated: 2026-07-22
 ---
 
 import RunExtractionWalkthrough from "@/components/RunExtractionWalkthrough.astro"
@@ -29,7 +29,7 @@ a labelled dataset).
 - Open the extraction agent and start a **New Extraction**. Drop a file or pick one
   you've already uploaded (**PDF**, **image**, or **CSV**, one file at a time).
 - A **PDF/image** runs immediately and opens a **result page** with the extracted
-  JSON. A **CSV** opens a short dialog to set each column's role, then runs every row.
+  JSON. A **CSV** opens a short **page** to set each column's role, then runs every row.
 - Every run is saved to the **history** on the agent's page, tagged **PDF / Image** or
   **CSV**, so you can reopen or delete it later.
 
@@ -71,7 +71,7 @@ While it's still running you'll see *Processing... This may take a while...*
 
 ### 4. Configure and run a CSV batch
 
-For a CSV, the **Run CSV Extraction** dialog opens (*Run each record through the
+For a CSV, the **Run CSV Extraction** page opens (*Run each record through the
 agent*). In **Configure column roles**, set a role for each column:
 
 - **Input** — sent to the agent for that record.

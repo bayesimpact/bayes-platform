@@ -1,0 +1,135 @@
+---
+title: MCP Servers
+highlight: MCP
+description: Connect external MCP tool servers to your workspace and enable them per agent, so an agent can call outside tools while it answers.
+category: guides-agents
+order: 8
+updated: 2026-07-22
+---
+
+import McpServersWalkthrough from "@/components/McpServersWalkthrough.astro"
+
+An **MCP server** is an external service that exposes **tools** an agent can call
+while it works — for example to look something up or trigger an action in another
+system. You connect a server once at the **workspace** level, then turn it on for the
+individual agents that should use it.
+
+MCP servers have two surfaces in **Studio**: a workspace-level **MCP Servers** page
+(its own item in the left sidebar, next to **Members** and **Admin**), where you
+connect and remove servers; and an **MCP Servers** tab in a **conversation agent's**
+editor, where you enable a connected server for that agent.
+
+> **Optional feature — ask to have it enabled.** MCP servers are turned on per
+> workspace. If you don't see **MCP Servers** in the Studio sidebar, the feature
+> isn't enabled for your workspace yet — contact the Bayes team to request it.
+
+## How MCP servers work
+
+- A server is connected to the **workspace** with a **Name**, a **URL**, and an
+  optional **API Key**. The key is stored encrypted and is never shown again after
+  you save it.
+- Connecting a server does **not** by itself give any agent access to it. You enable
+  each server **per agent** from the agent's **MCP Servers** tab — a server that is
+  off for an agent is invisible to it.
+- There is **no edit**: a server has only **connect** and **delete**. To change a
+  URL or key, delete the server and connect it again.
+- Deleting a server removes it for **every** agent that was using it — those agents
+  immediately lose access to its tools.
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click and the area to
+watch.
+
+<McpServersWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Open MCP Servers
+
+In **Studio**, open the left sidebar and select **MCP Servers** (server icon). It
+sits in the settings group below **Sources**, alongside **Members** and **Admin**.
+
+### 2. Start connecting a server
+
+The page lists the servers already connected to the workspace, with a short
+description: **Manage external tool servers connected to this workspace.** When none
+exist yet, an empty state reads **No MCP servers configured yet. Add one to give your
+agents access to external tools.** Click **New Server** (top-right) to connect one.
+
+### 3. Fill in the server details
+
+The **Add MCP Server** dialog opens (**Connect an external MCP server to this
+workspace.**). Fill in:
+
+- **Name** — a label for the server (placeholder **Enter server name**). Required.
+- **URL** — the server's address, e.g. `https://mcp.example.com`. Required, and must
+  be a valid URL.
+- **API Key** — an optional authentication key (placeholder **Optional
+  authentication key**). It's write-only: stored encrypted and never displayed
+  again.
+
+Click **Create** to connect the server (or **Cancel** to close without saving).
+
+### 4. See the connected server
+
+The server appears as a **card** in the list, showing its **Name** and its **URL**.
+Repeat **New Server** for as many servers as you need.
+
+### 5. Remove a server
+
+Each card has a single action: the **trash icon** on its right. There is no edit or
+overflow menu — connect and delete are the only actions.
+
+### 6. Confirm the deletion
+
+Clicking the trash icon opens the **Delete MCP Server** confirmation: *Are you sure
+you want to delete “…”? Agents using this server will lose access to its tools.*
+Confirm with **Delete**, or **Cancel** to keep it.
+
+### 7. Open an agent to enable a server for it
+
+Connecting a server doesn't enable it anywhere yet. In **Studio**, open a
+**conversation agent** to edit it (from the sidebar **Agents** list or its card on
+the workspace overview).
+
+### 8. Open the MCP Servers tab
+
+In the agent editor, open the **MCP Servers** tab. It's the **last** tab, after
+[**Orchestration**](/en/agent-orchestration) and [**Embed**](/en/agent-embed), and
+it appears **only** once the workspace has at least one connected server.
+
+### 9. Toggle a server on for this agent
+
+The tab lists every server connected to the workspace, each with a **switch**.
+Toggle a server **on** to give this agent access to its tools; toggle it **off** to
+remove that access. The change takes effect immediately — there's no separate Save
+on this tab.
+
+### 10. Jump back to manage servers
+
+The tab header has a **Manage servers** link (external-link icon) that opens the
+workspace **MCP Servers** page in a new tab, so you can connect or remove servers
+without losing your place in the editor.
+
+## Tips
+
+- Give each server a clear **Name** — it's what you (and the per-agent switch list)
+  see, so it should say what the server does.
+- Keep the **API Key** handy elsewhere: because it's never shown again, the only way
+  to change it is to delete and reconnect the server.
+- Enable a server only for the agents that actually need it — a server left off for
+  an agent is invisible to it.
+
+## Troubleshooting
+
+- **There's no MCP Servers item in the sidebar** — the feature isn't enabled for your
+  workspace; contact the Bayes team to request it.
+- **An agent has no MCP Servers tab** — the tab only appears once the workspace has
+  at least one connected server. Connect one on the **MCP Servers** page first.
+- **Create is blocked** — the **URL** must be a valid address (for example starting
+  with `https://`), and the **Name** can't be empty.
+- **An agent stopped using a server's tools** — check the server is still **on** for
+  that agent in its **MCP Servers** tab, and that the server wasn't deleted on the
+  workspace page (deleting removes it for every agent).

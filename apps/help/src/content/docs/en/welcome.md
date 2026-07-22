@@ -4,7 +4,7 @@ highlight: Welcome
 description: A quick overview of what you can do on the platform and where to find help.
 category: getting-started
 order: 1
-updated: 2026-07-08
+updated: 2026-07-22
 ---
 
 Welcome! This help center gathers guides, walkthroughs, and answers to common
@@ -25,4 +25,4 @@ categories from the home page. On desktop, press `/` to jump straight to search.
 ## Still need help?
 
 If you can't find what you're looking for, reach out to your workspace
-administrator or contact support from within the app.
+administrator or contact the Bayes team.

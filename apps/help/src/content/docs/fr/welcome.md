@@ -4,7 +4,7 @@ highlight: Bienvenue
 description: Un aperçu rapide de ce que vous pouvez faire sur la plateforme et où trouver de l'aide.
 category: getting-started
 order: 1
-updated: 2026-07-08
+updated: 2026-07-22
 ---
 
 Bienvenue ! Ce centre d'aide rassemble des guides, des tutoriels et des réponses
@@ -26,4 +26,4 @@ sur `/` pour accéder directement à la recherche.
 ## Besoin d'aide supplémentaire ?
 
 Si vous ne trouvez pas ce que vous cherchez, contactez l'administrateur de votre
-espace de travail ou le support depuis l'application.
+espace de travail ou l'équipe Bayes.

@@ -4,7 +4,7 @@ highlight: web
 description: Explorez des sites web pour intégrer leur contenu aux connaissances de vos agents, et organisez les sources avec des étiquettes.
 category: guides-sources
 order: 2
-updated: 2026-07-20
+updated: 2026-07-22
 ---
 
 import WebSourcesWalkthrough from "@/components/WebSourcesWalkthrough.astro"
@@ -17,14 +17,21 @@ pages pour répondre aux utilisateurs.
 Les sites web se trouvent dans **Sources**, aux côtés des [Documents](/fr/documents) et des
 [Bibliothèques de ressources](/fr/resource-libraries), et appartiennent à l'**espace de travail**.
 
+> **Fonctionnalité optionnelle — à faire activer.** Les sites web s'activent espace
+> de travail par espace de travail. Si vous ne voyez pas **Sites web** sous
+> **Sources** dans Studio, c'est que la fonctionnalité n'est pas encore activée pour
+> votre espace de travail — contactez l'équipe Bayes pour en faire la demande.
+
 ## Comment les agents utilisent les sources web
 
 Une source web explorée est indexée comme connaissance dans l'espace de travail.
 Une fois son **statut des embeddings** à **Prêt**, les agents peuvent en récupérer
 les pages pertinentes pour répondre aux utilisateurs. Utilisez les **étiquettes**
-pour organiser vos sources et contrôler leur usage — par exemple, l'étiquette
-réservée `public-documents` autorise l'utilisateur à télécharger une source
-lorsqu'elle est proposée dans une conversation.
+pour organiser vos sources et contrôler leur usage. À noter : contrairement à un
+[document](/fr/documents) téléversé, une **source web explorée n'est jamais proposée
+au téléchargement** aux utilisateurs — ses pages n'ont pas de fichier stocké — donc
+l'étiquette réservée `public-documents` n'a aucun effet de téléchargement sur une
+source web.
 
 ## Le parcours complet en un coup d'œil
 
@@ -109,9 +116,10 @@ L'étiquette apparaît alors dans la colonne **Tags** de la source.
 4. Depuis ce panneau, vous pouvez **Modifier** ou **Supprimer** une étiquette à
    tout moment.
 
-> L'étiquette réservée **`public-documents`** est spéciale : lorsqu'un document ou
-> une source qui la porte est proposé dans une conversation, l'utilisateur est
-> autorisé à le télécharger.
+> L'étiquette réservée **`public-documents`** ne rend téléchargeables que les
+> **[Documents](/fr/documents) téléversés**, dans une conversation. Une source web
+> explorée ne peut pas être téléchargée même si elle porte l'étiquette, car ses
+> pages n'ont pas de fichier stocké.
 
 ## Conseils
 
@@ -119,7 +127,7 @@ L'étiquette apparaît alors dans la colonne **Tags** de la source.
   donc un site ciblé et bien structuré donne les meilleures réponses.
 - **Ré-explorez** après une modification du site pour que vos agents restent à jour.
 - Utilisez les étiquettes pour organiser de grands ensembles de sources et
-  contrôler celles que les utilisateurs peuvent télécharger.
+  contrôler la façon dont vos agents les utilisent.
 
 ## Dépannage
 

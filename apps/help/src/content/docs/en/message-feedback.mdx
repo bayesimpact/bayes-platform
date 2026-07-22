@@ -1,0 +1,80 @@
+---
+title: Message feedback
+highlight: feedback
+description: Read the problems users reported on an agent's messages — each report shows the exact message, its session and message IDs, and the reporter's comment.
+category: guides-eval
+order: 7
+updated: 2026-07-22
+---
+
+import MessageFeedbackWalkthrough from "@/components/MessageFeedbackWalkthrough.astro"
+
+While chatting, a user can flag a weak or wrong answer with **Report a problem with
+this message**. **Message feedback** is where you — as someone who manages the agent —
+read those reports, so you can spot recurring problems and improve the agent.
+
+Feedback is **per agent**: you open it from an agent's page in **Studio**, and it
+lists every report left on that agent's messages. It's visible only to people who can
+**manage** the agent (workspace owners and admins); it isn't behind a feature flag.
+
+## Where feedback comes from
+
+Reports are created by end users in a **conversation**, not in Studio. Under any
+assistant reply, a thumbs button opens **Report a problem with this message**; the
+user writes a free-text comment and clicks **Send**. Each comment becomes one entry on
+this page. See [Chat with an agent](/en/chat-with-an-agent) for the user's side.
+
+## The full flow at a glance
+
+The walkthrough below replays every step in the real interface. Use **Prev / Next**
+to move at your own pace; each step highlights the button to click and the area to
+watch.
+
+<MessageFeedbackWalkthrough lang="en" />
+
+## Step by step
+
+### 1. Open the Feedback card
+
+Open the agent from the **Agents** list in the left sidebar. On the agent's page, find
+the **Feedback** card — *Manage feedback on agent messages.* — and click its round
+**arrow** button to open it. (The card only appears if you can manage the agent.)
+
+### 2. Read the list of reports
+
+The **Feedback** page opens, titled **Feedback** with the agent's name and type
+underneath. It's a simple list — **newest first**, one entry per reported message.
+When there's nothing yet, you'll see the empty state instead (step 5).
+
+### 3. See the reported message
+
+The top card of each entry is the **exact agent message** that was reported, shown as
+it appeared to the user. Below it, a small line gives the **Session ID** and the
+**Message ID** so you can trace which conversation and message it came from.
+
+### 4. Read the report
+
+The card below it is the report itself: the **date** it was sent, then the reporter's
+free-text **comment**. There's no rating or category — just the message and the
+comment. The reporter's identity isn't shown, and there are no per-row actions.
+
+### 5. The empty state
+
+Until someone reports a message, the page shows **No feedback yet** — *No feedback on
+the agent's messages.*
+
+## Tips
+
+- Check feedback regularly: recurring comments about the same answer usually point to
+  an instruction, a source, or a model setting worth adjusting.
+- Use the **Session ID** and **Message ID** to locate the conversation the report came
+  from when you need the full context.
+
+## Troubleshooting
+
+- **There's no Feedback card on the agent's page** — the card and page are only
+  available to people who can **manage** the agent (owner/admin). Ask a workspace
+  admin if you need access.
+- **The page is empty** — no one has reported a message on this agent yet. Reports
+  come from the end-user **Report a problem with this message** action in a
+  conversation (see [Chat with an agent](/en/chat-with-an-agent)).

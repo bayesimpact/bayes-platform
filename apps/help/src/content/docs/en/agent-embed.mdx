@@ -4,7 +4,7 @@ highlight: Embed
 description: Put a conversation agent on your own website as a chat widget — enable embedding, copy the script snippet, restrict which sites can load it, and match your branding.
 category: guides-agents
 order: 6
-updated: 2026-07-16
+updated: 2026-07-22
 ---
 
 import EmbedWalkthrough from "@/components/EmbedWalkthrough.astro"
@@ -17,8 +17,13 @@ to.
 Embedding is configured on the **Embed** tab of a **conversation agent's** editor, in
 **Studio**. It's an optional feature: the tab only appears when your workspace has
 embedding enabled and you're editing a **conversation** agent (extraction and form
-agents don't have it). In the editor's tab row it's the **last** tab, after
-[**Orchestration**](/en/agent-orchestration).
+agents don't have it). In the editor's tab row it's the last tab, after
+[**Orchestration**](/en/agent-orchestration) — unless the **MCP Servers** tab is
+enabled, which sits after it.
+
+> **Ask to have it enabled.** Embedding is turned on per workspace. If your
+> conversation agent's editor has no **Embed** tab, the feature isn't enabled for
+> your workspace yet — contact the Bayes team to request it.
 
 ## How embedding works
 
@@ -50,7 +55,8 @@ editor. You need permission to manage the agent.
 
 ### 2. Open the Embed tab
 
-In the editor's tab row, click **Embed** — it's the last tab. If you don't see it, the
+In the editor's tab row, click **Embed** — the last tab (unless the **MCP Servers**
+tab is enabled, which sits after it). If you don't see it, the
 tab is either not enabled for your workspace or you're not on a **conversation** agent
 (see Troubleshooting).
 

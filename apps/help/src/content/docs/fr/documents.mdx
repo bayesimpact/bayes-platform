@@ -4,7 +4,7 @@ highlight: Documents
 description: Téléversez des documents pour intégrer leur contenu aux connaissances de vos agents, et gérez-les avec des étiquettes.
 category: guides-sources
 order: 1
-updated: 2026-07-20
+updated: 2026-07-22
 ---
 
 import DocumentsWalkthrough from "@/components/DocumentsWalkthrough.astro"
@@ -101,9 +101,15 @@ Survolez une étiquette pour la **modifier** (crayon) ou la **supprimer**
 (corbeille). L'étiquette réservée **`public-documents`** ne peut être ni modifiée
 ni supprimée.
 
-> L'étiquette réservée **`public-documents`** est spéciale : lorsqu'un document qui
-> la porte est proposé dans une conversation, l'utilisateur est autorisé à le
-> télécharger.
+> L'étiquette réservée **`public-documents`** détermine **qui peut télécharger un
+> document téléversé**. Les administrateurs et propriétaires de l'espace de travail
+> peuvent toujours télécharger n'importe quel document depuis Studio (le menu **⋮**
+> ci-dessus) ; un **membre** ordinaire ne peut télécharger un document que s'il porte
+> `public-documents`. Il le fait depuis une **conversation** : sous une réponse de
+> l'assistant, il ouvre le panneau **Sources** et clique sur **Télécharger le
+> document** sur le fichier. Le panneau Sources est lui-même une fonctionnalité
+> optionnelle — si les réponses n'affichent pas de bouton **Sources**, contactez
+> l'équipe Bayes pour l'activer.
 
 ## Conseils
 

@@ -1,29 +1,35 @@
 ---
 title: Create your first workspace
 highlight: workspace
-description: Learn how to create a workspace and organize your work.
+description: Create a workspace, rename it, and delete it.
 category: getting-started
 order: 5
-updated: 2026-07-08
+updated: 2026-07-22
 ---
 
-Workspaces are the main way to organize your work. Each workspace keeps its own
-resources and settings separate from your other workspaces.
+A **workspace** groups the agents, sources and settings for one body of work, kept
+separate from your other workspaces. Every workspace belongs to an **organization**.
 
 ## Create a workspace
 
-1. Open the workspace switcher in the top-left corner.
-2. Select **Create Workspace**.
-3. Give the workspace a clear, descriptive name.
-4. Confirm to create it.
+1. On the **home page**, find the organization you want the workspace in — each
+   organization lists its workspaces as cards.
+2. Click the **New Workspace** card (*Manage your conversational agents, form agents
+   and other types of agents.*).
+3. In the **Create Workspace** dialog, enter a clear, descriptive **name**.
+4. Click **Create**. Your new workspace opens automatically, ready for content.
 
-Your new workspace opens automatically, ready for you to start adding content.
+## Rename a workspace
 
-## Rename or delete a workspace
+1. Open the workspace and select **Admin** in the left sidebar (settings group).
+2. In the **General** section, edit the **Workspace name** field.
+3. Click **Save**.
 
-You can rename a workspace at any time from its settings page. Deleting a
-workspace is permanent and removes all of its contents, so make sure you no
-longer need anything inside it first.
+## Delete a workspace
+
+From the workspace **overview** (its agents page), use the **trash** control to open
+the **Delete Workspace** dialog. Deleting is **irreversible** — it removes the
+workspace and everything inside it — so make sure you no longer need anything first.
 
 ## Tips
 
