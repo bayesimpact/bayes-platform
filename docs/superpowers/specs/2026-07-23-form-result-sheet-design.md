@@ -18,12 +18,16 @@ step in the reasoning timeline, opening the result in a slide-over **sheet**.
 ## Goal
 
 - Remove the right-side (and mobile-strip) `FormResult` panel.
-- Add a "Show form state" trigger on the `FillForm` step of the reasoning
-  timeline — in **both** the live streaming timeline and the collapsed
-  "Worked through N steps" summary.
-- Clicking it opens a right-side sheet showing the current form result,
+- Add a "Show form state" trigger in the assistant **message footer** (next to
+  the copy button), shown only on turns that ran the `fillForm` tool.
+  Clicking it opens a right-side sheet showing the current form result,
   reusing the existing `FormResultFields` renderer.
 - Applies to all three conversation surfaces: Studio, Desk, Tester.
+
+> **Placement note (revised after review):** the trigger was first built under
+> the "Filling in the form…" step of the reasoning timeline. Per user feedback
+> it now lives in the message footer alongside the copy/feedback actions, which
+> is why it is completed-turn-only (the footer does not render while streaming).
 
 ## Non-goals
 
@@ -105,14 +109,15 @@ modeled on `SubAgentFormResultSheet.tsx`:
   (`t("conversationAgentSession:props.result")` — "Form Result"), body renders
   `<FormResultFields outputJsonSchema={outputJsonSchema} result={result} />`.
 
-### 4. Wire the trigger into the step timeline
+### 4. Wire the trigger into the message footer
 
-In `AgentSessionMessage.tsx`, both `CompletedSteps` and `StreamingSteps` call
-`useFormResult()`. When a rendered step's tool is `ToolName.FillForm` **and** the
-context value is non-null, render the `FormResultSheet` trigger just under that
-step's `Marker` (indented under the marker content). A shared small helper keeps
-the two timelines consistent. When context is `null` (fillForm disabled or no
-schema), nothing extra renders — the step keeps its plain label.
+In `AgentSessionMessage.tsx`, the component calls `useFormResult()`. In the
+assistant `MessageFooter` (rendered only when `!isStreaming`), when the turn ran
+the `fillForm` tool (`message.toolCalls` includes `ToolName.FillForm`) **and**
+the context value is non-null, render the `FormResultSheet` trigger right after
+`CopyToClipboard`. When context is `null` (fillForm disabled or no schema) or the
+turn ran no `fillForm` tool, nothing extra renders. The reasoning-timeline
+step renderers (`CompletedSteps`/`StreamingSteps`) stay untouched.
 
 ### 5. i18n
 
@@ -148,16 +153,15 @@ Route (agent, agentSession)
 
 ## Trade-offs / consequences (accepted)
 
-- **Streaming timing:** on the streaming timeline the sheet shows
-  `session.result`, which may lag the in-progress fill-form tool call until the
-  result is processed. Accepted (user chose "streaming + completed").
-- **No empty-state entry point:** the form state is only reachable once a
-  "Filling in the form…" step exists (i.e. the agent has run the tool at least
-  once). An enabled-but-not-yet-filled form has no visible entry point until then.
-  This follows directly from the requested placement. Accepted.
+- **Completed-turn only:** the trigger lives in the message footer, which does
+  not render while streaming, so the form result is reachable only once a turn
+  completes. Accepted.
+- **No empty-state entry point:** the trigger appears only on turns that ran the
+  `fillForm` tool. An enabled-but-not-yet-filled form has no visible entry point
+  until the agent first fills it. Accepted.
 - **Multiple triggers:** if the agent fills the form across several turns, each
-  such message shows its own "Show form state" trigger; all open the same current
-  `session.result`. Consistent and acceptable.
+  such message's footer shows its own "Show form state" trigger; all open the
+  same current `session.result`. Consistent and acceptable.
 
 ## Verification
 
