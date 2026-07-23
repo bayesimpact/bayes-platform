@@ -23,6 +23,10 @@
       "view": "Résultat du formulaire",
       "title": "Résultats des sous-agents de formulaire",
       "description": "Résultats collectés par les sous-agents de remplissage de formulaire auxquels cet agent a délégué."
+    },
+    "formState": {
+      "show": "Afficher l'état du formulaire",
+      "description": "Les informations que l'agent a collectées jusqu'à présent."
     }
   }
 }

@@ -23,6 +23,10 @@
       "view": "Form result",
       "title": "Sub-agent form results",
       "description": "Results collected by the form-filling sub-agents this agent delegated to."
+    },
+    "formState": {
+      "show": "Show form state",
+      "description": "The information the agent has collected so far."
     }
   }
 }
