@@ -109,10 +109,10 @@ export function TesterFeedbackModal({ open, questions, onSubmit, onAbandon }: Pr
         </div>
 
         <DialogFooter className="p-6 pt-2 shrink-0 flex-col">
-          <Button type="button" disabled={!canSubmit} onClick={handleSubmit} className="w-full">
+          <Button type="button" disabled={!canSubmit} onClick={handleSubmit}>
             {t("testerCampaigns:feedbackModal.submit")}
           </Button>
-          <Button type="button" variant="ghost" onClick={onAbandon} className="w-full">
+          <Button type="button" variant="ghost" onClick={onAbandon}>
             {t("actions:back")}
           </Button>
         </DialogFooter>
