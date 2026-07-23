@@ -15,11 +15,13 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FeedbackCreator } from "@/common/components/FeedbackCreator"
 import { RestrictedFeature } from "@/common/components/RestrictedFeature"
+import { FormResultSheet } from "@/common/features/agents/agent-sessions/conversation/components/FormResultSheet"
 import type { AgentSessionMessage as AgentSessionMessageType } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import { useCopyToClipboard } from "@/common/hooks/use-copy-to-clipboard"
 import { useAppSelector } from "@/common/store/hooks"
 import { selectStreamingToolSteps } from "../agent-session-messages.selectors"
 import { Attachment } from "./Attachment"
+import { useFormResult } from "./form-result-context"
 import { useFormSubSessions } from "./form-sub-sessions-context"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { SourcesTool } from "./SourcesTool"
@@ -181,6 +183,7 @@ function ThinkingSteps({
 function StreamingSteps({ hasContent }: { hasContent: boolean }) {
   const { t } = useTranslation("status")
   const toolSteps = useAppSelector(selectStreamingToolSteps)
+  const formResult = useFormResult()
 
   // Answer already flowing and no tool ran: nothing worth showing.
   if (hasContent && toolSteps.length === 0) return null
@@ -195,14 +198,24 @@ function StreamingSteps({ hasContent }: { hasContent: boolean }) {
       </span>
       <div className="ml-1.5 flex flex-col gap-1.5 border-l pl-3">
         {toolSteps.map((toolName, stepIndex) => (
-          <Marker key={`${stepIndex}-${toolName}`}>
-            <MarkerIcon>
-              <CheckIcon className="text-emerald-600" />
-            </MarkerIcon>
-            <MarkerContent className="text-muted-foreground">
-              {toolStepLabel(t, toolName)}
-            </MarkerContent>
-          </Marker>
+          <div key={`${stepIndex}-${toolName}`} className="flex flex-col gap-1.5">
+            <Marker>
+              <MarkerIcon>
+                <CheckIcon className="text-emerald-600" />
+              </MarkerIcon>
+              <MarkerContent className="text-muted-foreground">
+                {toolStepLabel(t, toolName)}
+              </MarkerContent>
+            </Marker>
+            {toolName === ToolName.FillForm && formResult && (
+              <div className="pl-6">
+                <FormResultSheet
+                  outputJsonSchema={formResult.outputJsonSchema}
+                  result={formResult.result}
+                />
+              </div>
+            )}
+          </div>
         ))}
         {!hasContent && <ThinkingPulse />}
       </div>
@@ -240,6 +253,7 @@ function ThinkingPulse() {
 /** Collapsed reasoning summary for a completed turn; expands into the full step timeline. */
 function CompletedSteps({ toolNames }: { toolNames: AgentSessionToolName[] }) {
   const { t } = useTranslation()
+  const formResult = useFormResult()
 
   return (
     <Collapsible className="w-fit">
@@ -250,12 +264,22 @@ function CompletedSteps({ toolNames }: { toolNames: AgentSessionToolName[] }) {
       <CollapsibleContent className="mt-1.5">
         <div className="ml-1.5 flex flex-col gap-1.5 border-l pl-3">
           {toolNames.map((toolName, stepIndex) => (
-            <Marker key={`${stepIndex}-${toolName}`}>
-              <MarkerIcon>
-                <CheckIcon className="text-emerald-600" />
-              </MarkerIcon>
-              <MarkerContent>{toolStepLabel(t, toolName)}</MarkerContent>
-            </Marker>
+            <div key={`${stepIndex}-${toolName}`} className="flex flex-col gap-1.5">
+              <Marker>
+                <MarkerIcon>
+                  <CheckIcon className="text-emerald-600" />
+                </MarkerIcon>
+                <MarkerContent>{toolStepLabel(t, toolName)}</MarkerContent>
+              </Marker>
+              {toolName === ToolName.FillForm && formResult && (
+                <div className="pl-6">
+                  <FormResultSheet
+                    outputJsonSchema={formResult.outputJsonSchema}
+                    result={formResult.result}
+                  />
+                </div>
+              )}
+            </div>
           ))}
         </div>
       </CollapsibleContent>
