@@ -25,6 +25,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - French UI: the "Add library" button on an agent's Resources tab is now translated
 - Markdown (`.md`) files can be uploaded as documents, like other plain-text formats
 - Extraction agents accept Markdown and plain-text documents, in addition to PDF, images and CSV
+- Tester feedback form: the submit and back buttons no longer stretch full-width, fixing the layout on smaller screens
 
 ### Security
 
