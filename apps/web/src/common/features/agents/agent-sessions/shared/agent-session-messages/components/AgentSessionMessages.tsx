@@ -1,10 +1,5 @@
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@caseai-connect/ui/shad/collapsible"
-import {
   Command,
   CommandEmpty,
   CommandGroup,
@@ -24,7 +19,7 @@ import {
 } from "@caseai-connect/ui/shad/message-scroller"
 import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
 import { cn } from "@caseai-connect/ui/utils"
-import { ChevronDownIcon, FileCheckIcon, ListIcon, XIcon } from "lucide-react"
+import { FileCheckIcon, ListIcon, XIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import type {
@@ -41,6 +36,7 @@ import {
   ChatSubmit,
 } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/Chat"
 import { Dictaphone } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/Dictaphone"
+import { FormResultProvider } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/form-result-context"
 import { FormSubSessionsProvider } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/form-sub-sessions-context"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { AttachDocument } from "@/studio/features/documents/components/AttachDocument"
@@ -52,50 +48,32 @@ type AgentSession = ConversationAgentSession
 export function AgentSessionMessages({
   session,
   messages,
-  rightSlot,
   onFillFormToolEvent,
   formSubSessions = [],
+  formResultSchema,
 }: {
-  rightSlot?: React.ReactNode
   session: AgentSession
   messages: AgentSessionMessageType[]
   onFillFormToolEvent?: () => void
   formSubSessions?: ConversationSubSession[]
+  formResultSchema?: Record<string, unknown>
 }) {
   const isStreaming = useAppSelector(selectStreaming)
-  const { t } = useTranslation()
+
+  const formResult = formResultSchema
+    ? { outputJsonSchema: formResultSchema, result: session.result }
+    : null
 
   const desktopHeightClasses = "md:h-[calc(100dvh-17rem)]"
   return (
-    <div className={cn("flex flex-1 flex-col md:flex-row min-h-0", desktopHeightClasses)}>
-      {rightSlot && (
-        <>
-          {/* mobile: collapsible strip above the chat */}
-          <Collapsible className="md:hidden w-full shrink-0 border-b bg-white">
-            <CollapsibleTrigger asChild>
-              <button
-                type="button"
-                className="flex w-full items-center justify-between px-4 py-2 text-sm font-medium"
-              >
-                <span>{t("conversationAgentSession:props.result")}</span>
-                <ChevronDownIcon className="size-4 transition-transform [[data-state=open]_&]:rotate-180" />
-              </button>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="relative h-40 overflow-hidden">{rightSlot}</div>
-            </CollapsibleContent>
-          </Collapsible>
-          {/* desktop: fixed sidebar */}
-          <div className="hidden md:block w-80 shrink-0 order-last h-full border-l bg-white relative overflow-hidden">
-            {rightSlot}
-          </div>
-        </>
-      )}
+    <div className={cn("flex flex-1 flex-col min-h-0", desktopHeightClasses)}>
       <div className="flex flex-1 p-2 sm:p-4 min-h-0 md:min-h-full">
         <Chat className="border shadow-none">
           <MessageScrollerProvider scrollPreviousItemPeek={168} defaultScrollPosition="end">
             <FormSubSessionsProvider value={formSubSessions}>
-              <Messages messages={messages} />
+              <FormResultProvider value={formResult}>
+                <Messages messages={messages} />
+              </FormResultProvider>
             </FormSubSessionsProvider>
 
             <Footer

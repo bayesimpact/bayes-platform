@@ -2,7 +2,6 @@ import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
-import { FormResult } from "@/common/features/agents/agent-sessions/conversation/components/FormResult"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import { selectConversationSubSessionsBySessionId } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.selectors"
 import { selectCurrentMessagesData } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.selectors"
@@ -55,11 +54,7 @@ export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentS
           session={agentSession}
           messages={messages}
           formSubSessions={formSubSessions}
-          rightSlot={
-            agent.fillFormEnabled ? (
-              <FormResult agent={agent} agentSession={agentSession} />
-            ) : undefined
-          }
+          formResultSchema={agent.fillFormEnabled ? agent.outputJsonSchema : undefined}
         />
       </div>
     </div>
