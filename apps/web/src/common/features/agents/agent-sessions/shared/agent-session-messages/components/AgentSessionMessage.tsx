@@ -30,12 +30,15 @@ import { SurfaceResourcesTool } from "./SurfaceResourcesTool"
 
 export function AgentSessionMessage({ message }: { message: AgentSessionMessageType }) {
   const formSubSessions = useFormSubSessions()
+  const formResult = useFormResult()
 
   switch (message.role) {
     case "assistant": {
       const isStreaming = message.status === "streaming"
       const hasContent = message.content.trim().length > 0
       const isError = message.status === "error"
+      // This turn ran the fillForm tool, so its footer can open the form result.
+      const filledForm = (message.toolCalls ?? []).some((call) => call.name === ToolName.FillForm)
       const sourcesTool = message.toolCalls?.find((call) => call.name === ToolName.Sources)
       const surfaceResourcesTool = message.toolCalls?.find(
         (call) => call.name === ToolName.SurfaceResources,
@@ -81,6 +84,13 @@ export function AgentSessionMessage({ message }: { message: AgentSessionMessageT
                 <FeedbackCreator message={message} />
 
                 <CopyToClipboard content={message.content} />
+
+                {filledForm && formResult && (
+                  <FormResultSheet
+                    outputJsonSchema={formResult.outputJsonSchema}
+                    result={formResult.result}
+                  />
+                )}
 
                 <RestrictedFeature feature="sources-tool">
                   {sourcesTool && <SourcesTool toolCall={sourcesTool} />}
@@ -183,7 +193,6 @@ function ThinkingSteps({
 function StreamingSteps({ hasContent }: { hasContent: boolean }) {
   const { t } = useTranslation("status")
   const toolSteps = useAppSelector(selectStreamingToolSteps)
-  const formResult = useFormResult()
 
   // Answer already flowing and no tool ran: nothing worth showing.
   if (hasContent && toolSteps.length === 0) return null
@@ -198,24 +207,14 @@ function StreamingSteps({ hasContent }: { hasContent: boolean }) {
       </span>
       <div className="ml-1.5 flex flex-col gap-1.5 border-l pl-3">
         {toolSteps.map((toolName, stepIndex) => (
-          <div key={`${stepIndex}-${toolName}`} className="flex flex-col gap-1.5">
-            <Marker>
-              <MarkerIcon>
-                <CheckIcon className="text-emerald-600" />
-              </MarkerIcon>
-              <MarkerContent className="text-muted-foreground">
-                {toolStepLabel(t, toolName)}
-              </MarkerContent>
-            </Marker>
-            {toolName === ToolName.FillForm && formResult && (
-              <div className="pl-6">
-                <FormResultSheet
-                  outputJsonSchema={formResult.outputJsonSchema}
-                  result={formResult.result}
-                />
-              </div>
-            )}
-          </div>
+          <Marker key={`${stepIndex}-${toolName}`}>
+            <MarkerIcon>
+              <CheckIcon className="text-emerald-600" />
+            </MarkerIcon>
+            <MarkerContent className="text-muted-foreground">
+              {toolStepLabel(t, toolName)}
+            </MarkerContent>
+          </Marker>
         ))}
         {!hasContent && <ThinkingPulse />}
       </div>
@@ -253,7 +252,6 @@ function ThinkingPulse() {
 /** Collapsed reasoning summary for a completed turn; expands into the full step timeline. */
 function CompletedSteps({ toolNames }: { toolNames: AgentSessionToolName[] }) {
   const { t } = useTranslation()
-  const formResult = useFormResult()
 
   return (
     <Collapsible className="w-fit">
@@ -264,22 +262,12 @@ function CompletedSteps({ toolNames }: { toolNames: AgentSessionToolName[] }) {
       <CollapsibleContent className="mt-1.5">
         <div className="ml-1.5 flex flex-col gap-1.5 border-l pl-3">
           {toolNames.map((toolName, stepIndex) => (
-            <div key={`${stepIndex}-${toolName}`} className="flex flex-col gap-1.5">
-              <Marker>
-                <MarkerIcon>
-                  <CheckIcon className="text-emerald-600" />
-                </MarkerIcon>
-                <MarkerContent>{toolStepLabel(t, toolName)}</MarkerContent>
-              </Marker>
-              {toolName === ToolName.FillForm && formResult && (
-                <div className="pl-6">
-                  <FormResultSheet
-                    outputJsonSchema={formResult.outputJsonSchema}
-                    result={formResult.result}
-                  />
-                </div>
-              )}
-            </div>
+            <Marker key={`${stepIndex}-${toolName}`}>
+              <MarkerIcon>
+                <CheckIcon className="text-emerald-600" />
+              </MarkerIcon>
+              <MarkerContent>{toolStepLabel(t, toolName)}</MarkerContent>
+            </Marker>
           ))}
         </div>
       </CollapsibleContent>

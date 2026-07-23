@@ -28,11 +28,7 @@ export function FormResultSheet({
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-auto w-fit gap-1.5 px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
-        >
+        <Button variant="ghost" size="sm" className="text-muted-foreground text-xs">
           <ClipboardListIcon className="size-3.5" />
           {t("conversationAgentSession:formState.show")}
         </Button>
