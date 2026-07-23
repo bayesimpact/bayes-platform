@@ -1,0 +1,9 @@
+# Gitignored files copied into every new Claude Code worktree
+# (see https://code.claude.com/docs/en/worktrees)
+# Gitignore syntax: a bare pattern matches at any depth, so `.env` covers
+# apps/api/.env, apps/web/.env, infra/database/.env — and any future one
+.env
+.env.test
+# GCP credentials referenced by apps/api/.env — root dontsave/ only,
+# so infra/database/dontsave/pgdata is never copied
+dontsave/*.json
