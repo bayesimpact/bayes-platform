@@ -75,6 +75,15 @@ All commands should be run from the root directory using Turbo (via npm scripts)
 - Use semantic commit messages consistent with the repo history: `feat: ...`, `fix: ...`, `chore: ...`.
 - Use scoped variants only when they match existing history and add clarity.
 
+## Working in a Worktree (Claude Code)
+
+Claude Code worktrees live under `.claude/worktrees/`. Gitignored config (`.env`, `.env.test`, root `dontsave/*.json`) is copied in automatically via `.worktreeinclude`. In a fresh worktree:
+
+1. Run `npm ci` at the worktree root before anything else. Never `npm install` — it rewrites `package-lock.json` with cosmetic peer-flag churn that pollutes the diff.
+2. Postgres and Redis (`infra/database` compose stack) are shared with the main checkout through localhost ports. Do not start a second stack, and remember that schema/migration changes hit the shared database.
+3. Never start `npm run dev:workers-main` if workers already run in another checkout: two workers on the same Redis compete for the same BullMQ queues, and jobs may be processed by the other branch's code.
+4. Dev servers are usually unnecessary in a worktree — typecheck, lint, and tests run without them. To run a second live stack anyway, override the ports in the copied env files (`PORT`, `FRONT_PORT`, `VITE_API_URL`, `FRONTEND_URL`).
+
 ## Code Style
 
 ### Descriptive Variable Names in Loops

@@ -74,6 +74,9 @@ llm-logs/
 # Smart IDEs
 .cursorrules
 
+# Claude Code worktrees
+.claude/worktrees/
+
 *.venv*
 
 # Python
