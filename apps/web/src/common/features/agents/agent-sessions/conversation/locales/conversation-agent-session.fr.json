@@ -20,12 +20,12 @@
       "placeholder": "Posez votre question..."
     },
     "subAgentResults": {
-      "view": "Résultat du formulaire",
-      "title": "Résultats des sous-agents de formulaire",
+      "view": "État du formulaire",
+      "title": "État des formulaires des sous-agents",
       "description": "Résultats collectés par les sous-agents de remplissage de formulaire auxquels cet agent a délégué."
     },
     "formState": {
-      "show": "Afficher l'état du formulaire",
+      "show": "État du formulaire",
       "description": "Les informations que l'agent a collectées jusqu'à présent."
     }
   }

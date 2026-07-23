@@ -20,12 +20,12 @@
       "placeholder": "Ask your question..."
     },
     "subAgentResults": {
-      "view": "Form result",
-      "title": "Sub-agent form results",
+      "view": "Form state",
+      "title": "Form state of sub-agent forms",
       "description": "Results collected by the form-filling sub-agents this agent delegated to."
     },
     "formState": {
-      "show": "Show form state",
+      "show": "Form state",
       "description": "The information the agent has collected so far."
     }
   }

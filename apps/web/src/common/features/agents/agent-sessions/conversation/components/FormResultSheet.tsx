@@ -33,12 +33,13 @@ export function FormResultSheet({
           {t("conversationAgentSession:formState.show")}
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+      <SheetContent side="right" className="w-full sm:max-w-md">
         <SheetHeader>
           <SheetTitle>{t("conversationAgentSession:props.result")}</SheetTitle>
           <SheetDescription>{t("conversationAgentSession:formState.description")}</SheetDescription>
         </SheetHeader>
-        <div className="px-4 pb-4">
+        {/* Fixed header above; only the fields scroll when the form is long. */}
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
           <FormResultFields outputJsonSchema={outputJsonSchema} result={result} />
         </div>
       </SheetContent>
