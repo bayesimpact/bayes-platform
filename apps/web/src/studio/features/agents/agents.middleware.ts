@@ -18,6 +18,7 @@ import {
   updateAgentOutput,
   updateAgentResources,
   updateAgentSources,
+  updateAgentTools,
 } from "@/studio/features/agents/agents.thunks"
 import {
   deleteDocumentTag,
@@ -97,6 +98,7 @@ function registerListeners() {
       updateAgentSources.fulfilled,
       updateAgentResources.fulfilled,
       updateAgentCategories.fulfilled,
+      updateAgentTools.fulfilled,
     ),
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(listAgents())
@@ -148,6 +150,7 @@ function registerListeners() {
       updateAgentSources.rejected,
       updateAgentResources.rejected,
       updateAgentCategories.rejected,
+      updateAgentTools.rejected,
     ),
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
