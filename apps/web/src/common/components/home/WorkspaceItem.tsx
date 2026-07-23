@@ -20,10 +20,8 @@ import {
 import { useTranslation } from "react-i18next"
 import { GridCard } from "@/common/components/grid/Grid"
 import { selectMyAccessibleReviewCampaignMemberships } from "@/common/features/me/me.selectors"
-import type {
-  Organization,
-  OrganizationListItemProject,
-} from "@/common/features/organizations/organizations.models"
+import type { OrganizationWithProjects } from "@/common/features/organizations/organizations.selectors"
+import type { MyProject } from "@/common/features/projects/projects.models"
 import { useAbility } from "@/common/hooks/use-ability"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useAppSelector } from "@/common/store/hooks"
@@ -37,8 +35,8 @@ export function WorkspaceItem({
   organization,
   project,
 }: {
-  organization: Organization
-  project: OrganizationListItemProject
+  organization: OrganizationWithProjects
+  project: MyProject
 }) {
   const apps = useAvailableApps({ organizationId: organization.id, project })
   const singleProject = organization.projects.length === 1
@@ -120,7 +118,7 @@ function useAvailableApps({
   project,
 }: {
   organizationId: string
-  project: OrganizationListItemProject
+  project: MyProject
 }): AppData[] {
   const { t } = useTranslation()
   const { abilities } = useAbility()

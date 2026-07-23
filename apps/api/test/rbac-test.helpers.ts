@@ -5,16 +5,18 @@ import { ORG_CREATOR_ROLE } from "@/domains/rbac/rbac.constants"
 import { RbacService } from "@/domains/rbac/rbac.service"
 import type { User } from "@/domains/users/user.entity"
 
-let organizationRbacCatalogReady = false
+let rbacCatalogReady = false
 
-/** Seeds org RBAC catalog once per test worker (roles are never cleared). */
-export async function ensureOrganizationRbacCatalog(module: TestingModule): Promise<void> {
-  if (organizationRbacCatalogReady) {
+/** Seeds the org + project RBAC catalogs once per test worker (roles are never cleared). */
+export async function ensureRbacCatalog(module: TestingModule): Promise<void> {
+  if (rbacCatalogReady) {
     return
   }
 
-  await module.get(RbacService).seedOrganizationRolesAndPermissions()
-  organizationRbacCatalogReady = true
+  const rbacService = module.get(RbacService)
+  await rbacService.seedOrganizationRolesAndPermissions()
+  await rbacService.seedProjectRolesAndPermissions()
+  rbacCatalogReady = true
 }
 
 export async function assignOrgCreatorToUser({

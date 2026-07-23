@@ -1,19 +1,15 @@
-import {
-  type OrganizationDto,
-  OrganizationsRoutes,
-  type UserOrganizationListItemDto,
-} from "@caseai-connect/api-contracts"
+import { type OrganizationDto, OrganizationsRoutes } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
-import type { OrganizationListItem } from "../organizations.models"
+import type { Organization } from "../organizations.models"
 import type { IOrganizationsSpi } from "../organizations.spi"
 
 export default {
   list: async () => {
     const axios = getAxiosInstance()
-    const response = await axios.get<typeof OrganizationsRoutes.getAll.response>(
-      OrganizationsRoutes.getAll.getPath(),
+    const response = await axios.get<typeof OrganizationsRoutes.getAllMine.response>(
+      OrganizationsRoutes.getAllMine.getPath(),
     )
-    return response.data.data.map(toOrganizationListItem)
+    return response.data.data.map(toOrganization)
   },
   createOne: async (payload) => {
     const axios = getAxiosInstance()
@@ -31,15 +27,10 @@ export default {
   },
 } satisfies IOrganizationsSpi
 
-export const toOrganizationListItem = (dto: UserOrganizationListItemDto): OrganizationListItem => ({
+export const toOrganization = (dto: OrganizationDto): Organization => ({
   id: dto.id,
   name: dto.name,
   permissions: dto.permissions,
-  projects: dto.projects.map((project) => ({
-    id: project.id,
-    name: project.name,
-    featureFlags: project.featureFlags,
-  })),
 })
 
 /** Maps legacy create response when full organization payload is needed. */

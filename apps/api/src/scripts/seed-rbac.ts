@@ -16,9 +16,12 @@ async function main(): Promise<void> {
   try {
     const rbacService = app.get(RbacService)
     await rbacService.seedOrganizationRolesAndPermissions()
-    const updatedCount = await rbacService.assignRoleIdsToOrganizationMemberships()
+    await rbacService.seedProjectRolesAndPermissions()
+    const updatedOrganizationCount = await rbacService.assignRoleIdsToOrganizationMemberships()
+    const updatedProjectCount = await rbacService.assignRoleIdsToProjectMemberships()
     const orgCreatorCount = await rbacService.assignOrgCreatorToEligibleUsers()
-    logger.log(`Assigned role_id on ${updatedCount} organization membership(s)`)
+    logger.log(`Assigned role_id on ${updatedOrganizationCount} organization membership(s)`)
+    logger.log(`Assigned role_id on ${updatedProjectCount} project membership(s)`)
     logger.log(`Assigned org_creator on ${orgCreatorCount} user(s)`)
   } finally {
     await app.close()

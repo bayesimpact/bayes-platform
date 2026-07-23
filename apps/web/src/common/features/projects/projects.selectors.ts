@@ -5,6 +5,8 @@ import type { Project } from "./projects.models"
 
 export const selectProjectsData = (state: RootState) => state.projects.data
 
+export const selectMyProjectsData = (state: RootState) => state.projects.mine
+
 export const selectCurrentProjectId = (state: RootState) => state.currentIds.projectId
 
 export const selectCurrentProjectData = createSelector(

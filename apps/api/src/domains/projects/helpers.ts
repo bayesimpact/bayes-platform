@@ -1,6 +1,7 @@
 import type {
   FeatureFlagKey,
   FeatureFlagsDto,
+  MyProjectDto,
   ProjectAgentSessionCategoryDto,
   ProjectDto,
   TimeType,
@@ -11,6 +12,7 @@ import type {
 } from "@/common/context/request.interface"
 import type { FeatureFlag } from "../feature-flags/feature-flag.entity"
 import type { Project } from "./project.entity"
+import type { ProjectModel } from "./project.model"
 
 export const requestToProjectPolicyContext = (request: EndpointRequestWithProject) => {
   return {
@@ -40,6 +42,16 @@ export function toProjectDto(project: Project): ProjectDto {
     agentSessionCategories: (project.projectAgentSessionCategories ?? []).map(
       toProjectAgentSessionCategoryDto,
     ),
+  }
+}
+
+export function toMyProjectDto(project: ProjectModel): MyProjectDto {
+  return {
+    id: project.id,
+    name: project.name,
+    organizationId: project.organizationId,
+    featureFlags: project.featureFlags as FeatureFlagKey[],
+    permissions: project.permissions,
   }
 }
 

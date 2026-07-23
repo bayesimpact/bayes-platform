@@ -17,7 +17,7 @@ import {
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
 import { RbacModule } from "@/domains/rbac/rbac.module"
-import { ensureOrganizationRbacCatalog } from "../../../../test/rbac-test.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 
 describe("OrganizationMembershipsService", () => {
   let service: OrganizationMembershipsService
@@ -28,7 +28,7 @@ describe("OrganizationMembershipsService", () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [OrganizationsModule, RbacModule],
     })
-    await ensureOrganizationRbacCatalog(setup.module)
+    await ensureRbacCatalog(setup.module)
   })
 
   afterAll(async () => {

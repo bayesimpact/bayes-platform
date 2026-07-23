@@ -7,6 +7,7 @@ import {
   UserMembership,
 } from "@/domains/memberships/user-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
+import { resolveProjectRoleId } from "@/domains/rbac/resolve-project-role-id"
 import type { ProjectMembershipModel } from "./project-membership.model"
 import type { ProjectMembershipRole } from "./project-membership.types"
 
@@ -149,12 +150,15 @@ export class ProjectMembershipRepository {
     projectId: string
     role: ProjectMembershipRole
   }): Promise<ProjectMembershipModel> {
+    const manager = this.transactionService.getManager()
+    const roleId = await resolveProjectRoleId(manager, role)
     const saved = await this.userMembershipRepo().save(
       this.userMembershipRepo().create({
         userId,
         resourceType: PROJECT_RESOURCE_TYPE,
         resourceId: projectId,
         role,
+        roleId,
       }),
     )
     const withUser = await this.userMembershipRepo().findOneOrFail({
@@ -175,13 +179,15 @@ export class ProjectMembershipRepository {
     projectId: string
     role: ProjectMembershipRole
   }): Promise<void> {
+    const manager = this.transactionService.getManager()
+    const roleId = await resolveProjectRoleId(manager, role)
     await this.userMembershipRepo().update(
       {
         id: membershipId,
         resourceType: PROJECT_RESOURCE_TYPE,
         resourceId: projectId,
       },
-      { role },
+      { role, roleId },
     )
   }
 

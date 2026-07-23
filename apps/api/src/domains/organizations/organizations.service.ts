@@ -1,21 +1,17 @@
+import type { OrganizationPermission } from "@caseai-connect/api-contracts"
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PermissionService } from "@/domains/rbac/permission.service"
-import { PROJECT_READ_PERMISSION } from "@/domains/rbac/rbac.constants"
 import { User } from "@/domains/users/user.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationMembershipsService } from "./memberships/organization-memberships.service"
 import { Organization } from "./organization.entity"
-import type { OrganizationModel, OrganizationProjectModel } from "./organization.model"
+import { toModel } from "./organization.helpers"
+import type { OrganizationModel } from "./organization.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationRepository } from "./organization.repository"
-
-type AccessibleOrganization = {
-  organization: Organization
-  permissions: string[]
-}
 
 @Injectable()
 export class OrganizationsService {
@@ -28,91 +24,22 @@ export class OrganizationsService {
     private readonly permissionService: PermissionService,
   ) {}
 
-  async getUserOrganizations(userId: string): Promise<Organization[]> {
-    return this.organizationMembershipsService.listOrganizationsForUser(userId)
-  }
-
-  async listUserOrganizations(userId: string): Promise<OrganizationModel[]> {
-    const accessibleOrganizations = await this.listAccessibleOrganizations(userId)
-    if (accessibleOrganizations.length === 0) {
-      return []
-    }
-
-    return accessibleOrganizations.map(({ organization, permissions, projects }) => ({
-      id: organization.id,
-      name: organization.name,
-      permissions,
-      projects,
-    }))
-  }
-
-  /**
-   * Returns organizations the user can access, paired with their per-org permissions
-   * and accessible projects (see ADR 0013 for the two-bucket project strategy).
-   */
-  private async listAccessibleOrganizations(
-    userId: string,
-  ): Promise<(AccessibleOrganization & { projects: OrganizationProjectModel[] })[]> {
-    const organizationIds = await this.permissionService.listResourceIds(userId, "organization")
-    if (organizationIds.length === 0) {
-      return []
-    }
-
-    const [permissionsByOrganizationId, organizations] = await Promise.all([
-      this.permissionService.listPermissionsForResourceIds(userId, "organization", organizationIds),
-      this.organizationRepository.findByIds(organizationIds),
-    ])
-
-    const projectsByOrganizationId = await this.loadProjectsByOrganizationId(
+  async listOrganizations(userId: string): Promise<OrganizationModel[]> {
+    const permissionsByOrganizationId = await this.permissionService.listResourcePermissions(
       userId,
-      organizationIds,
-      permissionsByOrganizationId,
+      "organization",
     )
 
-    return organizations.map((organization) => ({
-      organization,
-      permissions: permissionsByOrganizationId.get(organization.id) ?? [],
-      projects: projectsByOrganizationId.get(organization.id) ?? [],
-    }))
-  }
-
-  /**
-   * Loads projects grouped by organization using the two-bucket strategy (ADR 0013):
-   * - orgs where user has `project.read` → all projects in the org
-   * - orgs without it → only projects the user has a direct membership on
-   */
-  private async loadProjectsByOrganizationId(
-    userId: string,
-    organizationIds: string[],
-    permissionsByOrganizationId: Map<string, string[]>,
-  ): Promise<Map<string, OrganizationProjectModel[]>> {
-    const organizationIdsWithProjectRead = organizationIds.filter((organizationId) =>
-      permissionsByOrganizationId.get(organizationId)?.includes(PROJECT_READ_PERMISSION),
-    )
-    const membershipOnlyOrganizationIds = organizationIds.filter(
-      (organizationId) => !organizationIdsWithProjectRead.includes(organizationId),
-    )
-
-    const allProjectsForPrivilegedOrgs =
-      await this.organizationRepository.findProjectsByOrganizationIds(
-        organizationIdsWithProjectRead,
-      )
-
-    let membershipProjects: Awaited<
-      ReturnType<OrganizationRepository["findProjectsByIdsInOrganizations"]>
-    > = []
-    if (membershipOnlyOrganizationIds.length > 0) {
-      const projectIds = await this.permissionService.listResourceIds(userId, "project")
-      membershipProjects = await this.organizationRepository.findProjectsByIdsInOrganizations({
-        projectIds,
-        organizationIds: membershipOnlyOrganizationIds,
-      })
-    }
-
-    return this.groupProjectsByOrganizationId(organizationIds, [
-      ...allProjectsForPrivilegedOrgs,
-      ...membershipProjects,
+    const organizations = await this.organizationRepository.findByIds([
+      ...permissionsByOrganizationId.keys(),
     ])
+
+    return organizations.map((organization) =>
+      toModel(
+        organization,
+        (permissionsByOrganizationId.get(organization.id) ?? []) as OrganizationPermission[],
+      ),
+    )
   }
 
   async createOrganization({
@@ -121,7 +48,7 @@ export class OrganizationsService {
   }: {
     userId: string
     name: string
-  }): Promise<Organization> {
+  }): Promise<OrganizationModel> {
     if (!name || name.trim().length < 3) {
       throw new Error("Organization name must be at least 3 characters long")
     }
@@ -134,12 +61,16 @@ export class OrganizationsService {
     const organization = this.organizationEntityRepository.create({ name })
     const savedOrganization = await this.organizationEntityRepository.save(organization)
 
-    await this.organizationMembershipsService.createOrganizationOwnerMembership({
+    const membership = await this.organizationMembershipsService.createOrganizationOwnerMembership({
       userId: user.id,
       organizationId: savedOrganization.id,
     })
 
-    return savedOrganization
+    // the membership carries the RBAC role it was created with: ask RBAC what that role grants
+    const permissions = membership.roleId
+      ? await this.permissionService.listPermissionsForRole(membership.roleId)
+      : []
+    return toModel(savedOrganization, permissions as OrganizationPermission[])
   }
 
   async updateOrganizationName({
@@ -158,22 +89,5 @@ export class OrganizationsService {
 
     organization.name = name
     await this.organizationEntityRepository.save(organization)
-  }
-
-  private groupProjectsByOrganizationId(
-    organizationIds: string[],
-    projects: Parameters<OrganizationRepository["toProjectModel"]>[0][],
-  ): Map<string, OrganizationProjectModel[]> {
-    const projectsByOrganizationId = new Map<string, OrganizationProjectModel[]>(
-      organizationIds.map((organizationId) => [organizationId, []]),
-    )
-
-    for (const project of projects) {
-      projectsByOrganizationId
-        .get(project.organizationId)
-        ?.push(this.organizationRepository.toProjectModel(project))
-    }
-
-    return projectsByOrganizationId
   }
 }

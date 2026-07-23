@@ -23,7 +23,7 @@ import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { userFactory } from "@/domains/users/user.factory"
 import { mockInvitationSender, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
-import { ensureOrganizationRbacCatalog } from "../../../../test/rbac-test.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { InvitationsModule } from "../invitations.module"
 import { AgentInvitationHandler } from "./agent-invitation.handler"
 
@@ -38,7 +38,7 @@ describe("AgentInvitationHandler", () => {
       applyOverrides: (moduleBuilder) =>
         setupUserGuardForTesting(moduleBuilder, () => "auth0|agent-invitation-handler-spec"),
     })
-    await ensureOrganizationRbacCatalog(setup.module)
+    await ensureRbacCatalog(setup.module)
     handler = setup.module.get(AgentInvitationHandler)
     repositories = setup.getAllRepositories()
   })

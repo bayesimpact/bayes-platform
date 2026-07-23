@@ -8,6 +8,8 @@ import {
   ORG_CREATOR_ROLE,
   ORGANIZATION_ROLE_PERMISSIONS,
   ORGANIZATION_ROLES,
+  PROJECT_ROLE_PERMISSIONS,
+  PROJECT_ROLES,
 } from "./rbac.constants"
 import { Role } from "./role.entity"
 import { RolePermission } from "./role-permission.entity"
@@ -17,6 +19,12 @@ const ORGANIZATION_ROLE_LABELS: Record<string, string> = {
   org_admin: "Organization Admin",
   org_member: "Organization Member",
   [ORG_CREATOR_ROLE]: "Organization Creator",
+}
+
+const PROJECT_ROLE_LABELS: Record<string, string> = {
+  project_owner: "Project Owner",
+  project_admin: "Project Admin",
+  project_member: "Project Member",
 }
 
 const GLOBAL_ROLE_SCOPE: Record<string, Role["scopeType"]> = {
@@ -39,25 +47,55 @@ export class RbacService {
    * Kept for tests (`synchronize: true`) and local `seed:rbac`.
    */
   async seedOrganizationRolesAndPermissions(): Promise<void> {
-    const rolesByKey = await this.upsertOrganizationRoles()
-    await this.linkRolePermissions(rolesByKey)
+    const rolesByKey = await this.upsertRoles({
+      roleKeys: [...Object.values(ORGANIZATION_ROLES), ORG_CREATOR_ROLE],
+      labels: ORGANIZATION_ROLE_LABELS,
+      defaultScope: "organization",
+    })
+    await this.linkRolePermissions(rolesByKey, ORGANIZATION_ROLE_PERMISSIONS)
+  }
+
+  /**
+   * Idempotent catalog seed for the project domain.
+   * Production/deploy also seeds via migration `SeedProjectRbacRoles1784930000000`.
+   * Kept for tests (`synchronize: true`) and local `seed:rbac`.
+   */
+  async seedProjectRolesAndPermissions(): Promise<void> {
+    const rolesByKey = await this.upsertRoles({
+      roleKeys: Object.values(PROJECT_ROLES),
+      labels: PROJECT_ROLE_LABELS,
+      defaultScope: "project",
+    })
+    await this.linkRolePermissions(rolesByKey, PROJECT_ROLE_PERMISSIONS)
   }
 
   /** Maps legacy org membership roles to RBAC role_id. Org rows only. */
   async assignRoleIdsToOrganizationMemberships(): Promise<number> {
+    return this.assignRoleIdsToMemberships("organization", ORGANIZATION_ROLES)
+  }
+
+  /** Maps legacy project membership roles to RBAC role_id. Project rows only. */
+  async assignRoleIdsToProjectMemberships(): Promise<number> {
+    return this.assignRoleIdsToMemberships("project", PROJECT_ROLES)
+  }
+
+  private async assignRoleIdsToMemberships(
+    resourceType: "organization" | "project",
+    rolesByLegacyRole: Record<string, string>,
+  ): Promise<number> {
     let updatedCount = 0
 
-    for (const [legacyRole, roleKey] of Object.entries(ORGANIZATION_ROLES)) {
+    for (const [legacyRole, roleKey] of Object.entries(rolesByLegacyRole)) {
       const updatedRows: { id: string }[] = await this.dataSource.query(
         `UPDATE user_membership AS membership
          SET role_id = role.id
          FROM role
-         WHERE membership.resource_type = 'organization'
+         WHERE membership.resource_type = $1
            AND membership.role_id IS NULL
-           AND membership.role = $1
-           AND role.key = $2
+           AND membership.role = $2
+           AND role.key = $3
          RETURNING membership.id`,
-        [legacyRole, roleKey],
+        [resourceType, legacyRole, roleKey],
       )
       updatedCount += updatedRows.length
     }
@@ -100,19 +138,26 @@ export class RbacService {
     return insertedRows.length
   }
 
-  private async upsertOrganizationRoles(): Promise<Map<string, Role>> {
+  private async upsertRoles({
+    roleKeys,
+    labels,
+    defaultScope,
+  }: {
+    roleKeys: string[]
+    labels: Record<string, string>
+    defaultScope: Role["scopeType"]
+  }): Promise<Map<string, Role>> {
     const rolesByKey = new Map<string, Role>()
-    const roleKeys = [...Object.values(ORGANIZATION_ROLES), ORG_CREATOR_ROLE]
 
     for (const roleKey of roleKeys) {
       const existing = await this.roleRepository.findOne({ where: { key: roleKey } })
-      const scopeType = GLOBAL_ROLE_SCOPE[roleKey] ?? "organization"
+      const scopeType = GLOBAL_ROLE_SCOPE[roleKey] ?? defaultScope
       const role =
         existing ??
         (await this.roleRepository.save(
           this.roleRepository.create({
             key: roleKey,
-            name: ORGANIZATION_ROLE_LABELS[roleKey],
+            name: labels[roleKey],
             scopeType,
           }),
         ))
@@ -122,8 +167,11 @@ export class RbacService {
     return rolesByKey
   }
 
-  private async linkRolePermissions(rolesByKey: Map<string, Role>): Promise<void> {
-    for (const [roleKey, permissionKeys] of Object.entries(ORGANIZATION_ROLE_PERMISSIONS)) {
+  private async linkRolePermissions(
+    rolesByKey: Map<string, Role>,
+    rolePermissions: Record<string, readonly string[]>,
+  ): Promise<void> {
+    for (const [roleKey, permissionKeys] of Object.entries(rolePermissions)) {
       const role = rolesByKey.get(roleKey)
       if (!role) continue
 

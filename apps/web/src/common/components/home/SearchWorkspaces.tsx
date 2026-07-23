@@ -2,13 +2,13 @@ import { Input } from "@caseai-connect/ui/shad/input"
 import { SearchIcon } from "lucide-react"
 import { createContext, type ReactNode, useContext, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { Organization } from "@/common/features/organizations/organizations.models"
+import type { OrganizationWithProjects } from "@/common/features/organizations/organizations.selectors"
 
 type SearchWorkspacesContextValue = {
   query: string
   setQuery: (value: string) => void
-  organizations: Organization[]
-  filteredOrganizations: Organization[]
+  organizations: OrganizationWithProjects[]
+  filteredOrganizations: OrganizationWithProjects[]
   hasManyProjects: boolean
 }
 
@@ -26,7 +26,7 @@ function SearchWorkspacesProvider({
   organizations,
   children,
 }: {
-  organizations: Organization[]
+  organizations: OrganizationWithProjects[]
   children: ReactNode
 }) {
   const [query, setQuery] = useState("")
@@ -44,7 +44,7 @@ export function SearchWorkspaces({
   organizations,
   children,
 }: {
-  organizations: Organization[]
+  organizations: OrganizationWithProjects[]
   children: ReactNode
 }) {
   return (
@@ -74,7 +74,7 @@ export function SearchWorkspacesInput() {
 export function SearchWorkspacesResults({
   children,
 }: {
-  children: (organizations: Organization[]) => ReactNode
+  children: (organizations: OrganizationWithProjects[]) => ReactNode
 }) {
   const { filteredOrganizations } = useSearchWorkspacesContext()
   return <>{children(filteredOrganizations)}</>
@@ -84,7 +84,10 @@ function normalize(value: string) {
   return value.trim().toLowerCase()
 }
 
-function filterOrganizations(organizations: Organization[], query: string): Organization[] {
+function filterOrganizations(
+  organizations: OrganizationWithProjects[],
+  query: string,
+): OrganizationWithProjects[] {
   const needle = normalize(query)
   if (!needle) return organizations
   return organizations.flatMap((organization) => {

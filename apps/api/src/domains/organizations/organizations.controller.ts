@@ -11,7 +11,7 @@ import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 import { OrganizationGuard } from "./organization.guard"
-import { toDto, toUserOrganizationListItemDto } from "./organization.helpers"
+import { toDto } from "./organization.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationsService } from "./organizations.service"
 
@@ -19,13 +19,13 @@ import { OrganizationsService } from "./organizations.service"
 export class OrganizationsController {
   constructor(private readonly organizationsService: OrganizationsService) {}
 
-  @Get(OrganizationsRoutes.getAll.path)
+  @Get(OrganizationsRoutes.getAllMine.path)
   @UseGuards(JwtAuthGuard, UserGuard)
   async listOrganizations(
     @Req() request: EndpointRequest,
-  ): Promise<typeof OrganizationsRoutes.getAll.response> {
-    const organizations = await this.organizationsService.listUserOrganizations(request.user.id)
-    return { data: organizations.map(toUserOrganizationListItemDto) }
+  ): Promise<typeof OrganizationsRoutes.getAllMine.response> {
+    const organizations = await this.organizationsService.listOrganizations(request.user.id)
+    return { data: organizations.map(toDto) }
   }
 
   @Post(OrganizationsRoutes.createOne.path)
@@ -40,7 +40,8 @@ export class OrganizationsController {
       userId: request.user.id,
       name: body.payload.name,
     })
-    return { data: toDto(organization, []) }
+    // TODO: get permissions for the organization OR return { success: true } and let the client fetch them later
+    return { data: toDto(organization) }
   }
 
   @Patch(OrganizationsRoutes.updateOne.path)

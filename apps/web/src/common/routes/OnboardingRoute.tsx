@@ -8,8 +8,10 @@ import { Grid, GridContent, GridHeader } from "@/common/components/grid/Grid"
 import { EditOrganizationDialog } from "@/common/components/organization/EditOrganizationDialog"
 import { OrganizationCreator } from "@/common/components/organization/OrganizationCreator"
 import { SidebarLayout } from "@/common/components/sidebar/SidebarLayout"
-import type { Organization } from "@/common/features/organizations/organizations.models"
-import { selectOrganizationsData } from "@/common/features/organizations/organizations.selectors"
+import {
+  type OrganizationWithProjects,
+  selectOrganizationsWithProjectsData,
+} from "@/common/features/organizations/organizations.selectors"
 import { useAppSelector } from "@/common/store/hooks"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import { ProjectCreatorButton } from "@/studio/features/projects/components/ProjectCreator"
@@ -32,7 +34,7 @@ import { AsyncRoute } from "./AsyncRoute"
 
 export function OnboardingRoute() {
   const user = useAppSelector(selectMe)
-  const organizations = useAppSelector(selectOrganizationsData)
+  const organizations = useAppSelector(selectOrganizationsWithProjectsData)
   const invitations = useAppSelector(selectPendingInvitations)
 
   useMount({
@@ -50,7 +52,7 @@ export function OnboardingRoute() {
 
 function WithData() {
   const user = useValue(selectMe)
-  const organizations = useValue(selectOrganizationsData)
+  const organizations = useValue(selectOrganizationsWithProjectsData)
   const invitations = useValue(selectPendingInvitations)
   const orgsCount = organizations.length
   const hasPendingInvitations = invitations.length > 0
@@ -74,7 +76,7 @@ function Main({
   orgsCount: _orgsCount,
   invitations,
 }: {
-  organizations: Organization[]
+  organizations: OrganizationWithProjects[]
   user: User
   orgsCount: number
   invitations: PendingInvitations
@@ -121,7 +123,7 @@ function Main({
   )
 }
 
-function OrganizationItem({ organization }: { organization: Organization }) {
+function OrganizationItem({ organization }: { organization: OrganizationWithProjects }) {
   const { abilities } = useAbility()
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
   const canCreateProject = abilities.canCreateProject({

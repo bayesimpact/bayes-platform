@@ -11,15 +11,10 @@ import {
 } from "@/common/test/test-database"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithOwner } from "@/domains/organizations/organization.factory"
-import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
-import { projectFactory } from "@/domains/projects/project.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
-import {
-  assignOrgCreatorToUser,
-  ensureOrganizationRbacCatalog,
-} from "../../../../test/rbac-test.helpers"
+import { assignOrgCreatorToUser, ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { OrganizationsModule } from "../organizations.module"
 
@@ -37,7 +32,7 @@ describe("Organizations - listOrganizations", () => {
       additionalImports: [OrganizationsModule, RbacModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
-    await ensureOrganizationRbacCatalog(setup.module)
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
     await app.init()
@@ -57,7 +52,7 @@ describe("Organizations - listOrganizations", () => {
 
   const subject = async () =>
     request({
-      route: OrganizationsRoutes.getAll,
+      route: OrganizationsRoutes.getAllMine,
       token: accessToken,
     })
 
@@ -95,7 +90,6 @@ describe("Organizations - listOrganizations", () => {
         "project.create",
         "project.read",
       ]),
-      projects: [],
     })
     expect(listedOrganization?.permissions).not.toContain("organization.create")
   })
@@ -117,73 +111,6 @@ describe("Organizations - listOrganizations", () => {
       id: organization.id,
       permissions: ["organization.read"],
     })
-  })
-
-  it("lists all projects for org owners without project membership", async () => {
-    const { organization } = await createOrganizationWithOwner(repositories, {
-      user: { auth0Id },
-    })
-    const project = projectFactory.transient({ organization }).build({ name: "Unassigned Project" })
-    await repositories.projectRepository.save(project)
-
-    const response = await subject()
-
-    expectResponse(response, 200)
-    expect(response.body.data).toHaveLength(1)
-    expect(response.body.data[0]?.projects).toEqual([
-      expect.objectContaining({
-        id: project.id,
-        name: "Unassigned Project",
-        featureFlags: [],
-      }),
-    ])
-  })
-
-  it("includes projects the user can access via project membership", async () => {
-    const { user, organization } = await createOrganizationWithOwner(repositories, {
-      user: { auth0Id },
-    })
-    const project = projectFactory.transient({ organization }).build({ name: "Listed Project" })
-    await repositories.projectRepository.save(project)
-    await addUserToProject({ repositories, project, user })
-
-    const response = await subject()
-
-    expectResponse(response, 200)
-    expect(response.body.data).toHaveLength(1)
-    const listedOrganization = response.body.data[0]
-    expect(listedOrganization?.projects).toHaveLength(1)
-    expect(listedOrganization?.projects[0]).toMatchObject({
-      id: project.id,
-      name: "Listed Project",
-      featureFlags: [],
-    })
-  })
-
-  it("lists only invited projects for org members", async () => {
-    const { organization } = await createOrganizationWithOwner(repositories)
-    const invitedProject = projectFactory
-      .transient({ organization })
-      .build({ name: "Invited Project" })
-    const otherProject = projectFactory.transient({ organization }).build({ name: "Other Project" })
-    await repositories.projectRepository.save([invitedProject, otherProject])
-
-    const { user: memberUser } = await addUserToOrganization({
-      repositories,
-      organization,
-      membership: { role: "member" },
-    })
-    await addUserToProject({ repositories, project: invitedProject, user: memberUser })
-    auth0Id = memberUser.auth0Id
-
-    const response = await subject()
-
-    expectResponse(response, 200)
-    expect(response.body.data).toHaveLength(1)
-    expect(response.body.data[0]?.permissions).toEqual(["organization.read"])
-    expect(response.body.data[0]?.projects).toEqual([
-      expect.objectContaining({ id: invitedProject.id, name: "Invited Project" }),
-    ])
   })
 
   it("does not expose global organization.create on listed organizations", async () => {

@@ -1,10 +1,10 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import type { RootState, ThunkExtraArg } from "@/common/store"
-import type { OrganizationListItem } from "./organizations.models"
+import type { Organization } from "./organizations.models"
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
 
-export const fetchOrganizations = createAsyncThunk<OrganizationListItem[], void, ThunkConfig>(
+export const fetchOrganizations = createAsyncThunk<Organization[], void, ThunkConfig>(
   "organizations/list",
   async (_, { extra: { services } }) => await services.organizations.list(),
 )

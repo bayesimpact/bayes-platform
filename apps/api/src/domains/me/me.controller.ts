@@ -23,8 +23,6 @@ import { UserGuard } from "@/domains/users/user.guard"
 import { UsersService } from "@/domains/users/users.service"
 import { toDto as toOrganizationDto } from "../organizations/organization.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { ProjectsService } from "../projects/projects.service"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { MeService } from "./me.service"
 
 @UseGuards(JwtAuthGuard, UserGuard)
@@ -34,7 +32,6 @@ export class MeController {
     private readonly organizationsService: OrganizationsService,
     private readonly meService: MeService,
     private readonly permissionService: PermissionService,
-    private readonly projectsService: ProjectsService,
     private readonly termsComplianceService: TermsComplianceService,
     private readonly usersService: UsersService,
   ) {}
@@ -55,30 +52,16 @@ export class MeController {
     const user = request.user
     const [organizations, memberships, termsDocuments, latestAcceptance, globalPermissions] =
       await Promise.all([
-        this.organizationsService.getUserOrganizations(user.id),
+        this.organizationsService.listOrganizations(user.id),
         this.meService.getUserMemberships(user.id),
         this.termsComplianceService.listTermsDocuments(),
         this.termsComplianceService.getLatestAcceptanceForUser(user.id),
         this.permissionService.listGlobalPermissions(user.id),
       ])
-    const organizationsWithProjects = await Promise.all(
-      organizations.map(async (org) => {
-        const projects = await this.projectsService.listProjects({
-          organizationId: org.id,
-          userId: user.id,
-        })
-        return {
-          ...org,
-          projects,
-        }
-      }),
-    )
     return {
       data: {
         user: toUserDto({ user, memberships, termsDocuments, latestAcceptance, globalPermissions }),
-        organizations: organizationsWithProjects.map((organizationWithProjects) =>
-          toOrganizationDto(organizationWithProjects, organizationWithProjects.projects),
-        ),
+        organizations: organizations.map(toOrganizationDto),
         currentTerms: toCurrentTermsDto(termsDocuments),
       },
     }

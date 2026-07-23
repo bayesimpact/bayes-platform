@@ -14,10 +14,7 @@ import {
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../test/e2e.helpers"
-import {
-  assignOrgCreatorToUser,
-  ensureOrganizationRbacCatalog,
-} from "../../../test/rbac-test.helpers"
+import { assignOrgCreatorToUser, ensureRbacCatalog } from "../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../test/request"
 import { Organization } from "./organization.entity"
 import { OrganizationsModule } from "./organizations.module"
@@ -38,7 +35,7 @@ describe("Organizations - createOrganization", () => {
       additionalImports: [OrganizationsModule, RbacModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
-    await ensureOrganizationRbacCatalog(setup.module)
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     app = setup.module.createNestApplication()
@@ -103,7 +100,14 @@ describe("Organizations - createOrganization", () => {
       id: expect.any(String),
       name: "New Organization",
       createdAt: expect.any(Number),
-      projects: [],
+      // alphabetical: listPermissionsForRole orders by permission_key
+      permissions: [
+        "organization.delete",
+        "organization.read",
+        "organization.update",
+        "project.create",
+        "project.read",
+      ],
     } satisfies OrganizationDto)
   })
 

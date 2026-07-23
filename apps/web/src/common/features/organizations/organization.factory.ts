@@ -5,7 +5,7 @@ import type {
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import { generateId } from "@/common/utils/generate-id"
-import type { OrganizationListItem } from "./organizations.models"
+import type { Organization } from "./organizations.models"
 
 const OWNER_PERMISSIONS: OrganizationPermission[] = [
   "organization.read",
@@ -34,14 +34,10 @@ type OrganizationFactoryTransientParams = {
   role?: OrganizationMembershipRoleDto
 }
 
-class OrganizationFactory extends Factory<
-  OrganizationListItem,
-  OrganizationFactoryTransientParams
-> {}
+class OrganizationFactory extends Factory<Organization, OrganizationFactoryTransientParams> {}
 
 export const organizationFactory = OrganizationFactory.define(({ params, transientParams }) => ({
   id: params.id ?? generateId(),
   name: params.name ?? faker.company.name(),
   permissions: params.permissions ?? permissionsForRole(transientParams.role ?? "member"),
-  projects: params.projects ?? [],
 }))

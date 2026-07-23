@@ -9,7 +9,9 @@ import {
   createOrganizationWithOwner,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
+import { PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
 import { userFactory } from "@/domains/users/user.factory"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { projectFactory } from "../project.factory"
 import { ProjectsModule } from "../projects.module"
 import { addUserToProject } from "./project-membership.factory"
@@ -26,6 +28,7 @@ describe("ProjectMembershipsService", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({ additionalImports: [ProjectsModule] })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     service = setup.module.get(ProjectMembershipsService)
     agentMembershipsService = setup.module.get(AgentMembershipsService)
@@ -52,6 +55,15 @@ describe("ProjectMembershipsService", () => {
       })
 
       expect(membership.role).toBe("owner")
+
+      // the RBAC role backing the membership is resolved at write time
+      const savedMembership = await repositories.userMembershipRepository.findOneOrFail({
+        where: { id: membership.id },
+      })
+      const projectOwnerRole = await repositories.roleRepository.findOneOrFail({
+        where: { key: PROJECT_ROLES.owner },
+      })
+      expect(savedMembership.roleId).toBe(projectOwnerRole.id)
     })
   })
 

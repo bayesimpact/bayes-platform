@@ -12,7 +12,6 @@ import {
   createOrganizationWithAgent,
   createOrganizationWithOwner,
 } from "@/domains/organizations/organization.factory"
-import { projectFactory } from "@/domains/projects/project.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import {
   reviewCampaignMembershipFactory,
@@ -21,12 +20,8 @@ import {
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../test/e2e.helpers"
-import {
-  assignOrgCreatorToUser,
-  ensureOrganizationRbacCatalog,
-} from "../../../test/rbac-test.helpers"
+import { assignOrgCreatorToUser, ensureRbacCatalog } from "../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../test/request"
-import { addUserToProject } from "../projects/memberships/project-membership.factory"
 import { MeModule } from "./me.module"
 
 describe("MeController (e2e)", () => {
@@ -43,7 +38,7 @@ describe("MeController (e2e)", () => {
       additionalImports: [MeModule, RbacModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
-    await ensureOrganizationRbacCatalog(setup.module)
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
     await app.init()
@@ -150,26 +145,7 @@ describe("MeController (e2e)", () => {
       expect(response.body.data.organizations[0]).toMatchObject({
         id: organization.id,
         name: organization.name,
-        projects: [],
-      })
-    })
-
-    it("returns organizations with their projects", async () => {
-      const { user, organization } = await createContext()
-
-      const project = projectFactory.transient({ organization }).build({ name: "Test Project" })
-      await repositories.projectRepository.save(project)
-      await addUserToProject({ repositories, project, user })
-
-      const response = await subject()
-
-      expectResponse(response, 200)
-      expect(response.body.data.organizations).toHaveLength(1)
-      expect(response.body.data.organizations[0]!.projects).toHaveLength(1)
-      expect(response.body.data.organizations[0]!.projects[0]).toMatchObject({
-        id: project.id,
-        name: "Test Project",
-        organizationId: organization.id,
+        permissions: expect.arrayContaining(["organization.read"]),
       })
     })
 

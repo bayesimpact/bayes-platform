@@ -7,11 +7,14 @@ import {
 } from "@/common/test/test-database"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
+import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import {
   createOrganizationWithOwner,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
+import { PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
 import { userFactory } from "@/domains/users/user.factory"
+import { ensureRbacCatalog } from "../../../test/rbac-test.helpers"
 import { addUserToProject } from "./memberships/project-membership.factory"
 import { projectFactory } from "./project.factory"
 import { ProjectsModule } from "./projects.module"
@@ -32,6 +35,7 @@ describe("ProjectsService", () => {
       applyOverrides: (moduleBuilder) =>
         moduleBuilder.overrideProvider(INVITATION_SENDER).useValue(mockInvitationSender),
     })
+    await ensureRbacCatalog(setup.module)
     await clearTestDatabase(setup.dataSource)
     repositories = setup.getAllRepositories()
     service = setup.module.get<ProjectsService>(ProjectsService)
@@ -121,6 +125,45 @@ describe("ProjectsService", () => {
         userId: user.id,
       })
       expect(result).toEqual([])
+    })
+  })
+
+  describe("listUserProjects", () => {
+    it("returns projects with permissions inherited from the organization role", async () => {
+      const { organization, user } = await createOrganizationWithOwner(repositories)
+      const project = projectFactory.transient({ organization }).build()
+      await repositories.projectRepository.save(project)
+
+      const result = await service.listUserProjects(user.id)
+
+      expect(result).toHaveLength(1)
+      expect(result[0]?.id).toBe(project.id)
+      expect(result[0]?.permissions.sort()).toEqual(["project.create", "project.read"])
+    })
+
+    it("returns project.read for a plain project member", async () => {
+      const { organization } = await createOrganizationWithOwner(repositories)
+      const project = projectFactory.transient({ organization }).build()
+      await repositories.projectRepository.save(project)
+
+      const memberUser = await repositories.userRepository.save(userFactory.build())
+      const projectMemberRole = await repositories.roleRepository.findOneOrFail({
+        where: { key: PROJECT_ROLES.member },
+      })
+      await repositories.userMembershipRepository.save(
+        userMembershipFactory.build({
+          userId: memberUser.id,
+          resourceType: "project",
+          resourceId: project.id,
+          role: "member",
+          roleId: projectMemberRole.id,
+        }),
+      )
+
+      const result = await service.listUserProjects(memberUser.id)
+
+      expect(result).toHaveLength(1)
+      expect(result[0]?.permissions).toEqual(["project.read"])
     })
   })
 

@@ -1,10 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
-import type { OrganizationListItem } from "./organizations.models"
+import type { Organization } from "./organizations.models"
 import { createOrganization, fetchOrganizations } from "./organizations.thunks"
 
 interface State {
-  data: AsyncData<OrganizationListItem[]>
+  data: AsyncData<Organization[]>
 }
 
 const initialState: State = {

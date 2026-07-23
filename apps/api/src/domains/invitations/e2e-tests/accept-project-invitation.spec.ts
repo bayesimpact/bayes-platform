@@ -16,7 +16,7 @@ import {
   mockInvitationSender,
   setupUserGuardForTesting,
 } from "../../../../test/e2e.helpers"
-import { ensureOrganizationRbacCatalog } from "../../../../test/rbac-test.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { inviteUserToProject } from "../../projects/memberships/project-membership.factory"
 import { ProjectsModule } from "../../projects/projects.module"
@@ -35,7 +35,7 @@ describe("Invitations - acceptInvitation", () => {
       additionalImports: [ProjectsModule, InvitationsModule, RbacModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
-    await ensureOrganizationRbacCatalog(setup.module)
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
     await app.init()

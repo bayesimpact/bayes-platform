@@ -1,12 +1,8 @@
-export type OrganizationProjectModel = {
-  id: string
-  name: string
-  featureFlags: string[]
-}
+import type { OrganizationPermission, TimeType } from "@caseai-connect/api-contracts"
 
 export type OrganizationModel = {
   id: string
   name: string
-  permissions: string[]
-  projects: OrganizationProjectModel[]
+  permissions: OrganizationPermission[]
+  createdAt: TimeType
 }

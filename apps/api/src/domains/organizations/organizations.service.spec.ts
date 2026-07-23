@@ -5,11 +5,14 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { UserMembership } from "@/domains/memberships/user-membership.entity"
-import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
-import { ensureOrganizationRbacCatalog } from "../../../test/rbac-test.helpers"
+import { ensureRbacCatalog } from "../../../test/rbac-test.helpers"
 import { FeatureFlag } from "../feature-flags/feature-flag.entity"
+import {
+  organizationMembershipFactory,
+  saveOrgMembership,
+} from "./memberships/organization-membership.factory"
 import { Organization } from "./organization.entity"
 import { createOrganizationWithOwner, organizationFactory } from "./organization.factory"
 import { OrganizationsModule } from "./organizations.module"
@@ -26,7 +29,7 @@ describe("OrganizationsService", () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [OrganizationsModule],
     })
-    await ensureOrganizationRbacCatalog(setup.module)
+    await ensureRbacCatalog(setup.module)
   })
 
   afterAll(async () => {
@@ -59,7 +62,7 @@ describe("OrganizationsService", () => {
       // Assert
       expect(result.name).toBe("Test Organization")
       expect(result.id).toBeDefined()
-      expect(result.createdAt).toBeInstanceOf(Date)
+      expect(typeof result.createdAt).toBe("number")
 
       // Verify organization was saved
       const savedOrganization = await organizationRepository.findOne({
@@ -173,14 +176,13 @@ describe("OrganizationsService", () => {
       })
 
       // Assert
-      expect(organization.createdAt).toBeInstanceOf(Date)
-      expect(organization.updatedAt).toBeInstanceOf(Date)
-      expect(organization.createdAt.getTime()).toBeLessThanOrEqual(Date.now())
+      expect(typeof organization.createdAt).toBe("number")
+      expect(organization.createdAt).toBeLessThanOrEqual(Date.now())
     })
   })
 
-  describe("getUserOrganizations", () => {
-    it("should return empty array when user has no organizations", async () => {
+  describe("listOrganizations", () => {
+    it("returns an empty array when user has no organizations", async () => {
       // Arrange
       const user = userFactory.build({
         email: "noorgs@example.com",
@@ -188,83 +190,52 @@ describe("OrganizationsService", () => {
       const savedUser = await userRepository.save(user)
 
       // Act
-      const result = await service.getUserOrganizations(savedUser.id)
+      const result = await service.listOrganizations(savedUser.id)
 
       // Assert
       expect(result).toEqual([])
     })
 
-    it("should return organizations with correct roles", async () => {
-      // Arrange
-      const user = userFactory.build({
-        email: "withorgs@example.com",
-      })
-      const savedUser = await userRepository.save(user)
-
-      const org1 = organizationFactory.build({ name: "Org 1" })
-      const savedOrg1 = await organizationRepository.save(org1)
-
-      const org2 = organizationFactory.build({ name: "Org 2" })
-      const savedOrg2 = await organizationRepository.save(org2)
-
-      await userMembershipRepository.save(
-        userMembershipFactory.build({
-          userId: savedUser.id,
-          resourceId: savedOrg1.id,
-          resourceType: "organization",
-          role: "owner",
-        }),
-      )
-
-      await userMembershipRepository.save(
-        userMembershipFactory.build({
-          userId: savedUser.id,
-          resourceId: savedOrg2.id,
-          resourceType: "organization",
-          role: "member",
-        }),
-      )
-
-      // Act
-      const result = await service.getUserOrganizations(savedUser.id)
-
-      // Assert
-      expect(result).toHaveLength(2)
-      // Note: memberships relation is not loaded, so it will be undefined
-      expect(result).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            id: savedOrg1.id,
-            name: savedOrg1.name,
-          }),
-          expect.objectContaining({
-            id: savedOrg2.id,
-            name: savedOrg2.name,
-          }),
-        ]),
-      )
-    })
-  })
-
-  describe("listUserOrganizations", () => {
     it("returns organizations with permissions", async () => {
       const repositories = setup.getAllRepositories()
       const { user, organization } = await createOrganizationWithOwner(repositories)
 
-      const result = await service.listUserOrganizations(user.id)
+      const result = await service.listOrganizations(user.id)
 
       expect(result).toHaveLength(1)
       expect(result[0]).toMatchObject({
         id: organization.id,
         name: organization.name,
+        createdAt: expect.any(Number),
         permissions: expect.arrayContaining([
           "organization.read",
           "organization.update",
           "project.create",
           "project.read",
         ]),
-        projects: [],
       })
+    })
+
+    it("returns every organization the user is a member of", async () => {
+      const repositories = setup.getAllRepositories()
+      const { user, organization: ownedOrganization } =
+        await createOrganizationWithOwner(repositories)
+
+      const joinedOrganization = await organizationRepository.save(
+        organizationFactory.build({ name: "Joined Org" }),
+      )
+      await saveOrgMembership({
+        repositories,
+        membership: organizationMembershipFactory
+          .transient({ user, organization: joinedOrganization })
+          .build({ role: "member" }),
+      })
+
+      const result = await service.listOrganizations(user.id)
+
+      expect(result.map((organization) => organization.id).sort()).toEqual(
+        [ownedOrganization.id, joinedOrganization.id].sort(),
+      )
     })
   })
 })

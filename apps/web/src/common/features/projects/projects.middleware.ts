@@ -6,7 +6,7 @@ import { notificationsActions } from "../notifications/notifications.slice"
 import { selectCurrentOrganizationId } from "../organizations/organizations.selectors"
 import { fetchOrganizations } from "../organizations/organizations.thunks"
 import { projectsActions } from "./projects.slice"
-import { listProjects } from "./projects.thunks"
+import { fetchMyProjects, listProjects } from "./projects.thunks"
 
 // Create typed listener middleware
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
@@ -31,7 +31,11 @@ listenerMiddleware.startListening({
       }),
     )
 
-    await Promise.all([listenerApi.dispatch(fetchMe()), listenerApi.dispatch(fetchOrganizations())])
+    await Promise.all([
+      listenerApi.dispatch(fetchMe()),
+      listenerApi.dispatch(fetchOrganizations()),
+      listenerApi.dispatch(fetchMyProjects()),
+    ])
     await listenerApi.dispatch(listProjects())
 
     const onSuccess = action.meta.arg.onSuccess

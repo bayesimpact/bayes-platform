@@ -243,6 +243,7 @@ export class OrganizationMembershipRepository {
       userId: membership.userId,
       organizationId: getMembershipResourceId(membership),
       role: membership.role as OrganizationMembershipRole,
+      roleId: membership.roleId,
       createdAt: membership.createdAt,
       updatedAt: membership.updatedAt,
       deletedAt: membership.deletedAt,

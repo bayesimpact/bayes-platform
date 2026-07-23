@@ -1,8 +1,12 @@
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
-import type { ProjectDto } from "./projects.dto"
+import type { MyProjectDto, ProjectDto } from "./projects.dto"
 
 export const ProjectsRoutes = {
+  getAllMine: defineRoute<ResponseData<MyProjectDto[]>>({
+    method: "get",
+    path: "projects/mine",
+  }),
   createOne: defineRoute<ResponseData<ProjectDto>, RequestPayload<Pick<ProjectDto, "name">>>({
     method: "post",
     path: "organizations/:organizationId/projects",
