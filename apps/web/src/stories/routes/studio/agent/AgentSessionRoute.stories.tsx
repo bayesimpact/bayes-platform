@@ -1,3 +1,4 @@
+import { ToolName } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { agentFactory } from "@/common/features/agents/agent.factory"
@@ -57,7 +58,7 @@ export const Default: Story = {
         .build({ ...firstAgent, type: "conversation", fillFormEnabled: !!fillForm })
 
       const sessionFactory = conversationAgentSessionFactory.transient({ agent: currentAgent })
-      // fillForm-enabled agents accumulate a form result on the session, shown in the right panel.
+      // fillForm-enabled agents accumulate a form result on the session, shown in the sheet.
       const session = (fillForm ? sessionFactory.withResult() : sessionFactory).build()
 
       // fillForm-enabled sub-agents the parent conversation delegated to during this session.
@@ -74,15 +75,20 @@ export const Default: Story = {
           ]
         : []
 
-      const assistantMessage = agentSessionMessageFactory.build({
-        role: "assistant",
-        toolCalls: withSubAgentForms
+      const toolCalls = [
+        ...(fillForm ? [{ id: faker.string.uuid(), name: ToolName.FillForm, arguments: {} }] : []),
+        ...(withSubAgentForms
           ? subSessions.map((subSession) => ({
               id: faker.string.uuid(),
               name: subSession.toolName,
               arguments: {},
             }))
-          : undefined,
+          : []),
+      ]
+
+      const assistantMessage = agentSessionMessageFactory.build({
+        role: "assistant",
+        toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
       })
 
       const messages = withMessages
