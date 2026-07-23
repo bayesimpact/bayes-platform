@@ -1,9 +1,11 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { Agent } from "@/common/features/agents/agents.models"
-import type { ConversationAgentSession } from "./conversation/conversation-agent-sessions.models"
+import type {
+  ConversationAgentSession,
+  ConversationSubSession,
+} from "./conversation/conversation-agent-sessions.models"
 import type { ExtractionAgentSessionSummary } from "./extraction/extraction-agent-sessions.models"
-import type { FormAgentSession, FormSubSession } from "./form/form-agent-sessions.models"
 import type { AgentSessionMessage } from "./shared/agent-session-messages/agent-session-messages.models"
 
 type SessionTransientParams = {
@@ -13,7 +15,17 @@ type SessionTransientParams = {
 class ConversationAgentSessionFactory extends Factory<
   ConversationAgentSession,
   SessionTransientParams
-> {}
+> {
+  /** A session carrying a filled form state, for fillForm-enabled agents. */
+  withResult() {
+    return this.params({
+      result: {
+        title: faker.commerce.productName(),
+        summary: faker.lorem.sentence(),
+      },
+    })
+  }
+}
 
 export const conversationAgentSessionFactory = ConversationAgentSessionFactory.define(
   ({ params, transientParams }) => {
@@ -24,47 +36,28 @@ export const conversationAgentSessionFactory = ConversationAgentSessionFactory.d
       type: params.type ?? "live",
       createdAt: time,
       updatedAt: params.updatedAt ?? time,
+      result: params.result ?? undefined,
     } satisfies ConversationAgentSession
   },
 )
 
-class FormAgentSessionFactory extends Factory<FormAgentSession, SessionTransientParams> {}
-
-export const formAgentSessionFactory = FormAgentSessionFactory.define(
-  ({ params, transientParams }): FormAgentSession => {
-    const time = params.createdAt ?? faker.date.recent().getTime()
-    return {
-      id: params.id ?? faker.string.uuid(),
-      agentId: params.agentId ?? transientParams.agent?.id ?? faker.string.uuid(),
-      type: params.type ?? "live",
-      createdAt: time,
-      updatedAt: params.updatedAt ?? time,
-      result: params.result ?? {
-        firstName: faker.person.firstName(),
-        lastName: faker.person.lastName(),
-        email: faker.internet.email(),
-        company: faker.company.name(),
-        role: faker.person.jobTitle(),
-        country: faker.location.country(),
-        city: faker.location.city(),
-        industry: faker.commerce.department(),
-        teamSize: faker.string.numeric({ length: { min: 1, max: 2 } }),
-      },
-    }
-  },
-)
-
-type FormSubSessionTransientParams = SessionTransientParams & {
-  session?: FormAgentSession
+type ConversationSubSessionTransientParams = SessionTransientParams & {
+  session?: ConversationAgentSession
 }
 
-class FormSubSessionFactory extends Factory<FormSubSession, FormSubSessionTransientParams> {}
+class ConversationSubSessionFactory extends Factory<
+  ConversationSubSession,
+  ConversationSubSessionTransientParams
+> {}
 
-export const formSubSessionFactory = FormSubSessionFactory.define(
-  ({ params, transientParams }): FormSubSession => {
+export const conversationSubSessionFactory = ConversationSubSessionFactory.define(
+  ({ params, transientParams }): ConversationSubSession => {
     const session =
       transientParams.session ??
-      formAgentSessionFactory.transient(transientParams).build({ type: "playground" })
+      conversationAgentSessionFactory
+        .withResult()
+        .transient(transientParams)
+        .build({ type: "playground" })
     return {
       toolName: params.toolName ?? faker.helpers.slugify(faker.word.verb()).replace(/-/g, "_"),
       agentId: params.agentId ?? session.agentId,

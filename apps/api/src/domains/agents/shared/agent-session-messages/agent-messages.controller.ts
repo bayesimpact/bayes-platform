@@ -36,7 +36,6 @@ import { UserGuard } from "@/domains/users/user.guard"
 import type { ConversationAgentSession } from "../../conversation-agent-sessions/conversation-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ConversationAgentSessionsService } from "../../conversation-agent-sessions/conversation-agent-sessions.service"
-import type { FormAgentSession } from "../../form-agent-sessions/form-agent-session.entity"
 import type { AgentMessage } from "./agent-message.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMessageAttachmentDocumentsService } from "./agent-message-attachment-documents.service"
@@ -55,7 +54,7 @@ export class AgentMessagesController {
   @CheckPolicy((policy) => policy.canList())
   @Post(AgentSessionMessagesRoutes.getAll.path)
   async getAll(
-    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession | FormAgentSession>,
+    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
   ): Promise<typeof AgentSessionMessagesRoutes.getAll.response> {
     const connectScope = getRequiredConnectScope(request)
     const agentSessionId = request.agentSession.id
@@ -69,7 +68,7 @@ export class AgentMessagesController {
   @CheckPolicy((policy) => policy.canList())
   @Post(AgentSessionMessagesRoutes.getOne.path)
   async getOne(
-    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession | FormAgentSession>,
+    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
     @Param("messageId") messageId: string, // TODO: add context
   ): Promise<typeof AgentSessionMessagesRoutes.getOne.response> {
     const connectScope = getRequiredConnectScope(request)
@@ -87,7 +86,7 @@ export class AgentMessagesController {
   @Post(AgentSessionMessagesRoutes.presignAttachmentDocument.path)
   @HttpCode(HttpStatus.CREATED)
   async presignAttachmentDocument(
-    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession | FormAgentSession>,
+    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
     @Body() { payload }: typeof AgentSessionMessagesRoutes.presignAttachmentDocument.request,
   ): Promise<typeof AgentSessionMessagesRoutes.presignAttachmentDocument.response> {
     if (!payload.fileName || !payload.fileName.trim()) {
@@ -137,7 +136,7 @@ export class AgentMessagesController {
   @CheckPolicy((policy) => policy.canList())
   @Post(AgentSessionMessagesRoutes.getAttachmentDocumentTemporaryUrl.path)
   async getAttachmentDocumentTemporaryUrl(
-    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession | FormAgentSession>,
+    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
     @Param("attachmentDocumentId") attachmentDocumentId: string,
   ): Promise<typeof AgentSessionMessagesRoutes.getAttachmentDocumentTemporaryUrl.response> {
     const attachmentDocument = await this.agentMessageAttachmentDocumentsService.findById({

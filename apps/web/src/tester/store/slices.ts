@@ -1,7 +1,5 @@
 import { conversationAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.middleware"
 import { conversationAgentSessionsSlice } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.slice"
-import { formAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.middleware"
-import { formAgentSessionsSlice } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.slice"
 import { agentSessionMessagesSlice } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.slice"
 import { baseAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.middleware"
 import { agentsSlice } from "@/common/features/agents/agents.slice"
@@ -14,7 +12,6 @@ import { currentIdsSlice } from "./currentIds.slice"
 const testerMiddlewareList = [
   baseAgentSessionsMiddleware,
   conversationAgentSessionsMiddleware,
-  formAgentSessionsMiddleware,
   reviewCampaignsTesterMiddleware,
 ]
 
@@ -23,7 +20,6 @@ export const testerSliceList = [
   agentsSlice,
   conversationAgentSessionsSlice,
   currentIdsSlice,
-  formAgentSessionsSlice,
   reviewCampaignsTesterSlice,
   projectsSlice,
 ]

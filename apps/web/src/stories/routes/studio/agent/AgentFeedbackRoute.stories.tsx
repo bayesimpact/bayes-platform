@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { agentFactory } from "@/common/features/agents/agent.factory"
-import type { Agent } from "@/common/features/agents/agents.models"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -13,10 +12,8 @@ import { agentMessageFeedbackFactory } from "@/studio/features/agent-message-fee
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
-type AgentType = Extract<Agent["type"], "conversation" | "form">
-
 type StoryArgs = StudioStoryArgs & {
-  agentType: AgentType
+  fillForm?: boolean
   withFeedbacks?: boolean
 }
 
@@ -26,16 +23,13 @@ const meta = {
   argTypes: {
     ...studioStoryArgTypes,
     withAgents: { control: undefined },
-    agentType: {
-      control: "select",
-      options: ["conversation", "form"] satisfies AgentType[],
-    },
+    fillForm: { control: "boolean" },
     withFeedbacks: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
     withAgents: true,
-    agentType: "conversation",
+    fillForm: false,
     withFeedbacks: false,
   },
   render: render({ routes: studioRoutes, path: StudioRoutes.feedback.path }),
@@ -46,12 +40,12 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   decorators: [
-    buildDecorator<StoryArgs>(({ agentType, withFeedbacks, ...args }) => {
+    buildDecorator<StoryArgs>(({ fillForm, withFeedbacks, ...args }) => {
       const { baseSeeds, project, agents } = buildStudioData(args)
       const [firstAgent, ...restAgents] = agents
-      const currentAgent = agentFactory
+      const currentAgent = (fillForm ? agentFactory.fillForm() : agentFactory)
         .transient({ project })
-        .build({ ...firstAgent, type: agentType })
+        .build({ ...firstAgent, type: "conversation", fillFormEnabled: !!fillForm })
 
       const feedbacks = withFeedbacks
         ? agentMessageFeedbackFactory.transient({ agent: currentAgent, project }).buildList(3)
@@ -62,7 +56,6 @@ export const Default: Story = {
           baseSeeds,
           seed.agents([...restAgents, currentAgent], { currentId: currentAgent.id }),
           seed.conversationAgentSessions({ [currentAgent.id]: [] }),
-          seed.formAgentSessions({ [currentAgent.id]: [] }),
           seed.studio.agentMessageFeedbacks({ [currentAgent.id]: feedbacks }),
         ),
       }
@@ -77,49 +70,16 @@ export const WithData: Story = {
     agentMembershipRole: "owner",
     featureFlags: [],
     withAgents: true,
-    agentType: "conversation",
+    fillForm: false,
     withFeedbacks: true,
   },
+  decorators: Default.decorators,
+}
 
-  decorators: [
-    buildDecorator<StoryArgs>(({ agentType, withFeedbacks, ...args }) => {
-      const { baseSeeds, project, agents } = buildStudioData(args)
-      const [firstAgent, ...restAgents] = agents
-      const currentAgent = agentFactory
-        .transient({
-          project,
-        })
-        .build({
-          ...firstAgent,
-          type: agentType,
-        })
-
-      const feedbacks = withFeedbacks
-        ? agentMessageFeedbackFactory
-            .transient({
-              agent: currentAgent,
-              project,
-            })
-            .buildList(3)
-        : []
-
-      return {
-        state: mergeSeeds(
-          baseSeeds,
-          seed.agents([...restAgents, currentAgent], {
-            currentId: currentAgent.id,
-          }),
-          seed.conversationAgentSessions({
-            [currentAgent.id]: [],
-          }),
-          seed.formAgentSessions({
-            [currentAgent.id]: [],
-          }),
-          seed.studio.agentMessageFeedbacks({
-            [currentAgent.id]: feedbacks,
-          }),
-        ),
-      }
-    }),
-  ],
+export const FillFormAgentWithData: Story = {
+  args: {
+    ...WithData.args,
+    fillForm: true,
+  },
+  decorators: Default.decorators,
 }

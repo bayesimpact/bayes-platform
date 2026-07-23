@@ -258,6 +258,7 @@ function toAgentDto({
     documentTagIds: agent.documentTags?.map((tag) => tag.id) || [],
     resourceLibraryIds: agent.resourceLibraries?.map((library) => library.id) || [],
     documentsRagMode: agentSettings.documentsRagMode,
+    fillFormEnabled: agentSettings.fillFormEnabled,
     projectAgentSessionCategoryIds: (agent.sessionCategories ?? [])
       .map((category) => category.projectAgentSessionCategoryId)
       .filter(

@@ -11,7 +11,6 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
-import { formAgentSessionFactory } from "@/domains/agents/form-agent-sessions/form-agent-session.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import {
@@ -77,8 +76,9 @@ describe("ReviewCampaigns - Report", () => {
   /**
    * Seeds a richly populated campaign: two conversation sessions (one with
    * tester feedback + two reviewer reviews of differing ratings, one with no
-   * feedback), one form session, plus an end-of-phase survey. The caller is
-   * the project owner (admin). Tests override auth0Id to flip roles.
+   * feedback), one session from a fillForm-enabled conversation agent, plus
+   * an end-of-phase survey. The caller is the project owner (admin). Tests
+   * override auth0Id to flip roles.
    */
   const seedReportableCampaign = async () => {
     const {
@@ -162,12 +162,27 @@ describe("ReviewCampaigns - Report", () => {
       .build({ campaignId: campaign.id })
     await repositories.conversationAgentSessionRepository.save(session2)
 
-    const formAgent = agentFactory.transient({ organization, project }).build({ type: "form" })
-    await repositories.agentRepository.save(formAgent)
-    const formSession = formAgentSessionFactory
-      .transient({ organization, project, agent: formAgent, user: tester1 })
-      .build({ campaignId: campaign.id })
-    await repositories.formAgentSessionRepository.save(formSession)
+    const fillFormAgent = agentFactory
+      .transient({ organization, project })
+      .build({ type: "conversation" })
+    await repositories.agentRepository.save(fillFormAgent)
+    const fillFormAgentSettings = agentSettingsFactory
+      .transient({ organization, project, agent: fillFormAgent })
+      .build({
+        fillFormEnabled: true,
+        outputJsonSchema: {
+          type: "object",
+          properties: { title: { type: "string" }, summary: { type: "string" } },
+        },
+      })
+    await repositories.agentSettingsRepository.save(fillFormAgentSettings)
+    const fillFormSession = conversationAgentSessionFactory
+      .transient({ organization, project, agent: fillFormAgent, user: tester1 })
+      .build({
+        campaignId: campaign.id,
+        result: { title: "Session note", summary: "Filled by the agent" },
+      })
+    await repositories.conversationAgentSessionRepository.save(fillFormSession)
 
     // session1: tester feedback rating=5 + answers; two reviewer reviews (2 & 4).
     await repositories.testerSessionFeedbackRepository.save({
@@ -250,7 +265,7 @@ describe("ReviewCampaigns - Report", () => {
       reviewerB,
       session1,
       session2,
-      formSession,
+      fillFormSession,
     }
   }
 
@@ -318,7 +333,7 @@ describe("ReviewCampaigns - Report", () => {
   })
 
   it("computes session-row reviewer ratings, mean, and spread", async () => {
-    const { session1, session2, formSession } = await seedReportableCampaign()
+    const { session1, session2, fillFormSession } = await seedReportableCampaign()
     const response = await subject()
     expectResponse(response, 200)
 
@@ -342,9 +357,9 @@ describe("ReviewCampaigns - Report", () => {
     expect(row2?.meanReviewerRating).toBeNull()
     expect(row2?.reviewerRatingSpread).toBeNull()
 
-    const rowForm = rows.find((row) => row.sessionId === formSession.id)
-    expect(rowForm?.reviewerCount).toBe(0)
-    expect(rowForm?.testerRating).toBeNull()
+    const rowFillForm = rows.find((row) => row.sessionId === fillFormSession.id)
+    expect(rowFillForm?.reviewerCount).toBe(0)
+    expect(rowFillForm?.testerRating).toBeNull()
   })
 
   it("allows an accepted reviewer to fetch the report", async () => {

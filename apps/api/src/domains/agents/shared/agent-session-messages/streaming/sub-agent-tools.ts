@@ -8,7 +8,6 @@ import type {
 } from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
 import type { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
-import type { FormAgentSessionsService } from "@/domains/agents/form-agent-sessions/form-agent-sessions.service"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import type { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
@@ -55,7 +54,6 @@ export async function buildSubAgentTools({
   buildLLMConfig,
   buildTools,
   conversationAgentSessionsService,
-  formAgentSessionsService,
   agentSettingsService,
   generateMasterPrompt,
   getProviderForModel,
@@ -68,7 +66,6 @@ export async function buildSubAgentTools({
   buildLLMConfig: BuildLLMConfig
   buildTools: BuildTools
   conversationAgentSessionsService: ConversationAgentSessionsService
-  formAgentSessionsService: FormAgentSessionsService
   agentSettingsService: AgentSettingsService
   generateMasterPrompt: GenerateMasterPrompt
   getProviderForModel: (model: string) => LLMProvider
@@ -110,7 +107,6 @@ export async function buildSubAgentTools({
           buildLLMConfig,
           buildTools,
           conversationAgentSessionsService,
-          formAgentSessionsService,
           agentSettingsService,
           generateMasterPrompt,
           getProviderForModel,
@@ -130,7 +126,6 @@ async function runSubAgentTool({
   buildLLMConfig,
   buildTools,
   conversationAgentSessionsService,
-  formAgentSessionsService,
   agentSettingsService,
   generateMasterPrompt,
   getProviderForModel,
@@ -142,7 +137,6 @@ async function runSubAgentTool({
   buildLLMConfig: BuildLLMConfig
   buildTools: BuildTools
   conversationAgentSessionsService: ConversationAgentSessionsService
-  formAgentSessionsService: FormAgentSessionsService
   agentSettingsService: AgentSettingsService
   generateMasterPrompt: GenerateMasterPrompt
   getProviderForModel: (model: string) => LLMProvider
@@ -161,28 +155,14 @@ async function runSubAgentTool({
     agentId: childAgent.id,
   })
 
-  // Form and conversation sub-agents each get their own persistent sub-session,
-  // keyed to the parent session. A form sub-agent needs it so the fillForm tool
-  // can accumulate form state across parent turns; a conversation sub-agent uses
-  // it for trace continuity. Other sub-agents reuse the parent session scope.
-  let childSession: StreamingSession
-
-  switch (childAgent.type) {
-    case "form":
-      childSession = await resolveFormSubSession({
-        agentSessionScope,
-        childAgent,
-        formAgentSessionsService,
-      })
-      break
-    case "conversation":
-      childSession = await resolveConversationSubSession({
-        agentSessionScope,
-        childAgent,
-        conversationAgentSessionsService,
-      })
-      break
-  }
+  // Each sub-agent gets its own persistent sub-session, keyed to the parent
+  // session: it carries trace continuity and, for fillForm-enabled sub-agents,
+  // accumulates the form state (session.result) across parent turns.
+  const childSession: StreamingSession = await resolveConversationSubSession({
+    agentSessionScope,
+    childAgent,
+    conversationAgentSessionsService,
+  })
 
   const childScope: AgentSessionScope = {
     ...agentSessionScope,
@@ -260,7 +240,7 @@ async function runSubAgentTool({
             messages: [
               {
                 role: "user",
-                content: buildSubAgentPrompt(input, childAgent, recentConversation),
+                content: buildSubAgentPrompt(input, childAgentSettings, recentConversation),
               },
             ],
             config,
@@ -278,35 +258,6 @@ async function runSubAgentTool({
   } finally {
     await mcpClose?.()
   }
-}
-
-/**
- * Finds or creates the form session used when a parent agent delegates to a form
- * sub-agent. The session is keyed to the parent session so its state survives
- * across turns. Falls back to the parent session when the parent has no user
- * context (e.g. public sessions), where a user-scoped sub-session can't be made.
- */
-async function resolveFormSubSession({
-  agentSessionScope,
-  childAgent,
-  formAgentSessionsService,
-}: {
-  agentSessionScope: AgentSessionScope
-  childAgent: Agent
-  formAgentSessionsService: FormAgentSessionsService
-}): Promise<StreamingSession> {
-  const { connectScope, session: parentSession } = agentSessionScope
-  if (!("userId" in parentSession) || !("type" in parentSession)) {
-    return parentSession
-  }
-
-  return formAgentSessionsService.findOrCreateSubSession({
-    connectScope,
-    agentId: childAgent.id,
-    userId: parentSession.userId,
-    parentSessionId: parentSession.id,
-    type: parentSession.type,
-  })
 }
 
 /**
@@ -382,11 +333,11 @@ function truncateMessageContent(content: string): string {
  * Builds the user-facing message handed to the sub-agent. The child agent's
  * master prompt is already supplied as the system prompt via the LLM config, so
  * this carries only the recent parent conversation, the delegated task, and the
- * type-specific instructions.
+ * instructions matching the child agent's configuration.
  */
 function buildSubAgentPrompt(
   input: SubAgentToolInput,
-  childAgent: Agent,
+  childAgentSettings: AgentSettings,
   recentConversation: string | undefined,
 ): string {
   const sections: (string | undefined)[] = [
@@ -395,35 +346,32 @@ function buildSubAgentPrompt(
       : undefined,
     `## Delegated task\n\n${input.task}`,
     input.context ? `## Task's context\n\n${input.context}` : undefined,
-    buildSubAgentInstructions(childAgent),
+    buildSubAgentInstructions(childAgentSettings),
   ]
 
   return sections.filter((section): section is string => section !== undefined).join("\n\n")
 }
 
 /**
- * Type-specific instructions appended to the sub-agent prompt, telling the child
- * agent how to act on the delegated task and what to reply to the parent.
+ * Instructions appended to the sub-agent prompt, telling the child agent how to
+ * act on the delegated task and what to reply to the parent. A fillForm-enabled
+ * child is driven as a form filler; any other child answers conversationally.
  */
-function buildSubAgentInstructions(childAgent: Agent): string {
-  switch (childAgent.type) {
-    case "form":
-      return [
-        "## Instructions",
-        "",
-        "1. Use the `fillForm` tool to record any field values you can extract from that user's latest answer(s).",
-        "2. Read the resulting form state.",
-        "3. Reply to the parent assistant with the single next question needed to fill a missing field — or, if nothing is missing, state explicitly that the form is complete.",
-      ].join("\n")
-    case "conversation":
-      return [
-        "## Instructions",
-        "",
-        "Respond to the user on behalf of the parent assistant. Reply with a direct answer that the parent assistant can relay to the user. You have access to your own tools and context.",
-      ].join("\n")
-    default:
-      throw new Error(`Unsupported agent type: ${childAgent.type}`)
+function buildSubAgentInstructions(childAgentSettings: AgentSettings): string {
+  if (childAgentSettings.fillFormEnabled) {
+    return [
+      "## Instructions",
+      "",
+      "1. Use the `fillForm` tool to record any field values you can extract from that user's latest answer(s).",
+      "2. Read the resulting form state.",
+      "3. Reply to the parent assistant with the single next question needed to fill a missing field — or, if nothing is missing, state explicitly that the form is complete.",
+    ].join("\n")
   }
+  return [
+    "## Instructions",
+    "",
+    "Respond to the user on behalf of the parent assistant. Reply with a direct answer that the parent assistant can relay to the user. You have access to your own tools and context.",
+  ].join("\n")
 }
 
 function buildSubAgentMetadata({

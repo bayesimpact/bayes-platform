@@ -32,9 +32,9 @@ const policyAgent = agentFactory.transient({ project }).build({
   documentsRagMode: DocumentsRagMode.Tags,
 })
 
-const intakeAgent = agentFactory.transient({ project }).build({
-  type: "form",
-  name: "Intake Form",
+// A conversation agent with the fillForm tool enabled — still a valid sub-agent candidate.
+const intakeAgent = agentFactory.fillForm().transient({ project }).build({
+  name: "Intake Assistant",
   documentsRagMode: DocumentsRagMode.None,
 })
 
@@ -122,6 +122,13 @@ export const NoAvailableConversationAgents: Story = {
         agentId: draftingAgent.id,
         toolName: "ask_drafting_assistant",
         description: "Use Drafting Assistant for short operational drafts.",
+        enabled: true,
+      },
+      {
+        id: "sub-agent-intake",
+        agentId: intakeAgent.id,
+        toolName: "ask_intake_assistant",
+        description: "Delegate structured intake questions to Intake Assistant.",
         enabled: true,
       },
     ],

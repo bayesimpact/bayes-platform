@@ -3,7 +3,6 @@ import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import type { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
-import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import type { ReviewCampaignAgentType } from "@/domains/review-campaigns/review-campaigns.types"
 import type { ContextResolver, ResolvableRequest } from "../context-resolver.interface"
@@ -19,8 +18,6 @@ export class AgentSessionInCampaignContextResolver implements ContextResolver {
   constructor(
     @InjectRepository(ConversationAgentSession)
     private readonly conversationRepository: Repository<ConversationAgentSession>,
-    @InjectRepository(FormAgentSession)
-    private readonly formRepository: Repository<FormAgentSession>,
     @InjectRepository(ReviewCampaign)
     private readonly reviewCampaignRepository: Repository<ReviewCampaign>,
   ) {}
@@ -70,14 +67,11 @@ export class AgentSessionInCampaignContextResolver implements ContextResolver {
     organizationId: string
     projectId: string
   }): Promise<{
-    session: ConversationAgentSession | FormAgentSession | ExtractionAgentSession
+    session: ConversationAgentSession | ExtractionAgentSession
     agentType: ReviewCampaignAgentType
   } | null> {
     const conversation = await this.conversationRepository.findOne({ where: scope })
     if (conversation) return { session: conversation, agentType: "conversation" }
-
-    const form = await this.formRepository.findOne({ where: scope })
-    if (form) return { session: form, agentType: "form" }
 
     return null
   }

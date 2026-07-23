@@ -3,16 +3,23 @@ import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data
 import type { Agent } from "../../agents.models"
 import { listAgents } from "../../agents.thunks"
 import { createAgentChatSession } from "../shared/base-agent-session/base-agent-sessions.thunks"
-import type { ConversationAgentSession } from "./conversation-agent-sessions.models"
+import type {
+  ConversationAgentSession,
+  ConversationSubSession,
+} from "./conversation-agent-sessions.models"
 import { conversationAgentSessionsThunks } from "./conversation-agent-sessions.thunks"
 
 type DataType = Record<Agent["id"], AsyncData<ConversationAgentSession[]>> // keyed by agentId
+// Sub-sessions delegated by a parent agent session, keyed by parent session id.
+type SubSessionsType = Record<string, AsyncData<ConversationSubSession[]>>
 type State = {
   data: DataType
+  subSessions: SubSessionsType
 }
 
 const initialState: State = {
   data: {},
+  subSessions: {},
 }
 
 const slice = createSlice({
@@ -67,6 +74,30 @@ const slice = createSlice({
           status: ADS.Error,
           value: null,
           error: action.error.message || "Failed to load conversation sessions",
+        }
+      })
+
+    builder
+      .addCase(conversationAgentSessionsThunks.listSubSessions.pending, (state, action) => {
+        const { agentSessionId } = action.meta.arg
+        const current = state.subSessions[agentSessionId]
+        if (current && ADS.isFulfilled(current)) return
+        state.subSessions[agentSessionId] = { status: ADS.Loading, value: null, error: null }
+      })
+      .addCase(conversationAgentSessionsThunks.listSubSessions.fulfilled, (state, action) => {
+        const { agentSessionId, subSessions } = action.payload
+        state.subSessions[agentSessionId] = {
+          status: ADS.Fulfilled,
+          value: subSessions,
+          error: null,
+        }
+      })
+      .addCase(conversationAgentSessionsThunks.listSubSessions.rejected, (state, action) => {
+        const { agentSessionId } = action.meta.arg
+        state.subSessions[agentSessionId] = {
+          status: ADS.Error,
+          value: null,
+          error: action.error.message || "Failed to load sub-sessions",
         }
       })
   },

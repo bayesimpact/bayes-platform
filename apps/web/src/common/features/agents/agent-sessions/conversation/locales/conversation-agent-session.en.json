@@ -4,7 +4,8 @@
       "type": "Type",
       "createdAt": "Created At",
       "updatedAt": "Updated At",
-      "traceUrl": "Trace URL"
+      "traceUrl": "Trace URL",
+      "result": "Form Result"
     },
     "create": {
       "button": "New Chat",
@@ -17,6 +18,11 @@
     "chat": {
       "title": "Playground",
       "placeholder": "Ask your question..."
+    },
+    "subAgentResults": {
+      "view": "Form result",
+      "title": "Sub-agent form results",
+      "description": "Results collected by the form-filling sub-agents this agent delegated to."
     }
   }
 }

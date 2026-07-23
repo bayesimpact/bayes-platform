@@ -3,7 +3,6 @@ import { Factory } from "fishery"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import type { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
-import type { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import type { User } from "@/domains/users/user.entity"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type { ReviewCampaignAgentType } from "../review-campaigns.types"
@@ -11,7 +10,7 @@ import type { ReviewerSessionReview } from "./reviewer-session-review.entity"
 
 type ReviewerSessionReviewTransientParams = RequiredScopeTransientParams & {
   campaign: ReviewCampaign
-  session: ConversationAgentSession | ExtractionAgentSession | FormAgentSession
+  session: ConversationAgentSession | ExtractionAgentSession
   agentType: ReviewCampaignAgentType
   reviewerUser: User
 }
@@ -45,8 +44,6 @@ export const reviewerSessionReviewFactory = ReviewerSessionReviewFactory.define(
     const agentType = transientParams.agentType
     const conversationAgentSession =
       agentType === "conversation" ? (transientParams.session as ConversationAgentSession) : null
-    const formAgentSession =
-      agentType === "form" ? (transientParams.session as FormAgentSession) : null
 
     const now = new Date()
     return {
@@ -61,7 +58,6 @@ export const reviewerSessionReviewFactory = ReviewerSessionReviewFactory.define(
       sessionId: transientParams.session.id,
       agentType,
       conversationAgentSession,
-      formAgentSession,
       reviewerUserId: transientParams.reviewerUser.id,
       reviewerUser: transientParams.reviewerUser,
       overallRating: params.overallRating ?? 5,

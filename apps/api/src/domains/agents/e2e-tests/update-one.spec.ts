@@ -184,6 +184,49 @@ describe("Agents - updateOne", () => {
     expect(updatedAgentSettings?.instructions).toBe(agentSettings.instructions)
   })
 
+  it("should enable the fillForm tool and bump the settings revision", async () => {
+    await createContext()
+
+    const response = await subject({
+      payload: {
+        fillFormEnabled: true,
+        outputJsonSchema: {
+          type: "object",
+          properties: { title: { type: "string" }, summary: { type: "string" } },
+        },
+      },
+    })
+
+    expectResponse(response, 200)
+    expect(response.body).toEqual({ data: { success: true } })
+
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId },
+      order: { revision: "DESC" },
+    })
+    expect(updatedAgentSettings?.revision).toBe(2)
+    expect(updatedAgentSettings?.fillFormEnabled).toBe(true)
+    expect(updatedAgentSettings?.outputJsonSchema).toEqual({
+      type: "object",
+      properties: { title: { type: "string" }, summary: { type: "string" } },
+    })
+  })
+
+  it("should reject enabling the fillForm tool when the agent has no outputJsonSchema", async () => {
+    await createContext()
+
+    const response = await subject({ payload: { fillFormEnabled: true } })
+
+    expectResponse(response, 422, "outputJsonSchema is required when the fillForm tool is enabled")
+
+    const latestAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId },
+      order: { revision: "DESC" },
+    })
+    expect(latestAgentSettings?.revision).toBe(1)
+    expect(latestAgentSettings?.fillFormEnabled).toBe(false)
+  })
+
   it("should update and clear greetingMessage", async () => {
     const { agent, agentSettings } = await createContext()
 

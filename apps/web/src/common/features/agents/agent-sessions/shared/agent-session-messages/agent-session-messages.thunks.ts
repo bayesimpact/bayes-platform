@@ -3,7 +3,7 @@ import { createAsyncThunk } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import { generateId } from "@/common/utils/generate-id"
-import { formAgentSessionsActions } from "../../form/form-agent-sessions.slice"
+import { conversationAgentSessionsActions } from "../../conversation/conversation-agent-sessions.slice"
 import { buildType } from "../base-agent-session/base-agent-sessions.thunks"
 import type { AgentSessionMessage } from "./agent-session-messages.models"
 import { agentSessionMessagesActions } from "./agent-session-messages.slice"
@@ -147,7 +147,7 @@ export const sendMessage = createAsyncThunk<
               case ToolName.FillForm:
                 if (onFillFormToolEvent) onFillFormToolEvent()
                 // FIXME: should be replace by getOne
-                else dispatch(formAgentSessionsActions.getAll({ agentId }))
+                else dispatch(conversationAgentSessionsActions.getAll({ agentId }))
 
                 break
 

@@ -21,6 +21,7 @@ import { AgentOutputTab } from "./AgentOutputTab"
 import { AgentResourceLibrariesTab } from "./AgentResourceLibrariesTab"
 import { AgentSessionCategoriesTab } from "./AgentSessionCategoriesTab"
 import { AgentSourcesTab } from "./AgentSourcesTab"
+import { AgentToolsTab } from "./AgentToolsTab"
 import { AgentVersionHistory } from "./AgentVersionHistory"
 
 export type AgentEditorOrchestration = {
@@ -34,6 +35,7 @@ type TabKey =
   | "output"
   | "sources"
   | "resourceLibraries"
+  | "tools"
   | "categories"
   | "orchestration"
   | "mcpServers"
@@ -96,6 +98,12 @@ export function AgentEditor({
         ),
       })
 
+      list.push({
+        value: "tools",
+        label: t("agent:tabs.tools"),
+        render: (onDirtyChange) => <AgentToolsTab agent={agent} onDirtyChange={onDirtyChange} />,
+      })
+
       if (project.agentSessionCategories.length > 0) {
         list.push({
           value: "categories",
@@ -129,11 +137,11 @@ export function AgentEditor({
         })
       }
     }
-    // For non-conversation agents, we only show the output tab
+    // For extraction agents, we only show the output tab
     else {
       list.push({
         value: "output",
-        label: agent.type === "form" ? t("agent:tabs.form") : t("agent:tabs.output"),
+        label: t("agent:tabs.output"),
         render: (onDirtyChange) => <AgentOutputTab agent={agent} onDirtyChange={onDirtyChange} />,
       })
     }

@@ -29,6 +29,7 @@ export const testerAgentSnapshotFactory = TesterAgentSnapshotFactory.define(({ p
   name: params.name ?? faker.helpers.arrayElement(AGENT_NAMES),
   type: params.type ?? "conversation",
   greetingMessage: params.greetingMessage ?? undefined,
+  fillFormEnabled: params.fillFormEnabled ?? false,
 }))
 
 type TesterContextTransientParams = {

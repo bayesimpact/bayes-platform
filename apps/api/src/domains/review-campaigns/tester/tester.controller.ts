@@ -240,6 +240,7 @@ function toTesterContextDto(
       type: agent.type,
       greetingMessage: agentSettings.greetingMessage ?? undefined,
       outputJsonSchema: agentSettings.outputJsonSchema ?? undefined,
+      fillFormEnabled: agentSettings.fillFormEnabled,
     },
     testerPerSessionQuestions: campaign.testerPerSessionQuestions,
     testerEndOfPhaseQuestions: campaign.testerEndOfPhaseQuestions,

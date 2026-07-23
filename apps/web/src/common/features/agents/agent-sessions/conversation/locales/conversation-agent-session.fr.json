@@ -4,7 +4,8 @@
       "type": "Type",
       "createdAt": "Créé le",
       "updatedAt": "Mis à jour le",
-      "traceUrl": "URL de trace"
+      "traceUrl": "URL de trace",
+      "result": "Résultat du formulaire"
     },
     "create": {
       "button": "Nouvelle discussion",
@@ -17,6 +18,11 @@
     "chat": {
       "title": "Playground",
       "placeholder": "Posez votre question..."
+    },
+    "subAgentResults": {
+      "view": "Résultat du formulaire",
+      "title": "Résultats des sous-agents de formulaire",
+      "description": "Résultats collectés par les sous-agents de remplissage de formulaire auxquels cet agent a délégué."
     }
   }
 }

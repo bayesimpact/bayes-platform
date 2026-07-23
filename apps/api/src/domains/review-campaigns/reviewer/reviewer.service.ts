@@ -10,7 +10,6 @@ import { In, type Repository } from "typeorm"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
-import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import type { ReviewCampaign } from "../review-campaign.entity"
@@ -79,8 +78,6 @@ export class ReviewerService {
     private readonly reviewRepository: Repository<ReviewerSessionReview>,
     @InjectRepository(ConversationAgentSession)
     private readonly conversationSessionRepository: Repository<ConversationAgentSession>,
-    @InjectRepository(FormAgentSession)
-    private readonly formSessionRepository: Repository<FormAgentSession>,
     @InjectRepository(AgentMessage)
     private readonly agentMessageRepository: Repository<AgentMessage>,
     @InjectRepository(Agent)
@@ -98,35 +95,21 @@ export class ReviewerService {
     campaignId: string
     reviewerUserId: string
   }): Promise<ReviewerSessionSummary[]> {
-    const [conversationSessions, formSessions] = await Promise.all([
-      this.conversationSessionRepository.find({
-        where: { campaignId },
-        select: { id: true, userId: true, createdAt: true },
-      }),
-      this.formSessionRepository.find({
-        where: { campaignId },
-        select: { id: true, userId: true, createdAt: true },
-      }),
-    ])
+    const conversationSessions = await this.conversationSessionRepository.find({
+      where: { campaignId },
+      select: { id: true, userId: true, createdAt: true },
+    })
 
     type BaseSummary = Pick<
       ReviewerSessionSummary,
       "sessionId" | "agentType" | "testerUserId" | "startedAt"
     >
-    const sessions: BaseSummary[] = [
-      ...conversationSessions.map((session) => ({
-        sessionId: session.id,
-        agentType: "conversation" as const,
-        testerUserId: session.userId,
-        startedAt: session.createdAt,
-      })),
-      ...formSessions.map((session) => ({
-        sessionId: session.id,
-        agentType: "form" as const,
-        testerUserId: session.userId,
-        startedAt: session.createdAt,
-      })),
-    ]
+    const sessions: BaseSummary[] = conversationSessions.map((session) => ({
+      sessionId: session.id,
+      agentType: "conversation" as const,
+      testerUserId: session.userId,
+      startedAt: session.createdAt,
+    }))
     if (sessions.length === 0) return []
 
     const sessionIds = sessions.map((session) => session.sessionId)
@@ -207,37 +190,33 @@ export class ReviewerService {
     }
     // Loads everything we need in parallel. Redaction happens below based on
     // whether the caller has already reviewed.
-    const [transcript, callerReview, allReviews, testerFeedback, sessionStartedAt, formSession] =
-      await Promise.all([
-        this.agentMessageRepository.find({
-          where: { sessionId, role: In(["user", "assistant"]) },
-          order: { createdAt: "ASC" },
-        }),
-        this.reviewRepository.findOne({ where: { sessionId, reviewerUserId } }),
-        this.reviewRepository.find({ where: { sessionId } }),
-        this.testerFeedbackRepository.findOne({ where: { sessionId } }),
-        this.resolveSessionStartedAt(sessionId, agentType),
-        agentType === "form"
-          ? this.formSessionRepository.findOne({
-              where: { id: sessionId },
-              select: { id: true, result: true },
-            })
-          : Promise.resolve(null),
-      ])
+    const [transcript, callerReview, allReviews, testerFeedback, session] = await Promise.all([
+      this.agentMessageRepository.find({
+        where: { sessionId, role: In(["user", "assistant"]) },
+        order: { createdAt: "ASC" },
+      }),
+      this.reviewRepository.findOne({ where: { sessionId, reviewerUserId } }),
+      this.reviewRepository.find({ where: { sessionId } }),
+      this.testerFeedbackRepository.findOne({ where: { sessionId } }),
+      this.conversationSessionRepository.findOne({
+        where: { id: sessionId },
+        select: { id: true, createdAt: true, result: true },
+      }),
+    ])
+    if (!session) throw new Error(`Conversation session ${sessionId} not found`)
 
     const otherReviews = allReviews.filter((review) => review.reviewerUserId !== reviewerUserId)
-    const formResult: ReviewerFormResult | null =
-      agentType === "form"
-        ? {
-            schema: agentSettings.outputJsonSchema ?? {},
-            value: formSession?.result ?? null,
-          }
-        : null
+    const formResult: ReviewerFormResult | null = agentSettings.fillFormEnabled
+      ? {
+          schema: agentSettings.outputJsonSchema ?? {},
+          value: session.result ?? null,
+        }
+      : null
     const meta: ReviewerSessionMetaResult = {
       sessionId,
       agentType,
       testerUserId: sessionOwnerUserId,
-      startedAt: sessionStartedAt,
+      startedAt: session.createdAt,
       agent: { id: agent.id, name: agent.name, type: agent.type },
       transcript,
       reviewerQuestions: campaign.reviewerQuestions,
@@ -264,34 +243,6 @@ export class ReviewerService {
         campaign.testerPerSessionQuestions,
         testerFeedback?.answers ?? [],
       ),
-    }
-  }
-
-  private async resolveSessionStartedAt(
-    sessionId: string,
-    agentType: ReviewCampaignAgentType,
-  ): Promise<Date> {
-    switch (agentType) {
-      case "conversation": {
-        const session = await this.conversationSessionRepository.findOne({
-          where: { id: sessionId },
-          select: { id: true, createdAt: true },
-        })
-        if (!session) throw new Error(`Conversation session ${sessionId} not found`)
-        return session.createdAt
-      }
-      case "form": {
-        const session = await this.formSessionRepository.findOne({
-          where: { id: sessionId },
-          select: { id: true, createdAt: true },
-        })
-        if (!session) throw new Error(`Form session ${sessionId} not found`)
-        return session.createdAt
-      }
-      default:
-        // extraction is not supported as a review target today; caller shouldn't
-        // hit this branch because tester sessions start as conversation or form.
-        throw new Error(`Unsupported session type: ${agentType}`)
     }
   }
 

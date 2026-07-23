@@ -3,14 +3,13 @@ import { Factory } from "fishery"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import type { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
-import type { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type { ReviewCampaignAgentType } from "../review-campaigns.types"
 import type { TesterSessionFeedback } from "./tester-session-feedback.entity"
 
 type TesterSessionFeedbackTransientParams = RequiredScopeTransientParams & {
   campaign: ReviewCampaign
-  session: ConversationAgentSession | ExtractionAgentSession | FormAgentSession
+  session: ConversationAgentSession | ExtractionAgentSession
   agentType: ReviewCampaignAgentType
 }
 
@@ -40,8 +39,6 @@ export const testerSessionFeedbackFactory = TesterSessionFeedbackFactory.define(
     const agentType = transientParams.agentType
     const conversationAgentSession =
       agentType === "conversation" ? (transientParams.session as ConversationAgentSession) : null
-    const formAgentSession =
-      agentType === "form" ? (transientParams.session as FormAgentSession) : null
 
     const now = new Date()
     return {
@@ -56,7 +53,6 @@ export const testerSessionFeedbackFactory = TesterSessionFeedbackFactory.define(
       sessionId: transientParams.session.id,
       agentType,
       conversationAgentSession,
-      formAgentSession,
       overallRating: params.overallRating ?? 5,
       comment: params.comment ?? null,
       answers: params.answers || [],

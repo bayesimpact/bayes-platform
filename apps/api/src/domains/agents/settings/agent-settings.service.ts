@@ -15,6 +15,7 @@ export type AgentSettingsValues = Pick<
   | "documentsRagMode"
   | "greetingMessage"
   | "outputJsonSchema"
+  | "fillFormEnabled"
 >
 
 @Injectable()

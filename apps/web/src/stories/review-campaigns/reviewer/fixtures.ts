@@ -141,13 +141,14 @@ const mockFormSchema = agentOutputJsonSchemaFactory.build({
   required: [],
 })
 
-const mockFormAgent = reviewerAgentSnapshotFactory.build({
+// A conversation agent with the fillForm tool enabled — its sessions carry a formResult.
+const mockFillFormAgent = reviewerAgentSnapshotFactory.build({
   id: "agent-form-1",
-  name: "Intake Form Agent",
-  type: "form",
+  name: "Intake Assistant",
+  type: "conversation",
 })
 
-const mockFormTranscript = [
+const mockFillFormTranscript = [
   reviewerSessionTranscriptMessageFactory.build({
     id: "fm-1",
     role: "assistant",
@@ -272,13 +273,13 @@ export const mockFullSessionNoTesterFeedback = reviewerSessionFullFactory.build(
   testerFeedback: null,
 })
 
-export const mockBlindFormSession = reviewerSessionBlindFactory.build({
+export const mockBlindFillFormSession = reviewerSessionBlindFactory.build({
   sessionId: formSessionId,
-  agentType: "form",
+  agentType: "conversation",
   testerUserId: formTesterUserId,
   startedAt: baseStartedAt,
-  agent: mockFormAgent,
-  transcript: mockFormTranscript,
+  agent: mockFillFormAgent,
+  transcript: mockFillFormTranscript,
   reviewerQuestions: mockReviewerQuestions,
   formResult: {
     schema: mockFormSchema,
@@ -292,13 +293,13 @@ export const mockBlindFormSession = reviewerSessionBlindFactory.build({
   factualTesterAnswers: mockFactualAnswers,
 })
 
-export const mockFullFormSession = reviewerSessionFullFactory.build({
+export const mockFullFillFormSession = reviewerSessionFullFactory.build({
   sessionId: formSessionId,
-  agentType: "form",
+  agentType: "conversation",
   testerUserId: formTesterUserId,
   startedAt: baseStartedAt,
-  agent: mockFormAgent,
-  transcript: mockFormTranscript,
+  agent: mockFillFormAgent,
+  transcript: mockFillFormTranscript,
   reviewerQuestions: mockReviewerQuestions,
   formResult: {
     schema: mockFormSchema,
@@ -314,12 +315,12 @@ export const mockFullFormSession = reviewerSessionFullFactory.build({
     comment: "Agent captured most fields cleanly.",
     answers: mockAllTesterAnswers,
   },
-  myReview: { ...mockMyReview, sessionId: formSessionId, agentType: "form" },
+  myReview: { ...mockMyReview, sessionId: formSessionId, agentType: "conversation" },
   otherReviews: [],
 })
 
-export const mockFullFormSessionAbandoned = reviewerSessionFullFactory.build({
-  ...mockFullFormSession,
+export const mockFullFillFormSessionAbandoned = reviewerSessionFullFactory.build({
+  ...mockFullFillFormSession,
   formResult: {
     schema: mockFormSchema,
     value: null,
@@ -362,7 +363,7 @@ export const mockReviewerSessions = [
   }),
   reviewerSessionListItemFactory.build({
     sessionId: "session-form-8c3b1d5f-2a6e-4c7d-9b0a-1e2f3a4b5c6d",
-    agentType: "form",
+    agentType: "conversation",
     testerUserId: "user-carol",
     startedAt: now - 26 * MS_PER_HOUR,
     messageCount: 18,
@@ -391,7 +392,7 @@ export const mockMyReviewerCampaigns: ListMyReviewCampaignsResponseDto["reviewCa
     id: "campaign-form-rollout",
     agentId: "agent-form-1",
     name: "Onboarding form rollout",
-    description: "Second-pass review of the onboarding form agent.",
+    description: "Second-pass review of the onboarding intake assistant.",
     status: "active",
     createdAt: now - 6 * MS_PER_HOUR,
   }),

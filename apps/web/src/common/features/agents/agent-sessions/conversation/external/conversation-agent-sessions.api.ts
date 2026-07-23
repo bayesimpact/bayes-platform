@@ -1,9 +1,13 @@
 import {
   type ConversationAgentSessionDto,
   ConversationAgentSessionsRoutes,
+  type ConversationSubSessionDto,
 } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
-import type { ConversationAgentSession } from "../conversation-agent-sessions.models"
+import type {
+  ConversationAgentSession,
+  ConversationSubSession,
+} from "../conversation-agent-sessions.models"
 import type { IConversationAgentSessionsSpi } from "../conversation-agent-sessions.spi"
 
 export default {
@@ -31,6 +35,15 @@ export default {
     )
     return response.data.data
   },
+  listSubSessions: async ({ type, ...params }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<
+      typeof ConversationAgentSessionsRoutes.listSubSessions.response
+    >(ConversationAgentSessionsRoutes.listSubSessions.getPath(params), {
+      payload: { type },
+    } satisfies typeof ConversationAgentSessionsRoutes.listSubSessions.request)
+    return response.data.data.map(fromSubSessionDto)
+  },
 } satisfies IConversationAgentSessionsSpi
 
 const fromDto = (dto: ConversationAgentSessionDto): ConversationAgentSession => ({
@@ -40,4 +53,13 @@ const fromDto = (dto: ConversationAgentSessionDto): ConversationAgentSession => 
   createdAt: dto.createdAt,
   updatedAt: dto.updatedAt,
   traceUrl: dto.traceUrl,
+  result: dto.result,
+})
+
+const fromSubSessionDto = (dto: ConversationSubSessionDto): ConversationSubSession => ({
+  toolName: dto.toolName,
+  agentId: dto.agentId,
+  agentName: dto.agentName,
+  outputJsonSchema: dto.outputJsonSchema,
+  session: fromDto(dto.session),
 })

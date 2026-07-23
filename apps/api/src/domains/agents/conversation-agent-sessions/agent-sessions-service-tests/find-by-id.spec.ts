@@ -13,7 +13,6 @@ describe("findById", () => {
   it("should find an existing session", async () => {
     const {
       service,
-      testAgent,
       testAgentSettings,
       testOrganization,
       testUser,
@@ -33,7 +32,6 @@ describe("findById", () => {
 
     const foundSession = await streamingService.findSessionById({
       sessionId: createdSession.id,
-      agentType: testAgent.type,
     })
 
     expect(foundSession).toBeDefined()
@@ -42,13 +40,12 @@ describe("findById", () => {
   })
 
   it("should return null for non-existent session", async () => {
-    const { streamingService, testAgent } = getTestContext()
+    const { streamingService } = getTestContext()
 
     // Use a valid UUID format for non-existent session
     const nonExistentId = "00000000-0000-0000-0000-000000000000"
     const foundSession = await streamingService.findSessionById({
       sessionId: nonExistentId,
-      agentType: testAgent.type,
     })
 
     expect(foundSession).toBeNull()
@@ -57,7 +54,6 @@ describe("findById", () => {
   it("should recover aborted streams on load", async () => {
     const {
       service,
-      testAgent,
       testAgentSettings,
       testOrganization,
       testUser,
@@ -98,7 +94,6 @@ describe("findById", () => {
     // Load the session - should recover the aborted stream
     const loadedSession = await streamingService.findSessionById({
       sessionId: session.id,
-      agentType: testAgent.type,
     })
 
     expect(loadedSession).toBeDefined()

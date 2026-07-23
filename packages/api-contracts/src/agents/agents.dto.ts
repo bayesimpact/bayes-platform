@@ -69,6 +69,7 @@ export type AgentDto = {
   updatedAt: TimeType
   documentTagIds: DocumentTagDto["id"][]
   documentsRagMode: DocumentsRagMode
+  fillFormEnabled: boolean
   projectAgentSessionCategoryIds: string[]
   usedProjectAgentSessionCategoryIds: string[]
   resourceLibraryIds: string[]
@@ -130,7 +131,7 @@ export type OutputJsonSchemaProperty = z.infer<typeof outputJsonSchemaPropertySc
 /**
  * Returns `[key, property]` entries in the author-defined question order: keys listed in
  * `propertyOrdering` first (in that order), then any remaining `properties` keys in their
- * original insertion order. This is the single source of truth for form-agent question order.
+ * original insertion order. This is the single source of truth for fillForm question order.
  */
 export function getOrderedPropertyEntries(
   schema: OutputJsonSchema,
@@ -155,6 +156,7 @@ const agentValidationSchema = z.object({
   instructions: z.string(),
   documentTagIds: z.array(documentTagSchema.shape.id),
   documentsRagMode: z.enum(DocumentsRagMode),
+  fillFormEnabled: z.boolean(),
   locale: z.enum(AgentLocale),
   model: z.enum(AgentModel),
   name: z.string().trim().min(3),
@@ -170,7 +172,7 @@ const agentValidationSchema = z.object({
         temperatureValue >= 0 && temperatureValue <= 2 && Number.isFinite(temperatureValue),
       "Temperature must be between 0.0 and 2.0",
     ),
-  type: z.enum(["conversation", "extraction", "form"]),
+  type: z.enum(["conversation", "extraction"]),
 })
 
 export type AgentType = z.infer<typeof agentValidationSchema.shape.type>
@@ -229,12 +231,19 @@ const refineOutputJsonSchema = {
 
 const refineResourceLibraries = {
   fn: (data: { type?: AgentType; resourceLibraryIds?: string[] }) =>
-    (data.resourceLibraryIds?.length ?? 0) === 0 ||
-    data.type === "conversation" ||
-    data.type === "form",
+    (data.resourceLibraryIds?.length ?? 0) === 0 || data.type === "conversation",
   message: {
-    message: "Resource libraries can only be attached to conversation or form agents",
+    message: "Resource libraries can only be attached to conversation agents",
     path: ["resourceLibraryIds"],
+  },
+}
+
+const refineFillFormOutputJsonSchema = {
+  fn: (data: { fillFormEnabled?: boolean; outputJsonSchema?: Record<string, unknown> }) =>
+    data.fillFormEnabled !== true || data.outputJsonSchema !== undefined,
+  message: {
+    message: "outputJsonSchema is required when the fillForm tool is enabled",
+    path: ["outputJsonSchema"],
   },
 }
 
@@ -263,10 +272,12 @@ export const createAgentSchema = agentValidationSchema
     type: true,
   })
   .extend({
+    fillFormEnabled: agentValidationSchema.shape.fillFormEnabled.optional(),
     tagsToAdd: updateDocumentTagsSchema.required().shape.tagsToAdd,
   })
   .refine(refineOutputJsonSchema.fn, refineOutputJsonSchema.message)
   .refine(refineResourceLibraries.fn, refineResourceLibraries.message)
+  .refine(refineFillFormOutputJsonSchema.fn, refineFillFormOutputJsonSchema.message)
   .refine(hasRequiredDocumentTags, {
     message: "At least one document tag is required when documentsRagMode is 'tags'",
     path: ["tagsToAdd"],
@@ -337,6 +348,16 @@ export const updateAgentResourcesSchema = agentValidationSchema
   .pick({ resourceLibraryIds: true })
   .extend({ resourceLibraryIds: z.array(z.string().uuid()) })
 
+// The Tools tab toggles optional tools on a conversation agent. fillForm's form
+// definition is the agent's outputJsonSchema; it must be present when the tool is
+// enabled.
+export const updateAgentToolsSchema = z
+  .object({
+    fillFormEnabled: agentValidationSchema.shape.fillFormEnabled,
+    outputJsonSchema: outputJsonSchemaSchema.optional(),
+  })
+  .refine(refineFillFormOutputJsonSchema.fn, refineFillFormOutputJsonSchema.message)
+
 export const updateAgentCategoriesSchema = agentValidationSchema.pick({
   projectAgentSessionCategoryIds: true,
 })
@@ -354,5 +375,6 @@ export type UpdateAgentOutputDto = z.infer<typeof updateAgentOutputSchema>
 export type UpdateAgentSourcesDto = z.infer<typeof updateAgentSourcesSchema>
 export type UpdateAgentSourcesFormDto = z.infer<typeof updateAgentSourcesFormSchema>
 export type UpdateAgentResourcesDto = z.infer<typeof updateAgentResourcesSchema>
+export type UpdateAgentToolsDto = z.infer<typeof updateAgentToolsSchema>
 export type UpdateAgentCategoriesDto = z.infer<typeof updateAgentCategoriesSchema>
 export type PartialUpdateAgentDto = z.infer<typeof partialUpdateAgentSchema>

@@ -2,7 +2,6 @@ import { Column, JoinColumn, ManyToOne, Unique } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
-import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import { ReviewCampaign } from "../review-campaign.entity"
 import type { ReviewCampaignAgentType, ReviewCampaignAnswer } from "../review-campaigns.types"
 
@@ -33,10 +32,6 @@ export class TesterSessionFeedback extends ConnectEntityBase {
   @ManyToOne(() => ExtractionAgentSession, { nullable: true, createForeignKeyConstraints: false })
   @JoinColumn({ name: "session_id" })
   extractionAgentSession?: ExtractionAgentSession | null
-
-  @ManyToOne(() => FormAgentSession, { nullable: true, createForeignKeyConstraints: false })
-  @JoinColumn({ name: "session_id" })
-  formAgentSession?: FormAgentSession | null
 
   @Column({ type: "smallint", name: "overall_rating" })
   overallRating!: number

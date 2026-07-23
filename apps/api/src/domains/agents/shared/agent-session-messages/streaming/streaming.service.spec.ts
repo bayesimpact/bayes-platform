@@ -209,16 +209,17 @@ describe("StreamingService", () => {
     expect(fulltextStream).toBe(`Hello, I'm the stream default mock value!`)
   })
 
-  it("streamAgentResponse - with form sub-agent", async () => {
+  it("streamAgentResponse - with fillForm-enabled sub-agent", async () => {
     const { organization, project, user, agent, agentSettings, subAgents } =
       await createOrganizationWithAgentAndSubAgents(repositories, {
         agent: { name: "MetaAgent", type: "conversation" },
         agentSettings: { model: AgentModel._Mock },
         subAgents: [
           {
-            subAgent: { name: "SubAgentForm", type: "form" },
+            subAgent: { name: "SubAgentForm", type: "conversation" },
             subAgentSettings: {
               model: AgentModel._Mock,
+              fillFormEnabled: true,
               outputJsonSchema: { type: "object", properties: { fullName: { type: "string" } } },
             },
             agentSubAgent: { toolName: "call_subAgentForm" },
@@ -281,16 +282,17 @@ describe("StreamingService", () => {
     expect(parentCalls[1]?.prompt).toContain("sub_answer")
   })
 
-  it("streamAgentResponse - with form sub-agent and conversation sub-agent", async () => {
+  it("streamAgentResponse - with fillForm-enabled sub-agent and conversation sub-agent", async () => {
     const { organization, project, user, agent, agentSettings, subAgents } =
       await createOrganizationWithAgentAndSubAgents(repositories, {
         agent: { name: "MetaAgent", type: "conversation" },
         agentSettings: { model: AgentModel._Mock },
         subAgents: [
           {
-            subAgent: { name: "FormFiller", type: "form" },
+            subAgent: { name: "FormFiller", type: "conversation" },
             subAgentSettings: {
               model: AgentModel._Mock,
+              fillFormEnabled: true,
               outputJsonSchema: {
                 type: "object",
                 properties: { forName: { type: "string" }, name: { type: "string" } },
@@ -305,7 +307,7 @@ describe("StreamingService", () => {
           },
         ],
       })
-    const formAgent = subAgents[0]!.subAgent
+    const formFillerAgent = subAgents[0]!.subAgent
     const completedAgent = subAgents[1]!.subAgent
 
     await addFeature({
@@ -339,7 +341,7 @@ describe("StreamingService", () => {
       context: "",
     })
     mockProvider.addTextTurn(agent.id, "Bonjour. Quel est ton prénom ?")
-    mockProvider.addTextTurn(formAgent.id, "Le formulaire est vide. Demande le prénom.")
+    mockProvider.addTextTurn(formFillerAgent.id, "Le formulaire est vide. Demande le prénom.")
 
     expect(await runTurn("bonjour")).toBe("Bonjour. Quel est ton prénom ?")
 
@@ -348,8 +350,10 @@ describe("StreamingService", () => {
       context: "",
     })
     mockProvider.addTextTurn(agent.id, "Merci John. Quel est ton nom de famille ?")
-    mockProvider.addToolCallTurn(formAgent.id, "fillForm", { formFields: { forName: "John" } })
-    mockProvider.addTextTurn(formAgent.id, "Prénom enregistré (John). Il manque le nom.")
+    mockProvider.addToolCallTurn(formFillerAgent.id, "fillForm", {
+      formFields: { forName: "John" },
+    })
+    mockProvider.addTextTurn(formFillerAgent.id, "Prénom enregistré (John). Il manque le nom.")
 
     expect(await runTurn("John")).toBe("Merci John. Quel est ton nom de famille ?")
 
@@ -362,20 +366,22 @@ describe("StreamingService", () => {
       context: "",
     })
     mockProvider.addTextTurn(agent.id, "Parfait John Doe, ton formulaire est complet !")
-    mockProvider.addToolCallTurn(formAgent.id, "fillForm", { formFields: { name: "Doe" } })
-    mockProvider.addTextTurn(formAgent.id, "Nom enregistré (Doe). Formulaire complet.")
+    mockProvider.addToolCallTurn(formFillerAgent.id, "fillForm", { formFields: { name: "Doe" } })
+    mockProvider.addTextTurn(formFillerAgent.id, "Nom enregistré (Doe). Formulaire complet.")
     mockProvider.addTextTurn(completedAgent.id, "Bienvenue John Doe !")
 
     expect(await runTurn("Doe")).toBe("Parfait John Doe, ton formulaire est complet !")
 
-    const formSubSession = await repositories.formAgentSessionRepository.findOne({
-      where: { parentSessionId: session.id, agentId: formAgent.id },
+    const formSubSession = await repositories.conversationAgentSessionRepository.findOne({
+      where: { parentSessionId: session.id, agentId: formFillerAgent.id },
     })
     expect(formSubSession?.result).toEqual({ forName: "John", name: "Doe" })
 
     const calls = mockProvider.getCalls()
 
-    expect(calls.filter((call) => call.agentId === formAgent.id).length).toBeGreaterThanOrEqual(3)
+    expect(
+      calls.filter((call) => call.agentId === formFillerAgent.id).length,
+    ).toBeGreaterThanOrEqual(3)
     const completedCalls = calls.filter((call) => call.agentId === completedAgent.id)
     expect(completedCalls).toHaveLength(1)
     expect(completedCalls[0]?.prompt).toContain("Le formulaire est complet")

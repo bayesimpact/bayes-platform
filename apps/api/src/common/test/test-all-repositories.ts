@@ -6,7 +6,6 @@ import { ConversationAgentSessionCategory } from "@/domains/agents/conversation-
 import { AgentCsvExtractionRun } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run.entity"
 import { AgentCsvExtractionRunRecord } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run-record.entity"
 import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
-import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
 import { ProjectAgentSessionCategory } from "@/domains/agents/session-categories/project-agent-session-category.entity"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
@@ -69,7 +68,6 @@ export type AllRepositories = {
   evaluationExtractionRunRepository: Repository<EvaluationExtractionRun>
   extractionAgentSessionRepository: Repository<ExtractionAgentSession>
   featureFlagRepository: Repository<FeatureFlag>
-  formAgentSessionRepository: Repository<FormAgentSession>
   invitationRepository: Repository<Invitation>
   mcpServerRepository: Repository<McpServer>
   organizationRepository: Repository<Organization>
@@ -121,7 +119,6 @@ export function buildAllRepositories(
     evaluationExtractionRunRepository: getRepository(EvaluationExtractionRun),
     extractionAgentSessionRepository: getRepository(ExtractionAgentSession),
     featureFlagRepository: getRepository(FeatureFlag),
-    formAgentSessionRepository: getRepository(FormAgentSession),
     invitationRepository: getRepository(Invitation),
     mcpServerRepository: getRepository(McpServer),
     organizationRepository: getRepository(Organization),

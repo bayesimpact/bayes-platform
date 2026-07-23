@@ -65,7 +65,6 @@ export const reviewCampaignFactory = ReviewCampaignFactory.define(
       reviewerSessionReviews: params.reviewerSessionReviews || [],
       conversationAgentSessions: params.conversationAgentSessions || [],
       extractionAgentSessions: params.extractionAgentSessions || [],
-      formAgentSessions: params.formAgentSessions || [],
     } satisfies ReviewCampaign
   },
 )

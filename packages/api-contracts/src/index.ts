@@ -23,8 +23,6 @@ export { ConversationAgentSessionsRoutes } from "./agents/conversation-agent-ses
 export * from "./agents/extraction-agent-sessions/extraction-agent-sessions.dto"
 export { ExtractionAgentSessionsRoutes } from "./agents/extraction-agent-sessions/extraction-agent-sessions.routes"
 // Form Agent Sessions
-export type * from "./agents/form-agent-sessions/form-agent-sessions.dto"
-export { FormAgentSessionsRoutes } from "./agents/form-agent-sessions/form-agent-sessions.routes"
 // Agent History
 export { AgentHistoryRoutes } from "./agents/settings/agent-history.routes"
 // Agent Session Messages

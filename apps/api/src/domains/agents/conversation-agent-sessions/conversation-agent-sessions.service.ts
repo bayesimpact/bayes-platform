@@ -188,6 +188,54 @@ export class ConversationAgentSessionsService {
     return await this.conversationAgentSessionConnectRepository.getOneById(connectScope, id)
   }
 
+  /**
+   * Lists the sub-sessions spawned by a given parent agent session. These are
+   * the persistent sessions created when a parent agent delegates to a
+   * sub-agent (see {@link findOrCreateSubSession}). Scoped to the requesting
+   * user to match {@link getAllSessionsForAgent} visibility.
+   */
+  async listSubSessions({
+    connectScope,
+    parentSessionId,
+    userId,
+    type,
+  }: {
+    connectScope: RequiredConnectScope
+    parentSessionId: string
+    userId: string
+    type: BaseAgentSessionType
+  }): Promise<ConversationAgentSession[]> {
+    return this.conversationAgentSessionConnectRepository.find(connectScope, {
+      where: { parentSessionId, userId, type },
+      order: { createdAt: "ASC" },
+    })
+  }
+
+  /**
+   * Merges the given fillForm input into the session's accumulated form state.
+   */
+  async updateSessionResult({
+    connectScope,
+    input,
+    sessionId,
+  }: {
+    connectScope: RequiredConnectScope
+    input: Record<string, unknown>
+    sessionId: string
+  }): Promise<{ result: Record<string, unknown> | null }> {
+    const session = await this.conversationAgentSessionConnectRepository.getOneById(
+      connectScope,
+      sessionId,
+    )
+    if (!session) return { result: null }
+
+    session.result = { ...session.result, ...input } // mergedResult
+
+    const updatedSession = await this.conversationAgentSessionConnectRepository.saveOne(session)
+
+    return { result: updatedSession.result }
+  }
+
   async getCurrentCategoryNamesForSession({
     connectScope,
     sessionId,

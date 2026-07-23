@@ -7,6 +7,7 @@ import type {
   UpdateAgentOutputDto,
   UpdateAgentResourcesDto,
   UpdateAgentSourcesDto,
+  UpdateAgentToolsDto,
 } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -95,6 +96,14 @@ export const updateAgentResources = createAsyncThunk<
   { agentId: string; fields: UpdateAgentResourcesDto },
   ThunkConfig
 >("agents/updateResources", async ({ agentId, fields }, { extra: { services }, getState }) => {
+  await patchAgent(agentId, fields, { services, state: getState() })
+})
+
+export const updateAgentTools = createAsyncThunk<
+  void,
+  { agentId: string; fields: UpdateAgentToolsDto },
+  ThunkConfig
+>("agents/updateTools", async ({ agentId, fields }, { extra: { services }, getState }) => {
   await patchAgent(agentId, fields, { services, state: getState() })
 })
 

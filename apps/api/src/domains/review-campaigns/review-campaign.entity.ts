@@ -3,7 +3,6 @@ import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-enti
 import { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
-import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { Project } from "@/domains/projects/project.entity"
 import type { ReviewCampaignQuestion, ReviewCampaignStatus } from "./review-campaigns.types"
@@ -90,10 +89,4 @@ export class ReviewCampaign extends ConnectEntityBase {
     (session) => session.reviewCampaign,
   )
   extractionAgentSessions!: ExtractionAgentSession[]
-
-  @OneToMany(
-    () => FormAgentSession,
-    (session) => session.reviewCampaign,
-  )
-  formAgentSessions!: FormAgentSession[]
 }

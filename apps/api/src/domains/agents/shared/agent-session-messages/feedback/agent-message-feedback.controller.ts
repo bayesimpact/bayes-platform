@@ -56,7 +56,7 @@ export class AgentMessageFeedbackController {
   async getAll(
     @Req() request: EndpointRequestWithAgent,
   ): Promise<typeof AgentMessageFeedbackRoutes.getAll.response> {
-    if (request.agent.type !== "conversation" && request.agent.type !== "form") {
+    if (request.agent.type !== "conversation") {
       throw new Error("Unsupported agent type")
     }
     const data = await this.feedbackService.listFeedbacksForAgent({

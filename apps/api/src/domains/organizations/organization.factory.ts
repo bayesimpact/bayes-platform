@@ -21,8 +21,6 @@ import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import type { ExtractionAgentSession } from "../agents/extraction-agent-sessions/extraction-agent-session.entity"
 import { extractionAgentSessionFactory } from "../agents/extraction-agent-sessions/extraction-agent-session.factory"
-import type { FormAgentSession } from "../agents/form-agent-sessions/form-agent-session.entity"
-import { formAgentSessionFactory } from "../agents/form-agent-sessions/form-agent-session.factory"
 import {
   agentMembershipFactory,
   saveAgentMembership,
@@ -183,10 +181,7 @@ export async function createOrganizationWithAgent(
   }
 }
 type AgentSessionParams = AgentParams & {
-  agentSession?:
-    | Partial<ConversationAgentSession>
-    | Partial<FormAgentSession>
-    | Partial<ExtractionAgentSession>
+  agentSession?: Partial<ConversationAgentSession> | Partial<ExtractionAgentSession>
   document?: Partial<Document>
   agentSettings?: Partial<AgentSettings>
 }
@@ -208,9 +203,7 @@ export async function createOrganizationWithAgentSession<T extends Agent["type"]
       ? ConversationAgentSession
       : T extends "extraction"
         ? ExtractionAgentSession
-        : T extends "form"
-          ? FormAgentSession
-          : never
+        : never
   >
 > {
   const data = await createOrganizationWithAgent(repositories, {
@@ -242,16 +235,6 @@ export async function createOrganizationWithAgentSession<T extends Agent["type"]
       return { ...data, agentSession, document }
     }
 
-    case "form": {
-      const agentSession = formAgentSessionFactory
-        .transient({ organization, project, user, agent })
-        .build(params.agentSession)
-      await repositories.formAgentSessionRepository.save(agentSession)
-
-      // @ts-expect-error
-      return { ...data, agentSession }
-    }
-
     default:
       throw new Error(`Unsupported agent type: ${agentType}`)
   }
@@ -265,9 +248,7 @@ type AgentMessageReturnType<T extends Agent["type"]> = AgentSessionReturnType<
     ? ConversationAgentSession
     : T extends "extraction"
       ? ExtractionAgentSession
-      : T extends "form"
-        ? FormAgentSession
-        : never
+      : never
 > & {
   agentMessage: AgentMessage
 }
@@ -295,7 +276,7 @@ export async function createOrganizationWithAgentMessage<T extends Agent["type"]
     .transient({
       organization,
       project,
-      session: agentSession as ConversationAgentSession | FormAgentSession,
+      session: agentSession as ConversationAgentSession,
       agentSettings,
     })
     .build(params.agentMessage)

@@ -90,6 +90,7 @@ describe("AgentSettings", () => {
       properties: { aRequiredProperty1: { type: "string" } },
       required: ["aRequiredProperty1"],
     },
+    fillFormEnabled: false,
   }
   const agentSettingsValues2: AgentSettingsValues = {
     instructions: "This is a default prompt 2",
@@ -104,6 +105,7 @@ describe("AgentSettings", () => {
       properties: { aRequiredProperty2: { type: "number" } },
       required: ["aRequiredProperty2"],
     },
+    fillFormEnabled: false,
   }
   const agentSettingsValues3: AgentSettingsValues = {
     instructions: "This is a default prompt 3",
@@ -118,6 +120,7 @@ describe("AgentSettings", () => {
       properties: { aRequiredProperty3: { type: "number" } },
       required: ["aRequiredProperty3"],
     },
+    fillFormEnabled: false,
   }
   describe("AgentSettingsService", () => {
     it("getLast should return settings from Agent - last revision", async () => {

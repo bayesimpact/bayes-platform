@@ -7,7 +7,6 @@ import { ExtractionAgentSessionsRoute } from "@/common/routes/agents/ExtractionA
 import { AgentCsvExtractionRunRoute } from "@/common/routes/agents/extraction/AgentCsvExtractionRunRoute"
 import { AgentExtractionRoute } from "@/common/routes/agents/extraction/AgentExtractionRoute"
 import { AgentExtractionRunRoute } from "@/common/routes/agents/extraction/AgentExtractionRunRoute"
-import { FormAgentSessionsRoute } from "@/common/routes/agents/FormAgentSessionsRoute"
 import { RoutesBuilderProvider } from "@/common/routes/build-routes/RoutesBuilderProvider"
 import { ErrorRoute } from "@/common/routes/ErrorRoute"
 import { OrganizationRoute } from "@/common/routes/OrganizationRoute"
@@ -16,7 +15,6 @@ import { AgentList } from "../features/agents/components/AgentList"
 import {
   ConversationAgentSessionList,
   ExtractionAgentSessionList,
-  FormAgentSessionList,
 } from "../features/agents/components/AgentSessionList"
 import { DeskAgentSessionRoute } from "./DeskAgentSessionRoute"
 import { DeskLayout } from "./DeskLayout"
@@ -93,12 +91,6 @@ function AgentSessionsHandler() {
         <ConversationAgentSessionsRoute>
           <ConversationAgentSessionList />
         </ConversationAgentSessionsRoute>
-      )
-    case "form":
-      return (
-        <FormAgentSessionsRoute>
-          <FormAgentSessionList />
-        </FormAgentSessionsRoute>
       )
     case "extraction":
       return (

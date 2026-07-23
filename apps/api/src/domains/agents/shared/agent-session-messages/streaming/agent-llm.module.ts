@@ -5,7 +5,6 @@ import {
   moduleImports,
 } from "@/domains/agents/base-agent-sessions/base-agent-sessions-module.helpers"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
-import { FormAgentSessionsModule } from "@/domains/agents/form-agent-sessions/form-agent-sessions.module"
 import { McpServersModule } from "@/domains/mcp-servers/mcp-servers.module"
 import { McpModule } from "@/external/mcp"
 import { AgentMessageAttachmentDocumentsService } from "../agent-message-attachment-documents.service"
@@ -21,7 +20,6 @@ import { ToolsService } from "./tools.service"
   imports: [
     TypeOrmModule.forFeature([...moduleFeatures]),
     ...moduleImports,
-    forwardRef(() => FormAgentSessionsModule),
     McpModule,
     McpServersModule,
     forwardRef(() => ConversationAgentSessionsModule),

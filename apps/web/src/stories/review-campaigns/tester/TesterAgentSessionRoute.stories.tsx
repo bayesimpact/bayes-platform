@@ -5,7 +5,6 @@ import { agentFactory } from "@/common/features/agents/agent.factory"
 import {
   agentSessionMessageFactory,
   conversationAgentSessionFactory,
-  formAgentSessionFactory,
 } from "@/common/features/agents/agent-sessions/agent-session.factory"
 import { TesterAgentSessionContent } from "@/tester/features/review-campaigns/components/TesterAgentSession"
 import { withRedux } from "../../decorators"
@@ -26,11 +25,12 @@ const mockConversationAgent = agentFactory.transient({ project: mockProject }).b
   documentsRagMode: DocumentsRagMode.All,
 })
 
-const mockFormAgent = agentFactory.transient({ project: mockProject }).build({
+// A conversation agent with the fillForm tool enabled — the session view shows the form panel.
+const mockFillFormAgent = agentFactory.transient({ project: mockProject }).build({
   ...mockConversationAgent,
   id: "agent-2",
-  name: "Intake Form Agent",
-  type: "form",
+  name: "Intake Assistant",
+  fillFormEnabled: true,
   outputJsonSchema: {
     type: "object",
     required: ["reason"],
@@ -50,13 +50,15 @@ const mockConversationSession = conversationAgentSessionFactory
     updatedAt: Date.now(),
   })
 
-const mockFormSession = formAgentSessionFactory.transient({ agent: mockFormAgent }).build({
-  id: "session-2",
-  type: "live",
-  createdAt: Date.now() - 3 * 60_000,
-  updatedAt: Date.now(),
-  result: { reason: "Account access", priority: "Medium" },
-})
+const mockFillFormSession = conversationAgentSessionFactory
+  .transient({ agent: mockFillFormAgent })
+  .build({
+    id: "session-2",
+    type: "live",
+    createdAt: Date.now() - 3 * 60_000,
+    updatedAt: Date.now(),
+    result: { reason: "Account access", priority: "Medium" },
+  })
 
 const mockMessages = [
   agentSessionMessageFactory.build({
@@ -126,11 +128,11 @@ export const ConversationEmpty: Story = {
   },
 }
 
-export const FormSessionWithResult: Story = {
+export const FillFormSessionWithResult: Story = {
   args: {
     ...baseStoryArgs,
-    agent: mockFormAgent,
-    agentSession: mockFormSession,
+    agent: mockFillFormAgent,
+    agentSession: mockFillFormSession,
     messages: mockMessages,
   },
 }

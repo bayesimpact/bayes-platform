@@ -11,6 +11,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
@@ -64,13 +65,15 @@ describe("ReviewCampaigns - Tester happy path", () => {
   })
 
   const seedActiveCampaignWithTester = async (
-    agentType: "conversation" | "form" = "conversation",
+    agentType: "conversation" | "extraction" = "conversation",
+    agentSettingsOverrides: Partial<AgentSettings> = {},
   ) => {
     const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
       {
         user: { auth0Id },
         agent: { type: agentType },
+        agentSettings: agentSettingsOverrides,
       },
     )
     const campaign = reviewCampaignFactory
@@ -273,6 +276,41 @@ describe("ReviewCampaigns - Tester happy path", () => {
     expect(session?.campaignId).toBe(reviewCampaignId)
   })
 
+  it("startTesterSession on a fillForm-enabled campaign returns agentType conversation; listMyTesterSessions carries the session result", async () => {
+    await seedActiveCampaignWithTester("conversation", {
+      fillFormEnabled: true,
+      outputJsonSchema: {
+        type: "object",
+        properties: { title: { type: "string" }, summary: { type: "string" } },
+      },
+    })
+
+    const started = await request({
+      route: ReviewCampaignsRoutes.startTesterSession,
+      pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
+      token: accessToken,
+      request: { payload: { type: "live" } },
+    })
+    expectResponse(started, 201)
+    expect(started.body.data.agentType).toBe("conversation")
+
+    // Simulate the fillForm tool having written the session result mid-chat.
+    await repositories.conversationAgentSessionRepository.update(
+      { id: started.body.data.id },
+      { result: { title: "Session note", summary: "Filled by the agent" } },
+    )
+
+    const list = await request({
+      route: ReviewCampaignsRoutes.listMyTesterSessions,
+      pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
+      token: accessToken,
+    })
+    expectResponse(list, 200)
+    const [summary] = list.body.data.sessions
+    expect(summary?.agentType).toBe("conversation")
+    expect(summary?.result).toEqual({ title: "Session note", summary: "Filled by the agent" })
+  })
+
   it("listMyTesterSessions returns sessions for this campaign with feedback status", async () => {
     await seedActiveCampaignWithTester()
 
@@ -314,7 +352,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
   })
 
   it("startTesterSession refuses extraction agents (422)", async () => {
-    await seedActiveCampaignWithTester("extraction" as "conversation")
+    await seedActiveCampaignWithTester("extraction")
     const response = await request({
       route: ReviewCampaignsRoutes.startTesterSession,
       pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),

@@ -8,7 +8,6 @@ import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
-import type { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
@@ -29,7 +28,7 @@ export class StreamingController {
   @CheckPolicy((policy) => policy.canList())
   @Sse(AgentSessionMessagesRoutes.stream.path, { method: 0 /* GET */ })
   stream(
-    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession | FormAgentSession>,
+    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
     @Query("q") query: string,
   ): Observable<MessageEvent> {
     try {

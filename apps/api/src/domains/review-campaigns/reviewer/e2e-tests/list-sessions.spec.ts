@@ -11,7 +11,6 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
-import { formAgentSessionFactory } from "@/domains/agents/form-agent-sessions/form-agent-session.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
@@ -108,7 +107,7 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
     expect(response.body.data.sessions).toEqual([])
   })
 
-  it("lists both conversation and form sessions stamped with the campaign", async () => {
+  it("lists sessions from plain and fillForm-enabled agents stamped with the campaign", async () => {
     const { organization, project, agent, campaign } = await seedCampaignWithReviewer()
     const tester = await repositories.userRepository.save(
       userFactory.build({ email: `tester-list-${randomUUID()}@example.com` }),
@@ -117,18 +116,36 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
       .transient({ organization, project, agent, user: tester })
       .build({ campaignId: campaign.id })
     await repositories.conversationAgentSessionRepository.save(conversationSession)
-    const formAgent = agentFactory.transient({ organization, project }).build({ type: "form" })
-    await repositories.agentRepository.save(formAgent)
-    const formSession = formAgentSessionFactory
-      .transient({ organization, project, agent: formAgent, user: tester })
-      .build({ campaignId: campaign.id })
-    await repositories.formAgentSessionRepository.save(formSession)
+    const fillFormAgent = agentFactory
+      .transient({ organization, project })
+      .build({ type: "conversation" })
+    await repositories.agentRepository.save(fillFormAgent)
+    const fillFormAgentSettings = agentSettingsFactory
+      .transient({ organization, project, agent: fillFormAgent })
+      .build({
+        fillFormEnabled: true,
+        outputJsonSchema: {
+          type: "object",
+          properties: { title: { type: "string" }, summary: { type: "string" } },
+        },
+      })
+    await repositories.agentSettingsRepository.save(fillFormAgentSettings)
+    const fillFormSession = conversationAgentSessionFactory
+      .transient({ organization, project, agent: fillFormAgent, user: tester })
+      .build({
+        campaignId: campaign.id,
+        result: { title: "Session note", summary: "Filled by the agent" },
+      })
+    await repositories.conversationAgentSessionRepository.save(fillFormSession)
 
     const response = await subject()
     expectResponse(response, 200)
     const sessions = response.body.data.sessions
     expect(sessions).toHaveLength(2)
-    expect(sessions.map((session) => session.agentType).sort()).toEqual(["conversation", "form"])
+    expect(sessions.map((session) => session.sessionId).sort()).toEqual(
+      [conversationSession.id, fillFormSession.id].sort(),
+    )
+    expect(sessions.map((session) => session.agentType)).toEqual(["conversation", "conversation"])
   })
 
   it("does not leak sessions from other campaigns", async () => {

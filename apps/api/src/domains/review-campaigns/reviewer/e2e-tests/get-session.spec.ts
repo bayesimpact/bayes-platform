@@ -11,7 +11,6 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
-import { formAgentSessionFactory } from "@/domains/agents/form-agent-sessions/form-agent-session.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import {
@@ -348,18 +347,22 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
     expect(response.body.data.blind).toBe(true)
   })
 
-  it("includes formResult for form-agent sessions (schema from agent, value from session)", async () => {
+  /**
+   * Seeds a campaign whose agent has fillForm enabled (outputJsonSchema +
+   * fillFormEnabled on the latest settings) and one conversation session
+   * carrying the given `result`. The caller is an accepted reviewer.
+   */
+  const seedFillFormCampaignAndSession = async (result: Record<string, unknown> | null) => {
     const {
       organization,
       project,
-      agent: formAgent,
-      agentSettings: formAgentSettings,
+      agent: fillFormAgent,
+      agentSettings: fillFormAgentSettings,
     } = await createOrganizationWithAgent(repositories, {
       user: { auth0Id },
-      agent: {
-        type: "form",
-      },
+      agent: { type: "conversation" },
       agentSettings: {
+        fillFormEnabled: true,
         outputJsonSchema: {
           type: "object",
           properties: {
@@ -376,7 +379,12 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
     const campaign = await repositories.reviewCampaignRepository.save(
       reviewCampaignFactory
         .active()
-        .transient({ organization, project, agent: formAgent, agentSettings: formAgentSettings })
+        .transient({
+          organization,
+          project,
+          agent: fillFormAgent,
+          agentSettings: fillFormAgentSettings,
+        })
         .build(),
     )
     const callerUser = await repositories.userRepository.findOneByOrFail({ auth0Id })
@@ -387,23 +395,24 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
         .transient({ organization, project, campaign, user: callerUser })
         .build(),
     })
-    const session = formAgentSessionFactory
-      .transient({ organization, project, agent: formAgent, user: tester })
-      .build({
-        campaignId: campaign.id,
-        result: { fullName: "Jane Doe", email: "jane@example.com" },
-      })
-    await repositories.formAgentSessionRepository.save(session)
+    const session = conversationAgentSessionFactory
+      .transient({ organization, project, agent: fillFormAgent, user: tester })
+      .build({ campaignId: campaign.id, result })
+    await repositories.conversationAgentSessionRepository.save(session)
 
     organizationId = organization.id
     projectId = project.id
     reviewCampaignId = campaign.id
     sessionId = session.id
+  }
+
+  it("includes formResult for fillForm-enabled sessions (schema from settings, value from session)", async () => {
+    await seedFillFormCampaignAndSession({ fullName: "Jane Doe", email: "jane@example.com" })
 
     const response = await subject()
     expectResponse(response, 200)
     const data = response.body.data
-    expect(data.agentType).toBe("form")
+    expect(data.agentType).toBe("conversation")
     expect(data.formResult?.schema).toMatchObject({
       type: "object",
       properties: { fullName: { title: "Full name" } },
@@ -414,7 +423,17 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
     })
   })
 
-  it("returns formResult: null for conversation sessions", async () => {
+  it("returns formResult with a null value when the form was abandoned (no result written)", async () => {
+    await seedFillFormCampaignAndSession(null)
+
+    const response = await subject()
+    expectResponse(response, 200)
+    const data = response.body.data
+    expect(data.formResult?.schema).toMatchObject({ type: "object" })
+    expect(data.formResult?.value).toBeNull()
+  })
+
+  it("returns formResult: null when fillForm is not enabled on the agent", async () => {
     await seedCampaignAndSession()
     const response = await subject()
     expectResponse(response, 200)

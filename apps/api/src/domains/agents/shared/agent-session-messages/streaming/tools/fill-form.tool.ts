@@ -1,20 +1,31 @@
 import { outputJsonSchemaSchema, ToolName } from "@caseai-connect/api-contracts"
 import { tool } from "ai"
 import { z } from "zod"
+import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { castToolInputParameters } from "@/common/zod-helper"
-import type { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
-import type { FormAgentSessionsService } from "@/domains/agents/form-agent-sessions/form-agent-sessions.service"
 import type { AgentSessionScope } from "../streaming-session.types"
 import { buildFormFieldsZodSchema } from "./form-schema.helper"
 import type { ToolExecutionLog } from "./tool-execution-log"
 
+/**
+ * The slice of the session service the fillForm tool needs: merging partial
+ * form input into the session's accumulated `result`.
+ */
+export type SessionResultUpdater = {
+  updateSessionResult(params: {
+    connectScope: RequiredConnectScope
+    input: Record<string, unknown>
+    sessionId: string
+  }): Promise<{ result: Record<string, unknown> | null }>
+}
+
 export function fillFormTool({
   agentSessionScope,
-  formAgentSessionsService,
+  sessionResultUpdater,
   onExecute,
 }: {
   agentSessionScope: AgentSessionScope
-  formAgentSessionsService: FormAgentSessionsService
+  sessionResultUpdater: SessionResultUpdater
   onExecute: (toolExecution: ToolExecutionLog) => void
 }) {
   const { agentSettings, connectScope, session } = agentSessionScope
@@ -45,7 +56,7 @@ export function fillFormTool({
     execute: async (input, _options) => {
       if (input.formFields) {
         const typedInput = castToolInputParameters(input.formFields)
-        const { result: formState } = await formAgentSessionsService.updateSessionResult({
+        const { result: formState } = await sessionResultUpdater.updateSessionResult({
           connectScope,
           sessionId: session.id,
           input: typedInput,
@@ -55,21 +66,22 @@ export function fillFormTool({
       }
 
       onExecute({ toolName: ToolName.FillForm, arguments: input })
-      assertFormAgentSessionResult(agentSessionScope)
+      assertSessionSupportsFormResult(agentSessionScope)
       return { formState: agentSessionScope.session.result || {} }
     },
   })
 }
 
-function assertFormAgentSessionResult(
+/**
+ * The fillForm tool only runs against persisted sessions carrying a `result`
+ * column (not the public streaming session proxy).
+ */
+function assertSessionSupportsFormResult(
   agentSessionScope: AgentSessionScope,
 ): asserts agentSessionScope is AgentSessionScope & {
-  session: NonNullable<FormAgentSession>
+  session: AgentSessionScope["session"] & { result: Record<string, unknown> | null }
 } {
   const { session } = agentSessionScope
-  if (!("type" in session)) {
-    throw new Error("Agent session type is not initialized")
-  }
   if (!("result" in session)) {
     throw new Error("Agent session result is not initialized")
   }

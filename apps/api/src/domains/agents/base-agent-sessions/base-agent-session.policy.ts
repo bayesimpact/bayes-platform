@@ -2,9 +2,8 @@ import type { BaseAgentSessionTypeDto } from "@caseai-connect/api-contracts"
 import { ProjectScopedPolicy } from "@/common/policies/project-scoped-policy"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import type { ExtractionAgentSession } from "../extraction-agent-sessions/extraction-agent-session.entity"
-import type { FormAgentSession } from "../form-agent-sessions/form-agent-session.entity"
 
-type AgentSession = ConversationAgentSession | ExtractionAgentSession | FormAgentSession
+type AgentSession = ConversationAgentSession | ExtractionAgentSession
 export class BaseAgentSessionPolicy extends ProjectScopedPolicy<AgentSession> {
   constructor(
     context: ConstructorParameters<typeof ProjectScopedPolicy>[0],

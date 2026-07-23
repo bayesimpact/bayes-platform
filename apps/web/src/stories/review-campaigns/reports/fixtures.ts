@@ -119,7 +119,7 @@ export const mockSessionMatrix = [
   }),
   campaignReportSessionRowFactory.build({
     sessionId: "session-form-8c3b1d5f-2a6e-4c7d-9b0a-1e2f3a4b5c6d",
-    agentType: "form",
+    agentType: "conversation",
     testerUserId: "user-carol",
     startedAt: now - 26 * MS_PER_HOUR,
     testerRating: null,

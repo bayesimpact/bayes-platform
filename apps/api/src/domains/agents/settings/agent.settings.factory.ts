@@ -34,6 +34,7 @@ export const agentSettingsFactory = AgentSettingsFactory.define(
       documentsRagMode: params.documentsRagMode || DocumentsRagMode.All,
       greetingMessage: params.greetingMessage ?? null,
       outputJsonSchema: params.outputJsonSchema ?? null,
+      fillFormEnabled: params.fillFormEnabled ?? false,
       organizationId: transientParams.organization.id,
       projectId: transientParams.project.id,
       agentId: transientParams.agent.id,

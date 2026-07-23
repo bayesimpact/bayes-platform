@@ -2,7 +2,6 @@ import { Injectable } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
-import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type {
   ReviewCampaignAgentType,
@@ -69,8 +68,6 @@ export class ReportsService {
   constructor(
     @InjectRepository(ConversationAgentSession)
     private readonly conversationSessionRepository: Repository<ConversationAgentSession>,
-    @InjectRepository(FormAgentSession)
-    private readonly formSessionRepository: Repository<FormAgentSession>,
     @InjectRepository(TesterSessionFeedback)
     private readonly testerFeedbackRepository: Repository<TesterSessionFeedback>,
     @InjectRepository(TesterCampaignSurvey)
@@ -82,12 +79,8 @@ export class ReportsService {
   async computeReport(campaign: ReviewCampaign): Promise<CampaignReport> {
     const campaignId = campaign.id
 
-    const [conversationSessions, formSessions, feedbacks, surveys, reviews] = await Promise.all([
+    const [conversationSessions, feedbacks, surveys, reviews] = await Promise.all([
       this.conversationSessionRepository.find({
-        where: { campaignId },
-        select: { id: true, userId: true, createdAt: true },
-      }),
-      this.formSessionRepository.find({
         where: { campaignId },
         select: { id: true, userId: true, createdAt: true },
       }),
@@ -96,20 +89,12 @@ export class ReportsService {
       this.reviewRepository.find({ where: { campaignId } }),
     ])
 
-    const sessions: SessionRef[] = [
-      ...conversationSessions.map((session) => ({
-        id: session.id,
-        userId: session.userId,
-        createdAt: session.createdAt,
-        agentType: "conversation" as const,
-      })),
-      ...formSessions.map((session) => ({
-        id: session.id,
-        userId: session.userId,
-        createdAt: session.createdAt,
-        agentType: "form" as const,
-      })),
-    ]
+    const sessions: SessionRef[] = conversationSessions.map((session) => ({
+      id: session.id,
+      userId: session.userId,
+      createdAt: session.createdAt,
+      agentType: "conversation" as const,
+    }))
 
     const feedbackBySessionId = new Map(feedbacks.map((feedback) => [feedback.sessionId, feedback]))
     const reviewsBySessionId = groupBy(reviews, (review) => review.sessionId)
@@ -253,8 +238,8 @@ function groupBy<T, K>(items: T[], keyFn: (item: T) => K): Map<K, T[]> {
   return grouped
 }
 
-// Exported for convenience in tests/DTO mappers — sessionType is kept as the
-// narrower "conversation" | "form" here because the report only ever sees
-// sessions that testers actually ran (extraction isn't a tester session type).
+// Exported for convenience in tests/DTO mappers — sessionType mirrors
+// ReviewCampaignAgentType because the report only ever sees sessions that
+// testers actually ran (extraction isn't a tester session type).
 
 export type ReviewCampaignReportableSessionType = ReviewCampaignAgentType

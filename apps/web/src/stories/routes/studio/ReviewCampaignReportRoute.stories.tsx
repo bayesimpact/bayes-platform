@@ -87,7 +87,7 @@ function buildPopulatedReport(): CampaignReport {
         reviewerRatingSpread: 1,
       }),
       campaignReportSessionRowFactory.build({
-        agentType: "form",
+        agentType: "conversation",
         testerRating: 5,
         reviewerRatings: [5],
         reviewerCount: 1,

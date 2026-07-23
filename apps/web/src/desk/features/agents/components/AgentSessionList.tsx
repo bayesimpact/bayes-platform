@@ -6,7 +6,6 @@ import { useNavigate, useOutlet } from "react-router-dom"
 import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/grid/Grid"
 import { selectCurrentConversationAgentSessionsData } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.selectors"
 import { selectCurrentExtractionAgentSessionsData } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.selectors"
-import { selectCurrentFormAgentSessionsData } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.selectors"
 import {
   selectCurrentAgentData,
   selectCurrentAgentId,
@@ -28,41 +27,6 @@ import { AgentSessionListHeader } from "./AgentSessionListHeader"
 export function ConversationAgentSessionList() {
   const agent = useValue(selectCurrentAgentData)
   const agentSessions = useValue(selectCurrentConversationAgentSessionsData)
-  const outlet = useOutlet()
-
-  const organizationId = useCurrentId(selectCurrentOrganizationId)
-  const projectId = useCurrentId(selectCurrentProjectId)
-
-  if (outlet) return outlet
-  return (
-    <>
-      <AgentSessionListHeader
-        withBorderBottom={agentSessions.length > 0}
-        agent={agent}
-        backTo={outlet ? "agent" : "project"}
-      />
-
-      <Grid cols={3}>
-        <GridContent>
-          {agentSessions.map((session) => (
-            <AgentSessionItem
-              key={session.id}
-              organizationId={organizationId}
-              projectId={projectId}
-              agentSession={session}
-              agentId={agent.id}
-              agentType={agent.type}
-            />
-          ))}
-        </GridContent>
-      </Grid>
-    </>
-  )
-}
-
-export function FormAgentSessionList() {
-  const agent = useValue(selectCurrentAgentData)
-  const agentSessions = useValue(selectCurrentFormAgentSessionsData)
   const outlet = useOutlet()
 
   const organizationId = useCurrentId(selectCurrentOrganizationId)

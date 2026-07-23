@@ -14,6 +14,7 @@
       "name": "Nom",
       "model": "Modèle",
       "outputJsonSchema": "Schéma JSON de sortie",
+      "fillFormEnabled": "Remplissage de formulaire",
       "schemaBuilder": {
         "advancedMode": "Mode avancé",
         "visualMode": "Éditeur visuel",
@@ -91,8 +92,7 @@
         "title": "Type d'agent",
         "description": "Choisissez le type avant de configurer votre agent.",
         "conversation": "Conversation",
-        "extraction": "Extraction",
-        "form": "Formulaire"
+        "extraction": "Extraction"
       },
       "conversationDialog": {
         "title": "Créer un agent conversationnel",
@@ -115,10 +115,6 @@
       "extraction": {
         "title": "Modifier l'agent d'extraction",
         "description": "Modifier les détails de cet agent d'extraction"
-      },
-      "form": {
-        "title": "Modifier l'agent de formulaire",
-        "description": "Modifier les détails de cet agent de formulaire"
       }
     },
     "delete": {
@@ -138,9 +134,9 @@
       "general": "Général",
       "model": "Modèle",
       "output": "Sortie",
-      "form": "Formulaire",
       "sources": "Sources",
       "resourceLibraries": "Bibliothèques de ressources",
+      "tools": "Outils",
       "categories": "Catégories de conversation",
       "orchestration": "Orchestration",
       "embed": "Intégration",
@@ -214,6 +210,13 @@
     "playground": "Playground",
     "source_one": "{{count}} source",
     "source_other": "{{count}} sources",
-    "source_zero": "Aucune source"
+    "source_zero": "Aucune source",
+    "tools": {
+      "fillForm": {
+        "title": "Remplissage de formulaire",
+        "description": "Permet à l'agent de remplir un formulaire structuré à partir des réponses de l'utilisateur pendant la conversation.",
+        "schemaDescription": "Définissez les champs du formulaire que l'agent doit remplir. L'ordre des champs est l'ordre dans lequel l'agent pose ses questions."
+      }
+    }
   }
 }

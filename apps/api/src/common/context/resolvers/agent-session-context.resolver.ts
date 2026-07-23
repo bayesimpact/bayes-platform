@@ -3,7 +3,6 @@ import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
-import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import type { ContextResolver, ResolvableRequest } from "../context-resolver.interface"
 import type {
   EndpointRequestWithAgent,
@@ -17,8 +16,6 @@ export class AgentSessionContextResolver implements ContextResolver {
   constructor(
     @InjectRepository(ConversationAgentSession)
     private readonly conversationAgentSessionRepository: Repository<ConversationAgentSession>,
-    @InjectRepository(FormAgentSession)
-    private readonly formAgentSessionRepository: Repository<FormAgentSession>,
     @InjectRepository(ExtractionAgentSession)
     private readonly extractionAgentSessionRepository: Repository<ExtractionAgentSession>,
   ) {}
@@ -36,11 +33,9 @@ export class AgentSessionContextResolver implements ContextResolver {
     const repository =
       requestWithAgent.agent.type === "conversation"
         ? this.conversationAgentSessionRepository
-        : requestWithAgent.agent.type === "form"
-          ? this.formAgentSessionRepository
-          : requestWithAgent.agent.type === "extraction"
-            ? this.extractionAgentSessionRepository
-            : undefined
+        : requestWithAgent.agent.type === "extraction"
+          ? this.extractionAgentSessionRepository
+          : undefined
 
     if (!repository) throw new NotFoundException("Unsupported agent type")
 

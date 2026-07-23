@@ -3,7 +3,6 @@ import type { z } from "zod"
 import type { Agent } from "../../../../../common/features/agents/agents.models"
 import { conversationAgentDefaultValues } from "./conversation-agent-default-values"
 import { extractionAgentDefaultValues } from "./extraction-agent-default-values"
-import { formAgentDefaultValues } from "./form-agent-default-values"
 
 export function buildOutputJsonSchema({
   envSchema,
@@ -33,13 +32,11 @@ export function buildOutputJsonSchema({
 export const agentDefaultPromptMap: Record<Agent["type"], string> = {
   conversation: conversationAgentDefaultValues.prompt,
   extraction: extractionAgentDefaultValues.prompt,
-  form: formAgentDefaultValues.prompt,
 }
 
 export const agentDefaultOutputJsonSchemaMap: Record<
-  Exclude<Agent["type"], "conversation">,
+  "extraction",
   z.infer<typeof outputJsonSchemaSchema>
 > = {
   extraction: extractionAgentDefaultValues.getOutputJsonSchema(),
-  form: formAgentDefaultValues.getOutputJsonSchema(),
 }

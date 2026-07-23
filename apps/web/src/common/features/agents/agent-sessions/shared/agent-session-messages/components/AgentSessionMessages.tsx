@@ -27,11 +27,10 @@ import { cn } from "@caseai-connect/ui/utils"
 import { ChevronDownIcon, FileCheckIcon, ListIcon, XIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import type {
-  FormAgentSession,
-  FormSubSession,
-} from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
+  ConversationAgentSession,
+  ConversationSubSession,
+} from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import type { AgentSessionMessage as AgentSessionMessageType } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import { AgentSessionMessage } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/AgentSessionMessage"
 import {
@@ -48,7 +47,7 @@ import { AttachDocument } from "@/studio/features/documents/components/AttachDoc
 import { selectStreaming } from "../agent-session-messages.selectors"
 import { sendMessage } from "../agent-session-messages.thunks"
 
-type AgentSession = ConversationAgentSession | FormAgentSession
+type AgentSession = ConversationAgentSession
 
 export function AgentSessionMessages({
   session,
@@ -61,7 +60,7 @@ export function AgentSessionMessages({
   session: AgentSession
   messages: AgentSessionMessageType[]
   onFillFormToolEvent?: () => void
-  formSubSessions?: FormSubSession[]
+  formSubSessions?: ConversationSubSession[]
 }) {
   const isStreaming = useAppSelector(selectStreaming)
   const { t } = useTranslation()
@@ -78,7 +77,7 @@ export function AgentSessionMessages({
                 type="button"
                 className="flex w-full items-center justify-between px-4 py-2 text-sm font-medium"
               >
-                <span>{t("formAgentSession:props.result")}</span>
+                <span>{t("conversationAgentSession:props.result")}</span>
                 <ChevronDownIcon className="size-4 transition-transform [[data-state=open]_&]:rotate-180" />
               </button>
             </CollapsibleTrigger>

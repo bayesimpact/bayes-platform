@@ -41,7 +41,6 @@ describe("prepareForStreaming", () => {
           connectScope,
         },
         userContent: "Hello, how are you?",
-        agentType: testAgent.type,
       })
 
     expect(updatedSession.messages).toHaveLength(2)
@@ -83,7 +82,6 @@ describe("prepareForStreaming", () => {
           connectScope,
         },
         userContent: "Hello",
-        agentType: testAgent.type,
       }),
     ).rejects.toThrow(NotFoundException)
   })

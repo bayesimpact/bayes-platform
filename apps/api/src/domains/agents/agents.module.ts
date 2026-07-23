@@ -7,7 +7,6 @@ import { ProjectContextResolver } from "@/common/context/resolvers/project-conte
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { ExtractionAgentSessionsModule } from "@/domains/agents/extraction-agent-sessions/extraction-agent-sessions.module"
-import { FormAgentSessionsModule } from "@/domains/agents/form-agent-sessions/form-agent-sessions.module"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { DocumentsModule } from "@/domains/documents/documents.module"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
@@ -64,7 +63,6 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
     forwardRef(() => ResourceLibrariesModule),
     forwardRef(() => ConversationAgentSessionsModule),
     forwardRef(() => ExtractionAgentSessionsModule),
-    forwardRef(() => FormAgentSessionsModule),
   ],
   providers: [
     AgentsService,

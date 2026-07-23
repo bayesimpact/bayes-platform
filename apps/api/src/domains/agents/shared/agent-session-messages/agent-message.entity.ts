@@ -3,7 +3,6 @@ import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-enti
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { Document } from "@/domains/documents/document.entity"
 import { ConversationAgentSession } from "../../conversation-agent-sessions/conversation-agent-session.entity"
-import { FormAgentSession } from "../../form-agent-sessions/form-agent-session.entity"
 import { AgentMessageAttachmentDocument } from "./agent-message-attachment-document.entity"
 import { AgentMessageFeedback } from "./feedback/agent-message-feedback.entity"
 
@@ -52,20 +51,10 @@ export class AgentMessage extends ConnectEntityBase {
   @JoinColumn({ name: "session_id" })
   conversationAgentSession?: ConversationAgentSession
 
-  @ManyToOne(
-    () => FormAgentSession,
-    (session) => session.messages,
-    { onDelete: "CASCADE", nullable: true, createForeignKeyConstraints: false },
-  )
-  @JoinColumn({ name: "session_id" })
-  formAgentSession?: FormAgentSession
-
-  session(agentType: string): ConversationAgentSession | FormAgentSession | undefined {
+  session(agentType: string): ConversationAgentSession | undefined {
     switch (agentType) {
       case "conversation":
         return this.conversationAgentSession
-      case "form":
-        return this.formAgentSession
       default:
         return undefined
     }
