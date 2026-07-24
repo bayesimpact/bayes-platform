@@ -6,6 +6,7 @@ As part of this work, we curate public and community resource datasets and make 
 # Bayes platform
 
 ![Security](https://github.com/bayesimpact/caseai-connect/actions/workflows/security.yml/badge.svg)
+[![DOI](https://zenodo.org/badge/1198631787.svg)](https://doi.org/10.5281/zenodo.21533360)
 
 A SaaS platform for building multi-agent systems, built as a Turbo monorepo with a NestJS API and a React web frontend using Auth0 for authentication.
 

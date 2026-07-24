@@ -25,12 +25,10 @@ BibTeX:
   title  = {{Bayes Platform}},
   url    = {https://github.com/bayesimpact/bayes-platform},
   note   = {Open-source platform for multi-agent AI systems for the public interest},
-  year   = {2026}
+  year   = {2026},
+  doi    = {10.5281/zenodo.21533360}
 }
 ```
-
-<!-- Zenodo integration is enabled — once the first GitHub release is created,
-     update the BibTeX above with the minted DOI. -->
 
 > 💡 GitHub shows a **"Cite this repository"** button on this repo (powered by
 > `CITATION.cff`) that exports APA/BibTeX — point colleagues there.
