@@ -10,6 +10,7 @@ and require Docling + LlamaIndex to be installed.
 
 from __future__ import annotations
 
+import importlib.util
 import uuid
 from pathlib import Path
 from typing import Any
@@ -264,10 +265,232 @@ class TestEnrichNodesContent:
 # Integration tests — full pipeline against test/fixtures/sample.pdf
 # ---------------------------------------------------------------------------
 
-docling_available = pytest.mark.skipif(
+sample_pdf_available = pytest.mark.skipif(
     not (FIXTURES_DIR / "sample.pdf").exists(),
     reason="sample.pdf fixture not found",
 )
+
+docling_installed = pytest.mark.skipif(
+    importlib.util.find_spec("docling") is None,
+    reason="docling not installed",
+)
+
+
+# ---------------------------------------------------------------------------
+# Adaptive OCR — PDF text-layer classifier and forced full-page OCR wiring.
+# Some scan-to-PDF pipelines draw page content as vector glyph outlines (no
+# text layer, no bitmap images); docling's bitmap-coverage OCR trigger never
+# fires on those, producing empty output unless full-page OCR is forced.
+# ---------------------------------------------------------------------------
+
+
+def _build_vector_only_pdf_bytes() -> bytes:
+    """
+    Build a minimal one-page PDF whose only content is filled vector paths —
+    no text operators, no embedded images. This reproduces the "vector-path
+    scan" failure mode: 0% bitmap coverage and 0 native text characters.
+    """
+    content = b"0 0 m 100 0 l 100 100 l 0 100 l h f 120 10 m 140 30 l 160 10 l h f"
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R >>",
+        b"<< /Length %d >>\nstream\n%s\nendstream" % (len(content), content),
+    ]
+    pdf = bytearray(b"%PDF-1.4\n")
+    offsets: list[int] = []
+    for object_number, object_body in enumerate(objects, start=1):
+        offsets.append(len(pdf))
+        pdf += b"%d 0 obj\n" % object_number + object_body + b"\nendobj\n"
+    xref_position = len(pdf)
+    pdf += b"xref\n0 %d\n" % (len(objects) + 1)
+    pdf += b"0000000000 65535 f \n"
+    for offset in offsets:
+        pdf += b"%010d 00000 n \n" % offset
+    pdf += b"trailer\n<< /Size %d /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n" % (
+        len(objects) + 1,
+        xref_position,
+    )
+    return bytes(pdf)
+
+
+@pytest.fixture(scope="session")
+def vector_only_pdf(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """A PDF with vector-drawn content only: no text layer, no bitmap images."""
+    pdf_path = tmp_path_factory.mktemp("adaptive_ocr") / "vector_only.pdf"
+    pdf_path.write_bytes(_build_vector_only_pdf_bytes())
+    return pdf_path
+
+
+@docling_installed
+class TestPdfTextLayerClassifier:
+    def test_vector_only_pdf_is_flagged(self, vector_only_pdf: Path) -> None:
+        """A PDF with no native text layer must be flagged for forced OCR."""
+        from document_chunker import _pdf_has_no_usable_text_layer
+
+        assert _pdf_has_no_usable_text_layer(vector_only_pdf) is True
+
+    @sample_pdf_available
+    def test_native_text_pdf_is_not_flagged(self) -> None:
+        """A PDF with a real text layer keeps the default (fast) pipeline."""
+        from document_chunker import _pdf_has_no_usable_text_layer
+
+        assert _pdf_has_no_usable_text_layer(FIXTURES_DIR / "sample.pdf") is False
+
+    def test_unreadable_pdf_falls_back_to_default(self, tmp_path: Path) -> None:
+        """Classification errors must never break conversion — default path wins."""
+        from document_chunker import _pdf_has_no_usable_text_layer
+
+        broken_pdf = tmp_path / "broken.pdf"
+        broken_pdf.write_bytes(b"this is not a pdf at all")
+        assert _pdf_has_no_usable_text_layer(broken_pdf) is False
+
+
+@docling_installed
+class TestForceOcrConverter:
+    def test_force_flag_is_set_on_nested_ocr_options(self) -> None:
+        """The converter must carry force_full_page_ocr on ocr_options."""
+        from docling.datamodel.base_models import InputFormat
+        from document_chunker import _build_force_ocr_pdf_converter
+
+        converter = _build_force_ocr_pdf_converter()
+        pipeline_options = converter.format_to_options[InputFormat.PDF].pipeline_options
+        assert pipeline_options.do_ocr is True
+        assert pipeline_options.ocr_options.force_full_page_ocr is True
+
+    def test_pdf_pipeline_options_kwarg_is_still_silently_dropped(self) -> None:
+        """
+        Pin the upstream trap that motivates _build_force_ocr_pdf_converter:
+        force_full_page_ocr passed to PdfPipelineOptions(...) is discarded by
+        pydantic without error. If this ever starts failing, docling fixed it
+        upstream and the builder can be simplified.
+        """
+        from docling.datamodel.pipeline_options import PdfPipelineOptions
+
+        options = PdfPipelineOptions(do_ocr=True, force_full_page_ocr=True)
+        assert not hasattr(options, "force_full_page_ocr")
+        assert options.ocr_options.force_full_page_ocr is False
+
+
+vector_scan_available = pytest.mark.skipif(
+    not (FIXTURES_DIR / "vector-scan.pdf").exists(),
+    reason="vector-scan.pdf fixture not found",
+)
+
+
+def _run_adaptive_pipeline(pdf_path: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]], bool]:
+    """
+    Run the same docling branch main() runs — adaptive reader selection,
+    parsing, markdown fallback, enrichment. Returns
+    (child_chunks, parent_chunks, forced_full_page_ocr).
+    """
+    from document_chunker import (
+        _build_markdown_fallback_nodes,
+        _create_docling_reader,
+        _enrich_nodes,
+        _import_docling_components,
+    )
+
+    (
+        docling_reader_class,
+        docling_node_parser_class,
+        hybrid_chunker_class,
+        metadata_mode_class,
+        text_node_class,
+    ) = _import_docling_components()
+    reader, forced = _create_docling_reader(docling_reader_class, pdf_path)
+    parser = docling_node_parser_class(chunker=hybrid_chunker_class())
+    documents = reader.load_data(file_path=str(pdf_path))
+    nodes = parser.get_nodes_from_documents(documents=documents)
+    if not nodes:
+        nodes = _build_markdown_fallback_nodes(documents=documents, text_node_class=text_node_class)
+    child_chunks, parent_chunks = _enrich_nodes(
+        nodes=nodes,
+        metadata_mode_none=metadata_mode_class.NONE,
+        metadata_mode_embed=metadata_mode_class.EMBED,
+    )
+    return child_chunks, parent_chunks, forced
+
+
+@docling_installed
+@vector_scan_available
+class TestIntegrationVectorScanPdf:
+    """
+    test/fixtures/vector-scan.pdf is a real scan-to-PDF whose pages are drawn
+    entirely as vector paths: zero native text, zero bitmap coverage. Without
+    forced full-page OCR, docling extracts (almost) nothing from it.
+    """
+
+    def test_classifier_flags_it(self) -> None:
+        from document_chunker import _pdf_has_no_usable_text_layer
+
+        assert _pdf_has_no_usable_text_layer(FIXTURES_DIR / "vector-scan.pdf") is True
+
+    def test_default_pipeline_extracts_almost_nothing(self) -> None:
+        """
+        Pin the failure mode this feature exists for. If this starts failing
+        because the default pipeline recovers real text, docling fixed its OCR
+        trigger upstream and the adaptive forcing may no longer be needed.
+        """
+        from document_chunker import _import_docling_components
+
+        docling_reader_class, *_ = _import_docling_components()
+        reader = docling_reader_class(export_type="json")
+        documents = reader.load_data(file_path=str(FIXTURES_DIR / "vector-scan.pdf"))
+        total_chars = sum(len(document.get_content()) for document in documents)
+        # export_type="json" content is the DoclingDocument JSON, which is
+        # non-empty even for an empty page — check the actual text instead.
+        from docling_core.types.doc.document import DoclingDocument
+
+        markdown = "".join(
+            DoclingDocument.model_validate_json(document.get_content()).export_to_markdown(
+                image_placeholder=""
+            )
+            for document in documents
+        )
+        assert total_chars > 0  # documents load fine — the text is just missing
+        assert len(markdown.strip()) < 100
+
+    def test_adaptive_pipeline_recovers_the_text(self) -> None:
+        child_chunks, _parent_chunks, forced = _run_adaptive_pipeline(FIXTURES_DIR / "vector-scan.pdf")
+        assert forced is True
+        assert len(child_chunks) > 0
+        total_text = "\n".join(chunk["text"] for chunk in child_chunks)
+        assert len(total_text) > 1000
+
+
+@docling_installed
+class TestCreateDoclingReader:
+    def test_textless_pdf_gets_a_forcing_converter(self, vector_only_pdf: Path) -> None:
+        from docling.datamodel.base_models import InputFormat
+        from llama_index.readers.docling import DoclingReader
+
+        from document_chunker import _create_docling_reader
+
+        reader, forced = _create_docling_reader(DoclingReader, vector_only_pdf)
+        assert forced is True
+        pipeline_options = reader.doc_converter.format_to_options[InputFormat.PDF].pipeline_options
+        assert pipeline_options.ocr_options.force_full_page_ocr is True
+
+    @sample_pdf_available
+    def test_native_text_pdf_keeps_default_reader(self) -> None:
+        from llama_index.readers.docling import DoclingReader
+
+        from document_chunker import _create_docling_reader
+
+        _reader, forced = _create_docling_reader(DoclingReader, FIXTURES_DIR / "sample.pdf")
+        assert forced is False
+
+    def test_non_pdf_documents_are_never_classified(self, tmp_path: Path) -> None:
+        """Only PDFs go through the text-layer classifier."""
+        from llama_index.readers.docling import DoclingReader
+
+        from document_chunker import _create_docling_reader
+
+        docx_path = tmp_path / "sample.docx"
+        docx_path.write_bytes(b"irrelevant")
+        _reader, forced = _create_docling_reader(DoclingReader, docx_path)
+        assert forced is False
 
 
 def _run_pipeline(pdf_path: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -327,7 +550,7 @@ def sample_pdf_result() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     return _run_pipeline(FIXTURES_DIR / "sample.pdf")
 
 
-@docling_available
+@sample_pdf_available
 class TestIntegrationSamplePdf:
     def test_produces_multiple_child_chunks(self, sample_pdf_result: tuple) -> None:
         child_chunks, _ = sample_pdf_result

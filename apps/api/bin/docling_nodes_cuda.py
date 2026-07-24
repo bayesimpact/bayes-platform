@@ -183,11 +183,14 @@ def _detect_accelerator_device() -> str:
     return "cpu"
 
 
-def _build_doc_converter() -> Any:
+def _build_doc_converter(force_full_page_ocr: bool = False) -> Any:
     """
     Build a DocumentConverter wired to the detected accelerator (GPU when available).
     Configures both the docling layout/table models (AcceleratorOptions) and the
     RapidOCR engine (rapidocr_params) to use CUDA when applicable.
+
+    force_full_page_ocr must be set on the ocr_options object — passing it as a
+    PdfPipelineOptions(...) kwarg is silently dropped by pydantic.
     """
     from docling.datamodel.accelerator_options import AcceleratorDevice, AcceleratorOptions
     from docling.datamodel.base_models import InputFormat
@@ -208,11 +211,15 @@ def _build_doc_converter() -> Any:
 
     pipeline_options = PdfPipelineOptions(
         accelerator_options=AcceleratorOptions(device=accelerator_device),
-        ocr_options=RapidOcrOptions(rapidocr_params=rapidocr_params),
+        ocr_options=RapidOcrOptions(
+            rapidocr_params=rapidocr_params,
+            force_full_page_ocr=force_full_page_ocr,
+        ),
     )
 
     print(
-        f"[docling_nodes] accelerator device: {device_name} (cuda={use_cuda})",
+        f"[docling_nodes] accelerator device: {device_name} (cuda={use_cuda}, "
+        f"force_full_page_ocr={force_full_page_ocr})",
         file=sys.stderr,
     )
 
@@ -284,9 +291,29 @@ def main() -> int:
         print(f"Error: Document file does not exist: {doc_path}", file=sys.stderr)
         return 1
 
+    # Shared with document_chunker.py (same bin/ directory): PDFs whose
+    # content is vector-drawn (no text layer, no bitmaps) never trip
+    # docling's bitmap-coverage OCR trigger and come back empty unless
+    # full-page OCR is forced. Classification is best-effort: any failure
+    # (including this import) must degrade to the default pipeline rather
+    # than fail the whole conversion.
+    force_full_page_ocr = False
+    try:
+        from document_chunker import _pdf_has_no_usable_text_layer
+
+        force_full_page_ocr = (
+            doc_path.suffix.lower() == ".pdf" and _pdf_has_no_usable_text_layer(doc_path)
+        )
+    except Exception as error:  # noqa: BLE001
+        print(
+            f"Warning: could not classify PDF text layer for {doc_path.name} ({error}); "
+            "using the default docling pipeline.",
+            file=sys.stderr,
+        )
+
     try:
         docling_reader_class, docling_node_parser_class = _import_docling_components()
-        doc_converter = _build_doc_converter()
+        doc_converter = _build_doc_converter(force_full_page_ocr=force_full_page_ocr)
         docling_reader = docling_reader_class(export_type="json", doc_converter=doc_converter)
         docling_node_parser = docling_node_parser_class()
     except Exception as error:  # noqa: BLE001
@@ -316,6 +343,7 @@ def main() -> int:
             "chunk_count": len(nodes),
             "elapsed_ms": elapsed_ms,
             "docling_version": _resolve_docling_sdk_version(),
+            "force_full_page_ocr": force_full_page_ocr,
             "runtime": _collect_runtime_info(),
         }
         print(json.dumps(runtime_event, ensure_ascii=False))
