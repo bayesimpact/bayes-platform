@@ -608,3 +608,11 @@ If port 3000 is already in use:
 - [TypeORM Documentation](https://typeorm.io)
 - [Turbo Documentation](https://turbo.build/repo/docs)
 - [Auth0 Documentation](https://auth0.com/docs)
+
+## Citing & credit
+
+Publishing about agents you built on the **Bayes Platform**? Please **cite** it and
+add a one-line **acknowledgment** — see
+[`CITING.md`](CITING.md). Using the platform doesn't require co-authorship; `CITING.md`
+explains when co-authorship is (and isn't) appropriate. GitHub's "Cite this repository"
+button (from [`CITATION.cff`](CITATION.cff)) exports a ready BibTeX/APA citation.
