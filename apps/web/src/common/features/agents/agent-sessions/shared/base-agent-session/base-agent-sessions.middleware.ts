@@ -1,7 +1,6 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
 import type { AppDispatch, RootState } from "@/common/store"
 import { conversationAgentSessionsActions } from "../../conversation/conversation-agent-sessions.slice"
-import { formAgentSessionsActions } from "../../form/form-agent-sessions.slice"
 import { createAgentChatSession, deleteAgentSession } from "./base-agent-sessions.thunks"
 
 // Create typed listener middleware
@@ -16,10 +15,6 @@ function registerListeners() {
       switch (agentType) {
         case "conversation":
           await listenerApi.dispatch(conversationAgentSessionsActions.getAll({ agentId }))
-          break
-
-        case "form":
-          await listenerApi.dispatch(formAgentSessionsActions.getAll({ agentId }))
           break
       }
     },

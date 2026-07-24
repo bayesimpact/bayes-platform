@@ -19,7 +19,6 @@ import type {
   ExtractionAgentSessions,
 } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
 import { selectCurrentExtractionAgentSessionsData } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.selectors"
-import { selectCurrentFormAgentSessionsData } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.selectors"
 import {
   selectCurrentAgentData,
   selectCurrentAgentId,
@@ -43,42 +42,6 @@ import { AgentSessionListHeader } from "./AgentSessionListHeader"
 export function ConversationAgentSessionList() {
   const agent = useValue(selectCurrentAgentData)
   const agentSessions = useValue(selectCurrentConversationAgentSessionsData)
-  const outlet = useOutlet()
-  const organizationId = useCurrentId(selectCurrentOrganizationId)
-  const projectId = useCurrentId(selectCurrentProjectId)
-
-  if (outlet) return outlet
-  return (
-    <>
-      <AgentSessionListHeader
-        agent={agent}
-        withBorderBottom={agentSessions.length > 0}
-        backTo={outlet ? "agent" : "project"}
-        organizationId={organizationId}
-        projectId={projectId}
-      />
-
-      <Grid cols={3}>
-        <GridContent>
-          {agentSessions.map((session) => (
-            <AgentSessionItem
-              key={session.id}
-              organizationId={organizationId}
-              projectId={projectId}
-              agentSession={session}
-              agentId={agent.id}
-              agentType={agent.type}
-            />
-          ))}
-        </GridContent>
-      </Grid>
-    </>
-  )
-}
-
-export function FormAgentSessionList() {
-  const agent = useValue(selectCurrentAgentData)
-  const agentSessions = useValue(selectCurrentFormAgentSessionsData)
   const outlet = useOutlet()
   const organizationId = useCurrentId(selectCurrentOrganizationId)
   const projectId = useCurrentId(selectCurrentProjectId)

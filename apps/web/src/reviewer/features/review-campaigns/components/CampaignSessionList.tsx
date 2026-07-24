@@ -29,7 +29,6 @@ export function CampaignSessionList() {
   const agentTypeLabel: Record<ReviewCampaignTesterContextDto["agent"]["type"], string> = {
     conversation: t("reviewerCampaigns:landing.agentType.conversation"),
     extraction: t("reviewerCampaigns:landing.agentType.extraction"),
-    form: t("reviewerCampaigns:landing.agentType.form"),
   }
 
   return (

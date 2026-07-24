@@ -10,19 +10,19 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@caseai-connect/ui/shad/tabs"
 import { ClipboardListIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { FormResultFields } from "@/common/features/agents/agent-sessions/form/components/FormResultFields"
-import type { FormSubSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
+import { FormResultFields } from "@/common/features/agents/agent-sessions/conversation/components/FormResultFields"
+import type { ConversationSubSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 
 /**
- * Opens a sheet showing the form result of every form sub-agent the parent
- * session delegated to, one tab per sub-agent. Triggered from a delegation tool
- * call; the clicked sub-agent's tab is selected by default.
+ * Opens a sheet showing the form result of every fillForm-enabled sub-agent the
+ * parent session delegated to, one tab per sub-agent. Triggered from a
+ * delegation tool call; the clicked sub-agent's tab is selected by default.
  */
 export function SubAgentFormResultSheet({
   subSessions,
   defaultToolName,
 }: {
-  subSessions: FormSubSession[]
+  subSessions: ConversationSubSession[]
   defaultToolName: string
 }) {
   const { t } = useTranslation()
@@ -34,13 +34,15 @@ export function SubAgentFormResultSheet({
       <SheetTrigger asChild>
         <Button variant="ghost" size="sm" className="text-muted-foreground text-xs">
           <ClipboardListIcon className="size-3.5" />
-          {t("formAgentSession:subAgentResults.view")}
+          {t("conversationAgentSession:subAgentResults.view")}
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>{t("formAgentSession:subAgentResults.title")}</SheetTitle>
-          <SheetDescription>{t("formAgentSession:subAgentResults.description")}</SheetDescription>
+          <SheetTitle>{t("conversationAgentSession:subAgentResults.title")}</SheetTitle>
+          <SheetDescription>
+            {t("conversationAgentSession:subAgentResults.description")}
+          </SheetDescription>
         </SheetHeader>
         <div className="px-4 pb-4">
           <Tabs defaultValue={defaultToolName}>

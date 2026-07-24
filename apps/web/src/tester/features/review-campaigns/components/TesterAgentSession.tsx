@@ -8,8 +8,6 @@ import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
-import { FormResult } from "@/common/features/agents/agent-sessions/form/components/FormResult"
-import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
 import { selectCurrentMessagesData } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.selectors"
 import { AgentSessionMessages } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/AgentSessionMessages"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -42,7 +40,7 @@ export function TesterAgentSession() {
 
 type TesterAgentSessionContentProps = {
   agent: Agent
-  agentSession: ConversationAgentSession | FormAgentSession
+  agentSession: ConversationAgentSession
   messages: React.ComponentProps<typeof AgentSessionMessages>["messages"]
   campaignName: string
   perSessionQuestions: React.ComponentProps<typeof TesterFeedbackModal>["questions"]
@@ -133,11 +131,7 @@ export function TesterAgentSessionContent({
         <AgentSessionMessages
           session={agentSession}
           messages={messages}
-          rightSlot={
-            agent.type === "form" ? (
-              <FormResult agent={agent} agentSession={agentSession} />
-            ) : undefined
-          }
+          formResultSchema={agent.fillFormEnabled ? agent.outputJsonSchema : undefined}
           onFillFormToolEvent={handleFillFormToolEvent}
         />
       </div>

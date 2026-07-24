@@ -18,7 +18,6 @@ import { Link, useNavigate } from "react-router-dom"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import { selectCurrentConversationAgentSessionsDataFromAgentId } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.selectors"
 import { selectCurrentAgentSessionId } from "@/common/features/agents/agent-sessions/current-agent-session-id/current-agent-session-id.selectors"
-import { selectCurrentFormAgentSessionsDataFromAgentId } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.selectors"
 import { deleteAgentSession } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.thunks"
 import { BaseAgentSessionCreator } from "@/common/features/agents/agent-sessions/shared/base-agent-session/components/BaseAgentSessionCreator"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -40,24 +39,9 @@ export function SidebarAgentSessionList(props: AgentSessionProps) {
   switch (props.agentType) {
     case "conversation":
       return <ConversationAgentSessionList {...props} />
-    case "form":
-      return <FormAgentSessionList {...props} />
     default:
       return null
   }
-}
-
-function FormAgentSessionList(props: AgentSessionProps) {
-  const currentAgentId = useAppSelector(selectCurrentAgentId)
-  const sessionsData = useAppSelector(selectCurrentFormAgentSessionsDataFromAgentId(props.agentId))
-  if (!ADS.isFulfilled(sessionsData)) return null
-
-  const isActive = currentAgentId === props.agentId
-  return (
-    <SessionList isActive={isActive} sessions={sessionsData.value} agentSessionProps={props}>
-      {isActive && <BaseAgentSessionCreator agentType="form" ids={props} type="menu" />}
-    </SessionList>
-  )
 }
 
 function ConversationAgentSessionList(props: AgentSessionProps) {

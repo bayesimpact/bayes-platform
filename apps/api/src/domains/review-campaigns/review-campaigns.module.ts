@@ -11,8 +11,6 @@ import { AgentsModule } from "@/domains/agents/agents.module"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
-import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
-import { FormAgentSessionsModule } from "@/domains/agents/form-agent-sessions/form-agent-sessions.module"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
@@ -59,7 +57,6 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
       AgentMessage,
       ConversationAgentSession,
       ExtractionAgentSession,
-      FormAgentSession,
       Organization,
       Project,
       ReviewCampaign,
@@ -76,7 +73,6 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
     UsersModule,
     AuthModule,
     forwardRef(() => ConversationAgentSessionsModule),
-    forwardRef(() => FormAgentSessionsModule),
   ],
   providers: [
     AgentSessionInCampaignContextResolver,

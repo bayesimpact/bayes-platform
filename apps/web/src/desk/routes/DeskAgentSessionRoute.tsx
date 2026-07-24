@@ -2,8 +2,6 @@ import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
-import { FormResult } from "@/common/features/agents/agent-sessions/form/components/FormResult"
-import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
 import { selectCurrentMessagesData } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.selectors"
 import { AgentSessionMessages } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/AgentSessionMessages"
 import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
@@ -13,7 +11,7 @@ import { useValue } from "@/common/hooks/use-value"
 import { buildSince } from "@/common/utils/build-date"
 import { AgentSessionActions } from "@/studio/features/agents/components/AgentSessionActions"
 
-type AgentSession = ConversationAgentSession | FormAgentSession
+type AgentSession = ConversationAgentSession
 
 export function DeskAgentSessionRoute({ agentSession }: { agentSession: AgentSession }) {
   const agent = useValue(selectCurrentAgentData)
@@ -48,11 +46,7 @@ export function DeskAgentSessionRoute({ agentSession }: { agentSession: AgentSes
         <AgentSessionMessages
           session={agentSession}
           messages={messages}
-          rightSlot={
-            agent.type === "form" ? (
-              <FormResult agent={agent} agentSession={agentSession} />
-            ) : undefined
-          }
+          formResultSchema={agent.fillFormEnabled ? agent.outputJsonSchema : undefined}
         />
       </div>
     </div>

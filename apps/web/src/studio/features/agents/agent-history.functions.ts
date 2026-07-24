@@ -9,6 +9,7 @@ export const agentSettingsDiffKeys = [
   "locale",
   "documentsRagMode",
   "outputJsonSchema",
+  "fillFormEnabled",
 ] as const
 
 export type AgentSettingsDiffKey = (typeof agentSettingsDiffKeys)[number]
@@ -22,6 +23,7 @@ export const agentSettingsDiffFileNames: Record<AgentSettingsDiffKey, string> = 
   locale: "language.txt",
   documentsRagMode: "documents-rag-mode.txt",
   outputJsonSchema: "output-json-schema.json",
+  fillFormEnabled: "fill-form-enabled.txt",
 }
 
 export const agentSettingsDiffLabelKeys: Record<AgentSettingsDiffKey, string> = {
@@ -32,6 +34,7 @@ export const agentSettingsDiffLabelKeys: Record<AgentSettingsDiffKey, string> = 
   locale: "agent:props.locale",
   documentsRagMode: "agent:props.documentsRagMode",
   outputJsonSchema: "agent:props.outputJsonSchema",
+  fillFormEnabled: "agent:props.fillFormEnabled",
 }
 
 export function serializeAgentSettingsField(agent: Agent, key: AgentSettingsDiffKey): string {

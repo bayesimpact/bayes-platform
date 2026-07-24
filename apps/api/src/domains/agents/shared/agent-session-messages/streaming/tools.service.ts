@@ -4,7 +4,6 @@ import type { ToolSet } from "ai"
 import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
-import { FormAgentSessionsService } from "@/domains/agents/form-agent-sessions/form-agent-sessions.service"
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { AgentSubAgentsService } from "@/domains/agents/sub-agents/agent-sub-agents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -39,7 +38,7 @@ type McpToolset = {
 /**
  * Builds the tool sets exposed to the LLM for a given agent.
  *
- * Owns everything related to tools: MCP tool wiring, conversation/form agent
+ * Owns everything related to tools: MCP tool wiring, conversation agent
  * tools, sub-agent tools, and the helpers that merge and filter them. Extracted
  * from StreamingService so that service can focus on the streaming lifecycle.
  */
@@ -48,8 +47,6 @@ export class ToolsService extends ServiceWithLLM {
   private readonly logger = new Logger(ToolsService.name)
 
   constructor(
-    @Inject(FormAgentSessionsService)
-    private readonly formAgentSessionsService: FormAgentSessionsService,
     @Inject(ConversationAgentSessionsService)
     private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
     @Inject(AgentSubAgentsService)
@@ -109,9 +106,6 @@ export class ToolsService extends ServiceWithLLM {
           mcp,
           onExecute,
         })
-
-      case "form":
-        return this.buildFormAgentTools({ agentSessionScope, mcp, onExecute })
 
       default:
         return {
@@ -190,6 +184,10 @@ export class ToolsService extends ServiceWithLLM {
     onExecute: OnExecute
   }): Promise<BuiltTools> {
     const { agent, agentSettings, connectScope, session } = agentSessionScope
+    // fillForm needs a persisted session carrying a `result` column — public
+    // streaming sessions (proxy, no DB row) can't accumulate form state.
+    const hasFillFormTool =
+      agentSettings.fillFormEnabled && agentSettings.outputJsonSchema != null && "result" in session
     const [
       hasSourcesTool,
       currentCategoryNames,
@@ -214,7 +212,6 @@ export class ToolsService extends ServiceWithLLM {
             buildLLMConfig: (params) => this.buildLLMConfig(params),
             buildTools: (params) => this.buildTools(params),
             conversationAgentSessionsService: this.conversationAgentSessionsService,
-            formAgentSessionsService: this.formAgentSessionsService,
             agentSettingsService: this.agentSettingsService,
             generateMasterPrompt,
             getProviderForModel: (model) => this.getProviderForModel(model),
@@ -249,6 +246,17 @@ export class ToolsService extends ServiceWithLLM {
       // Add the surface resources tool if the agent has any resource libraries
       ...((agent.resourceLibraries?.length ?? 0) > 0
         ? { [ToolName.SurfaceResources]: surfaceResourcesTool({ onExecute }) }
+        : {}),
+
+      // Add the fillForm tool if the agent has it enabled (with a form definition)
+      ...(hasFillFormTool
+        ? {
+            [ToolName.FillForm]: fillFormTool({
+              agentSessionScope,
+              sessionResultUpdater: this.conversationAgentSessionsService,
+              onExecute,
+            }),
+          }
         : {}),
 
       // Add the recalculate conversation session metadata tool if the agent has session categories and the feature is enabled
@@ -289,36 +297,6 @@ export class ToolsService extends ServiceWithLLM {
         tools,
       }),
       hasSubAgentTools: Object.keys(subAgentTools).length > 0,
-    }
-  }
-
-  private buildFormAgentTools({
-    agentSessionScope,
-    mcp,
-    onExecute,
-  }: {
-    agentSessionScope: AgentSessionScope
-    mcp: McpToolset
-    onExecute: OnExecute
-  }): BuiltTools {
-    const tools: ToolSet = {
-      [ToolName.FillForm]: fillFormTool({
-        agentSessionScope,
-        formAgentSessionsService: this.formAgentSessionsService,
-        onExecute,
-      }),
-    } as ToolSet
-
-    this.addToolsWithoutCollisions({ target: tools, source: mcp.tools, sourceLabel: "MCP" })
-
-    return {
-      mcpClose: mcp.disconnect,
-      toolDescriptions: this.filterToolDescriptions({
-        descriptions: mcp.toolDescriptions,
-        tools,
-      }),
-      tools,
-      hasSubAgentTools: false,
     }
   }
 

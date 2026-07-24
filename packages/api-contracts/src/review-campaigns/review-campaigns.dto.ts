@@ -1,11 +1,13 @@
 import type { AgentDto } from "../agents/agents.dto"
-import type { FormAgentSessionDto } from "../agents/form-agent-sessions/form-agent-sessions.dto"
+import type { ConversationAgentSessionDto } from "../agents/conversation-agent-sessions/conversation-agent-sessions.dto"
 import type { TimeType } from "../generic"
 
 export type ReviewCampaignStatus = "draft" | "active" | "closed"
 export type ReviewCampaignMembershipRole = "tester" | "reviewer"
 export type ReviewCampaignQuestionType = "rating" | "single-choice" | "free-text"
-export type ReviewCampaignAgentType = "conversation" | "form"
+// Historically also "form"; those rows were migrated to "conversation" when the
+// form agent type was replaced by the fillForm tool (issue #558).
+export type ReviewCampaignAgentType = "conversation"
 export type ReviewCampaignSessionType = "live"
 export type ReviewCampaignFeedbackStatus = "submitted" | "pending" | "abandoned"
 
@@ -90,7 +92,7 @@ export type ListReviewCampaignsResponseDto = {
 
 export type TesterAgentSnapshotDto = Pick<
   AgentDto,
-  "id" | "name" | "type" | "greetingMessage" | "outputJsonSchema"
+  "id" | "name" | "type" | "greetingMessage" | "outputJsonSchema" | "fillFormEnabled"
 >
 
 export type ReviewCampaignTesterContextDto = {
@@ -169,7 +171,10 @@ export type StartTesterSessionResponseDto = {
 export type MyTesterSessionSummaryDto = {
   agentType: ReviewCampaignAgentType
   feedbackStatus: ReviewCampaignFeedbackStatus
-} & Pick<FormAgentSessionDto, "id" | "result" | "createdAt" | "updatedAt" | "agentId" | "type">
+} & Pick<
+  ConversationAgentSessionDto,
+  "id" | "result" | "createdAt" | "updatedAt" | "agentId" | "type"
+>
 
 export type ListMyTesterSessionsResponseDto = {
   sessions: MyTesterSessionSummaryDto[]
@@ -243,7 +248,7 @@ type ReviewerSessionMetaDto = {
   transcript: ReviewerSessionTranscriptMessageDto[]
   reviewerQuestions: ReviewCampaignQuestionDto[]
   otherReviewerCount: number
-  /** Populated only for `agentType === "form"` sessions. */
+  /** Populated only for sessions of fillForm-enabled agents. */
   formResult: ReviewerFormResultDto | null
 }
 

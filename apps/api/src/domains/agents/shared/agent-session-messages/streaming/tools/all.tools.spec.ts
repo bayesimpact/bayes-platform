@@ -6,6 +6,7 @@ import {
 } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import { tool } from "ai"
+import { v4 } from "uuid"
 import { z } from "zod"
 import type { AllRepositories } from "@/common/test/test-all-repositories"
 import {
@@ -14,10 +15,11 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
-import { formAgentSessionFactory } from "@/domains/agents/form-agent-sessions/form-agent-session.factory"
+import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { StreamingModule } from "@/domains/agents/shared/agent-session-messages/streaming/streaming.module"
 import { StreamingService } from "@/domains/agents/shared/agent-session-messages/streaming/streaming.service"
 import type { AgentSessionScope } from "@/domains/agents/shared/agent-session-messages/streaming/streaming-session.types"
+import { ToolsService } from "@/domains/agents/shared/agent-session-messages/streaming/tools.service"
 import { DocumentChunkRetrievalService } from "@/domains/documents/embeddings/document-chunk-retrieval.service"
 import { McpServersService } from "@/domains/mcp-servers/mcp-servers.service"
 import {
@@ -208,21 +210,26 @@ describe("Tools execution", () => {
     expect(updatedSession.title).toBe("About Bayes")
   })
 
-  const createFormContextWithSession = async (result: Record<string, unknown> | null = null) => {
+  const fillFormOutputJsonSchema = {
+    type: "object",
+    properties: { fullName: { type: "string" }, city: { type: "string" } },
+  }
+
+  const createFillFormContextWithSession = async (
+    result: Record<string, unknown> | null = null,
+  ) => {
     const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
       {
-        agent: { type: "form" },
-        agentSettings: {
-          outputJsonSchema: { type: "object", properties: { fullName: { type: "string" } } },
-        },
+        agent: { type: "conversation" },
+        agentSettings: { fillFormEnabled: true, outputJsonSchema: fillFormOutputJsonSchema },
       },
     )
-    const session = formAgentSessionFactory
+    const session = conversationAgentSessionFactory
       .transient({ organization, project, agent, user })
       .live()
       .build({ result })
-    await repositories.formAgentSessionRepository.save(session)
+    await repositories.conversationAgentSessionRepository.save(session)
     return {
       connectScope: { organizationId: organization.id, projectId: project.id },
       agent,
@@ -232,7 +239,7 @@ describe("Tools execution", () => {
   }
 
   it("ToolName.FillForm - should works", async () => {
-    const { connectScope, agent, agentSettings, session } = await createFormContextWithSession()
+    const { connectScope, agent, agentSettings, session } = await createFillFormContextWithSession()
 
     await runWithToolCall({
       agent,
@@ -243,14 +250,34 @@ describe("Tools execution", () => {
       toolInput: { formFields: { fullName: "John" } },
     })
 
-    const updatedSession = await repositories.formAgentSessionRepository.findOneByOrFail({
+    const updatedSession = await repositories.conversationAgentSessionRepository.findOneByOrFail({
       id: session.id,
     })
     expect(updatedSession.result).toEqual({ fullName: "John" })
   })
 
+  it("ToolName.FillForm - should merge new fields into the existing session result", async () => {
+    const { connectScope, agent, agentSettings, session } = await createFillFormContextWithSession({
+      fullName: "Lara Croft",
+    })
+
+    await runWithToolCall({
+      agent,
+      agentSettings,
+      session,
+      connectScope,
+      toolName: ToolName.FillForm,
+      toolInput: { formFields: { city: "Lyon" } },
+    })
+
+    const updatedSession = await repositories.conversationAgentSessionRepository.findOneByOrFail({
+      id: session.id,
+    })
+    expect(updatedSession.result).toEqual({ fullName: "Lara Croft", city: "Lyon" })
+  })
+
   it("ToolName.FillForm - should works - getFormState", async () => {
-    const { connectScope, agent, agentSettings, session } = await createFormContextWithSession({
+    const { connectScope, agent, agentSettings, session } = await createFillFormContextWithSession({
       fullName: "Lara Croft",
     })
 
@@ -264,6 +291,62 @@ describe("Tools execution", () => {
     })
     expect(agentCalls).toHaveLength(2)
     expect(agentCalls[1]?.prompt).toContain("Lara Croft")
+  })
+
+  it("ToolName.FillForm - should not be built when fillFormEnabled is off", async () => {
+    const { organization, project, agent, agentSettings, conversationAgentSession } =
+      await createOrganizationWithAgent(repositories, {
+        agent: { type: "conversation" },
+        agentSettings: { fillFormEnabled: false, outputJsonSchema: fillFormOutputJsonSchema },
+        withLiveConversationAgentSession: true,
+      })
+    const toolsService = setup.module.get<ToolsService>(ToolsService)
+
+    const { tools } = await toolsService.buildTools({
+      agentSessionScope: {
+        agent,
+        agentSettings,
+        session: conversationAgentSession as ConversationAgentSession,
+        connectScope: { organizationId: organization.id, projectId: project.id },
+      },
+      onExecute: () => undefined,
+    })
+
+    // Other conversation tools are still built; only fillForm is gated off.
+    expect(tools?.[ToolName.RetrieveProjectDocumentChunks]).toBeDefined()
+    expect(tools?.[ToolName.FillForm]).toBeUndefined()
+  })
+
+  it("ToolName.FillForm - should not be built for public proxy sessions", async () => {
+    const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        agent: { type: "conversation" },
+        agentSettings: { fillFormEnabled: true, outputJsonSchema: fillFormOutputJsonSchema },
+      },
+    )
+    const toolsService = setup.module.get<ToolsService>(ToolsService)
+    // Mirrors PublicStreamingSessionProxy: no persisted row, so no `result`
+    // column to accumulate form state into.
+    const publicSessionProxy = {
+      id: v4(),
+      traceId: v4(),
+      organizationId: organization.id,
+      messages: [],
+    }
+
+    const { tools } = await toolsService.buildTools({
+      agentSessionScope: {
+        agent,
+        agentSettings,
+        session: publicSessionProxy,
+        connectScope: { organizationId: organization.id, projectId: project.id },
+      },
+      onExecute: () => undefined,
+    })
+
+    expect(tools?.[ToolName.RetrieveProjectDocumentChunks]).toBeDefined()
+    expect(tools?.[ToolName.FillForm]).toBeUndefined()
   })
 
   it("ToolName.RetrieveProjectDocumentChunks - should works", async () => {

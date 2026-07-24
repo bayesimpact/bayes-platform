@@ -245,7 +245,7 @@ describe("AgentSubAgentsService", () => {
   it("rejects non-conversation parent agents", async () => {
     const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
       agent: {
-        type: "form",
+        type: "extraction",
       },
       agentSettings: {
         outputJsonSchema: { type: "object", properties: {} },
@@ -277,7 +277,7 @@ describe("AgentSubAgentsService", () => {
   it("returns an empty list for non-conversation parent agents instead of throwing", async () => {
     const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
       agent: {
-        type: "form",
+        type: "extraction",
       },
       agentSettings: {
         outputJsonSchema: { type: "object", properties: {} },

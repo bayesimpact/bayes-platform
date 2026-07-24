@@ -39,14 +39,12 @@ describe("finalizeStreaming", () => {
         connectScope,
       },
       userContent: "Hello",
-      agentType: testAgent.type,
     })
 
     const finalizedSession = await streamingService.finalizeStreaming({
       sessionId: session.id,
       assistantMessageId,
       fullContent: "Hello! How can I help you today?",
-      agentType: testAgent.type,
     })
 
     const assistantMessage = finalizedSession.messages.find((msg) => msg.id === assistantMessageId)
@@ -57,7 +55,7 @@ describe("finalizeStreaming", () => {
   })
 
   it("should throw NotFoundException for non-existent session", async () => {
-    const { streamingService, testAgent } = getTestContext()
+    const { streamingService } = getTestContext()
 
     // Use a valid UUID format for non-existent session
     const nonExistentId = "00000000-0000-0000-0000-000000000000"
@@ -66,7 +64,6 @@ describe("finalizeStreaming", () => {
         sessionId: nonExistentId,
         assistantMessageId: "00000000-0000-0000-0000-000000000001",
         fullContent: "Content",
-        agentType: testAgent.type,
       }),
     ).rejects.toThrow(NotFoundException)
   })

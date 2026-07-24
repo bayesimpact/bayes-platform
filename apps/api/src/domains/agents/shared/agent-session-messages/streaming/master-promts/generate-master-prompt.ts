@@ -1,7 +1,6 @@
 import type { Agent } from "@/domains/agents/agent.entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { buildConversationAgentPrompt } from "./conversation-agent.prompt"
-import { buildFormAgentPrompt } from "./form-agent.prompt"
 
 export function generateMasterPrompt({
   agent,
@@ -15,8 +14,6 @@ export function generateMasterPrompt({
   toolNames: string[]
 }): string {
   switch (agent.type) {
-    case "form":
-      return buildFormAgentPrompt({ agentSettings, toolNames, toolDescriptions })
     case "conversation":
       return buildConversationAgentPrompt({ agent, agentSettings, toolNames, toolDescriptions })
     default:

@@ -14,6 +14,7 @@
       "name": "Name",
       "model": "Model",
       "outputJsonSchema": "Output JSON Schema",
+      "fillFormEnabled": "Form filling",
       "schemaBuilder": {
         "advancedMode": "Advanced mode",
         "visualMode": "Visual editor",
@@ -91,8 +92,7 @@
         "title": "Agent type",
         "description": "Choose the type before configuring your agent.",
         "conversation": "Conversation",
-        "extraction": "Extraction",
-        "form": "Form"
+        "extraction": "Extraction"
       },
       "conversationDialog": {
         "title": "Create Conversation Agent",
@@ -115,10 +115,6 @@
       "extraction": {
         "title": "Edit Extraction Agent",
         "description": "Edit details for this extraction agent"
-      },
-      "form": {
-        "title": "Edit Form Agent",
-        "description": "Edit details for this form agent"
       }
     },
     "delete": {
@@ -138,9 +134,9 @@
       "general": "General",
       "model": "Model",
       "output": "Output",
-      "form": "Form",
       "sources": "Sources",
       "resourceLibraries": "Resource libraries",
+      "tools": "Tools",
       "categories": "Conversation categories",
       "orchestration": "Orchestration",
       "embed": "Embed",
@@ -214,6 +210,13 @@
     "playground": "Playground",
     "source_one": "{{count}} source",
     "source_other": "{{count}} sources",
-    "source_zero": "No sources"
+    "source_zero": "No sources",
+    "tools": {
+      "fillForm": {
+        "title": "Form filling",
+        "description": "Let the agent fill a structured form from the user's answers during the conversation.",
+        "schemaDescription": "Define the form fields the agent should fill. The field order is the order in which the agent asks its questions."
+      }
+    }
   }
 }

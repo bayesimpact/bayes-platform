@@ -8,7 +8,6 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
-import { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { ServiceWithLLM } from "@/external/llm"
 import { AgentMessage } from "../agent-message.entity"
@@ -25,16 +24,12 @@ export class StreamingService extends ServiceWithLLM {
   private readonly agentMessageRepository: Repository<AgentMessage>
   private readonly agentMessageConnectRepository: ConnectRepository<AgentMessage>
   private readonly conversationAgentSessionRepository: Repository<ConversationAgentSession>
-  private readonly formAgentSessionRepository: Repository<FormAgentSession>
 
   constructor(
     private readonly agentLlmRequestService: AgentLlmRequestService,
 
     @InjectRepository(ConversationAgentSession)
     conversationAgentSessionRepository: Repository<ConversationAgentSession>,
-
-    @InjectRepository(FormAgentSession)
-    formAgentSessionRepository: Repository<FormAgentSession>,
 
     @InjectRepository(AgentMessage)
     agentMessageRepository: Repository<AgentMessage>,
@@ -63,8 +58,6 @@ export class StreamingService extends ServiceWithLLM {
 
     this.conversationAgentSessionRepository = conversationAgentSessionRepository
 
-    this.formAgentSessionRepository = formAgentSessionRepository
-
     this.agentMessageRepository = agentMessageRepository
     this.agentMessageConnectRepository = new ConnectRepository(
       agentMessageRepository,
@@ -86,13 +79,10 @@ export class StreamingService extends ServiceWithLLM {
     attachmentDocumentId?: string
     notifyClient: NotifyClient
   }): AsyncGenerator<StreamEvent, void, unknown> {
-    const { agent } = agentSessionScope
-
     const { session: updatedSession, assistantMessageId } = await this.prepareForStreaming({
       agentSessionScope,
       userContent,
       attachmentDocumentId,
-      agentType: agent.type,
     })
 
     // Update the session in the agentSessionScope to reflect the latest state after preparing for streaming
@@ -130,7 +120,6 @@ export class StreamingService extends ServiceWithLLM {
         sessionId: updatedSession.id,
         assistantMessageId,
         fullContent,
-        agentType: agent.type,
       })
 
       yield this.sseEvent({ type: "end", messageId: assistantMessageId, fullContent })
@@ -141,7 +130,6 @@ export class StreamingService extends ServiceWithLLM {
         sessionId: updatedSession.id,
         assistantMessageId,
         errorMessage,
-        agentType: agent.type,
       })
 
       yield this.sseEvent({ type: "error", messageId: assistantMessageId, error: errorMessage })
@@ -154,8 +142,8 @@ export class StreamingService extends ServiceWithLLM {
 
   /**
    * Streams an agent response for a public (anonymous) session.
-   * Bypasses the ConversationAgentSession / FormAgentSession lookup and works
-   * directly with the public_agent_session row and agent_message table.
+   * Bypasses the ConversationAgentSession lookup and works directly with the
+   * public_agent_session row and agent_message table.
    */
   async *streamPublicAgentResponse({
     connectScope,
@@ -280,19 +268,10 @@ export class StreamingService extends ServiceWithLLM {
    */
   async findSessionById({
     sessionId,
-    agentType,
   }: {
     sessionId: string
-    agentType: Agent["type"]
-  }): Promise<ConversationAgentSession | FormAgentSession | null> {
-    if (agentType !== "conversation" && agentType !== "form") {
-      throw new Error(`Unsupported agent type: ${agentType}`)
-    }
-    const repository =
-      agentType === "conversation"
-        ? this.conversationAgentSessionRepository
-        : this.formAgentSessionRepository
-    const session = await repository.findOne({
+  }): Promise<ConversationAgentSession | null> {
+    const session = await this.conversationAgentSessionRepository.findOne({
       where: { id: sessionId },
       relations: ["messages"],
       order: { messages: { createdAt: "ASC" } },
@@ -306,7 +285,7 @@ export class StreamingService extends ServiceWithLLM {
     await this.recoverAbortedStreams(sessionId)
 
     // Reload session with updated messages
-    return repository.findOne({
+    return this.conversationAgentSessionRepository.findOne({
       where: { id: sessionId },
       relations: ["messages"],
       order: { messages: { createdAt: "ASC" } },
@@ -319,16 +298,14 @@ export class StreamingService extends ServiceWithLLM {
    */
   async prepareForStreaming({
     agentSessionScope,
-    agentType,
     attachmentDocumentId,
     userContent,
   }: {
-    agentType: Agent["type"]
     agentSessionScope: AgentSessionScope
     attachmentDocumentId?: string
     userContent: string
   }): Promise<{
-    session: ConversationAgentSession | FormAgentSession
+    session: ConversationAgentSession
     assistantMessageId: string
   }> {
     const { session, connectScope } = agentSessionScope
@@ -363,7 +340,7 @@ export class StreamingService extends ServiceWithLLM {
     })
 
     // Reload session with messages
-    const updatedSession = await this.findSessionById({ sessionId, agentType })
+    const updatedSession = await this.findSessionById({ sessionId })
 
     if (!updatedSession) {
       throw new NotFoundException(`AgentSession with id ${sessionId} not found`)
@@ -377,16 +354,14 @@ export class StreamingService extends ServiceWithLLM {
    * Sets status to "completed" and adds full content
    */
   async finalizeStreaming({
-    agentType,
     assistantMessageId,
     fullContent,
     sessionId,
   }: {
-    agentType: Agent["type"]
     assistantMessageId: string
     fullContent: string
     sessionId: string
-  }): Promise<ConversationAgentSession | FormAgentSession> {
+  }): Promise<ConversationAgentSession> {
     await this.updateMessageStatusWithIds({
       id: assistantMessageId,
       sessionId,
@@ -395,7 +370,7 @@ export class StreamingService extends ServiceWithLLM {
       throwNotFound: true,
     })
 
-    const session = await this.findSessionById({ sessionId, agentType })
+    const session = await this.findSessionById({ sessionId })
 
     if (!session) {
       throw new NotFoundException(`AgentSession with id ${sessionId} not found`)
@@ -408,16 +383,14 @@ export class StreamingService extends ServiceWithLLM {
    * Marks a streaming message as error
    */
   async markStreamingError({
-    agentType,
     assistantMessageId,
     errorMessage,
     sessionId,
   }: {
-    agentType: Agent["type"]
     assistantMessageId: string
     errorMessage: string
     sessionId: string
-  }): Promise<ConversationAgentSession | FormAgentSession> {
+  }): Promise<ConversationAgentSession> {
     await this.updateMessageStatusWithIds({
       id: assistantMessageId,
       sessionId,
@@ -426,7 +399,7 @@ export class StreamingService extends ServiceWithLLM {
       throwNotFound: true,
     })
 
-    const session = await this.findSessionById({ sessionId, agentType })
+    const session = await this.findSessionById({ sessionId })
 
     if (!session) {
       throw new NotFoundException(`ConversationAgentSession with id ${sessionId} not found`)

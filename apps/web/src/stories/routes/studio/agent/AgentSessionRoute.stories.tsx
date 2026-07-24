@@ -1,13 +1,12 @@
+import { ToolName } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { agentFactory } from "@/common/features/agents/agent.factory"
 import {
   agentSessionMessageFactory,
   conversationAgentSessionFactory,
-  formAgentSessionFactory,
-  formSubSessionFactory,
+  conversationSubSessionFactory,
 } from "@/common/features/agents/agent-sessions/agent-session.factory"
-import type { Agent } from "@/common/features/agents/agents.models"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -19,10 +18,8 @@ import { mergeSeeds, seed } from "@/stories/seed"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
-type AgentType = Extract<Agent["type"], "conversation" | "form">
-
 type StoryArgs = StudioStoryArgs & {
-  agentType: AgentType
+  fillForm?: boolean
   withMessages?: boolean
   withSubAgentForms?: boolean
 }
@@ -33,17 +30,14 @@ const meta = {
   argTypes: {
     ...studioStoryArgTypes,
     withAgents: { control: undefined },
-    agentType: {
-      control: "select",
-      options: ["conversation", "form"] satisfies AgentType[],
-    },
+    fillForm: { control: "boolean" },
     withMessages: { control: "boolean" },
     withSubAgentForms: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
     withAgents: true,
-    agentType: "conversation",
+    fillForm: false,
     withMessages: true,
     withSubAgentForms: false,
   },
@@ -55,97 +49,46 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   decorators: [
-    buildDecorator<StoryArgs>(({ agentType, withMessages, withSubAgentForms, ...args }) => {
+    buildDecorator<StoryArgs>(({ fillForm, withMessages, withSubAgentForms, ...args }) => {
       const { baseSeeds, project, agents } = buildStudioData(args)
       const [firstAgent, ...restAgents] = agents
 
-      const outputJsonSchema = {
-        type: "object",
-        properties: {
-          firstName: { type: "string" },
-          lastName: { type: "string" },
-          email: { type: "string" },
-          company: { type: "string" },
-          role: { type: "string" },
-          country: { type: "string" },
-          city: { type: "string" },
-          industry: { type: "string" },
-          teamSize: { type: "string" },
-        },
-      }
-      const formSessionResult = {
-        firstName: faker.person.firstName(),
-        lastName: faker.person.lastName(),
-        email: faker.internet.email(),
-        company: faker.company.name(),
-        country: faker.location.country(),
-        industry: faker.commerce.department(),
-        teamSize: faker.string.numeric({ length: { min: 1, max: 2 } }),
-      }
-
-      const currentAgent = agentFactory
+      const currentAgent = (fillForm ? agentFactory.fillForm() : agentFactory)
         .transient({ project })
-        .build({ ...firstAgent, type: agentType, outputJsonSchema })
+        .build({ ...firstAgent, type: "conversation", fillFormEnabled: !!fillForm })
 
-      const conversationSession =
-        agentType === "conversation"
-          ? conversationAgentSessionFactory.transient({ agent: currentAgent }).build()
-          : null
+      const sessionFactory = conversationAgentSessionFactory.transient({ agent: currentAgent })
+      // fillForm-enabled agents accumulate a form result on the session, shown in the sheet.
+      const session = (fillForm ? sessionFactory.withResult() : sessionFactory).build()
 
-      const formSession =
-        agentType === "form"
-          ? formAgentSessionFactory
-              .transient({ agent: currentAgent })
-              .build({ result: formSessionResult })
-          : null
-      const currentSessionId = (conversationSession ?? formSession)?.id ?? null
-
-      // Form sub-agents the parent conversation delegated to during this session.
-      const showSubAgentForms = withSubAgentForms && agentType === "conversation"
-      const subSessions = showSubAgentForms
+      // fillForm-enabled sub-agents the parent conversation delegated to during this session.
+      const subSessions = withSubAgentForms
         ? [
-            formSubSessionFactory
-              .transient({
-                session: formAgentSessionFactory.build({
-                  type: "playground",
-                  result: { fullName: faker.person.fullName(), email: faker.internet.email() },
-                }),
-              })
-              .build({
-                toolName: "collect_contact",
-                agentName: "Contact Form",
-                outputJsonSchema: {
-                  type: "object",
-                  properties: { fullName: { type: "string" }, email: { type: "string" } },
-                },
-              }),
-            formSubSessionFactory
-              .transient({
-                session: formAgentSessionFactory.build({
-                  type: "playground",
-                  result: { company: faker.company.name(), industry: faker.commerce.department() },
-                }),
-              })
-              .build({
-                toolName: "collect_company",
-                agentName: "Company Form",
-                outputJsonSchema: {
-                  type: "object",
-                  properties: { company: { type: "string" }, industry: { type: "string" } },
-                },
-              }),
+            conversationSubSessionFactory.build({
+              toolName: "collect_contact",
+              agentName: "Contact Assistant",
+            }),
+            conversationSubSessionFactory.build({
+              toolName: "collect_details",
+              agentName: "Details Assistant",
+            }),
           ]
         : []
 
-      const assistantMessage = agentSessionMessageFactory.build({
-        role: "assistant",
-        toolCalls: showSubAgentForms
+      const toolCalls = [
+        ...(fillForm ? [{ id: faker.string.uuid(), name: ToolName.FillForm, arguments: {} }] : []),
+        ...(withSubAgentForms
           ? subSessions.map((subSession) => ({
               id: faker.string.uuid(),
               name: subSession.toolName,
               arguments: {},
             }))
-          : undefined,
+          : []),
+      ]
+
+      const assistantMessage = agentSessionMessageFactory.build({
+        role: "assistant",
+        toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
       })
 
       const messages = withMessages
@@ -161,16 +104,9 @@ export const Default: Story = {
         state: mergeSeeds(
           baseSeeds,
           seed.agents([...restAgents, currentAgent], { currentId: currentAgent.id }),
-          seed.conversationAgentSessions({
-            [currentAgent.id]: conversationSession ? [conversationSession] : [],
-          }),
-          seed.formAgentSessions({
-            [currentAgent.id]: formSession ? [formSession] : [],
-          }),
-          currentSessionId && subSessions.length > 0
-            ? seed.formSubSessions({ [currentSessionId]: subSessions })
-            : {},
-          seed.currentAgentSessionId(currentSessionId),
+          seed.conversationAgentSessions({ [currentAgent.id]: [session] }),
+          subSessions.length > 0 ? seed.conversationSubSessions({ [session.id]: subSessions }) : {},
+          seed.currentAgentSessionId(session.id),
           seed.agentSessionMessages(messages),
         ),
       }
@@ -178,12 +114,12 @@ export const Default: Story = {
   ],
 }
 
-export const FormSession: Story = {
-  args: { agentType: "form" },
+export const FillFormSession: Story = {
+  args: { fillForm: true },
   decorators: Default.decorators,
 }
 
 export const WithSubAgentForms: Story = {
-  args: { agentType: "conversation", withMessages: true, withSubAgentForms: true },
+  args: { withMessages: true, withSubAgentForms: true },
   decorators: Default.decorators,
 }

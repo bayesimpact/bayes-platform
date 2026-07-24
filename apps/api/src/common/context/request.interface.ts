@@ -2,7 +2,6 @@ import type { Agent } from "@/domains/agents/agent.entity"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import type { AgentCsvExtractionRun } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run.entity"
 import type { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
-import type { FormAgentSession } from "@/domains/agents/form-agent-sessions/form-agent-session.entity"
 import type { AgentMembershipModel } from "@/domains/agents/memberships/agent-membership.model"
 import type { Document } from "@/domains/documents/document.entity"
 import type { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
@@ -72,7 +71,7 @@ export interface EndpointRequestWithResourceLibrary extends EndpointRequestWithP
 }
 
 export interface EndpointRequestWithAgentSession<
-  T extends ConversationAgentSession | FormAgentSession | ExtractionAgentSession,
+  T extends ConversationAgentSession | ExtractionAgentSession,
 > extends EndpointRequestWithAgent {
   agentSession: T
 }

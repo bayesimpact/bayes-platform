@@ -2,7 +2,7 @@ import {
   type ConversationAgentSessionDto,
   ConversationAgentSessionsRoutes,
 } from "@caseai-connect/api-contracts"
-import { Body, Controller, Post, Req, UseGuards } from "@nestjs/common"
+import { Body, Controller, Param, Post, Req, UseGuards } from "@nestjs/common"
 import type {
   EndpointRequestWithAgent,
   EndpointRequestWithAgentSession,
@@ -21,6 +21,8 @@ import { BaseAgentSessionGuard } from "../base-agent-sessions/base-agent-session
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { BaseAgentSessionsService } from "../base-agent-sessions/base-agent-sessions.service"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSubAgentsService } from "../sub-agents/agent-sub-agents.service"
 import type { ConversationAgentSession } from "./conversation-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ConversationAgentSessionsService } from "./conversation-agent-sessions.service"
@@ -33,6 +35,7 @@ export class ConversationAgentSessionsController {
     private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
     private readonly agentSettingsService: AgentSettingsService,
     private readonly baseAgentSessionsService: BaseAgentSessionsService,
+    private readonly agentSubAgentsService: AgentSubAgentsService,
   ) {}
 
   @CheckPolicy((policy) => policy.canList())
@@ -83,6 +86,54 @@ export class ConversationAgentSessionsController {
     })
     return { data: { success: true } }
   }
+
+  @CheckPolicy((policy) => policy.canList())
+  @Post(ConversationAgentSessionsRoutes.listSubSessions.path)
+  async listSubSessions(
+    @Req() request: EndpointRequestWithAgent,
+    @Param("agentSessionId") agentSessionId: string,
+    @Body() { payload }: typeof ConversationAgentSessionsRoutes.listSubSessions.request,
+  ): Promise<typeof ConversationAgentSessionsRoutes.listSubSessions.response> {
+    const connectScope = getRequiredConnectScope(request)
+
+    const [subAgents, sessions] = await Promise.all([
+      this.agentSubAgentsService.listSubAgents({ connectScope, parentAgent: request.agent }),
+      this.conversationAgentSessionsService.listSubSessions({
+        connectScope,
+        parentSessionId: agentSessionId,
+        userId: request.user.id,
+        type: payload.type,
+      }),
+    ])
+
+    const sessionByAgentId = new Map(sessions.map((session) => [session.agentId, session]))
+
+    const results = await Promise.all(
+      subAgents.map(async (subAgent) => {
+        const session = sessionByAgentId.get(subAgent.childAgentId)
+        if (!session || !subAgent.childAgent) return []
+
+        const settings = await this.agentSettingsService.getLast({
+          connectScope,
+          agentId: subAgent.childAgentId,
+        })
+        // Only fillForm-enabled sub-agents accumulate a form result worth surfacing.
+        if (!settings.fillFormEnabled) return []
+
+        return [
+          {
+            toolName: subAgent.toolName,
+            agentId: subAgent.childAgentId,
+            agentName: subAgent.childAgent.name,
+            outputJsonSchema: settings.outputJsonSchema ?? undefined,
+            session: toDto(payload.type)(session),
+          },
+        ]
+      }),
+    )
+
+    return { data: results.flat() }
+  }
 }
 
 function toDto(agentSessionType: BaseAgentSessionType) {
@@ -96,6 +147,7 @@ function toDto(agentSessionType: BaseAgentSessionType) {
       createdAt: entity.createdAt.getTime(),
       updatedAt: entity.updatedAt.getTime(),
       traceUrl,
+      result: entity.result ?? undefined,
     }
   }
 }

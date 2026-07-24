@@ -12,7 +12,6 @@ import { AgentsModule } from "./domains/agents/agents.module"
 import { ConversationAgentSessionsModule } from "./domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { AgentCsvExtractionRunsModule } from "./domains/agents/csv-extraction-runs/agent-csv-extraction-runs.module"
 import { ExtractionAgentSessionsModule } from "./domains/agents/extraction-agent-sessions/extraction-agent-sessions.module"
-import { FormAgentSessionsModule } from "./domains/agents/form-agent-sessions/form-agent-sessions.module"
 import { AgentMessageFeedbackModule } from "./domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.module"
 import { StreamingModule } from "./domains/agents/shared/agent-session-messages/streaming/streaming.module"
 import { AgentsAnalyticsModule } from "./domains/analytics/agents-analytics/agents-analytics.module"
@@ -63,7 +62,6 @@ import { UsersModule } from "./domains/users/users.module"
     DocumentTagsModule,
     EvaluationsModule,
     ExtractionAgentSessionsModule,
-    FormAgentSessionsModule,
     InvitationsModule,
     MeModule,
     OrganizationsModule,

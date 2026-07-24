@@ -1,13 +1,13 @@
 import { createContext, useContext } from "react"
-import type { FormSubSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
+import type { ConversationSubSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 
 /**
- * Carries the form sub-sessions delegated by the current parent agent session
- * down to the individual tool-call renderers. Defaults to an empty list, so
- * interfaces that don't load sub-sessions (everything outside the Studio) simply
- * render no sub-agent result affordance.
+ * Carries the sub-sessions delegated by the current parent agent session down to
+ * the individual tool-call renderers. Defaults to an empty list, so interfaces
+ * that don't load sub-sessions (everything outside the Studio) simply render no
+ * sub-agent result affordance.
  */
-const FormSubSessionsContext = createContext<FormSubSession[]>([])
+const FormSubSessionsContext = createContext<ConversationSubSession[]>([])
 
 export const FormSubSessionsProvider = FormSubSessionsContext.Provider
 

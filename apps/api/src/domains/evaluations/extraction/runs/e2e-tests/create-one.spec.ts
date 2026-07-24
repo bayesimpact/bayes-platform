@@ -56,7 +56,7 @@ describe("EvaluationExtractionRuns - createOne", () => {
     await app.close()
   })
 
-  const createContext = async (agentType?: "conversation" | "extraction" | "form" | undefined) => {
+  const createContext = async (agentType?: "conversation" | "extraction" | undefined) => {
     const { user, organization, project, agent } = await createOrganizationWithAgent(repositories, {
       agent: { type: agentType ?? "extraction" },
       agentSettings: {

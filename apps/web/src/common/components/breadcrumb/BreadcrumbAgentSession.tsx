@@ -19,11 +19,6 @@ import {
   selectCurrentConversationAgentSessionData,
   selectCurrentConversationAgentSessionsData,
 } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.selectors"
-import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
-import {
-  selectCurrentFormAgentSessionData,
-  selectCurrentFormAgentSessionsData,
-} from "@/common/features/agents/agent-sessions/form/form-agent-sessions.selectors"
 import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { ADS } from "@/common/store/async-data-status"
@@ -48,8 +43,6 @@ export function BreadcrumbAgentSession({
   switch (agent.value.type) {
     case "conversation":
       return <ConversationAgentSessionList organizationId={organizationId} buildPath={buildPath} />
-    case "form":
-      return <FormAgentSessionList organizationId={organizationId} buildPath={buildPath} />
     default:
       return null
   }
@@ -76,27 +69,6 @@ function ConversationAgentSessionList({
   )
 }
 
-function FormAgentSessionList({
-  organizationId,
-  buildPath,
-}: {
-  organizationId: string
-  buildPath: BuildPath
-}) {
-  const sessions = useAppSelector(selectCurrentFormAgentSessionsData)
-  const currentSession = useAppSelector(selectCurrentFormAgentSessionData)
-  if (!ADS.isFulfilled(sessions) || !ADS.isFulfilled(currentSession)) return null
-
-  return (
-    <WithData
-      organizationId={organizationId}
-      currentSession={currentSession.value}
-      sessions={sessions.value}
-      buildPath={buildPath}
-    />
-  )
-}
-
 function WithData({
   organizationId,
   currentSession,
@@ -104,8 +76,8 @@ function WithData({
   buildPath,
 }: {
   organizationId: string
-  currentSession: ConversationAgentSession | FormAgentSession
-  sessions: (ConversationAgentSession | FormAgentSession)[]
+  currentSession: ConversationAgentSession
+  sessions: ConversationAgentSession[]
   buildPath:
     | (typeof StudioRoutes)["agentSession"]["build"]
     | (typeof DeskRoutes)["agentSession"]["build"]

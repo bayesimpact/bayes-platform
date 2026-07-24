@@ -1,7 +1,6 @@
 import backoffice from "@/backoffice/features/backoffice/external/backoffice.api"
 import conversationAgentSessions from "@/common/features/agents/agent-sessions/conversation/external/conversation-agent-sessions.api"
 import extractionAgentSessions from "@/common/features/agents/agent-sessions/extraction/external/extraction-agent-sessions.api"
-import formAgentSessions from "@/common/features/agents/agent-sessions/form/external/form-agent-sessions.api"
 import agentSessionMessages from "@/common/features/agents/agent-sessions/shared/agent-session-messages/external/agent-session-messages.api"
 import agentCsvExtractionRuns from "@/common/features/agents/csv-extraction-runs/external/agent-csv-extraction-runs.api"
 import agents from "@/common/features/agents/external/agents.api"
@@ -47,7 +46,6 @@ export const services = {
   evaluationExtractionDatasets,
   evaluationExtractionRuns,
   extractionAgentSessions,
-  formAgentSessions,
   invitations,
   mcpServers,
   me,

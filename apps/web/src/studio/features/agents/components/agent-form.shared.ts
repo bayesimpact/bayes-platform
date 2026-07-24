@@ -35,7 +35,7 @@ export function getDefaultFormValues({
     resourceLibraryIds: [],
   }
 
-  if (["form", "extraction"].includes(agentType)) {
+  if (agentType === "extraction") {
     // @ts-expect-error - This is valid because of the conditional check on agentType, but TypeScript can't infer that for some reason
     value.outputJsonSchema = agentDefaultOutputJsonSchemaMap[agentType]
   }

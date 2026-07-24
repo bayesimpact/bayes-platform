@@ -39,7 +39,16 @@ export const agentOutputJsonSchemaFactory = AgentOutputJsonSchemaFactory.define(
   }
 })
 
-class AgentFactory extends Factory<Agent, AgentTransientParams> {}
+class AgentFactory extends Factory<Agent, AgentTransientParams> {
+  /** A conversation agent with the fillForm tool enabled and a form definition. */
+  fillForm() {
+    return this.params({
+      type: "conversation",
+      fillFormEnabled: true,
+      outputJsonSchema: agentOutputJsonSchemaFactory.build(),
+    })
+  }
+}
 
 export const agentFactory = AgentFactory.define(({ params, transientParams }) => {
   const { project } = transientParams
@@ -47,7 +56,7 @@ export const agentFactory = AgentFactory.define(({ params, transientParams }) =>
     throw new Error("Project must be provided in transient params to build an Agent")
   }
 
-  const types = ["conversation", "form", "extraction"] as const
+  const types = ["conversation", "extraction"] as const
   const type = faker.helpers.arrayElement(types)
   return {
     createdAt: params.createdAt ?? faker.date.past().getTime(),
@@ -55,6 +64,7 @@ export const agentFactory = AgentFactory.define(({ params, transientParams }) =>
     documentsRagMode: params.documentsRagMode ?? DocumentsRagMode.None,
     documentTagIds: params.documentTagIds ?? [],
     resourceLibraryIds: params.resourceLibraryIds ?? [],
+    fillFormEnabled: params.fillFormEnabled ?? false,
     greetingMessage: params.greetingMessage ?? undefined,
     id: params.id ?? faker.string.uuid(),
     revision: params.revision ?? 1,

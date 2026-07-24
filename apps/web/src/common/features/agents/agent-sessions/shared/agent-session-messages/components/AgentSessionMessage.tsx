@@ -15,11 +15,13 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FeedbackCreator } from "@/common/components/FeedbackCreator"
 import { RestrictedFeature } from "@/common/components/RestrictedFeature"
+import { FormResultSheet } from "@/common/features/agents/agent-sessions/conversation/components/FormResultSheet"
 import type { AgentSessionMessage as AgentSessionMessageType } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import { useCopyToClipboard } from "@/common/hooks/use-copy-to-clipboard"
 import { useAppSelector } from "@/common/store/hooks"
 import { selectStreamingToolSteps } from "../agent-session-messages.selectors"
 import { Attachment } from "./Attachment"
+import { useFormResult } from "./form-result-context"
 import { useFormSubSessions } from "./form-sub-sessions-context"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { SourcesTool } from "./SourcesTool"
@@ -28,12 +30,15 @@ import { SurfaceResourcesTool } from "./SurfaceResourcesTool"
 
 export function AgentSessionMessage({ message }: { message: AgentSessionMessageType }) {
   const formSubSessions = useFormSubSessions()
+  const formResult = useFormResult()
 
   switch (message.role) {
     case "assistant": {
       const isStreaming = message.status === "streaming"
       const hasContent = message.content.trim().length > 0
       const isError = message.status === "error"
+      // This turn ran the fillForm tool, so its footer can open the form result.
+      const filledForm = (message.toolCalls ?? []).some((call) => call.name === ToolName.FillForm)
       const sourcesTool = message.toolCalls?.find((call) => call.name === ToolName.Sources)
       const surfaceResourcesTool = message.toolCalls?.find(
         (call) => call.name === ToolName.SurfaceResources,
@@ -79,6 +84,13 @@ export function AgentSessionMessage({ message }: { message: AgentSessionMessageT
                 <FeedbackCreator message={message} />
 
                 <CopyToClipboard content={message.content} />
+
+                {filledForm && formResult && (
+                  <FormResultSheet
+                    outputJsonSchema={formResult.outputJsonSchema}
+                    result={formResult.result}
+                  />
+                )}
 
                 <RestrictedFeature feature="sources-tool">
                   {sourcesTool && <SourcesTool toolCall={sourcesTool} />}

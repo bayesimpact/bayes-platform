@@ -67,9 +67,9 @@ const extractionAgent = agentFactory.transient({ project }).build({
   greetingMessage: undefined,
 })
 
-const formAgent = agentFactory.transient({ project }).build({
-  type: "form",
-  name: "Intake Form Agent",
+// A conversation agent with the fillForm tool enabled — the editor shows the Tools tab.
+const fillFormAgent = agentFactory.fillForm().transient({ project }).build({
+  name: "Intake Assistant",
   documentsRagMode: DocumentsRagMode.None,
   outputJsonSchema: mockOutputJsonSchema,
   greetingMessage: "Welcome — let's get started. I'll ask a few questions.",
@@ -123,18 +123,18 @@ export const ExtractionEdit: Story = {
   },
 }
 
-export const FormEdit: Story = {
+export const ConversationWithFillForm: Story = {
   decorators: [
     withRedux({
       state: mergeSeeds(
         seed.currentProject(project),
         seed.studio.documentTags(documentTags),
-        seed.agents([formAgent], { currentId: formAgent.id }),
+        seed.agents([fillFormAgent], { currentId: fillFormAgent.id }),
       ),
     }),
   ],
   args: {
-    agent: formAgent,
+    agent: fillFormAgent,
   },
 }
 
@@ -161,20 +161,20 @@ export const WithMcpServers: Story = {
   },
 }
 
-export const FormWithMcpServers: Story = {
+export const ConversationWithFillFormAndMcpServers: Story = {
   decorators: [
     withRedux({
       state: mergeSeeds(
         seed.currentProject(projectWithMcp),
         seed.studio.documentTags(documentTags),
         seed.studio.mcpServers(mcpServers),
-        seed.agents([formAgent], { currentId: formAgent.id }),
+        seed.agents([fillFormAgent], { currentId: fillFormAgent.id }),
       ),
     }),
   ],
   args: {
     agent: {
-      ...formAgent,
+      ...fillFormAgent,
       mcpServers: mcpServers.map((server) => ({
         id: server.id,
         name: server.name,

@@ -2,7 +2,6 @@ import { createListenerMiddleware } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import type { AppDispatch, RootState } from "@/common/store"
 import { isStudioInterface } from "@/studio/routes/helpers"
-import { formAgentSessionsActions } from "../form/form-agent-sessions.slice"
 import { agentSessionMessagesActions } from "../shared/agent-session-messages/agent-session-messages.slice"
 import { listMessages } from "../shared/agent-session-messages/agent-session-messages.thunks"
 import { conversationAgentSessionsActions } from "./conversation-agent-sessions.slice"
@@ -38,7 +37,7 @@ function registerListeners() {
       if (isStudioInterface()) {
         const agentId = getCurrentId({ state, name: "agentId" })
         await listenerApi.dispatch(
-          formAgentSessionsActions.listSubSessions({ agentId, agentSessionId }),
+          conversationAgentSessionsActions.listSubSessions({ agentId, agentSessionId }),
         )
       }
     },
@@ -62,7 +61,7 @@ function registerListeners() {
       // the extra fetch there.
       const agentId = getCurrentId({ state, name: "agentId" })
       await listenerApi.dispatch(
-        formAgentSessionsActions.listSubSessions({ agentId, agentSessionId }),
+        conversationAgentSessionsActions.listSubSessions({ agentId, agentSessionId }),
       )
     },
   })

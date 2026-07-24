@@ -24,11 +24,11 @@ export function CampaignList({
 }) {
   const agents = useValue(selectAgentsData)
   const campaigns = useValue(selectReviewCampaignsData)
-  // Review campaigns only support conversation + form agents as targets;
+  // Review campaigns only support conversation agents as targets;
   // testerService.startSession rejects extraction agents (apps/api/.../tester.service.ts).
   const agentOptions = useMemo(() => {
     return agents
-      .filter((agent) => agent.type === "conversation" || agent.type === "form")
+      .filter((agent) => agent.type === "conversation")
       .map((agent) => ({ id: agent.id, name: agent.name }))
   }, [agents])
 

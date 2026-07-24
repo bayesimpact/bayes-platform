@@ -2,7 +2,10 @@ export type ReviewCampaignStatus = "draft" | "active" | "closed"
 
 export type ReviewCampaignMembershipRole = "tester" | "reviewer"
 
-export type ReviewCampaignAgentType = "conversation" | "form"
+// The persisted agent_type columns (reviewer_session_review, tester_session_feedback)
+// historically also held "form"; those rows were migrated to "conversation" when the
+// form agent type was replaced by the fillForm tool (issue #558).
+export type ReviewCampaignAgentType = "conversation"
 
 export type ReviewCampaignQuestionType = "rating" | "single-choice" | "free-text"
 

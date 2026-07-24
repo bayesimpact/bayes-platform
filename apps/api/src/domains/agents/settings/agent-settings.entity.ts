@@ -52,4 +52,7 @@ export class AgentSettings extends ConnectEntityBase {
 
   @Column({ type: "jsonb", nullable: true, name: "output_json_schema" })
   outputJsonSchema!: Record<string, unknown> | null
+
+  @Column({ type: "boolean", name: "fill_form_enabled", default: false, nullable: false })
+  fillFormEnabled!: boolean
 }

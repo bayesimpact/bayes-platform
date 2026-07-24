@@ -25,6 +25,10 @@ export class ConversationAgentSession extends ConnectEntityBase {
   @Column({ type: "varchar", nullable: true })
   title!: string | null
 
+  // Form state accumulated by the fillForm tool, when the agent has it enabled.
+  @Column({ type: "jsonb", nullable: true })
+  result!: Record<string, unknown> | null
+
   // The parent agent session that spawned this sub-session, if any. Used to
   // find-or-create a single conversation sub-session per parent conversation so
   // the sub-agent's turns land in one persistent trace. Its presence is what

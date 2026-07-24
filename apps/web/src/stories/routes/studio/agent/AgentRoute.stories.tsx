@@ -3,7 +3,6 @@ import { agentFactory } from "@/common/features/agents/agent.factory"
 import {
   conversationAgentSessionFactory,
   extractionAgentSessionSummaryFactory,
-  formAgentSessionFactory,
 } from "@/common/features/agents/agent-sessions/agent-session.factory"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { buildDecorator, render } from "@/stories/decorators"
@@ -22,6 +21,7 @@ type AgentType = Agent["type"]
 
 type StoryArgs = StudioStoryArgs & {
   agentType: AgentType
+  fillForm?: boolean
   withAgentSessions?: boolean
 }
 
@@ -33,14 +33,16 @@ const meta = {
     withAgents: { control: undefined },
     agentType: {
       control: "select",
-      options: ["conversation", "form", "extraction"] satisfies AgentType[],
+      options: ["conversation", "extraction"] satisfies AgentType[],
     },
+    fillForm: { control: "boolean" },
     withAgentSessions: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
     withAgents: true,
     agentType: "conversation",
+    fillForm: false,
     withAgentSessions: false,
   },
   render: render({ routes: studioRoutes, path: StudioRoutes.agent.path }),
@@ -51,24 +53,21 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   decorators: [
-    buildDecorator<StoryArgs>(({ agentType, withAgentSessions, ...args }) => {
+    buildDecorator<StoryArgs>(({ agentType, fillForm, withAgentSessions, ...args }) => {
       const { baseSeeds, project, agents } = buildStudioData(args)
       const [firstAgent, ...restAgents] = agents
-      const currentAgent = agentFactory
+      const withFillForm = agentType === "conversation" && !!fillForm
+      const currentAgent = (withFillForm ? agentFactory.fillForm() : agentFactory)
         .transient({ project })
-        .build({ ...firstAgent, type: agentType })
+        .build({ ...firstAgent, type: agentType, fillFormEnabled: withFillForm })
 
+      const conversationSessionFactory = conversationAgentSessionFactory.transient({
+        agent: currentAgent,
+      })
       const conversationSessions =
         withAgentSessions && agentType === "conversation"
-          ? conversationAgentSessionFactory
-              .transient({ agent: currentAgent })
-              .buildList(3)
-              .sort(sortRecentlyCreated)
-          : []
-      const formSessions =
-        withAgentSessions && agentType === "form"
-          ? formAgentSessionFactory
-              .transient({ agent: currentAgent })
+          ? // fillForm-enabled agents accumulate a form result on their sessions.
+            (withFillForm ? conversationSessionFactory.withResult() : conversationSessionFactory)
               .buildList(3)
               .sort(sortRecentlyCreated)
           : []
@@ -85,7 +84,6 @@ export const Default: Story = {
           baseSeeds,
           seed.agents([...restAgents, currentAgent], { currentId: currentAgent.id }),
           seed.conversationAgentSessions({ [currentAgent.id]: conversationSessions }),
-          seed.formAgentSessions({ [currentAgent.id]: formSessions }),
           seed.extractionAgentSessions({
             [currentAgent.id]: { csvSessions: [], others: extractionSessions },
           }),
@@ -103,213 +101,25 @@ export const AgentConvWithSessions: Story = {
     featureFlags: [],
     withAgents: true,
     agentType: "conversation",
+    fillForm: false,
     withAgentSessions: true,
   },
-
-  decorators: [
-    buildDecorator<StoryArgs>(({ agentType, withAgentSessions, ...args }) => {
-      const { baseSeeds, project, agents } = buildStudioData(args)
-      const [firstAgent, ...restAgents] = agents
-      const currentAgent = agentFactory
-        .transient({
-          project,
-        })
-        .build({
-          ...firstAgent,
-          type: agentType,
-        })
-
-      const conversationSessions =
-        withAgentSessions && agentType === "conversation"
-          ? conversationAgentSessionFactory
-              .transient({
-                agent: currentAgent,
-              })
-              .buildList(3)
-              .sort(sortRecentlyCreated)
-          : []
-      const formSessions =
-        withAgentSessions && agentType === "form"
-          ? formAgentSessionFactory
-              .transient({
-                agent: currentAgent,
-              })
-              .buildList(3)
-              .sort(sortRecentlyCreated)
-          : []
-      const extractionSessions =
-        withAgentSessions && agentType === "extraction"
-          ? extractionAgentSessionSummaryFactory
-              .transient({
-                agent: currentAgent,
-              })
-              .buildList(3)
-              .sort(sortRecentlyCreated)
-          : []
-
-      return {
-        state: mergeSeeds(
-          baseSeeds,
-          seed.agents([...restAgents, currentAgent], {
-            currentId: currentAgent.id,
-          }),
-          seed.conversationAgentSessions({
-            [currentAgent.id]: conversationSessions,
-          }),
-          seed.formAgentSessions({
-            [currentAgent.id]: formSessions,
-          }),
-          seed.extractionAgentSessions({
-            [currentAgent.id]: { csvSessions: [], others: extractionSessions },
-          }),
-        ),
-      }
-    }),
-  ],
+  decorators: Default.decorators,
 }
 
 export const AgentExtractionWithData: Story = {
   args: {
-    organizationMembershipRole: "owner",
-    projectMembershipRole: "owner",
-    agentMembershipRole: "owner",
-    featureFlags: [],
-    withAgents: true,
+    ...AgentConvWithSessions.args,
     agentType: "extraction",
-    withAgentSessions: true,
   },
-
-  decorators: [
-    buildDecorator<StoryArgs>(({ agentType, withAgentSessions, ...args }) => {
-      const { baseSeeds, project, agents } = buildStudioData(args)
-      const [firstAgent, ...restAgents] = agents
-      const currentAgent = agentFactory
-        .transient({
-          project,
-        })
-        .build({
-          ...firstAgent,
-          type: agentType,
-        })
-
-      const conversationSessions =
-        withAgentSessions && agentType === "conversation"
-          ? conversationAgentSessionFactory
-              .transient({
-                agent: currentAgent,
-              })
-              .buildList(3)
-              .sort(sortRecentlyCreated)
-          : []
-      const formSessions =
-        withAgentSessions && agentType === "form"
-          ? formAgentSessionFactory
-              .transient({
-                agent: currentAgent,
-              })
-              .buildList(3)
-              .sort(sortRecentlyCreated)
-          : []
-      const extractionSessions =
-        withAgentSessions && agentType === "extraction"
-          ? extractionAgentSessionSummaryFactory
-              .transient({
-                agent: currentAgent,
-              })
-              .buildList(3)
-              .sort(sortRecentlyCreated)
-          : []
-
-      return {
-        state: mergeSeeds(
-          baseSeeds,
-          seed.agents([...restAgents, currentAgent], {
-            currentId: currentAgent.id,
-          }),
-          seed.conversationAgentSessions({
-            [currentAgent.id]: conversationSessions,
-          }),
-          seed.formAgentSessions({
-            [currentAgent.id]: formSessions,
-          }),
-          seed.extractionAgentSessions({
-            [currentAgent.id]: { csvSessions: [], others: extractionSessions },
-          }),
-        ),
-      }
-    }),
-  ],
+  decorators: Default.decorators,
 }
 
-export const AgentFormWithSessions: Story = {
+export const AgentFillFormWithSessions: Story = {
   args: {
-    organizationMembershipRole: "owner",
-    projectMembershipRole: "owner",
-    agentMembershipRole: "owner",
-    featureFlags: [],
-    withAgents: true,
-    agentType: "form",
-    withAgentSessions: true,
+    ...AgentConvWithSessions.args,
+    agentType: "conversation",
+    fillForm: true,
   },
-
-  decorators: [
-    buildDecorator<StoryArgs>(({ agentType, withAgentSessions, ...args }) => {
-      const { baseSeeds, project, agents } = buildStudioData(args)
-      const [firstAgent, ...restAgents] = agents
-      const currentAgent = agentFactory
-        .transient({
-          project,
-        })
-        .build({
-          ...firstAgent,
-          type: agentType,
-        })
-
-      const conversationSessions =
-        withAgentSessions && agentType === "conversation"
-          ? conversationAgentSessionFactory
-              .transient({
-                agent: currentAgent,
-              })
-              .buildList(3)
-              .sort(sortRecentlyCreated)
-          : []
-      const formSessions =
-        withAgentSessions && agentType === "form"
-          ? formAgentSessionFactory
-              .transient({
-                agent: currentAgent,
-              })
-              .buildList(3)
-              .sort(sortRecentlyCreated)
-          : []
-      const extractionSessions =
-        withAgentSessions && agentType === "extraction"
-          ? extractionAgentSessionSummaryFactory
-              .transient({
-                agent: currentAgent,
-              })
-              .buildList(3)
-              .sort(sortRecentlyCreated)
-          : []
-
-      return {
-        state: mergeSeeds(
-          baseSeeds,
-          seed.agents([...restAgents, currentAgent], {
-            currentId: currentAgent.id,
-          }),
-          seed.conversationAgentSessions({
-            [currentAgent.id]: conversationSessions,
-          }),
-          seed.formAgentSessions({
-            [currentAgent.id]: formSessions,
-          }),
-          seed.extractionAgentSessions({
-            [currentAgent.id]: { csvSessions: [], others: extractionSessions },
-          }),
-        ),
-      }
-    }),
-  ],
+  decorators: Default.decorators,
 }

@@ -59,9 +59,6 @@ describe("buildSubAgentTools", () => {
       conversationAgentSessionsService: {
         findOrCreateSubSession: jest.fn(),
       } as never,
-      formAgentSessionsService: {
-        findOrCreateSubSession: jest.fn(),
-      } as never,
       agentSettingsService: {
         getLast: jest.fn().mockResolvedValue(childAgentSettings),
       } as never,
@@ -123,16 +120,16 @@ describe("buildSubAgentTools", () => {
     ])
   })
 
-  it("runs a form sub-agent against a dedicated form sub-session and prompts it to fill the form", async () => {
+  it("runs a fillForm-enabled sub-agent against a dedicated conversation sub-session and prompts it to fill the form", async () => {
     const childAgent = {
-      id: "form-agent-id",
+      id: "form-filler-agent-id",
       projectId: "project-id",
       organizationId: "organization-id",
-      name: "Intake Form",
-      type: "form",
+      name: "Intake Assistant",
+      type: "conversation",
     }
     const childAgentSettings = {
-      id: "form-agent-id-settings",
+      id: "form-filler-agent-id-settings",
       projectId: "project-id",
       organizationId: "organization-id",
       instructions: "Collect the user details.",
@@ -141,17 +138,18 @@ describe("buildSubAgentTools", () => {
       locale: "en",
       revision: 1,
       documentsRagMode: DocumentsRagMode.None,
+      fillFormEnabled: true,
       outputJsonSchema: { type: "object", properties: {} },
     }
     const parentAgent = {
       ...childAgent,
       id: "parent-agent-id",
       name: "Orchestrator",
-      type: "conversation",
     }
     const parentAgentSettings = {
       ...childAgentSettings,
       id: "parent-agent-id-settings",
+      fillFormEnabled: false,
     }
 
     const subSession = {
@@ -196,10 +194,7 @@ describe("buildSubAgentTools", () => {
         ]),
       } as never,
       buildLLMConfig: (params) => params as never,
-      conversationAgentSessionsService: {
-        findOrCreateSubSession: jest.fn(),
-      } as never,
-      formAgentSessionsService: { findOrCreateSubSession } as never,
+      conversationAgentSessionsService: { findOrCreateSubSession } as never,
       agentSettingsService: {
         getLast: jest.fn().mockResolvedValue(childAgentSettings),
       } as never,
@@ -224,7 +219,7 @@ describe("buildSubAgentTools", () => {
 
     expect(findOrCreateSubSession).toHaveBeenCalledWith({
       connectScope: { organizationId: "organization-id", projectId: "project-id" },
-      agentId: "form-agent-id",
+      agentId: "form-filler-agent-id",
       userId: "user-id",
       parentSessionId: "parent-session-id",
       type: "playground",
@@ -234,9 +229,9 @@ describe("buildSubAgentTools", () => {
     expect(capturedMessages[0]?.content).toContain("My name is Alex.")
     expect(capturedMessages[0]?.content).toContain("fillForm")
     expect(result.answer).toBe("form answer")
-    // The form sub-agent gets its own dedicated trace (the sub-session's), linked
-    // back to the parent trace via a tag, but is grouped under the parent's
-    // langfuse session so they share one session timeline.
+    // The fillForm-enabled sub-agent gets its own dedicated trace (the
+    // sub-session's), linked back to the parent trace via a tag, but is grouped
+    // under the parent's langfuse session so they share one session timeline.
     expect(capturedMetadata?.traceId).toBe("sub-trace-id")
     expect(capturedMetadata?.agentSessionId).toBe("sub-session-id")
     expect(capturedMetadata?.langfuseSessionId).toBe("parent-session-id")
@@ -315,7 +310,6 @@ describe("buildSubAgentTools", () => {
       } as never,
       buildLLMConfig: (params) => params as never,
       conversationAgentSessionsService: { findOrCreateSubSession } as never,
-      formAgentSessionsService: { findOrCreateSubSession: jest.fn() } as never,
       agentSettingsService: {
         getLast: jest.fn().mockResolvedValue(childAgentSettings),
       } as never,

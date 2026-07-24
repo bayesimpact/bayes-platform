@@ -46,7 +46,7 @@ export function AgentSubAgentsTab({
   const availableAgents = agents
     .filter(
       (agent) =>
-        (agent.type === "conversation" || agent.type === "form") &&
+        agent.type === "conversation" &&
         agent.id !== parentAgentId &&
         !selectedAgentIds.has(agent.id),
     )

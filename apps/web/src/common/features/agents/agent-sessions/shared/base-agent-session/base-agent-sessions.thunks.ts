@@ -6,11 +6,10 @@ import type { RootState, ThunkExtraArg } from "@/common/store"
 import { isStudioInterface } from "@/studio/routes/helpers"
 import type { ConversationAgentSession } from "../../conversation/conversation-agent-sessions.models"
 import type { ExtractionAgentSession } from "../../extraction/extraction-agent-sessions.models"
-import type { FormAgentSession } from "../../form/form-agent-sessions.models"
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
 
-type BaseAgentSession = FormAgentSession | ConversationAgentSession | ExtractionAgentSession
+type BaseAgentSession = ConversationAgentSession | ExtractionAgentSession
 
 export const createAgentChatSession = createAsyncThunk<
   BaseAgentSession,
@@ -19,19 +18,15 @@ export const createAgentChatSession = createAsyncThunk<
 >(
   "agentSession/createAgentChatSession",
   async ({ agentType, agentId }, { extra: { services }, getState }) => {
-    if (agentType === "extraction") {
-      throw new Error("Creation of extraction agent session is not supported yet")
+    if (agentType !== "conversation") {
+      throw new Error(`Creation of ${agentType} agent session is not supported yet`)
     }
 
-    const map = {
-      form: services.formAgentSessions,
-      conversation: services.conversationAgentSessions,
-    }
     const state = getState()
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
     const params = { organizationId, projectId }
-    return map[agentType].createOne({
+    return services.conversationAgentSessions.createOne({
       ...params,
       agentId,
       type: buildType(),
@@ -46,8 +41,10 @@ export const deleteAgentSession = createAsyncThunk<
 >(
   "agentSession/deleteAgentSession",
   async ({ agentType, agentId, agentSessionId }, { extra: { services }, getState }) => {
+    if (agentType !== "conversation" && agentType !== "extraction") {
+      throw new Error(`Unsupported agent type: ${agentType}`)
+    }
     const map = {
-      form: services.formAgentSessions,
       conversation: services.conversationAgentSessions,
       extraction: services.extractionAgentSessions,
     }

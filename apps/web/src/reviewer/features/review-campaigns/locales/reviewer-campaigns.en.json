@@ -21,8 +21,7 @@
       "campaignReport": "Campaign report",
       "agentType": {
         "conversation": "Conversation agent",
-        "extraction": "Extraction agent",
-        "form": "Form agent"
+        "extraction": "Extraction agent"
       },
       "sessionsHeading": "Sessions to review",
       "sessionsCount_one": "{{count}} total",

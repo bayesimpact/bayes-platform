@@ -38,14 +38,12 @@ describe("markStreamingError", () => {
         connectScope,
       },
       userContent: "Hello",
-      agentType: testAgent.type,
     })
 
     const errorSession = await streamingService.markStreamingError({
       sessionId: session.id,
       assistantMessageId,
       errorMessage: "An error occurred",
-      agentType: testAgent.type,
     })
 
     const errorMessage = errorSession.messages.find((msg) => msg.id === assistantMessageId)

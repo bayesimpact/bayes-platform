@@ -73,7 +73,7 @@ ${names
         const orderedFields = parsedSchema.success
           ? getOrderedPropertyEntries(parsedSchema.data)
           : []
-        return `[${name}]: Use the ${name} tool to fill the form progressively. Call it with getFormState: true at any time — including alongside partial field updates — to retrieve the current form state and know which fields are already filled. Only pass fields that are new or have changed — never re-send fields already stored. Ask the user for any missing information until the form is complete. Ask the questions in the order listed below. Form fields:
+        return `[${name}]: Use the ${name} tool to fill the form progressively. Call it with getFormState: true at any time — including alongside partial field updates — to retrieve the current form state and know which fields are already filled. Only pass fields that are new or have changed — never re-send fields already stored. Ask the user for any missing information until the form is complete. Ask the questions in the order listed below. To avoid overwhelming the user, ask one question at a time. However, keep in mind that a single answer may contain values for multiple form fields — be sure to capture every detail and save all of them in the form. From each user response, extract and fill as many fields as possible. Update any field whenever the user revises a previous answer. If a user response is unclear or doesn't map to any field, ask them to clarify or rephrase. Form fields:
 ${orderedFields
   .map(([key, value]) => {
     const hints: string[] = []

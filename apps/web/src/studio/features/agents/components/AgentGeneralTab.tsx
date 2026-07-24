@@ -30,7 +30,7 @@ type FormValues = z.infer<typeof updateAgentGeneralSchema>
 export function AgentGeneralTab({ agent, onDirtyChange }: AgentTabFormProps) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
-  const hasGreetingMessage = agent.type === "conversation" || agent.type === "form"
+  const hasGreetingMessage = agent.type === "conversation"
 
   const form = useForm<FormValues>({
     resolver: zodResolver(updateAgentGeneralSchema),

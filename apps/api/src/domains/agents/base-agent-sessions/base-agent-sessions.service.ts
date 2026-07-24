@@ -6,15 +6,13 @@ import { DataSource } from "typeorm"
 import type { Agent } from "../agent.entity"
 import { ConversationAgentSession } from "../conversation-agent-sessions/conversation-agent-session.entity"
 import { ExtractionAgentSession } from "../extraction-agent-sessions/extraction-agent-session.entity"
-import { FormAgentSession } from "../form-agent-sessions/form-agent-session.entity"
 import { AgentMessage } from "../shared/agent-session-messages/agent-message.entity"
 import { AgentMessageFeedback } from "../shared/agent-session-messages/feedback/agent-message-feedback.entity"
 
-type AgentSession = ConversationAgentSession | FormAgentSession | ExtractionAgentSession
+type AgentSession = ConversationAgentSession | ExtractionAgentSession
 
 const sessionEntityByType: Record<Agent["type"], EntityTarget<AgentSession>> = {
   conversation: ConversationAgentSession,
-  form: FormAgentSession,
   extraction: ExtractionAgentSession,
 } as const
 

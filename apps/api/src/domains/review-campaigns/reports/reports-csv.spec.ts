@@ -54,7 +54,7 @@ describe("buildSessionMatrixCsv", () => {
       sessionMatrix: [
         {
           sessionId: "sess-2",
-          agentType: "form",
+          agentType: "conversation",
           testerUserId: "user-bob",
           startedAt: new Date("2026-04-20T14:30:00Z"),
           testerRating: null,
@@ -66,7 +66,7 @@ describe("buildSessionMatrixCsv", () => {
       ],
     })
     const [, dataRow] = csv.split("\r\n")
-    expect(dataRow).toBe("sess-2,form,user-bob,2026-04-20T14:30:00.000Z,,0,,,")
+    expect(dataRow).toBe("sess-2,conversation,user-bob,2026-04-20T14:30:00.000Z,,0,,,")
   })
 
   it("escapes quotes and commas in id-like fields", () => {

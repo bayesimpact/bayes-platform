@@ -4,14 +4,13 @@ import { useNavigate } from "react-router-dom"
 import { GridCard } from "@/common/components/grid/Grid"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import type { ExtractionAgentSession } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
-import type { FormAgentSession } from "@/common/features/agents/agent-sessions/form/form-agent-sessions.models"
 import { useRoutesBuilder } from "@/common/routes/build-routes/context"
 import { useAppDispatch } from "@/common/store/hooks"
 import { buildDate, buildSince } from "@/common/utils/build-date"
 import { deleteAgentSession } from "../agent-sessions/shared/base-agent-session/base-agent-sessions.thunks"
 import type { Agent } from "../agents.models"
 
-type AgentSession = ConversationAgentSession | FormAgentSession | ExtractionAgentSession
+type AgentSession = ConversationAgentSession | ExtractionAgentSession
 
 export function AgentSessionItem({
   agentSession,

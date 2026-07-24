@@ -228,4 +228,51 @@ describe("Agent Sessions - Auth", () => {
       })
     })
   })
+
+  describe("ConversationAgentSessionsRoutes.listSubSessions", () => {
+    const subject = async (type: "playground" | "live") =>
+      request({
+        route: ConversationAgentSessionsRoutes.listSubSessions,
+        pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
+        token: accessToken ?? undefined,
+        request: { payload: { type } },
+      })
+
+    describe.each([["live"], ["playground"]] as const)("listing %s sub-sessions", (type) => {
+      it("requires an authentication token", async () => {
+        accessToken = null
+        expectResponse(await subject(type), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+      })
+      it("requires a valid organization ID", async () => {
+        await createContextForRole("owner")
+        organizationId = null
+        expectResponse(await subject(type), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+      })
+      it("requires a valid agent ID", async () => {
+        await createContextForRole("owner")
+        agentId = null
+        expectResponse(await subject(type), 404)
+      })
+      it("requires the user to be a member of the organization", async () => {
+        await createContextForRole("owner")
+        auth0Id = mockForeignAuth0Id()
+        expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+      })
+      if (type === "playground") {
+        it("doesn't allow a simple member to list playground sub-sessions", async () => {
+          await createContextForRole("member")
+          expectResponse(await subject(type), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+        })
+      } else {
+        it("allows members to list live sub-sessions", async () => {
+          await createContextForRole("member")
+          expectResponse(await subject(type), 201)
+        })
+      }
+      it("allows owner to list sub-sessions", async () => {
+        await createContextForRole("owner")
+        expectResponse(await subject(type), 201)
+      })
+    })
+  })
 })

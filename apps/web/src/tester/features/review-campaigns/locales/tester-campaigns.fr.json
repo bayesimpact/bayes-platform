@@ -22,8 +22,7 @@
     "landing": {
       "agentTypeLabel": {
         "conversation": "Agent conversationnel",
-        "extraction": "Agent d'extraction",
-        "form": "Agent de formulaire"
+        "extraction": "Agent d'extraction"
       },
       "startSession": "Démarrer une conversation",
       "pastSessions": {

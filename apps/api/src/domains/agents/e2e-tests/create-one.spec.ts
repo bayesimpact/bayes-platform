@@ -166,6 +166,66 @@ describe("Agents - createOne", () => {
     expect(agentSettings?.greetingMessage).toBeNull()
   })
 
+  it("should create a conversation agent with the fillForm tool enabled", async () => {
+    await createContext()
+
+    const response = await subject({
+      payload: {
+        type: "conversation",
+        name: "Form Filling Agent",
+        instructions: "This is a default prompt",
+        documentsRagMode: DocumentsRagMode.All,
+        model: AgentModel.Gemini25Flash,
+        temperature: 0,
+        locale: AgentLocale.EN,
+        fillFormEnabled: true,
+        outputJsonSchema: {
+          type: "object",
+          properties: { title: { type: "string" }, summary: { type: "string" } },
+        },
+        tagsToAdd: [],
+        projectAgentSessionCategoryIds: [],
+      },
+    })
+
+    expectResponse(response, 201)
+    expect(response.body.data.fillFormEnabled).toBe(true)
+    expect(response.body.data.outputJsonSchema).toEqual({
+      type: "object",
+      properties: { title: { type: "string" }, summary: { type: "string" } },
+    })
+
+    const agentSettings = await setup.getRepository(AgentSettings).findOne({
+      where: { agentId: response.body.data.id, revision: 1 },
+    })
+    expect(agentSettings?.fillFormEnabled).toBe(true)
+  })
+
+  it("should reject enabling the fillForm tool without an outputJsonSchema", async () => {
+    await createContext()
+
+    const response = await subject({
+      payload: {
+        type: "conversation",
+        name: "Form Filling Agent",
+        instructions: "This is a default prompt",
+        documentsRagMode: DocumentsRagMode.All,
+        model: AgentModel.Gemini25Flash,
+        temperature: 0,
+        locale: AgentLocale.EN,
+        fillFormEnabled: true,
+        tagsToAdd: [],
+        projectAgentSessionCategoryIds: [],
+      },
+    })
+
+    // Rejected by the zod pipe (`outputJsonSchema is required when the fillForm tool is enabled`).
+    expectResponse(response, 400)
+
+    const agentRepository = setup.getRepository(Agent)
+    expect(await agentRepository.count()).toBe(0)
+  })
+
   it("should create a tagged agent when documentsRagMode is tags", async () => {
     const { organization, project } = await createContext()
     const documentTag = documentTagFactory.transient({ organization, project }).build()

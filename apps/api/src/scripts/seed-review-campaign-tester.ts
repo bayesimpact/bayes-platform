@@ -68,23 +68,16 @@ async function main(): Promise<void> {
     logger.log(`Using project ${firstProject.name} (${firstProject.id})`)
 
     const agent = await agentRepo.findOne({
-      where: [
-        {
-          organizationId: firstProject.organizationId,
-          projectId: firstProject.id,
-          type: "conversation",
-        },
-        {
-          organizationId: firstProject.organizationId,
-          projectId: firstProject.id,
-          type: "form",
-        },
-      ],
+      where: {
+        organizationId: firstProject.organizationId,
+        projectId: firstProject.id,
+        type: "conversation",
+      },
       order: { createdAt: "ASC" },
     })
     if (!agent) {
       logger.error(
-        `Project ${firstProject.name} has no conversation or form agents. Extraction agents are not supported by the tester flow yet.`,
+        `Project ${firstProject.name} has no conversation agents. Extraction agents are not supported by the tester flow yet.`,
       )
       process.exit(1)
     }

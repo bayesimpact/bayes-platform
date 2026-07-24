@@ -2,11 +2,11 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import { fn } from "storybook/test"
 import { ReviewerSessionReview } from "@/reviewer/features/review-campaigns/components/ReviewerSessionReview"
 import {
-  mockBlindFormSession,
+  mockBlindFillFormSession,
   mockBlindSession,
   mockBlindSessionWithOtherReviewers,
-  mockFullFormSession,
-  mockFullFormSessionAbandoned,
+  mockFullFillFormSession,
+  mockFullFillFormSessionAbandoned,
   mockFullSession,
   mockFullSessionNoTesterFeedback,
   mockFullSessionWithOtherReviewers,
@@ -45,14 +45,14 @@ export const PostSubmitNoTesterFeedback: Story = {
   args: { session: mockFullSessionNoTesterFeedback },
 }
 
-export const BlindFormSession: Story = {
-  args: { session: mockBlindFormSession },
+export const BlindFillFormSession: Story = {
+  args: { session: mockBlindFillFormSession },
 }
 
-export const PostSubmitFormSession: Story = {
-  args: { session: mockFullFormSession },
+export const PostSubmitFillFormSession: Story = {
+  args: { session: mockFullFillFormSession },
 }
 
-export const PostSubmitFormSessionAbandoned: Story = {
-  args: { session: mockFullFormSessionAbandoned },
+export const PostSubmitFillFormSessionAbandoned: Story = {
+  args: { session: mockFullFillFormSessionAbandoned },
 }

@@ -80,6 +80,10 @@ export class AgentsService {
 
     const outputJsonSchema = fields.outputJsonSchema || null
     this.validateExtractionAgent({ type: fields.type, outputJsonSchema })
+    this.validateFillFormAgent({
+      fillFormEnabled: fields.fillFormEnabled ?? false,
+      outputJsonSchema,
+    })
 
     const greetingMessage = normalizeGreetingMessage(fields.greetingMessage)
 
@@ -252,6 +256,15 @@ export class AgentsService {
       outputJsonSchema: nextOutputJsonSchema,
     })
 
+    const nextFillFormEnabled =
+      agentSettingsFieldsToUpdate.fillFormEnabled !== undefined
+        ? agentSettingsFieldsToUpdate.fillFormEnabled
+        : agentSettings.fillFormEnabled
+    this.validateFillFormAgent({
+      fillFormEnabled: nextFillFormEnabled,
+      outputJsonSchema: nextOutputJsonSchema,
+    })
+
     if (needsTags) {
       agent.documentTags = await this.resolveDocumentTags({
         currentTags: agent.documentTags ?? [],
@@ -329,6 +342,20 @@ export class AgentsService {
     }
   }
 
+  private validateFillFormAgent({
+    fillFormEnabled,
+    outputJsonSchema,
+  }: {
+    fillFormEnabled: AgentSettings["fillFormEnabled"]
+    outputJsonSchema: AgentSettings["outputJsonSchema"]
+  }): void {
+    if (fillFormEnabled && !outputJsonSchema) {
+      throw new UnprocessableEntityException(
+        "outputJsonSchema is required when the fillForm tool is enabled",
+      )
+    }
+  }
+
   private async resolveDocumentTags({
     currentTags,
     tagsToAdd,
@@ -356,9 +383,9 @@ export class AgentsService {
   }): Promise<ResourceLibrary[]> {
     if (!resourceLibraryIds || resourceLibraryIds.length === 0) return []
 
-    if (agentType !== "conversation" && agentType !== "form") {
+    if (agentType !== "conversation") {
       throw new UnprocessableEntityException(
-        "Resource libraries can only be attached to conversation or form agents",
+        "Resource libraries can only be attached to conversation agents",
       )
     }
 

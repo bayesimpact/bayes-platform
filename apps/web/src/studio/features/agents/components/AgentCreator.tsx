@@ -23,7 +23,7 @@ import { createAgent } from "../agents.thunks"
 import { getDefaultFormValues } from "./agent-form.shared"
 
 const defaultType: Agent["type"] = "conversation"
-const agentTypes: Agent["type"][] = ["conversation", "extraction", "form"]
+const agentTypes: Agent["type"][] = ["conversation", "extraction"]
 const minNameLength = 3
 
 export function AgentCreatorButton({ project }: { project: Project }) {
@@ -122,7 +122,7 @@ function AgentCreatorDialog({
         >
           <Field>
             <FieldLabel>{t("agent:create.typeDialog.title")}</FieldLabel>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {agentTypes.map((agentType) => (
                 <button
                   key={agentType}
