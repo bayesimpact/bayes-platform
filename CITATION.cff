@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: "Bayes Platform (AgentStudio)"
+title: "Bayes Platform"
 abstract: >-
   Open-source platform for building multi-agent AI systems for the public
   interest, developed by the nonprofit Bayes Impact.
@@ -12,7 +12,7 @@ authors:
   - name: "Bayes Impact"
     website: "https://www.bayesimpact.org"
 license: MIT
-repository-code: "https://github.com/bayesimpact/agent-studio"
+repository-code: "https://github.com/bayesimpact/bayes-platform"
 url: "https://www.bayesimpact.org"
 keywords:
   - artificial intelligence
@@ -20,8 +20,6 @@ keywords:
   - public services
   - open source
   - nonprofit
-# TODO: once a release DOI is minted (GitHub ↔ Zenodo integration) or a JOSS
-# software paper is published, set `version` + `date-released` per release, add
-# the `doi:` here, and add a `preferred-citation:` block pointing at that paper/DOI
-# so it becomes the canonical reference (see CITING.md). Until then, GitHub's
-# "Cite this repository" button uses the software metadata above.
+# Zenodo integration is enabled — a release DOI will be minted on the first
+# GitHub release. When that happens, add `doi:`, `version:`, and `date-released:`
+# fields here, and add a `preferred-citation:` block if a JOSS paper is published.

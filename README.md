@@ -3,9 +3,7 @@
 Bayes Impact is a technology nonprofit organization building AI recommendation systems for the public interest.
 As part of this work, we curate public and community resource datasets and make them usable by AI agents.
 
-Product updates: https://bayesimpact.notion.site/bayes-platform-product-updates
-
-# AgentStudio
+# Bayes platform
 
 ![Security](https://github.com/bayesimpact/caseai-connect/actions/workflows/security.yml/badge.svg)
 
@@ -142,7 +140,7 @@ VITE_AUTH0_AUDIENCE=https://your-tenant.auth0.com/api/v2/
 
 **Optional — in-platform help chat:**
 
-Set these two variables to embed a floating help chat bubble inside the Studio. The bubble uses the AgentStudio embed widget, so the target agent must have its embed config enabled and `VITE_AGENT_EMBED_URL`'s origin listed in `allowedOrigins`.
+Set these two variables to embed a floating help chat bubble inside the Studio. The bubble uses the Bayes platform embed widget, so the target agent must have its embed config enabled and `VITE_AGENT_EMBED_URL`'s origin listed in `allowedOrigins`.
 
 | Variable | Description |
 |---|---|

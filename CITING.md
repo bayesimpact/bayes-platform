@@ -14,24 +14,23 @@ just want the platform's role on the record.
 
 A one-line mention in your Methods/Tools section:
 
-> Agents were built using the open-source Bayes Platform (AgentStudio; Bayes Impact),
-> available at <https://github.com/bayesimpact/agent-studio>.
+> Agents were built using the open-source Bayes Platform (Bayes Impact),
+> available at <https://github.com/bayesimpact/bayes-platform>.
 
 BibTeX:
 
 ```bibtex
 @software{bayes_platform,
   author = {{Bayes Impact}},
-  title  = {{Bayes Platform (AgentStudio)}},
-  url    = {https://github.com/bayesimpact/agent-studio},
+  title  = {{Bayes Platform}},
+  url    = {https://github.com/bayesimpact/bayes-platform},
   note   = {Open-source platform for multi-agent AI systems for the public interest},
   year   = {2026}
 }
 ```
 
-<!-- TODO: once a release DOI / JOSS paper exists, this becomes the canonical
-     citation (DOI + the paper). GitHub's "Cite this repository" button (from
-     CITATION.cff) will then export it automatically. -->
+<!-- Zenodo integration is enabled — once the first GitHub release is created,
+     update the BibTeX above with the minted DOI. -->
 
 > 💡 GitHub shows a **"Cite this repository"** button on this repo (powered by
 > `CITATION.cff`) that exports APA/BibTeX — point colleagues there.
