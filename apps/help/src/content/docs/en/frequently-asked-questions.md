@@ -4,7 +4,7 @@ highlight: questions
 description: Quick answers to the questions we hear most often.
 category: faq
 order: 1
-updated: 2026-07-08
+updated: 2026-07-22
 ---
 
 ## How do I reset my password?
@@ -24,5 +24,5 @@ members of your workspace.
 
 ## Who do I contact for more help?
 
-Reach out to your workspace administrator, or contact support from within the
-app if the issue persists.
+Reach out to your workspace administrator, or contact the Bayes team if the issue
+persists.

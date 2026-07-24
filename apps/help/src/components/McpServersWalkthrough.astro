@@ -1,0 +1,501 @@
+---
+/**
+ * Walkthrough of MCP Servers (connecting external tool servers to a workspace and
+ * enabling them per agent). Derived from the real components (verified, not copied
+ * blind): SidebarFooterChildren.tsx (NavMcpServers, ServerIcon, sibling of Sources/
+ * Members/Admin, flag `agent-mcp`), StudioRoutes.tsx (McpServersRoute),
+ * McpServersList.tsx (empty state + New Server + GridCard), McpServerItem.tsx
+ * (name + url + delete Trash2Icon, NO edit/overflow), CreateMcpServerDialog.tsx
+ * (Name / URL / API Key fields; url placeholder hardcoded https://mcp.example.com),
+ * AgentEditor.tsx (MCP Servers tab is LAST, shown when flag `agent-mcp` &&
+ * projectMcpServers.length > 0), AgentMcpServersTab.tsx (per-agent Switch +
+ * "Manage servers" ExternalLinkIcon link). Labels verbatim from the mcp-servers /
+ * agent / actions locales (EN + FR); "project" in the mcpServers:description /
+ * create.description strings is rendered as "workspace"/"espace de travail" to keep
+ * the help center's workspace terminology. Uses the PRODUCT (coral) palette, pinned
+ * locally. Derived 2026-07-21.
+ */
+type Lang = "en" | "fr"
+const { lang = "en" } = Astro.props as { lang?: Lang }
+
+const STRINGS = {
+  en: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Helpful Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent",
+    settingsName: "Demo", settings: "Settings", evaluations: "Evaluations", analytics: "Analytics", sources: "Sources",
+    mcpServers: "MCP Servers", members: "Members", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    workspace: "Workspace", conversation: "Conversation", extraction: "Extraction",
+    pageTitle: "MCP Servers",
+    pageDesc: "Manage external tool servers connected to this workspace.",
+    empty: "No MCP servers configured yet. Add one to give your agents access to external tools.",
+    newServer: "New Server",
+    createTitle: "Add MCP Server", createDesc: "Connect an external MCP server to this workspace.",
+    fldName: "Name", namePh: "Enter server name",
+    fldUrl: "URL", urlPh: "https://mcp.example.com",
+    fldApiKey: "API Key", apiKeyPh: "Optional authentication key",
+    cancel: "Cancel", create: "Create", del: "Delete",
+    serverName: "Example Tools", serverUrl: "https://mcp.example.com",
+    server2: "Search Tools", server2Url: "https://search.example.com",
+    deleteTitle: "Delete MCP Server",
+    deleteDesc: "Are you sure you want to delete “Example Tools”? Agents using this server will lose access to its tools.",
+    editTitle: "Edit Conversation Agent", editDesc: "Edit details for this conversation agent",
+    tabGeneral: "General", tabModel: "Model", tabSources: "Sources", tabResources: "Resource libraries",
+    tabCategories: "Conversation categories", tabOrchestration: "Orchestration", tabEmbed: "Embed", tabMcp: "MCP Servers",
+    tabHeader: "MCP Servers", manage: "Manage servers",
+    prev: "Prev", next: "Next", step: "Step",
+    steps: [
+      "In Studio, open MCP Servers in the left sidebar.",
+      "The page lists your servers. Click New Server to connect one.",
+      "In Add MCP Server, enter a Name and the server URL, plus an optional API Key, then click Create.",
+      "The server appears as a card showing its name and URL.",
+      "Remove a server with the trash icon on its card.",
+      "Confirm in Delete MCP Server — agents using it lose access to its tools.",
+      "To let an agent use a server, open a conversation agent to edit it.",
+      "Open the MCP Servers tab — it appears once the workspace has at least one server.",
+      "Toggle a server on to give this agent access to its tools; toggle it off to remove access.",
+      "Use Manage servers to jump back to the workspace's MCP Servers page.",
+    ],
+  },
+  fr: {
+    org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
+    agent1: "Helpful Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent",
+    settingsName: "Demo", settings: "Paramètres", evaluations: "Évaluations", analytics: "Analytique", sources: "Sources",
+    mcpServers: "Serveurs MCP", members: "Membres", admin: "Admin",
+    userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    workspace: "Espace de travail", conversation: "Conversation", extraction: "Extraction",
+    pageTitle: "Serveurs MCP",
+    pageDesc: "Gérer les serveurs d'outils externes connectés à cet espace de travail.",
+    empty: "Aucun serveur MCP configuré. Ajoutez-en un pour donner à vos agents accès à des outils externes.",
+    newServer: "Nouveau serveur",
+    createTitle: "Ajouter un serveur MCP", createDesc: "Connecter un serveur MCP externe à cet espace de travail.",
+    fldName: "Nom", namePh: "Entrez le nom du serveur",
+    fldUrl: "URL", urlPh: "https://mcp.example.com",
+    fldApiKey: "Clé API", apiKeyPh: "Clé d'authentification optionnelle",
+    cancel: "Annuler", create: "Créer", del: "Supprimer",
+    serverName: "Example Tools", serverUrl: "https://mcp.example.com",
+    server2: "Search Tools", server2Url: "https://search.example.com",
+    deleteTitle: "Supprimer le serveur MCP",
+    deleteDesc: "Êtes-vous sûr de vouloir supprimer « Example Tools » ? Les agents utilisant ce serveur perdront l'accès à ses outils.",
+    editTitle: "Modifier l'agent conversationnel", editDesc: "Modifier les détails de cet agent conversationnel",
+    tabGeneral: "Général", tabModel: "Modèle", tabSources: "Sources", tabResources: "Bibliothèques de ressources",
+    tabCategories: "Catégories de conversation", tabOrchestration: "Orchestration", tabEmbed: "Intégration", tabMcp: "Serveurs MCP",
+    tabHeader: "Serveurs MCP", manage: "Gérer les serveurs",
+    prev: "Précédent", next: "Suivant", step: "Étape",
+    steps: [
+      "Dans Studio, ouvrez Serveurs MCP dans le menu de gauche.",
+      "La page liste vos serveurs. Cliquez sur Nouveau serveur pour en connecter un.",
+      "Dans Ajouter un serveur MCP, saisissez un Nom et l'URL du serveur, plus une Clé API facultative, puis cliquez sur Créer.",
+      "Le serveur apparaît sous forme de carte affichant son nom et son URL.",
+      "Supprimez un serveur avec l'icône corbeille sur sa carte.",
+      "Confirmez dans Supprimer le serveur MCP — les agents qui l'utilisent perdent l'accès à ses outils.",
+      "Pour qu'un agent utilise un serveur, ouvrez un agent conversationnel pour le modifier.",
+      "Ouvrez l'onglet Serveurs MCP — il apparaît dès que l'espace de travail a au moins un serveur.",
+      "Basculez un serveur pour donner à cet agent l'accès à ses outils, ou désactivez-le pour retirer l'accès.",
+      "Utilisez Gérer les serveurs pour revenir à la page Serveurs MCP de l'espace de travail.",
+    ],
+  },
+} as const
+
+const s = STRINGS[lang]
+
+const TABS = [
+  { key: "general", label: s.tabGeneral },
+  { key: "model", label: s.tabModel },
+  { key: "sources", label: s.tabSources },
+  { key: "resources", label: s.tabResources },
+  { key: "categories", label: s.tabCategories },
+  { key: "orchestration", label: s.tabOrchestration },
+  { key: "embed", label: s.tabEmbed },
+  { key: "mcp", label: s.tabMcp },
+]
+
+const convIcon = '<path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/>'
+const extractIcon = '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/>'
+const serverIcon = '<rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/>'
+
+const steps = [
+  { page: "overview", nav: "", spot: "navMcp", observe: [] },
+  { page: "mcpEmpty", nav: "mcp", spot: "btnNew", observe: [] },
+  { page: "createDialog", nav: "mcp", spot: "btnCreate", observe: ["obsFields"] },
+  { page: "mcpGrid", nav: "mcp", spot: "", observe: ["obsCard"] },
+  { page: "mcpGrid", nav: "mcp", spot: "rowDelete", observe: [] },
+  { page: "deleteDialog", nav: "mcp", spot: "", observe: ["obsConfirm"] },
+  { page: "overview", nav: "", spot: "navAgent1", observe: [] },
+  { page: "mcpTab", nav: "agent", spot: "tab-mcp", observe: [] },
+  { page: "mcpTab", nav: "agent", spot: "", observe: ["obsToggle"] },
+  { page: "mcpTab", nav: "agent", spot: "linkManage", observe: [] },
+].map((step, i) => ({ ...step, text: s.steps[i] }))
+
+const labels = { prev: s.prev, next: s.next, step: s.step }
+---
+
+<div class="mcw" role="group" aria-label={s.mcpServers}>
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside class="sb">
+      <div class="sb-head">
+        <span class="logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span>
+        <span class="org"><b>{s.org}</b><small>{s.studio}</small></span>
+      </div>
+      <div class="sb-scroll">
+        <div class="grp-label">{s.agents}<span class="add"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
+        <div class="navitem" id="navAgent1"><svg viewBox="0 0 24 24" set:html={convIcon}></svg><span>{s.agent1}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24" set:html={convIcon}></svg><span>{s.conversationAgent}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24" set:html={extractIcon}></svg><span>{s.extractionAgent}</span></div>
+
+        <div class="grp-label stack"><span class="name">{s.settingsName}</span><span>{s.settings}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg><span>{s.evaluations}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg><span>{s.analytics}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 15 21.84"/><path d="M21 5V8"/><path d="M21 12L18 17H22L19 22"/><path d="M3 12A9 3 0 0 0 14.59 14.87"/></svg><span>{s.sources}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="navitem" id="navMcp"><svg viewBox="0 0 24 24" set:html={serverIcon}></svg><span>{s.mcpServers}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg><span>{s.members}</span></div>
+        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg><span>{s.admin}</span></div>
+      </div>
+      <div class="sb-user">
+        <span class="avatar">AM</span>
+        <span class="who"><b>{s.userName}</b><small>{s.userEmail}</small></span>
+        <span class="updown"><svg viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></span>
+      </div>
+    </aside>
+
+    <!-- Main inset -->
+    <div class="inset">
+      <div class="topbar">
+        <span class="trig"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg></span>
+      </div>
+      <div class="canvas">
+        <span class="fab"><svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span>
+
+        <!-- workspace overview (steps 1 & 7) -->
+        <div class="page" data-page="overview" data-active="true">
+          <div class="page-head plain">
+            <span><span class="ttl">{s.settingsName}</span><span class="desc">{s.workspace}</span></span>
+          </div>
+          <div class="cards3">
+            <div class="ecard"><span class="cat">{s.conversation}</span><b class="ic"><svg viewBox="0 0 24 24" set:html={convIcon}></svg> {s.agent1}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.conversation}</span><b class="ic"><svg viewBox="0 0 24 24" set:html={convIcon}></svg> {s.conversationAgent}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+            <div class="ecard"><span class="cat">{s.extraction}</span><b class="ic"><svg viewBox="0 0 24 24" set:html={extractIcon}></svg> {s.extractionAgent}</b><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+          </div>
+        </div>
+
+        <!-- MCP servers empty (step 2) -->
+        <div class="page" data-page="mcpEmpty">
+          <div class="page-head">
+            <span class="btn icon-round"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.pageTitle}</span><span class="desc">{s.pageDesc}</span></span>
+            <span class="right"><span class="btn sm" id="btnNew"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.newServer}</span></span>
+          </div>
+          <div class="emptybox">
+            <svg class="empty-ico" viewBox="0 0 24 24" set:html={serverIcon}></svg>
+            <p>{s.empty}</p>
+            <span class="btn sm"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.newServer}</span>
+          </div>
+        </div>
+
+        <!-- create dialog (step 3) -->
+        <div class="page" data-page="createDialog">
+          <div class="scrim"></div>
+          <div class="modal">
+            <div class="mhead"><b>{s.createTitle}</b><p>{s.createDesc}</p></div>
+            <div id="obsFields">
+              <p class="lbl">{s.fldName}</p>
+              <span class="input block">{s.serverName}</span>
+              <p class="lbl">{s.fldUrl}</p>
+              <span class="input block mono">{s.serverUrl}</span>
+              <p class="lbl">{s.fldApiKey}</p>
+              <span class="input block muted-input">••••••••••••</span>
+            </div>
+            <div class="row" style="justify-content:flex-end; margin-top:1rem; gap:0.5rem"><span class="btn ghost">{s.cancel}</span><span class="btn" id="btnCreate">{s.create}</span></div>
+          </div>
+        </div>
+
+        <!-- MCP servers grid (steps 4 & 5) -->
+        <div class="page" data-page="mcpGrid">
+          <div class="page-head">
+            <span class="btn icon-round"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.pageTitle}</span><span class="desc">{s.pageDesc}</span></span>
+            <span class="right"><span class="btn sm"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.newServer}</span></span>
+          </div>
+          <div class="gcards">
+            <div class="gcard" id="obsCard">
+              <span class="gc-media"><svg viewBox="0 0 24 24" set:html={serverIcon}></svg></span>
+              <span class="gc-body"><b>{s.serverName}</b><small class="mono">{s.serverUrl}</small></span>
+              <span class="iconbtn danger" id="rowDelete"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></span>
+            </div>
+            <div class="gcard">
+              <span class="gc-media"><svg viewBox="0 0 24 24" set:html={serverIcon}></svg></span>
+              <span class="gc-body"><b>{s.server2}</b><small class="mono">{s.server2Url}</small></span>
+              <span class="iconbtn danger"><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- delete confirm (step 6) -->
+        <div class="page" data-page="deleteDialog">
+          <div class="scrim"></div>
+          <div class="modal" id="obsConfirm">
+            <div class="mhead"><b>{s.deleteTitle}</b><p>{s.deleteDesc}</p></div>
+            <div class="row" style="justify-content:flex-end; margin-top:1rem; gap:0.5rem"><span class="btn ghost">{s.cancel}</span><span class="btn danger-btn">{s.del}</span></div>
+          </div>
+        </div>
+
+        <!-- agent editor: MCP Servers tab (steps 8-10) -->
+        <div class="page" data-page="mcpTab">
+          <div class="page-head">
+            <span class="btn icon-round"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
+          </div>
+          <div class="editor">
+            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "mcp" && "on"]} id={tb.key === "mcp" ? "tab-mcp" : undefined}>{tb.label}</span>)}</div>
+            <div class="tabbody">
+              <div class="tab-header">
+                <span class="th-label">{s.tabHeader}</span>
+                <span class="mlink" id="linkManage">{s.manage} <svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6"/></svg></span>
+              </div>
+              <div class="srv-list">
+                <div class="srv-item">
+                  <span class="srv-media"><svg viewBox="0 0 24 24" set:html={serverIcon}></svg></span>
+                  <span class="srv-name">{s.serverName}</span>
+                  <span class="switch on" id="obsToggle"><i></i></span>
+                </div>
+                <div class="srv-item">
+                  <span class="srv-media"><svg viewBox="0 0 24 24" set:html={serverIcon}></svg></span>
+                  <span class="srv-name">{s.server2}</span>
+                  <span class="switch"><i></i></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="navbtn" data-prev><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg> {s.prev}</button>
+    <button class="ctrl" data-playpause aria-label="Play / pause">⏸</button>
+    <span class="cap"><span class="st" data-stepcount></span><span class="tx" data-captext></span></span>
+    <span class="dots-nav" data-dots role="tablist" aria-label="Steps"></span>
+    <button class="navbtn primary" data-next>{s.next} <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+  </div>
+  <div class="progress"><i data-bar></i></div>
+</div>
+
+<script define:vars={{ steps, labels }}>
+  const cs = document.currentScript
+  const mcw =
+    cs && cs.previousElementSibling && cs.previousElementSibling.classList.contains("mcw")
+      ? cs.previousElementSibling
+      : document.querySelector(".mcw")
+  const q = (sel) => mcw.querySelector(sel)
+  const pages = [...mcw.querySelectorAll(".page")]
+  const dotsWrap = mcw.querySelector("[data-dots]")
+  const bar = mcw.querySelector("[data-bar]")
+  const capText = mcw.querySelector("[data-captext]")
+  const stepCount = mcw.querySelector("[data-stepcount]")
+  const playPause = mcw.querySelector("[data-playpause]")
+  const prevBtn = mcw.querySelector("[data-prev]")
+  const nextBtn = mcw.querySelector("[data-next]")
+  const DUR = 6000
+  let idx = 0, playing = true, timer = null
+
+  steps.forEach((_, i) => {
+    const b = document.createElement("button")
+    b.className = "dotnav"; b.setAttribute("role", "tab"); b.setAttribute("aria-label", labels.step + " " + (i + 1))
+    b.addEventListener("click", () => go(i)); dotsWrap.appendChild(b)
+  })
+  const dots = [...dotsWrap.children]
+
+  function clearMarks() {
+    mcw.querySelectorAll(".spot-on").forEach((el) => el.classList.remove("spot-on"))
+    mcw.querySelectorAll(".observe-on").forEach((el) => el.classList.remove("observe-on"))
+  }
+  function render() {
+    const step = steps[idx]
+    pages.forEach((p) => p.setAttribute("data-active", String(p.dataset.page === step.page)))
+    dots.forEach((d, i) => d.classList.toggle("on", i === idx))
+    stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
+    capText.textContent = step.text
+
+    // Actions have consequences: the MCP Servers page marks its sidebar item active;
+    // the agent-editor steps mark the edited agent active in the AGENTS list.
+    q("#navMcp")?.classList.toggle("on", step.nav === "mcp")
+    q("#navAgent1")?.classList.toggle("on", step.nav === "agent")
+
+    clearMarks()
+    const active = idx
+    setTimeout(() => {
+      if (active !== idx) return
+      if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
+      step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+    }, 260)
+
+    bar.classList.remove("run"); void bar.offsetWidth
+    bar.style.setProperty("--dur", DUR + "ms")
+    if (playing) bar.classList.add("run")
+  }
+  function schedule() { clearTimeout(timer); if (playing) timer = setTimeout(() => go(idx + 1), DUR) }
+  function go(n) { idx = (n + steps.length) % steps.length; render(); schedule() }
+  function setPlaying(p) {
+    playing = p; playPause.textContent = p ? "⏸" : "▶"
+    if (p) { bar.classList.add("run"); schedule() } else { clearTimeout(timer); bar.classList.remove("run") }
+  }
+  prevBtn.addEventListener("click", () => go(idx - 1))
+  nextBtn.addEventListener("click", () => go(idx + 1))
+  playPause.addEventListener("click", () => setPlaying(!playing))
+
+  render(); schedule()
+</script>
+
+<style>
+  .mcw {
+    --background: oklch(1 0 0); --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0);
+    --primary: var(--brand-primary, oklch(62.8% 0.2 303.9)); --player-accent: oklch(74.137% 0.13055 37.323); --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0);
+    --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --destructive: oklch(0.577 0.245 27.325);
+    --sidebar: oklch(0.985 0 0); --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-accent: oklch(0.97 0 0); --sidebar-accent-foreground: oklch(0.205 0 0); --sidebar-border: oklch(0.922 0 0);
+    --radius: 0.625rem;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
+    --spot: color-mix(in oklab, var(--primary) 55%, transparent);
+    display: block; margin: 1.5rem 0; color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .mcw * { box-sizing: border-box; }
+  .mcw svg { width: 1em; height: 1em; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+
+  .mcw .shell { display: grid; grid-template-columns: 208px 1fr; height: 680px; background: var(--sidebar); color: var(--sidebar-foreground); border: 1px solid var(--sidebar-border); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .mcw .sb { display: flex; flex-direction: column; padding: 0.5rem; min-height: 0; }
+  .mcw .sb-head { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.4rem 0.6rem; }
+  .mcw .logo { width: 1.9rem; height: 1.9rem; display: inline-flex; align-items: center; justify-content: center; }
+  .mcw .logo svg { width: 100%; height: 100%; stroke: none; }
+  .mcw .logo svg path { fill: var(--brand-primary, #f18c6e); }
+  .mcw .logo svg circle { fill: #010101; }
+  .mcw .org { display: flex; flex-direction: column; line-height: 1.05; }
+  .mcw .org b { font-size: 0.92rem; font-weight: 700; }
+  .mcw .org small { color: var(--primary); font-size: 0.72rem; }
+  .mcw .sb-scroll { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 0.1rem; }
+  .mcw .grp-label { font-size: 0.66rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; padding: 0.4rem 0.5rem 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
+  .mcw .grp-label .add { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+  .mcw .grp-label.stack { flex-direction: column; align-items: flex-start; gap: 0.05rem; line-height: 1.2; margin-top: auto; }
+  .mcw .grp-label.stack .name { color: var(--sidebar-foreground); font-size: 0.76rem; text-transform: none; font-weight: 700; }
+  .mcw .navitem { display: flex; align-items: center; gap: 0.55rem; padding: 0.3rem 0.5rem; border-radius: 7px; font-size: 0.82rem; color: var(--sidebar-foreground); }
+  .mcw .navitem svg { font-size: 1rem; color: var(--muted-foreground); }
+  .mcw .navitem .chev { margin-left: auto; font-size: 0.9rem; }
+  .mcw .navitem.on { background: var(--sidebar-accent); color: var(--sidebar-accent-foreground); font-weight: 600; }
+  .mcw .navitem.on svg { color: var(--sidebar-accent-foreground); }
+  .mcw .sb-user { display: flex; align-items: center; gap: 0.55rem; margin-top: auto; padding: 0.45rem 0.5rem; }
+  .mcw .avatar { width: 1.9rem; height: 1.9rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; font-size: 0.68rem; font-weight: 600; color: var(--muted-foreground); }
+  .mcw .who { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+  .mcw .who b { font-size: 0.76rem; font-weight: 600; }
+  .mcw .who small { font-size: 0.68rem; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mcw .updown { margin-left: auto; color: var(--muted-foreground); font-size: 0.9rem; }
+
+  .mcw .inset { position: relative; margin: 0.5rem 0.5rem 0.5rem 0; background: var(--background); color: var(--foreground); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; box-shadow: var(--shadow); }
+  .mcw .topbar { height: 3rem; flex-shrink: 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem; }
+  .mcw .trig { color: var(--muted-foreground); font-size: 1.05rem; }
+  .mcw .canvas { position: relative; flex: 1; min-height: 0; background: radial-gradient(circle, color-mix(in oklab, var(--muted-foreground) 20%, transparent) 1px, transparent 1px) 0 0 / 22px 22px; }
+  .mcw .fab { position: absolute; right: 1rem; bottom: 1rem; width: 2.3rem; height: 2.3rem; border-radius: 999px; background: var(--primary); color: var(--primary-foreground); display: grid; place-items: center; box-shadow: var(--shadow); font-size: 1.1rem; z-index: 6; }
+
+  .mcw .page { position: absolute; inset: 0; padding: 1.1rem 1.2rem; overflow: auto; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
+  .mcw .page[data-active="true"] { opacity: 1; transform: none; pointer-events: auto; }
+
+  .mcw .spot-on { position: relative; z-index: 7; animation: mcw-spot 1.4s ease-in-out infinite; border-radius: 8px; }
+  @keyframes mcw-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
+  .mcw .observe-on { outline: 2px dashed var(--spot); outline-offset: 3px; border-radius: 10px; }
+
+  .mcw .btn { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--primary); color: var(--primary-foreground); border-radius: 8px; font-size: 0.8rem; font-weight: 500; padding: 0.4rem 0.7rem; }
+  .mcw .btn svg { font-size: 0.95rem; }
+  .mcw .btn.sm { font-size: 0.76rem; padding: 0.32rem 0.55rem; }
+  .mcw .btn.ghost { background: transparent; color: var(--foreground); }
+  .mcw .btn.icon-round { border-radius: 999px; width: 2rem; height: 2rem; padding: 0; justify-content: center; background: var(--secondary); color: var(--secondary-foreground); }
+  .mcw .btn.danger-btn { background: var(--destructive); color: var(--primary-foreground); }
+
+  .mcw .page-head { border-bottom: 1px solid var(--border); padding-bottom: 0.9rem; margin-bottom: 1rem; display: flex; align-items: flex-start; gap: 0.7rem; }
+  .mcw .page-head.plain { border: 0; }
+  .mcw .ttl { font-size: 1.3rem; font-weight: 600; line-height: 1.15; display: block; }
+  .mcw .desc { font-size: 0.88rem; color: var(--muted-foreground); margin-top: 0.2rem; display: block; }
+  .mcw .right { margin-left: auto; display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+
+  .mcw .cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
+  .mcw .ecard { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.8rem; min-height: 116px; display: flex; flex-direction: column; }
+  .mcw .ecard .cat { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted-foreground); font-weight: 600; margin-bottom: 0.2rem; }
+  .mcw .ecard b { font-size: 0.88rem; }
+  .mcw .ecard b.ic { display: flex; align-items: center; gap: 0.35rem; }
+  .mcw .ecard b.ic svg { color: var(--muted-foreground); font-size: 0.95rem; }
+  .mcw .arrowbtn { margin-top: auto; align-self: flex-start; width: 1.8rem; height: 1.8rem; border: 1px solid var(--border); border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); }
+
+  .mcw .emptybox { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 2.2rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-align: center; }
+  .mcw .emptybox .empty-ico { color: var(--muted-foreground); font-size: 1.6rem; }
+  .mcw .emptybox p { font-size: 0.8rem; color: var(--muted-foreground); margin: 0 0 0.4rem; max-width: 26rem; }
+
+  .mcw .lbl { font-size: 0.78rem; font-weight: 500; margin: 0.6rem 0 0.3rem; }
+  .mcw .input { border: 1px solid var(--input); border-radius: 8px; padding: 0.42rem 0.6rem; font-size: 0.8rem; color: var(--foreground); background: var(--background); }
+  .mcw .input.block { display: block; }
+  .mcw .input.muted-input { color: var(--muted-foreground); letter-spacing: 0.1em; }
+  .mcw .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .mcw .row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+
+  .mcw .scrim { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 4; }
+  .mcw .modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(380px, 84%); background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; box-shadow: var(--shadow); z-index: 5; }
+  .mcw .mhead { margin-bottom: 0.5rem; }
+  .mcw .mhead b { font-size: 0.98rem; font-weight: 600; }
+  .mcw .mhead p { font-size: 0.78rem; color: var(--muted-foreground); margin: 0.2rem 0 0; }
+
+  .mcw .gcards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem; }
+  .mcw .gcard { display: flex; align-items: center; gap: 0.6rem; border: 1px solid var(--border); border-radius: 10px; background: var(--card); padding: 0.7rem 0.8rem; }
+  .mcw .gc-media { width: 2rem; height: 2rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; color: var(--muted-foreground); flex-shrink: 0; }
+  .mcw .gc-body { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+  .mcw .gc-body b { font-size: 0.84rem; }
+  .mcw .gc-body small { font-size: 0.72rem; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mcw .iconbtn { width: 1.9rem; height: 1.9rem; border-radius: 8px; display: inline-grid; place-items: center; color: var(--muted-foreground); flex-shrink: 0; }
+  .mcw .iconbtn.danger { color: var(--destructive); }
+
+  .mcw .editor { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 1rem; }
+  .mcw .tablist { display: flex; gap: 0.1rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; flex-wrap: wrap; }
+  .mcw .tab { padding: 0.4rem 0.6rem; font-size: 0.8rem; color: var(--muted-foreground); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+  .mcw .tab.on { color: var(--foreground); font-weight: 600; border-bottom-color: var(--primary); }
+  .mcw .tabbody { padding: 0.2rem 0; }
+  .mcw .tab-header { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.7rem; }
+  .mcw .th-label { font-size: 0.82rem; font-weight: 600; }
+  .mcw .mlink { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.78rem; color: var(--primary); font-weight: 500; }
+  .mcw .mlink svg { font-size: 0.9rem; }
+
+  .mcw .srv-list { display: flex; flex-direction: column; gap: 0.5rem; }
+  .mcw .srv-item { display: flex; align-items: center; gap: 0.6rem; border: 1px solid var(--border); border-radius: 10px; padding: 0.6rem 0.7rem; }
+  .mcw .srv-media { width: 2rem; height: 2rem; border-radius: 8px; background: var(--muted); display: grid; place-items: center; color: var(--muted-foreground); flex-shrink: 0; }
+  .mcw .srv-name { font-size: 0.84rem; flex: 1; min-width: 0; }
+  .mcw .switch { width: 1.9rem; height: 1.1rem; border-radius: 999px; background: var(--muted); position: relative; display: inline-block; flex-shrink: 0; }
+  .mcw .switch i { position: absolute; top: 2px; left: 2px; width: 0.8rem; height: 0.8rem; border-radius: 999px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .mcw .switch.on { background: var(--primary); }
+  .mcw .switch.on i { left: calc(100% - 0.9rem); }
+
+  .mcw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
+  .mcw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
+  .mcw .navbtn.primary { background: var(--player-accent); color: var(--primary-foreground); border-color: transparent; }
+  .mcw .ctrl { border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; width: 2.1rem; height: 2.1rem; cursor: pointer; font-size: 0.95rem; display: grid; place-items: center; }
+  .mcw .cap { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .mcw .cap .st { font-size: 0.7rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.04em; }
+  .mcw .cap .tx { font-size: 0.88rem; font-weight: 500; }
+  .mcw .dots-nav { display: flex; gap: 0.4rem; flex-wrap: wrap; max-width: 200px; }
+  .mcw .dotnav { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: var(--border); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+  .mcw .dotnav.on { background: var(--player-accent); transform: scale(1.3); }
+  .mcw .progress { height: 3px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 0.55rem; }
+  .mcw .progress i { display: block; height: 100%; width: 0; background: var(--player-accent); }
+  .mcw .progress i.run { animation: mcw-fill var(--dur, 6000ms) linear forwards; }
+  @keyframes mcw-fill { to { width: 100%; } }
+
+  @media (max-width: 640px) {
+    .mcw .shell { grid-template-columns: 1fr; height: 560px; }
+    .mcw .sb { display: none; }
+    .mcw .inset { margin: 0.5rem; }
+    .mcw .cards3, .mcw .gcards { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mcw .page, .mcw .spot-on, .mcw .progress i { transition: none !important; animation: none !important; }
+  }
+</style>

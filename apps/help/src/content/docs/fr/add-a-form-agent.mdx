@@ -4,7 +4,7 @@ highlight: formulaire
 description: Créez un agent de formulaire qui guide un utilisateur pour remplir un formulaire, en collectant des réponses structurées conformes à un schéma que vous définissez.
 category: guides-agents
 order: 3
-updated: 2026-07-16
+updated: 2026-07-22
 ---
 
 import AddFormAgentWalkthrough from "@/components/AddFormAgentWalkthrough.astro"
@@ -83,7 +83,9 @@ définissez :
 
 - **Nom du champ** — la clé sous laquelle la réponse est stockée (par ex.
   `full_name`).
-- **Type** — **Texte**, **Nombre** ou **Oui / Non**.
+- **Type** — **Texte**, **Nombre**, **Oui / Non**, **Liste** ou **Choix**. **Nombre**
+  propose une plage min/max optionnelle, et **Choix** permet de définir les valeurs
+  autorisées.
 - **Description** — la question ou l'indice que l'agent utilise pour demander ce
   champ.
 - **Obligatoire** — activez-le pour les réponses obligatoires.
@@ -126,8 +128,8 @@ guide complet.
 - **Le bouton Créer est désactivé** — le **Nom** doit comporter au moins 3
   caractères.
 - **Je ne vois pas le type de champ dont j'ai besoin** — l'éditeur visuel couvre
-  **Texte**, **Nombre** et **Oui / Non** ; utilisez le **Mode avancé** (JSON brut)
-  pour des listes ou des objets imbriqués.
+  **Texte**, **Nombre**, **Oui / Non**, **Liste** et **Choix** ; utilisez le **Mode
+  avancé** (JSON brut) pour des **objets imbriqués**.
 - **L'agent pose les questions dans le mauvais ordre** — activez **Poser les questions
   dans cet ordre** et glissez les champs dans la séquence voulue.
 - **Mes modifications ont disparu** — chaque onglet s'enregistre séparément ; cliquez

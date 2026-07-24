@@ -4,7 +4,7 @@ highlight: form
 description: Create a form agent that guides a user through filling out a form, collecting structured answers that match a schema you define.
 category: guides-agents
 order: 3
-updated: 2026-07-16
+updated: 2026-07-22
 ---
 
 import AddFormAgentWalkthrough from "@/components/AddFormAgentWalkthrough.astro"
@@ -73,7 +73,8 @@ Open the **Form** tab and build the fields the agent collects **visually** — n
 required. Click **Add field** and, for each field, set:
 
 - **Field name** — the key the answer is stored under (e.g. `full_name`).
-- **Type** — **Text**, **Number**, or **Yes / No**.
+- **Type** — **Text**, **Number**, **Yes / No**, **List**, or **Choice**. **Number**
+  offers an optional min/max range, and **Choice** lets you define the allowed values.
 - **Description** — the question or hint the agent uses to ask for this field.
 - **Required** — toggle on for mandatory answers.
 
@@ -111,8 +112,8 @@ full walkthrough.
 
 - **The Create button is disabled** — the **Name** must be at least 3 characters.
 - **I don't see the field type I need** — the visual editor covers **Text**,
-  **Number** and **Yes / No**; use **Advanced mode** (raw JSON) for lists or nested
-  objects.
+  **Number**, **Yes / No**, **List** and **Choice**; use **Advanced mode** (raw JSON)
+  for **nested objects**.
 - **The agent asks questions in the wrong order** — turn on **Ask questions in this
   order** and drag the fields into the sequence you want.
 - **My changes disappeared** — each tab saves separately; click **Save** before
