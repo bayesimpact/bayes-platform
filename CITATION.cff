@@ -11,6 +11,7 @@ message: >-
 authors:
   - name: "Bayes Impact"
     website: "https://www.bayesimpact.org"
+doi: "10.5281/zenodo.21533360"
 license: MIT
 repository-code: "https://github.com/bayesimpact/bayes-platform"
 url: "https://www.bayesimpact.org"
@@ -20,6 +21,4 @@ keywords:
   - public services
   - open source
   - nonprofit
-# Zenodo integration is enabled — a release DOI will be minted on the first
-# GitHub release. When that happens, add `doi:`, `version:`, and `date-released:`
-# fields here, and add a `preferred-citation:` block if a JOSS paper is published.
+# To add a preferred-citation block if a JOSS paper is published later.
