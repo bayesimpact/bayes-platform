@@ -8,6 +8,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.07.3] - 2026-07-24
+
+### Added
 - (beta) MCP Servers: connect external MCP tool servers to a project and enable/disable them per agent (conversation and form).
 - (beta) Evaluations: compare conversation-evaluation runs — select runs from the run history and open a side-by-side comparison of their settings and summary scores, plus a per-record table showing how each run scored on every case (best score highlighted); runs now carry a short id shown in the history, on the run report, and on the comparison, and clicking it opens that run in a new tab; the run-history, run-report, and comparison pages use a wider full-width layout for their tables.
 - (beta) Evaluations: optional judge instructions per conversation-evaluation run — add extra grading guidance in the run dialog and the LLM judge applies it on top of the expected output when scoring; the instructions used are shown on the run report and, when they differ, in the run comparison
