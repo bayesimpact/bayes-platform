@@ -290,6 +290,7 @@ export interface IDocumentsSpi {
 
 **Rules**:
 - Methods return **domain models**, never DTOs.
+- For resource CRUD, method names MUST be `getAll` / `getOne` / `createOne` / `updateOne` / `deleteOne` and MUST match the corresponding `{Domain}Routes` keys in api-contracts.
 - IDs (path params) ALWAYS go in the first argument as a plain object — even when the method only needs one ID. This is what lets thunks pass `{ organizationId, projectId }` uniformly and what makes mock services trivial.
 - The payload (request body) is the second argument. Don't merge them.
 - The SPI lives in the feature folder. Storybook mocks satisfy the same interface; that's how the studio stories swap real API for fixtures.

@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { Organization } from "@/common/features/organizations/organizations.models"
-import type { Project, ProjectAgentSessionCategory } from "./projects.models"
+import type { MyProject, Project, ProjectAgentSessionCategory } from "./projects.models"
 
 type ProjectTransientParams = {
   organization: Organization
@@ -24,6 +24,28 @@ export const projectFactory = ProjectFactory.define(({ params, transientParams }
     updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
     featureFlags: params.featureFlags ?? [],
     agentSessionCategories: params.agentSessionCategories ?? [],
+  }
+})
+
+type MyProjectTransientParams = {
+  organization: Organization
+}
+
+class MyProjectFactory extends Factory<MyProject, MyProjectTransientParams> {}
+
+export const myProjectFactory = MyProjectFactory.define(({ params, transientParams }) => {
+  const { organization } = transientParams
+
+  if (!organization) {
+    throw new Error("Organization is required to create a project")
+  }
+
+  return {
+    id: params.id ?? faker.string.uuid(),
+    name: params.name ?? faker.commerce.productName(),
+    organizationId: organization.id,
+    featureFlags: params.featureFlags ?? [],
+    permissions: params.permissions ?? ["project.read"],
   }
 })
 

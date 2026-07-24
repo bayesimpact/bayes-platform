@@ -14,3 +14,12 @@ export type ProjectAgentSessionCategory = {
   id: string
   name: string
 }
+
+/** Slim project the current user can access, with their effective permissions. */
+export type MyProject = {
+  id: string
+  name: string
+  organizationId: string
+  featureFlags: FeatureFlagsDto
+  permissions: string[]
+}

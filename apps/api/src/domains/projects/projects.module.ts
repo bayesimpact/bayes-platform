@@ -8,6 +8,7 @@ import { AuthModule } from "@/domains/auth/auth.module"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { User } from "@/domains/users/user.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { AgentsModule } from "../agents/agents.module"
@@ -28,6 +29,7 @@ import { ProjectsService } from "./projects.service"
     TypeOrmModule.forFeature([Project, Organization, User, FeatureFlag]),
     MembershipsModule,
     OrganizationsModule,
+    RbacModule,
     forwardRef(() => AgentsModule),
     forwardRef(() => InvitationsModule),
     forwardRef(() => DocumentTagsModule),

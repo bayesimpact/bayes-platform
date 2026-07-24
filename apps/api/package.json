@@ -35,6 +35,7 @@
     "requeue:document-embeddings": "ts-node -r tsconfig-paths/register src/scripts/requeue-document-embeddings.ts",
     "requeue:evaluation-extraction-runs": "ts-node -r tsconfig-paths/register src/scripts/requeue-evaluation-extraction-runs.ts",
     "seed:mcp-preset": "ts-node -r tsconfig-paths/register src/scripts/seed-mcp-preset.ts",
+    "seed:rbac": "ts-node -r tsconfig-paths/register src/scripts/seed-rbac.ts",
     "seed:review-campaign-tester": "ts-node -r tsconfig-paths/register src/scripts/seed-review-campaign-tester.ts",
     "mcp:link-to-project": "ts-node -r tsconfig-paths/register src/scripts/link-mcp-to-project.ts",
     "agent:set-session-categories": "ts-node -r tsconfig-paths/register src/scripts/set-agent-session-categories.ts",

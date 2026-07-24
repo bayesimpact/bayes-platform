@@ -142,12 +142,14 @@ Pattern: `packages/api-contracts/src/agents/agents.routes.ts`
 - Import the DTOs from the DTO file
 - Build the URL base path from the parent scope params and entity name, e.g.:
   `organizations/:organizationId/projects/:projectId/{entityNameKebabPlural}`
-- Export `{EntityName}sRoutes = { ... }` with only the routes matching the requested `methods`:
-  - `Create`: `defineRoute<ResponseData<{EntityName}Dto>, RequestPayload<...>>({ method: "post", path: "..." })`
-  - `GetAll`: `defineRoute<ResponseData<{EntityName}Dto[]>>({ method: "get", path: "..." })`
-  - `GetOne`: `defineRoute<ResponseData<{EntityName}Dto>>({ method: "get", path: ".../:entityNameKebabId" })`
-  - `Update`: `defineRoute<ResponseData<SuccessResponseDTO>, RequestPayload<Partial<...>>>({ method: "patch", path: ".../:entityNameKebabId" })`
-  - `Delete`: `defineRoute<ResponseData<SuccessResponseDTO>>({ method: "delete", path: ".../:entityNameKebabId" })`
+- Export `{EntityName}sRoutes = { ... }` with only the routes matching the requested `methods`. **Route object keys MUST be exactly** (same names as the frontend SPI):
+  - `Create` → key `createOne`: `defineRoute<ResponseData<{EntityName}Dto>, RequestPayload<...>>({ method: "post", path: "..." })`
+  - `GetAll` → key `getAll`: `defineRoute<ResponseData<{EntityName}Dto[]>>({ method: "get", path: "..." })`
+  - `GetOne` → key `getOne`: `defineRoute<ResponseData<{EntityName}Dto>>({ method: "get", path: ".../:entityNameKebabId" })`
+  - `Update` → key `updateOne`: `defineRoute<ResponseData<SuccessResponseDTO>, RequestPayload<Partial<...>>>({ method: "patch", path: ".../:entityNameKebabId" })`
+  - `Delete` → key `deleteOne`: `defineRoute<ResponseData<SuccessResponseDTO>>({ method: "delete", path: ".../:entityNameKebabId" })`
+
+Do **not** invent domain-prefixed keys (`createWidget`, `listWidgets`). Use `createOne` / `getAll` / etc.
 
 > After creating these two files, check whether `packages/api-contracts/src/index.ts` exists. If it does, add exports for the new DTO and Routes.
 
@@ -409,7 +411,7 @@ File: `apps/web/src/features/{entityNameKebabPlural}/{entityNamePlural}.spi.ts`
 
 Pattern: `apps/web/src/features/agents/agents.spi.ts`
 
-- Export `interface I{EntityName}sSpi` with only the methods matching requested operations:
+- Export `interface I{EntityName}sSpi` with only the methods matching requested operations. **Method names MUST match `*Routes` keys**:
   - `getAll(params): Promise<{EntityName}[]>` (if GetAll)
   - `getOne(params): Promise<{EntityName}>` (if GetOne)
   - `createOne(params, payload): Promise<{EntityName}>` (if Create)
@@ -426,7 +428,7 @@ Pattern: `apps/web/src/features/agents/external/agents.api.ts`
 - Import `{EntityName}sRoutes` from `"@caseai-connect/api-contracts"` and `getAxiosInstance` from `"@/external/axios"`
 - Export a default object `satisfies I{EntityName}sSpi` with only the methods matching requested operations
 - For each method:
-  - Use `{EntityName}sRoutes.{method}.getPath(params)` to build the URL
+  - Use `{EntityName}sRoutes.{method}.getPath(params)` where `{method}` is `getAll` / `getOne` / `createOne` / `updateOne` / `deleteOne`
   - Map `fromDto(dto: {EntityName}Dto): {EntityName}` for responses
   - Map `toCreateDto` / `toUpdateDto` for request payloads
 - Include `fromDto`, `toCreateDto`, `toUpdateDto` helper functions at the bottom

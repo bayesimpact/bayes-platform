@@ -1,5 +1,5 @@
+import type { GlobalPermission, UserDto, UserMembershipsDto } from "@caseai-connect/api-contracts"
 import { buildNameFromEmail, MeRoutes, updateMeSchema } from "@caseai-connect/api-contracts"
-import type { UserDto, UserMembershipsDto } from "@caseai-connect/api-contracts/src/me/me.dto"
 import { Body, Controller, Get, Patch, Req, UseGuards, UsePipes } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
@@ -10,6 +10,8 @@ import {
 } from "@/domains/backoffice/backoffice.authorization"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationsService } from "@/domains/organizations/organizations.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { PermissionService } from "@/domains/rbac/permission.service"
 import {
   isAcceptanceUpToDate,
   toCurrentTermsDto,
@@ -21,8 +23,6 @@ import { UserGuard } from "@/domains/users/user.guard"
 import { UsersService } from "@/domains/users/users.service"
 import { toDto as toOrganizationDto } from "../organizations/organization.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { ProjectsService } from "../projects/projects.service"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { MeService } from "./me.service"
 
 @UseGuards(JwtAuthGuard, UserGuard)
@@ -31,7 +31,7 @@ export class MeController {
   constructor(
     private readonly organizationsService: OrganizationsService,
     private readonly meService: MeService,
-    private readonly projectsService: ProjectsService,
+    private readonly permissionService: PermissionService,
     private readonly termsComplianceService: TermsComplianceService,
     private readonly usersService: UsersService,
   ) {}
@@ -50,28 +50,18 @@ export class MeController {
   @Get(MeRoutes.getMe.path)
   async getMe(@Req() request: EndpointRequest): Promise<typeof MeRoutes.getMe.response> {
     const user = request.user
-    const [organizations, memberships, termsDocuments, latestAcceptance] = await Promise.all([
-      this.organizationsService.getUserOrganizations(user.id),
-      this.meService.getUserMemberships(user.id),
-      this.termsComplianceService.listTermsDocuments(),
-      this.termsComplianceService.getLatestAcceptanceForUser(user.id),
-    ])
-    const organizationsWithProjects = await Promise.all(
-      organizations.map(async (org) => {
-        const projects = await this.projectsService.listProjects({
-          organizationId: org.id,
-          userId: user.id,
-        })
-        return {
-          ...org,
-          projects,
-        }
-      }),
-    )
+    const [organizations, memberships, termsDocuments, latestAcceptance, globalPermissions] =
+      await Promise.all([
+        this.organizationsService.listOrganizations(user.id),
+        this.meService.getUserMemberships(user.id),
+        this.termsComplianceService.listTermsDocuments(),
+        this.termsComplianceService.getLatestAcceptanceForUser(user.id),
+        this.permissionService.listGlobalPermissions(user.id),
+      ])
     return {
       data: {
-        user: toUserDto({ user, memberships, termsDocuments, latestAcceptance }),
-        organizations: organizationsWithProjects.map(toOrganizationDto),
+        user: toUserDto({ user, memberships, termsDocuments, latestAcceptance, globalPermissions }),
+        organizations: organizations.map(toOrganizationDto),
         currentTerms: toCurrentTermsDto(termsDocuments),
       },
     }
@@ -83,16 +73,19 @@ function toUserDto({
   memberships,
   termsDocuments,
   latestAcceptance,
+  globalPermissions,
 }: {
   user: { id: string; email: string; name: string | null }
   memberships: Awaited<ReturnType<MeService["getUserMemberships"]>>
   termsDocuments: Awaited<ReturnType<TermsComplianceService["listTermsDocuments"]>>
   latestAcceptance: Awaited<ReturnType<TermsComplianceService["getLatestAcceptanceForUser"]>>
+  globalPermissions: string[]
 }): UserDto {
   return {
     id: user.id,
     email: user.email,
     name: user.name ?? buildNameFromEmail(user.email),
+    globalPermissions: globalPermissions as GlobalPermission[],
     memberships: toUserMembershipDto(memberships),
     isBackofficeAuthorized: isDomainBackofficeAuthorized(user.email),
     isTermsManagementAuthorized: isEmailBackofficeAuthorized(user.email),

@@ -1,4 +1,4 @@
-import type { Project, ProjectAgentSessionCategory } from "./projects.models"
+import type { MyProject, Project, ProjectAgentSessionCategory } from "./projects.models"
 
 export interface IProjectsSpi {
   createOne: (
@@ -8,6 +8,7 @@ export interface IProjectsSpi {
     payload: Pick<Project, "name">,
   ) => Promise<Project>
   getAll: (params: { organizationId: string }) => Promise<Project[]>
+  getAllMine: () => Promise<MyProject[]>
   updateOne: (
     params: {
       organizationId: string

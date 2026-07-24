@@ -4,9 +4,14 @@ import type { Organization } from "./organizations.models"
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
 
-export const createOrganization = createAsyncThunk<Organization, { name: string }, ThunkConfig>(
+export const fetchOrganizations = createAsyncThunk<Organization[], void, ThunkConfig>(
+  "organizations/list",
+  async (_, { extra: { services } }) => await services.organizations.list(),
+)
+
+export const createOrganization = createAsyncThunk<{ id: string }, { name: string }, ThunkConfig>(
   "organizations/create",
-  async (payload, { extra: { services } }) => await services.organizations.createOne(payload),
+  async (payload, { extra: { services } }) => services.organizations.createOne(payload),
 )
 
 export const updateOrganization = createAsyncThunk<

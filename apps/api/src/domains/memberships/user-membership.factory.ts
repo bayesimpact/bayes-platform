@@ -25,17 +25,24 @@ class UserMembershipFactory extends Factory<UserMembership, UserMembershipTransi
 
 export const userMembershipFactory = UserMembershipFactory.define(({ params, transientParams }) => {
   const userId = params.userId ?? transientParams.user?.id
-  const resourceId = params.resourceId ?? transientParams.organization?.id
+  const resourceType = (params.resourceType ?? "organization") as UserMembershipResourceType
+  const resourceId =
+    params.resourceId !== undefined ? params.resourceId : (transientParams.organization?.id ?? null)
+
   if (!userId) throw new Error("userId param or user transient is required")
-  if (!resourceId) throw new Error("resourceId param or organization transient is required")
+  if (resourceType !== "global" && !resourceId) {
+    throw new Error("resourceId param or organization transient is required")
+  }
 
   const now = new Date()
   return {
     id: params.id ?? randomUUID(),
     userId,
-    resourceType: (params.resourceType ?? "organization") as UserMembershipResourceType,
+    resourceType,
     resourceId,
     role: params.role ?? "member",
+    roleId: params.roleId ?? null,
+    rbacRole: null,
     createdAt: params.createdAt ?? now,
     updatedAt: params.updatedAt ?? now,
     deletedAt: params.deletedAt ?? null,

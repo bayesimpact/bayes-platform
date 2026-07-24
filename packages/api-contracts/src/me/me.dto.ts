@@ -4,6 +4,7 @@ import type { CurrentTermsDto } from "../backoffice/backoffice.dto"
 import type { TimeType } from "../generic"
 import type { OrganizationDto, OrganizationMembershipDto } from "../organizations/organizations.dto"
 import type { ProjectMembershipDto } from "../project-membership/project-membership.dto"
+import type { GlobalPermission } from "../rbac/permissions"
 import type {
   ReviewCampaignMembershipRole,
   ReviewCampaignStatus,
@@ -29,6 +30,7 @@ export type UserDto = {
   id: string
   email: string
   name: string
+  globalPermissions: GlobalPermission[]
   memberships: UserMembershipsDto
   isBackofficeAuthorized: boolean
   isTermsManagementAuthorized: boolean

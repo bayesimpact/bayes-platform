@@ -9,9 +9,15 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm"
+import { Role } from "@/domains/rbac/role.entity"
 import { User } from "@/domains/users/user.entity"
 
-export type UserMembershipResourceType = "organization" | "project" | "agent" | "review_campaign"
+export type UserMembershipResourceType =
+  | "organization"
+  | "project"
+  | "agent"
+  | "review_campaign"
+  | "global"
 
 /** All roles that can appear in the unified membership table. */
 export type UserMembershipRole = "owner" | "admin" | "member" | "tester" | "reviewer"
@@ -25,6 +31,8 @@ export type UserMembershipRole = "owner" | "admin" | "member" | "tester" | "revi
  *    (a user holds exactly one role per resource).
  *  - One row per (userId, resourceId, resourceType, role) for review_campaign
  *    (a user can simultaneously hold both "tester" and "reviewer" roles on the same campaign).
+ *  - One row per (userId, roleId) for global assignments
+ *    (a user holds a given global role at most once).
  *
  * NOTE: We deliberately do NOT extend Base4AllEntity here to avoid a PK constraint name
  * collision.  The historical "user_membership" table (later renamed to "organization_membership"
@@ -41,6 +49,10 @@ export type UserMembershipRole = "owner" | "admin" | "member" | "tester" | "revi
 @Index("UQ_user_membership_campaign", ["userId", "resourceId", "resourceType", "role"], {
   unique: true,
   where: `"resource_type" = 'review_campaign'`,
+})
+@Index("UQ_user_membership_global", ["userId", "roleId"], {
+  unique: true,
+  where: `"resource_type" = 'global'`,
 })
 export class UserMembership {
   @PrimaryGeneratedColumn("uuid", { primaryKeyConstraintName: "PK_user_membership_id" })
@@ -61,13 +73,32 @@ export class UserMembership {
   @Column({ type: "varchar", name: "resource_type" })
   resourceType!: UserMembershipResourceType
 
-  @Column({ type: "uuid", name: "resource_id" })
-  resourceId!: string
+  @Column({ type: "uuid", name: "resource_id", nullable: true })
+  resourceId!: string | null
 
+  /** Legacy role column for backward compatibility with the old user_membership table. */
   @Column({ type: "varchar" })
   role!: UserMembershipRole
+
+  @Column({ type: "uuid", name: "role_id", nullable: true })
+  roleId!: string | null
+
+  @ManyToOne(() => Role, { nullable: true })
+  @JoinColumn({ name: "role_id" })
+  rbacRole!: Role | null
 
   @ManyToOne(() => User)
   @JoinColumn({ name: "user_id" })
   user!: User
+}
+
+/** Resource id for scoped memberships; global rows have no resource. */
+export function getMembershipResourceId(membership: UserMembership): string {
+  if (membership.resourceId === null) {
+    throw new Error(
+      `Membership ${membership.id} with resource_type=${membership.resourceType} is missing resource_id`,
+    )
+  }
+
+  return membership.resourceId
 }

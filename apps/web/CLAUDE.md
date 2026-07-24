@@ -51,6 +51,7 @@ Each feature MUST follow this canonical pattern (the "me" feature is the referen
 **Requirements for new/refactored features**:
 - Define domain models in `*.models.ts` — components and slices use these, not raw DTOs
 - Define SPI in `*.spi.ts` — hides transport details, exposes domain models
+- For resource CRUD, SPI methods MUST be named `getAll` / `getOne` / `createOne` / `updateOne` / `deleteOne` and call the matching `{Domain}Routes.*` keys from api-contracts
 - Implement SPI in `external/*.api.ts` — use `satisfies I{Domain}Spi`, map DTOs → domain models
 - Register in `external/axios.services.ts` and update `di/services.ts`
 - Thunks use `createAsyncThunk<DomainModel, ...>` and call `extra.services.{domain}`

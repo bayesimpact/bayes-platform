@@ -9,11 +9,14 @@ import {
 } from "@/common/test/test-database"
 import { InvitationsModule } from "@/domains/invitations/invitations.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import {
   mockAuth0EmailForSub,
   mockInvitationSender,
   setupUserGuardForTesting,
 } from "../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { inviteUserToProject } from "../../projects/memberships/project-membership.factory"
 import { ProjectsModule } from "../../projects/projects.module"
@@ -29,9 +32,10 @@ describe("Invitations - acceptInvitation", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [ProjectsModule, InvitationsModule],
+      additionalImports: [ProjectsModule, InvitationsModule, RbacModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
     await app.init()
@@ -123,6 +127,10 @@ describe("Invitations - acceptInvitation", () => {
 
     expect(orgMembership).toBeDefined()
     expect(orgMembership!.role).toBe("admin")
+    const orgAdminRole = await repositories.roleRepository.findOneOrFail({
+      where: { key: ORGANIZATION_ROLES.admin },
+    })
+    expect(orgMembership!.roleId).toBe(orgAdminRole.id)
   })
 
   it("should return 404 for an unknown ticketId", async () => {

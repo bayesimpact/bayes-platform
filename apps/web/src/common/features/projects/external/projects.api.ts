@@ -1,11 +1,12 @@
 import {
+  type MyProjectDto,
   ProjectAgentSessionCategoriesRoutes,
   type ProjectAgentSessionCategoryDto,
   type ProjectDto,
   ProjectsRoutes,
 } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
-import type { Project, ProjectAgentSessionCategory } from "../projects.models"
+import type { MyProject, Project, ProjectAgentSessionCategory } from "../projects.models"
 import type { IProjectsSpi } from "../projects.spi"
 
 export default {
@@ -23,6 +24,13 @@ export default {
       ProjectsRoutes.getAll.getPath(params),
     )
     return response.data.data.map(toProject)
+  },
+  getAllMine: async () => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof ProjectsRoutes.getAllMine.response>(
+      ProjectsRoutes.getAllMine.getPath(),
+    )
+    return response.data.data.map(toMyProject)
   },
   updateOne: async (params, payload) => {
     const axios = getAxiosInstance()
@@ -54,6 +62,14 @@ export const toProjectAgentSessionCategory = (
 ): ProjectAgentSessionCategory => ({
   id: dto.id,
   name: dto.name,
+})
+
+export const toMyProject = (dto: MyProjectDto): MyProject => ({
+  id: dto.id,
+  name: dto.name,
+  organizationId: dto.organizationId,
+  featureFlags: dto.featureFlags,
+  permissions: dto.permissions,
 })
 
 export const toProject = (dto: ProjectDto): Project => ({

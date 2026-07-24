@@ -11,8 +11,10 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../test/e2e.helpers"
+import { assignOrgCreatorToUser, ensureRbacCatalog } from "../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../test/request"
 import { Organization } from "./organization.entity"
 import { OrganizationsModule } from "./organizations.module"
@@ -30,9 +32,10 @@ describe("Organizations - createOrganization", () => {
   beforeAll(async () => {
     process.env.ORGANIZATION_CREATOR_EMAIL_DOMAIN = "@bayesimpact.org"
     setup = await setupE2eTestDatabase({
-      additionalImports: [OrganizationsModule],
+      additionalImports: [OrganizationsModule, RbacModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     app = setup.module.createNestApplication()
@@ -54,18 +57,22 @@ describe("Organizations - createOrganization", () => {
   })
 
   const createContext = async (userParams?: Partial<{ email: string }>) => {
+    const email = userParams?.email ?? "creator@bayesimpact.org"
     const user = userFactory.build({
       auth0Id,
-      email: userParams?.email ?? "creator@bayesimpact.org",
+      email,
     })
     await repositories.userRepository.save(user)
+    if (email.endsWith("@bayesimpact.org")) {
+      await assignOrgCreatorToUser({ repositories, user })
+    }
     auth0Id = user.auth0Id
     return { user }
   }
 
-  const subject = async (payload?: typeof OrganizationsRoutes.createOrganization.request) =>
+  const subject = async (payload?: typeof OrganizationsRoutes.createOne.request) =>
     request({
-      route: OrganizationsRoutes.createOrganization,
+      route: OrganizationsRoutes.createOne,
       token: accessToken,
       request: payload,
     })
@@ -75,7 +82,7 @@ describe("Organizations - createOrganization", () => {
     expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
   })
 
-  it("rejects users without a @bayesimpact.org email", async () => {
+  it("rejects users without organization.create permission", async () => {
     await createContext({ email: "outsider@example.com" })
 
     const response = await subject({ payload: { name: "Forbidden Org" } })
@@ -93,7 +100,14 @@ describe("Organizations - createOrganization", () => {
       id: expect.any(String),
       name: "New Organization",
       createdAt: expect.any(Number),
-      projects: [],
+      // alphabetical: listPermissionsForRole orders by permission_key
+      permissions: [
+        "organization.delete",
+        "organization.read",
+        "organization.update",
+        "project.create",
+        "project.read",
+      ],
     } satisfies OrganizationDto)
   })
 

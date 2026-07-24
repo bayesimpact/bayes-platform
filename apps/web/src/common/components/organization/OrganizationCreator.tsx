@@ -13,7 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { z } from "zod"
-import { selectIsPremiumMember } from "@/common/features/me/me.selectors"
+import { selectCanCreateOrganization } from "@/common/features/me/me.selectors"
 import {
   selectOrganizationsError,
   selectOrganizationsStatus,
@@ -25,7 +25,7 @@ import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { FullPageCenterLayout } from "../layouts/FullPageCenterLayout"
 
 export function OrganizationCreator() {
-  const isPremiumUser = useAppSelector(selectIsPremiumMember)
+  const canCreateOrganization = useAppSelector(selectCanCreateOrganization)
   const { t } = useTranslation("organization", { keyPrefix: "createForm" })
   const dispatch = useAppDispatch()
   const status = useAppSelector(selectOrganizationsStatus)
@@ -50,7 +50,7 @@ export function OrganizationCreator() {
   }
 
   const isLoading = ADS.isLoading(status)
-  if (!isPremiumUser) {
+  if (!canCreateOrganization) {
     return <ErrorRoute error={t("notAllowed")} />
   }
   return (

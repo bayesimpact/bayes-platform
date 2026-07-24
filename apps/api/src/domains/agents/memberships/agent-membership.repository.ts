@@ -3,7 +3,10 @@ import { In, type Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 import { Agent } from "@/domains/agents/agent.entity"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import {
+  getMembershipResourceId,
+  UserMembership,
+} from "@/domains/memberships/user-membership.entity"
 import type { AgentMembershipModel } from "./agent-membership.model"
 import type { AgentMembershipRole } from "./agent-membership.types"
 
@@ -35,6 +38,7 @@ export class AgentMembershipRepository {
       relations: ["user"],
     })
     if (!membership) return null
+    if (!membership.resourceId) return null
 
     const agent = await this.agentRepo().findOne({ where: { id: membership.resourceId } })
     if (!agent) return null
@@ -220,11 +224,20 @@ export class AgentMembershipRepository {
   private async toModels(memberships: UserMembership[]): Promise<AgentMembershipModel[]> {
     if (memberships.length === 0) return []
 
-    const agentIds = [...new Set(memberships.map((membership) => membership.resourceId))]
+    const agentIds = [
+      ...new Set(
+        memberships
+          .map((membership) => membership.resourceId)
+          .filter((resourceId): resourceId is string => resourceId !== null),
+      ),
+    ]
     const agents = await this.agentRepo().find({ where: { id: In(agentIds) } })
     const agentById = new Map(agents.map((agent) => [agent.id, agent]))
 
     return memberships.flatMap((membership) => {
+      if (!membership.resourceId) {
+        return []
+      }
       const agent = agentById.get(membership.resourceId)
       return agent ? [this.toModel(membership, agent)] : []
     })
@@ -234,7 +247,7 @@ export class AgentMembershipRepository {
     return {
       id: membership.id,
       userId: membership.userId,
-      agentId: membership.resourceId,
+      agentId: getMembershipResourceId(membership),
       role: membership.role as AgentMembershipRole,
       createdAt: membership.createdAt,
       updatedAt: membership.updatedAt,

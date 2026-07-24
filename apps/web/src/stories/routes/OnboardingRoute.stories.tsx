@@ -37,18 +37,29 @@ function buildData(args: StoryArgs) {
     withReviewCampaignMembershipsAsReviewer,
     featureFlags,
   } = args
-  const organizations = Array.from({ length: organizationCount }, () => organizationFactory.build())
-  const organizationsWithProjects = organizations.map((organization) => {
-    const projects = projectFactory
-      .transient({ organization })
-      .buildList(projectsPerOrganization, { featureFlags })
-    return { ...organization, projects }
-  })
-
-  const allProjects = organizationsWithProjects.flatMap((organization) => organization.projects)
+  const organizations = Array.from({ length: organizationCount }, () =>
+    organizationFactory.transient({ role: organizationMembershipRole }).build(),
+  )
+  const fullProjectsByOrganizationId = new Map(
+    organizations.map((organization) => [
+      organization.id,
+      projectFactory
+        .transient({ organization })
+        .buildList(projectsPerOrganization, { featureFlags }),
+    ]),
+  )
+  const allProjects = [...fullProjectsByOrganizationId.values()].flat()
   const firstProject = allProjects[0]
 
-  const organizationMemberships = organizationsWithProjects.map((organization) =>
+  const myProjects = allProjects.map((project) => ({
+    id: project.id,
+    name: project.name,
+    organizationId: project.organizationId,
+    featureFlags: project.featureFlags,
+    permissions: ["project.read"],
+  }))
+
+  const organizationMemberships = organizations.map((organization) =>
     organizationMembershipFactory
       .transient({ organization })
       .build({ role: organizationMembershipRole }),
@@ -107,7 +118,8 @@ function buildData(args: StoryArgs) {
         ]
       : []
   return {
-    organizationsWithProjects,
+    organizations,
+    myProjects,
     organizationMemberships,
     projectMemberships,
     invitations,
@@ -152,7 +164,8 @@ const meta = {
       return {
         state: mergeSeeds(
           seed.me(user),
-          seed.organizations(data.organizationsWithProjects),
+          seed.organizations(data.organizations),
+          seed.myProjects(data.myProjects),
           seed.pendingInvitations(data.invitations),
         ),
       }

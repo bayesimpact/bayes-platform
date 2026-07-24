@@ -19,8 +19,11 @@ import {
   projectMembershipFactory,
   saveProjectMembership,
 } from "@/domains/projects/memberships/project-membership.factory"
+import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { userFactory } from "@/domains/users/user.factory"
 import { mockInvitationSender, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { InvitationsModule } from "../invitations.module"
 import { AgentInvitationHandler } from "./agent-invitation.handler"
 
@@ -31,10 +34,11 @@ describe("AgentInvitationHandler", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [InvitationsModule],
+      additionalImports: [InvitationsModule, RbacModule],
       applyOverrides: (moduleBuilder) =>
         setupUserGuardForTesting(moduleBuilder, () => "auth0|agent-invitation-handler-spec"),
     })
+    await ensureRbacCatalog(setup.module)
     handler = setup.module.get(AgentInvitationHandler)
     repositories = setup.getAllRepositories()
   })
@@ -342,6 +346,10 @@ describe("AgentInvitationHandler", () => {
       })
       expect(orgMembership).not.toBeNull()
       expect(orgMembership!.role).toBe("member")
+      const orgMemberRole = await repositories.roleRepository.findOneOrFail({
+        where: { key: ORGANIZATION_ROLES.member },
+      })
+      expect(orgMembership!.roleId).toBe(orgMemberRole.id)
     })
 
     it("resolves an existing user found by auth0Id", async () => {

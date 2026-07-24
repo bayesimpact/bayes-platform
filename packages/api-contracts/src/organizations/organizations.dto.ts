@@ -1,6 +1,6 @@
 import { z } from "zod"
 import type { TimeType } from "../generic"
-import type { ProjectDto } from "../projects/projects.dto"
+import type { OrganizationPermission } from "../rbac/permissions"
 
 export type OrganizationMembershipRoleDto = "owner" | "admin" | "member"
 
@@ -15,7 +15,7 @@ export type OrganizationDto = {
   id: string
   name: string
   createdAt: TimeType
-  projects: ProjectDto[]
+  permissions: OrganizationPermission[]
 }
 
 export const updateOrganizationSchema = z

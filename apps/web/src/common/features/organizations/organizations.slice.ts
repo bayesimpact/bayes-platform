@@ -1,8 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit"
-import { fetchMe } from "@/common/features/me/me.thunks"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { Organization } from "./organizations.models"
-import { createOrganization } from "./organizations.thunks"
+import { createOrganization, fetchOrganizations } from "./organizations.thunks"
 
 interface State {
   data: AsyncData<Organization[]>
@@ -22,25 +21,24 @@ const slice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchMe.pending, (state) => {
+      .addCase(fetchOrganizations.pending, (state) => {
         if (!ADS.isFulfilled(state.data)) state.data.status = ADS.Loading
         state.data.error = null
       })
-      .addCase(fetchMe.fulfilled, (state, action) => {
+      .addCase(fetchOrganizations.fulfilled, (state, action) => {
         state.data = {
           status: ADS.Fulfilled,
           error: null,
-          value: action.payload.organizations,
+          value: action.payload,
         }
       })
-      .addCase(fetchMe.rejected, (state, action) => {
+      .addCase(fetchOrganizations.rejected, (state, action) => {
         state.data.status = ADS.Error
         state.data.error = action.error.message || "Failed to list organizations"
       })
 
     builder.addCase(createOrganization.pending, (state) => {
       if (!ADS.isFulfilled(state.data) || state.data.value?.length === 0) {
-        // Required when no org yet
         state.data.status = ADS.Loading
       }
     })

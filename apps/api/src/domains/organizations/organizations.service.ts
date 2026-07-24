@@ -1,21 +1,45 @@
+import type { OrganizationPermission } from "@caseai-connect/api-contracts"
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { PermissionService } from "@/domains/rbac/permission.service"
 import { User } from "@/domains/users/user.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationMembershipsService } from "./memberships/organization-memberships.service"
 import { Organization } from "./organization.entity"
+import { toModel } from "./organization.helpers"
+import type { OrganizationModel } from "./organization.model"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { OrganizationRepository } from "./organization.repository"
 
 @Injectable()
 export class OrganizationsService {
   constructor(
-    @InjectRepository(Organization) readonly organizationRepository: Repository<Organization>,
+    @InjectRepository(Organization)
+    private readonly organizationEntityRepository: Repository<Organization>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly organizationMembershipsService: OrganizationMembershipsService,
+    private readonly organizationRepository: OrganizationRepository,
+    private readonly permissionService: PermissionService,
   ) {}
 
-  async getUserOrganizations(userId: string): Promise<Organization[]> {
-    return this.organizationMembershipsService.listOrganizationsForUser(userId)
+  async listOrganizations(userId: string): Promise<OrganizationModel[]> {
+    const permissionsByOrganizationId = await this.permissionService.listResourcePermissions(
+      userId,
+      "organization",
+    )
+
+    const organizations = await this.organizationRepository.findByIds([
+      ...permissionsByOrganizationId.keys(),
+    ])
+
+    return organizations.map((organization) =>
+      toModel(
+        organization,
+        (permissionsByOrganizationId.get(organization.id) ?? []) as OrganizationPermission[],
+      ),
+    )
   }
 
   async createOrganization({
@@ -24,7 +48,7 @@ export class OrganizationsService {
   }: {
     userId: string
     name: string
-  }): Promise<Organization> {
+  }): Promise<OrganizationModel> {
     if (!name || name.trim().length < 3) {
       throw new Error("Organization name must be at least 3 characters long")
     }
@@ -34,15 +58,19 @@ export class OrganizationsService {
       throw new Error(`User with id ${userId} not found`)
     }
 
-    const organization = this.organizationRepository.create({ name })
-    const savedOrganization = await this.organizationRepository.save(organization)
+    const organization = this.organizationEntityRepository.create({ name })
+    const savedOrganization = await this.organizationEntityRepository.save(organization)
 
-    await this.organizationMembershipsService.createOrganizationOwnerMembership({
+    const membership = await this.organizationMembershipsService.createOrganizationOwnerMembership({
       userId: user.id,
       organizationId: savedOrganization.id,
     })
 
-    return savedOrganization
+    // the membership carries the RBAC role it was created with: ask RBAC what that role grants
+    const permissions = membership.roleId
+      ? await this.permissionService.listPermissionsForRole(membership.roleId)
+      : []
+    return toModel(savedOrganization, permissions as OrganizationPermission[])
   }
 
   async updateOrganizationName({
@@ -52,7 +80,7 @@ export class OrganizationsService {
     organizationId: string
     name: string
   }): Promise<void> {
-    const organization = await this.organizationRepository.findOne({
+    const organization = await this.organizationEntityRepository.findOne({
       where: { id: organizationId },
     })
     if (!organization) {
@@ -60,6 +88,6 @@ export class OrganizationsService {
     }
 
     organization.name = name
-    await this.organizationRepository.save(organization)
+    await this.organizationEntityRepository.save(organization)
   }
 }

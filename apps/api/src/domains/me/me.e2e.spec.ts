@@ -12,7 +12,7 @@ import {
   createOrganizationWithAgent,
   createOrganizationWithOwner,
 } from "@/domains/organizations/organization.factory"
-import { projectFactory } from "@/domains/projects/project.factory"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import {
   reviewCampaignMembershipFactory,
   saveReviewCampaignMembership,
@@ -20,8 +20,8 @@ import {
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../test/e2e.helpers"
+import { assignOrgCreatorToUser, ensureRbacCatalog } from "../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../test/request"
-import { addUserToProject } from "../projects/memberships/project-membership.factory"
 import { MeModule } from "./me.module"
 
 describe("MeController (e2e)", () => {
@@ -35,9 +35,10 @@ describe("MeController (e2e)", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [MeModule],
+      additionalImports: [MeModule, RbacModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
     await app.init()
@@ -113,6 +114,7 @@ describe("MeController (e2e)", () => {
         id: soloUser.id,
         email: soloUser.email,
         name: soloUser.name,
+        globalPermissions: [],
         memberships: {
           organizationMemberships: [],
           projectMemberships: [],
@@ -132,6 +134,7 @@ describe("MeController (e2e)", () => {
         id: user.id,
         email: user.email,
         name: user.name,
+        globalPermissions: [],
       })
       expect(response.body.data.user.memberships.organizationMemberships).toHaveLength(1)
       expect(response.body.data.user.memberships.organizationMemberships[0]).toMatchObject({
@@ -142,26 +145,7 @@ describe("MeController (e2e)", () => {
       expect(response.body.data.organizations[0]).toMatchObject({
         id: organization.id,
         name: organization.name,
-        projects: [],
-      })
-    })
-
-    it("returns organizations with their projects", async () => {
-      const { user, organization } = await createContext()
-
-      const project = projectFactory.transient({ organization }).build({ name: "Test Project" })
-      await repositories.projectRepository.save(project)
-      await addUserToProject({ repositories, project, user })
-
-      const response = await subject()
-
-      expectResponse(response, 200)
-      expect(response.body.data.organizations).toHaveLength(1)
-      expect(response.body.data.organizations[0]!.projects).toHaveLength(1)
-      expect(response.body.data.organizations[0]!.projects[0]).toMatchObject({
-        id: project.id,
-        name: "Test Project",
-        organizationId: organization.id,
+        permissions: expect.arrayContaining(["organization.read"]),
       })
     })
 
@@ -242,6 +226,17 @@ describe("MeController (e2e)", () => {
         projectId: project.id,
         campaignStatus: "draft",
       })
+    })
+
+    it("returns global permissions such as organization.create", async () => {
+      const user = userFactory.build({ auth0Id })
+      await repositories.userRepository.save(user)
+      await assignOrgCreatorToUser({ repositories, user })
+
+      const response = await subject()
+
+      expectResponse(response, 200)
+      expect(response.body.data.user.globalPermissions).toEqual(["organization.create"])
     })
   })
 })

@@ -2,8 +2,12 @@ import { Injectable } from "@nestjs/common"
 import { In, type Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import {
+  getMembershipResourceId,
+  UserMembership,
+} from "@/domains/memberships/user-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
+import { resolveProjectRoleId } from "@/domains/rbac/resolve-project-role-id"
 import type { ProjectMembershipModel } from "./project-membership.model"
 import type { ProjectMembershipRole } from "./project-membership.types"
 
@@ -120,7 +124,7 @@ export class ProjectMembershipRepository {
       .andWhere("membership.resourceType = :resourceType", { resourceType: PROJECT_RESOURCE_TYPE })
       .andWhere("project.organizationId = :organizationId", { organizationId })
       .getOne()
-    if (!membership) return null
+    if (!membership?.resourceId) return null
 
     const project = await this.projectRepo().findOneOrFail({ where: { id: membership.resourceId } })
     return this.toModel(membership, project)
@@ -146,12 +150,15 @@ export class ProjectMembershipRepository {
     projectId: string
     role: ProjectMembershipRole
   }): Promise<ProjectMembershipModel> {
+    const manager = this.transactionService.getManager()
+    const roleId = await resolveProjectRoleId(manager, role)
     const saved = await this.userMembershipRepo().save(
       this.userMembershipRepo().create({
         userId,
         resourceType: PROJECT_RESOURCE_TYPE,
         resourceId: projectId,
         role,
+        roleId,
       }),
     )
     const withUser = await this.userMembershipRepo().findOneOrFail({
@@ -172,13 +179,15 @@ export class ProjectMembershipRepository {
     projectId: string
     role: ProjectMembershipRole
   }): Promise<void> {
+    const manager = this.transactionService.getManager()
+    const roleId = await resolveProjectRoleId(manager, role)
     await this.userMembershipRepo().update(
       {
         id: membershipId,
         resourceType: PROJECT_RESOURCE_TYPE,
         resourceId: projectId,
       },
-      { role },
+      { role, roleId },
     )
   }
 
@@ -217,11 +226,20 @@ export class ProjectMembershipRepository {
   private async toModels(memberships: UserMembership[]): Promise<ProjectMembershipModel[]> {
     if (memberships.length === 0) return []
 
-    const projectIds = [...new Set(memberships.map((membership) => membership.resourceId))]
+    const projectIds = [
+      ...new Set(
+        memberships
+          .map((membership) => membership.resourceId)
+          .filter((resourceId): resourceId is string => resourceId !== null),
+      ),
+    ]
     const projects = await this.projectRepo().find({ where: { id: In(projectIds) } })
     const projectById = new Map(projects.map((project) => [project.id, project]))
 
     return memberships.flatMap((membership) => {
+      if (!membership.resourceId) {
+        return []
+      }
       const project = projectById.get(membership.resourceId)
       return project ? [this.toModel(membership, project)] : []
     })
@@ -231,7 +249,7 @@ export class ProjectMembershipRepository {
     return {
       id: membership.id,
       userId: membership.userId,
-      projectId: membership.resourceId,
+      projectId: getMembershipResourceId(membership),
       role: membership.role as ProjectMembershipRole,
       createdAt: membership.createdAt,
       updatedAt: membership.updatedAt,

@@ -58,22 +58,51 @@ export type { CreateProjectRequestDto, CreateProjectResponseDto, ... } from "./p
 
 All NestJS controllers MUST use the `defineRoute` strategy for type-safe route definitions.
 
+#### Route key naming (CRUD)
+
+Standard CRUD keys on `*Routes` objects MUST be exactly:
+
+| Operation | Route key | HTTP |
+|-----------|-----------|------|
+| List collection | `getAll` | GET |
+| Get single resource | `getOne` | GET |
+| Create | `createOne` | POST |
+| Update | `updateOne` | PATCH |
+| Delete | `deleteOne` | DELETE |
+
+Do **not** use domain-prefixed CRUD keys (`listOrganizations`, `createOrganization`). Non-CRUD routes may use descriptive keys (`getMe`, `acceptTerms`). Pattern: `agents.routes.ts`, `projects.routes.ts`.
+
 #### Step 1: Create a Routes File (`*.routes.ts`)
 
 ```typescript
-// GET/DELETE routes
+// List / get-one / delete
 export const MyRoutes = {
-  getSomething: defineRoute<ResponseData<MyResponseDto>>({
+  getAll: defineRoute<ResponseData<MyDto[]>>({
     method: "get",
-    path: "my/path",  // No leading slash - normalized automatically
+    path: "my/path", // No leading slash - normalized automatically
+  }),
+  getOne: defineRoute<ResponseData<MyDto>>({
+    method: "get",
+    path: "my/path/:myId",
+  }),
+  deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
+    method: "delete",
+    path: "my/path/:myId",
   }),
 }
 
-// POST/PUT/PATCH routes
+// Create / update
 export const MyRoutes = {
-  createSomething: defineRoute<ResponseData<MyResponseDto>, RequestPayload<MyRequestDto>>({
+  createOne: defineRoute<ResponseData<MyDto>, RequestPayload<Pick<MyDto, "name">>>({
     method: "post",
     path: "my/path",
+  }),
+  updateOne: defineRoute<
+    ResponseData<SuccessResponseDTO>,
+    RequestPayload<UpdateMyRequestDto>
+  >({
+    method: "patch",
+    path: "my/path/:myId",
   }),
 }
 ```
@@ -81,11 +110,11 @@ export const MyRoutes = {
 #### Step 2: Use Routes in Controller
 
 ```typescript
-@Controller()  // No prefix - paths come from route definitions
+@Controller() // No prefix - paths come from route definitions
 export class MyController {
-  @Get(MyRoutes.getSomething.path)
-  async getSomething(): Promise<typeof MyRoutes.getSomething.response> {
-    return { data: { /* ... */ } }  // Always wrap in { data: ... }
+  @Get(MyRoutes.getAll.path)
+  async list(): Promise<typeof MyRoutes.getAll.response> {
+    return { data: { /* ... */ } } // Always wrap in { data: ... }
   }
 }
 ```
@@ -96,6 +125,7 @@ export class MyController {
 - Use `typeof Routes.routeName.response` for return type
 - Always wrap responses in `{ data: ... }` to match `ResponseData<T>`
 - POST/PUT/PATCH request bodies are wrapped in `{ payload: ... }` to match `RequestPayload<T>`
+- Controller method names may be descriptive; route **keys** stay `getAll` / `createOne` / etc.
 
 #### Step 3: Export Routes
 

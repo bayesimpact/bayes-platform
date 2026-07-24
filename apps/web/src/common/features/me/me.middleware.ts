@@ -1,5 +1,7 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
+import { fetchOrganizations } from "@/common/features/organizations/organizations.thunks"
+import { fetchMyProjects } from "@/common/features/projects/projects.thunks"
 import { startPolling } from "@/common/store/polling"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { logoutAuth0 } from "@/external/auth0Client"
@@ -15,19 +17,27 @@ const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
 listenerMiddleware.startListening({
   actionCreator: meActions.mountOnboarding,
-  effect: (_, listenerApi) =>
-    startPolling(listenerApi, {
+  effect: (_, listenerApi) => {
+    // both listings load in parallel; the grouping happens in a selector
+    listenerApi.dispatch(fetchOrganizations())
+    listenerApi.dispatch(fetchMyProjects())
+    return startPolling(listenerApi, {
       stopWhen: meActions.unmountOnboarding.match,
       intervalMs: PENDING_INVITATIONS_POLL_INTERVAL_MS,
       poll: () => listenerApi.dispatch(fetchPendingInvitations()),
-    }),
+    })
+  },
 })
 
 listenerMiddleware.startListening({
   actionCreator: acceptInvitation.fulfilled,
   effect: async (_, listenerApi) => {
     listenerApi.dispatch(fetchPendingInvitations())
-    listenerApi.dispatch(fetchMe())
+    await Promise.all([
+      listenerApi.dispatch(fetchMe()),
+      listenerApi.dispatch(fetchOrganizations()),
+      listenerApi.dispatch(fetchMyProjects()),
+    ])
   },
 })
 

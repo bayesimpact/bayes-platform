@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto"
 import { Factory } from "fishery"
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
 import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
+import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
 import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "../../users/user.factory"
 import type { Organization } from "../organization.entity"
@@ -66,6 +67,9 @@ export const saveOrgMembership = async ({
   repositories: AllRepositories
   membership: OrganizationMembershipFixture
 }) => {
+  const roleKey = ORGANIZATION_ROLES[membership.role]
+  const rbacRole = await repositories.roleRepository.findOne({ where: { key: roleKey } })
+
   const saved = await repositories.userMembershipRepository.save(
     userMembershipFactory.build({
       id: membership.id,
@@ -73,6 +77,7 @@ export const saveOrgMembership = async ({
       resourceType: "organization",
       resourceId: membership.organizationId,
       role: membership.role,
+      roleId: rbacRole?.id ?? null,
     }),
   )
   return { ...membership, id: saved.id }

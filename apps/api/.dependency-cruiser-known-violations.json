@@ -3669,8 +3669,17 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/organizations/organization.policy.ts",
-    "to": "src/domains/users/user.entity.ts",
+    "from": "src/domains/organizations/organization.repository.ts",
+    "to": "src/domains/memberships/user-membership.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/organizations/organization.repository.ts",
+    "to": "src/domains/projects/project.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4490,6 +4499,15 @@
     "type": "dependency",
     "from": "src/domains/me/me.controller.ts",
     "to": "src/domains/projects/projects.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/me/me.controller.ts",
+    "to": "src/domains/rbac/permission.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"

@@ -9,12 +9,15 @@ import {
 } from "@/common/test/test-database"
 import { InvitationsModule } from "@/domains/invitations/invitations.module"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { userFactory } from "@/domains/users/user.factory"
 import {
   mockAuth0EmailForSub,
   mockInvitationSender,
   setupUserGuardForTesting,
 } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
@@ -34,9 +37,10 @@ describe("Invitations - acceptInvitation (review campaigns)", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [ReviewCampaignsModule, InvitationsModule],
+      additionalImports: [ReviewCampaignsModule, InvitationsModule, RbacModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
     await app.init()
@@ -127,6 +131,10 @@ describe("Invitations - acceptInvitation (review campaigns)", () => {
       },
     })
     expect(orgMembership?.role).toBe("member")
+    const orgMemberRole = await repositories.roleRepository.findOneOrFail({
+      where: { key: ORGANIZATION_ROLES.member },
+    })
+    expect(orgMembership?.roleId).toBe(orgMemberRole.id)
   })
 
   it("ensures the invitee gets a project membership (role: member)", async () => {

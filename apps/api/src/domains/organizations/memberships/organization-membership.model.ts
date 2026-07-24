@@ -21,6 +21,8 @@ export type OrganizationMembershipContextModel = {
  * legacy tables); it will become a domain model once Organization is also split.
  */
 export type OrganizationMembershipModel = OrganizationMembershipContextModel & {
+  /** RBAC role backing this membership (null when the catalog is not seeded). */
+  roleId: string | null
   user: User
   organization: Organization
 }

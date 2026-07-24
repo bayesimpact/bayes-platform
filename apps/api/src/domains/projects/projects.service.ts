@@ -6,23 +6,28 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { PermissionService } from "@/domains/rbac/permission.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentTagsService } from "../documents/tags/document-tags.service"
 import { FeatureFlag } from "../feature-flags/feature-flag.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipsService } from "./memberships/project-memberships.service"
 import { Project } from "./project.entity"
+import { toProjectModel } from "./project.helpers"
+import type { ProjectModel } from "./project.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectRepository } from "./project.repository"
 
 @Injectable()
 export class ProjectsService {
   constructor(
-    @InjectRepository(Project) private readonly projectRepository: Repository<Project>,
+    @InjectRepository(Project) private readonly projectEntityRepository: Repository<Project>,
     @InjectRepository(FeatureFlag) private readonly featureFlagRepository: Repository<FeatureFlag>,
+    private readonly projectRepository: ProjectRepository,
     private readonly projectMembershipsService: ProjectMembershipsService,
     private readonly documentTagsService: DocumentTagsService,
     private readonly transactionService: TransactionService,
-    private readonly projectsRepository: ProjectRepository,
+    private readonly permissionService: PermissionService,
   ) {}
 
   async createProject(params: {
@@ -30,8 +35,8 @@ export class ProjectsService {
     userId: string
     name: string
   }): Promise<Project> {
-    const project = this.projectRepository.create(params)
-    await this.projectRepository.save(project)
+    const project = this.projectEntityRepository.create(params)
+    await this.projectEntityRepository.save(project)
     await this.projectMembershipsService.createProjectOwnerMembership({
       projectId: project.id,
       userId: params.userId,
@@ -43,6 +48,19 @@ export class ProjectsService {
     return project
   }
 
+  async listUserProjects(userId: string): Promise<ProjectModel[]> {
+    const permissionsByProjectId = await this.permissionService.listResourcePermissions(
+      userId,
+      "project",
+    )
+
+    const projects = await this.projectRepository.findAllByIds([...permissionsByProjectId.keys()])
+
+    return projects.map((project) =>
+      toProjectModel(project, permissionsByProjectId.get(project.id) ?? []),
+    )
+  }
+
   async listProjects({
     organizationId,
     userId,
@@ -50,21 +68,51 @@ export class ProjectsService {
     organizationId: string
     userId: string
   }): Promise<Project[]> {
+    const projectsByOrganizationId = await this.listProjectsForUserByOrganizationIds({
+      userId,
+      organizationIds: [organizationId],
+    })
+
+    return projectsByOrganizationId.get(organizationId) ?? []
+  }
+
+  async listProjectsForUserByOrganizationIds({
+    userId,
+    organizationIds,
+  }: {
+    userId: string
+    organizationIds: string[]
+  }): Promise<Map<string, Project[]>> {
+    const projectsByOrganizationId = new Map<string, Project[]>(
+      organizationIds.map((organizationId) => [organizationId, []]),
+    )
+    if (organizationIds.length === 0) {
+      return projectsByOrganizationId
+    }
+
     const memberships = await this.projectMembershipsService.listMembershipsForUser(userId)
     const projectIds = memberships.map((membership) => membership.projectId)
     if (projectIds.length === 0) {
-      return []
+      return projectsByOrganizationId
     }
 
-    return this.projectRepository.find({
-      where: { organizationId, id: In(projectIds) },
+    const projects = await this.projectEntityRepository.find({
+      where: { organizationId: In(organizationIds), id: In(projectIds) },
       relations: { featureFlags: true, projectAgentSessionCategories: true },
       order: { createdAt: "DESC" },
     })
+
+    for (const project of projects) {
+      const organizationProjects = projectsByOrganizationId.get(project.organizationId) ?? []
+      organizationProjects.push(project)
+      projectsByOrganizationId.set(project.organizationId, organizationProjects)
+    }
+
+    return projectsByOrganizationId
   }
 
   async getProject(organizationId: string, projectId: string): Promise<Project | undefined> {
-    const project = await this.projectRepository.findOne({
+    const project = await this.projectEntityRepository.findOne({
       where: { id: projectId, organizationId },
       relations: { featureFlags: true, projectAgentSessionCategories: true },
     })
@@ -74,12 +122,12 @@ export class ProjectsService {
   async updateProject(project: Project, name: string): Promise<Project> {
     // Update the project
     project.name = name
-    return this.projectRepository.save(project)
+    return this.projectEntityRepository.save(project)
   }
 
   async deleteProject(project: Project): Promise<void> {
     await this.transactionService.run(async () => {
-      await this.projectsRepository.softDelete(project.id)
+      await this.projectRepository.softDelete(project.id)
       await this.projectMembershipsService.deleteMembership({ projectId: project.id })
     })
   }
