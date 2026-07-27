@@ -19,6 +19,8 @@ export const projectFactory = ProjectFactory.define(({ sequence, params, transie
     id: params.id || randomUUID(),
     name: params.name || `Test Project ${sequence}`,
     organizationId: transientParams.organization.id,
+    conversationRetentionDays:
+      params.conversationRetentionDays === undefined ? 30 : params.conversationRetentionDays,
     createdAt: params.createdAt || now,
     updatedAt: params.updatedAt || now,
     deletedAt: null,

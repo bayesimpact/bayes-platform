@@ -1,5 +1,15 @@
-import { ProjectsRoutes } from "@caseai-connect/api-contracts"
-import { Body, Controller, Delete, Get, Patch, Post, Req, UseGuards } from "@nestjs/common"
+import { ProjectsRoutes, updateProjectSchema } from "@caseai-connect/api-contracts"
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+  UsePipes,
+} from "@nestjs/common"
 import type {
   EndpointRequestWithOrganizationMembership,
   EndpointRequestWithProject,
@@ -7,6 +17,7 @@ import type {
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
+import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
@@ -48,6 +59,7 @@ export class ProjectsController {
   }
 
   @Patch(ProjectsRoutes.updateOne.path)
+  @UsePipes(new ZodValidationPipe(updateProjectSchema))
   @CheckPolicy((policy) => policy.canUpdate())
   @AddContext("project")
   @TrackActivity({ action: "project.update", entityFrom: "project" })
@@ -57,7 +69,7 @@ export class ProjectsController {
   ): Promise<typeof ProjectsRoutes.updateOne.response> {
     const { project } = request
 
-    const updatedProject = await this.projectsService.updateProject(project!, body.payload.name)
+    const updatedProject = await this.projectsService.updateProject(project!, body.payload)
 
     return { data: toProjectDto(updatedProject) }
   }

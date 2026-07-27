@@ -81,4 +81,56 @@ describe("Projects - updateProject", () => {
 
     await expectActivityCreated("project.update")
   })
+
+  it("sets the conversation retention in days", async () => {
+    const { project } = await createContext()
+
+    const response = await subject({
+      payload: { name: project.name, conversationRetentionDays: 30 },
+    })
+
+    expectResponse(response, 200)
+    expect(response.body.data.conversationRetentionDays).toBe(30)
+
+    const updatedProject = await repositories.projectRepository.findOneByOrFail({ id: projectId })
+    expect(updatedProject.conversationRetentionDays).toBe(30)
+  })
+
+  it("clears the conversation retention with null", async () => {
+    const { project } = await createContext()
+    await repositories.projectRepository.update(
+      { id: projectId },
+      { conversationRetentionDays: 30 },
+    )
+
+    const response = await subject({
+      payload: { name: project.name, conversationRetentionDays: null },
+    })
+
+    expectResponse(response, 200)
+    expect(response.body.data.conversationRetentionDays).toBeNull()
+  })
+
+  it("keeps the retention untouched when the field is omitted", async () => {
+    await createContext()
+    await repositories.projectRepository.update(
+      { id: projectId },
+      { conversationRetentionDays: 30 },
+    )
+
+    const response = await subject({ payload: { name: "Renamed Project" } })
+
+    expectResponse(response, 200)
+    expect(response.body.data.conversationRetentionDays).toBe(30)
+  })
+
+  it("rejects a non-positive retention", async () => {
+    const { project } = await createContext()
+
+    const response = await subject({
+      payload: { name: project.name, conversationRetentionDays: 0 },
+    })
+
+    expectResponse(response, 400)
+  })
 })

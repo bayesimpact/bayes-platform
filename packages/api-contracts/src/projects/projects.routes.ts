@@ -1,6 +1,6 @@
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
-import type { ProjectDto } from "./projects.dto"
+import type { ProjectDto, UpdateProjectRequestDto } from "./projects.dto"
 
 export const ProjectsRoutes = {
   createOne: defineRoute<ResponseData<ProjectDto>, RequestPayload<Pick<ProjectDto, "name">>>({
@@ -11,7 +11,7 @@ export const ProjectsRoutes = {
     method: "get",
     path: "organizations/:organizationId/projects",
   }),
-  updateOne: defineRoute<ResponseData<ProjectDto>, RequestPayload<Pick<ProjectDto, "name">>>({
+  updateOne: defineRoute<ResponseData<ProjectDto>, RequestPayload<UpdateProjectRequestDto>>({
     method: "patch",
     path: "organizations/:organizationId/projects/:projectId",
   }),

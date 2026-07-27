@@ -58,6 +58,15 @@ export class LocalStorageService implements IFileStorage {
     return fs.readFile(path.join(this.dir, storageRelativePath))
   }
 
+  async deleteFile(storageRelativePath: string): Promise<void> {
+    try {
+      await fs.unlink(path.join(this.dir, storageRelativePath))
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return
+      throw error
+    }
+  }
+
   createReadStream(storageRelativePath: string): Readable {
     return createReadStream(path.join(this.dir, storageRelativePath))
   }

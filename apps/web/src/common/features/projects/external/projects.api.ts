@@ -64,4 +64,5 @@ export const toProject = (dto: ProjectDto): Project => ({
   updatedAt: dto.updatedAt,
   featureFlags: dto.featureFlags,
   agentSessionCategories: dto.agentSessionCategories,
+  conversationRetentionDays: dto.conversationRetentionDays,
 })

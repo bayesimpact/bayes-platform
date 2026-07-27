@@ -34,6 +34,13 @@ export class GcsStorageService implements IFileStorage {
     return `${connectScope.organizationId}/${connectScope.projectId}/${documentId}.${extension}`
   }
 
+  async deleteFile(storageRelativePath: string): Promise<void> {
+    await this.storage
+      .bucket(this.bucketName)
+      .file(storageRelativePath)
+      .delete({ ignoreNotFound: true })
+  }
+
   async readFile(storageRelativePath: string): Promise<Buffer> {
     const [contents] = await this.storage
       .bucket(this.bucketName)

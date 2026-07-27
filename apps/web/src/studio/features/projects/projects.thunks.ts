@@ -22,7 +22,7 @@ export const createProject = createAsyncThunk<
 
 export const updateProject = createAsyncThunk<
   void,
-  { payload: Pick<Project, "name"> },
+  { payload: Pick<Project, "name"> & Partial<Pick<Project, "conversationRetentionDays">> },
   ThunkConfig
 >("projects/update", async ({ payload }, { extra: { services }, getState }) => {
   const state = getState()

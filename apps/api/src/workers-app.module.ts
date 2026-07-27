@@ -6,6 +6,8 @@ import { getBullMqConnection } from "./bullmq.config"
 import { TransactionModule } from "./common/transaction/transaction.module"
 import { WorkersHealthModule } from "./common/workers-health/workers-health.module"
 import typeorm from "./config/typeorm"
+import { CONVERSATION_RETENTION_SWEEP_QUEUE_NAME } from "./domains/agents/conversation-agent-sessions/retention/conversation-retention.constants"
+import { ConversationRetentionSweepWorkersModule } from "./domains/agents/conversation-agent-sessions/retention/conversation-retention-sweep-workers.module"
 import {
   AGENT_CSV_EXTRACTION_RUN_EXECUTE_QUEUE_NAME,
   AGENT_CSV_EXTRACTION_RUN_QUEUE_NAME,
@@ -75,6 +77,10 @@ const WORKER_MODULE_REGISTRY: { module: Type<unknown>; queues: string[] }[] = [
   {
     module: WebSourceEmbeddingsWorkersModule,
     queues: [WEB_SOURCE_EMBEDDINGS_QUEUE_NAME],
+  },
+  {
+    module: ConversationRetentionSweepWorkersModule,
+    queues: [CONVERSATION_RETENTION_SWEEP_QUEUE_NAME],
   },
 ]
 

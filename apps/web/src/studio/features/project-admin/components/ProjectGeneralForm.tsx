@@ -3,6 +3,7 @@ import { FieldGroup } from "@caseai-connect/ui/shad/field"
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -20,6 +21,7 @@ import { updateProject } from "@/studio/features/projects/projects.thunks"
 
 const schema = z.object({
   name: z.string().min(1),
+  conversationRetentionDays: z.number().int().min(1).max(3650).nullable(),
 })
 
 type FormValues = z.infer<typeof schema>
@@ -30,15 +32,28 @@ export function ProjectGeneralForm({ project }: { project: Project }) {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: project.name },
+    defaultValues: {
+      name: project.name,
+      conversationRetentionDays: project.conversationRetentionDays,
+    },
   })
 
   useEffect(() => {
-    form.reset({ name: project.name })
-  }, [project.name, form])
+    form.reset({
+      name: project.name,
+      conversationRetentionDays: project.conversationRetentionDays,
+    })
+  }, [project.name, project.conversationRetentionDays, form])
 
   const onSubmit = async (values: FormValues) => {
-    await dispatch(updateProject({ payload: { name: values.name } }))
+    await dispatch(
+      updateProject({
+        payload: {
+          name: values.name,
+          conversationRetentionDays: values.conversationRetentionDays,
+        },
+      }),
+    )
   }
 
   return (
@@ -55,6 +70,35 @@ export function ProjectGeneralForm({ project }: { project: Project }) {
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="conversationRetentionDays"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("projectAdmin:general.conversationRetentionLabel")}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={1}
+                      placeholder={t("projectAdmin:general.conversationRetentionPlaceholder")}
+                      value={field.value ?? ""}
+                      onChange={(event) =>
+                        field.onChange(
+                          event.target.value === "" ? null : Number(event.target.value),
+                        )
+                      }
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    {t("projectAdmin:general.conversationRetentionHelp")}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

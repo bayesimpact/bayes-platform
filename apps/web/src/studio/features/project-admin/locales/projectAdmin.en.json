@@ -10,7 +10,10 @@
     "general": {
       "title": "General",
       "description": "Update the general settings for this workspace.",
-      "workspaceName": "Workspace name"
+      "workspaceName": "Workspace name",
+      "conversationRetentionLabel": "Conversation retention (days)",
+      "conversationRetentionPlaceholder": "Never delete",
+      "conversationRetentionHelp": "Conversations older than this are permanently anonymized: their content is erased while usage statistics remain. Leave empty to keep conversations forever."
     },
     "agentSessionCategories": {
       "title": "Conversation categories",

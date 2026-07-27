@@ -10,7 +10,10 @@
     "general": {
       "title": "Général",
       "description": "Mettez à jour les paramètres généraux de cet espace de travail.",
-      "workspaceName": "Nom de l'espace de travail"
+      "workspaceName": "Nom de l'espace de travail",
+      "conversationRetentionLabel": "Durée de conservation des conversations (jours)",
+      "conversationRetentionPlaceholder": "Aucune suppression",
+      "conversationRetentionHelp": "Les conversations plus anciennes sont anonymisées définitivement : leur contenu est effacé mais les statistiques d'usage restent disponibles. Laissez vide pour conserver les conversations sans limite."
     },
     "agentSessionCategories": {
       "title": "Catégories de conversation",

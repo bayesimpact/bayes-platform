@@ -8,6 +8,7 @@ export interface IFileStorage {
     storageRelativePath: string
   }>
   getTemporaryUrl(storageRelativePath: string): Promise<string>
+  deleteFile(storageRelativePath: string): Promise<void>
   readFile(storageRelativePath: string): Promise<Buffer>
   createReadStream(storageRelativePath: string): Readable
   generateSignedUploadUrl(p: {

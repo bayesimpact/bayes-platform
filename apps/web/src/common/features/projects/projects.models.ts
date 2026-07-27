@@ -8,6 +8,7 @@ export type Project = {
   updatedAt: TimeType
   featureFlags: FeatureFlagsDto
   agentSessionCategories: ProjectAgentSessionCategory[]
+  conversationRetentionDays: number | null
 }
 
 export type ProjectAgentSessionCategory = {

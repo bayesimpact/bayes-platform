@@ -83,6 +83,7 @@ export type * from "./project-membership/project-membership.dto"
 export { ProjectMembershipRoutes } from "./project-membership/project-membership.routes"
 // Projects
 export type * from "./projects/projects.dto"
+export { updateProjectSchema } from "./projects/projects.dto"
 export { ProjectsRoutes } from "./projects/projects.routes"
 // Public Chat (anonymous embed access)
 export type * from "./public-chat/public-chat.dto"

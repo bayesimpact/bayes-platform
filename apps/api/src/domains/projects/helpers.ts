@@ -37,6 +37,7 @@ export function toProjectDto(project: Project): ProjectDto {
     createdAt: project.createdAt.getTime() as TimeType,
     updatedAt: project.updatedAt.getTime() as TimeType,
     featureFlags: toFeatureFlagsDto(project.featureFlags),
+    conversationRetentionDays: project.conversationRetentionDays ?? null,
     agentSessionCategories: (project.projectAgentSessionCategories ?? []).map(
       toProjectAgentSessionCategoryDto,
     ),

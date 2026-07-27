@@ -71,9 +71,14 @@ export class ProjectsService {
     return project ?? undefined
   }
 
-  async updateProject(project: Project, name: string): Promise<Project> {
-    // Update the project
-    project.name = name
+  async updateProject(
+    project: Project,
+    updates: { name: string; conversationRetentionDays?: number | null },
+  ): Promise<Project> {
+    project.name = updates.name
+    if (updates.conversationRetentionDays !== undefined) {
+      project.conversationRetentionDays = updates.conversationRetentionDays
+    }
     return this.projectRepository.save(project)
   }
 

@@ -72,6 +72,7 @@ describe("Projects - createProject", () => {
 
     expect(response.body.data.id).toBeDefined()
     expect(response.body.data.name).toBe("New Project")
+    expect(response.body.data.conversationRetentionDays).toBe(30)
     expect(response.body.data.organizationId).toBe(organizationId)
 
     const projectRepository = setup.getRepository(Project)

@@ -46,6 +46,11 @@ export class ConversationAgentSession extends ConnectEntityBase {
   @Column({ type: "timestamp", nullable: true, name: "expires_at" }) // FIXME: to be removed
   expiresAt!: Date | null
 
+  // Set when the retention sweep purged this session's content (GDPR). The
+  // session and message rows survive for analytics; content fields are emptied.
+  @Column({ type: "timestamp", nullable: true, name: "purged_at" })
+  purgedAt!: Date | null
+
   @ManyToOne(
     () => Agent,
     (agent) => agent.conversationAgentSessions,
