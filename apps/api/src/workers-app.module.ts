@@ -15,6 +15,8 @@ import {
 import { AgentCsvExtractionRunWorkersModule } from "./domains/agents/csv-extraction-runs/agent-csv-extraction-run-workers.module"
 import { EXTRACTION_AGENT_SESSION_QUEUE_NAME } from "./domains/agents/extraction-agent-sessions/extraction-agent-session.constants"
 import { ExtractionAgentSessionWorkersModule } from "./domains/agents/extraction-agent-sessions/extraction-agent-session-workers.module"
+import { DOCLING_CRAWLING_QUEUE_NAME } from "./domains/documents/crawling/docling-crawling.constants"
+import { DoclingCrawlingWorkersModule } from "./domains/documents/crawling/docling-crawling-workers.module"
 import { URL_CRAWLING_QUEUE_NAME } from "./domains/documents/crawling/url-crawling.constants"
 import { UrlCrawlingWorkersModule } from "./domains/documents/crawling/url-crawling-workers.module"
 import { WEB_SOURCE_EMBEDDINGS_QUEUE_NAME } from "./domains/documents/crawling/web-source-embeddings.constants"
@@ -67,6 +69,10 @@ export const WORKER_MODULE_REGISTRY: { module: Type<unknown>; queues: string[] }
   {
     module: UrlCrawlingWorkersModule,
     queues: [URL_CRAWLING_QUEUE_NAME],
+  },
+  {
+    module: DoclingCrawlingWorkersModule,
+    queues: [DOCLING_CRAWLING_QUEUE_NAME],
   },
   {
     module: DocumentEmbeddingsWorkersModule,

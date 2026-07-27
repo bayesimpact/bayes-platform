@@ -33,6 +33,10 @@ import { DocumentsGuard } from "../documents.guard"
 import { DocumentsService } from "../documents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentEmbeddingStatusNotifierService } from "../embeddings/document-embedding-status-notifier.service"
+import {
+  DOCLING_CRAWLING_BATCH_SERVICE,
+  type DoclingCrawlingBatchService,
+} from "./docling-crawling-batch.interface"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentCrawlProgressStreamService } from "./document-crawl-progress-stream.service"
 import {
@@ -50,6 +54,8 @@ export class CrawlingController {
     private readonly documentCrawlProgressStreamService: DocumentCrawlProgressStreamService,
     @Inject(URL_CRAWLING_BATCH_SERVICE)
     private readonly urlCrawlingBatchService: UrlCrawlingBatchService,
+    @Inject(DOCLING_CRAWLING_BATCH_SERVICE)
+    private readonly doclingCrawlingBatchService: DoclingCrawlingBatchService,
   ) {}
 
   @CheckPolicy((policy) => policy.canCreate())
@@ -96,6 +102,54 @@ export class CrawlingController {
     return {
       data: {
         message: `Crawling ${payload.url}. Documents will appear as they are processed.`,
+      },
+    }
+  }
+
+  @CheckPolicy((policy) => policy.canCreate())
+  @Post(DocumentsRoutes.crawlUrlDocling.path)
+  @TrackActivity({ action: "document.crawlUrlDocling" })
+  @HttpCode(HttpStatus.ACCEPTED)
+  async crawlUrlDocling(
+    @Body() { payload }: typeof DocumentsRoutes.crawlUrlDocling.request,
+    @Request() req: EndpointRequestWithProject,
+  ): Promise<typeof DocumentsRoutes.crawlUrlDocling.response> {
+    try {
+      new URL(payload.url)
+    } catch {
+      throw new UnprocessableEntityException("Invalid URL.")
+    }
+
+    const connectScope = getRequiredConnectScope(req)
+
+    const documentId = v4()
+    await this.documentsService.createDocument({
+      connectScope,
+      documentId,
+      uploadStatus: "uploaded",
+      fields: {
+        title: payload.name ?? payload.url,
+        mimeType: "text/html",
+        sourceType: "webCrawl",
+        sourceUrl: payload.url,
+        size: 0,
+        fileName: null as unknown as string,
+        storageRelativePath: null as unknown as string,
+      },
+    })
+
+    await this.doclingCrawlingBatchService.enqueueCrawlUrl({
+      documentId,
+      url: payload.url,
+      organizationId: connectScope.organizationId,
+      projectId: connectScope.projectId,
+      requestedByUserId: req.user.id,
+      currentTraceId: v4(),
+    })
+
+    return {
+      data: {
+        message: `Crawling ${payload.url} via Docling. Documents will appear as they are processed.`,
       },
     }
   }
