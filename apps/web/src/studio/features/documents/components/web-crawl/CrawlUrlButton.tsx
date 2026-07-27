@@ -9,18 +9,26 @@ import {
 } from "@caseai-connect/ui/shad/dialog"
 import { Field, FieldGroup, FieldLabel } from "@caseai-connect/ui/shad/field"
 import { Input } from "@caseai-connect/ui/shad/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@caseai-connect/ui/shad/select"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { GlobeIcon, Loader2Icon } from "lucide-react"
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { z } from "zod"
 import { useAppDispatch } from "@/common/store/hooks"
-import { crawlUrl } from "../../documents.thunks"
+import { crawlUrl, crawlUrlDocling } from "../../documents.thunks"
 
 const crawlUrlSchema = z.object({
   url: z.string().url(),
   name: z.string(),
+  engine: z.enum(["spiderCloud", "docling"]),
 })
 
 type CrawlUrlFormData = z.infer<typeof crawlUrlSchema>
@@ -50,14 +58,20 @@ function CrawlUrlForm({ onSuccess }: { onSuccess: () => void }) {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<CrawlUrlFormData>({
     resolver: zodResolver(crawlUrlSchema),
-    defaultValues: { url: "", name: "" },
+    defaultValues: { url: "", name: "", engine: "spiderCloud" },
   })
 
   const onSubmit = async (data: CrawlUrlFormData) => {
-    await dispatch(crawlUrl({ url: data.url, name: data.name.trim() || undefined })).unwrap()
+    const payload = { url: data.url, name: data.name.trim() || undefined }
+    if (data.engine === "docling") {
+      await dispatch(crawlUrlDocling(payload)).unwrap()
+    } else {
+      await dispatch(crawlUrl(payload)).unwrap()
+    }
     onSuccess()
   }
 
@@ -87,6 +101,28 @@ function CrawlUrlForm({ onSuccess }: { onSuccess: () => void }) {
               type="text"
               placeholder={t("document:crawl.namePlaceholder")}
               {...register("name")}
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="crawl-engine">{t("document:crawl.engineLabel")}</FieldLabel>
+            <Controller
+              name="engine"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger id="crawl-engine">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="spiderCloud">
+                      {t("document:crawl.engineOptions.spiderCloud")}
+                    </SelectItem>
+                    <SelectItem value="docling">
+                      {t("document:crawl.engineOptions.docling")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
             />
           </Field>
         </FieldGroup>

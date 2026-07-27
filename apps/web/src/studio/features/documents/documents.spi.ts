@@ -79,6 +79,12 @@ export interface IDocumentsSpi {
     url: string
     name?: string
   }): Promise<{ message: string }>
+  crawlUrlDocling(params: {
+    organizationId: string
+    projectId: string
+    url: string
+    name?: string
+  }): Promise<{ message: string }>
   reCrawlUrl(params: {
     organizationId: string
     projectId: string

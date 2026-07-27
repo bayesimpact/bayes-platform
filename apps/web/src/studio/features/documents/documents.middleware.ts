@@ -14,6 +14,7 @@ import {
   addTagsToDocuments,
   cancelCrawl,
   crawlUrl,
+  crawlUrlDocling,
   deleteDocument,
   deleteDocuments,
   listDocuments,
@@ -142,6 +143,7 @@ function registerListeners() {
       uploadDocument.fulfilled,
       uploadDocuments.fulfilled,
       crawlUrl.fulfilled,
+      crawlUrlDocling.fulfilled,
       reCrawlUrl.fulfilled,
       cancelCrawl.fulfilled,
       updateDocument.fulfilled,
@@ -363,6 +365,28 @@ function registerListeners() {
   })
   listenerMiddleware.startListening({
     actionCreator: crawlUrl.rejected,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "Website crawl failed",
+          type: "error",
+        }),
+      )
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: crawlUrlDocling.fulfilled,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: action.payload.message,
+          type: "success",
+        }),
+      )
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: crawlUrlDocling.rejected,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
