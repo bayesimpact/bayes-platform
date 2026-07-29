@@ -101,4 +101,8 @@ export const agentSessionMessageFactory = AgentSessionMessageFactory.define(({ p
   content: params.content ?? faker.lorem.sentence(),
   status: params.status ?? "completed",
   toolCalls: params.toolCalls,
+  // Cast: fishery deep-partials nested objects in `params`, making `revision` etc. optional even
+  // though the DTO requires them. Left undefined by default so a story opts in explicitly with a
+  // fully-formed revision (see agentSettingsFactory usage in AgentSessionRoute.stories.tsx).
+  agentSettings: params.agentSettings as AgentSessionMessage["agentSettings"],
 }))

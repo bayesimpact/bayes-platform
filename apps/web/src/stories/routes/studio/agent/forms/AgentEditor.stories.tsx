@@ -2,6 +2,7 @@ import { DocumentsRagMode } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { withRouter } from "storybook-addon-remix-react-router"
 import { agentFactory, agentOutputJsonSchemaFactory } from "@/common/features/agents/agent.factory"
+import { agentSettingsFactory } from "@/common/features/agents/settings/agent-settings.factory"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import {
   projectAgentSessionCategoryFactory,
@@ -39,41 +40,60 @@ const conversationAgent = agentFactory.transient({ project }).build({
   type: "conversation",
   name: "Helpful Assistant",
   documentTagIds: [productTag.id],
-  documentsRagMode: DocumentsRagMode.Tags,
   projectAgentSessionCategoryIds: [billingCategory.id],
   usedProjectAgentSessionCategoryIds: [billingCategory.id],
-  greetingMessage: "Hi! How can I help you today?",
 })
+const conversationAgentSettings = agentSettingsFactory
+  .transient({ agent: conversationAgent })
+  .build({
+    documentsRagMode: DocumentsRagMode.Tags,
+    greetingMessage: "Hi! How can I help you today?",
+  })
+
+// Same agent, but its newest settings revision is an unpublished draft: the version-history
+// trigger in the editor header must mark it as a draft rather than looking live.
+const conversationAgentDraftSettings = agentSettingsFactory
+  .transient({ agent: conversationAgent })
+  .build({
+    revision: conversationAgentSettings.revision + 1,
+    isDraft: true,
+    documentsRagMode: DocumentsRagMode.Tags,
+    greetingMessage: "Hi! How can I help you today?",
+  })
 
 const resourceAgent = agentFactory.transient({ project }).build({
   type: "conversation",
   name: "Resource Navigator",
-  instructions: "Find relevant services, contacts, and eligibility details.",
-  documentsRagMode: DocumentsRagMode.None,
 })
 
 const policyAgent = agentFactory.transient({ project }).build({
   type: "conversation",
   name: "Policy Analyst",
-  instructions: "Interpret policy documents and summarize operational constraints.",
-  documentsRagMode: DocumentsRagMode.Tags,
 })
 
 const extractionAgent = agentFactory.transient({ project }).build({
   type: "extraction",
   name: "Document Extractor",
+})
+const extractionAgentSettings = agentSettingsFactory.transient({ agent: extractionAgent }).build({
   documentsRagMode: DocumentsRagMode.None,
   outputJsonSchema: mockOutputJsonSchema,
   greetingMessage: undefined,
 })
 
 // A conversation agent with the fillForm tool enabled — the editor shows the Tools tab.
-const fillFormAgent = agentFactory.fillForm().transient({ project }).build({
+const fillFormAgent = agentFactory.transient({ project }).build({
+  type: "conversation",
   name: "Intake Assistant",
-  documentsRagMode: DocumentsRagMode.None,
-  outputJsonSchema: mockOutputJsonSchema,
-  greetingMessage: "Welcome — let's get started. I'll ask a few questions.",
 })
+const fillFormAgentSettings = agentSettingsFactory
+  .fillForm()
+  .transient({ agent: fillFormAgent })
+  .build({
+    documentsRagMode: DocumentsRagMode.None,
+    outputJsonSchema: mockOutputJsonSchema,
+    greetingMessage: "Welcome — let's get started. I'll ask a few questions.",
+  })
 
 const meta = {
   title: "routes/studio/project/agent/AgentEditor",
@@ -100,11 +120,32 @@ export const ConversationEdit: Story = {
         seed.agents([conversationAgent, resourceAgent, policyAgent], {
           currentId: conversationAgent.id,
         }),
+        seed.studio.agentSettings([conversationAgentSettings]),
       ),
     }),
   ],
   args: {
     agent: conversationAgent,
+    settings: conversationAgentSettings,
+  },
+}
+
+export const ConversationEditDraft: Story = {
+  decorators: [
+    withRedux({
+      state: mergeSeeds(
+        seed.currentProject(projectWithOrchestration),
+        seed.studio.documentTags(documentTags),
+        seed.agents([conversationAgent, resourceAgent, policyAgent], {
+          currentId: conversationAgent.id,
+        }),
+        seed.studio.agentSettings([conversationAgentDraftSettings, conversationAgentSettings]),
+      ),
+    }),
+  ],
+  args: {
+    agent: conversationAgent,
+    settings: conversationAgentDraftSettings,
   },
 }
 
@@ -115,11 +156,13 @@ export const ExtractionEdit: Story = {
         seed.currentProject(project),
         seed.studio.documentTags(documentTags),
         seed.agents([extractionAgent], { currentId: extractionAgent.id }),
+        seed.studio.agentSettings([extractionAgentSettings]),
       ),
     }),
   ],
   args: {
     agent: extractionAgent,
+    settings: extractionAgentSettings,
   },
 }
 
@@ -130,11 +173,13 @@ export const ConversationWithFillForm: Story = {
         seed.currentProject(project),
         seed.studio.documentTags(documentTags),
         seed.agents([fillFormAgent], { currentId: fillFormAgent.id }),
+        seed.studio.agentSettings([fillFormAgentSettings]),
       ),
     }),
   ],
   args: {
     agent: fillFormAgent,
+    settings: fillFormAgentSettings,
   },
 }
 
@@ -146,6 +191,7 @@ export const WithMcpServers: Story = {
         seed.studio.documentTags(documentTags),
         seed.studio.mcpServers(mcpServers),
         seed.agents([conversationAgent], { currentId: conversationAgent.id }),
+        seed.studio.agentSettings([conversationAgentSettings]),
       ),
     }),
   ],
@@ -158,6 +204,7 @@ export const WithMcpServers: Story = {
         enabled: true,
       })),
     },
+    settings: conversationAgentSettings,
   },
 }
 
@@ -169,6 +216,7 @@ export const ConversationWithFillFormAndMcpServers: Story = {
         seed.studio.documentTags(documentTags),
         seed.studio.mcpServers(mcpServers),
         seed.agents([fillFormAgent], { currentId: fillFormAgent.id }),
+        seed.studio.agentSettings([fillFormAgentSettings]),
       ),
     }),
   ],
@@ -181,5 +229,6 @@ export const ConversationWithFillFormAndMcpServers: Story = {
         enabled: true,
       })),
     },
+    settings: fillFormAgentSettings,
   },
 }

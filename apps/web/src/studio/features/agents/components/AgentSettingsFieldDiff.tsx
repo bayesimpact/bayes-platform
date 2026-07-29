@@ -13,13 +13,13 @@ import {
 import { FileDiff } from "@pierre/diffs/react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { Agent } from "@/common/features/agents/agents.models"
 import {
   type AgentSettingsDiffKey,
   agentSettingsDiffFileNames,
   agentSettingsDiffLabelKeys,
   serializeAgentSettingsField,
-} from "../agent-history.functions"
+} from "@/common/features/agents/settings/agent-settings.functions"
+import type { AgentSettings } from "@/common/features/agents/settings/agent-settings.models"
 
 /**
  * Settings values are not files: a missing trailing newline is meaningless here, so add one
@@ -71,8 +71,8 @@ export function AgentSettingsFieldDiff({
   after,
 }: {
   fieldKey: AgentSettingsDiffKey
-  before: Agent
-  after: Agent
+  before: AgentSettings
+  after: AgentSettings
 }) {
   const { t } = useTranslation()
 

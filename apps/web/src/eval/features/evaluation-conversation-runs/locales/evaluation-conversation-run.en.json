@@ -114,6 +114,8 @@
       "viewAgent": "View Agent",
       "openInStudio": "Open in Studio",
       "notFound": "Agent not found",
+      "revisionName": "Version name",
+      "revisionDesc": "Version description",
       "model": "Model",
       "temperature": "Temperature",
       "locale": "Language",

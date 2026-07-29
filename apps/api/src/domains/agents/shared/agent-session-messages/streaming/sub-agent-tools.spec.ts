@@ -120,6 +120,88 @@ describe("buildSubAgentTools", () => {
     ])
   })
 
+  it.each([
+    { label: "playground session", sessionType: { type: "playground" }, includesDraft: true },
+    { label: "live session", sessionType: { type: "live" }, includesDraft: false },
+    { label: "public session proxy", sessionType: {}, includesDraft: false },
+  ])("resolves the child agent's settings with includesDraft=$includesDraft for a $label", async ({
+    sessionType,
+    includesDraft,
+  }) => {
+    const childAgent = {
+      id: "child-agent-id",
+      projectId: "project-id",
+      organizationId: "organization-id",
+      name: "Helpful Assistant",
+      type: "conversation",
+    }
+    const childAgentSettings = {
+      id: "child-agent-id-settings",
+      projectId: "project-id",
+      organizationId: "organization-id",
+      instructions: "Answer delegated questions.",
+      model: "mock-model",
+      revision: 1,
+      temperature: 0,
+      locale: "en",
+      documentsRagMode: DocumentsRagMode.None,
+    }
+    const getLast = jest.fn().mockResolvedValue(childAgentSettings)
+
+    const { tools } = await buildSubAgentTools({
+      agentSessionScope: {
+        agent: { ...childAgent, id: "parent-agent-id", name: "Orchestrator" },
+        agentSettings: { ...childAgentSettings, id: "parent-agent-id-settings" },
+        session: {
+          id: "parent-session-id",
+          traceId: "parent-trace-id",
+          organizationId: "organization-id",
+          ...sessionType,
+        },
+        connectScope: { organizationId: "organization-id", projectId: "project-id" },
+      } as never,
+      agentSubAgentsService: {
+        listSubAgents: jest.fn().mockResolvedValue([
+          {
+            id: "sub-agent-id",
+            parentAgentId: "parent-agent-id",
+            childAgentId: childAgent.id,
+            toolName: "ask_helpful_assistant",
+            description: "Ask the helpful assistant.",
+            enabled: true,
+            childAgent,
+          },
+        ]),
+      } as never,
+      buildLLMConfig: (params) => params as never,
+      conversationAgentSessionsService: {
+        findOrCreateSubSession: jest.fn(),
+      } as never,
+      agentSettingsService: { getLast } as never,
+      buildTools: async () => ({ toolDescriptions: {}, hasSubAgentTools: false, tools: {} }),
+      generateMasterPrompt: () => "system prompt",
+      getProviderForModel: () =>
+        ({
+          streamChatResponse: async function* () {
+            yield "answer"
+          },
+        }) as never,
+      onExecute: () => {},
+      projectsService: {
+        hasFeature: jest.fn().mockResolvedValue(true),
+      } as never,
+    })
+
+    const subAgentTool = tools.ask_helpful_assistant as never as {
+      execute: (input: { task: string; context: string }) => Promise<unknown>
+    }
+    await subAgentTool.execute({ task: "Help with pricing.", context: "" })
+
+    expect(getLast).toHaveBeenCalledWith(
+      expect.objectContaining({ agentId: childAgent.id, includesDraft }),
+    )
+  })
+
   it("runs a fillForm-enabled sub-agent against a dedicated conversation sub-session and prompts it to fill the form", async () => {
     const childAgent = {
       id: "form-filler-agent-id",

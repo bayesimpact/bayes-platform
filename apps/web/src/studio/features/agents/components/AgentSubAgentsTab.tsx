@@ -124,7 +124,7 @@ export function AgentSubAgentsTab({
                   </ItemMedia>
                   <ItemContent>
                     <ItemTitle>{agent.name}</ItemTitle>
-                    <ItemDescription>{agent.instructions}</ItemDescription>
+                    <ItemDescription>{t(`agent:create.typeDialog.${agent.type}`)}</ItemDescription>
                   </ItemContent>
                   <ItemActions>
                     <Button

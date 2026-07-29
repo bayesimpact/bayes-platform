@@ -12,6 +12,10 @@ export type ConversationAgentSessionDto = {
   traceUrl?: string
   // Form state accumulated by the fillForm tool, when the agent has it enabled.
   result?: Record<string, unknown>
+  // The fillForm definition of the settings revision this session ran against. Set only when
+  // that revision had the fillForm tool enabled, so the session view can render the form
+  // result without loading agent settings.
+  outputJsonSchema?: Record<string, unknown>
 }
 
 /**

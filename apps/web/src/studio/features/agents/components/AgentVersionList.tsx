@@ -1,25 +1,35 @@
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { cn } from "@caseai-connect/ui/utils"
 import { useTranslation } from "react-i18next"
-import type { Agent } from "@/common/features/agents/agents.models"
+import type { AgentSettings } from "@/common/features/agents/settings/agent-settings.models"
 import { buildDate, buildSince } from "@/common/utils/build-date"
 
-/** Timeline of an agent's settings revisions, newest first. */
+/**
+ * Timeline of an agent's settings revisions, newest first.
+ *
+ * The newest revision may be an unpublished draft, so it is badged separately from
+ * `liveRevision`, the newest published revision the running agent actually serves.
+ *
+ * A revision's name and description are set at publish time and both optional, so a row shows
+ * whichever of them exists and falls back to the version number alone.
+ */
 export function AgentVersionList({
   versions,
   selectedRevision,
+  liveRevision,
   onSelect,
 }: {
-  versions: Agent[]
+  versions: AgentSettings[]
   selectedRevision: number
+  liveRevision: number | undefined
   onSelect: (revision: number) => void
 }) {
   const { t } = useTranslation()
 
   return (
-    <aside className="w-52 shrink-0 overflow-y-auto border-r">
+    <aside className="w-64 shrink-0 overflow-y-auto border-r">
       <ol>
-        {versions.map((version, index) => (
+        {versions.map((version) => (
           <li key={version.revision}>
             <button
               type="button"
@@ -32,10 +42,31 @@ export function AgentVersionList({
             >
               <span className="flex items-center justify-between gap-2 text-sm font-medium">
                 {t("agent:history.revisionLabel", { revision: version.revision })}
-                {index === 0 && (
-                  <Badge variant="secondary">{t("agent:history.currentBadge")}</Badge>
+                {version.isDraft ? (
+                  <Badge variant="outline">{t("agent:history.draftBadge")}</Badge>
+                ) : (
+                  version.revision === liveRevision && (
+                    <Badge variant="secondary">{t("agent:history.currentBadge")}</Badge>
+                  )
                 )}
               </span>
+              {/* Both fields are stored as "" when unset, so truthiness is the has-a-value test. */}
+              {version.revisionName && (
+                <span
+                  className="mt-1 block truncate text-xs font-medium"
+                  title={version.revisionName}
+                >
+                  {version.revisionName}
+                </span>
+              )}
+              {version.revisionDesc && (
+                <span
+                  className="mt-1 block line-clamp-2 text-xs text-muted-foreground"
+                  title={version.revisionDesc}
+                >
+                  {version.revisionDesc}
+                </span>
+              )}
               <span
                 className="mt-1 block text-xs text-muted-foreground"
                 title={buildDate(version.updatedAt)}

@@ -1,5 +1,6 @@
 import type { AgentDto } from "../agents/agents.dto"
 import type { ConversationAgentSessionDto } from "../agents/conversation-agent-sessions/conversation-agent-sessions.dto"
+import type { AgentSettingsDto } from "../agents/settings/agent-settings.dto"
 import type { TimeType } from "../generic"
 
 export type ReviewCampaignStatus = "draft" | "active" | "closed"
@@ -90,10 +91,8 @@ export type ListReviewCampaignsResponseDto = {
 
 // === Tester API ===
 
-export type TesterAgentSnapshotDto = Pick<
-  AgentDto,
-  "id" | "name" | "type" | "greetingMessage" | "outputJsonSchema" | "fillFormEnabled"
->
+export type TesterAgentSnapshotDto = Pick<AgentDto, "id" | "name" | "type"> &
+  Pick<AgentSettingsDto, "greetingMessage" | "outputJsonSchema" | "fillFormEnabled">
 
 export type ReviewCampaignTesterContextDto = {
   id: string

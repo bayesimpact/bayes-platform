@@ -1,5 +1,16 @@
 import type { TimeType } from "../../../generic"
 
+/**
+ * Identity of the settings revision that produced a message. Playground surfaces use it to
+ * attribute a turn to a revision. `revisionDesc` is deliberately absent: only the session header
+ * shows a description, and it reads that from the loaded settings instead.
+ */
+export type AgentMessageSettingsDto = {
+  revision: number
+  revisionName: string
+  isDraft: boolean
+}
+
 export enum ToolName {
   FillForm = "fillForm",
   RetrieveProjectDocumentChunks = "retrieveProjectDocumentChunks",
@@ -21,6 +32,9 @@ export type AgentSessionMessageDto = {
   createdAt?: TimeType
   startedAt?: TimeType
   completedAt?: TimeType
+  // The revision that produced this turn. Optional: a message still streaming in the client has
+  // not been read back from the API yet.
+  agentSettings?: AgentMessageSettingsDto
   toolCalls?: Array<{
     id: string
     name: AgentSessionToolName

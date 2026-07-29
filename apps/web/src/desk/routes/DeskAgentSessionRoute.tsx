@@ -46,7 +46,7 @@ export function DeskAgentSessionRoute({ agentSession }: { agentSession: AgentSes
         <AgentSessionMessages
           session={agentSession}
           messages={messages}
-          formResultSchema={agent.fillFormEnabled ? agent.outputJsonSchema : undefined}
+          formResultSchema={agentSession.outputJsonSchema}
         />
       </div>
     </div>

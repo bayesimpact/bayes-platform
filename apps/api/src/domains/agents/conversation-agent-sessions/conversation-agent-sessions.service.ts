@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import { IsNull, type Repository } from "typeorm"
+import { In, IsNull, type Repository } from "typeorm"
 import { v4 } from "uuid"
 
 import { ConnectRepository } from "@/common/entities/connect-repository"
@@ -91,6 +91,50 @@ export class ConversationAgentSessionsService {
       where: { agentId, userId, type, parentSessionId: IsNull() },
       order: { createdAt: "DESC" },
     })
+  }
+
+  /**
+   * Maps session id to the fillForm definition of the revision that session ran against, taken
+   * from the session's most recent message (`AgentMessage.agentSettingsId`). Only sessions that
+   * accumulated a form result can render one, so the lookup is restricted to those: this keeps
+   * it to a single extra query per list call instead of one per session.
+   */
+  async mapSessionsToFormSchemas({
+    connectScope,
+    sessions,
+  }: {
+    connectScope: RequiredConnectScope
+    sessions: ConversationAgentSession[]
+  }): Promise<Map<string, Record<string, unknown>>> {
+    const sessionIds = sessions
+      .filter((session) => session.result !== null && session.result !== undefined)
+      .map((session) => session.id)
+    if (sessionIds.length === 0) return new Map()
+
+    const messages = await this.agentMessageConnectRepository.find(connectScope, {
+      // Narrowed to the columns this resolution actually reads: this query runs on every
+      // session list render, and AgentMessage rows otherwise carry arbitrarily large `content`
+      // and `toolCalls` payloads that would be wasted here.
+      select: {
+        id: true,
+        sessionId: true,
+        createdAt: true,
+        agentSettingsId: true,
+        agentSettings: { fillFormEnabled: true, outputJsonSchema: true },
+      },
+      where: { sessionId: In(sessionIds) },
+      relations: { agentSettings: true },
+      order: { createdAt: "DESC" },
+    })
+
+    const schemasBySessionId = new Map<string, Record<string, unknown>>()
+    for (const message of messages) {
+      if (schemasBySessionId.has(message.sessionId)) continue
+      const settings = message.agentSettings
+      if (!settings?.fillFormEnabled || !settings.outputJsonSchema) continue
+      schemasBySessionId.set(message.sessionId, settings.outputJsonSchema)
+    }
+    return schemasBySessionId
   }
 
   /**

@@ -10,6 +10,8 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { documentFactory } from "@/domains/documents/document.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
@@ -72,19 +74,22 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
   })
 
   const createContext = async () => {
-    const { user, organization, project, agent } = await createOrganizationWithAgent(repositories, {
-      agent: {
-        type: "extraction",
-      },
-      agentSettings: {
-        model: AgentModel._Mock,
-        outputJsonSchema: {
-          type: "object",
-          properties: { fullName: { type: "string" } },
-          required: ["fullName"],
+    const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      {
+        agent: {
+          type: "extraction",
+        },
+        agentSettings: {
+          model: AgentModel._Mock,
+          outputJsonSchema: {
+            type: "object",
+            properties: { fullName: { type: "string" } },
+            required: ["fullName"],
+          },
         },
       },
-    })
+    )
 
     const document = documentFactory.transient({ organization, project }).build({
       sourceType: "extraction",
@@ -98,6 +103,8 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
     agentId = agent.id
     documentId = document.id
     auth0Id = user.auth0Id
+
+    return { organization, project, agent, agentSettings }
   }
 
   const subject = async (payload?: typeof ExtractionAgentSessionsRoutes.executeOne.request) =>
@@ -127,5 +134,54 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
     })
 
     await expectActivityCreated("extractionAgentSession.execute")
+  })
+
+  describe("with a pending draft revision", () => {
+    const seedDraft = async (context: Awaited<ReturnType<typeof createContext>>) => {
+      const draft = agentSettingsFactory
+        .transient({
+          organization: context.organization,
+          project: context.project,
+          agent: context.agent,
+        })
+        .build({
+          revision: 2,
+          isDraft: true,
+          model: AgentModel._Mock,
+          outputJsonSchema: {
+            type: "object",
+            properties: { fullName: { type: "string" } },
+            required: ["fullName"],
+          },
+        })
+      await setup.getRepository(AgentSettings).save(draft)
+      return draft
+    }
+
+    it("should pin a playground run to the draft revision", async () => {
+      const context = await createContext()
+      const draft = await seedDraft(context)
+
+      const response = await subject({ payload: { documentId, type: "playground" } })
+
+      expectResponse(response, 201)
+      const run = await repositories.extractionAgentSessionRepository.findOne({
+        where: { id: response.body.data.runId },
+      })
+      expect(run?.agentSettingsId).toBe(draft.id)
+    })
+
+    it("should pin a live run to the published revision", async () => {
+      const context = await createContext()
+      await seedDraft(context)
+
+      const response = await subject({ payload: { documentId, type: "live" } })
+
+      expectResponse(response, 201)
+      const run = await repositories.extractionAgentSessionRepository.findOne({
+        where: { id: response.body.data.runId },
+      })
+      expect(run?.agentSettingsId).toBe(context.agentSettings.id)
+    })
   })
 })

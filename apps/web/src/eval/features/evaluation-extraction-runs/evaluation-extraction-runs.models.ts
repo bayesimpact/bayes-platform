@@ -1,4 +1,5 @@
 import type {
+  AgentRunSettingsSnapshotDto,
   EvaluationExtractionRunDto,
   EvaluationExtractionRunKeyMappingEntryDto,
   EvaluationExtractionRunRecordDto,
@@ -10,6 +11,9 @@ import type {
 } from "@caseai-connect/api-contracts"
 
 export type EvaluationExtractionRun = EvaluationExtractionRunDto
+export type EvaluationExtractionRunAgentSettings = AgentRunSettingsSnapshotDto & {
+  outputJsonSchema?: Record<string, unknown>
+}
 export type EvaluationExtractionRunRecord = EvaluationExtractionRunRecordDto
 export type EvaluationExtractionRunStatus = EvaluationExtractionRunStatusDto
 export type EvaluationExtractionRunRecordStatus = EvaluationExtractionRunRecordStatusDto

@@ -1,6 +1,5 @@
 import type { AgentModel } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
-import type { Agent } from "@/common/features/agents/agents.models"
 import { getCurrentId } from "@/common/features/helpers"
 import type { ThunkConfig } from "@/common/store/types"
 import type {
@@ -93,16 +92,6 @@ const getComparisonRecords = createAsyncThunk<
       }),
     )
     return Object.fromEntries(entries)
-  },
-)
-
-const getAgentHistory = createAsyncThunk<Agent[], { agentId: string }, ThunkConfig>(
-  "conversationRuns/getAgentHistory",
-  async ({ agentId }, { extra: { services }, getState }) => {
-    const state = getState()
-    const organizationId = getCurrentId({ state, name: "organizationId" })
-    const projectId = getCurrentId({ state, name: "projectId" })
-    return await services.agents.getHistory({ organizationId, projectId, agentId })
   },
 )
 
@@ -223,7 +212,6 @@ export const evaluationConversationRunsThunks = {
   createAndExecute,
   deleteOne,
   retryOne,
-  getAgentHistory,
   getAll,
   getComparisonRecords,
   getOne,

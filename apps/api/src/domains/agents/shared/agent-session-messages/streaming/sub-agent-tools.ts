@@ -153,6 +153,9 @@ async function runSubAgentTool({
   const childAgentSettings = await agentSettingsService.getLast({
     connectScope: agentSessionScope.connectScope,
     agentId: childAgent.id,
+    // A playground run tests the whole orchestration unpublished, so a delegated agent resolves
+    // its own draft too.
+    includesDraft: isPlaygroundSession(agentSessionScope.session),
   })
 
   // Each sub-agent gets its own persistent sub-session, keyed to the parent
@@ -303,6 +306,15 @@ const RECENT_PARENT_MESSAGE_LIMIT = 10
  * pasted document would be re-sent to the sub-agent on every delegation.
  */
 const RECENT_PARENT_MESSAGE_MAX_LENGTH = 2_000
+
+/**
+ * True only for a studio playground session. `PublicStreamingSessionProxy` has no session row and
+ * therefore no type, and anonymous traffic must keep running the published revision, so the
+ * property check is the whole gate.
+ */
+function isPlaygroundSession(session: StreamingSession): boolean {
+  return "type" in session && session.type === "playground"
+}
 
 /**
  * Renders the tail of the parent conversation (the exchanges between the user and

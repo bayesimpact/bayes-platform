@@ -1,4 +1,7 @@
-import type { SubmitTesterSessionFeedbackRequestDto } from "@caseai-connect/api-contracts"
+import type {
+  SubmitTesterSessionFeedbackRequestDto,
+  TesterAgentSnapshotDto,
+} from "@caseai-connect/api-contracts"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
@@ -10,7 +13,6 @@ import { GridHeader } from "@/common/components/grid/Grid"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import { selectCurrentMessagesData } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.selectors"
 import { AgentSessionMessages } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/AgentSessionMessages"
-import type { Agent } from "@/common/features/agents/agents.models"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { selectCurrentReviewCampaignId } from "@/common/features/review-campaigns/current-review-campaign-id/current-review-campaign-id.selectors"
@@ -28,7 +30,7 @@ export function TesterAgentSession() {
 
   return (
     <TesterAgentSessionContent
-      agent={context.agent as Agent}
+      agent={context.agent}
       agentSession={agentSession}
       messages={messages}
       campaignName={context.name}
@@ -39,7 +41,7 @@ export function TesterAgentSession() {
 }
 
 type TesterAgentSessionContentProps = {
-  agent: Agent
+  agent: TesterAgentSnapshotDto
   agentSession: ConversationAgentSession
   messages: React.ComponentProps<typeof AgentSessionMessages>["messages"]
   campaignName: string

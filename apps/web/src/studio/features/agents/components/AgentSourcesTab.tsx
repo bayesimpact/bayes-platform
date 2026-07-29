@@ -1,8 +1,8 @@
 import {
   DocumentsRagMode,
   PUBLIC_DOCUMENTS_TAG_NAME,
-  type UpdateAgentSourcesFormDto,
-  updateAgentSourcesFormSchema,
+  updateAgentDocumentTagsSchema,
+  updateAgentSettingsSchema,
 } from "@caseai-connect/api-contracts"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import {
@@ -23,15 +23,24 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { XIcon } from "lucide-react"
+import { useMemo } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { useTranslation } from "react-i18next"
+import type { z } from "zod"
 import { useAppDispatch } from "@/common/store/hooks"
 import { useDocumentTags } from "@/studio/features/document-tags/document-tags.helpers"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import { DocumentTagPicker } from "@/studio/features/documents/components/DocumentTagPicker"
-import { updateAgentSources } from "../agents.thunks"
+import { saveAgentSources } from "../agents.thunks"
 import { AgentTabSaveButton } from "./AgentTabSaveButton"
-import { type AgentTabFormProps, useReportDirty } from "./agent-tab-form.shared"
+import { type AgentTabFormProps, pickDirtyFields, useReportDirty } from "./agent-tab-form.shared"
+
+const sourcesPickedSchema = updateAgentSettingsSchema
+  .pick({ documentsRagMode: true })
+  .required()
+  .extend(updateAgentDocumentTagsSchema.shape)
+
+type FormValues = z.infer<typeof sourcesPickedSchema>
 
 function DocumentTagBadge({
   tagId,
@@ -67,15 +76,28 @@ function DocumentTagBadge({
   )
 }
 
-export function AgentSourcesTab({ agent, onDirtyChange }: AgentTabFormProps) {
+export function AgentSourcesTab({ agent, settings, onDirtyChange }: AgentTabFormProps) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const { documentTags } = useDocumentTags()
 
-  const form = useForm<UpdateAgentSourcesFormDto>({
-    resolver: zodResolver(updateAgentSourcesFormSchema),
+  // `updateAgentSourcesFormSchema` (with its `hasRequiredDocumentTags` refine) lived in the
+  // contracts before the write path split; each field now comes from a different endpoint, so
+  // the refine is rebuilt locally, memoised on `[t]` for the translated message (see
+  // ResourceForm.tsx for the same pattern).
+  const sourcesFormSchema = useMemo(
+    () =>
+      sourcesPickedSchema.refine(
+        (data) => data.documentsRagMode !== DocumentsRagMode.Tags || data.documentTagIds.length > 0,
+        { message: t("agent:props.validation.documentTagsRequired"), path: ["documentTagIds"] },
+      ),
+    [t],
+  )
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(sourcesFormSchema),
     defaultValues: {
-      documentsRagMode: agent.documentsRagMode,
+      documentsRagMode: settings.documentsRagMode,
       documentTagIds: agent.documentTagIds,
     },
   })
@@ -86,15 +108,8 @@ export function AgentSourcesTab({ agent, onDirtyChange }: AgentTabFormProps) {
   const documentsRagMode = useWatch({ control: form.control, name: "documentsRagMode" })
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    const originalTagIds = agent.documentTagIds
-    const tagsToAdd = values.documentTagIds.filter((id) => !originalTagIds.includes(id))
-    const tagsToRemove = originalTagIds.filter((id) => !values.documentTagIds.includes(id))
-    await dispatch(
-      updateAgentSources({
-        agentId: agent.id,
-        fields: { ...values, tagsToAdd, tagsToRemove },
-      }),
-    ).unwrap()
+    const fields = pickDirtyFields(values, form.formState.dirtyFields)
+    await dispatch(saveAgentSources({ agentId: agent.id, ...fields })).unwrap()
     form.reset(values)
   })
 

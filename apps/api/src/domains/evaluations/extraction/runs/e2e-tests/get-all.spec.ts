@@ -116,5 +116,9 @@ describe("EvaluationExtractionRuns - getAll", () => {
 
     expectResponse(res, 200)
     expect(res.body.data).toHaveLength(2)
+    const run = res.body.data[0]!
+    expect(run.agentSettings.revision).toBe(agentSettings.revision)
+    expect(run.agentSettings.instructions).toBe(agentSettings.instructions)
+    expect(run.agentSettings.model).toBe(agentSettings.model)
   })
 })

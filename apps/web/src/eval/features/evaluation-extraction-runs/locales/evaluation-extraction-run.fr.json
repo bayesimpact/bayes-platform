@@ -7,6 +7,10 @@
     "selectAgentDescription": "Choisissez l'agent d'extraction à évaluer sur ce dataset.",
     "agent": "Agent",
     "agentPlaceholder": "Sélectionner un agent",
+    "version": {
+      "label": "Version",
+      "revision": "v{{revision}}"
+    },
     "scope": {
       "title": "Enregistrements à exécuter",
       "all": "Exécuter le dataset entier ({{count}} enregistrements)",
@@ -77,6 +81,8 @@
       "title": "Configuration de l'agent",
       "viewAgent": "Voir l'agent",
       "notFound": "Agent introuvable",
+      "revisionName": "Nom de la version",
+      "revisionDesc": "Description de la version",
       "model": "Modèle",
       "temperature": "Température",
       "locale": "Langue",

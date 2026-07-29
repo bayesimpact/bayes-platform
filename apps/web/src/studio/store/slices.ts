@@ -8,6 +8,8 @@ import { agentsMiddleware } from "@/common/features/agents/agents.middleware"
 import { agentsSlice } from "@/common/features/agents/agents.slice"
 import { agentCsvExtractionRunsMiddleware } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.middleware"
 import { agentCsvExtractionRunsSlice } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.slice"
+import { agentSettingsMiddleware } from "@/common/features/agents/settings/agent-settings.middleware"
+import { agentSettingsSlice } from "@/common/features/agents/settings/agent-settings.slice"
 import { projectsSlice } from "@/common/features/projects/projects.slice"
 import { agentEmbedConfigsMiddleware } from "@/studio/features/agent-embed-configs/agent-embed-configs.middleware"
 import { agentEmbedConfigsSlice } from "@/studio/features/agent-embed-configs/agent-embed-configs.slice"
@@ -28,8 +30,6 @@ import { projectMembershipsSlice } from "@/studio/features/project-memberships/p
 import { reviewCampaignsMiddleware } from "@/studio/features/review-campaigns/review-campaigns.middleware"
 import { reviewCampaignsSlice } from "@/studio/features/review-campaigns/review-campaigns.slice"
 import { createSliceManager } from "../../common/store/dynamic-middleware"
-import { agentHistoryMiddleware } from "../features/agents/agent-history.middleware"
-import { agentHistorySlice } from "../features/agents/agent-history.slice"
 import { studioAgentsMiddleware } from "../features/agents/agents.middleware"
 import { documentsMiddleware } from "../features/documents/documents.middleware"
 import { documentsSlice } from "../features/documents/documents.slice"
@@ -46,10 +46,10 @@ const studioMiddlewareList = [
   agentAnalyticsMiddleware,
   agentCsvExtractionRunsMiddleware,
   agentEmbedConfigsMiddleware,
-  agentHistoryMiddleware,
   agentMembershipsMiddleware,
   agentMessageFeedbackMiddleware,
   agentsMiddleware,
+  agentSettingsMiddleware,
   agentSubAgentsMiddleware,
   baseAgentSessionsMiddleware,
   conversationAgentSessionsMiddleware,
@@ -70,11 +70,11 @@ export const studioSliceList = [
   agentAnalyticsSlice,
   agentCsvExtractionRunsSlice,
   agentEmbedConfigsSlice,
-  agentHistorySlice,
   agentMembershipsSlice,
   agentMessageFeedbackSlice,
   agentSessionMessagesSlice,
   agentsSlice,
+  agentSettingsSlice,
   agentSubAgentsSlice,
   conversationAgentSessionsSlice,
   currentIdsSlice,

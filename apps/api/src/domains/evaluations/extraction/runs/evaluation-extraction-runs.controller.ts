@@ -27,6 +27,7 @@ import { AddContext, RequireContext } from "@/common/context/require-context.dec
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
@@ -78,6 +79,9 @@ export class EvaluationExtractionRunsController {
         keyMapping: payload.keyMapping,
       },
     })
+    // The freshly created run has no relations loaded; attach the settings we
+    // just resolved so the response exposes the pinned revision.
+    run.agentSettings = agentSettings
     return { data: toEvaluationExtractionRunDto(run) }
   }
 
@@ -261,9 +265,29 @@ function toEvaluationExtractionRunDto(run: EvaluationExtractionRun): EvaluationE
     status: run.status,
     summary: run.summary,
     csvExportDocumentId: run.csvExportDocumentId,
+    agentSettings: toEvaluationExtractionRunAgentSettingsDto(run.agentSettings),
     projectId: run.projectId,
     createdAt: run.createdAt.getTime(),
     updatedAt: run.updatedAt.getTime(),
+  }
+}
+
+function toEvaluationExtractionRunAgentSettingsDto(
+  agentSettings: AgentSettings,
+): EvaluationExtractionRunDto["agentSettings"] {
+  return {
+    documentsRagMode: agentSettings.documentsRagMode,
+    instructions: agentSettings.instructions,
+    locale: agentSettings.locale,
+    model: agentSettings.model,
+    revision: agentSettings.revision,
+    revisionName: agentSettings.revisionName ?? "",
+    revisionDesc: agentSettings.revisionDesc ?? "",
+    // The column is a decimal with a read transformer; Number() keeps the DTO
+    // numeric even if a raw string slips through (mirrors agents.controller.ts).
+    temperature: Number(agentSettings.temperature),
+    outputJsonSchema:
+      (agentSettings.outputJsonSchema as Record<string, unknown> | null) ?? undefined,
   }
 }
 

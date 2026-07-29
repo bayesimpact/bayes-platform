@@ -1,4 +1,8 @@
-import { AgentLocale, updateAgentGeneralSchema } from "@caseai-connect/api-contracts"
+import {
+  AgentLocale,
+  updateAgentNameSchema,
+  updateAgentSettingsSchema,
+} from "@caseai-connect/api-contracts"
 import {
   Form,
   FormControl,
@@ -21,31 +25,38 @@ import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import type { z } from "zod"
 import { useAppDispatch } from "@/common/store/hooks"
-import { updateAgentGeneral } from "../agents.thunks"
+import { saveAgentGeneral } from "../agents.thunks"
 import { AgentTabSaveButton } from "./AgentTabSaveButton"
 import { type AgentTabFormProps, pickDirtyFields, useReportDirty } from "./agent-tab-form.shared"
 
-type FormValues = z.infer<typeof updateAgentGeneralSchema>
+// `name` is the agent's own field; the other three live on the settings revision, so the picked
+// settings schema is extended with it rather than picked from a single contract schema.
+const generalFormSchema = updateAgentSettingsSchema
+  .pick({ instructions: true, locale: true, greetingMessage: true })
+  .required()
+  .extend({ name: updateAgentNameSchema.shape.name })
 
-export function AgentGeneralTab({ agent, onDirtyChange }: AgentTabFormProps) {
+type FormValues = z.infer<typeof generalFormSchema>
+
+export function AgentGeneralTab({ agent, settings, onDirtyChange }: AgentTabFormProps) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const hasGreetingMessage = agent.type === "conversation"
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(updateAgentGeneralSchema),
+    resolver: zodResolver(generalFormSchema),
     defaultValues: {
       name: agent.name,
-      locale: agent.locale,
-      instructions: agent.instructions,
-      greetingMessage: agent.greetingMessage ?? null,
+      locale: settings.locale,
+      instructions: settings.instructions,
+      greetingMessage: settings.greetingMessage ?? null,
     },
   })
   useReportDirty(form.formState.isDirty, onDirtyChange)
 
   const handleSubmit = form.handleSubmit(async (values) => {
     const fields = pickDirtyFields(values, form.formState.dirtyFields)
-    await dispatch(updateAgentGeneral({ agentId: agent.id, fields })).unwrap()
+    await dispatch(saveAgentGeneral({ agentId: agent.id, fields })).unwrap()
     form.reset(values)
   })
 

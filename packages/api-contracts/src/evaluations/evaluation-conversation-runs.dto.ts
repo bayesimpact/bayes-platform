@@ -31,21 +31,27 @@ export type EvaluationConversationRunSummaryDto = {
 }
 
 // Snapshot of the agent-settings revision pinned on a run at creation time.
-export type EvaluationConversationRunAgentSettingsDto = {
+export type AgentRunSettingsSnapshotDto = {
   documentsRagMode: DocumentsRagMode
   instructions: string
   locale: AgentLocale
   model: AgentModel
   revision: number
+  // Both are set at publish time and optional, normalised to "" when unset
+  // (mirrors AgentSettingsDto).
+  revisionName: string
+  revisionDesc: string
   temperature: AgentTemperature
 }
+
+export type EvaluationConversationRunAgentSettingsDto = AgentRunSettingsSnapshotDto
 
 // DTOs
 export type EvaluationConversationRunDto = {
   id: string
   evaluationConversationDatasetId: string
   agentId: string
-  agentSettings: EvaluationConversationRunAgentSettingsDto
+  agentSettings: AgentRunSettingsSnapshotDto
   status: EvaluationConversationRunStatusDto
   // LLM judge model used to grade this run's records.
   judgeModel: AgentModel

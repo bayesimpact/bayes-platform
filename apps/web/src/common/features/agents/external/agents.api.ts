@@ -1,4 +1,4 @@
-import { type AgentDto, AgentHistoryRoutes, AgentsRoutes } from "@caseai-connect/api-contracts"
+import { type AgentDto, AgentsRoutes } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type { Agent } from "../agents.models"
 import type { IAgentsSpi } from "../agents.spi"
@@ -25,44 +25,40 @@ export default {
       payload,
     } satisfies typeof AgentsRoutes.updateOne.request)
   },
+  updateDocumentTags: async (params, payload) => {
+    const axios = getAxiosInstance()
+    await axios.put(AgentsRoutes.updateDocumentTags.getPath(params), {
+      payload,
+    } satisfies typeof AgentsRoutes.updateDocumentTags.request)
+  },
+  updateResourceLibraries: async (params, payload) => {
+    const axios = getAxiosInstance()
+    await axios.put(AgentsRoutes.updateResourceLibraries.getPath(params), {
+      payload,
+    } satisfies typeof AgentsRoutes.updateResourceLibraries.request)
+  },
+  updateSessionCategories: async (params, payload) => {
+    const axios = getAxiosInstance()
+    await axios.put(AgentsRoutes.updateSessionCategories.getPath(params), {
+      payload,
+    } satisfies typeof AgentsRoutes.updateSessionCategories.request)
+  },
   deleteOne: async (params) => {
     const axios = getAxiosInstance()
     await axios.delete(AgentsRoutes.deleteOne.getPath(params))
   },
-  getHistory: async (params) => {
-    const axios = getAxiosInstance()
-    const response = await axios.get<typeof AgentHistoryRoutes.getAll.response>(
-      AgentHistoryRoutes.getAll.getPath(params),
-    )
-    return response.data.data.map(toAgent)
-  },
-  restoreRevision: async ({ revision, ...params }) => {
-    const axios = getAxiosInstance()
-    await axios.post(
-      AgentHistoryRoutes.restoreOne.getPath({ ...params, revision: String(revision) }),
-    )
-  },
 } satisfies IAgentsSpi
 
 const toAgent = (dto: AgentDto): Agent => ({
-  createdAt: dto.createdAt,
-  instructions: dto.instructions,
-  documentsRagMode: dto.documentsRagMode,
-  greetingMessage: dto.greetingMessage,
-  hasCategories: dto.hasCategories ?? false,
   id: dto.id,
-  revision: dto.revision ?? 1,
-  locale: dto.locale,
-  model: dto.model,
-  name: dto.name,
-  outputJsonSchema: dto.outputJsonSchema,
   projectId: dto.projectId,
-  temperature: dto.temperature,
+  name: dto.name,
   type: dto.type,
+  createdAt: dto.createdAt,
   updatedAt: dto.updatedAt,
+  hasCategories: dto.hasCategories ?? false,
   documentTagIds: dto.documentTagIds,
   resourceLibraryIds: dto.resourceLibraryIds,
-  fillFormEnabled: dto.fillFormEnabled,
   projectAgentSessionCategoryIds: dto.projectAgentSessionCategoryIds,
   usedProjectAgentSessionCategoryIds: dto.usedProjectAgentSessionCategoryIds,
   mcpServers: dto.mcpServers,

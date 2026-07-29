@@ -1,5 +1,6 @@
 import { ToolName } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
+import { selectLastAgentSettings } from "@/common/features/agents/settings/agent-settings.selectors"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import { generateId } from "@/common/utils/generate-id"
@@ -111,7 +112,25 @@ export const sendMessage = createAsyncThunk<
       createdAt: Date.now(),
     }
 
-    dispatch(agentSessionMessagesActions.startStreaming({ userMessage, assistantMessageId }))
+    // Null outside the studio, where the settings slice is never loaded, so a live or public
+    // session simply carries no revision on its optimistic message.
+    const currentSettings = selectLastAgentSettings(state)
+    const assistantAgentSettings =
+      currentSettings && currentSettings.agentId === agentId
+        ? {
+            revision: currentSettings.revision,
+            revisionName: currentSettings.revisionName,
+            isDraft: currentSettings.isDraft,
+          }
+        : undefined
+
+    dispatch(
+      agentSessionMessagesActions.startStreaming({
+        userMessage,
+        assistantMessageId,
+        assistantAgentSettings,
+      }),
+    )
 
     try {
       await streamChatResponse({

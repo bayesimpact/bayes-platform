@@ -12,9 +12,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 - Form agents are no longer a separate agent type: any conversation agent can now turn on "Form filling" from a new Tools tab, define the form fields with the visual schema editor (drag to set the order the agent asks its questions), and the agent fills the form from the user's answers during the chat; the collected values open from a "Show form state" button on the agent's replies; the agent creator still offers a "Form" choice, which now creates a conversation agent with form filling already enabled — existing form agents, with their sessions and settings history, are migrated to conversation agents with form filling enabled
+- Saving a settings edit in the agent editor now creates a draft instead of taking effect immediately: the change reaches the running agent only once it is published from the version history, and the save notification says so
+- The version history distinguishes the live revision from an unpublished draft, opens on the draft when there is one, and can publish it while optionally setting or clearing the revision's name and description; restoring an older revision also creates a draft, and the confirmation dialog says so
+- The playground now runs the agent's newest settings, including an unpublished draft, so an edit can be tried before publishing it; live chats, review campaigns, CSV and live extraction runs and evaluation runs keep running the published version
+- The playground names the settings version it is running in its header, with the version's name and description and a "Draft" mark when it is not published yet, and marks the replies in a conversation where that version changed
 
 ### Fixed
 - Fix some scanned PDF documents importing with no extracted text
+- A newly created agent is now usable right away: opening its playground, running an extraction, a review campaign, or an evaluation run no longer fails while its first settings revision is waiting to be published
+- The agent editor no longer crashes when opened while the project's MCP servers are still loading
+- The MCP servers page shows its own loading and error states instead of erroring out
 
 ### Security
 

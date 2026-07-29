@@ -5,11 +5,14 @@ import { useTranslation } from "react-i18next"
 import { useBlocker } from "react-router-dom"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import type { Agent } from "@/common/features/agents/agents.models"
+import type { AgentSettings } from "@/common/features/agents/settings/agent-settings.models"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { usePreventLeave } from "@/common/hooks/use-prevent-leave"
 import { useValue } from "@/common/hooks/use-value"
 import { ErrorRoute } from "@/common/routes/ErrorRoute"
+import { ADS } from "@/common/store/async-data-status"
+import { useAppSelector } from "@/common/store/hooks"
 import { AgentEmbedTab } from "@/studio/features/agent-embed-configs/components/AgentEmbedTab"
 import type { AgentSubAgent } from "@/studio/features/agent-sub-agents/agent-sub-agents.models"
 import { selectMcpServersData } from "@/studio/features/mcp-servers/mcp-servers.selectors"
@@ -55,17 +58,27 @@ type TabConfig = {
  */
 export function AgentEditor({
   agent,
+  settings,
   className,
   orchestration,
 }: {
   agent: Agent
+  settings: AgentSettings
   className?: string
   orchestration?: AgentEditorOrchestration
 }) {
   const { t } = useTranslation()
   const project = useValue(selectCurrentProjectData)
   const { hasFeature } = useFeatureFlags(project)
-  const projectMcpServers = useValue(selectMcpServersData)
+  // MCP servers load on the project route via a listener middleware that is not part of the
+  // route's `AsyncRoute` gate (see AgentEditorRoute), so this editor can render before the list
+  // resolves. Treat "not loaded yet" the same as "no servers yet": the tab below is already
+  // gated on a non-empty list, so it simply appears once the data arrives. A failed
+  // `listMcpServers` folds into the same empty fallback, so the tab silently stays hidden rather
+  // than surfacing the error; that is intentional here since the rest of the editor does not
+  // depend on MCP servers.
+  const mcpServersData = useAppSelector(selectMcpServersData)
+  const projectMcpServers = ADS.isFulfilled(mcpServersData) ? mcpServersData.value : []
 
   const tabs = useMemo<TabConfig[]>(() => {
     const isConversation = agent.type === "conversation"
@@ -73,12 +86,16 @@ export function AgentEditor({
       {
         value: "general",
         label: t("agent:tabs.general"),
-        render: (onDirtyChange) => <AgentGeneralTab agent={agent} onDirtyChange={onDirtyChange} />,
+        render: (onDirtyChange) => (
+          <AgentGeneralTab agent={agent} settings={settings} onDirtyChange={onDirtyChange} />
+        ),
       },
       {
         value: "model",
         label: t("agent:tabs.model"),
-        render: (onDirtyChange) => <AgentModelTab agent={agent} onDirtyChange={onDirtyChange} />,
+        render: (onDirtyChange) => (
+          <AgentModelTab agent={agent} settings={settings} onDirtyChange={onDirtyChange} />
+        ),
       },
     ]
 
@@ -87,21 +104,29 @@ export function AgentEditor({
       list.push({
         value: "sources",
         label: t("agent:tabs.sources"),
-        render: (onDirtyChange) => <AgentSourcesTab agent={agent} onDirtyChange={onDirtyChange} />,
+        render: (onDirtyChange) => (
+          <AgentSourcesTab agent={agent} settings={settings} onDirtyChange={onDirtyChange} />
+        ),
       })
 
       list.push({
         value: "resourceLibraries",
         label: t("agent:tabs.resourceLibraries"),
         render: (onDirtyChange) => (
-          <AgentResourceLibrariesTab agent={agent} onDirtyChange={onDirtyChange} />
+          <AgentResourceLibrariesTab
+            agent={agent}
+            settings={settings}
+            onDirtyChange={onDirtyChange}
+          />
         ),
       })
 
       list.push({
         value: "tools",
         label: t("agent:tabs.tools"),
-        render: (onDirtyChange) => <AgentToolsTab agent={agent} onDirtyChange={onDirtyChange} />,
+        render: (onDirtyChange) => (
+          <AgentToolsTab agent={agent} settings={settings} onDirtyChange={onDirtyChange} />
+        ),
       })
 
       if (project.agentSessionCategories.length > 0) {
@@ -109,7 +134,11 @@ export function AgentEditor({
           value: "categories",
           label: t("agent:tabs.categories"),
           render: (onDirtyChange) => (
-            <AgentSessionCategoriesTab agent={agent} onDirtyChange={onDirtyChange} />
+            <AgentSessionCategoriesTab
+              agent={agent}
+              settings={settings}
+              onDirtyChange={onDirtyChange}
+            />
           ),
         })
       }
@@ -142,7 +171,9 @@ export function AgentEditor({
       list.push({
         value: "output",
         label: t("agent:tabs.output"),
-        render: (onDirtyChange) => <AgentOutputTab agent={agent} onDirtyChange={onDirtyChange} />,
+        render: (onDirtyChange) => (
+          <AgentOutputTab agent={agent} settings={settings} onDirtyChange={onDirtyChange} />
+        ),
       })
     }
 
@@ -155,7 +186,7 @@ export function AgentEditor({
     }
 
     return list
-  }, [agent, project, hasFeature, orchestration, projectMcpServers, t])
+  }, [agent, settings, project, hasFeature, orchestration, projectMcpServers, t])
 
   const [nav, setNav] = useState<{ active: TabKey; pending: TabKey | null }>({
     active: "general",
@@ -209,12 +240,14 @@ export function AgentEditor({
               </TabsTrigger>
             ))}
           </TabsList>
-          <AgentVersionHistory agent={agent} />
+          <AgentVersionHistory agent={agent} settings={settings} />
         </div>
-        {/* Also keyed on the revision so the active tab form reloads fresh defaults after a
-            version is restored from the history sheet. */}
+        {/* Also keyed on the settings revision and updatedAt so the active tab form reloads
+            fresh defaults after a version is restored or published from the history sheet.
+            The revision alone is not enough: a restore into an already-open draft updates
+            that draft in place and keeps its revision number, so updatedAt is what changes. */}
         <TabsContent
-          key={`${activeTab.value}-${agent.revision}`}
+          key={`${activeTab.value}-${settings.revision}-${settings.updatedAt}`}
           value={activeTab.value}
           className="mt-4"
         >

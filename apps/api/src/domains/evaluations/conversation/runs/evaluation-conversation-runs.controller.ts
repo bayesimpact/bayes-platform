@@ -303,6 +303,8 @@ function toEvaluationConversationRunAgentSettingsDto(
     locale: agentSettings.locale,
     model: agentSettings.model,
     revision: agentSettings.revision,
+    revisionName: agentSettings.revisionName ?? "",
+    revisionDesc: agentSettings.revisionDesc ?? "",
     // The column is a decimal with a read transformer; Number() keeps the DTO
     // numeric even if a raw string slips through (mirrors agents.controller.ts).
     temperature: Number(agentSettings.temperature),

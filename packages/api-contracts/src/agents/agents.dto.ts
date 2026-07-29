@@ -57,26 +57,17 @@ export type AgentMcpServerDto = {
 }
 
 export type AgentDto = {
-  createdAt: TimeType
-  greetingMessage?: string
-  instructions: string
-  hasCategories?: boolean
   id: string
-  revision: number
-  locale: AgentLocale
-  model: AgentModel
-  name: string
-  outputJsonSchema?: Record<string, unknown>
   projectId: string
-  temperature: AgentTemperature
+  name: string
   type: AgentType
+  createdAt: TimeType
   updatedAt: TimeType
+  hasCategories?: boolean
   documentTagIds: DocumentTagDto["id"][]
-  documentsRagMode: DocumentsRagMode
-  fillFormEnabled: boolean
+  resourceLibraryIds: string[]
   projectAgentSessionCategoryIds: string[]
   usedProjectAgentSessionCategoryIds: string[]
-  resourceLibraryIds: string[]
   mcpServers: AgentMcpServerDto[]
 }
 
@@ -225,7 +216,7 @@ export type ReplaceAgentSubAgentsDto = z.infer<typeof replaceAgentSubAgentsSchem
 export type AgentSubAgentDto = z.infer<typeof agentSubAgentSchema>
 
 const refineOutputJsonSchema = {
-  fn: (data: Partial<AgentDto>) =>
+  fn: (data: { type?: AgentType; outputJsonSchema?: Record<string, unknown> }) =>
     data.type === "conversation" || data.outputJsonSchema !== undefined,
   message: {
     message: "outputJsonSchema is required when type is not 'conversation'",
@@ -287,98 +278,33 @@ export const createAgentSchema = agentValidationSchema
     path: ["tagsToAdd"],
   })
 
-export const updateAgentSchema = agentValidationSchema
-  .pick({
-    greetingMessage: true,
-    instructions: true,
-    documentTagIds: true,
-    documentsRagMode: true,
-    locale: true,
-    model: true,
-    name: true,
-    outputJsonSchema: true,
-    projectAgentSessionCategoryIds: true,
-    resourceLibraryIds: true,
-    temperature: true,
-  })
-  .extend({
-    tagsToAdd: updateDocumentTagsSchema.required().shape.tagsToAdd,
-    tagsToRemove: updateDocumentTagsSchema.required().shape.tagsToRemove,
-  })
-  .refine(hasRequiredDocumentTags, {
-    message: "At least one document tag is required when documentsRagMode is 'tags'",
-    path: ["documentTagIds"],
-  })
-
 export type CreateAgentDto = z.infer<typeof createAgentSchema>
-export type UpdateAgentDto = z.infer<typeof updateAgentSchema>
 
-// Per-tab update schemas. Each agent editor tab owns and validates only its own fields,
-// and PATCHes a partial payload (the update endpoint applies fields independently).
-const greetingMessageUpdateSchema = z.string().max(2000).nullable().optional()
+// The agent row itself only carries a name; everything else lives either on a settings
+// revision (see updateAgentSettingsSchema) or behind one of the collection routes below.
+export const updateAgentNameSchema = agentValidationSchema.pick({ name: true })
+export const partialUpdateAgentSchema = updateAgentNameSchema
 
-export const updateAgentGeneralSchema = agentValidationSchema
-  .pick({ name: true, locale: true, instructions: true })
-  .extend({ greetingMessage: greetingMessageUpdateSchema })
-
-export const updateAgentModelSchema = agentValidationSchema.pick({
-  model: true,
-  temperature: true,
+export const updateAgentDocumentTagsSchema = z.object({
+  documentTagIds: z.array(documentTagSchema.shape.id),
 })
-
-export const updateAgentOutputSchema = z.object({ outputJsonSchema: outputJsonSchemaSchema })
-
-export const updateAgentSourcesSchema = agentValidationSchema
-  .pick({ documentsRagMode: true, documentTagIds: true })
-  .extend({
-    tagsToAdd: updateDocumentTagsSchema.required().shape.tagsToAdd,
-    tagsToRemove: updateDocumentTagsSchema.required().shape.tagsToRemove,
-  })
-  .refine(hasRequiredDocumentTags, {
-    message: "At least one document tag is required when documentsRagMode is 'tags'",
-    path: ["documentTagIds"],
-  })
-
-// The Sources tab edits the desired final tag set; it derives `tagsToAdd`/`tagsToRemove`
-// (what the API actually consumes) from the original agent tags at submit time.
-export const updateAgentSourcesFormSchema = agentValidationSchema
-  .pick({ documentsRagMode: true, documentTagIds: true })
-  .refine(hasRequiredDocumentTags, {
-    message: "At least one document tag is required when documentsRagMode is 'tags'",
-    path: ["documentTagIds"],
-  })
-
-export const updateAgentResourcesSchema = agentValidationSchema
-  .pick({ resourceLibraryIds: true })
-  .extend({ resourceLibraryIds: z.array(z.string().uuid()) })
-
-// The Tools tab toggles optional tools on a conversation agent. fillForm's form
-// definition is the agent's outputJsonSchema; it must be present when the tool is
-// enabled.
-export const updateAgentToolsSchema = z
-  .object({
-    fillFormEnabled: agentValidationSchema.shape.fillFormEnabled,
-    outputJsonSchema: outputJsonSchemaSchema.optional(),
-  })
-  .refine(refineFillFormOutputJsonSchema.fn, refineFillFormOutputJsonSchema.message)
-
-export const updateAgentCategoriesSchema = agentValidationSchema.pick({
+export const updateAgentResourceLibrariesSchema = z.object({
+  resourceLibraryIds: z.array(z.string().uuid()),
+})
+export const updateAgentSessionCategoriesSchema = agentValidationSchema.pick({
   projectAgentSessionCategoryIds: true,
 })
 
-// Server-side validation for the (partial) update endpoint: any subset of the tab fields.
-export const partialUpdateAgentSchema = agentValidationSchema.partial().extend({
-  greetingMessage: greetingMessageUpdateSchema,
-  tagsToAdd: updateDocumentTagsSchema.required().shape.tagsToAdd.optional(),
-  tagsToRemove: updateDocumentTagsSchema.required().shape.tagsToRemove.optional(),
-})
-
-export type UpdateAgentGeneralDto = z.infer<typeof updateAgentGeneralSchema>
-export type UpdateAgentModelDto = z.infer<typeof updateAgentModelSchema>
-export type UpdateAgentOutputDto = z.infer<typeof updateAgentOutputSchema>
-export type UpdateAgentSourcesDto = z.infer<typeof updateAgentSourcesSchema>
-export type UpdateAgentSourcesFormDto = z.infer<typeof updateAgentSourcesFormSchema>
-export type UpdateAgentResourcesDto = z.infer<typeof updateAgentResourcesSchema>
-export type UpdateAgentToolsDto = z.infer<typeof updateAgentToolsSchema>
-export type UpdateAgentCategoriesDto = z.infer<typeof updateAgentCategoriesSchema>
+export type UpdateAgentNameDto = z.infer<typeof updateAgentNameSchema>
 export type PartialUpdateAgentDto = z.infer<typeof partialUpdateAgentSchema>
+export type UpdateAgentDocumentTagsDto = z.infer<typeof updateAgentDocumentTagsSchema>
+export type UpdateAgentResourceLibrariesDto = z.infer<typeof updateAgentResourceLibrariesSchema>
+export type UpdateAgentSessionCategoriesDto = z.infer<typeof updateAgentSessionCategoriesSchema>
+
+export const agentPublishSchema = z.object({
+  // `null` clears the stored value; `undefined` (an omitted field) preserves it. Same convention
+  // as `updateAgentSettingsSchema`'s `greetingMessage`.
+  revisionName: z.string().nullable().optional(),
+  revisionDesc: z.string().nullable().optional(),
+})
+export type PublishAgentDto = z.infer<typeof agentPublishSchema>

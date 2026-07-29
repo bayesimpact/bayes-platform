@@ -1,4 +1,4 @@
-import { AgentHistoryRoutes, AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentSettingsRoutes } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -65,7 +65,7 @@ describe("Agent History - restoreOne", () => {
 
   const subject = async () =>
     request({
-      route: AgentHistoryRoutes.restoreOne,
+      route: AgentSettingsRoutes.restoreOne,
       pathParams: removeNullish({ organizationId, projectId, agentId, revision }),
       token: accessToken,
     })

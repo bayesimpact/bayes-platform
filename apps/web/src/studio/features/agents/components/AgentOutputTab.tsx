@@ -1,24 +1,26 @@
-import { updateAgentOutputSchema } from "@caseai-connect/api-contracts"
+import { updateAgentSettingsSchema } from "@caseai-connect/api-contracts"
 import { Field } from "@caseai-connect/ui/shad/field"
 import { Form, FormField } from "@caseai-connect/ui/shad/form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import type { z } from "zod"
+import { updateAgentSettings } from "@/common/features/agents/settings/agent-settings.thunks"
 import { useAppDispatch } from "@/common/store/hooks"
-import { updateAgentOutput } from "../agents.thunks"
 import { AgentTabSaveButton } from "./AgentTabSaveButton"
 import { type AgentTabFormProps, useReportDirty } from "./agent-tab-form.shared"
 import { OutputSchemaField } from "./OutputSchemaField"
 
-type FormValues = z.infer<typeof updateAgentOutputSchema>
+const outputFormSchema = updateAgentSettingsSchema.pick({ outputJsonSchema: true }).required()
 
-export function AgentOutputTab({ agent, onDirtyChange }: AgentTabFormProps) {
+type FormValues = z.infer<typeof outputFormSchema>
+
+export function AgentOutputTab({ agent, settings, onDirtyChange }: AgentTabFormProps) {
   const dispatch = useAppDispatch()
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(updateAgentOutputSchema),
-    defaultValues: { outputJsonSchema: agent.outputJsonSchema ?? {} },
+    resolver: zodResolver(outputFormSchema),
+    defaultValues: { outputJsonSchema: settings.outputJsonSchema ?? {} },
   })
   useReportDirty(form.formState.isDirty, onDirtyChange)
 
@@ -27,7 +29,7 @@ export function AgentOutputTab({ agent, onDirtyChange }: AgentTabFormProps) {
   const [editorVersion, setEditorVersion] = useState(0)
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    await dispatch(updateAgentOutput({ agentId: agent.id, fields: values })).unwrap()
+    await dispatch(updateAgentSettings({ agentId: agent.id, fields: values })).unwrap()
     form.reset(values)
   })
 

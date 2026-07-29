@@ -4,6 +4,7 @@
     "agents": "Agents",
     "selectAgent": "Sélectionner un agent",
     "settings": "Paramètres de l'agent",
+    "draftSaveNotification": "Paramètres enregistrés comme brouillon, à publier pour devenir actifs.",
     "props": {
       "createdAt": "Créé le",
       "instructions": "Instructions",
@@ -81,7 +82,8 @@
         "promptRequired": "Les instructions sont requises",
         "temperatureInvalid": "La température doit être comprise entre 0,0 et 2,0",
         "outputJsonSchemaRequired": "Le schéma JSON de sortie est requis",
-        "outputJsonSchemaInvalid": "Le schéma JSON de sortie doit être un objet JSON valide"
+        "outputJsonSchemaInvalid": "Le schéma JSON de sortie doit être un objet JSON valide",
+        "documentTagsRequired": "Au moins une étiquette de document est requise pour la recherche par étiquettes"
       }
     },
     "create": {
@@ -160,6 +162,7 @@
       "loadError": "Échec du chargement de l'historique des versions",
       "revisionLabel": "Version {{revision}}",
       "currentBadge": "Actuelle",
+      "draftBadge": "Brouillon",
       "compareWithPrevious": "Changements de cette version",
       "compareWithCurrent": "Comparer avec l'actuelle",
       "comparing": "Changements de la version {{before}} à la version {{after}}.",
@@ -170,7 +173,16 @@
       "restore": "Restaurer cette version",
       "restoreDialog": {
         "title": "Restaurer la version {{revision}} ?",
-        "description": "Les paramètres de la version {{revision}} seront copiés comme nouvelle version et deviendront les paramètres actuels. Aucune version n'est supprimée."
+        "description": "Les paramètres de la version {{revision}} seront copiés dans un brouillon à publier pour devenir actifs. Aucune version n'est supprimée."
+      },
+      "publish": "Publier cette version",
+      "publishDialog": {
+        "title": "Publier la version {{revision}} ?",
+        "description": "La version {{revision}} deviendra les paramètres actifs de cet agent. Le nom et la description sont facultatifs ; les laisser vides conserve ce qui est déjà enregistré.",
+        "nameLabel": "Nom (facultatif)",
+        "namePlaceholder": "ex. Ton plus amical",
+        "descLabel": "Description (facultative)",
+        "descPlaceholder": "Qu'est-ce qui a changé dans cette version ?"
       }
     },
     "orchestration": {
@@ -216,7 +228,8 @@
       "fillForm": {
         "title": "Remplissage de formulaire",
         "description": "Permet à l'agent de remplir un formulaire structuré à partir des réponses de l'utilisateur pendant la conversation.",
-        "schemaDescription": "Définissez les champs du formulaire que l'agent doit remplir. L'ordre des champs est l'ordre dans lequel l'agent pose ses questions."
+        "schemaDescription": "Définissez les champs du formulaire que l'agent doit remplir. L'ordre des champs est l'ordre dans lequel l'agent pose ses questions.",
+        "schemaRequired": "Définissez le schéma du formulaire avant d'activer le remplissage de formulaire."
       }
     }
   }

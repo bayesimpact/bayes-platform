@@ -1,14 +1,19 @@
 import { useEffect } from "react"
 import type { FieldValues, UseFormReturn } from "react-hook-form"
 import type { Agent } from "@/common/features/agents/agents.models"
+import type { AgentSettings } from "@/common/features/agents/settings/agent-settings.models"
 
 /**
  * Each agent editor tab is a self-contained form: its own `useForm`, its own Save button, and
- * its own update thunk. The editor only needs to know whether the active tab has unsaved
- * changes so it can prompt before the tab (or the editor) is left.
+ * its own update thunk. Depending on which fields it owns, a tab PATCHes the agent settings,
+ * the agent itself, or one collection route (documents, resource libraries, tools, etc.); both
+ * `agent` and `settings` are passed down so a tab can read whichever it targets. The editor
+ * only needs to know whether the active tab has unsaved changes so it can prompt before the
+ * tab (or the editor) is left.
  */
 export type AgentTabFormProps = {
   agent: Agent
+  settings: AgentSettings
   onDirtyChange: (dirty: boolean) => void
 }
 

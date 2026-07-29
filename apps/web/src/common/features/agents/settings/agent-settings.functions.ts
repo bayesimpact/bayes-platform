@@ -1,4 +1,4 @@
-import type { Agent } from "@/common/features/agents/agents.models"
+import type { AgentSettings } from "./agent-settings.models"
 
 /** Settings fields that are versioned by the backend (one revision per change). */
 export const agentSettingsDiffKeys = [
@@ -37,16 +37,19 @@ export const agentSettingsDiffLabelKeys: Record<AgentSettingsDiffKey, string> = 
   fillFormEnabled: "agent:props.fillFormEnabled",
 }
 
-export function serializeAgentSettingsField(agent: Agent, key: AgentSettingsDiffKey): string {
-  const value = agent[key]
+export function serializeAgentSettingsField(
+  agentSettings: AgentSettings,
+  key: AgentSettingsDiffKey,
+): string {
+  const value = agentSettings[key]
   if (value === undefined || value === null) return ""
   if (key === "outputJsonSchema") return JSON.stringify(value, null, 2)
   return String(value)
 }
 
 export function listChangedAgentSettingsFields(
-  before: Agent,
-  after: Agent,
+  before: AgentSettings,
+  after: AgentSettings,
 ): AgentSettingsDiffKey[] {
   return agentSettingsDiffKeys.filter(
     (key) => serializeAgentSettingsField(before, key) !== serializeAgentSettingsField(after, key),

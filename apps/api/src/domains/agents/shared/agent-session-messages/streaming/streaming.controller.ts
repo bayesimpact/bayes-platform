@@ -53,6 +53,9 @@ export class StreamingController {
             const agentSettings = await this.agentSettingsService.getLast({
               connectScope: { organizationId, projectId },
               agentId: agent.id,
+              // Mirrors ConversationAgentSessionsController.createOne: a playground turn runs the
+              // pending draft, a live turn runs the published revision.
+              includesDraft: request.agentSession.type === "playground",
             })
             const agentSessionScope: AgentSessionScope = {
               connectScope,

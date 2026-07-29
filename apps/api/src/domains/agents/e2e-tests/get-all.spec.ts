@@ -109,4 +109,26 @@ describe("Agents - getAll", () => {
     expectResponse(response, 200)
     expect(response.body.data).toEqual([])
   })
+
+  it("should not expose settings fields on the agent", async () => {
+    const { organization, project, user } = await createContext()
+
+    const agent = agentFactory.transient({ organization, project }).build({
+      name: "Agent 1",
+    })
+    await repositories.agentRepository.save(agent)
+    const agentSettings = agentSettingsFactory.transient({ organization, project, agent }).build()
+    await repositories.agentSettingsRepository.save(agentSettings)
+    await addUserToAgent({ repositories, agent, user })
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    const agentDto = response.body.data[0]
+    expect(agentDto).toBeDefined()
+    expect(agentDto).not.toHaveProperty("instructions")
+    expect(agentDto).not.toHaveProperty("model")
+    expect(agentDto).not.toHaveProperty("revision")
+    expect(agentDto).toHaveProperty("name")
+  })
 })

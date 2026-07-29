@@ -99,6 +99,8 @@ function toEvaluationConversationRun(dto: EvaluationConversationRunDto): Evaluat
       locale: dto.agentSettings.locale,
       model: dto.agentSettings.model,
       revision: dto.agentSettings.revision,
+      revisionName: dto.agentSettings.revisionName,
+      revisionDesc: dto.agentSettings.revisionDesc,
       temperature: dto.agentSettings.temperature,
     },
     judgeModel: dto.judgeModel,

@@ -1,4 +1,5 @@
 import type { TimeType } from "../generic"
+import type { AgentRunSettingsSnapshotDto } from "./evaluation-conversation-runs.dto"
 
 export const EVALUATION_EXTRACTION_RUN_STATUS_CHANGED_CHANNEL_DTO =
   "evaluation_extraction_run_status_changed"
@@ -47,6 +48,8 @@ export type EvaluationExtractionRunDto = {
   status: EvaluationExtractionRunStatusDto
   summary: EvaluationExtractionRunSummaryDto | null
   csvExportDocumentId: string | null
+  // Snapshot of the agent-settings revision pinned on the run at creation time.
+  agentSettings: AgentRunSettingsSnapshotDto & { outputJsonSchema?: Record<string, unknown> }
   projectId: string
   createdAt: TimeType
   updatedAt: TimeType

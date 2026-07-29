@@ -1,9 +1,4 @@
-import {
-  AgentLocale,
-  AgentModel,
-  DocumentsRagMode,
-  type outputJsonSchemaSchema,
-} from "@caseai-connect/api-contracts"
+import type { outputJsonSchemaSchema } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { z } from "zod"
@@ -39,16 +34,7 @@ export const agentOutputJsonSchemaFactory = AgentOutputJsonSchemaFactory.define(
   }
 })
 
-class AgentFactory extends Factory<Agent, AgentTransientParams> {
-  /** A conversation agent with the fillForm tool enabled and a form definition. */
-  fillForm() {
-    return this.params({
-      type: "conversation",
-      fillFormEnabled: true,
-      outputJsonSchema: agentOutputJsonSchemaFactory.build(),
-    })
-  }
-}
+class AgentFactory extends Factory<Agent, AgentTransientParams> {}
 
 export const agentFactory = AgentFactory.define(({ params, transientParams }) => {
   const { project } = transientParams
@@ -60,20 +46,12 @@ export const agentFactory = AgentFactory.define(({ params, transientParams }) =>
   const type = faker.helpers.arrayElement(types)
   return {
     createdAt: params.createdAt ?? faker.date.past().getTime(),
-    instructions: params.instructions ?? faker.lorem.paragraph(),
-    documentsRagMode: params.documentsRagMode ?? DocumentsRagMode.None,
     documentTagIds: params.documentTagIds ?? [],
     resourceLibraryIds: params.resourceLibraryIds ?? [],
-    fillFormEnabled: params.fillFormEnabled ?? false,
-    greetingMessage: params.greetingMessage ?? undefined,
     id: params.id ?? faker.string.uuid(),
-    revision: params.revision ?? 1,
-    locale: params.locale ?? AgentLocale.EN,
-    model: params.model ?? AgentModel.Gemini25Flash,
     name: params.name ?? faker.helpers.arrayElement(AGENT_NAMES),
     projectAgentSessionCategoryIds: params.projectAgentSessionCategoryIds ?? [],
     projectId: project.id,
-    temperature: params.temperature ?? 0.7,
     type: params.type ?? type,
     updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
     usedProjectAgentSessionCategoryIds: params.usedProjectAgentSessionCategoryIds ?? [],

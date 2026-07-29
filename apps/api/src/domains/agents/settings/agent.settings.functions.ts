@@ -42,7 +42,7 @@ export function extractAgentSettingsUpdateFields<T extends object>(
   }
   return result
 }
-export function requiresNewAgentSettingsRevision({
+export function requiresUpdateAgentSettings({
   initialAgentSettings,
   modifiedAgentSettings,
 }: {

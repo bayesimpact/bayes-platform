@@ -61,14 +61,8 @@ export default {
   },
 } satisfies IAgentSessionMessagesSpi
 
-const fromDto = (dto: AgentSessionMessageDto): AgentSessionMessage => ({
-  id: dto.id,
-  role: dto.role,
-  content: dto.content,
-  createdAt: dto.createdAt,
-  attachmentDocumentId: dto.attachmentDocumentId,
-  status: dto.status,
-  startedAt: dto.startedAt,
-  completedAt: dto.completedAt,
-  toolCalls: dto.toolCalls,
-})
+// `AgentSessionMessage` is a bare alias of `AgentSessionMessageDto` (see agent-session-messages.models.ts),
+// so there is no actual transformation to perform here. Spreading rather than enumerating fields
+// means a field added to the DTO (like `agentSettings` was) is carried through automatically instead
+// of silently dropped until someone remembers to list it here.
+const fromDto = (dto: AgentSessionMessageDto): AgentSessionMessage => ({ ...dto })

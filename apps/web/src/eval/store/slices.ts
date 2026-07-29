@@ -1,5 +1,7 @@
 import { agentsMiddleware } from "@/common/features/agents/agents.middleware"
 import { agentsSlice } from "@/common/features/agents/agents.slice"
+import { agentSettingsMiddleware } from "@/common/features/agents/settings/agent-settings.middleware"
+import { agentSettingsSlice } from "@/common/features/agents/settings/agent-settings.slice"
 import { projectsSlice } from "@/common/features/projects/projects.slice"
 import { createSliceManager } from "@/common/store/dynamic-middleware"
 import { evaluationConversationDatasetsMiddleware } from "../features/evaluation-conversation-datasets/evaluation-conversation-datasets.middleware"
@@ -14,6 +16,7 @@ import { currentIdsSlice } from "./currentIds.slice"
 
 const evalMiddlewareList = [
   agentsMiddleware,
+  agentSettingsMiddleware,
   evaluationConversationDatasetsMiddleware,
   evaluationConversationRunsMiddleware,
   evaluationExtractionDatasetsMiddleware,
@@ -22,6 +25,7 @@ const evalMiddlewareList = [
 
 export const evalSliceList = [
   agentsSlice,
+  agentSettingsSlice,
   currentIdsSlice,
   evaluationConversationDatasetsSlice,
   evaluationConversationRunsSlice,

@@ -10,6 +10,8 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { inviteUserToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
@@ -101,6 +103,8 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     agentId = agent.id
     agentSettingsId = agentSettings.id
     auth0Id = invitedUser.auth0Id
+
+    return { organization, project, agent, agentSettings }
   }
 
   const subject = async (payload?: typeof ConversationAgentSessionsRoutes.createOne.request) =>
@@ -148,6 +152,57 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
         where: { id: response.body.data.id },
       })
       expect(createdSession).not.toBeNull()
+    })
+  })
+
+  describe("with a pending draft revision", () => {
+    /**
+     * Seeds an unpublished draft on top of the published revision 1 and gives it a greeting, so
+     * the session's seeded greeting message reveals which revision the session resolved.
+     */
+    const seedDraft = async (context: Awaited<ReturnType<typeof createContext>>) => {
+      const draft = agentSettingsFactory
+        .transient({
+          organization: context.organization,
+          project: context.project,
+          agent: context.agent,
+        })
+        .build({ revision: 2, isDraft: true, greetingMessage: "Draft greeting" })
+      await setup.getRepository(AgentSettings).save(draft)
+      await repositories.agentSettingsRepository.update(context.agentSettings.id, {
+        greetingMessage: "Published greeting",
+      })
+      return draft
+    }
+
+    it("should pin a playground session to the draft revision", async () => {
+      const context = await createContext("owner")
+      const draft = await seedDraft(context)
+
+      const response = await subject({ payload: { type: "playground" } })
+
+      expectResponse(response, 201)
+      const messages = await repositories.agentMessageRepository.find({
+        where: { sessionId: response.body.data.id },
+      })
+      expect(messages).toHaveLength(1)
+      expect(messages[0]?.agentSettingsId).toBe(draft.id)
+      expect(messages[0]?.content).toBe("Draft greeting")
+    })
+
+    it("should pin a live session to the published revision", async () => {
+      const context = await createContext("owner")
+      await seedDraft(context)
+
+      const response = await subject({ payload: { type: "live" } })
+
+      expectResponse(response, 201)
+      const messages = await repositories.agentMessageRepository.find({
+        where: { sessionId: response.body.data.id },
+      })
+      expect(messages).toHaveLength(1)
+      expect(messages[0]?.agentSettingsId).toBe(context.agentSettings.id)
+      expect(messages[0]?.content).toBe("Published greeting")
     })
   })
 

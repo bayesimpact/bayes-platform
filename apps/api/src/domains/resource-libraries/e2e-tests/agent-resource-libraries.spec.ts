@@ -16,10 +16,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { AgentsModule } from "@/domains/agents/agents.module"
-import {
-  createOrganizationWithAgent,
-  createOrganizationWithProject,
-} from "@/domains/organizations/organization.factory"
+import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
@@ -73,33 +70,11 @@ describe("Agents - resource library selection", () => {
     auth0Id = user.auth0Id
     return { organization, project, resourceLibrary }
   }
-  const createContextWithAgentAndResource = async () => {
-    const { user, organization, project, agent, agentResourceLibraries } =
-      await createOrganizationWithAgent(repositories)
-
-    organizationId = organization.id
-    projectId = project.id
-    auth0Id = user.auth0Id
-    return { organization, project, agent, agentResourceLibraries }
-  }
 
   const createAgent = async (payload: typeof AgentsRoutes.createOne.request) =>
     request({
       route: AgentsRoutes.createOne,
       pathParams: removeNullish({ organizationId, projectId }),
-      token: accessToken,
-      request: payload,
-    })
-  const updateAgent = async ({
-    agentId,
-    payload,
-  }: {
-    agentId: string
-    payload: typeof AgentsRoutes.updateOne.request
-  }) =>
-    request({
-      route: AgentsRoutes.updateOne,
-      pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
       request: payload,
     })
@@ -136,52 +111,6 @@ describe("Agents - resource library selection", () => {
     expect(joinRows).toHaveLength(1)
   })
 
-  it("attaches selected resource libraries to an updated conversation agent", async () => {
-    const { organization, project, agent, agentResourceLibraries } =
-      await createContextWithAgentAndResource()
-    const joinRows = await setup.dataSource.query(
-      "SELECT * FROM agent_resource_library WHERE resource_library_id = $1 AND agent_id= $2",
-      [agentResourceLibraries[0]?.id, agent.id],
-    )
-    expect(joinRows).toHaveLength(1)
-
-    const resourceLibrary1 = await createResourceLibraryForProject({
-      repositories,
-      organization,
-      project,
-    })
-    const resourceLibrary2 = await createResourceLibraryForProject({
-      repositories,
-      organization,
-      project,
-    })
-
-    const response = await updateAgent({
-      agentId: agent.id,
-      payload: {
-        payload: {
-          ...baseAgentPayload,
-          documentTagIds: [],
-          tagsToAdd: [] as string[],
-          tagsToRemove: [] as string[],
-          resourceLibraryIds: [resourceLibrary1.id, resourceLibrary2.id],
-        },
-      },
-    })
-
-    expectResponse(response, 200)
-    expect(response.body.data.success).toBeTruthy()
-
-    const resourceLibrariesAfterUpdate = (
-      await setup.dataSource.query(
-        "SELECT resource_library_id FROM agent_resource_library WHERE agent_id= $1",
-        [agent.id],
-      )
-    ).map((obj) => obj.resource_library_id)
-    expect(resourceLibrariesAfterUpdate).toHaveLength(2)
-    expect(resourceLibrariesAfterUpdate).toContain(resourceLibrary1.id)
-    expect(resourceLibrariesAfterUpdate).toContain(resourceLibrary2.id)
-  })
   it("rejects attaching resource libraries to an extraction agent", async () => {
     const { organization, project } = await createContext()
     const resourceLibrary = await createResourceLibraryForProject({

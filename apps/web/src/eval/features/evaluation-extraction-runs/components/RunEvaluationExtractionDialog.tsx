@@ -18,12 +18,14 @@ import {
   SelectValue,
 } from "@caseai-connect/ui/shad/select"
 import { PlayIcon } from "lucide-react"
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { RunScopeSelector } from "@/common/components/shared/RunScopeSelector"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
+import { selectLastPublishedAgentSettings } from "@/common/features/agents/settings/agent-settings.selectors"
+import { listAgentSettings } from "@/common/features/agents/settings/agent-settings.thunks"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import type {
@@ -51,6 +53,7 @@ export function RunEvaluationExtractionDialog({
   const { buildRunPath } = useEvaluationExtractionRunPath()
   const agentsData = useValue(selectAgentsData)
   const isExecuting = useAppSelector(selectIsExecuting)
+  const publishedSettings = useAppSelector(selectLastPublishedAgentSettings)
   const [open, setOpen] = useState(false)
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
   const [keyMapping, setKeyMapping] = useState<KeyMappingEntry[]>([])
@@ -74,42 +77,44 @@ export function RunEvaluationExtractionDialog({
     [extractionAgents, selectedAgentId],
   )
 
-  const agentOutputKeys = useMemo(() => {
-    if (!selectedAgent?.outputJsonSchema) return []
-    const properties = selectedAgent.outputJsonSchema.properties as
+  // publishedSettings is a single-slot value: while a newly picked agent's settings are
+  // loading, the slot can still hold the previous agent's data. Only trust it once its
+  // agentId matches the agent currently selected in this dialog.
+  const autoMapping = useMemo(() => {
+    if (!selectedAgentId || publishedSettings?.agentId !== selectedAgentId) {
+      return { agentOutputKeys: [] as string[], mapping: [] as KeyMappingEntry[] }
+    }
+    const properties = publishedSettings.outputJsonSchema?.properties as
       | Record<string, unknown>
       | undefined
-    if (!properties) return []
-    return Object.keys(properties)
-  }, [selectedAgent])
+    if (!properties) return { agentOutputKeys: [] as string[], mapping: [] as KeyMappingEntry[] }
+    const agentOutputKeys = Object.keys(properties)
+    const mapping: KeyMappingEntry[] = agentOutputKeys.map((outputKey) => {
+      const matchingColumn = targetColumns.find(
+        (column) => column.finalName.toLowerCase() === outputKey.toLowerCase(),
+      )
+      return {
+        agentOutputKey: outputKey,
+        datasetColumnId: matchingColumn?.id ?? "",
+        mode: "scored" as const,
+      }
+    })
+    return { agentOutputKeys, mapping }
+  }, [publishedSettings, targetColumns, selectedAgentId])
+
+  const agentOutputKeys = autoMapping.agentOutputKeys
+
+  useEffect(() => {
+    setKeyMapping(autoMapping.mapping)
+  }, [autoMapping])
 
   const handleAgentChange = useCallback(
-    (agentId: string) => {
+    async (agentId: string) => {
       setSelectedAgentId(agentId)
-      const agent = extractionAgents.find((extractionAgent) => extractionAgent.id === agentId)
-      if (!agent?.outputJsonSchema) {
-        setKeyMapping([])
-        return
-      }
-      const properties = agent.outputJsonSchema.properties as Record<string, unknown> | undefined
-      if (!properties) {
-        setKeyMapping([])
-        return
-      }
-      // Auto-map by matching names
-      const newMapping: KeyMappingEntry[] = Object.keys(properties).map((outputKey) => {
-        const matchingColumn = targetColumns.find(
-          (column) => column.finalName.toLowerCase() === outputKey.toLowerCase(),
-        )
-        return {
-          agentOutputKey: outputKey,
-          datasetColumnId: matchingColumn?.id ?? "",
-          mode: "scored" as const,
-        }
-      })
-      setKeyMapping(newMapping)
+      setKeyMapping([])
+      await dispatch(listAgentSettings({ agentId }))
     },
-    [extractionAgents, targetColumns],
+    [dispatch],
   )
 
   const handleColumnChange = useCallback((agentOutputKey: string, datasetColumnId: string) => {

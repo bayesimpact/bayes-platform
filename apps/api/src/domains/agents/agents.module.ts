@@ -35,6 +35,7 @@ import { ProjectAgentSessionCategoriesController } from "./session-categories/pr
 import { ProjectAgentSessionCategoriesGuard } from "./session-categories/project-agent-session-categories.guard"
 import { ProjectAgentSessionCategoriesService } from "./session-categories/project-agent-session-categories.service"
 import { ProjectAgentSessionCategory } from "./session-categories/project-agent-session-category.entity"
+import { AgentSettingsController } from "./settings/agent-settings.controller"
 import { AgentSettings } from "./settings/agent-settings.entity"
 import { AgentSettingsService } from "./settings/agent-settings.service"
 import { AgentSubAgent } from "./sub-agents/agent-sub-agent.entity"
@@ -85,6 +86,7 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
   ],
   controllers: [
     AgentsController,
+    AgentSettingsController,
     AgentMembershipsController,
     ProjectAgentSessionCategoriesController,
   ],

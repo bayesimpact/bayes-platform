@@ -20,6 +20,18 @@ export class AgentSettings extends ConnectEntityBase {
   @Column({ type: "integer", nullable: false })
   revision!: number
 
+  @Column({ type: "text", name: "revision_name", nullable: true })
+  revisionName?: string | null
+
+  @Column({ type: "text", name: "revision_desc", nullable: true })
+  revisionDesc?: string | null
+
+  @Column({ type: "boolean", name: "is_draft", default: false })
+  isDraft!: boolean
+
+  @Column({ type: "boolean", name: "is_archived", default: false })
+  isArchived!: boolean
+
   @Column({ type: "text", name: "instructions", nullable: false })
   instructions!: string
 

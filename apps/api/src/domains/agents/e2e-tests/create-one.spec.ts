@@ -97,10 +97,6 @@ describe("Agents - createOne", () => {
 
     expectResponse(response, 201)
     expect(response.body.data.name).toBe("New Agent")
-    expect(response.body.data.instructions).toBe("This is a default prompt")
-    expect(response.body.data.model).toBe(AgentModel.Gemini25Flash)
-    expect(response.body.data.locale).toBe(AgentLocale.EN)
-    expect(response.body.data.documentsRagMode).toBe(DocumentsRagMode.All)
     expect(response.body.data.projectId).toBe(projectId)
     expect(response.body.data.id).toBeDefined()
 
@@ -110,6 +106,15 @@ describe("Agents - createOne", () => {
     })
     expect(agent).not.toBeNull()
     expect(agent?.name).toBe("New Agent")
+
+    const agentSettings = await setup.getRepository(AgentSettings).findOne({
+      where: { agentId: response.body.data.id, revision: 1 },
+    })
+    expect(agentSettings?.instructions).toBe("This is a default prompt")
+    expect(agentSettings?.model).toBe(AgentModel.Gemini25Flash)
+    expect(agentSettings?.locale).toBe(AgentLocale.EN)
+    expect(agentSettings?.documentsRagMode).toBe(DocumentsRagMode.All)
+    expect(agentSettings?.isDraft).toBe(false)
     await expectActivityCreated("agent.create")
   })
 
@@ -132,7 +137,6 @@ describe("Agents - createOne", () => {
     })
 
     expectResponse(response, 201)
-    expect(response.body.data.greetingMessage).toBe("Hi! How can I help you today?")
 
     const agentSettings = await setup.getRepository(AgentSettings).findOne({
       where: { agentId: response.body.data.id, revision: 1 },
@@ -158,7 +162,6 @@ describe("Agents - createOne", () => {
     })
 
     expectResponse(response, 201)
-    expect(response.body.data.greetingMessage).toBeUndefined()
 
     const agentSettings = await setup.getRepository(AgentSettings).findOne({
       where: { agentId: response.body.data.id, revision: 1 },
@@ -189,16 +192,15 @@ describe("Agents - createOne", () => {
     })
 
     expectResponse(response, 201)
-    expect(response.body.data.fillFormEnabled).toBe(true)
-    expect(response.body.data.outputJsonSchema).toEqual({
-      type: "object",
-      properties: { title: { type: "string" }, summary: { type: "string" } },
-    })
 
     const agentSettings = await setup.getRepository(AgentSettings).findOne({
       where: { agentId: response.body.data.id, revision: 1 },
     })
     expect(agentSettings?.fillFormEnabled).toBe(true)
+    expect(agentSettings?.outputJsonSchema).toEqual({
+      type: "object",
+      properties: { title: { type: "string" }, summary: { type: "string" } },
+    })
   })
 
   it("should reject enabling the fillForm tool without an outputJsonSchema", async () => {
@@ -246,8 +248,12 @@ describe("Agents - createOne", () => {
     })
 
     expectResponse(response, 201)
-    expect(response.body.data.documentsRagMode).toBe(DocumentsRagMode.Tags)
     expect(response.body.data.documentTagIds).toEqual([documentTag.id])
+
+    const agentSettings = await setup.getRepository(AgentSettings).findOne({
+      where: { agentId: response.body.data.id, revision: 1 },
+    })
+    expect(agentSettings?.documentsRagMode).toBe(DocumentsRagMode.Tags)
   })
 
   it("should create an agent with selected project categories", async () => {

@@ -1,4 +1,10 @@
-import type { CreateAgentDto, PartialUpdateAgentDto } from "@caseai-connect/api-contracts"
+import type {
+  CreateAgentDto,
+  UpdateAgentDocumentTagsDto,
+  UpdateAgentNameDto,
+  UpdateAgentResourceLibrariesDto,
+  UpdateAgentSessionCategoriesDto,
+} from "@caseai-connect/api-contracts"
 import type { Agent } from "./agents.models"
 
 export interface IAgentsSpi {
@@ -9,22 +15,23 @@ export interface IAgentsSpi {
   ) => Promise<Agent>
   updateOne: (
     params: { organizationId: string; projectId: string; agentId: string },
-    payload: PartialUpdateAgentDto,
+    payload: UpdateAgentNameDto,
+  ) => Promise<void>
+  updateDocumentTags: (
+    params: { organizationId: string; projectId: string; agentId: string },
+    payload: UpdateAgentDocumentTagsDto,
+  ) => Promise<void>
+  updateResourceLibraries: (
+    params: { organizationId: string; projectId: string; agentId: string },
+    payload: UpdateAgentResourceLibrariesDto,
+  ) => Promise<void>
+  updateSessionCategories: (
+    params: { organizationId: string; projectId: string; agentId: string },
+    payload: UpdateAgentSessionCategoriesDto,
   ) => Promise<void>
   deleteOne: (params: {
     organizationId: string
     projectId: string
     agentId: string
-  }) => Promise<void>
-  getHistory: (params: {
-    organizationId: string
-    projectId: string
-    agentId: string
-  }) => Promise<Agent[]>
-  restoreRevision: (params: {
-    organizationId: string
-    projectId: string
-    agentId: string
-    revision: number
   }) => Promise<void>
 }

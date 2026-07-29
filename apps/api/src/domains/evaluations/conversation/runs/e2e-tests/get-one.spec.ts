@@ -57,7 +57,11 @@ describe("EvaluationConversationRuns - getOne", () => {
       repositories,
       {
         agent: { type: "conversation" },
-        agentSettings: { model: AgentModel._Mock },
+        agentSettings: {
+          model: AgentModel._Mock,
+          revisionName: "Cite sources",
+          revisionDesc: "Requires a source for every answer.",
+        },
       },
     )
     organizationId = organization.id
@@ -119,8 +123,35 @@ describe("EvaluationConversationRuns - getOne", () => {
       locale: agentSettings.locale,
       model: agentSettings.model,
       revision: agentSettings.revision,
+      revisionName: agentSettings.revisionName,
+      revisionDesc: agentSettings.revisionDesc,
       temperature: Number(agentSettings.temperature),
     })
+  })
+
+  it("should expose an unnamed revision with empty name and description", async () => {
+    const { organization, project, agent, dataset } = await createContext()
+    const unnamedSettings = agentSettingsFactory
+      .transient({ organization, project, agent })
+      .build({ revision: 2, revisionName: null, revisionDesc: null })
+    await repositories.agentSettingsRepository.save(unnamedSettings)
+    const run = evaluationConversationRunFactory
+      .transient({
+        organization,
+        project,
+        agent,
+        agentSettings: unnamedSettings,
+        evaluationConversationDataset: dataset,
+      })
+      .build()
+    await setup.getRepository(EvaluationConversationRun).save(run)
+    evaluationConversationRunId = run.id
+
+    const res = await subject()
+
+    expectResponse(res, 200)
+    expect(res.body.data.agentSettings.revisionName).toBe("")
+    expect(res.body.data.agentSettings.revisionDesc).toBe("")
   })
 
   it("should return 404 for a non-existent run", async () => {

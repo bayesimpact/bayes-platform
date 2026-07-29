@@ -1,5 +1,4 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
-import type { Agent } from "@/common/features/agents/agents.models"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import { currentIdsActions } from "@/eval/store/currentIds.slice"
 import type {
@@ -27,10 +26,6 @@ interface State {
   comparisonRunIds: string[]
   comparisonRecords: AsyncData<Record<string, EvaluationConversationRunRecord[]>>
 
-  // Settings-version history of the agent selected in the run dialog, plus the
-  // agent id of the latest request so stale responses can be discarded.
-  agentHistory: AsyncData<Agent[]>
-  agentHistoryAgentId: string | null
   isExecuting: boolean
   isRetrying: boolean
   isCancelling: boolean
@@ -54,8 +49,6 @@ const initialState: State = {
   currentRecordsQuery: defaultRecordsQuery,
   comparisonRunIds: [],
   comparisonRecords: defaultAsyncData,
-  agentHistory: defaultAsyncData,
-  agentHistoryAgentId: null,
   isExecuting: false,
   isRetrying: false,
   isCancelling: false,
@@ -82,10 +75,6 @@ const slice = createSlice({
       state.comparisonRecords = defaultAsyncData
     },
     reset: () => initialState,
-    resetAgentHistory: (state) => {
-      state.agentHistory = defaultAsyncData
-      state.agentHistoryAgentId = null
-    },
     startRunStatusStream: (state) => {
       state.runStatusStream.isActive = true
     },
@@ -202,24 +191,6 @@ const slice = createSlice({
         if (!isCurrentComparison(state.comparisonRunIds, action.meta.arg)) return
         state.comparisonRecords.status = ADS.Error
         state.comparisonRecords.error = action.error.message || "Failed to load runs to compare"
-      })
-
-    // getAgentHistory — only the response for the most recently selected agent
-    // applies; a slower response for a previously selected agent is discarded.
-    builder
-      .addCase(evaluationConversationRunsThunks.getAgentHistory.pending, (state, action) => {
-        state.agentHistoryAgentId = action.meta.arg.agentId
-        if (!ADS.isFulfilled(state.agentHistory)) state.agentHistory.status = ADS.Loading
-        state.agentHistory.error = null
-      })
-      .addCase(evaluationConversationRunsThunks.getAgentHistory.fulfilled, (state, action) => {
-        if (action.meta.arg.agentId !== state.agentHistoryAgentId) return
-        state.agentHistory = { status: ADS.Fulfilled, error: null, value: action.payload }
-      })
-      .addCase(evaluationConversationRunsThunks.getAgentHistory.rejected, (state, action) => {
-        if (action.meta.arg.agentId !== state.agentHistoryAgentId) return
-        state.agentHistory.status = ADS.Error
-        state.agentHistory.error = action.error.message || "Failed to load agent version history"
       })
 
     // createAndExecute

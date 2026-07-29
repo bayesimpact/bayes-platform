@@ -18,9 +18,6 @@ export const selectConversationRunsComparison = (state: RootState) =>
 
 export const selectComparisonRunIds = (state: RootState) => state.conversationRuns.comparisonRunIds
 
-export const selectConversationRunAgentHistory = (state: RootState) =>
-  state.conversationRuns.agentHistory
-
 export const selectIsExecutingConversationRun = (state: RootState) =>
   state.conversationRuns.isExecuting
 

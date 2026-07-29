@@ -150,6 +150,8 @@ export class EvaluationExtractionRunsService {
   }): Promise<EvaluationExtractionRun[]> {
     const runs = await this.runConnectRepository.find(connectScope, {
       order: { createdAt: "DESC" },
+      // Run responses expose the pinned agent-settings snapshot.
+      relations: { agentSettings: true },
     })
     return runs
   }

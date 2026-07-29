@@ -23,6 +23,16 @@ export class AgentPolicy extends ProjectScopedPolicy<Agent> {
     return this.canAccess()
   }
 
+  /**
+   * Reading a single agent's settings revisions: narrower than `canList` (which is project-level
+   * access with no agent check, so any project member could read any agent by id) and broader
+   * than `canUpdate` (which requires agent admin/owner). The eval scope, for instance, has agent
+   * membership without managing the agent, and still needs to read its published settings.
+   */
+  canView(): boolean {
+    return this.doesResourceBelongToScope() && this.canAccessAgent()
+  }
+
   canCreate(): boolean {
     return this.canAccess() && this.isProjectAdminOrOwner()
   }

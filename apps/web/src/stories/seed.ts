@@ -12,6 +12,7 @@ import type {
 import type { ExtractionAgentSessions } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
 import type { AgentSessionMessage } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import type { Agent } from "@/common/features/agents/agents.models"
+import type { AgentSettings } from "@/common/features/agents/settings/agent-settings.models"
 import type { User } from "@/common/features/me/me.models"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import type { Organization } from "@/common/features/organizations/organizations.models"
@@ -316,8 +317,13 @@ export const seed = {
       return { agentSubAgents: { data: ads.fulfilled(subAgents) } }
     },
 
-    agentHistory(versions: Agent[]): StoryPreloadedState {
-      return { agentHistory: { data: ads.fulfilled(versions) } }
+    agentSettings(agentSettings: AgentSettings[]): StoryPreloadedState {
+      return {
+        agentSettings: {
+          agentId: agentSettings[0]?.agentId ?? null,
+          data: ads.fulfilled(agentSettings),
+        },
+      }
     },
   },
 

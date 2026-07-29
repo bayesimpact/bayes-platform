@@ -2,7 +2,7 @@ import {
   AgentModel,
   AgentModelToAgentProvider,
   AgentProvider,
-  updateAgentModelSchema,
+  updateAgentSettingsSchema,
 } from "@caseai-connect/api-contracts"
 import {
   Form,
@@ -24,15 +24,19 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import type { z } from "zod"
+import { updateAgentSettings } from "@/common/features/agents/settings/agent-settings.thunks"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
-import { updateAgentModel } from "../agents.thunks"
 import { AgentTabSaveButton } from "./AgentTabSaveButton"
 import { type AgentTabFormProps, pickDirtyFields, useReportDirty } from "./agent-tab-form.shared"
 
-type FormValues = z.infer<typeof updateAgentModelSchema>
+const modelFormSchema = updateAgentSettingsSchema
+  .pick({ model: true, temperature: true })
+  .required()
+
+type FormValues = z.infer<typeof modelFormSchema>
 
 function extractModelList(
   hasFeature: ReturnType<typeof useFeatureFlags>["hasFeature"],
@@ -67,7 +71,7 @@ function extractModelList(
   return [...defaultModels, ...medGemmaModels, ...gemmaModels, ...vertex3Models, ...mistralModels]
 }
 
-export function AgentModelTab({ agent, onDirtyChange }: AgentTabFormProps) {
+export function AgentModelTab({ agent, settings, onDirtyChange }: AgentTabFormProps) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const project = useValue(selectCurrentProjectData)
@@ -75,14 +79,14 @@ export function AgentModelTab({ agent, onDirtyChange }: AgentTabFormProps) {
   const models = extractModelList(hasFeature)
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(updateAgentModelSchema),
-    defaultValues: { model: agent.model, temperature: agent.temperature },
+    resolver: zodResolver(modelFormSchema),
+    defaultValues: { model: settings.model, temperature: settings.temperature },
   })
   useReportDirty(form.formState.isDirty, onDirtyChange)
 
   const handleSubmit = form.handleSubmit(async (values) => {
     const fields = pickDirtyFields(values, form.formState.dirtyFields)
-    await dispatch(updateAgentModel({ agentId: agent.id, fields })).unwrap()
+    await dispatch(updateAgentSettings({ agentId: agent.id, fields })).unwrap()
     form.reset(values)
   })
 

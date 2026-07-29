@@ -8,11 +8,13 @@ import { selectCurrentMessagesData } from "@/common/features/agents/agent-sessio
 import { AgentSessionMessages } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/AgentSessionMessages"
 import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
+import { selectLastAgentSettings } from "@/common/features/agents/settings/agent-settings.selectors"
 import { useGetAgentRoute } from "@/common/hooks/use-get-path"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppSelector } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
 import { AgentSessionActions } from "../features/agents/components/AgentSessionActions"
+import { AgentSettingsVersionBadge } from "../features/agents/components/AgentSettingsVersionBadge"
 
 type AgentSession = ConversationAgentSession
 export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentSession }) {
@@ -27,6 +29,12 @@ export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentS
   const { t } = useTranslation()
   const navigate = useNavigate()
   const agentRoute = useGetAgentRoute()
+
+  // `agentSettings` is a single-slot store, so a fulfilled slot can still hold the previous
+  // agent's revisions for one render while switching agents. Only label the session once the
+  // loaded revision belongs to this agent.
+  const lastSettings = useAppSelector(selectLastAgentSettings)
+  const settings = lastSettings?.agentId === agent.id ? lastSettings : null
 
   const Icon = getAgentIcon(agent.type)
 
@@ -44,6 +52,14 @@ export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentS
             <span className="capitalize-first">{agent.name}</span> •
             <span className="capitalize-first">{t(`agent:create.typeDialog.${agent.type}`)}</span>
             <Icon /> • {date}
+            {settings && (
+              <AgentSettingsVersionBadge
+                revision={settings.revision}
+                revisionName={settings.revisionName}
+                isDraft={settings.isDraft}
+                description={settings.revisionDesc}
+              />
+            )}
           </div>
         }
         action={<AgentSessionActions agent={agent} agentSession={agentSession} />}
@@ -54,7 +70,8 @@ export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentS
           session={agentSession}
           messages={messages}
           formSubSessions={formSubSessions}
-          formResultSchema={agent.fillFormEnabled ? agent.outputJsonSchema : undefined}
+          formResultSchema={agentSession.outputJsonSchema}
+          showMessageRevisions
         />
       </div>
     </div>

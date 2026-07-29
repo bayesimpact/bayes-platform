@@ -29,11 +29,13 @@ import {
   ExtractionSessionItem,
 } from "@/common/features/agents/components/ExtractionAgentSessionItem"
 import type { AgentCsvExtractionRun } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.models"
+import { selectLastAgentSettings } from "@/common/features/agents/settings/agent-settings.selectors"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useAbility } from "@/common/hooks/use-ability"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useCurrentId, useValue } from "@/common/hooks/use-value"
+import { useAppSelector } from "@/common/store/hooks"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { AgentActions } from "./AgentActions"
 import { AgentEditor } from "./AgentEditor"
@@ -86,6 +88,12 @@ export function ExtractionAgentSessionList() {
 
   const { abilities } = useAbility()
   const canManageAgent = abilities.canManageAgent({ agentId: agent.id })
+  // The settings load is mounted by `AgentRoute`, not this leaf component, and it is not part of
+  // that route's `AsyncRoute` gate: it only feeds this inline editor panel, so the slot can still
+  // be loading or hold a previous agent's revisions here. Only render the editor once the loaded
+  // revision matches this agent.
+  const settings = useAppSelector(selectLastAgentSettings)
+  const canEditSettings = canManageAgent && settings !== null && settings.agentId === agent.id
 
   const handleBack = () => navigate(projectRoute)
 
@@ -114,7 +122,9 @@ export function ExtractionAgentSessionList() {
         </GridCard.Body>
       </GridCard>
 
-      {canManageAgent && <AgentEditor key={agent.id} agent={agent} className="bg-white p-6" />}
+      {canEditSettings && settings && (
+        <AgentEditor key={agent.id} agent={agent} settings={settings} className="bg-white p-6" />
+      )}
     </Grid>
   )
 }

@@ -50,10 +50,12 @@ const fromDto = (dto: ConversationAgentSessionDto): ConversationAgentSession => 
   id: dto.id,
   agentId: dto.agentId,
   type: dto.type,
+  title: dto.title,
   createdAt: dto.createdAt,
   updatedAt: dto.updatedAt,
   traceUrl: dto.traceUrl,
   result: dto.result,
+  outputJsonSchema: dto.outputJsonSchema,
 })
 
 const fromSubSessionDto = (dto: ConversationSubSessionDto): ConversationSubSession => ({

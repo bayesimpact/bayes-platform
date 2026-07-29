@@ -34,6 +34,32 @@ describe("AgentPolicy", () => {
     })
   })
 
+  describe("canView", () => {
+    describe.each<[ProjectMembershipRole, ResourceState, boolean, boolean]>([
+      // Agent membership present: readable regardless of project or agent role, as long as the
+      // resource is in scope. This is the case that distinguishes canView from canUpdate (which
+      // additionally requires agent admin/owner).
+      ["owner", "sameOrganization", true, true],
+      ["admin", "sameOrganization", true, true],
+      ["member", "sameOrganization", true, true],
+      ["owner", "differentOrganization", true, false],
+      ["member", "differentOrganization", true, false],
+      ["owner", "noResource", true, false],
+      ["member", "noResource", true, false],
+      // No agent membership at all: denied even for a project owner or admin. This is the case
+      // that distinguishes canView from canList (which is project-level access only).
+      ["owner", "sameOrganization", false, false],
+      ["admin", "sameOrganization", false, false],
+      ["member", "sameOrganization", false, false],
+    ])("when user is %s with %s agent and agent membership %s", (projectRole, resourceState, withAgentMembership, expected) => {
+      it(`should return ${expected}`, () => {
+        const policy = buildPolicy({ resourceState, projectRole, withAgentMembership })
+
+        expect(policy.canView()).toBe(expected)
+      })
+    })
+  })
+
   describe("canCreate", () => {
     describe.each<[ProjectMembershipRole, ResourceState, boolean]>([
       ["owner", "sameOrganization", true],

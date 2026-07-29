@@ -5,6 +5,7 @@ import {
   extractionAgentSessionSummaryFactory,
 } from "@/common/features/agents/agent-sessions/agent-session.factory"
 import type { Agent } from "@/common/features/agents/agents.models"
+import { agentSettingsFactory } from "@/common/features/agents/settings/agent-settings.factory"
 import { buildDecorator, render } from "@/stories/decorators"
 import { sortRecentlyCreated } from "@/stories/helpers"
 import {
@@ -57,9 +58,9 @@ export const Default: Story = {
       const { baseSeeds, project, agents } = buildStudioData(args)
       const [firstAgent, ...restAgents] = agents
       const withFillForm = agentType === "conversation" && !!fillForm
-      const currentAgent = (withFillForm ? agentFactory.fillForm() : agentFactory)
+      const currentAgent = agentFactory
         .transient({ project })
-        .build({ ...firstAgent, type: agentType, fillFormEnabled: withFillForm })
+        .build({ ...firstAgent, type: agentType })
 
       const conversationSessionFactory = conversationAgentSessionFactory.transient({
         agent: currentAgent,
@@ -78,6 +79,9 @@ export const Default: Story = {
               .buildList(3)
               .sort(sortRecentlyCreated)
           : []
+      // The extraction agent's session list mounts the inline `AgentEditor` once a member with
+      // manage rights views it, gated on these settings matching the current agent's id.
+      const currentAgentSettings = agentSettingsFactory.transient({ agent: currentAgent }).build()
 
       return {
         state: mergeSeeds(
@@ -87,6 +91,7 @@ export const Default: Story = {
           seed.extractionAgentSessions({
             [currentAgent.id]: { csvSessions: [], others: extractionSessions },
           }),
+          seed.studio.agentSettings([currentAgentSettings]),
         ),
       }
     }),

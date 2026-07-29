@@ -1,6 +1,6 @@
 import {
-  type UpdateAgentCategoriesDto,
-  updateAgentCategoriesSchema,
+  type UpdateAgentSessionCategoriesDto,
+  updateAgentSessionCategoriesSchema,
 } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
-import { updateAgentCategories } from "../agents.thunks"
+import { updateAgentSessionCategories } from "../agents.thunks"
 import { AgentTabSaveButton } from "./AgentTabSaveButton"
 import { type AgentTabFormProps, useReportDirty } from "./agent-tab-form.shared"
 
@@ -22,14 +22,19 @@ export function AgentSessionCategoriesTab({ agent, onDirtyChange }: AgentTabForm
   const project = useValue(selectCurrentProjectData)
   const projectAgentSessionCategories = project.agentSessionCategories
 
-  const form = useForm<UpdateAgentCategoriesDto>({
-    resolver: zodResolver(updateAgentCategoriesSchema),
+  const form = useForm<UpdateAgentSessionCategoriesDto>({
+    resolver: zodResolver(updateAgentSessionCategoriesSchema),
     defaultValues: { projectAgentSessionCategoryIds: agent.projectAgentSessionCategoryIds },
   })
   useReportDirty(form.formState.isDirty, onDirtyChange)
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    await dispatch(updateAgentCategories({ agentId: agent.id, fields: values })).unwrap()
+    await dispatch(
+      updateAgentSessionCategories({
+        agentId: agent.id,
+        projectAgentSessionCategoryIds: values.projectAgentSessionCategoryIds,
+      }),
+    ).unwrap()
     form.reset(values)
   })
 

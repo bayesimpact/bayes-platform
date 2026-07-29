@@ -7,7 +7,7 @@ import type {
 import {
   extractAgentSettingsCreateFields,
   extractAgentSettingsUpdateFields,
-  requiresNewAgentSettingsRevision,
+  requiresUpdateAgentSettings,
 } from "./agent.settings.functions"
 
 const fullFields: AgentSettingsCreateFields = {
@@ -91,7 +91,7 @@ describe("extractAgentSettingsUpdateFields", () => {
 describe("requiresNewAgentSettingsRevision", () => {
   it("returns false when settings are identical", () => {
     expect(
-      requiresNewAgentSettingsRevision({
+      requiresUpdateAgentSettings({
         initialAgentSettings: fullFields,
         modifiedAgentSettings: { ...fullFields },
       }),
@@ -100,7 +100,7 @@ describe("requiresNewAgentSettingsRevision", () => {
 
   it("returns false for two empty settings objects", () => {
     expect(
-      requiresNewAgentSettingsRevision({
+      requiresUpdateAgentSettings({
         initialAgentSettings: {},
         modifiedAgentSettings: {},
       }),
@@ -109,7 +109,7 @@ describe("requiresNewAgentSettingsRevision", () => {
 
   it("returns true when a field value changes", () => {
     expect(
-      requiresNewAgentSettingsRevision({
+      requiresUpdateAgentSettings({
         initialAgentSettings: fullFields,
         modifiedAgentSettings: { ...fullFields, instructions: "Changed" },
       }),
@@ -124,7 +124,7 @@ describe("requiresNewAgentSettingsRevision", () => {
     }
 
     expect(
-      requiresNewAgentSettingsRevision({
+      requiresUpdateAgentSettings({
         initialAgentSettings: initial,
         modifiedAgentSettings: modified,
       }),
@@ -133,7 +133,7 @@ describe("requiresNewAgentSettingsRevision", () => {
 
   it("returns true when a field is removed", () => {
     expect(
-      requiresNewAgentSettingsRevision({
+      requiresUpdateAgentSettings({
         initialAgentSettings: { instructions: "Same", greetingMessage: "Greeting" },
         modifiedAgentSettings: { instructions: "Same" },
       }),
@@ -142,7 +142,7 @@ describe("requiresNewAgentSettingsRevision", () => {
 
   it("treats undefined on both sides as no change", () => {
     expect(
-      requiresNewAgentSettingsRevision({
+      requiresUpdateAgentSettings({
         initialAgentSettings: { instructions: "Same", greetingMessage: undefined },
         modifiedAgentSettings: { instructions: "Same" },
       }),
@@ -151,7 +151,7 @@ describe("requiresNewAgentSettingsRevision", () => {
 
   it("treats null vs undefined as a change", () => {
     expect(
-      requiresNewAgentSettingsRevision({
+      requiresUpdateAgentSettings({
         initialAgentSettings: { greetingMessage: null },
         modifiedAgentSettings: { greetingMessage: undefined },
       }),
@@ -160,7 +160,7 @@ describe("requiresNewAgentSettingsRevision", () => {
 
   it("ignores changes to keys outside the settings whitelist", () => {
     expect(
-      requiresNewAgentSettingsRevision({
+      requiresUpdateAgentSettings({
         initialAgentSettings: {
           instructions: "Same",
           id: "a",

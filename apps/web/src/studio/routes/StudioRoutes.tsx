@@ -145,7 +145,7 @@ export const studioRoutes = {
         {
           path: StudioRoutes.agent.path,
           element: (
-            <AgentRoute>
+            <AgentRoute loadSettings>
               <AgentSessionsHandler />
             </AgentRoute>
           ),

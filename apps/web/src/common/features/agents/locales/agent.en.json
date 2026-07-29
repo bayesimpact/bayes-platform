@@ -4,6 +4,7 @@
     "agents": "Agents",
     "selectAgent": "Select Agent",
     "settings": "Agent Settings",
+    "draftSaveNotification": "Settings saved as a draft that needs publishing to go live.",
     "props": {
       "createdAt": "Created At",
       "instructions": "Instructions",
@@ -81,7 +82,8 @@
         "promptRequired": "Instructions are required",
         "temperatureInvalid": "Temperature must be between 0.0 and 2.0",
         "outputJsonSchemaRequired": "Output JSON schema is required",
-        "outputJsonSchemaInvalid": "Output JSON schema must be a valid JSON object"
+        "outputJsonSchemaInvalid": "Output JSON schema must be a valid JSON object",
+        "documentTagsRequired": "At least one document tag is required when searching by document tags"
       }
     },
     "create": {
@@ -160,6 +162,7 @@
       "loadError": "Failed to load version history",
       "revisionLabel": "Version {{revision}}",
       "currentBadge": "Current",
+      "draftBadge": "Draft",
       "compareWithPrevious": "Changes in this version",
       "compareWithCurrent": "Compare with current",
       "comparing": "Showing changes from version {{before}} to version {{after}}.",
@@ -170,7 +173,16 @@
       "restore": "Restore this version",
       "restoreDialog": {
         "title": "Restore version {{revision}}?",
-        "description": "The settings of version {{revision}} will be copied as a new version and become the current settings. No version is deleted."
+        "description": "The settings of version {{revision}} will be copied into a draft that needs publishing to go live. No version is deleted."
+      },
+      "publish": "Publish this version",
+      "publishDialog": {
+        "title": "Publish version {{revision}}?",
+        "description": "Version {{revision}} will become the live settings this agent serves. Name and description are optional and left blank keeps what is already stored.",
+        "nameLabel": "Name (optional)",
+        "namePlaceholder": "e.g. Friendlier tone",
+        "descLabel": "Description (optional)",
+        "descPlaceholder": "What changed in this version?"
       }
     },
     "orchestration": {
@@ -216,7 +228,8 @@
       "fillForm": {
         "title": "Form filling",
         "description": "Let the agent fill a structured form from the user's answers during the conversation.",
-        "schemaDescription": "Define the form fields the agent should fill. The field order is the order in which the agent asks its questions."
+        "schemaDescription": "Define the form fields the agent should fill. The field order is the order in which the agent asks its questions.",
+        "schemaRequired": "Define the form schema before enabling form filling."
       }
     }
   }

@@ -1,6 +1,6 @@
 import {
-  type UpdateAgentResourcesDto,
-  updateAgentResourcesSchema,
+  type UpdateAgentResourceLibrariesDto,
+  updateAgentResourceLibrariesSchema,
 } from "@caseai-connect/api-contracts"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import {
@@ -27,7 +27,7 @@ import {
   useResourceLibraries,
 } from "@/studio/features/resource-libraries/resource-libraries.helpers"
 import { StudioRoutes } from "@/studio/routes/helpers"
-import { updateAgentResources } from "../agents.thunks"
+import { updateAgentResourceLibraries } from "../agents.thunks"
 import { AgentTabSaveButton } from "./AgentTabSaveButton"
 import { type AgentTabFormProps, useReportDirty } from "./agent-tab-form.shared"
 
@@ -39,14 +39,19 @@ export function AgentResourceLibrariesTab({ agent, onDirtyChange }: AgentTabForm
   const projectId = useCurrentId(selectCurrentProjectId)
   const managerPath = StudioRoutes.resourceLibraries.build({ organizationId, projectId })
 
-  const form = useForm<UpdateAgentResourcesDto>({
-    resolver: zodResolver(updateAgentResourcesSchema),
+  const form = useForm<UpdateAgentResourceLibrariesDto>({
+    resolver: zodResolver(updateAgentResourceLibrariesSchema),
     defaultValues: { resourceLibraryIds: agent.resourceLibraryIds },
   })
   useReportDirty(form.formState.isDirty, onDirtyChange)
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    await dispatch(updateAgentResources({ agentId: agent.id, fields: values })).unwrap()
+    await dispatch(
+      updateAgentResourceLibraries({
+        agentId: agent.id,
+        resourceLibraryIds: values.resourceLibraryIds,
+      }),
+    ).unwrap()
     form.reset(values)
   })
 

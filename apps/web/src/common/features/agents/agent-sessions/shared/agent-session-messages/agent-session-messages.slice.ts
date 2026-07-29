@@ -1,4 +1,4 @@
-import type { AgentSessionToolName } from "@caseai-connect/api-contracts"
+import type { AgentMessageSettingsDto, AgentSessionToolName } from "@caseai-connect/api-contracts"
 import { createSlice, isAnyOf, type PayloadAction } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import { conversationAgentSessionsActions } from "../../conversation/conversation-agent-sessions.slice"
@@ -28,6 +28,9 @@ const slice = createSlice({
       action: PayloadAction<{
         userMessage: AgentSessionMessage
         assistantMessageId: string
+        // The revision the server will run this turn with, so a mid-session settings change is
+        // marked as the answer streams instead of appearing once `getMessage` backfills.
+        assistantAgentSettings?: AgentMessageSettingsDto
       }>,
     ) => {
       if (!ADS.isFulfilled(state.data))
@@ -41,6 +44,7 @@ const slice = createSlice({
         role: "assistant",
         content: "",
         status: "streaming",
+        agentSettings: action.payload.assistantAgentSettings,
       })
     },
     updateAssistantMessageId: (

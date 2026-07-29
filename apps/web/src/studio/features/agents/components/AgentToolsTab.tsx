@@ -1,4 +1,4 @@
-import { type UpdateAgentToolsDto, updateAgentToolsSchema } from "@caseai-connect/api-contracts"
+import { updateAgentSettingsSchema } from "@caseai-connect/api-contracts"
 import {
   Form,
   FormControl,
@@ -10,14 +10,21 @@ import {
 } from "@caseai-connect/ui/shad/form"
 import { Switch } from "@caseai-connect/ui/shad/switch"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
+import type { z } from "zod"
+import { updateAgentSettings } from "@/common/features/agents/settings/agent-settings.thunks"
 import { useAppDispatch } from "@/common/store/hooks"
-import { updateAgentTools } from "../agents.thunks"
 import { AgentTabSaveButton } from "./AgentTabSaveButton"
 import { type AgentTabFormProps, pickDirtyFields, useReportDirty } from "./agent-tab-form.shared"
 import { OutputSchemaField } from "./OutputSchemaField"
+
+const toolsPickedSchema = updateAgentSettingsSchema
+  .pick({ fillFormEnabled: true, outputJsonSchema: true })
+  .required({ fillFormEnabled: true })
+
+type FormValues = z.infer<typeof toolsPickedSchema>
 
 /**
  * Optional tools of a conversation agent. Each tool is a list entry with an
@@ -25,15 +32,28 @@ import { OutputSchemaField } from "./OutputSchemaField"
  * currently only) entry; its config is the form definition (the agent's
  * outputJsonSchema).
  */
-export function AgentToolsTab({ agent, onDirtyChange }: AgentTabFormProps) {
+export function AgentToolsTab({ agent, settings, onDirtyChange }: AgentTabFormProps) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
 
-  const form = useForm<UpdateAgentToolsDto>({
-    resolver: zodResolver(updateAgentToolsSchema),
+  // Client-side only: the contract schema cannot enforce "fillForm requires a schema" because
+  // each field is independently optional there (a PATCH may omit either, and the API merges the
+  // payload over the stored revision before checking). This form always carries both fields, so
+  // the refine is meaningful here.
+  const toolsFormSchema = useMemo(
+    () =>
+      toolsPickedSchema.refine((data) => !data.fillFormEnabled || !!data.outputJsonSchema, {
+        message: t("agent:tools.fillForm.schemaRequired"),
+        path: ["outputJsonSchema"],
+      }),
+    [t],
+  )
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(toolsFormSchema),
     defaultValues: {
-      fillFormEnabled: agent.fillFormEnabled,
-      outputJsonSchema: agent.outputJsonSchema,
+      fillFormEnabled: settings.fillFormEnabled,
+      outputJsonSchema: settings.outputJsonSchema,
     },
   })
   useReportDirty(form.formState.isDirty, onDirtyChange)
@@ -47,12 +67,12 @@ export function AgentToolsTab({ agent, onDirtyChange }: AgentTabFormProps) {
     // mint a spurious agent-settings revision. Enabling the tool always sends
     // the schema alongside the flag (the API requires them together).
     const changedFields = pickDirtyFields(values, form.formState.dirtyFields)
-    const fields: UpdateAgentToolsDto = {
+    const fields: FormValues = {
       fillFormEnabled: values.fillFormEnabled,
       ...changedFields,
       ...(values.fillFormEnabled ? { outputJsonSchema: values.outputJsonSchema } : {}),
     }
-    await dispatch(updateAgentTools({ agentId: agent.id, fields })).unwrap()
+    await dispatch(updateAgentSettings({ agentId: agent.id, fields })).unwrap()
     form.reset(values)
   })
 

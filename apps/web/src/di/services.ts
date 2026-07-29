@@ -4,6 +4,7 @@ import type { IExtractionAgentSessionsSpi } from "@/common/features/agents/agent
 import type { IAgentSessionMessagesSpi } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.spi"
 import type { IAgentsSpi } from "@/common/features/agents/agents.spi"
 import type { IAgentCsvExtractionRunsSpi } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.spi"
+import type { IAgentSettingsSpi } from "@/common/features/agents/settings/agent-settings.spi"
 import type { IMeSpi } from "@/common/features/me/me.spi"
 import type { IOrganizationsSpi } from "@/common/features/organizations/organizations.spi"
 import type { IProjectsSpi } from "@/common/features/projects/projects.spi"
@@ -35,6 +36,7 @@ export type Services = {
   agentEmbedConfigs: IAgentEmbedConfigsSpi
   agentMemberships: IAgentMembershipsSpi
   agentMessageFeedback: IAgentMessageFeedbackSpi
+  agentSettings: IAgentSettingsSpi
   agentSubAgents: IAgentSubAgentsSpi
   agents: IAgentsSpi
   agentSessionMessages: IAgentSessionMessagesSpi

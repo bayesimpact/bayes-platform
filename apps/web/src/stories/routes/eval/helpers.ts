@@ -60,12 +60,9 @@ export function buildMockConversationDatasetsService(
   }
 }
 
-/** Serves the seeded agents back so the run dialog's version history loads inside the story. */
-export function buildMockAgentsService(
-  overrides: { agents?: Agent[]; versions?: Agent[] } = {},
-): IAgentsSpi {
+/** Serves the seeded agents back so lookups by the run dialog resolve inside the story. */
+export function buildMockAgentsService(overrides: { agents?: Agent[] } = {}): IAgentsSpi {
   const agents = overrides.agents ?? []
-  const versions = overrides.versions ?? agents
   return {
     async getAll() {
       return agents
@@ -74,11 +71,10 @@ export function buildMockAgentsService(
       throw new Error("createOne is not supported in eval stories")
     },
     async updateOne() {},
+    async updateDocumentTags() {},
+    async updateResourceLibraries() {},
+    async updateSessionCategories() {},
     async deleteOne() {},
-    async getHistory() {
-      return versions
-    },
-    async restoreRevision() {},
   }
 }
 

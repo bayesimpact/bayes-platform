@@ -104,11 +104,16 @@ const decorator = buildDecorator<StoryArgs>(({ runStatus, withRecords, ...args }
     .transient({ project })
     .build({ recordCount: RECORD_TOTAL })
   const agent = agents[0] ?? agentFactory.transient({ project }).build()
-  // Pin an explicit agent-settings revision so the metadata dialog shows the version row.
+  // Pin an explicit agent-settings revision, named and described as a published one would be,
+  // so the metadata dialog shows the version rows.
   const run = evaluationConversationRunFactory.transient({ dataset, agent }).build({
     status: runStatus,
     summary: buildSummary(runStatus),
-    agentSettings: { revision: 2 },
+    agentSettings: {
+      revision: 2,
+      revisionName: "Friendlier tone",
+      revisionDesc: "Adds a greeting message and raises the temperature for warmer replies.",
+    },
   })
   const records = withRecords ? buildRunRecords(run, runStatus) : []
   const paginatedRecords = {

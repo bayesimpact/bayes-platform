@@ -54,6 +54,9 @@ export class ExtractionAgentSessionsController {
     const agentSettings = await this.agentSettingsService.getLast({
       connectScope: getRequiredConnectScope(request),
       agentId: request.agent.id,
+      // A playground extraction tries the pending draft; a live run stays on the published
+      // revision. Mirrors the conversation playground.
+      includesDraft: payload.type === "playground",
     })
     const run = await this.extractionAgentSessionsService.executeExtraction({
       connectScope: getRequiredConnectScope(request),

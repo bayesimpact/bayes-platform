@@ -1,46 +1,59 @@
 import { useMemo, useState } from "react"
-import type { Agent } from "@/common/features/agents/agents.models"
+import type { AgentSettings } from "@/common/features/agents/settings/agent-settings.models"
+import { selectAgentSettingsData } from "@/common/features/agents/settings/agent-settings.selectors"
 import { useValue } from "@/common/hooks/use-value"
-import { selectAgentHistoryData } from "../agent-history.selectors"
 import { AgentVersionCompare, type AgentVersionCompareMode } from "./AgentVersionCompare"
 import { AgentVersionList } from "./AgentVersionList"
 
 interface AgentVersionComparison {
-  /** The most recent version (`versions[0]`). */
-  current: Agent
+  /** The newest version (`versions[0]`), which may be an unpublished draft. */
+  current: AgentSettings
+  /**
+   * The newest published version: what the running agent actually serves. Distinct from
+   * `current` whenever the newest revision is a draft. Undefined only if every revision were
+   * somehow a draft, which the API does not allow.
+   */
+  live: AgentSettings | undefined
   /** The version highlighted in the timeline and shown in the diff. */
-  selected: Agent
+  selected: AgentSettings
   /** The version immediately older than `selected`, if any. */
-  previous: Agent | undefined
+  previous: AgentSettings | undefined
   isCurrent: boolean
   canComparePrevious: boolean
   canCompareCurrent: boolean
   /** The requested `mode`, downgraded to whichever comparison is actually possible. */
   effectiveMode: AgentVersionCompareMode
   /** Older/newer versions fed to the diff, derived from `effectiveMode`. */
-  before: Agent
-  after: Agent
+  before: AgentSettings
+  after: AgentSettings
 }
 
 /**
  * Resolve everything the two panes need from the raw version list plus the current UI state.
  *
- * `versions` is ordered by revision descending, so `versions[0]` is the current version and
- * each following index is one step older. Returns `null` when there is no version to show.
+ * `versions` is ordered by revision descending, so `versions[0]` is the newest version and each
+ * following index is one step older. That newest version may be an unpublished draft, so it is
+ * kept separate from `live`, the newest published version. Returns `null` when there is no
+ * version to show.
  */
 function buildComparison(
-  versions: Agent[],
+  versions: AgentSettings[],
   selectedRevision: number | null,
   mode: AgentVersionCompareMode,
 ): AgentVersionComparison | null {
   const current = versions[0]
   if (!current) return null
 
-  // Default to the previous version (index 1) — the one users open the history to inspect —
-  // until they pick another revision from the timeline. Clamp to the current version when it
-  // is the only one available.
+  const live = versions.find((version) => !version.isDraft)
+
+  // Default to the draft when one is pending publish: that's what a user opens the sheet to
+  // act on, and it is always `current` (index 0) since a draft is always the newest revision.
+  // Otherwise default to the previous version (index 1), the one users open the history to
+  // inspect, until they pick another revision from the timeline. Clamp to the current version
+  // when it is the only one available.
   const requestedIndex = versions.findIndex((version) => version.revision === selectedRevision)
-  const selectedIndex = requestedIndex === -1 ? Math.min(1, versions.length - 1) : requestedIndex
+  const defaultIndex = current.isDraft ? 0 : Math.min(1, versions.length - 1)
+  const selectedIndex = requestedIndex === -1 ? defaultIndex : requestedIndex
 
   const selected = versions[selectedIndex] ?? current
   const previous = versions[selectedIndex + 1]
@@ -59,6 +72,7 @@ function buildComparison(
 
   return {
     current,
+    live,
     selected,
     previous,
     isCurrent,
@@ -74,7 +88,7 @@ function buildComparison(
  * Two-pane version explorer: revision timeline on the left, comparison on the right.
  */
 export function AgentVersionExplorer() {
-  const versions = useValue(selectAgentHistoryData)
+  const versions = useValue(selectAgentSettingsData)
   const [selectedRevision, setSelectedRevision] = useState<number | null>(null)
   const [mode, setMode] = useState<AgentVersionCompareMode>("current")
 
@@ -85,6 +99,7 @@ export function AgentVersionExplorer() {
   if (!comparison) return null
 
   const {
+    live,
     selected,
     before,
     after,
@@ -99,6 +114,7 @@ export function AgentVersionExplorer() {
       <AgentVersionList
         versions={versions}
         selectedRevision={selected.revision}
+        liveRevision={live?.revision}
         onSelect={setSelectedRevision}
       />
       <AgentVersionCompare

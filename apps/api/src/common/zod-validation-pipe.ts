@@ -5,9 +5,13 @@ import { ZodError, type ZodType } from "zod"
 export class ZodValidationPipe implements PipeTransform {
   constructor(private schema: ZodType) {}
 
-  transform(value: RequestPayload<unknown>, _metadata: ArgumentMetadata) {
+  transform(value: RequestPayload<unknown> | undefined, _metadata: ArgumentMetadata) {
     try {
-      const parsedValue = this.schema.parse(value.payload)
+      // A request with no body at all (e.g. a POST with every payload field optional) arrives
+      // here as `undefined`, not `{ payload: undefined }` (body-parser never populates `req.body`
+      // when no body was sent). Fall back to `{}` so schemas whose fields are all optional still
+      // validate instead of throwing on `undefined.payload`.
+      const parsedValue = this.schema.parse(value?.payload ?? {})
       return { payload: parsedValue }
     } catch (error) {
       this.handleError(error)

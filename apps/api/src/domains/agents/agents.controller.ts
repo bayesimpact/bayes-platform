@@ -1,25 +1,24 @@
 import {
   type AgentDto,
-  AgentHistoryRoutes,
   type AgentSubAgentDto,
   AgentSubAgentsRoutes,
   AgentsRoutes,
   createAgentSchema,
-  partialUpdateAgentSchema,
   replaceAgentSubAgentsSchema,
+  updateAgentDocumentTagsSchema,
+  updateAgentNameSchema,
+  updateAgentResourceLibrariesSchema,
+  updateAgentSessionCategoriesSchema,
 } from "@caseai-connect/api-contracts"
 import {
   Body,
   Controller,
   Delete,
   Get,
-  NotFoundException,
-  Param,
   Patch,
   Post,
   Put,
   Req,
-  UnprocessableEntityException,
   UseGuards,
   UsePipes,
 } from "@nestjs/common"
@@ -33,10 +32,6 @@ import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
-import { extractAgentSettingsUpdateFields } from "@/domains/agents/settings/agent.settings.functions"
-import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { Agent } from "./agent.entity"
@@ -53,7 +48,6 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
 export class AgentsController {
   constructor(
     private readonly agentsService: AgentsService,
-    private readonly agentSettingsService: AgentSettingsService,
     private readonly agentSubAgentsService: AgentSubAgentsService,
   ) {}
 
@@ -65,13 +59,13 @@ export class AgentsController {
     @Req() request: EndpointRequestWithProject,
     @Body() { payload }: typeof AgentsRoutes.createOne.request,
   ): Promise<typeof AgentsRoutes.createOne.response> {
-    const { agent, agentSettings } = await this.agentsService.createAgent({
+    const { agent } = await this.agentsService.createAgent({
       connectScope: getRequiredConnectScope(request),
       fields: payload,
       userId: request.user.id,
     })
 
-    return { data: toAgentDto({ agent, agentSettings }) }
+    return { data: toAgentDto(agent) }
   }
 
   @Get(AgentsRoutes.getAll.path)
@@ -79,93 +73,81 @@ export class AgentsController {
   async getAll(
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof AgentsRoutes.getAll.response> {
-    const connectScope = getRequiredConnectScope(request)
     const agents = await this.agentsService.listAgents({
       userId: request.user.id,
-      connectScope,
+      connectScope: getRequiredConnectScope(request),
     })
-    const results = await Promise.all(
-      agents.map(async (agent) => {
-        const agentSettings = await this.agentSettingsService.getLast({
-          connectScope,
-          agentId: agent.id,
-        })
-        return toAgentDto({ agent, agentSettings })
-      }),
-    )
-    return { data: results }
+    return { data: agents.map(toAgentDto) }
   }
 
   @Patch(AgentsRoutes.updateOne.path)
   @CheckPolicy((policy) => policy.canUpdate())
   @AddContext("agent")
   @TrackActivity({ action: "agent.update", entityFrom: "agent" })
-  @UsePipes(new ZodValidationPipe(partialUpdateAgentSchema))
+  @UsePipes(new ZodValidationPipe(updateAgentNameSchema))
   async updateOne(
     @Req() request: EndpointRequestWithAgent,
     @Body() { payload }: typeof AgentsRoutes.updateOne.request,
   ): Promise<typeof AgentsRoutes.updateOne.response> {
     const agentId = request.agent.id
 
-    const agent = await this.agentsService.updateAgent({
+    await this.agentsService.updateAgent({
       connectScope: getRequiredConnectScope(request),
       agentId,
       fieldsToUpdate: payload,
     })
 
-    if (!agent) {
-      throw new Error("Agent not updated")
-    }
     return { data: { success: true } }
   }
 
-  @Get(AgentHistoryRoutes.getAll.path)
-  @CheckPolicy((policy) => policy.canUpdate())
-  @AddContext("agent")
-  async getAllHistory(
-    @Req() request: EndpointRequestWithAgent,
-  ): Promise<typeof AgentHistoryRoutes.getAll.response> {
-    const agentSettings = await this.agentSettingsService.getAll({
-      connectScope: getRequiredConnectScope(request),
-      agentId: request.agent.id,
-    })
-    const results = agentSettings.map((as) => {
-      return toAgentDto({ agent: request.agent, agentSettings: as })
-    })
-    return { data: results }
-  }
-
-  @Post(AgentHistoryRoutes.restoreOne.path)
+  @Put(AgentsRoutes.updateDocumentTags.path)
   @CheckPolicy((policy) => policy.canUpdate())
   @AddContext("agent")
   @TrackActivity({ action: "agent.update", entityFrom: "agent" })
-  async restoreOneHistory(
+  @UsePipes(new ZodValidationPipe(updateAgentDocumentTagsSchema))
+  async updateDocumentTags(
     @Req() request: EndpointRequestWithAgent,
-    @Param("revision") revisionParam: string,
-  ): Promise<typeof AgentHistoryRoutes.restoreOne.response> {
-    const revision = Number(revisionParam)
-    if (!Number.isInteger(revision) || revision < 1) {
-      throw new UnprocessableEntityException(`Invalid revision "${revisionParam}"`)
-    }
-
-    const connectScope = getRequiredConnectScope(request)
-    const targetSettings = await this.agentSettingsService.get({
-      connectScope,
+    @Body() { payload }: typeof AgentsRoutes.updateDocumentTags.request,
+  ): Promise<typeof AgentsRoutes.updateDocumentTags.response> {
+    await this.agentsService.replaceDocumentTags({
+      connectScope: getRequiredConnectScope(request),
       agentId: request.agent.id,
-      revision,
+      documentTagIds: payload.documentTagIds,
     })
-    if (!targetSettings) {
-      throw new NotFoundException(
-        `Revision ${revision} not found for agent with id ${request.agent.id}`,
-      )
-    }
+    return { data: { success: true } }
+  }
 
-    await this.agentsService.updateAgent({
-      connectScope,
+  @Put(AgentsRoutes.updateResourceLibraries.path)
+  @CheckPolicy((policy) => policy.canUpdate())
+  @AddContext("agent")
+  @TrackActivity({ action: "agent.update", entityFrom: "agent" })
+  @UsePipes(new ZodValidationPipe(updateAgentResourceLibrariesSchema))
+  async updateResourceLibraries(
+    @Req() request: EndpointRequestWithAgent,
+    @Body() { payload }: typeof AgentsRoutes.updateResourceLibraries.request,
+  ): Promise<typeof AgentsRoutes.updateResourceLibraries.response> {
+    await this.agentsService.replaceResourceLibraries({
+      connectScope: getRequiredConnectScope(request),
       agentId: request.agent.id,
-      fieldsToUpdate: extractAgentSettingsUpdateFields(targetSettings),
+      resourceLibraryIds: payload.resourceLibraryIds,
     })
+    return { data: { success: true } }
+  }
 
+  @Put(AgentsRoutes.updateSessionCategories.path)
+  @CheckPolicy((policy) => policy.canUpdate())
+  @AddContext("agent")
+  @TrackActivity({ action: "agent.update", entityFrom: "agent" })
+  @UsePipes(new ZodValidationPipe(updateAgentSessionCategoriesSchema))
+  async updateSessionCategories(
+    @Req() request: EndpointRequestWithAgent,
+    @Body() { payload }: typeof AgentsRoutes.updateSessionCategories.request,
+  ): Promise<typeof AgentsRoutes.updateSessionCategories.response> {
+    await this.agentsService.replaceSessionCategories({
+      connectScope: getRequiredConnectScope(request),
+      agentId: request.agent.id,
+      projectAgentSessionCategoryIds: payload.projectAgentSessionCategoryIds,
+    })
     return { data: { success: true } }
   }
 
@@ -233,32 +215,17 @@ function toAgentSubAgentDto(entity: AgentSubAgent): AgentSubAgentDto {
   }
 }
 
-function toAgentDto({
-  agent,
-  agentSettings,
-}: {
-  agent: Agent
-  agentSettings: AgentSettings
-}): AgentDto {
+function toAgentDto(agent: Agent): AgentDto {
   return {
-    createdAt: agent.createdAt.getTime(),
-    greetingMessage: agentSettings.greetingMessage ?? undefined,
-    instructions: agentSettings.instructions,
-    hasCategories: (agent.sessionCategories?.length ?? 0) > 0,
     id: agent.id,
-    revision: agentSettings.revision,
-    locale: agentSettings.locale,
-    model: agentSettings.model,
-    name: agent.name,
-    outputJsonSchema: (agentSettings.outputJsonSchema as AgentDto["outputJsonSchema"]) ?? undefined,
     projectId: agent.projectId,
-    temperature: Number(agentSettings.temperature),
+    name: agent.name,
     type: agent.type,
-    updatedAt: agentSettings.updatedAt.getTime(),
-    documentTagIds: agent.documentTags?.map((tag) => tag.id) || [],
-    resourceLibraryIds: agent.resourceLibraries?.map((library) => library.id) || [],
-    documentsRagMode: agentSettings.documentsRagMode,
-    fillFormEnabled: agentSettings.fillFormEnabled,
+    createdAt: agent.createdAt.getTime(),
+    updatedAt: agent.updatedAt.getTime(),
+    hasCategories: (agent.sessionCategories?.length ?? 0) > 0,
+    documentTagIds: agent.documentTags?.map((tag) => tag.id) ?? [],
+    resourceLibraryIds: agent.resourceLibraries?.map((library) => library.id) ?? [],
     projectAgentSessionCategoryIds: (agent.sessionCategories ?? [])
       .map((category) => category.projectAgentSessionCategoryId)
       .filter(

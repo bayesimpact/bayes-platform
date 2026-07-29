@@ -13,7 +13,6 @@ import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
-  fillForm?: boolean
   withFeedbacks?: boolean
 }
 
@@ -23,13 +22,11 @@ const meta = {
   argTypes: {
     ...studioStoryArgTypes,
     withAgents: { control: undefined },
-    fillForm: { control: "boolean" },
     withFeedbacks: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
     withAgents: true,
-    fillForm: false,
     withFeedbacks: false,
   },
   render: render({ routes: studioRoutes, path: StudioRoutes.feedback.path }),
@@ -40,12 +37,12 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   decorators: [
-    buildDecorator<StoryArgs>(({ fillForm, withFeedbacks, ...args }) => {
+    buildDecorator<StoryArgs>(({ withFeedbacks, ...args }) => {
       const { baseSeeds, project, agents } = buildStudioData(args)
       const [firstAgent, ...restAgents] = agents
-      const currentAgent = (fillForm ? agentFactory.fillForm() : agentFactory)
+      const currentAgent = agentFactory
         .transient({ project })
-        .build({ ...firstAgent, type: "conversation", fillFormEnabled: !!fillForm })
+        .build({ ...firstAgent, type: "conversation" })
 
       const feedbacks = withFeedbacks
         ? agentMessageFeedbackFactory.transient({ agent: currentAgent, project }).buildList(3)
@@ -70,16 +67,7 @@ export const WithData: Story = {
     agentMembershipRole: "owner",
     featureFlags: [],
     withAgents: true,
-    fillForm: false,
     withFeedbacks: true,
-  },
-  decorators: Default.decorators,
-}
-
-export const FillFormAgentWithData: Story = {
-  args: {
-    ...WithData.args,
-    fillForm: true,
   },
   decorators: Default.decorators,
 }

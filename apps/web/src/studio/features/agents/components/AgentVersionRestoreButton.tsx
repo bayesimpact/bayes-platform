@@ -3,14 +3,16 @@ import { RotateCcwIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
+import { restoreAgentSettings } from "@/common/features/agents/settings/agent-settings.thunks"
 import { useAppDispatch } from "@/common/store/hooks"
-import { restoreAgentRevision } from "../agent-history.thunks"
 
-/** One-click restore: copies the selected revision's settings as a new (current) revision. */
+/** One-click restore: copies the selected revision's values into a draft that needs publishing to go live. */
 export function AgentVersionRestoreButton({
+  agentId,
   revision,
   disabled,
 }: {
+  agentId: string
   revision: number
   disabled: boolean
 }) {
@@ -22,9 +24,9 @@ export function AgentVersionRestoreButton({
   const handleConfirm = async () => {
     setIsRestoring(true)
     try {
-      await dispatch(restoreAgentRevision({ revision })).unwrap()
+      await dispatch(restoreAgentSettings({ agentId, revision })).unwrap()
     } catch {
-      // The studio agents middleware shows the error notification.
+      // The success and failure notifications are wired in the settings middleware.
     } finally {
       setIsRestoring(false)
       setConfirmOpen(false)

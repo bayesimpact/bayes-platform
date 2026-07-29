@@ -44,13 +44,24 @@ export class ConversationAgentSessionsController {
     @Req() request: EndpointRequestWithAgent,
     @Body() { payload }: typeof ConversationAgentSessionsRoutes.getAll.request,
   ): Promise<typeof ConversationAgentSessionsRoutes.getAll.response> {
+    const connectScope = getRequiredConnectScope(request)
     const sessions = await this.conversationAgentSessionsService.getAllSessionsForAgent({
-      connectScope: getRequiredConnectScope(request),
+      connectScope,
       agentId: request.agent.id,
       userId: request.user.id,
       type: payload.type,
     })
-    return { data: sessions.map(toDto(payload.type)) }
+    const formSchemasBySessionId =
+      await this.conversationAgentSessionsService.mapSessionsToFormSchemas({
+        connectScope,
+        sessions,
+      })
+    return {
+      data: sessions.map((session) => ({
+        ...toDto(payload.type)(session),
+        outputJsonSchema: formSchemasBySessionId.get(session.id),
+      })),
+    }
   }
 
   @CheckPolicy((policy) => policy.canCreate())
@@ -63,6 +74,9 @@ export class ConversationAgentSessionsController {
     const agentSettings = await this.agentSettingsService.getLast({
       connectScope: getRequiredConnectScope(request),
       agentId: request.agent.id,
+      // The playground exists to try an agent before publishing, so it runs the pending draft.
+      // Every other surface stays on the published revision.
+      includesDraft: payload.type === "playground",
     })
     const session = await this.conversationAgentSessionsService.createSession({
       connectScope: getRequiredConnectScope(request),
@@ -116,6 +130,9 @@ export class ConversationAgentSessionsController {
         const settings = await this.agentSettingsService.getLast({
           connectScope,
           agentId: subAgent.childAgentId,
+          // Must agree with sub-agent-tools.ts: a playground request describes the draft the
+          // playground will actually run.
+          includesDraft: payload.type === "playground",
         })
         // Only fillForm-enabled sub-agents accumulate a form result worth surfacing.
         if (!settings.fillFormEnabled) return []

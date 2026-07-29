@@ -1,4 +1,5 @@
 import {
+  type AgentMessageSettingsDto,
   type AgentSessionMessageDto,
   AgentSessionMessagesRoutes,
   agentSessionMessageAttachmentAllowedMimeTypes,
@@ -21,8 +22,11 @@ import type { EndpointRequestWithAgentSession } from "@/common/context/request.i
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
+import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { BaseAgentSessionGuard } from "@/domains/agents/base-agent-sessions/base-agent-session.guard"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import {
   extractFileExtension,
@@ -49,6 +53,7 @@ export class AgentMessagesController {
     private readonly fileStorageService: IFileStorage,
     private readonly agentMessageAttachmentDocumentsService: AgentMessageAttachmentDocumentsService,
     private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
+    private readonly agentSettingsService: AgentSettingsService,
   ) {}
 
   @CheckPolicy((policy) => policy.canList())
@@ -62,7 +67,11 @@ export class AgentMessagesController {
       agentSessionId,
       connectScope,
     })
-    return { data: messages.map(toDto) }
+    const settingsById =
+      request.agentSession.type === "playground"
+        ? await this.resolveMessageSettings({ connectScope, messages })
+        : new Map<string, AgentMessageSettingsDto>()
+    return { data: messages.map((message) => toDto(message, settingsById)) }
   }
 
   @CheckPolicy((policy) => policy.canList())
@@ -79,7 +88,42 @@ export class AgentMessagesController {
     if (!message) {
       throw new NotFoundException("Message not found")
     }
-    return { data: toDto(message) }
+    const settingsById =
+      request.agentSession.type === "playground"
+        ? await this.resolveMessageSettings({ connectScope, messages: [message] })
+        : new Map<string, AgentMessageSettingsDto>()
+    return { data: toDto(message, settingsById) }
+  }
+
+  /**
+   * Revision identity for the messages being returned, keyed by settings id. One query for the
+   * whole response: a session's messages share a handful of revisions at most, so resolving them
+   * per message would be a needless fan-out.
+   *
+   * Callers only invoke this for playground sessions: `revisionName` is operator-authored copy and
+   * nothing outside the studio playground renders any of this, so a live session's readers (which
+   * include any project member with access, not just agent members) never trigger the query or
+   * receive the revision.
+   */
+  private async resolveMessageSettings({
+    connectScope,
+    messages,
+  }: {
+    connectScope: RequiredConnectScope
+    messages: AgentMessage[]
+  }): Promise<Map<string, AgentMessageSettingsDto>> {
+    const ids = [...new Set(messages.map((message) => message.agentSettingsId))]
+    const settings = await this.agentSettingsService.getByIds({ connectScope, ids })
+    return new Map(
+      settings.map((revision) => [
+        revision.id,
+        {
+          revision: revision.revision,
+          revisionName: revision.revisionName ?? "",
+          isDraft: revision.isDraft,
+        },
+      ]),
+    )
   }
 
   @CheckPolicy((policy) => policy.canCreate())
@@ -155,7 +199,10 @@ export class AgentMessagesController {
   }
 }
 
-function toDto(message: AgentMessage): AgentSessionMessageDto {
+function toDto(
+  message: AgentMessage,
+  settingsById: Map<string, AgentMessageSettingsDto>,
+): AgentSessionMessageDto {
   return {
     id: message.id,
     role: message.role,
@@ -166,5 +213,8 @@ function toDto(message: AgentMessage): AgentSessionMessageDto {
     completedAt: message.completedAt?.getTime(),
     toolCalls: (message.toolCalls as AgentSessionMessageDto["toolCalls"]) ?? undefined,
     attachmentDocumentId: message.attachmentDocumentId ?? undefined,
+    // Absent rather than throwing when the revision row is gone: a missing attribution should
+    // degrade the marker, not fail the whole transcript.
+    agentSettings: settingsById.get(message.agentSettingsId),
   }
 }
