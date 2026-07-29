@@ -11,6 +11,10 @@ export type CrawledPage = {
 const PAGE_GOTO_TIMEOUT_MS = 30000
 const SKIPPED_LINK_EXTENSIONS = /\.(pdf|jpg|jpeg|png|gif)$/i
 
+function isUnderBasePath(pathname: string, basePath: string): boolean {
+  return pathname === basePath || pathname.startsWith(`${basePath.replace(/\/$/, "")}/`)
+}
+
 @Injectable()
 export class DoclingCrawlerClientService {
   private readonly logger = new Logger(DoclingCrawlerClientService.name)
@@ -22,7 +26,9 @@ export class DoclingCrawlerClientService {
     const doclingServeUrl = resolveDoclingServeUrl()
     const client = new Docling({ api: { baseUrl: doclingServeUrl } })
 
-    let baseUrl = new URL(params.url).origin
+    const startUrl = new URL(params.url)
+    let baseUrl = startUrl.origin
+    let basePath = startUrl.pathname
     const visitedUrls = new Set<string>()
     const urlQueue: string[] = [params.url]
     const pages: CrawledPage[] = []
@@ -56,7 +62,9 @@ export class DoclingCrawlerClientService {
           }
 
           if (visitedUrls.size === 1) {
-            baseUrl = new URL(page.url()).origin
+            const resolvedUrl = new URL(page.url())
+            baseUrl = resolvedUrl.origin
+            basePath = resolvedUrl.pathname
           }
 
           const links = await page.evaluate(() =>
@@ -83,6 +91,7 @@ export class DoclingCrawlerClientService {
                 parsedLink.hash !== "" && parsedLink.pathname === currentPathname
               if (
                 parsedLink.origin === baseUrl &&
+                isUnderBasePath(parsedLink.pathname, basePath) &&
                 !isSamePageAnchor &&
                 !visitedUrls.has(parsedLink.href) &&
                 !urlQueue.includes(parsedLink.href) &&

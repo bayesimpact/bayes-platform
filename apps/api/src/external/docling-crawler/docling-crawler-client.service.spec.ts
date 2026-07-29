@@ -75,6 +75,28 @@ describe("DoclingCrawlerClientService", () => {
     expect(goto).toHaveBeenCalledTimes(2)
   })
 
+  it("only follows links under the start URL's path prefix", async () => {
+    pageUrl.mockReturnValue("https://example.com/section")
+    goto.mockResolvedValue({ status: () => 200 })
+    convert.mockResolvedValue({ document: { md_content: "content" } })
+    evaluate
+      .mockResolvedValueOnce([
+        "https://example.com/section/sub",
+        "https://example.com/other",
+        "https://example.com/section-other",
+      ])
+      .mockResolvedValueOnce([])
+
+    const client = new DoclingCrawlerClientService()
+    const pages = await client.crawlUrl({ url: "https://example.com/section" })
+
+    expect(pages.map((page) => page.url)).toEqual([
+      "https://example.com/section",
+      "https://example.com/section/sub",
+    ])
+    expect(goto).toHaveBeenCalledTimes(2)
+  })
+
   it("skips pages that return an HTTP error status", async () => {
     goto.mockResolvedValue({ status: () => 404 })
 
