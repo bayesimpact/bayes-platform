@@ -104,6 +104,43 @@ describe("Documents Crawling - Auth", () => {
     })
   })
 
+  describe("DocumentsRoutes.crawlUrlDocling", () => {
+    const subject = async () =>
+      request({
+        route: DocumentsRoutes.crawlUrlDocling,
+        pathParams: removeNullish({ organizationId, projectId }),
+        token: accessToken ?? undefined,
+        request: { payload: { url: "https://example.com" } },
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("requires a valid organization ID", async () => {
+      organizationId = null
+      expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    })
+    it("requires a valid project ID", async () => {
+      await createContextForRole("owner")
+      projectId = randomUUID()
+      expectResponse(await subject(), 404)
+    })
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("owner")
+      auth0Id = mockForeignAuth0Id()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+    it("doesn't allow a simple member to crawl a URL", async () => {
+      await createContextForRole("member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("allows an admin to crawl a URL", async () => {
+      await createContextForRole("admin")
+      expectResponse(await subject(), 202)
+    })
+  })
+
   describe("DocumentsRoutes.reCrawlUrl", () => {
     const subject = async () =>
       request({
