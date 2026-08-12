@@ -71,6 +71,25 @@ export class DoclingCrawlerClientService {
             Array.from(document.querySelectorAll("a")).map((anchor) => anchor.href),
           )
 
+          // Docling's layout parser silently drops <dl>/<dt>/<dd> (definition list) content
+          // during HTML->Markdown conversion, so rewrite definition lists to <ul> beforehand.
+          await page.evaluate(() => {
+            document.querySelectorAll("dl").forEach((dl) => {
+              const ul = document.createElement("ul")
+              dl.querySelectorAll("dt").forEach((dt) => {
+                let dd = dt.nextElementSibling
+                while (dd && dd.tagName !== "DD") dd = dd.nextElementSibling
+                const li = document.createElement("li")
+                const strong = document.createElement("strong")
+                strong.textContent = dt.textContent ?? ""
+                li.appendChild(strong)
+                if (dd) li.appendChild(document.createTextNode(` — ${dd.textContent ?? ""}`))
+                ul.appendChild(li)
+              })
+              dl.replaceWith(ul)
+            })
+          })
+
           const html = await page.content()
           const htmlBuffer = Buffer.from(html, "utf-8")
           const doclingResult = await client.convert(htmlBuffer, "page.html", {
