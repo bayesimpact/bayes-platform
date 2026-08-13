@@ -17,7 +17,7 @@ describe("DoclingCrawlerClientService", () => {
   let close: jest.Mock
 
   beforeEach(() => {
-    delete process.env[DOCLING_SERVE_URL_ENV]
+    process.env[DOCLING_SERVE_URL_ENV] = "http://localhost:5001"
 
     convert = jest.fn()
     ;(Docling as unknown as jest.Mock).mockImplementation(() => ({ convert }))
@@ -115,5 +115,15 @@ describe("DoclingCrawlerClientService", () => {
 
     expect(pages).toEqual([])
     expect(close).toHaveBeenCalled()
+  })
+
+  it("throws when DOCLING_SERVE_URL is unset", async () => {
+    delete process.env[DOCLING_SERVE_URL_ENV]
+
+    const client = new DoclingCrawlerClientService()
+
+    await expect(client.crawlUrl({ url: "https://example.com/" })).rejects.toThrow(
+      DOCLING_SERVE_URL_ENV,
+    )
   })
 })
