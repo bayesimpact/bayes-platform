@@ -11,7 +11,7 @@ process.env.WORKER_QUEUE_NAMES ??= "all"
 // Worker queue selection fails fast when unset (see worker-pools.ts). Provide
 // defaults so specs importing worker constants/modules don't throw at import.
 process.env.WORKER_QUEUE_NAMES ??=
-  "evaluation-extraction-run-queue,evaluation-extraction-run-execute-queue,agent-csv-extraction-run-queue,agent-csv-extraction-run-execute-queue,extraction-agent-session-queue,url-crawling,docling-crawling,document-embeddings,document-embeddings-stuck-sweep,web-source-embeddings"
+  "evaluation-extraction-run-queue,evaluation-extraction-run-execute-queue,agent-csv-extraction-run-queue,agent-csv-extraction-run-execute-queue,extraction-agent-session-queue,docling-crawling,document-embeddings,document-embeddings-stuck-sweep,web-source-embeddings"
 process.env.WORKERS_HEALTH_QUEUE_NAME ??= "document-embeddings"
 // Required by every worker process (no default in code), see pdf-exports.constants.ts.
 process.env.PDF_EXPORTS_SWEEP_QUEUE_NAME ??= "pdf-exports-sweep"

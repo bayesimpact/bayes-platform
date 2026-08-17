@@ -1,7 +1,7 @@
 name: "docling-serve"
 services:
   docling-serve:
-    image: ghcr.io/ds4sd/docling-serve:latest
+    image: ghcr.io/docling-project/docling-serve-cpu:latest
     ports:
       - "${DOCLING_SERVE_PORT:-5001}:5001"
     healthcheck:

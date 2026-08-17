@@ -48,11 +48,6 @@
       "urlLabel": "URL du site web",
       "nameLabel": "Nom (optionnel)",
       "namePlaceholder": "ex : Site de documentation",
-      "engineLabel": "Moteur d'exploration",
-      "engineOptions": {
-        "spiderCloud": "Spider.cloud",
-        "docling": "Docling (pilote)"
-      },
       "submit": "Lancer l'exploration"
     },
     "reprocess": {

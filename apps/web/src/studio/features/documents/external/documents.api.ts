@@ -92,14 +92,6 @@ export default {
       onProgressChanged,
     })
   },
-  crawlUrl: async ({ organizationId, projectId, url, name }) => {
-    const axios = getAxiosInstance()
-    const response = await axios.post<typeof DocumentsRoutes.crawlUrl.response>(
-      DocumentsRoutes.crawlUrl.getPath({ organizationId, projectId }),
-      { payload: { url, name } } satisfies typeof DocumentsRoutes.crawlUrl.request,
-    )
-    return response.data.data
-  },
   crawlUrlDocling: async ({ organizationId, projectId, url, name }) => {
     const axios = getAxiosInstance()
     const response = await axios.post<typeof DocumentsRoutes.crawlUrlDocling.response>(

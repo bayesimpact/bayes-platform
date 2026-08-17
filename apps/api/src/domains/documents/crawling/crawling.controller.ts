@@ -39,10 +39,6 @@ import {
 } from "./docling-crawling-batch.interface"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentCrawlProgressStreamService } from "./document-crawl-progress-stream.service"
-import {
-  URL_CRAWLING_BATCH_SERVICE,
-  type UrlCrawlingBatchService,
-} from "./url-crawling-batch.interface"
 
 @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, DocumentsGuard)
 @RequireContext("organization", "project")
@@ -52,59 +48,9 @@ export class CrawlingController {
     private readonly documentsService: DocumentsService,
     private readonly documentEmbeddingStatusNotifierService: DocumentEmbeddingStatusNotifierService,
     private readonly documentCrawlProgressStreamService: DocumentCrawlProgressStreamService,
-    @Inject(URL_CRAWLING_BATCH_SERVICE)
-    private readonly urlCrawlingBatchService: UrlCrawlingBatchService,
     @Inject(DOCLING_CRAWLING_BATCH_SERVICE)
     private readonly doclingCrawlingBatchService: DoclingCrawlingBatchService,
   ) {}
-
-  @CheckPolicy((policy) => policy.canCreate())
-  @Post(DocumentsRoutes.crawlUrl.path)
-  @TrackActivity({ action: "document.crawlUrl" })
-  @HttpCode(HttpStatus.ACCEPTED)
-  async crawlUrl(
-    @Body() { payload }: typeof DocumentsRoutes.crawlUrl.request,
-    @Request() req: EndpointRequestWithProject,
-  ): Promise<typeof DocumentsRoutes.crawlUrl.response> {
-    try {
-      new URL(payload.url)
-    } catch {
-      throw new UnprocessableEntityException("Invalid URL.")
-    }
-
-    const connectScope = getRequiredConnectScope(req)
-
-    const documentId = v4()
-    await this.documentsService.createDocument({
-      connectScope,
-      documentId,
-      uploadStatus: "uploaded",
-      fields: {
-        title: payload.name ?? payload.url,
-        mimeType: "text/html",
-        sourceType: "webCrawl",
-        sourceUrl: payload.url,
-        size: 0,
-        fileName: null as unknown as string,
-        storageRelativePath: null as unknown as string,
-      },
-    })
-
-    await this.urlCrawlingBatchService.enqueueCrawlUrl({
-      documentId,
-      url: payload.url,
-      organizationId: connectScope.organizationId,
-      projectId: connectScope.projectId,
-      requestedByUserId: req.user.id,
-      currentTraceId: v4(),
-    })
-
-    return {
-      data: {
-        message: `Crawling ${payload.url}. Documents will appear as they are processed.`,
-      },
-    }
-  }
 
   @CheckPolicy((policy) => policy.canCreate())
   @Post(DocumentsRoutes.crawlUrlDocling.path)
@@ -192,7 +138,7 @@ export class CrawlingController {
       updatedAt: Date.now(),
     })
 
-    await this.urlCrawlingBatchService.enqueueCrawlUrl({
+    await this.doclingCrawlingBatchService.enqueueCrawlUrl({
       documentId: document.id,
       url: urlToRecrawl,
       organizationId: connectScope.organizationId,
@@ -233,7 +179,7 @@ export class CrawlingController {
       updatedAt: Date.now(),
     })
 
-    await this.urlCrawlingBatchService.cancelCrawlUrl({ documentId: document.id })
+    await this.doclingCrawlingBatchService.cancelCrawlUrl({ documentId: document.id })
 
     return { data: { success: true } }
   }

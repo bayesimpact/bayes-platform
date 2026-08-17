@@ -14,9 +14,9 @@ import { DocumentsModule } from "../../documents.module"
 import { DocumentEmbeddingStatusNotifierService } from "../../embeddings/document-embedding-status-notifier.service"
 import { withCrawlingAndAuthMocks } from "../../test-overrides"
 import {
-  URL_CRAWLING_BATCH_SERVICE,
-  type UrlCrawlingBatchService,
-} from "../url-crawling-batch.interface"
+  DOCLING_CRAWLING_BATCH_SERVICE,
+  type DoclingCrawlingBatchService,
+} from "../docling-crawling-batch.interface"
 
 describe("Documents - reCrawlUrl", () => {
   let app: INestApplication<App>
@@ -30,7 +30,7 @@ describe("Documents - reCrawlUrl", () => {
   let accessToken: string | undefined = "token"
   let auth0Id = "auth0|123"
   let crawlingBatchServiceMock: {
-    enqueueCrawlUrl: jest.MockedFunction<UrlCrawlingBatchService["enqueueCrawlUrl"]>
+    enqueueCrawlUrl: jest.MockedFunction<DoclingCrawlingBatchService["enqueueCrawlUrl"]>
   }
   let notifierMock: {
     notifyEmbeddingStatusChanged: jest.MockedFunction<
@@ -44,7 +44,7 @@ describe("Documents - reCrawlUrl", () => {
       applyOverrides: (moduleBuilder) => withCrawlingAndAuthMocks(moduleBuilder, () => auth0Id),
     })
     repositories = setup.getAllRepositories()
-    crawlingBatchServiceMock = setup.module.get(URL_CRAWLING_BATCH_SERVICE)
+    crawlingBatchServiceMock = setup.module.get(DOCLING_CRAWLING_BATCH_SERVICE)
     notifierMock = setup.module.get(DocumentEmbeddingStatusNotifierService)
     app = setup.module.createNestApplication()
     await app.init()

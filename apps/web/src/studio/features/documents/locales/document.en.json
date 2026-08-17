@@ -48,11 +48,6 @@
       "urlLabel": "Website URL",
       "nameLabel": "Name (optional)",
       "namePlaceholder": "e.g. Documentation site",
-      "engineLabel": "Crawler engine",
-      "engineOptions": {
-        "spiderCloud": "Spider.cloud",
-        "docling": "Docling (pilot)"
-      },
       "submit": "Start Crawling"
     },
     "reprocess": {

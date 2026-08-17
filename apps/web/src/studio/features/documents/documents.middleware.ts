@@ -13,7 +13,6 @@ import { documentsActions } from "./documents.slice"
 import {
   addTagsToDocuments,
   cancelCrawl,
-  crawlUrl,
   crawlUrlDocling,
   deleteDocument,
   deleteDocuments,
@@ -142,7 +141,6 @@ function registerListeners() {
       // Document changes
       uploadDocument.fulfilled,
       uploadDocuments.fulfilled,
-      crawlUrl.fulfilled,
       crawlUrlDocling.fulfilled,
       reCrawlUrl.fulfilled,
       cancelCrawl.fulfilled,
@@ -352,28 +350,6 @@ function registerListeners() {
     },
   })
 
-  listenerMiddleware.startListening({
-    actionCreator: crawlUrl.fulfilled,
-    effect: async (action, listenerApi) => {
-      listenerApi.dispatch(
-        notificationsActions.show({
-          title: action.payload.message,
-          type: "success",
-        }),
-      )
-    },
-  })
-  listenerMiddleware.startListening({
-    actionCreator: crawlUrl.rejected,
-    effect: async (_, listenerApi) => {
-      listenerApi.dispatch(
-        notificationsActions.show({
-          title: "Website crawl failed",
-          type: "error",
-        }),
-      )
-    },
-  })
   listenerMiddleware.startListening({
     actionCreator: crawlUrlDocling.fulfilled,
     effect: async (action, listenerApi) => {

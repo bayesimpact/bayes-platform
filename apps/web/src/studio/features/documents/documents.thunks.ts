@@ -214,17 +214,6 @@ export const getDocumentIsPublic = createAsyncThunk<
   return await services.documents.getIsPublic({ organizationId, projectId, documentId })
 })
 
-export const crawlUrl = createAsyncThunk<
-  { message: string },
-  { url: string; name?: string },
-  ThunkConfig
->("documents/crawlUrl", async ({ url, name }, { extra: { services }, getState }) => {
-  const state = getState()
-  const organizationId = getCurrentId({ state, name: "organizationId" })
-  const projectId = getCurrentId({ state, name: "projectId" })
-  return await services.documents.crawlUrl({ organizationId, projectId, url, name })
-})
-
 export const crawlUrlDocling = createAsyncThunk<
   { message: string },
   { url: string; name?: string },
