@@ -15,6 +15,7 @@ export type CrawledPage = {
 
 const PAGE_GOTO_TIMEOUT_MS = 30000
 const MAX_CRAWL_DURATION_MS = 15 * 60 * 1000 // 15 minutes
+const MAX_IN_FLIGHT_CONVERSIONS = 2
 const SKIPPED_LINK_EXTENSIONS = /\.(pdf|jpg|jpeg|png|gif)$/i
 
 function isUnderBasePath(pathname: string, basePath: string): boolean {
@@ -50,11 +51,42 @@ export class DoclingCrawlerClientService {
     const basePath = startUrl.pathname
     const visitedUrls = new Set<string>()
     const urlQueue: string[] = [normalizeUrl(params.url)]
+    const queuedUrls = new Set<string>(urlQueue)
     const pages: CrawledPage[] = []
     let skipped = 0
     let errored = 0
     let emptyPages = 0
     const startedAt = Date.now()
+
+    const inFlightConversions: Array<{ url: string; promise: ReturnType<typeof client.convert> }> =
+      []
+
+    const drainOldestConversion = async (): Promise<void> => {
+      const entry = inFlightConversions.shift()
+      if (!entry) return
+
+      try {
+        const doclingResult = await entry.promise
+        const markdown = doclingResult.document.md_content ?? ""
+
+        if (markdown.trim().length === 0) {
+          emptyPages += 1
+          this.logger.warn(`Skipped ${entry.url} — empty markdown after conversion`)
+          return
+        }
+
+        const crawledPage: CrawledPage = { url: entry.url, markdown }
+        pages.push(crawledPage)
+        this.logger.log(`Page ${pages.length}: ${entry.url}`)
+        params.onPage?.(crawledPage)
+      } catch (error) {
+        if (isDoclingConnectionError(error)) {
+          throw error
+        }
+        errored += 1
+        this.logger.error(`Failed to convert ${entry.url}: ${(error as Error).message}`)
+      }
+    }
 
     this.logger.log(`Starting Docling crawl of ${params.url} via ${doclingServeUrl}`)
 
@@ -119,10 +151,11 @@ export class DoclingCrawlerClientService {
                 parsedLink.origin === baseUrl &&
                 isUnderBasePath(parsedLink.pathname, basePath) &&
                 !visitedUrls.has(normalizedLink) &&
-                !urlQueue.includes(normalizedLink) &&
+                !queuedUrls.has(normalizedLink) &&
                 !SKIPPED_LINK_EXTENSIONS.test(parsedLink.pathname)
               ) {
                 urlQueue.push(normalizedLink)
+                queuedUrls.add(normalizedLink)
               }
             } catch {
               // ignore malformed links
@@ -151,32 +184,25 @@ export class DoclingCrawlerClientService {
 
           const html = await page.content()
           const htmlBuffer = Buffer.from(html, "utf-8")
-          const doclingResult = await client.convert(htmlBuffer, "page.html", {
+          const conversionPromise = client.convert(htmlBuffer, "page.html", {
             to_formats: ["md"],
           })
-          const markdown = doclingResult.document.md_content ?? ""
-
-          if (markdown.trim().length === 0) {
-            emptyPages += 1
-            this.logger.warn(`Skipped ${currentUrl} — empty markdown after conversion`)
-            continue
-          }
-
-          const crawledPage: CrawledPage = { url: currentUrl, markdown }
-          pages.push(crawledPage)
-          this.logger.log(`Page ${pages.length}: ${currentUrl}`)
-          params.onPage?.(crawledPage)
+          inFlightConversions.push({ url: currentUrl, promise: conversionPromise })
         } catch (error) {
-          if (
-            error instanceof UnsafeCrawlUrlError ||
-            isDoclingConnectionError(error) ||
-            (isStartUrl && !linksEnqueued)
-          ) {
+          if (error instanceof UnsafeCrawlUrlError || (isStartUrl && !linksEnqueued)) {
             throw error
           }
           errored += 1
           this.logger.error(`Failed to crawl ${currentUrl}: ${(error as Error).message}`)
         }
+
+        if (inFlightConversions.length >= MAX_IN_FLIGHT_CONVERSIONS) {
+          await drainOldestConversion()
+        }
+      }
+
+      while (inFlightConversions.length > 0) {
+        await drainOldestConversion()
       }
 
       if (pages.length === 0 && errored > 0) {

@@ -382,4 +382,94 @@ describe("DoclingCrawlerClientService", () => {
       expect.objectContaining({ url: "https://example.com/about" }),
     )
   })
+
+  it("does not re-enqueue a link already pending in the queue", async () => {
+    goto.mockResolvedValue(serverAddrResponse(200))
+    convert.mockResolvedValue({ document: { md_content: "content" } })
+    evaluate
+      .mockResolvedValueOnce(["https://example.com/a", "https://example.com/nav"])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce(["https://example.com/nav", "https://example.com/b"])
+      .mockResolvedValueOnce([])
+
+    const client = new DoclingCrawlerClientService()
+    const pages = await client.crawlUrl({ url: "https://example.com/" })
+
+    expect(pages.map((page) => page.url)).toEqual([
+      "https://example.com/",
+      "https://example.com/a",
+      "https://example.com/nav",
+      "https://example.com/b",
+    ])
+    const navGotoCalls = goto.mock.calls.filter(([url]) => url === "https://example.com/nav")
+    expect(navGotoCalls).toHaveLength(1)
+  })
+
+  it("navigates to the next page without waiting for the previous page's conversion", async () => {
+    goto.mockResolvedValue(serverAddrResponse(200))
+    evaluate.mockResolvedValueOnce(["https://example.com/about"]).mockResolvedValueOnce([])
+
+    let resolveStartConversion: (value: { document: { md_content: string } }) => void = () => {}
+    convert.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveStartConversion = resolve
+        }),
+    )
+    convert.mockResolvedValueOnce({ document: { md_content: "about content" } })
+
+    const client = new DoclingCrawlerClientService()
+    const crawlPromise = client.crawlUrl({ url: "https://example.com/" })
+
+    await new Promise((resolve) => setImmediate(resolve))
+
+    expect(goto).toHaveBeenCalledTimes(2)
+    expect(convert).toHaveBeenCalledTimes(2)
+
+    resolveStartConversion({ document: { md_content: "start content" } })
+    const pages = await crawlPromise
+
+    expect(pages).toEqual([
+      { url: "https://example.com/", markdown: "start content" },
+      { url: "https://example.com/about", markdown: "about content" },
+    ])
+  })
+
+  it("bounds the number of in-flight conversions before navigating further", async () => {
+    goto.mockResolvedValue(serverAddrResponse(200))
+    evaluate
+      .mockResolvedValueOnce([
+        "https://example.com/p1",
+        "https://example.com/p2",
+        "https://example.com/p3",
+      ])
+      .mockResolvedValueOnce([])
+
+    let resolveStartConversion: (value: { document: { md_content: string } }) => void = () => {}
+    convert.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveStartConversion = resolve
+        }),
+    )
+    convert.mockResolvedValue({ document: { md_content: "content" } })
+
+    const client = new DoclingCrawlerClientService()
+    const crawlPromise = client.crawlUrl({ url: "https://example.com/" })
+
+    await new Promise((resolve) => setImmediate(resolve))
+
+    expect(goto).toHaveBeenCalledTimes(2)
+    expect(convert).toHaveBeenCalledTimes(2)
+
+    resolveStartConversion({ document: { md_content: "start content" } })
+    const pages = await crawlPromise
+
+    expect(pages.map((page) => page.url)).toEqual([
+      "https://example.com/",
+      "https://example.com/p1",
+      "https://example.com/p2",
+      "https://example.com/p3",
+    ])
+  })
 })
