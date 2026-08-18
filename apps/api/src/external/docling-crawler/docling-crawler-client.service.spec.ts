@@ -27,6 +27,8 @@ describe("DoclingCrawlerClientService", () => {
   let content: jest.Mock
   let pageUrl: jest.Mock
   let close: jest.Mock
+  let newContext: jest.Mock
+  let newPage: jest.Mock
 
   beforeEach(() => {
     process.env[DOCLING_SERVE_URL_ENV] = "http://localhost:5001"
@@ -46,8 +48,10 @@ describe("DoclingCrawlerClientService", () => {
       content,
       url: pageUrl,
     }
-    const context = { newPage: jest.fn().mockResolvedValue(page) }
-    const browser = { newContext: jest.fn().mockResolvedValue(context), close }
+    newPage = jest.fn().mockResolvedValue(page)
+    const context = { newPage }
+    newContext = jest.fn().mockResolvedValue(context)
+    const browser = { newContext, close }
     ;(chromium.launch as jest.Mock).mockResolvedValue(browser)
     ;(dns.promises.lookup as jest.Mock).mockResolvedValue([{ address: PUBLIC_ADDRESS, family: 4 }])
   })
@@ -253,5 +257,23 @@ describe("DoclingCrawlerClientService", () => {
     expect(goto).toHaveBeenCalledTimes(1)
 
     dateNowSpy.mockRestore()
+  })
+
+  it("closes the browser when newContext() fails after launch", async () => {
+    newContext.mockRejectedValue(new Error("context failed"))
+
+    const client = new DoclingCrawlerClientService()
+
+    await expect(client.crawlUrl({ url: "https://example.com/" })).rejects.toThrow("context failed")
+    expect(close).toHaveBeenCalled()
+  })
+
+  it("closes the browser when newPage() fails after launch", async () => {
+    newPage.mockRejectedValue(new Error("page failed"))
+
+    const client = new DoclingCrawlerClientService()
+
+    await expect(client.crawlUrl({ url: "https://example.com/" })).rejects.toThrow("page failed")
+    expect(close).toHaveBeenCalled()
   })
 })

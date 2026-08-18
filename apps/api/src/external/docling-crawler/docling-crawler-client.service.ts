@@ -52,10 +52,11 @@ export class DoclingCrawlerClientService {
     this.logger.log(`Starting Docling crawl of ${params.url} via ${doclingServeUrl}`)
 
     const browser = await chromium.launch()
-    const context = await browser.newContext()
-    const page = await context.newPage()
 
     try {
+      const context = await browser.newContext()
+      const page = await context.newPage()
+
       while (urlQueue.length > 0) {
         if (Date.now() - startedAt > maxCrawlDurationMs) {
           this.logger.warn(
