@@ -48,7 +48,7 @@ export class DoclingCrawlerClientService {
     const client = new Docling({ api: { baseUrl: doclingServeUrl } })
 
     const startUrl = new URL(params.url)
-    let baseUrl = startUrl.origin
+    let baseUrl: string | null = null
     const basePath = startUrl.pathname
     const visitedUrls = new Set<string>()
     const urlQueue: string[] = [normalizeUrl(params.url)]
