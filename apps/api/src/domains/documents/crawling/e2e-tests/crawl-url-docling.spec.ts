@@ -113,4 +113,18 @@ describe("Documents - crawlUrlDocling", () => {
     expectResponse(response, 422, "Invalid URL.")
     expect(doclingCrawlingBatchServiceMock.enqueueCrawlUrl).not.toHaveBeenCalled()
   })
+
+  it.each([
+    ["a loopback address", "http://127.0.0.1/"],
+    ["the cloud metadata address", "http://169.254.169.254/"],
+    ["an IPv6 loopback address", "http://[::1]/"],
+    ["a non-http(s) scheme", "file:///etc/passwd"],
+  ])("rejects a crawl target that is %s with 422", async (_label, url) => {
+    await createContext()
+
+    const response = await subject({ url })
+
+    expectResponse(response, 422, "Invalid URL.")
+    expect(doclingCrawlingBatchServiceMock.enqueueCrawlUrl).not.toHaveBeenCalled()
+  })
 })

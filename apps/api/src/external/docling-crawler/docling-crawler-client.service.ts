@@ -1,6 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common"
 import { Docling } from "docling-sdk"
 import { chromium } from "playwright"
+import {
+  assertCrawlUrlIsSafe,
+  assertIpIsSafe,
+  UnsafeCrawlUrlError,
+} from "@/common/utils/crawl-url-safety"
 import { resolveDoclingServeUrl } from "./docling-crawler.constants"
 
 export type CrawledPage = {
@@ -48,11 +53,19 @@ export class DoclingCrawlerClientService {
         if (!currentUrl || visitedUrls.has(currentUrl)) continue
         visitedUrls.add(currentUrl)
 
+        await assertCrawlUrlIsSafe(currentUrl)
+
         try {
           const response = await page.goto(currentUrl, {
             waitUntil: "load",
             timeout: PAGE_GOTO_TIMEOUT_MS,
           })
+
+          const serverAddr = await response?.serverAddr()
+          if (serverAddr) {
+            assertIpIsSafe(serverAddr.ipAddress)
+          }
+
           const statusCode = response?.status()
 
           if (!response || (statusCode ?? 0) >= 400) {
@@ -123,6 +136,7 @@ export class DoclingCrawlerClientService {
             }
           }
         } catch (error) {
+          if (error instanceof UnsafeCrawlUrlError) throw error
           errored += 1
           this.logger.error(`Failed to crawl ${currentUrl}: ${(error as Error).message}`)
         }

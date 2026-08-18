@@ -1,3 +1,4 @@
+import dns from "node:dns"
 import { Docling } from "docling-sdk"
 import { chromium } from "playwright"
 import { DOCLING_SERVE_URL_ENV } from "./docling-crawler.constants"
@@ -5,6 +6,17 @@ import { DoclingCrawlerClientService } from "./docling-crawler-client.service"
 
 jest.mock("playwright", () => ({ chromium: { launch: jest.fn() } }))
 jest.mock("docling-sdk", () => ({ Docling: jest.fn() }))
+jest.mock("node:dns", () => ({ promises: { lookup: jest.fn() } }))
+
+const PUBLIC_ADDRESS = "93.184.216.34"
+const PRIVATE_ADDRESS = "10.0.0.5"
+
+function serverAddrResponse(status: number, ipAddress: string = PUBLIC_ADDRESS) {
+  return {
+    status: () => status,
+    serverAddr: () => Promise.resolve({ ipAddress, port: 443 }),
+  }
+}
 
 describe("DoclingCrawlerClientService", () => {
   const originalDoclingServeUrl = process.env[DOCLING_SERVE_URL_ENV]
@@ -37,6 +49,7 @@ describe("DoclingCrawlerClientService", () => {
     const context = { newPage: jest.fn().mockResolvedValue(page) }
     const browser = { newContext: jest.fn().mockResolvedValue(context), close }
     ;(chromium.launch as jest.Mock).mockResolvedValue(browser)
+    ;(dns.promises.lookup as jest.Mock).mockResolvedValue([{ address: PUBLIC_ADDRESS, family: 4 }])
   })
 
   afterEach(() => {
@@ -48,7 +61,7 @@ describe("DoclingCrawlerClientService", () => {
   })
 
   it("crawls a single page and converts it via Docling", async () => {
-    goto.mockResolvedValue({ status: () => 200 })
+    goto.mockResolvedValue(serverAddrResponse(200))
     convert.mockResolvedValue({ document: { md_content: "# Hello" } })
 
     const client = new DoclingCrawlerClientService()
@@ -61,7 +74,7 @@ describe("DoclingCrawlerClientService", () => {
   })
 
   it("follows same-origin links discovered on the page", async () => {
-    goto.mockResolvedValue({ status: () => 200 })
+    goto.mockResolvedValue(serverAddrResponse(200))
     convert.mockResolvedValue({ document: { md_content: "content" } })
     evaluate.mockResolvedValueOnce(["https://example.com/about"]).mockResolvedValueOnce([])
 
@@ -77,7 +90,7 @@ describe("DoclingCrawlerClientService", () => {
 
   it("only follows links under the start URL's path prefix", async () => {
     pageUrl.mockReturnValue("https://example.com/section")
-    goto.mockResolvedValue({ status: () => 200 })
+    goto.mockResolvedValue(serverAddrResponse(200))
     convert.mockResolvedValue({ document: { md_content: "content" } })
     evaluate
       .mockResolvedValueOnce([
@@ -98,7 +111,7 @@ describe("DoclingCrawlerClientService", () => {
   })
 
   it("skips pages that return an HTTP error status", async () => {
-    goto.mockResolvedValue({ status: () => 404 })
+    goto.mockResolvedValue(serverAddrResponse(404))
 
     const client = new DoclingCrawlerClientService()
     const pages = await client.crawlUrl({ url: "https://example.com/" })
@@ -125,5 +138,45 @@ describe("DoclingCrawlerClientService", () => {
     await expect(client.crawlUrl({ url: "https://example.com/" })).rejects.toThrow(
       DOCLING_SERVE_URL_ENV,
     )
+  })
+
+  it("aborts the crawl when the start URL resolves to a private address", async () => {
+    ;(dns.promises.lookup as jest.Mock).mockResolvedValue([{ address: PRIVATE_ADDRESS, family: 4 }])
+
+    const client = new DoclingCrawlerClientService()
+
+    await expect(client.crawlUrl({ url: "https://example.com/" })).rejects.toThrow(
+      /non-public address/,
+    )
+    expect(goto).not.toHaveBeenCalled()
+    expect(close).toHaveBeenCalled()
+  })
+
+  it("aborts the crawl when a discovered link resolves to a private address", async () => {
+    goto.mockResolvedValue(serverAddrResponse(200))
+    convert.mockResolvedValue({ document: { md_content: "content" } })
+    evaluate.mockResolvedValueOnce(["https://example.com/about"]).mockResolvedValueOnce([])
+    ;(dns.promises.lookup as jest.Mock)
+      .mockResolvedValueOnce([{ address: PUBLIC_ADDRESS, family: 4 }])
+      .mockResolvedValueOnce([{ address: PRIVATE_ADDRESS, family: 4 }])
+
+    const client = new DoclingCrawlerClientService()
+
+    await expect(client.crawlUrl({ url: "https://example.com/" })).rejects.toThrow(
+      /non-public address/,
+    )
+    expect(goto).toHaveBeenCalledTimes(1)
+    expect(close).toHaveBeenCalled()
+  })
+
+  it("aborts the crawl when the page actually connects to a private address", async () => {
+    goto.mockResolvedValue(serverAddrResponse(200, PRIVATE_ADDRESS))
+
+    const client = new DoclingCrawlerClientService()
+
+    await expect(client.crawlUrl({ url: "https://example.com/" })).rejects.toThrow(
+      /non-public address/,
+    )
+    expect(close).toHaveBeenCalled()
   })
 })
