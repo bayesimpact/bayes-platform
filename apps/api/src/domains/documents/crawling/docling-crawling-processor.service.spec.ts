@@ -121,4 +121,32 @@ describe("DoclingCrawlingProcessorService", () => {
       expect.objectContaining({ documentId: payload.documentId, embeddingStatus: "failed" }),
     )
   })
+
+  describe("markCrawlJobFailed", () => {
+    it("marks the document as failed and notifies when it isn't already failed", async () => {
+      const { service, documentsService, embeddingStatusNotifierService } = buildService({
+        embeddingStatus: "pending",
+      })
+
+      await service.markCrawlJobFailed(payload, new Error("stalled"))
+
+      expect(documentsService.updateEmbeddingStatus).toHaveBeenCalledWith(
+        expect.objectContaining({ documentId: payload.documentId, status: "failed" }),
+      )
+      expect(embeddingStatusNotifierService.notifyEmbeddingStatusChanged).toHaveBeenCalledWith(
+        expect.objectContaining({ documentId: payload.documentId, embeddingStatus: "failed" }),
+      )
+    })
+
+    it("no-ops when the document is already failed", async () => {
+      const { service, documentsService, embeddingStatusNotifierService } = buildService({
+        embeddingStatus: "failed",
+      })
+
+      await service.markCrawlJobFailed(payload, new Error("stalled"))
+
+      expect(documentsService.updateEmbeddingStatus).not.toHaveBeenCalled()
+      expect(embeddingStatusNotifierService.notifyEmbeddingStatusChanged).not.toHaveBeenCalled()
+    })
+  })
 })

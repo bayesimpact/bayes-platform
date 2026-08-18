@@ -133,4 +133,36 @@ export class DoclingCrawlingProcessorService {
       throw error
     }
   }
+
+  async markCrawlJobFailed(payload: CrawlUrlDoclingJobPayload, error: Error): Promise<void> {
+    const tag = `[doc:${payload.documentId}]`
+    const connectScope = {
+      organizationId: payload.organizationId,
+      projectId: payload.projectId,
+    }
+
+    const latestDoc = await this.documentsService.findById({
+      connectScope,
+      documentId: payload.documentId,
+    })
+    if (latestDoc?.embeddingStatus === "failed") {
+      return
+    }
+
+    this.logger.error(`${tag} Crawl job stalled: ${error.message}`, error.stack)
+
+    await this.documentsService.updateEmbeddingStatus({
+      connectScope,
+      documentId: payload.documentId,
+      status: "failed",
+    })
+    await this.embeddingStatusNotifierService.notifyEmbeddingStatusChanged({
+      documentId: payload.documentId,
+      organizationId: payload.organizationId,
+      projectId: payload.projectId,
+      embeddingStatus: "failed",
+      embeddingError: null,
+      updatedAt: Date.now(),
+    })
+  }
 }

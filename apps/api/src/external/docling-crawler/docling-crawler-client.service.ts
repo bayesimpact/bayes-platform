@@ -14,6 +14,7 @@ export type CrawledPage = {
 }
 
 const PAGE_GOTO_TIMEOUT_MS = 30000
+const MAX_CRAWL_DURATION_MS = 15 * 60 * 1000 // 15 minutes
 const SKIPPED_LINK_EXTENSIONS = /\.(pdf|jpg|jpeg|png|gif)$/i
 
 function isUnderBasePath(pathname: string, basePath: string): boolean {
@@ -32,7 +33,9 @@ export class DoclingCrawlerClientService {
   async crawlUrl(params: {
     url: string
     onPage?: (page: CrawledPage) => void
+    maxCrawlDurationMs?: number
   }): Promise<CrawledPage[]> {
+    const maxCrawlDurationMs = params.maxCrawlDurationMs ?? MAX_CRAWL_DURATION_MS
     const doclingServeUrl = resolveDoclingServeUrl()
     const client = new Docling({ api: { baseUrl: doclingServeUrl } })
 
@@ -54,6 +57,13 @@ export class DoclingCrawlerClientService {
 
     try {
       while (urlQueue.length > 0) {
+        if (Date.now() - startedAt > maxCrawlDurationMs) {
+          this.logger.warn(
+            `Reached max crawl duration (${maxCrawlDurationMs}ms) for ${params.url} — stopping crawl early`,
+          )
+          break
+        }
+
         const currentUrl = urlQueue.shift()
         if (!currentUrl || visitedUrls.has(currentUrl)) continue
         visitedUrls.add(currentUrl)

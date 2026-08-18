@@ -9,7 +9,11 @@ import type { CrawlUrlDoclingJobPayload } from "./docling-crawling.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DoclingCrawlingProcessorService } from "./docling-crawling-processor.service"
 
-@Processor(DOCLING_CRAWLING_QUEUE_NAME)
+@Processor(DOCLING_CRAWLING_QUEUE_NAME, {
+  concurrency: 1,
+  maxStalledCount: 3,
+  lockDuration: 300_000,
+})
 export class DoclingCrawlingWorker extends WorkerHost {
   private readonly logger = new Logger(DoclingCrawlingWorker.name)
 
@@ -36,10 +40,13 @@ export class DoclingCrawlingWorker extends WorkerHost {
   }
 
   @OnWorkerEvent("failed")
-  onFailed(job: Job<CrawlUrlDoclingJobPayload> | undefined, error: Error): void {
+  async onFailed(job: Job<CrawlUrlDoclingJobPayload> | undefined, error: Error): Promise<void> {
     this.logger.error(
       `Job failed: ${job?.name ?? "unknown"} (${job?.id ?? "unknown"}) → ${job?.data.url ?? "unknown url"}`,
       error.stack,
     )
+    if (job) {
+      await this.crawlingProcessorService.markCrawlJobFailed(job.data, error)
+    }
   }
 }

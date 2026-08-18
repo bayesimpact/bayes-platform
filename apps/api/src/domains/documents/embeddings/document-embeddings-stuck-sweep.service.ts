@@ -6,12 +6,9 @@ import { Document } from "../document.entity"
 import { DocumentsService } from "../documents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentEmbeddingStatusNotifierService } from "./document-embedding-status-notifier.service"
-import { DOCUMENT_EMBEDDINGS_ENQUEUE_FAILED_ERROR_MESSAGE } from "./document-embeddings.constants"
 import { getDocumentEmbeddingStuckThresholdSeconds } from "./document-embeddings-stuck.config"
-import {
-  DOCUMENT_EMBEDDINGS_STUCK_SWEEP_BATCH_LIMIT,
-  DOCUMENT_EMBEDDINGS_STUCK_TIMEOUT_ERROR_MESSAGE,
-} from "./document-embeddings-stuck.constants"
+import { DOCUMENT_EMBEDDINGS_STUCK_SWEEP_BATCH_LIMIT } from "./document-embeddings-stuck.constants"
+import { getStuckSweepEmbeddingErrorMessage } from "./document-embeddings-stuck-sweep.error-message"
 
 @Injectable()
 export class DocumentEmbeddingsStuckSweepService {
@@ -27,8 +24,8 @@ export class DocumentEmbeddingsStuckSweepService {
     const thresholdSeconds = getDocumentEmbeddingStuckThresholdSeconds()
     const cutoff = new Date(Date.now() - thresholdSeconds * 1000)
 
-    // `pending` + uploaded project documents are those whose enqueue never happened
-    // (for example the API crashed between the upload confirm and the queue add).
+    // `pending` + uploaded project: enqueue never happened (crash between confirm and queue add).
+    // `pending` + webCrawl: crawl never finished (the row still means "crawling").
     const stuckDocuments = await this.documentRepository
       .createQueryBuilder("document")
       .where(
@@ -45,6 +42,13 @@ export class DocumentEmbeddingsStuckSweepService {
                 projectSourceType: "project",
               },
             )
+            .orWhere(
+              "document.embedding_status = :pendingStatus AND document.source_type = :webcrawlSourceType",
+              {
+                pendingStatus: "pending",
+                webcrawlSourceType: "webCrawl",
+              },
+            )
         }),
       )
       .andWhere("document.updated_at < :cutoff", { cutoff })
@@ -53,11 +57,8 @@ export class DocumentEmbeddingsStuckSweepService {
       .getMany()
 
     for (const document of stuckDocuments) {
-      const wasNeverEnqueued = document.embeddingStatus === "pending"
+      document.embeddingError = getStuckSweepEmbeddingErrorMessage(document)
       document.embeddingStatus = "failed"
-      document.embeddingError = wasNeverEnqueued
-        ? DOCUMENT_EMBEDDINGS_ENQUEUE_FAILED_ERROR_MESSAGE
-        : DOCUMENT_EMBEDDINGS_STUCK_TIMEOUT_ERROR_MESSAGE
       const savedDocument = await this.documentsService.saveOne(document)
       await this.embeddingStatusNotifierService.notifyEmbeddingStatusChanged({
         documentId: savedDocument.id,

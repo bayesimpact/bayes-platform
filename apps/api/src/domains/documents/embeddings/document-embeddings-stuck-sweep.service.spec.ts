@@ -3,8 +3,35 @@ import type { Document } from "../document.entity"
 import type { DocumentsService } from "../documents.service"
 import type { DocumentEmbeddingStatusNotifierService } from "./document-embedding-status-notifier.service"
 import { DOCUMENT_EMBEDDINGS_ENQUEUE_FAILED_ERROR_MESSAGE } from "./document-embeddings.constants"
-import { DOCUMENT_EMBEDDINGS_STUCK_TIMEOUT_ERROR_MESSAGE } from "./document-embeddings-stuck.constants"
+import {
+  DOCUMENT_EMBEDDINGS_STUCK_CRAWL_TIMEOUT_ERROR_MESSAGE,
+  DOCUMENT_EMBEDDINGS_STUCK_TIMEOUT_ERROR_MESSAGE,
+} from "./document-embeddings-stuck.constants"
+import { getStuckSweepEmbeddingErrorMessage } from "./document-embeddings-stuck-sweep.error-message"
 import { DocumentEmbeddingsStuckSweepService } from "./document-embeddings-stuck-sweep.service"
+
+describe("getStuckSweepEmbeddingErrorMessage", () => {
+  it("returns the enqueue error for a pending project document", () => {
+    expect(
+      getStuckSweepEmbeddingErrorMessage({ embeddingStatus: "pending", sourceType: "project" }),
+    ).toBe(DOCUMENT_EMBEDDINGS_ENQUEUE_FAILED_ERROR_MESSAGE)
+  })
+
+  it("returns the crawl timeout error for a pending web crawl document", () => {
+    expect(
+      getStuckSweepEmbeddingErrorMessage({ embeddingStatus: "pending", sourceType: "webCrawl" }),
+    ).toBe(DOCUMENT_EMBEDDINGS_STUCK_CRAWL_TIMEOUT_ERROR_MESSAGE)
+  })
+
+  it("returns the embedding timeout error for queued or processing documents", () => {
+    expect(
+      getStuckSweepEmbeddingErrorMessage({ embeddingStatus: "processing", sourceType: "webCrawl" }),
+    ).toBe(DOCUMENT_EMBEDDINGS_STUCK_TIMEOUT_ERROR_MESSAGE)
+    expect(
+      getStuckSweepEmbeddingErrorMessage({ embeddingStatus: "queued", sourceType: "project" }),
+    ).toBe(DOCUMENT_EMBEDDINGS_STUCK_TIMEOUT_ERROR_MESSAGE)
+  })
+})
 
 describe("DocumentEmbeddingsStuckSweepService", () => {
   const thresholdKey = "DOCUMENT_EMBEDDING_STUCK_THRESHOLD_SECONDS"
@@ -89,6 +116,59 @@ describe("DocumentEmbeddingsStuckSweepService", () => {
     expect(result).toEqual({ timedOutCount: 1 })
   })
 
+  it("marks a stuck pending document failed and notifies", async () => {
+    const updatedAt = new Date("2020-01-01T00:00:00.000Z")
+    const stuckDocument = {
+      id: "doc-2",
+      organizationId: "org-1",
+      projectId: "proj-1",
+      embeddingStatus: "pending",
+      embeddingError: null,
+      updatedAt,
+    } as Document
+
+    const getMany = jest.fn().mockResolvedValue([stuckDocument])
+    const queryBuilder = {
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      getMany,
+    }
+    const documentRepository = {
+      createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+    } as unknown as Repository<Document>
+
+    const savedDocument = {
+      ...stuckDocument,
+      embeddingStatus: "failed" as const,
+      embeddingError: DOCUMENT_EMBEDDINGS_STUCK_TIMEOUT_ERROR_MESSAGE,
+      updatedAt: new Date("2026-05-04T12:00:00.000Z"),
+    }
+    const saveOne = jest.fn().mockResolvedValue(savedDocument)
+    const documentsService = { saveOne } as unknown as DocumentsService
+
+    const notifyEmbeddingStatusChanged = jest.fn().mockResolvedValue(undefined)
+    const embeddingStatusNotifierService = {
+      notifyEmbeddingStatusChanged,
+    } as unknown as DocumentEmbeddingStatusNotifierService
+
+    const service = new DocumentEmbeddingsStuckSweepService(
+      documentRepository,
+      documentsService,
+      embeddingStatusNotifierService,
+    )
+
+    const result = await service.sweepStuckDocuments()
+
+    expect(stuckDocument.embeddingStatus).toBe("failed")
+    expect(saveOne).toHaveBeenCalledWith(stuckDocument)
+    expect(notifyEmbeddingStatusChanged).toHaveBeenCalledWith(
+      expect.objectContaining({ documentId: savedDocument.id, embeddingStatus: "failed" }),
+    )
+    expect(result).toEqual({ timedOutCount: 1 })
+  })
+
   it("returns zero when no stuck documents", async () => {
     const getMany = jest.fn().mockResolvedValue([])
     const queryBuilder = {
@@ -157,6 +237,49 @@ describe("DocumentEmbeddingsStuckSweepService", () => {
     expect(pendingDocument.embeddingError).toBe(DOCUMENT_EMBEDDINGS_ENQUEUE_FAILED_ERROR_MESSAGE)
     expect(notifyEmbeddingStatusChanged).toHaveBeenCalledWith(
       expect.objectContaining({ documentId: "doc-2", embeddingStatus: "failed" }),
+    )
+    expect(result).toEqual({ timedOutCount: 1 })
+  })
+
+  it("marks a stuck pending web crawl as failed with the crawl timeout error", async () => {
+    const pendingCrawlDocument = {
+      id: "doc-3",
+      organizationId: "org-1",
+      projectId: "proj-1",
+      sourceType: "webCrawl",
+      embeddingStatus: "pending",
+      embeddingError: null,
+      updatedAt: new Date("2020-01-01T00:00:00.000Z"),
+    } as Document
+
+    const queryBuilder = {
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      getMany: jest.fn().mockResolvedValue([pendingCrawlDocument]),
+    }
+    const documentRepository = {
+      createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+    } as unknown as Repository<Document>
+
+    const saveOne = jest.fn().mockImplementation((entity: Document) => Promise.resolve(entity))
+    const notifyEmbeddingStatusChanged = jest.fn().mockResolvedValue(undefined)
+
+    const service = new DocumentEmbeddingsStuckSweepService(
+      documentRepository,
+      { saveOne } as unknown as DocumentsService,
+      { notifyEmbeddingStatusChanged } as unknown as DocumentEmbeddingStatusNotifierService,
+    )
+
+    const result = await service.sweepStuckDocuments()
+
+    expect(pendingCrawlDocument.embeddingStatus).toBe("failed")
+    expect(pendingCrawlDocument.embeddingError).toBe(
+      DOCUMENT_EMBEDDINGS_STUCK_CRAWL_TIMEOUT_ERROR_MESSAGE,
+    )
+    expect(notifyEmbeddingStatusChanged).toHaveBeenCalledWith(
+      expect.objectContaining({ documentId: "doc-3", embeddingStatus: "failed" }),
     )
     expect(result).toEqual({ timedOutCount: 1 })
   })

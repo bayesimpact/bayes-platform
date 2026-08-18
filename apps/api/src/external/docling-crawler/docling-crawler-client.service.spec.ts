@@ -231,4 +231,27 @@ describe("DoclingCrawlerClientService", () => {
     )
     expect(close).toHaveBeenCalled()
   })
+
+  it("stops crawling once the max crawl duration elapses", async () => {
+    let now = 0
+    const dateNowSpy = jest.spyOn(Date, "now").mockImplementation(() => now)
+
+    goto.mockImplementationOnce(async () => {
+      now = 1000
+      return serverAddrResponse(200)
+    })
+    convert.mockResolvedValue({ document: { md_content: "content" } })
+    evaluate.mockResolvedValueOnce(["https://example.com/about"]).mockResolvedValueOnce([])
+
+    const client = new DoclingCrawlerClientService()
+    const pages = await client.crawlUrl({
+      url: "https://example.com/",
+      maxCrawlDurationMs: 500,
+    })
+
+    expect(pages.map((page) => page.url)).toEqual(["https://example.com/"])
+    expect(goto).toHaveBeenCalledTimes(1)
+
+    dateNowSpy.mockRestore()
+  })
 })
