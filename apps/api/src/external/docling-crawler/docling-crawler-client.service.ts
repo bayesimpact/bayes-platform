@@ -21,6 +21,12 @@ function isUnderBasePath(pathname: string, basePath: string): boolean {
   return pathname === basePath || pathname.startsWith(`${basePath.replace(/\/$/, "")}/`)
 }
 
+function normalizeUrl(url: string): string {
+  const parsed = new URL(url)
+  parsed.hash = ""
+  return parsed.href
+}
+
 function isDoclingConnectionError(error: unknown): boolean {
   const { code, cause } = error as { code?: string; cause?: { code?: string } }
   return code === "ECONNREFUSED" || cause?.code === "ECONNREFUSED"
@@ -41,12 +47,13 @@ export class DoclingCrawlerClientService {
 
     const startUrl = new URL(params.url)
     let baseUrl = startUrl.origin
-    let basePath = startUrl.pathname
+    const basePath = startUrl.pathname
     const visitedUrls = new Set<string>()
-    const urlQueue: string[] = [params.url]
+    const urlQueue: string[] = [normalizeUrl(params.url)]
     const pages: CrawledPage[] = []
     let skipped = 0
     let errored = 0
+    let emptyPages = 0
     const startedAt = Date.now()
 
     this.logger.log(`Starting Docling crawl of ${params.url} via ${doclingServeUrl}`)
@@ -97,30 +104,25 @@ export class DoclingCrawlerClientService {
           }
 
           if (isStartUrl) {
-            const resolvedUrl = new URL(page.url())
-            baseUrl = resolvedUrl.origin
-            basePath = resolvedUrl.pathname
+            baseUrl = new URL(page.url()).origin
           }
 
           const links = await page.evaluate(() =>
             Array.from(document.querySelectorAll("a")).map((anchor) => anchor.href),
           )
 
-          const currentPathname = new URL(currentUrl).pathname
           for (const link of links) {
             try {
-              const parsedLink = new URL(link)
-              const isSamePageAnchor =
-                parsedLink.hash !== "" && parsedLink.pathname === currentPathname
+              const normalizedLink = normalizeUrl(link)
+              const parsedLink = new URL(normalizedLink)
               if (
                 parsedLink.origin === baseUrl &&
                 isUnderBasePath(parsedLink.pathname, basePath) &&
-                !isSamePageAnchor &&
-                !visitedUrls.has(parsedLink.href) &&
-                !urlQueue.includes(parsedLink.href) &&
-                !SKIPPED_LINK_EXTENSIONS.test(link)
+                !visitedUrls.has(normalizedLink) &&
+                !urlQueue.includes(normalizedLink) &&
+                !SKIPPED_LINK_EXTENSIONS.test(parsedLink.pathname)
               ) {
-                urlQueue.push(parsedLink.href)
+                urlQueue.push(normalizedLink)
               }
             } catch {
               // ignore malformed links
@@ -154,6 +156,12 @@ export class DoclingCrawlerClientService {
           })
           const markdown = doclingResult.document.md_content ?? ""
 
+          if (markdown.trim().length === 0) {
+            emptyPages += 1
+            this.logger.warn(`Skipped ${currentUrl} — empty markdown after conversion`)
+            continue
+          }
+
           const crawledPage: CrawledPage = { url: currentUrl, markdown }
           pages.push(crawledPage)
           this.logger.log(`Page ${pages.length}: ${currentUrl}`)
@@ -182,7 +190,7 @@ export class DoclingCrawlerClientService {
 
     const durationSeconds = ((Date.now() - startedAt) / 1000).toFixed(1)
     this.logger.log(
-      `Finished Docling crawl of ${params.url}: ${pages.length} pages, ${skipped} skipped, ${errored} errored, duration: ${durationSeconds}s`,
+      `Finished Docling crawl of ${params.url}: ${pages.length} pages, ${skipped} skipped, ${emptyPages} empty, ${errored} errored, duration: ${durationSeconds}s`,
     )
     return pages
   }

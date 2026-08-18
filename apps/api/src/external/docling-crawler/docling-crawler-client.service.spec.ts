@@ -276,4 +276,110 @@ describe("DoclingCrawlerClientService", () => {
     await expect(client.crawlUrl({ url: "https://example.com/" })).rejects.toThrow("page failed")
     expect(close).toHaveBeenCalled()
   })
+
+  it("dedupes links that only differ by URL fragment", async () => {
+    goto.mockResolvedValue(serverAddrResponse(200))
+    convert.mockResolvedValue({ document: { md_content: "content" } })
+    evaluate
+      .mockResolvedValueOnce([
+        "https://example.com/guide#install",
+        "https://example.com/guide#usage",
+        "https://example.com/guide",
+      ])
+      .mockResolvedValueOnce([])
+
+    const client = new DoclingCrawlerClientService()
+    const pages = await client.crawlUrl({ url: "https://example.com/" })
+
+    expect(pages.map((page) => page.url)).toEqual([
+      "https://example.com/",
+      "https://example.com/guide",
+    ])
+    expect(goto).toHaveBeenCalledTimes(2)
+  })
+
+  it("strips the fragment from the start URL before navigating", async () => {
+    goto.mockResolvedValue(serverAddrResponse(200))
+    convert.mockResolvedValue({ document: { md_content: "content" } })
+
+    const client = new DoclingCrawlerClientService()
+    await client.crawlUrl({ url: "https://example.com/#top" })
+
+    expect(goto).toHaveBeenCalledWith(
+      "https://example.com/",
+      expect.objectContaining({ waitUntil: "load" }),
+    )
+  })
+
+  it("does not drop links that only differ by query string", async () => {
+    pageUrl.mockReturnValue("https://example.com/blog")
+    goto.mockResolvedValue(serverAddrResponse(200))
+    convert.mockResolvedValue({ document: { md_content: "content" } })
+    evaluate
+      .mockResolvedValueOnce(["https://example.com/blog?page=2#content"])
+      .mockResolvedValueOnce([])
+
+    const client = new DoclingCrawlerClientService()
+    const pages = await client.crawlUrl({ url: "https://example.com/blog" })
+
+    expect(pages.map((page) => page.url)).toEqual([
+      "https://example.com/blog",
+      "https://example.com/blog?page=2",
+    ])
+    expect(goto).toHaveBeenCalledTimes(2)
+  })
+
+  it("does not re-scope the base path when the start URL redirects", async () => {
+    pageUrl.mockReturnValue("https://example.com/home")
+    goto.mockResolvedValue(serverAddrResponse(200))
+    convert.mockResolvedValue({ document: { md_content: "content" } })
+    evaluate.mockResolvedValueOnce(["https://example.com/about"]).mockResolvedValueOnce([])
+
+    const client = new DoclingCrawlerClientService()
+    const pages = await client.crawlUrl({ url: "https://example.com/" })
+
+    expect(pages.map((page) => page.url)).toEqual([
+      "https://example.com/",
+      "https://example.com/about",
+    ])
+    expect(goto).toHaveBeenCalledTimes(2)
+  })
+
+  it("filters skipped extensions by pathname, not the full href", async () => {
+    goto.mockResolvedValue(serverAddrResponse(200))
+    convert.mockResolvedValue({ document: { md_content: "content" } })
+    evaluate
+      .mockResolvedValueOnce([
+        "https://example.com/manual.pdf?version=2",
+        "https://example.com/gallery#photo.png",
+      ])
+      .mockResolvedValueOnce([])
+
+    const client = new DoclingCrawlerClientService()
+    const pages = await client.crawlUrl({ url: "https://example.com/" })
+
+    expect(pages.map((page) => page.url)).toEqual([
+      "https://example.com/",
+      "https://example.com/gallery",
+    ])
+    expect(goto).toHaveBeenCalledTimes(2)
+  })
+
+  it("skips pages whose conversion yields empty markdown", async () => {
+    goto.mockResolvedValue(serverAddrResponse(200))
+    convert
+      .mockResolvedValueOnce({ document: { md_content: "content" } })
+      .mockResolvedValueOnce({ document: { md_content: "   " } })
+    evaluate.mockResolvedValueOnce(["https://example.com/about"]).mockResolvedValueOnce([])
+
+    const client = new DoclingCrawlerClientService()
+    const onPage = jest.fn()
+    const pages = await client.crawlUrl({ url: "https://example.com/", onPage })
+
+    expect(pages.map((page) => page.url)).toEqual(["https://example.com/"])
+    expect(onPage).toHaveBeenCalledTimes(1)
+    expect(onPage).not.toHaveBeenCalledWith(
+      expect.objectContaining({ url: "https://example.com/about" }),
+    )
+  })
 })
