@@ -64,6 +64,10 @@ export class DoclingCrawlingProcessorService {
         },
       })
 
+      if (pages.length === 0) {
+        throw new Error(`Docling crawl of ${payload.url} produced no pages`)
+      }
+
       const durationSeconds = ((Date.now() - startedAt) / 1000).toFixed(1)
       this.logger.log(
         `${tag} Crawl complete: ${pages.length} pages in ${durationSeconds}s — storing content`,

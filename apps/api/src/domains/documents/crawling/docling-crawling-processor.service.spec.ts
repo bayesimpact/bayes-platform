@@ -91,6 +91,21 @@ describe("DoclingCrawlingProcessorService", () => {
     expect(embeddingsBatchService.enqueueCreateEmbeddingsForDocument).not.toHaveBeenCalled()
   })
 
+  it("marks the document as failed and rethrows when the crawl returns zero pages", async () => {
+    const { service, documentsService, embeddingStatusNotifierService } = buildService({
+      crawledPages: [],
+    })
+
+    await expect(service.processCrawlJob(payload)).rejects.toThrow(/produced no pages/)
+
+    expect(documentsService.updateEmbeddingStatus).toHaveBeenCalledWith(
+      expect.objectContaining({ documentId: payload.documentId, status: "failed" }),
+    )
+    expect(embeddingStatusNotifierService.notifyEmbeddingStatusChanged).toHaveBeenCalledWith(
+      expect.objectContaining({ documentId: payload.documentId, embeddingStatus: "failed" }),
+    )
+  })
+
   it("marks the document as failed and rethrows when the crawl errors", async () => {
     const crawlError = new Error("crawl failed")
     const { service, documentsService, embeddingStatusNotifierService } = buildService({

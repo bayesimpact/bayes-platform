@@ -110,23 +110,75 @@ describe("DoclingCrawlerClientService", () => {
     expect(goto).toHaveBeenCalledTimes(2)
   })
 
-  it("skips pages that return an HTTP error status", async () => {
+  it("skips a non-start page that returns an HTTP error status", async () => {
+    goto
+      .mockResolvedValueOnce(serverAddrResponse(200))
+      .mockResolvedValueOnce(serverAddrResponse(404))
+    convert.mockResolvedValue({ document: { md_content: "content" } })
+    evaluate.mockResolvedValueOnce(["https://example.com/about"]).mockResolvedValueOnce([])
+
+    const client = new DoclingCrawlerClientService()
+    const pages = await client.crawlUrl({ url: "https://example.com/" })
+
+    expect(pages).toEqual([{ url: "https://example.com/", markdown: "content" }])
+    expect(convert).toHaveBeenCalledTimes(1)
+  })
+
+  it("rejects when the start URL returns an HTTP error status", async () => {
     goto.mockResolvedValue(serverAddrResponse(404))
 
     const client = new DoclingCrawlerClientService()
-    const pages = await client.crawlUrl({ url: "https://example.com/" })
 
-    expect(pages).toEqual([])
+    await expect(client.crawlUrl({ url: "https://example.com/" })).rejects.toThrow(
+      /Start URL failed to load/,
+    )
     expect(convert).not.toHaveBeenCalled()
   })
 
-  it("closes the browser even if a page fails with an error", async () => {
-    goto.mockRejectedValue(new Error("boom"))
+  it("rejects when docling-serve is unreachable while converting the start page", async () => {
+    goto.mockResolvedValue(serverAddrResponse(200))
+    const connectionError = Object.assign(new Error("fetch failed"), {
+      cause: { code: "ECONNREFUSED" },
+    })
+    convert.mockRejectedValue(connectionError)
+
+    const client = new DoclingCrawlerClientService()
+
+    await expect(client.crawlUrl({ url: "https://example.com/" })).rejects.toThrow(connectionError)
+  })
+
+  it("rejects via the zero-pages backstop when the start page has no links and fails to convert", async () => {
+    goto.mockResolvedValue(serverAddrResponse(200))
+    evaluate.mockResolvedValueOnce([])
+    convert.mockRejectedValue(new Error("conversion failed"))
+
+    const client = new DoclingCrawlerClientService()
+
+    await expect(client.crawlUrl({ url: "https://example.com/" })).rejects.toThrow(
+      /completed with 1 error\(s\) and no pages/,
+    )
+  })
+
+  it("keeps crawling a discovered link even if the linking page fails to convert", async () => {
+    goto.mockResolvedValue(serverAddrResponse(200))
+    convert.mockRejectedValueOnce(new Error("conversion failed")).mockResolvedValueOnce({
+      document: { md_content: "about content" },
+    })
+    evaluate.mockResolvedValueOnce(["https://example.com/about"]).mockResolvedValueOnce([])
 
     const client = new DoclingCrawlerClientService()
     const pages = await client.crawlUrl({ url: "https://example.com/" })
 
-    expect(pages).toEqual([])
+    expect(pages).toEqual([{ url: "https://example.com/about", markdown: "about content" }])
+    expect(goto).toHaveBeenCalledTimes(2)
+  })
+
+  it("closes the browser and rejects when the start URL fails with an error", async () => {
+    goto.mockRejectedValue(new Error("boom"))
+
+    const client = new DoclingCrawlerClientService()
+
+    await expect(client.crawlUrl({ url: "https://example.com/" })).rejects.toThrow("boom")
     expect(close).toHaveBeenCalled()
   })
 
