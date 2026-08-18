@@ -17,17 +17,32 @@ export class BullMqDoclingCrawlingBatchService {
   ) {}
 
   async enqueueCrawlUrl(payload: CrawlUrlDoclingJobPayload): Promise<void> {
+    const existingJob = await this.doclingCrawlingQueue.getJob(payload.documentId)
+    if (existingJob) {
+      const state = await existingJob.getState()
+      if (state === "active") {
+        this.logger.warn(
+          `Crawl job for document ${payload.documentId} is already running — skipping duplicate enqueue`,
+        )
+        return
+      }
+      await existingJob.remove()
+    }
+
     this.logger.log(`Enqueuing Docling URL crawl job ${JSON.stringify(payload)}`)
-    await this.doclingCrawlingQueue.add(DOCLING_CRAWLING_JOB_NAME, payload)
+    await this.doclingCrawlingQueue.add(DOCLING_CRAWLING_JOB_NAME, payload, {
+      jobId: payload.documentId,
+    })
   }
 
   async cancelCrawlUrl({ documentId }: { documentId: string }): Promise<void> {
-    const jobs = await this.doclingCrawlingQueue.getJobs(["waiting", "delayed", "paused"])
-    for (const job of jobs) {
-      if (job.data.documentId === documentId) {
-        this.logger.log(`Removing pending crawl job for document ${documentId} (job ${job.id})`)
-        await job.remove()
-      }
-    }
+    const job = await this.doclingCrawlingQueue.getJob(documentId)
+    if (!job) return
+
+    const state = await job.getState()
+    if (state !== "waiting" && state !== "delayed") return
+
+    this.logger.log(`Removing pending crawl job for document ${documentId} (job ${job.id})`)
+    await job.remove()
   }
 }
