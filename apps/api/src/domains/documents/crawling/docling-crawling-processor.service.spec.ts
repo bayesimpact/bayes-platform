@@ -12,6 +12,7 @@ describe("DoclingCrawlingProcessorService", () => {
     projectId: "project-1",
     requestedByUserId: "user-1",
     currentTraceId: "trace-1",
+    generation: 1,
   }
 
   const buildService = (
@@ -19,6 +20,7 @@ describe("DoclingCrawlingProcessorService", () => {
       crawledPages?: { url: string; markdown: string }[]
       embeddingStatus?: string
       crawlError?: Error
+      isSuperseded?: boolean
     } = {},
   ) => {
     const doclingCrawlerClientService = {
@@ -37,6 +39,9 @@ describe("DoclingCrawlingProcessorService", () => {
     const crawlProgressNotifierService = {
       notifyCrawlProgress: jest.fn().mockResolvedValue(undefined),
     }
+    const generationService = {
+      isSuperseded: jest.fn().mockResolvedValue(overrides.isSuperseded ?? false),
+    }
     const embeddingsBatchService = {
       enqueueCreateEmbeddingsForDocument: jest.fn().mockResolvedValue(undefined),
     }
@@ -46,6 +51,7 @@ describe("DoclingCrawlingProcessorService", () => {
       documentsService as never,
       embeddingStatusNotifierService as never,
       crawlProgressNotifierService as never,
+      generationService as never,
       embeddingsBatchService as never,
     )
 
@@ -54,6 +60,7 @@ describe("DoclingCrawlingProcessorService", () => {
       doclingCrawlerClientService,
       documentsService,
       embeddingStatusNotifierService,
+      generationService,
       embeddingsBatchService,
     }
   }
@@ -91,6 +98,29 @@ describe("DoclingCrawlingProcessorService", () => {
     expect(embeddingsBatchService.enqueueCreateEmbeddingsForDocument).not.toHaveBeenCalled()
   })
 
+  it("skips saving content if the crawl was superseded by a newer request", async () => {
+    const { service, documentsService, embeddingsBatchService } = buildService({
+      crawledPages: [{ url: "https://example.com", markdown: "# Hello" }],
+      isSuperseded: true,
+    })
+
+    await service.processCrawlJob(payload)
+
+    expect(documentsService.updateContent).not.toHaveBeenCalled()
+    expect(embeddingsBatchService.enqueueCreateEmbeddingsForDocument).not.toHaveBeenCalled()
+  })
+
+  it("does not throw or mark the document failed when a superseded crawl produced zero pages", async () => {
+    const { service, documentsService } = buildService({
+      crawledPages: [],
+      isSuperseded: true,
+    })
+
+    await expect(service.processCrawlJob(payload)).resolves.toBeUndefined()
+
+    expect(documentsService.updateEmbeddingStatus).not.toHaveBeenCalled()
+  })
+
   it("marks the document as failed and rethrows when the crawl returns zero pages", async () => {
     const { service, documentsService, embeddingStatusNotifierService } = buildService({
       crawledPages: [],
@@ -122,6 +152,19 @@ describe("DoclingCrawlingProcessorService", () => {
     )
   })
 
+  it("rethrows without marking the document failed when a superseded crawl errors", async () => {
+    const crawlError = new Error("crawl failed")
+    const { service, documentsService, embeddingStatusNotifierService } = buildService({
+      crawlError,
+      isSuperseded: true,
+    })
+
+    await expect(service.processCrawlJob(payload)).rejects.toThrow(crawlError)
+
+    expect(documentsService.updateEmbeddingStatus).not.toHaveBeenCalled()
+    expect(embeddingStatusNotifierService.notifyEmbeddingStatusChanged).not.toHaveBeenCalled()
+  })
+
   describe("markCrawlJobFailed", () => {
     it("marks the document as failed and notifies when it isn't already failed", async () => {
       const { service, documentsService, embeddingStatusNotifierService } = buildService({
@@ -141,6 +184,18 @@ describe("DoclingCrawlingProcessorService", () => {
     it("no-ops when the document is already failed", async () => {
       const { service, documentsService, embeddingStatusNotifierService } = buildService({
         embeddingStatus: "failed",
+      })
+
+      await service.markCrawlJobFailed(payload, new Error("stalled"))
+
+      expect(documentsService.updateEmbeddingStatus).not.toHaveBeenCalled()
+      expect(embeddingStatusNotifierService.notifyEmbeddingStatusChanged).not.toHaveBeenCalled()
+    })
+
+    it("no-ops when the job has been superseded by a newer request", async () => {
+      const { service, documentsService, embeddingStatusNotifierService } = buildService({
+        embeddingStatus: "pending",
+        isSuperseded: true,
       })
 
       await service.markCrawlJobFailed(payload, new Error("stalled"))

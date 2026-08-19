@@ -1,5 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common"
 import { Docling } from "docling-sdk"
+import ipaddr from "ipaddr.js"
 import { chromium } from "playwright"
 import {
   assertCrawlUrlIsSafe,
@@ -42,6 +43,7 @@ export class DoclingCrawlerClientService {
     url: string
     onPage?: (page: CrawledPage) => void
     maxCrawlDurationMs?: number
+    isCancelled?: () => Promise<boolean>
   }): Promise<CrawledPage[]> {
     const maxCrawlDurationMs = params.maxCrawlDurationMs ?? MAX_CRAWL_DURATION_MS
     const doclingServeUrl = resolveDoclingServeUrl()
@@ -105,6 +107,11 @@ export class DoclingCrawlerClientService {
           break
         }
 
+        if (params.isCancelled && (await params.isCancelled())) {
+          this.logger.warn(`Crawl of ${params.url} was cancelled — stopping early`)
+          break
+        }
+
         const currentUrl = urlQueue.shift()
         if (!currentUrl || visitedUrls.has(currentUrl)) continue
         visitedUrls.add(currentUrl)
@@ -122,7 +129,13 @@ export class DoclingCrawlerClientService {
 
           const serverAddr = await response?.serverAddr()
           if (serverAddr) {
-            assertIpIsSafe(serverAddr.ipAddress)
+            if (ipaddr.isValid(serverAddr.ipAddress)) {
+              assertIpIsSafe(serverAddr.ipAddress)
+            } else {
+              this.logger.warn(
+                `Could not verify server address for ${currentUrl} (ipAddress="${serverAddr.ipAddress}") — relying on the pre-navigation DNS check`,
+              )
+            }
           }
 
           const statusCode = response?.status()

@@ -5,4 +5,7 @@ export type CrawlUrlDoclingJobPayload = {
   projectId: string
   requestedByUserId: string
   currentTraceId: string
+  generation: number
 }
+
+export type CrawlUrlDoclingEnqueueRequest = Omit<CrawlUrlDoclingJobPayload, "generation">

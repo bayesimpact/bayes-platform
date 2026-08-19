@@ -236,6 +236,16 @@ describe("DoclingCrawlerClientService", () => {
     expect(close).toHaveBeenCalled()
   })
 
+  it("does not abort the crawl when serverAddr() returns an unparseable ipAddress", async () => {
+    goto.mockResolvedValue(serverAddrResponse(200, ""))
+    convert.mockResolvedValue({ document: { md_content: "content" } })
+
+    const client = new DoclingCrawlerClientService()
+    const pages = await client.crawlUrl({ url: "https://example.com/" })
+
+    expect(pages).toEqual([{ url: "https://example.com/", markdown: "content" }])
+  })
+
   it("stops crawling once the max crawl duration elapses", async () => {
     let now = 0
     const dateNowSpy = jest.spyOn(Date, "now").mockImplementation(() => now)
@@ -257,6 +267,20 @@ describe("DoclingCrawlerClientService", () => {
     expect(goto).toHaveBeenCalledTimes(1)
 
     dateNowSpy.mockRestore()
+  })
+
+  it("stops crawling early when isCancelled resolves true", async () => {
+    goto.mockResolvedValue(serverAddrResponse(200))
+    convert.mockResolvedValue({ document: { md_content: "content" } })
+    evaluate.mockResolvedValueOnce(["https://example.com/about"]).mockResolvedValueOnce([])
+
+    const isCancelled = jest.fn().mockResolvedValue(true)
+    const client = new DoclingCrawlerClientService()
+    const pages = await client.crawlUrl({ url: "https://example.com/", isCancelled })
+
+    expect(pages).toEqual([])
+    expect(goto).not.toHaveBeenCalled()
+    expect(isCancelled).toHaveBeenCalled()
   })
 
   it("closes the browser when newContext() fails after launch", async () => {

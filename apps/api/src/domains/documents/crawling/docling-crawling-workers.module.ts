@@ -8,6 +8,7 @@ import { DoclingCrawlerClientService } from "@/external/docling-crawler/docling-
 import { DocumentsService } from "../documents.service"
 import { DocumentEmbeddingStatusNotifierService } from "../embeddings/document-embedding-status-notifier.service"
 import { DocumentTagsService } from "../tags/document-tags.service"
+import { DoclingCrawlGenerationService } from "./docling-crawl-generation.service"
 import { DOCLING_CRAWLING_QUEUE_NAME } from "./docling-crawling.constants"
 import { DoclingCrawlingWorker } from "./docling-crawling.worker"
 import { DoclingCrawlingProcessorService } from "./docling-crawling-processor.service"
@@ -38,6 +39,7 @@ import { WebSourceEmbeddingsBatchModule } from "./web-source-embeddings-batch.mo
     DocumentEmbeddingStatusNotifierService,
     DocumentCrawlProgressNotifierService,
     DoclingCrawlingQueueMetricsService,
+    DoclingCrawlGenerationService,
   ],
 })
 export class DoclingCrawlingWorkersModule {}

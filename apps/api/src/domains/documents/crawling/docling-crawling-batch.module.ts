@@ -6,6 +6,7 @@ import { ConfigModule } from "@nestjs/config"
 import { getBullMqConnection } from "@/bullmq.config"
 import { isBullBoardEnabled } from "@/common/bull-board/bull-board-env"
 import { BullMqDoclingCrawlingBatchService } from "./bull-mq-docling-crawling-batch.service"
+import { DoclingCrawlGenerationService } from "./docling-crawl-generation.service"
 import { DOCLING_CRAWLING_QUEUE_NAME } from "./docling-crawling.constants"
 import { DOCLING_CRAWLING_BATCH_SERVICE } from "./docling-crawling-batch.interface"
 
@@ -31,6 +32,7 @@ import { DOCLING_CRAWLING_BATCH_SERVICE } from "./docling-crawling-batch.interfa
   ],
   providers: [
     BullMqDoclingCrawlingBatchService,
+    DoclingCrawlGenerationService,
     {
       provide: DOCLING_CRAWLING_BATCH_SERVICE,
       useExisting: BullMqDoclingCrawlingBatchService,

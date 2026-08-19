@@ -5,6 +5,8 @@ import { DoclingCrawlerClientService } from "@/external/docling-crawler/docling-
 import { DocumentsService } from "../documents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentEmbeddingStatusNotifierService } from "../embeddings/document-embedding-status-notifier.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { DoclingCrawlGenerationService } from "./docling-crawl-generation.service"
 import type { CrawlUrlDoclingJobPayload } from "./docling-crawling.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentCrawlProgressNotifierService } from "./document-crawl-progress-notifier.service"
@@ -24,6 +26,7 @@ export class DoclingCrawlingProcessorService {
     private readonly documentsService: DocumentsService,
     private readonly embeddingStatusNotifierService: DocumentEmbeddingStatusNotifierService,
     private readonly crawlProgressNotifierService: DocumentCrawlProgressNotifierService,
+    private readonly generationService: DoclingCrawlGenerationService,
     @Inject(WEB_SOURCE_EMBEDDINGS_BATCH_SERVICE)
     private readonly embeddingsBatchService: WebSourceEmbeddingsBatchService,
   ) {}
@@ -43,6 +46,8 @@ export class DoclingCrawlingProcessorService {
     try {
       const pages = await this.doclingCrawlerClientService.crawlUrl({
         url: payload.url,
+        isCancelled: () =>
+          this.generationService.isSuperseded(payload.documentId, payload.generation),
         onPage: () => {
           pagesCrawled += 1
 
@@ -64,6 +69,19 @@ export class DoclingCrawlingProcessorService {
         },
       })
 
+      const latestDoc = await this.documentsService.findById({
+        connectScope,
+        documentId: payload.documentId,
+      })
+      const isSuperseded = await this.generationService.isSuperseded(
+        payload.documentId,
+        payload.generation,
+      )
+      if (latestDoc?.embeddingStatus === "failed" || isSuperseded) {
+        this.logger.log(`${tag} Crawl was cancelled or superseded — skipping content save`)
+        return
+      }
+
       if (pages.length === 0) {
         throw new Error(`Docling crawl of ${payload.url} produced no pages`)
       }
@@ -72,15 +90,6 @@ export class DoclingCrawlingProcessorService {
       this.logger.log(
         `${tag} Crawl complete: ${pages.length} pages in ${durationSeconds}s — storing content`,
       )
-
-      const latestDoc = await this.documentsService.findById({
-        connectScope,
-        documentId: payload.documentId,
-      })
-      if (latestDoc?.embeddingStatus === "failed") {
-        this.logger.log(`${tag} Crawl was cancelled — skipping content save`)
-        return
-      }
 
       const contentPages = pages.map((page) => ({
         url: page.url,
@@ -112,19 +121,25 @@ export class DoclingCrawlingProcessorService {
         (error as Error).stack,
       )
       try {
-        await this.documentsService.updateEmbeddingStatus({
-          connectScope,
-          documentId: payload.documentId,
-          status: "failed",
-        })
-        await this.embeddingStatusNotifierService.notifyEmbeddingStatusChanged({
-          documentId: payload.documentId,
-          organizationId: payload.organizationId,
-          projectId: payload.projectId,
-          embeddingStatus: "failed",
-          embeddingError: null,
-          updatedAt: Date.now(),
-        })
+        const isSuperseded = await this.generationService.isSuperseded(
+          payload.documentId,
+          payload.generation,
+        )
+        if (!isSuperseded) {
+          await this.documentsService.updateEmbeddingStatus({
+            connectScope,
+            documentId: payload.documentId,
+            status: "failed",
+          })
+          await this.embeddingStatusNotifierService.notifyEmbeddingStatusChanged({
+            documentId: payload.documentId,
+            organizationId: payload.organizationId,
+            projectId: payload.projectId,
+            embeddingStatus: "failed",
+            embeddingError: null,
+            updatedAt: Date.now(),
+          })
+        }
       } catch (notifyError) {
         this.logger.error(
           `${tag} Failed to mark document as failed: ${(notifyError as Error).message}`,
@@ -145,7 +160,11 @@ export class DoclingCrawlingProcessorService {
       connectScope,
       documentId: payload.documentId,
     })
-    if (latestDoc?.embeddingStatus === "failed") {
+    const isSuperseded = await this.generationService.isSuperseded(
+      payload.documentId,
+      payload.generation,
+    )
+    if (latestDoc?.embeddingStatus === "failed" || isSuperseded) {
       return
     }
 
