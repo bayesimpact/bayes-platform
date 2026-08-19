@@ -29,7 +29,7 @@ export class DocumentEmbeddingsStuckSweepService {
     const stuckDocuments = await this.documentRepository
       .createQueryBuilder("document")
       .where("document.embedding_status IN (:...statuses)", {
-        statuses: ["queued", "processing"],
+        statuses: ["pending", "queued", "processing"],
       })
       .andWhere("document.updated_at < :cutoff", { cutoff })
       .orderBy("document.updated_at", "ASC")

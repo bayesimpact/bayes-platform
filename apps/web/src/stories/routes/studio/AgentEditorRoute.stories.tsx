@@ -136,7 +136,6 @@ export const ConversationAgent: Story = {
                 }),
             ]
           : []
-
       const allAgents = [rawParentAgent, ...childAgents]
       const versions = buildVersions(parentAgentSettings)
 

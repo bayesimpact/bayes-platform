@@ -25,6 +25,7 @@ import { getRequiredConnectScope } from "@/common/context/request-context.helper
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
+import { assertCrawlUrlIsSafe } from "@/common/utils/crawl-url-safety"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
@@ -33,12 +34,12 @@ import { DocumentsGuard } from "../documents.guard"
 import { DocumentsService } from "../documents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentEmbeddingStatusNotifierService } from "../embeddings/document-embedding-status-notifier.service"
+import {
+  DOCLING_CRAWLING_BATCH_SERVICE,
+  type DoclingCrawlingBatchService,
+} from "./docling-crawling-batch.interface"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentCrawlProgressStreamService } from "./document-crawl-progress-stream.service"
-import {
-  URL_CRAWLING_BATCH_SERVICE,
-  type UrlCrawlingBatchService,
-} from "./url-crawling-batch.interface"
 
 @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, DocumentsGuard)
 @RequireContext("organization", "project")
@@ -48,20 +49,20 @@ export class CrawlingController {
     private readonly documentsService: DocumentsService,
     private readonly documentEmbeddingStatusNotifierService: DocumentEmbeddingStatusNotifierService,
     private readonly documentCrawlProgressStreamService: DocumentCrawlProgressStreamService,
-    @Inject(URL_CRAWLING_BATCH_SERVICE)
-    private readonly urlCrawlingBatchService: UrlCrawlingBatchService,
+    @Inject(DOCLING_CRAWLING_BATCH_SERVICE)
+    private readonly doclingCrawlingBatchService: DoclingCrawlingBatchService,
   ) {}
 
   @CheckPolicy((policy) => policy.canCreate())
-  @Post(DocumentsRoutes.crawlUrl.path)
-  @TrackActivity({ action: "document.crawlUrl" })
+  @Post(DocumentsRoutes.crawlUrlDocling.path)
+  @TrackActivity({ action: "document.crawlUrlDocling" })
   @HttpCode(HttpStatus.ACCEPTED)
-  async crawlUrl(
-    @Body() { payload }: typeof DocumentsRoutes.crawlUrl.request,
+  async crawlUrlDocling(
+    @Body() { payload }: typeof DocumentsRoutes.crawlUrlDocling.request,
     @Request() req: EndpointRequestWithProject,
-  ): Promise<typeof DocumentsRoutes.crawlUrl.response> {
+  ): Promise<typeof DocumentsRoutes.crawlUrlDocling.response> {
     try {
-      new URL(payload.url)
+      await assertCrawlUrlIsSafe(payload.url)
     } catch {
       throw new UnprocessableEntityException("Invalid URL.")
     }
@@ -84,7 +85,7 @@ export class CrawlingController {
       },
     })
 
-    await this.urlCrawlingBatchService.enqueueCrawlUrl({
+    await this.doclingCrawlingBatchService.enqueueCrawlUrl({
       documentId,
       url: payload.url,
       organizationId: connectScope.organizationId,
@@ -95,7 +96,7 @@ export class CrawlingController {
 
     return {
       data: {
-        message: `Crawling ${payload.url}. Documents will appear as they are processed.`,
+        message: `Crawling ${payload.url} via Docling. Documents will appear as they are processed.`,
       },
     }
   }
@@ -138,7 +139,7 @@ export class CrawlingController {
       updatedAt: Date.now(),
     })
 
-    await this.urlCrawlingBatchService.enqueueCrawlUrl({
+    await this.doclingCrawlingBatchService.enqueueCrawlUrl({
       documentId: document.id,
       url: urlToRecrawl,
       organizationId: connectScope.organizationId,
@@ -179,7 +180,7 @@ export class CrawlingController {
       updatedAt: Date.now(),
     })
 
-    await this.urlCrawlingBatchService.cancelCrawlUrl({ documentId: document.id })
+    await this.doclingCrawlingBatchService.cancelCrawlUrl({ documentId: document.id })
 
     return { data: { success: true } }
   }

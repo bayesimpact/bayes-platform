@@ -1,3 +1,4 @@
+import { z } from "zod"
 import type { DocumentTagDto } from "../document-tags/document-tag.dto"
 import type { TimeType } from "../generic"
 
@@ -73,10 +74,11 @@ export type DocumentDto = {
   updatedAt: TimeType
 }
 
-export type CrawlUrlRequestDto = {
-  url: string
-  name?: string
-}
+export const crawlUrlSchema = z.object({
+  url: z.url(),
+  name: z.string().trim().optional(),
+})
+export type CrawlUrlRequestDto = z.infer<typeof crawlUrlSchema>
 
 export type CrawlUrlResponseDto = {
   message: string

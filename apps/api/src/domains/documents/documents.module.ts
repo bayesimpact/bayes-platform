@@ -13,8 +13,8 @@ import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { CrawlingController } from "./crawling/crawling.controller"
+import { DoclingCrawlingBatchModule } from "./crawling/docling-crawling-batch.module"
 import { DocumentCrawlProgressStreamService } from "./crawling/document-crawl-progress-stream.service"
-import { UrlCrawlingBatchModule } from "./crawling/url-crawling-batch.module"
 import { WebSourceEmbeddingsBatchModule } from "./crawling/web-source-embeddings-batch.module"
 import { Document } from "./document.entity"
 import { DocumentsController } from "./documents.controller"
@@ -52,7 +52,7 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
     AuthModule,
     StorageModule,
     DocumentEmbeddingsBatchModule,
-    UrlCrawlingBatchModule,
+    DoclingCrawlingBatchModule,
     WebSourceEmbeddingsBatchModule,
   ],
   providers: [

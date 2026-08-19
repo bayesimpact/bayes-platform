@@ -67,6 +67,10 @@ CMD ["node", "--enable-source-maps", "/app/apps/api/dist/main.js"]
 #
 FROM runtime-base AS cpu-workers-runtime
 
+# The Docling crawler (docling-crawling queue) drives Playwright's Chromium directly
+# in this process; --with-deps installs both the browser binary and its OS shared libs.
+RUN npx --prefix /app/apps/api playwright install --with-deps chromium
+
 CMD ["node", "--enable-source-maps", "/app/apps/api/dist/workers-main.js"]
 
 #

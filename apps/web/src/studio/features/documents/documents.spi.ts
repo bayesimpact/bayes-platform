@@ -73,7 +73,7 @@ export interface IDocumentsSpi {
     signal?: AbortSignal
     onProgressChanged: (event: DocumentCrawlProgressEvent) => void
   }): Promise<void>
-  crawlUrl(params: {
+  crawlUrlDocling(params: {
     organizationId: string
     projectId: string
     url: string

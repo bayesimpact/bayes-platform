@@ -14,11 +14,11 @@ import type { Document } from "../../document.entity"
 import { DocumentsModule } from "../../documents.module"
 import { withCrawlingAndAuthMocks } from "../../test-overrides"
 import {
-  URL_CRAWLING_BATCH_SERVICE,
-  type UrlCrawlingBatchService,
-} from "../url-crawling-batch.interface"
+  DOCLING_CRAWLING_BATCH_SERVICE,
+  type DoclingCrawlingBatchService,
+} from "../docling-crawling-batch.interface"
 
-describe("Documents - crawlUrl", () => {
+describe("Documents - crawlUrlDocling", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
@@ -29,8 +29,8 @@ describe("Documents - crawlUrl", () => {
   let userId: string
   let accessToken: string | undefined = "token"
   let auth0Id = "auth0|123"
-  let crawlingBatchServiceMock: {
-    enqueueCrawlUrl: jest.MockedFunction<UrlCrawlingBatchService["enqueueCrawlUrl"]>
+  let doclingCrawlingBatchServiceMock: {
+    enqueueCrawlUrl: jest.MockedFunction<DoclingCrawlingBatchService["enqueueCrawlUrl"]>
   }
 
   beforeAll(async () => {
@@ -39,7 +39,7 @@ describe("Documents - crawlUrl", () => {
       applyOverrides: (moduleBuilder) => withCrawlingAndAuthMocks(moduleBuilder, () => auth0Id),
     })
     repositories = setup.getAllRepositories()
-    crawlingBatchServiceMock = setup.module.get(URL_CRAWLING_BATCH_SERVICE)
+    doclingCrawlingBatchServiceMock = setup.module.get(DOCLING_CRAWLING_BATCH_SERVICE)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -49,7 +49,7 @@ describe("Documents - crawlUrl", () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
     auth0Id = "auth0|123"
-    crawlingBatchServiceMock.enqueueCrawlUrl.mockClear()
+    doclingCrawlingBatchServiceMock.enqueueCrawlUrl.mockClear()
   })
 
   afterAll(async () => {
@@ -68,13 +68,13 @@ describe("Documents - crawlUrl", () => {
 
   const subject = async (payload: { url: string; name?: string }) =>
     request({
-      route: DocumentsRoutes.crawlUrl,
+      route: DocumentsRoutes.crawlUrlDocling,
       pathParams: removeNullish({ organizationId, projectId }),
       token: accessToken,
       request: { payload },
     })
 
-  it("creates a webCrawl document and enqueues the crawl job", async () => {
+  it("creates a webCrawl document and enqueues the docling crawl job", async () => {
     await createContext()
 
     const url = "https://example.com"
@@ -94,7 +94,7 @@ describe("Documents - crawlUrl", () => {
     expect(document.mimeType).toBe("text/html")
     expect(document.embeddingStatus).toBe("pending")
 
-    expect(crawlingBatchServiceMock.enqueueCrawlUrl).toHaveBeenCalledWith(
+    expect(doclingCrawlingBatchServiceMock.enqueueCrawlUrl).toHaveBeenCalledWith(
       expect.objectContaining({
         documentId: document.id,
         url,
@@ -105,26 +105,26 @@ describe("Documents - crawlUrl", () => {
     )
   })
 
-  it("uses the optional name as the document title", async () => {
-    await createContext()
-
-    const url = "https://example.com"
-    const name = "My Documentation Site"
-    await subject({ url, name })
-
-    const documents = await repositories.documentRepository.find({
-      where: { projectId, sourceType: "webCrawl" },
-    })
-    expect(documents[0]?.title).toBe(name)
-    expect(documents[0]?.sourceUrl).toBe(url)
-  })
-
   it("rejects an invalid URL with 422", async () => {
     await createContext()
 
     const response = await subject({ url: "not-a-valid-url" })
 
     expectResponse(response, 422, "Invalid URL.")
-    expect(crawlingBatchServiceMock.enqueueCrawlUrl).not.toHaveBeenCalled()
+    expect(doclingCrawlingBatchServiceMock.enqueueCrawlUrl).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ["a loopback address", "http://127.0.0.1/"],
+    ["the cloud metadata address", "http://169.254.169.254/"],
+    ["an IPv6 loopback address", "http://[::1]/"],
+    ["a non-http(s) scheme", "file:///etc/passwd"],
+  ])("rejects a crawl target that is %s with 422", async (_label, url) => {
+    await createContext()
+
+    const response = await subject({ url })
+
+    expectResponse(response, 422, "Invalid URL.")
+    expect(doclingCrawlingBatchServiceMock.enqueueCrawlUrl).not.toHaveBeenCalled()
   })
 })

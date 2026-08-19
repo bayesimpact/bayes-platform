@@ -88,6 +88,59 @@ describe("DocumentEmbeddingsStuckSweepService", () => {
     expect(result).toEqual({ timedOutCount: 1 })
   })
 
+  it("marks a stuck pending document failed and notifies", async () => {
+    const updatedAt = new Date("2020-01-01T00:00:00.000Z")
+    const stuckDocument = {
+      id: "doc-2",
+      organizationId: "org-1",
+      projectId: "proj-1",
+      embeddingStatus: "pending",
+      embeddingError: null,
+      updatedAt,
+    } as Document
+
+    const getMany = jest.fn().mockResolvedValue([stuckDocument])
+    const queryBuilder = {
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      getMany,
+    }
+    const documentRepository = {
+      createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+    } as unknown as Repository<Document>
+
+    const savedDocument = {
+      ...stuckDocument,
+      embeddingStatus: "failed" as const,
+      embeddingError: DOCUMENT_EMBEDDINGS_STUCK_TIMEOUT_ERROR_MESSAGE,
+      updatedAt: new Date("2026-05-04T12:00:00.000Z"),
+    }
+    const saveOne = jest.fn().mockResolvedValue(savedDocument)
+    const documentsService = { saveOne } as unknown as DocumentsService
+
+    const notifyEmbeddingStatusChanged = jest.fn().mockResolvedValue(undefined)
+    const embeddingStatusNotifierService = {
+      notifyEmbeddingStatusChanged,
+    } as unknown as DocumentEmbeddingStatusNotifierService
+
+    const service = new DocumentEmbeddingsStuckSweepService(
+      documentRepository,
+      documentsService,
+      embeddingStatusNotifierService,
+    )
+
+    const result = await service.sweepStuckDocuments()
+
+    expect(stuckDocument.embeddingStatus).toBe("failed")
+    expect(saveOne).toHaveBeenCalledWith(stuckDocument)
+    expect(notifyEmbeddingStatusChanged).toHaveBeenCalledWith(
+      expect.objectContaining({ documentId: savedDocument.id, embeddingStatus: "failed" }),
+    )
+    expect(result).toEqual({ timedOutCount: 1 })
+  })
+
   it("returns zero when no stuck documents", async () => {
     const getMany = jest.fn().mockResolvedValue([])
     const queryBuilder = {
