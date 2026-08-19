@@ -11,6 +11,7 @@ import { DocumentTagsService } from "../tags/document-tags.service"
 import { DOCLING_CRAWLING_QUEUE_NAME } from "./docling-crawling.constants"
 import { DoclingCrawlingWorker } from "./docling-crawling.worker"
 import { DoclingCrawlingProcessorService } from "./docling-crawling-processor.service"
+import { DoclingCrawlingQueueMetricsService } from "./docling-crawling-queue-metrics.service"
 import { DocumentCrawlProgressNotifierService } from "./document-crawl-progress-notifier.service"
 import { WebSourceEmbeddingsBatchModule } from "./web-source-embeddings-batch.module"
 
@@ -36,6 +37,7 @@ import { WebSourceEmbeddingsBatchModule } from "./web-source-embeddings-batch.mo
     DocumentTagsService,
     DocumentEmbeddingStatusNotifierService,
     DocumentCrawlProgressNotifierService,
+    DoclingCrawlingQueueMetricsService,
   ],
 })
 export class DoclingCrawlingWorkersModule {}
