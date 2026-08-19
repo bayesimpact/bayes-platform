@@ -1,5 +1,5 @@
 const multi = { incr: jest.fn(), expire: jest.fn(), exec: jest.fn() }
-const client = { multi: jest.fn(() => multi), get: jest.fn(), quit: jest.fn() }
+const client = { multi: jest.fn(() => multi), get: jest.fn(), disconnect: jest.fn() }
 
 jest.mock("ioredis", () => jest.fn().mockImplementation(() => client))
 
@@ -34,6 +34,15 @@ describe("DoclingCrawlGenerationService", () => {
       multi.exec.mockResolvedValue([[incrError, null]])
 
       await expect(service.bumpGeneration("doc-1")).rejects.toThrow(incrError)
+    })
+  })
+
+  describe("onModuleDestroy", () => {
+    it("disconnects without throwing, even if the connection never established", () => {
+      client.disconnect.mockImplementation(() => {})
+
+      expect(() => service.onModuleDestroy()).not.toThrow()
+      expect(client.disconnect).toHaveBeenCalledTimes(1)
     })
   })
 
