@@ -1,10 +1,119 @@
 vulnerabilities:
   - id: CVE-2026-33671
-    expired_at: 2026-06-30
-    reason: "picomatch 4.0.3 — fix in 4.0.4, present via npm CLI's bundled tinyglobby in the base node image"
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "picomatch 4.0.3 — fix in 4.0.4, present via npm CLI's bundled tinyglobby in the base node image"
   - id: CVE-2025-32434
-    expired_at: 2026-06-30
-    reason: "torch 2.5.1+cu121 — fix requires 2.6.0+; bump deferred pending GCP/CUDA compatibility validation (docling itself supports torch <3.0.0)"
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "torch 2.5.1+cu121 — fix requires 2.6.0+; bump deferred pending GCP/CUDA compatibility validation (docling itself supports torch <3.0.0)"
   - id: CVE-2026-40192
-    expired_at: 2026-06-30
-    reason: "pillow 12.1.1 — fix in 12.2.0, pulled in transitively by docling; deferred together with the docling/torch refresh pending GCP/CUDA compatibility validation"
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "pillow 12.1.1 — fix in 12.2.0, pulled in transitively by docling; deferred together with the docling/torch refresh pending GCP/CUDA compatibility validation"
+
+  # --- Temporary ignores, expiry 2026-09-05, tracked in bayes-platform#601 ---
+
+  # Python ML stack (docling): fix blocked on the torch/CUDA validation.
+  # transformers RCE — assess docling exploitability, then bump to 5.x.
+  - id: CVE-2026-4372
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "transformers 4.57.6 RCE — fix in 5.x (major), pending docling/torch/GCP-CUDA refresh (#601)"
+  - id: CVE-2026-5241
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "transformers 4.57.6 RCE (trust_remote_code) — fix in 5.x (major), pending docling refresh (#601)"
+  # pillow 12.2.0 -> 12.3.0: 10 HIGH, minor bump but pinned by docling/torch chain.
+  - id: CVE-2026-54058
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "pillow 12.2.0 -> 12.3.0, pinned by docling/torch chain (#601)"
+  - id: CVE-2026-54059
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "pillow 12.2.0 -> 12.3.0, pinned by docling/torch chain (#601)"
+  - id: CVE-2026-54060
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "pillow 12.2.0 -> 12.3.0, pinned by docling/torch chain (#601)"
+  - id: CVE-2026-55379
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "pillow 12.2.0 -> 12.3.0, pinned by docling/torch chain (#601)"
+  - id: CVE-2026-55380
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "pillow 12.2.0 -> 12.3.0, pinned by docling/torch chain (#601)"
+  - id: CVE-2026-59197
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "pillow 12.2.0 -> 12.3.0, pinned by docling/torch chain (#601)"
+  - id: CVE-2026-59199
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "pillow 12.2.0 -> 12.3.0, pinned by docling/torch chain (#601)"
+  - id: CVE-2026-59200
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "pillow 12.2.0 -> 12.3.0, pinned by docling/torch chain (#601)"
+  - id: CVE-2026-59204
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "pillow 12.2.0 -> 12.3.0, pinned by docling/torch chain (#601)"
+  - id: CVE-2026-59205
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "pillow 12.2.0 -> 12.3.0, pinned by docling/torch chain (#601)"
+
+  # Base node image (bundled npm): fix by bumping the base image, not our lockfile.
+  - id: CVE-2026-59873
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "tar 7.5.13 CRITICAL (gzip-bomb DoS) — npm-bundled in the base node image, build-time only; base-image bump (#601)"
+  - id: CVE-2026-59874
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "tar 7.5.13 — npm-bundled in the base node image, build-time only; base-image bump (#601)"
+  - id: CVE-2026-48815
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "sigstore 4.1.0 -> 4.1.1 — npm-bundled in the base node image; base-image bump (#601)"
+
+  # Transitive npm deps (overrides banned by repo policy); lift on parent release.
+  - id: CVE-2026-48068
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "@grpc/grpc-js 1.14.3 -> 1.14.4, transitive; lift on parent release (#601)"
+  - id: CVE-2026-48069
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "@grpc/grpc-js 1.14.3 -> 1.14.4, transitive; lift on parent release (#601)"
+  - id: CVE-2026-59892
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "@opentelemetry/propagator-jaeger 2.7.1 -> 2.9.0, transitive via sdk-node (#601)"
+  - id: CVE-2026-13149
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "brace-expansion transitive/npm-bundled DoS; lift on parent release (#601)"
+  - id: CVE-2026-14257
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "brace-expansion transitive/npm-bundled DoS; lift on parent release (#601)"
+  - id: CVE-2026-12143
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "form-data transitive CRLF; lift on parent release (#601)"
+  - id: CVE-2026-5079
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "multer 2.1.1 -> 2.2.0 transitive DoS; lift on parent release (#601)"
+  - id: CVE-2026-45623
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "postcss transitive path traversal / DoS; lift on parent release (#601)"
+  - id: GHSA-r28c-9q8g-f849
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "postcss transitive sourceMappingURL path traversal; lift on parent release (#601)"
+  - id: CVE-2026-48712
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "protobufjs transitive recursion DoS; lift on parent release (#601)"
+  - id: GHSA-f88m-g3jw-g9cj
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "sharp 0.34.5 -> 0.35.0 transitive (libvips); lift on parent release (#601)"
+  - id: CVE-2026-12151
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "undici 6.x transitive DoS (direct undici already 8.7); lift on parent release (#601)"
+  - id: CVE-2026-48779
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "ws 8.20.1 -> 8.21.0 transitive DoS; lift on parent release (#601)"
+  # protobufjs 8.0.1: pinned exactly by @opentelemetry/otlp-transformer (overrides
+  # banned). Used only to serialize our own telemetry; no attacker-controlled
+  # decoding. Fixed in 8.0.2. Tracked in bayes-platform#601.
+  - id: CVE-2026-44289
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "protobufjs 8.0.1, pinned by @opentelemetry/otlp-transformer; telemetry-only, not reachable; fix 8.0.2 (#601)"
+  - id: CVE-2026-44290
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "protobufjs 8.0.1, pinned by @opentelemetry/otlp-transformer; telemetry-only, not reachable; fix 8.0.2 (#601)"
+  - id: CVE-2026-44291
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "protobufjs 8.0.1, pinned by @opentelemetry/otlp-transformer; telemetry-only, not reachable; fix 8.0.2 (#601)"
+  - id: CVE-2026-44293
+    expired_at: 2026-09-05T00:00:00Z
+    statement: "protobufjs 8.0.1, pinned by @opentelemetry/otlp-transformer; telemetry-only, not reachable; fix 8.0.2 (#601)"
