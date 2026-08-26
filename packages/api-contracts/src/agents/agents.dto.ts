@@ -44,11 +44,18 @@ const agentSubAgentToolNameSchema = z
     message: "Tool name can only contain letters, numbers, underscores, and hyphens",
   })
 
+// "relay" (default): the parent proxies every exchange with the sub-agent via a tool call.
+// "handoff": once triggered, the end user talks directly to the sub-agent (its own real
+// multi-turn session) until it hands back control, instead of the parent relaying each turn.
+export const agentSubAgentModeSchema = z.enum(["relay", "handoff"])
+export type AgentSubAgentMode = z.infer<typeof agentSubAgentModeSchema>
+
 const replaceAgentSubAgentSchema = z.object({
   childAgentId: z.string().uuid(),
   toolName: agentSubAgentToolNameSchema,
   description: z.string().trim().max(2000).default(""),
   enabled: z.boolean(),
+  mode: agentSubAgentModeSchema.default("relay"),
 })
 
 export const replaceAgentSubAgentsSchema = z.object({
@@ -62,6 +69,7 @@ export const agentSubAgentSchema = z.object({
   toolName: z.string(),
   description: z.string(),
   enabled: z.boolean(),
+  mode: agentSubAgentModeSchema,
   childAgent: z
     .object({
       id: z.string().uuid(),

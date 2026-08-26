@@ -36,5 +36,6 @@ export const agentSubAgentFactory = AgentSubAgentFactory.define(({ params, trans
     toolName: params.toolName ?? `ask_${transientParams.childAgent.name}`,
     description: params.description ?? `if necessary, call ask_${transientParams.childAgent.name}`,
     enabled: params.enabled ?? true,
+    mode: params.mode ?? "relay",
   } satisfies AgentSubAgent
 })
