@@ -343,12 +343,19 @@ export class ConversationAgentSessionsService {
       connectScope,
       agentId: session.agentId,
     })
-    const requiredFields =
-      (agentSettings.outputJsonSchema as { required?: string[] } | undefined)?.required ?? []
-    if (requiredFields.length === 0) return
+    const schema = agentSettings.outputJsonSchema as
+      | { required?: string[]; properties?: Record<string, unknown> }
+      | undefined
+    // Most real-world forms declare no `required` list at all (fields are gathered as the
+    // conversation allows, not hard-mandated) — fall back to every declared property, since
+    // that is what "the form is done" means when the author never opted into a stricter gate.
+    const fieldsToCheck = schema?.required?.length
+      ? schema.required
+      : Object.keys(schema?.properties ?? {})
+    if (fieldsToCheck.length === 0) return
 
     const result = session.result ?? {}
-    const isComplete = requiredFields.every(
+    const isComplete = fieldsToCheck.every(
       (field) => result[field] !== undefined && result[field] !== null,
     )
     if (!isComplete) return
