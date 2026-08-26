@@ -11,6 +11,12 @@ const LEAKED_PSEUDO_CALL =
 const LEAKED_FUNCTION_CALL =
   "<function:default_api:mandatory_tool{categoryNames:[test],suggestedTitle:null}"
 
+// Leaks captured from a self-hosted Gemma checkpoint served through vLLM —
+// a structurally different family, with no enclosing `<...>` at all.
+const LEAKED_BARE_URI_CALL =
+  "://fillForm{formFields:{antecedents_neurologiques:AVC,motif_consultation:vertiges,sexe:null,type_utilisateur:Patient adulte}}"
+const LEAKED_BARE_CALL_NO_ARGS = "call:concludeHandoff{}"
+
 describe("ThoughtTokensHelper - hallucinated tool-call XML", () => {
   it("removes a pseudo-call tag from a complete text", () => {
     const text = `C'est noté, tu habites en France !\n\n${LEAKED_PSEUDO_CALL}`
