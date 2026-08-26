@@ -1,12 +1,16 @@
-import { ToolName } from "@caseai-connect/api-contracts"
 import type { StreamEvent, StreamEventPayload } from "@caseai-connect/api-contracts"
+import { ToolName } from "@caseai-connect/api-contracts"
 import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm/repository/Repository"
 import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type { LLMConfig, LLMMetadata, LLMProvider } from "@/common/interfaces/llm-provider.interface"
+import type {
+  LLMConfig,
+  LLMMetadata,
+  LLMProvider,
+} from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
@@ -462,11 +466,13 @@ export class StreamingService extends ServiceWithLLM {
           "nothing else.",
       }
       let classifierOutput = ""
-      for await (const chunk of this.getProviderForModel(classifierConfig.model).streamChatResponse({
-        messages: [{ role: "user", content: fullContent }],
-        config: classifierConfig,
-        metadata,
-      })) {
+      for await (const chunk of this.getProviderForModel(classifierConfig.model).streamChatResponse(
+        {
+          messages: [{ role: "user", content: fullContent }],
+          config: classifierConfig,
+          metadata,
+        },
+      )) {
         classifierOutput += chunk
       }
       if (!classifierOutput.trim().toUpperCase().startsWith("CONCLUDED")) return
