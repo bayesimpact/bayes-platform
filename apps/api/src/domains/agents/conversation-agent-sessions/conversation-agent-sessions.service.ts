@@ -1,6 +1,6 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import { IsNull, type Repository } from "typeorm"
+import { In, IsNull, type Repository } from "typeorm"
 import { v4 } from "uuid"
 
 import { ConnectRepository } from "@/common/entities/connect-repository"
@@ -54,6 +54,13 @@ export class ConversationAgentSessionsService {
     this.conversationAgentSessionCategoryRepository = conversationAgentSessionCategoryRepository
   }
 
+  /**
+   * Lists a session's messages, merged in chronological order with the messages of any
+   * sub-session it has spawned (see findOrCreateSubSession). A relay-mode sub-agent's
+   * one-shot completions never get their own AgentMessage rows, so this only actually pulls
+   * in extra messages for a handoff sub-agent's own real conversation turns — the merge is
+   * what makes a handoff read as one continuous conversation in the Studio chat view.
+   */
   async listMessagesForSession({
     agentSessionId,
     connectScope,
@@ -61,12 +68,34 @@ export class ConversationAgentSessionsService {
     agentSessionId: string
     connectScope: RequiredConnectScope
   }): Promise<AgentMessage[]> {
+    const subSessionIds = await this.listSubSessionIds({
+      connectScope,
+      parentSessionId: agentSessionId,
+    })
+
     return this.agentMessageConnectRepository.find(connectScope, {
-      where: { sessionId: agentSessionId },
+      where: { sessionId: In([agentSessionId, ...subSessionIds]) },
       order: { createdAt: "ASC" },
       // Joined so the DTO can report the revision that produced each message.
       relations: { agentSettings: true },
     })
+  }
+
+  /**
+   * Ids of every sub-session spawned from a parent session, used to fold their message
+   * threads into the parent's transcript in {@link listMessagesForSession}.
+   */
+  private async listSubSessionIds({
+    connectScope,
+    parentSessionId,
+  }: {
+    connectScope: RequiredConnectScope
+    parentSessionId: string
+  }): Promise<string[]> {
+    const subSessions = await this.conversationAgentSessionConnectRepository.find(connectScope, {
+      where: { parentSessionId },
+    })
+    return subSessions.map((subSession) => subSession.id)
   }
 
   async getMessageById({
