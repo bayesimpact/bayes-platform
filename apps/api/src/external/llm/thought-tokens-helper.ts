@@ -79,7 +79,11 @@ export type LeakedToolCall = {
   raw: string
 }
 
-function addLeakedCall(byName: Map<string, LeakedToolCall>, name: string | undefined, raw: string): void {
+function addLeakedCall(
+  byName: Map<string, LeakedToolCall>,
+  name: string | undefined,
+  raw: string,
+): void {
   if (name && name !== "default_api" && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
     if (!byName.has(name)) byName.set(name, { name, raw })
   }
