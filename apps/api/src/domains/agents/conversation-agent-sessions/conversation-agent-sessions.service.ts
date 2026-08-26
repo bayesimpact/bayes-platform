@@ -34,9 +34,6 @@ export class ConversationAgentSessionsService {
     agentSettingsRepository: Repository<AgentSettings>,
     @InjectRepository(ConversationAgentSessionCategory)
     conversationAgentSessionCategoryRepository: Repository<ConversationAgentSessionCategory>,
-
-    @Inject(AgentSettingsService)
-    private readonly agentSettingsService: AgentSettingsService,
   ) {
     this.conversationAgentSessionConnectRepository = new ConnectRepository(
       conversationAgentSessionRepository,
