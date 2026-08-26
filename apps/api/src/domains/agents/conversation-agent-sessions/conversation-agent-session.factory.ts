@@ -60,6 +60,7 @@ export const conversationAgentSessionFactory = ConversationAgentSessionFactory.d
       title: params.title ?? null,
       result: params.result ?? null,
       parentSessionId: params.parentSessionId ?? null,
+      activeAgentId: params.activeAgentId ?? null,
       isSubSession: (params.parentSessionId ?? null) !== null,
       expiresAt: params.expiresAt ?? defaultExpiresAt,
       createdAt: params.createdAt || now,
