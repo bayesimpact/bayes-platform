@@ -1,3 +1,4 @@
+import type { AgentSubAgentMode } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Empty,
@@ -16,7 +17,6 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@caseai-connect/ui/shad/item"
-import type { AgentSubAgentMode } from "@caseai-connect/api-contracts"
 import { BotIcon, PlusIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { selectAgentSettingsDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"

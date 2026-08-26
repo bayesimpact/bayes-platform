@@ -100,13 +100,18 @@ export function SubAgentItem({
           <FieldLabel htmlFor={`sub-agent-mode-${subAgent.id}`}>
             {t("agentSettings:orchestration.mode")}
           </FieldLabel>
-          <Select value={subAgent.mode} onValueChange={(mode) => onUpdate({ mode: mode as typeof subAgent.mode })}>
+          <Select
+            value={subAgent.mode}
+            onValueChange={(mode) => onUpdate({ mode: mode as typeof subAgent.mode })}
+          >
             <SelectTrigger id={`sub-agent-mode-${subAgent.id}`}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="relay">{t("agentSettings:orchestration.modeRelay")}</SelectItem>
-              <SelectItem value="handoff">{t("agentSettings:orchestration.modeHandoff")}</SelectItem>
+              <SelectItem value="handoff">
+                {t("agentSettings:orchestration.modeHandoff")}
+              </SelectItem>
             </SelectContent>
           </Select>
         </Field>
