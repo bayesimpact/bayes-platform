@@ -89,6 +89,38 @@ describe("ThoughtTokensHelper - hallucinated tool-call XML", () => {
     expect(out).toContain("Voici ma réponse complète")
   })
 
+  it("removes the bare `://toolName{...}` leak with a nested argument object", () => {
+    const text = `D'accord, merci pour ces précisions.\n\n${LEAKED_BARE_URI_CALL}`
+    const cleaned = ThoughtTokensHelper.removeThoughtTokens(text)
+
+    expect(cleaned).not.toContain("fillForm")
+    expect(cleaned).not.toContain("://")
+    expect(cleaned).toContain("D'accord, merci pour ces précisions.")
+  })
+
+  it("removes the bare `call:toolName{}` leak with no arguments", () => {
+    const text = `L'entretien est maintenant terminé.\n\n${LEAKED_BARE_CALL_NO_ARGS}`
+    const cleaned = ThoughtTokensHelper.removeThoughtTokens(text)
+
+    expect(cleaned).not.toContain("concludeHandoff")
+    expect(cleaned).not.toContain("call:")
+    expect(cleaned).toContain("L'entretien est maintenant terminé.")
+  })
+
+  it("strips the bare `://toolName{...}` leak even when split across stream deltas", () => {
+    const stripper = ThoughtTokensHelper.createStripper()
+    const full = `Voici ma réponse complète pour toi, avec assez de texte pour dépasser la retenue du stripper.\n\n${LEAKED_BARE_URI_CALL}`
+    let out = ""
+    for (let i = 0; i < full.length; i += 7) {
+      out += stripper.feed(full.slice(i, i + 7))
+    }
+    out += stripper.flush()
+
+    expect(out).not.toContain("fillForm")
+    expect(out).not.toContain("://")
+    expect(out).toContain("Voici ma réponse complète")
+  })
+
   it("does not stall the stream on a never-closed lookalike", () => {
     const stripper = ThoughtTokensHelper.createStripper()
     const full = `Début. <call:jamais fermé ${"x".repeat(700)} fin du texte.`
