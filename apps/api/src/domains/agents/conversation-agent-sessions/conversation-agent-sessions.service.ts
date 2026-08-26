@@ -315,50 +315,6 @@ export class ConversationAgentSessionsService {
     await this.conversationAgentSessionConnectRepository.saveOne(session)
   }
 
-  /**
-   * Handback trigger for a "handoff" sub-agent (see AgentSubAgentMode): once every
-   * required field of its fillForm schema is present in the accumulated `result`, control
-   * silently returns to the parent session (its activeAgentId is cleared) so the parent
-   * agent regains control on the user's next turn. No-op for sessions that are not a
-   * sub-session, or whose agent has no required fillForm fields.
-   */
-  private async handBackToParentIfFormComplete({
-    connectScope,
-    session,
-  }: {
-    connectScope: RequiredConnectScope
-    session: ConversationAgentSession
-  }): Promise<void> {
-    if (!session.parentSessionId) return
-
-    const agentSettings = await this.agentSettingsService.getLast({
-      connectScope,
-      agentId: session.agentId,
-    })
-    const schema = agentSettings.outputJsonSchema as
-      | { required?: string[]; properties?: Record<string, unknown> }
-      | undefined
-    // Most real-world forms declare no `required` list at all (fields are gathered as the
-    // conversation allows, not hard-mandated) — fall back to every declared property, since
-    // that is what "the form is done" means when the author never opted into a stricter gate.
-    const fieldsToCheck = schema?.required?.length
-      ? schema.required
-      : Object.keys(schema?.properties ?? {})
-    if (fieldsToCheck.length === 0) return
-
-    const result = session.result ?? {}
-    const isComplete = fieldsToCheck.every(
-      (field) => result[field] !== undefined && result[field] !== null,
-    )
-    if (!isComplete) return
-
-    await this.clearActiveAgentIfCurrent({
-      connectScope,
-      sessionId: session.parentSessionId,
-      expectedActiveAgentId: session.agentId,
-    })
-  }
-
   async getCurrentCategoryNamesForSession({
     connectScope,
     sessionId,
