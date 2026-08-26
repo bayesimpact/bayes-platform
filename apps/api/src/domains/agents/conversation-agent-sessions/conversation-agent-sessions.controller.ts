@@ -149,6 +149,7 @@ function toDto(agentSessionType: BaseAgentSessionType) {
       updatedAt: entity.updatedAt.getTime(),
       traceUrl,
       result: entity.result ?? undefined,
+      activeAgentId: entity.activeAgentId ?? undefined,
     }
   }
 }

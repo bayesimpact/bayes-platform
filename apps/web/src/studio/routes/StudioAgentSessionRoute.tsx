@@ -1,6 +1,7 @@
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
+import { Badge } from "@caseai-connect/ui/shad/badge"
 import { GridHeader } from "@/common/components/grid/Grid"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import { selectConversationSubSessionsBySessionId } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.selectors"
@@ -16,7 +17,7 @@ import {
   selectAgentSettingsHistoryDataByAgentId,
   selectPlaygroundRevision,
 } from "@/common/features/agents/agent-settings/agent-settings.selectors"
-import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
+import { selectAgentsData, selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
 import { DeleteAgentSessionButton } from "@/common/features/agents/components/DeleteAgentSessionButton"
 import { useGetAgentRoute } from "@/common/hooks/use-get-path"
 import { useValue } from "@/common/hooks/use-value"
@@ -29,6 +30,10 @@ import { AgentSettingsVersionSelect } from "../features/agents/agent-settings/co
 type AgentSession = ConversationAgentSession
 export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentSession }) {
   const agent = useValue(selectCurrentAgentData)
+  const allAgents = useValue(selectAgentsData)
+  const activeHandoffAgent = agentSession.activeAgentId
+    ? allAgents.find((candidate) => candidate.id === agentSession.activeAgentId)
+    : undefined
   const publishedSettings = useValue(selectAgentSettingsDataByAgentId({ agentId: agent.id }))
   const messages = useValue(selectCurrentMessagesData)
   const selectSubSessions = useMemo(
@@ -92,6 +97,15 @@ export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentS
                   versions={versions}
                   tooltipKey="headerRevisionTooltip"
                 />
+              </>
+            )}
+            {activeHandoffAgent && (
+              <>
+                {" "}
+                •
+                <Badge variant="secondary">
+                  {t("agentSettings:orchestration.talkingTo", { name: activeHandoffAgent.name })}
+                </Badge>
               </>
             )}
           </div>

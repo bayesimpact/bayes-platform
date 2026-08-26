@@ -178,7 +178,8 @@
       "defaultDescription": "Transmettre les demandes spécialisées à {{name}}.",
       "mode": "Mode",
       "modeRelay": "Relais",
-      "modeHandoff": "Transfert direct"
+      "modeHandoff": "Transfert direct",
+      "talkingTo": "En discussion avec {{name}}"
     },
     "embed": {
       "loading": "Chargement de la configuration d'intégration…",

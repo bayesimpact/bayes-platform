@@ -12,6 +12,9 @@ export type ConversationAgentSessionDto = {
   traceUrl?: string
   // Form state accumulated by the fillForm tool, when the agent has it enabled.
   result?: Record<string, unknown>
+  // Set while a handoff sub-agent is directly in control of this session's next turn (see
+  // AgentSubAgentMode). Undefined means the session's own root agent is in control.
+  activeAgentId?: string
 }
 
 /**
