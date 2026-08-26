@@ -153,6 +153,12 @@ export class ThoughtTokensHelper {
         if (pseudoOpen !== -1 && pending.length - pseudoOpen < PSEUDO_TOOL_CALL_MAX_LEN) {
           safeUntil = Math.min(safeUntil, pseudoOpen)
         }
+        // Same holdback for the bare (no `<...>`) leak family — it has no
+        // `<` to anchor on, so it needs its own open-marker search.
+        const bareOpen = pending.search(BARE_TOOL_CALL_OPEN_RE)
+        if (bareOpen !== -1 && pending.length - bareOpen < PSEUDO_TOOL_CALL_MAX_LEN) {
+          safeUntil = Math.min(safeUntil, bareOpen)
+        }
         const ltBeforeCut = pending.lastIndexOf("<", safeUntil - 1)
         if (ltBeforeCut !== -1 && safeUntil - ltBeforeCut < MAX_MARKER_LEN) {
           safeUntil = ltBeforeCut
