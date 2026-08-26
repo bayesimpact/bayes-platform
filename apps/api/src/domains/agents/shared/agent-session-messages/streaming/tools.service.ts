@@ -22,6 +22,7 @@ import type { McpConversationContext } from "@/external/mcp/mcp-request-headers"
 import { generateMasterPrompt } from "./master-promts/generate-master-prompt"
 import type { AgentSessionScope, OnExecute } from "./streaming-session.types"
 import { type BuiltTools, buildSubAgentTools } from "./sub-agent-tools"
+import { concludeHandoffTool } from "./tools/conclude-handoff.tool"
 import { fillFormTool } from "./tools/fill-form.tool"
 import { lookupKnowledgeBaseTool } from "./tools/lookup-knowledge-base.tool"
 import {
@@ -389,6 +390,12 @@ export class ToolsService extends ServiceWithLLM {
     // streaming sessions (proxy, no DB row) can't accumulate form state.
     const hasFillFormTool =
       agentSettings.fillFormEnabled && agentSettings.outputJsonSchema != null && "result" in session
+    // Handoff-mode sub-agent turn only (see AgentSubAgentMode) — a session with a
+    // parentSessionId only ever reaches this top-level tool-building path when it is
+    // the active handoff child's own session (see StreamingController.resolveActiveAgentScope);
+    // a relay-mode sub-agent never runs through here at all.
+    const parentSessionId = "parentSessionId" in session ? session.parentSessionId : null
+    const hasConcludeHandoffTool = hasFillFormTool && parentSessionId != null
     const [hasSourcesTool, { tools: subAgentTools, toolDescriptions: subAgentToolDescriptions }] =
       await Promise.all([
         // Check if the agent has the sources tool enabled
@@ -497,6 +504,18 @@ export class ToolsService extends ServiceWithLLM {
               agentSessionScope,
               sessionResultUpdater:
                 sessionState?.resultUpdater ?? this.conversationAgentSessionsService,
+              onExecute,
+            }),
+          }
+        : {}),
+
+      ...(hasConcludeHandoffTool && parentSessionId
+        ? {
+            [ToolName.ConcludeHandoff]: concludeHandoffTool({
+              connectScope,
+              parentSessionId,
+              childAgentId: agent.id,
+              handoffController: this.conversationAgentSessionsService,
               onExecute,
             }),
           }

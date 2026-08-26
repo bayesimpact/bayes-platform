@@ -15,6 +15,12 @@ export enum ToolName {
    * entries so persisted tool calls and the UI keep their historical names.
    */
   MandatoryTool = "mandatory_tool",
+  /**
+   * Handoff-mode sub-agent only: the sub-agent calls this once, when it judges its
+   * delegated task complete, to hand control back to the parent agent. See
+   * AgentSubAgentMode ("handoff") and ConversationAgentSessionsService.clearActiveAgentIfCurrent.
+   */
+  ConcludeHandoff = "concludeHandoff",
 }
 
 export type AgentSessionToolName = ToolName | (string & {})
