@@ -59,4 +59,65 @@ describe("listMessagesForSession", () => {
     expect(messages[1]?.role).toBe("assistant")
     expect(messages[1]?.content).toBe("Hi!")
   })
+
+  it("merges a handoff sub-session's messages into the parent transcript", async () => {
+    const {
+      service,
+      testAgentSettings,
+      testUser,
+      testOrganization,
+      testProject,
+      agentMessageRepository,
+    } = getTestContext()
+    const connectScope: RequiredConnectScope = {
+      organizationId: testOrganization.id,
+      projectId: testProject.id,
+    }
+
+    const parentSession = await service.createSession({
+      connectScope,
+      agentSettingsId: testAgentSettings.id,
+      userId: testUser.id,
+      type: "playground",
+    })
+    await createChitChatConversation(
+      testOrganization,
+      testProject,
+      parentSession,
+      testAgentSettings,
+      { agentMessageRepository },
+    )
+
+    const childSession = await service.findOrCreateSubSession({
+      connectScope,
+      agentId: testAgentSettings.agentId,
+      userId: testUser.id,
+      parentSessionId: parentSession.id,
+      type: "playground",
+    })
+    await createChitChatConversation(
+      testOrganization,
+      testProject,
+      childSession,
+      testAgentSettings,
+      { agentMessageRepository },
+      {
+        userMessage: { content: "How is it going?" },
+        assistantMessage: { content: "All good!" },
+      },
+    )
+
+    const messages = await service.listMessagesForSession({
+      agentSessionId: parentSession.id,
+      connectScope,
+    })
+
+    expect(messages).toHaveLength(4)
+    expect(messages.map((message) => message.content)).toEqual([
+      "Hello",
+      "Hi!",
+      "How is it going?",
+      "All good!",
+    ])
+  })
 })

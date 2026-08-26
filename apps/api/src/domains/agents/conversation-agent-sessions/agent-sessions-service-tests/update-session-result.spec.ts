@@ -1,4 +1,6 @@
 import { afterAll } from "@jest/globals"
+import { agentFactory } from "@/domains/agents/agent.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { agentSessionControllerTestSetup } from "./test-setup"
 
@@ -83,5 +85,107 @@ describe("updateSessionResult", () => {
     })
 
     expect(result).toBeNull()
+  })
+
+  describe("handoff handback", () => {
+    const buildChildAgentAndSettings = async ({
+      testOrganization,
+      testProject,
+      agentRepository,
+      agentSettingsRepository,
+    }: ReturnType<typeof getTestContext>) => {
+      const childAgent = await agentRepository.save(
+        agentFactory
+          .transient({ organization: testOrganization, project: testProject })
+          .build({ name: `Child Agent ${Date.now()}`, type: "conversation" }),
+      )
+      await agentSettingsRepository.save(
+        agentSettingsFactory
+          .transient({ organization: testOrganization, project: testProject, agent: childAgent })
+          .build({
+            fillFormEnabled: true,
+            outputJsonSchema: {
+              type: "object",
+              required: ["symptom"],
+              properties: { symptom: { type: "string" } },
+            },
+          }),
+      )
+      return { childAgent }
+    }
+
+    it("clears the parent's active agent once the handoff child's required fields are all filled", async () => {
+      const context = getTestContext()
+      const { service, testAgentSettings, testOrganization, testProject, testUser } = context
+      const connectScope = { organizationId: testOrganization.id, projectId: testProject.id }
+      const { childAgent } = await buildChildAgentAndSettings(context)
+
+      const parentSession = await service.createSession({
+        connectScope,
+        agentSettingsId: testAgentSettings.id,
+        userId: testUser.id,
+        type: "playground",
+      })
+      const childSession = await service.findOrCreateSubSession({
+        connectScope,
+        agentId: childAgent.id,
+        userId: testUser.id,
+        parentSessionId: parentSession.id,
+        type: "playground",
+      })
+      await service.setActiveAgent({
+        connectScope,
+        sessionId: parentSession.id,
+        activeAgentId: childAgent.id,
+      })
+
+      await service.updateSessionResult({
+        connectScope,
+        sessionId: childSession.id,
+        input: { symptom: "dizziness" },
+      })
+
+      const parentAfter = await context.conversationAgentSessionRepository.findOne({
+        where: { id: parentSession.id },
+      })
+      expect(parentAfter?.activeAgentId).toBeNull()
+    })
+
+    it("keeps the parent's active agent set while required fields are still missing", async () => {
+      const context = getTestContext()
+      const { service, testAgentSettings, testOrganization, testProject, testUser } = context
+      const connectScope = { organizationId: testOrganization.id, projectId: testProject.id }
+      const { childAgent } = await buildChildAgentAndSettings(context)
+
+      const parentSession = await service.createSession({
+        connectScope,
+        agentSettingsId: testAgentSettings.id,
+        userId: testUser.id,
+        type: "playground",
+      })
+      const childSession = await service.findOrCreateSubSession({
+        connectScope,
+        agentId: childAgent.id,
+        userId: testUser.id,
+        parentSessionId: parentSession.id,
+        type: "playground",
+      })
+      await service.setActiveAgent({
+        connectScope,
+        sessionId: parentSession.id,
+        activeAgentId: childAgent.id,
+      })
+
+      await service.updateSessionResult({
+        connectScope,
+        sessionId: childSession.id,
+        input: { unrelatedField: "not the required one" },
+      })
+
+      const parentAfter = await context.conversationAgentSessionRepository.findOne({
+        where: { id: parentSession.id },
+      })
+      expect(parentAfter?.activeAgentId).toBe(childAgent.id)
+    })
   })
 })
