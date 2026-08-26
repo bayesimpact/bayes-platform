@@ -31,6 +31,8 @@ export class StreamingService extends ServiceWithLLM {
 
   constructor(
     private readonly agentLlmRequestService: AgentLlmRequestService,
+    @Inject(ConversationAgentSessionsService)
+    private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
 
     @InjectRepository(ConversationAgentSession)
     conversationAgentSessionRepository: Repository<ConversationAgentSession>,
