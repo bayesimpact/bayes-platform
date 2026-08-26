@@ -26,10 +26,12 @@ const PSEUDO_TOOL_CALL_OPEN_RE = /<\/?(?:call|function|default_api)[:\s][^>]*$/i
 // arguments are typically flat or an object with a single nested field).
 const BARE_TOOL_CALL_RE =
   /(?::\/\/|\bcall:|\bfunction:)[a-zA-Z_][a-zA-Z0-9_]*(?:\{(?:[^{}]|\{[^{}]*\})*\}|\([^()]*\))/gi
-// An opener of that family with no closing `}`/`)` yet (still streaming) —
-// including a still-open one level of nested `{...}`.
-const BARE_TOOL_CALL_OPEN_RE =
-  /(?::\/\/|\bcall:|\bfunction:)[a-zA-Z_][a-zA-Z0-9_]*(?:\((?:[^()])*|\{(?:[^{}]|\{[^{}]*\})*)?$/i
+// An opener of that family still in the buffer after stripPairedChannelMarkers
+// already removed every FULLY CLOSED match above — so whatever this finds is
+// guaranteed incomplete (mid-stream) or a stray marker that never got a call
+// after it. No need to also model a specific unclosed brace/paren shape
+// (nesting makes that ambiguous); holding either case back briefly is safe.
+const BARE_TOOL_CALL_OPEN_RE = /(?::\/\/|\bcall:|\bfunction:)[a-zA-Z_][a-zA-Z0-9_]*/i
 
 // Give up holding the stream back after this many buffered characters: a
 // legitimate `<call:`-looking text (vanishingly unlikely) must not stall the
