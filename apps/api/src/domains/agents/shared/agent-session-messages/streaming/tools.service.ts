@@ -1,6 +1,7 @@
 import { DocumentsRagMode, ToolName } from "@caseai-connect/api-contracts"
 import { Inject, Injectable, Logger } from "@nestjs/common"
 import type { ToolSet } from "ai"
+import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
