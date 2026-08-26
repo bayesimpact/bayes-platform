@@ -77,6 +77,12 @@ export type LeakedToolCall = {
   raw: string
 }
 
+function addLeakedCall(byName: Map<string, LeakedToolCall>, name: string | undefined, raw: string): void {
+  if (name && name !== "default_api" && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+    if (!byName.has(name)) byName.set(name, { name, raw })
+  }
+}
+
 export function findLeakedToolCalls(text: string): LeakedToolCall[] {
   const byName = new Map<string, LeakedToolCall>()
   // The leaked tag is malformed and comes in variants; the tool name is the
@@ -86,10 +92,14 @@ export function findLeakedToolCalls(text: string): LeakedToolCall[] {
     const raw = match[0]
     const opener = /<\/?(?:call|function|default_api)[:\s]([^>{(\s]+)/i.exec(raw)
     const segments = (opener?.[1] ?? "").split(":").filter(Boolean)
-    const name = segments.at(-1)
-    if (name && name !== "default_api" && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
-      if (!byName.has(name)) byName.set(name, { name, raw })
-    }
+    addLeakedCall(byName, segments.at(-1), raw)
+  }
+  // The bare (no `<...>`) family: the tool name is the identifier right
+  // after the `://`/`call:`/`function:` marker, glued to its `{...}`/`(...)`.
+  for (const match of text.matchAll(BARE_TOOL_CALL_RE)) {
+    const raw = match[0]
+    const opener = /(?::\/\/|\bcall:|\bfunction:)([a-zA-Z_][a-zA-Z0-9_]*)/i.exec(raw)
+    addLeakedCall(byName, opener?.[1], raw)
   }
   return [...byName.values()]
 }
