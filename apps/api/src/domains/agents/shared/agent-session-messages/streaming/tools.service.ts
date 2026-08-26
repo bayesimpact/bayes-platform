@@ -566,6 +566,61 @@ export class ToolsService extends ServiceWithLLM {
     }
   }
 
+  /**
+   * A handoff-mode sub-agent's conversation happens directly between it and
+   * the end user (see AgentSubAgentMode) — the orchestrating agent's own turn
+   * never otherwise sees what it produced. This surfaces every finished
+   * handoff child's collected data (its fillForm `result`) in the master
+   * prompt so the orchestrator can decide what to do next, purely from facts
+   * — no assumption about any particular prompt's own status vocabulary.
+   * Recomputed on every turn (not a one-off event) so it stays available for
+   * as long as the orchestrator's own conversation continues. Never persisted
+   * as a message: invisible to the end user, visible only to the model.
+   */
+  private async buildHandoffCompletionEpilogue({
+    connectScope,
+    agent,
+    session,
+  }: {
+    connectScope: RequiredConnectScope
+    agent: Agent
+    session: AgentSessionScope["session"]
+  }): Promise<string | undefined> {
+    if (agent.type !== "conversation") return undefined
+
+    const subAgents = await this.agentSubAgentsService.listSubAgents({ connectScope, parentAgent: agent })
+    const handoffSubAgents = subAgents.filter((subAgent) => subAgent.mode === "handoff")
+    if (handoffSubAgents.length === 0) return undefined
+
+    const subSessionResults = await this.conversationAgentSessionsService.listSubSessionResults({
+      connectScope,
+      parentSessionId: session.id,
+    })
+    const activeAgentId = "activeAgentId" in session ? session.activeAgentId : null
+
+    const completedSections = handoffSubAgents
+      .map((subAgent) => {
+        // Still in progress this turn: the user is talking to it directly right now.
+        if (subAgent.childAgentId === activeAgentId) return undefined
+        const subSessionResult = subSessionResults.find(
+          (candidate) => candidate.agentId === subAgent.childAgentId,
+        )
+        if (!subSessionResult?.result || Object.keys(subSessionResult.result).length === 0) {
+          return undefined
+        }
+        return `### ${subAgent.childAgent.name}\n${JSON.stringify(subSessionResult.result, null, 2)}`
+      })
+      .filter((section): section is string => Boolean(section))
+
+    if (completedSections.length === 0) return undefined
+
+    return [
+      "## Completed sub-agent tasks",
+      "The following sub-agents have already finished their delegated work in this session — do not call them again for the same task. Use the data they collected to decide what happens next.",
+      ...completedSections,
+    ].join("\n\n")
+  }
+
   private addToolsWithoutCollisions({
     source,
     sourceLabel,
