@@ -1,3 +1,4 @@
+import type { AgentSubAgentMode } from "@caseai-connect/api-contracts"
 import { Column, Entity, JoinColumn, ManyToOne, Unique } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
 import { Agent } from "../agent.entity"
@@ -20,6 +21,12 @@ export class AgentSubAgent extends Base4AllEntity {
 
   @Column({ type: "boolean", default: true })
   enabled!: boolean
+
+  // "relay" (default): the parent proxies every exchange via a tool call. "handoff": the end
+  // user talks directly to this sub-agent's own session until it hands back control. See
+  // AgentSubAgentMode in api-contracts.
+  @Column({ type: "varchar", default: "relay" })
+  mode!: AgentSubAgentMode
 
   @ManyToOne(
     () => Agent,
