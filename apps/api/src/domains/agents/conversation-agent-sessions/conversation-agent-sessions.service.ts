@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common"
+import { Inject, Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { IsNull, type Repository } from "typeorm"
 import { v4 } from "uuid"
@@ -6,6 +6,7 @@ import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 import type { AgentSessionCategory } from "../session-categories/agent-session-category.entity"
 import { AgentMessage } from "../shared/agent-session-messages/agent-message.entity"
@@ -33,6 +34,9 @@ export class ConversationAgentSessionsService {
     agentSettingsRepository: Repository<AgentSettings>,
     @InjectRepository(ConversationAgentSessionCategory)
     conversationAgentSessionCategoryRepository: Repository<ConversationAgentSessionCategory>,
+
+    @Inject(AgentSettingsService)
+    private readonly agentSettingsService: AgentSettingsService,
   ) {
     this.conversationAgentSessionConnectRepository = new ConnectRepository(
       conversationAgentSessionRepository,
@@ -239,7 +243,92 @@ export class ConversationAgentSessionsService {
 
     const updatedSession = await this.conversationAgentSessionConnectRepository.saveOne(session)
 
+    if (updatedSession.parentSessionId) {
+      await this.handBackToParentIfFormComplete({ connectScope, session: updatedSession })
+    }
+
     return { result: updatedSession.result }
+  }
+
+  /**
+   * Sets which agent currently handles a session's turns (a handoff sub-agent taking
+   * control). No-op if the session does not exist.
+   */
+  async setActiveAgent({
+    connectScope,
+    sessionId,
+    activeAgentId,
+  }: {
+    connectScope: RequiredConnectScope
+    sessionId: string
+    activeAgentId: string
+  }): Promise<void> {
+    const session = await this.conversationAgentSessionConnectRepository.getOneById(
+      connectScope,
+      sessionId,
+    )
+    if (!session) return
+    session.activeAgentId = activeAgentId
+    await this.conversationAgentSessionConnectRepository.saveOne(session)
+  }
+
+  /**
+   * Clears a session's active agent, but only if it still matches the expected agent —
+   * guards against clobbering a more recent handoff decided in the meantime.
+   */
+  async clearActiveAgentIfCurrent({
+    connectScope,
+    sessionId,
+    expectedActiveAgentId,
+  }: {
+    connectScope: RequiredConnectScope
+    sessionId: string
+    expectedActiveAgentId: string
+  }): Promise<void> {
+    const session = await this.conversationAgentSessionConnectRepository.getOneById(
+      connectScope,
+      sessionId,
+    )
+    if (!session || session.activeAgentId !== expectedActiveAgentId) return
+    session.activeAgentId = null
+    await this.conversationAgentSessionConnectRepository.saveOne(session)
+  }
+
+  /**
+   * Handback trigger for a "handoff" sub-agent (see AgentSubAgentMode): once every
+   * required field of its fillForm schema is present in the accumulated `result`, control
+   * silently returns to the parent session (its activeAgentId is cleared) so the parent
+   * agent regains control on the user's next turn. No-op for sessions that are not a
+   * sub-session, or whose agent has no required fillForm fields.
+   */
+  private async handBackToParentIfFormComplete({
+    connectScope,
+    session,
+  }: {
+    connectScope: RequiredConnectScope
+    session: ConversationAgentSession
+  }): Promise<void> {
+    if (!session.parentSessionId) return
+
+    const agentSettings = await this.agentSettingsService.getLast({
+      connectScope,
+      agentId: session.agentId,
+    })
+    const requiredFields =
+      (agentSettings.outputJsonSchema as { required?: string[] } | undefined)?.required ?? []
+    if (requiredFields.length === 0) return
+
+    const result = session.result ?? {}
+    const isComplete = requiredFields.every(
+      (field) => result[field] !== undefined && result[field] !== null,
+    )
+    if (!isComplete) return
+
+    await this.clearActiveAgentIfCurrent({
+      connectScope,
+      sessionId: session.parentSessionId,
+      expectedActiveAgentId: session.agentId,
+    })
   }
 
   async getCurrentCategoryNamesForSession({

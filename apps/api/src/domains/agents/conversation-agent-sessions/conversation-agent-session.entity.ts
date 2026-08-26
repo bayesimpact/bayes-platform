@@ -36,6 +36,14 @@ export class ConversationAgentSession extends ConnectEntityBase {
   @Column({ type: "uuid", name: "parent_session_id", nullable: true })
   parentSessionId!: string | null
 
+  // When set, this session's next turn is handled by this agent instead of its own
+  // `agentId` (a "handoff" sub-agent link is currently in control). Null means the
+  // session's own root agent is in control, which is the state for every session today.
+  // Cleared automatically once the active agent's delegated task is complete (see
+  // ConversationAgentSessionsService.updateSessionResult).
+  @Column({ type: "uuid", name: "active_agent_id", nullable: true })
+  activeAgentId!: string | null
+
   // True when this conversation session was created on behalf of a parent agent
   // that delegates to this conversation agent as a sub-agent. Derived from
   // parentSessionId so there is no separate column to keep in sync.
