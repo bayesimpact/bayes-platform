@@ -175,7 +175,10 @@
       "toolName": "Nom de l'outil",
       "toolNamePlaceholder": "ask_specialist_agent",
       "description": "Description de l'outil",
-      "defaultDescription": "Transmettre les demandes spécialisées à {{name}}."
+      "defaultDescription": "Transmettre les demandes spécialisées à {{name}}.",
+      "mode": "Mode",
+      "modeRelay": "Relais",
+      "modeHandoff": "Transfert direct"
     },
     "embed": {
       "loading": "Chargement de la configuration d'intégration…",

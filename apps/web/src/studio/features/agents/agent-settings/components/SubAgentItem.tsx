@@ -10,6 +10,13 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@caseai-connect/ui/shad/item"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@caseai-connect/ui/shad/select"
 import { Switch } from "@caseai-connect/ui/shad/switch"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
@@ -88,6 +95,20 @@ export function SubAgentItem({
             placeholder={t("agentSettings:orchestration.toolNamePlaceholder")}
             onChange={(event) => onUpdate({ toolName: event.target.value })}
           />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor={`sub-agent-mode-${subAgent.id}`}>
+            {t("agentSettings:orchestration.mode")}
+          </FieldLabel>
+          <Select value={subAgent.mode} onValueChange={(mode) => onUpdate({ mode: mode as typeof subAgent.mode })}>
+            <SelectTrigger id={`sub-agent-mode-${subAgent.id}`}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="relay">{t("agentSettings:orchestration.modeRelay")}</SelectItem>
+              <SelectItem value="handoff">{t("agentSettings:orchestration.modeHandoff")}</SelectItem>
+            </SelectContent>
+          </Select>
         </Field>
         <Field>
           <FieldLabel htmlFor={`sub-agent-description-${subAgent.id}`}>

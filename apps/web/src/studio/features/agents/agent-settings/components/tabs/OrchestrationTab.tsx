@@ -15,6 +15,7 @@ function toSubAgentFormValue(subAgent: AgentSubAgent): AgentSubAgentFormValue {
     toolName: subAgent.toolName,
     description: subAgent.description,
     enabled: subAgent.enabled,
+    mode: subAgent.mode,
   }
 }
 
@@ -44,6 +45,7 @@ export function OrchestrationTab({
           toolName: subAgent.toolName,
           description: subAgent.description,
           enabled: subAgent.enabled,
+          mode: subAgent.mode,
         })),
       }),
     ).unwrap()

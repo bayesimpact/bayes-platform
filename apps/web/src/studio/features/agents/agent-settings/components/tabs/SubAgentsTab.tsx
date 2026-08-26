@@ -16,6 +16,7 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@caseai-connect/ui/shad/item"
+import type { AgentSubAgentMode } from "@caseai-connect/api-contracts"
 import { BotIcon, PlusIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { selectAgentSettingsDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"
@@ -30,6 +31,7 @@ export type AgentSubAgentFormValue = {
   toolName: string
   description: string
   enabled: boolean
+  mode: AgentSubAgentMode
 }
 
 export function SubAgentsTab({
@@ -72,6 +74,7 @@ export function SubAgentsTab({
         toolName: buildDefaultToolName(agent.name),
         description: t("agentSettings:orchestration.defaultDescription", { name: agent.name }),
         enabled: true,
+        mode: "relay",
       },
     ])
   }

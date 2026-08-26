@@ -175,7 +175,10 @@
       "toolName": "Tool name",
       "toolNamePlaceholder": "ask_specialist_agent",
       "description": "Tool description",
-      "defaultDescription": "Route specialized requests to {{name}}."
+      "defaultDescription": "Route specialized requests to {{name}}.",
+      "mode": "Mode",
+      "modeRelay": "Relay",
+      "modeHandoff": "Handoff"
     },
     "embed": {
       "loading": "Loading embed configuration…",
