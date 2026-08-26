@@ -396,7 +396,7 @@ export class ToolsService extends ServiceWithLLM {
     // a relay-mode sub-agent never runs through here at all.
     const parentSessionId = "parentSessionId" in session ? session.parentSessionId : null
     const hasConcludeHandoffTool = hasFillFormTool && parentSessionId != null
-    const [hasSourcesTool, { tools: subAgentTools, toolDescriptions: subAgentToolDescriptions }] =
+    const [hasSourcesTool, { tools: subAgentTools, toolDescriptions: subAgentToolDescriptions }, handoffCompletionEpilogue] =
       await Promise.all([
         // Check if the agent has the sources tool enabled
         this.projectsService.hasFeature({ connectScope, feature: "sources-tool" }),
@@ -416,6 +416,13 @@ export class ToolsService extends ServiceWithLLM {
               projectsService: this.projectsService,
             })
           : Promise.resolve({ tools: {}, toolDescriptions: {} }),
+
+        // An orchestrating agent's own turn never otherwise learns what its
+        // handoff-mode sub-agents produced (the end user talked to them
+        // directly) — surface it here so it can decide what happens next.
+        includeSubAgentTools
+          ? this.buildHandoffCompletionEpilogue({ connectScope, agent, session })
+          : Promise.resolve(undefined),
       ])
 
     // chunkIds only make sense when the agent can actually retrieve chunks:
