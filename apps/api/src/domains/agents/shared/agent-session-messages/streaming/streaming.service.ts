@@ -420,6 +420,74 @@ export class StreamingService extends ServiceWithLLM {
   }
 
   /**
+   * Handoff-mode sub-agent turns only (see AgentSubAgentMode): a "forced
+   * handoff" safety net for when the sub-agent's own conclusion (its
+   * concludeHandoff tool call) doesn't happen — a documented failure mode of
+   * this pattern (see e.g. AutoGen's "agent getting stuck" handoff issue),
+   * most common with smaller models on low-signal turns (a plain "thanks" or
+   * "bye" with nothing new to report).
+   *
+   * The sub-agent's own TEXT reliably signals when it has concluded, even
+   * when the separate tool call doesn't happen — so a small, cheap
+   * classification pass reads that text and, if it looks like a conclusion,
+   * hands control back directly. This runs every turn concludeHandoff wasn't
+   * called, not after some stall — a genuinely still-open turn (still asking
+   * the user something) reads as "not concluded" and is left alone.
+   *
+   * Best-effort: the user already received the streamed answer, so a
+   * failure here is logged but never breaks the stream.
+   */
+  private async forceHandoffConclusionIfDetected({
+    agentSessionScope,
+    fullContent,
+    metadata,
+  }: {
+    agentSessionScope: AgentSessionScope
+    fullContent: string
+    metadata: LLMMetadata
+  }): Promise<void> {
+    const { session, agent, agentSettings, connectScope } = agentSessionScope
+    const parentSessionId = "parentSessionId" in session ? session.parentSessionId : null
+    if (!parentSessionId || fullContent.trim().length === 0) return
+
+    try {
+      const classifierConfig: LLMConfig = {
+        model: agentSettings.model,
+        temperature: 0,
+        systemPrompt:
+          "You are a classifier, not a conversationalist. You will be shown one message a " +
+          "sub-agent sent to a user during a delegated task. Decide: does this message conclude " +
+          "the task — a final summary, a wrap-up, a goodbye, or an acknowledgment with nothing " +
+          "further to gather — or is the sub-agent still actively working (asking a question, " +
+          "awaiting an answer, mid-task)? Reply with exactly one word, CONCLUDED or ONGOING, " +
+          "nothing else.",
+      }
+      let classifierOutput = ""
+      for await (const chunk of this.getProviderForModel(classifierConfig.model).streamChatResponse({
+        messages: [{ role: "user", content: fullContent }],
+        config: classifierConfig,
+        metadata,
+      })) {
+        classifierOutput += chunk
+      }
+      if (!classifierOutput.trim().toUpperCase().startsWith("CONCLUDED")) return
+
+      await this.conversationAgentSessionsService.clearActiveAgentIfCurrent({
+        connectScope,
+        sessionId: parentSessionId,
+        expectedActiveAgentId: agent.id,
+      })
+      this.logger.warn(
+        `Forced handback for handoff sub-agent "${agent.name}" (${agent.id}): its own concludeHandoff call never happened, but its message read as concluded.`,
+      )
+    } catch (error) {
+      this.logger.error(
+        `Forced handoff-conclusion check failed: ${error instanceof Error ? error.message : error}`,
+      )
+    }
+  }
+
+  /**
    * Marks a streaming message as error
    */
   async markStreamingError({
