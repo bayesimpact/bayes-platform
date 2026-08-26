@@ -98,6 +98,7 @@ export class StreamingService extends ServiceWithLLM {
 
     let fullContent = ""
     let mcpClose: (() => Promise<void>) | undefined
+    let concludeHandoffCalled = false
 
     try {
       const llmRequest = await this.agentLlmRequestService.buildLLMRequest({
@@ -112,6 +113,7 @@ export class StreamingService extends ServiceWithLLM {
           agentSessionScope.session.parentSessionId
         ),
         onToolExecute: async (toolExecution) => {
+          if (toolExecution.toolName === ToolName.ConcludeHandoff) concludeHandoffCalled = true
           await this.persistToolExecutionAndNotifyClient({
             agentSessionScope,
             assistantMessageId,
@@ -135,6 +137,14 @@ export class StreamingService extends ServiceWithLLM {
         assistantMessageId,
         fullContent,
       })
+
+      if (!concludeHandoffCalled) {
+        await this.forceHandoffConclusionIfDetected({
+          agentSessionScope,
+          fullContent,
+          metadata: llmRequest.metadata,
+        })
+      }
 
       yield this.sseEvent({ type: "end", messageId: assistantMessageId, fullContent })
     } catch (error) {
