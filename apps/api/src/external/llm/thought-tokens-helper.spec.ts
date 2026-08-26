@@ -164,4 +164,21 @@ describe("findLeakedToolCallNames", () => {
     const text = `${LEAKED_PSEUDO_CALL} then again ${LEAKED_PSEUDO_CALL}`
     expect(findLeakedToolCallNames(text)).toEqual(["mandatory_tool"])
   })
+
+  it("extracts the tool name from the bare `://toolName{...}` leak", () => {
+    expect(findLeakedToolCallNames(LEAKED_BARE_URI_CALL)).toEqual(["fillForm"])
+  })
+
+  it("extracts the tool name from the bare `call:toolName{}` leak with no arguments", () => {
+    expect(findLeakedToolCallNames(LEAKED_BARE_CALL_NO_ARGS)).toEqual(["concludeHandoff"])
+  })
+
+  it("returns nothing for legitimate text containing a URL or the word call followed by a space", () => {
+    expect(findLeakedToolCallNames("Voir https://example.com/path pour plus de détails.")).toEqual(
+      [],
+    )
+    expect(findLeakedToolCallNames("N'hésitez pas à m'appeler, call: to action ce soir.")).toEqual(
+      [],
+    )
+  })
 })
