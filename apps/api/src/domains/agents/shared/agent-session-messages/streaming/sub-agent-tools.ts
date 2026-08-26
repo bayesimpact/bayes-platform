@@ -114,24 +114,80 @@ export async function buildSubAgentTools({
       description,
       toolName: subAgent.toolName,
       onExecute,
-      execute: (input) =>
-        runSubAgentTool({
-          agentSessionScope,
-          buildLLMConfig,
-          buildTools,
-          conversationAgentSessionsService,
-          agentSettingsService,
-          generateMasterPrompt,
-          getProviderForModel,
-          input,
-          onExecute,
-          subAgent,
-        }),
+      execute:
+        subAgent.mode === "handoff"
+          ? () =>
+              runHandoffTool({
+                agentSessionScope,
+                conversationAgentSessionsService,
+                subAgent,
+              })
+          : (input) =>
+              runSubAgentTool({
+                agentSessionScope,
+                buildLLMConfig,
+                buildTools,
+                conversationAgentSessionsService,
+                agentSettingsService,
+                generateMasterPrompt,
+                getProviderForModel,
+                input,
+                onExecute,
+                subAgent,
+              }),
     })
     toolDescriptions[subAgent.toolName] = description
   }
 
   return { tools, toolDescriptions, hasSubAgentTools: Object.keys(tools).length > 0 }
+}
+
+/**
+ * "handoff" mode: instead of relaying a single exchange, transfers control of the parent
+ * session to the child sub-agent's own real session. The end user's next message is
+ * answered directly by the child (see the active-agent resolution in streaming.service.ts) —
+ * this call never runs the child's LLM itself, it only flips the pointer and returns a short
+ * status the parent can use for a one-line transition, then stop.
+ */
+async function runHandoffTool({
+  agentSessionScope,
+  conversationAgentSessionsService,
+  subAgent,
+}: {
+  agentSessionScope: AgentSessionScope
+  conversationAgentSessionsService: ConversationAgentSessionsService
+  subAgent: AgentSubAgent
+}): Promise<Record<string, unknown>> {
+  const childAgent = subAgent.childAgent
+  if (childAgent.type === "extraction") {
+    throw new Error(
+      `Sub-agent "${childAgent.name}" (${childAgent.id}) is an extraction agent, which is not supported as a sub-agent.`,
+    )
+  }
+
+  const { session: parentSession, connectScope } = agentSessionScope
+  if (!("userId" in parentSession) || !("type" in parentSession)) {
+    throw new Error("Handoff mode requires a user-scoped conversation session")
+  }
+
+  await conversationAgentSessionsService.findOrCreateSubSession({
+    connectScope,
+    agentId: childAgent.id,
+    userId: parentSession.userId,
+    parentSessionId: parentSession.id,
+    type: parentSession.type,
+  })
+
+  await conversationAgentSessionsService.setActiveAgent({
+    connectScope,
+    sessionId: parentSession.id,
+    activeAgentId: childAgent.id,
+  })
+
+  return {
+    status: "handed_off",
+    note: `Control has been handed to "${childAgent.name}". It will talk directly to the user starting with their next message. Do not answer on its behalf — you may add one short transition sentence, then stop.`,
+  }
 }
 
 async function runSubAgentTool({
