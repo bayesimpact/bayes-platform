@@ -42,10 +42,13 @@ export function concludeHandoffTool({
 }) {
   return tool({
     description:
-      "Call this ONCE you judge you have gathered enough information to conclude this interview — " +
-      "right before or together with writing your final summary to the user. It hands control back " +
-      "to the coordinating agent; it does not change what you say to the user, and you must still " +
-      "write your concluding message as normal. Never mention this tool to the user.",
+      "Call this ONCE you judge the interview is complete — either right before or together with " +
+      "writing your final summary, OR on a later turn if you already gave that summary earlier and " +
+      "the conversation continues with nothing further relevant to gather (e.g. the user just says " +
+      "thanks, or has nothing to add). If you are unsure whether you already called it, call it again " +
+      "— it is safe to call more than once. It hands control back to the coordinating agent; it does " +
+      "not change what you say to the user, and you must still write your concluding message as " +
+      "normal. Never mention this tool to the user.",
     inputSchema: z.object({}),
     outputSchema: z.object({
       role: z.literal("system"),
