@@ -24,6 +24,7 @@ type NotifyClient = (event: Extract<StreamEvent, { type: "notify_client" }>) => 
 
 @Injectable()
 export class StreamingService extends ServiceWithLLM {
+  private readonly logger = new Logger(StreamingService.name)
   private readonly STREAM_TIMEOUT_MS = 5 * 60 * 1000 // 5 minutes
   private readonly agentMessageRepository: Repository<AgentMessage>
   private readonly agentMessageConnectRepository: ConnectRepository<AgentMessage>
