@@ -16,6 +16,21 @@ const PSEUDO_TOOL_CALL_RE =
   /<\/?(?:call|function|default_api)[:\s](?:[^>{]*\{[^{}]*\}\/?>?|[^>]*\/?>)/gi
 // An opener of that family that has no closing `>` yet (still streaming).
 const PSEUDO_TOOL_CALL_OPEN_RE = /<\/?(?:call|function|default_api)[:\s][^>]*$/i
+
+// A second, structurally different leak family seen from self-hosted Gemma
+// checkpoints served through vLLM: no enclosing `<...>` at all, e.g.
+// `://fillForm{formFields:{...}}` or `call:concludeHandoff{}`. vLLM's
+// tool-call parser for this model occasionally fails to convert a generated
+// call into structured `tool_calls`, and the raw text falls through into the
+// response content instead. One level of nested `{...}` is allowed (tool
+// arguments are typically flat or an object with a single nested field).
+const BARE_TOOL_CALL_RE =
+  /(?::\/\/|\bcall:|\bfunction:)[a-zA-Z_][a-zA-Z0-9_]*(?:\{(?:[^{}]|\{[^{}]*\})*\}|\([^()]*\))/gi
+// An opener of that family with no closing `}`/`)` yet (still streaming) —
+// including a still-open one level of nested `{...}`.
+const BARE_TOOL_CALL_OPEN_RE =
+  /(?::\/\/|\bcall:|\bfunction:)[a-zA-Z_][a-zA-Z0-9_]*(?:\((?:[^()])*|\{(?:[^{}]|\{[^{}]*\})*)?$/i
+
 // Give up holding the stream back after this many buffered characters: a
 // legitimate `<call:`-looking text (vanishingly unlikely) must not stall the
 // stream forever.
@@ -28,6 +43,7 @@ function stripPairedChannelMarkers(text: string): string {
     text
       // Hallucinated tool-call tags verbalized into the text
       .replace(PSEUDO_TOOL_CALL_RE, "")
+      .replace(BARE_TOOL_CALL_RE, "")
       // <|channel>thought<channel|> ... <channel|> (eats nested openers too)
       .replace(new RegExp(`<\\|channel>(?:${CHANNEL_KEYWORDS})[\\s\\S]*?<channel\\|>`, "gi"), "")
       // Gemma 3 legacy: <unused N>thought ... <unused N>
