@@ -103,7 +103,8 @@ export class StreamingService extends ServiceWithLLM {
         // tools, exactly like a relay-mode sub-agent never does. Otherwise a weaker sub-agent
         // model can end up trying (and sometimes failing) to call mandatory_tool mid-answer.
         includeSessionMetadataTools: !(
-          "parentSessionId" in agentSessionScope.session && agentSessionScope.session.parentSessionId
+          "parentSessionId" in agentSessionScope.session &&
+          agentSessionScope.session.parentSessionId
         ),
         onToolExecute: async (toolExecution) => {
           await this.persistToolExecutionAndNotifyClient({

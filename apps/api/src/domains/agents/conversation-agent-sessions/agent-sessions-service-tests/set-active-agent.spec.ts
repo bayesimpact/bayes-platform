@@ -28,7 +28,11 @@ describe("setActiveAgent / clearActiveAgentIfCurrent", () => {
     })
     const childAgentId = "11111111-1111-1111-1111-111111111111"
 
-    await service.setActiveAgent({ connectScope, sessionId: session.id, activeAgentId: childAgentId })
+    await service.setActiveAgent({
+      connectScope,
+      sessionId: session.id,
+      activeAgentId: childAgentId,
+    })
     const afterSet = await conversationAgentSessionRepository.findOne({ where: { id: session.id } })
     expect(afterSet?.activeAgentId).toBe(childAgentId)
 
@@ -37,7 +41,9 @@ describe("setActiveAgent / clearActiveAgentIfCurrent", () => {
       sessionId: session.id,
       expectedActiveAgentId: childAgentId,
     })
-    const afterClear = await conversationAgentSessionRepository.findOne({ where: { id: session.id } })
+    const afterClear = await conversationAgentSessionRepository.findOne({
+      where: { id: session.id },
+    })
     expect(afterClear?.activeAgentId).toBeNull()
   })
 
@@ -61,14 +67,20 @@ describe("setActiveAgent / clearActiveAgentIfCurrent", () => {
     const staleChildId = "11111111-1111-1111-1111-111111111111"
     const currentChildId = "22222222-2222-2222-2222-222222222222"
 
-    await service.setActiveAgent({ connectScope, sessionId: session.id, activeAgentId: currentChildId })
+    await service.setActiveAgent({
+      connectScope,
+      sessionId: session.id,
+      activeAgentId: currentChildId,
+    })
     await service.clearActiveAgentIfCurrent({
       connectScope,
       sessionId: session.id,
       expectedActiveAgentId: staleChildId,
     })
 
-    const persisted = await conversationAgentSessionRepository.findOne({ where: { id: session.id } })
+    const persisted = await conversationAgentSessionRepository.findOne({
+      where: { id: session.id },
+    })
     expect(persisted?.activeAgentId).toBe(currentChildId)
   })
 })
