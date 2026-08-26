@@ -17,7 +17,11 @@ import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
+import { AgentsService } from "@/domains/agents/agents.service"
+import type { Agent } from "@/domains/agents/agent.entity"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
@@ -34,6 +38,8 @@ export class StreamingController {
   constructor(
     private readonly chatStreamingService: StreamingService,
     private readonly agentSettingsService: AgentSettingsService,
+    private readonly agentsService: AgentsService,
+    private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
   ) {}
 
   @CheckPolicy((policy) => policy.canList())
@@ -67,17 +73,21 @@ export class StreamingController {
     return new Observable<StreamEvent>((subscriber) => {
       void (async () => {
         try {
+          const active = await this.resolveActiveAgentScope({ connectScope, agent, session })
           const agentSettings = await this.resolveAgentSettings({
             connectScope,
-            agentId: agent.id,
+            agentId: active.agent.id,
             sessionType: session.type,
-            revision: agentSettingsRevision,
+            // A handoff child always runs its own latest settings — the explicit revision
+            // picker is a playground affordance for the root agent under test, not for
+            // whichever agent currently happens to be in control of the conversation.
+            revision: active.agent.id === agent.id ? agentSettingsRevision : undefined,
           })
           const agentSessionScope: AgentSessionScope = {
             connectScope,
-            agent,
+            agent: active.agent,
             agentSettings,
-            session,
+            session: active.session,
           }
           const events = this.chatStreamingService.streamAgentResponse({
             agentSessionScope,
@@ -98,6 +108,44 @@ export class StreamingController {
         }
       })()
     })
+  }
+
+  /**
+   * When the session's `activeAgentId` points at a handoff sub-agent, resolves that agent's
+   * own real session instead of the root — the parent agent is not consulted for this turn,
+   * the child talks to the user directly. Falls back to the root agent/session in every other
+   * case (no active agent, or the active agent no longer exists).
+   */
+  private async resolveActiveAgentScope({
+    connectScope,
+    agent,
+    session,
+  }: {
+    connectScope: RequiredConnectScope
+    agent: Agent
+    session: ConversationAgentSession
+  }): Promise<{ agent: Agent; session: ConversationAgentSession }> {
+    if (!session.activeAgentId) {
+      return { agent, session }
+    }
+
+    const activeAgent = await this.agentsService.findAgentById({
+      connectScope,
+      agentId: session.activeAgentId,
+    })
+    if (!activeAgent) {
+      return { agent, session }
+    }
+
+    const activeSession = await this.conversationAgentSessionsService.findOrCreateSubSession({
+      connectScope,
+      agentId: activeAgent.id,
+      userId: session.userId,
+      parentSessionId: session.id,
+      type: session.type,
+    })
+
+    return { agent: activeAgent, session: activeSession }
   }
 
   /**
