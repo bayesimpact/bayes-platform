@@ -94,6 +94,29 @@ export class ConversationAgentSessionsService {
     return subSessions.map((subSession) => subSession.id)
   }
 
+  /**
+   * `agentId` + `result` for every sub-session spawned from a parent session
+   * (see `findOrCreateSubSession`). Used by `ToolsService` to tell an
+   * orchestrating agent what its handoff-mode sub-agents have produced —
+   * the orchestrator's own turn never otherwise sees a handoff child's
+   * session, since the end user talks to it directly (see AgentSubAgentMode).
+   */
+  async listSubSessionResults({
+    connectScope,
+    parentSessionId,
+  }: {
+    connectScope: RequiredConnectScope
+    parentSessionId: string
+  }): Promise<Array<{ agentId: string; result: Record<string, unknown> | null }>> {
+    const subSessions = await this.conversationAgentSessionConnectRepository.find(connectScope, {
+      where: { parentSessionId },
+    })
+    return subSessions.map((subSession) => ({
+      agentId: subSession.agentId,
+      result: subSession.result ?? null,
+    }))
+  }
+
   async getMessageById({
     id,
     connectScope,
