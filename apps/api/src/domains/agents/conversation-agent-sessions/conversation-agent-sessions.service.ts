@@ -272,10 +272,6 @@ export class ConversationAgentSessionsService {
 
     const updatedSession = await this.conversationAgentSessionConnectRepository.saveOne(session)
 
-    if (updatedSession.parentSessionId) {
-      await this.handBackToParentIfFormComplete({ connectScope, session: updatedSession })
-    }
-
     return { result: updatedSession.result }
   }
 
