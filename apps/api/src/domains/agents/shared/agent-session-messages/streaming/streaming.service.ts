@@ -98,6 +98,13 @@ export class StreamingService extends ServiceWithLLM {
       const llmRequest = await this.agentLlmRequestService.buildLLMRequest({
         agentSessionScope,
         attachmentDocumentId,
+        // A handoff sub-agent's own session (see StreamingController.resolveActiveAgentScope)
+        // reaches this same top-level path — it must not get bookkeeping/session-metadata
+        // tools, exactly like a relay-mode sub-agent never does. Otherwise a weaker sub-agent
+        // model can end up trying (and sometimes failing) to call mandatory_tool mid-answer.
+        includeSessionMetadataTools: !(
+          "parentSessionId" in agentSessionScope.session && agentSessionScope.session.parentSessionId
+        ),
         onToolExecute: async (toolExecution) => {
           await this.persistToolExecutionAndNotifyClient({
             agentSessionScope,
