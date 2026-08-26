@@ -548,9 +548,12 @@ export class ToolsService extends ServiceWithLLM {
           tools,
         }),
       },
-      // Final section of the master prompt (recency): the response protocol
-      // demanding the turn summary on every response.
-      masterPromptEpilogue: hasMandatoryToolTool ? mandatoryToolInstruction() : undefined,
+      // Final section of the master prompt (recency): completed handoff
+      // sub-agent summaries first, then the response-protocol instruction.
+      masterPromptEpilogue:
+        [handoffCompletionEpilogue, hasMandatoryToolTool ? mandatoryToolInstruction() : undefined]
+          .filter((section): section is string => Boolean(section))
+          .join("\n\n") || undefined,
       fireAndForgetToolNames: FIRE_AND_FORGET_TOOL_NAMES.filter((toolName) => toolName in tools),
       endOfTurnTools,
       // A report submitted before the lookup registered chunks is stale for
