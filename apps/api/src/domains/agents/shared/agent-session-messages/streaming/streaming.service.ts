@@ -9,7 +9,6 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 import type { LLMConfig, LLMMetadata, LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { ServiceWithLLM } from "@/external/llm"
