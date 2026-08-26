@@ -1,6 +1,6 @@
 import { ToolName } from "@caseai-connect/api-contracts"
 import type { StreamEvent, StreamEventPayload } from "@caseai-connect/api-contracts"
-import { Inject, Injectable, NotFoundException } from "@nestjs/common"
+import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm/repository/Repository"
 import { v4 } from "uuid"
