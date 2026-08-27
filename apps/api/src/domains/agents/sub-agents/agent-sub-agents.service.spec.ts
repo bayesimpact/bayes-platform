@@ -313,4 +313,138 @@ describe("AgentSubAgentsService", () => {
 
     expect(listed).toEqual([])
   })
+
+  it("persists a valid nextChildAgentId chain and round-trips it", async () => {
+    const { organization, project, agent } = await createOrganizationWithAgent(repositories)
+    const childB = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project }).build({ name: "Child B" }),
+    )
+    const childC = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project }).build({ name: "Child C" }),
+    )
+    const connectScope = { organizationId: organization.id, projectId: project.id }
+
+    const result = await service.replaceSubAgents({
+      connectScope,
+      parentAgent: agent,
+      subAgents: [
+        {
+          childAgentId: childB.id,
+          toolName: "ask_child_b",
+          description: "",
+          enabled: true,
+          mode: "handoff",
+          nextChildAgentId: childC.id,
+        },
+        {
+          childAgentId: childC.id,
+          toolName: "ask_child_c",
+          description: "",
+          enabled: true,
+          mode: "handoff",
+          nextChildAgentId: null,
+        },
+      ],
+    })
+
+    const linkForB = result.find((row) => row.childAgentId === childB.id)
+    expect(linkForB?.nextChildAgentId).toBe(childC.id)
+  })
+
+  it("rejects a nextChildAgentId that does not match another entry in the payload", async () => {
+    const { organization, project, agent } = await createOrganizationWithAgent(repositories)
+    const childB = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project }).build({ name: "Child B" }),
+    )
+    const connectScope = { organizationId: organization.id, projectId: project.id }
+
+    await expect(
+      service.replaceSubAgents({
+        connectScope,
+        parentAgent: agent,
+        subAgents: [
+          {
+            childAgentId: childB.id,
+            toolName: "ask_child_b",
+            description: "",
+            enabled: true,
+            mode: "handoff",
+            nextChildAgentId: "11111111-1111-1111-1111-111111111111",
+          },
+        ],
+      }),
+    ).rejects.toThrow("nextChildAgentId must reference another sub-agent in the same list")
+  })
+
+  it("rejects a nextChildAgentId whose target is not handoff-mode", async () => {
+    const { organization, project, agent } = await createOrganizationWithAgent(repositories)
+    const childB = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project }).build({ name: "Child B" }),
+    )
+    const childC = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project }).build({ name: "Child C" }),
+    )
+    const connectScope = { organizationId: organization.id, projectId: project.id }
+
+    await expect(
+      service.replaceSubAgents({
+        connectScope,
+        parentAgent: agent,
+        subAgents: [
+          {
+            childAgentId: childB.id,
+            toolName: "ask_child_b",
+            description: "",
+            enabled: true,
+            mode: "handoff",
+            nextChildAgentId: childC.id,
+          },
+          {
+            childAgentId: childC.id,
+            toolName: "ask_child_c",
+            description: "",
+            enabled: true,
+            mode: "relay",
+            nextChildAgentId: null,
+          },
+        ],
+      }),
+    ).rejects.toThrow("nextChildAgentId must reference a handoff-mode sub-agent")
+  })
+
+  it("rejects a nextChildAgentId cycle", async () => {
+    const { organization, project, agent } = await createOrganizationWithAgent(repositories)
+    const childB = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project }).build({ name: "Child B" }),
+    )
+    const childC = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project }).build({ name: "Child C" }),
+    )
+    const connectScope = { organizationId: organization.id, projectId: project.id }
+
+    await expect(
+      service.replaceSubAgents({
+        connectScope,
+        parentAgent: agent,
+        subAgents: [
+          {
+            childAgentId: childB.id,
+            toolName: "ask_child_b",
+            description: "",
+            enabled: true,
+            mode: "handoff",
+            nextChildAgentId: childC.id,
+          },
+          {
+            childAgentId: childC.id,
+            toolName: "ask_child_c",
+            description: "",
+            enabled: true,
+            mode: "handoff",
+            nextChildAgentId: childB.id,
+          },
+        ],
+      }),
+    ).rejects.toThrow("nextChildAgentId chain contains a cycle")
+  })
 })
