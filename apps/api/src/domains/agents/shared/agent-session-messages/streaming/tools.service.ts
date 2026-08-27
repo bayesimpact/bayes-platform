@@ -611,10 +611,15 @@ export class ToolsService extends ServiceWithLLM {
         const subSessionResult = subSessionResults.find(
           (candidate) => candidate.agentId === subAgent.childAgentId,
         )
-        if (!subSessionResult?.result || Object.keys(subSessionResult.result).length === 0) {
-          return undefined
-        }
-        return `### ${subAgent.childAgent.name}\n${JSON.stringify(subSessionResult.result, null, 2)}`
+        // No session at all means this sub-agent was never actually delegated to —
+        // nothing to report, as opposed to delegated-to-but-collected-little-data below.
+        if (!subSessionResult) return undefined
+        const hasData =
+          subSessionResult.result && Object.keys(subSessionResult.result).length > 0
+        const dataSection = hasData
+          ? JSON.stringify(subSessionResult.result, null, 2)
+          : "(no data collected this round)"
+        return `### ${subAgent.childAgent.name} — already delegated to; this round has concluded\n${dataSection}`
       })
       .filter((section): section is string => Boolean(section))
 
@@ -622,7 +627,7 @@ export class ToolsService extends ServiceWithLLM {
 
     return [
       "## Completed sub-agent tasks",
-      "The following sub-agents have already finished their delegated work in this session — do not call them again for the same task. Use the data they collected to decide what happens next.",
+      "Each sub-agent below has already been delegated to, and that round has concluded — it is finished, not pending or partial. Treat the data shown as the final record of that round, however sparse it looks; do not re-invoke a sub-agent to \"complete\", \"redo\", or double-check a round already listed here, and do not treat a short or empty result as a sign the round failed. If your own workflow genuinely calls for delegating to the same sub-agent again for a new sub-task, that is a separate decision — not a retry of the round below.",
       ...completedSections,
     ].join("\n\n")
   }
