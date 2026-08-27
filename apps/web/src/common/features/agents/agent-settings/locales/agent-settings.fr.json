@@ -179,6 +179,8 @@
       "mode": "Mode",
       "modeRelay": "Relais",
       "modeHandoff": "Transfert direct",
+      "nextAgent": "Passer automatiquement à",
+      "nextAgentNone": "Aucun (laisser l'orchestrateur décider)",
       "talkingTo": "En discussion avec {{name}}"
     },
     "embed": {
