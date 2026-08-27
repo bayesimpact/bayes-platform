@@ -189,6 +189,35 @@ export class ConversationAgentSessionsService {
     })
   }
 
+  /**
+   * Activates a handoff child on a parent session: ensures its sub-session exists, then points
+   * activeAgentId at it. Shared by the ask_<subagent> handoff tool (manual delegation, decided by
+   * the parent agent's own turn) and the next-child-agent auto-advance in
+   * clearActiveAgentIfCurrent (deterministic delegation, decided by platform config).
+   */
+  async activateHandoffChild({
+    connectScope,
+    parentSession,
+    childAgentId,
+  }: {
+    connectScope: RequiredConnectScope
+    parentSession: ConversationAgentSession
+    childAgentId: string
+  }): Promise<void> {
+    await this.findOrCreateSubSession({
+      connectScope,
+      agentId: childAgentId,
+      userId: parentSession.userId,
+      parentSessionId: parentSession.id,
+      type: parentSession.type,
+    })
+    await this.setActiveAgent({
+      connectScope,
+      sessionId: parentSession.id,
+      activeAgentId: childAgentId,
+    })
+  }
+
   async createSession({
     connectScope,
     agentSettingsId,
