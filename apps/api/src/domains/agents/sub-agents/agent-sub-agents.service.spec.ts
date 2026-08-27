@@ -55,6 +55,7 @@ describe("AgentSubAgentsService", () => {
           description: "Use for resource questions.",
           enabled: true,
           mode: "relay",
+          nextChildAgentId: null,
         },
       ],
     })
@@ -96,6 +97,7 @@ describe("AgentSubAgentsService", () => {
           description: "",
           enabled: true,
           mode: "relay",
+          nextChildAgentId: null,
         },
       ],
     })
@@ -109,6 +111,7 @@ describe("AgentSubAgentsService", () => {
           description: "",
           enabled: false,
           mode: "relay",
+          nextChildAgentId: null,
         },
       ],
     })
@@ -138,6 +141,7 @@ describe("AgentSubAgentsService", () => {
             description: "",
             enabled: true,
             mode: "relay",
+            nextChildAgentId: null,
           },
         ],
       }),
@@ -154,6 +158,7 @@ describe("AgentSubAgentsService", () => {
             description: "",
             enabled: true,
             mode: "relay",
+            nextChildAgentId: null,
           },
           {
             childAgentId: childAgent.id,
@@ -161,6 +166,7 @@ describe("AgentSubAgentsService", () => {
             description: "",
             enabled: true,
             mode: "relay",
+            nextChildAgentId: null,
           },
         ],
       }),
@@ -180,6 +186,7 @@ describe("AgentSubAgentsService", () => {
             description: "",
             enabled: true,
             mode: "relay",
+            nextChildAgentId: null,
           },
           {
             childAgentId: otherChildAgent.id,
@@ -187,6 +194,7 @@ describe("AgentSubAgentsService", () => {
             description: "",
             enabled: true,
             mode: "relay",
+            nextChildAgentId: null,
           },
         ],
       }),
@@ -214,6 +222,7 @@ describe("AgentSubAgentsService", () => {
             description: "",
             enabled: true,
             mode: "relay",
+            nextChildAgentId: null,
           },
         ],
       }),
@@ -244,6 +253,7 @@ describe("AgentSubAgentsService", () => {
           description: "",
           enabled: true,
           mode: "relay",
+          nextChildAgentId: null,
         },
       ],
     })
@@ -279,6 +289,7 @@ describe("AgentSubAgentsService", () => {
             description: "",
             enabled: true,
             mode: "relay",
+            nextChildAgentId: null,
           },
         ],
       }),
