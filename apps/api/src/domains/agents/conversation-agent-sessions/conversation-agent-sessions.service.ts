@@ -366,6 +366,20 @@ export class ConversationAgentSessionsService {
       sessionId,
     )
     if (!session || session.activeAgentId !== expectedActiveAgentId) return
+
+    const nextChildAgentId = await this.agentSubAgentsService.findNextChildAgentId({
+      parentAgentId: session.agentId,
+      childAgentId: expectedActiveAgentId,
+    })
+    if (nextChildAgentId) {
+      await this.activateHandoffChild({
+        connectScope,
+        parentSession: session,
+        childAgentId: nextChildAgentId,
+      })
+      return
+    }
+
     session.activeAgentId = null
     await this.conversationAgentSessionConnectRepository.saveOne(session)
   }
