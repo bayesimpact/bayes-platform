@@ -28,6 +28,16 @@ export class AgentSubAgent extends Base4AllEntity {
   @Column({ type: "varchar", default: "relay" })
   mode!: AgentSubAgentMode
 
+  // Handoff-mode only. When set, the platform activates this child directly the moment this
+  // link's round concludes, bypassing the parent agent's own routing judgment entirely. Null
+  // (default) preserves today's behavior: control returns to the parent agent to decide.
+  @Column({ type: "uuid", name: "next_child_agent_id", nullable: true })
+  nextChildAgentId!: string | null
+
+  @ManyToOne(() => Agent, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "next_child_agent_id" })
+  nextChildAgent?: Agent | null
+
   @ManyToOne(
     () => Agent,
     (agent) => agent.childSubAgents,
