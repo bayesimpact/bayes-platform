@@ -1,4 +1,5 @@
 import { afterAll } from "@jest/globals"
+import { agentFactory } from "@/domains/agents/agent.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { agentSessionControllerTestSetup } from "./test-setup"
 
@@ -82,5 +83,74 @@ describe("setActiveAgent / clearActiveAgentIfCurrent", () => {
       where: { id: session.id },
     })
     expect(persisted?.activeAgentId).toBe(currentChildId)
+  })
+
+  it("auto-advances to nextChildAgentId instead of clearing when a handoff link configures one", async () => {
+    const {
+      service,
+      testAgent,
+      testAgentSettings,
+      testOrganization,
+      testProject,
+      testUser,
+      conversationAgentSessionRepository,
+      agentRepository,
+      agentSubAgentRepository,
+    } = getTestContext()
+    const connectScope = { organizationId: testOrganization.id, projectId: testProject.id }
+
+    const childAgentB = await agentRepository.save(
+      agentRepository.create(
+        agentFactory
+          .transient({ organization: testOrganization, project: testProject })
+          .build({ name: "Child B" }),
+      ),
+    )
+    const childAgentC = await agentRepository.save(
+      agentRepository.create(
+        agentFactory
+          .transient({ organization: testOrganization, project: testProject })
+          .build({ name: "Child C" }),
+      ),
+    )
+    await agentSubAgentRepository.save(
+      agentSubAgentRepository.create({
+        parentAgentId: testAgent.id,
+        childAgentId: childAgentB.id,
+        toolName: "ask_child_b",
+        description: "",
+        enabled: true,
+        mode: "handoff",
+        nextChildAgentId: childAgentC.id,
+      }),
+    )
+
+    const session = await service.createSession({
+      connectScope,
+      agentSettingsId: testAgentSettings.id,
+      userId: testUser.id,
+      type: "playground",
+    })
+
+    await service.setActiveAgent({
+      connectScope,
+      sessionId: session.id,
+      activeAgentId: childAgentB.id,
+    })
+    await service.clearActiveAgentIfCurrent({
+      connectScope,
+      sessionId: session.id,
+      expectedActiveAgentId: childAgentB.id,
+    })
+
+    const persisted = await conversationAgentSessionRepository.findOne({
+      where: { id: session.id },
+    })
+    expect(persisted?.activeAgentId).toBe(childAgentC.id)
+
+    const subSessionForC = await conversationAgentSessionRepository.findOne({
+      where: { agentId: childAgentC.id, parentSessionId: session.id },
+    })
+    expect(subSessionForC).not.toBeNull()
   })
 })
