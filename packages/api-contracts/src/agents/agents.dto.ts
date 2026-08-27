@@ -56,6 +56,10 @@ const replaceAgentSubAgentSchema = z.object({
   description: z.string().trim().max(2000).default(""),
   enabled: z.boolean(),
   mode: agentSubAgentModeSchema.default("relay"),
+  // Handoff-mode only. When set, must reference another entry's childAgentId within the same
+  // replace payload (validated server-side) — once this link's round concludes, the platform
+  // activates that child directly instead of returning control to the parent agent.
+  nextChildAgentId: z.string().uuid().nullable().default(null),
 })
 
 export const replaceAgentSubAgentsSchema = z.object({
