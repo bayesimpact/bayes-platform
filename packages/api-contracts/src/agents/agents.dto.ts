@@ -70,7 +70,6 @@ export const agentSubAgentSchema = z.object({
   description: z.string(),
   enabled: z.boolean(),
   mode: agentSubAgentModeSchema,
-  nextChildAgentId: z.string().uuid().nullable(),
   childAgent: z
     .object({
       id: z.string().uuid(),
