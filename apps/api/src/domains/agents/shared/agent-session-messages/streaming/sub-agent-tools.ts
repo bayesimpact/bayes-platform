@@ -170,6 +170,33 @@ async function runHandoffTool({
     throw new Error("Handoff mode requires a user-scoped conversation session")
   }
 
+  // A parent has exactly one persistent sub-session per handoff child (see
+  // findOrCreateSubSession), so a pre-existing one that isn't the currently active
+  // agent can only mean its round already ran and concluded — there is no notion of
+  // "a second, separate round" with the same handoff child to hand off to. Refusing
+  // here (rather than silently re-activating and restarting it from scratch) turns a
+  // redundant re-invocation into an explicit, in-turn correction instead of a prose
+  // reminder the orchestrator's own model may not reliably apply — this still leaves
+  // the orchestrator to decide what to do next, it only stops the actual re-handoff.
+  const existingChildSession = await conversationAgentSessionsService.findSubSession({
+    connectScope,
+    agentId: childAgent.id,
+    parentSessionId: parentSession.id,
+    type: parentSession.type,
+  })
+  const currentActiveAgentId = "activeAgentId" in parentSession ? parentSession.activeAgentId : null
+  if (existingChildSession && currentActiveAgentId !== childAgent.id) {
+    const hasData =
+      existingChildSession.result && Object.keys(existingChildSession.result).length > 0
+    return {
+      status: "already_concluded",
+      note:
+        `"${childAgent.name}" already completed its round for this conversation` +
+        (hasData ? ` (final data: ${JSON.stringify(existingChildSession.result)})` : "") +
+        `. Handing off to it again would restart it from scratch, which is not allowed for a round that has already concluded — do not call this tool again for this round. Move on to the next appropriate step instead.`,
+    }
+  }
+
   await conversationAgentSessionsService.findOrCreateSubSession({
     connectScope,
     agentId: childAgent.id,

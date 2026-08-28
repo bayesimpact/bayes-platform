@@ -157,6 +157,29 @@ export class ConversationAgentSessionsService {
    * single sub-session is reused across parent turns so the sub-agent's runs all
    * land in one persistent trace.
    */
+  /**
+   * The sub-session a parent has previously spawned for this child agent, if any —
+   * without creating one. Used to tell a brand-new handoff from a resumed/already-
+   * concluded one (see {@link findOrCreateSubSession} and `runHandoffTool`).
+   */
+  async findSubSession({
+    connectScope,
+    agentId,
+    parentSessionId,
+    type,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+    parentSessionId: string
+    type: BaseAgentSessionType
+  }): Promise<ConversationAgentSession | null> {
+    const existing = await this.conversationAgentSessionConnectRepository.find(connectScope, {
+      where: { agentId, parentSessionId, type },
+      take: 1,
+    })
+    return existing[0] ?? null
+  }
+
   async findOrCreateSubSession({
     connectScope,
     agentId,
@@ -170,11 +193,8 @@ export class ConversationAgentSessionsService {
     parentSessionId: string
     type: BaseAgentSessionType
   }): Promise<ConversationAgentSession> {
-    const existing = await this.conversationAgentSessionConnectRepository.find(connectScope, {
-      where: { agentId, parentSessionId, type },
-      take: 1,
-    })
-    if (existing[0]) return existing[0]
+    const existing = await this.findSubSession({ connectScope, agentId, parentSessionId, type })
+    if (existing) return existing
 
     return this.conversationAgentSessionConnectRepository.createAndSave(connectScope, {
       agentId,
