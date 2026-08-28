@@ -170,10 +170,18 @@ async function runHandoffTool({
     throw new Error("Handoff mode requires a user-scoped conversation session")
   }
 
-  await conversationAgentSessionsService.activateHandoffChild({
+  await conversationAgentSessionsService.findOrCreateSubSession({
     connectScope,
-    parentSession,
-    childAgentId: childAgent.id,
+    agentId: childAgent.id,
+    userId: parentSession.userId,
+    parentSessionId: parentSession.id,
+    type: parentSession.type,
+  })
+
+  await conversationAgentSessionsService.setActiveAgent({
+    connectScope,
+    sessionId: parentSession.id,
+    activeAgentId: childAgent.id,
   })
 
   return {
