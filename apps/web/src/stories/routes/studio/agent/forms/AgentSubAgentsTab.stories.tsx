@@ -81,7 +81,6 @@ export const WithSubAgents: Story = {
         description: "Route resource lookup and eligibility questions to Resource Navigator.",
         enabled: true,
         mode: "relay",
-        nextAgentId: null,
       },
       {
         id: "sub-agent-policy",
@@ -90,7 +89,6 @@ export const WithSubAgents: Story = {
         description: "Use Policy Analyst for questions that need regulatory or policy framing.",
         enabled: false,
         mode: "relay",
-        nextAgentId: null,
       },
     ],
   },
@@ -106,7 +104,6 @@ export const NoAvailableConversationAgents: Story = {
         description: "Route resource lookup and eligibility questions to Resource Navigator.",
         enabled: true,
         mode: "relay",
-        nextAgentId: null,
       },
       {
         id: "sub-agent-policy",
@@ -115,7 +112,6 @@ export const NoAvailableConversationAgents: Story = {
         description: "Use Policy Analyst for questions that need regulatory or policy framing.",
         enabled: true,
         mode: "relay",
-        nextAgentId: null,
       },
       {
         id: "sub-agent-drafting",
@@ -124,7 +120,6 @@ export const NoAvailableConversationAgents: Story = {
         description: "Use Drafting Assistant for short operational drafts.",
         enabled: true,
         mode: "relay",
-        nextAgentId: null,
       },
       {
         id: "sub-agent-intake",
@@ -133,7 +128,6 @@ export const NoAvailableConversationAgents: Story = {
         description: "Delegate structured intake questions to Intake Assistant.",
         enabled: true,
         mode: "relay",
-        nextAgentId: null,
       },
     ],
   },
