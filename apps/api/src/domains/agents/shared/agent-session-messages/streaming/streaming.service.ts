@@ -15,6 +15,8 @@ import type { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSubAgentsService } from "@/domains/agents/sub-agents/agent-sub-agents.service"
 import { ServiceWithLLM } from "@/external/llm"
 import { AgentMessage } from "../agent-message.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -37,6 +39,8 @@ export class StreamingService extends ServiceWithLLM {
     private readonly agentLlmRequestService: AgentLlmRequestService,
     @Inject(ConversationAgentSessionsService)
     private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
+    @Inject(AgentSubAgentsService)
+    private readonly agentSubAgentsService: AgentSubAgentsService,
 
     @InjectRepository(ConversationAgentSession)
     conversationAgentSessionRepository: Repository<ConversationAgentSession>,
@@ -452,6 +456,21 @@ export class StreamingService extends ServiceWithLLM {
     const { session, agent, agentSettings, connectScope } = agentSessionScope
     const parentSessionId = "parentSessionId" in session ? session.parentSessionId : null
     if (!parentSessionId || fullContent.trim().length === 0) return
+
+    // Some handoff sub-agents (e.g. an open-ended Q&A agent with no natural finishing
+    // point) opt out of this safety net entirely - see AgentSubAgent.forceConclusionEnabled.
+    // Checked before running the classifier so an opted-out link also skips that LLM call.
+    const parentSession = await this.conversationAgentSessionsService.findById({
+      id: parentSessionId,
+      connectScope,
+    })
+    if (parentSession) {
+      const forceConclusionEnabled = await this.agentSubAgentsService.isForceConclusionEnabled({
+        parentAgentId: parentSession.agentId,
+        childAgentId: agent.id,
+      })
+      if (!forceConclusionEnabled) return
+    }
 
     try {
       const classifierConfig: LLMConfig = {
