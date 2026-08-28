@@ -56,6 +56,11 @@ const replaceAgentSubAgentSchema = z.object({
   description: z.string().trim().max(2000).default(""),
   enabled: z.boolean(),
   mode: agentSubAgentModeSchema.default("relay"),
+  // handoff mode only: whether the forced-conclusion classifier safety net applies to this
+  // link. Default true (existing behavior). Set false for a sub-agent with no natural
+  // finishing point (e.g. an open-ended Q&A agent that is the last workflow step), where a
+  // single unhelpful reply should never be misread as "done" and force a handback.
+  forceConclusionEnabled: z.boolean().default(true),
 })
 
 export const replaceAgentSubAgentsSchema = z.object({
@@ -70,6 +75,7 @@ export const agentSubAgentSchema = z.object({
   description: z.string(),
   enabled: z.boolean(),
   mode: agentSubAgentModeSchema,
+  forceConclusionEnabled: z.boolean(),
   childAgent: z
     .object({
       id: z.string().uuid(),
