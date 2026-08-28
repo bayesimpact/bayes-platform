@@ -122,13 +122,17 @@ export function AgentSessionMessage({
                   {sourcesTool && <SourcesTool toolCall={sourcesTool} />}
                 </RestrictedFeature>
 
-                {delegatedToolNames.map((toolName) => (
+                {delegatedToolNames.length > 0 && (
+                  // One button for the whole message, not one per delegated sub-agent: the
+                  // sheet already lists every sub-agent as its own tab, so a second identical
+                  // button next to the first (e.g. a turn that called two handoff tools) added
+                  // visual clutter without adding anything the first button's sheet couldn't
+                  // already show.
                   <SubAgentFormResultSheet
-                    key={toolName}
                     subSessions={formSubSessions}
-                    defaultToolName={toolName}
+                    defaultToolName={delegatedToolNames[0]}
                   />
-                ))}
+                )}
               </MessageFooter>
             )}
           </MessageContent>
