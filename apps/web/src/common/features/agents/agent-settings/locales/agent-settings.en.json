@@ -179,8 +179,6 @@
       "mode": "Mode",
       "modeRelay": "Relay",
       "modeHandoff": "Handoff",
-      "nextAgent": "Auto-advance to",
-      "nextAgentNone": "None (let the orchestrator decide)",
       "talkingTo": "Talking to {{name}}"
     },
     "embed": {

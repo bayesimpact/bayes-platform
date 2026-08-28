@@ -32,10 +32,6 @@ export type AgentSubAgentFormValue = {
   description: string
   enabled: boolean
   mode: AgentSubAgentMode
-  // Handoff-mode only. References another entry's agentId — once this link's round
-  // concludes, the platform activates that sub-agent directly instead of returning
-  // control to the parent agent. Null lets the parent agent decide, as today.
-  nextAgentId: string | null
 }
 
 export function SubAgentsTab({
@@ -79,7 +75,6 @@ export function SubAgentsTab({
         description: t("agentSettings:orchestration.defaultDescription", { name: agent.name }),
         enabled: true,
         mode: "relay",
-        nextAgentId: null,
       },
     ])
   }
@@ -110,9 +105,7 @@ export function SubAgentsTab({
               <SubAgentItem
                 key={subAgent.id}
                 subAgent={subAgent}
-                siblingSubAgents={value}
                 agent={agents.find((candidate) => candidate.id === subAgent.agentId)}
-                agents={agents}
                 onUpdate={(fields) => updateSubAgent(subAgent.id, fields)}
                 onRemove={() => removeSubAgent(subAgent.id)}
               />

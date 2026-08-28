@@ -28,16 +28,12 @@ import type { AgentSubAgentFormValue } from "./tabs/SubAgentsTab"
 
 export function SubAgentItem({
   subAgent,
-  siblingSubAgents,
   agent,
-  agents,
   onUpdate,
   onRemove,
 }: {
   subAgent: AgentSubAgentFormValue
-  siblingSubAgents: AgentSubAgentFormValue[]
   agent: Agent | undefined
-  agents: Agent[]
   onUpdate: (fields: Partial<Omit<AgentSubAgentFormValue, "id" | "agentId">>) => void
   onRemove: () => void
 }) {
@@ -47,12 +43,6 @@ export function SubAgentItem({
 
   const title = agent.name
   const Icon = getAgentIcon(agent.type)
-  const nextAgentOptions = siblingSubAgents
-    .filter((sibling) => sibling.mode === "handoff" && sibling.id !== subAgent.id)
-    .map((sibling) => ({
-      agentId: sibling.agentId,
-      name: agents.find((candidate) => candidate.id === sibling.agentId)?.name ?? sibling.agentId,
-    }))
 
   return (
     <div className="rounded-md border">
@@ -125,29 +115,6 @@ export function SubAgentItem({
             </SelectContent>
           </Select>
         </Field>
-        {subAgent.mode === "handoff" && (
-          <Field>
-            <FieldLabel htmlFor={`sub-agent-next-agent-${subAgent.id}`}>
-              {t("agentSettings:orchestration.nextAgent")}
-            </FieldLabel>
-            <Select
-              value={subAgent.nextAgentId ?? "none"}
-              onValueChange={(value) => onUpdate({ nextAgentId: value === "none" ? null : value })}
-            >
-              <SelectTrigger id={`sub-agent-next-agent-${subAgent.id}`}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">{t("agentSettings:orchestration.nextAgentNone")}</SelectItem>
-                {nextAgentOptions.map((option) => (
-                  <SelectItem key={option.agentId} value={option.agentId}>
-                    {option.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
-        )}
         <Field>
           <FieldLabel htmlFor={`sub-agent-description-${subAgent.id}`}>
             {t("agentSettings:orchestration.description")}
