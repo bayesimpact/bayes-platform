@@ -467,9 +467,11 @@ export class ConversationAgentSessionsService {
   }
 
   private async updateSessionTitle({
+    connectScope,
     session,
     suggestedTitle,
   }: {
+    connectScope: RequiredConnectScope
     session: ConversationAgentSession
     suggestedTitle: string | null
   }): Promise<void> {
@@ -477,7 +479,18 @@ export class ConversationAgentSessionsService {
     if (session.title === nextTitle) {
       return
     }
-    session.title = nextTitle
-    await this.conversationAgentSessionRepository.save(session)
+    // Scoped to the `title` column only. This ran as a full-entity save
+    // (`repository.save(session)`) against a session object fetched at the
+    // top of recalculateSessionMetadataFromMessages — since the AI SDK
+    // executes a step's tool calls concurrently, a handoff sub-agent calling
+    // concludeHandoff in the same step could clear activeAgentId in between
+    // that fetch and this save, and the full save would silently write the
+    // stale (pre-clear) activeAgentId back, leaving control stuck on the
+    // concluded sub-agent for the rest of the conversation.
+    await this.conversationAgentSessionConnectRepository.updateManyBy({
+      connectScope,
+      where: { id: session.id },
+      fields: { title: nextTitle },
+    })
   }
 }
