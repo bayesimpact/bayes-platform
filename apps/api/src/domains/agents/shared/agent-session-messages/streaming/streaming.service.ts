@@ -15,7 +15,6 @@ import type { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSubAgentsService } from "@/domains/agents/sub-agents/agent-sub-agents.service"
 import { ServiceWithLLM } from "@/external/llm"
 import { AgentMessage } from "../agent-message.entity"
