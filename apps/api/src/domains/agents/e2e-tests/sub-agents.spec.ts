@@ -94,6 +94,7 @@ describe("Agents - sub-agents", () => {
             description: "Use for policy questions.",
             enabled: true,
             mode: "relay",
+            forceConclusionEnabled: true,
           },
         ],
       },
@@ -134,6 +135,7 @@ describe("Agents - sub-agents", () => {
             description: "",
             enabled: true,
             mode: "relay",
+            forceConclusionEnabled: true,
           },
           {
             childAgentId: childAgent.id,
@@ -141,6 +143,7 @@ describe("Agents - sub-agents", () => {
             description: "",
             enabled: true,
             mode: "relay",
+            forceConclusionEnabled: true,
           },
         ],
       },

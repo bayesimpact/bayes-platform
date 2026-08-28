@@ -55,6 +55,7 @@ describe("AgentSubAgentsService", () => {
           description: "Use for resource questions.",
           enabled: true,
           mode: "relay",
+          forceConclusionEnabled: true,
         },
       ],
     })
@@ -96,6 +97,7 @@ describe("AgentSubAgentsService", () => {
           description: "",
           enabled: true,
           mode: "relay",
+          forceConclusionEnabled: true,
         },
       ],
     })
@@ -109,6 +111,7 @@ describe("AgentSubAgentsService", () => {
           description: "",
           enabled: false,
           mode: "relay",
+          forceConclusionEnabled: true,
         },
       ],
     })
@@ -138,6 +141,7 @@ describe("AgentSubAgentsService", () => {
             description: "",
             enabled: true,
             mode: "relay",
+            forceConclusionEnabled: true,
           },
         ],
       }),
@@ -154,6 +158,7 @@ describe("AgentSubAgentsService", () => {
             description: "",
             enabled: true,
             mode: "relay",
+            forceConclusionEnabled: true,
           },
           {
             childAgentId: childAgent.id,
@@ -161,6 +166,7 @@ describe("AgentSubAgentsService", () => {
             description: "",
             enabled: true,
             mode: "relay",
+            forceConclusionEnabled: true,
           },
         ],
       }),
@@ -180,6 +186,7 @@ describe("AgentSubAgentsService", () => {
             description: "",
             enabled: true,
             mode: "relay",
+            forceConclusionEnabled: true,
           },
           {
             childAgentId: otherChildAgent.id,
@@ -187,6 +194,7 @@ describe("AgentSubAgentsService", () => {
             description: "",
             enabled: true,
             mode: "relay",
+            forceConclusionEnabled: true,
           },
         ],
       }),
@@ -214,6 +222,7 @@ describe("AgentSubAgentsService", () => {
             description: "",
             enabled: true,
             mode: "relay",
+            forceConclusionEnabled: true,
           },
         ],
       }),
@@ -244,6 +253,7 @@ describe("AgentSubAgentsService", () => {
           description: "",
           enabled: true,
           mode: "relay",
+          forceConclusionEnabled: true,
         },
       ],
     })
@@ -279,6 +289,7 @@ describe("AgentSubAgentsService", () => {
             description: "",
             enabled: true,
             mode: "relay",
+            forceConclusionEnabled: true,
           },
         ],
       }),
