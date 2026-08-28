@@ -296,7 +296,9 @@ export class ConversationAgentSessionsService {
     await this.conversationAgentSessionConnectRepository.updateManyBy({
       connectScope,
       where: { id: sessionId },
-      fields: { result: mergedResult as ConversationAgentSession["result"] },
+      // TypeORM's QueryDeepPartialEntity can't express a jsonb Record<string, unknown>
+      // column as a plain value; the runtime UPDATE is a simple column assignment.
+      fields: { result: mergedResult as never },
     })
 
     return { result: mergedResult }
