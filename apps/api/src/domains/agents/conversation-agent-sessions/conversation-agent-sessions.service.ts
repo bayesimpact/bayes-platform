@@ -287,11 +287,19 @@ export class ConversationAgentSessionsService {
     )
     if (!session) return { result: null }
 
-    session.result = { ...session.result, ...input } // mergedResult
+    const mergedResult = { ...session.result, ...input }
+    // Scoped to the `result` column only (not a full-entity save): a handoff
+    // sub-agent's fillForm call can land in the same step as its own
+    // concludeHandoff call (the AI SDK runs a step's tool calls concurrently),
+    // so a full save here could stomp a concludeHandoff clear of activeAgentId
+    // that committed in between this read and this write.
+    await this.conversationAgentSessionConnectRepository.updateManyBy({
+      connectScope,
+      where: { id: sessionId },
+      fields: { result: mergedResult },
+    })
 
-    const updatedSession = await this.conversationAgentSessionConnectRepository.saveOne(session)
-
-    return { result: updatedSession.result }
+    return { result: mergedResult }
   }
 
   /**
@@ -307,18 +315,20 @@ export class ConversationAgentSessionsService {
     sessionId: string
     activeAgentId: string
   }): Promise<void> {
-    const session = await this.conversationAgentSessionConnectRepository.getOneById(
+    await this.conversationAgentSessionConnectRepository.updateManyBy({
       connectScope,
-      sessionId,
-    )
-    if (!session) return
-    session.activeAgentId = activeAgentId
-    await this.conversationAgentSessionConnectRepository.saveOne(session)
+      where: { id: sessionId },
+      fields: { activeAgentId },
+    })
   }
 
   /**
    * Clears a session's active agent, but only if it still matches the expected agent —
-   * guards against clobbering a more recent handoff decided in the meantime.
+   * guards against clobbering a more recent handoff decided in the meantime. Done as a
+   * single conditional UPDATE (not a fetch-then-save) so the check and the write are
+   * atomic — a fetch-then-save here previously left a window where a concurrently
+   * running tool call (same step, see updateSessionResult) could re-fetch the
+   * pre-clear row and later overwrite this clear with a full-entity save.
    */
   async clearActiveAgentIfCurrent({
     connectScope,
@@ -329,13 +339,11 @@ export class ConversationAgentSessionsService {
     sessionId: string
     expectedActiveAgentId: string
   }): Promise<void> {
-    const session = await this.conversationAgentSessionConnectRepository.getOneById(
+    await this.conversationAgentSessionConnectRepository.updateManyBy({
       connectScope,
-      sessionId,
-    )
-    if (!session || session.activeAgentId !== expectedActiveAgentId) return
-    session.activeAgentId = null
-    await this.conversationAgentSessionConnectRepository.saveOne(session)
+      where: { id: sessionId, activeAgentId: expectedActiveAgentId },
+      fields: { activeAgentId: null },
+    })
   }
 
   async getCurrentCategoryNamesForSession({
