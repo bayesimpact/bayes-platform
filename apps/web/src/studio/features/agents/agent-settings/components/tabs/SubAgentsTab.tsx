@@ -32,6 +32,7 @@ export type AgentSubAgentFormValue = {
   description: string
   enabled: boolean
   mode: AgentSubAgentMode
+  forceConclusionEnabled: boolean
 }
 
 export function SubAgentsTab({
@@ -75,6 +76,7 @@ export function SubAgentsTab({
         description: t("agentSettings:orchestration.defaultDescription", { name: agent.name }),
         enabled: true,
         mode: "relay",
+        forceConclusionEnabled: true,
       },
     ])
   }

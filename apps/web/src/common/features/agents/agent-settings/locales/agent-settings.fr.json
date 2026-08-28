@@ -179,7 +179,9 @@
       "mode": "Mode",
       "modeRelay": "Relais",
       "modeHandoff": "Transfert direct",
-      "talkingTo": "En discussion avec {{name}}"
+      "talkingTo": "En discussion avec {{name}}",
+      "forceConclusionEnabled": "Conclure automatiquement si l'agent semble avoir terminé",
+      "forceConclusionEnabledHint": "Désactivez pour un agent sans point de fin naturel (ex. questions-réponses ouvertes) : une réponse ordinaire ne doit jamais être interprétée comme la fin de la tâche."
     },
     "embed": {
       "loading": "Chargement de la configuration d'intégration…",

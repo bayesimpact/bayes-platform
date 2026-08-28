@@ -179,7 +179,9 @@
       "mode": "Mode",
       "modeRelay": "Relay",
       "modeHandoff": "Handoff",
-      "talkingTo": "Talking to {{name}}"
+      "talkingTo": "Talking to {{name}}",
+      "forceConclusionEnabled": "Auto-conclude if the agent seems finished",
+      "forceConclusionEnabledHint": "Turn off for an agent with no natural finishing point (e.g. open-ended Q&A): an ordinary reply should never be read as the task being over."
     },
     "embed": {
       "loading": "Loading embed configuration…",

@@ -127,6 +127,21 @@ export function SubAgentItem({
             onChange={(event) => onUpdate({ description: event.target.value })}
           />
         </Field>
+        {subAgent.mode === "handoff" && (
+          <Field orientation="horizontal" className="md:col-span-2">
+            <Switch
+              id={`sub-agent-force-conclusion-${subAgent.id}`}
+              checked={subAgent.forceConclusionEnabled}
+              onCheckedChange={(forceConclusionEnabled) => onUpdate({ forceConclusionEnabled })}
+            />
+            <FieldLabel htmlFor={`sub-agent-force-conclusion-${subAgent.id}`}>
+              {t("agentSettings:orchestration.forceConclusionEnabled")}
+            </FieldLabel>
+            <p className="text-sm text-muted-foreground">
+              {t("agentSettings:orchestration.forceConclusionEnabledHint")}
+            </p>
+          </Field>
+        )}
       </div>
     </div>
   )
