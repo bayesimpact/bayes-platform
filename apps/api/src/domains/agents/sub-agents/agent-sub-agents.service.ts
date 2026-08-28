@@ -132,67 +132,6 @@ export class AgentSubAgentsService {
     if (new Set(toolNames).size !== toolNames.length) {
       throw new UnprocessableEntityException("Duplicate sub-agent tool names are not allowed")
     }
-
-    this.validateNextChildAgentReferences(subAgents)
-  }
-
-  // nextChildAgentId lets a handoff-mode link auto-advance straight to another sub-agent once
-  // its round concludes, bypassing the parent agent's own routing judgment. Every reference must
-  // resolve within the same payload, target a handoff-mode link, and never form a cycle.
-  private validateNextChildAgentReferences(subAgents: ReplaceAgentSubAgentDto[]) {
-    const byChildAgentId = new Map(subAgents.map((subAgent) => [subAgent.childAgentId, subAgent]))
-
-    for (const subAgent of subAgents) {
-      if (!subAgent.nextChildAgentId) continue
-
-      if (subAgent.mode !== "handoff") {
-        throw new UnprocessableEntityException(
-          "nextChildAgentId only applies to handoff-mode sub-agents",
-        )
-      }
-      if (subAgent.nextChildAgentId === subAgent.childAgentId) {
-        throw new UnprocessableEntityException("A sub-agent cannot auto-advance to itself")
-      }
-
-      const target = byChildAgentId.get(subAgent.nextChildAgentId)
-      if (!target) {
-        throw new UnprocessableEntityException(
-          "nextChildAgentId must reference another sub-agent in the same list",
-        )
-      }
-      if (target.mode !== "handoff") {
-        throw new UnprocessableEntityException(
-          "nextChildAgentId must reference a handoff-mode sub-agent",
-        )
-      }
-    }
-
-    for (const start of subAgents) {
-      const visited = new Set<string>()
-      let current: ReplaceAgentSubAgentDto | undefined = start
-      while (current?.nextChildAgentId) {
-        if (visited.has(current.childAgentId)) {
-          throw new UnprocessableEntityException("nextChildAgentId chain contains a cycle")
-        }
-        visited.add(current.childAgentId)
-        current = byChildAgentId.get(current.nextChildAgentId)
-      }
-    }
-  }
-
-  // Used by ConversationAgentSessionsService.clearActiveAgentIfCurrent to auto-advance a handoff
-  // round to the next configured sub-agent without requiring the parent agent's own judgment.
-  async findNextChildAgentId({
-    parentAgentId,
-    childAgentId,
-  }: {
-    parentAgentId: string
-    childAgentId: string
-  }): Promise<string | null> {
-    const link = await this.agentSubAgentRepository.findOne({
-      where: { parentAgentId, childAgentId, mode: "handoff", enabled: true },
-    })
-    return link?.nextChildAgentId ?? null
   }
 
   private async resolveChildAgents({
