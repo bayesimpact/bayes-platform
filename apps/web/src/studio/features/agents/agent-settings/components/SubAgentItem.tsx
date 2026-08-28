@@ -138,9 +138,7 @@ export function SubAgentItem({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">
-                  {t("agentSettings:orchestration.nextAgentNone")}
-                </SelectItem>
+                <SelectItem value="none">{t("agentSettings:orchestration.nextAgentNone")}</SelectItem>
                 {nextAgentOptions.map((option) => (
                   <SelectItem key={option.agentId} value={option.agentId}>
                     {option.name}
