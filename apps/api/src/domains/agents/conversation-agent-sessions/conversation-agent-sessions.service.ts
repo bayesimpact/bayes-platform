@@ -296,7 +296,7 @@ export class ConversationAgentSessionsService {
     await this.conversationAgentSessionConnectRepository.updateManyBy({
       connectScope,
       where: { id: sessionId },
-      fields: { result: mergedResult },
+      fields: { result: mergedResult as ConversationAgentSession["result"] },
     })
 
     return { result: mergedResult }
@@ -412,6 +412,7 @@ export class ConversationAgentSessionsService {
       selectedCategories,
     })
     await this.updateSessionTitle({
+      connectScope,
       session,
       suggestedTitle,
     })
