@@ -29,7 +29,6 @@ const toAgentSubAgent = (dto: AgentSubAgentDto): AgentSubAgent => ({
   description: dto.description,
   enabled: dto.enabled,
   mode: dto.mode,
-  nextChildAgentId: dto.nextChildAgentId,
   childAgent: dto.childAgent,
   createdAt: dto.createdAt,
   updatedAt: dto.updatedAt,
