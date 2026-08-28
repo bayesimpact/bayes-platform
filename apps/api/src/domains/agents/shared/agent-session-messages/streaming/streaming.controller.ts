@@ -74,6 +74,12 @@ export class StreamingController {
     return new Observable<StreamEvent>((subscriber) => {
       void (async () => {
         try {
+          // Captured before resolving/streaming so we can tell, after the root orchestrator's
+          // own turn runs, whether IT just activated a brand-new handoff child this turn (see
+          // the auto-continue block below) as opposed to a child that was already active
+          // walking into this request.
+          const initialActiveAgentId = session.activeAgentId ?? null
+
           const active = await this.resolveActiveAgentScope({ connectScope, agent, session })
           const agentSettings = await this.resolveAgentSettings({
             connectScope,
@@ -101,6 +107,58 @@ export class StreamingController {
 
           for await (const event of events) {
             subscriber.next(event)
+          }
+
+          // Auto-continue exactly one level: when the root orchestrator's own turn (not an
+          // already-active child's turn) just handed off to a brand-new child - activeAgentId
+          // changed from what it was walking into this request - immediately run that child's
+          // own first turn too, in the same response. The orchestrator already made the
+          // delegation decision by calling the handoff tool; this only removes the extra "ok"
+          // round-trip the user would otherwise need to send before seeing the child's own
+          // first message. This block only runs when `active.agent.id === agent.id` (we
+          // started this request as the root), so a further handoff made inside the child's
+          // own auto-continued turn is never itself auto-continued - bounded to one level.
+          if (active.agent.id === agent.id) {
+            const refreshedSession = await this.conversationAgentSessionsService.findById({
+              id: session.id,
+              connectScope,
+            })
+            const newActiveAgentId = refreshedSession?.activeAgentId ?? null
+            if (newActiveAgentId && newActiveAgentId !== initialActiveAgentId && refreshedSession) {
+              const childActive = await this.resolveActiveAgentScope({
+                connectScope,
+                agent,
+                session: refreshedSession,
+              })
+              if (childActive.agent.id !== agent.id) {
+                const childAgentSettings = await this.resolveAgentSettings({
+                  connectScope,
+                  agentId: childActive.agent.id,
+                  sessionType: session.type,
+                  revision: undefined,
+                })
+                const childScope: AgentSessionScope = {
+                  connectScope,
+                  agent: childActive.agent,
+                  agentSettings: childAgentSettings,
+                  session: childActive.session,
+                }
+                // Reuses the same real user content that triggered the handoff (e.g. "bonjour")
+                // as the child's own opening trigger, rather than fabricating synthetic text -
+                // the child's own prompt drives what it actually says first.
+                const childEvents = this.chatStreamingService.streamAgentResponse({
+                  agentSessionScope: childScope,
+                  userContent,
+                  notifyClient: (event) => {
+                    subscriber.next(event)
+                  },
+                })
+
+                for await (const event of childEvents) {
+                  subscriber.next(event)
+                }
+              }
+            }
           }
 
           subscriber.complete()
