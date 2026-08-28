@@ -196,6 +196,12 @@ export const sendMessage = createAsyncThunk<
               }),
             )
             dispatch(getMessage(event.messageId))
+            // Refresh session-level state (e.g. activeAgentId, title) on every turn, not just
+            // fillForm turns — a handoff activation/conclusion can happen on any turn and the
+            // "talking to X" indicator otherwise goes stale until an unrelated fillForm call
+            // happens to trigger a refresh as a side effect.
+            // FIXME: should be replaced by getOne
+            dispatch(conversationAgentSessionsActions.getAll({ agentId }))
           },
           onError: (event) => {
             sawTerminalEvent = true
