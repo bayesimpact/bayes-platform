@@ -78,7 +78,6 @@ export class AgentSubAgentsService {
           description: subAgent.description,
           enabled: subAgent.enabled,
           mode: subAgent.mode,
-          nextChildAgentId: subAgent.nextChildAgentId ?? null,
         }),
       )
       await entityManager.save(AgentSubAgent, rows)
