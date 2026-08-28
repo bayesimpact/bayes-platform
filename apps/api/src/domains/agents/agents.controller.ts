@@ -199,6 +199,7 @@ function toAgentSubAgentDto(entity: AgentSubAgent): AgentSubAgentDto {
     description: entity.description,
     enabled: entity.enabled,
     mode: entity.mode,
+    forceConclusionEnabled: entity.forceConclusionEnabled,
     childAgent: entity.childAgent
       ? {
           id: entity.childAgent.id,
