@@ -136,8 +136,14 @@ export const sendMessage = createAsyncThunk<
     )
 
     // The message the answer is being written into: the optimistic one until the stream names the
-    // persisted one. Errors and truncations are attributed to whichever is current.
+    // persisted one. Errors and truncations are attributed to whichever is current. A turn can
+    // stream more than one assistant message (e.g. a handoff child auto-continued right after
+    // the orchestrator's own transition sentence, see streaming.controller.ts) - `seenMessageIds`
+    // tracks which ones already have a placeholder in the store so `onStart` knows whether to
+    // rename the turn's original optimistic placeholder (the first message) or append a new one
+    // (any later message).
     let streamedMessageId = assistantMessageId
+    const seenMessageIds = new Set<string>([assistantMessageId])
     // A stream that ends with neither `end` nor `error` left the message half-written. Without
     // this the bubble would stay in `streaming` for good and block every later send.
     let sawTerminalEvent = false
@@ -155,13 +161,19 @@ export const sendMessage = createAsyncThunk<
         handlers: {
           onStart: (event) => {
             streamedMessageId = event.messageId
-            // Update the optimistic message ID to match the backend's ID
-            dispatch(
-              agentSessionMessagesActions.updateAssistantMessageId({
-                oldMessageId: assistantMessageId,
-                newMessageId: event.messageId,
-              }),
-            )
+            if (seenMessageIds.has(assistantMessageId) && seenMessageIds.size === 1) {
+              dispatch(
+                agentSessionMessagesActions.updateAssistantMessageId({
+                  oldMessageId: assistantMessageId,
+                  newMessageId: event.messageId,
+                }),
+              )
+            } else {
+              dispatch(
+                agentSessionMessagesActions.startNewStreamingMessage({ id: event.messageId }),
+              )
+            }
+            seenMessageIds.add(event.messageId)
           },
           onChunk: (event) => {
             dispatch(
@@ -224,6 +236,7 @@ export const sendMessage = createAsyncThunk<
           }),
         )
       }
+      dispatch(agentSessionMessagesActions.finishStreaming())
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to stream response"
       dispatch(
@@ -232,6 +245,7 @@ export const sendMessage = createAsyncThunk<
           error: errorMessage,
         }),
       )
+      dispatch(agentSessionMessagesActions.finishStreaming())
       throw error
     }
   },
