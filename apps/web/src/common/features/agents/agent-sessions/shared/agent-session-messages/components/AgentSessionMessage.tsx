@@ -65,6 +65,7 @@ export function AgentSessionMessage({
             .filter((name) => formSubSessions.some((subSession) => subSession.toolName === name)),
         ),
       ]
+      const [firstDelegatedToolName] = delegatedToolNames
 
       return (
         <Message align="start">
@@ -122,7 +123,7 @@ export function AgentSessionMessage({
                   {sourcesTool && <SourcesTool toolCall={sourcesTool} />}
                 </RestrictedFeature>
 
-                {delegatedToolNames.length > 0 && (
+                {firstDelegatedToolName && (
                   // One button for the whole message, not one per delegated sub-agent: the
                   // sheet already lists every sub-agent as its own tab, so a second identical
                   // button next to the first (e.g. a turn that called two handoff tools) added
@@ -130,7 +131,7 @@ export function AgentSessionMessage({
                   // already show.
                   <SubAgentFormResultSheet
                     subSessions={formSubSessions}
-                    defaultToolName={delegatedToolNames[0]}
+                    defaultToolName={firstDelegatedToolName}
                   />
                 )}
               </MessageFooter>
