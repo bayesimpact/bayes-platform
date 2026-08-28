@@ -78,6 +78,7 @@ export class AgentSubAgentsService {
           description: subAgent.description,
           enabled: subAgent.enabled,
           mode: subAgent.mode,
+          forceConclusionEnabled: subAgent.forceConclusionEnabled,
         }),
       )
       await entityManager.save(AgentSubAgent, rows)
@@ -88,6 +89,32 @@ export class AgentSubAgentsService {
       row.childAgent = childAgentById.get(row.childAgentId) ?? row.childAgent
     }
     return savedRows
+  }
+
+  /**
+   * Whether the forced-conclusion classifier safety net (see StreamingService) should run
+   * for this handoff link. Defaults to true (existing behavior) if no matching enabled
+   * handoff link is found - e.g. a link that was disabled/removed mid-conversation. Not
+   * connect-scoped: AgentSubAgent carries no organizationId/projectId of its own (see
+   * listSubAgents), so scoping relies on the caller having already resolved parentAgentId
+   * from a connect-scoped Agent.
+   */
+  async isForceConclusionEnabled({
+    parentAgentId,
+    childAgentId,
+  }: {
+    parentAgentId: string
+    childAgentId: string
+  }): Promise<boolean> {
+    const link = await this.agentSubAgentRepository.findOne({
+      where: {
+        parentAgentId,
+        childAgentId,
+        mode: "handoff",
+        enabled: true,
+      },
+    })
+    return link?.forceConclusionEnabled ?? true
   }
 
   private validateParentScope({
