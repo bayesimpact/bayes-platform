@@ -60,6 +60,20 @@ const slice = createSlice({
         message.id = action.payload.newMessageId
       }
     },
+    startNewStreamingMessage: (
+      state,
+      action: PayloadAction<{ id: string; agentRevision?: number }>,
+    ) => {
+      if (!ADS.isFulfilled(state.data)) return
+
+      state.data.value.push({
+        id: action.payload.id,
+        role: "assistant",
+        content: "",
+        status: "streaming",
+        agentRevision: action.payload.agentRevision,
+      })
+    },
     addStreamingToolStep: (state, action: PayloadAction<{ toolName: AgentSessionToolName }>) => {
       // Skip immediate duplicates so repeated notifications for the same tool
       // don't stack up as separate timeline steps.
@@ -90,8 +104,6 @@ const slice = createSlice({
           message.completedAt = Date.now()
         }
       }
-      state.isStreaming = false
-      state.streamingToolSteps = []
     },
     failAssistantMessage: (state, action: PayloadAction<{ messageId: string; error: string }>) => {
       if (!ADS.isFulfilled(state.data)) return
@@ -104,6 +116,8 @@ const slice = createSlice({
           message.completedAt = Date.now()
         }
       }
+    },
+    finishStreaming: (state) => {
       state.isStreaming = false
       state.streamingToolSteps = []
     },
