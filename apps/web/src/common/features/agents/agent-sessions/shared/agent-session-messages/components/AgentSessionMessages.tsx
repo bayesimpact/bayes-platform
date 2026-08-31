@@ -67,11 +67,22 @@ export function AgentSessionMessages({
   renderMessageVersion?: (message: AgentSessionMessageType) => React.ReactNode
   renderVersionSelect?: React.ReactNode
 }) {
+  // PATCH_RETRY_BUTTON_MESSAGES_V1_APPLIED
   const isStreaming = useAppSelector(selectStreaming)
+  const dispatch = useAppDispatch()
 
   const formResult = formResultSchema
     ? { outputJsonSchema: formResultSchema, result: session.result }
     : null
+
+  const handleRetry = (erroredMessage: AgentSessionMessageType) => {
+    const index = messages.findIndex((candidate) => candidate.id === erroredMessage.id)
+    const precedingUserMessage = [...messages.slice(0, index)]
+      .reverse()
+      .find((candidate) => candidate.role === "user")
+    if (!precedingUserMessage) return
+    void dispatch(sendMessage({ content: precedingUserMessage.content, agentSession: session }))
+  }
 
   const desktopHeightClasses = "h-[85dvh] md:h-[calc(100dvh-11rem)] xl:h-[calc(100dvh-17rem)]"
   return (
@@ -81,7 +92,11 @@ export function AgentSessionMessages({
           <MessageScrollerProvider scrollPreviousItemPeek={168} defaultScrollPosition="end">
             <FormSubSessionsProvider value={formSubSessions}>
               <FormResultProvider value={formResult}>
-                <Messages messages={messages} renderMessageVersion={renderMessageVersion} />
+                <Messages
+                  messages={messages}
+                  renderMessageVersion={renderMessageVersion}
+                  onRetry={isStreaming ? undefined : handleRetry}
+                />
               </FormResultProvider>
             </FormSubSessionsProvider>
 
@@ -102,9 +117,11 @@ export function AgentSessionMessages({
 function Messages({
   messages,
   renderMessageVersion,
+  onRetry,
 }: {
   messages: AgentSessionMessageType[]
   renderMessageVersion?: (message: AgentSessionMessageType) => React.ReactNode
+  onRetry?: (message: AgentSessionMessageType) => void
 }) {
   return (
     <MessageScroller className="flex-1">
@@ -117,7 +134,11 @@ function Messages({
               // Anchor on user turns so jumps land on a question with prior context peeking above.
               scrollAnchor={message.role === "user"}
             >
-              <AgentSessionMessage message={message} renderMessageVersion={renderMessageVersion} />
+              <AgentSessionMessage
+                message={message}
+                renderMessageVersion={renderMessageVersion}
+                onRetry={onRetry}
+              />
             </MessageScrollerItem>
           ))}
         </MessageScrollerContent>

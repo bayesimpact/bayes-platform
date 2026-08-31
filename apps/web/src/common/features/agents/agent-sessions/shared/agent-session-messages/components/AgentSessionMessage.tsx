@@ -10,7 +10,7 @@ import { Marker, MarkerContent, MarkerIcon } from "@caseai-connect/ui/shad/marke
 import { Message, MessageContent, MessageFooter } from "@caseai-connect/ui/shad/message"
 import { Spinner } from "@caseai-connect/ui/shad/spinner"
 import type { TFunction } from "i18next"
-import { AlertCircleIcon, CheckIcon, ChevronRightIcon, CopyIcon } from "lucide-react"
+import { AlertCircleIcon, CheckIcon, ChevronRightIcon, CopyIcon, RotateCcwIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FeedbackCreator } from "@/common/components/FeedbackCreator"
@@ -30,13 +30,18 @@ import { SourcesTool } from "./SourcesTool"
 import { SubAgentFormResultSheet } from "./SubAgentFormResultSheet"
 import { SurfaceResourcesTool } from "./SurfaceResourcesTool"
 
+// PATCH_RETRY_BUTTON_V1_APPLIED
 export function AgentSessionMessage({
   message,
   renderMessageVersion,
+  onRetry,
 }: {
   message: AgentSessionMessageType
   renderMessageVersion?: (message: AgentSessionMessageType) => React.ReactNode
+  /** Resends the user message that preceded this one. Omitted while another message is streaming. */
+  onRetry?: (message: AgentSessionMessageType) => void
 }) {
+  const { t } = useTranslation()
   const formSubSessions = useFormSubSessions()
   const formResult = useFormResult()
 
@@ -112,6 +117,18 @@ export function AgentSessionMessage({
                 <FeedbackCreator message={message} />
 
                 {!hideMarkdownRecap && <CopyToClipboard content={message.content} />}
+
+                {isError && onRetry && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground text-xs"
+                    onClick={() => onRetry(message)}
+                  >
+                    <RotateCcwIcon className="size-3.5" />
+                    {t("actions:retry")}
+                  </Button>
+                )}
 
                 {renderMessageVersion?.(message)}
 
