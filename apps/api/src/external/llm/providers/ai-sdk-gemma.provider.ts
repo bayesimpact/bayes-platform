@@ -21,7 +21,7 @@ const GEMMA_FETCH_TIMEOUT_MS = 30_000
 // slow-but-progressing generation (see GEMMA_FETCH_TIMEOUT_MS's own ~19s ceiling) - see
 // AISDKLLMProviderBase.getHedgeDelayMs/doStreamWithRetry for the concurrent-second-attempt race
 // this enables.
-const GEMMA_HEDGE_DELAY_MS = 20_000
+const GEMMA_HEDGE_DELAY_MS = 22_000
 
 /**
  * Wraps a fetch Response so its body stream aborts with an error if no new chunk arrives within
