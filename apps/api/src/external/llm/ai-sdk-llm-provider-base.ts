@@ -1,4 +1,8 @@
-import type { LanguageModelV3 } from "@ai-sdk/provider"
+import type {
+  LanguageModelV3,
+  LanguageModelV3StreamPart,
+  LanguageModelV3StreamResult,
+} from "@ai-sdk/provider"
 import { AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
 import { Logger, NotImplementedException } from "@nestjs/common"
 import { trace } from "@opentelemetry/api"
@@ -85,6 +89,90 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
    * catch it — a tool with side effects must never fail unnoticed.
    */
   private readonly leakedToolCallLogger = new Logger("LeakedToolCall")
+
+  /**
+   * Self-hosted models (Gemma) occasionally stall before producing anything at all - e.g. the
+   * idle-timeout in ai-sdk-gemma.provider.ts firing because no chunk ever arrived. Observed in
+   * production: the very next call right after such a failure typically succeeds in under a
+   * second, so one silent retry absorbs most of these before the user ever sees an error.
+   */
+  private readonly llmStreamRetryLogger = new Logger("LLMStreamRetry")
+
+  /**
+   * Retries `doStream()` once if it fails, or its stream errors, before a single chunk has been
+   * read. Once even one chunk has been read, a stall is surfaced immediately instead of retried:
+   * that chunk may already be on its way downstream (e.g. forwarded to the streaming response),
+   * so retrying at that point would risk duplicating or interleaving content.
+   */
+  private async doStreamWithRetry(
+    doStream: () => PromiseLike<LanguageModelV3StreamResult>,
+  ): Promise<LanguageModelV3StreamResult> {
+    const maxAttempts = 2
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      let result: LanguageModelV3StreamResult
+      try {
+        result = await doStream()
+      } catch (error) {
+        if (attempt === maxAttempts) throw error
+        this.llmStreamRetryLogger.warn(
+          `doStream() rejected before producing anything (attempt ${attempt}/${maxAttempts}), retrying: ${error instanceof Error ? error.message : String(error)}`,
+        )
+        continue
+      }
+
+      const reader = result.stream.getReader()
+      let first: ReadableStreamReadResult<LanguageModelV3StreamPart>
+      try {
+        first = await reader.read()
+      } catch (error) {
+        reader.releaseLock()
+        if (attempt === maxAttempts) throw error
+        this.llmStreamRetryLogger.warn(
+          `LLM stream failed before producing anything (attempt ${attempt}/${maxAttempts}), retrying: ${error instanceof Error ? error.message : String(error)}`,
+        )
+        continue
+      }
+      if (!first.done && first.value.type === "error") {
+        reader.releaseLock()
+        const streamError = first.value.error
+        if (attempt === maxAttempts) throw streamError
+        this.llmStreamRetryLogger.warn(
+          `LLM stream errored before producing anything (attempt ${attempt}/${maxAttempts}), retrying: ${streamError instanceof Error ? streamError.message : String(streamError)}`,
+        )
+        continue
+      }
+
+      return {
+        ...result,
+        stream: new ReadableStream<LanguageModelV3StreamPart>({
+          async start(controller) {
+            if (first.done) {
+              controller.close()
+              return
+            }
+            controller.enqueue(first.value)
+            try {
+              while (true) {
+                const { done, value } = await reader.read()
+                if (done) {
+                  controller.close()
+                  return
+                }
+                controller.enqueue(value)
+              }
+            } catch (error) {
+              controller.error(error)
+            }
+          },
+          cancel(reason) {
+            reader.cancel(reason).catch(() => {})
+          },
+        }),
+      }
+    }
+    // Unreachable: every loop iteration either returns or throws by the last attempt.
+    throw new Error("doStreamWithRetry: exhausted attempts without a result")
+  }
 
   private logLeakedToolCalls({
     originalText,
@@ -189,7 +277,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
           return result
         },
         wrapStream: async ({ doStream }) => {
-          const { stream, ...rest } = await doStream()
+          const { stream, ...rest } = await this.doStreamWithRetry(doStream)
           try {
             const req = rest.request?.body
             if (req !== undefined) {
