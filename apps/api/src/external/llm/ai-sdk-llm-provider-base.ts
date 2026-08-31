@@ -64,6 +64,10 @@ function extractTextFromContent(content: unknown): string {
     .join("")
 }
 
+function describeStreamError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
 function extractTextFromStreamChunks(chunks: unknown[]): string {
   let text = ""
   for (const chunk of chunks) {
@@ -90,6 +94,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
    */
   private readonly leakedToolCallLogger = new Logger("LeakedToolCall")
 
+  // PATCH_HEDGED_RETRY_V1_APPLIED
   /**
    * Self-hosted models (Gemma) occasionally stall before producing anything at all - e.g. the
    * idle-timeout in ai-sdk-gemma.provider.ts firing because no chunk ever arrived. Observed in
@@ -99,79 +104,166 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
   private readonly llmStreamRetryLogger = new Logger("LLMStreamRetry")
 
   /**
+   * Delay (ms) after which a still-silent `doStream()` attempt gets a concurrent second attempt
+   * racing it, instead of waiting for the first to fully fail (see `doStreamWithRetry`). Undefined
+   * by default - only a provider known to occasionally stall before producing anything (Gemma)
+   * overrides this. Doubling a call is a real cost/quota concern on a paid, per-token provider
+   * that doesn't have this problem, so opting in per-provider keeps the others exactly as today.
+   */
+  protected getHedgeDelayMs(): number | undefined {
+    return undefined
+  }
+
+  /**
+   * Runs one `doStream()` attempt through to its first chunk. Resolves `{ ok: true, ... }` with
+   * the reader positioned right after that first chunk (so the caller can replay it and keep
+   * reading), or `{ ok: false, error }` if `doStream()` rejected, the read itself threw, or the
+   * first chunk was an `error` part - the three ways an attempt can die before producing anything.
+   */
+  private async runStreamAttempt(
+    doStream: () => PromiseLike<LanguageModelV3StreamResult>,
+  ): Promise<
+    | {
+        ok: true
+        result: LanguageModelV3StreamResult
+        first: ReadableStreamReadResult<LanguageModelV3StreamPart>
+        reader: ReadableStreamDefaultReader<LanguageModelV3StreamPart>
+      }
+    | { ok: false; error: unknown }
+  > {
+    let result: LanguageModelV3StreamResult
+    try {
+      result = await doStream()
+    } catch (error) {
+      return { ok: false, error }
+    }
+
+    const reader = result.stream.getReader()
+    let first: ReadableStreamReadResult<LanguageModelV3StreamPart>
+    try {
+      first = await reader.read()
+    } catch (error) {
+      reader.releaseLock()
+      return { ok: false, error }
+    }
+    if (!first.done && first.value.type === "error") {
+      reader.releaseLock()
+      return { ok: false, error: first.value.error }
+    }
+
+    return { ok: true, result, first, reader }
+  }
+
+  /**
+   * Rebuilds a stream that replays the already-read first chunk, then continues reading from the
+   * same reader - the counterpart to `runStreamAttempt`'s peek.
+   */
+  private buildStreamFromAttempt({
+    result,
+    first,
+    reader,
+  }: {
+    result: LanguageModelV3StreamResult
+    first: ReadableStreamReadResult<LanguageModelV3StreamPart>
+    reader: ReadableStreamDefaultReader<LanguageModelV3StreamPart>
+  }): LanguageModelV3StreamResult {
+    return {
+      ...result,
+      stream: new ReadableStream<LanguageModelV3StreamPart>({
+        async start(controller) {
+          if (first.done) {
+            controller.close()
+            return
+          }
+          controller.enqueue(first.value)
+          try {
+            while (true) {
+              const { done, value } = await reader.read()
+              if (done) {
+                controller.close()
+                return
+              }
+              controller.enqueue(value)
+            }
+          } catch (error) {
+            controller.error(error)
+          }
+        },
+        cancel(reason) {
+          reader.cancel(reason).catch(() => {})
+        },
+      }),
+    }
+  }
+
+  private async retryOnceOrThrow(
+    doStream: () => PromiseLike<LanguageModelV3StreamResult>,
+    failedAttemptError: unknown,
+  ): Promise<LanguageModelV3StreamResult> {
+    this.llmStreamRetryLogger.warn(
+      `Stream attempt failed before producing anything, retrying: ${describeStreamError(failedAttemptError)}`,
+    )
+    const second = await this.runStreamAttempt(doStream)
+    if (second.ok) return this.buildStreamFromAttempt(second)
+    throw second.error
+  }
+
+  /**
    * Retries `doStream()` once if it fails, or its stream errors, before a single chunk has been
    * read. Once even one chunk has been read, a stall is surfaced immediately instead of retried:
    * that chunk may already be on its way downstream (e.g. forwarded to the streaming response),
    * so retrying at that point would risk duplicating or interleaving content.
+   *
+   * With `hedgeDelayMs` set (Gemma only, via `getHedgeDelayMs`), a second attempt is fired
+   * *concurrently* as soon as the first one has been silent for that long, instead of waiting for
+   * it to fully fail first - the two race, and whichever produces a usable first chunk wins. This
+   * cuts real-stall recovery time roughly from "one full timeout" down to "hedge delay + a fast
+   * retry".
    */
   private async doStreamWithRetry(
     doStream: () => PromiseLike<LanguageModelV3StreamResult>,
+    hedgeDelayMs?: number,
   ): Promise<LanguageModelV3StreamResult> {
-    const maxAttempts = 2
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      let result: LanguageModelV3StreamResult
-      try {
-        result = await doStream()
-      } catch (error) {
-        if (attempt === maxAttempts) throw error
-        this.llmStreamRetryLogger.warn(
-          `doStream() rejected before producing anything (attempt ${attempt}/${maxAttempts}), retrying: ${error instanceof Error ? error.message : String(error)}`,
-        )
-        continue
-      }
+    const attempt1 = this.runStreamAttempt(doStream)
 
-      const reader = result.stream.getReader()
-      let first: ReadableStreamReadResult<LanguageModelV3StreamPart>
-      try {
-        first = await reader.read()
-      } catch (error) {
-        reader.releaseLock()
-        if (attempt === maxAttempts) throw error
-        this.llmStreamRetryLogger.warn(
-          `LLM stream failed before producing anything (attempt ${attempt}/${maxAttempts}), retrying: ${error instanceof Error ? error.message : String(error)}`,
-        )
-        continue
-      }
-      if (!first.done && first.value.type === "error") {
-        reader.releaseLock()
-        const streamError = first.value.error
-        if (attempt === maxAttempts) throw streamError
-        this.llmStreamRetryLogger.warn(
-          `LLM stream errored before producing anything (attempt ${attempt}/${maxAttempts}), retrying: ${streamError instanceof Error ? streamError.message : String(streamError)}`,
-        )
-        continue
-      }
-
-      return {
-        ...result,
-        stream: new ReadableStream<LanguageModelV3StreamPart>({
-          async start(controller) {
-            if (first.done) {
-              controller.close()
-              return
-            }
-            controller.enqueue(first.value)
-            try {
-              while (true) {
-                const { done, value } = await reader.read()
-                if (done) {
-                  controller.close()
-                  return
-                }
-                controller.enqueue(value)
-              }
-            } catch (error) {
-              controller.error(error)
-            }
-          },
-          cancel(reason) {
-            reader.cancel(reason).catch(() => {})
-          },
-        }),
-      }
+    if (hedgeDelayMs === undefined) {
+      const first = await attempt1
+      if (first.ok) return this.buildStreamFromAttempt(first)
+      return this.retryOnceOrThrow(doStream, first.error)
     }
-    // Unreachable: every loop iteration either returns or throws by the last attempt.
-    throw new Error("doStreamWithRetry: exhausted attempts without a result")
+
+    let hedgeTimer: ReturnType<typeof setTimeout> | undefined
+    const hedgeSignal = new Promise<"hedge">((resolve) => {
+      hedgeTimer = setTimeout(() => resolve("hedge"), hedgeDelayMs)
+    })
+    const first = await Promise.race([attempt1, hedgeSignal])
+    clearTimeout(hedgeTimer)
+
+    if (first !== "hedge") {
+      if (first.ok) return this.buildStreamFromAttempt(first)
+      return this.retryOnceOrThrow(doStream, first.error)
+    }
+
+    this.llmStreamRetryLogger.warn(
+      `Stream attempt silent for ${hedgeDelayMs}ms, hedging with a concurrent second attempt`,
+    )
+    const attempt2 = this.runStreamAttempt(doStream)
+    const winner = await Promise.race([
+      attempt1.then((result) => ({ source: "attempt1" as const, result })),
+      attempt2.then((result) => ({ source: "attempt2" as const, result })),
+    ])
+
+    if (winner.result.ok) {
+      const loser = winner.source === "attempt1" ? attempt2 : attempt1
+      loser.then((result) => {
+        if (result.ok) result.reader.cancel()
+      })
+      return this.buildStreamFromAttempt(winner.result)
+    }
+
+    const other = await (winner.source === "attempt1" ? attempt2 : attempt1)
+    if (other.ok) return this.buildStreamFromAttempt(other)
+    throw other.error ?? winner.result.error
   }
 
   private logLeakedToolCalls({
@@ -277,7 +369,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
           return result
         },
         wrapStream: async ({ doStream }) => {
-          const { stream, ...rest } = await this.doStreamWithRetry(doStream)
+          const { stream, ...rest } = await this.doStreamWithRetry(doStream, this.getHedgeDelayMs())
           try {
             const req = rest.request?.body
             if (req !== undefined) {
