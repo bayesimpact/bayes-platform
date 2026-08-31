@@ -9,6 +9,63 @@ import { GetAgentModelKeyFromValue } from "@/external/llm/agent-provider"
 import { AISDKLLMProviderBase, CallOrigin } from "@/external/llm/ai-sdk-llm-provider-base"
 import { GemmaPromptHelper } from "@/external/llm/providers/gemma/gemma-prompt-helper"
 
+// The self-hosted Gemma backend has, on multiple occasions, stopped producing any output
+// mid-generation without erroring - the request just hangs forever with no timeout of its own,
+// leaving the parent HTTP request (and the end user) stuck indefinitely. Bound both halves of the
+// exchange: the initial connect (no response at all) and each gap between streamed chunks (a
+// response that starts, then stalls). A per-call value generous enough to never trip on a real,
+// slow-but-progressing generation (the longest observed in practice is ~19s).
+const GEMMA_FETCH_TIMEOUT_MS = 45_000
+
+/**
+ * Wraps a fetch Response so its body stream aborts with an error if no new chunk arrives within
+ * `idleTimeoutMs` of the previous one (or of the response starting). Guards against a response
+ * that starts fine but then stalls mid-stream - a plain AbortSignal.timeout on the initial fetch
+ * call alone would not catch this, since that promise has already resolved by then.
+ */
+function withIdleTimeout(response: Response, idleTimeoutMs: number): Response {
+  if (!response.body) return response
+  const reader = response.body.getReader()
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      let timeoutId: ReturnType<typeof setTimeout>
+      const resetIdleTimer = () => {
+        clearTimeout(timeoutId)
+        timeoutId = setTimeout(() => {
+          controller.error(
+            new Error(`Gemma provider: no data received for ${idleTimeoutMs}ms, aborting stalled stream`),
+          )
+          reader.cancel().catch(() => {})
+        }, idleTimeoutMs)
+      }
+      resetIdleTimer()
+      try {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) {
+            clearTimeout(timeoutId)
+            controller.close()
+            return
+          }
+          resetIdleTimer()
+          controller.enqueue(value)
+        }
+      } catch (error) {
+        clearTimeout(timeoutId)
+        controller.error(error)
+      }
+    },
+    cancel(reason) {
+      reader.cancel(reason).catch(() => {})
+    },
+  })
+  return new Response(stream, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  })
+}
+
 @Injectable()
 export class AISDKGemmaProvider extends AISDKLLMProviderBase {
   getAgentProvider(): AgentProvider {
@@ -54,10 +111,14 @@ export class AISDKGemmaProvider extends AISDKLLMProviderBase {
         const { token } = await client.getAccessToken()
         const headers = new Headers(init?.headers)
         headers.set("Authorization", `Bearer ${token}`)
-        return fetch(requestUrl, {
+
+        const connectTimeout = AbortSignal.timeout(GEMMA_FETCH_TIMEOUT_MS)
+        const response = await fetch(requestUrl, {
           ...init,
           headers,
+          signal: init?.signal ? AbortSignal.any([init.signal, connectTimeout]) : connectTimeout,
         })
+        return withIdleTimeout(response, GEMMA_FETCH_TIMEOUT_MS)
       },
     }).chat(config.model)
   }
