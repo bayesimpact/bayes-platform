@@ -108,24 +108,53 @@ describe("processSSEChunk", () => {
     })
   })
 
-  it("dispatches the app's own events and stops on end", () => {
+  it("dispatches the app's own events without stopping on a message's end", () => {
     const handlers = buildHandlers()
     const chunk = [
       jsonFrame({ type: "start", messageId: "m1" }),
       jsonFrame({ type: "chunk", content: "Hello", messageId: "m1" }),
       jsonFrame({ type: "end", messageId: "m1", fullContent: "Hello" }),
-      jsonFrame({ type: "chunk", content: "ignored", messageId: "m1" }),
     ].join("")
 
     const { done } = processSSEChunk(chunk, handlers, buildContext())
 
-    expect(done).toBe(true)
+    expect(done).toBe(false)
     expect(handlers.onStart).toHaveBeenCalledWith({ type: "start", messageId: "m1" })
     expect(handlers.onChunk).toHaveBeenCalledTimes(1)
     expect(handlers.onEnd).toHaveBeenCalledWith({
       type: "end",
       messageId: "m1",
       fullContent: "Hello",
+    })
+  })
+
+  it("keeps processing a second message's frames after the first one's end", () => {
+    // A turn that auto-continues into a freshly-activated handoff child's first turn (see
+    // streaming.controller.ts) sends two start/.../end sequences over the same connection. If
+    // both land in the same buffered read, the second one must not be dropped.
+    const handlers = buildHandlers()
+    const chunk = [
+      jsonFrame({ type: "start", messageId: "m1" }),
+      jsonFrame({ type: "chunk", content: "Handing off", messageId: "m1" }),
+      jsonFrame({ type: "end", messageId: "m1", fullContent: "Handing off" }),
+      jsonFrame({ type: "start", messageId: "m2" }),
+      jsonFrame({ type: "chunk", content: "Real first question", messageId: "m2" }),
+      jsonFrame({ type: "end", messageId: "m2", fullContent: "Real first question" }),
+    ].join("")
+
+    const { done } = processSSEChunk(chunk, handlers, buildContext())
+
+    expect(done).toBe(false)
+    expect(handlers.onStart).toHaveBeenCalledWith({ type: "start", messageId: "m2" })
+    expect(handlers.onChunk).toHaveBeenCalledWith({
+      type: "chunk",
+      content: "Real first question",
+      messageId: "m2",
+    })
+    expect(handlers.onEnd).toHaveBeenCalledWith({
+      type: "end",
+      messageId: "m2",
+      fullContent: "Real first question",
     })
   })
 
