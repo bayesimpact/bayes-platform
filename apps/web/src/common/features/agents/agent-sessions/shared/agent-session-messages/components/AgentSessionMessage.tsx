@@ -65,7 +65,10 @@ export function AgentSessionMessage({
             .filter((name) => formSubSessions.some((subSession) => subSession.toolName === name)),
         ),
       ]
-      const [firstDelegatedToolName] = delegatedToolNames
+      // Default tab: the sub-agent this message itself delegated to, or the first known
+      // one otherwise - the sheet reads live data, so it's correct on any message, not
+      // just the one that triggered the delegation.
+      const defaultFormSubSessionToolName = delegatedToolNames[0] ?? formSubSessions[0]?.toolName
 
       return (
         <Message align="start">
@@ -123,15 +126,13 @@ export function AgentSessionMessage({
                   {sourcesTool && <SourcesTool toolCall={sourcesTool} />}
                 </RestrictedFeature>
 
-                {firstDelegatedToolName && (
-                  // One button for the whole message, not one per delegated sub-agent: the
-                  // sheet already lists every sub-agent as its own tab, so a second identical
-                  // button next to the first (e.g. a turn that called two handoff tools) added
-                  // visual clutter without adding anything the first button's sheet couldn't
-                  // already show.
+                {defaultFormSubSessionToolName && (
+                  // Shown on every assistant message once at least one form sub-agent exists,
+                  // not just the one that delegated to it: the sheet reads live data across all
+                  // sub-agents, so it's just as correct further down the conversation.
                   <SubAgentFormResultSheet
                     subSessions={formSubSessions}
-                    defaultToolName={firstDelegatedToolName}
+                    defaultToolName={defaultFormSubSessionToolName}
                   />
                 )}
               </MessageFooter>
