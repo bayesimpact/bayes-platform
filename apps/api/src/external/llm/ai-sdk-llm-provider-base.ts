@@ -120,9 +120,7 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
    * reading), or `{ ok: false, error }` if `doStream()` rejected, the read itself threw, or the
    * first chunk was an `error` part - the three ways an attempt can die before producing anything.
    */
-  private async runStreamAttempt(
-    doStream: () => PromiseLike<LanguageModelV3StreamResult>,
-  ): Promise<
+  private async runStreamAttempt(doStream: () => PromiseLike<LanguageModelV3StreamResult>): Promise<
     | {
         ok: true
         result: LanguageModelV3StreamResult
