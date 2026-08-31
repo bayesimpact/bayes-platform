@@ -15,7 +15,13 @@ import { GemmaPromptHelper } from "@/external/llm/providers/gemma/gemma-prompt-h
 // exchange: the initial connect (no response at all) and each gap between streamed chunks (a
 // response that starts, then stalls). A per-call value generous enough to never trip on a real,
 // slow-but-progressing generation (the longest observed in practice is ~19s).
-const GEMMA_FETCH_TIMEOUT_MS = 45_000
+const GEMMA_FETCH_TIMEOUT_MS = 30_000
+
+// A doStream() attempt still silent past this point is almost certainly a real stall, not a
+// slow-but-progressing generation (see GEMMA_FETCH_TIMEOUT_MS's own ~19s ceiling) - see
+// AISDKLLMProviderBase.getHedgeDelayMs/doStreamWithRetry for the concurrent-second-attempt race
+// this enables.
+const GEMMA_HEDGE_DELAY_MS = 20_000
 
 /**
  * Wraps a fetch Response so its body stream aborts with an error if no new chunk arrives within
@@ -158,6 +164,10 @@ export class AISDKGemmaProvider extends AISDKLLMProviderBase {
     }
 
     return systemPrompt
+  }
+
+  protected override getHedgeDelayMs(): number {
+    return GEMMA_HEDGE_DELAY_MS
   }
 
   getModelEnvSettings(model: string) {
