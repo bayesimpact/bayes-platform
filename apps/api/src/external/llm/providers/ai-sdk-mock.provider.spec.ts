@@ -142,12 +142,27 @@ describe("AISDKMockProvider", () => {
     expect(results.join("")).toBe("Hello!")
   })
 
-  it("streamChatResponse - rethrows a provider error instead of ending silently", async () => {
+  it("streamChatResponse - retries once before producing anything, then rethrows if it keeps failing", async () => {
+    // A single doStream() failure before any content is produced (e.g. the Gemma idle-timeout,
+    // see ai-sdk-llm-provider-base.ts's doStreamWithRetry) is retried once silently. Only once
+    // that retry ALSO fails does the error surface to the caller instead of ending silently.
+    provider.addErrorTurn(metadata.agentId, new Error("Unsupported chat content part type: 'file'"))
     provider.addErrorTurn(metadata.agentId, new Error("Unsupported chat content part type: 'file'"))
 
     await expect(
       streamToStringArray(provider.streamChatResponse({ messages, config, metadata })),
     ).rejects.toThrow("Unsupported chat content part type: 'file'")
+  })
+
+  it("streamChatResponse - transparently retries a single doStream() failure", async () => {
+    provider.addErrorTurn(metadata.agentId, new Error("stalled before producing anything"))
+    provider.addTextTurn(metadata.agentId, "recovered on retry")
+
+    const results = await streamToStringArray(
+      provider.streamChatResponse({ messages, config, metadata }),
+    )
+
+    expect(results.join("")).toBe("recovered on retry")
   })
 
   it("addObjectTurn - should works", async () => {
