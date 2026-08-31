@@ -63,7 +63,15 @@ export function parseSSEEvent(
   }
 }
 
-/** Returns true if the stream should terminate. */
+/**
+ * Returns true if the whole connection should stop being read. Only `error` qualifies: a turn
+ * that auto-continues into a freshly-activated handoff child (see streaming.controller.ts) sends
+ * more than one `start`/.../`end` sequence over the SAME connection, one per assistant message,
+ * so an individual message's `end` must NOT stop reading — the next message's frames may already
+ * be sitting in the same buffered chunk right after it. The connection's real end is signalled by
+ * the underlying reader reporting `done` (see agent-session-messages-streaming.ts), not by any
+ * one message's `end` event.
+ */
 export function dispatchStreamEvent(
   event: StreamEventPayload,
   handlers: StreamEventHandler,
@@ -75,10 +83,8 @@ export function dispatchStreamEvent(
   if (event.type === "start") handlers.onStart(event)
   else if (event.type === "chunk") handlers.onChunk(event)
   else if (event.type === "notify_client") handlers.onNotifyClient(event)
-  else if (event.type === "end") {
-    handlers.onEnd(event)
-    return true
-  } else if (event.type === "error") {
+  else if (event.type === "end") handlers.onEnd(event)
+  else if (event.type === "error") {
     handlers.onError(event)
     return true
   }
