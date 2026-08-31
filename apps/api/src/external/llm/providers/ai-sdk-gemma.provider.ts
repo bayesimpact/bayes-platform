@@ -28,7 +28,7 @@ function withIdleTimeout(response: Response, idleTimeoutMs: number): Response {
   const reader = response.body.getReader()
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      let timeoutId: ReturnType<typeof setTimeout>
+      let timeoutId: ReturnType<typeof setTimeout> | undefined
       const resetIdleTimer = () => {
         clearTimeout(timeoutId)
         timeoutId = setTimeout(() => {
