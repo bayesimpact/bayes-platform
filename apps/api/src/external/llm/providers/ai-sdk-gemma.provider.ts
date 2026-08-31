@@ -33,7 +33,9 @@ function withIdleTimeout(response: Response, idleTimeoutMs: number): Response {
         clearTimeout(timeoutId)
         timeoutId = setTimeout(() => {
           controller.error(
-            new Error(`Gemma provider: no data received for ${idleTimeoutMs}ms, aborting stalled stream`),
+            new Error(
+              `Gemma provider: no data received for ${idleTimeoutMs}ms, aborting stalled stream`,
+            ),
           )
           reader.cancel().catch(() => {})
         }, idleTimeoutMs)
