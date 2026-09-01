@@ -200,6 +200,41 @@ describe("AISDKMockProvider", () => {
     expect(results.join("")).toBe("final answer")
   })
 
+  it("streamChatResponse - drops a text block that exactly repeats an earlier one in the same turn", async () => {
+    // Mirrors observed Gemma behavior: after a tool result is fed back mid-turn, it sometimes
+    // re-states its full answer instead of staying silent and just making the next call.
+    const executed: unknown[] = []
+    const toolConfig: LLMConfig = {
+      model: AgentModel._Mock,
+      temperature: 1,
+      systemPrompt: "",
+      tools: {
+        echo: tool({
+          description: "echoes its input",
+          inputSchema: z.object({ text: z.string() }),
+          execute: async (input) => {
+            executed.push(input)
+            return { echoed: input.text }
+          },
+        }),
+      },
+    }
+    // Step 1: text + a tool call. Step 2: the SAME text repeated + another tool call.
+    // Step 3: genuinely new text, no tool call - ends the turn.
+    provider.addTextWithToolCallTurn(metadata.agentId, "Here is my report.", "echo", { text: "a" })
+    provider.addTextWithToolCallTurn(metadata.agentId, "Here is my report.", "echo", { text: "b" })
+    provider.addTextTurn(metadata.agentId, "Done.")
+
+    const results = await streamToStringArray(
+      provider.streamChatResponse({ messages, config: toolConfig, metadata }),
+    )
+
+    // Both tool calls still executed - the dedupe only touches text, never tool calls.
+    expect(executed).toEqual([{ text: "a" }, { text: "b" }])
+    // The repeated block only shows up once; genuinely new text still comes through.
+    expect(results.join("")).toBe("Here is my report.Done.")
+  })
+
   async function streamToStringArray(
     stream: AsyncGenerator<string, void, unknown>,
   ): Promise<string[]> {

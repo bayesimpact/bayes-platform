@@ -452,24 +452,43 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
           const rawChunks: unknown[] = []
           let stripper: ReturnType<typeof ThoughtTokensHelper.createStripper> | null = null
           let currentTextId: string | undefined
-          const transformed = stream.pipeThrough(
-            new TransformStream({
-              transform(chunk, controller) {
-                // biome-ignore lint/suspicious/noExplicitAny: stream chunk shape varies by provider
-                const c = chunk as any
-                rawChunks.push(chunk)
-                if (c?.type === "text-start") {
-                  stripper = ThoughtTokensHelper.createStripper()
-                  currentTextId = typeof c.id === "string" ? c.id : undefined
-                  controller.enqueue(chunk)
-                } else if (
-                  c?.type === "text-delta" &&
-                  typeof c.delta === "string" &&
-                  stripper !== null
-                ) {
-                  const cleaned = stripper.feed(c.delta)
-                  if (cleaned) controller.enqueue({ ...c, delta: cleaned })
-                } else if (c?.type === "text-end") {
+          const transformed = stream
+            .pipeThrough(
+              new TransformStream({
+                transform(chunk, controller) {
+                  // biome-ignore lint/suspicious/noExplicitAny: stream chunk shape varies by provider
+                  const c = chunk as any
+                  rawChunks.push(chunk)
+                  if (c?.type === "text-start") {
+                    stripper = ThoughtTokensHelper.createStripper()
+                    currentTextId = typeof c.id === "string" ? c.id : undefined
+                    controller.enqueue(chunk)
+                  } else if (
+                    c?.type === "text-delta" &&
+                    typeof c.delta === "string" &&
+                    stripper !== null
+                  ) {
+                    const cleaned = stripper.feed(c.delta)
+                    if (cleaned) controller.enqueue({ ...c, delta: cleaned })
+                  } else if (c?.type === "text-end") {
+                    if (stripper !== null) {
+                      const tail = stripper.flush()
+                      if (tail) {
+                        controller.enqueue(
+                          currentTextId !== undefined
+                            ? { type: "text-delta", id: currentTextId, delta: tail }
+                            : { type: "text-delta", delta: tail },
+                        )
+                      }
+                      stripper = null
+                      currentTextId = undefined
+                    }
+                    controller.enqueue(chunk)
+                  } else {
+                    controller.enqueue(chunk)
+                  }
+                },
+                flush(controller) {
                   if (stripper !== null) {
                     const tail = stripper.flush()
                     if (tail) {
@@ -482,48 +501,31 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
                     stripper = null
                     currentTextId = undefined
                   }
-                  controller.enqueue(chunk)
-                } else {
-                  controller.enqueue(chunk)
-                }
-              },
-              flush(controller) {
-                if (stripper !== null) {
-                  const tail = stripper.flush()
-                  if (tail) {
-                    controller.enqueue(
-                      currentTextId !== undefined
-                        ? { type: "text-delta", id: currentTextId, delta: tail }
-                        : { type: "text-delta", delta: tail },
-                    )
-                  }
-                  stripper = null
-                  currentTextId = undefined
-                }
-                try {
-                  const grouped = ResponseHelper.groupStreamChunksForReadability(rawChunks)
-                  const groupedStr = JSON.stringify(grouped)
-                  const activeSpan = trace.getActiveSpan()
-                  activeSpan?.setAttribute(RAW_LLM_RESPONSE_ATTR, groupedStr)
-                  const originalText = extractTextFromStreamChunks(rawChunks)
-                  if (originalText !== "") {
-                    const strippedText = ThoughtTokensHelper.removeThoughtTokens(originalText)
-                    if (strippedText !== originalText) {
-                      activeSpan?.setAttribute(RAW_LLM_RESPONSE_STRIPPED_ATTR, strippedText)
+                  try {
+                    const grouped = ResponseHelper.groupStreamChunksForReadability(rawChunks)
+                    const groupedStr = JSON.stringify(grouped)
+                    const activeSpan = trace.getActiveSpan()
+                    activeSpan?.setAttribute(RAW_LLM_RESPONSE_ATTR, groupedStr)
+                    const originalText = extractTextFromStreamChunks(rawChunks)
+                    if (originalText !== "") {
+                      const strippedText = ThoughtTokensHelper.removeThoughtTokens(originalText)
+                      if (strippedText !== originalText) {
+                        activeSpan?.setAttribute(RAW_LLM_RESPONSE_STRIPPED_ATTR, strippedText)
+                      }
+                      logLeaked({ originalText })
                     }
-                    logLeaked({ originalText })
+                  } catch {
+                    // never let telemetry capture break the stream
                   }
-                } catch {
-                  // never let telemetry capture break the stream
-                }
-              },
-            }),
-          ).pipeThrough(
-            createStepTextDedupeTransform({
-              isFirstStep: isFirstStepOfTurn,
-              emittedTextBlocks,
-            }),
-          )
+                },
+              }),
+            )
+            .pipeThrough(
+              createStepTextDedupeTransform({
+                isFirstStep: isFirstStepOfTurn,
+                emittedTextBlocks,
+              }),
+            )
           return { stream: transformed, ...rest }
         },
       },
