@@ -606,15 +606,36 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
       : []
 
     const fullMessages = [...systemMessagePart, ...aiSDKMessages]
-    const streamResult = await agent.stream({ messages: fullMessages })
+    // PATCH_ABORT_ON_EARLY_EXIT_V1_APPLIED
+    // Without this, exiting the loop below early — the thrown error on a mid-stream failure,
+    // or the caller abandoning this generator (e.g. the SSE client disconnects, or an upstream
+    // consumer stops iterating) — leaves the agent's internal multi-step tool loop running
+    // unattended server-side. It has already scheduled further steps independently of whether
+    // anyone is still reading fullStream, so it can keep calling tools (a handoff, e.g.) with
+    // no one left to persist or act on the results. Observed directly: a stream that errored
+    // out of a Gemma malformed-chunk parse failure kept calling a handoff tool for ~23 more
+    // seconds after the assistant message was already marked as errored.
+    const abortController = new AbortController()
+    const streamResult = await agent.stream({
+      messages: fullMessages,
+      abortSignal: abortController.signal,
+    })
 
     // The AI SDK never throws stream failures at the consumer: they surface
     // as `error` parts on fullStream, which textStream filters out — the
     // stream just ends, indistinguishable from an empty answer. Consume
     // fullStream so a failed generation rejects and callers can report it.
-    for await (const part of streamResult.fullStream) {
-      if (part.type === "text-delta") yield part.text
-      else if (part.type === "error") throw part.error
+    try {
+      for await (const part of streamResult.fullStream) {
+        if (part.type === "text-delta") yield part.text
+        else if (part.type === "error") throw part.error
+      }
+    } finally {
+      // A no-op once fullStream has already drained normally — abort after completion cancels
+      // nothing. Only matters on an early exit, covering both branches above (the thrown error,
+      // and generator abandonment via a caller's early `return`/`break`, which resumes here
+      // through this same `finally`).
+      abortController.abort()
     }
 
     await this.runEndOfTurnTools({
