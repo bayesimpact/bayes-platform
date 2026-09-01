@@ -74,16 +74,18 @@ export class StreamingController {
     return new Observable<StreamEvent>((subscriber) => {
       void (async () => {
         try {
-          // PATCH_CONTINUATION_CONTENT_V1_APPLIED
+          // PATCH_SYNTHETIC_TRIGGER_V1_APPLIED
           const runTurn = async (
             scope: AgentSessionScope,
             content: string,
             includeAttachment: boolean,
+            persistUserMessage: boolean,
           ) => {
             const events = this.chatStreamingService.streamAgentResponse({
               agentSessionScope: scope,
               userContent: content,
               attachmentDocumentId: includeAttachment ? attachmentDocumentId : undefined,
+              persistUserMessage,
               notifyClient: (event) => {
                 subscriber.next(event)
               },
@@ -96,11 +98,11 @@ export class StreamingController {
           // Trigger content for a turn auto-continued BACK to the root after a handoff child
           // concluded: the root isn't being asked anything new, so the child's last answer (e.g.
           // "non") must never be replayed as if it were addressed to the root - it would read
-          // that literal content as a fresh answer to interpret (see the confused response this
-          // caused before this constant existed) instead of resuming from the handoff-completion
-          // epilogue like it should. The orchestrator's own prompt already treats a short, vague
-          // message this way (see its FAILURE RULE), matching exactly what a user manually typing
-          // "ok" here has always produced - this only automates that same, already-correct path.
+          // that literal content as a fresh answer to interpret instead of resuming from the
+          // handoff-completion epilogue like it should. The orchestrator's own prompt already
+          // treats a short, vague message this way (see its FAILURE RULE) - this reuses exactly
+          // that already-correct path, but as a synthetic trigger (persistUserMessage: false
+          // below) so no fake "ok" bubble the user never typed shows up in the transcript.
           const ROOT_CONTINUATION_TRIGGER = "ok"
 
           let nextActive = await this.resolveActiveAgentScope({ connectScope, agent, session })
@@ -128,6 +130,7 @@ export class StreamingController {
               revision: nextActive.agent.id === agent.id ? agentSettingsRevision : undefined,
             })
             const ranAgentId = nextActive.agent.id
+            const isReturningToRoot = step > 0 && nextActive.agent.id === agent.id
             await runTurn(
               {
                 connectScope,
@@ -137,6 +140,7 @@ export class StreamingController {
               },
               turnContent,
               step === 0,
+              !isReturningToRoot,
             )
 
             const refreshedSession = await this.conversationAgentSessionsService.findById({

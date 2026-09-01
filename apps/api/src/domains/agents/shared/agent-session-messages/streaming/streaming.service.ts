@@ -81,21 +81,31 @@ export class StreamingService extends ServiceWithLLM {
    * Streams an agent response for a session.
    * Handles the full flow: persist before, stream, persist after.
    */
+  // PATCH_SYNTHETIC_TRIGGER_V1_APPLIED
   async *streamAgentResponse({
     agentSessionScope,
     userContent,
     attachmentDocumentId,
     notifyClient,
+    persistUserMessage = true,
   }: {
     agentSessionScope: AgentSessionScope
     userContent: string
     attachmentDocumentId?: string
     notifyClient: NotifyClient
+    /**
+     * False to trigger this turn with `userContent` WITHOUT persisting it as a user message -
+     * the agent still sees it (as a synthetic trailing message, see AgentLlmRequestService),
+     * but nothing shows up in the transcript the user didn't actually type. Used to
+     * auto-continue the root orchestrator's own turn once a handoff child concludes.
+     */
+    persistUserMessage?: boolean
   }): AsyncGenerator<StreamEvent, void, unknown> {
     const { session: updatedSession, assistantMessageId } = await this.prepareForStreaming({
       agentSessionScope,
       userContent,
       attachmentDocumentId,
+      persistUserMessage,
     })
 
     // Update the session in the agentSessionScope to reflect the latest state after preparing for streaming
@@ -111,6 +121,7 @@ export class StreamingService extends ServiceWithLLM {
       const llmRequest = await this.agentLlmRequestService.buildLLMRequest({
         agentSessionScope,
         attachmentDocumentId,
+        syntheticTrailingUserContent: persistUserMessage ? undefined : userContent,
         // A handoff sub-agent's own session (see StreamingController.resolveActiveAgentScope)
         // reaches this same top-level path — it must not get bookkeeping/session-metadata
         // tools, exactly like a relay-mode sub-agent never does. Otherwise a weaker sub-agent
@@ -346,10 +357,12 @@ export class StreamingService extends ServiceWithLLM {
     agentSessionScope,
     attachmentDocumentId,
     userContent,
+    persistUserMessage = true,
   }: {
     agentSessionScope: AgentSessionScope
     attachmentDocumentId?: string
     userContent: string
+    persistUserMessage?: boolean
   }): Promise<{
     session: ConversationAgentSession
     assistantMessageId: string
@@ -358,18 +371,23 @@ export class StreamingService extends ServiceWithLLM {
     const sessionId = session.id
     const agentSettingsId = agentSessionScope.agentSettings.id
 
-    // Create user message
-    await this.agentMessageConnectRepository.createAndSave(connectScope, {
-      sessionId,
-      agentSettingsId,
-      role: "user",
-      content: userContent,
-      status: null,
-      startedAt: null,
-      completedAt: null,
-      toolCalls: null,
-      attachmentDocumentId: attachmentDocumentId ?? null,
-    })
+    // Create user message - skipped for a synthetic auto-continue trigger (see
+    // streamAgentResponse's persistUserMessage): the agent still sees userContent via
+    // AgentLlmRequestService's syntheticTrailingUserContent, it just never becomes a
+    // visible, persisted message the user didn't actually send.
+    if (persistUserMessage) {
+      await this.agentMessageConnectRepository.createAndSave(connectScope, {
+        sessionId,
+        agentSettingsId,
+        role: "user",
+        content: userContent,
+        status: null,
+        startedAt: null,
+        completedAt: null,
+        toolCalls: null,
+        attachmentDocumentId: attachmentDocumentId ?? null,
+      })
+    }
 
     // Create empty assistant message with streaming status
     const assistantMessageId = v4()

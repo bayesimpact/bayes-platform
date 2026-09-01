@@ -81,6 +81,7 @@ export class AgentLlmRequestService extends ServiceWithLLM {
     })
   }
 
+  // PATCH_SYNTHETIC_TRIGGER_V1_APPLIED
   async buildLLMRequest({
     agentSessionScope,
     onToolExecute,
@@ -88,6 +89,7 @@ export class AgentLlmRequestService extends ServiceWithLLM {
     includeSessionMetadataTools = true,
     extraTags = [],
     sessionState,
+    syntheticTrailingUserContent,
   }: {
     agentSessionScope: AgentSessionScope
     onToolExecute: OnExecute
@@ -95,6 +97,14 @@ export class AgentLlmRequestService extends ServiceWithLLM {
     includeSessionMetadataTools?: boolean
     extraTags?: string[]
     sessionState?: SessionStateTarget
+    /**
+     * Appended as a trailing user-role message for THIS call only - never written to
+     * session.messages, so it's never persisted or shown to the user. Used to trigger an
+     * agent's own turn (e.g. auto-continuing the root orchestrator once a handoff child
+     * concludes) without the confusing side effect of a fake "user" bubble the user never
+     * typed appearing in the transcript. See StreamingController's auto-continue loop.
+     */
+    syntheticTrailingUserContent?: string
   }): Promise<BuiltLLMRequest> {
     const { session, agent, agentSettings, connectScope } = agentSessionScope
 
@@ -144,6 +154,10 @@ export class AgentLlmRequestService extends ServiceWithLLM {
     })
 
     const messages = await this.convertToLLMFormat(session.messages)
+
+    if (syntheticTrailingUserContent !== undefined) {
+      messages.push({ role: "user", content: syntheticTrailingUserContent })
+    }
 
     // If there's an attachment document, we need to handle it and add it to the LLM messages
     if (attachmentDocumentId)
