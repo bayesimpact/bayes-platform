@@ -122,16 +122,14 @@ export class StreamingService extends ServiceWithLLM {
         agentSessionScope,
         attachmentDocumentId,
         syntheticTrailingUserContent: persistUserMessage ? undefined : userContent,
-        // TEMPORARY EXPERIMENT (see PATCH_MANDATORY_TOOL_HANDOFF_TEST): forced true for every
-        // session, handoff child included, to test whether mandatory_tool's own end-of-prompt
-        // "always call your tools" reinforcement (present in standalone, absent in handoff)
-        // is what keeps fillForm reliable past a few turns. Revert to the commented-out
-        // condition below once the test concludes.
-        // includeSessionMetadataTools: !(
-        //   "parentSessionId" in agentSessionScope.session &&
-        //   agentSessionScope.session.parentSessionId
-        // ),
-        includeSessionMetadataTools: true,
+        // A handoff sub-agent's own session (see StreamingController.resolveActiveAgentScope)
+        // reaches this same top-level path — it must not get bookkeeping/session-metadata
+        // tools, exactly like a relay-mode sub-agent never does. Otherwise a weaker sub-agent
+        // model can end up trying (and sometimes failing) to call mandatory_tool mid-answer.
+        includeSessionMetadataTools: !(
+          "parentSessionId" in agentSessionScope.session &&
+          agentSessionScope.session.parentSessionId
+        ),
         onToolExecute: async (toolExecution) => {
           if (toolExecution.toolName === ToolName.ConcludeHandoff) concludeHandoffCalled = true
           await this.persistToolExecutionAndNotifyClient({
