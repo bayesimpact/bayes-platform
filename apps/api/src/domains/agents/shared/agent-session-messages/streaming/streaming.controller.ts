@@ -75,7 +75,11 @@ export class StreamingController {
       void (async () => {
         try {
           // PATCH_CONTINUATION_CONTENT_V1_APPLIED
-          const runTurn = async (scope: AgentSessionScope, content: string, includeAttachment: boolean) => {
+          const runTurn = async (
+            scope: AgentSessionScope,
+            content: string,
+            includeAttachment: boolean,
+          ) => {
             const events = this.chatStreamingService.streamAgentResponse({
               agentSessionScope: scope,
               userContent: content,
