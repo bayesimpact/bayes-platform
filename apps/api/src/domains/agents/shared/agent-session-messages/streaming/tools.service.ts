@@ -457,7 +457,8 @@ export class ToolsService extends ServiceWithLLM {
     const fillFormToolInstance = hasFillFormTool
       ? fillFormTool({
           agentSessionScope,
-          sessionResultUpdater: sessionState?.resultUpdater ?? this.conversationAgentSessionsService,
+          sessionResultUpdater:
+            sessionState?.resultUpdater ?? this.conversationAgentSessionsService,
           onExecute,
         })
       : undefined
