@@ -438,12 +438,29 @@ export class ToolsService extends ServiceWithLLM {
     // always reported; categories only when the agent has some configured;
     // chunkIds only per hasSourcesReporting. Sub-agents are excluded
     // (includeSessionMetadataTools=false) unless they report sources.
+    // PATCH_FILLFORM_ENDOFTURN_V1_APPLIED
     const hasMandatoryToolTool = hasSourcesReporting || includeSessionMetadataTools
 
     // Shared between lookup (writer) and mandatory_tool (reader) within this
     // request: the report resolves the chunkIds cited by the model against
     // the chunks lookup actually retrieved.
     const retrievedChunksRegistry = createRetrievedChunksRegistry()
+
+    // Built once so the SAME instance can back both the answering loop and
+    // endOfTurnTools below (mirrors mandatory_tool's own pattern) - unlike
+    // mandatory_tool, this is NOT gated on includeSessionMetadataTools: a
+    // delegated (handoff) sub-agent must be exactly as reliable at filling
+    // its own form as a standalone agent is. Observed on Gemma: a long,
+    // many-turn form-filling conversation can silently drift into skipping
+    // fillForm turn after turn without this guarantee (see fill-form.tool.ts
+    // for the extraction contract fillForm relies on).
+    const fillFormToolInstance = hasFillFormTool
+      ? fillFormTool({
+          agentSessionScope,
+          sessionResultUpdater: sessionState?.resultUpdater ?? this.conversationAgentSessionsService,
+          onExecute,
+        })
+      : undefined
 
     // The end-of-turn report is declared in the answering loop (the model
     // can call it in the same generation as its answer — no extra call) AND
@@ -452,27 +469,30 @@ export class ToolsService extends ServiceWithLLM {
     // what. The SAME tool instance backs both paths: its schema getters read
     // the chunks registry, so chunkIds only appears (in loop steps and in
     // the forced call alike) once a lookup registered chunks this turn.
-    const endOfTurnTools: ToolSet = hasMandatoryToolTool
-      ? {
-          [ToolName.MandatoryTool]: mandatoryTool({
-            retrievedChunksRegistry: hasSourcesReporting ? retrievedChunksRegistry : undefined,
-            sessionMetadata: includeSessionMetadataTools
-              ? {
-                  connectScope,
-                  sessionId: session.id,
-                  availableCategoryNames: (agent.sessionCategories ?? [])
-                    .map((agentSessionCategory) => agentSessionCategory.name)
-                    .sort((leftCategoryName, rightCategoryName) =>
-                      leftCategoryName.localeCompare(rightCategoryName),
-                    ),
-                  metadataRecalculator:
-                    sessionState?.metadataRecalculator ?? this.conversationAgentSessionsService,
-                }
-              : undefined,
-            onExecute,
-          }),
-        }
-      : {}
+    const endOfTurnTools: ToolSet = {
+      ...(hasMandatoryToolTool
+        ? {
+            [ToolName.MandatoryTool]: mandatoryTool({
+              retrievedChunksRegistry: hasSourcesReporting ? retrievedChunksRegistry : undefined,
+              sessionMetadata: includeSessionMetadataTools
+                ? {
+                    connectScope,
+                    sessionId: session.id,
+                    availableCategoryNames: (agent.sessionCategories ?? [])
+                      .map((agentSessionCategory) => agentSessionCategory.name)
+                      .sort((leftCategoryName, rightCategoryName) =>
+                        leftCategoryName.localeCompare(rightCategoryName),
+                      ),
+                    metadataRecalculator:
+                      sessionState?.metadataRecalculator ?? this.conversationAgentSessionsService,
+                  }
+                : undefined,
+              onExecute,
+            }),
+          }
+        : {}),
+      ...(fillFormToolInstance ? { [ToolName.FillForm]: fillFormToolInstance } : {}),
+    }
 
     const tools: ToolSet = {
       // The end-of-turn report is callable from turn 1, like any other tool.
@@ -508,17 +528,9 @@ export class ToolsService extends ServiceWithLLM {
           }
         : {}),
 
-      // Add the fillForm tool if the agent has it enabled (with a form definition)
-      ...(hasFillFormTool
-        ? {
-            [ToolName.FillForm]: fillFormTool({
-              agentSessionScope,
-              sessionResultUpdater:
-                sessionState?.resultUpdater ?? this.conversationAgentSessionsService,
-              onExecute,
-            }),
-          }
-        : {}),
+      // fillForm itself is already included via the ...endOfTurnTools spread above
+      // (built once as fillFormToolInstance, so the answering loop and the forced
+      // end-of-turn call share the exact same tool instance).
 
       ...(hasConcludeHandoffTool && parentSessionId
         ? {
