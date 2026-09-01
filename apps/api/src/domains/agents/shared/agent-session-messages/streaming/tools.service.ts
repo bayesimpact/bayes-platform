@@ -615,8 +615,12 @@ export class ToolsService extends ServiceWithLLM {
         // nothing to report, as opposed to delegated-to-but-collected-little-data below.
         if (!subSessionResult) return undefined
         const hasData = subSessionResult.result && Object.keys(subSessionResult.result).length > 0
+        // Compact, not pretty-printed: this epilogue is rebuilt into every subsequent turn's
+        // system prompt for as long as the conversation continues (see the doc comment above),
+        // so its size is a recurring cost specific to handoff-active conversations. Indentation
+        // whitespace adds tokens without adding information a model needs to read JSON.
         const dataSection = hasData
-          ? JSON.stringify(subSessionResult.result, null, 2)
+          ? JSON.stringify(subSessionResult.result)
           : "(no data collected this round)"
         return `### ${subAgent.childAgent.name} — already delegated to; this round has concluded\n${dataSection}`
       })
