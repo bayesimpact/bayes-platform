@@ -489,15 +489,6 @@ export class StreamingService extends ServiceWithLLM {
       if (!forceConclusionEnabled) return
     }
 
-    // Cheap local pre-filter before the expensive classifier call below: a message ending in a
-    // question mark is asking the user something and is essentially never itself a conclusion.
-    // This mechanism was firing on nearly every turn of an ongoing handoff interview (every
-    // "next question" turn skips concludeHandoff by design) - a full extra Gemma round-trip per
-    // turn that a standalone agent never pays, since this whole check requires a parentSessionId.
-    // Skipping it here removes that cost for the vast majority of turns; only the minority whose
-    // content doesn't read as a question - the ones actually worth checking - still run it.
-    if (/\?[\]"')]*\s*$/.test(fullContent)) return
-
     try {
       const classifierConfig: LLMConfig = {
         model: agentSettings.model,
