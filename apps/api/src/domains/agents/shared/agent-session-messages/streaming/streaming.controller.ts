@@ -99,11 +99,17 @@ export class StreamingController {
           // concluded: the root isn't being asked anything new, so the child's last answer (e.g.
           // "non") must never be replayed as if it were addressed to the root - it would read
           // that literal content as a fresh answer to interpret instead of resuming from the
-          // handoff-completion epilogue like it should. The orchestrator's own prompt already
-          // treats a short, vague message this way (see its FAILURE RULE) - this reuses exactly
-          // that already-correct path, but as a synthetic trigger (persistUserMessage: false
-          // below) so no fake "ok" bubble the user never typed shows up in the transcript.
-          const ROOT_CONTINUATION_TRIGGER = "ok"
+          // handoff-completion epilogue like it should. Explicitly marked as not a real user
+          // message (mirrors the bookkeeping trigger in AISDKLLMProviderBase.runEndOfTurnTools)
+          // rather than reusing an ambiguous word like "ok" - this must work for any
+          // orchestrator's prompt, not just one already written to treat a short reply this way.
+          // Sent as a synthetic trigger (persistUserMessage: false below), so nothing shows up
+          // in the transcript the user didn't actually type.
+          const ROOT_CONTINUATION_TRIGGER =
+            "(system continuation trigger, not a real user message - ignore its literal content) " +
+            "A sub-agent you delegated to has just concluded its round. Continue the conversation " +
+            "now: determine your next step from the sub-agent completion summary already provided " +
+            "in your instructions, exactly as you would after any other turn."
 
           let nextActive = await this.resolveActiveAgentScope({ connectScope, agent, session })
           let turnContent = userContent
