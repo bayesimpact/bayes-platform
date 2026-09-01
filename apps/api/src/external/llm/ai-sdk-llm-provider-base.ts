@@ -83,6 +83,67 @@ function extractTextFromStreamChunks(chunks: unknown[]): string {
   return text
 }
 
+// PATCH_DEDUPE_TEXT_V1_APPLIED
+/**
+ * Guards against a model re-stating its full answer text on every step of a multi-step,
+ * multi-tool-call turn (observed on Gemma: after a tool result is fed back mid-turn - e.g.
+ * fillForm, then concludeHandoff - it sometimes writes out the same paragraph again instead
+ * of staying silent and just making the next call). The app concatenates every step's text
+ * into one message, so an unnoticed repeat turns into visibly duplicated content.
+ *
+ * The FIRST step's text always streams through live, unbuffered, exactly as before - the
+ * overwhelmingly common single-step turn pays zero cost. From the SECOND step of the SAME
+ * turn onward, each text block is buffered until it ends, then only forwarded if it isn't an
+ * exact repeat of a block already emitted earlier in the same turn.
+ */
+function createStepTextDedupeTransform({
+  isFirstStep,
+  emittedTextBlocks,
+}: {
+  isFirstStep: boolean
+  emittedTextBlocks: string[]
+}): TransformStream<LanguageModelV3StreamPart, LanguageModelV3StreamPart> {
+  let blockText = ""
+  let bufferedChunks: LanguageModelV3StreamPart[] = []
+  let inTextBlock = false
+
+  return new TransformStream({
+    transform(chunk, controller) {
+      if (chunk.type === "text-start") {
+        inTextBlock = true
+        blockText = ""
+        bufferedChunks = [chunk]
+        if (isFirstStep) controller.enqueue(chunk)
+        return
+      }
+      if (chunk.type === "text-delta" && inTextBlock) {
+        blockText += chunk.delta
+        if (isFirstStep) {
+          controller.enqueue(chunk)
+        } else {
+          bufferedChunks.push(chunk)
+        }
+        return
+      }
+      if (chunk.type === "text-end" && inTextBlock) {
+        inTextBlock = false
+        const trimmed = blockText.trim()
+        const isRepeat = trimmed.length > 0 && emittedTextBlocks.includes(trimmed)
+        if (isFirstStep) {
+          controller.enqueue(chunk)
+        } else if (!isRepeat) {
+          for (const buffered of bufferedChunks) controller.enqueue(buffered)
+          controller.enqueue(chunk)
+        }
+        if (trimmed.length > 0) emittedTextBlocks.push(trimmed)
+        bufferedChunks = []
+        return
+      }
+      controller.enqueue(chunk)
+    },
+  })
+}
+
 export abstract class AISDKLLMProviderBase implements LLMProvider {
   private readonly endOfTurnLogger = new Logger("EndOfTurnTools")
   /**
@@ -310,6 +371,11 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
         config: args.config,
         leakedToolCalls: args.leakedToolCalls,
       })
+    // Shared across every wrapStream() call for this macro-turn (doStream() is invoked once
+    // per internal step, but getLanguageModelWithRawCapture itself runs once per turn - see
+    // createStepTextDedupeTransform above).
+    const emittedTextBlocks: string[] = []
+    let isFirstStepInTurn = true
     return wrapLanguageModel({
       model: baseModel,
       middleware: {
@@ -367,6 +433,8 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
           return result
         },
         wrapStream: async ({ doStream }) => {
+          const isFirstStepOfTurn = isFirstStepInTurn
+          isFirstStepInTurn = false
           const { stream, ...rest } = await this.doStreamWithRetry(doStream, this.getHedgeDelayMs())
           try {
             const req = rest.request?.body
@@ -449,6 +517,11 @@ export abstract class AISDKLLMProviderBase implements LLMProvider {
                   // never let telemetry capture break the stream
                 }
               },
+            }),
+          ).pipeThrough(
+            createStepTextDedupeTransform({
+              isFirstStep: isFirstStepOfTurn,
+              emittedTextBlocks,
             }),
           )
           return { stream: transformed, ...rest }
