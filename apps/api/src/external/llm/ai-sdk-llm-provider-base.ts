@@ -84,6 +84,8 @@ function extractTextFromStreamChunks(chunks: unknown[]): string {
 }
 
 // PATCH_DEDUPE_TEXT_V1_APPLIED
+const stepTextDedupeLogger = new Logger("StepTextDedupe")
+
 /**
  * Guards against a model re-stating its full answer text on every step of a multi-step,
  * multi-tool-call turn (observed on Gemma: after a tool result is fed back mid-turn - e.g.
@@ -134,6 +136,13 @@ function createStepTextDedupeTransform({
         } else if (!isRepeat) {
           for (const buffered of bufferedChunks) controller.enqueue(buffered)
           controller.enqueue(chunk)
+        } else {
+          stepTextDedupeLogger.warn(
+            "Dropped a repeated text block within the same multi-step turn",
+            {
+              textLength: trimmed.length,
+            },
+          )
         }
         if (trimmed.length > 0) emittedTextBlocks.push(trimmed)
         bufferedChunks = []
