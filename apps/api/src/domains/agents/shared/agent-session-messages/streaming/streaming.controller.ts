@@ -74,12 +74,12 @@ export class StreamingController {
     return new Observable<StreamEvent>((subscriber) => {
       void (async () => {
         try {
-          // PATCH_BIDIRECTIONAL_AUTOCONTINUE_V1_APPLIED
-          const runTurn = async (scope: AgentSessionScope) => {
+          // PATCH_CONTINUATION_CONTENT_V1_APPLIED
+          const runTurn = async (scope: AgentSessionScope, content: string, includeAttachment: boolean) => {
             const events = this.chatStreamingService.streamAgentResponse({
               agentSessionScope: scope,
-              userContent,
-              attachmentDocumentId,
+              userContent: content,
+              attachmentDocumentId: includeAttachment ? attachmentDocumentId : undefined,
               notifyClient: (event) => {
                 subscriber.next(event)
               },
@@ -89,7 +89,18 @@ export class StreamingController {
             }
           }
 
+          // Trigger content for a turn auto-continued BACK to the root after a handoff child
+          // concluded: the root isn't being asked anything new, so the child's last answer (e.g.
+          // "non") must never be replayed as if it were addressed to the root - it would read
+          // that literal content as a fresh answer to interpret (see the confused response this
+          // caused before this constant existed) instead of resuming from the handoff-completion
+          // epilogue like it should. The orchestrator's own prompt already treats a short, vague
+          // message this way (see its FAILURE RULE), matching exactly what a user manually typing
+          // "ok" here has always produced - this only automates that same, already-correct path.
+          const ROOT_CONTINUATION_TRIGGER = "ok"
+
           let nextActive = await this.resolveActiveAgentScope({ connectScope, agent, session })
+          let turnContent = userContent
 
           // Auto-continue: after any turn hands control to a DIFFERENT agent than the one that
           // just spoke - the root activating a brand-new handoff child, or a concluding child
@@ -113,12 +124,16 @@ export class StreamingController {
               revision: nextActive.agent.id === agent.id ? agentSettingsRevision : undefined,
             })
             const ranAgentId = nextActive.agent.id
-            await runTurn({
-              connectScope,
-              agent: nextActive.agent,
-              agentSettings,
-              session: nextActive.session,
-            })
+            await runTurn(
+              {
+                connectScope,
+                agent: nextActive.agent,
+                agentSettings,
+                session: nextActive.session,
+              },
+              turnContent,
+              step === 0,
+            )
 
             const refreshedSession = await this.conversationAgentSessionsService.findById({
               id: session.id,
@@ -132,6 +147,11 @@ export class StreamingController {
               session: refreshedSession,
             })
             if (candidate.agent.id === ranAgentId) break
+
+            // Handing off into a freshly-activated child: reuse the real content that drove the
+            // decision (the child's own prompt treats it as a generic opener, e.g. "bonjour").
+            // Returning to the root after a child concluded: use the neutral trigger above instead.
+            turnContent = candidate.agent.id === agent.id ? ROOT_CONTINUATION_TRIGGER : userContent
             nextActive = candidate
           }
 
