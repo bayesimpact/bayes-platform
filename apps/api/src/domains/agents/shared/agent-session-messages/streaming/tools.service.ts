@@ -396,16 +396,7 @@ export class ToolsService extends ServiceWithLLM {
     // the active handoff child's own session (see StreamingController.resolveActiveAgentScope);
     // a relay-mode sub-agent never runs through here at all.
     const parentSessionId = "parentSessionId" in session ? session.parentSessionId : null
-    // TEMPORARY EXPERIMENT (see PATCH_MANDATORY_TOOL_CONCLUDEHANDOFF_TEST in streaming.service.ts):
-    // forced false to isolate whether concludeHandoff's mere presence as a THIRD declared tool -
-    // on top of fillForm and mandatory_tool, now forced on for handoff too - is what's causing
-    // the model to keep generating past where it should stop (asking two questions in one turn).
-    // Revert to `hasFillFormTool && parentSessionId != null` once the test concludes. Side
-    // effect for the duration of this test: since the conclusion-classifier safety net is also
-    // disabled right now (force_conclusion_enabled=false), nothing will hand control back to the
-    // root once the interview naturally concludes - expected, only the mid-interview behavior is
-    // under test here.
-    const hasConcludeHandoffTool = false
+    const hasConcludeHandoffTool = hasFillFormTool && parentSessionId != null
     const [
       hasSourcesTool,
       { tools: subAgentTools, toolDescriptions: subAgentToolDescriptions },
