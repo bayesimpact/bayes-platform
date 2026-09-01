@@ -184,7 +184,20 @@ async function runHandoffTool({
     parentSessionId: parentSession.id,
     type: parentSession.type,
   })
-  const currentActiveAgentId = "activeAgentId" in parentSession ? parentSession.activeAgentId : null
+  // Re-read from the DB rather than trusting `parentSession.activeAgentId`, a snapshot taken
+  // once at the start of this turn: a handoff already committed earlier in this SAME turn (the
+  // model calling this tool a second time, e.g. after a garbled/duplicated generation) would
+  // otherwise still show the pre-turn value here, wrongly tripping the guard below against a
+  // round that just started - which returns a confusing "already concluded" rejection for a
+  // child that hasn't even talked to the user yet, pushing the model to hand off to a
+  // different agent instead and silently skipping the real one. Observed live: two
+  // back-to-back ask_mathilde_dhi calls in one turn, the second rejected on this stale read,
+  // followed by the model handing off to a third agent that then won instead of DHI.
+  const freshParentSession = await conversationAgentSessionsService.findById({
+    connectScope,
+    id: parentSession.id,
+  })
+  const currentActiveAgentId = freshParentSession?.activeAgentId ?? null
   if (existingChildSession && currentActiveAgentId !== childAgent.id) {
     const hasData =
       existingChildSession.result && Object.keys(existingChildSession.result).length > 0
