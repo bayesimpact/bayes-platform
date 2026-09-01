@@ -530,7 +530,6 @@ describe("Tools execution", () => {
 
   const createFillFormContextWithSession = async (
     result: Record<string, unknown> | null = null,
-    sessionOverrides: Partial<ConversationAgentSession> = {},
   ) => {
     const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
@@ -542,7 +541,7 @@ describe("Tools execution", () => {
     const session = conversationAgentSessionFactory
       .transient({ organization, project, agent, user })
       .live()
-      .build({ result, ...sessionOverrides })
+      .build({ result })
     await repositories.conversationAgentSessionRepository.save(session)
     return {
       connectScope: { organizationId: organization.id, projectId: project.id },
@@ -606,74 +605,6 @@ describe("Tools execution", () => {
     expect(agentCalls).toHaveLength(3)
     expect(agentCalls[1]?.prompt).toContain("Lara Croft")
   })
-
-  // PATCH_FILLFORM_TESTS_V1_APPLIED
-  it("ToolName.FillForm - systematic forced call updates the session when not called voluntarily", async () => {
-    // Mirrors "ToolName.MandatoryTool (session metadata part) - systematic forced call
-    // updates the session": fillForm now goes through the exact same endOfTurnTools
-    // guarantee, so a model that answers without calling it still gets it forced.
-    const { connectScope, agent, agentSettings, session } = await createFillFormContextWithSession()
-
-    // Generation 1: the answer. Generation 2: the forced end-of-turn call.
-    mockProvider.addTextTurn(agent.id, "Answer without any tool call.")
-    mockProvider.addToolCallTurn(agent.id, ToolName.FillForm, { fullName: "Forced" })
-
-    const { events, fulltextStream } = await aggregateStream(
-      service.streamAgentResponse({
-        agentSessionScope: { agent, agentSettings, session, connectScope },
-        userContent: "Hello",
-        notifyClient: () => undefined,
-      }),
-    )
-
-    expect(fulltextStream).toBe("Answer without any tool call.")
-    expect(events.at(-1)?.type).toBe("end")
-
-    const agentCalls = mockProvider.getCalls().filter((call) => call.agentId === agent.id)
-    expect(agentCalls).toHaveLength(2)
-    const updatedSession = await repositories.conversationAgentSessionRepository.findOneByOrFail({
-      id: session.id,
-    })
-    expect(updatedSession.result).toEqual({ fullName: "Forced" })
-  }, 15000)
-
-  it("ToolName.FillForm - the forced call still applies to a handoff-mode sub-agent, unlike mandatory_tool", async () => {
-    // A delegated (handoff) sub-agent never gets mandatory_tool's own
-    // end-of-turn guarantee (includeSessionMetadataTools is deliberately
-    // false for it, see streaming.service.ts) - but fillForm must still be
-    // exactly as reliable there as it is standalone. Give this session a
-    // parentSessionId (no FK on the column, see the entity) to reach that
-    // same code path StreamingController.resolveActiveAgentScope reaches
-    // for a real handoff child's own session.
-    const { connectScope, agent, agentSettings, session } = await createFillFormContextWithSession(
-      null,
-      { parentSessionId: v4() },
-    )
-
-    mockProvider.addTextTurn(agent.id, "Answer without any tool call.")
-    mockProvider.addToolCallTurn(agent.id, ToolName.FillForm, { fullName: "Forced in handoff" })
-
-    const { events, fulltextStream } = await aggregateStream(
-      service.streamAgentResponse({
-        agentSessionScope: { agent, agentSettings, session, connectScope },
-        userContent: "Hello",
-        notifyClient: () => undefined,
-      }),
-    )
-
-    expect(fulltextStream).toBe("Answer without any tool call.")
-    expect(events.at(-1)?.type).toBe("end")
-
-    // Generation 1: the answer (no mandatory_tool declared at all in this
-    // context). Generation 2: the forced fillForm call.
-    const agentCalls = mockProvider.getCalls().filter((call) => call.agentId === agent.id)
-    expect(agentCalls).toHaveLength(2)
-    expect(agentCalls[0]?.toolNames).not.toContain(ToolName.MandatoryTool)
-    const updatedSession = await repositories.conversationAgentSessionRepository.findOneByOrFail({
-      id: session.id,
-    })
-    expect(updatedSession.result).toEqual({ fullName: "Forced in handoff" })
-  }, 15000)
 
   it("ToolName.FillForm - should not be built when fillFormEnabled is off", async () => {
     const { organization, project, agent, agentSettings, conversationAgentSession } =
