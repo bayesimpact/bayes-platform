@@ -1,0 +1,60 @@
+{{- if .Values.ingress.enabled }}
+{{- $root := . }}
+{{- $rules := list }}
+{{- if .Values.api.enabled }}
+  {{- $rules = append $rules (dict "component" "api" "url" .Values.urls.api "port" .Values.api.port "annotations" .Values.ingress.apiAnnotations) }}
+{{- end }}
+{{- if .Values.web.enabled }}
+  {{- $rules = append $rules (dict "component" "web" "url" .Values.urls.web "port" 80 "annotations" dict) }}
+{{- end }}
+{{- if .Values.webEmbed.enabled }}
+  {{- $rules = append $rules (dict "component" "web-embed" "url" .Values.urls.webEmbed "port" 80 "annotations" dict) }}
+{{- end }}
+{{- if .Values.help.enabled }}
+  {{- $rules = append $rules (dict "component" "help" "url" .Values.urls.help "port" 80 "annotations" dict) }}
+{{- end }}
+{{- range $rule := $rules }}
+{{- $host := include "bayes-platform.host" $rule.url }}
+{{- $service := include "bayes-platform.componentName" (dict "root" $root "component" $rule.component) }}
+---
+# One Ingress per host, so each component can carry its own annotations.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $service }}
+  labels:
+    {{- include "bayes-platform.labels" $root | nindent 4 }}
+    app.kubernetes.io/component: {{ $rule.component }}
+  annotations:
+    {{- with $root.Values.ingress.clusterIssuer }}
+    cert-manager.io/cluster-issuer: {{ . }}
+    {{- end }}
+    {{- with $root.Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+    {{- with $rule.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- with $root.Values.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- if $root.Values.ingress.tls }}
+  tls:
+    - hosts:
+        - {{ $host }}
+      secretName: {{ $service }}-tls
+  {{- end }}
+  rules:
+    - host: {{ $host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $service }}
+                port:
+                  number: {{ $rule.port }}
+{{- end }}
+{{- end }}

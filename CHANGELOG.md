@@ -9,6 +9,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 - (beta) MCP servers: connect servers that use OAuth by authorizing access in the browser, alongside API keys.
+- Kubernetes: the platform can be installed on any cluster with a Helm chart, with bundled Postgres and Redis.
 
 ### Changed
 

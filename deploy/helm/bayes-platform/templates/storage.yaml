@@ -1,0 +1,20 @@
+{{- if eq .Values.storage.mode "local" }}
+# Documents uploaded by users. Shared by the API and the workers.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "bayes-platform.componentName" (dict "root" . "component" "documents") }}
+  labels:
+    {{- include "bayes-platform.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  accessModes:
+    {{- toYaml .Values.storage.local.accessModes | nindent 4 }}
+  {{- with .Values.storage.local.storageClass }}
+  storageClassName: {{ . }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.storage.local.size }}
+{{- end }}

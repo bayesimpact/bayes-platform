@@ -372,6 +372,10 @@ Notes:
   - Postgres: `localhost:55432`
   - Redis: `localhost:56379`
 
+### Deploy on Kubernetes
+
+A Helm chart installs the full platform (API, workers, front ends, PDF converter) on any Kubernetes cluster, with bundled Postgres and Redis or with managed services. See [deploy/helm/bayes-platform/README.md](deploy/helm/bayes-platform/README.md).
+
 ## Running Tests
 
 ### Run All Tests

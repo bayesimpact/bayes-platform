@@ -1,0 +1,24 @@
+{{ .Chart.Name }} {{ .Chart.Version }} installed as release {{ .Release.Name }} in namespace {{ .Release.Namespace }}.
+
+URLs
+  web        {{ .Values.urls.web }}
+  api        {{ .Values.urls.api }}
+  embed      {{ .Values.urls.webEmbed }}
+  help       {{ .Values.urls.help }}
+
+Database   {{ if .Values.postgresql.enabled }}bundled Postgres (pgvector){{ else }}external, {{ .Values.externalDatabase.host }}{{ end }}
+Redis      {{ if .Values.redis.enabled }}bundled{{ else }}external{{ end }}
+Storage    {{ .Values.storage.mode }}
+Workers    cpu{{ if .Values.gpuWorkers.enabled }} + gpu{{ end }}
+
+Migrations run as a Job after the install and before every upgrade:
+  kubectl -n {{ .Release.Namespace }} logs job/{{ include "bayes-platform.componentName" (dict "root" . "component" "migrate") }}
+
+Pods:
+  kubectl -n {{ .Release.Namespace }} get pods -l app.kubernetes.io/instance={{ .Release.Name }}
+{{- if not (or .Values.secrets.existingSecret .Values.secrets.create) }}
+
+WARNING: no application Secret is configured (secrets.existingSecret is empty and
+secrets.create is false). The API needs at least MCP_ENCRYPTION_KEY and
+AUTH0_M2M_CLIENT_SECRET. See values.yaml, section "Secrets".
+{{- end }}

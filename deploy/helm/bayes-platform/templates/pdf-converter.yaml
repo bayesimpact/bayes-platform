@@ -1,0 +1,78 @@
+{{- if include "bayes-platform.pdfConverterEnabled" . }}
+{{- $name := include "bayes-platform.componentName" (dict "root" . "component" "pdf-converter") }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "bayes-platform.labels" . | nindent 4 }}
+    app.kubernetes.io/component: pdf-converter
+spec:
+  replicas: {{ .Values.pdfConverter.replicas }}
+  selector:
+    matchLabels:
+      {{- include "bayes-platform.selectorLabels" (dict "root" . "component" "pdf-converter") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "bayes-platform.selectorLabels" (dict "root" . "component" "pdf-converter") | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "bayes-platform.serviceAccountName" . }}
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: pdf-converter
+          image: {{ include "bayes-platform.image" (dict "root" . "image" .Values.pdfConverter.image) }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.pdfConverter.port }}
+          env:
+            - name: PORT
+              value: {{ .Values.pdfConverter.port | quote }}
+            - name: GCS_STORAGE_BUCKET_NAME
+              value: {{ .Values.storage.gcs.bucket | quote }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.pdfConverter.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+      {{- with .Values.pdfConverter.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.pdfConverter.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "bayes-platform.labels" . | nindent 4 }}
+    app.kubernetes.io/component: pdf-converter
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "bayes-platform.selectorLabels" (dict "root" . "component" "pdf-converter") | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.pdfConverter.port }}
+      targetPort: http
+{{- end }}

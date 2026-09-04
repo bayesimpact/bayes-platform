@@ -1,0 +1,329 @@
+# Default values: a self-contained install with bundled Postgres (pgvector) and
+# Redis, local file storage on a volume, and no GPU workers. See README.md for
+# the managed-services variant (values-managed.example.yaml).
+
+global:
+  image:
+    # Images are <registry>/<name>:<tag>. Build them from the repository root
+    # with apps/*/Dockerfile (see README.md).
+    registry: ghcr.io/bayesimpact/bayes-platform
+    tag: latest
+    pullPolicy: IfNotPresent
+  imagePullSecrets: []
+
+# Public URLs. The API and the front ends need each other's addresses.
+urls:
+  api: https://api.platform.example.org
+  web: https://platform.example.org
+  webEmbed: https://embed.platform.example.org
+  help: https://help.platform.example.org
+
+serviceAccount:
+  create: true
+  name: ""
+  # For GKE Workload Identity: iam.gke.io/gcp-service-account: <sa>@<project>.iam.gserviceaccount.com
+  annotations: {}
+
+# ---------------------------------------------------------------------------
+# Secrets
+# ---------------------------------------------------------------------------
+# All secrets are read from one Kubernetes Secret. Either point at an existing
+# one (recommended: External Secrets Operator, sealed-secrets...) or let the
+# chart create it from `values` (development only, values land in the release).
+#
+# Keys read by the API and the workers:
+#   MCP_ENCRYPTION_KEY           64 hex chars, encrypts MCP server credentials at rest
+#   AUTH0_M2M_CLIENT_SECRET      Auth0 machine-to-machine client secret
+#   LANGFUSE_SK                  optional, Langfuse secret key
+#   DIAGNOSTICS_SECRET           optional, protects the diagnostics endpoint
+#   SPIDER_API_KEY               optional, web crawling provider (cpu workers)
+#   BULL_BOARD_AUTH0_CLIENT_ID, BULL_BOARD_AUTH0_CLIENT_SECRET, BULL_BOARD_OIDC_SECRET
+#                                optional, Bull Board login
+#   VLLM_<MODEL>_URL, VLLM_<MODEL>_APIKEY
+#                                one pair per self-hosted model
+#   DATABASE_PASSWORD            only with externalDatabase (bundled Postgres generates its own)
+#   BULLMQ_REDIS_URL             only with externalRedis
+secrets:
+  existingSecret: ""
+  create: false
+  values: {}
+
+# ---------------------------------------------------------------------------
+# Shared configuration of the API and the workers (non secret)
+# ---------------------------------------------------------------------------
+config:
+  TZ: UTC
+  LOG_LEVEL: info
+  # Auth0 is the identity provider.
+  AUTH0_ISSUER_URL: https://example.eu.auth0.com/
+  AUTH0_AUDIENCE: https://example.eu.auth0.com/api/v2/
+  AUTH0_ORGANIZATION_ID: org_example
+  AUTH0_CLIENT_ID: example_client_id
+  AUTH0_M2M_CLIENT_ID: example_m2m_client_id
+  AUTH0_DB_CONNECTION_NAME: Username-Password-Authentication
+  # Who can create organizations and open the back office. Both values are
+  # required: the migrations use them to seed the platform staff and the
+  # platform super admins (comma-separated emails).
+  ORGANIZATION_CREATOR_EMAIL_DOMAIN: "@example.org"
+  BACKOFFICE_AUTHORIZED_DOMAIN: "@example.org"
+  BACKOFFICE_AUTHORIZED_EMAILS: "admin@example.org"
+  # Embeddings. gemini-embedding-001 needs Vertex AI (GOOGLE_VERTEX_*).
+  DOCUMENT_EMBEDDING_MODELS: gemini-embedding-001
+  MAX_VERTEX_EMBEDDING_BATCH_SIZE: "250"
+  GOOGLE_VERTEX_PROJECT: ""
+  GOOGLE_VERTEX_LOCATION: europe-west1
+  LOCATION: europe-west1
+  DOCUMENT_EMBEDDING_STUCK_THRESHOLD_SECONDS: "86400"
+  DOCUMENT_EMBEDDING_STUCK_SWEEP_INTERVAL_SECONDS: "900"
+  # Tracing (optional). LANGFUSE_SK goes in the secret.
+  LANGFUSE_BASE_URL: ""
+  LANGFUSE_PK: ""
+  # Bull Board (queue dashboard) on the API.
+  BULL_BOARD_ENABLED: "false"
+  BULL_BOARD_ALLOWED_EMAIL_DOMAIN: "@example.org"
+
+# ---------------------------------------------------------------------------
+# Database
+# ---------------------------------------------------------------------------
+# Bundled Postgres with the pgvector extension. One replica, one volume.
+postgresql:
+  enabled: true
+  image: pgvector/pgvector:pg17
+  auth:
+    database: platform
+    username: platform
+    # Empty: a random password is generated on first install and kept across
+    # upgrades. Set it to pin a value (development).
+    password: ""
+  persistence:
+    storageClass: ""
+    size: 20Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      memory: 2Gi
+
+# External Postgres (Cloud SQL, RDS...) when postgresql.enabled is false.
+# The database must have `CREATE EXTENSION vector` done by an administrator.
+externalDatabase:
+  host: ""
+  port: 5432
+  database: platform
+  username: platform
+  # Key of the password in secrets.existingSecret.
+  passwordKey: DATABASE_PASSWORD
+
+# ---------------------------------------------------------------------------
+# Redis (BullMQ queues)
+# ---------------------------------------------------------------------------
+redis:
+  enabled: true
+  image: redis:7-alpine
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+# External Redis (Memorystore, ElastiCache...) when redis.enabled is false.
+externalRedis:
+  # Key of the redis:// URL in secrets.existingSecret.
+  urlKey: BULLMQ_REDIS_URL
+
+# ---------------------------------------------------------------------------
+# File storage
+# ---------------------------------------------------------------------------
+# local: documents on a volume shared by the API and the workers. The volume
+#        needs ReadWriteMany when the pods run on several nodes.
+# gcs:   a Google Cloud Storage bucket, credentials through Workload Identity.
+#        Required by the pdf-converter (image-only LLMs).
+storage:
+  mode: local
+  local:
+    storageClass: ""
+    accessModes:
+      - ReadWriteMany
+    size: 50Gi
+  gcs:
+    bucket: ""
+
+# ---------------------------------------------------------------------------
+# Components
+# ---------------------------------------------------------------------------
+api:
+  enabled: true
+  image: api
+  replicas: 1
+  port: 3000
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      memory: 4Gi
+  extraEnv: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podAnnotations: {}
+
+cpuWorkers:
+  enabled: true
+  image: cpu-workers
+  replicas: 1
+  healthPort: 8080
+  queues:
+    - evaluation-extraction-run-queue
+    - evaluation-extraction-run-execute-queue
+    - evaluation-conversation-run-queue
+    - evaluation-conversation-run-execute-queue
+    - agent-csv-extraction-run-queue
+    - agent-csv-extraction-run-execute-queue
+    - url-crawling
+    - document-embeddings-stuck-sweep
+    - web-source-embeddings
+    - extraction-agent-session-queue
+    - conversation-retention-sweep
+  # Without GPU workers, the CPU pool also takes the document embeddings
+  # (Docling disabled: text extraction without OCR).
+  takeEmbeddingsWhenNoGpu: true
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      memory: 4Gi
+  extraEnv: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  podAnnotations: {}
+
+gpuWorkers:
+  enabled: false
+  image: gpu-workers
+  replicas: 1
+  healthPort: 8080
+  queues:
+    - document-embeddings
+  gpu:
+    count: 1
+    # Set to the accelerator label of your GPU node pool, for example on GKE
+    # cloud.google.com/gke-accelerator: nvidia-l4
+    nodeSelector: {}
+  docling:
+    timeoutMs: "600000"
+    healthCheckTimeoutMs: "30000"
+  resources:
+    requests:
+      cpu: "2"
+      memory: 8Gi
+    limits:
+      memory: 16Gi
+  extraEnv: {}
+  tolerations:
+    - key: nvidia.com/gpu
+      operator: Exists
+      effect: NoSchedule
+  affinity: {}
+  podAnnotations: {}
+
+# Renders PDFs to PNG page images for image-only LLMs. Works on the GCS
+# storage only; enabled automatically when storage.mode is gcs.
+pdfConverter:
+  enabled: auto
+  image: pdf-converter
+  replicas: 1
+  port: 3002
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      memory: 2Gi
+  nodeSelector: {}
+  tolerations: []
+
+web:
+  enabled: true
+  image: web
+  replicas: 1
+  # Runtime configuration of the front end (see apps/web/docker/40-runtime-config.sh).
+  # VITE_API_URL, VITE_AGENT_EMBED_URL and VITE_HELP_CENTER_URL come from `urls`.
+  env:
+    VITE_APP_TITLE: Bayes platform
+    VITE_AUTH0_DOMAIN: example.eu.auth0.com
+    VITE_AUTH0_CLIENT_ID: example_client_id
+    VITE_AUTH0_AUDIENCE: https://example.eu.auth0.com/api/v2/
+    VITE_AUTH0_ORGANIZATION_ID: org_example
+    VITE_HELP_AGENT_EMBED_URL: ""
+    VITE_HELP_AGENT_EMBED_TOKEN: ""
+    VITE_HELP_AGENT_EMBED_COLOR: ""
+    VITE_HELP_AGENT_EMBED_HINT: ""
+  # Tenant theme: a ConfigMap with logo.svg and favicon.svg mounted over /theme.
+  themeConfigMap: ""
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+webEmbed:
+  enabled: true
+  image: web-embed
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+help:
+  enabled: true
+  image: help
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+# ---------------------------------------------------------------------------
+# Migrations: a Job that runs the TypeORM migrations with the API image,
+# after the first install and before every upgrade.
+# ---------------------------------------------------------------------------
+migrations:
+  enabled: true
+  backoffLimit: 3
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      memory: 2Gi
+
+# ---------------------------------------------------------------------------
+# Ingress
+# ---------------------------------------------------------------------------
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  # For cert-manager, set clusterIssuer and tls: true.
+  clusterIssuer: ""
+  tls: false
+  # Uploads and long LLM answers: raise the nginx limits on the API host.
+  apiAnnotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"

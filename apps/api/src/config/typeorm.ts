@@ -34,14 +34,18 @@ export const config: () => TypeOrmModuleOptions = () => ({
   extra,
 })
 
-// DataSource for migrations (uses source files for CLI operations)
-// This is used by TypeORM CLI for running migrations
+// DataSource for the TypeORM CLI (migration:run, migration:generate...).
+// The globs are relative to this file, so the same DataSource works from the
+// sources with ts-node (`npm run migration:run`) and from the compiled `dist/`
+// in the runtime image (`npm run migration:run:prod`, used by the Kubernetes
+// migration job). From `src/` the pattern only matches `.ts` files, from
+// `dist/` only `.js` files, so nothing is loaded twice.
 const baseConfig = config()
 const { autoLoadEntities, ...dataSourceConfig } = baseConfig
 export const connectionSource = new DataSource({
   ...dataSourceConfig,
-  entities: ["src/**/*.entity.ts"],
-  migrations: ["src/**/migrations/*.ts"],
+  entities: [`${__dirname}/../**/*.entity.{js,ts}`],
+  migrations: [`${__dirname}/../**/migrations/*.{js,ts}`],
 } as DataSourceOptions)
 
 export default registerAs("typeorm", () => config)

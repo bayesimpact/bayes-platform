@@ -1,0 +1,104 @@
+{{- /*
+Three static front ends served by nginx on port 8080: web, web-embed, help.
+Their configuration is injected at container start (see apps/<app>/docker).
+*/ -}}
+{{- $root := . }}
+{{- $fronts := list }}
+{{- if .Values.web.enabled }}
+  {{- $webEnv := dict
+      "VITE_API_URL" .Values.urls.api
+      "VITE_AGENT_EMBED_URL" .Values.urls.webEmbed
+      "VITE_HELP_CENTER_URL" .Values.urls.help }}
+  {{- $webEnv = merge $webEnv .Values.web.env }}
+  {{- $fronts = append $fronts (dict "component" "web" "values" .Values.web "env" $webEnv) }}
+{{- end }}
+{{- if .Values.webEmbed.enabled }}
+  {{- $fronts = append $fronts (dict "component" "web-embed" "values" .Values.webEmbed "env" (dict "VITE_API_URL" .Values.urls.api)) }}
+{{- end }}
+{{- if .Values.help.enabled }}
+  {{- $fronts = append $fronts (dict "component" "help" "values" .Values.help "env" (dict "PUBLIC_APP_URL" .Values.urls.web)) }}
+{{- end }}
+{{- range $front := $fronts }}
+{{- $values := $front.values }}
+{{- $name := include "bayes-platform.componentName" (dict "root" $root "component" $front.component) }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "bayes-platform.labels" $root | nindent 4 }}
+    app.kubernetes.io/component: {{ $front.component }}
+spec:
+  replicas: {{ $values.replicas }}
+  selector:
+    matchLabels:
+      {{- include "bayes-platform.selectorLabels" (dict "root" $root "component" $front.component) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "bayes-platform.selectorLabels" (dict "root" $root "component" $front.component) | nindent 8 }}
+      annotations:
+        checksum/env: {{ toYaml $front.env | sha256sum }}
+    spec:
+      {{- with $root.Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: nginx
+          image: {{ include "bayes-platform.image" (dict "root" $root "image" $values.image) }}
+          imagePullPolicy: {{ $root.Values.global.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            {{- range $key, $value := $front.env }}
+            - name: {{ $key }}
+              value: {{ $value | toString | quote }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          resources:
+            {{- toYaml $values.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+          {{- if and (eq $front.component "web") $values.themeConfigMap }}
+          volumeMounts:
+            - name: theme
+              mountPath: /usr/share/nginx/html/theme
+              readOnly: true
+          {{- end }}
+      {{- if and (eq $front.component "web") $values.themeConfigMap }}
+      volumes:
+        - name: theme
+          configMap:
+            name: {{ $values.themeConfigMap }}
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "bayes-platform.labels" $root | nindent 4 }}
+    app.kubernetes.io/component: {{ $front.component }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "bayes-platform.selectorLabels" (dict "root" $root "component" $front.component) | nindent 4 }}
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+{{- end }}
