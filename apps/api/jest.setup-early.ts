@@ -4,8 +4,7 @@
  */
 delete process.env.BULL_BOARD_ENABLED
 
-// Worker queue selection fails fast when unset (see worker-pools.ts). Provide
-// defaults so specs importing worker constants/modules don't throw at import.
-process.env.WORKER_QUEUE_NAMES ??=
-  "evaluation-extraction-run-queue,evaluation-extraction-run-execute-queue,agent-csv-extraction-run-queue,agent-csv-extraction-run-execute-queue,extraction-agent-session-queue,url-crawling,document-embeddings,document-embeddings-stuck-sweep,web-source-embeddings"
+// Worker queue selection fails fast when unset (see worker-pools.ts). `all`
+// enables every known queue, so this file never carries a copy of the list.
+process.env.WORKER_QUEUE_NAMES ??= "all"
 process.env.WORKERS_HEALTH_QUEUE_NAME ??= "document-embeddings"

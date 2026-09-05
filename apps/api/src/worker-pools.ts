@@ -40,15 +40,27 @@ export const KNOWN_WORKER_QUEUE_NAMES: readonly string[] = [
 export const WORKER_QUEUE_NAMES_ENV = "WORKER_QUEUE_NAMES"
 
 /**
+ * Sentinel value: consume every known queue. Meant for the CI smoke check and
+ * the test setup, so they never carry a copy of the queue list that can drift
+ * from the code (see #732). Production pools list their queues explicitly.
+ */
+export const ALL_WORKER_QUEUES_SENTINEL = "all"
+
+/**
  * Parse the comma-separated list of queue names this instance should consume,
  * supplied via the `WORKER_QUEUE_NAMES` env var. Production runs two instance
  * types (GPU / CPU); each sets this var to the subset of queues it owns.
+ *
+ * The value `all` (ALL_WORKER_QUEUES_SENTINEL) enables every known queue.
  *
  * Fails fast (throws) when the var is missing/empty or names an unknown queue,
  * so a misconfigured instance never silently consumes the wrong queues.
  */
 export function parseEnabledWorkerQueueNames(): string[] {
   const rawValue = process.env[WORKER_QUEUE_NAMES_ENV]
+  if (rawValue?.trim() === ALL_WORKER_QUEUES_SENTINEL) {
+    return [...KNOWN_WORKER_QUEUE_NAMES]
+  }
   const queueNames = (rawValue ?? "")
     .split(",")
     .map((queueName) => queueName.trim())

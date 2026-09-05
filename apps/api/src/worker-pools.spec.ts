@@ -1,4 +1,5 @@
 import {
+  ALL_WORKER_QUEUES_SENTINEL,
   KNOWN_WORKER_QUEUE_NAMES,
   parseEnabledWorkerQueueNames,
   WORKER_QUEUE_NAMES_ENV,
@@ -34,6 +35,17 @@ describe("parseEnabledWorkerQueueNames", () => {
     const [first, second] = KNOWN_WORKER_QUEUE_NAMES
     process.env[WORKER_QUEUE_NAMES_ENV] = `  ${first} , ${second} ,`
     expect(parseEnabledWorkerQueueNames()).toEqual([first, second])
+  })
+
+  it("returns every known queue for the `all` sentinel", () => {
+    process.env[WORKER_QUEUE_NAMES_ENV] = ` ${ALL_WORKER_QUEUES_SENTINEL} `
+    expect(parseEnabledWorkerQueueNames()).toEqual([...KNOWN_WORKER_QUEUE_NAMES])
+  })
+
+  it("does not accept the `all` sentinel mixed with queue names", () => {
+    process.env[WORKER_QUEUE_NAMES_ENV] =
+      `${ALL_WORKER_QUEUES_SENTINEL},${KNOWN_WORKER_QUEUE_NAMES[0]}`
+    expect(() => parseEnabledWorkerQueueNames()).toThrow(ALL_WORKER_QUEUES_SENTINEL)
   })
 
   it("returns every known queue when all are listed", () => {

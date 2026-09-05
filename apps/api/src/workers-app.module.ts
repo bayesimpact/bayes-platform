@@ -42,7 +42,7 @@ import { parseEnabledWorkerQueueNames } from "./worker-pools"
  * a module is loaded when any of its queues is in the enabled set. Queues listed
  * together always travel together (they belong to the same module).
  */
-const WORKER_MODULE_REGISTRY: { module: Type<unknown>; queues: string[] }[] = [
+export const WORKER_MODULE_REGISTRY: { module: Type<unknown>; queues: string[] }[] = [
   {
     module: EvaluationExtractionRunWorkersModule,
     queues: [EVALUATION_EXTRACTION_RUN_QUEUE_NAME, EVALUATION_EXTRACTION_RUN_EXECUTE_QUEUE_NAME],
