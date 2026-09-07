@@ -25,6 +25,7 @@ export const agentEmbedConfigFactory = AgentEmbedConfigFactory.define(
       title: params.title ?? null,
       logoUrl: params.logoUrl ?? null,
       primaryColor: params.primaryColor ?? null,
+      bannerText: params.bannerText ?? null,
       createdAt: params.createdAt ?? faker.date.past().getTime(),
       updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
     }

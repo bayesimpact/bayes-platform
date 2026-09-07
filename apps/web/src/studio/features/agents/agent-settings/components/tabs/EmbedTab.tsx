@@ -25,6 +25,7 @@ type EmbedFormState = {
   title: string
   logoUrl: string
   primaryColor: string
+  bannerText: string
 }
 
 function toFormState(config: AgentEmbedConfig): EmbedFormState {
@@ -34,6 +35,7 @@ function toFormState(config: AgentEmbedConfig): EmbedFormState {
     title: config.title ?? "",
     logoUrl: config.logoUrl ?? "",
     primaryColor: config.primaryColor ?? "",
+    bannerText: config.bannerText ?? "",
   }
 }
 
@@ -43,7 +45,10 @@ const emptyFormState: EmbedFormState = {
   title: "",
   logoUrl: "",
   primaryColor: "",
+  bannerText: "",
 }
+
+type CopyTarget = "snippet" | "publicPage"
 
 export function EmbedTab({ onDirtyChange }: { onDirtyChange: (dirty: boolean) => void }) {
   const agentId = useCurrentId(selectCurrentAgentId)
@@ -64,7 +69,7 @@ function WithData({ onDirtyChange }: { onDirtyChange: (dirty: boolean) => void }
   const agent = useValue(selectCurrentAgentData)
   const config = useValue(selectAgentEmbedConfig)
 
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState<CopyTarget | null>(null)
   const [form, setForm] = useState<EmbedFormState>(emptyFormState)
 
   useEffect(() => {
@@ -79,12 +84,17 @@ function WithData({ onDirtyChange }: { onDirtyChange: (dirty: boolean) => void }
   const embedSnippet = config
     ? `<script src="${embedBaseUrl}/launcher.js" data-token="${config.embedToken}"></script>`
     : ""
+  // Standalone hosted page: the same chat, served full-screen at a shareable URL (link or QR code).
+  const publicPageUrl = config
+    ? `${embedBaseUrl}/index.html?embedToken=${config.embedToken}&displayMode=drawer`
+    : ""
 
-  const handleCopy = async () => {
-    if (!embedSnippet) return
-    await navigator.clipboard.writeText(embedSnippet)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  const handleCopy = async (target: CopyTarget) => {
+    const text = target === "snippet" ? embedSnippet : publicPageUrl
+    if (!text) return
+    await navigator.clipboard.writeText(text)
+    setCopied(target)
+    setTimeout(() => setCopied(null), 2000)
   }
 
   const handleUpdate = () => {
@@ -99,6 +109,7 @@ function WithData({ onDirtyChange }: { onDirtyChange: (dirty: boolean) => void }
         title: form.title.trim() || null,
         logoUrl: form.logoUrl.trim() || null,
         primaryColor: form.primaryColor.trim() || null,
+        bannerText: form.bannerText.trim() || null,
       }),
     )
   }
@@ -130,12 +141,55 @@ function WithData({ onDirtyChange }: { onDirtyChange: (dirty: boolean) => void }
               rows={2}
               className="font-mono text-xs resize-none"
             />
-            <Button type="button" variant="outline" size="icon" onClick={handleCopy}>
-              {copied ? <CheckIcon className="size-4" /> : <CopyIcon className="size-4" />}
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => handleCopy("snippet")}
+            >
+              {copied === "snippet" ? (
+                <CheckIcon className="size-4" />
+              ) : (
+                <CopyIcon className="size-4" />
+              )}
             </Button>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
             {t("agentSettings:embed.snippetHint")}
+          </p>
+        </Field>
+      )}
+
+      {config && (
+        <Field>
+          <FieldLabel htmlFor="embed-public-page-url">
+            {t("agentSettings:embed.publicPageLabel")}
+          </FieldLabel>
+          <FieldDescription>
+            {t("agentSettings:embed.publicPageDescription", { name: agent.name })}
+          </FieldDescription>
+          <div className="flex gap-2 items-start">
+            <Input
+              id="embed-public-page-url"
+              readOnly
+              value={publicPageUrl}
+              className="font-mono text-xs"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => handleCopy("publicPage")}
+            >
+              {copied === "publicPage" ? (
+                <CheckIcon className="size-4" />
+              ) : (
+                <CopyIcon className="size-4" />
+              )}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            {t("agentSettings:embed.publicPageHint")}
           </p>
         </Field>
       )}
@@ -199,6 +253,21 @@ function WithData({ onDirtyChange }: { onDirtyChange: (dirty: boolean) => void }
             className="font-mono"
           />
         </div>
+      </Field>
+
+      <Field>
+        <FieldLabel htmlFor="embed-banner-text">
+          {t("agentSettings:embed.bannerTextLabel")}
+        </FieldLabel>
+        <FieldDescription>{t("agentSettings:embed.bannerTextDescription")}</FieldDescription>
+        <Textarea
+          id="embed-banner-text"
+          value={form.bannerText}
+          onChange={(e) => setForm((prev) => ({ ...prev, bannerText: e.target.value }))}
+          placeholder={t("agentSettings:embed.bannerTextPlaceholder")}
+          rows={2}
+          maxLength={300}
+        />
       </Field>
 
       <Field orientation="horizontal" className="justify-end">

@@ -144,6 +144,7 @@ function LiveChat({
   return (
     <EmbedChat
       agentName={remoteConfig?.title ?? remoteConfig?.agentName}
+      bannerText={remoteConfig?.bannerText ?? undefined}
       theme={theme}
       locale={locale}
       displayMode={displayMode}
@@ -218,6 +219,7 @@ function SimulatedChat({
   return (
     <EmbedChat
       agentName="Helpful Assistant"
+      bannerText={readParam("bannerText")}
       locale={locale}
       displayMode={displayMode}
       hideHeader={hideHeader}

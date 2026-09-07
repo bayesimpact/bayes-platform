@@ -6,6 +6,7 @@ import { createEmbedI18n } from "../i18n"
 import {
   Chat,
   ChatActions,
+  ChatBanner,
   ChatContent,
   ChatFooter,
   ChatHeader,
@@ -43,6 +44,8 @@ export type EmbedChatProps = {
   onClose?: () => void
   /** Hide the branded header (agent name, logo, close). Useful when the host already has chrome. */
   hideHeader?: boolean
+  /** Optional notice pinned above the conversation (e.g. "Test version, staff only"). */
+  bannerText?: string
 }
 
 export function EmbedChat(props: EmbedChatProps) {
@@ -73,6 +76,7 @@ function EmbedChatInner({
   placeholder,
   onClose,
   hideHeader = false,
+  bannerText,
 }: EmbedChatProps) {
   const { t } = useTranslation("chat")
   const chatEndRef = useRef<HTMLDivElement>(null)
@@ -101,6 +105,8 @@ function EmbedChatInner({
       {!hideHeader && (
         <ChatHeader agentName={agentName} logoUrl={theme?.logoUrl} onClose={onClose} />
       )}
+
+      {bannerText && <ChatBanner text={bannerText} />}
 
       <ChatContent>
         {messages.map((message) => (
