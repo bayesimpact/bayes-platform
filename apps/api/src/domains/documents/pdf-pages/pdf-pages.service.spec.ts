@@ -12,6 +12,7 @@ describe("PdfPagesService", () => {
       getTemporaryUrl: jest.fn((storageRelativePath: string) =>
         Promise.resolve(`https://storage.example.test/${storageRelativePath}?signature=abc`),
       ),
+      deleteFile: jest.fn(() => Promise.resolve()),
     }) as unknown as IFileStorage
 
   afterEach(() => {
@@ -33,6 +34,34 @@ describe("PdfPagesService", () => {
     expect(buildService().pageObjectPath("org1/proj1/doc1.pdf", 3)).toBe(
       "org1/proj1/derived/doc1/page-3.png",
     )
+  })
+
+  it("deletes every rendered page when the page count is cached", async () => {
+    const fileStorageService = buildFileStorageService()
+
+    await buildService().deleteRenderedPages({
+      document: { storageRelativePath: "org1/proj1/doc1.pdf", pdfPageCount: 3 },
+      fileStorageService,
+    })
+
+    expect(fileStorageService.deleteFile).toHaveBeenCalledTimes(3)
+    expect(fileStorageService.deleteFile).toHaveBeenCalledWith("org1/proj1/derived/doc1/page-1.png")
+    expect(fileStorageService.deleteFile).toHaveBeenCalledWith("org1/proj1/derived/doc1/page-2.png")
+    expect(fileStorageService.deleteFile).toHaveBeenCalledWith("org1/proj1/derived/doc1/page-3.png")
+  })
+
+  it.each([
+    null,
+    0,
+  ])("deletes nothing when the page count is %s because no page was rendered", async (pdfPageCount) => {
+    const fileStorageService = buildFileStorageService()
+
+    await buildService().deleteRenderedPages({
+      document: { storageRelativePath: "org1/proj1/doc1.pdf", pdfPageCount },
+      fileStorageService,
+    })
+
+    expect(fileStorageService.deleteFile).not.toHaveBeenCalled()
   })
 
   it("returns one signed url per page without calling the converter when the count is cached", async () => {

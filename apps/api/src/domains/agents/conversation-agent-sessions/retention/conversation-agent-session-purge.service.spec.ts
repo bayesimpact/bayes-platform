@@ -7,8 +7,12 @@ import {
 import { agentFactory } from "@/domains/agents/agent.factory"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import { agentMessageAttachmentDocumentFactory } from "@/domains/agents/shared/agent-session-messages/agent-message-attachment-document.factory"
 import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messages/agent-messages.factory"
 import { agentMessageFeedbackFactory } from "@/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.factory"
+import { documentFactory } from "@/domains/documents/document.factory"
+import { PdfConverterClient } from "@/domains/documents/pdf-pages/pdf-converter.client"
+import { PdfPagesService } from "@/domains/documents/pdf-pages/pdf-pages.service"
 import type { IFileStorage } from "@/domains/documents/storage/file-storage.interface"
 import {
   createOrganizationWithAgentMessage,
@@ -32,7 +36,11 @@ describe("ConversationAgentSessionPurgeService", () => {
         deletedStoragePaths.push(storageRelativePath)
       },
     } as unknown as IFileStorage
-    service = new ConversationAgentSessionPurgeService(setup.dataSource, fileStorageFake)
+    service = new ConversationAgentSessionPurgeService(
+      setup.dataSource,
+      fileStorageFake,
+      new PdfPagesService(new PdfConverterClient()),
+    )
   })
 
   beforeEach(async () => {
@@ -109,6 +117,66 @@ describe("ConversationAgentSessionPurgeService", () => {
       id: feedback.id,
     })
     expect(savedFeedback.content).toBe("")
+  })
+
+  it("removes attachment files and their rendered pages from storage", async () => {
+    const { organization, project, agentSession, agentSettings } = await createPurgeableSession()
+    const attachment = agentMessageAttachmentDocumentFactory
+      .transient({ organization, project })
+      .build({
+        storageRelativePath: `${organization.id}/${project.id}/attachment1.pdf`,
+        pdfPageCount: 2,
+      })
+    await repositories.agentMessageAttachmentDocumentRepository.save(attachment)
+    const messageWithAttachment = agentMessageFactory
+      .user()
+      .transient({ organization, project, session: agentSession, agentSettings })
+      .build({ content: "See attached", attachmentDocumentId: attachment.id })
+    await repositories.agentMessageRepository.save(messageWithAttachment)
+
+    const { purged } = await service.purgeSessionContent(agentSession.id)
+    expect(purged).toBe(true)
+
+    expect(deletedStoragePaths.sort()).toEqual(
+      [
+        `${organization.id}/${project.id}/attachment1.pdf`,
+        `${organization.id}/${project.id}/derived/attachment1/page-1.png`,
+        `${organization.id}/${project.id}/derived/attachment1/page-2.png`,
+      ].sort(),
+    )
+    const deletedAttachment = await repositories.agentMessageAttachmentDocumentRepository.findOne({
+      where: { id: attachment.id },
+    })
+    expect(deletedAttachment).toBeNull()
+  })
+
+  it("removes the files of documents generated in the session from storage", async () => {
+    const { organization, project, agentSession, agentSettings } = await createPurgeableSession()
+    const generatedDocument = documentFactory.transient({ organization, project }).build({
+      sourceType: "agentSessionMessage",
+      storageRelativePath: `${organization.id}/${project.id}/generated1.pdf`,
+      pdfPageCount: 1,
+    })
+    await repositories.documentRepository.save(generatedDocument)
+    const messageWithDocument = agentMessageFactory
+      .assistant()
+      .transient({ organization, project, session: agentSession, agentSettings })
+      .build({ content: "Here is your file", documentId: generatedDocument.id })
+    await repositories.agentMessageRepository.save(messageWithDocument)
+
+    const { purged } = await service.purgeSessionContent(agentSession.id)
+    expect(purged).toBe(true)
+
+    expect(deletedStoragePaths.sort()).toEqual(
+      [
+        `${organization.id}/${project.id}/generated1.pdf`,
+        `${organization.id}/${project.id}/derived/generated1/page-1.png`,
+      ].sort(),
+    )
+    const deletedDocument = await repositories.documentRepository.findOne({
+      where: { id: generatedDocument.id },
+    })
+    expect(deletedDocument).toBeNull()
   })
 
   it("is idempotent: a second run does nothing", async () => {

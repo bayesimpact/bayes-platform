@@ -2,6 +2,7 @@ import { BullModule } from "@nestjs/bullmq"
 import { Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
 import { ALL_ENTITIES } from "@/common/all-entities"
+import { PdfPagesModule } from "@/domains/documents/pdf-pages/pdf-pages.module"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
 import { ConversationAgentSessionPurgeService } from "./conversation-agent-session-purge.service"
 import { CONVERSATION_RETENTION_SWEEP_QUEUE_NAME } from "./conversation-retention.constants"
@@ -16,6 +17,7 @@ import { ConversationRetentionSweepSchedulerService } from "./conversation-reten
     }),
     TypeOrmModule.forFeature(ALL_ENTITIES),
     StorageModule,
+    PdfPagesModule,
   ],
   providers: [
     ConversationRetentionSweepWorker,

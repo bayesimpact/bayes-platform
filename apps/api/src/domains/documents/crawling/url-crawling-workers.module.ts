@@ -7,6 +7,8 @@ import { ALL_ENTITIES } from "@/common/all-entities"
 import { SpiderClientService } from "@/external/spider/spider-client.service"
 import { DocumentsService } from "../documents.service"
 import { DocumentEmbeddingStatusNotifierService } from "../embeddings/document-embedding-status-notifier.service"
+import { PdfPagesModule } from "../pdf-pages/pdf-pages.module"
+import { StorageModule } from "../storage/storage.module"
 import { DocumentTagsService } from "../tags/document-tags.service"
 import { DocumentCrawlProgressNotifierService } from "./document-crawl-progress-notifier.service"
 import { URL_CRAWLING_QUEUE_NAME } from "./url-crawling.constants"
@@ -28,6 +30,8 @@ import { WebSourceEmbeddingsBatchModule } from "./web-source-embeddings-batch.mo
     }),
     TypeOrmModule.forFeature(ALL_ENTITIES),
     WebSourceEmbeddingsBatchModule,
+    StorageModule,
+    PdfPagesModule,
   ],
   providers: [
     UrlCrawlingWorker,
