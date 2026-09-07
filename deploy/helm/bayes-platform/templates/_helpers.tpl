@@ -28,7 +28,7 @@ Common labels and selector labels.
 helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 app.kubernetes.io/name: {{ include "bayes-platform.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/version: {{ .Values.global.image.tag | quote }}
+app.kubernetes.io/version: {{ include "bayes-platform.imageTag" . | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
@@ -42,8 +42,12 @@ app.kubernetes.io/component: {{ .component }}
 Full image reference for a component.
 Usage: {{ include "bayes-platform.image" (dict "root" . "image" .Values.api.image) }}
 */}}
+{{- define "bayes-platform.imageTag" -}}
+{{- .Values.global.image.tag | default .Chart.AppVersion -}}
+{{- end -}}
+
 {{- define "bayes-platform.image" -}}
-{{- printf "%s/%s:%s" .root.Values.global.image.registry .image .root.Values.global.image.tag -}}
+{{- printf "%s/%s:%s" .root.Values.global.image.registry .image (include "bayes-platform.imageTag" .root) -}}
 {{- end -}}
 
 {{- define "bayes-platform.serviceAccountName" -}}

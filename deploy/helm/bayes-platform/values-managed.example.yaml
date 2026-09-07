@@ -7,8 +7,8 @@
 
 global:
   image:
-    registry: europe-west1-docker.pkg.dev/my-project/platform
-    tag: "2026.09.04"
+    # Public images from GitHub Container Registry (the default), pinned to a release.
+    tag: "26.09.1"
 
 urls:
   api: https://api.staging.example.org

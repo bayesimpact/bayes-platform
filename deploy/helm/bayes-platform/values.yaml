@@ -4,10 +4,13 @@
 
 global:
   image:
-    # Images are <registry>/<name>:<tag>. Build them from the repository root
-    # with apps/*/Dockerfile (see README.md).
+    # Images are <registry>/<name>:<tag>. The public images are published by
+    # .github/workflows/publish-images.yml on every release; build your own
+    # from the repository root with apps/*/Dockerfile (see README.md).
     registry: ghcr.io/bayesimpact/bayes-platform
-    tag: latest
+    # Empty: the chart's appVersion, which is the release tag of the chart you
+    # installed. Set it to pin another release or a sha-<short> build of main.
+    tag: ""
     pullPolicy: IfNotPresent
   imagePullSecrets: []
 

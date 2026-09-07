@@ -30,7 +30,19 @@ Two ways to run it:
 
 Minimum cluster size for the self-contained install without GPU: 4 vCPU and 8 GiB of RAM free, 80 GiB of storage.
 
-## Build the images
+## Images
+
+Every release publishes the seven images, public, on GitHub Container Registry: `ghcr.io/bayesimpact/bayes-platform/<component>:<version>` (for example `.../api:26.09.1`). Every push to `main` also publishes `sha-<short sha>` and `latest`. No credentials are needed to pull them.
+
+The chart is published with the same version as an OCI artifact:
+
+```bash
+helm install platform oci://ghcr.io/bayesimpact/charts/bayes-platform --version 0.1.0 -n platform --create-namespace -f my-values.yaml
+```
+
+Its `appVersion` is the release tag, and it is the default image tag. Set `global.image.tag` to run another build.
+
+### Build your own
 
 From the repository root, one image per component:
 
@@ -47,7 +59,7 @@ docker build -f apps/web-embed/Dockerfile                        -t $REGISTRY/we
 docker build -f apps/help/Dockerfile                             -t $REGISTRY/help:$TAG .
 ```
 
-Push them, then set `global.image.registry` and `global.image.tag`.
+Push them to your registry, then set `global.image.registry` and `global.image.tag` (and `global.imagePullSecrets` if the registry is private).
 
 The GPU workers image is close to 10 GB (Torch with CUDA, Docling). Build it only if you enable `gpuWorkers`.
 
@@ -73,11 +85,12 @@ In production, fill this Secret from your secret store (External Secrets Operato
 
 ## Install
 
+From a checkout of the repository (or use the OCI chart above):
+
 ```bash
 helm upgrade --install platform deploy/helm/bayes-platform \
   --namespace platform --create-namespace \
-  --set global.image.registry=$REGISTRY \
-  --set global.image.tag=$TAG \
+  --set global.image.tag=26.09.1 \
   --set secrets.existingSecret=platform-secrets \
   -f my-values.yaml
 ```
