@@ -3897,6 +3897,15 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/agents/conversation-agent-sessions/retention/conversation-agent-session-purge.service.ts",
+    "to": "src/domains/documents/pdf-pages/pdf-pages.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/agents/csv-extraction-runs/agent-csv-extraction-run-csv-export.service.ts",
     "to": "src/domains/documents/documents.service.ts",
     "rule": {

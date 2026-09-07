@@ -6,11 +6,13 @@ import {
 } from "@/common/test/test-database"
 import { DocumentsModule } from "../documents.module"
 import { DocumentsService } from "../documents.service"
+import { FILE_STORAGE_SERVICE, type IFileStorage } from "../storage/file-storage.interface"
 import { withDocumentEmbeddingsBatchServiceMock } from "../test-overrides"
 
 export function documentsServiceTestSetup() {
   let service: DocumentsService
   let repositories: AllRepositories
+  let fileStorageService: IFileStorage
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
 
   beforeAll(async () => {
@@ -19,6 +21,7 @@ export function documentsServiceTestSetup() {
       applyOverrides: withDocumentEmbeddingsBatchServiceMock,
     })
     service = setup.module.get<DocumentsService>(DocumentsService)
+    fileStorageService = setup.module.get<IFileStorage>(FILE_STORAGE_SERVICE)
     repositories = setup.getAllRepositories()
   })
 
@@ -31,6 +34,6 @@ export function documentsServiceTestSetup() {
   })
 
   return () => {
-    return { repositories, service }
+    return { repositories, service, fileStorageService }
   }
 }

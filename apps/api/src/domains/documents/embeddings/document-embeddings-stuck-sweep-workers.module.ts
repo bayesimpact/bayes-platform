@@ -3,6 +3,8 @@ import { Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
 import { ALL_ENTITIES } from "@/common/all-entities"
 import { DocumentsService } from "../documents.service"
+import { PdfPagesModule } from "../pdf-pages/pdf-pages.module"
+import { StorageModule } from "../storage/storage.module"
 import { DocumentTagsService } from "../tags/document-tags.service"
 import { DocumentEmbeddingStatusNotifierService } from "./document-embedding-status-notifier.service"
 import { DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME } from "./document-embeddings-stuck.constants"
@@ -16,6 +18,8 @@ import { DocumentEmbeddingsStuckSweepSchedulerService } from "./document-embeddi
       name: DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME,
     }),
     TypeOrmModule.forFeature(ALL_ENTITIES),
+    StorageModule,
+    PdfPagesModule,
   ],
   providers: [
     DocumentEmbeddingsStuckSweepWorker,

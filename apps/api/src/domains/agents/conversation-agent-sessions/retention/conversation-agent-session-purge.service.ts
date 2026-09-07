@@ -2,6 +2,8 @@ import { Inject, Injectable, Logger } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource, type EntityManager, In } from "typeorm"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { PdfPagesService } from "@/domains/documents/pdf-pages/pdf-pages.service"
 import {
   FILE_STORAGE_SERVICE,
   type IFileStorage,
@@ -10,6 +12,9 @@ import { AgentMessage } from "../../shared/agent-session-messages/agent-message.
 import { AgentMessageAttachmentDocument } from "../../shared/agent-session-messages/agent-message-attachment-document.entity"
 import { AgentMessageFeedback } from "../../shared/agent-session-messages/feedback/agent-message-feedback.entity"
 import { ConversationAgentSession } from "../conversation-agent-session.entity"
+
+/** What is needed to remove a deleted document's source object and rendered pages from storage. */
+type StoredDocumentFiles = { storageRelativePath: string; pdfPageCount: number | null }
 
 /**
  * GDPR content purge: empties everything user-generated in a conversation
@@ -23,10 +28,11 @@ export class ConversationAgentSessionPurgeService {
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
     @Inject(FILE_STORAGE_SERVICE) private readonly fileStorage: IFileStorage,
+    private readonly pdfPagesService: PdfPagesService,
   ) {}
 
   async purgeSessionContent(sessionId: string): Promise<{ purged: boolean }> {
-    const attachmentStoragePaths: string[] = []
+    const deletedDocumentFiles: StoredDocumentFiles[] = []
 
     const purged = await this.dataSource.transaction(async (entityManager) => {
       const session = await entityManager.findOne(ConversationAgentSession, {
@@ -34,7 +40,7 @@ export class ConversationAgentSessionPurgeService {
       })
       if (!session || session.purgedAt) return false
 
-      attachmentStoragePaths.push(...(await this.purgeSessionMessages(entityManager, sessionId)))
+      deletedDocumentFiles.push(...(await this.purgeSessionMessages(entityManager, sessionId)))
 
       await entityManager.update(
         ConversationAgentSession,
@@ -44,7 +50,7 @@ export class ConversationAgentSessionPurgeService {
       return true
     })
 
-    await this.deleteAttachmentFiles(attachmentStoragePaths, sessionId)
+    await this.deleteStoredFiles(deletedDocumentFiles, sessionId)
     return { purged }
   }
 
@@ -54,7 +60,7 @@ export class ConversationAgentSessionPurgeService {
    * the purged session no longer links to a person.
    */
   async purgePublicSessionContent(sessionId: string): Promise<{ purged: boolean }> {
-    const attachmentStoragePaths: string[] = []
+    const deletedDocumentFiles: StoredDocumentFiles[] = []
 
     const purged = await this.dataSource.transaction(async (entityManager) => {
       // Loaded by entity name: importing the PublicAgentSession entity here
@@ -64,7 +70,7 @@ export class ConversationAgentSessionPurgeService {
       })) as { id: string; purgedAt: Date | null } | null
       if (!session || session.purgedAt) return false
 
-      attachmentStoragePaths.push(...(await this.purgeSessionMessages(entityManager, sessionId)))
+      deletedDocumentFiles.push(...(await this.purgeSessionMessages(entityManager, sessionId)))
 
       await entityManager.update(
         "PublicAgentSession",
@@ -74,16 +80,16 @@ export class ConversationAgentSessionPurgeService {
       return true
     })
 
-    await this.deleteAttachmentFiles(attachmentStoragePaths, sessionId)
+    await this.deleteStoredFiles(deletedDocumentFiles, sessionId)
     return { purged }
   }
 
-  /** Empties the messages of a session; returns the storage paths of deleted attachments. */
+  /** Empties the messages of a session; returns the stored files of the deleted documents. */
   private async purgeSessionMessages(
     entityManager: EntityManager,
     sessionId: string,
-  ): Promise<string[]> {
-    const attachmentStoragePaths: string[] = []
+  ): Promise<StoredDocumentFiles[]> {
+    const deletedDocumentFiles: StoredDocumentFiles[] = []
 
     const messages = await entityManager.find(AgentMessage, {
       where: { sessionId },
@@ -107,9 +113,7 @@ export class ConversationAgentSessionPurgeService {
       const attachments = await entityManager.find(AgentMessageAttachmentDocument, {
         where: { id: In(attachmentDocumentIds) },
       })
-      attachmentStoragePaths.push(
-        ...attachments.map((attachment) => attachment.storageRelativePath),
-      )
+      deletedDocumentFiles.push(...attachments)
       await entityManager.delete(AgentMessageAttachmentDocument, {
         id: In(attachmentDocumentIds),
       })
@@ -119,27 +123,43 @@ export class ConversationAgentSessionPurgeService {
       .map((message) => message.documentId)
       .filter((id): id is string => Boolean(id))
     if (generatedDocumentIds.length > 0) {
-      // Deleted by entity name: importing the Document entity here would be a
-      // cross-domain entity import (no-cross-domain-entity-import).
+      // Loaded and deleted by entity name: importing the Document entity here
+      // would be a cross-domain entity import (no-cross-domain-entity-import).
+      const generatedDocuments = await entityManager.find<StoredDocumentFiles & { id: string }>(
+        "Document",
+        {
+          where: { id: In(generatedDocumentIds) },
+          select: { storageRelativePath: true, pdfPageCount: true },
+        },
+      )
+      deletedDocumentFiles.push(...generatedDocuments)
       await entityManager.delete("Document", { id: In(generatedDocumentIds) })
     }
 
     await entityManager.update(AgentMessage, { sessionId }, { content: "", toolCalls: null })
-    return attachmentStoragePaths
+    return deletedDocumentFiles
   }
 
   // Storage cleanup happens after commit: a storage hiccup must not resurrect
   // the DB content, and a missing file is not an error.
-  private async deleteAttachmentFiles(
-    attachmentStoragePaths: string[],
+  private async deleteStoredFiles(
+    deletedDocumentFiles: StoredDocumentFiles[],
     sessionId: string,
   ): Promise<void> {
-    for (const storageRelativePath of attachmentStoragePaths) {
+    for (const document of deletedDocumentFiles) {
+      // Generated documents may have no stored file (content lives in the row only).
+      if (!document.storageRelativePath) continue
       try {
-        await this.fileStorage.deleteFile(storageRelativePath)
+        await Promise.all([
+          this.fileStorage.deleteFile(document.storageRelativePath),
+          this.pdfPagesService.deleteRenderedPages({
+            document,
+            fileStorageService: this.fileStorage,
+          }),
+        ])
       } catch (error) {
         this.logger.warn(
-          `Could not delete attachment file ${storageRelativePath} for purged session ${sessionId}: ${(error as Error).message}`,
+          `Could not delete stored files ${document.storageRelativePath} for purged session ${sessionId}: ${(error as Error).message}`,
         )
       }
     }

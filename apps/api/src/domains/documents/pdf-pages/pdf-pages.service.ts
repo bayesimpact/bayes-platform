@@ -27,6 +27,27 @@ export class PdfPagesService {
     return `${this.derivedPagesPrefix(storageRelativePath)}page-${pageNumber}.png`
   }
 
+  /**
+   * Removes the rendered page images of a document from storage. The cached
+   * page count is the record of which pages exist: a null or zero count means
+   * nothing was ever rendered (or persisted), so there is nothing to delete.
+   */
+  async deleteRenderedPages({
+    document: { storageRelativePath, pdfPageCount },
+    fileStorageService,
+  }: {
+    document: { storageRelativePath: string; pdfPageCount: number | null }
+    fileStorageService: IFileStorage
+  }): Promise<void> {
+    if (!pdfPageCount) return
+
+    await Promise.all(
+      Array.from({ length: pdfPageCount }, (_, index) =>
+        fileStorageService.deleteFile(this.pageObjectPath(storageRelativePath, index + 1)),
+      ),
+    )
+  }
+
   async getImageUrls({
     document: { storageRelativePath, pdfPageCount },
     onPageCountUpdate,

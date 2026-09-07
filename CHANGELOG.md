@@ -20,6 +20,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Security
 - Security updates of dependencies and base images across all services.
+- Deleting a document or purging a conversation now also removes its file and rendered page images from storage.
 
 ## [26.09.1] - 2026-09-02
 
