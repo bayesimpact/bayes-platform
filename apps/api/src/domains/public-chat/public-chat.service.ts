@@ -111,6 +111,7 @@ export class PublicChatService {
       title: embedConfig.title,
       logoUrl: embedConfig.logoUrl,
       primaryColor: embedConfig.primaryColor,
+      bannerText: embedConfig.bannerText,
       createdAt: embedConfig.createdAt.getTime(),
       updatedAt: embedConfig.updatedAt.getTime(),
     }

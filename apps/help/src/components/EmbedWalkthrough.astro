@@ -5,13 +5,15 @@
  * blind): AgentEditor.tsx (tab gating: conversation-only, flag `agent-embed`, last
  * tab after Orchestration) and AgentEmbedTab.tsx (Enable embed switch, read-only
  * Embed snippet + Copy, snippet hint, Allowed origins, Widget title, Logo URL,
- * Brand color, Update). Labels verbatim from the agent / actions locales (EN + FR).
- * Uses the PRODUCT (coral) palette, pinned locally. Derived 2026-07-16.
+ * Brand color, Banner text, Update) plus the read-only Public page link under the
+ * snippet. Labels verbatim from the agent / actions locales (EN + FR).
+ * Uses the PRODUCT (coral) palette, pinned locally. Derived 2026-07-16, updated 2026-09-07.
  */
 type Lang = "en" | "fr"
 const { lang = "en" } = Astro.props as { lang?: Lang }
 
 const SNIPPET = '<script src="https://app.example.com/launcher.js" data-token="emb_1a2b3c4d"></script>'
+const PUBLIC_PAGE_URL = "https://app.example.com/index.html?embedToken=emb_1a2b3c4d&displayMode=drawer"
 
 const STRINGS = {
   en: {
@@ -31,6 +33,9 @@ const STRINGS = {
     snippetDescription: "Paste this <script> tag before the closing </body> tag on any page where you want the chat widget to appear.",
     snippetValue: SNIPPET,
     snippetHint: "Optional attributes: data-color, data-locale, data-display-mode, data-hint.",
+    publicPageLabel: "Public page link",
+    publicPageDescription: "Share this link, or a QR code of it, to make Helpful Assistant available without a host website.",
+    publicPageValue: PUBLIC_PAGE_URL,
     allowedOriginsLabel: "Allowed origins",
     allowedOriginsDescription: "Comma-separated list of allowed origins (e.g. https://app.example.com). Leave empty to allow all origins.",
     allowedOriginsPlaceholder: "https://app.example.com, https://staging.example.com",
@@ -42,15 +47,18 @@ const STRINGS = {
     primaryColorLabel: "Brand color",
     primaryColorDescription: "Primary color used in the chat widget header. Enter a hex value (e.g. #2563eb).",
     colorValue: "#2563eb",
+    bannerTextLabel: "Banner text",
+    bannerTextDescription: "Optional notice pinned above the conversation, on the public page and in the widget.",
+    bannerTextPlaceholder: "Test version, for the pilot team only",
     update: "Update",
     prev: "Prev", next: "Next", step: "Step",
     steps: [
       "In Studio, open a conversation agent to edit it.",
       "Open the Embed tab — it appears only for conversation agents.",
       "Turn on Enable embed to allow the agent on external sites.",
-      "Copy the Embed snippet and paste it before </body> on your site.",
+      "Copy the Embed snippet for your site, or the Public page link to share the agent without a website.",
       "Set Allowed origins to control which sites may embed the widget.",
-      "Customize the Widget title, Logo URL and Brand color.",
+      "Customize the Widget title, Logo URL, Brand color and Banner text.",
       "Click Update to save the embed configuration.",
     ],
   },
@@ -71,6 +79,9 @@ const STRINGS = {
     snippetDescription: "Collez cette balise <script> avant la balise </body> fermante sur chaque page où vous souhaitez afficher le widget de chat.",
     snippetValue: SNIPPET,
     snippetHint: "Attributs optionnels : data-color, data-locale, data-display-mode, data-hint.",
+    publicPageLabel: "Lien de la page publique",
+    publicPageDescription: "Partagez ce lien, ou un QR code de ce lien, pour rendre Helpful Assistant accessible sans site hôte.",
+    publicPageValue: PUBLIC_PAGE_URL,
     allowedOriginsLabel: "Origines autorisées",
     allowedOriginsDescription: "Liste d'origines autorisées séparées par des virgules (ex. https://app.example.com). Laissez vide pour autoriser toutes les origines.",
     allowedOriginsPlaceholder: "https://app.example.com, https://staging.example.com",
@@ -82,15 +93,18 @@ const STRINGS = {
     primaryColorLabel: "Couleur principale",
     primaryColorDescription: "Couleur principale utilisée dans l'en-tête du widget de chat. Saisissez une valeur hexadécimale (ex. #2563eb).",
     colorValue: "#2563eb",
+    bannerTextLabel: "Texte du bandeau",
+    bannerTextDescription: "Message optionnel affiché en permanence au-dessus de la conversation, sur la page publique et dans le widget.",
+    bannerTextPlaceholder: "Version de test, réservée à l'équipe pilote",
     update: "Mettre à jour",
     prev: "Précédent", next: "Suivant", step: "Étape",
     steps: [
       "Dans Studio, ouvrez un agent conversationnel pour le modifier.",
       "Ouvrez l'onglet Intégration — il n'apparaît que pour les agents conversationnels.",
       "Activez « Activer l'intégration » pour autoriser l'agent sur des sites externes.",
-      "Copiez l'extrait d'intégration et collez-le avant </body> sur votre site.",
+      "Copiez l'extrait d'intégration pour votre site, ou le Lien de la page publique pour partager l'agent sans site web.",
       "Définissez les Origines autorisées pour contrôler quels sites peuvent intégrer le widget.",
-      "Personnalisez le Titre du widget, l'URL du logo et la Couleur principale.",
+      "Personnalisez le Titre du widget, l'URL du logo, la Couleur principale et le Texte du bandeau.",
       "Cliquez sur Mettre à jour pour enregistrer la configuration d'intégration.",
     ],
   },
@@ -115,7 +129,7 @@ const steps = [
   { page: "overview", spot: "navAgent1", observe: [] },
   { page: "embed", spot: "tab-embed", observe: [] },
   { page: "embed", spot: "", observe: ["obsEnable"] },
-  { page: "embed", spot: "", observe: ["obsSnippet"] },
+  { page: "embed", spot: "", observe: ["obsSnippet", "obsPublicPage"] },
   { page: "embed", spot: "", observe: ["obsOrigins"] },
   { page: "embed", spot: "", observe: ["obsBranding"] },
   { page: "embed", spot: "btnUpdate", observe: [] },
@@ -197,6 +211,15 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
                 <p class="hint">{s.snippetHint}</p>
               </div>
 
+              <div class="fld" id="obsPublicPage">
+                <p class="lbl">{s.publicPageLabel}</p>
+                <p class="hint">{s.publicPageDescription}</p>
+                <div class="snippet-row">
+                  <span class="input block mono">{s.publicPageValue}</span>
+                  <span class="iconbtn"><svg viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span>
+                </div>
+              </div>
+
               <div class="fld" id="obsOrigins">
                 <p class="lbl">{s.allowedOriginsLabel}</p>
                 <p class="hint">{s.allowedOriginsDescription}</p>
@@ -218,6 +241,11 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
                   <p class="lbl">{s.primaryColorLabel}</p>
                   <p class="hint">{s.primaryColorDescription}</p>
                   <span class="colorrow"><i class="swatch"></i><span class="input block mono">{s.colorValue}</span></span>
+                </div>
+                <div class="fld">
+                  <p class="lbl">{s.bannerTextLabel}</p>
+                  <p class="hint">{s.bannerTextDescription}</p>
+                  <span class="textarea muted-txt">{s.bannerTextPlaceholder}</span>
                 </div>
               </div>
             </div>

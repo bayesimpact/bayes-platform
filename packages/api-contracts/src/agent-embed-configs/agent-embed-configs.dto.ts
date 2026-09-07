@@ -12,6 +12,8 @@ export type AgentEmbedConfigDto = {
   title: string | null
   logoUrl: string | null
   primaryColor: string | null
+  /** Optional notice pinned above the conversation in the public page and widget. */
+  bannerText: string | null
   createdAt: TimeType
   updatedAt: TimeType
 }
@@ -22,6 +24,7 @@ export type UpdateAgentEmbedConfigDto = {
   title?: string | null
   logoUrl?: string | null
   primaryColor?: string | null
+  bannerText?: string | null
 }
 
 /** Returned by the public (unauthenticated) config endpoint — branding only, no secrets. */
@@ -30,4 +33,5 @@ export type EmbedPublicConfigDto = {
   title: string | null
   logoUrl: string | null
   primaryColor: string | null
+  bannerText: string | null
 }

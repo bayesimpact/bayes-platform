@@ -1,18 +1,24 @@
 ---
 title: Intégration
 highlight: Intégration
-description: Placez un agent conversationnel sur votre propre site comme widget de chat — activez l'intégration, copiez l'extrait de script, restreignez les sites autorisés, et adaptez la marque.
+description: Rendez un agent conversationnel accessible hors de la plateforme — comme widget de chat sur votre site ou comme page publique autonome partagée par lien ou QR code — avec votre marque et un bandeau optionnel.
 category: guides-agents
 order: 6
-updated: 2026-07-22
+updated: 2026-09-07
 ---
 
 import EmbedWalkthrough from "@/components/EmbedWalkthrough.astro"
 
-L'**intégration** vous permet de placer un **agent conversationnel** sur votre propre
-site web comme **widget de chat**. Vous activez l'intégration, copiez un petit extrait
-`<script>` dans votre site, et l'agent apparaît sous forme de bulle de chat (ou de
-panneau latéral) avec laquelle vos visiteurs peuvent discuter.
+L'**intégration** vous permet de rendre un **agent conversationnel** accessible à des
+personnes extérieures à la plateforme, de deux façons :
+
+- comme **widget de chat** sur votre propre site web : vous activez l'intégration,
+  copiez un petit extrait `<script>` dans votre site, et l'agent apparaît sous forme de
+  bulle de chat (ou de panneau latéral) avec laquelle vos visiteurs peuvent discuter ;
+- comme **page publique autonome** : la plateforme sert le même chat, en plein écran,
+  à un **lien de page publique** que vous partagez directement ou imprimez en **QR
+  code**. Aucun site web n'est nécessaire, ce qui convient à un pilote, un événement
+  ou un accès de test.
 
 L'intégration se configure sur l'onglet **Intégration** de l'éditeur d'un **agent
 conversationnel**, dans **Studio**. C'est une fonctionnalité optionnelle : l'onglet
@@ -32,11 +38,19 @@ activé, qui se place après lui.
 - Chaque agent conversationnel possède son propre **extrait d'intégration** — une
   balise `<script>` portant un jeton unique. Ajouter cet extrait à une page web y
   charge le widget de chat de cet agent.
-- L'extrait existe que l'intégration soit activée ou non, mais le widget ne se charge
-  qu'une fois **Activer l'intégration** activé.
+- Le même jeton donne à l'agent un **lien de page publique**. Toute personne qui
+  l'ouvre accède au chat complet, sans aucun site hôte.
+- L'extrait et le lien existent que l'intégration soit activée ou non, mais le widget
+  et la page publique ne fonctionnent qu'une fois **Activer l'intégration** activé. Le
+  désactiver les met hors ligne immédiatement : c'est ainsi que vous terminez un accès
+  temporaire.
 - Vous contrôlez **quels sites** peuvent charger le widget avec les **Origines
   autorisées**, et vous pouvez **personnaliser son apparence** (titre, logo, couleur
   principale) ainsi que quelques attributs `data-` optionnels sur la balise de script.
+- Un **texte de bandeau** optionnel reste affiché au-dessus de la conversation, sur la
+  page publique et dans le widget, pour que les visiteurs voient toujours le contexte
+  (par exemple *Version de test, réservée à l'équipe pilote*) même si le lien est
+  transféré.
 - Les modifications sont enregistrées avec **Mettre à jour** (cet onglet utilise
   **Mettre à jour**, pas Enregistrer).
 
@@ -88,17 +102,23 @@ widget :
 - **`data-hint`** — une infobulle affichée au chargement et au survol (ex. `Besoin
   d'aide ?`).
 
+Sous l'extrait, **Lien de la page publique** est l'URL de la page autonome. Copiez-la
+avec le bouton **copier** et partagez-la sous forme de lien ou de QR code quand vous
+n'avez pas de site pour héberger le widget. Ajoutez `&locale=fr` pour forcer la langue
+de la page.
+
 ### 5. Restreindre les origines autorisées
 
 Dans **Origines autorisées**, saisissez une **liste séparée par des virgules** des
 sites autorisés à charger le widget (par exemple `https://app.example.com,
 https://staging.example.com`). Comme le précise la description, **laissez vide pour
 autoriser toutes les origines** — mais en production, il est plus sûr de ne lister que
-vos propres domaines.
+vos propres domaines. Si vous utilisez le **lien de la page publique**, laissez la
+liste vide : la page n'a pas de site hôte à autoriser.
 
 ### 6. Personnaliser l'apparence du widget
 
-Trois champs optionnels contrôlent l'aspect du widget :
+Quatre champs optionnels contrôlent l'aspect du widget :
 
 - **Titre du widget** — le titre affiché dans l'en-tête du chat. Laissé vide, il
   **correspond au nom de l'agent**.
@@ -107,12 +127,16 @@ Trois champs optionnels contrôlent l'aspect du widget :
 - **Couleur principale** — la couleur principale de l'en-tête du chat. Choisissez-la
   avec le sélecteur de couleur ou saisissez une **valeur hexadécimale** (ex.
   `#2563eb`).
+- **Texte du bandeau** — un message optionnel affiché en permanence au-dessus de la
+  conversation, sur la page publique et dans le widget. Précisez-y le contexte : une
+  version de test, le public visé, une période de validité. Laissez-le vide pour
+  n'afficher aucun bandeau.
 
 ### 7. Mettre à jour
 
 Cliquez sur **Mettre à jour** pour enregistrer la configuration. Vos modifications —
-état d'activation, origines autorisées, titre, logo et couleur — prennent effet pour
-le widget intégré.
+état d'activation, origines autorisées, titre, logo, couleur et bandeau — prennent
+effet pour le widget et la page publique.
 
 ## Conseils
 
@@ -125,6 +149,9 @@ le widget intégré.
   flottante, et `data-locale` pour forcer la langue du widget.
 - Le **Titre du widget** reprend le nom de l'agent — définissez-le explicitement si
   vous voulez un autre en-tête pour les visiteurs.
+- Pour un accès temporaire partagé par lien ou QR code, définissez un **Texte du
+  bandeau** qui indique à qui l'agent s'adresse, puis désactivez **Activer
+  l'intégration** quand l'accès prend fin.
 
 ## Dépannage
 
@@ -140,6 +167,12 @@ le widget intégré.
   restreindre.
 - **L'en-tête affiche le nom de l'agent, pas mon titre** — le **Titre du widget** est
   vide, il reprend donc le nom de l'agent ; saisissez un titre et **Mettez à jour**.
+- **La page publique indique « non disponible »** — **Activer l'intégration** est
+  désactivé, ou les **Origines autorisées** ne sont pas vides. Activez l'intégration et
+  videz la liste des origines.
+- **Le bandeau ne s'affiche pas** — le **Texte du bandeau** est vide ou vous n'avez pas
+  cliqué sur **Mettre à jour** ; le bandeau n'apparaît que lorsque le texte est
+  renseigné.
 - **En lien :** le widget intégré est un agent conversationnel — voir
   [Ajouter un agent conversationnel](/fr/add-a-conversation-agent) pour configurer ce
   qu'il dit.

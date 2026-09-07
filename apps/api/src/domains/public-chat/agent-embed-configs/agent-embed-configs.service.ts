@@ -47,7 +47,10 @@ export class AgentEmbedConfigsService {
   async update(
     agentId: string,
     fields: Partial<
-      Pick<AgentEmbedConfig, "isEnabled" | "allowedOrigins" | "title" | "logoUrl" | "primaryColor">
+      Pick<
+        AgentEmbedConfig,
+        "isEnabled" | "allowedOrigins" | "title" | "logoUrl" | "primaryColor" | "bannerText"
+      >
     >,
   ): Promise<AgentEmbedConfig> {
     const config = await this.findByAgentIdOrFail(agentId)

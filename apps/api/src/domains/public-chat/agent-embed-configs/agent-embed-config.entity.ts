@@ -25,6 +25,10 @@ export class AgentEmbedConfig extends ConnectEntityBase {
   @Column({ type: "varchar", name: "primary_color", length: 20, nullable: true, default: null })
   primaryColor!: string | null
 
+  /** Optional notice pinned above the conversation (e.g. "Test version, staff only"). */
+  @Column({ type: "text", name: "banner_text", nullable: true, default: null })
+  bannerText!: string | null
+
   @ManyToOne(() => Agent, { onDelete: "CASCADE" })
   @JoinColumn({ name: "agent_id" })
   agent!: Agent

@@ -22,12 +22,13 @@ type UpdateConfigPayload = {
   title?: string | null
   logoUrl?: string | null
   primaryColor?: string | null
+  bannerText?: string | null
 }
 
 const updateConfig = createAsyncThunk<void, UpdateConfigPayload, ThunkConfig>(
   "agentEmbedConfigs/updateConfig",
   async (
-    { isEnabled, allowedOrigins, title, logoUrl, primaryColor },
+    { isEnabled, allowedOrigins, title, logoUrl, primaryColor, bannerText },
     { extra: { services }, getState },
   ) => {
     const state = getState()
@@ -36,7 +37,7 @@ const updateConfig = createAsyncThunk<void, UpdateConfigPayload, ThunkConfig>(
     const agentId = getCurrentId({ state, name: "agentId" })
     await services.agentEmbedConfigs.updateOne(
       { organizationId, projectId, agentId },
-      { isEnabled, allowedOrigins, title, logoUrl, primaryColor },
+      { isEnabled, allowedOrigins, title, logoUrl, primaryColor, bannerText },
     )
   },
 )

@@ -48,6 +48,22 @@ export const ShortConversation: Story = {
   },
 }
 
+export const WithBanner: Story = {
+  args: {
+    messages: shortConversation,
+    bannerText: "Test version, for the pilot team only. Answers may be incomplete.",
+  },
+}
+
+export const WithBannerNoHeader: Story = {
+  name: "With banner — header hidden",
+  args: {
+    messages: shortConversation,
+    hideHeader: true,
+    bannerText: "Test version, for the pilot team only.",
+  },
+}
+
 export const LongConversation: Story = {
   args: {
     messages: longConversation,

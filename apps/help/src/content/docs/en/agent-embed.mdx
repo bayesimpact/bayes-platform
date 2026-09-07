@@ -1,18 +1,23 @@
 ---
 title: Embed
 highlight: Embed
-description: Put a conversation agent on your own website as a chat widget — enable embedding, copy the script snippet, restrict which sites can load it, and match your branding.
+description: Make a conversation agent available outside the platform — as a chat widget on your own website or as a standalone public page shared by link or QR code — with your branding and an optional banner.
 category: guides-agents
 order: 6
-updated: 2026-07-22
+updated: 2026-09-07
 ---
 
 import EmbedWalkthrough from "@/components/EmbedWalkthrough.astro"
 
-**Embed** lets you place a **conversation agent** on your own website as a **chat
-widget**. You turn embedding on, copy a small `<script>` **snippet** into your site,
-and the agent appears as a chat bubble (or a side panel) that your visitors can talk
-to.
+**Embed** lets you make a **conversation agent** available to people outside the
+platform, in two ways:
+
+- as a **chat widget** on your own website: you turn embedding on, copy a small
+  `<script>` **snippet** into your site, and the agent appears as a chat bubble (or a
+  side panel) that your visitors can talk to;
+- as a **standalone public page**: the platform serves the same chat, full screen, at
+  a **public page link** you can share directly or print as a **QR code**. No website
+  is needed, which suits a pilot, an event or a test access.
 
 Embedding is configured on the **Embed** tab of a **conversation agent's** editor, in
 **Studio**. It's an optional feature: the tab only appears when your workspace has
@@ -30,11 +35,17 @@ enabled, which sits after it.
 - Each conversation agent has its own **embed snippet** — a `<script>` tag carrying a
   unique token. Adding that snippet to a web page loads the chat widget for that
   agent.
-- The snippet exists whether or not embedding is on, but the widget only loads once
-  **Enable embed** is turned on.
+- The same token gives the agent a **public page link**. Anyone who opens it gets
+  the full chat, without any host website.
+- The snippet and the link exist whether or not embedding is on, but the widget and
+  the public page only work once **Enable embed** is turned on. Turning it off takes
+  them offline immediately, which is how you end a temporary access.
 - You control **which sites** may load the widget with **Allowed origins**, and you
   can **customize its appearance** (title, logo, brand color) plus a few optional
   `data-` attributes on the script tag.
+- An optional **banner text** stays pinned above the conversation, on the public page
+  and in the widget, so visitors always see the context (for example *Test version,
+  for the pilot team only*) even if the link is forwarded.
 - Changes are saved with **Update** (this tab uses **Update**, not Save).
 
 ## The full flow at a glance
@@ -79,16 +90,21 @@ The hint lists **optional attributes** you can add to the tag to tweak the widge
 - **`data-display-mode`** — set to `drawer` for a side panel instead of a bubble.
 - **`data-hint`** — a tooltip shown on load and on hover (e.g. `Need help?`).
 
+Below the snippet, **Public page link** is the URL of the standalone page. Copy it with
+the **copy** button and share it as a link or a QR code when you have no website to
+host the widget. Append `&locale=fr` to force the language of the page.
+
 ### 5. Restrict the allowed origins
 
 In **Allowed origins**, enter a **comma-separated list** of the sites permitted to
 load the widget (for example `https://app.example.com, https://staging.example.com`).
 As the description notes, **leave it empty to allow all origins** — but for production
-it's safer to list only your own domains.
+it's safer to list only your own domains. If you use the **public page link**, keep
+the list empty: the page has no host website to allow.
 
 ### 6. Customize the widget's appearance
 
-Three optional fields control how the widget looks:
+Four optional fields control how the widget looks:
 
 - **Widget title** — the title shown in the chat header. Left empty, it **defaults to
   the agent's name**.
@@ -96,11 +112,15 @@ Three optional fields control how the widget looks:
   `https://example.com/logo.png`).
 - **Brand color** — the primary color of the chat header. Pick it with the color
   swatch or type a **hex value** (e.g. `#2563eb`).
+- **Banner text** — an optional notice pinned above the conversation, on the public
+  page and in the widget. State the context there: a test version, the intended
+  audience, a validity period. Leave it empty to show no banner.
 
 ### 7. Update
 
 Click **Update** to save the configuration. Your changes — enabled state, allowed
-origins, title, logo and color — take effect for the embedded widget.
+origins, title, logo, color and banner — take effect for the widget and the public
+page.
 
 ## Tips
 
@@ -112,6 +132,8 @@ origins, title, logo and color — take effect for the embedded widget.
   bubble, and `data-locale` to force the widget's language.
 - The **Widget title** falls back to the agent's name — set it explicitly if you want
   a different heading for visitors.
+- For a temporary access shared by link or QR code, set a **Banner text** that says
+  who the agent is for, then turn **Enable embed** off when the access ends.
 
 ## Troubleshooting
 
@@ -125,5 +147,9 @@ origins, title, logo and color — take effect for the embedded widget.
   every origin; add your specific domains to restrict it.
 - **The header shows the agent's name, not my title** — **Widget title** is empty, so
   it defaults to the agent's name; enter a title and **Update**.
+- **The public page shows "not available"** — **Enable embed** is off, or **Allowed
+  origins** is not empty. Turn embedding on and clear the origins list.
+- **The banner doesn't show** — **Banner text** is empty or you didn't click
+  **Update**; the banner only appears when the text is set.
 - **Related:** the embedded widget is a conversation agent — see
   [Add a conversation agent](/en/add-a-conversation-agent) to configure what it says.
