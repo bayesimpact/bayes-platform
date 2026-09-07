@@ -25,7 +25,7 @@ import { useFormResult } from "./form-result-context"
 import { useFormSubSessions } from "./form-sub-sessions-context"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { McpAppView } from "./McpAppView"
-import { getRenderableMcpApp, hasRenderableMcpApp } from "./mcp-app-view"
+import { getRenderableMcpApp } from "./mcp-app-view"
 import { SourcesTool } from "./SourcesTool"
 import { SubAgentFormResultSheet } from "./SubAgentFormResultSheet"
 import { SurfaceResourcesTool } from "./SurfaceResourcesTool"
@@ -43,6 +43,8 @@ export function AgentSessionMessage({
   const { t } = useTranslation()
   const formSubSessions = useFormSubSessions()
   const formResult = useFormResult()
+  // MCP App cards that gave up rendering; their reply text is shown instead.
+  const [failedMcpAppToolCallIds, setFailedMcpAppToolCallIds] = useState<string[]>([])
 
   switch (message.role) {
     case "assistant": {
@@ -61,7 +63,10 @@ export function AgentSessionMessage({
         const view = getRenderableMcpApp(toolCall)
         return view ? [{ toolCall, view }] : []
       })
-      const hideMarkdownRecap = !isStreaming && hasRenderableMcpApp(message.toolCalls)
+      // A card that failed to render must not take the reply text down with it.
+      const hideMarkdownRecap =
+        !isStreaming &&
+        mcpAppViews.some(({ toolCall }) => !failedMcpAppToolCallIds.includes(toolCall.id))
       // Tool names this message delegated to that resolved to a form sub-session,
       // deduplicated so a sub-agent invoked twice shows a single affordance.
       const delegatedToolNames = [
@@ -112,6 +117,11 @@ export function AgentSessionMessage({
                   html={view.html}
                   toolInput={view.toolInput}
                   toolResult={view.toolResult}
+                  onRenderFailed={() =>
+                    setFailedMcpAppToolCallIds((previous) =>
+                      previous.includes(toolCall.id) ? previous : [...previous, toolCall.id],
+                    )
+                  }
                 />
               ))}
 

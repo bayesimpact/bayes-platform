@@ -24,12 +24,14 @@ const TOOL_RESULT_RETRY_DELAYS_MS = [50, 250] as const
  * JSON-RPC over `window`. Unique-origin `event.source === contentWindow` is
  * not reliable, so PostMessageTransport would mix or drop replies at random.
  *
- * Both frames also carry `allow-popups allow-popups-to-escape-sandbox`: a
- * nested frame inherits the parent's sandbox restrictions, so the flag has to
- * be present on the outer and inner iframe for a guest's own
- * `<a target="_blank">` or `window.open` to do anything. The escape flag makes
- * the opened tab a normal top-level page (not itself sandboxed), which is
- * required for it to download from a signed URL.
+ * Both frames also carry `allow-popups allow-popups-to-escape-sandbox
+ * allow-downloads`: a nested frame inherits the parent's sandbox restrictions,
+ * so the flags have to be present on the outer and inner iframe for a guest's
+ * own `<a target="_blank">` or `window.open` to do anything. The escape flag
+ * makes the opened tab a normal top-level page (not itself sandboxed), and
+ * `allow-downloads` is what lets that tab actually save a file: browsers judge
+ * a download by the frame that started the navigation, so without it the tab
+ * opens on the signed URL and nothing happens.
  *
  * Two paths can open a tab and both are gated. A guest anchor navigates
  * natively, which the browser only allows from a real user gesture inside the
@@ -53,7 +55,7 @@ const SANDBOX_BOOTSTRAP_HTML = `<!DOCTYPE html>
       (function () {
         var sandboxId = "${SANDBOX_ID_PLACEHOLDER}"
         var inner = document.createElement("iframe")
-        inner.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox")
+        inner.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-downloads")
         inner.setAttribute("title", "MCP App view")
         document.body.appendChild(inner)
 
@@ -166,10 +168,13 @@ export function McpAppView({
   html,
   toolInput,
   toolResult,
+  onRenderFailed,
 }: {
   html: string
   toolInput: unknown
   toolResult: unknown
+  /** The card gave up (handshake error or timeout); the parent can show its text fallback. */
+  onRenderFailed?: () => void
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [hasFailed, setHasFailed] = useState(false)
@@ -195,7 +200,8 @@ export function McpAppView({
           HOST_INFO,
           { logging: {}, sandbox: {}, openLinks: {} },
           {
-            hostContext: { displayMode: "inline", platform: "web" },
+            // The app has no dark mode, so guests are told to render light.
+            hostContext: { displayMode: "inline", platform: "web", theme: "light" },
           },
         )
         bridge = appBridge
@@ -256,8 +262,14 @@ export function McpAppView({
         for (const delayMs of TOOL_RESULT_RETRY_DELAYS_MS) {
           retryTimeoutIds.push(window.setTimeout(() => void pushToolData(), delayMs))
         }
-      } catch {
-        if (thisAttempt === attempt && !cancelled) setHasFailed(true)
+      } catch (error) {
+        if (thisAttempt !== attempt || cancelled) return
+        console.warn(
+          "MCP App render failed",
+          error instanceof Error ? error.message : "unknown error",
+        )
+        setHasFailed(true)
+        onRenderFailed?.()
       }
     }
 
@@ -300,7 +312,7 @@ export function McpAppView({
           void currentBridge.close()
         })
     }
-  }, [html, toolInput, toolResult])
+  }, [html, toolInput, toolResult, onRenderFailed])
 
   if (hasFailed) return null
 
@@ -308,7 +320,7 @@ export function McpAppView({
     <iframe
       ref={iframeRef}
       className="mt-2 w-full overflow-hidden rounded-md border border-gray-200 bg-white"
-      sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
+      sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-downloads"
       style={{ height: INITIAL_IFRAME_HEIGHT_PX, border: 0 }}
       title="MCP App"
     />

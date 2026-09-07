@@ -95,8 +95,10 @@ from `card.html`. It runs inside a sandboxed iframe, talks JSON-RPC 2.0 over
 `<a target="_blank" rel="noopener noreferrer">` download button. That anchor is the
 only download path: the card never sends `ui/open-link`, so the user's click always
 navigates natively. The host must sandbox the iframe with at least
-`allow-popups allow-popups-to-escape-sandbox`, or the download link cannot open a new
-tab.
+`allow-popups allow-popups-to-escape-sandbox allow-downloads`: without the first two the
+link cannot open a new tab, and without `allow-downloads` browsers open the tab but
+block the download because it was started from a sandboxed frame. The card follows
+`hostContext.theme` (light by default) rather than the OS colour scheme.
 
 ### The `tmp/pdf-exports/` prefix and the 15-minute TTL contract
 
