@@ -5,6 +5,7 @@ import {
 import {
   Body,
   Controller,
+  Headers,
   HttpCode,
   HttpStatus,
   Inject,
@@ -21,6 +22,7 @@ import { getRequiredConnectScope } from "@/common/context/request-context.helper
 import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
+import { resolveSupportedLocale } from "@/common/utils/accept-language"
 import { BaseAgentSessionGuard } from "@/domains/agents/base-agent-sessions/base-agent-session.guard"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import {
@@ -57,6 +59,7 @@ export class AgentMessagesController {
   @Post(AgentSessionMessagesRoutes.getAll.path)
   async getAll(
     @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
+    @Headers("accept-language") acceptLanguage?: string,
   ): Promise<typeof AgentSessionMessagesRoutes.getAll.response> {
     const connectScope = getRequiredConnectScope(request)
     const agentSessionId = request.agentSession.id
@@ -68,6 +71,7 @@ export class AgentMessagesController {
       agentId: request.agent.id,
       sessionId: agentSessionId,
       messages,
+      locale: resolveSupportedLocale(acceptLanguage),
     })
     return { data: toDtos(messages, htmlByKey) }
   }
@@ -77,6 +81,7 @@ export class AgentMessagesController {
   async getOne(
     @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
     @Param("messageId") messageId: string,
+    @Headers("accept-language") acceptLanguage?: string,
   ): Promise<typeof AgentSessionMessagesRoutes.getOne.response> {
     const connectScope = getRequiredConnectScope(request)
     const message = await this.conversationAgentSessionsService.getMessageById({
@@ -96,6 +101,7 @@ export class AgentMessagesController {
             agentId: request.agent.id,
             sessionId: request.agentSession.id,
             messages: [message],
+            locale: resolveSupportedLocale(acceptLanguage),
           })
     return { data: toDto(message, htmlByKey) }
   }

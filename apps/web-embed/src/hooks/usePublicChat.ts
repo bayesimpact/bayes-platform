@@ -99,7 +99,7 @@ export type UsePublicChatResult = {
   reset: () => void
 }
 
-export function usePublicChat(embedToken: string): UsePublicChatResult {
+export function usePublicChat(embedToken: string, locale?: string): UsePublicChatResult {
   const [status, setStatus] = useState<PublicChatStatus>("initializing")
   const [messages, setMessages] = useState<AgentSessionMessageDto[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
@@ -109,6 +109,12 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
   // without re-triggering effects.
   const sessionRef = useRef<StoredSession | null>(null)
   const resetNonceRef = useRef(0)
+  // Read on every session fetch instead of being a callback dependency: a
+  // language switch must not restart the conversation.
+  const localeRef = useRef(locale)
+  useEffect(() => {
+    localeRef.current = locale
+  }, [locale])
 
   const startFreshSession = useCallback(
     async (nonce: number) => {
@@ -127,6 +133,7 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
         embedToken,
         newSession.sessionId,
         newSession.sessionToken,
+        localeRef.current,
       )
       if (resetNonceRef.current !== nonce) return
       setMessages(sessionData.messages.map(toDisplayMessage))
@@ -156,7 +163,12 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
 
       if (stored) {
         try {
-          const sessionData = await getSession(embedToken, stored.sessionId, stored.sessionToken)
+          const sessionData = await getSession(
+            embedToken,
+            stored.sessionId,
+            stored.sessionToken,
+            localeRef.current,
+          )
           if (!stillCurrent()) return
           sessionRef.current = stored
           setMessages(sessionData.messages.map(toDisplayMessage))
@@ -216,6 +228,7 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
               embedToken,
               session.sessionId,
               session.sessionToken,
+              localeRef.current,
             )
             if (!stillCurrent()) return
             consecutiveFailures = 0
@@ -341,6 +354,7 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
                 embedToken,
                 session.sessionId,
                 session.sessionToken,
+                localeRef.current,
               )
               if (resetNonceRef.current !== nonce) return
               setMessages(sessionData.messages.map(toDisplayMessage))

@@ -58,6 +58,32 @@ describe("McpAppHtmlService", () => {
     expect(close).toHaveBeenCalled()
   })
 
+  it("forwards the reader's language so the server can localize the card", async () => {
+    readResource.mockResolvedValue(mcpAppResource("<html>carte</html>"))
+
+    await service.readLiveHtml({
+      agentId: "agent-1",
+      sessionId: "session-1",
+      locale: "fr",
+      messages: [
+        {
+          toolCalls: [
+            {
+              id: "call-1",
+              name: "get_patient",
+              arguments: {},
+              mcpApp: { mcpServerId, resourceUri },
+            },
+          ],
+        },
+      ],
+    })
+
+    expect(connect).toHaveBeenCalledWith(
+      expect.objectContaining({ context: expect.objectContaining({ locale: "fr" }) }),
+    )
+  })
+
   it("does not connect when no message has an MCP App pointer", async () => {
     const htmlByKey = await service.readLiveHtml({
       agentId: "agent-1",
@@ -146,6 +172,7 @@ describe("McpAppHtmlService", () => {
           agentId: "agent-1",
           sessionId: "session-1",
           externalVisitorId: "visitor-1",
+          locale: null,
         },
       }),
     )

@@ -1,4 +1,5 @@
 import axios, { type AxiosInstance } from "axios"
+import i18n from "@/i18n"
 import { Auth0AuthenticationError, getAccessToken, logoutAuth0 } from "./auth0Client"
 
 let axiosInstance: AxiosInstance | null = null
@@ -17,6 +18,9 @@ const buildAxiosInstance = (): AxiosInstance => {
   // This ensures tokens are always fresh and handles refresh automatically
   axiosInstance.interceptors.request.use(
     async (config) => {
+      // The interface language, not the browser's: what the user picked here is
+      // what MCP servers should render their cards in.
+      config.headers["Accept-Language"] = i18n.language
       try {
         const token = await getAccessToken()
         config.headers.Authorization = `Bearer ${token}`

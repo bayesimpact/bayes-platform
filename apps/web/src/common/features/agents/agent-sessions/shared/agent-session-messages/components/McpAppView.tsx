@@ -2,6 +2,7 @@ import { AppBridge } from "@modelcontextprotocol/ext-apps/app-bridge"
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js"
 import type { JSONRPCMessage, MessageExtraInfo } from "@modelcontextprotocol/sdk/types.js"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 const HOST_INFO = { name: "caseai-connect", version: "1.0.0" }
 const INITIALIZE_TIMEOUT_MS = 15_000
@@ -158,6 +159,11 @@ export function McpAppView({
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [hasFailed, setHasFailed] = useState(false)
+  // The card reads `hostContext.locale` to translate itself (MCP Apps spec).
+  // Changing it remounts the card so the app re-reads the context; server-side
+  // translation is separate, and follows the `Accept-Language` we send the API.
+  const { i18n } = useTranslation()
+  const locale = i18n.language
 
   useEffect(() => {
     const iframe = iframeRef.current
@@ -180,7 +186,7 @@ export function McpAppView({
           HOST_INFO,
           { logging: {}, sandbox: {} },
           {
-            hostContext: { displayMode: "inline", platform: "web" },
+            hostContext: { displayMode: "inline", platform: "web", locale },
           },
         )
         bridge = appBridge
@@ -282,7 +288,7 @@ export function McpAppView({
           void currentBridge.close()
         })
     }
-  }, [html, toolInput, toolResult])
+  }, [html, toolInput, toolResult, locale])
 
   if (hasFailed) return null
 

@@ -6,6 +6,7 @@ import {
   Controller,
   ForbiddenException,
   Get,
+  Headers,
   Post,
   Query,
   Req,
@@ -13,6 +14,7 @@ import {
   UseGuards,
 } from "@nestjs/common"
 import { Observable } from "rxjs"
+import { resolveSupportedLocale } from "@/common/utils/accept-language"
 import { EmbedTokenGuard } from "./guards/embed-token.guard"
 import { PublicSessionTokenGuard } from "./guards/public-session-token.guard"
 import type { PublicChatRequest, PublicChatSessionRequest } from "./public-chat.request"
@@ -54,8 +56,12 @@ export class PublicChatController {
   @Get(PublicChatRoutes.getSession.path)
   async getSession(
     @Req() request: PublicChatSessionRequest,
+    @Headers("accept-language") acceptLanguage?: string,
   ): Promise<typeof PublicChatRoutes.getSession.response> {
-    const sessionDto = await this.publicChatService.getSession(request.publicSession)
+    const sessionDto = await this.publicChatService.getSession(
+      request.publicSession,
+      resolveSupportedLocale(acceptLanguage),
+    )
     return { data: sessionDto }
   }
 

@@ -115,7 +115,7 @@ function LiveChat({
     logoUrl: remoteConfig?.logoUrl ?? undefined,
   }
 
-  const { status, messages, isStreaming, errorKey, send, reset } = usePublicChat(embedToken)
+  const { status, messages, isStreaming, errorKey, send, reset } = usePublicChat(embedToken, locale)
 
   useEffect(() => {
     function onMessage(event: MessageEvent) {

@@ -111,6 +111,7 @@ export class ToolsService {
     const mcp = await this.buildMcpTools({
       agent,
       session: agentSessionScope.session,
+      locale: agentSessionScope.agentSettings.locale,
       onExecute,
     })
 
@@ -147,10 +148,13 @@ export class ToolsService {
   private async buildMcpTools({
     agent,
     session,
+    locale,
     onExecute,
   }: {
     agent: Agent
     session: AgentSessionScope["session"]
+    /** The agent's own language: what the model will answer the tool result in. */
+    locale: string
     onExecute: OnExecute
   }): Promise<McpToolset> {
     const closeFns: (() => Promise<void>)[] = []
@@ -163,6 +167,7 @@ export class ToolsService {
       agentId: agent.id,
       sessionId: session.id,
       externalVisitorId: "externalVisitorId" in session ? session.externalVisitorId : null,
+      locale,
     }
 
     for (const server of await this.mcpServersService.getEnabledServersForAgent(agent.id)) {

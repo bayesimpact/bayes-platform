@@ -46,7 +46,11 @@ export class PublicChatService {
     return { sessionId: session.id, sessionToken }
   }
 
-  async getSession(publicSession: PublicAgentSession): Promise<PublicAgentSessionDto> {
+  /** `locale` is the widget's own language, so a card matches the page around it. */
+  async getSession(
+    publicSession: PublicAgentSession,
+    locale?: string,
+  ): Promise<PublicAgentSessionDto> {
     const { session, messages } = await this.publicAgentSessionsService.getSessionWithMessages(
       publicSession.id,
     )
@@ -55,6 +59,7 @@ export class PublicChatService {
       sessionId: session.id,
       messages,
       externalVisitorId: session.externalVisitorId,
+      locale,
     })
     return this.toSessionDto(session, messages, htmlByKey)
   }

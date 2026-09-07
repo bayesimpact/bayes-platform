@@ -15,6 +15,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Public page link: the Embed tab shows the shareable URL that serves an agent without a host website.
 
 ### Changed
+- MCP app cards now follow the reader's interface language, when the MCP server offers a translation.
 
 ### Fixed
 - Refreshing the page during a reply no longer loses the answer.

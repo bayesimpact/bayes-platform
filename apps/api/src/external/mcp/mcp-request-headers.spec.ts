@@ -24,6 +24,18 @@ describe("buildMcpRequestHeaders", () => {
     expect(headers[MCP_CONTEXT_HEADERS.sessionId]).toBe("session-1")
   })
 
+  it("forwards the reader's language so the server can localize its card", () => {
+    const headers = buildMcpRequestHeaders({ context: { ...context, locale: "fr" } })
+
+    expect(headers[MCP_CONTEXT_HEADERS.locale]).toBe("fr")
+  })
+
+  it("omits the language header when the locale is unknown", () => {
+    const headers = buildMcpRequestHeaders({ context: { ...context, locale: null } })
+
+    expect(headers).not.toHaveProperty(MCP_CONTEXT_HEADERS.locale)
+  })
+
   it("keeps the server's auth and its static headers", () => {
     const headers = buildMcpRequestHeaders({
       apiKey: "secret",

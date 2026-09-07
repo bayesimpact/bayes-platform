@@ -31,13 +31,21 @@ export async function createSession(
   return json.data
 }
 
+/**
+ * `locale` is the widget's own language: the API forwards it to MCP servers so
+ * a card renders in the language of the page the widget sits on.
+ */
 export async function getSession(
   embedToken: string,
   sessionId: string,
   sessionToken: string,
+  locale?: string,
 ): Promise<PublicAgentSessionDto> {
   const response = await fetch(`${API_BASE}/public/agents/${embedToken}/sessions/${sessionId}`, {
-    headers: { "X-Session-Token": sessionToken },
+    headers: {
+      "X-Session-Token": sessionToken,
+      ...(locale ? { "Accept-Language": locale } : {}),
+    },
   })
   if (!response.ok) throw new ApiError(response.status, "Failed to load session")
   const json = (await response.json()) as { data: PublicAgentSessionDto }

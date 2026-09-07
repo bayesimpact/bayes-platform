@@ -17,12 +17,21 @@ export type McpConversationContext = {
    * Travail: the "identifiant DE"). Absent on internal sessions.
    */
   externalVisitorId?: string | null
+  /**
+   * Language the answer is rendered in, as a plain language tag ("fr", "en").
+   * Forwarded so a server can return a localized MCP App card or tool result.
+   * Absent when we have nothing better than a guess, and the server then picks
+   * its own default.
+   */
+  locale?: string | null
 }
 
 export const MCP_CONTEXT_HEADERS = {
   agentId: "X-Bayes-Agent-Id",
   sessionId: "X-Bayes-Session-Id",
   externalVisitorId: "X-Bayes-External-Visitor-Id",
+  /** Standard header rather than an `X-Bayes-` one: servers already parse it. */
+  locale: "Accept-Language",
 } as const
 
 /**
@@ -56,6 +65,9 @@ export function buildMcpRequestHeaders({
     headers[MCP_CONTEXT_HEADERS.sessionId] = context.sessionId
     if (context.externalVisitorId) {
       headers[MCP_CONTEXT_HEADERS.externalVisitorId] = context.externalVisitorId
+    }
+    if (context.locale) {
+      headers[MCP_CONTEXT_HEADERS.locale] = context.locale
     }
   }
 

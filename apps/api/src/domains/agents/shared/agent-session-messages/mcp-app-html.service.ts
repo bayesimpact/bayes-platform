@@ -101,19 +101,25 @@ export class McpAppHtmlService {
     sessionId,
     messages,
     externalVisitorId = null,
+    locale = null,
   }: {
     agentId: string
     sessionId: string
     messages: Array<{ toolCalls?: AgentMessageToolCall[] | null }>
     /** Forwarded on public/embed sessions so MCP servers can attribute the read. */
     externalVisitorId?: string | null
+    /**
+     * Language the reader has the interface in. Cards are read per request, so
+     * the same conversation renders in each reader's own language.
+     */
+    locale?: string | null
   }): Promise<Map<string, string>> {
     const refs = collectMcpAppRefs(messages)
     if (refs.length === 0) return new Map()
 
     const enabledServers = await this.mcpServersService.getEnabledServersForAgent(agentId)
     const htmlByKey = new Map<string, string>()
-    const context = { agentId, sessionId, externalVisitorId }
+    const context = { agentId, sessionId, externalVisitorId, locale }
 
     for (const [server, resourceUris] of groupUrisByEnabledServer(refs, enabledServers)) {
       await this.readHtmlFromServer({ context, htmlByKey, resourceUris, server })
