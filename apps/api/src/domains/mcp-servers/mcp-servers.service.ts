@@ -1,7 +1,15 @@
-import { Injectable } from "@nestjs/common"
+import { ForbiddenException, Injectable } from "@nestjs/common"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ConfigService } from "@nestjs/config"
 import { InjectRepository } from "@nestjs/typeorm"
-import type { Repository } from "typeorm"
+import { In, IsNull, type Repository } from "typeorm"
+import { isGoogleIamAuthEnabled } from "@/external/google-iam"
 import { AgentMcpServer } from "./agent-mcp-server.entity"
+import {
+  BUILT_IN_PRESET_SLUGS,
+  isBuiltInMcpServer,
+  PDF_EXPORT_PRESET_SLUG,
+} from "./built-in/built-in-mcp-servers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EncryptionService } from "./encryption.service"
 import { McpServer } from "./mcp-server.entity"
@@ -20,6 +28,11 @@ export type McpServerConfig = {
 
 export type EnabledMcpServer = McpServerConfig & {
   id: string
+  /**
+   * Set for built-in servers behind Google IAM (Cloud Run invoker): the client
+   * mints an ID token for this audience instead of sending a static API key.
+   */
+  googleIamAudience?: string
 }
 
 @Injectable()
@@ -30,6 +43,7 @@ export class McpServersService {
     @InjectRepository(AgentMcpServer)
     private readonly agentMcpServerRepository: Repository<AgentMcpServer>,
     private readonly encryptionService: EncryptionService,
+    private readonly configService: ConfigService,
   ) {}
 
   async getEnabledServersForAgent(agentId: string): Promise<EnabledMcpServer[]> {
@@ -40,10 +54,12 @@ export class McpServersService {
 
     return agentMcpServers
       .filter((agentMcpServer) => agentMcpServer.mcpServer)
-      .map((agentMcpServer) => ({
-        id: agentMcpServer.mcpServer.id,
-        ...this.decryptConfig(agentMcpServer.mcpServer),
-      }))
+      .map((agentMcpServer) =>
+        this.toEnabledServer(
+          agentMcpServer.mcpServer,
+          this.decryptConfig(agentMcpServer.mcpServer),
+        ),
+      )
   }
 
   async createPreset(slug: string, name: string, config: McpServerConfig): Promise<McpServer> {
@@ -78,20 +94,33 @@ export class McpServersService {
     )
   }
 
+  /** The project's own servers plus the built-in ones, which belong to none. */
   async listMcpServers(projectId: string): Promise<McpServer[]> {
-    return this.mcpServerRepository.find({
-      where: { projectId },
-      order: { name: "ASC" },
+    const mcpServers = await this.mcpServerRepository.find({
+      where: [{ projectId }, { projectId: IsNull(), presetSlug: In(BUILT_IN_PRESET_SLUGS) }],
+    })
+    return mcpServers.sort((first, second) => {
+      if (isBuiltInMcpServer(first) !== isBuiltInMcpServer(second)) {
+        return isBuiltInMcpServer(first) ? -1 : 1
+      }
+      return first.name.localeCompare(second.name)
     })
   }
 
   async findMcpServerById(mcpServerId: string, projectId: string): Promise<McpServer | null> {
     return this.mcpServerRepository.findOne({
-      where: { id: mcpServerId, projectId },
+      where: [
+        { id: mcpServerId, projectId },
+        { id: mcpServerId, projectId: IsNull(), presetSlug: In(BUILT_IN_PRESET_SLUGS) },
+      ],
     })
   }
 
   async deleteMcpServer(mcpServerId: string): Promise<void> {
+    const mcpServer = await this.mcpServerRepository.findOne({ where: { id: mcpServerId } })
+    if (mcpServer && isBuiltInMcpServer(mcpServer)) {
+      throw new ForbiddenException("Built-in MCP servers cannot be deleted")
+    }
     await this.agentMcpServerRepository.softDelete({ mcpServerId })
     await this.mcpServerRepository.softDelete({ id: mcpServerId })
   }
@@ -112,6 +141,22 @@ export class McpServersService {
 
   decryptUrl(mcpServer: McpServer): string {
     return this.decryptConfig(mcpServer).url
+  }
+
+  /**
+   * The built-in PDF export server runs on Cloud Run behind invoker IAM in
+   * production: its audience is the service root URL, and the MCP client mints
+   * an ID token for it. Custom servers keep their own configured auth.
+   */
+  private toEnabledServer(mcpServer: McpServer, config: McpServerConfig): EnabledMcpServer {
+    const usesGoogleIam =
+      mcpServer.presetSlug === PDF_EXPORT_PRESET_SLUG &&
+      isGoogleIamAuthEnabled(this.configService.get<string>("PDF_CONVERTER_AUTH"))
+    return {
+      id: mcpServer.id,
+      ...config,
+      ...(usesGoogleIam ? { googleIamAudience: new URL(config.url).origin } : {}),
+    }
   }
 
   private decryptConfig(mcpServer: McpServer): McpServerConfig {

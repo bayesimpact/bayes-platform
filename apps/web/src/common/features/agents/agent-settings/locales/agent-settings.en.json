@@ -103,7 +103,8 @@
       "label": "MCP Servers",
       "manage": "Manage servers",
       "emptyTitle": "No MCP servers",
-      "emptyDescription": "Add MCP servers to this project to give your agents access to external tools."
+      "emptyDescription": "Add MCP servers to this project to give your agents access to external tools.",
+      "builtInDescription": "Built into the platform, no configuration needed."
     },
     "unsavedChanges": {
       "title": "Unsaved changes",

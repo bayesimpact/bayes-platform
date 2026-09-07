@@ -2,6 +2,7 @@ import { AppBridge } from "@modelcontextprotocol/ext-apps/app-bridge"
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js"
 import type { JSONRPCMessage, MessageExtraInfo } from "@modelcontextprotocol/sdk/types.js"
 import { useEffect, useRef, useState } from "react"
+import { isOpenableLink } from "./mcp-app-view"
 
 const HOST_INFO = { name: "caseai-connect", version: "1.0.0" }
 const INITIALIZE_TIMEOUT_MS = 15_000
@@ -22,6 +23,20 @@ const TOOL_RESULT_RETRY_DELAYS_MS = [50, 250] as const
  * RPC is wrapped with a sandbox id so two cards on the same page do not share
  * JSON-RPC over `window`. Unique-origin `event.source === contentWindow` is
  * not reliable, so PostMessageTransport would mix or drop replies at random.
+ *
+ * Both frames also carry `allow-popups allow-popups-to-escape-sandbox`: a
+ * nested frame inherits the parent's sandbox restrictions, so the flag has to
+ * be present on the outer and inner iframe for a guest's own
+ * `<a target="_blank">` or `window.open` to do anything. The escape flag makes
+ * the opened tab a normal top-level page (not itself sandboxed), which is
+ * required for it to download from a signed URL.
+ *
+ * Two paths can open a tab and both are gated. A guest anchor navigates
+ * natively, which the browser only allows from a real user gesture inside the
+ * sandboxed guest. The spec-compliant `ui/open-link` fallback below is gated
+ * on the browser's own transient activation check and severs `opener` on the
+ * tab it opens, so either way the new tab carries the same power as a plain
+ * link in a markdown reply.
  */
 const SANDBOX_BOOTSTRAP_HTML = `<!DOCTYPE html>
 <html>
@@ -38,7 +53,7 @@ const SANDBOX_BOOTSTRAP_HTML = `<!DOCTYPE html>
       (function () {
         var sandboxId = "${SANDBOX_ID_PLACEHOLDER}"
         var inner = document.createElement("iframe")
-        inner.setAttribute("sandbox", "allow-scripts allow-same-origin")
+        inner.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox")
         inner.setAttribute("title", "MCP App view")
         document.body.appendChild(inner)
 
@@ -178,7 +193,7 @@ export function McpAppView({
         const appBridge = new AppBridge(
           null,
           HOST_INFO,
-          { logging: {}, sandbox: {} },
+          { logging: {}, sandbox: {}, openLinks: {} },
           {
             hostContext: { displayMode: "inline", platform: "web" },
           },
@@ -202,6 +217,14 @@ export function McpAppView({
             resendOnNextSizeChange = false
             void pushToolData()
           }
+        }
+        appBridge.onopenlink = async ({ url }) => {
+          if (!isOpenableLink(url)) return { isError: true }
+          if (navigator.userActivation?.isActive === false) return { isError: true }
+          const opened = window.open(url, "_blank")
+          if (!opened) return { isError: true }
+          opened.opener = null
+          return {}
         }
 
         const initialized = new Promise<void>((resolve, reject) => {
@@ -290,7 +313,7 @@ export function McpAppView({
     <iframe
       ref={iframeRef}
       className="mt-2 w-full overflow-hidden rounded-md border bg-background"
-      sandbox="allow-scripts"
+      sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
       style={{ height: INITIAL_IFRAME_HEIGHT_PX, border: 0 }}
       title="MCP App"
     />

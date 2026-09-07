@@ -27,8 +27,20 @@ export const mcpServerFactory = McpServerFactory.define(({ params, transientPara
     id: params.id ?? faker.string.uuid(),
     name: params.name ?? faker.helpers.arrayElement(SERVER_NAMES),
     url: params.url ?? faker.internet.url(),
-    projectId: project.id,
+    projectId: params.projectId !== undefined ? params.projectId : project.id,
+    isBuiltIn: params.isBuiltIn ?? false,
     createdAt: params.createdAt ?? faker.date.past().getTime(),
     updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
   }
 })
+
+/** The PDF export server every workspace ships with. It has no project of its own and cannot be deleted. */
+export function buildPdfExportMcpServer(project: Project): McpServer {
+  return mcpServerFactory.transient({ project }).build({
+    id: "built-in-pdf-export",
+    name: "PDF export",
+    url: "https://pdf-converter.internal/mcp",
+    isBuiltIn: true,
+    projectId: null,
+  })
+}

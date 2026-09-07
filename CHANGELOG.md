@@ -11,8 +11,10 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 - (beta) Priority calls: agents on Gemini 3.x models can now enable the priority tier from the Model tab.
 - Agents can run on gemini-3.7-flash and gemini-3.8-flash.
+- (beta) PDF export: agents can turn markdown into a downloadable PDF with a built-in MCP server in every workspace.
 
 ### Changed
+- (beta) Links and downloads inside MCP App cards now open in a new tab.
 
 ### Fixed
 - Refreshing the page during a reply no longer loses the answer.

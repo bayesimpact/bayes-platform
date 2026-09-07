@@ -1,4 +1,5 @@
-// pdf-converter: GCS-native PDF -> PNG page rasterizer for image-only LLMs.
+// pdf-converter: GCS-native PDF -> PNG page rasterizer for image-only LLMs,
+// plus an MCP endpoint that exports markdown as a downloadable PDF.
 // Auth is Cloud Run invoker IAM (no in-app auth).
 package main
 
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -45,6 +47,41 @@ func main() {
 		renderTimeout = time.Duration(parsed) * time.Millisecond
 	}
 
+	exportTTL := 15 * time.Minute
+	if fromEnv := os.Getenv("PDF_EXPORT_TTL_MINUTES"); fromEnv != "" {
+		parsed, err := strconv.Atoi(fromEnv)
+		if err != nil || parsed <= 0 {
+			log.Fatalf("invalid PDF_EXPORT_TTL_MINUTES: %q", fromEnv)
+		}
+		if parsed > maxPdfExportTTLMinutes {
+			log.Fatalf("invalid PDF_EXPORT_TTL_MINUTES: %q exceeds the %d minute GCS signing limit",
+				fromEnv, maxPdfExportTTLMinutes)
+		}
+		exportTTL = time.Duration(parsed) * time.Minute
+	}
+	maxMarkdownBytes := 1 << 20
+	if fromEnv := os.Getenv("PDF_EXPORT_MAX_MARKDOWN_BYTES"); fromEnv != "" {
+		parsed, err := strconv.Atoi(fromEnv)
+		if err != nil || parsed <= 0 {
+			log.Fatalf("invalid PDF_EXPORT_MAX_MARKDOWN_BYTES: %q", fromEnv)
+		}
+		maxMarkdownBytes = parsed
+	}
+	exportTmpPrefix := defaultPdfExportPrefix
+	if fromEnv := os.Getenv("PDF_EXPORT_TMP_PREFIX"); fromEnv != "" {
+		exportTmpPrefix = fromEnv
+	}
+	if !validObjectPath(exportTmpPrefix) || !strings.HasSuffix(exportTmpPrefix, "/") {
+		log.Fatalf("invalid PDF_EXPORT_TMP_PREFIX: %q must be a relative object path ending with /", exportTmpPrefix)
+	}
+	exportCfg := pdfExportConfig{
+		TTL:              exportTTL,
+		MaxMarkdownBytes: maxMarkdownBytes,
+		TmpPrefix:        exportTmpPrefix,
+		Timeout:          renderTimeout,
+		MaxPages:         pdfExportMaxPages,
+	}
+
 	client, err := storage.NewClient(context.Background())
 	if err != nil {
 		log.Fatalf("gcs client: %v", err)
@@ -54,7 +91,7 @@ func main() {
 		log.Fatalf("renderer: %v", err)
 	}
 
-	server := newServer(&gcsStore{bucket: client.Bucket(bucketName)}, renderer, maxSourceBytes, renderTimeout)
+	server := newServer(&gcsStore{bucket: client.Bucket(bucketName)}, renderer, maxSourceBytes, renderTimeout, exportCfg)
 	log.Printf("pdf-converter listening on :%s (bucket %s)", port, bucketName)
 	log.Fatal(http.ListenAndServe(":"+port, server))
 }

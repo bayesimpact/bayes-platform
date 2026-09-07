@@ -2,6 +2,7 @@
   "mcpServers": {
     "title": "MCP Servers",
     "description": "Manage external tool servers connected to this project.",
+    "builtIn": "Built-in",
     "empty": "No MCP servers configured yet. Add one to give your agents access to external tools.",
     "actions": {
       "newServer": "New Server"

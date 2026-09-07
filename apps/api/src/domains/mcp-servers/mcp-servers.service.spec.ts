@@ -6,13 +6,19 @@ import {
 } from "@/common/test/test-transaction-manager"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { PDF_EXPORT_BUILT_IN_NAME, PDF_EXPORT_PRESET_SLUG } from "./built-in/built-in-mcp-servers"
 import { McpServersModule } from "./mcp-servers.module"
 import { McpServersService } from "./mcp-servers.service"
+
+// An operator-seeded preset (seed-mcp-preset.ts): a preset slug and no
+// project, but not on the built-in allowlist.
+const OTHER_PRESET_SLUG = "other-preset"
 
 describe("McpServersService", () => {
   let service: McpServersService
   let setup: Awaited<ReturnType<typeof setupTransactionalTestDatabase>>
   let repositories: AllRepositories
+  let initialConverterAuth: string | undefined
 
   beforeAll(async () => {
     setup = await setupTransactionalTestDatabase({
@@ -21,15 +27,32 @@ describe("McpServersService", () => {
     await clearTestDatabase(setup.dataSource)
     repositories = setup.getAllRepositories()
     service = setup.module.get<McpServersService>(McpServersService)
+    initialConverterAuth = process.env.PDF_CONVERTER_AUTH
   })
 
   afterAll(async () => {
+    if (initialConverterAuth === undefined) {
+      delete process.env.PDF_CONVERTER_AUTH
+    } else {
+      process.env.PDF_CONVERTER_AUTH = initialConverterAuth
+    }
     await teardownTestDatabase(setup)
+  })
+
+  beforeEach(() => {
+    delete process.env.PDF_CONVERTER_AUTH
   })
 
   afterEach(async () => {
     await clearTestDatabase(setup.dataSource)
   })
+
+  const createAgent = async () => {
+    const { organization, project } = await createOrganizationWithProject(repositories)
+    const agent = agentFactory.transient({ organization, project }).build()
+    await repositories.agentRepository.save(agent)
+    return agent
+  }
 
   describe("createPreset", () => {
     it("should create a preset MCP server with encrypted config", async () => {
@@ -134,6 +157,205 @@ describe("McpServersService", () => {
           { id: server2.id, url: "https://other.example.com/mcp" },
         ]),
       )
+    })
+
+    describe("with Google IAM enabled", () => {
+      beforeEach(() => {
+        process.env.PDF_CONVERTER_AUTH = "google-iam"
+      })
+
+      it("should expose the IAM audience of the PDF export server", async () => {
+        const agent = await createAgent()
+        const server = await service.createPreset(
+          PDF_EXPORT_PRESET_SLUG,
+          PDF_EXPORT_BUILT_IN_NAME,
+          {
+            url: "https://pdf-converter.example.test/mcp",
+          },
+        )
+        await service.enableForAgent(agent.id, server.id)
+
+        const configs = await service.getEnabledServersForAgent(agent.id)
+
+        expect(configs).toEqual([
+          {
+            id: server.id,
+            url: "https://pdf-converter.example.test/mcp",
+            googleIamAudience: "https://pdf-converter.example.test",
+          },
+        ])
+      })
+
+      it("should not expose an IAM audience for a custom server", async () => {
+        const agent = await createAgent()
+        const server = await service.createMcpServer({
+          projectId: agent.projectId,
+          name: "Custom Server",
+          config: { url: "https://custom.example.com/mcp" },
+        })
+        await service.enableForAgent(agent.id, server.id)
+
+        const configs = await service.getEnabledServersForAgent(agent.id)
+
+        expect(configs).toEqual([{ id: server.id, url: "https://custom.example.com/mcp" }])
+      })
+
+      it("should not expose an IAM audience for a preset that is not built-in", async () => {
+        const agent = await createAgent()
+        const server = await service.createPreset(OTHER_PRESET_SLUG, "Other Preset", {
+          url: "https://other-preset.example.test/mcp",
+        })
+        await service.enableForAgent(agent.id, server.id)
+
+        const configs = await service.getEnabledServersForAgent(agent.id)
+
+        expect(configs).toEqual([{ id: server.id, url: "https://other-preset.example.test/mcp" }])
+      })
+    })
+
+    it("should omit the IAM audience when Google IAM is off", async () => {
+      const agent = await createAgent()
+      const server = await service.createPreset(PDF_EXPORT_PRESET_SLUG, PDF_EXPORT_BUILT_IN_NAME, {
+        url: "https://pdf-converter.example.test/mcp",
+      })
+      await service.enableForAgent(agent.id, server.id)
+
+      const configs = await service.getEnabledServersForAgent(agent.id)
+
+      expect(configs).toEqual([{ id: server.id, url: "https://pdf-converter.example.test/mcp" }])
+    })
+  })
+
+  describe("listMcpServers", () => {
+    it("should list built-in servers first, then the project's own servers by name", async () => {
+      const { project } = await createOrganizationWithProject(repositories)
+      await service.createMcpServer({
+        projectId: project.id,
+        name: "Zulu Server",
+        config: { url: "https://zulu.example.com/mcp" },
+      })
+      await service.createMcpServer({
+        projectId: project.id,
+        name: "Alpha Server",
+        config: { url: "https://alpha.example.com/mcp" },
+      })
+      await service.createPreset(PDF_EXPORT_PRESET_SLUG, PDF_EXPORT_BUILT_IN_NAME, {
+        url: "https://pdf-converter.example.test/mcp",
+      })
+
+      const mcpServers = await service.listMcpServers(project.id)
+
+      expect(mcpServers.map((mcpServer) => mcpServer.name)).toEqual([
+        PDF_EXPORT_BUILT_IN_NAME,
+        "Alpha Server",
+        "Zulu Server",
+      ])
+    })
+
+    it("should not list the servers of another project", async () => {
+      const { project } = await createOrganizationWithProject(repositories)
+      const { project: otherProject } = await createOrganizationWithProject(repositories)
+      await service.createMcpServer({
+        projectId: otherProject.id,
+        name: "Other Project Server",
+        config: { url: "https://other.example.com/mcp" },
+      })
+      await service.createPreset(PDF_EXPORT_PRESET_SLUG, PDF_EXPORT_BUILT_IN_NAME, {
+        url: "https://pdf-converter.example.test/mcp",
+      })
+
+      const mcpServers = await service.listMcpServers(project.id)
+
+      expect(mcpServers.map((mcpServer) => mcpServer.name)).toEqual([PDF_EXPORT_BUILT_IN_NAME])
+    })
+
+    it("should not list a preset that is not built-in", async () => {
+      const { project } = await createOrganizationWithProject(repositories)
+      await service.createPreset(OTHER_PRESET_SLUG, "Other Preset", {
+        url: "https://other-preset.example.test/mcp",
+      })
+
+      const mcpServers = await service.listMcpServers(project.id)
+
+      expect(mcpServers).toEqual([])
+    })
+  })
+
+  describe("findMcpServerById", () => {
+    it("should find a built-in server from any project", async () => {
+      const { project } = await createOrganizationWithProject(repositories)
+      const builtIn = await service.createPreset(PDF_EXPORT_PRESET_SLUG, PDF_EXPORT_BUILT_IN_NAME, {
+        url: "https://pdf-converter.example.test/mcp",
+      })
+
+      const found = await service.findMcpServerById(builtIn.id, project.id)
+
+      expect(found?.id).toBe(builtIn.id)
+    })
+
+    it("should not find a server of another project", async () => {
+      const { project } = await createOrganizationWithProject(repositories)
+      const { project: otherProject } = await createOrganizationWithProject(repositories)
+      const server = await service.createMcpServer({
+        projectId: otherProject.id,
+        name: "Other Project Server",
+        config: { url: "https://other.example.com/mcp" },
+      })
+
+      const found = await service.findMcpServerById(server.id, project.id)
+
+      expect(found).toBeNull()
+    })
+
+    it("should not find a preset that is not built-in", async () => {
+      const { project } = await createOrganizationWithProject(repositories)
+      const preset = await service.createPreset(OTHER_PRESET_SLUG, "Other Preset", {
+        url: "https://other-preset.example.test/mcp",
+      })
+
+      const found = await service.findMcpServerById(preset.id, project.id)
+
+      expect(found).toBeNull()
+    })
+  })
+
+  describe("deleteMcpServer", () => {
+    it("should refuse to delete a built-in server", async () => {
+      const builtIn = await service.createPreset(PDF_EXPORT_PRESET_SLUG, PDF_EXPORT_BUILT_IN_NAME, {
+        url: "https://pdf-converter.example.test/mcp",
+      })
+
+      await expect(service.deleteMcpServer(builtIn.id)).rejects.toThrow(
+        "Built-in MCP servers cannot be deleted",
+      )
+
+      const stored = await repositories.mcpServerRepository.findOne({ where: { id: builtIn.id } })
+      expect(stored).not.toBeNull()
+    })
+
+    it("should soft-delete a custom server", async () => {
+      const { project } = await createOrganizationWithProject(repositories)
+      const server = await service.createMcpServer({
+        projectId: project.id,
+        name: "Custom Server",
+        config: { url: "https://custom.example.com/mcp" },
+      })
+
+      await service.deleteMcpServer(server.id)
+
+      const stored = await repositories.mcpServerRepository.findOne({ where: { id: server.id } })
+      expect(stored).toBeNull()
+    })
+
+    it("should soft-delete a preset that is not built-in", async () => {
+      const preset = await service.createPreset(OTHER_PRESET_SLUG, "Other Preset", {
+        url: "https://other-preset.example.test/mcp",
+      })
+
+      await service.deleteMcpServer(preset.id)
+
+      const stored = await repositories.mcpServerRepository.findOne({ where: { id: preset.id } })
+      expect(stored).toBeNull()
     })
   })
 })

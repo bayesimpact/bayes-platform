@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common"
-import { GoogleAuth, type IdTokenClient } from "google-auth-library"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { GoogleIdTokenService, isGoogleIamAuthEnabled } from "@/external/google-iam"
 import { PdfHasNoPagesError } from "./pdf-has-no-pages.error"
 import { PdfPageLimitExceededError } from "./pdf-page-limit-exceeded.error"
 
@@ -16,12 +17,6 @@ export const MAX_RENDERED_PIXELS_PER_PAGE = 4_000_000
 // PDF_CONVERTER_RENDER_TIMEOUT_MS (60s default), well within this budget.
 const RENDER_REQUEST_TIMEOUT_MS = 120_000
 
-// In production the pdf-converter is locked behind Cloud Run invoker IAM:
-// requests must carry a Google ID token minted for the service URL. Terraform
-// sets PDF_CONVERTER_AUTH=google-iam on the API and workers; locally the
-// converter runs open and no header is sent.
-const GOOGLE_IAM_AUTH_MODE = "google-iam"
-
 // AbortSignal.timeout can fire while awaiting fetch() or later while reading
 // the response body; both reject with a DOMException named TimeoutError. The
 // DOMException may come from another realm (e.g. under Jest's VM sandbox), so
@@ -36,11 +31,7 @@ const timeoutError = (path: string): Error =>
 
 @Injectable()
 export class PdfConverterClient {
-  private googleAuth: GoogleAuth | undefined
-  // Cached per audience: IdTokenClient reuses its minted ID token until expiry
-  // (~1h), but only when requests go through getRequestHeaders on the same
-  // client instance.
-  private readonly idTokenClients = new Map<string, IdTokenClient>()
+  constructor(private readonly googleIdTokenService: GoogleIdTokenService) {}
 
   // Renders a PDF document into individual page images.
   // Returns the number of pages rendered. Throws PdfPageLimitExceededError
@@ -122,28 +113,20 @@ export class PdfConverterClient {
     return url
   }
 
+  // In production the pdf-converter is locked behind Cloud Run invoker IAM:
+  // requests must carry a Google ID token minted for the service URL. Terraform
+  // sets PDF_CONVERTER_AUTH=google-iam on the API and workers; locally the
+  // converter runs open and no header is sent.
   private async buildAuthHeaders(converterUrl: string): Promise<Record<string, string>> {
-    if (process.env.PDF_CONVERTER_AUTH !== GOOGLE_IAM_AUTH_MODE) {
+    if (!isGoogleIamAuthEnabled(process.env.PDF_CONVERTER_AUTH)) {
       return {}
     }
     // The audience must be the Cloud Run service root URL, not the full path.
-    const audience = new URL(converterUrl).origin
-    const idTokenClient = await this.getIdTokenClient(audience)
-    const requestHeaders = await idTokenClient.getRequestHeaders()
-    const authorization = requestHeaders.get("authorization")
-    if (!authorization) {
-      throw new Error(`could not obtain a Google ID token for audience ${audience}`)
+    return {
+      Authorization: await this.googleIdTokenService.getAuthorizationHeader(
+        new URL(converterUrl).origin,
+      ),
     }
-    return { Authorization: authorization }
-  }
-
-  private async getIdTokenClient(audience: string): Promise<IdTokenClient> {
-    const cachedClient = this.idTokenClients.get(audience)
-    if (cachedClient) return cachedClient
-    this.googleAuth ??= new GoogleAuth()
-    const idTokenClient = await this.googleAuth.getIdTokenClient(audience)
-    this.idTokenClients.set(audience, idTokenClient)
-    return idTokenClient
   }
 
   private async buildErrorFromResponse(response: Response): Promise<Error> {

@@ -49,6 +49,7 @@ const toMcpServer = (dto: McpServerDto): McpServer => ({
   name: dto.name,
   url: dto.url,
   projectId: dto.projectId,
+  isBuiltIn: dto.isBuiltIn,
   createdAt: dto.createdAt,
   updatedAt: dto.updatedAt,
 })

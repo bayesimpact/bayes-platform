@@ -12,6 +12,8 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
+import { PDF_EXPORT_BUILT_IN_NAME, PDF_EXPORT_PRESET_SLUG } from "../built-in/built-in-mcp-servers"
+import { BuiltInMcpServersService } from "../built-in/built-in-mcp-servers.service"
 import { mcpServerFactory } from "../mcp-server.factory"
 import { McpServersModule } from "../mcp-servers.module"
 
@@ -88,5 +90,27 @@ describe("McpServers - deleteOne", () => {
     })
     expect(softDeleted).not.toBeNull()
     expect(softDeleted?.deletedAt).not.toBeNull()
+  })
+
+  it("should refuse to delete a built-in MCP server", async () => {
+    await createContext()
+    const builtInServer = await setup.module
+      .get<BuiltInMcpServersService>(BuiltInMcpServersService)
+      .ensureBuiltInServer({
+        slug: PDF_EXPORT_PRESET_SLUG,
+        name: PDF_EXPORT_BUILT_IN_NAME,
+        config: { url: "https://pdf-converter.example.test/mcp" },
+      })
+    mcpServerId = builtInServer.id
+
+    const response = await subject()
+
+    expectResponse(response, 403)
+
+    const stored = await repositories.mcpServerRepository.findOne({
+      where: { id: builtInServer.id },
+    })
+    expect(stored).not.toBeNull()
+    expect(stored?.deletedAt).toBeNull()
   })
 })

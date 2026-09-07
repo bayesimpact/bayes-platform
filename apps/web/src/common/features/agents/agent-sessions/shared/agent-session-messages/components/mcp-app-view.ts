@@ -24,3 +24,13 @@ export function getRenderableMcpApp(
 export function hasRenderableMcpApp(toolCalls: AgentSessionToolCallDto[] | undefined): boolean {
   return (toolCalls ?? []).some((toolCall) => getRenderableMcpApp(toolCall) !== undefined)
 }
+
+/** Only `http:`/`https:` links are safe to open in a new tab from an MCP App. */
+export function isOpenableLink(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === "http:" || parsed.protocol === "https:"
+  } catch {
+    return false
+  }
+}
