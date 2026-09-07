@@ -24,7 +24,7 @@ import {
   type IFileStorage,
 } from "@/domains/documents/storage/file-storage.interface"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { ProjectsService } from "@/domains/projects/projects.service"
+import { ProjectRepository } from "@/domains/projects/project.repository"
 import { LlmServiceBase } from "@/external/llm"
 import { modelRequiresPdfAsImages } from "@/external/llm/agent-provider"
 import type { Agent } from "../agent.entity"
@@ -49,7 +49,7 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
     @Inject(FILE_STORAGE_SERVICE)
     private readonly fileStorageService: IFileStorage,
     private readonly statusNotifierService: ExtractionAgentSessionStatusNotifierService,
-    private readonly projectsService: ProjectsService,
+    private readonly projectRepository: ProjectRepository,
     private readonly pdfPagesService: PdfPagesService,
     private readonly documentsService: DocumentsService,
     @Inject("_MockLLMProvider")
@@ -130,7 +130,7 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
         connectScope,
       })
 
-      const llmFeatures = await this.projectsService.getLlmFeatures(connectScope)
+      const llmFeatures = await this.projectRepository.getLlmFeatures(connectScope)
       const result = await this.getProviderForModel(agentSettings.model).generateStructuredOutput({
         message: llmMessage,
         schema: agentSettings.outputJsonSchema,

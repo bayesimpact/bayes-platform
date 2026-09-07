@@ -11,6 +11,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 - (beta) Priority calls: agents on Gemini 3.x models can now enable the priority tier from the Model tab.
 - Agents can run on gemini-3.7-flash and gemini-3.8-flash.
+- Public agent banner: an optional notice pinned above the conversation on the public page and in the widget.
+- Public page link: the Embed tab shows the shareable URL that serves an agent without a host website.
 - (beta) PDF export: agents can turn markdown into a downloadable PDF with a built-in MCP server in every workspace.
 
 ### Changed
@@ -22,6 +24,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Security
 - Security updates of dependencies and base images across all services.
+- Deleting a document or purging a conversation now also removes its file and rendered page images from storage.
 
 ## [26.09.1] - 2026-09-02
 

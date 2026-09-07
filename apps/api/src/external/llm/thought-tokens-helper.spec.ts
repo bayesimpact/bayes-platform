@@ -11,6 +11,10 @@ const LEAKED_PSEUDO_CALL =
 const LEAKED_FUNCTION_CALL =
   "<function:default_api:mandatory_tool{categoryNames:[test],suggestedTitle:null}"
 
+// Captured in production: no `<` at all, the namespace is glued to a garbled
+// word and only the argument braces delimit the call.
+const LEAKED_BARE_CALL = "Lie:default_api:mandatory_tool{categoryNames:[],suggestedTitle:null}"
+
 describe("ThoughtTokensHelper - hallucinated tool-call XML", () => {
   it("removes a pseudo-call tag from a complete text", () => {
     const text = `C'est noté, tu habites en France !\n\n${LEAKED_PSEUDO_CALL}`
@@ -42,6 +46,15 @@ describe("ThoughtTokensHelper - hallucinated tool-call XML", () => {
       "a <call:default_api:notify_operator{severity:high} b <default_api:mandatory_tool{x:1} c",
     )
     expect(cleaned).toBe("a  b  c")
+  })
+
+  it("removes the bare variant with no angle bracket and a garbled prefix", () => {
+    const text = `Bonjour ! Comment puis-je vous aider aujourd'hui ? ${LEAKED_BARE_CALL}`
+    const cleaned = ThoughtTokensHelper.removeThoughtTokens(text)
+
+    expect(cleaned).not.toContain("default_api")
+    expect(cleaned).not.toContain("Lie:")
+    expect(cleaned).toBe("Bonjour ! Comment puis-je vous aider aujourd'hui ? ")
   })
 
   it("keeps legitimate text mentioning the function keyword", () => {
@@ -83,6 +96,20 @@ describe("ThoughtTokensHelper - hallucinated tool-call XML", () => {
     expect(out).toContain("Voici ma réponse complète")
   })
 
+  it("strips the bare variant even when split across stream deltas", () => {
+    const stripper = ThoughtTokensHelper.createStripper()
+    const full = `Voici ma réponse complète pour toi, avec assez de texte pour dépasser la retenue du stripper.\n\n${LEAKED_BARE_CALL}`
+    let out = ""
+    for (let i = 0; i < full.length; i += 7) {
+      out += stripper.feed(full.slice(i, i + 7))
+    }
+    out += stripper.flush()
+
+    expect(out).not.toContain("default_api")
+    expect(out).not.toContain("Lie:")
+    expect(out).toContain("Voici ma réponse complète")
+  })
+
   it("does not stall the stream on a never-closed lookalike", () => {
     const stripper = ThoughtTokensHelper.createStripper()
     const full = `Début. <call:jamais fermé ${"x".repeat(700)} fin du texte.`
@@ -115,6 +142,10 @@ describe("findLeakedToolCallNames", () => {
   it("extracts the tool name from the <function:> brace variant with no closing angle bracket", () => {
     const text = `Je vous invite à contacter votre conseiller.\n\n${LEAKED_FUNCTION_CALL}`
     expect(findLeakedToolCallNames(text)).toEqual(["mandatory_tool"])
+  })
+
+  it("extracts the tool name from the bare variant with no angle bracket", () => {
+    expect(findLeakedToolCallNames(`Bonjour ! ${LEAKED_BARE_CALL}`)).toEqual(["mandatory_tool"])
   })
 
   it("returns nothing for legitimate text, including angle brackets and markup", () => {

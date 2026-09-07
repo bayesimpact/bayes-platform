@@ -102,6 +102,32 @@ describe("AgentEmbedConfigs Management - PATCH one", () => {
     expect(updated.allowedOrigins).toEqual(origins)
   })
 
+  it("updates bannerText and clears it with null", async () => {
+    const response = await request({
+      route: AgentEmbedConfigsRoutes.updateOne,
+      pathParams: { organizationId, projectId, agentId },
+      token: "token",
+      request: { payload: { bannerText: "Test version, healthcare staff only" } },
+    })
+
+    expectResponse(response, 200)
+    const updated = await setup
+      .getRepository(AgentEmbedConfig)
+      .findOneOrFail({ where: { agentId } })
+    expect(updated.bannerText).toBe("Test version, healthcare staff only")
+
+    await request({
+      route: AgentEmbedConfigsRoutes.updateOne,
+      pathParams: { organizationId, projectId, agentId },
+      token: "token",
+      request: { payload: { bannerText: null } },
+    })
+    const cleared = await setup
+      .getRepository(AgentEmbedConfig)
+      .findOneOrFail({ where: { agentId } })
+    expect(cleared.bannerText).toBeNull()
+  })
+
   it("only updates specified fields (partial update)", async () => {
     await request({
       route: AgentEmbedConfigsRoutes.updateOne,

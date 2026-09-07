@@ -6,6 +6,7 @@ import {
 } from "@/common/test/test-transaction-manager"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { projectFactory } from "@/domains/projects/project.factory"
 import { PDF_EXPORT_BUILT_IN_NAME, PDF_EXPORT_PRESET_SLUG } from "./built-in/built-in-mcp-servers"
 import { McpServersModule } from "./mcp-servers.module"
 import { McpServersService } from "./mcp-servers.service"
@@ -75,6 +76,245 @@ describe("McpServersService", () => {
     })
   })
 
+  describe("createMcpServer", () => {
+    it("should create a project-scoped server with encrypted config", async () => {
+      const { project } = await createOrganizationWithProject(repositories)
+
+      const server = await service.createMcpServer({
+        projectId: project.id,
+        name: "Project Server",
+        config: { url: "https://example.com/mcp", apiKey: "sk-project-key" },
+      })
+
+      expect(server.id).toBeDefined()
+      expect(server.name).toBe("Project Server")
+      expect(server.presetSlug).toBeNull()
+      expect(server.projectId).toBe(project.id)
+      expect(server.encryptedConfig).not.toContain("sk-project-key")
+      expect(server.encryptedConfig).not.toContain("example.com")
+
+      const saved = await repositories.mcpServerRepository.findOne({ where: { id: server.id } })
+      expect(saved?.projectId).toBe(project.id)
+      expect(saved?.encryptedConfig).toBe(server.encryptedConfig)
+    })
+  })
+
+  describe("listMcpServers", () => {
+    it("should return the project's servers sorted by name", async () => {
+      const { project } = await createOrganizationWithProject(repositories)
+      await service.createMcpServer({
+        projectId: project.id,
+        name: "Zeta",
+        config: { url: "https://zeta.example.com" },
+      })
+      await service.createMcpServer({
+        projectId: project.id,
+        name: "Alpha",
+        config: { url: "https://alpha.example.com" },
+      })
+      await service.createMcpServer({
+        projectId: project.id,
+        name: "Mid",
+        config: { url: "https://mid.example.com" },
+      })
+
+      const servers = await service.listMcpServers(project.id)
+
+      expect(servers.map((server) => server.name)).toEqual(["Alpha", "Mid", "Zeta"])
+    })
+
+    it("should not return servers of other projects nor presets", async () => {
+      const { organization, project } = await createOrganizationWithProject(repositories)
+      const otherProject = projectFactory.transient({ organization }).build()
+      await repositories.projectRepository.save(otherProject)
+
+      await service.createMcpServer({
+        projectId: project.id,
+        name: "Mine",
+        config: { url: "https://mine.example.com" },
+      })
+      await service.createMcpServer({
+        projectId: otherProject.id,
+        name: "Theirs",
+        config: { url: "https://theirs.example.com" },
+      })
+      await service.createPreset("list-preset", "Preset", { url: "https://preset.example.com" })
+
+      const servers = await service.listMcpServers(project.id)
+
+      expect(servers.map((server) => server.name)).toEqual(["Mine"])
+    })
+
+    it("should not return soft-deleted servers", async () => {
+      const { project } = await createOrganizationWithProject(repositories)
+      const server = await service.createMcpServer({
+        projectId: project.id,
+        name: "Gone",
+        config: { url: "https://gone.example.com" },
+      })
+      await service.deleteMcpServer(server.id)
+
+      expect(await service.listMcpServers(project.id)).toEqual([])
+    })
+  })
+
+  describe("findMcpServerById", () => {
+    it("should return the server when it belongs to the project", async () => {
+      const { project } = await createOrganizationWithProject(repositories)
+      const server = await service.createMcpServer({
+        projectId: project.id,
+        name: "Found",
+        config: { url: "https://found.example.com" },
+      })
+
+      const found = await service.findMcpServerById(server.id, project.id)
+
+      expect(found?.id).toBe(server.id)
+    })
+
+    it("should return null when the server belongs to another project", async () => {
+      const { organization, project } = await createOrganizationWithProject(repositories)
+      const otherProject = projectFactory.transient({ organization }).build()
+      await repositories.projectRepository.save(otherProject)
+      const server = await service.createMcpServer({
+        projectId: otherProject.id,
+        name: "Elsewhere",
+        config: { url: "https://elsewhere.example.com" },
+      })
+
+      expect(await service.findMcpServerById(server.id, project.id)).toBeNull()
+    })
+
+    it("should return null for a preset server", async () => {
+      const { project } = await createOrganizationWithProject(repositories)
+      const preset = await service.createPreset("find-preset", "Preset", {
+        url: "https://preset.example.com",
+      })
+
+      expect(await service.findMcpServerById(preset.id, project.id)).toBeNull()
+    })
+
+    it("should return null for a soft-deleted server", async () => {
+      const { project } = await createOrganizationWithProject(repositories)
+      const server = await service.createMcpServer({
+        projectId: project.id,
+        name: "Deleted",
+        config: { url: "https://deleted.example.com" },
+      })
+      await service.deleteMcpServer(server.id)
+
+      expect(await service.findMcpServerById(server.id, project.id)).toBeNull()
+    })
+  })
+
+  describe("deleteMcpServer", () => {
+    it("should soft-delete the server and its agent links", async () => {
+      const { organization, project } = await createOrganizationWithProject(repositories)
+      const agent = agentFactory.transient({ organization, project }).build()
+      await repositories.agentRepository.save(agent)
+      const server = await service.createMcpServer({
+        projectId: project.id,
+        name: "To Delete",
+        config: { url: "https://delete.example.com" },
+      })
+      const junction = await service.enableForAgent(agent.id, server.id)
+
+      await service.deleteMcpServer(server.id)
+
+      const deletedServer = await repositories.mcpServerRepository.findOne({
+        where: { id: server.id },
+        withDeleted: true,
+      })
+      expect(deletedServer?.deletedAt).not.toBeNull()
+
+      expect(
+        await repositories.agentMcpServerRepository.findOne({ where: { id: junction.id } }),
+      ).toBeNull()
+      const deletedJunction = await repositories.agentMcpServerRepository.findOne({
+        where: { id: junction.id },
+        withDeleted: true,
+      })
+      expect(deletedJunction?.deletedAt).not.toBeNull()
+
+      expect(await service.getEnabledServersForAgent(agent.id)).toEqual([])
+    })
+
+    it("should leave other servers and their links untouched", async () => {
+      const { organization, project } = await createOrganizationWithProject(repositories)
+      const agent = agentFactory.transient({ organization, project }).build()
+      await repositories.agentRepository.save(agent)
+      const doomed = await service.createMcpServer({
+        projectId: project.id,
+        name: "Doomed",
+        config: { url: "https://doomed.example.com" },
+      })
+      const survivor = await service.createMcpServer({
+        projectId: project.id,
+        name: "Survivor",
+        config: { url: "https://survivor.example.com" },
+      })
+      await service.enableForAgent(agent.id, doomed.id)
+      await service.enableForAgent(agent.id, survivor.id)
+
+      await service.deleteMcpServer(doomed.id)
+
+      expect(await service.listMcpServers(project.id)).toHaveLength(1)
+      expect(await service.getEnabledServersForAgent(agent.id)).toEqual([
+        { id: survivor.id, url: "https://survivor.example.com" },
+      ])
+    })
+  })
+
+  describe("disableForAgent", () => {
+    it("should remove the link for that agent only", async () => {
+      const { organization, project } = await createOrganizationWithProject(repositories)
+      const agent = agentFactory.transient({ organization, project }).build()
+      const otherAgent = agentFactory.transient({ organization, project }).build()
+      await repositories.agentRepository.save([agent, otherAgent])
+      const server = await service.createMcpServer({
+        projectId: project.id,
+        name: "Shared",
+        config: { url: "https://shared.example.com" },
+      })
+      await service.enableForAgent(agent.id, server.id)
+      await service.enableForAgent(otherAgent.id, server.id)
+
+      await service.disableForAgent(agent.id, server.id)
+
+      expect(await service.getEnabledServersForAgent(agent.id)).toEqual([])
+      expect(await service.getEnabledServersForAgent(otherAgent.id)).toHaveLength(1)
+      expect(
+        await repositories.agentMcpServerRepository.count({ where: { mcpServerId: server.id } }),
+      ).toBe(1)
+    })
+
+    it("should be a no-op when no link exists", async () => {
+      const { organization, project } = await createOrganizationWithProject(repositories)
+      const agent = agentFactory.transient({ organization, project }).build()
+      await repositories.agentRepository.save(agent)
+      const server = await service.createMcpServer({
+        projectId: project.id,
+        name: "Unlinked",
+        config: { url: "https://unlinked.example.com" },
+      })
+
+      await expect(service.disableForAgent(agent.id, server.id)).resolves.toBeUndefined()
+    })
+  })
+
+  describe("decryptUrl", () => {
+    it("should return the URL stored in the encrypted config", async () => {
+      const { project } = await createOrganizationWithProject(repositories)
+      const server = await service.createMcpServer({
+        projectId: project.id,
+        name: "Decrypt",
+        config: { url: "https://decrypt.example.com/mcp", apiKey: "sk-hidden" },
+      })
+
+      expect(service.decryptUrl(server)).toBe("https://decrypt.example.com/mcp")
+    })
+  })
+
   describe("enableForAgent", () => {
     it("should create an agent-mcp-server junction", async () => {
       const { organization, project } = await createOrganizationWithProject(repositories)
@@ -91,6 +331,48 @@ describe("McpServersService", () => {
       expect(result.agentId).toBe(agent.id)
       expect(result.mcpServerId).toBe(server.id)
       expect(result.enabled).toBe(true)
+    })
+  })
+
+  describe("enableForAgent idempotence", () => {
+    it("should return the existing link when enabling twice", async () => {
+      const { organization, project } = await createOrganizationWithProject(repositories)
+      const agent = agentFactory.transient({ organization, project }).build()
+      await repositories.agentRepository.save(agent)
+      const server = await service.createMcpServer({
+        projectId: project.id,
+        name: "Twice",
+        config: { url: "https://twice.example.com" },
+      })
+
+      const first = await service.enableForAgent(agent.id, server.id)
+      const second = await service.enableForAgent(agent.id, server.id)
+
+      expect(second.id).toBe(first.id)
+      expect(
+        await repositories.agentMcpServerRepository.count({
+          where: { agentId: agent.id, mcpServerId: server.id },
+        }),
+      ).toBe(1)
+    })
+
+    it("should re-enable a link that was disabled in place", async () => {
+      const { organization, project } = await createOrganizationWithProject(repositories)
+      const agent = agentFactory.transient({ organization, project }).build()
+      await repositories.agentRepository.save(agent)
+      const server = await service.createMcpServer({
+        projectId: project.id,
+        name: "Re-enabled",
+        config: { url: "https://reenabled.example.com" },
+      })
+      const junction = await service.enableForAgent(agent.id, server.id)
+      await repositories.agentMcpServerRepository.update(junction.id, { enabled: false })
+
+      const result = await service.enableForAgent(agent.id, server.id)
+
+      expect(result.id).toBe(junction.id)
+      expect(result.enabled).toBe(true)
+      expect(await service.getEnabledServersForAgent(agent.id)).toHaveLength(1)
     })
   })
 
@@ -131,6 +413,67 @@ describe("McpServersService", () => {
       const configs = await service.getEnabledServersForAgent(agent.id)
 
       expect(configs).toHaveLength(0)
+    })
+
+    it("should return an empty list for an agent with no servers", async () => {
+      const { organization, project } = await createOrganizationWithProject(repositories)
+      const agent = agentFactory.transient({ organization, project }).build()
+      await repositories.agentRepository.save(agent)
+
+      expect(await service.getEnabledServersForAgent(agent.id)).toEqual([])
+    })
+
+    it("should pass static headers through from the config", async () => {
+      const { organization, project } = await createOrganizationWithProject(repositories)
+      const agent = agentFactory.transient({ organization, project }).build()
+      await repositories.agentRepository.save(agent)
+      const server = await service.createMcpServer({
+        projectId: project.id,
+        name: "With Headers",
+        config: {
+          url: "https://headers.example.com/mcp",
+          headers: { "X-Api-Version": "2", "X-Tenant": "acme" },
+        },
+      })
+      await service.enableForAgent(agent.id, server.id)
+
+      expect(await service.getEnabledServersForAgent(agent.id)).toEqual([
+        {
+          id: server.id,
+          url: "https://headers.example.com/mcp",
+          headers: { "X-Api-Version": "2", "X-Tenant": "acme" },
+        },
+      ])
+    })
+
+    it("should skip a link whose server was soft-deleted directly", async () => {
+      const { organization, project } = await createOrganizationWithProject(repositories)
+      const agent = agentFactory.transient({ organization, project }).build()
+      await repositories.agentRepository.save(agent)
+      const server = await service.createMcpServer({
+        projectId: project.id,
+        name: "Orphaned",
+        config: { url: "https://orphaned.example.com" },
+      })
+      await service.enableForAgent(agent.id, server.id)
+      await repositories.mcpServerRepository.softDelete({ id: server.id })
+
+      expect(await service.getEnabledServersForAgent(agent.id)).toEqual([])
+    })
+
+    it("should not return servers enabled for another agent", async () => {
+      const { organization, project } = await createOrganizationWithProject(repositories)
+      const agent = agentFactory.transient({ organization, project }).build()
+      const otherAgent = agentFactory.transient({ organization, project }).build()
+      await repositories.agentRepository.save([agent, otherAgent])
+      const server = await service.createMcpServer({
+        projectId: project.id,
+        name: "Other's",
+        config: { url: "https://other.example.com" },
+      })
+      await service.enableForAgent(otherAgent.id, server.id)
+
+      expect(await service.getEnabledServersForAgent(agent.id)).toEqual([])
     })
 
     it("should return multiple servers", async () => {

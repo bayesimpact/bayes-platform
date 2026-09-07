@@ -1,5 +1,6 @@
 export { Chat } from "./Chat"
 export { ChatActions } from "./ChatActions"
+export { ChatBanner } from "./ChatBanner"
 export { ChatBotMessage } from "./ChatBotMessage"
 export { ChatContent } from "./ChatContent"
 export { ChatFooter } from "./ChatFooter"

@@ -91,6 +91,23 @@ describe("McpServers - agent linking", () => {
     expect(junction?.enabled).toBe(true)
   })
 
+  it("should be idempotent when enabling the same server twice", async () => {
+    await createContext()
+    const enable = () =>
+      request({
+        route: McpServersRoutes.enableForAgent,
+        pathParams: removeNullish({ organizationId, projectId, mcpServerId, agentId }),
+        token: accessToken,
+      })
+
+    expectResponse(await enable(), 201)
+    expectResponse(await enable(), 201)
+
+    expect(
+      await repositories.agentMcpServerRepository.count({ where: { agentId, mcpServerId } }),
+    ).toBe(1)
+  })
+
   it("should disable an MCP server for an agent", async () => {
     await createContext()
 

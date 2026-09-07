@@ -126,6 +126,14 @@ export class McpServersService {
   }
 
   async enableForAgent(agentId: string, mcpServerId: string): Promise<AgentMcpServer> {
+    const existing = await this.agentMcpServerRepository.findOne({
+      where: { agentId, mcpServerId },
+    })
+    if (existing) {
+      if (existing.enabled) return existing
+      existing.enabled = true
+      return this.agentMcpServerRepository.save(existing)
+    }
     return this.agentMcpServerRepository.save(
       this.agentMcpServerRepository.create({
         agentId,
