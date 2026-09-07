@@ -11,6 +11,7 @@ import { OrganizationsModule } from "@/domains/organizations/organizations.modul
 import { Project } from "@/domains/projects/project.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { AgentMcpServer } from "./agent-mcp-server.entity"
+import { BuiltInMcpServersService } from "./built-in/built-in-mcp-servers.service"
 import { EncryptionService } from "./encryption.service"
 import { McpServer } from "./mcp-server.entity"
 import { McpServerGuard } from "./mcp-server.guard"
@@ -28,6 +29,7 @@ import { McpServersService } from "./mcp-servers.service"
   ],
   providers: [
     McpServersService,
+    BuiltInMcpServersService,
     EncryptionService,
     McpServerGuard,
     ResourceContextGuard,
@@ -36,6 +38,6 @@ import { McpServersService } from "./mcp-servers.service"
     McpServerContextResolver,
   ],
   controllers: [McpServersController],
-  exports: [McpServersService],
+  exports: [McpServersService, BuiltInMcpServersService],
 })
 export class McpServersModule {}

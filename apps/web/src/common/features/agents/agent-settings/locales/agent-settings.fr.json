@@ -103,7 +103,8 @@
       "label": "Serveurs MCP",
       "manage": "Gérer les serveurs",
       "emptyTitle": "Aucun serveur MCP",
-      "emptyDescription": "Ajoutez des serveurs MCP à ce projet pour donner à vos agents accès à des outils externes."
+      "emptyDescription": "Ajoutez des serveurs MCP à ce projet pour donner à vos agents accès à des outils externes.",
+      "builtInDescription": "Intégré à la plateforme, aucune configuration nécessaire."
     },
     "unsavedChanges": {
       "title": "Modifications non enregistrées",

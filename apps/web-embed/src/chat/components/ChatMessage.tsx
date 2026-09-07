@@ -6,7 +6,7 @@ import { cn } from "../lib/cn"
 import { ChatBotMessage, ChatUserMessage } from "./index"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { McpAppView } from "./McpAppView"
-import { getRenderableMcpApp, hasRenderableMcpApp } from "./mcp-app-view"
+import { getRenderableMcpApp } from "./mcp-app-view"
 import { findSourcesTool, SourcesTool } from "./SourcesTool"
 import {
   findSurfaceResourcesTool,
@@ -15,6 +15,9 @@ import {
 } from "./SurfaceResourcesTool"
 
 export function ChatMessage({ message }: { message: AgentSessionMessageDto }) {
+  // MCP App cards that gave up rendering; their reply text is shown instead.
+  const [failedMcpAppToolCallIds, setFailedMcpAppToolCallIds] = useState<string[]>([])
+
   switch (message.role) {
     case "assistant": {
       const isStreaming = message.status === "streaming"
@@ -22,7 +25,10 @@ export function ChatMessage({ message }: { message: AgentSessionMessageDto }) {
         const view = getRenderableMcpApp(toolCall)
         return view ? [{ toolCall, view }] : []
       })
-      const hideMarkdownRecap = !isStreaming && hasRenderableMcpApp(message.toolCalls)
+      // A card that failed to render must not take the reply text down with it.
+      const hideMarkdownRecap =
+        !isStreaming &&
+        mcpAppViews.some(({ toolCall }) => !failedMcpAppToolCallIds.includes(toolCall.id))
       const surfaceResourcesTool = findSurfaceResourcesTool(message.toolCalls)
       const sourcesTool = findSourcesTool(message.toolCalls)
       const isEmpty =
@@ -71,6 +77,11 @@ export function ChatMessage({ message }: { message: AgentSessionMessageDto }) {
                 html={view.html}
                 toolInput={view.toolInput}
                 toolResult={view.toolResult}
+                onRenderFailed={() =>
+                  setFailedMcpAppToolCallIds((previous) =>
+                    previous.includes(toolCall.id) ? previous : [...previous, toolCall.id],
+                  )
+                }
               />
             ))}
         </div>

@@ -19,21 +19,26 @@ export function McpServerItem({
   return (
     <>
       <GridCard>
-        <GridCard.TopAction>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={t("actions:delete")}
-            onClick={() => setIsConfirmingDelete(true)}
-          >
-            <Trash2Icon className="size-3.5" />
-          </Button>
-        </GridCard.TopAction>
+        {!mcpServer.isBuiltIn && (
+          <GridCard.TopAction>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t("actions:delete")}
+              onClick={() => setIsConfirmingDelete(true)}
+            >
+              <Trash2Icon className="size-3.5" />
+            </Button>
+          </GridCard.TopAction>
+        )}
+        {mcpServer.isBuiltIn && <GridCard.Badge>{t("mcpServers:builtIn")}</GridCard.Badge>}
         <GridCard.Body>
           <GridCard.Title>{mcpServer.name}</GridCard.Title>
-          <p className="text-base text-muted-foreground leading-snug mt-1 mb-4 truncate">
-            {mcpServer.url}
-          </p>
+          {!mcpServer.isBuiltIn && (
+            <p className="text-base text-muted-foreground leading-snug mt-1 mb-4 truncate">
+              {mcpServer.url}
+            </p>
+          )}
         </GridCard.Body>
       </GridCard>
 

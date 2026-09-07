@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDF download</title>
+<style>
+  /* The card follows the host's theme (hostContext.theme), never the OS
+     preference: the chat around it decides whether the page is light or dark.
+     Light is the default until the host says otherwise. */
+  :root {
+    color-scheme: light;
+    --surface: #ffffff;
+    --border: #e2e2e5;
+    --text: #1c1c1e;
+    --muted: #6b6b70;
+    --accent: #111111;
+    --accent-text: #ffffff;
+    --icon: #6b6b70;
+    --icon-bg: #f2f2f4;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface: #1f1f22;
+    --border: #35353a;
+    --text: #f2f2f4;
+    --muted: #a1a1a8;
+    --accent: #f2f2f4;
+    --accent-text: #111111;
+    --icon: #a1a1a8;
+    --icon-bg: #2a2a2e;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: transparent; }
+  body {
+    font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text);
+    padding: 4px;
+  }
+  .card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+  .icon {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--icon-bg);
+    color: var(--icon);
+  }
+  .details { flex: 1 1 auto; min-width: 0; }
+  .name {
+    margin: 0;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .meta, .expiry {
+    margin: 2px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .button {
+    flex: 0 0 auto;
+    display: inline-block;
+    padding: 7px 12px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: var(--accent-text);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .button[aria-disabled="true"] {
+    background: var(--icon-bg);
+    color: var(--muted);
+    cursor: default;
+  }
+  [hidden] { display: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <span class="icon" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path>
+      <path d="M14 3v5h5"></path>
+      <path d="M9 13h6"></path>
+      <path d="M9 17h4"></path>
+    </svg>
+  </span>
+  <div class="details">
+    <p class="name" id="name">Preparing your PDF</p>
+    <p class="meta" id="meta">The document is being generated.</p>
+    <p class="expiry" id="expiry" hidden></p>
+  </div>
+  <a class="button" id="download" hidden target="_blank" rel="noopener noreferrer">Download PDF</a>
+</div>
+<script>
+(() => {
+  "use strict";
+
+  var PROTOCOL_VERSION = "2026-01-26";
+  var INITIALIZE_ID = 1;
+
+  var nameEl = document.getElementById("name");
+  var metaEl = document.getElementById("meta");
+  var expiryEl = document.getElementById("expiry");
+  var downloadEl = document.getElementById("download");
+
+  var expiresAtMs = 0;
+  var countdownTimer = null;
+
+  function send(message) {
+    window.parent.postMessage(message, "*");
+  }
+
+  function sendSizeChanged() {
+    send({
+      jsonrpc: "2.0",
+      method: "ui/notifications/size-changed",
+      params: { height: Math.ceil(document.documentElement.getBoundingClientRect().height) }
+    });
+  }
+
+  function formatSize(bytes) {
+    if (typeof bytes !== "number" || !Number.isFinite(bytes) || bytes < 0) {
+      return "";
+    }
+    if (bytes >= 1024 * 1024) {
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+    if (bytes >= 1024) {
+      return `${Math.round(bytes / 1024)} KB`;
+    }
+    return `${bytes} B`;
+  }
+
+  function formatCountdown(milliseconds) {
+    var totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
+    var minutes = Math.floor(totalSeconds / 60);
+    var seconds = totalSeconds % 60;
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+  }
+
+  function stopCountdown() {
+    if (countdownTimer !== null) {
+      window.clearInterval(countdownTimer);
+      countdownTimer = null;
+    }
+  }
+
+  // safeHttpsUrl returns value when it parses as an absolute https: URL, and
+  // null otherwise (missing, malformed, or any other scheme such as
+  // javascript:). Only a value that passes this check is ever set as the
+  // download link's href, which is the card's single download path: the anchor
+  // navigates natively from the user's own click.
+  function safeHttpsUrl(value) {
+    if (typeof value !== "string" || value === "") {
+      return null;
+    }
+    var parsed;
+    try {
+      parsed = new URL(value);
+    } catch (_error) {
+      return null;
+    }
+    return parsed.protocol === "https:" ? value : null;
+  }
+
+  // disableDownload puts the button in its non-interactive state with an
+  // explanatory line, used both when the link has expired and when the host
+  // sent no usable download URL at all.
+  function disableDownload(message) {
+    stopCountdown();
+    downloadEl.removeAttribute("href");
+    downloadEl.setAttribute("aria-disabled", "true");
+    expiryEl.textContent = message;
+    expiryEl.hidden = false;
+    sendSizeChanged();
+  }
+
+  function markExpired() {
+    disableDownload("Link expired, ask the agent to export again");
+  }
+
+  function tickCountdown() {
+    var remaining = expiresAtMs - Date.now();
+    if (remaining <= 0) {
+      markExpired();
+      return;
+    }
+    expiryEl.textContent = `Link expires in ${formatCountdown(remaining)}`;
+    expiryEl.hidden = false;
+  }
+
+  // renderStatus shows a single-line state (preparing, cancelled, failure).
+  function renderStatus(title, detail) {
+    stopCountdown();
+    nameEl.textContent = title;
+    metaEl.textContent = detail;
+    metaEl.hidden = detail === "";
+    expiryEl.hidden = true;
+    downloadEl.hidden = true;
+    downloadEl.removeAttribute("href");
+    downloadEl.removeAttribute("aria-disabled");
+    sendSizeChanged();
+  }
+
+  // renderResult is idempotent: the host may re-send the same tool result.
+  function renderResult(output) {
+    stopCountdown();
+    var parts = [];
+    if (typeof output.pageCount === "number" && output.pageCount > 0) {
+      parts.push(output.pageCount + (output.pageCount === 1 ? " page" : " pages"));
+    }
+    var size = formatSize(output.sizeBytes);
+    if (size !== "") {
+      parts.push(size);
+    }
+
+    nameEl.textContent = output.fileName || "document.pdf";
+    metaEl.textContent = parts.join(" · ");
+    metaEl.hidden = parts.length === 0;
+
+    downloadEl.hidden = false;
+    var safeUrl = safeHttpsUrl(output.downloadUrl);
+    if (!safeUrl) {
+      disableDownload("Download link unavailable, ask the agent to export again");
+      return;
+    }
+    downloadEl.removeAttribute("aria-disabled");
+    downloadEl.setAttribute("href", safeUrl);
+
+    var parsedExpiry = Date.parse(output.expiresAt);
+    if (Number.isFinite(parsedExpiry)) {
+      expiresAtMs = parsedExpiry;
+      if (Date.now() >= expiresAtMs) {
+        markExpired();
+        return;
+      }
+      tickCountdown();
+      countdownTimer = window.setInterval(tickCountdown, 1000);
+    } else {
+      expiryEl.hidden = true;
+    }
+    sendSizeChanged();
+  }
+
+  function firstTextContent(content) {
+    if (!Array.isArray(content)) {
+      return "";
+    }
+    var index;
+    var item;
+    for (index = 0; index < content.length; index += 1) {
+      item = content[index];
+      if (item && typeof item.text === "string" && item.text !== "") {
+        return item.text;
+      }
+    }
+    return "";
+  }
+
+  function onToolResult(result) {
+    if (!result || typeof result !== "object") {
+      return;
+    }
+    if (result.isError) {
+      renderStatus("PDF export failed", firstTextContent(result.content) || "The export did not complete.");
+      return;
+    }
+    var output = result.structuredContent;
+    if (!output || typeof output !== "object") {
+      renderStatus("PDF ready", firstTextContent(result.content) || "The document was generated.");
+      return;
+    }
+    renderResult(output);
+  }
+
+  function onNotification(method, params) {
+    var args;
+    var fileName;
+    if (method === "ui/notifications/tool-input") {
+      args = params?.arguments;
+      fileName = args && typeof args.fileName === "string" ? args.fileName : "";
+      renderStatus(
+        fileName !== "" ? `Preparing ${fileName}…` : "Preparing your PDF",
+        "The document is being generated."
+      );
+      return;
+    }
+    if (method === "ui/notifications/tool-result") {
+      onToolResult(params);
+      return;
+    }
+    if (method === "ui/notifications/tool-cancelled") {
+      renderStatus("PDF export cancelled", "Ask the agent to export again.");
+      return;
+    }
+    if (method === "ui/notifications/host-context-changed") {
+      applyTheme(params?.theme);
+      return;
+    }
+    // Anything else: nothing to do.
+  }
+
+  // Light unless the host explicitly says dark; the OS preference is ignored
+  // because the surrounding chat, not the OS, sets the page's colours.
+  function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+  }
+
+  function onHostRequest(id, method) {
+    if (method === "ping" || method === "ui/resource-teardown") {
+      if (method === "ui/resource-teardown") {
+        stopCountdown();
+      }
+      send({ jsonrpc: "2.0", id: id, result: {} });
+      return;
+    }
+    send({
+      jsonrpc: "2.0",
+      id: id,
+      error: { code: -32601, message: `method not found: ${method}` }
+    });
+  }
+
+  function onInitializeResponse(message) {
+    if (message.error) {
+      renderStatus("PDF download card unavailable", "Ask the agent for the download link.");
+      return;
+    }
+    var hostContext = message.result?.hostContext;
+    applyTheme(hostContext?.theme);
+    send({ jsonrpc: "2.0", method: "ui/notifications/initialized" });
+  }
+
+  function onMessage(event) {
+    if (event.source !== window.parent) {
+      return;
+    }
+    var message = event.data;
+    if (!message || message.jsonrpc !== "2.0") {
+      return;
+    }
+    if (typeof message.method === "string" && message.id === undefined) {
+      onNotification(message.method, message.params);
+      return;
+    }
+    if (typeof message.method === "string") {
+      onHostRequest(message.id, message.method);
+      return;
+    }
+    if (message.id === INITIALIZE_ID) {
+      onInitializeResponse(message);
+    }
+  }
+
+  window.addEventListener("message", onMessage);
+
+  if (typeof window.ResizeObserver === "function") {
+    new window.ResizeObserver(sendSizeChanged).observe(document.documentElement);
+  }
+
+  send({
+    jsonrpc: "2.0",
+    id: INITIALIZE_ID,
+    method: "ui/initialize",
+    params: {
+      appInfo: { name: "pdf-export-download-card", version: "1.0.0" },
+      appCapabilities: {},
+      protocolVersion: PROTOCOL_VERSION
+    }
+  });
+  sendSizeChanged();
+})();
+</script>
+</body>
+</html>

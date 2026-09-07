@@ -4,7 +4,7 @@ highlight: MCP
 description: Connect external MCP tool servers to your workspace and enable them per agent, so an agent can call outside tools while it answers.
 category: guides-agents
 order: 8
-updated: 2026-07-22
+updated: 2026-09-07
 ---
 
 import McpServersWalkthrough from "@/components/McpServersWalkthrough.astro"
@@ -79,8 +79,9 @@ Repeat **New Server** for as many servers as you need.
 
 ### 5. Remove a server
 
-Each card has a single action: the **trash icon** on its right. There is no edit or
-overflow menu — connect and delete are the only actions.
+A server you connected has a single action: the **trash icon** on its right. There
+is no edit or overflow menu — connect and delete are the only actions. The built-in
+**PDF export** server (see below) has no trash icon and can't be deleted.
 
 ### 6. Confirm the deletion
 
@@ -97,8 +98,9 @@ the workspace overview).
 ### 8. Open the MCP Servers tab
 
 In the agent editor, open the **MCP Servers** tab. It's the **last** tab, after
-[**Orchestration**](/en/agent-orchestration) and [**Embed**](/en/agent-embed), and
-it appears **only** once the workspace has at least one connected server.
+[**Orchestration**](/en/agent-orchestration) and [**Embed**](/en/agent-embed). When
+the platform is configured for it, every workspace has at least the built-in
+**PDF export** server, so this tab is always there once the feature is enabled.
 
 ### 9. Toggle a server on for this agent
 
@@ -113,6 +115,14 @@ The tab header has a **Manage servers** link (external-link icon) that opens the
 workspace **MCP Servers** page in a new tab, so you can connect or remove servers
 without losing your place in the editor.
 
+## The built-in PDF export server
+
+When the platform is configured for it, every workspace ships with a **PDF export**
+server marked **Built-in**. It cannot be deleted, but you still switch it on per agent
+like any other server. Once it's on,
+the agent can turn a markdown answer into a downloadable PDF, shown to the user as a
+card with a **Download** button. That link is valid for 15 minutes.
+
 ## Tips
 
 - Give each server a clear **Name** — it's what you (and the per-agent switch list)
@@ -126,10 +136,9 @@ without losing your place in the editor.
 
 - **There's no MCP Servers item in the sidebar** — the feature isn't enabled for your
   workspace; contact the Bayes team to request it.
-- **An agent has no MCP Servers tab** — the tab only appears once the workspace has
-  at least one connected server. Connect one on the **MCP Servers** page first.
 - **Create is blocked** — the **URL** must be a valid address (for example starting
   with `https://`), and the **Name** can't be empty.
 - **An agent stopped using a server's tools** — check the server is still **on** for
   that agent in its **MCP Servers** tab, and that the server wasn't deleted on the
   workspace page (deleting removes it for every agent).
+- **The download link says it expired** — ask the agent to export again.

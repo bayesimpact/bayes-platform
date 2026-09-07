@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -18,6 +19,13 @@ import (
 type fakeStore struct {
 	mutex   sync.Mutex
 	objects map[string][]byte
+	// contentTypes records the content type each object was uploaded with.
+	contentTypes map[string]string
+	// signedDownloadFileNames records the DownloadFileName each SignedURL call
+	// was given, keyed by object.
+	signedDownloadFileNames map[string]string
+	// signErr, when set, makes SignedURL fail.
+	signErr error
 }
 
 func (store *fakeStore) Download(ctx context.Context, object string, maxBytes int64) ([]byte, error) {
@@ -37,7 +45,24 @@ func (store *fakeStore) Upload(ctx context.Context, object string, contentType s
 	store.mutex.Lock()
 	defer store.mutex.Unlock()
 	store.objects[object] = data
+	if store.contentTypes == nil {
+		store.contentTypes = map[string]string{}
+	}
+	store.contentTypes[object] = contentType
 	return nil
+}
+
+func (store *fakeStore) SignedURL(ctx context.Context, object string, opts signedURLOptions) (string, error) {
+	store.mutex.Lock()
+	defer store.mutex.Unlock()
+	if store.signErr != nil {
+		return "", store.signErr
+	}
+	if store.signedDownloadFileNames == nil {
+		store.signedDownloadFileNames = map[string]string{}
+	}
+	store.signedDownloadFileNames[object] = opts.DownloadFileName
+	return "https://signed.example.test/" + object + "?expires=" + strconv.FormatInt(opts.Expires.Unix(), 10), nil
 }
 
 func newTestServer(t *testing.T, store *fakeStore) http.Handler {
@@ -46,7 +71,7 @@ func newTestServer(t *testing.T, store *fakeStore) http.Handler {
 	if err != nil {
 		t.Fatalf("NewRenderer: %v", err)
 	}
-	return newServer(store, renderer, 50*1024*1024, time.Minute)
+	return newServer(store, renderer, 50*1024*1024, time.Minute, newTestExportConfig())
 }
 
 func postRender(handler http.Handler, body string) *httptest.ResponseRecorder {
@@ -121,7 +146,7 @@ func TestRenderDocumentSourceTooLarge(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewRenderer: %v", err)
 	}
-	handler := newServer(store, renderer, int64(len(pdfBytes))-1, time.Minute)
+	handler := newServer(store, renderer, int64(len(pdfBytes))-1, time.Minute, newTestExportConfig())
 	response := postRender(handler,
 		`{"sourceObject":"org1/proj1/doc1.pdf","outputPrefix":"org1/proj1/derived/doc1/","maxPages":20,"maxPixelsPerPage":4000000}`)
 	if response.Code != http.StatusRequestEntityTooLarge {
@@ -171,6 +196,10 @@ func (store *stalledUploadStore) Upload(ctx context.Context, object string, cont
 	return ctx.Err()
 }
 
+func (store *stalledUploadStore) SignedURL(ctx context.Context, object string, opts signedURLOptions) (string, error) {
+	return "https://signed.example.test/" + object, nil
+}
+
 func TestRenderDocumentTimesOutWhenRenderingStalls(t *testing.T) {
 	store := &stalledUploadStore{objects: map[string][]byte{
 		"org1/proj1/doc1.pdf": pdftest.BuildPdfWithPages(2, 200),
@@ -179,7 +208,7 @@ func TestRenderDocumentTimesOutWhenRenderingStalls(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewRenderer: %v", err)
 	}
-	handler := newServer(store, renderer, 50*1024*1024, 50*time.Millisecond)
+	handler := newServer(store, renderer, 50*1024*1024, 50*time.Millisecond, newTestExportConfig())
 	response := postRender(handler,
 		`{"sourceObject":"org1/proj1/doc1.pdf","outputPrefix":"org1/proj1/derived/doc1/","maxPages":20,"maxPixelsPerPage":4000000}`)
 	if response.Code != http.StatusGatewayTimeout {

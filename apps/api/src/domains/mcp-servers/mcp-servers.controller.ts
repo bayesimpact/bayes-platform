@@ -24,6 +24,7 @@ import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
+import { isBuiltInMcpServer } from "./built-in/built-in-mcp-servers"
 import type { McpServer } from "./mcp-server.entity"
 import { McpServerGuard } from "./mcp-server.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -85,7 +86,9 @@ export class McpServersController {
   }
 
   @Delete(McpServersRoutes.disableForAgent.path)
-  @CheckPolicy((policy) => policy.canDelete())
+  // Not canDelete(): turning a server off for an agent updates the agent's
+  // configuration, and built-in servers can be toggled but never deleted.
+  @CheckPolicy((policy) => policy.canUpdate())
   @AddContext("mcpServer")
   async disableForAgent(
     @Req() request: EndpointRequestWithMcpServer,
@@ -97,11 +100,14 @@ export class McpServersController {
 }
 
 function toMcpServerDto(entity: McpServer, url: string): McpServerDto {
+  // A built-in server's url goes out to every project on purpose: the endpoint
+  // is IAM-protected, so knowing it grants nothing, and the UI hides it anyway.
   return {
     id: entity.id,
     name: entity.name,
     url,
-    projectId: entity.projectId!,
+    projectId: entity.projectId,
+    isBuiltIn: isBuiltInMcpServer(entity),
     createdAt: entity.createdAt.getTime(),
     updatedAt: entity.updatedAt.getTime(),
   }

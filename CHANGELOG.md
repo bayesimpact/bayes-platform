@@ -13,8 +13,10 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Agents can run on gemini-3.7-flash and gemini-3.8-flash.
 - Public agent banner: an optional notice pinned above the conversation on the public page and in the widget.
 - Public page link: the Embed tab shows the shareable URL that serves an agent without a host website.
+- (beta) PDF export: agents can turn markdown into a downloadable PDF with a built-in MCP server in every workspace.
 
 ### Changed
+- (beta) Links and downloads inside MCP App cards now open in a new tab.
 
 ### Fixed
 - Refreshing the page during a reply no longer loses the answer.

@@ -15,6 +15,8 @@ import { addUserToAgent } from "@/domains/agents/memberships/agent-membership.fa
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
+import { PDF_EXPORT_BUILT_IN_NAME, PDF_EXPORT_PRESET_SLUG } from "../built-in/built-in-mcp-servers"
+import { BuiltInMcpServersService } from "../built-in/built-in-mcp-servers.service"
 import { mcpServerFactory } from "../mcp-server.factory"
 import { McpServersModule } from "../mcp-servers.module"
 
@@ -125,5 +127,39 @@ describe("McpServers - agent linking", () => {
       where: { agentId, mcpServerId },
     })
     expect(junction).toBeNull()
+  })
+
+  it("should enable and disable a built-in MCP server for an agent", async () => {
+    await createContext()
+    const builtInServer = await setup.module
+      .get<BuiltInMcpServersService>(BuiltInMcpServersService)
+      .ensureBuiltInServer({
+        slug: PDF_EXPORT_PRESET_SLUG,
+        name: PDF_EXPORT_BUILT_IN_NAME,
+        config: { url: "https://pdf-converter.example.test/mcp" },
+      })
+    mcpServerId = builtInServer.id
+
+    const enableResponse = await request({
+      route: McpServersRoutes.enableForAgent,
+      pathParams: removeNullish({ organizationId, projectId, mcpServerId, agentId }),
+      token: accessToken,
+    })
+
+    expectResponse(enableResponse, 201)
+    expect(
+      await repositories.agentMcpServerRepository.findOne({ where: { agentId, mcpServerId } }),
+    ).not.toBeNull()
+
+    const disableResponse = await request({
+      route: McpServersRoutes.disableForAgent,
+      pathParams: removeNullish({ organizationId, projectId, mcpServerId, agentId }),
+      token: accessToken,
+    })
+
+    expectResponse(disableResponse, 200)
+    expect(
+      await repositories.agentMcpServerRepository.findOne({ where: { agentId, mcpServerId } }),
+    ).toBeNull()
   })
 })
