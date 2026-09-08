@@ -46,6 +46,13 @@ describe("document-embeddings-stuck.config", () => {
     )
   })
 
+  it("throws when threshold env has a trailing unit", () => {
+    process.env[thresholdKey] = "3600s"
+    expect(() => getDocumentEmbeddingStuckThresholdSeconds()).toThrow(
+      /DOCUMENT_EMBEDDING_STUCK_THRESHOLD_SECONDS must be a positive integer \(seconds\)/,
+    )
+  })
+
   it("returns sweep interval seconds when set", () => {
     process.env[intervalKey] = "900"
     expect(getDocumentEmbeddingStuckSweepIntervalSeconds()).toBe(900)
