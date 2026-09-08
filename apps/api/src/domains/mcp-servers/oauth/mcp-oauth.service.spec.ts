@@ -11,6 +11,7 @@ import { agentFactory } from "@/domains/agents/agent.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { EncryptionService } from "../encryption.service"
 import type { McpServer } from "../mcp-server.entity"
+import type { McpServerConfig } from "../mcp-server-config.types"
 import { McpServersModule } from "../mcp-servers.module"
 import type { McpServerOauthState, McpServerOauthTokens } from "../mcp-servers.service"
 import { McpServersService } from "../mcp-servers.service"
@@ -99,13 +100,20 @@ describe("McpOauthService", () => {
     fetchMock.mockReset()
   })
 
-  const createServer = async (overrides: { url: string }): Promise<McpServer> => {
+  const createServer = async (config: McpServerConfig): Promise<McpServer> => {
     const { project } = await createOrganizationWithProject(repositories)
     return mcpServersService.createMcpServer({
       projectId: project.id,
       name: "Test MCP Server",
-      config: { url: overrides.url },
+      config,
     })
+  }
+
+  const expectApiKeyPreserved = async (mcpServerId: string) => {
+    const reloaded = await repositories.mcpServerRepository.findOneByOrFail({ id: mcpServerId })
+    const config = mcpServersService.getConfig(reloaded)
+    expect(config.apiKey).toBe("secret-key")
+    expect(config.oauth).toBeUndefined()
   }
 
   const initiateForServer = async (): Promise<{
@@ -205,6 +213,30 @@ describe("McpOauthService", () => {
       ([url]) => url === "https://auth.example.com/connect/register",
     )
     expect(registrationCalls).toHaveLength(1)
+  })
+
+  it("rejects initiation on an apiKey server before any discovery and keeps the key", async () => {
+    const mcpServer = await createServer({
+      url: MCP_URL,
+      authMethod: "apiKey",
+      apiKey: "secret-key",
+    })
+
+    await expect(mcpOauthService.initiateAuthorization(mcpServer)).rejects.toThrow(
+      BadRequestException,
+    )
+    expect(fetchMock).not.toHaveBeenCalled()
+    await expectApiKeyPreserved(mcpServer.id)
+  })
+
+  it("rejects initiation on a legacy server that stores a key without an authMethod", async () => {
+    const mcpServer = await createServer({ url: MCP_URL, apiKey: "secret-key" })
+
+    await expect(mcpOauthService.initiateAuthorization(mcpServer)).rejects.toThrow(
+      BadRequestException,
+    )
+    expect(fetchMock).not.toHaveBeenCalled()
+    await expectApiKeyPreserved(mcpServer.id)
   })
 
   it("throws BadRequestException when the server advertises no OAuth metadata", async () => {
