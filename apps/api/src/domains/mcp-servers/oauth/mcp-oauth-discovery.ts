@@ -5,6 +5,8 @@
  * global fetch so they can be unit-tested without Nest.
  */
 
+import { isAllowedOauthEndpointUrl } from "@caseai-connect/api-contracts"
+
 export type McpOauthDiscovery = {
   authorizationEndpoint: string
   tokenEndpoint: string
@@ -17,24 +19,6 @@ export type McpOauthDiscovery = {
 // Outbound OAuth discovery calls hit third-party servers named in MCP server
 // config; a slow or hanging server must not block the request indefinitely.
 const OAUTH_FETCH_TIMEOUT_MS = 10_000
-
-/**
- * A discovered endpoint is later handed to the browser (authorization_endpoint
- * becomes a `window.location.assign` target). A hostile authorization server
- * could return a `javascript:` or `data:` URL, so every endpoint from
- * third-party JSON must be validated before use. `http:` is allowed only for
- * localhost, to keep local dev authorization servers working.
- */
-function isValidEndpointUrl(candidate: string): boolean {
-  let url: URL
-  try {
-    url = new URL(candidate)
-  } catch {
-    return false
-  }
-  if (url.protocol === "https:") return true
-  return url.protocol === "http:" && (url.hostname === "localhost" || url.hostname === "127.0.0.1")
-}
 
 type ProtectedResourceMetadata = {
   resource?: string
@@ -59,13 +43,14 @@ export async function discoverOauthConfiguration(
   const serverMetadata = await fetchAuthorizationServerMetadata(issuer)
   if (!serverMetadata?.authorization_endpoint || !serverMetadata.token_endpoint) return null
   if (
-    !isValidEndpointUrl(serverMetadata.authorization_endpoint) ||
-    !isValidEndpointUrl(serverMetadata.token_endpoint)
+    !isAllowedOauthEndpointUrl(serverMetadata.authorization_endpoint) ||
+    !isAllowedOauthEndpointUrl(serverMetadata.token_endpoint)
   ) {
     return null
   }
   const registrationEndpoint =
-    serverMetadata.registration_endpoint && isValidEndpointUrl(serverMetadata.registration_endpoint)
+    serverMetadata.registration_endpoint &&
+    isAllowedOauthEndpointUrl(serverMetadata.registration_endpoint)
       ? serverMetadata.registration_endpoint
       : undefined
 
