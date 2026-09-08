@@ -1,5 +1,5 @@
 import type { McpServerAuthStatus } from "@caseai-connect/api-contracts"
-import { ForbiddenException, Injectable } from "@nestjs/common"
+import { ForbiddenException, Injectable, Logger } from "@nestjs/common"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ConfigService } from "@nestjs/config"
 import { InjectRepository } from "@nestjs/typeorm"
@@ -29,6 +29,8 @@ export type {
 
 @Injectable()
 export class McpServersService {
+  private readonly logger = new Logger(McpServersService.name)
+
   constructor(
     @InjectRepository(McpServer)
     private readonly mcpServerRepository: Repository<McpServer>,
@@ -46,20 +48,34 @@ export class McpServersService {
     })
 
     const enabledServers = agentMcpServers.filter((agentMcpServer) => agentMcpServer.mcpServer)
-    return Promise.all(
-      enabledServers.map(async (agentMcpServer) => {
-        const { oauth, ...config } = this.decryptConfig(agentMcpServer.mcpServer)
-        if (!oauth) return this.toEnabledServer(agentMcpServer.mcpServer, config)
-        const accessToken = await this.mcpOauthService.getValidAccessToken(
-          agentMcpServer.mcpServer.id,
-          oauth,
-        )
-        return this.toEnabledServer(agentMcpServer.mcpServer, {
-          ...config,
-          apiKey: accessToken ?? undefined,
-        })
-      }),
+    const servers = await Promise.all(
+      enabledServers.map((agentMcpServer) =>
+        this.toEnabledServerIfUsable(agentMcpServer.mcpServer),
+      ),
     )
+    return servers.filter((server) => server !== null)
+  }
+
+  /**
+   * An OAuth server with no usable access token (never authorized, or tokens
+   * dropped after a definitive refresh failure) is left out rather than dialed
+   * unauthenticated, which would only produce a 401 on every turn.
+   */
+  private async toEnabledServerIfUsable(mcpServer: McpServer): Promise<EnabledMcpServer | null> {
+    const { oauth, ...config } = this.decryptConfig(mcpServer)
+    const usesOauth = oauth !== undefined || config.authMethod === "oauth"
+    if (!usesOauth) return this.toEnabledServer(mcpServer, config)
+
+    const accessToken = oauth
+      ? await this.mcpOauthService.getValidAccessToken(mcpServer.id, oauth)
+      : null
+    if (!accessToken) {
+      this.logger.warn(
+        `Skipping MCP server "${mcpServer.name}" (${mcpServer.id}): OAuth authorization is missing or expired`,
+      )
+      return null
+    }
+    return this.toEnabledServer(mcpServer, { ...config, apiKey: accessToken })
   }
 
   async createPreset(slug: string, name: string, config: McpServerConfig): Promise<McpServer> {

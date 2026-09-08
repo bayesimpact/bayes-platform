@@ -542,6 +542,89 @@ describe("McpServersService", () => {
       )
     })
 
+    describe("with an OAuth server", () => {
+      const oauth = {
+        clientId: "client-123",
+        authorizationEndpoint: "https://auth.example.com/oauth2/authorize",
+        tokenEndpoint: "https://auth.example.com/oauth2/token",
+        resource: "https://mcp.example.com",
+      }
+      const url = "https://mcp.example.com/mcp"
+
+      it("should skip a server that was never authorized", async () => {
+        const agent = await createAgent()
+        const neverStarted = await service.createMcpServer({
+          projectId: agent.projectId,
+          name: "Never Started",
+          config: { url, authMethod: "oauth" },
+        })
+        const discoveredOnly = await service.createMcpServer({
+          projectId: agent.projectId,
+          name: "Discovered Only",
+          config: { url, authMethod: "oauth", oauth },
+        })
+        await service.enableForAgent(agent.id, neverStarted.id)
+        await service.enableForAgent(agent.id, discoveredOnly.id)
+
+        expect(await service.getEnabledServersForAgent(agent.id)).toEqual([])
+      })
+
+      it("should skip a server whose tokens expired without a refresh token", async () => {
+        const agent = await createAgent()
+        const tokens = { accessToken: "stale-token", expiresAt: Date.now() - 60_000 }
+        const server = await service.createMcpServer({
+          projectId: agent.projectId,
+          name: "Expired",
+          config: { url, authMethod: "oauth", oauth: { ...oauth, tokens } },
+        })
+        await service.enableForAgent(agent.id, server.id)
+
+        expect(await service.getEnabledServersForAgent(agent.id)).toEqual([])
+      })
+
+      it("should return a server with a valid access token as its api key", async () => {
+        const agent = await createAgent()
+        const tokens = { accessToken: "fresh-token", expiresAt: Date.now() + 3_600_000 }
+        const server = await service.createMcpServer({
+          projectId: agent.projectId,
+          name: "Authorized",
+          config: { url, authMethod: "oauth", oauth: { ...oauth, tokens } },
+        })
+        await service.enableForAgent(agent.id, server.id)
+
+        expect(await service.getEnabledServersForAgent(agent.id)).toEqual([
+          { id: server.id, url, authMethod: "oauth", apiKey: "fresh-token" },
+        ])
+      })
+
+      it("should keep api key and unauthenticated servers alongside a skipped one", async () => {
+        const agent = await createAgent()
+        const pending = await service.createMcpServer({
+          projectId: agent.projectId,
+          name: "Pending",
+          config: { url, authMethod: "oauth" },
+        })
+        const withApiKey = await service.createMcpServer({
+          projectId: agent.projectId,
+          name: "With Api Key",
+          config: { url: "https://keyed.example.com/mcp", authMethod: "apiKey", apiKey: "sk-key" },
+        })
+        const open = await service.createMcpServer({
+          projectId: agent.projectId,
+          name: "Open",
+          config: { url: "https://open.example.com/mcp", authMethod: "none" },
+        })
+        await service.enableForAgent(agent.id, pending.id)
+        await service.enableForAgent(agent.id, withApiKey.id)
+        await service.enableForAgent(agent.id, open.id)
+
+        const configs = await service.getEnabledServersForAgent(agent.id)
+
+        expect(configs.map((config) => config.id).sort()).toEqual([withApiKey.id, open.id].sort())
+        expect(configs.find((config) => config.id === withApiKey.id)?.apiKey).toBe("sk-key")
+      })
+    })
+
     describe("with Google IAM enabled", () => {
       beforeEach(() => {
         process.env.PDF_CONVERTER_AUTH = "google-iam"
