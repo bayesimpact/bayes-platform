@@ -46,6 +46,18 @@ func main() {
 		}
 		renderTimeout = time.Duration(parsed) * time.Millisecond
 	}
+	// Separate deadline for signing and uploading an exported PDF, so a
+	// render that used most of renderTimeout still gets a full upload budget.
+	// renderTimeout + uploadTimeout must stay below the API client's request
+	// timeout (120s) for the same reason as above.
+	uploadTimeout := 30 * time.Second
+	if fromEnv := os.Getenv("PDF_CONVERTER_UPLOAD_TIMEOUT_MS"); fromEnv != "" {
+		parsed, err := strconv.ParseInt(fromEnv, 10, 64)
+		if err != nil || parsed <= 0 {
+			log.Fatalf("invalid PDF_CONVERTER_UPLOAD_TIMEOUT_MS: %q", fromEnv)
+		}
+		uploadTimeout = time.Duration(parsed) * time.Millisecond
+	}
 
 	exportTTL := 15 * time.Minute
 	if fromEnv := os.Getenv("PDF_EXPORT_TTL_MINUTES"); fromEnv != "" {
@@ -79,6 +91,7 @@ func main() {
 		MaxMarkdownBytes: maxMarkdownBytes,
 		TmpPrefix:        exportTmpPrefix,
 		Timeout:          renderTimeout,
+		UploadTimeout:    uploadTimeout,
 		MaxPages:         pdfExportMaxPages,
 	}
 

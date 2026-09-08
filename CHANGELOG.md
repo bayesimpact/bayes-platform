@@ -13,6 +13,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
+- (beta) PDF export: large documents no longer fail at the upload step after a slow render.
+
 ### Security
 
 ## [26.09.2] - 2026-09-08
