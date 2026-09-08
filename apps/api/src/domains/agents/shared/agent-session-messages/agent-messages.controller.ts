@@ -83,17 +83,19 @@ export class AgentMessagesController {
       agentSessionId,
       connectScope,
     })
-    // Cards are re-read in the agent's current language: a draft under edit
-    // does not change what an existing conversation shows.
-    const agentSettings = await this.agentSettingsService.getLast({
-      connectScope,
-      agentId: request.agent.id,
-    })
     const htmlByKey = await this.mcpAppHtmlService.readLiveHtml({
       agentId: request.agent.id,
       sessionId: agentSessionId,
       messages,
-      locale: agentSettings.locale,
+      // Cards are re-read in the agent's published language: a draft under
+      // edit does not change what an existing conversation shows.
+      resolveLocale: async () => {
+        const agentSettings = await this.agentSettingsService.getLast({
+          connectScope,
+          agentId: request.agent.id,
+        })
+        return agentSettings.locale
+      },
     })
     return { data: toMcpAppHtmlDtos(htmlByKey) }
   }

@@ -101,21 +101,26 @@ export class McpAppHtmlService {
     sessionId,
     messages,
     externalVisitorId = null,
-    locale = null,
+    resolveLocale,
   }: {
     agentId: string
     sessionId: string
     messages: Array<{ toolCalls?: AgentMessageToolCall[] | null }>
     /** Forwarded on public/embed sessions so MCP servers can attribute the read. */
     externalVisitorId?: string | null
-    /** The agent's language, so a server can hand back a card written in it. */
-    locale?: string | null
+    /**
+     * The agent's language, so a server can hand back a card written in it.
+     * Called only once a card has to be read, so a chat without cards costs no
+     * settings lookup, and a session whose agent has no settings still answers.
+     */
+    resolveLocale?: () => Promise<string | null>
   }): Promise<Map<string, string>> {
     const refs = collectMcpAppRefs(messages)
     if (refs.length === 0) return new Map()
 
     const enabledServers = await this.mcpServersService.getEnabledServersForAgent(agentId)
     const htmlByKey = new Map<string, string>()
+    const locale = resolveLocale ? await resolveLocale() : null
     const context: McpConversationContext = { agentId, sessionId, externalVisitorId, locale }
 
     for (const [server, resourceUris] of groupUrisByEnabledServer(refs, enabledServers)) {

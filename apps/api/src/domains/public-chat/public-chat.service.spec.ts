@@ -74,8 +74,10 @@ describe("PublicChatService", () => {
       sessionId: session.id,
       messages: [messageWithCard],
       externalVisitorId: "visitor-1",
-      locale: "fr",
+      resolveLocale: expect.any(Function),
     })
+    // The language comes from the published settings, looked up on demand.
+    await expect(readLiveHtml.mock.calls[0]?.[0].resolveLocale()).resolves.toBe("fr")
     expect(entries).toEqual([{ mcpServerId, resourceUri, html }])
   })
 
