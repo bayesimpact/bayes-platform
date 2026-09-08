@@ -48,11 +48,12 @@ describe("pdf-exports.config", () => {
     )
   })
 
-  it("defaults the TTL to 15 minutes", () => {
+  // The TTL is only the fallback for legacy objects without a stamped expiry.
+  it("defaults the legacy TTL to 15 minutes", () => {
     expect(getPdfExportTtlMinutes()).toBe(15)
   })
 
-  it("reads the TTL override", () => {
+  it("reads the legacy TTL override", () => {
     process.env[ttlKey] = "30"
     expect(getPdfExportTtlMinutes()).toBe(30)
   })

@@ -20,6 +20,12 @@ export type PdfExportsSweepResult = {
  * Deletes temporary PDF exports written by `apps/pdf-converter` once their
  * signed download URLs have expired. GCS lifecycle rules only express whole
  * days, so this sweep is what actually enforces the minutes-scale TTL.
+ *
+ * The converter stamps each export's URL expiry on the object as its GCS
+ * `customTime`, so the writer alone decides when an export dies and the sweep
+ * never has to agree with it on a TTL. Objects without `customTime` were
+ * written before that stamp existed and fall back to `timeCreated` plus the
+ * locally configured TTL.
  */
 @Injectable()
 export class PdfExportsSweepService {
@@ -36,13 +42,16 @@ export class PdfExportsSweepService {
     }
 
     const prefix = getPdfExportTmpPrefix()
-    const maxAgeSeconds = getPdfExportTtlMinutes() * 60 + PDF_EXPORTS_DELETE_GRACE_SECONDS
-    const cutoff = new Date(now.getTime() - maxAgeSeconds * 1000)
+    const graceMilliseconds = PDF_EXPORTS_DELETE_GRACE_SECONDS * 1000
+    // Delete once the expiry plus the grace period is in the past.
+    const expiryCutoff = new Date(now.getTime() - graceMilliseconds)
+    const legacyTtlMilliseconds = getPdfExportTtlMinutes() * 60 * 1000
+    const legacyCreationCutoff = new Date(expiryCutoff.getTime() - legacyTtlMilliseconds)
 
     let scanned = 0
     let deleted = 0
     let failed = 0
-    let withoutCreationDate = 0
+    let withoutExpiry = 0
     let pageToken: string | undefined
 
     for (let pageIndex = 0; pageIndex < PDF_EXPORTS_SWEEP_MAX_PAGES_PER_RUN; pageIndex += 1) {
@@ -56,12 +65,21 @@ export class PdfExportsSweepService {
 
       const expiredFiles: File[] = []
       for (const file of files) {
-        const createdAt = parseTimeCreated(file)
-        if (createdAt === undefined) {
-          withoutCreationDate += 1
+        const expiresAt = parseCustomTime(file)
+        if (expiresAt !== undefined) {
+          if (expiresAt < expiryCutoff) {
+            expiredFiles.push(file)
+          }
           continue
         }
-        if (createdAt < cutoff) {
+        // Legacy fallback for objects written before the converter stamped
+        // the expiry; it can be removed once no such object is left.
+        const createdAt = parseTimeCreated(file)
+        if (createdAt === undefined) {
+          withoutExpiry += 1
+          continue
+        }
+        if (createdAt < legacyCreationCutoff) {
           expiredFiles.push(file)
         }
       }
@@ -85,7 +103,7 @@ export class PdfExportsSweepService {
       )
     }
     this.logger.log(
-      `PDF export sweep finished under ${prefix} (scanned ${scanned}, deleted ${deleted}, failed ${failed}, without creation date ${withoutCreationDate}).`,
+      `PDF export sweep finished under ${prefix} (scanned ${scanned}, deleted ${deleted}, failed ${failed}, without expiry or creation date ${withoutExpiry}).`,
     )
 
     return { scanned, deleted, failed, skipped: false }
@@ -121,12 +139,20 @@ export class PdfExportsSweepService {
   }
 }
 
+/** URL expiry the converter stamped as the GCS custom time, `undefined` when missing or unparseable. */
+function parseCustomTime(file: File): Date | undefined {
+  return parseMetadataDate(file.metadata?.customTime)
+}
+
 /** Creation date from the object metadata, `undefined` when it is missing or unparseable. */
 function parseTimeCreated(file: File): Date | undefined {
-  const timeCreated = file.metadata?.timeCreated
-  if (timeCreated === undefined) {
+  return parseMetadataDate(file.metadata?.timeCreated)
+}
+
+function parseMetadataDate(rawValue: string | undefined): Date | undefined {
+  if (rawValue === undefined) {
     return undefined
   }
-  const createdAt = new Date(timeCreated)
-  return Number.isNaN(createdAt.getTime()) ? undefined : createdAt
+  const parsed = new Date(rawValue)
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed
 }

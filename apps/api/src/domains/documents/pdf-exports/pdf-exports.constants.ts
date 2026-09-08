@@ -28,8 +28,8 @@ export const PDF_EXPORTS_SWEEP_PAGE_SIZE = 1000
 export const PDF_EXPORTS_SWEEP_MAX_PAGES_PER_RUN = 20
 
 /**
- * Extra delay past the TTL before an object is deleted, so a signed URL handed
- * out just before expiry still resolves for its whole lifetime.
+ * Extra delay past the expiry before an object is deleted, so a download that
+ * starts in the last second of a signed URL's lifetime still completes.
  */
 export const PDF_EXPORTS_DELETE_GRACE_SECONDS = 60
 

@@ -3,14 +3,17 @@ import { Logger } from "@nestjs/common"
 import { PDF_EXPORTS_SWEEP_MAX_PAGES_PER_RUN } from "./pdf-exports.constants"
 import { PdfExportsSweepService } from "./pdf-exports-sweep.service"
 
+type FakeFileMetadata = { customTime?: string; timeCreated?: string }
+
 type FakeFile = {
   name: string
-  metadata: { timeCreated?: string }
+  metadata: FakeFileMetadata
   delete: jest.Mock
 }
 
 describe("PdfExportsSweepService", () => {
-  // TTL 15 min + 60 s grace: anything created before 11:44:00 is expired at noon.
+  // 60 s grace: an export whose customTime is before 11:59:00 is expired at noon.
+  // Legacy objects without customTime: TTL 15 min + grace, created before 11:44:00.
   const now = new Date("2026-05-04T12:00:00.000Z")
   const prefixKey = "PDF_EXPORT_TMP_PREFIX"
   const ttlKey = "PDF_EXPORT_TTL_MINUTES"
@@ -42,11 +45,19 @@ describe("PdfExportsSweepService", () => {
     }
   })
 
-  const buildFile = (name: string, timeCreated?: string): FakeFile => ({
+  const buildFile = (name: string, metadata: FakeFileMetadata = {}): FakeFile => ({
     name,
-    metadata: timeCreated === undefined ? {} : { timeCreated },
+    metadata,
     delete: jest.fn().mockResolvedValue([{}]),
   })
+
+  /** An export the converter stamped with its URL expiry, as every current export is. */
+  const buildStampedFile = (name: string, customTime: string): FakeFile =>
+    buildFile(name, { customTime, timeCreated: "2026-05-04T11:00:00.000Z" })
+
+  /** An export written before the converter stamped expiries: only `timeCreated` is known. */
+  const buildLegacyFile = (name: string, timeCreated?: string): FakeFile =>
+    buildFile(name, timeCreated === undefined ? {} : { timeCreated })
 
   /** Serves `pages` in order, chaining them with a page token like GCS does. */
   const buildBucket = (pages: FakeFile[][]) => {
@@ -63,12 +74,15 @@ describe("PdfExportsSweepService", () => {
   }
 
   it("deletes expired exports across every page and keeps fresh ones", async () => {
-    const expiredOnFirstPage = buildFile(
+    const expiredOnFirstPage = buildStampedFile(
       "tmp/pdf-exports/aaa/report.pdf",
-      "2026-05-04T11:00:00.000Z",
+      "2026-05-04T11:58:59.000Z",
     )
-    const freshOnFirstPage = buildFile("tmp/pdf-exports/bbb/report.pdf", "2026-05-04T11:55:00.000Z")
-    const expiredOnSecondPage = buildFile(
+    const freshOnFirstPage = buildStampedFile(
+      "tmp/pdf-exports/bbb/report.pdf",
+      "2026-05-04T11:59:00.000Z",
+    )
+    const expiredOnSecondPage = buildStampedFile(
       "tmp/pdf-exports/ccc/report.pdf",
       "2026-05-03T09:00:00.000Z",
     )
@@ -87,22 +101,70 @@ describe("PdfExportsSweepService", () => {
     )
   })
 
-  it("keeps files whose creation date is missing or unparseable", async () => {
-    const withoutDate = buildFile("tmp/pdf-exports/aaa/report.pdf")
-    const withBadDate = buildFile("tmp/pdf-exports/bbb/report.pdf", "not-a-date")
-    const bucket = buildBucket([[withoutDate, withBadDate]])
+  it("trusts the stamped expiry over the locally configured TTL", async () => {
+    process.env[ttlKey] = "15"
+    // Created 50 minutes ago, well past the local TTL, but the converter signed
+    // its URL for an hour: it must survive.
+    const stillDownloadable = buildFile("tmp/pdf-exports/aaa/report.pdf", {
+      customTime: "2026-05-04T12:10:00.000Z",
+      timeCreated: "2026-05-04T11:10:00.000Z",
+    })
+    // Created 5 minutes ago, within the local TTL, but its URL already expired
+    // (the converter ran with a shorter TTL): it must go.
+    const alreadyExpired = buildFile("tmp/pdf-exports/bbb/report.pdf", {
+      customTime: "2026-05-04T11:57:00.000Z",
+      timeCreated: "2026-05-04T11:55:00.000Z",
+    })
+    const bucket = buildBucket([[stillDownloadable, alreadyExpired]])
 
     const result = await new PdfExportsSweepService(bucket).sweepExpiredExports(now)
 
-    expect(result).toEqual({ scanned: 2, deleted: 0, failed: 0, skipped: false })
+    expect(result).toEqual({ scanned: 2, deleted: 1, failed: 0, skipped: false })
+    expect(stillDownloadable.delete).not.toHaveBeenCalled()
+    expect(alreadyExpired.delete).toHaveBeenCalledTimes(1)
+  })
+
+  it("falls back to creation date plus TTL for legacy objects without a stamped expiry", async () => {
+    const expiredLegacy = buildLegacyFile(
+      "tmp/pdf-exports/aaa/report.pdf",
+      "2026-05-04T11:43:59.000Z",
+    )
+    const freshLegacy = buildLegacyFile(
+      "tmp/pdf-exports/bbb/report.pdf",
+      "2026-05-04T11:44:00.000Z",
+    )
+    const bucket = buildBucket([[expiredLegacy, freshLegacy]])
+
+    const result = await new PdfExportsSweepService(bucket).sweepExpiredExports(now)
+
+    expect(result).toEqual({ scanned: 2, deleted: 1, failed: 0, skipped: false })
+    expect(expiredLegacy.delete).toHaveBeenCalledTimes(1)
+    expect(freshLegacy.delete).not.toHaveBeenCalled()
+  })
+
+  it("keeps files whose expiry and creation date are both missing or unparseable", async () => {
+    const withoutDate = buildLegacyFile("tmp/pdf-exports/aaa/report.pdf")
+    const withBadDate = buildLegacyFile("tmp/pdf-exports/bbb/report.pdf", "not-a-date")
+    const withBadExpiryAndNoDate = buildFile("tmp/pdf-exports/ccc/report.pdf", {
+      customTime: "not-a-date",
+    })
+    const bucket = buildBucket([[withoutDate, withBadDate, withBadExpiryAndNoDate]])
+
+    const result = await new PdfExportsSweepService(bucket).sweepExpiredExports(now)
+
+    expect(result).toEqual({ scanned: 3, deleted: 0, failed: 0, skipped: false })
     expect(withoutDate.delete).not.toHaveBeenCalled()
     expect(withBadDate.delete).not.toHaveBeenCalled()
+    expect(withBadExpiryAndNoDate.delete).not.toHaveBeenCalled()
   })
 
   it("counts a rejected delete as failed without failing the sweep", async () => {
-    const undeletable = buildFile("tmp/pdf-exports/aaa/report.pdf", "2026-05-04T10:00:00.000Z")
+    const undeletable = buildStampedFile(
+      "tmp/pdf-exports/aaa/report.pdf",
+      "2026-05-04T10:00:00.000Z",
+    )
     undeletable.delete.mockRejectedValue(new Error("permission denied"))
-    const deletable = buildFile("tmp/pdf-exports/bbb/report.pdf", "2026-05-04T10:00:00.000Z")
+    const deletable = buildStampedFile("tmp/pdf-exports/bbb/report.pdf", "2026-05-04T10:00:00.000Z")
     const bucket = buildBucket([[undeletable, deletable]])
 
     const result = await new PdfExportsSweepService(bucket).sweepExpiredExports(now)
@@ -110,11 +172,14 @@ describe("PdfExportsSweepService", () => {
     expect(result).toEqual({ scanned: 2, deleted: 1, failed: 1, skipped: false })
   })
 
-  it("honours the configured TTL and prefix", async () => {
+  it("honours the configured prefix and the legacy TTL for unstamped objects", async () => {
     process.env[prefixKey] = "scratch/exports/"
     process.env[ttlKey] = "60"
-    // Older than 15 min but within the 60 min TTL, so still live.
-    const withinLongerTtl = buildFile("scratch/exports/aaa/report.pdf", "2026-05-04T11:30:00.000Z")
+    // Older than 15 min but within the 60 min legacy TTL, so still live.
+    const withinLongerTtl = buildLegacyFile(
+      "scratch/exports/aaa/report.pdf",
+      "2026-05-04T11:30:00.000Z",
+    )
     const bucket = buildBucket([[withinLongerTtl]])
 
     const result = await new PdfExportsSweepService(bucket).sweepExpiredExports(now)
@@ -135,7 +200,7 @@ describe("PdfExportsSweepService", () => {
     const pages = Array.from(
       { length: PDF_EXPORTS_SWEEP_MAX_PAGES_PER_RUN + 5 },
       (_page, index) => [
-        buildFile(`tmp/pdf-exports/page-${index}/report.pdf`, "2026-05-04T10:00:00.000Z"),
+        buildStampedFile(`tmp/pdf-exports/page-${index}/report.pdf`, "2026-05-04T10:00:00.000Z"),
       ],
     )
     const bucket = buildBucket(pages)
