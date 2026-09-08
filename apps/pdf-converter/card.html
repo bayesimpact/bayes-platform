@@ -113,13 +113,75 @@
   var PROTOCOL_VERSION = "2026-01-26";
   var INITIALIZE_ID = 1;
 
+  // The card speaks the agent's language. The server stamps it on <html lang>
+  // from the Accept-Language header the platform sends with every MCP call,
+  // and a host may still override it through hostContext.locale (MCP Apps).
+  // Every visible string is picked from this dictionary at render time;
+  // English is the fallback for a missing or unknown locale.
+  var MESSAGES = {
+    en: {
+      preparingTitle: "Preparing your PDF",
+      preparingNamedTitle: "Preparing {name}…",
+      preparingDetail: "The document is being generated.",
+      download: "Download PDF",
+      defaultFileName: "document.pdf",
+      page: "page",
+      pages: "pages",
+      expiresIn: "Link expires in {countdown}",
+      expired: "Link expired, ask the agent to export again",
+      linkUnavailable: "Download link unavailable, ask the agent to export again",
+      failedTitle: "PDF export failed",
+      failedDetail: "The export did not complete.",
+      readyTitle: "PDF ready",
+      readyDetail: "The document was generated.",
+      cancelledTitle: "PDF export cancelled",
+      cancelledDetail: "Ask the agent to export again.",
+      cardUnavailableTitle: "PDF download card unavailable",
+      cardUnavailableDetail: "Ask the agent for the download link.",
+      megabytes: "{value} MB",
+      kilobytes: "{value} KB",
+      bytes: "{value} B",
+      decimalSeparator: "."
+    },
+    fr: {
+      preparingTitle: "Préparation de votre PDF",
+      preparingNamedTitle: "Préparation de {name}…",
+      preparingDetail: "Le document est en cours de génération.",
+      download: "Télécharger le PDF",
+      defaultFileName: "document.pdf",
+      page: "page",
+      pages: "pages",
+      expiresIn: "Le lien expire dans {countdown}",
+      expired: "Lien expiré, demandez à l’agent de refaire l’export",
+      linkUnavailable: "Lien de téléchargement indisponible, demandez à l’agent de refaire l’export",
+      failedTitle: "L’export PDF a échoué",
+      failedDetail: "L’export ne s’est pas terminé.",
+      readyTitle: "PDF prêt",
+      readyDetail: "Le document a été généré.",
+      cancelledTitle: "Export PDF annulé",
+      cancelledDetail: "Demandez à l’agent de refaire l’export.",
+      cardUnavailableTitle: "Carte de téléchargement indisponible",
+      cardUnavailableDetail: "Demandez le lien de téléchargement à l’agent.",
+      megabytes: "{value} Mo",
+      kilobytes: "{value} Ko",
+      bytes: "{value} o",
+      decimalSeparator: ","
+    }
+  };
+
   var nameEl = document.getElementById("name");
   var metaEl = document.getElementById("meta");
   var expiryEl = document.getElementById("expiry");
   var downloadEl = document.getElementById("download");
 
+  var locale = "en";
   var expiresAtMs = 0;
   var countdownTimer = null;
+  // What the card currently shows, kept so a locale change can redraw it:
+  // { kind: "preparing", fileName } | { kind: "result", output } |
+  // { kind: "status", titleKey, detailKey, detail } where a non-empty
+  // `detail` (text sent by the server) wins over the translated `detailKey`.
+  var state = { kind: "preparing", fileName: "" };
 
   function send(message) {
     window.parent.postMessage(message, "*");
@@ -133,17 +195,36 @@
     });
   }
 
+  // setLocale maps a BCP 47 tag onto a supported language and reports whether
+  // the card's language changed. Anything that is not French renders English.
+  function setLocale(value) {
+    var next = typeof value === "string" && /^fr(?![a-z])/i.test(value) ? "fr" : "en";
+    if (next === locale) {
+      return false;
+    }
+    locale = next;
+    document.documentElement.lang = next;
+    return true;
+  }
+
+  function text(key, values) {
+    var template = MESSAGES[locale][key];
+    return template.replace(/\{(\w+)\}/g, (match, name) => values && values[name] !== undefined ? String(values[name]) : match);
+  }
+
   function formatSize(bytes) {
+    var megabytes;
     if (typeof bytes !== "number" || !Number.isFinite(bytes) || bytes < 0) {
       return "";
     }
     if (bytes >= 1024 * 1024) {
-      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+      megabytes = (bytes / (1024 * 1024)).toFixed(1).replace(".", text("decimalSeparator"));
+      return text("megabytes", { value: megabytes });
     }
     if (bytes >= 1024) {
-      return `${Math.round(bytes / 1024)} KB`;
+      return text("kilobytes", { value: Math.round(bytes / 1024) });
     }
-    return `${bytes} B`;
+    return text("bytes", { value: bytes });
   }
 
   function formatCountdown(milliseconds) {
@@ -191,7 +272,7 @@
   }
 
   function markExpired() {
-    disableDownload("Link expired, ask the agent to export again");
+    disableDownload(text("expired"));
   }
 
   function tickCountdown() {
@@ -200,13 +281,12 @@
       markExpired();
       return;
     }
-    expiryEl.textContent = `Link expires in ${formatCountdown(remaining)}`;
+    expiryEl.textContent = text("expiresIn", { countdown: formatCountdown(remaining) });
     expiryEl.hidden = false;
   }
 
   // renderStatus shows a single-line state (preparing, cancelled, failure).
   function renderStatus(title, detail) {
-    stopCountdown();
     nameEl.textContent = title;
     metaEl.textContent = detail;
     metaEl.hidden = detail === "";
@@ -219,24 +299,23 @@
 
   // renderResult is idempotent: the host may re-send the same tool result.
   function renderResult(output) {
-    stopCountdown();
     var parts = [];
     if (typeof output.pageCount === "number" && output.pageCount > 0) {
-      parts.push(output.pageCount + (output.pageCount === 1 ? " page" : " pages"));
+      parts.push(`${output.pageCount} ${text(output.pageCount === 1 ? "page" : "pages")}`);
     }
     var size = formatSize(output.sizeBytes);
     if (size !== "") {
       parts.push(size);
     }
 
-    nameEl.textContent = output.fileName || "document.pdf";
+    nameEl.textContent = output.fileName || text("defaultFileName");
     metaEl.textContent = parts.join(" · ");
     metaEl.hidden = parts.length === 0;
 
     downloadEl.hidden = false;
     var safeUrl = safeHttpsUrl(output.downloadUrl);
     if (!safeUrl) {
-      disableDownload("Download link unavailable, ask the agent to export again");
+      disableDownload(text("linkUnavailable"));
       return;
     }
     downloadEl.removeAttribute("aria-disabled");
@@ -255,6 +334,37 @@
       expiryEl.hidden = true;
     }
     sendSizeChanged();
+  }
+
+  // render draws the current state in the current language. It is the only
+  // place that turns a state into DOM, so a locale change simply calls it
+  // again.
+  function render() {
+    stopCountdown();
+    downloadEl.textContent = text("download");
+    if (state.kind === "result") {
+      renderResult(state.output);
+      return;
+    }
+    if (state.kind === "preparing") {
+      renderStatus(
+        state.fileName !== ""
+          ? text("preparingNamedTitle", { name: state.fileName })
+          : text("preparingTitle"),
+        text("preparingDetail")
+      );
+      return;
+    }
+    renderStatus(text(state.titleKey), state.detail !== "" ? state.detail : text(state.detailKey));
+  }
+
+  function show(nextState) {
+    state = nextState;
+    render();
+  }
+
+  function showStatus(titleKey, detailKey, detail) {
+    show({ kind: "status", titleKey: titleKey, detailKey: detailKey, detail: detail || "" });
   }
 
   function firstTextContent(content) {
@@ -277,15 +387,15 @@
       return;
     }
     if (result.isError) {
-      renderStatus("PDF export failed", firstTextContent(result.content) || "The export did not complete.");
+      showStatus("failedTitle", "failedDetail", firstTextContent(result.content));
       return;
     }
     var output = result.structuredContent;
     if (!output || typeof output !== "object") {
-      renderStatus("PDF ready", firstTextContent(result.content) || "The document was generated.");
+      showStatus("readyTitle", "readyDetail", firstTextContent(result.content));
       return;
     }
-    renderResult(output);
+    show({ kind: "result", output: output });
   }
 
   function onNotification(method, params) {
@@ -294,10 +404,7 @@
     if (method === "ui/notifications/tool-input") {
       args = params?.arguments;
       fileName = args && typeof args.fileName === "string" ? args.fileName : "";
-      renderStatus(
-        fileName !== "" ? `Preparing ${fileName}…` : "Preparing your PDF",
-        "The document is being generated."
-      );
+      show({ kind: "preparing", fileName: fileName });
       return;
     }
     if (method === "ui/notifications/tool-result") {
@@ -305,11 +412,11 @@
       return;
     }
     if (method === "ui/notifications/tool-cancelled") {
-      renderStatus("PDF export cancelled", "Ask the agent to export again.");
+      showStatus("cancelledTitle", "cancelledDetail");
       return;
     }
     if (method === "ui/notifications/host-context-changed") {
-      applyTheme(params?.theme);
+      applyHostContext(params);
       return;
     }
     // Anything else: nothing to do.
@@ -319,6 +426,20 @@
   // because the surrounding chat, not the OS, sets the page's colours.
   function applyTheme(theme) {
     document.documentElement.setAttribute("data-theme", theme === "dark" ? "dark" : "light");
+  }
+
+  // applyHostContext takes the full context from ui/initialize or the partial
+  // one from host-context-changed: only the fields present are applied.
+  function applyHostContext(hostContext) {
+    if (!hostContext || typeof hostContext !== "object") {
+      return;
+    }
+    if (hostContext.theme !== undefined) {
+      applyTheme(hostContext.theme);
+    }
+    if (hostContext.locale !== undefined && setLocale(hostContext.locale)) {
+      render();
+    }
   }
 
   function onHostRequest(id, method) {
@@ -338,11 +459,13 @@
 
   function onInitializeResponse(message) {
     if (message.error) {
-      renderStatus("PDF download card unavailable", "Ask the agent for the download link.");
+      showStatus("cardUnavailableTitle", "cardUnavailableDetail");
       return;
     }
     var hostContext = message.result?.hostContext;
+    // Light stays the default when the host sends no theme at all.
     applyTheme(hostContext?.theme);
+    applyHostContext(hostContext);
     send({ jsonrpc: "2.0", method: "ui/notifications/initialized" });
   }
 
@@ -373,6 +496,9 @@
     new window.ResizeObserver(sendSizeChanged).observe(document.documentElement);
   }
 
+  // Start in the language the server stamped on the document.
+  setLocale(document.documentElement.lang);
+  render();
   send({
     jsonrpc: "2.0",
     id: INITIALIZE_ID,
@@ -383,7 +509,6 @@
       protocolVersion: PROTOCOL_VERSION
     }
   });
-  sendSizeChanged();
 })();
 </script>
 </body>

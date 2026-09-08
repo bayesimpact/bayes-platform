@@ -66,6 +66,18 @@ export class PublicChatService {
       sessionId: session.id,
       messages,
       externalVisitorId: session.externalVisitorId,
+      // Same published settings as the replies themselves, so the cards come
+      // back in the language the visitor was answered in.
+      resolveLocale: async () => {
+        const agentSettings = await this.agentSettingsService.getLast({
+          connectScope: {
+            organizationId: publicSession.organizationId,
+            projectId: publicSession.projectId,
+          },
+          agentId: session.agentId,
+        })
+        return agentSettings.locale
+      },
     })
     return toMcpAppHtmlDtos(htmlByKey)
   }

@@ -100,6 +100,13 @@ link cannot open a new tab, and without `allow-downloads` browsers open the tab 
 block the download because it was started from a sandboxed frame. The card follows
 `hostContext.theme` (light by default) rather than the OS colour scheme.
 
+The card is served in the agent's language. The platform API sends the agent's
+configured language as the `Accept-Language` header of every MCP call, and
+`resources/read` stamps it on the card's `<html lang>`: `fr` (or any `fr-*` tag) gives
+a French card, anything else English. The script starts from that attribute and still
+honours a `hostContext.locale` sent by a host, on `ui/initialize` or on
+`ui/notifications/host-context-changed`, redrawing its current state in place.
+
 ### The `tmp/pdf-exports/` prefix and the TTL contract
 
 Every export is written once to `{PDF_EXPORT_TMP_PREFIX}{uuid}/{fileName}` and this

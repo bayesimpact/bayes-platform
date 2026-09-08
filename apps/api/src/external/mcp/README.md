@@ -8,6 +8,19 @@ Generic integration for external MCP (Model Context Protocol) servers. Supports 
 - **`agent_mcp_server`** table: junction enabling specific servers per agent
 - At runtime, the streaming service queries all enabled servers for the agent, connects to each, and merges their tools
 
+## Request headers
+
+Every call to an MCP server (tool calls and `resources/read`) carries the conversation context as HTTP headers, built by `buildMcpRequestHeaders` (`external/mcp/mcp-request-headers.ts`). They are plumbing, never prompt text, so a server can rely on them.
+
+| Header | Value |
+|--------|-------|
+| `X-Bayes-Agent-Id` | The agent the call runs for |
+| `X-Bayes-Session-Id` | The conversation or public session |
+| `X-Bayes-External-Visitor-Id` | Visitor identifier of a public/embed session, when the embedding page set one |
+| `Accept-Language` | The agent's configured language (`fr`, `en`), so a server can localize what it returns, e.g. an MCP App card |
+
+Static headers from a server's configuration are sent too, but the context headers always win over them.
+
 ## Built-in servers
 
 Some MCP servers are provided by the platform itself. They carry one of the slugs allowlisted in `BUILT_IN_PRESET_SLUGS` (`domains/mcp-servers/built-in/built-in-mcp-servers.ts`), belong to no project (`project_id` is null), are listed in every project and cannot be deleted — admins only toggle them per agent. Other preset rows (seeded by `npm run seed:mcp-preset`) are not built-in: they stay out of the listings and remain deletable.

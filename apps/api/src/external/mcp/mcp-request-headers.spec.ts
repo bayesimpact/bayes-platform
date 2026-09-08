@@ -5,6 +5,7 @@ describe("buildMcpRequestHeaders", () => {
     agentId: "agent-1",
     sessionId: "session-1",
     externalVisitorId: "visitor-1",
+    locale: "fr",
   }
 
   it("forwards the conversation context on every call", () => {
@@ -13,14 +14,16 @@ describe("buildMcpRequestHeaders", () => {
     expect(headers[MCP_CONTEXT_HEADERS.agentId]).toBe("agent-1")
     expect(headers[MCP_CONTEXT_HEADERS.sessionId]).toBe("session-1")
     expect(headers[MCP_CONTEXT_HEADERS.externalVisitorId]).toBe("visitor-1")
+    expect(headers[MCP_CONTEXT_HEADERS.locale]).toBe("fr")
   })
 
-  it("omits the external visitor header when the session has none", () => {
+  it("omits the external visitor and language headers when the session has none", () => {
     const headers = buildMcpRequestHeaders({
       context: { agentId: "agent-1", sessionId: "session-1", externalVisitorId: null },
     })
 
     expect(headers).not.toHaveProperty(MCP_CONTEXT_HEADERS.externalVisitorId)
+    expect(headers).not.toHaveProperty(MCP_CONTEXT_HEADERS.locale)
     expect(headers[MCP_CONTEXT_HEADERS.sessionId]).toBe("session-1")
   })
 
