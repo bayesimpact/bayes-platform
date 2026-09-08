@@ -16,7 +16,7 @@ Some MCP servers are provided by the platform itself. They carry one of the slug
 |------|--------|----------|
 | `pdf-export` | "PDF export" (`apps/pdf-converter`) | `PDF_CONVERTER_URL` |
 
-- **Boot sync**: `BuiltInMcpServersService.syncFromEnvironment()` runs once in `main.ts`, before the API listens. It upserts the row on its preset slug, so it creates the row, refreshes its URL when the service moves, and restores it if it was deleted by hand. Without `PDF_CONVERTER_URL` the server is skipped and never listed.
+- **Boot sync**: `BuiltInMcpServersService.syncFromEnvironment()` runs once in `main.ts`, before the API listens. It upserts the row on its preset slug, so it creates the row, refreshes its URL when the service moves, and restores it if it was deleted by hand. Without `PDF_CONVERTER_URL` the server is skipped, and an existing row is soft-deleted: it disappears from every project's listing and from the enabled servers of the agents that had it. The per-agent links are kept, so setting the variable again brings the same row back with those agents still linked.
 - **IAM audience**: when `PDF_CONVERTER_AUTH=google-iam` (set by terraform in production, where the converter is locked behind Cloud Run invoker IAM), the enabled-server config carries a `googleIamAudience` — the converter URL origin. `McpClientService` then mints a Google ID token for it and sends it as `Authorization`, overriding any configured API key.
 - **Deletion**: `DELETE …/mcp-servers/:mcpServerId` on a built-in server answers 403, both in the policy and in `McpServersService.deleteMcpServer`.
 - **Storage**: temporary PDF exports are swept by the workers; see `apps/api/src/domains/documents/pdf-exports/README.md`.

@@ -27,8 +27,9 @@ export class BuiltInMcpServersService {
 
   /**
    * Creates the built-in row or refreshes its name and config. The upsert on
-   * the preset slug also restores a row deleted by hand and tolerates
-   * concurrent boots of several instances. An unchanged row is left alone, so
+   * the preset slug also restores a row deleted by hand or retired by an
+   * earlier boot (see `retireBuiltInServer`) and tolerates concurrent boots
+   * of several instances. An unchanged row is left alone, so
    * restarting the API does not bump its updated_at.
    */
   async ensureBuiltInServer({
@@ -53,12 +54,35 @@ export class BuiltInMcpServersService {
     return this.mcpServerRepository.findOneOrFail({ where: { presetSlug: slug } })
   }
 
-  /** Returns the slugs that were synced and the ones the environment skips. */
+  /**
+   * Soft-deletes the live built-in row for `slug`, once the environment no
+   * longer provides the service behind it. Only the server row is touched: the
+   * per-agent links stay in place but stop resolving, since soft-deleted
+   * servers are excluded from listings and from an agent's enabled servers.
+   * Setting the variable again makes `ensureBuiltInServer` clear `deletedAt`
+   * on the same row, and the links come back with it. Returns whether a live
+   * row was retired.
+   */
+  async retireBuiltInServer(slug: string): Promise<boolean> {
+    const existing = await this.mcpServerRepository.findOne({ where: { presetSlug: slug } })
+    if (!existing) return false
+    await this.mcpServerRepository.softDelete({ id: existing.id })
+    return true
+  }
+
+  /**
+   * Returns the slugs that were synced and the ones the environment skips. A
+   * skipped slug whose row still exists is retired, so decommissioning the
+   * converter also removes the server from every workspace.
+   */
   async syncFromEnvironment(): Promise<{ synced: string[]; skipped: string[] }> {
     const converterUrl = this.configService.get<string>("PDF_CONVERTER_URL")
     if (!converterUrl) {
+      const retired = await this.retireBuiltInServer(PDF_EXPORT_PRESET_SLUG)
       this.logger.log(
-        `PDF_CONVERTER_URL is not set: skipping the built-in "${PDF_EXPORT_BUILT_IN_NAME}" MCP server`,
+        retired
+          ? `PDF_CONVERTER_URL is not set: retired the built-in "${PDF_EXPORT_BUILT_IN_NAME}" MCP server`
+          : `PDF_CONVERTER_URL is not set: skipping the built-in "${PDF_EXPORT_BUILT_IN_NAME}" MCP server`,
       )
       return { synced: [], skipped: [PDF_EXPORT_PRESET_SLUG] }
     }

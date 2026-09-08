@@ -138,4 +138,17 @@ describe("McpServers - list", () => {
     expect(response.body.data).toHaveLength(1)
     expect(response.body.data[0]).toMatchObject({ id: builtInServer.id, isBuiltIn: true })
   })
+
+  it("should not return a retired built-in server", async () => {
+    await createContext()
+    await createBuiltInServer()
+    await setup.module
+      .get<BuiltInMcpServersService>(BuiltInMcpServersService)
+      .retireBuiltInServer(PDF_EXPORT_PRESET_SLUG)
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(response.body.data).toEqual([])
+  })
 })

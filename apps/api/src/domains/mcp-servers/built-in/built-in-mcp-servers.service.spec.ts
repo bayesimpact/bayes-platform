@@ -4,6 +4,8 @@ import {
   setupTransactionalTestDatabase,
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
+import { agentFactory } from "@/domains/agents/agent.factory"
+import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { McpServersModule } from "../mcp-servers.module"
 import { McpServersService } from "../mcp-servers.service"
 import { PDF_EXPORT_BUILT_IN_NAME, PDF_EXPORT_PRESET_SLUG } from "./built-in-mcp-servers"
@@ -51,8 +53,53 @@ describe("BuiltInMcpServersService", () => {
       const result = await service.syncFromEnvironment()
 
       expect(result).toEqual({ synced: [], skipped: [PDF_EXPORT_PRESET_SLUG] })
-      const stored = await repositories.mcpServerRepository.find()
+      const stored = await repositories.mcpServerRepository.find({ withDeleted: true })
       expect(stored).toHaveLength(0)
+    })
+
+    it("should retire an existing PDF export server when PDF_CONVERTER_URL is unset", async () => {
+      await service.syncFromEnvironment()
+      const created = await repositories.mcpServerRepository.findOneOrFail({
+        where: { presetSlug: PDF_EXPORT_PRESET_SLUG },
+      })
+      delete process.env.PDF_CONVERTER_URL
+
+      const result = await service.syncFromEnvironment()
+
+      expect(result).toEqual({ synced: [], skipped: [PDF_EXPORT_PRESET_SLUG] })
+      expect(await repositories.mcpServerRepository.count()).toBe(0)
+      const retired = await repositories.mcpServerRepository.findOneOrFail({
+        where: { id: created.id },
+        withDeleted: true,
+      })
+      expect(retired.deletedAt).not.toBeNull()
+    })
+
+    it("should hide a retired server from listings and agents, then restore both", async () => {
+      const { organization, project } = await createOrganizationWithProject(repositories)
+      const agent = agentFactory.transient({ organization, project }).build()
+      await repositories.agentRepository.save(agent)
+      await service.syncFromEnvironment()
+      const created = await repositories.mcpServerRepository.findOneOrFail({
+        where: { presetSlug: PDF_EXPORT_PRESET_SLUG },
+      })
+      await mcpServersService.enableForAgent(agent.id, created.id)
+
+      delete process.env.PDF_CONVERTER_URL
+      await service.syncFromEnvironment()
+
+      expect(await mcpServersService.listMcpServers(project.id)).toEqual([])
+      expect(await mcpServersService.getEnabledServersForAgent(agent.id)).toEqual([])
+
+      process.env.PDF_CONVERTER_URL = "https://pdf-converter.example.test"
+      const restored = await service.syncFromEnvironment()
+
+      expect(restored).toEqual({ synced: [PDF_EXPORT_PRESET_SLUG], skipped: [] })
+      const listed = await mcpServersService.listMcpServers(project.id)
+      expect(listed.map((mcpServer) => mcpServer.id)).toEqual([created.id])
+      expect(await mcpServersService.getEnabledServersForAgent(agent.id)).toEqual([
+        { id: created.id, url: "https://pdf-converter.example.test/mcp" },
+      ])
     })
 
     it("should create the PDF export server pointing at the converter's mcp endpoint", async () => {
