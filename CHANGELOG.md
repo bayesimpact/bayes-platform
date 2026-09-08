@@ -13,6 +13,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
+- (beta) PDF export: when the download card cannot load, the reply shows the export result as text.
+
 ### Security
 
 ## [26.09.2] - 2026-09-08
