@@ -26,7 +26,7 @@ import { useFormResult } from "./form-result-context"
 import { useFormSubSessions } from "./form-sub-sessions-context"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { McpAppPlaceholder, McpAppView } from "./McpAppView"
-import { getFailedMcpAppFallbackText, getRenderableMcpApp, hasMcpAppCard } from "./mcp-app-view"
+import { getRenderableMcpApp, getReplyBubbleText, hasMcpAppCard } from "./mcp-app-view"
 import { SourcesTool } from "./SourcesTool"
 import { SubAgentFormResultSheet } from "./SubAgentFormResultSheet"
 import { SurfaceResourcesTool } from "./SurfaceResourcesTool"
@@ -55,7 +55,6 @@ export function AgentSessionMessage({
   switch (message.role) {
     case "assistant": {
       const isStreaming = message.status === "streaming"
-      const hasContent = message.content.trim().length > 0
       const isError = message.status === "error"
       // The stream died with the server (typically a deploy mid-reply): nothing was written.
       const isInterrupted = message.status === "aborted"
@@ -77,17 +76,14 @@ export function AgentSessionMessage({
           .filter(({ view }) => view === undefined && !isMcpAppHtmlPending)
           .map(({ toolCall }) => toolCall.id),
       ]
-      // A card that failed to render must not take the reply text down with it.
-      const hideMarkdownRecap =
-        !isStreaming &&
-        mcpAppCards.some(({ toolCall }) => !unavailableMcpAppToolCallIds.includes(toolCall.id))
-      // The model may have written nothing because it expected the card to speak for the tool:
-      // once the card gave up, the tool result text stands in for the reply.
-      const failedMcpAppFallbackText = hasContent
-        ? ""
-        : getFailedMcpAppFallbackText(message.toolCalls, unavailableMcpAppToolCallIds)
-      const bubbleContent =
-        hasContent && !hideMarkdownRecap ? message.content : failedMcpAppFallbackText
+      // The reply text stays on screen next to its cards. The model may have written nothing
+      // because it expected the card to speak for the tool: once the card gave up, the tool
+      // result text stands in for the reply.
+      const bubbleContent = getReplyBubbleText(
+        message.content,
+        message.toolCalls,
+        unavailableMcpAppToolCallIds,
+      )
       // Tool names this message delegated to that resolved to a form sub-session,
       // deduplicated so a sub-agent invoked twice shows a single affordance.
       const delegatedToolNames = [

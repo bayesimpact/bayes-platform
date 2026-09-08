@@ -1,4 +1,5 @@
 import { type AgentSessionMessageDto, ToolName } from "@caseai-connect/api-contracts"
+import { LATEST_PROTOCOL_VERSION } from "@modelcontextprotocol/ext-apps"
 
 let idCounter = 1
 function nextId() {
@@ -186,6 +187,80 @@ export const loadingMcpAppCardConversation: AgentSessionMessageDto[] = [
           structuredContent: { fileName: "Notes.pdf" },
         },
         mcpApp: { mcpServerId: "mcp-server-1", resourceUri: "ui://pdf-export/mcp-app.html" },
+      },
+    ],
+  }),
+]
+
+/**
+ * Minimal MCP App guest for stories only: it completes the `ui/initialize` handshake and shows the
+ * tool result's file name. Not the card served by the PDF export server.
+ */
+const SAMPLE_CARD_HTML = `<!DOCTYPE html>
+<html>
+  <body style="font: 13px sans-serif; margin: 8px;">
+    <div id="root">Loading…</div>
+    <script>
+      (function () {
+        function send(message) {
+          window.parent.postMessage(Object.assign({ jsonrpc: "2.0" }, message), "*")
+        }
+        function notifySize() {
+          send({
+            method: "ui/notifications/size-changed",
+            params: { height: document.documentElement.getBoundingClientRect().height },
+          })
+        }
+        window.addEventListener("message", function (event) {
+          if (event.source !== window.parent) return
+          var message = event.data
+          if (!message || message.jsonrpc !== "2.0") return
+          if (message.method === "ui/notifications/tool-result") {
+            var structuredContent = (message.params && message.params.structuredContent) || {}
+            document.getElementById("root").textContent = structuredContent.fileName || "document.pdf"
+            notifySize()
+            return
+          }
+          if (message.id === 1 && message.result) {
+            send({ method: "ui/notifications/initialized" })
+          }
+        })
+        send({
+          id: 1,
+          method: "ui/initialize",
+          params: {
+            appInfo: { name: "sample", version: "0" },
+            appCapabilities: {},
+            protocolVersion: "${LATEST_PROTOCOL_VERSION}",
+          },
+        })
+        notifySize()
+      })()
+    </script>
+  </body>
+</html>`
+
+/**
+ * A reply with prose and a rendered MCP App card: the text stays in its bubble above the card,
+ * the card shows the tool result below it.
+ */
+export const textWithMcpAppCardConversation: AgentSessionMessageDto[] = [
+  buildUserMessage("Export these notes as a PDF."),
+  buildAssistantMessage("Done! You can download the PDF from the card below.\n\nAnything else?", {
+    toolCalls: [
+      {
+        id: "call-pdf-export",
+        name: "export_pdf",
+        arguments: { markdown: "# Notes" },
+        result: {
+          content: [{ type: "text", text: "Created Notes.pdf (2 pages)." }],
+          structuredContent: { fileName: "Notes.pdf" },
+        },
+        mcpApp: {
+          mcpServerId: "mcp-server-1",
+          resourceUri: "ui://pdf-export/mcp-app.html",
+          html: SAMPLE_CARD_HTML,
+        },
       },
     ],
   }),
