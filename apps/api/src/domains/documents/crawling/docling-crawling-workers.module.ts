@@ -7,6 +7,8 @@ import { ALL_ENTITIES } from "@/common/all-entities"
 import { DoclingCrawlerClientService } from "@/external/docling-crawler/docling-crawler-client.service"
 import { DocumentsService } from "../documents.service"
 import { DocumentEmbeddingStatusNotifierService } from "../embeddings/document-embedding-status-notifier.service"
+import { PdfPagesModule } from "../pdf-pages/pdf-pages.module"
+import { StorageModule } from "../storage/storage.module"
 import { DocumentTagsService } from "../tags/document-tags.service"
 import { DoclingCrawlGenerationService } from "./docling-crawl-generation.service"
 import { DOCLING_CRAWLING_QUEUE_NAME } from "./docling-crawling.constants"
@@ -28,6 +30,8 @@ import { WebSourceEmbeddingsBatchModule } from "./web-source-embeddings-batch.mo
       name: DOCLING_CRAWLING_QUEUE_NAME,
     }),
     TypeOrmModule.forFeature(ALL_ENTITIES),
+    StorageModule,
+    PdfPagesModule,
     WebSourceEmbeddingsBatchModule,
   ],
   providers: [

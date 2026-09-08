@@ -2,11 +2,7 @@ import { Injectable, Logger } from "@nestjs/common"
 import { Docling } from "docling-sdk"
 import ipaddr from "ipaddr.js"
 import { chromium } from "playwright"
-import {
-  assertCrawlUrlIsSafe,
-  assertIpIsSafe,
-  UnsafeCrawlUrlError,
-} from "@/common/utils/crawl-url-safety"
+import { assertIpIsSafe, assertUrlIsSafe, UnsafeUrlError } from "@/common/utils/url-safety"
 import { resolveDoclingServeUrl } from "./docling-crawler.constants"
 import { rewriteDefinitionListsAsUnorderedLists } from "./docling-definition-list-rewrite"
 
@@ -116,7 +112,7 @@ export class DoclingCrawlerClientService {
         if (!currentUrl || visitedUrls.has(currentUrl)) continue
         visitedUrls.add(currentUrl)
 
-        await assertCrawlUrlIsSafe(currentUrl)
+        await assertUrlIsSafe(currentUrl)
 
         const isStartUrl = visitedUrls.size === 1
         let linksEnqueued = false
@@ -186,7 +182,7 @@ export class DoclingCrawlerClientService {
           })
           inFlightConversions.push({ url: currentUrl, promise: conversionPromise })
         } catch (error) {
-          if (error instanceof UnsafeCrawlUrlError || (isStartUrl && !linksEnqueued)) {
+          if (error instanceof UnsafeUrlError || (isStartUrl && !linksEnqueued)) {
             throw error
           }
           errored += 1

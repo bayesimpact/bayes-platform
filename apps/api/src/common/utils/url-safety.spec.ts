@@ -1,5 +1,5 @@
 import dns from "node:dns"
-import { assertCrawlUrlIsSafe, assertIpIsSafe, UnsafeCrawlUrlError } from "./crawl-url-safety"
+import { assertIpIsSafe, assertUrlIsSafe, UnsafeUrlError } from "./url-safety"
 
 jest.mock("node:dns", () => ({ promises: { lookup: jest.fn() } }))
 
@@ -18,32 +18,30 @@ describe("assertIpIsSafe", () => {
     ["IPv6 unique local", "fc00::1"],
     ["IPv4-mapped IPv6 private address", "::ffff:10.0.0.1"],
   ])("rejects %s address %s", (_label, address) => {
-    expect(() => assertIpIsSafe(address)).toThrow(UnsafeCrawlUrlError)
+    expect(() => assertIpIsSafe(address)).toThrow(UnsafeUrlError)
   })
 })
 
-describe("assertCrawlUrlIsSafe", () => {
+describe("assertUrlIsSafe", () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
   it("rejects non-http(s) protocols", async () => {
-    await expect(assertCrawlUrlIsSafe("file:///etc/passwd")).rejects.toThrow(UnsafeCrawlUrlError)
+    await expect(assertUrlIsSafe("file:///etc/passwd")).rejects.toThrow(UnsafeUrlError)
     expect(dns.promises.lookup).not.toHaveBeenCalled()
   })
 
   it("accepts a hostname resolving to a public address", async () => {
     ;(dns.promises.lookup as jest.Mock).mockResolvedValue([{ address: "93.184.216.34", family: 4 }])
 
-    await expect(assertCrawlUrlIsSafe("https://example.com/")).resolves.toBeUndefined()
+    await expect(assertUrlIsSafe("https://example.com/")).resolves.toBeUndefined()
   })
 
   it("rejects a hostname resolving to a private address", async () => {
     ;(dns.promises.lookup as jest.Mock).mockResolvedValue([{ address: "10.0.0.5", family: 4 }])
 
-    await expect(assertCrawlUrlIsSafe("https://internal.example.com/")).rejects.toThrow(
-      UnsafeCrawlUrlError,
-    )
+    await expect(assertUrlIsSafe("https://internal.example.com/")).rejects.toThrow(UnsafeUrlError)
   })
 
   it("rejects when any resolved address is private", async () => {
@@ -52,14 +50,12 @@ describe("assertCrawlUrlIsSafe", () => {
       { address: "127.0.0.1", family: 4 },
     ])
 
-    await expect(assertCrawlUrlIsSafe("https://example.com/")).rejects.toThrow(UnsafeCrawlUrlError)
+    await expect(assertUrlIsSafe("https://example.com/")).rejects.toThrow(UnsafeUrlError)
   })
 
   it("rejects when DNS resolution fails", async () => {
     ;(dns.promises.lookup as jest.Mock).mockRejectedValue(new Error("ENOTFOUND"))
 
-    await expect(assertCrawlUrlIsSafe("https://does-not-exist.invalid/")).rejects.toThrow(
-      UnsafeCrawlUrlError,
-    )
+    await expect(assertUrlIsSafe("https://does-not-exist.invalid/")).rejects.toThrow(UnsafeUrlError)
   })
 })

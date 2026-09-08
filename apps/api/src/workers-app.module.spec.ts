@@ -1,6 +1,9 @@
 import { KNOWN_WORKER_QUEUE_NAMES } from "./worker-pools"
 import { WORKER_MODULE_REGISTRY } from "./workers-app.module"
 
+jest.mock("docling-sdk", () => ({ Docling: jest.fn() }))
+jest.mock("playwright", () => ({ chromium: { launch: jest.fn() } }))
+
 /**
  * `WORKER_QUEUE_NAMES=all` (smoke check, test setup) expands to
  * KNOWN_WORKER_QUEUE_NAMES. A queue registered in one list but not the other
