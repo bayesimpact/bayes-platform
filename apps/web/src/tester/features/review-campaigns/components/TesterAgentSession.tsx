@@ -134,6 +134,7 @@ export function TesterAgentSessionContent({
           session={agentSession}
           messages={messages}
           formResultSchema={agent.fillFormEnabled ? agent.outputJsonSchema : undefined}
+          agentLocale={agent.locale}
           onFillFormToolEvent={handleFillFormToolEvent}
         />
       </div>

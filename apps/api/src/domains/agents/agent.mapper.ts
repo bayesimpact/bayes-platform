@@ -21,6 +21,7 @@ export function toAgentDto({
     name: agent.name,
     projectId: agent.projectId,
     type: agent.type,
+    locale: agentSettings.locale,
   }
 }
 
@@ -53,5 +54,6 @@ export function toAgentWithDraftDto({
     name: agent.name,
     projectId: agent.projectId,
     type: agent.type,
+    locale: currentAgentSettings.locale,
   }
 }

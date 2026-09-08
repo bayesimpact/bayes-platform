@@ -115,6 +115,7 @@ export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentS
           formResultSchema={
             runningSettings.fillFormEnabled ? runningSettings.outputJsonSchema : undefined
           }
+          agentLocale={runningSettings.locale}
           renderMessageVersion={renderMessageVersion}
           renderVersionSelect={
             <AgentSettingsVersionSelect agentId={agent.id} revision={runningRevision} />

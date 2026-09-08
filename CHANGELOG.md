@@ -17,6 +17,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) PDF export: the built-in server disappears from workspaces when the export feature is turned off.
 - (beta) MCP App cards no longer reload when a sibling card in the same reply fails to render.
 - (beta) PDF export: when the download card cannot load, the reply shows the export result as text.
+- (beta) PDF export: the download card is now shown in the agent's language.
 
 - (beta) PDF export: large documents no longer fail at the upload step after a slow render.
 

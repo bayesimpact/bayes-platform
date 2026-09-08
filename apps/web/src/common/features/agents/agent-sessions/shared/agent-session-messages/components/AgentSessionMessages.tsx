@@ -1,3 +1,4 @@
+import type { AgentLocale } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { ButtonGroup } from "@caseai-connect/ui/shad/button-group"
 import {
@@ -53,6 +54,7 @@ export function AgentSessionMessages({
   onFillFormToolEvent,
   formSubSessions = [],
   formResultSchema,
+  agentLocale,
   renderMessageVersion,
   renderVersionSelect,
 }: {
@@ -61,6 +63,8 @@ export function AgentSessionMessages({
   onFillFormToolEvent?: () => void
   formSubSessions?: ConversationSubSession[]
   formResultSchema?: Record<string, unknown>
+  /** Language the agent is configured to speak; MCP App cards render their own text in it. */
+  agentLocale?: AgentLocale
   /**
    * Optional per-message affordance rendered in the footer, after the copy button.
    * Studio uses it for the agent settings revision badge; the other surfaces omit it.
@@ -101,6 +105,7 @@ export function AgentSessionMessages({
               <FormResultProvider value={formResult}>
                 <Messages
                   messages={messages}
+                  agentLocale={agentLocale}
                   renderMessageVersion={renderMessageVersion}
                   resendReplyIndex={failedTurn?.replyIndex}
                   onResendLast={handleResendLast}
@@ -124,11 +129,13 @@ export function AgentSessionMessages({
 
 function Messages({
   messages,
+  agentLocale,
   renderMessageVersion,
   resendReplyIndex,
   onResendLast,
 }: {
   messages: AgentSessionMessageType[]
+  agentLocale?: AgentLocale
   renderMessageVersion?: (message: AgentSessionMessageType) => React.ReactNode
   /** Index of the failed reply that renders the Retry affordance. */
   resendReplyIndex?: number
@@ -147,6 +154,7 @@ function Messages({
             >
               <AgentSessionMessage
                 message={message}
+                agentLocale={agentLocale}
                 renderMessageVersion={renderMessageVersion}
                 onResend={index === resendReplyIndex ? onResendLast : undefined}
               />

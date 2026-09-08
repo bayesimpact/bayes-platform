@@ -1,3 +1,4 @@
+import { AgentLocale } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { Project } from "@/common/features/projects/projects.models"
@@ -31,6 +32,7 @@ export const agentFactory = AgentFactory.define(({ params, transientParams }) =>
     name: params.name ?? faker.helpers.arrayElement(AGENT_NAMES),
     projectId: project.id,
     type: params.type ?? faker.helpers.arrayElement(types),
+    locale: params.locale ?? AgentLocale.EN,
     currentRevision: {
       name: params.currentRevision?.name,
       description: params.currentRevision?.description,

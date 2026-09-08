@@ -1,4 +1,8 @@
-import { type AgentSessionToolName, ToolName } from "@caseai-connect/api-contracts"
+import {
+  type AgentLocale,
+  type AgentSessionToolName,
+  ToolName,
+} from "@caseai-connect/api-contracts"
 import { Bubble, BubbleContent } from "@caseai-connect/ui/shad/bubble"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
@@ -33,10 +37,13 @@ import { SurfaceResourcesTool } from "./SurfaceResourcesTool"
 
 export function AgentSessionMessage({
   message,
+  agentLocale,
   renderMessageVersion,
   onResend,
 }: {
   message: AgentSessionMessageType
+  /** Language the agent is configured to speak; MCP App cards render their own text in it. */
+  agentLocale?: AgentLocale
   renderMessageVersion?: (message: AgentSessionMessageType) => React.ReactNode
   /** Sends the turn that led to this reply again. Only offered on a failed last reply. */
   onResend?: () => void
@@ -138,6 +145,7 @@ export function AgentSessionMessage({
                     html={view.html}
                     toolInput={view.toolInput}
                     toolResult={view.toolResult}
+                    locale={agentLocale}
                     onRenderFailed={() =>
                       setFailedMcpAppToolCallIds((previous) =>
                         previous.includes(toolCall.id) ? previous : [...previous, toolCall.id],

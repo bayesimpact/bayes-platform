@@ -383,6 +383,11 @@ func TestMCPReadDownloadCard(t *testing.T) {
 		"ui/notifications/size-changed",
 		// The card must validate downloadUrl before using it as an href.
 		`"https:"`,
+		// The card follows the host's locale (the agent's language) and
+		// ships both languages it supports.
+		"hostContext.locale",
+		"Download PDF",
+		"Télécharger le PDF",
 	} {
 		if !strings.Contains(contents.Text, needle) {
 			t.Fatalf("expected the card to speak %s", needle)

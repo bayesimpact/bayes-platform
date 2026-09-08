@@ -194,11 +194,17 @@ export function McpAppView({
   html,
   toolInput,
   toolResult,
+  locale,
   onRenderFailed,
 }: {
   html: string
   toolInput: unknown
   toolResult: unknown
+  /**
+   * BCP 47 tag handed to the guest as `hostContext.locale`, so a card can render its own text
+   * in the agent's language rather than the viewer's. Omitted, the guest picks its default.
+   */
+  locale?: string
   /** The card gave up (handshake error or timeout); the parent can show its text fallback. */
   onRenderFailed?: () => void
 }) {
@@ -237,7 +243,7 @@ export function McpAppView({
           { logging: {}, sandbox: {}, openLinks: {} },
           {
             // The app has no dark mode, so guests are told to render light.
-            hostContext: { displayMode: "inline", platform: "web", theme: "light" },
+            hostContext: { displayMode: "inline", platform: "web", theme: "light", locale },
           },
         )
         bridge = appBridge
@@ -350,7 +356,7 @@ export function McpAppView({
           void currentBridge.close()
         })
     }
-  }, [html, toolInput, toolResult])
+  }, [html, toolInput, toolResult, locale])
 
   if (hasFailed) return null
 
