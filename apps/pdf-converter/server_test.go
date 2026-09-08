@@ -29,6 +29,17 @@ type fakeStore struct {
 	signedDownloadFileNames map[string]string
 	// signErr, when set, makes SignedURL fail.
 	signErr error
+	// storeDeadlines records the deadline of the context each SignedURL and
+	// Upload call received, keyed by object; the zero time means none.
+	storeDeadlines map[string]time.Time
+}
+
+func (store *fakeStore) recordDeadline(ctx context.Context, object string) {
+	if store.storeDeadlines == nil {
+		store.storeDeadlines = map[string]time.Time{}
+	}
+	deadline, _ := ctx.Deadline()
+	store.storeDeadlines[object] = deadline
 }
 
 func (store *fakeStore) Download(ctx context.Context, object string, maxBytes int64) ([]byte, error) {
@@ -47,6 +58,7 @@ func (store *fakeStore) Download(ctx context.Context, object string, maxBytes in
 func (store *fakeStore) Upload(ctx context.Context, object string, data []byte, opts uploadOptions) error {
 	store.mutex.Lock()
 	defer store.mutex.Unlock()
+	store.recordDeadline(ctx, object)
 	store.objects[object] = data
 	if store.contentTypes == nil {
 		store.contentTypes = map[string]string{}
@@ -62,6 +74,7 @@ func (store *fakeStore) Upload(ctx context.Context, object string, data []byte, 
 func (store *fakeStore) SignedURL(ctx context.Context, object string, opts signedURLOptions) (string, error) {
 	store.mutex.Lock()
 	defer store.mutex.Unlock()
+	store.recordDeadline(ctx, object)
 	if store.signErr != nil {
 		return "", store.signErr
 	}

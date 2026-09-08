@@ -1,30 +1,16 @@
+import { readPositiveIntEnv } from "@/config/positive-int-env"
+
 const DEFAULT_SWEEP_INTERVAL_SECONDS = 300 // 5 minutes
 const DEFAULT_TTL_MINUTES = 15
 /** GCS V4 signing caps a signed URL at seven days, and the converter rejects anything above it. */
 const MAX_TTL_MINUTES = 7 * 24 * 60
 const DEFAULT_TMP_PREFIX = "tmp/pdf-exports/"
 
-function parsePositiveIntWithDefault(
-  environmentVariableName: string,
-  defaultValue: number,
-): number {
-  const rawValue = process.env[environmentVariableName]
-  if (rawValue === undefined || rawValue === "") {
-    return defaultValue
-  }
-  const parsed = Number.parseInt(rawValue, 10)
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw new Error(`${environmentVariableName} must be a positive integer.`)
-  }
-  return parsed
-}
-
 /** How often the BullMQ scheduler enqueues a PDF export sweep job (Bull `every` uses ms internally). */
 export function getPdfExportSweepIntervalSeconds(): number {
-  return parsePositiveIntWithDefault(
-    "PDF_EXPORT_SWEEP_INTERVAL_SECONDS",
-    DEFAULT_SWEEP_INTERVAL_SECONDS,
-  )
+  return readPositiveIntEnv("PDF_EXPORT_SWEEP_INTERVAL_SECONDS", {
+    defaultValue: DEFAULT_SWEEP_INTERVAL_SECONDS,
+  })
 }
 
 /**
@@ -32,10 +18,13 @@ export function getPdfExportSweepIntervalSeconds(): number {
  * `customTime` stamp because they were written before the converter set one.
  * Current exports carry their exact expiry, so this value no longer has to
  * match the converter's `PDF_EXPORT_TTL_MINUTES`. Remove once no legacy
- * object is left.
+ * object is left. Parsed like the converter's `strconv.Atoi`, so "15m" or
+ * "1.5" are rejected here as well instead of truncating to 15 or 1.
  */
 export function getPdfExportTtlMinutes(): number {
-  const ttlMinutes = parsePositiveIntWithDefault("PDF_EXPORT_TTL_MINUTES", DEFAULT_TTL_MINUTES)
+  const ttlMinutes = readPositiveIntEnv("PDF_EXPORT_TTL_MINUTES", {
+    defaultValue: DEFAULT_TTL_MINUTES,
+  })
   if (ttlMinutes > MAX_TTL_MINUTES) {
     throw new Error(`PDF_EXPORT_TTL_MINUTES must be at most ${MAX_TTL_MINUTES} (seven days).`)
   }
@@ -43,17 +32,16 @@ export function getPdfExportTtlMinutes(): number {
 }
 
 /**
- * Object-name prefix the sweep lists and deletes under. Validated strictly: a
- * prefix that is empty, absolute, or not directory-shaped would make the sweep
- * delete expired objects across the whole bucket, not just the exports.
+ * Object-name prefix the sweep lists and deletes under. An unset or empty
+ * variable falls back to the default, matching the converter. A non-empty
+ * value is validated strictly: a prefix that is absolute or not
+ * directory-shaped would make the sweep delete expired objects across the
+ * whole bucket, not just the exports.
  */
 export function getPdfExportTmpPrefix(): string {
   const rawValue = process.env.PDF_EXPORT_TMP_PREFIX
-  const prefix = rawValue === undefined ? DEFAULT_TMP_PREFIX : rawValue
+  const prefix = rawValue === undefined || rawValue === "" ? DEFAULT_TMP_PREFIX : rawValue
 
-  if (prefix === "") {
-    throw new Error("PDF_EXPORT_TMP_PREFIX must not be empty (it would sweep the whole bucket).")
-  }
   if (prefix === "/" || prefix.startsWith("/")) {
     throw new Error(
       "PDF_EXPORT_TMP_PREFIX must be a relative object prefix, without a leading slash.",

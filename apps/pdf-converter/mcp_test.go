@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"github.com/bayesimpact/bayes-platform/apps/pdf-converter/internal/mdpdf"
 )
 
 // testExportNow freezes the clock so the signed URL and expiresAt are exact.
@@ -24,6 +26,7 @@ func newTestExportConfig() pdfExportConfig {
 		MaxMarkdownBytes: 1 << 20,
 		TmpPrefix:        defaultPdfExportPrefix,
 		Timeout:          time.Minute,
+		UploadTimeout:    time.Minute,
 		MaxPages:         pdfExportMaxPages,
 		Now:              func() time.Time { return testExportNow },
 		NewID:            func() string { return "fixed-id" },
@@ -284,6 +287,76 @@ func TestMCPConvertMarkdownSignedURLFailure(t *testing.T) {
 	// an orphaned upload in the bucket.
 	if len(store.objects) != 0 {
 		t.Fatalf("expected no uploads when signing fails, store has %v", store.objects)
+	}
+}
+
+// TestMCPConvertMarkdownSlowRenderKeepsUploadBudget covers the split between
+// the render and the upload deadlines: a render that eats most of the render
+// budget must leave signing and uploading with their own full budget instead
+// of the few milliseconds left on the render context.
+func TestMCPConvertMarkdownSlowRenderKeepsUploadBudget(t *testing.T) {
+	config := newTestExportConfig()
+	config.Timeout = 300 * time.Millisecond
+	config.UploadTimeout = time.Minute
+	config.Render = func(ctx context.Context, _ []byte, _ mdpdf.Options) (mdpdf.Result, error) {
+		// Burn most of the render budget, then hand back a fake PDF.
+		select {
+		case <-time.After(250 * time.Millisecond):
+		case <-ctx.Done():
+			return mdpdf.Result{}, ctx.Err()
+		}
+		return mdpdf.Result{PDF: []byte("%PDF-1.4 fake"), PageCount: 1}, nil
+	}
+	store := &fakeStore{objects: map[string][]byte{}}
+	session := connectMCP(t, newMCPHandler(store, config))
+
+	callStart := time.Now()
+	result := callConvert(t, session, map[string]any{"markdown": "# Slow report\n"})
+	if result.IsError {
+		t.Fatalf("expected a successful call after a slow render, got %s", resultText(t, result))
+	}
+
+	const wantObject = "tmp/pdf-exports/fixed-id/document.pdf"
+	if _, found := store.objects[wantObject]; !found {
+		t.Fatalf("expected an upload at %q, store has %v", wantObject, store.objects)
+	}
+	deadline := store.storeDeadlines[wantObject]
+	if deadline.IsZero() {
+		t.Fatal("expected the store to be called with a deadline")
+	}
+	// Had the store inherited renderCtx, its deadline would sit within
+	// config.Timeout of the call start. The upload deadline must be well past
+	// the render one.
+	renderDeadlineUpperBound := callStart.Add(config.Timeout)
+	if !deadline.After(renderDeadlineUpperBound.Add(30 * time.Second)) {
+		t.Fatalf("expected the store deadline to be on its own budget (well after %s), got %s",
+			renderDeadlineUpperBound, deadline)
+	}
+}
+
+// TestMCPConvertMarkdownRenderTimeout checks that a render that blows its
+// budget is reported as a render problem, not as a storage one, and that
+// nothing is uploaded.
+func TestMCPConvertMarkdownRenderTimeout(t *testing.T) {
+	config := newTestExportConfig()
+	config.Timeout = 50 * time.Millisecond
+	config.Render = func(ctx context.Context, _ []byte, _ mdpdf.Options) (mdpdf.Result, error) {
+		<-ctx.Done()
+		return mdpdf.Result{}, fmt.Errorf("render markdown to pdf: %w", ctx.Err())
+	}
+	store := &fakeStore{objects: map[string][]byte{}}
+	session := connectMCP(t, newMCPHandler(store, config))
+
+	result := callConvert(t, session, map[string]any{"markdown": "# Never finishes\n"})
+	if !result.IsError {
+		t.Fatalf("expected an error result, got %+v", result)
+	}
+	text := resultText(t, result)
+	if !strings.Contains(text, "render") || strings.Contains(text, "store") {
+		t.Fatalf("expected a render timeout message, got %q", text)
+	}
+	if len(store.objects) != 0 {
+		t.Fatalf("expected no uploads after a render timeout, store has %v", store.objects)
 	}
 }
 

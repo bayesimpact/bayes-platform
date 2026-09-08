@@ -12,10 +12,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+- (beta) MCP App cards no longer reload when a sibling card in the same reply fails to render.
+
+- (beta) PDF export: when the download card cannot load, the reply shows the export result as text.
+
+- (beta) PDF export: large documents no longer fail at the upload step after a slow render.
 
 - (beta) PDF export: exported PDFs are now kept exactly as long as their download link is valid.
 
 ### Security
+- MCP servers can no longer be enabled or disabled on an agent that belongs to another project.
 
 ## [26.09.2] - 2026-09-08
 

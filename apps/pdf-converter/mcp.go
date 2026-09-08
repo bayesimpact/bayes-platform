@@ -52,12 +52,17 @@ type pdfExportConfig struct {
 	MaxMarkdownBytes int
 	// TmpPrefix ends with "/" and is a valid relative object path.
 	TmpPrefix string
-	Timeout   time.Duration
-	MaxPages  int
-	// Now and NewID are injection points for tests; nil means time.Now and
-	// uuid.NewString.
-	Now   func() time.Time
-	NewID func() string
+	// Timeout bounds waiting for a render slot plus the render itself.
+	Timeout time.Duration
+	// UploadTimeout bounds signing and uploading the rendered PDF, separately
+	// from Timeout, so a slow render never leaves the upload with no time.
+	UploadTimeout time.Duration
+	MaxPages      int
+	// Now, NewID and Render are injection points for tests; nil means
+	// time.Now, uuid.NewString and mdpdf.Render.
+	Now    func() time.Time
+	NewID  func() string
+	Render func(ctx context.Context, markdown []byte, opts mdpdf.Options) (mdpdf.Result, error)
 }
 
 func (cfg pdfExportConfig) now() time.Time {
@@ -72,6 +77,15 @@ func (cfg pdfExportConfig) newID() string {
 		return uuid.NewString()
 	}
 	return cfg.NewID()
+}
+
+func (cfg pdfExportConfig) render(
+	ctx context.Context, markdown []byte, opts mdpdf.Options,
+) (mdpdf.Result, error) {
+	if cfg.Render == nil {
+		return mdpdf.Render(ctx, markdown, opts)
+	}
+	return cfg.Render(ctx, markdown, opts)
 }
 
 // The "1 MiB" in the markdown description is the default of
@@ -119,33 +133,45 @@ func (exporter *pdfExporter) convert(
 	fileName := sanitizeFileName(in.FileName)
 	renderCtx, cancelRender := context.WithTimeout(ctx, exporter.cfg.Timeout)
 	defer cancelRender()
-	// Waiting for a slot is part of the render budget: an export that cannot
-	// get one before renderCtx expires fails like any other render timeout.
+	// The render budget covers waiting for a slot and the render itself, and
+	// nothing else: an export that cannot get a slot before renderCtx expires
+	// fails like any other render timeout, while signing and uploading run
+	// below on their own budget so a slow render cannot starve them.
 	if err := exporter.renderSlots.Acquire(renderCtx, 1); err != nil {
 		log.Printf("pdf export waited too long for a render slot: %v", err)
-		return nil, convertMarkdownOutput{}, errors.New("could not render the PDF, try again")
+		return nil, convertMarkdownOutput{}, errors.New("could not render the PDF in time, try again")
 	}
-	rendered, err := mdpdf.Render(renderCtx, []byte(markdown), mdpdf.Options{
+	rendered, err := exporter.cfg.render(renderCtx, []byte(markdown), mdpdf.Options{
 		Title:    in.Title,
 		FileName: fileName,
 		MaxPages: exporter.cfg.MaxPages,
 	})
 	exporter.renderSlots.Release(1)
+	cancelRender()
 	if errors.Is(err, mdpdf.ErrTooManyPages) {
 		return nil, convertMarkdownOutput{}, fmt.Errorf(
 			"the document would exceed %d pages, split it into smaller documents", exporter.cfg.MaxPages)
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		log.Printf("pdf export render timed out after %s: %v", exporter.cfg.Timeout, err)
+		return nil, convertMarkdownOutput{}, errors.New("could not render the PDF in time, try a shorter document")
 	}
 	if err != nil {
 		log.Printf("pdf export render failed: %v", err)
 		return nil, convertMarkdownOutput{}, errors.New("could not render the PDF, try again")
 	}
 
+	// Signing and uploading get their own deadline, derived from the request
+	// context rather than from renderCtx, so a document that used most of the
+	// render budget still has the full upload budget left.
+	storeCtx, cancelStore := context.WithTimeout(ctx, exporter.cfg.UploadTimeout)
+	defer cancelStore()
 	// Sign before uploading: BucketHandle.SignedURL does not need the object
 	// to exist, and signing first means a signing failure never leaves an
 	// orphaned upload in the bucket.
 	object := exporter.cfg.TmpPrefix + exporter.cfg.newID() + "/" + fileName
 	expires := exporter.cfg.now().Add(exporter.cfg.TTL)
-	downloadURL, err := exporter.store.SignedURL(renderCtx, object, signedURLOptions{
+	downloadURL, err := exporter.store.SignedURL(storeCtx, object, signedURLOptions{
 		Expires:          expires,
 		DownloadFileName: fileName,
 	})
@@ -155,7 +181,7 @@ func (exporter *pdfExporter) convert(
 	}
 	// The expiry travels with the object: the API sweep reads it back as the
 	// GCS custom time, so the converter alone decides how long an export lives.
-	if err := exporter.store.Upload(renderCtx, object, rendered.PDF, uploadOptions{
+	if err := exporter.store.Upload(storeCtx, object, rendered.PDF, uploadOptions{
 		ContentType: "application/pdf",
 		ExpiresAt:   expires,
 	}); err != nil {

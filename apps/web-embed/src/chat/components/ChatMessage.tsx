@@ -6,7 +6,7 @@ import { cn } from "../lib/cn"
 import { ChatBotMessage, ChatUserMessage } from "./index"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { McpAppView } from "./McpAppView"
-import { getRenderableMcpApp } from "./mcp-app-view"
+import { getFailedMcpAppFallbackText, getRenderableMcpApp } from "./mcp-app-view"
 import { findSourcesTool, SourcesTool } from "./SourcesTool"
 import {
   findSurfaceResourcesTool,
@@ -25,21 +25,29 @@ export function ChatMessage({ message }: { message: AgentSessionMessageDto }) {
         const view = getRenderableMcpApp(toolCall)
         return view ? [{ toolCall, view }] : []
       })
+      const hasContent = message.content.trim().length > 0
       // A card that failed to render must not take the reply text down with it.
       const hideMarkdownRecap =
         !isStreaming &&
         mcpAppViews.some(({ toolCall }) => !failedMcpAppToolCallIds.includes(toolCall.id))
+      // The model may have written nothing because it expected the card to speak for the tool:
+      // once the card gave up, the tool result text stands in for the reply.
+      const failedMcpAppFallbackText = hasContent
+        ? ""
+        : getFailedMcpAppFallbackText(message.toolCalls, failedMcpAppToolCallIds)
+      const bubbleContent =
+        hasContent && !hideMarkdownRecap ? message.content : failedMcpAppFallbackText
       const surfaceResourcesTool = findSurfaceResourcesTool(message.toolCalls)
       const sourcesTool = findSourcesTool(message.toolCalls)
+      // A card that gave up rendering still ran its tool: the reply is not empty, only quiet.
       const isEmpty =
-        message.content.trim().length === 0 &&
+        !hasContent &&
         message.status === "completed" &&
-        !hideMarkdownRecap &&
+        mcpAppViews.length === 0 &&
         !hasSurfacedResources(message.toolCalls)
       // "aborted": the stream died with the server before anything was written.
       const isError = message.status === "error" || message.status === "aborted" || isEmpty
-      const showTextBubble =
-        isError || isStreaming || (!hideMarkdownRecap && message.content.trim().length > 0)
+      const showTextBubble = isError || isStreaming || bubbleContent.length > 0
 
       return (
         <div className="flex w-full flex-col">
@@ -54,12 +62,12 @@ export function ChatMessage({ message }: { message: AgentSessionMessageDto }) {
                 )}
               >
                 {isStreaming && message.content.trim().length === 0 && <ThinkingIndicator />}
-                {isError ? <ErrorIndicator /> : <MarkdownWrapper content={message.content} />}
+                {isError ? <ErrorIndicator /> : <MarkdownWrapper content={bubbleContent} />}
               </div>
 
-              {!isStreaming && !isError && message.content.trim().length > 0 && (
+              {!isStreaming && !isError && bubbleContent.length > 0 && (
                 <div className="mt-1 flex flex-col items-start">
-                  <CopyButton content={message.content} />
+                  <CopyButton content={bubbleContent} />
                   {sourcesTool && <SourcesTool toolCall={sourcesTool} />}
                 </div>
               )}

@@ -58,11 +58,21 @@ describe("pdf-exports.config", () => {
     expect(getPdfExportTtlMinutes()).toBe(30)
   })
 
-  it("throws when the TTL is not a positive integer", () => {
-    process.env[ttlKey] = "not-a-number"
+  it.each([
+    ["text", "not-a-number"],
+    ["a trailing unit the converter rejects", "15m"],
+    ["a decimal the converter rejects", "1.5"],
+    ["zero", "0"],
+  ])("throws when the TTL is %s", (_description, rawValue) => {
+    process.env[ttlKey] = rawValue
     expect(() => getPdfExportTtlMinutes()).toThrow(
       /PDF_EXPORT_TTL_MINUTES must be a positive integer/,
     )
+  })
+
+  it("falls back to the default TTL when the variable is empty", () => {
+    process.env[ttlKey] = ""
+    expect(getPdfExportTtlMinutes()).toBe(15)
   })
 
   it("reads the TTL at the seven-day cap", () => {
@@ -84,8 +94,12 @@ describe("pdf-exports.config", () => {
     expect(getPdfExportTmpPrefix()).toBe("scratch/exports/")
   })
 
+  it("falls back to the default tmp prefix when the variable is empty, like the converter", () => {
+    process.env[prefixKey] = ""
+    expect(getPdfExportTmpPrefix()).toBe("tmp/pdf-exports/")
+  })
+
   it.each([
-    ["empty", ""],
     ["the bucket root", "/"],
     ["absolute", "/tmp/pdf-exports/"],
     ["traversing", "tmp/../"],

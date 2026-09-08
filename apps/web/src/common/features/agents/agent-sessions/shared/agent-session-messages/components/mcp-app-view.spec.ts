@@ -1,6 +1,12 @@
 import type { AgentSessionToolCallDto } from "@caseai-connect/api-contracts"
 import { describe, expect, it } from "vitest"
-import { getRenderableMcpApp, hasRenderableMcpApp, isOpenableLink } from "./mcp-app-view"
+import {
+  getFailedMcpAppFallbackText,
+  getMcpAppToolResultText,
+  getRenderableMcpApp,
+  hasRenderableMcpApp,
+  isOpenableLink,
+} from "./mcp-app-view"
 
 const baseToolCall: AgentSessionToolCallDto = {
   id: "call-1",
@@ -70,6 +76,73 @@ describe("hasRenderableMcpApp", () => {
         },
       ]),
     ).toBe(true)
+  })
+})
+
+describe("getMcpAppToolResultText", () => {
+  it("joins the text parts of an MCP tool result", () => {
+    expect(
+      getMcpAppToolResultText({
+        content: [
+          { type: "text", text: "Created report.pdf (3 pages)." },
+          { type: "image", data: "...", mimeType: "image/png" },
+          { type: "text", text: "  Download: https://example.com/report.pdf  " },
+        ],
+        structuredContent: { fileName: "report.pdf" },
+      }),
+    ).toBe("Created report.pdf (3 pages).\nDownload: https://example.com/report.pdf")
+  })
+
+  it("is empty when the result has no text content", () => {
+    expect(getMcpAppToolResultText(undefined)).toBe("")
+    expect(getMcpAppToolResultText("plain string")).toBe("")
+    expect(getMcpAppToolResultText({ structuredContent: { title: "Ada" } })).toBe("")
+    expect(getMcpAppToolResultText({ content: "not a list" })).toBe("")
+    expect(getMcpAppToolResultText({ content: [{ type: "text", text: "   " }] })).toBe("")
+  })
+})
+
+describe("getFailedMcpAppFallbackText", () => {
+  const cardToolCall: AgentSessionToolCallDto = {
+    ...baseToolCall,
+    id: "call-card",
+    name: "export_pdf",
+    result: { content: [{ type: "text", text: "Created report.pdf (3 pages)." }] },
+    mcpApp: {
+      mcpServerId: "mcp-server-1",
+      resourceUri: "ui://pdf-export/mcp-app.html",
+      html: "<html><body>Card</body></html>",
+    },
+  }
+
+  it("is empty while no card has failed", () => {
+    expect(getFailedMcpAppFallbackText([baseToolCall, cardToolCall], [])).toBe("")
+    expect(getFailedMcpAppFallbackText(undefined, ["call-card"])).toBe("")
+  })
+
+  it("returns the tool result text of the cards that failed to render", () => {
+    expect(getFailedMcpAppFallbackText([baseToolCall, cardToolCall], ["call-card"])).toBe(
+      "Created report.pdf (3 pages).",
+    )
+  })
+
+  it("separates the text of several failed cards and skips results without text", () => {
+    const silentCard: AgentSessionToolCallDto = {
+      ...cardToolCall,
+      id: "call-silent",
+      result: { structuredContent: { title: "Ada" } },
+    }
+    const secondCard: AgentSessionToolCallDto = {
+      ...cardToolCall,
+      id: "call-second",
+      result: { content: [{ type: "text", text: "Created notes.pdf (1 page)." }] },
+    }
+    expect(
+      getFailedMcpAppFallbackText(
+        [cardToolCall, silentCard, secondCard],
+        ["call-card", "call-silent", "call-second"],
+      ),
+    ).toBe("Created report.pdf (3 pages).\n\nCreated notes.pdf (1 page).")
   })
 })
 

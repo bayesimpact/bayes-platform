@@ -146,6 +146,12 @@ Sans and DejaVu Sans Mono (Bitstream Vera licence, see
 - `PDF_EXPORT_MAX_MARKDOWN_BYTES` (default `1048576`, 1 MiB) — markdown input size cap.
 - `PDF_EXPORT_TMP_PREFIX` (default `tmp/pdf-exports/`) — GCS prefix exports are written
   under; must be a relative object path ending with `/`.
+- `PDF_CONVERTER_RENDER_TIMEOUT_MS` (default `60000`, 60s) — budget for waiting for a
+  render slot plus rendering the markdown; on expiry the tool answers "could not render
+  the PDF in time".
+- `PDF_CONVERTER_UPLOAD_TIMEOUT_MS` (default `30000`, 30s) — separate budget for signing
+  and uploading the rendered PDF, so a slow render never leaves the upload without
+  time; on expiry the tool answers "could not store the PDF".
 
 ### Smoke test
 
@@ -171,6 +177,7 @@ service is only bound on the developer's machine.
 - `PORT` (default `3002`) — listen port.
 - `PDF_CONVERTER_MAX_PDF_BYTES` (default `52428800`, 50MB) — source PDF size limit.
 - `PDF_CONVERTER_RENDER_TIMEOUT_MS` (default `60000`, 60s) — hard per-request deadline for rendering work; must stay below the API client's 120s request timeout.
+- `PDF_CONVERTER_UPLOAD_TIMEOUT_MS` (default `30000`, 30s) — separate deadline for signing and uploading an exported PDF once it is rendered; the sum with the render timeout must stay below the API client's 120s request timeout.
 - `PDF_EXPORT_TTL_MINUTES` (default `15`, max `10080`) — how long a signed PDF export download link stays valid; see [MCP endpoint](#mcp-endpoint).
 - `PDF_EXPORT_MAX_MARKDOWN_BYTES` (default `1048576`, 1 MiB) — markdown input size cap for the PDF export tool.
 - `PDF_EXPORT_TMP_PREFIX` (default `tmp/pdf-exports/`) — GCS prefix PDF exports are written under.

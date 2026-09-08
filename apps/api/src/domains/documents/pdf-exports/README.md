@@ -16,6 +16,8 @@ The converter owns the lifetime of an export: when it uploads the PDF it stamps 
 | `PDF_EXPORT_SWEEP_INTERVAL_SECONDS` | `300` | workers only: how often the sweep runs |
 | `PDF_EXPORTS_SWEEP_QUEUE_NAME` | (required, no default) | every worker process: the sweep queue name, must match `WORKER_QUEUE_NAMES` |
 
+Both sides parse these the same way: an unset or empty variable takes the default, and the integer ones only accept plain digits (`15m` or `1.5` are rejected on both sides rather than truncated to `15` or `1`).
+
 Objects written before the converter stamped expiries have no `customTime`. For those the sweep falls back to `timeCreated` plus the workers' `PDF_EXPORT_TTL_MINUTES`; that fallback can be removed once none is left.
 
 Without `GCS_STORAGE_BUCKET_NAME` the sweep has nothing to sweep (local setups store files on disk through `LocalStorageService`), so the bucket provider yields `null` and each run returns immediately.
