@@ -15,6 +15,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) MCP App cards no longer reload when a sibling card in the same reply fails to render.
 
 ### Security
+- MCP servers can no longer be enabled or disabled on an agent that belongs to another project.
 
 ## [26.09.2] - 2026-09-08
 
