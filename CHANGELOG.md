@@ -9,6 +9,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.09.2] - 2026-09-08
+
+### Added
+
 - (beta) Priority calls: agents on Gemini 3.x models can now enable the priority tier from the Model tab.
 - Agents can run on gemini-3.7-flash and gemini-3.8-flash.
 - Public agent banner: an optional notice pinned above the conversation on the public page and in the widget.
