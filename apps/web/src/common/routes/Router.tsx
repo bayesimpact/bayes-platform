@@ -13,7 +13,7 @@ import { RouteNames } from "./helpers"
 import { OnboardingRoute } from "./OnboardingRoute"
 import { ProtectedRoute } from "./ProtectedRoute"
 
-const router = () =>
+const buildRouter = () =>
   createBrowserRouter([
     {
       path: RouteNames.HOME,
@@ -49,8 +49,20 @@ const router = () =>
     },
   ])
 
+let appRouter: ReturnType<typeof buildRouter> | undefined
+
+/**
+ * The single data router for the app. Exposed so code that lives above
+ * `RouterProvider` (the Auth0 redirect callback in main.tsx) can navigate
+ * without router context.
+ */
+export function getAppRouter() {
+  appRouter ??= buildRouter()
+  return appRouter
+}
+
 export function Router() {
-  return <RouterProvider router={router()} />
+  return <RouterProvider router={getAppRouter()} />
 }
 
 export const onboardingRoute = {
