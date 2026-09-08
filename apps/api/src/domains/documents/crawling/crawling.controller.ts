@@ -123,6 +123,12 @@ export class CrawlingController {
 
     const urlToRecrawl = document.sourceUrl
 
+    try {
+      await assertUrlIsSafe(urlToRecrawl)
+    } catch {
+      throw new UnprocessableEntityException("Invalid URL.")
+    }
+
     const connectScope = getRequiredConnectScope(req)
 
     await this.documentsService.resetForRecrawl({

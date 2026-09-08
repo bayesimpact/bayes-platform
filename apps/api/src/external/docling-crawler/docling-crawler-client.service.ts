@@ -124,14 +124,11 @@ export class DoclingCrawlerClientService {
           })
 
           const serverAddr = await response?.serverAddr()
-          if (serverAddr) {
-            if (ipaddr.isValid(serverAddr.ipAddress)) {
-              assertIpIsSafe(serverAddr.ipAddress)
-            } else {
-              this.logger.warn(
-                `Could not verify server address for ${currentUrl} (ipAddress="${serverAddr.ipAddress}") — relying on the pre-navigation DNS check`,
-              )
+          if (response) {
+            if (!serverAddr || !ipaddr.isValid(serverAddr.ipAddress)) {
+              throw new UnsafeUrlError(`Could not verify server address for ${currentUrl}`)
             }
+            assertIpIsSafe(serverAddr.ipAddress)
           }
 
           const statusCode = response?.status()

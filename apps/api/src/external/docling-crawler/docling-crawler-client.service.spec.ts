@@ -236,14 +236,29 @@ describe("DoclingCrawlerClientService", () => {
     expect(close).toHaveBeenCalled()
   })
 
-  it("does not abort the crawl when serverAddr() returns an unparseable ipAddress", async () => {
+  it("aborts the crawl when serverAddr() returns an unparseable ipAddress", async () => {
     goto.mockResolvedValue(serverAddrResponse(200, ""))
-    convert.mockResolvedValue({ document: { md_content: "content" } })
 
     const client = new DoclingCrawlerClientService()
-    const pages = await client.crawlUrl({ url: "https://example.com/" })
 
-    expect(pages).toEqual([{ url: "https://example.com/", markdown: "content" }])
+    await expect(client.crawlUrl({ url: "https://example.com/" })).rejects.toThrow(
+      /Could not verify server address/,
+    )
+    expect(close).toHaveBeenCalled()
+  })
+
+  it("aborts the crawl when serverAddr() is missing", async () => {
+    goto.mockResolvedValue({
+      status: () => 200,
+      serverAddr: () => Promise.resolve(undefined),
+    })
+
+    const client = new DoclingCrawlerClientService()
+
+    await expect(client.crawlUrl({ url: "https://example.com/" })).rejects.toThrow(
+      /Could not verify server address/,
+    )
+    expect(close).toHaveBeenCalled()
   })
 
   it("stops crawling once the max crawl duration elapses", async () => {

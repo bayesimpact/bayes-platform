@@ -152,4 +152,16 @@ describe("Documents - reCrawlUrl", () => {
     )
     expect(crawlingBatchServiceMock.enqueueCrawlUrl).not.toHaveBeenCalled()
   })
+
+  it("rejects a private sourceUrl without resetting the document", async () => {
+    await createContext({ sourceUrl: "http://127.0.0.1/", embeddingStatus: "completed" })
+
+    const response = await subject()
+
+    expectResponse(response, 422, "Invalid URL.")
+    expect(crawlingBatchServiceMock.enqueueCrawlUrl).not.toHaveBeenCalled()
+
+    const document = await repositories.documentRepository.findOne({ where: { id: documentId } })
+    expect(document?.embeddingStatus).toBe("completed")
+  })
 })
