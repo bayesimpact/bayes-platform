@@ -19,7 +19,7 @@ import { organizationFactory } from "@/common/features/organizations/organizatio
 import { projectFactory } from "@/common/features/projects/projects.factory"
 import { DotsBackground } from "@/studio/components/DotsBackground"
 import { withRedux } from "../decorators"
-import { seed } from "../seed"
+import { mergeSeeds, seed } from "../seed"
 
 type StoryArgs = {
   messages: AgentSessionMessage[]
@@ -156,6 +156,45 @@ export const InterruptedReply: Story = {
     messages: [
       agentSessionMessageFactory.build({ role: "user", content: "What can you do?" }),
       agentSessionMessageFactory.build({ role: "assistant", content: "", status: "aborted" }),
+    ],
+  },
+}
+
+/**
+ * A reply whose MCP App card HTML is still being read from the MCP server: the transcript is on
+ * screen and the card holds its place with a placeholder.
+ */
+export const LoadingMcpAppCard: Story = {
+  ...Default,
+  decorators: [
+    withRedux({
+      state: mergeSeeds(
+        seed.currentProject(
+          projectFactory.transient({ organization: organizationFactory.build() }).build(),
+        ),
+        seed.agentSessionMcpAppHtml(undefined),
+      ),
+    }),
+  ],
+  args: {
+    messages: [
+      agentSessionMessageFactory.build({ role: "user", content: "Export these notes as a PDF." }),
+      agentSessionMessageFactory.build({
+        role: "assistant",
+        content: "",
+        toolCalls: [
+          {
+            id: "call-pdf-export",
+            name: "export_pdf",
+            arguments: { markdown: "# Notes" },
+            result: {
+              content: [{ type: "text", text: "Created Notes.pdf (2 pages)." }],
+              structuredContent: { fileName: "Notes.pdf" },
+            },
+            mcpApp: { mcpServerId: "mcp-server-1", resourceUri: "ui://pdf-export/mcp-app.html" },
+          },
+        ],
+      }),
     ],
   },
 }

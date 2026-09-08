@@ -2,6 +2,7 @@ import type { RequestPayload, ResponseData } from "../../../generic"
 import { defineRoute } from "../../../helpers"
 import type { BaseAgentSessionTypeDto } from "../../conversation-agent-sessions/conversation-agent-sessions.dto"
 import type {
+  AgentSessionMcpAppHtmlDto,
   AgentSessionMessageDto,
   PresignAgentSessionMessageAttachmentDocumentRequestDto,
   PresignAgentSessionMessageAttachmentDocumentResponseDto,
@@ -27,6 +28,18 @@ export const AgentSessionMessagesRoutes = {
   >({
     method: "post",
     path: `${basePath}/messages/:messageId`,
+  }),
+  /**
+   * Current HTML of every MCP App card the session's replies point at. Reading it means
+   * connecting to each MCP server, so it is separate from `getAll` and loaded once the
+   * transcript is already on screen.
+   */
+  getMcpAppHtml: defineRoute<
+    ResponseData<AgentSessionMcpAppHtmlDto[]>,
+    RequestPayload<{ type: BaseAgentSessionTypeDto }>
+  >({
+    method: "post",
+    path: `${basePath}/messages/mcp-app-html`,
   }),
   presignAttachmentDocument: defineRoute<
     ResponseData<PresignAgentSessionMessageAttachmentDocumentResponseDto>,

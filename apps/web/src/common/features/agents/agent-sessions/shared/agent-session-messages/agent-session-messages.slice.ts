@@ -2,8 +2,8 @@ import type { AgentSessionToolName } from "@caseai-connect/api-contracts"
 import { createSlice, isAnyOf, type PayloadAction } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import { conversationAgentSessionsActions } from "../../conversation/conversation-agent-sessions.slice"
-import type { AgentSessionMessage } from "./agent-session-messages.models"
-import { getMessage, listMessages } from "./agent-session-messages.thunks"
+import type { AgentSessionMcpAppHtml, AgentSessionMessage } from "./agent-session-messages.models"
+import { getMessage, listMcpAppHtml, listMessages } from "./agent-session-messages.thunks"
 
 /**
  * Whether a reply is being written is not stored: it is read off the messages (see
@@ -11,12 +11,18 @@ import { getMessage, listMessages } from "./agent-session-messages.thunks"
  */
 type State = {
   data: AsyncData<AgentSessionMessage[]>
+  /**
+   * Current HTML of the MCP App cards the thread points at. Loaded after the messages, so the
+   * transcript shows at once and each card holds a placeholder until its HTML is here.
+   */
+  mcpAppHtml: AsyncData<AgentSessionMcpAppHtml[]>
   /** Ordered tools the agent has run during the current streaming turn, driving the status timeline. */
   streamingToolSteps: AgentSessionToolName[]
 }
 
 const initialState: State = {
   data: defaultAsyncData,
+  mcpAppHtml: defaultAsyncData,
   streamingToolSteps: [],
 }
 
@@ -151,6 +157,26 @@ const slice = createSlice({
       .addCase(listMessages.rejected, (state, action) => {
         state.data.status = ADS.Error
         state.data.error = action.error.message || "Failed to load session messages"
+      })
+
+    builder
+      .addCase(listMcpAppHtml.pending, (state) => {
+        // HTML already shown stays on screen while a refresh runs: a card must not fall back to
+        // its placeholder every time the thread is reloaded.
+        if (!ADS.isFulfilled(state.mcpAppHtml)) state.mcpAppHtml.status = ADS.Loading
+        state.mcpAppHtml.error = null
+      })
+      .addCase(listMcpAppHtml.fulfilled, (state, action) => {
+        state.mcpAppHtml = { value: action.payload, status: ADS.Fulfilled, error: null }
+      })
+      .addCase(listMcpAppHtml.rejected, (state, action) => {
+        // Cards already loaded keep rendering; only the placeholders give way to their text.
+        if (ADS.isFulfilled(state.mcpAppHtml)) return
+        state.mcpAppHtml = {
+          value: null,
+          status: ADS.Error,
+          error: action.error.message || "Failed to load MCP App cards",
+        }
       })
 
     builder.addCase(getMessage.fulfilled, (state, action) => {

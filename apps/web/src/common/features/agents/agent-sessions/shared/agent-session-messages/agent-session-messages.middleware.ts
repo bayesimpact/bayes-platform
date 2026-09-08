@@ -2,7 +2,8 @@ import { createListenerMiddleware } from "@reduxjs/toolkit"
 import { ADS } from "@/common/store/async-data-status"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { agentSessionMessagesActions, isStreamingReply } from "./agent-session-messages.slice"
-import { getMessage, listMessages } from "./agent-session-messages.thunks"
+import { getMessage, listMcpAppHtml, listMessages } from "./agent-session-messages.thunks"
+import { hasMcpAppPointer } from "./components/mcp-app-view"
 
 export const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
@@ -34,6 +35,29 @@ const findStreamingReply = (state: RootState) => {
 }
 
 function registerListeners() {
+  // The message list is served without MCP App HTML: reading it means connecting to every MCP
+  // server the thread points at, and that wait used to hold the whole transcript behind a
+  // spinner. Load it once the messages are on screen; each card shows a placeholder meanwhile.
+  listenerMiddleware.startListening({
+    actionCreator: listMessages.fulfilled,
+    effect: async (action, listenerApi) => {
+      if (!hasMcpAppPointer(action.payload)) return
+      await listenerApi.dispatch(listMcpAppHtml(action.meta.arg))
+    },
+  })
+
+  // A reply that just settled may carry a card whose HTML is not loaded yet, either because it
+  // is the first card of the thread or because the card is new to it.
+  listenerMiddleware.startListening({
+    actionCreator: getMessage.fulfilled,
+    effect: async (action, listenerApi) => {
+      if (isStreamingReply(action.payload) || !hasMcpAppPointer([action.payload])) return
+      const agentSessionId = listenerApi.getState().currentIds.agentSessionId
+      if (!agentSessionId) return
+      await listenerApi.dispatch(listMcpAppHtml(agentSessionId))
+    },
+  })
+
   // A page refresh while the agent writes closes the SSE stream, but the server keeps writing and
   // persists the outcome. Loading such a reply used to render a spinner nothing would ever
   // resolve; instead re-fetch it until the server reports it settled.

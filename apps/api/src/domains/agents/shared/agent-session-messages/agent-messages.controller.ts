@@ -35,7 +35,7 @@ import { UserGuard } from "@/domains/users/user.guard"
 import type { ConversationAgentSession } from "../../conversation-agent-sessions/conversation-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ConversationAgentSessionsService } from "../../conversation-agent-sessions/conversation-agent-sessions.service"
-import { toDto, toDtos } from "./agent-message.helpers"
+import { toDto, toDtos, toMcpAppHtmlDtos } from "./agent-message.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMessageAttachmentDocumentsService } from "./agent-message-attachment-documents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -64,12 +64,28 @@ export class AgentMessagesController {
       agentSessionId,
       connectScope,
     })
+    // MCP App HTML is served by `getMcpAppHtml`: reading it connects to every MCP server the
+    // transcript points at, which used to hold the whole thread behind a spinner.
+    return { data: toDtos(messages) }
+  }
+
+  @CheckPolicy((policy) => policy.canList())
+  @Post(AgentSessionMessagesRoutes.getMcpAppHtml.path)
+  async getMcpAppHtml(
+    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
+  ): Promise<typeof AgentSessionMessagesRoutes.getMcpAppHtml.response> {
+    const connectScope = getRequiredConnectScope(request)
+    const agentSessionId = request.agentSession.id
+    const messages = await this.conversationAgentSessionsService.listMessagesForSession({
+      agentSessionId,
+      connectScope,
+    })
     const htmlByKey = await this.mcpAppHtmlService.readLiveHtml({
       agentId: request.agent.id,
       sessionId: agentSessionId,
       messages,
     })
-    return { data: toDtos(messages, htmlByKey) }
+    return { data: toMcpAppHtmlDtos(htmlByKey) }
   }
 
   @CheckPolicy((policy) => policy.canList())
@@ -87,17 +103,9 @@ export class AgentMessagesController {
     if (!message) {
       throw new NotFoundException("Message not found")
     }
-    // The client polls this while a reply is still being written and discards the snapshot
-    // unless it has settled, so the MCP markup is only worth fetching for a settled reply.
-    const htmlByKey =
-      message.status === "streaming"
-        ? new Map<string, string>()
-        : await this.mcpAppHtmlService.readLiveHtml({
-            agentId: request.agent.id,
-            sessionId: request.agentSession.id,
-            messages: [message],
-          })
-    return { data: toDto(message, htmlByKey) }
+    // The client polls this while a reply is still being written; the MCP App HTML it may
+    // need once settled is loaded through `getMcpAppHtml`, off the polling path.
+    return { data: toDto(message) }
   }
 
   @CheckPolicy((policy) => policy.canCreate())

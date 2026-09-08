@@ -1,9 +1,12 @@
 import type { AgentSessionToolCallDto } from "@caseai-connect/api-contracts"
 import { describe, expect, it } from "vitest"
 import {
+  findMcpAppHtml,
   getFailedMcpAppFallbackText,
   getMcpAppToolResultText,
   getRenderableMcpApp,
+  hasMcpAppCard,
+  hasMcpAppPointer,
   hasRenderableMcpApp,
   isOpenableLink,
 } from "./mcp-app-view"
@@ -14,9 +17,67 @@ const baseToolCall: AgentSessionToolCallDto = {
   arguments: { query: "hello" },
 }
 
+const pointer = { mcpServerId: "mcp-server-1", resourceUri: "ui://pdf-export/mcp-app.html" }
+const cardToolCall: AgentSessionToolCallDto = {
+  ...baseToolCall,
+  name: "export_pdf",
+  result: { content: [{ type: "text", text: "Exported" }] },
+  mcpApp: pointer,
+}
+
+describe("hasMcpAppPointer", () => {
+  it("is true when a reply points at a card, even before its HTML is loaded", () => {
+    expect(hasMcpAppPointer([{ toolCalls: [cardToolCall] }])).toBe(true)
+  })
+
+  it("is false for a thread with only ordinary tool calls", () => {
+    expect(hasMcpAppPointer([{ toolCalls: [baseToolCall] }, { toolCalls: undefined }])).toBe(false)
+  })
+})
+
+describe("hasMcpAppCard", () => {
+  it("needs both a pointer and a result to hand the card", () => {
+    expect(hasMcpAppCard(cardToolCall)).toBe(true)
+    expect(hasMcpAppCard({ ...cardToolCall, result: undefined })).toBe(false)
+    expect(hasMcpAppCard(baseToolCall)).toBe(false)
+  })
+})
+
+describe("findMcpAppHtml", () => {
+  const entries = [{ ...pointer, html: "<html>live</html>" }]
+
+  it("prefers the HTML embedded on the tool call", () => {
+    expect(findMcpAppHtml({ ...pointer, html: "<html>inline</html>" }, entries)).toBe(
+      "<html>inline</html>",
+    )
+  })
+
+  it("resolves the pointer against the entry read from the same server", () => {
+    expect(findMcpAppHtml(pointer, entries)).toBe("<html>live</html>")
+    expect(findMcpAppHtml({ ...pointer, mcpServerId: "other-server" }, entries)).toBeUndefined()
+  })
+
+  it("accepts any server's entry for a pointer recorded without a server id", () => {
+    expect(findMcpAppHtml({ ...pointer, mcpServerId: "" }, entries)).toBe("<html>live</html>")
+  })
+
+  it("is undefined while nothing has been loaded", () => {
+    expect(findMcpAppHtml(pointer, [])).toBeUndefined()
+  })
+})
+
 describe("getRenderableMcpApp", () => {
   it("returns nothing for a normal tool call without MCP App metadata", () => {
     expect(getRenderableMcpApp(baseToolCall)).toBeUndefined()
+  })
+
+  it("renders a card whose HTML arrived through the separate load", () => {
+    expect(getRenderableMcpApp(cardToolCall, [{ ...pointer, html: "<html>live</html>" }])).toEqual({
+      html: "<html>live</html>",
+      toolInput: cardToolCall.arguments,
+      toolResult: cardToolCall.result,
+    })
+    expect(getRenderableMcpApp(cardToolCall, [])).toBeUndefined()
   })
 
   it("returns view props when HTML and the tool result are present", () => {

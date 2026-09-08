@@ -18,14 +18,15 @@ import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import { FormResultSheet } from "@/common/features/agents/agent-sessions/conversation/components/FormResultSheet"
 import type { AgentSessionMessage as AgentSessionMessageType } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import { useCopyToClipboard } from "@/common/hooks/use-copy-to-clipboard"
+import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
-import { selectStreamingToolSteps } from "../agent-session-messages.selectors"
+import { selectMcpAppHtml, selectStreamingToolSteps } from "../agent-session-messages.selectors"
 import { Attachment } from "./Attachment"
 import { useFormResult } from "./form-result-context"
 import { useFormSubSessions } from "./form-sub-sessions-context"
 import { MarkdownWrapper } from "./MarkdownWrapper"
-import { McpAppView } from "./McpAppView"
-import { getFailedMcpAppFallbackText, getRenderableMcpApp } from "./mcp-app-view"
+import { McpAppPlaceholder, McpAppView } from "./McpAppView"
+import { getFailedMcpAppFallbackText, getRenderableMcpApp, hasMcpAppCard } from "./mcp-app-view"
 import { SourcesTool } from "./SourcesTool"
 import { SubAgentFormResultSheet } from "./SubAgentFormResultSheet"
 import { SurfaceResourcesTool } from "./SurfaceResourcesTool"
@@ -43,6 +44,11 @@ export function AgentSessionMessage({
   const { t } = useTranslation()
   const formSubSessions = useFormSubSessions()
   const formResult = useFormResult()
+  // Card HTML is loaded after the transcript so a slow MCP server never delays the messages;
+  // until it lands, each card holds its place with a placeholder.
+  const mcpAppHtml = useAppSelector(selectMcpAppHtml)
+  const mcpAppHtmlEntries = ADS.isFulfilled(mcpAppHtml) ? mcpAppHtml.value : []
+  const isMcpAppHtmlPending = !ADS.isFulfilled(mcpAppHtml) && !ADS.isError(mcpAppHtml)
   // MCP App cards that gave up rendering; their reply text is shown instead.
   const [failedMcpAppToolCallIds, setFailedMcpAppToolCallIds] = useState<string[]>([])
 
@@ -59,19 +65,27 @@ export function AgentSessionMessage({
       const surfaceResourcesTool = message.toolCalls?.find(
         (call) => call.name === ToolName.SurfaceResources,
       )
-      const mcpAppViews = (message.toolCalls ?? []).flatMap((toolCall) => {
-        const view = getRenderableMcpApp(toolCall)
-        return view ? [{ toolCall, view }] : []
-      })
+      // Every card this reply shows, with its view once the HTML is here. A card without a view
+      // is either still loading (placeholder) or unavailable (its text stands in).
+      const mcpAppCards = (message.toolCalls ?? [])
+        .filter(hasMcpAppCard)
+        .map((toolCall) => ({ toolCall, view: getRenderableMcpApp(toolCall, mcpAppHtmlEntries) }))
+      // Cards whose HTML never came, or that gave up rendering: their reply text is shown instead.
+      const unavailableMcpAppToolCallIds = [
+        ...failedMcpAppToolCallIds,
+        ...mcpAppCards
+          .filter(({ view }) => view === undefined && !isMcpAppHtmlPending)
+          .map(({ toolCall }) => toolCall.id),
+      ]
       // A card that failed to render must not take the reply text down with it.
       const hideMarkdownRecap =
         !isStreaming &&
-        mcpAppViews.some(({ toolCall }) => !failedMcpAppToolCallIds.includes(toolCall.id))
+        mcpAppCards.some(({ toolCall }) => !unavailableMcpAppToolCallIds.includes(toolCall.id))
       // The model may have written nothing because it expected the card to speak for the tool:
       // once the card gave up, the tool result text stands in for the reply.
       const failedMcpAppFallbackText = hasContent
         ? ""
-        : getFailedMcpAppFallbackText(message.toolCalls, failedMcpAppToolCallIds)
+        : getFailedMcpAppFallbackText(message.toolCalls, unavailableMcpAppToolCallIds)
       const bubbleContent =
         hasContent && !hideMarkdownRecap ? message.content : failedMcpAppFallbackText
       // Tool names this message delegated to that resolved to a form sub-session,
@@ -117,19 +131,23 @@ export function AgentSessionMessage({
             )}
 
             {!isStreaming &&
-              mcpAppViews.map(({ toolCall, view }) => (
-                <McpAppView
-                  key={toolCall.id}
-                  html={view.html}
-                  toolInput={view.toolInput}
-                  toolResult={view.toolResult}
-                  onRenderFailed={() =>
-                    setFailedMcpAppToolCallIds((previous) =>
-                      previous.includes(toolCall.id) ? previous : [...previous, toolCall.id],
-                    )
-                  }
-                />
-              ))}
+              mcpAppCards.map(({ toolCall, view }) =>
+                view ? (
+                  <McpAppView
+                    key={toolCall.id}
+                    html={view.html}
+                    toolInput={view.toolInput}
+                    toolResult={view.toolResult}
+                    onRenderFailed={() =>
+                      setFailedMcpAppToolCallIds((previous) =>
+                        previous.includes(toolCall.id) ? previous : [...previous, toolCall.id],
+                      )
+                    }
+                  />
+                ) : (
+                  isMcpAppHtmlPending && <McpAppPlaceholder key={toolCall.id} className="mt-2" />
+                ),
+              )}
 
             {!isStreaming && (
               <MessageFooter className="gap-0 px-1">

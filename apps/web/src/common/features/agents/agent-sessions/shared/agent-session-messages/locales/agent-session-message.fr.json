@@ -16,6 +16,9 @@
       "Rédaction en cours…"
     ],
     "interrupted": "Cette réponse a été interrompue avant la fin.",
+    "mcpApp": {
+      "loading": "Chargement de la carte interactive…"
+    },
     "steps": {
       "working_one": "{{count}} étape en cours",
       "working_other": "{{count}} étapes en cours",

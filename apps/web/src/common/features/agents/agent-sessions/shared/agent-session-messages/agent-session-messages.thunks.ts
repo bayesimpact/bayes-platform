@@ -7,7 +7,7 @@ import { generateId } from "@/common/utils/generate-id"
 import type { ConversationAgentSession } from "../../conversation/conversation-agent-sessions.models"
 import { conversationAgentSessionsActions } from "../../conversation/conversation-agent-sessions.slice"
 import { buildType } from "../base-agent-session/base-agent-sessions.thunks"
-import type { AgentSessionMessage } from "./agent-session-messages.models"
+import type { AgentSessionMcpAppHtml, AgentSessionMessage } from "./agent-session-messages.models"
 import { selectStreaming } from "./agent-session-messages.selectors"
 import { agentSessionMessagesActions } from "./agent-session-messages.slice"
 import { streamChatResponse } from "./external/agent-session-messages-streaming"
@@ -42,6 +42,27 @@ export const getMessage = createAsyncThunk<AgentSessionMessage, string, ThunkCon
     return services.agentSessionMessages.getOne({
       ...params,
       messageId,
+      payload: { type: buildType() },
+    })
+  },
+)
+
+/**
+ * Current HTML of the MCP App cards the thread points at. Loaded after the transcript so a slow
+ * MCP server only delays the cards, which show a placeholder meanwhile.
+ */
+export const listMcpAppHtml = createAsyncThunk<AgentSessionMcpAppHtml[], string, ThunkConfig>(
+  "agentSessionMessages/listMcpAppHtml",
+  async (agentSessionId, { extra: { services }, getState }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const agentId = getCurrentId({ state, name: "agentId" })
+    return services.agentSessionMessages.getMcpAppHtml({
+      organizationId,
+      projectId,
+      agentId,
+      agentSessionId,
       payload: { type: buildType() },
     })
   },

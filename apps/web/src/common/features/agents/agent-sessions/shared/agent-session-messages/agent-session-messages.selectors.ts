@@ -10,5 +10,8 @@ export const selectStreaming = (state: RootState) => {
   return ADS.isFulfilled(data) && hasStreamingReply(data.value)
 }
 
+/** Current HTML of the MCP App cards in the thread, loading until the MCP servers answered. */
+export const selectMcpAppHtml = (state: RootState) => state.agentSessionMessages.mcpAppHtml
+
 export const selectStreamingToolSteps = (state: RootState) =>
   state.agentSessionMessages.streamingToolSteps

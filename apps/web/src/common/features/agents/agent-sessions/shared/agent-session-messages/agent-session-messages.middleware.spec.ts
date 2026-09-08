@@ -51,8 +51,11 @@ const completedReply: AgentSessionMessage = {
  * the production store: `RootState` is the many-scope union the listener is typed against.
  * The tester middleware is registered too, as it is the one resetting the slice on its unmount.
  */
-function buildStore(getOne: ReturnType<typeof vi.fn>) {
-  const services = { agentSessionMessages: { getOne } } as unknown as Services
+function buildStore(
+  getOne: ReturnType<typeof vi.fn>,
+  getMcpAppHtml: ReturnType<typeof vi.fn> = vi.fn().mockResolvedValue([]),
+) {
+  const services = { agentSessionMessages: { getOne, getMcpAppHtml } } as unknown as Services
   const store = configureStore({
     reducer: combineReducers({
       agentSessionMessages: agentSessionMessagesSlice.reducer,
@@ -81,6 +84,70 @@ afterEach(() => {
   reviewCampaignsTesterMiddleware.listenerMiddleware.clearListeners()
   vi.useRealTimers()
   vi.unstubAllGlobals()
+})
+
+describe("MCP App card HTML loading", () => {
+  const cardEntry = {
+    mcpServerId: "mcp-server-1",
+    resourceUri: "ui://pdf-export/mcp-app.html",
+    html: "<html>card</html>",
+  }
+  const replyWithCard: AgentSessionMessage = {
+    id: "assistant-2",
+    role: "assistant",
+    content: "",
+    status: "completed",
+    toolCalls: [
+      {
+        id: "call-1",
+        name: "export_pdf",
+        arguments: {},
+        result: { content: [{ type: "text", text: "Exported" }] },
+        mcpApp: { mcpServerId: cardEntry.mcpServerId, resourceUri: cardEntry.resourceUri },
+      },
+    ],
+  }
+
+  it("loads the card HTML after a thread that points at a card is listed", async () => {
+    // The list itself no longer carries the HTML, so the transcript shows at once and the
+    // cards fill in when the MCP servers have answered.
+    const getMcpAppHtml = vi.fn().mockResolvedValue([cardEntry])
+    const store = buildStore(vi.fn(), getMcpAppHtml)
+
+    store.dispatch(loaded([userMessage, replyWithCard]))
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(getMcpAppHtml).toHaveBeenCalledTimes(1)
+    expect(getMcpAppHtml).toHaveBeenCalledWith(expect.objectContaining({ agentSessionId }))
+    expect(store.getState().agentSessionMessages.mcpAppHtml.value).toEqual([cardEntry])
+  })
+
+  it("does not contact the MCP servers for a thread without cards", async () => {
+    const getMcpAppHtml = vi.fn().mockResolvedValue([])
+    const store = buildStore(vi.fn(), getMcpAppHtml)
+
+    store.dispatch(loaded([userMessage, completedReply]))
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(getMcpAppHtml).not.toHaveBeenCalled()
+  })
+
+  it("loads the card HTML when a reply that settled with a card is fetched", async () => {
+    // At the end of a live turn the reply is re-read from the server; a card it ran needs its
+    // HTML, which no earlier load could have known about.
+    const getOne = vi.fn().mockResolvedValue(replyWithCard)
+    const getMcpAppHtml = vi.fn().mockResolvedValue([cardEntry])
+    const store = buildStore(getOne, getMcpAppHtml)
+
+    store.dispatch(loaded([userMessage, { ...replyWithCard, status: "streaming", toolCalls: [] }]))
+    await vi.advanceTimersByTimeAsync(0)
+    expect(getMcpAppHtml).not.toHaveBeenCalled()
+
+    await vi.advanceTimersByTimeAsync(STREAMING_RECOVERY_POLL_INTERVAL_MS)
+
+    expect(getMcpAppHtml).toHaveBeenCalledTimes(1)
+    expect(store.getState().agentSessionMessages.mcpAppHtml.value).toEqual([cardEntry])
+  })
 })
 
 describe("streaming recovery polling", () => {
