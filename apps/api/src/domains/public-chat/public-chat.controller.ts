@@ -60,6 +60,14 @@ export class PublicChatController {
   }
 
   @UseGuards(PublicSessionTokenGuard)
+  @Get(PublicChatRoutes.getMcpAppHtml.path)
+  async getMcpAppHtml(
+    @Req() request: PublicChatSessionRequest,
+  ): Promise<typeof PublicChatRoutes.getMcpAppHtml.response> {
+    return { data: await this.publicChatService.getMcpAppHtml(request.publicSession) }
+  }
+
+  @UseGuards(PublicSessionTokenGuard)
   @Sse(PublicChatRoutes.streamMessages.path, { method: 0 /* GET */ })
   streamMessages(
     @Req() request: PublicChatSessionRequest,

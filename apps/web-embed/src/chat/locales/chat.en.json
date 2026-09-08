@@ -10,6 +10,7 @@
     },
     "message": {
       "thinking": "Thinking…",
+      "loadingCard": "Loading interactive card…",
       "error": "Something went wrong. Please try again.",
       "copyAriaLabel": "Copy to clipboard",
       "sources_one": "{{count}} source",

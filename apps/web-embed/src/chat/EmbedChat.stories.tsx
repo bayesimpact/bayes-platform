@@ -4,6 +4,7 @@ import {
   buildStreamingMessage,
   emptyConversation,
   failedMcpAppCardConversation,
+  loadingMcpAppCardConversation,
   longConversation,
   markdownConversation,
   resourceCardsConversation,
@@ -107,6 +108,14 @@ export const ErrorState: Story = {
       { id: "user-err", role: "user", content: "This will fail.", status: "completed" },
       buildErrorMessage(),
     ],
+  },
+}
+
+export const LoadingMcpAppCard: Story = {
+  name: "MCP App card loading",
+  args: {
+    messages: loadingMcpAppCardConversation,
+    isMcpAppHtmlLoading: true,
   },
 }
 

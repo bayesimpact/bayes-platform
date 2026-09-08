@@ -22,9 +22,8 @@ export type AgentSessionToolName = ToolName | (string & {})
 /**
  * MCP App attached to a tool. The `ui://` pointer is persisted; `html` is the
  * current `resources/read` result so card UI updates apply to old conversations.
- * Authenticated sessions leave it out of the message list and load it through
- * `getMcpAppHtml`, so a slow MCP server never delays the transcript. The public
- * chat still hydrates it inline.
+ * Message lists leave it out and clients load it through their `getMcpAppHtml`
+ * route, so a slow MCP server never delays the transcript.
  */
 export type AgentSessionMcpAppDto = {
   mcpServerId: string

@@ -1,5 +1,6 @@
 import type {
   AgentEmbedConfigDto,
+  AgentSessionMcpAppHtmlDto,
   PublicAgentSessionDto,
   PublicSessionMessageDto,
   StreamEvent,
@@ -11,7 +12,7 @@ import { Agent } from "@/domains/agents/agent.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import type { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
-import { applyLiveMcpAppHtml } from "@/domains/agents/shared/agent-session-messages/agent-message.helpers"
+import { toMcpAppHtmlDtos } from "@/domains/agents/shared/agent-session-messages/agent-message.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpAppHtmlService } from "@/domains/agents/shared/agent-session-messages/mcp-app-html.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -50,13 +51,23 @@ export class PublicChatService {
     const { session, messages } = await this.publicAgentSessionsService.getSessionWithMessages(
       publicSession.id,
     )
+    // MCP App HTML is served by `getMcpAppHtml`: reading it connects to every MCP server the
+    // transcript points at, which used to hold the whole widget behind its loading shell.
+    return this.toSessionDto(session, messages)
+  }
+
+  /** Current HTML of every MCP App card the session's replies point at. */
+  async getMcpAppHtml(publicSession: PublicAgentSession): Promise<AgentSessionMcpAppHtmlDto[]> {
+    const { session, messages } = await this.publicAgentSessionsService.getSessionWithMessages(
+      publicSession.id,
+    )
     const htmlByKey = await this.mcpAppHtmlService.readLiveHtml({
       agentId: session.agentId,
       sessionId: session.id,
       messages,
       externalVisitorId: session.externalVisitorId,
     })
-    return this.toSessionDto(session, messages, htmlByKey)
+    return toMcpAppHtmlDtos(htmlByKey)
   }
 
   async *streamResponse(
@@ -120,7 +131,6 @@ export class PublicChatService {
   private toSessionDto(
     session: PublicAgentSession,
     messages: AgentMessage[],
-    htmlByKey: Map<string, string> = new Map(),
   ): PublicAgentSessionDto {
     return {
       id: session.id,
@@ -132,7 +142,7 @@ export class PublicChatService {
           content: message.content,
           status: message.status ?? undefined,
           createdAt: message.createdAt.getTime(),
-          toolCalls: applyLiveMcpAppHtml(message.toolCalls, htmlByKey),
+          toolCalls: message.toolCalls ?? undefined,
         }),
       ),
       createdAt: session.createdAt.getTime(),

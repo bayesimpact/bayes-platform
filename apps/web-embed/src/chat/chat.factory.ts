@@ -170,6 +170,28 @@ export const resourceCardsOnlyConversation: AgentSessionMessageDto[] = [
 ]
 
 /**
+ * A reply whose MCP App card HTML is still being read from the MCP server: the transcript is on
+ * screen and the card holds its place with a placeholder.
+ */
+export const loadingMcpAppCardConversation: AgentSessionMessageDto[] = [
+  buildUserMessage("Export these notes as a PDF."),
+  buildAssistantMessage("", {
+    toolCalls: [
+      {
+        id: "call-pdf-export",
+        name: "export_pdf",
+        arguments: { markdown: "# Notes" },
+        result: {
+          content: [{ type: "text", text: "Created Notes.pdf (2 pages)." }],
+          structuredContent: { fileName: "Notes.pdf" },
+        },
+        mcpApp: { mcpServerId: "mcp-server-1", resourceUri: "ui://pdf-export/mcp-app.html" },
+      },
+    ],
+  }),
+]
+
+/**
  * A reply with no prose whose MCP App card never completes its handshake. The card gives up
  * after its 15 s initialization timeout and the tool result text takes its place in the bubble.
  */

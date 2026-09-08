@@ -1,6 +1,17 @@
-import type { AgentSessionMessageDto, PublicSessionMessageDto } from "@caseai-connect/api-contracts"
+import type {
+  AgentSessionMcpAppHtmlDto,
+  AgentSessionMessageDto,
+  PublicSessionMessageDto,
+} from "@caseai-connect/api-contracts"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { ApiError, createSession, getSession, streamMessages } from "../api/public-chat-api"
+import {
+  ApiError,
+  createSession,
+  getMcpAppHtml,
+  getSession,
+  streamMessages,
+} from "../api/public-chat-api"
+import { hasMcpAppPointer } from "../chat/components/mcp-app-view"
 
 // ─── Session persistence ───────────────────────────────────────────────────
 
@@ -90,9 +101,24 @@ export type PublicChatErrorKey =
   | "status.errorSessionFailed"
   | "status.errorUnknown"
 
+/**
+ * Current HTML of the MCP App cards the thread points at. Loaded after the messages, so the
+ * transcript shows at once and each card holds a placeholder until its HTML is here.
+ */
+type McpAppHtmlState = {
+  entries: AgentSessionMcpAppHtmlDto[]
+  isLoading: boolean
+}
+
+const NO_MCP_APP_HTML: McpAppHtmlState = { entries: [], isLoading: false }
+
 export type UsePublicChatResult = {
   status: PublicChatStatus
   messages: AgentSessionMessageDto[]
+  /** Current HTML of the MCP App cards in the thread, matched by server and `ui://`. */
+  mcpAppHtml: AgentSessionMcpAppHtmlDto[]
+  /** The MCP servers have not answered yet: cards without HTML show a placeholder. */
+  isMcpAppHtmlLoading: boolean
   isStreaming: boolean
   errorKey: PublicChatErrorKey | null
   send: (content: string) => void
@@ -102,6 +128,7 @@ export type UsePublicChatResult = {
 export function usePublicChat(embedToken: string): UsePublicChatResult {
   const [status, setStatus] = useState<PublicChatStatus>("initializing")
   const [messages, setMessages] = useState<AgentSessionMessageDto[]>([])
+  const [mcpAppHtml, setMcpAppHtml] = useState<McpAppHtmlState>(NO_MCP_APP_HTML)
   const [isStreaming, setIsStreaming] = useState(false)
   const [errorKey, setErrorKey] = useState<PublicChatErrorKey | null>(null)
 
@@ -110,11 +137,33 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
   const sessionRef = useRef<StoredSession | null>(null)
   const resetNonceRef = useRef(0)
 
+  /**
+   * Loads the card HTML for a thread that was just put on screen. Skipped for threads without
+   * cards so no MCP server is contacted for ordinary chats. A failed load keeps the cards
+   * already shown; only the placeholders give way to their text.
+   */
+  const loadMcpAppHtml = useCallback(
+    async (session: StoredSession, thread: PublicSessionMessageDto[], nonce: number) => {
+      if (!hasMcpAppPointer(thread)) return
+      setMcpAppHtml((prev) => ({ ...prev, isLoading: true }))
+      try {
+        const entries = await getMcpAppHtml(embedToken, session.sessionId, session.sessionToken)
+        if (resetNonceRef.current !== nonce) return
+        setMcpAppHtml({ entries, isLoading: false })
+      } catch {
+        if (resetNonceRef.current !== nonce) return
+        setMcpAppHtml((prev) => ({ ...prev, isLoading: false }))
+      }
+    },
+    [embedToken],
+  )
+
   const startFreshSession = useCallback(
     async (nonce: number) => {
       clearSession(embedToken)
       sessionRef.current = null
       setMessages([])
+      setMcpAppHtml(NO_MCP_APP_HTML)
       setErrorKey(null)
       setIsStreaming(false)
       setStatus("initializing")
@@ -161,6 +210,7 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
           sessionRef.current = stored
           setMessages(sessionData.messages.map(toDisplayMessage))
           setStatus("ready")
+          void loadMcpAppHtml(stored, sessionData.messages, nonce)
           if (hasStreamingReply(sessionData.messages)) {
             void settleStreamingReply(stored, stillCurrent, nonce)
           }
@@ -223,6 +273,7 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
             // thread replaces what the widget shows.
             if (!hasStreamingReply(sessionData.messages)) {
               setMessages(sessionData.messages.map(toDisplayMessage))
+              void loadMcpAppHtml(session, sessionData.messages, nonce)
               return
             }
           } catch (err) {
@@ -249,7 +300,7 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
     return () => {
       cancelled = true
     }
-  }, [embedToken, failInit, startFreshSession])
+  }, [embedToken, failInit, loadMcpAppHtml, startFreshSession])
 
   const reset = useCallback(() => {
     const nonce = ++resetNonceRef.current
@@ -331,9 +382,10 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
             }
           }
 
-          // Hydrate MCP App HTML only after the SSE generator's `finally` has
-          // closed the stream's MCP session. Fetching on `end` raced that close
-          // and `resources/read` often failed, so the card appeared only on reload.
+          // The stream carries no tool calls: re-read the thread so the reply gets the cards it
+          // ran, then load their HTML. Both happen only after the SSE generator's `finally` has
+          // closed the stream's MCP session: fetching on `end` raced that close and
+          // `resources/read` often failed, so the card appeared only on reload.
           if (shouldHydrate) {
             if (resetNonceRef.current !== nonce) return
             try {
@@ -344,6 +396,7 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
               )
               if (resetNonceRef.current !== nonce) return
               setMessages(sessionData.messages.map(toDisplayMessage))
+              void loadMcpAppHtml(session, sessionData.messages, nonce)
             } catch {
               // Keep streamed text if the hydrate fetch fails
             }
@@ -364,8 +417,17 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
         }
       })()
     },
-    [embedToken, isStreaming],
+    [embedToken, isStreaming, loadMcpAppHtml],
   )
 
-  return { status, messages, isStreaming, errorKey, send, reset }
+  return {
+    status,
+    messages,
+    mcpAppHtml: mcpAppHtml.entries,
+    isMcpAppHtmlLoading: mcpAppHtml.isLoading,
+    isStreaming,
+    errorKey,
+    send,
+    reset,
+  }
 }
