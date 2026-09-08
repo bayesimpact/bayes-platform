@@ -13,8 +13,37 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+- (beta) PDF export: the built-in server disappears from workspaces when the export feature is turned off.
+- (beta) MCP App cards no longer reload when a sibling card in the same reply fails to render.
+- (beta) PDF export: when the download card cannot load, the reply shows the export result as text.
+
+- (beta) PDF export: large documents no longer fail at the upload step after a slow render.
+
+- (beta) PDF export: exported PDFs are now kept exactly as long as their download link is valid.
 
 ### Security
+- MCP servers can no longer be enabled or disabled on an agent that belongs to another project.
+
+## [26.09.2] - 2026-09-08
+
+### Added
+
+- (beta) Priority calls: agents on Gemini 3.x models can now enable the priority tier from the Model tab.
+- Agents can run on gemini-3.7-flash and gemini-3.8-flash.
+- Public agent banner: an optional notice pinned above the conversation on the public page and in the widget.
+- Public page link: the Embed tab shows the shareable URL that serves an agent without a host website.
+- (beta) PDF export: agents can turn markdown into a downloadable PDF with a built-in MCP server in every workspace.
+
+### Changed
+- (beta) Links and downloads inside MCP App cards now open in a new tab.
+
+### Fixed
+- Refreshing the page during a reply no longer loses the answer.
+- An interrupted reply can be sent again.
+
+### Security
+- Security updates of dependencies and base images across all services.
+- Deleting a document or purging a conversation now also removes its file and rendered page images from storage.
 
 ## [26.09.1] - 2026-09-02
 

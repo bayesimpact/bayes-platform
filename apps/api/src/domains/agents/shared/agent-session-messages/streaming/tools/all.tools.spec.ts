@@ -8,6 +8,7 @@ import { afterAll } from "@jest/globals"
 import { tool } from "ai"
 import { v4 } from "uuid"
 import { z } from "zod"
+import type { LLMConfig, LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import type { AllRepositories } from "@/common/test/test-all-repositories"
 import {
   clearTestDatabase,
@@ -17,7 +18,7 @@ import {
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { StreamingModule } from "@/domains/agents/shared/agent-session-messages/streaming/streaming.module"
-import { StreamingService } from "@/domains/agents/shared/agent-session-messages/streaming/streaming.service"
+import { StreamingLlmService } from "@/domains/agents/shared/agent-session-messages/streaming/streaming-llm.service"
 import type { AgentSessionScope } from "@/domains/agents/shared/agent-session-messages/streaming/streaming-session.types"
 import { ToolsService } from "@/domains/agents/shared/agent-session-messages/streaming/tools.service"
 import { DocumentChunkRetrievalService } from "@/domains/documents/embeddings/document-chunk-retrieval.service"
@@ -35,7 +36,7 @@ const mockMcpServersService = { getEnabledServersForAgent: jest.fn() }
 const mockMcpClientService = { connect: jest.fn() }
 
 describe("Tools execution", () => {
-  let service: StreamingService
+  let service: StreamingLlmService
   let mockProvider: AISDKMockProvider
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
@@ -52,7 +53,7 @@ describe("Tools execution", () => {
           .overrideProvider(McpClientService)
           .useValue(mockMcpClientService),
     })
-    service = setup.module.get<StreamingService>(StreamingService)
+    service = setup.module.get<StreamingLlmService>(StreamingLlmService)
     mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
     mockProvider.resetMock()
     repositories = setup.getAllRepositories()
@@ -622,6 +623,8 @@ describe("Tools execution", () => {
         connectScope: { organizationId: organization.id, projectId: project.id },
       },
       onExecute: () => undefined,
+      getProviderForModel: jest.fn().mockReturnValue({} as LLMProvider),
+      buildLLMConfig: jest.fn().mockReturnValue({} as LLMConfig),
     })
 
     // Other conversation tools are still built; only fillForm is gated off.
@@ -655,6 +658,8 @@ describe("Tools execution", () => {
         connectScope: { organizationId: organization.id, projectId: project.id },
       },
       onExecute: () => undefined,
+      getProviderForModel: jest.fn().mockReturnValue({} as LLMProvider),
+      buildLLMConfig: jest.fn().mockReturnValue({} as LLMConfig),
     })
 
     expect(tools?.[ToolName.LookupKnowledgeBase]).toBeDefined()

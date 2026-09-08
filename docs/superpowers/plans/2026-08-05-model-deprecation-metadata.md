@@ -100,7 +100,7 @@ Known traps:
 | `apps/web/src/common/features/agents/agent.factory.ts` | Factory default model. |
 | `apps/web/src/eval/features/evaluation-conversation-runs/evaluation-conversation-runs.factory.ts` | Judge default. |
 | `apps/api/src/domains/evaluations/conversation/runs/evaluation-conversation-run.factory.ts` | Judge default. |
-| `apps/api/src/domains/evaluations/conversation/runs/evaluation-conversation-run-grader.service.ts` | Stale doc comment. |
+| `apps/api/src/domains/evaluations/conversation/runs/evaluation-conversation-run-grader-llm.service.ts` | Stale doc comment. |
 | `apps/web/src/common/features/agents/locales/agent.en.json` / `agent.fr.json` | New `model.*` keys. |
 | `apps/web/src/stories/routes/studio/agent/AgentRoute.stories.tsx` | `withDeprecatedModel` toggle. |
 | `apps/web/src/stories/routes/studio/AgentEditorRoute.stories.tsx` | `withDeprecatedModel` toggle. |
@@ -831,9 +831,9 @@ replace line 52:
 Add `DEFAULT_AGENT_MODEL` to each file's `@caseai-connect/api-contracts` import, and drop
 `AgentModel` from that import wherever it becomes unused.
 
-- [ ] **Step 4: Fix the stale grader comment**
+- [ ] **Step 4: Fix the stale grader comment**~~~~
 
-In `apps/api/src/domains/evaluations/conversation/runs/evaluation-conversation-run-grader.service.ts`,
+In `apps/api/src/domains/evaluations/conversation/runs/evaluation-conversation-run-grader-llm.service.ts`,
 line 11 currently reads `per run (defaulting to Gemini 2.5 Flash) and passed in via
 \`judgeModel\`, and`. Replace the parenthetical so it names no specific model — the default now
 lives in one place and this comment should not have to track it:

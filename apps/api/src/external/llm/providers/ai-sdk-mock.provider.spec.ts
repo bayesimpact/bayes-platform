@@ -49,15 +49,6 @@ describe("AISDKMockProvider", () => {
     expect(result).toBe("Hello, I'm the text default mock value!")
   })
 
-  it("generateObject - default mock value", async () => {
-    const schema = z.object({ content: z.string(), source: z.string() })
-    const result = await provider.generateObject({ schema, prompt: "", config, metadata })
-    expect(() => schema.parse(result)).not.toThrow()
-    const parsed = schema.parse(result)
-    expect(parsed.source).toBe("source-value")
-    expect(parsed.content).toBe("content-value")
-  })
-
   it("generateStructuredOutput - default mock value", async () => {
     const schema = z.object({ content: z.string(), source: z.string() })
     const testFile: LLMFile = {
@@ -144,13 +135,6 @@ describe("AISDKMockProvider", () => {
     await expect(
       streamToStringArray(provider.streamChatResponse({ messages, config, metadata })),
     ).rejects.toThrow("Unsupported chat content part type: 'file'")
-  })
-
-  it("addObjectTurn - should works", async () => {
-    const schema = z.object({ content: z.string(), source: z.string() })
-    provider.addObjectTurn(metadata.agentId, { content: "hello", source: "queued" })
-    const result = await provider.generateObject({ schema, prompt: "", config, metadata })
-    expect(schema.parse(result)).toEqual({ content: "hello", source: "queued" })
   })
 
   it("addToolCallTurn - should works", async () => {

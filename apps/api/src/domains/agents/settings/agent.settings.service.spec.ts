@@ -1,4 +1,4 @@
-import { DocumentsRagMode } from "@caseai-connect/api-contracts"
+import { AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { afterAll, expect } from "@jest/globals"
 import { NotFoundException } from "@nestjs/common"
 import {
@@ -589,6 +589,24 @@ describe("AgentSettings", () => {
         resourceLibrary2.id,
       ])
     })
+    describe("priority calls", () => {
+      it("updateAllSettings should persist priorityCallsEnabled on any model", async () => {
+        const { organization, project, agent } = await createOrganizationWithAgent(repositories)
+
+        const { agentSettings: updatedAgentSettings } = await service.updateAllSettings({
+          connectScope: { organizationId: organization.id, projectId: project.id },
+          agentId: agent.id,
+          fieldsToUpdate: { model: AgentModel.Gemini35Flash, priorityCallsEnabled: true },
+        })
+
+        expect(updatedAgentSettings.priorityCallsEnabled).toBe(true)
+        const savedSettings = await repositories.agentSettingsRepository.findOne({
+          where: { agentId: agent.id, revision: updatedAgentSettings.revision },
+        })
+        expect(savedSettings?.priorityCallsEnabled).toBe(true)
+      })
+    })
+
     it("updateAllSettings should THROW on unexpected use case => only one revision that is archived (impossible use case : archive is not possible on the last revision)", async () => {
       const { organization, project, agent } = await createAgentWithSettings(
         setup,

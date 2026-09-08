@@ -12,6 +12,8 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
+import { PDF_EXPORT_BUILT_IN_NAME, PDF_EXPORT_PRESET_SLUG } from "../built-in/built-in-mcp-servers"
+import { BuiltInMcpServersService } from "../built-in/built-in-mcp-servers.service"
 import { McpServersModule } from "../mcp-servers.module"
 
 describe("McpServers - list", () => {
@@ -55,6 +57,13 @@ describe("McpServers - list", () => {
     return { organization, project }
   }
 
+  const createBuiltInServer = async () =>
+    setup.module.get<BuiltInMcpServersService>(BuiltInMcpServersService).ensureBuiltInServer({
+      slug: PDF_EXPORT_PRESET_SLUG,
+      name: PDF_EXPORT_BUILT_IN_NAME,
+      config: { url: "https://pdf-converter.example.test/mcp" },
+    })
+
   const createServer = async (name: string, url: string) =>
     request({
       route: McpServersRoutes.createOne,
@@ -89,6 +98,53 @@ describe("McpServers - list", () => {
 
   it("should return empty array when project has no MCP servers", async () => {
     await createContext()
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(response.body.data).toEqual([])
+  })
+
+  it("should return the built-in server first, with no project of its own", async () => {
+    await createContext()
+    await createBuiltInServer()
+    await createServer("Alpha Server", "https://alpha.example.com")
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    const servers = response.body.data
+    expect(servers.map((server: { name: string }) => server.name)).toEqual([
+      PDF_EXPORT_BUILT_IN_NAME,
+      "Alpha Server",
+    ])
+    expect(servers[0]).toMatchObject({
+      name: PDF_EXPORT_BUILT_IN_NAME,
+      url: "https://pdf-converter.example.test/mcp",
+      projectId: null,
+      isBuiltIn: true,
+    })
+    expect(servers[1]).toMatchObject({ projectId, isBuiltIn: false })
+  })
+
+  it("should return the built-in server in every project", async () => {
+    await createContext()
+    const builtInServer = await createBuiltInServer()
+    await createContext()
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(response.body.data).toHaveLength(1)
+    expect(response.body.data[0]).toMatchObject({ id: builtInServer.id, isBuiltIn: true })
+  })
+
+  it("should not return a retired built-in server", async () => {
+    await createContext()
+    await createBuiltInServer()
+    await setup.module
+      .get<BuiltInMcpServersService>(BuiltInMcpServersService)
+      .retireBuiltInServer(PDF_EXPORT_PRESET_SLUG)
 
     const response = await subject()
 

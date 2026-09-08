@@ -1,7 +1,7 @@
 #
 # 🏡 Production Build
 #
-FROM node:24.16.0-bookworm-slim AS build
+FROM node:24.20.0-bookworm-slim AS build
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends libc6 && rm -rf /var/lib/apt/lists/*
@@ -31,13 +31,19 @@ RUN npm ci --omit=dev \
     --workspace=@caseai-connect/api-contracts \
     --include-workspace-root
 
+# `next` is an optional peer of @llamaindex/workflow-core (via llamaindex) that npm
+# auto-installs, and `sharp` only comes in as an optional dependency of `next`. The API
+# uses neither at runtime. npm 11.19 (bundled in node 24.20) ignores `--omit=peer`, so
+# drop them explicitly: they pin postcss 8.4.31 and sharp 0.34 with open HIGH CVEs.
+RUN rm -rf node_modules/next node_modules/sharp node_modules/@img
+
 # Ensure apps/api/node_modules exists (npm may skip creating it when everything hoists to root).
 RUN mkdir -p /app/apps/api/node_modules
 
 #
 # 🚀 Runtime Base (shared)
 #
-FROM node:24.16.0-bookworm-slim AS runtime-base
+FROM node:24.20.0-bookworm-slim AS runtime-base
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends libc6 && rm -rf /var/lib/apt/lists/*
@@ -95,9 +101,12 @@ RUN chmod +x /app/apps/api/bin/document_chunker || true
 COPY apps/api/requirements-torch.txt apps/api/requirements-docling.txt /app/apps/api/
 
 RUN python3 -m venv /opt/docling-venv \
-  && /opt/docling-venv/bin/pip install --no-cache-dir --upgrade pip \
+  && /opt/docling-venv/bin/pip install --no-cache-dir --upgrade pip setuptools \
   && /opt/docling-venv/bin/pip install --no-cache-dir -r /app/apps/api/requirements-torch.txt \
   && /opt/docling-venv/bin/pip install --no-cache-dir -r /app/apps/api/requirements-docling.txt \
+  # pip is build-time only. Its vendored msgpack/setuptools copies carry HIGH CVEs
+  # that trivy reports, so remove it from the runtime venv once installs are done.
+  && /opt/docling-venv/bin/pip uninstall -y pip \
   && /opt/docling-venv/bin/python /app/apps/api/bin/document_chunker.py \
     --doc-path /app/apps/api/bin/sample.pdf \
     --output-json /tmp/docling-prewarm.json \

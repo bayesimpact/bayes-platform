@@ -56,6 +56,16 @@ function registerListeners() {
     },
   })
 
+  // The messages slice resets itself on the conversation session's unmount only. Leaving a
+  // tester session has to reset it too, or a reply still being followed after a refresh keeps
+  // being polled from a page that no longer shows it.
+  listenerMiddleware.startListening({
+    actionCreator: reviewCampaignsTesterActions.sessionUnmount,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(agentSessionMessagesActions.reset())
+    },
+  })
+
   // ---------------------------------------------------------------------------
   // Notification listeners (existing behavior).
   // ---------------------------------------------------------------------------

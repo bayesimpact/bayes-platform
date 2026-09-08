@@ -3,6 +3,7 @@ import { Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
 import { ALL_ENTITIES } from "@/common/all-entities"
 import { DocumentsService } from "../documents.service"
+import { PdfPagesModule } from "../pdf-pages/pdf-pages.module"
 import { StorageModule } from "../storage/storage.module"
 import { DocumentTagsService } from "../tags/document-tags.service"
 import { DocumentEmbeddingStatusNotifierService } from "./document-embedding-status-notifier.service"
@@ -20,6 +21,7 @@ import { QueueMetricsService } from "./queue-metrics.service"
     }),
     TypeOrmModule.forFeature(ALL_ENTITIES),
     StorageModule,
+    PdfPagesModule,
   ],
   providers: [
     DocumentEmbeddingsWorker,

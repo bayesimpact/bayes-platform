@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -18,6 +19,27 @@ import (
 type fakeStore struct {
 	mutex   sync.Mutex
 	objects map[string][]byte
+	// contentTypes records the content type each object was uploaded with.
+	contentTypes map[string]string
+	// customTimes records the ExpiresAt each object was uploaded with (zero
+	// when none was set).
+	customTimes map[string]time.Time
+	// signedDownloadFileNames records the DownloadFileName each SignedURL call
+	// was given, keyed by object.
+	signedDownloadFileNames map[string]string
+	// signErr, when set, makes SignedURL fail.
+	signErr error
+	// storeDeadlines records the deadline of the context each SignedURL and
+	// Upload call received, keyed by object; the zero time means none.
+	storeDeadlines map[string]time.Time
+}
+
+func (store *fakeStore) recordDeadline(ctx context.Context, object string) {
+	if store.storeDeadlines == nil {
+		store.storeDeadlines = map[string]time.Time{}
+	}
+	deadline, _ := ctx.Deadline()
+	store.storeDeadlines[object] = deadline
 }
 
 func (store *fakeStore) Download(ctx context.Context, object string, maxBytes int64) ([]byte, error) {
@@ -33,11 +55,34 @@ func (store *fakeStore) Download(ctx context.Context, object string, maxBytes in
 	return data, nil
 }
 
-func (store *fakeStore) Upload(ctx context.Context, object string, contentType string, data []byte) error {
+func (store *fakeStore) Upload(ctx context.Context, object string, data []byte, opts uploadOptions) error {
 	store.mutex.Lock()
 	defer store.mutex.Unlock()
+	store.recordDeadline(ctx, object)
 	store.objects[object] = data
+	if store.contentTypes == nil {
+		store.contentTypes = map[string]string{}
+	}
+	store.contentTypes[object] = opts.ContentType
+	if store.customTimes == nil {
+		store.customTimes = map[string]time.Time{}
+	}
+	store.customTimes[object] = opts.ExpiresAt
 	return nil
+}
+
+func (store *fakeStore) SignedURL(ctx context.Context, object string, opts signedURLOptions) (string, error) {
+	store.mutex.Lock()
+	defer store.mutex.Unlock()
+	store.recordDeadline(ctx, object)
+	if store.signErr != nil {
+		return "", store.signErr
+	}
+	if store.signedDownloadFileNames == nil {
+		store.signedDownloadFileNames = map[string]string{}
+	}
+	store.signedDownloadFileNames[object] = opts.DownloadFileName
+	return "https://signed.example.test/" + object + "?expires=" + strconv.FormatInt(opts.Expires.Unix(), 10), nil
 }
 
 func newTestServer(t *testing.T, store *fakeStore) http.Handler {
@@ -46,7 +91,7 @@ func newTestServer(t *testing.T, store *fakeStore) http.Handler {
 	if err != nil {
 		t.Fatalf("NewRenderer: %v", err)
 	}
-	return newServer(store, renderer, 50*1024*1024, time.Minute)
+	return newServer(store, renderer, 50*1024*1024, time.Minute, newTestExportConfig())
 }
 
 func postRender(handler http.Handler, body string) *httptest.ResponseRecorder {
@@ -79,6 +124,10 @@ func TestRenderDocumentHappyPath(t *testing.T) {
 	}
 	if _, found := store.objects["org1/proj1/derived/doc1/page-2.png"]; !found {
 		t.Fatalf("page-2.png missing")
+	}
+	// Page images are permanent derived data: only PDF exports carry an expiry.
+	if customTime := store.customTimes["org1/proj1/derived/doc1/page-1.png"]; !customTime.IsZero() {
+		t.Fatalf("expected no custom time on page images, got %s", customTime)
 	}
 }
 
@@ -121,7 +170,7 @@ func TestRenderDocumentSourceTooLarge(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewRenderer: %v", err)
 	}
-	handler := newServer(store, renderer, int64(len(pdfBytes))-1, time.Minute)
+	handler := newServer(store, renderer, int64(len(pdfBytes))-1, time.Minute, newTestExportConfig())
 	response := postRender(handler,
 		`{"sourceObject":"org1/proj1/doc1.pdf","outputPrefix":"org1/proj1/derived/doc1/","maxPages":20,"maxPixelsPerPage":4000000}`)
 	if response.Code != http.StatusRequestEntityTooLarge {
@@ -166,9 +215,13 @@ func (store *stalledUploadStore) Download(ctx context.Context, object string, ma
 	return store.objects[object], nil
 }
 
-func (store *stalledUploadStore) Upload(ctx context.Context, object string, contentType string, data []byte) error {
+func (store *stalledUploadStore) Upload(ctx context.Context, object string, data []byte, opts uploadOptions) error {
 	<-ctx.Done()
 	return ctx.Err()
+}
+
+func (store *stalledUploadStore) SignedURL(ctx context.Context, object string, opts signedURLOptions) (string, error) {
+	return "https://signed.example.test/" + object, nil
 }
 
 func TestRenderDocumentTimesOutWhenRenderingStalls(t *testing.T) {
@@ -179,7 +232,7 @@ func TestRenderDocumentTimesOutWhenRenderingStalls(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewRenderer: %v", err)
 	}
-	handler := newServer(store, renderer, 50*1024*1024, 50*time.Millisecond)
+	handler := newServer(store, renderer, 50*1024*1024, 50*time.Millisecond, newTestExportConfig())
 	response := postRender(handler,
 		`{"sourceObject":"org1/proj1/doc1.pdf","outputPrefix":"org1/proj1/derived/doc1/","maxPages":20,"maxPixelsPerPage":4000000}`)
 	if response.Code != http.StatusGatewayTimeout {

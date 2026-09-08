@@ -6,7 +6,8 @@ import { Injectable, NotImplementedException } from "@nestjs/common"
 import { GoogleAuth } from "google-auth-library"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { GetAgentModelKeyFromValue } from "@/external/llm/agent-provider"
-import { AISDKLLMProviderBase, CallOrigin } from "@/external/llm/ai-sdk-llm-provider-base"
+import { CallOrigin } from "@/external/llm/ai-sdk-llm-common"
+import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk-llm-provider-base"
 import { MistralPromptHelper } from "@/external/llm/providers/mistral/mistral-prompt-helper"
 
 @Injectable()
@@ -29,8 +30,6 @@ export class AISDKMistralProvider extends AISDKLLMProviderBase {
   }): LanguageModelV3 {
     switch (callOrigin) {
       case CallOrigin.generateText:
-      case CallOrigin.generateChatResponse:
-      case CallOrigin.generateObject:
       case CallOrigin.streamChatResponse:
       case CallOrigin.generateStructuredOutput:
       case CallOrigin.streamChatResponse_withTools:

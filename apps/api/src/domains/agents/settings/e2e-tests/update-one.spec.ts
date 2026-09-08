@@ -312,6 +312,20 @@ describe("Agent Settings - updateOne", () => {
     ).toEqual([legacyProjectCategory.id, newProjectCategory.id])
   })
 
+  it("should update priorityCallsEnabled on any model", async () => {
+    await createContext()
+
+    const response = await subject({
+      payload: { model: AgentModel.Gemini35Flash, priorityCallsEnabled: true },
+    })
+
+    expectResponse(response, 200)
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 2 },
+    })
+    expect(updatedAgentSettings?.priorityCallsEnabled).toBe(true)
+  })
+
   it("should reject removing a category already used by a conversation", async () => {
     const { organization, project, agent, user } = await createContext()
     const projectCategory = await repositories.projectAgentSessionCategoryRepository.save(

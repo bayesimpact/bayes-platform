@@ -15,6 +15,7 @@
       "Je rassemble tout…",
       "Rédaction en cours…"
     ],
+    "interrupted": "Cette réponse a été interrompue avant la fin.",
     "steps": {
       "working_one": "{{count}} étape en cours",
       "working_other": "{{count}} étapes en cours",

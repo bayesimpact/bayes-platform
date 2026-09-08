@@ -8,6 +8,7 @@ import type { ConversationAgentSession } from "../../conversation/conversation-a
 import { conversationAgentSessionsActions } from "../../conversation/conversation-agent-sessions.slice"
 import { buildType } from "../base-agent-session/base-agent-sessions.thunks"
 import type { AgentSessionMessage } from "./agent-session-messages.models"
+import { selectStreaming } from "./agent-session-messages.selectors"
 import { agentSessionMessagesActions } from "./agent-session-messages.slice"
 import { streamChatResponse } from "./external/agent-session-messages-streaming"
 
@@ -73,13 +74,21 @@ export const sendMessage = createAsyncThunk<
     content: string
     agentSession: ConversationAgentSession
     file?: File
+    /** An already uploaded attachment, when resending a turn that carried one. */
+    attachmentDocumentId?: string
     onFillFormToolEvent?: () => void
   },
   ThunkConfig
 >(
   "agentSessionMessages/sendMessage",
   async (
-    { content, agentSession, file, onFillFormToolEvent },
+    {
+      content,
+      agentSession,
+      file,
+      attachmentDocumentId: existingAttachmentDocumentId,
+      onFillFormToolEvent,
+    },
     { extra: { services }, dispatch, getState, signal },
   ) => {
     const state = getState()
@@ -98,26 +107,26 @@ export const sendMessage = createAsyncThunk<
       agentSession.type === "playground" ? selectPlaygroundRevision({ agentId })(state) : undefined
 
     // Guard: don't allow sending if already streaming
-    if (state.agentSessionMessages.isStreaming) {
+    if (selectStreaming(state)) {
       return
     }
 
     const userMessageId = generateId()
     const assistantMessageId = generateId()
 
-    let attachmentDocumentId: string | undefined
-
-    if (file) {
-      const attachmentDocument = await services.agentSessionMessages.uploadAttachmentDocument({
-        organizationId,
-        projectId,
-        agentId,
-        agentSessionId,
-        file,
-        payload: { type: buildType() },
-      })
-      attachmentDocumentId = attachmentDocument.attachmentDocumentId
-    }
+    // A file picked in the composer is uploaded now; a resend reuses the turn's attachment.
+    const attachmentDocumentId = file
+      ? (
+          await services.agentSessionMessages.uploadAttachmentDocument({
+            organizationId,
+            projectId,
+            agentId,
+            agentSessionId,
+            file,
+            payload: { type: buildType() },
+          })
+        ).attachmentDocumentId
+      : existingAttachmentDocumentId
 
     const userMessage: AgentSessionMessage = {
       id: userMessageId,

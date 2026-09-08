@@ -34,6 +34,10 @@ export const FeatureFlags = [
     description: "Access and set priority for Gemini 3.x models",
   }),
   featureFlag({
+    key: "llm-flex-workers",
+    description: "Use flex in worker's calls for Gemini 3.x models",
+  }),
+  featureFlag({
     key: "project-analytics",
     description: "View project-level analytics and usage charts in the studio.",
   }),

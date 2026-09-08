@@ -16,7 +16,7 @@ import type { JSONSchema7 } from "ai"
 import { z } from "zod"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { castToolInputParameters, objectToRecord } from "@/common/zod-helper"
-import { CallOrigin } from "@/external/llm/ai-sdk-llm-provider-base"
+import { CallOrigin } from "@/external/llm/ai-sdk-llm-common"
 
 class LanguageModelV3Prompt {}
 

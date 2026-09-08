@@ -1,5 +1,11 @@
 import type { StreamEvent, StreamEventPayload } from "@caseai-connect/api-contracts"
-import { Inject, Injectable, NotFoundException } from "@nestjs/common"
+import {
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnprocessableEntityException,
+} from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm/repository/Repository"
 import { v4 } from "uuid"
@@ -9,8 +15,11 @@ import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
-import { ServiceWithLLM } from "@/external/llm"
+import { LlmServiceBase } from "@/external/llm"
 import { AgentMessage } from "../agent-message.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentMessageAttachmentDocumentsService } from "../agent-message-attachment-documents.service"
+import { recoverAbortedStreams, throttleHeartbeat } from "../stream-recovery"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentLlmRequestService } from "./agent-llm-request.service"
 import type { AgentSessionScope, PublicStreamingSessionProxy } from "./streaming-session.types"
@@ -20,14 +29,15 @@ import type { ToolExecutionLog } from "./tools/tool-execution-log"
 type NotifyClient = (event: Extract<StreamEvent, { type: "notify_client" }>) => void
 
 @Injectable()
-export class StreamingService extends ServiceWithLLM {
-  private readonly STREAM_TIMEOUT_MS = 5 * 60 * 1000 // 5 minutes
+export class StreamingLlmService extends LlmServiceBase {
+  private readonly logger = new Logger(StreamingLlmService.name)
   private readonly agentMessageRepository: Repository<AgentMessage>
   private readonly agentMessageConnectRepository: ConnectRepository<AgentMessage>
   private readonly conversationAgentSessionRepository: Repository<ConversationAgentSession>
 
   constructor(
     private readonly agentLlmRequestService: AgentLlmRequestService,
+    private readonly attachmentDocumentsService: AgentMessageAttachmentDocumentsService,
 
     @InjectRepository(ConversationAgentSession)
     conversationAgentSessionRepository: Repository<ConversationAgentSession>,
@@ -80,7 +90,11 @@ export class StreamingService extends ServiceWithLLM {
     attachmentDocumentId?: string
     notifyClient: NotifyClient
   }): AsyncGenerator<StreamEvent, void, unknown> {
-    const { session: updatedSession, assistantMessageId } = await this.prepareForStreaming({
+    const {
+      session: updatedSession,
+      assistantMessageId,
+      attachmentDocumentId: turnAttachmentDocumentId,
+    } = await this.prepareForStreaming({
       agentSessionScope,
       userContent,
       attachmentDocumentId,
@@ -93,11 +107,15 @@ export class StreamingService extends ServiceWithLLM {
 
     let fullContent = ""
     let mcpClose: (() => Promise<void>) | undefined
+    const onProgress = this.progressHeartbeat({
+      connectScope: agentSessionScope.connectScope,
+      assistantMessageId,
+    })
 
     try {
       const llmRequest = await this.agentLlmRequestService.buildLLMRequest({
         agentSessionScope,
-        attachmentDocumentId,
+        attachmentDocumentId: turnAttachmentDocumentId,
         onToolExecute: async (toolExecution) => {
           await this.persistToolExecutionAndNotifyClient({
             agentSessionScope,
@@ -106,6 +124,8 @@ export class StreamingService extends ServiceWithLLM {
             toolExecution,
           })
         },
+        getProviderForModel: this.getProviderForModel,
+        buildLLMConfig: this.buildLLMConfig,
       })
       mcpClose = llmRequest.mcpClose
 
@@ -114,6 +134,7 @@ export class StreamingService extends ServiceWithLLM {
       )
       for await (const chunk of chunks) {
         fullContent += chunk
+        onProgress()
         yield this.sseEvent({ type: "chunk", content: chunk, messageId: assistantMessageId })
       }
 
@@ -173,7 +194,11 @@ export class StreamingService extends ServiceWithLLM {
     /** Identifier the embedding page attached to the session, if any. */
     externalVisitorId?: string | null
   }): AsyncGenerator<StreamEvent, void, unknown> {
-    await this.recoverAbortedStreams(publicSessionId)
+    await recoverAbortedStreams({
+      agentMessageConnectRepository: this.agentMessageConnectRepository,
+      connectScope,
+      sessionId: publicSessionId,
+    })
 
     await this.agentMessageConnectRepository.createAndSave(connectScope, {
       sessionId: publicSessionId,
@@ -218,6 +243,7 @@ export class StreamingService extends ServiceWithLLM {
 
     let fullContent = ""
     let mcpClose: (() => Promise<void>) | undefined
+    const onProgress = this.progressHeartbeat({ connectScope, assistantMessageId })
 
     try {
       const agentSessionScope: AgentSessionScope = {
@@ -237,6 +263,8 @@ export class StreamingService extends ServiceWithLLM {
             toolExecution,
           })
         },
+        getProviderForModel: this.getProviderForModel,
+        buildLLMConfig: this.buildLLMConfig,
       })
       mcpClose = llmRequest.mcpClose
 
@@ -245,6 +273,7 @@ export class StreamingService extends ServiceWithLLM {
       )
       for await (const chunk of chunks) {
         fullContent += chunk
+        onProgress()
         yield this.sseEvent({ type: "chunk", content: chunk, messageId: assistantMessageId })
       }
 
@@ -273,6 +302,32 @@ export class StreamingService extends ServiceWithLLM {
     }
   }
 
+  /**
+   * Touches the streaming message as the answer progresses, so a long turn is not taken for an
+   * orphaned one by the recovery sweep (see `isStreamStale`), while a hung one is. Tool runs
+   * write the row on their own. Only a row still streaming is touched: a late write must not
+   * disturb a settled message. The write is not awaited, so it never slows the stream down.
+   */
+  private progressHeartbeat({
+    connectScope,
+    assistantMessageId,
+  }: {
+    connectScope: RequiredConnectScope
+    assistantMessageId: string
+  }): () => void {
+    return throttleHeartbeat(() => {
+      this.agentMessageConnectRepository
+        .updateManyBy({
+          connectScope,
+          where: { id: assistantMessageId, status: "streaming" },
+          fields: { updatedAt: new Date() },
+        })
+        .catch((error: unknown) => {
+          this.logger.warn(`Heartbeat failed for message ${assistantMessageId}`, error)
+        })
+    })
+  }
+
   private sseEvent<T extends StreamEventPayload["type"]>(
     payload: Extract<StreamEventPayload, { type: T }>,
   ): Extract<StreamEvent, { type: T }> {
@@ -298,7 +353,11 @@ export class StreamingService extends ServiceWithLLM {
     }
 
     // Recover aborted streams
-    await this.recoverAbortedStreams(sessionId)
+    await recoverAbortedStreams({
+      agentMessageConnectRepository: this.agentMessageConnectRepository,
+      connectScope: { organizationId: session.organizationId, projectId: session.projectId },
+      sessionId,
+    })
 
     // Reload session with updated messages
     return this.conversationAgentSessionRepository.findOne({
@@ -311,6 +370,9 @@ export class StreamingService extends ServiceWithLLM {
   /**
    * Prepares session for streaming
    * Persists user message + empty assistant message with status "streaming"
+   *
+   * Returns the attachment the turn actually carries: the given one, or a copy of it when it
+   * already belongs to an earlier message (see {@link attachmentForTurn}).
    */
   async prepareForStreaming({
     agentSessionScope,
@@ -323,10 +385,15 @@ export class StreamingService extends ServiceWithLLM {
   }): Promise<{
     session: ConversationAgentSession
     assistantMessageId: string
+    attachmentDocumentId?: string
   }> {
     const { session, connectScope } = agentSessionScope
     const sessionId = session.id
     const agentSettingsId = agentSessionScope.agentSettings.id
+
+    const turnAttachmentDocumentId = attachmentDocumentId
+      ? await this.attachmentForTurn({ connectScope, sessionId, attachmentDocumentId })
+      : undefined
 
     // Create user message
     await this.agentMessageConnectRepository.createAndSave(connectScope, {
@@ -338,7 +405,7 @@ export class StreamingService extends ServiceWithLLM {
       startedAt: null,
       completedAt: null,
       toolCalls: null,
-      attachmentDocumentId: attachmentDocumentId ?? null,
+      attachmentDocumentId: turnAttachmentDocumentId ?? null,
     })
 
     // Create empty assistant message with streaming status
@@ -362,7 +429,46 @@ export class StreamingService extends ServiceWithLLM {
       throw new NotFoundException(`AgentSession with id ${sessionId} not found`)
     }
 
-    return { session: updatedSession, assistantMessageId }
+    return {
+      session: updatedSession,
+      assistantMessageId,
+      attachmentDocumentId: turnAttachmentDocumentId,
+    }
+  }
+
+  /**
+   * An attachment row is attached to exactly one message (unique column). Sending an interrupted
+   * turn again reuses the attachment the user already uploaded, so when the row is taken by an
+   * earlier message of this same conversation the new turn gets a copy of it. An attachment
+   * taken by another conversation is not reusable: only the conversation that uploaded a file
+   * may attach it again.
+   */
+  private async attachmentForTurn({
+    connectScope,
+    sessionId,
+    attachmentDocumentId,
+  }: {
+    connectScope: RequiredConnectScope
+    sessionId: string
+    attachmentDocumentId: string
+  }): Promise<string> {
+    const [attachedTo] = await this.agentMessageConnectRepository.find(connectScope, {
+      where: { attachmentDocumentId },
+      select: { id: true, sessionId: true },
+      take: 1,
+    })
+    if (!attachedTo) return attachmentDocumentId
+    if (attachedTo.sessionId !== sessionId) {
+      throw new UnprocessableEntityException(
+        `Attachment document with ID ${attachmentDocumentId} belongs to another conversation`,
+      )
+    }
+
+    const copy = await this.attachmentDocumentsService.copyAttachmentDocument({
+      connectScope,
+      attachmentDocumentId,
+    })
+    return copy.id
   }
 
   /**
@@ -424,40 +530,18 @@ export class StreamingService extends ServiceWithLLM {
     return session
   }
 
-  /**
-   * Recovers aborted streams in a session
-   * Marks old "streaming" messages as "aborted"
-   */
-  private async recoverAbortedStreams(sessionId: string): Promise<void> {
-    const messages = await this.agentMessageRepository.find({
-      where: {
-        sessionId,
-        role: "assistant",
-        status: "streaming",
-      },
-    })
-
-    for (const message of messages) {
-      if (this.isStreamAborted(message)) {
-        await this.updateMessageStatus({ message, status: "aborted", content: "" })
-      }
-    }
-  }
-
   private async updateMessageStatus({
     message,
     status,
     content,
   }: {
     message: AgentMessage
-    status: "completed" | "error" | "aborted"
+    status: "completed" | "error"
     content: string
   }) {
     message.status = status
-    if (status !== "aborted") {
-      message.content = content
-      message.completedAt = new Date()
-    }
+    message.content = content
+    message.completedAt = new Date()
     await this.agentMessageRepository.save(message)
   }
 
@@ -470,7 +554,7 @@ export class StreamingService extends ServiceWithLLM {
   }: {
     id: string
     sessionId: string
-    status: "completed" | "error" | "aborted"
+    status: "completed" | "error"
     content: string
     throwNotFound?: true
   }) {
@@ -483,22 +567,6 @@ export class StreamingService extends ServiceWithLLM {
       throw new NotFoundException(`ChatMessage with id ${id} not found in session ${sessionId}`)
     }
   }
-  /**
-   * Checks if a streaming message should be marked as aborted
-   */
-  private isStreamAborted(message: AgentMessage): boolean {
-    if (!message.startedAt) {
-      return false
-    }
-
-    const startedAt =
-      message.startedAt instanceof Date ? message.startedAt : new Date(message.startedAt)
-    const now = new Date()
-    const elapsed = now.getTime() - startedAt.getTime()
-
-    return elapsed > this.STREAM_TIMEOUT_MS
-  }
-
   private async persistToolExecutionAndNotifyClient({
     agentSessionScope,
     notifyClient,

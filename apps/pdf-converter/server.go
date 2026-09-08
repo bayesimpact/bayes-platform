@@ -73,12 +73,17 @@ func newServer(
 	renderer *render.Renderer,
 	maxSourceBytes int64,
 	renderTimeout time.Duration,
+	exportCfg pdfExportConfig,
 ) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /healthz", func(response http.ResponseWriter, request *http.Request) {
 		writeJSON(response, http.StatusOK, map[string]string{"status": "ok"})
 	})
+
+	// No method prefix: the MCP handler answers GET and DELETE itself (405 with
+	// an Allow header in stateless mode).
+	mux.Handle("/mcp", newMCPHandler(store, exportCfg))
 
 	mux.HandleFunc("POST /render-document", func(response http.ResponseWriter, request *http.Request) {
 		var body renderDocumentRequest
@@ -118,7 +123,7 @@ func newServer(
 				}
 				uploads.Go(func() error {
 					object := fmt.Sprintf("%spage-%d.png", body.OutputPrefix, pageNumber)
-					return store.Upload(uploadCtx, object, "image/png", pngBytes)
+					return store.Upload(uploadCtx, object, pngBytes, uploadOptions{ContentType: "image/png"})
 				})
 				return nil
 			})

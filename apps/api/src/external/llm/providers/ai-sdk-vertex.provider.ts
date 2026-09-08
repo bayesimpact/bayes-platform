@@ -4,7 +4,8 @@ import { Injectable } from "@nestjs/common"
 import type { LanguageModel } from "ai"
 import { Agent, fetch as undiciFetch } from "undici"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
-import { AISDKLLMProviderBase, type CallOrigin } from "@/external/llm/ai-sdk-llm-provider-base"
+import type { CallOrigin } from "@/external/llm/ai-sdk-llm-common"
+import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk-llm-provider-base"
 
 // Default network timeouts (ms) applied to the extended-timeout fetch when the
 // corresponding env vars are unset. Sized for long-running calls such as

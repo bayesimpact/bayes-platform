@@ -1,19 +1,13 @@
-import {
-  type AgentModel,
-  AgentModelToAgentProvider,
-  AgentProvider,
-  type AgentTemperature,
-} from "@caseai-connect/api-contracts"
+import { AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
 import { NotImplementedException } from "@nestjs/common"
-import type { ToolSet } from "ai"
 import type {
+  BuildLLMConfigParams,
   LLMConfig,
-  LLMFeatures,
   LLMProvider,
   LLMServiceTier,
 } from "@/common/interfaces/llm-provider.interface"
 
-export abstract class ServiceWithLLM {
+export abstract class LlmServiceBase {
   constructor({
     mockLlmProvider,
     vertexLlmProvider,
@@ -42,7 +36,11 @@ export abstract class ServiceWithLLM {
   private readonly mistralLlmProvider: LLMProvider
   private readonly medGemmaLlmProvider: LLMProvider
   private readonly gemmaLlmProvider: LLMProvider
-  protected getProviderForModel(model: string): LLMProvider {
+
+  protected getProviderForModel: (model: string) => LLMProvider = (model) => {
+    return this.getProviderForModelImpl(model)
+  }
+  private getProviderForModelImpl(model: string): LLMProvider {
     const provider = AgentModelToAgentProvider[model]
     switch (provider) {
       case AgentProvider._Mock:
@@ -61,29 +59,19 @@ export abstract class ServiceWithLLM {
         throw new NotImplementedException(`not supported llm provider: ${provider}`)
     }
   }
-  protected buildLLMConfig({
-    systemPrompt,
-    model,
-    temperature,
-    tools,
-    fireAndForgetToolNames,
-    endOfTurnTools,
-    endOfTurnExecutionCounts,
-    useExtendedTimeouts,
-    priorityCallsEnabled,
-    llmFeatures,
-  }: {
-    tools?: ToolSet
-    fireAndForgetToolNames?: string[]
-    endOfTurnTools?: ToolSet
-    endOfTurnExecutionCounts?: (toolResult: { toolName: string; output: unknown }) => boolean
-    systemPrompt: string
-    model: AgentModel
-    temperature: AgentTemperature
-    useExtendedTimeouts?: boolean
-    priorityCallsEnabled: boolean
-    llmFeatures: LLMFeatures
-  }): LLMConfig {
+  protected buildLLMConfig(params: BuildLLMConfigParams): LLMConfig {
+    const {
+      systemPrompt,
+      model,
+      temperature,
+      tools,
+      fireAndForgetToolNames,
+      endOfTurnTools,
+      endOfTurnExecutionCounts,
+      useExtendedTimeouts,
+      priorityCallsEnabled,
+      llmFeatures,
+    } = params
     // Convert temperature to number (database decimal types may be returned as strings)
     const safeTemperature =
       typeof temperature === "string" ? parseFloat(temperature) : Number(temperature)

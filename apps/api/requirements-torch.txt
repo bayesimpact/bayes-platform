@@ -1,6 +1,8 @@
-# PyTorch CUDA 12.1 wheels. Kept in a separate file because this index only
+# PyTorch CUDA 12.8 wheels. Kept in a separate file because this index only
 # hosts torch packages — installing everything else from it would fail.
---index-url https://download.pytorch.org/whl/cu121
+# Cloud Run GPU (nvidia-l4) ships driver 580.x (CUDA 13.0), which runs cu128
+# wheels without forward-compatibility packages.
+--index-url https://download.pytorch.org/whl/cu128
 
-torch==2.5.1
-torchvision==0.20.1
+torch==2.11.0
+torchvision==0.26.0

@@ -24,7 +24,7 @@ import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.s
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { StreamingService } from "./streaming.service"
+import { StreamingLlmService } from "./streaming-llm.service"
 import type { AgentSessionScope } from "./streaming-session.types"
 
 @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard)
@@ -32,7 +32,7 @@ import type { AgentSessionScope } from "./streaming-session.types"
 @Controller()
 export class StreamingController {
   constructor(
-    private readonly chatStreamingService: StreamingService,
+    private readonly chatStreamingLLMService: StreamingLlmService,
     private readonly agentSettingsService: AgentSettingsService,
   ) {}
 
@@ -79,7 +79,7 @@ export class StreamingController {
             agentSettings,
             session,
           }
-          const events = this.chatStreamingService.streamAgentResponse({
+          const events = this.chatStreamingLLMService.streamAgentResponse({
             agentSessionScope,
             userContent,
             attachmentDocumentId,

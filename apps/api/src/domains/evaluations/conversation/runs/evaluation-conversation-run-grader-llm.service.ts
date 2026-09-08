@@ -2,7 +2,7 @@ import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-co
 import { Inject, Injectable, UnprocessableEntityException } from "@nestjs/common"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { LLMMetadata, LLMProvider } from "@/common/interfaces/llm-provider.interface"
-import { ServiceWithLLM } from "@/external/llm"
+import { LlmServiceBase } from "@/external/llm"
 
 /**
  * LLM judge for conversation evaluation runs, ported from the legacy
@@ -15,7 +15,7 @@ import { ServiceWithLLM } from "@/external/llm"
  * status "error").
  */
 @Injectable()
-export class EvaluationConversationRunGraderService extends ServiceWithLLM {
+export class EvaluationConversationRunGraderLlmService extends LlmServiceBase {
   constructor(
     @Inject("_MockLLMProvider")
     mockLlmProvider: LLMProvider,
@@ -76,7 +76,7 @@ ${
       model: judgeModel,
       temperature: 0,
       priorityCallsEnabled: false,
-      llmFeatures: { priorityCalls: false },
+      llmFeatures: { priorityCalls: false, flexWorkers: false },
     }
 
     const llmMetadata: LLMMetadata = {

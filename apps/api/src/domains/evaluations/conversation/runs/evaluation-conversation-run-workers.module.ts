@@ -10,7 +10,8 @@ import {
 } from "./evaluation-conversation-run.constants"
 import { EvaluationConversationRunWorker } from "./evaluation-conversation-run.worker"
 import { EvaluationConversationRunExecuteWorker } from "./evaluation-conversation-run-execute.worker"
-import { EvaluationConversationRunGraderService } from "./evaluation-conversation-run-grader.service"
+import { EvaluationConversationRunGraderLlmService } from "./evaluation-conversation-run-grader-llm.service"
+import { EvaluationConversationRunLlmService } from "./evaluation-conversation-run-llm.service"
 import { EvaluationConversationRunProcessorService } from "./evaluation-conversation-run-processor.service"
 import { EvaluationConversationRunStarterService } from "./evaluation-conversation-run-starter.service"
 import { EvaluationConversationRunStatusNotifierService } from "./evaluation-conversation-run-status-notifier.service"
@@ -30,7 +31,8 @@ import { QueueMetricsService } from "./queue-metrics.service"
     EvaluationConversationRunWorker,
     EvaluationConversationRunProcessorService,
     EvaluationConversationRunStatusNotifierService,
-    EvaluationConversationRunGraderService,
+    EvaluationConversationRunGraderLlmService,
+    EvaluationConversationRunLlmService,
     QueueMetricsService,
   ],
 })

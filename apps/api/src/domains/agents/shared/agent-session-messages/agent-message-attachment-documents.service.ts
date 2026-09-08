@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common"
+import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
@@ -49,6 +49,32 @@ export class AgentMessageAttachmentDocumentsService {
     connectScope: RequiredConnectScope
   }): Promise<AgentMessageAttachmentDocument | null> {
     return this.attachmentDocumentConnectRepository.getOneById(connectScope, attachmentDocumentId)
+  }
+
+  /**
+   * A second row for the same stored file. An attachment row is attached to exactly one message
+   * (unique column), so a turn that reuses an attachment already attached to an earlier one, as
+   * when an interrupted turn is sent again, gets its own row. Rendered PDF pages are cached under
+   * the file path, so the copy keeps the page count and never renders again.
+   */
+  async copyAttachmentDocument({
+    attachmentDocumentId,
+    connectScope,
+  }: {
+    attachmentDocumentId: string
+    connectScope: RequiredConnectScope
+  }): Promise<AgentMessageAttachmentDocument> {
+    const attachmentDocument = await this.findById({ attachmentDocumentId, connectScope })
+    if (!attachmentDocument) {
+      throw new NotFoundException(`Attachment document with ID ${attachmentDocumentId} not found`)
+    }
+    return this.attachmentDocumentConnectRepository.createAndSave(connectScope, {
+      fileName: attachmentDocument.fileName,
+      mimeType: attachmentDocument.mimeType,
+      size: attachmentDocument.size,
+      storageRelativePath: attachmentDocument.storageRelativePath,
+      pdfPageCount: attachmentDocument.pdfPageCount,
+    })
   }
 
   /**

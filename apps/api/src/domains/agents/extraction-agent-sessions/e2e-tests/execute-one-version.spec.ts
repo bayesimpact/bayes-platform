@@ -20,7 +20,6 @@ import { AgentsModule } from "../../agents.module"
 
 const mockLlmProvider = {
   streamChatResponse: jest.fn(),
-  generateChatResponse: jest.fn(),
   generateStructuredOutput: jest.fn(),
 }
 

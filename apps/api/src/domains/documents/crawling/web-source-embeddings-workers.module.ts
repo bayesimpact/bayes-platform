@@ -7,6 +7,8 @@ import { ALL_ENTITIES } from "@/common/all-entities"
 import { DocumentsService } from "../documents.service"
 import { DocumentEmbeddingStatusNotifierService } from "../embeddings/document-embedding-status-notifier.service"
 import { DocumentEmbeddingsSharedService } from "../embeddings/document-embeddings-shared.service"
+import { PdfPagesModule } from "../pdf-pages/pdf-pages.module"
+import { StorageModule } from "../storage/storage.module"
 import { DocumentTagsService } from "../tags/document-tags.service"
 import { WebPageEmbeddingsProcessorService } from "./web-page-embeddings-processor.service"
 import { WEB_SOURCE_EMBEDDINGS_QUEUE_NAME } from "./web-source-embeddings.constants"
@@ -25,6 +27,8 @@ import { WebSourceEmbeddingsQueueMetricsService } from "./web-source-embeddings-
       name: WEB_SOURCE_EMBEDDINGS_QUEUE_NAME,
     }),
     TypeOrmModule.forFeature(ALL_ENTITIES),
+    StorageModule,
+    PdfPagesModule,
   ],
   providers: [
     WebSourceEmbeddingsWorker,

@@ -2,6 +2,7 @@ import { updateAgentSettingsModelSchema } from "@caseai-connect/api-contracts"
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -15,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@caseai-connect/ui/shad/select"
+import { Switch } from "@caseai-connect/ui/shad/switch"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
@@ -22,6 +24,7 @@ import type { z } from "zod"
 import {
   buildAgentModelOptions,
   formatAgentModelLabel,
+  isPriorityCallsAvailable,
 } from "@/common/features/agents/agent-model.helpers"
 import { updateAgentSettingsModel } from "@/common/features/agents/agent-settings/agent-settings.thunks"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
@@ -42,14 +45,27 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(updateAgentSettingsModelSchema),
-    defaultValues: { model: agentSettings.model, temperature: agentSettings.temperature },
+    defaultValues: {
+      model: agentSettings.model,
+      temperature: agentSettings.temperature,
+      priorityCallsEnabled: agentSettings.priorityCallsEnabled,
+    },
   })
   useReportDirty(form.formState.isDirty, onDirtyChange)
 
+  // The priority tier only exists for Gemini 3.x models and needs the project flag. It follows
+  // the model currently picked in the form, so switching to another provider hides it.
+  const selectedModel = form.watch("model")
+  const priorityCallsAvailable = isPriorityCallsAvailable({ hasFeature, model: selectedModel })
+
   const handleSubmit = form.handleSubmit(async (values) => {
     const fields = pickDirtyFields(values, form.formState.dirtyFields)
+    if (!priorityCallsAvailable && values.priorityCallsEnabled) fields.priorityCallsEnabled = false
     await dispatch(updateAgentSettingsModel({ agentId: agentSettings.agentId, fields })).unwrap()
-    form.reset(values)
+    form.reset({
+      ...values,
+      priorityCallsEnabled: fields.priorityCallsEnabled ?? values.priorityCallsEnabled,
+    })
   })
 
   return (
@@ -106,6 +122,26 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
             )}
           />
         </div>
+
+        {priorityCallsAvailable && (
+          <FormField
+            control={form.control}
+            name="priorityCallsEnabled"
+            render={({ field }) => (
+              <FormItem className="flex items-center justify-between gap-4 rounded-lg border p-4">
+                <div className="space-y-1">
+                  <FormLabel>{t("agentSettings:model.priorityCalls.title")}</FormLabel>
+                  <FormDescription>
+                    {t("agentSettings:model.priorityCalls.description")}
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        )}
 
         <TabSaveButton
           isSubmitting={form.formState.isSubmitting}

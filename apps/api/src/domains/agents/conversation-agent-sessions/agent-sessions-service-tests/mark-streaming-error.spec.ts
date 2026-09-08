@@ -12,7 +12,7 @@ describe("markStreamingError", () => {
       testOrganization,
       testUser,
       testProject,
-      streamingService,
+      streamingLLMService,
     } = getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
@@ -26,7 +26,7 @@ describe("markStreamingError", () => {
       type: "playground",
     })
 
-    const { assistantMessageId } = await streamingService.prepareForStreaming({
+    const { assistantMessageId } = await streamingLLMService.prepareForStreaming({
       agentSessionScope: {
         agent: testAgent,
         agentSettings: testAgentSettings,
@@ -36,7 +36,7 @@ describe("markStreamingError", () => {
       userContent: "Hello",
     })
 
-    const errorSession = await streamingService.markStreamingError({
+    const errorSession = await streamingLLMService.markStreamingError({
       sessionId: session.id,
       assistantMessageId,
       errorMessage: "An error occurred",

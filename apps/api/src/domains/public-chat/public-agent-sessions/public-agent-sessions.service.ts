@@ -2,19 +2,21 @@ import crypto from "node:crypto"
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
+import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
+import { recoverAbortedStreams } from "@/domains/agents/shared/agent-session-messages/stream-recovery"
 import type { AgentEmbedConfig } from "../agent-embed-configs/agent-embed-config.entity"
 import { PublicAgentSession } from "./public-agent-session.entity"
 import { PublicAgentSessionCategory } from "./public-agent-session-category.entity"
 
-const STREAM_TIMEOUT_MS = 5 * 60 * 1000
-
 @Injectable()
 export class PublicAgentSessionsService {
+  private readonly agentMessageConnectRepository: ConnectRepository<AgentMessage>
+
   constructor(
     @InjectRepository(PublicAgentSession)
     private readonly publicAgentSessionRepository: Repository<PublicAgentSession>,
@@ -25,7 +27,12 @@ export class PublicAgentSessionsService {
     @InjectRepository(AgentSessionCategory)
     private readonly agentSessionCategoryRepository: Repository<AgentSessionCategory>,
     private readonly agentSettingsService: AgentSettingsService,
-  ) {}
+  ) {
+    this.agentMessageConnectRepository = new ConnectRepository(
+      agentMessageRepository,
+      "agentMessage",
+    )
+  }
 
   /**
    * SessionMetadataRecalculator implementation for PUBLIC sessions — same
@@ -176,7 +183,11 @@ export class PublicAgentSessionsService {
     const session = await this.publicAgentSessionRepository.findOne({ where: { id: sessionId } })
     if (!session) throw new NotFoundException("Session not found")
 
-    await this.recoverAbortedMessages(sessionId)
+    await recoverAbortedStreams({
+      agentMessageConnectRepository: this.agentMessageConnectRepository,
+      connectScope: { organizationId: session.organizationId, projectId: session.projectId },
+      sessionId,
+    })
 
     const messages = await this.agentMessageRepository.find({
       where: { sessionId },
@@ -188,22 +199,5 @@ export class PublicAgentSessionsService {
 
   async updateLastActivity(sessionId: string): Promise<void> {
     await this.publicAgentSessionRepository.update(sessionId, { lastActivityAt: new Date() })
-  }
-
-  private async recoverAbortedMessages(sessionId: string): Promise<void> {
-    const streamingMessages = await this.agentMessageRepository.find({
-      where: { sessionId, status: "streaming" },
-    })
-
-    const now = Date.now()
-    const timedOutMessages = streamingMessages.filter(
-      (message) => message.startedAt && now - message.startedAt.getTime() > STREAM_TIMEOUT_MS,
-    )
-
-    if (timedOutMessages.length > 0) {
-      await this.agentMessageRepository.save(
-        timedOutMessages.map((message) => Object.assign(message, { status: "aborted" as const })),
-      )
-    }
   }
 }

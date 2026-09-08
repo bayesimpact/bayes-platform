@@ -21,6 +21,11 @@ export type McpServerConfig = {
 
 export type EnabledMcpServer = McpServerConfig & {
   id: string
+  /**
+   * Set for built-in servers behind Google IAM (Cloud Run invoker): the client
+   * mints an ID token for this audience instead of sending a static API key.
+   */
+  googleIamAudience?: string
 }
 
 export type McpServerOauthTokens = {

@@ -2,6 +2,7 @@
   "mcpServers": {
     "title": "Serveurs MCP",
     "description": "Gérer les serveurs d'outils externes connectés à ce projet.",
+    "builtIn": "Intégré",
     "empty": "Aucun serveur MCP configuré. Ajoutez-en un pour donner à vos agents accès à des outils externes.",
     "actions": {
       "newServer": "Nouveau serveur"

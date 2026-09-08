@@ -13,6 +13,7 @@
       "model": "Modèle",
       "outputJsonSchema": "Schéma JSON de sortie",
       "fillFormEnabled": "Remplissage de formulaire",
+      "priorityCallsEnabled": "Appels prioritaires",
       "schemaBuilder": {
         "advancedMode": "Mode avancé",
         "visualMode": "Éditeur visuel",
@@ -102,7 +103,8 @@
       "label": "Serveurs MCP",
       "manage": "Gérer les serveurs",
       "emptyTitle": "Aucun serveur MCP",
-      "emptyDescription": "Ajoutez des serveurs MCP à ce projet pour donner à vos agents accès à des outils externes."
+      "emptyDescription": "Ajoutez des serveurs MCP à ce projet pour donner à vos agents accès à des outils externes.",
+      "builtInDescription": "Intégré à la plateforme, aucune configuration nécessaire."
     },
     "unsavedChanges": {
       "title": "Modifications non enregistrées",
@@ -185,6 +187,9 @@
       "snippetLabel": "Extrait d'intégration",
       "snippetDescription": "Collez cette balise <script> avant la balise </body> fermante sur chaque page où vous souhaitez afficher le widget de chat.",
       "snippetHint": "Attributs optionnels : data-color=\"#2563eb\" (couleur du bouton), data-locale=\"fr\" (langue du widget), data-display-mode=\"drawer\" (panneau latéral au lieu d'une bulle), data-hint=\"Besoin d'aide ?\" (infobulle affichée au chargement et au survol).",
+      "publicPageLabel": "Lien de la page publique",
+      "publicPageDescription": "Partagez ce lien, ou un QR code de ce lien, pour rendre {{name}} accessible sans site hôte.",
+      "publicPageHint": "La page ne fonctionne que lorsque l'intégration est activée. Ajoutez &locale=fr pour forcer la langue.",
       "allowedOriginsLabel": "Origines autorisées",
       "allowedOriginsDescription": "Liste d'origines autorisées séparées par des virgules (ex. https://app.example.com). Laissez vide pour autoriser toutes les origines.",
       "allowedOriginsPlaceholder": "https://app.example.com, https://staging.example.com",
@@ -194,11 +199,20 @@
       "logoUrlDescription": "URL de l'image du logo affichée dans l'en-tête du chat.",
       "logoUrlPlaceholder": "https://example.com/logo.png",
       "primaryColorLabel": "Couleur principale",
-      "primaryColorDescription": "Couleur principale utilisée dans l'en-tête du widget de chat. Saisissez une valeur hexadécimale (ex. #2563eb)."
+      "primaryColorDescription": "Couleur principale utilisée dans l'en-tête du widget de chat. Saisissez une valeur hexadécimale (ex. #2563eb).",
+      "bannerTextLabel": "Texte du bandeau",
+      "bannerTextDescription": "Message optionnel affiché en permanence au-dessus de la conversation, sur la page publique et dans le widget. Utilisez-le pour préciser le contexte, par exemple une version de test ou le public visé.",
+      "bannerTextPlaceholder": "Version de test, réservée à l'équipe pilote"
     },
     "source_one": "{{count}} source",
     "source_other": "{{count}} sources",
     "source_zero": "Aucune source",
+    "model": {
+      "priorityCalls": {
+        "title": "Appels prioritaires",
+        "description": "Temps de réponse plus bas et plus stable, pour un coût par appel plus élevé."
+      }
+    },
     "tools": {
       "fillForm": {
         "title": "Remplissage de formulaire",

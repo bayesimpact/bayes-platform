@@ -19,7 +19,6 @@ import { EXTRACTION_AGENT_SESSION_BATCH_SERVICE } from "../extraction-agent-sess
 
 const mockLlmProvider = {
   streamChatResponse: jest.fn(),
-  generateChatResponse: jest.fn(),
   generateStructuredOutput: jest.fn(),
 }
 

@@ -5,7 +5,10 @@ export type McpServerDto = {
   id: string
   name: string
   url: string
-  projectId: string
+  /** Null for built-in servers, which are visible in every project. */
+  projectId: string | null
+  /** Provided by the platform: cannot be edited or deleted, only toggled per agent. */
+  isBuiltIn: boolean
   authStatus: McpServerAuthStatus
   createdAt: TimeType
   updatedAt: TimeType

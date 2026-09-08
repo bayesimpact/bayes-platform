@@ -168,3 +168,38 @@ export const resourceCardsOnlyConversation: AgentSessionMessageDto[] = [
     ],
   }),
 ]
+
+/**
+ * A reply with no prose whose MCP App card never completes its handshake. The card gives up
+ * after its 15 s initialization timeout and the tool result text takes its place in the bubble.
+ */
+export const failedMcpAppCardConversation: AgentSessionMessageDto[] = [
+  buildUserMessage("Export these notes as a PDF."),
+  buildAssistantMessage("", {
+    toolCalls: [
+      {
+        id: "call-pdf-export",
+        name: "export_pdf",
+        arguments: { markdown: "# Notes" },
+        result: {
+          content: [
+            {
+              type: "text",
+              text: "Created Notes.pdf (2 pages). Download: https://example.com/notes.pdf",
+            },
+          ],
+          structuredContent: {
+            fileName: "Notes.pdf",
+            downloadUrl: "https://example.com/notes.pdf",
+          },
+        },
+        mcpApp: {
+          mcpServerId: "mcp-server-1",
+          resourceUri: "ui://pdf-export/mcp-app.html",
+          // Never sends `ui/initialize`, so the host times out and falls back to text.
+          html: "<!DOCTYPE html><html><body></body></html>",
+        },
+      },
+    ],
+  }),
+]

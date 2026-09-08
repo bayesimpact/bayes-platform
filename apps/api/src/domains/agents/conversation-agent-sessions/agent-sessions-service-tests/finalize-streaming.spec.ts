@@ -13,7 +13,7 @@ describe("finalizeStreaming", () => {
       testOrganization,
       testUser,
       testProject,
-      streamingService,
+      streamingLLMService,
     } = getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
@@ -26,7 +26,7 @@ describe("finalizeStreaming", () => {
       type: "playground",
     })
 
-    const { assistantMessageId } = await streamingService.prepareForStreaming({
+    const { assistantMessageId } = await streamingLLMService.prepareForStreaming({
       agentSessionScope: {
         agent: testAgent,
         agentSettings: testAgentSettings,
@@ -36,7 +36,7 @@ describe("finalizeStreaming", () => {
       userContent: "Hello",
     })
 
-    const finalizedSession = await streamingService.finalizeStreaming({
+    const finalizedSession = await streamingLLMService.finalizeStreaming({
       sessionId: session.id,
       assistantMessageId,
       fullContent: "Hello! How can I help you today?",
@@ -50,12 +50,12 @@ describe("finalizeStreaming", () => {
   })
 
   it("should throw NotFoundException for non-existent session", async () => {
-    const { streamingService } = getTestContext()
+    const { streamingLLMService } = getTestContext()
 
     // Use a valid UUID format for non-existent session
     const nonExistentId = "00000000-0000-0000-0000-000000000000"
     await expect(
-      streamingService.finalizeStreaming({
+      streamingLLMService.finalizeStreaming({
         sessionId: nonExistentId,
         assistantMessageId: "00000000-0000-0000-0000-000000000001",
         fullContent: "Content",

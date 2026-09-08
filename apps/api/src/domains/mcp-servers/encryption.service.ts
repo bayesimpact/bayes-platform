@@ -31,8 +31,9 @@ export class EncryptionService {
   }
 
   decrypt(encrypted: string): string {
-    const [ivB64, authTagB64, ciphertextB64] = encrypted.split(":")
-    if (!ivB64 || !authTagB64 || !ciphertextB64) {
+    const parts = encrypted.split(":")
+    const [ivB64, authTagB64, ciphertextB64] = parts
+    if (parts.length !== 3 || !ivB64 || !authTagB64 || ciphertextB64 === undefined) {
       throw new Error("Invalid encrypted format — expected iv:authTag:ciphertext")
     }
     const iv = Buffer.from(ivB64, "base64")

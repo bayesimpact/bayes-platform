@@ -1,9 +1,9 @@
 import { URL } from "node:url"
 import { Inject, Injectable, Logger } from "@nestjs/common"
 import type { FilePart, ImagePart } from "ai"
-import { v4 } from "uuid"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type {
+  BuildLLMConfigParams,
   LLMChatMessage,
   LLMConfig,
   LLMMetadata,
@@ -20,19 +20,13 @@ import {
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectsService } from "@/domains/projects/projects.service"
 import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
-import { ServiceWithLLM } from "@/external/llm"
 import { modelRequiresPdfAsImages } from "@/external/llm/agent-provider"
 import type { AgentMessage } from "../agent-message.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMessageAttachmentDocumentsService } from "../agent-message-attachment-documents.service"
 import { isLLMVisibleMessage } from "./llm-visible-message.helper"
 import { generateMasterPrompt } from "./master-promts/generate-master-prompt"
-import type {
-  AgentSessionScope,
-  OnExecute,
-  PublicStreamingSessionProxy,
-  StreamingSession,
-} from "./streaming-session.types"
+import type { AgentSessionScope, OnExecute, StreamingSession } from "./streaming-session.types"
 import type { SessionStateTarget } from "./tools/session-state-target"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ToolsService } from "./tools.service"
@@ -53,7 +47,7 @@ export type BuiltLLMRequest = {
  * MUST go through this service so the agent behaves identically everywhere.
  */
 @Injectable()
-export class AgentLlmRequestService extends ServiceWithLLM {
+export class AgentLlmRequestService {
   private readonly logger = new Logger(AgentLlmRequestService.name)
 
   constructor(
@@ -64,32 +58,12 @@ export class AgentLlmRequestService extends ServiceWithLLM {
 
     private readonly toolsService: ToolsService,
     private readonly projectsService: ProjectsService,
-
-    @Inject("_MockLLMProvider")
-    mockLlmProvider: LLMProvider,
-    @Inject("VertexLLMProvider")
-    vertexLlmProvider: LLMProvider,
-    @Inject("Vertex3LLMProvider")
-    vertex3LlmProvider: LLMProvider,
-    @Inject("MistralLLMProvider")
-    mistralLlmProvider: LLMProvider,
-    @Inject("MedGemmaLLMProvider")
-    medGemmaLlmProvider: LLMProvider,
-    @Inject("GemmaLLMProvider")
-    gemmaLlmProvider: LLMProvider,
-  ) {
-    super({
-      mockLlmProvider,
-      vertexLlmProvider,
-      vertex3LlmProvider,
-      medGemmaLlmProvider,
-      gemmaLlmProvider,
-      mistralLlmProvider,
-    })
-  }
+  ) {}
 
   async buildLLMRequest({
     agentSessionScope,
+    getProviderForModel,
+    buildLLMConfig,
     onToolExecute,
     attachmentDocumentId,
     includeSessionMetadataTools = true,
@@ -97,6 +71,8 @@ export class AgentLlmRequestService extends ServiceWithLLM {
     sessionState,
   }: {
     agentSessionScope: AgentSessionScope
+    getProviderForModel: (model: string) => LLMProvider
+    buildLLMConfig: (params: BuildLLMConfigParams) => LLMConfig
     onToolExecute: OnExecute
     attachmentDocumentId?: string
     includeSessionMetadataTools?: boolean
@@ -116,6 +92,8 @@ export class AgentLlmRequestService extends ServiceWithLLM {
       hasSubAgentTools,
     } = await this.toolsService.buildTools({
       agentSessionScope,
+      getProviderForModel,
+      buildLLMConfig,
       includeSessionMetadataTools,
       onExecute: onToolExecute,
       sessionState,
@@ -127,7 +105,7 @@ export class AgentLlmRequestService extends ServiceWithLLM {
       ...new Set([...(tools ? Object.keys(tools) : []), ...Object.keys(endOfTurnTools)]),
     ]
     const llmFeatures = await this.projectsService.getLlmFeatures(connectScope)
-    const config = this.buildLLMConfig({
+    const config = buildLLMConfig({
       systemPrompt: generateMasterPrompt({
         agent,
         agentSettings,
@@ -165,64 +143,6 @@ export class AgentLlmRequestService extends ServiceWithLLM {
       })
 
     return { config, metadata, messages, mcpClose }
-  }
-
-  /**
-   * Runs a single user turn against an agent without a persisted session, using
-   * the exact same request building (tools, master prompt, streaming provider
-   * call) as Studio. Used by evaluation runs so the evaluated agent behaves
-   * exactly like the Studio one.
-   *
-   * The only divergence from Studio: session-metadata tools are excluded because
-   * there is no session row for them to mutate.
-   */
-  async runSingleTurn({
-    agent,
-    agentSettings,
-    connectScope,
-    userContent,
-    extraTags,
-  }: {
-    agent: Agent
-    agentSettings: AgentSettings
-    connectScope: RequiredConnectScope
-    userContent: string
-    extraTags?: string[]
-  }): Promise<{ output: string; traceId: string }> {
-    const traceId = v4()
-    const userMessage = { role: "user", content: userContent, status: null } as AgentMessage
-    const session: PublicStreamingSessionProxy = {
-      id: traceId,
-      traceId,
-      organizationId: connectScope.organizationId,
-      messages: [userMessage],
-    }
-
-    const { config, metadata, messages, mcpClose } = await this.buildLLMRequest({
-      agentSessionScope: { agent, agentSettings, session, connectScope },
-      includeSessionMetadataTools: false,
-      extraTags,
-      onToolExecute: (toolExecution) => {
-        this.logger.log(
-          `Tool "${toolExecution.toolName}" executed during single-turn run (trace ${traceId})`,
-        )
-      },
-    })
-
-    try {
-      let output = ""
-      const chunks = this.getProviderForModel(config.model).streamChatResponse({
-        messages,
-        config,
-        metadata,
-      })
-      for await (const chunk of chunks) {
-        output += chunk
-      }
-      return { output, traceId }
-    } finally {
-      await mcpClose?.()
-    }
   }
 
   private buildLLMData({

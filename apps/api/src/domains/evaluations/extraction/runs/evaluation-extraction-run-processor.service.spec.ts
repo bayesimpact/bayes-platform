@@ -7,7 +7,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { toAgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.helper"
-import { StructuredExtractionAgentRunnerService } from "@/domains/agents/shared/structured-extraction-agent-runner.service"
+import { StructuredExtractionAgentRunLlmService } from "@/domains/agents/shared/structured-extraction-agent-run-llm.service"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { ProjectRepository } from "@/domains/projects/project.repository"
 import { LlmModule } from "@/external/llm/llm.module"
@@ -34,7 +34,7 @@ describe("EvaluationExtractionRunProcessorService", () => {
       additionalImports: [LlmModule],
       providers: [
         EvaluationExtractionRunProcessorService,
-        StructuredExtractionAgentRunnerService,
+        StructuredExtractionAgentRunLlmService,
         EvaluationExtractionRunGraderService,
         { provide: EvaluationExtractionRunStatusNotifierService, useValue: mockStatusNotifier },
         { provide: EvaluationExtractionRunCsvExportService, useValue: mockCsvExport },
@@ -137,7 +137,7 @@ describe("EvaluationExtractionRunProcessorService", () => {
       agentWithSettings: toAgentWithSettingsRunJobPayload({
         agent,
         agentSettings,
-        llmFeatures: {},
+        llmFeatures: { priorityCalls: false, flexWorkers: false },
       }),
     }
 

@@ -17,7 +17,6 @@ import { ExtractionAgentSessionsModule } from "../extraction-agent-sessions.modu
 
 const mockLlmProvider = {
   streamChatResponse: jest.fn(),
-  generateChatResponse: jest.fn(),
   generateStructuredOutput: jest.fn(),
 }
 

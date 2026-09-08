@@ -28,6 +28,7 @@ export const agentEmbedConfigFactory = AgentEmbedConfigFactory.define(
       title: params.title ?? null,
       logoUrl: params.logoUrl ?? null,
       primaryColor: params.primaryColor ?? null,
+      bannerText: params.bannerText ?? null,
       createdAt: params.createdAt ?? now,
       updatedAt: params.updatedAt ?? now,
       deletedAt: params.deletedAt ?? null,

@@ -53,6 +53,33 @@ function toDisplayMessage(msg: {
   }
 }
 
+/**
+ * How often a reply found still streaming on load is re-fetched. A reload mid-reply drops the
+ * SSE stream but the server keeps writing and settles the message on its own (completed, error,
+ * or aborted once found orphaned), so the widget only has to notice.
+ */
+const STREAMING_RECOVERY_POLL_INTERVAL_MS = 2_000
+
+/**
+ * Polls that may fail in a row before the reply is given up on. A single failed read (network
+ * blip) says nothing about the reply, which the server is still writing.
+ */
+const STREAMING_RECOVERY_MAX_CONSECUTIVE_FAILURES = 3
+
+/**
+ * Longest a reply is followed before it is shown as interrupted. The server settles an orphaned
+ * reply within its own window, so this only guards against that never happening.
+ */
+const STREAMING_RECOVERY_MAX_WAIT_MS = 30 * 60 * 1000
+
+/** Nobody is looking: skip the poll and catch up on the next visible tick. */
+const isTabHidden = () => typeof document !== "undefined" && document.hidden
+
+const hasStreamingReply = (messages: { role: string; status?: string }[]) =>
+  messages.some((message) => message.role === "assistant" && message.status === "streaming")
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
 // ─── Hook ──────────────────────────────────────────────────────────────────
 
 export type PublicChatStatus = "initializing" | "ready" | "error"
@@ -134,6 +161,9 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
           sessionRef.current = stored
           setMessages(sessionData.messages.map(toDisplayMessage))
           setStatus("ready")
+          if (hasStreamingReply(sessionData.messages)) {
+            void settleStreamingReply(stored, stillCurrent, nonce)
+          }
           return
         } catch (err) {
           if (!stillCurrent()) return
@@ -151,6 +181,67 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
         await startFreshSession(nonce)
       } catch (err) {
         failInit(err, nonce)
+      }
+    }
+
+    /**
+     * Re-fetches the session until its streaming reply settles, keeping the composer locked as
+     * it was before the reload. Ends when the reply settles, the session is reset, or the
+     * widget unmounts. A session that is no longer accepted is replaced by a fresh one, as on
+     * load; other failures are tolerated a few times before the reply is shown as interrupted.
+     */
+    async function settleStreamingReply(
+      session: StoredSession,
+      stillCurrent: () => boolean,
+      nonce: number,
+    ) {
+      setIsStreaming(true)
+      const giveUpAt = Date.now() + STREAMING_RECOVERY_MAX_WAIT_MS
+      let consecutiveFailures = 0
+      // The reply can no longer be followed: show it interrupted rather than spinning for good.
+      const giveUp = () =>
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.status === "streaming" ? { ...message, status: "aborted" } : message,
+          ),
+        )
+      try {
+        while (true) {
+          await sleep(STREAMING_RECOVERY_POLL_INTERVAL_MS)
+          if (!stillCurrent()) return
+          if (isTabHidden()) continue
+
+          try {
+            const sessionData = await getSession(
+              embedToken,
+              session.sessionId,
+              session.sessionToken,
+            )
+            if (!stillCurrent()) return
+            consecutiveFailures = 0
+            // A snapshot of a reply still being written carries nothing new; only the settled
+            // thread replaces what the widget shows.
+            if (!hasStreamingReply(sessionData.messages)) {
+              setMessages(sessionData.messages.map(toDisplayMessage))
+              return
+            }
+          } catch (err) {
+            if (!stillCurrent()) return
+            if (err instanceof ApiError && err.isUnauthorized) {
+              await startFreshSession(nonce).catch((error) => failInit(error, nonce))
+              return
+            }
+            consecutiveFailures += 1
+            if (consecutiveFailures >= STREAMING_RECOVERY_MAX_CONSECUTIVE_FAILURES) return giveUp()
+            continue
+          }
+
+          // Decided on a fresh answer only: a tab left hidden past the deadline must not declare
+          // interrupted a reply the server has since completed.
+          if (Date.now() > giveUpAt) return giveUp()
+        }
+      } finally {
+        if (stillCurrent()) setIsStreaming(false)
       }
     }
 

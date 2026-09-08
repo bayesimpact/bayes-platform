@@ -1,6 +1,6 @@
 import type { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import type { ModelMessage, ToolSet } from "ai"
-import type { ZodObject, z } from "zod"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 export type LLMChatMessage = ModelMessage
 
 type MockModels = AgentModel._Mock
@@ -18,8 +18,20 @@ export type MockValue =
 
 export type LLMFeatures = {
   priorityCalls?: boolean
+  flexWorkers?: boolean
 }
-
+export type BuildLLMConfigParams = {
+  model: AgentSettings["model"]
+  systemPrompt: string
+  temperature: AgentSettings["temperature"]
+  tools?: ToolSet
+  fireAndForgetToolNames?: string[]
+  endOfTurnTools?: ToolSet
+  endOfTurnExecutionCounts?: (toolResult: { toolName: string; output: unknown }) => boolean
+  priorityCallsEnabled: boolean
+  llmFeatures: LLMFeatures
+  useExtendedTimeouts?: boolean
+}
 export type LLMConfig =
   | {
       model: MockModels
@@ -105,16 +117,6 @@ export interface LLMProvider {
     metadata: LLMMetadata
   }): AsyncGenerator<string, void, unknown>
 
-  generateChatResponse({
-    message,
-    config,
-    metadata,
-  }: {
-    message: LLMChatMessage
-    config: LLMConfig
-    metadata: LLMMetadata
-  }): Promise<string>
-
   generateText({
     prompt,
     config,
@@ -124,18 +126,6 @@ export interface LLMProvider {
     config: LLMConfig
     metadata: LLMMetadata
   }): Promise<string>
-  // biome-ignore lint/suspicious/noExplicitAny: generic
-  generateObject<T extends ZodObject<any>>({
-    schema,
-    prompt,
-    config,
-    metadata,
-  }: {
-    schema: T
-    prompt: string
-    config: LLMConfig
-    metadata: LLMMetadata
-  }): Promise<z.infer<T>>
 
   generateStructuredOutput(params: {
     message: LLMChatMessage

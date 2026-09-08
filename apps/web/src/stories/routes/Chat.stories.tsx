@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import { CirclePlusIcon, MicIcon, PaperclipIcon } from "lucide-react"
 import { useState } from "react"
 import { withRouter } from "storybook-addon-remix-react-router"
+import { agentSessionMessageFactory } from "@/common/features/agents/agent-sessions/agent-session.factory"
 import type { AgentSessionMessage } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import { AgentSessionMessage as AgentSessionMessageComponent } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/AgentSessionMessage"
 import {
@@ -145,5 +146,58 @@ export const Default: Story = {
         </DotsBackground>
       </div>
     )
+  },
+}
+
+/** The thread ends on a reply whose stream died before anything was written. */
+export const InterruptedReply: Story = {
+  ...Default,
+  args: {
+    messages: [
+      agentSessionMessageFactory.build({ role: "user", content: "What can you do?" }),
+      agentSessionMessageFactory.build({ role: "assistant", content: "", status: "aborted" }),
+    ],
+  },
+}
+
+/**
+ * A reply with no prose whose MCP App card never completes its handshake. The card gives up
+ * after its 15 s initialization timeout and the tool result text takes its place in the bubble.
+ */
+export const FailedMcpAppCard: Story = {
+  ...Default,
+  args: {
+    messages: [
+      agentSessionMessageFactory.build({ role: "user", content: "Export these notes as a PDF." }),
+      agentSessionMessageFactory.build({
+        role: "assistant",
+        content: "",
+        toolCalls: [
+          {
+            id: "call-pdf-export",
+            name: "export_pdf",
+            arguments: { markdown: "# Notes" },
+            result: {
+              content: [
+                {
+                  type: "text",
+                  text: "Created Notes.pdf (2 pages). Download: https://example.com/notes.pdf",
+                },
+              ],
+              structuredContent: {
+                fileName: "Notes.pdf",
+                downloadUrl: "https://example.com/notes.pdf",
+              },
+            },
+            mcpApp: {
+              mcpServerId: "mcp-server-1",
+              resourceUri: "ui://pdf-export/mcp-app.html",
+              // Never sends `ui/initialize`, so the host times out and falls back to text.
+              html: "<!DOCTYPE html><html><body></body></html>",
+            },
+          },
+        ],
+      }),
+    ],
   },
 }

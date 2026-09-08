@@ -1,7 +1,7 @@
 import "./external/llm/open-telemetry-init" // must be first — patches http/pg before they are imported
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
-import { ValidationPipe } from "@nestjs/common"
+import { Logger, ValidationPipe } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS
 import { NestExpressApplication } from "@nestjs/platform-express"
@@ -11,8 +11,10 @@ import { StackTraceLoggingExceptionFilter } from "./common/filters/stack-trace-l
 import { getLogLevels, StructuredLogger } from "./common/logger/structured-logger"
 import { enableDbListeners } from "./common/sse/postgres-status-stream.service"
 import { buildCorsOptionsDelegate, parseFrontendUrls } from "./config/cors"
+import { BuiltInMcpServersService } from "./domains/mcp-servers/built-in/built-in-mcp-servers.service"
 
 const isProduction = process.env.NODE_ENV === "production"
+const logger = new Logger("Bootstrap")
 
 async function bootstrap() {
   enableDbListeners()
@@ -39,6 +41,19 @@ async function bootstrap() {
   app.useGlobalFilters(new StackTraceLoggingExceptionFilter(app.getHttpAdapter()))
   // Two CORS policies, split by path — see buildCorsOptionsDelegate (#366).
   app.enableCors(buildCorsOptionsDelegate(frontendUrls))
+  // Platform-provided MCP servers are rows in mcp_server, kept in sync with
+  // the environment here rather than by a migration or a lifecycle hook (which
+  // would also run in the workers and in tests).
+  try {
+    await app.get(BuiltInMcpServersService).syncFromEnvironment()
+  } catch (error) {
+    // The built-in servers are an optional add-on: failing to sync them must
+    // not stop the API from serving every other route.
+    logger.error(
+      `Could not sync the built-in MCP servers: ${error instanceof Error ? error.message : String(error)}`,
+      error instanceof Error ? error.stack : undefined,
+    )
+  }
   const port = Number(process.env.PORT) || 3000
   await app.listen(port)
 }

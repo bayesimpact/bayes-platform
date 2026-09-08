@@ -4,7 +4,7 @@ highlight: MCP
 description: Connectez des serveurs d'outils MCP externes à votre espace de travail et activez-les par agent, pour qu'un agent puisse appeler des outils externes pendant qu'il répond.
 category: guides-agents
 order: 8
-updated: 2026-07-22
+updated: 2026-09-08
 ---
 
 import McpServersWalkthrough from "@/components/McpServersWalkthrough.astro"
@@ -87,8 +87,10 @@ son **URL**. Répétez **Nouveau serveur** pour autant de serveurs que nécessai
 
 ### 5. Supprimer un serveur
 
-Chaque carte a une seule action : l'**icône corbeille** à sa droite. Il n'y a ni
-modification ni menu d'options — connecter et supprimer sont les seules actions.
+Un serveur que vous avez connecté a une seule action : l'**icône corbeille** à sa
+droite. Il n'y a ni modification ni menu d'options — connecter et supprimer sont les
+seules actions. Le serveur intégré **PDF export** (voir ci-dessous) n'a pas d'icône
+corbeille et ne peut pas être supprimé.
 
 ### 6. Confirmer la suppression
 
@@ -107,8 +109,9 @@ sa carte sur la vue d'ensemble de l'espace de travail).
 
 Dans l'éditeur de l'agent, ouvrez l'onglet **Serveurs MCP**. C'est le **dernier**
 onglet, après [**Orchestration**](/fr/agent-orchestration) et
-[**Intégration**](/fr/agent-embed), et il n'apparaît **que** lorsque l'espace de
-travail a au moins un serveur connecté.
+[**Intégration**](/fr/agent-embed). Lorsque la plateforme est configurée pour cela,
+chaque espace de travail dispose au moins du serveur intégré **PDF export**, donc cet
+onglet est toujours présent dès que la fonctionnalité est activée.
 
 ### 9. Activer un serveur pour cet agent
 
@@ -122,6 +125,15 @@ effet immédiatement — il n'y a pas de bouton Enregistrer distinct sur cet ong
 L'en-tête de l'onglet contient un lien **Gérer les serveurs** (icône lien externe) qui
 ouvre la page **Serveurs MCP** de l'espace de travail dans un nouvel onglet, pour
 connecter ou supprimer des serveurs sans perdre votre place dans l'éditeur.
+
+## Le serveur intégré PDF export
+
+Lorsque la plateforme est configurée pour cela, chaque espace de travail dispose d'un
+serveur **PDF export** marqué **Intégré**. Il ne peut pas être supprimé, mais vous
+l'activez par agent comme n'importe quel autre serveur. Une fois activé, l'agent peut
+transformer une réponse markdown en PDF téléchargeable, affiché à l'utilisateur sous
+forme de carte avec un bouton **Download PDF** (le libellé est en anglais). Ce lien est
+valable 15 minutes.
 
 ## Conseils
 
@@ -139,12 +151,11 @@ connecter ou supprimer des serveurs sans perdre votre place dans l'éditeur.
 - **Aucun élément Serveurs MCP dans la barre latérale** — la fonctionnalité n'est pas
   activée pour votre espace de travail ; contactez l'équipe Bayes pour en faire la
   demande.
-- **Un agent n'a pas d'onglet Serveurs MCP** — l'onglet n'apparaît que lorsque
-  l'espace de travail a au moins un serveur connecté. Connectez-en un sur la page
-  **Serveurs MCP** d'abord.
 - **Créer est bloqué** — l'**URL** doit être une adresse valide (par exemple
   commençant par `https://`), et le **Nom** ne peut pas être vide.
 - **Un agent n'utilise plus les outils d'un serveur** — vérifiez que le serveur est
   toujours **activé** pour cet agent dans son onglet **Serveurs MCP**, et qu'il n'a
   pas été supprimé sur la page de l'espace de travail (la suppression le retire pour
   tous les agents).
+- **Le lien de téléchargement indique qu'il a expiré** — demandez à l'agent de
+  relancer l'export.

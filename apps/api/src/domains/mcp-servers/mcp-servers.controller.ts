@@ -5,18 +5,9 @@ import {
   type McpServerDto,
   McpServersRoutes,
 } from "@caseai-connect/api-contracts"
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Req,
-  UseGuards,
-  UsePipes,
-} from "@nestjs/common"
+import { Body, Controller, Delete, Get, Post, Req, UseGuards, UsePipes } from "@nestjs/common"
 import type {
+  EndpointRequestWithAgent,
   EndpointRequestWithMcpServer,
   EndpointRequestWithProject,
 } from "@/common/context/request.interface"
@@ -26,6 +17,7 @@ import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
+import { isBuiltInMcpServer } from "./built-in/built-in-mcp-servers"
 import type { McpServer } from "./mcp-server.entity"
 import { McpServerGuard } from "./mcp-server.guard"
 import type { McpServerConfig } from "./mcp-servers.service"
@@ -33,6 +25,8 @@ import type { McpServerConfig } from "./mcp-servers.service"
 import { McpServersService } from "./mcp-servers.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpOauthService } from "./oauth/mcp-oauth.service"
+
+type EndpointRequestWithAgentAndMcpServer = EndpointRequestWithAgent & EndpointRequestWithMcpServer
 
 @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, McpServerGuard)
 @RequireContext("organization", "project")
@@ -92,25 +86,28 @@ export class McpServersController {
     return { data: { success: true } }
   }
 
+  // The agent is resolved from the request project: a built-in server is
+  // visible from every project, so the agent id alone would let one project
+  // toggle it on an agent of another.
   @Post(McpServersRoutes.enableForAgent.path)
   @CheckPolicy((policy) => policy.canCreate())
-  @AddContext("mcpServer")
+  @AddContext("mcpServer", "agent")
   async enableForAgent(
-    @Req() request: EndpointRequestWithMcpServer,
-    @Param("agentId") agentId: string,
+    @Req() request: EndpointRequestWithAgentAndMcpServer,
   ): Promise<typeof McpServersRoutes.enableForAgent.response> {
-    await this.mcpServersService.enableForAgent(agentId, request.mcpServer.id)
+    await this.mcpServersService.enableForAgent(request.agent.id, request.mcpServer.id)
     return { data: { success: true } }
   }
 
   @Delete(McpServersRoutes.disableForAgent.path)
-  @CheckPolicy((policy) => policy.canDelete())
-  @AddContext("mcpServer")
+  // Not canDelete(): turning a server off for an agent updates the agent's
+  // configuration, and built-in servers can be toggled but never deleted.
+  @CheckPolicy((policy) => policy.canUpdate())
+  @AddContext("mcpServer", "agent")
   async disableForAgent(
-    @Req() request: EndpointRequestWithMcpServer,
-    @Param("agentId") agentId: string,
+    @Req() request: EndpointRequestWithAgentAndMcpServer,
   ): Promise<typeof McpServersRoutes.disableForAgent.response> {
-    await this.mcpServersService.disableForAgent(agentId, request.mcpServer.id)
+    await this.mcpServersService.disableForAgent(request.agent.id, request.mcpServer.id)
     return { data: { success: true } }
   }
 
@@ -147,11 +144,14 @@ function toMcpServerDto(
   config: McpServerConfig,
   authStatus: McpServerAuthStatus,
 ): McpServerDto {
+  // A built-in server's url goes out to every project on purpose: the endpoint
+  // is IAM-protected, so knowing it grants nothing, and the UI hides it anyway.
   return {
     id: entity.id,
     name: entity.name,
     url: config.url,
-    projectId: entity.projectId!,
+    projectId: entity.projectId,
+    isBuiltIn: isBuiltInMcpServer(entity),
     authStatus,
     createdAt: entity.createdAt.getTime(),
     updatedAt: entity.updatedAt.getTime(),

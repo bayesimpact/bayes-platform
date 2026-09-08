@@ -7,7 +7,7 @@ import type {
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
 import { todaysDatePromptLine } from "@/common/utils/todays-date-prompt-line"
-import { ServiceWithLLM } from "@/external/llm"
+import { LlmServiceBase } from "@/external/llm"
 import type { AgentWithSettingsRunJobPayload } from "./agent-with-settings-run.types"
 
 /**
@@ -30,7 +30,7 @@ export type StructuredExtractionInputColumn = {
  * prompt, input format and provider call as the Studio one.
  */
 @Injectable()
-export class StructuredExtractionAgentRunnerService extends ServiceWithLLM {
+export class StructuredExtractionAgentRunLlmService extends LlmServiceBase {
   constructor(
     @Inject("_MockLLMProvider")
     mockLlmProvider: LLMProvider,

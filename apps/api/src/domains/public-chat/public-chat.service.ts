@@ -15,7 +15,7 @@ import { applyLiveMcpAppHtml } from "@/domains/agents/shared/agent-session-messa
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpAppHtmlService } from "@/domains/agents/shared/agent-session-messages/mcp-app-html.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { StreamingService } from "@/domains/agents/shared/agent-session-messages/streaming/streaming.service"
+import { StreamingLlmService } from "@/domains/agents/shared/agent-session-messages/streaming/streaming-llm.service"
 import type { AgentEmbedConfig } from "./agent-embed-configs/agent-embed-config.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentEmbedConfigsService } from "./agent-embed-configs/agent-embed-configs.service"
@@ -31,7 +31,7 @@ export class PublicChatService {
     private readonly agentSettingsService: AgentSettingsService,
     readonly agentEmbedConfigsService: AgentEmbedConfigsService,
     private readonly publicAgentSessionsService: PublicAgentSessionsService,
-    private readonly streamingService: StreamingService,
+    private readonly streamingLLMService: StreamingLlmService,
     private readonly mcpAppHtmlService: McpAppHtmlService,
   ) {}
 
@@ -83,7 +83,7 @@ export class PublicChatService {
 
     await this.publicAgentSessionsService.updateLastActivity(publicSession.id)
 
-    yield* this.streamingService.streamPublicAgentResponse({
+    yield* this.streamingLLMService.streamPublicAgentResponse({
       connectScope,
       publicSessionId: publicSession.id,
       agent,
@@ -111,6 +111,7 @@ export class PublicChatService {
       title: embedConfig.title,
       logoUrl: embedConfig.logoUrl,
       primaryColor: embedConfig.primaryColor,
+      bannerText: embedConfig.bannerText,
       createdAt: embedConfig.createdAt.getTime(),
       updatedAt: embedConfig.updatedAt.getTime(),
     }

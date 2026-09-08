@@ -14,7 +14,8 @@ import { evaluationConversationDatasetFactory } from "../datasets/evaluation-con
 import { evaluationConversationDatasetRecordFactory } from "../datasets/records/evaluation-conversation-dataset-record.factory"
 import { evaluationConversationRunFactory } from "./evaluation-conversation-run.factory"
 import type { ProcessEvaluationConversationRunRecordJobPayload } from "./evaluation-conversation-run.types"
-import { EvaluationConversationRunGraderService } from "./evaluation-conversation-run-grader.service"
+import { EvaluationConversationRunGraderLlmService } from "./evaluation-conversation-run-grader-llm.service"
+import { EvaluationConversationRunLlmService } from "./evaluation-conversation-run-llm.service"
 import { EvaluationConversationRunProcessorService } from "./evaluation-conversation-run-processor.service"
 import { EvaluationConversationRunStatusNotifierService } from "./evaluation-conversation-run-status-notifier.service"
 import { evaluationConversationRunRecordFactory } from "./records/evaluation-conversation-run-record.factory"
@@ -33,7 +34,8 @@ describe("EvaluationConversationRunProcessorService", () => {
       additionalImports: [LlmModule, AgentLlmModule],
       providers: [
         EvaluationConversationRunProcessorService,
-        EvaluationConversationRunGraderService,
+        EvaluationConversationRunGraderLlmService,
+        EvaluationConversationRunLlmService,
         { provide: EvaluationConversationRunStatusNotifierService, useValue: mockStatusNotifier },
       ],
     })

@@ -20,15 +20,14 @@ import {
 } from "@/domains/documents/storage/file-storage.interface"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
-import { ProjectRepository } from "@/domains/projects/project.repository"
 import { ProjectsModule } from "@/domains/projects/projects.module"
 import { LlmModule } from "@/external/llm/llm.module"
 import { extractionAgentSessionFactory } from "./extraction-agent-session.factory"
-import { ExtractionAgentSessionRunnerService } from "./extraction-agent-session-runner.service"
+import { ExtractionAgentSessionRunLlmService } from "./extraction-agent-session-run-llm.service"
 import { ExtractionAgentSessionStatusNotifierService } from "./extraction-agent-session-status-notifier.service"
 
-describe("ExtractionAgentSessionRunnerService", () => {
-  let service: ExtractionAgentSessionRunnerService
+describe("ExtractionAgentSessionRunLlmService", () => {
+  let service: ExtractionAgentSessionRunLlmService
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
   let pdfConverterClient: PdfConverterClient
@@ -43,14 +42,10 @@ describe("ExtractionAgentSessionRunnerService", () => {
         DocumentsModule,
         ProjectsModule,
       ],
-      providers: [
-        ExtractionAgentSessionRunnerService,
-        ExtractionAgentSessionStatusNotifierService,
-        ProjectRepository,
-      ],
+      providers: [ExtractionAgentSessionRunLlmService, ExtractionAgentSessionStatusNotifierService],
     })
     repositories = setup.getAllRepositories()
-    service = setup.module.get(ExtractionAgentSessionRunnerService)
+    service = setup.module.get(ExtractionAgentSessionRunLlmService)
     pdfConverterClient = setup.module.get(PdfConverterClient)
     gemmaLlmProvider = setup.module.get<LLMProvider>("GemmaLLMProvider")
   })

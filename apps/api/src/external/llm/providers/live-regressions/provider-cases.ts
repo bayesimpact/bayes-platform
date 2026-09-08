@@ -31,6 +31,18 @@ export const PROVIDER_CASES: ProviderCase[] = [
     unavailableReason: vllmUnavailableReason("VLLM_GEMMA4_26B_URL"),
   },
   {
+    label: "Gemini 3.8 Flash (Vertex3)",
+    model: AgentModel.Gemini38Flash,
+    buildProvider: () => new AISDKVertex3Provider(),
+    unavailableReason: () => null,
+  },
+  {
+    label: "Gemini 3.7 Flash (Vertex3)",
+    model: AgentModel.Gemini37Flash,
+    buildProvider: () => new AISDKVertex3Provider(),
+    unavailableReason: () => null,
+  },
+  {
     label: "Gemini 3.6 Flash (Vertex3)",
     model: AgentModel.Gemini36Flash,
     buildProvider: () => new AISDKVertex3Provider(),

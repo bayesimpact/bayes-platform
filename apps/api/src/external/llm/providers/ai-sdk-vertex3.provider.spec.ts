@@ -1,8 +1,12 @@
-import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
+import {
+  AgentModel,
+  AgentModelMetadataMap,
+  AgentModelToAgentProvider,
+  AgentProvider,
+} from "@caseai-connect/api-contracts"
 import { afterAll, beforeAll } from "@jest/globals"
 import { BatchSpanProcessor, ConsoleSpanExporter } from "@opentelemetry/sdk-trace-base"
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
-import { config as dotenvConfig } from "dotenv"
 import type { LLMConfig, LLMServiceTier } from "@/common/interfaces/llm-provider.interface"
 import { LangfuseIntegrationExporter } from "@/external/langfuse/langfuse-integration-exporter"
 import { GetAgentModelKeyFromValue } from "@/external/llm/agent-provider"
@@ -11,8 +15,6 @@ import { AISDKVertex3Provider } from "@/external/llm/providers/ai-sdk-vertex3.pr
 import { ProviderSpecs } from "@/external/llm/providers/provider-specs"
 import { gcpCredentialsCheck } from "@/external/llm/providers/spec-gcp-tools"
 
-dotenvConfig({ path: ".env", override: true, quiet: true })
-dotenvConfig({ path: ".env.test", override: true, quiet: true })
 const testModels = Object.values(AgentModel)
   .filter(
     (am) =>
@@ -30,14 +32,26 @@ describe("AISDKVertex3Provider location routing", () => {
   const locationOf = (model: AgentModel) =>
     new AISDKVertex3Provider().getTags({ model, temperature: 0, serviceTier: undefined })[1]
 
-  it("routes the model that is not EU-served through the global endpoint", () => {
-    expect(locationOf(AgentModel.Gemini36Flash)).toBe("global")
+  it("keeps every vertex 3 model on the eu endpoint", () => {
+    const vertex3Models = Object.values(AgentModel).filter(
+      (model) => AgentModelToAgentProvider[model] === AgentProvider.Vertex3,
+    )
+    expect(vertex3Models).toContain(AgentModel.Gemini38Flash)
+    for (const model of vertex3Models) {
+      expect(locationOf(model)).toBe("eu")
+    }
   })
 
-  it("keeps every other vertex 3 model on the eu endpoint", () => {
-    expect(locationOf(AgentModel.Gemini35FlashLite)).toBe("eu")
-    expect(locationOf(AgentModel.Gemini35Flash)).toBe("eu")
-    expect(locationOf(AgentModel.Gemini31FlashLite)).toBe("eu")
+  it("routes a model flagged as served outside the EU through the global endpoint", () => {
+    // No catalog entry carries the flag today, so it is seeded on the real catalog and restored:
+    // the assertion is about the routing, not about the current data.
+    const metadata = AgentModelMetadataMap[AgentModel.Gemini36Flash]
+    metadata.servedOutsideEu = true
+    try {
+      expect(locationOf(AgentModel.Gemini36Flash)).toBe("global")
+    } finally {
+      delete metadata.servedOutsideEu
+    }
   })
 })
 
@@ -101,10 +115,6 @@ if (process.env.IS_TEST === "true" && process.env.VERTEX3_TEST === "true") {
 
     it.each(testModels)("generateText - $name", async ({ model }) => {
       await ProviderSpecs.testGenerateText({ provider, model })
-    })
-
-    it.each(testModels)("generateObject - $name", async ({ model }) => {
-      await ProviderSpecs.testGenerateObject({ provider, model })
     })
 
     it.each(testModels)("generateStructuredOutput -pdf - $name", async ({ model }) => {

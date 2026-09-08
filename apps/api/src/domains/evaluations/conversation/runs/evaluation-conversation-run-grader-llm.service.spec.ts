@@ -1,22 +1,22 @@
 import { AgentModel } from "@caseai-connect/api-contracts"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"
-import { EvaluationConversationRunGraderService } from "./evaluation-conversation-run-grader.service"
+import { EvaluationConversationRunGraderLlmService } from "./evaluation-conversation-run-grader-llm.service"
 
 const connectScope: RequiredConnectScope = {
   organizationId: "org-1",
   projectId: "project-1",
 }
 
-describe("EvaluationConversationRunGraderService", () => {
-  let grader: EvaluationConversationRunGraderService
+describe("EvaluationConversationRunGraderLLMService", () => {
+  let grader: EvaluationConversationRunGraderLlmService
   let mockProvider: { generateText: jest.Mock }
   let vertexProvider: { generateText: jest.Mock }
 
   beforeEach(() => {
     mockProvider = { generateText: jest.fn() }
     vertexProvider = { generateText: jest.fn() }
-    grader = new EvaluationConversationRunGraderService(
+    grader = new EvaluationConversationRunGraderLlmService(
       mockProvider as unknown as LLMProvider,
       vertexProvider as unknown as LLMProvider,
       vertexProvider as unknown as LLMProvider,

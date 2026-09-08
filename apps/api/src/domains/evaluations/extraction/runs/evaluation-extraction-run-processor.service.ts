@@ -6,7 +6,7 @@ import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { AgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { StructuredExtractionAgentRunnerService } from "@/domains/agents/shared/structured-extraction-agent-runner.service"
+import { StructuredExtractionAgentRunLlmService } from "@/domains/agents/shared/structured-extraction-agent-run-llm.service"
 import type { EvaluationExtractionDatasetSchemaMapping } from "../datasets/evaluation-extraction-dataset.entity"
 import type { EvaluationExtractionDatasetRecord } from "../datasets/records/evaluation-extraction-dataset-record.entity"
 import {
@@ -39,7 +39,7 @@ export class EvaluationExtractionRunProcessorService {
     private readonly graderService: EvaluationExtractionRunGraderService,
     private readonly statusNotifierService: EvaluationExtractionRunStatusNotifierService,
     private readonly csvExportService: EvaluationExtractionRunCsvExportService,
-    private readonly structuredExtractionAgentRunner: StructuredExtractionAgentRunnerService,
+    private readonly structuredExtractionAgentRunner: StructuredExtractionAgentRunLlmService,
     private readonly dataSource: DataSource,
   ) {
     this.evaluationExtractionRunConnectRepository = new ConnectRepository(
