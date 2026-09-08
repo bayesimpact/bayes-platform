@@ -3,7 +3,13 @@
  * RFC 9728 (protected resource metadata), RFC 8414 (authorization server
  * metadata) and RFC 7591 (dynamic client registration). Pure functions over
  * global fetch so they can be unit-tested without Nest.
+ *
+ * Every URL fetched here is attacker-influenced (the MCP URL comes from a
+ * project member, the rest from that server's responses), so each one passes
+ * through the outbound URL guard before any request is made.
  */
+
+import { assertAllowedOutboundUrl, isAllowedOutboundUrl } from "./outbound-url-guard"
 
 export type McpOauthDiscovery = {
   authorizationEndpoint: string
@@ -20,20 +26,14 @@ const OAUTH_FETCH_TIMEOUT_MS = 10_000
 
 /**
  * A discovered endpoint is later handed to the browser (authorization_endpoint
- * becomes a `window.location.assign` target). A hostile authorization server
- * could return a `javascript:` or `data:` URL, so every endpoint from
- * third-party JSON must be validated before use. `http:` is allowed only for
- * localhost, to keep local dev authorization servers working.
+ * becomes a `window.location.assign` target) or fetched server-side (token and
+ * registration endpoints). A hostile authorization server could return a
+ * `javascript:` or `data:` URL, or point at an internal host, so every
+ * endpoint from third-party JSON goes through the outbound URL guard. `http:`
+ * is allowed only for localhost behind MCP_OAUTH_ALLOW_INSECURE_LOCAL.
  */
-function isValidEndpointUrl(candidate: string): boolean {
-  let url: URL
-  try {
-    url = new URL(candidate)
-  } catch {
-    return false
-  }
-  if (url.protocol === "https:") return true
-  return url.protocol === "http:" && (url.hostname === "localhost" || url.hostname === "127.0.0.1")
+function isValidEndpointUrl(candidate: string): Promise<boolean> {
+  return isAllowedOutboundUrl(candidate)
 }
 
 type ProtectedResourceMetadata = {
@@ -48,14 +48,22 @@ type AuthorizationServerMetadata = {
   registration_endpoint?: string
 }
 
+/**
+ * Returns null when the server advertises no usable OAuth metadata. Throws
+ * DisallowedOutboundUrlError when the MCP URL itself is not a public https
+ * URL; callers surface that to the user since it is their input.
+ */
 export async function discoverOauthConfiguration(
   mcpUrl: string,
 ): Promise<McpOauthDiscovery | null> {
+  await assertAllowedOutboundUrl(mcpUrl)
   const resourceMetadataUrl = await probeForResourceMetadataUrl(mcpUrl)
+  if (!(await isAllowedOutboundUrl(resourceMetadataUrl))) return null
   const resourceMetadata = await fetchJson<ProtectedResourceMetadata>(resourceMetadataUrl)
   if (!resourceMetadata?.authorization_servers?.length) return null
 
   const issuer = (resourceMetadata.authorization_servers as string[])[0]!.replace(/\/$/, "")
+  if (!(await isAllowedOutboundUrl(issuer))) return null
   const serverMetadata =
     (await fetchJson<AuthorizationServerMetadata>(
       `${issuer}/.well-known/oauth-authorization-server`,
@@ -63,13 +71,14 @@ export async function discoverOauthConfiguration(
     (await fetchJson<AuthorizationServerMetadata>(`${issuer}/.well-known/openid-configuration`))
   if (!serverMetadata?.authorization_endpoint || !serverMetadata.token_endpoint) return null
   if (
-    !isValidEndpointUrl(serverMetadata.authorization_endpoint) ||
-    !isValidEndpointUrl(serverMetadata.token_endpoint)
+    !(await isValidEndpointUrl(serverMetadata.authorization_endpoint)) ||
+    !(await isValidEndpointUrl(serverMetadata.token_endpoint))
   ) {
     return null
   }
   const registrationEndpoint =
-    serverMetadata.registration_endpoint && isValidEndpointUrl(serverMetadata.registration_endpoint)
+    serverMetadata.registration_endpoint &&
+    (await isValidEndpointUrl(serverMetadata.registration_endpoint))
       ? serverMetadata.registration_endpoint
       : undefined
 

@@ -1,7 +1,15 @@
+import { lookup } from "node:dns/promises"
 import { discoverOauthConfiguration, registerOauthClient } from "./mcp-oauth-discovery"
+import { DisallowedOutboundUrlError } from "./outbound-url-guard"
 
 global.fetch = jest.fn()
 const fetchMock = global.fetch as jest.Mock
+
+// The outbound URL guard resolves every host before fetching; resolve the
+// example.com fixtures to a public address so discovery reaches the fetch mock.
+jest.mock("node:dns/promises", () => ({ lookup: jest.fn() }))
+const lookupMock = lookup as jest.Mock
+const PUBLIC_ADDRESS = { address: "93.184.216.34", family: 4 }
 
 const MCP_URL = "https://mcp.example.com/mcp"
 
@@ -26,7 +34,16 @@ const json = (body: unknown) =>
   })
 
 describe("discoverOauthConfiguration", () => {
-  beforeEach(() => fetchMock.mockReset())
+  beforeEach(() => {
+    fetchMock.mockReset()
+    lookupMock.mockReset()
+    lookupMock.mockResolvedValue([PUBLIC_ADDRESS])
+    delete process.env.MCP_OAUTH_ALLOW_INSECURE_LOCAL
+  })
+
+  afterAll(() => {
+    delete process.env.MCP_OAUTH_ALLOW_INSECURE_LOCAL
+  })
 
   it("follows WWW-Authenticate resource_metadata from a 401 probe", async () => {
     fetchMock
@@ -94,7 +111,8 @@ describe("discoverOauthConfiguration", () => {
     )
   })
 
-  it("accepts an http localhost authorization_endpoint (dev)", async () => {
+  it("accepts an http localhost authorization_endpoint with MCP_OAUTH_ALLOW_INSECURE_LOCAL", async () => {
+    process.env.MCP_OAUTH_ALLOW_INSECURE_LOCAL = "true"
     fetchMock
       .mockResolvedValueOnce(new Response(null, { status: 401 }))
       .mockResolvedValueOnce(json(resourceMetadata))
@@ -110,6 +128,21 @@ describe("discoverOauthConfiguration", () => {
 
     expect(discovery?.authorizationEndpoint).toBe("http://localhost:4000/oauth2/authorize")
     expect(discovery?.tokenEndpoint).toBe("http://localhost:4000/oauth2/token")
+  })
+
+  it("returns null for an http localhost authorization_endpoint without the insecure-local flag", async () => {
+    fetchMock
+      .mockResolvedValueOnce(new Response(null, { status: 401 }))
+      .mockResolvedValueOnce(json(resourceMetadata))
+      .mockResolvedValueOnce(
+        json({
+          ...authServerMetadata,
+          authorization_endpoint: "http://localhost:4000/oauth2/authorize",
+          token_endpoint: "http://localhost:4000/oauth2/token",
+        }),
+      )
+
+    expect(await discoverOauthConfiguration(MCP_URL)).toBeNull()
   })
 
   it("returns null when authorization_endpoint is a javascript: URL", async () => {
@@ -171,6 +204,64 @@ describe("discoverOauthConfiguration", () => {
     expect(fetchMock.mock.calls[1][0]).toBe(
       "https://mcp.example.com/.well-known/oauth-protected-resource/mcp",
     )
+  })
+
+  it("rejects a private-host MCP URL before making any request", async () => {
+    await expect(
+      discoverOauthConfiguration("https://169.254.169.254/latest/meta-data/"),
+    ).rejects.toBeInstanceOf(DisallowedOutboundUrlError)
+
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it("rejects an MCP URL whose hostname resolves to a private address before making any request", async () => {
+    lookupMock.mockResolvedValue([{ address: "10.0.0.5", family: 4 }])
+
+    await expect(discoverOauthConfiguration(MCP_URL)).rejects.toBeInstanceOf(
+      DisallowedOutboundUrlError,
+    )
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it("rejects a plain http MCP URL", async () => {
+    await expect(discoverOauthConfiguration("http://mcp.example.com/mcp")).rejects.toBeInstanceOf(
+      DisallowedOutboundUrlError,
+    )
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it("returns null without fetching authorization server metadata when the issuer is a private host", async () => {
+    fetchMock
+      .mockResolvedValueOnce(new Response(null, { status: 401 }))
+      .mockResolvedValueOnce(
+        json({ ...resourceMetadata, authorization_servers: ["https://10.0.0.5"] }),
+      )
+
+    expect(await discoverOauthConfiguration(MCP_URL)).toBeNull()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it("returns null without fetching authorization server metadata when the issuer resolves to a private address", async () => {
+    lookupMock.mockImplementation(async (hostname: string) =>
+      hostname === "auth.example.com" ? [{ address: "192.168.1.20", family: 4 }] : [PUBLIC_ADDRESS],
+    )
+    fetchMock
+      .mockResolvedValueOnce(new Response(null, { status: 401 }))
+      .mockResolvedValueOnce(json(resourceMetadata))
+
+    expect(await discoverOauthConfiguration(MCP_URL)).toBeNull()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it("returns null when token_endpoint points at a private host", async () => {
+    fetchMock
+      .mockResolvedValueOnce(new Response(null, { status: 401 }))
+      .mockResolvedValueOnce(json(resourceMetadata))
+      .mockResolvedValueOnce(
+        json({ ...authServerMetadata, token_endpoint: "https://127.0.0.1/oauth2/token" }),
+      )
+
+    expect(await discoverOauthConfiguration(MCP_URL)).toBeNull()
   })
 })
 

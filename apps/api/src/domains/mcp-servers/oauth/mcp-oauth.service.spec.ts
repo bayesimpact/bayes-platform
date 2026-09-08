@@ -19,6 +19,12 @@ import { McpOauthService } from "./mcp-oauth.service"
 global.fetch = jest.fn()
 const fetchMock = global.fetch as jest.Mock
 
+// The outbound URL guard resolves every discovery host before fetching;
+// resolve the example.com fixtures to a public address.
+jest.mock("node:dns/promises", () => ({
+  lookup: jest.fn().mockResolvedValue([{ address: "93.184.216.34", family: 4 }]),
+}))
+
 const MCP_URL = "https://mcp.example.com/mcp"
 
 const resourceMetadata = {
@@ -211,6 +217,15 @@ describe("McpOauthService", () => {
     await expect(mcpOauthService.initiateAuthorization(mcpServer)).rejects.toThrow(
       BadRequestException,
     )
+  })
+
+  it("throws BadRequestException without any request when the MCP URL is a private host", async () => {
+    const mcpServer = await createServer({ url: "https://169.254.169.254/latest/meta-data/" })
+
+    await expect(mcpOauthService.initiateAuthorization(mcpServer)).rejects.toThrow(
+      BadRequestException,
+    )
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 
   it("throws BadRequestException when there is no registration endpoint and no stored client", async () => {
