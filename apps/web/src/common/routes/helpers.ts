@@ -30,5 +30,6 @@ export function defineRoute<Path extends string>(path: Path): Route<Path> {
 export enum RouteNames {
   HOME = "/",
   LOGOUT = "/logout",
+  MCP_OAUTH_CALLBACK = "/oauth/mcp/callback",
   ONBOARDING = "/onboarding",
 }

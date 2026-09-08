@@ -19,8 +19,23 @@
       "name": "Name",
       "namePlaceholder": "Enter server name",
       "url": "URL",
+      "authMethod": "Authentication",
+      "authMethodApiKey": "API key",
+      "authMethodOauth": "OAuth",
+      "authMethodNone": "None",
+      "oauthHint": "You'll click Authorize on the server card once it's created.",
       "apiKey": "API Key",
-      "apiKeyPlaceholder": "Optional authentication key"
+      "apiKeyPlaceholder": "Enter the server's API key"
+    },
+    "oauthCallback": {
+      "errorTitle": "Authorization failed",
+      "denied": "The authorization was denied by the provider.",
+      "missingContext": "This authorization link is invalid or has expired. Start again from the MCP servers page.",
+      "failed": "The server rejected the authorization. Start again from the MCP servers page."
+    },
+    "oauth": {
+      "authorize": "Authorize",
+      "connected": "Connected via OAuth"
     }
   }
 }

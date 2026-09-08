@@ -8,6 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- (beta) MCP servers: connect servers that use OAuth by authorizing access in the browser, alongside API keys.
 
 ### Changed
 

@@ -9,9 +9,11 @@ import type { McpServerDisplay } from "./mcp-servers.types"
 export function McpServerItem({
   mcpServer,
   onDelete,
+  onAuthorize,
 }: {
   mcpServer: McpServerDisplay
   onDelete: (id: string) => void
+  onAuthorize: (id: string) => void
 }) {
   const { t } = useTranslation()
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
@@ -38,6 +40,14 @@ export function McpServerItem({
             <p className="text-base text-muted-foreground leading-snug mt-1 mb-4 truncate">
               {mcpServer.url}
             </p>
+          )}
+          {mcpServer.authStatus === "oauthPending" && (
+            <Button variant="outline" size="sm" onClick={() => onAuthorize(mcpServer.id)}>
+              {t("mcpServers:oauth.authorize")}
+            </Button>
+          )}
+          {mcpServer.authStatus === "oauthConnected" && (
+            <p className="text-sm text-muted-foreground">{t("mcpServers:oauth.connected")}</p>
           )}
         </GridCard.Body>
       </GridCard>

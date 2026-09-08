@@ -1,3 +1,7 @@
+// Set before the module graph loads: initiateOauth reads it through
+// ConfigService.getOrThrow before any provider request.
+process.env.MCP_OAUTH_REDIRECT_URL = "https://app.test/oauth/mcp/callback"
+
 import { randomUUID } from "node:crypto"
 import { McpServersRoutes } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
@@ -18,16 +22,30 @@ import { createOrganizationWithProject } from "@/domains/organizations/organizat
 import { projectFactory } from "@/domains/projects/project.factory"
 import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
+import { EncryptionService } from "../encryption.service"
 import { mcpServerFactory } from "../mcp-server.factory"
 import { McpServersModule } from "../mcp-servers.module"
 
 type ProjectRole = "owner" | "admin" | "member"
+
+// The OAuth routes reach out to the MCP server once the guard lets them
+// through. No test here exercises a provider, so every call answers 404.
+// The outbound URL guard resolves every discovery host before fetching;
+// resolve the example.com fixtures to a public address so the allowed-role
+// cases get past the guard and into discovery.
+jest.mock("node:dns/promises", () => ({
+  lookup: jest.fn().mockResolvedValue([{ address: "93.184.216.34", family: 4 }]),
+}))
+
+global.fetch = jest.fn()
+const fetchMock = global.fetch as jest.Mock
 
 describe("McpServers - auth and scoping", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
+  let encryptionService: EncryptionService
 
   let organizationId: string
   let projectId: string
@@ -42,6 +60,7 @@ describe("McpServers - auth and scoping", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
     repositories = setup.getAllRepositories()
+    encryptionService = setup.module.get(EncryptionService)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -51,8 +70,12 @@ describe("McpServers - auth and scoping", () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
     auth0Id = `auth0|${randomUUID()}`
+    organizationId = randomUUID()
+    projectId = randomUUID()
     mcpServerId = randomUUID()
     agentId = randomUUID()
+    fetchMock.mockReset()
+    fetchMock.mockResolvedValue(new Response(null, { status: 404 }))
   })
 
   afterAll(async () => {
@@ -89,6 +112,21 @@ describe("McpServers - auth and scoping", () => {
     })
     await repositories.mcpServerRepository.save(foreignServer)
     return { otherProject, foreignServer }
+  }
+
+  /**
+   * The factory blob is not decryptable, which is fine for routes that never
+   * read it. The OAuth routes do, so give the current server a real config.
+   */
+  const giveServerDecryptableConfig = async () => {
+    await repositories.mcpServerRepository.update(
+      { id: mcpServerId },
+      {
+        encryptedConfig: encryptionService.encrypt(
+          JSON.stringify({ url: "https://mcp.example.com/mcp", authMethod: "oauth" }),
+        ),
+      },
+    )
   }
 
   const pathParams = () => removeNullish({ organizationId, projectId, mcpServerId, agentId })
@@ -137,6 +175,12 @@ describe("McpServers - auth and scoping", () => {
       await createContextForRole("owner")
       accessToken = null
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("owner")
+      auth0Id = mockForeignAuth0Id()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
     it("allows a simple project member to list", async () => {
@@ -204,6 +248,16 @@ describe("McpServers - auth and scoping", () => {
       await createContextForRole("owner")
       accessToken = null
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("owner")
+      auth0Id = mockForeignAuth0Id()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+
+      expect(
+        await repositories.mcpServerRepository.findOne({ where: { id: mcpServerId } }),
+      ).not.toBeNull()
     })
 
     it.each<ProjectRole>(["owner", "admin"])("allows a project %s to delete", async (role) => {
@@ -275,6 +329,12 @@ describe("McpServers - auth and scoping", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
 
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("owner")
+      auth0Id = mockForeignAuth0Id()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+
     it.each<ProjectRole>(["owner", "admin"])("allows a project %s to enable", async (role) => {
       await createContextForRole(role)
       expectResponse(await subject(), 201)
@@ -312,6 +372,27 @@ describe("McpServers - auth and scoping", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
 
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("owner")
+      auth0Id = mockForeignAuth0Id()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+
+    it.each<ProjectRole>(["owner", "admin"])("allows a project %s to disable", async (role) => {
+      await createContextForRole(role)
+      await repositories.agentMcpServerRepository.save(
+        repositories.agentMcpServerRepository.create({ agentId, mcpServerId, enabled: true }),
+      )
+
+      expectResponse(await subject(), 200)
+
+      expect(
+        await repositories.agentMcpServerRepository.findOne({
+          where: { agentId, mcpServerId, enabled: true },
+        }),
+      ).toBeNull()
+    })
+
     it("forbids a simple project member from disabling", async () => {
       await createContextForRole("member")
       await repositories.agentMcpServerRepository.save(
@@ -336,6 +417,101 @@ describe("McpServers - auth and scoping", () => {
     it("succeeds even when no link exists", async () => {
       await createContextForRole("owner")
       expectResponse(await subject(), 200)
+    })
+  })
+
+  // Both OAuth routes are gated by canCreate(). The allowed-role cases assert
+  // the 400 the service raises once the guard lets the request through: a
+  // provider is never mocked here, the functional coverage lives in
+  // oauth.spec.ts. Anything but 401 or 403 proves the policy accepted the role.
+  describe("initiateOauth", () => {
+    const subject = () =>
+      request({
+        route: McpServersRoutes.initiateOauth,
+        pathParams: pathParams(),
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("owner")
+      auth0Id = mockForeignAuth0Id()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+
+    it("forbids a simple project member from initiating", async () => {
+      await createContextForRole("member")
+      await giveServerDecryptableConfig()
+
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
+    it.each<ProjectRole>(["owner", "admin"])("allows a project %s to initiate", async (role) => {
+      await createContextForRole(role)
+      await giveServerDecryptableConfig()
+
+      // 400: the stubbed server advertises no OAuth, so discovery ran past the guard.
+      expectResponse(await subject(), 400)
+
+      expect(fetchMock).toHaveBeenCalled()
+    })
+
+    it("returns 404 for a server of another project", async () => {
+      const { organization } = await createContextForRole("owner")
+      const { foreignServer } = await createServerInOtherProject(organization)
+      mcpServerId = foreignServer.id
+
+      expectResponse(await subject(), 404)
+    })
+  })
+
+  describe("completeOauth", () => {
+    const subject = () =>
+      request({
+        route: McpServersRoutes.completeOauth,
+        pathParams: pathParams(),
+        token: accessToken ?? undefined,
+        request: { payload: { code: "code-1", state: "state-1" } },
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("owner")
+      auth0Id = mockForeignAuth0Id()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+
+    it("forbids a simple project member from completing", async () => {
+      await createContextForRole("member")
+      await giveServerDecryptableConfig()
+
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it.each<ProjectRole>(["owner", "admin"])("allows a project %s to complete", async (role) => {
+      await createContextForRole(role)
+      await giveServerDecryptableConfig()
+
+      // 400: no authorization is pending on this server, so the service ran past the guard.
+      expectResponse(await subject(), 400)
+    })
+
+    it("returns 404 for a server of another project", async () => {
+      const { organization } = await createContextForRole("owner")
+      const { foreignServer } = await createServerInOtherProject(organization)
+      mcpServerId = foreignServer.id
+
+      expectResponse(await subject(), 404)
     })
   })
 })

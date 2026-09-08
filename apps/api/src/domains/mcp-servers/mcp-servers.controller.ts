@@ -1,5 +1,7 @@
 import {
+  completeMcpServerOauthSchema,
   createMcpServerSchema,
+  type McpServerAuthStatus,
   type McpServerDto,
   McpServersRoutes,
 } from "@caseai-connect/api-contracts"
@@ -18,8 +20,11 @@ import { UserGuard } from "@/domains/users/user.guard"
 import { isBuiltInMcpServer } from "./built-in/built-in-mcp-servers"
 import type { McpServer } from "./mcp-server.entity"
 import { McpServerGuard } from "./mcp-server.guard"
+import type { McpServerConfig } from "./mcp-servers.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpServersService } from "./mcp-servers.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { McpOauthService } from "./oauth/mcp-oauth.service"
 
 type EndpointRequestWithAgentAndMcpServer = EndpointRequestWithAgent & EndpointRequestWithMcpServer
 
@@ -27,7 +32,10 @@ type EndpointRequestWithAgentAndMcpServer = EndpointRequestWithAgent & EndpointR
 @RequireContext("organization", "project")
 @Controller()
 export class McpServersController {
-  constructor(private readonly mcpServersService: McpServersService) {}
+  constructor(
+    private readonly mcpServersService: McpServersService,
+    private readonly mcpOauthService: McpOauthService,
+  ) {}
 
   @Post(McpServersRoutes.createOne.path)
   @CheckPolicy((policy) => policy.canCreate())
@@ -36,12 +44,22 @@ export class McpServersController {
     @Req() request: EndpointRequestWithProject,
     @Body() { payload }: typeof McpServersRoutes.createOne.request,
   ): Promise<typeof McpServersRoutes.createOne.response> {
+    // Infer the method for legacy callers that omit it: a key means apiKey, else none.
+    const authMethod = payload.authMethod ?? (payload.apiKey ? "apiKey" : "none")
+    const config = {
+      url: payload.url,
+      authMethod,
+      apiKey: authMethod === "apiKey" ? payload.apiKey : undefined,
+      headers: payload.headers,
+    }
     const mcpServer = await this.mcpServersService.createMcpServer({
       projectId: request.project.id,
       name: payload.name,
-      config: { url: payload.url, apiKey: payload.apiKey },
+      config,
     })
-    return { data: toMcpServerDto(mcpServer, payload.url) }
+    return {
+      data: toMcpServerDto(mcpServer, config, this.mcpServersService.getAuthStatus(config)),
+    }
   }
 
   @Get(McpServersRoutes.getAll.path)
@@ -51,9 +69,10 @@ export class McpServersController {
   ): Promise<typeof McpServersRoutes.getAll.response> {
     const mcpServers = await this.mcpServersService.listMcpServers(request.project.id)
     return {
-      data: mcpServers.map((server) =>
-        toMcpServerDto(server, this.mcpServersService.decryptUrl(server)),
-      ),
+      data: mcpServers.map((server) => {
+        const config = this.mcpServersService.getConfig(server)
+        return toMcpServerDto(server, config, this.mcpServersService.getAuthStatus(config))
+      }),
     }
   }
 
@@ -91,17 +110,49 @@ export class McpServersController {
     await this.mcpServersService.disableForAgent(request.agent.id, request.mcpServer.id)
     return { data: { success: true } }
   }
+
+  @Post(McpServersRoutes.initiateOauth.path)
+  @CheckPolicy((policy) => policy.canCreate())
+  @AddContext("mcpServer")
+  async initiateOauth(
+    @Req() request: EndpointRequestWithMcpServer,
+  ): Promise<typeof McpServersRoutes.initiateOauth.response> {
+    const { authorizationUrl } = await this.mcpOauthService.initiateAuthorization(request.mcpServer)
+    return { data: { authorizationUrl } }
+  }
+
+  @Post(McpServersRoutes.completeOauth.path)
+  @CheckPolicy((policy) => policy.canCreate())
+  @AddContext("mcpServer")
+  @UsePipes(new ZodValidationPipe(completeMcpServerOauthSchema))
+  async completeOauth(
+    @Req() request: EndpointRequestWithMcpServer,
+    @Body() { payload }: typeof McpServersRoutes.completeOauth.request,
+  ): Promise<typeof McpServersRoutes.completeOauth.response> {
+    const updated = await this.mcpOauthService.completeAuthorization({
+      mcpServer: request.mcpServer,
+      code: payload.code,
+      state: payload.state,
+    })
+    const config = this.mcpServersService.getConfig(updated)
+    return { data: toMcpServerDto(updated, config, this.mcpServersService.getAuthStatus(config)) }
+  }
 }
 
-function toMcpServerDto(entity: McpServer, url: string): McpServerDto {
+function toMcpServerDto(
+  entity: McpServer,
+  config: McpServerConfig,
+  authStatus: McpServerAuthStatus,
+): McpServerDto {
   // A built-in server's url goes out to every project on purpose: the endpoint
   // is IAM-protected, so knowing it grants nothing, and the UI hides it anyway.
   return {
     id: entity.id,
     name: entity.name,
-    url,
+    url: config.url,
     projectId: entity.projectId,
     isBuiltIn: isBuiltInMcpServer(entity),
+    authStatus,
     createdAt: entity.createdAt.getTime(),
     updatedAt: entity.updatedAt.getTime(),
   }

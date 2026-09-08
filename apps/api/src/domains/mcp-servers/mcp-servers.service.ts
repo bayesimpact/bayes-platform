@@ -1,4 +1,5 @@
-import { ForbiddenException, Injectable } from "@nestjs/common"
+import type { McpServerAuthStatus } from "@caseai-connect/api-contracts"
+import { ForbiddenException, Injectable, Logger } from "@nestjs/common"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ConfigService } from "@nestjs/config"
 import { InjectRepository } from "@nestjs/typeorm"
@@ -13,36 +14,30 @@ import {
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EncryptionService } from "./encryption.service"
 import { McpServer } from "./mcp-server.entity"
+import type { EnabledMcpServer, McpServerConfig } from "./mcp-server-config.types"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { McpOauthService } from "./oauth/mcp-oauth.service"
+import { canStillAuthenticate } from "./oauth/oauth-tokens"
 
-export type McpServerConfig = {
-  url: string
-  apiKey?: string
-  /**
-   * Static headers sent on every call to this server, for whatever a given
-   * server expects beyond its auth (an API version, a tenant). Stored in the
-   * encrypted config blob, so adding them needs no migration. The conversation
-   * context is applied after them and cannot be overridden here.
-   */
-  headers?: Record<string, string>
-}
-
-export type EnabledMcpServer = McpServerConfig & {
-  id: string
-  /**
-   * Set for built-in servers behind Google IAM (Cloud Run invoker): the client
-   * mints an ID token for this audience instead of sending a static API key.
-   */
-  googleIamAudience?: string
-}
+export type {
+  EnabledMcpServer,
+  McpServerConfig,
+  McpServerOauthPendingAuth,
+  McpServerOauthState,
+  McpServerOauthTokens,
+} from "./mcp-server-config.types"
 
 @Injectable()
 export class McpServersService {
+  private readonly logger = new Logger(McpServersService.name)
+
   constructor(
     @InjectRepository(McpServer)
     private readonly mcpServerRepository: Repository<McpServer>,
     @InjectRepository(AgentMcpServer)
     private readonly agentMcpServerRepository: Repository<AgentMcpServer>,
     private readonly encryptionService: EncryptionService,
+    private readonly mcpOauthService: McpOauthService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -52,14 +47,35 @@ export class McpServersService {
       relations: ["mcpServer"],
     })
 
-    return agentMcpServers
-      .filter((agentMcpServer) => agentMcpServer.mcpServer)
-      .map((agentMcpServer) =>
-        this.toEnabledServer(
-          agentMcpServer.mcpServer,
-          this.decryptConfig(agentMcpServer.mcpServer),
-        ),
+    const enabledServers = agentMcpServers.filter((agentMcpServer) => agentMcpServer.mcpServer)
+    const servers = await Promise.all(
+      enabledServers.map((agentMcpServer) =>
+        this.toEnabledServerIfUsable(agentMcpServer.mcpServer),
+      ),
+    )
+    return servers.filter((server) => server !== null)
+  }
+
+  /**
+   * An OAuth server with no usable access token (never authorized, or tokens
+   * dropped after a definitive refresh failure) is left out rather than dialed
+   * unauthenticated, which would only produce a 401 on every turn.
+   */
+  private async toEnabledServerIfUsable(mcpServer: McpServer): Promise<EnabledMcpServer | null> {
+    const { oauth, ...config } = this.decryptConfig(mcpServer)
+    const usesOauth = oauth !== undefined || config.authMethod === "oauth"
+    if (!usesOauth) return this.toEnabledServer(mcpServer, config)
+
+    const accessToken = oauth
+      ? await this.mcpOauthService.getValidAccessToken(mcpServer.id, oauth)
+      : null
+    if (!accessToken) {
+      this.logger.warn(
+        `Skipping MCP server "${mcpServer.name}" (${mcpServer.id}): OAuth authorization is missing or expired`,
       )
+      return null
+    }
+    return this.toEnabledServer(mcpServer, { ...config, apiKey: accessToken })
   }
 
   async createPreset(slug: string, name: string, config: McpServerConfig): Promise<McpServer> {
@@ -147,8 +163,15 @@ export class McpServersService {
     await this.agentMcpServerRepository.delete({ agentId, mcpServerId })
   }
 
-  decryptUrl(mcpServer: McpServer): string {
-    return this.decryptConfig(mcpServer).url
+  getConfig(mcpServer: McpServer): McpServerConfig {
+    return this.decryptConfig(mcpServer)
+  }
+
+  getAuthStatus(config: McpServerConfig): McpServerAuthStatus {
+    if (canStillAuthenticate(config.oauth?.tokens)) return "oauthConnected"
+    if (config.oauth || config.authMethod === "oauth") return "oauthPending"
+    if (config.apiKey) return "apiKey"
+    return "none"
   }
 
   /**

@@ -2,6 +2,7 @@ import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom"
 import { backofficeRoutes } from "@/backoffice/routes/BackofficeRoutes"
 import { HomeRoute } from "@/common/routes/HomeRoute"
 import { LogoutRoute } from "@/common/routes/LogoutRoute"
+import { McpOauthCallbackRoute } from "@/common/routes/McpOauthCallbackRoute"
 import { NotFoundRoute } from "@/common/routes/NotFoundRoute"
 import { deskRoutes } from "@/desk/routes/DeskRoutes"
 import { evalRoutes } from "@/eval/routes/EvalRoutes"
@@ -32,6 +33,7 @@ const router = () =>
       ),
       children: [
         onboardingRoute,
+        mcpOauthCallbackRoute,
         studioRoutes,
         deskRoutes,
         evalRoutes,
@@ -54,4 +56,9 @@ export function Router() {
 export const onboardingRoute = {
   path: RouteNames.ONBOARDING,
   element: <OnboardingRoute />,
+}
+
+export const mcpOauthCallbackRoute = {
+  path: RouteNames.MCP_OAUTH_CALLBACK,
+  element: <McpOauthCallbackRoute />,
 }

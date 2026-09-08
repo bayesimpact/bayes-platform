@@ -111,7 +111,7 @@ describe("BuiltInMcpServersService", () => {
       })
       expect(stored.name).toBe(PDF_EXPORT_BUILT_IN_NAME)
       expect(stored.projectId).toBeNull()
-      expect(mcpServersService.decryptUrl(stored)).toBe("https://pdf-converter.example.test/mcp")
+      expect(mcpServersService.getConfig(stored).url).toBe("https://pdf-converter.example.test/mcp")
     })
 
     it("should keep the same row and update the url when the converter moves", async () => {
@@ -129,7 +129,7 @@ describe("BuiltInMcpServersService", () => {
         where: { presetSlug: PDF_EXPORT_PRESET_SLUG },
       })
       expect(refreshed.id).toBe(before.id)
-      expect(mcpServersService.decryptUrl(refreshed)).toBe(
+      expect(mcpServersService.getConfig(refreshed).url).toBe(
         "https://pdf-converter-2.example.test/mcp",
       )
     })

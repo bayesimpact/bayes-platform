@@ -1,3 +1,4 @@
+import type { McpServerAuthMethod } from "@caseai-connect/api-contracts"
 import { useNavigate } from "react-router-dom"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
@@ -5,7 +6,11 @@ import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
 import { McpServersList } from "@/studio/features/mcp-servers/components/McpServersList"
 import { selectMcpServersData } from "@/studio/features/mcp-servers/mcp-servers.selectors"
-import { createMcpServer, deleteMcpServer } from "@/studio/features/mcp-servers/mcp-servers.thunks"
+import {
+  createMcpServer,
+  deleteMcpServer,
+  initiateMcpServerOauth,
+} from "@/studio/features/mcp-servers/mcp-servers.thunks"
 import { StudioRoutes } from "./helpers"
 
 export function McpServersRoute() {
@@ -19,12 +24,21 @@ export function McpServersRoute() {
     navigate(StudioRoutes.project.build({ organizationId, projectId }))
   }
 
-  const handleCreate = (fields: { name: string; url: string; apiKey?: string }) => {
+  const handleCreate = (fields: {
+    name: string
+    url: string
+    authMethod?: McpServerAuthMethod
+    apiKey?: string
+  }) => {
     dispatch(createMcpServer({ fields, onSuccess: () => {} }))
   }
 
   const handleDelete = (mcpServerId: string) => {
     dispatch(deleteMcpServer({ mcpServerId, onSuccess: () => {} }))
+  }
+
+  const handleAuthorize = (mcpServerId: string) => {
+    dispatch(initiateMcpServerOauth({ mcpServerId }))
   }
 
   return (
@@ -33,6 +47,7 @@ export function McpServersRoute() {
       onCreate={handleCreate}
       onDelete={handleDelete}
       onBack={handleBack}
+      onAuthorize={handleAuthorize}
     />
   )
 }

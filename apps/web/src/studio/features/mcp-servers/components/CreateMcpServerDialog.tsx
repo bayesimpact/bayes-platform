@@ -16,6 +16,8 @@ import {
   FormMessage,
 } from "@caseai-connect/ui/shad/form"
 import { Input } from "@caseai-connect/ui/shad/input"
+import { Label } from "@caseai-connect/ui/shad/label"
+import { RadioGroup, RadioGroupItem } from "@caseai-connect/ui/shad/radio-group"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
@@ -36,11 +38,15 @@ export function CreateMcpServerDialog({
 
   const form = useForm<FormValues>({
     resolver: zodResolver(createMcpServerSchema),
-    defaultValues: { name: "", url: "", apiKey: undefined },
+    defaultValues: { name: "", url: "", authMethod: "apiKey", apiKey: undefined },
   })
 
+  const authMethod = form.watch("authMethod")
+
   const handleSubmit = (values: FormValues) => {
-    onSubmit(values)
+    // The API only keeps the key for the apiKey method, but drop it here too so
+    // a key typed then switched away from never leaves the browser.
+    onSubmit({ ...values, apiKey: values.authMethod === "apiKey" ? values.apiKey : undefined })
     form.reset()
     onOpenChange(false)
   }
@@ -82,22 +88,63 @@ export function CreateMcpServerDialog({
             />
             <FormField
               control={form.control}
-              name="apiKey"
+              name="authMethod"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("mcpServers:fields.apiKey")}</FormLabel>
+                  <FormLabel>{t("mcpServers:fields.authMethod")}</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      type="password"
-                      placeholder={t("mcpServers:fields.apiKeyPlaceholder")}
-                      value={field.value ?? ""}
-                    />
+                    <RadioGroup
+                      value={field.value ?? "apiKey"}
+                      onValueChange={field.onChange}
+                      className="flex flex-col gap-2"
+                    >
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="apiKey" id="auth-apiKey" />
+                        <Label htmlFor="auth-apiKey" className="cursor-pointer font-normal">
+                          {t("mcpServers:fields.authMethodApiKey")}
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="oauth" id="auth-oauth" />
+                        <Label htmlFor="auth-oauth" className="cursor-pointer font-normal">
+                          {t("mcpServers:fields.authMethodOauth")}
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="none" id="auth-none" />
+                        <Label htmlFor="auth-none" className="cursor-pointer font-normal">
+                          {t("mcpServers:fields.authMethodNone")}
+                        </Label>
+                      </div>
+                    </RadioGroup>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            {authMethod === "apiKey" && (
+              <FormField
+                control={form.control}
+                name="apiKey"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("mcpServers:fields.apiKey")}</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="password"
+                        placeholder={t("mcpServers:fields.apiKeyPlaceholder")}
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            {authMethod === "oauth" && (
+              <p className="text-sm text-muted-foreground">{t("mcpServers:fields.oauthHint")}</p>
+            )}
             <div className="flex justify-end">
               <Button type="submit" disabled={form.formState.isSubmitting}>
                 {t("actions:create")}
