@@ -94,6 +94,50 @@ describe("discoverOauthConfiguration", () => {
     )
   })
 
+  it("tries the RFC 8414 path-insertion metadata URL first for an issuer with a path", async () => {
+    const pathIssuerMetadata = {
+      ...resourceMetadata,
+      authorization_servers: ["https://auth.example.com/tenant-a"],
+    }
+    fetchMock
+      .mockResolvedValueOnce(new Response(null, { status: 401 }))
+      .mockResolvedValueOnce(json(pathIssuerMetadata))
+      .mockResolvedValueOnce(json(authServerMetadata))
+
+    const discovery = await discoverOauthConfiguration(MCP_URL)
+
+    expect(discovery?.authorizationEndpoint).toBe("https://auth.example.com/oauth2/authorize")
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(fetchMock.mock.calls[2][0]).toBe(
+      "https://auth.example.com/.well-known/oauth-authorization-server/tenant-a",
+    )
+  })
+
+  it("falls back through the MCP spec discovery order for an issuer with a path", async () => {
+    const pathIssuerMetadata = {
+      ...resourceMetadata,
+      authorization_servers: ["https://auth.example.com/tenant-a/"],
+    }
+    fetchMock
+      .mockResolvedValueOnce(new Response(null, { status: 401 }))
+      .mockResolvedValueOnce(json(pathIssuerMetadata))
+      .mockResolvedValueOnce(new Response(null, { status: 404 }))
+      .mockResolvedValueOnce(new Response(null, { status: 404 }))
+      .mockResolvedValueOnce(new Response(null, { status: 404 }))
+      .mockResolvedValueOnce(json(authServerMetadata))
+
+    const discovery = await discoverOauthConfiguration(MCP_URL)
+
+    expect(discovery?.tokenEndpoint).toBe("https://auth.example.com/oauth2/token")
+    const metadataUrls = fetchMock.mock.calls.slice(2).map(([url]) => url)
+    expect(metadataUrls).toEqual([
+      "https://auth.example.com/.well-known/oauth-authorization-server/tenant-a",
+      "https://auth.example.com/.well-known/openid-configuration/tenant-a",
+      "https://auth.example.com/tenant-a/.well-known/oauth-authorization-server",
+      "https://auth.example.com/tenant-a/.well-known/openid-configuration",
+    ])
+  })
+
   it("accepts an http localhost authorization_endpoint (dev)", async () => {
     fetchMock
       .mockResolvedValueOnce(new Response(null, { status: 401 }))

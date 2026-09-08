@@ -55,12 +55,8 @@ export async function discoverOauthConfiguration(
   const resourceMetadata = await fetchJson<ProtectedResourceMetadata>(resourceMetadataUrl)
   if (!resourceMetadata?.authorization_servers?.length) return null
 
-  const issuer = (resourceMetadata.authorization_servers as string[])[0]!.replace(/\/$/, "")
-  const serverMetadata =
-    (await fetchJson<AuthorizationServerMetadata>(
-      `${issuer}/.well-known/oauth-authorization-server`,
-    )) ??
-    (await fetchJson<AuthorizationServerMetadata>(`${issuer}/.well-known/openid-configuration`))
+  const issuer = (resourceMetadata.authorization_servers as string[])[0]!
+  const serverMetadata = await fetchAuthorizationServerMetadata(issuer)
   if (!serverMetadata?.authorization_endpoint || !serverMetadata.token_endpoint) return null
   if (
     !isValidEndpointUrl(serverMetadata.authorization_endpoint) ||
@@ -147,6 +143,43 @@ async function probeForResourceMetadataUrl(mcpUrl: string): Promise<string> {
   const url = new URL(mcpUrl)
   const path: string = url.pathname === "/" ? "" : (url.pathname ?? "")
   return `${url.origin}/.well-known/oauth-protected-resource${path}`
+}
+
+/**
+ * Fetches RFC 8414 authorization server metadata, trying the well-known URLs
+ * in the order the MCP Authorization spec prescribes. For an issuer with a
+ * path component (`https://auth.example.com/tenant-a`) the path-insertion
+ * forms come first (`/.well-known/oauth-authorization-server/tenant-a`), then
+ * the path-appending forms. A path-less issuer only has the latter two.
+ */
+async function fetchAuthorizationServerMetadata(
+  issuer: string,
+): Promise<AuthorizationServerMetadata | null> {
+  for (const metadataUrl of authorizationServerMetadataUrls(issuer)) {
+    const serverMetadata = await fetchJson<AuthorizationServerMetadata>(metadataUrl)
+    if (serverMetadata) return serverMetadata
+  }
+  return null
+}
+
+function authorizationServerMetadataUrls(issuer: string): string[] {
+  let issuerUrl: URL
+  try {
+    issuerUrl = new URL(issuer)
+  } catch {
+    return []
+  }
+  const issuerPath = issuerUrl.pathname.replace(/\/$/, "")
+  const pathAppendingUrls = [
+    `${issuerUrl.origin}${issuerPath}/.well-known/oauth-authorization-server`,
+    `${issuerUrl.origin}${issuerPath}/.well-known/openid-configuration`,
+  ]
+  if (!issuerPath) return pathAppendingUrls
+  return [
+    `${issuerUrl.origin}/.well-known/oauth-authorization-server${issuerPath}`,
+    `${issuerUrl.origin}/.well-known/openid-configuration${issuerPath}`,
+    ...pathAppendingUrls,
+  ]
 }
 
 async function fetchJson<ResponseBody>(url: string): Promise<ResponseBody | null> {
