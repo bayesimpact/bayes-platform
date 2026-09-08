@@ -55,14 +55,18 @@ export function getRenderableMcpApp(
   }
 }
 
-/** The MCP App iframe already shows the tool result, so the markdown recap is redundant. */
-export function hasRenderableMcpApp(
+/**
+ * Text of the reply bubble. What the model wrote always stands, next to its MCP App cards: the
+ * card shows the tool result, the text carries what the model said about it. Only when the model
+ * wrote nothing does the text of a card that gave up rendering stand in for the reply.
+ */
+export function getReplyBubbleText(
+  content: string,
   toolCalls: AgentSessionToolCallDto[] | undefined,
-  htmlEntries: AgentSessionMcpAppHtml[] = [],
-): boolean {
-  return (toolCalls ?? []).some(
-    (toolCall) => getRenderableMcpApp(toolCall, htmlEntries) !== undefined,
-  )
+  unavailableMcpAppToolCallIds: string[],
+): string {
+  if (content.trim().length > 0) return content
+  return getFailedMcpAppFallbackText(toolCalls, unavailableMcpAppToolCallIds)
 }
 
 /**

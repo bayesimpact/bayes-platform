@@ -9,7 +9,7 @@ import { cn } from "../lib/cn"
 import { ChatBotMessage, ChatUserMessage } from "./index"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { McpAppPlaceholder, McpAppView } from "./McpAppView"
-import { getFailedMcpAppFallbackText, getRenderableMcpApp, hasMcpAppCard } from "./mcp-app-view"
+import { getRenderableMcpApp, getReplyBubbleText, hasMcpAppCard } from "./mcp-app-view"
 import { findSourcesTool, SourcesTool } from "./SourcesTool"
 import { Spinner } from "./Spinner"
 import {
@@ -47,18 +47,14 @@ export function ChatMessage({
           .filter(({ view }) => view === undefined && !isMcpAppHtmlLoading)
           .map(({ toolCall }) => toolCall.id),
       ]
-      const hasContent = message.content.trim().length > 0
-      // A card that failed to render must not take the reply text down with it.
-      const hideMarkdownRecap =
-        !isStreaming &&
-        mcpAppCards.some(({ toolCall }) => !unavailableMcpAppToolCallIds.includes(toolCall.id))
-      // The model may have written nothing because it expected the card to speak for the tool:
-      // once the card gave up, the tool result text stands in for the reply.
-      const failedMcpAppFallbackText = hasContent
-        ? ""
-        : getFailedMcpAppFallbackText(message.toolCalls, unavailableMcpAppToolCallIds)
-      const bubbleContent =
-        hasContent && !hideMarkdownRecap ? message.content : failedMcpAppFallbackText
+      // The reply text stays on screen next to its cards. The model may have written nothing
+      // because it expected the card to speak for the tool: once the card gave up, the tool
+      // result text stands in for the reply.
+      const bubbleContent = getReplyBubbleText(
+        message.content,
+        message.toolCalls,
+        unavailableMcpAppToolCallIds,
+      )
       const surfaceResourcesTool = findSurfaceResourcesTool(message.toolCalls)
       const sourcesTool = findSourcesTool(message.toolCalls)
       // A card on screen, loading or rendered even if it later gave up, means the reply is not
@@ -67,10 +63,9 @@ export function ChatMessage({
         ({ view }) => view !== undefined || isMcpAppHtmlLoading,
       )
       const isEmpty =
-        !hasContent &&
         message.status === "completed" &&
         !hasCardOnScreen &&
-        failedMcpAppFallbackText.length === 0 &&
+        bubbleContent.length === 0 &&
         !hasSurfacedResources(message.toolCalls)
       // "aborted": the stream died with the server before anything was written.
       const isError = message.status === "error" || message.status === "aborted" || isEmpty

@@ -5,9 +5,9 @@ import {
   getFailedMcpAppFallbackText,
   getMcpAppToolResultText,
   getRenderableMcpApp,
+  getReplyBubbleText,
   hasMcpAppCard,
   hasMcpAppPointer,
-  hasRenderableMcpApp,
   isOpenableLink,
 } from "./mcp-app-view"
 
@@ -115,28 +115,33 @@ describe("getRenderableMcpApp", () => {
   })
 })
 
-describe("hasRenderableMcpApp", () => {
-  it("is false for ordinary tool calls", () => {
-    expect(hasRenderableMcpApp([baseToolCall])).toBe(false)
+describe("getReplyBubbleText", () => {
+  const renderedCardToolCall: AgentSessionToolCallDto = {
+    ...cardToolCall,
+    id: "call-2",
+    result: { content: [{ type: "text", text: "Created Notes.pdf (2 pages)." }] },
+    mcpApp: { ...pointer, html: "<html><body>Card</body></html>" },
+  }
+
+  it("keeps the reply text next to a rendered card", () => {
+    // The card shows the tool result, the text carries what the model said about it.
+    expect(
+      getReplyBubbleText("Done! Download it from the card below.", [renderedCardToolCall], []),
+    ).toBe("Done! Download it from the card below.")
   })
 
-  it("is true when at least one tool call has MCP App HTML and a result", () => {
-    expect(
-      hasRenderableMcpApp([
-        baseToolCall,
-        {
-          ...baseToolCall,
-          id: "call-2",
-          name: "get_patient",
-          result: { structuredContent: { title: "Ada" } },
-          mcpApp: {
-            mcpServerId: "mcp-server-1",
-            resourceUri: "ui://patient-summary/mcp-app.html",
-            html: "<html><body>Patient</body></html>",
-          },
-        },
-      ]),
-    ).toBe(true)
+  it("keeps the reply text when a card gave up rendering", () => {
+    expect(getReplyBubbleText("Done!", [renderedCardToolCall], ["call-2"])).toBe("Done!")
+  })
+
+  it("says nothing when the model wrote nothing and the card is on screen", () => {
+    expect(getReplyBubbleText("  ", [renderedCardToolCall], [])).toBe("")
+  })
+
+  it("lets the tool result text stand in when the model wrote nothing and the card gave up", () => {
+    expect(getReplyBubbleText("", [renderedCardToolCall], ["call-2"])).toBe(
+      "Created Notes.pdf (2 pages).",
+    )
   })
 })
 

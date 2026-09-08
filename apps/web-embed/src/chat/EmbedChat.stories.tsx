@@ -11,6 +11,7 @@ import {
   resourceCardsOnlyConversation,
   shortConversation,
   sourcesConversation,
+  textWithMcpAppCardConversation,
 } from "./chat.factory"
 import { EmbedChat } from "./EmbedChat"
 
@@ -116,6 +117,13 @@ export const LoadingMcpAppCard: Story = {
   args: {
     messages: loadingMcpAppCardConversation,
     isMcpAppHtmlLoading: true,
+  },
+}
+
+export const TextWithMcpAppCard: Story = {
+  name: "MCP App card with reply text",
+  args: {
+    messages: textWithMcpAppCardConversation,
   },
 }
 

@@ -11,7 +11,7 @@ import { McpAppView } from "@/common/features/agents/agent-sessions/shared/agent
  * iframe, which only succeeds because of the `allow-popups allow-popups-to-escape-sandbox`
  * sandbox flags on both the outer and inner iframes.
  */
-const SAMPLE_CARD_HTML = `<!DOCTYPE html>
+export const SAMPLE_CARD_HTML = `<!DOCTYPE html>
 <html>
   <body style="font: 13px sans-serif; margin: 8px;">
     <div id="root">Loading…</div>
