@@ -156,6 +156,12 @@ func TestMCPConvertMarkdownHappyPath(t *testing.T) {
 	if store.contentTypes[wantObject] != "application/pdf" {
 		t.Fatalf("expected content type application/pdf, got %q", store.contentTypes[wantObject])
 	}
+	// The sweep in apps/api deletes the object from this stamp, so it must be
+	// the exact instant the signed URL stops working.
+	if wantCustomTime := testExportNow.Add(15 * time.Minute); !store.customTimes[wantObject].Equal(wantCustomTime) {
+		t.Fatalf("expected the object custom time to equal the url expiry %s, got %s",
+			wantCustomTime, store.customTimes[wantObject])
+	}
 	if store.signedDownloadFileNames[wantObject] != "Rapport final.pdf" {
 		t.Fatalf("expected the signed url to carry the download file name %q, got %q",
 			"Rapport final.pdf", store.signedDownloadFileNames[wantObject])

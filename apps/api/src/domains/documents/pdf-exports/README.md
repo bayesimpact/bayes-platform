@@ -6,30 +6,30 @@ GCS lifecycle rules only express whole days, so they cannot enforce a TTL measur
 
 ## Contract with the converter
 
-Both sides read the same env var names, so they must be set to the same values in every environment:
+The converter owns the lifetime of an export: when it uploads the PDF it stamps the exact instant the signed URL stops working on the object as its GCS `customTime`. The sweep reads that stamp back and deletes the object once it is in the past, so the two sides never have to agree on a TTL.
 
 | Env var | Default | Used by |
 |---------|---------|---------|
 | `GCS_STORAGE_BUCKET_NAME` | (unset) | both: the bucket exports are written to and swept from |
-| `PDF_EXPORT_TMP_PREFIX` | `tmp/pdf-exports/` | both: the folder exports live in |
-| `PDF_EXPORT_TTL_MINUTES` | `15` | both: lifetime of a signed download URL |
+| `PDF_EXPORT_TMP_PREFIX` | `tmp/pdf-exports/` | both: the folder exports live in, must match |
+| `PDF_EXPORT_TTL_MINUTES` | `15` | converter: lifetime of a signed download URL. Workers: fallback only, for legacy objects without a `customTime` |
 | `PDF_EXPORT_SWEEP_INTERVAL_SECONDS` | `300` | workers only: how often the sweep runs |
 | `PDF_EXPORTS_SWEEP_QUEUE_NAME` | (required, no default) | every worker process: the sweep queue name, must match `WORKER_QUEUE_NAMES` |
 
-If the converter signs URLs for longer than `PDF_EXPORT_TTL_MINUTES`, the sweep can delete an object a user still holds a valid URL for.
+Objects written before the converter stamped expiries have no `customTime`. For those the sweep falls back to `timeCreated` plus the workers' `PDF_EXPORT_TTL_MINUTES`; that fallback can be removed once none is left.
 
 Without `GCS_STORAGE_BUCKET_NAME` the sweep has nothing to sweep (local setups store files on disk through `LocalStorageService`), so the bucket provider yields `null` and each run returns immediately.
 
 ## Timing guarantees
 
-An export is deleted only once it is older than `PDF_EXPORT_TTL_MINUTES` plus a 60 second grace period (`PDF_EXPORTS_DELETE_GRACE_SECONDS`), which gives two bounds:
+An export is deleted only once its stamped expiry plus a 60 second grace period (`PDF_EXPORTS_DELETE_GRACE_SECONDS`) is in the past, which gives two bounds:
 
-- A signed URL always resolves for its whole lifetime, with the grace period to spare. The object outlives the URL, never the other way round.
+- A signed URL always resolves for its whole lifetime, with the grace period to spare. The object outlives the URL, never the other way round, whatever TTL the converter was configured with.
 - An export lives at most TTL + grace + one sweep interval, since an object that expires just after a run waits for the next one. With the defaults that is under 21 minutes.
 
 Each run lists at most 20 pages of 1000 objects (`PDF_EXPORTS_SWEEP_MAX_PAGES_PER_RUN`, `PDF_EXPORTS_SWEEP_PAGE_SIZE`) and deletes 20 objects at a time. A backlog larger than that is drained over the following runs rather than in one long job.
 
-Objects whose `timeCreated` is missing or unparseable are counted and left alone: deleting an object of unknown age could take out a live export.
+Objects with neither a parseable `customTime` nor a parseable `timeCreated` are counted and left alone: deleting an object of unknown age could take out a live export.
 
 ## Deployment
 

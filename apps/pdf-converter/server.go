@@ -123,7 +123,7 @@ func newServer(
 				}
 				uploads.Go(func() error {
 					object := fmt.Sprintf("%spage-%d.png", body.OutputPrefix, pageNumber)
-					return store.Upload(uploadCtx, object, "image/png", pngBytes)
+					return store.Upload(uploadCtx, object, pngBytes, uploadOptions{ContentType: "image/png"})
 				})
 				return nil
 			})

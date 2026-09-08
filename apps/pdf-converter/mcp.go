@@ -153,7 +153,12 @@ func (exporter *pdfExporter) convert(
 		log.Printf("pdf export signing of %s failed: %v", object, err)
 		return nil, convertMarkdownOutput{}, errors.New("could not store the PDF, try again")
 	}
-	if err := exporter.store.Upload(renderCtx, object, "application/pdf", rendered.PDF); err != nil {
+	// The expiry travels with the object: the API sweep reads it back as the
+	// GCS custom time, so the converter alone decides how long an export lives.
+	if err := exporter.store.Upload(renderCtx, object, rendered.PDF, uploadOptions{
+		ContentType: "application/pdf",
+		ExpiresAt:   expires,
+	}); err != nil {
 		log.Printf("pdf export upload to %s failed: %v", object, err)
 		return nil, convertMarkdownOutput{}, errors.New("could not store the PDF, try again")
 	}

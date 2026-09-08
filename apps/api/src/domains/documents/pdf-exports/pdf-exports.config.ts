@@ -28,9 +28,11 @@ export function getPdfExportSweepIntervalSeconds(): number {
 }
 
 /**
- * Lifetime of a temporary PDF export. Must match the value the converter uses
- * to sign download URLs, otherwise the sweep can delete an object a user still
- * holds a valid URL for.
+ * Legacy fallback only: the lifetime assumed for exports that carry no
+ * `customTime` stamp because they were written before the converter set one.
+ * Current exports carry their exact expiry, so this value no longer has to
+ * match the converter's `PDF_EXPORT_TTL_MINUTES`. Remove once no legacy
+ * object is left.
  */
 export function getPdfExportTtlMinutes(): number {
   const ttlMinutes = parsePositiveIntWithDefault("PDF_EXPORT_TTL_MINUTES", DEFAULT_TTL_MINUTES)

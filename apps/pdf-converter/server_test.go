@@ -21,6 +21,9 @@ type fakeStore struct {
 	objects map[string][]byte
 	// contentTypes records the content type each object was uploaded with.
 	contentTypes map[string]string
+	// customTimes records the ExpiresAt each object was uploaded with (zero
+	// when none was set).
+	customTimes map[string]time.Time
 	// signedDownloadFileNames records the DownloadFileName each SignedURL call
 	// was given, keyed by object.
 	signedDownloadFileNames map[string]string
@@ -41,14 +44,18 @@ func (store *fakeStore) Download(ctx context.Context, object string, maxBytes in
 	return data, nil
 }
 
-func (store *fakeStore) Upload(ctx context.Context, object string, contentType string, data []byte) error {
+func (store *fakeStore) Upload(ctx context.Context, object string, data []byte, opts uploadOptions) error {
 	store.mutex.Lock()
 	defer store.mutex.Unlock()
 	store.objects[object] = data
 	if store.contentTypes == nil {
 		store.contentTypes = map[string]string{}
 	}
-	store.contentTypes[object] = contentType
+	store.contentTypes[object] = opts.ContentType
+	if store.customTimes == nil {
+		store.customTimes = map[string]time.Time{}
+	}
+	store.customTimes[object] = opts.ExpiresAt
 	return nil
 }
 
@@ -104,6 +111,10 @@ func TestRenderDocumentHappyPath(t *testing.T) {
 	}
 	if _, found := store.objects["org1/proj1/derived/doc1/page-2.png"]; !found {
 		t.Fatalf("page-2.png missing")
+	}
+	// Page images are permanent derived data: only PDF exports carry an expiry.
+	if customTime := store.customTimes["org1/proj1/derived/doc1/page-1.png"]; !customTime.IsZero() {
+		t.Fatalf("expected no custom time on page images, got %s", customTime)
 	}
 }
 
@@ -191,7 +202,7 @@ func (store *stalledUploadStore) Download(ctx context.Context, object string, ma
 	return store.objects[object], nil
 }
 
-func (store *stalledUploadStore) Upload(ctx context.Context, object string, contentType string, data []byte) error {
+func (store *stalledUploadStore) Upload(ctx context.Context, object string, data []byte, opts uploadOptions) error {
 	<-ctx.Done()
 	return ctx.Err()
 }

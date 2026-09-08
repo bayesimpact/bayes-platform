@@ -100,14 +100,15 @@ link cannot open a new tab, and without `allow-downloads` browsers open the tab 
 block the download because it was started from a sandboxed frame. The card follows
 `hostContext.theme` (light by default) rather than the OS colour scheme.
 
-### The `tmp/pdf-exports/` prefix and the 15-minute TTL contract
+### The `tmp/pdf-exports/` prefix and the TTL contract
 
 Every export is written once to `{PDF_EXPORT_TMP_PREFIX}{uuid}/{fileName}` and this
 service never deletes it — `SignedURL` only hands out a link that stops working after
-`PDF_EXPORT_TTL_MINUTES`, the object itself stays in GCS. Deleting it is the API's job:
-a worker sweeps `PDF_EXPORT_TMP_PREFIX` for objects older than
-`PDF_EXPORT_TTL_MINUTES` and removes them. If that sweep is ever disabled, exported
-PDFs accumulate in the bucket.
+`PDF_EXPORT_TTL_MINUTES`, the object itself stays in GCS. The upload stamps that same
+expiry on the object as its GCS `customTime`, so the object carries its own lifetime.
+Deleting it is the API's job: a worker sweeps `PDF_EXPORT_TMP_PREFIX` and removes
+objects whose `customTime` is in the past, without needing its own copy of the TTL.
+If that sweep is ever disabled, exported PDFs accumulate in the bucket.
 
 ### Signing requirements
 
@@ -139,7 +140,9 @@ Sans and DejaVu Sans Mono (Bitstream Vera licence, see
 
 - `PDF_EXPORT_TTL_MINUTES` (default `15`, max `10080`) — how long a signed download link
   stays valid; capped at seven days because that is GCS V4 signing's own limit — a
-  higher value starts the service and then fails every export once uploaded.
+  higher value starts the service and then fails every export once uploaded. Only this
+  service needs it: the expiry is stamped on each object, and the API workers' copy of
+  the variable is a fallback for objects written before that stamp existed.
 - `PDF_EXPORT_MAX_MARKDOWN_BYTES` (default `1048576`, 1 MiB) — markdown input size cap.
 - `PDF_EXPORT_TMP_PREFIX` (default `tmp/pdf-exports/`) — GCS prefix exports are written
   under; must be a relative object path ending with `/`.
