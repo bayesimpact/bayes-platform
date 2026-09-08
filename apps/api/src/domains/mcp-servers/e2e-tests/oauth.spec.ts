@@ -21,6 +21,12 @@ import { McpServersService } from "../mcp-servers.service"
 global.fetch = jest.fn()
 const fetchMock = global.fetch as jest.Mock
 
+// The outbound URL guard resolves every discovery host before fetching;
+// resolve the example.com fixtures to a public address.
+jest.mock("node:dns/promises", () => ({
+  lookup: jest.fn().mockResolvedValue([{ address: "93.184.216.34", family: 4 }]),
+}))
+
 const MCP_URL = "https://mcp.example.com/mcp"
 
 const resourceMetadata = {

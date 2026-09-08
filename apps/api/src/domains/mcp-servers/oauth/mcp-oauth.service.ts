@@ -11,6 +11,7 @@ import { McpServer } from "../mcp-server.entity"
 import type { McpServerConfig, McpServerOauthState } from "../mcp-server-config.types"
 import { discoverOauthConfiguration, registerOauthClient } from "./mcp-oauth-discovery"
 import { isAccessTokenExpired } from "./oauth-tokens"
+import { DisallowedOutboundUrlError } from "./outbound-url-guard"
 import { codeChallengeS256, generateCodeVerifier, generateState } from "./pkce"
 
 const PENDING_AUTH_TTL_MS = 10 * 60 * 1000
@@ -70,7 +71,14 @@ export class McpOauthService {
     }
     const redirectUri = this.configService.getOrThrow<string>("MCP_OAUTH_REDIRECT_URL")
 
-    const discovery = await discoverOauthConfiguration(config.url)
+    const discovery = await discoverOauthConfiguration(config.url).catch((error: unknown) => {
+      if (error instanceof DisallowedOutboundUrlError) {
+        throw new BadRequestException(
+          "The MCP server URL must be a public https URL to use OAuth authorization.",
+        )
+      }
+      throw error
+    })
     if (!discovery) {
       throw new BadRequestException(
         "This MCP server does not advertise OAuth authorization. Use an API key instead.",

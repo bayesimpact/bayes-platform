@@ -30,6 +30,13 @@ type ProjectRole = "owner" | "admin" | "member"
 
 // The OAuth routes reach out to the MCP server once the guard lets them
 // through. No test here exercises a provider, so every call answers 404.
+// The outbound URL guard resolves every discovery host before fetching;
+// resolve the example.com fixtures to a public address so the allowed-role
+// cases get past the guard and into discovery.
+jest.mock("node:dns/promises", () => ({
+  lookup: jest.fn().mockResolvedValue([{ address: "93.184.216.34", family: 4 }]),
+}))
+
 global.fetch = jest.fn()
 const fetchMock = global.fetch as jest.Mock
 
