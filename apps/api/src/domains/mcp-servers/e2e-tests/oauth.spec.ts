@@ -1,5 +1,6 @@
 process.env.MCP_OAUTH_REDIRECT_URL = "https://app.test/oauth/mcp/callback"
 
+import { randomUUID } from "node:crypto"
 import { McpServersRoutes } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
@@ -64,9 +65,9 @@ describe("McpServers - oauth", () => {
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
 
-  let organizationId: string
-  let projectId: string
-  let mcpServerId: string
+  let organizationId: string = randomUUID()
+  let projectId: string = randomUUID()
+  let mcpServerId: string = randomUUID()
   let accessToken: string | undefined = "token"
   let auth0Id = "auth0|123"
 
@@ -180,8 +181,8 @@ describe("McpServers - oauth", () => {
   })
 
   it("requires authentication on both routes", async () => {
-    await createContext()
-    mcpServerId = await createServer()
+    // The guard answers before any context is resolved, so no server is needed.
+    mcpServerId = randomUUID()
     accessToken = undefined
 
     const initiateResponse = await initiate()
