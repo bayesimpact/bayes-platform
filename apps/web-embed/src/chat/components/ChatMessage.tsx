@@ -31,8 +31,6 @@ export function ChatMessage({
 }) {
   // MCP App cards that gave up rendering; their reply text is shown instead.
   const [failedMcpAppToolCallIds, setFailedMcpAppToolCallIds] = useState<string[]>([])
-  // The widget's language, handed to MCP App cards so they render their own text in it.
-  const { i18n } = useTranslation("chat")
 
   switch (message.role) {
     case "assistant": {
@@ -115,7 +113,6 @@ export function ChatMessage({
                   html={view.html}
                   toolInput={view.toolInput}
                   toolResult={view.toolResult}
-                  locale={i18n.language}
                   onRenderFailed={() =>
                     setFailedMcpAppToolCallIds((previous) =>
                       previous.includes(toolCall.id) ? previous : [...previous, toolCall.id],

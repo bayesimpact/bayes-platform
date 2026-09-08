@@ -42,7 +42,7 @@ describe("PublicChatService", () => {
   function buildService(readLiveHtml: jest.Mock, messages: AgentMessage[]) {
     return new PublicChatService(
       {} as never,
-      {} as never,
+      { getLast: jest.fn().mockResolvedValue({ locale: "fr" }) } as never,
       {} as never,
       { getSessionWithMessages: jest.fn().mockResolvedValue({ session, messages }) } as never,
       {} as never,
@@ -74,6 +74,7 @@ describe("PublicChatService", () => {
       sessionId: session.id,
       messages: [messageWithCard],
       externalVisitorId: "visitor-1",
+      locale: "fr",
     })
     expect(entries).toEqual([{ mcpServerId, resourceUri, html }])
   })

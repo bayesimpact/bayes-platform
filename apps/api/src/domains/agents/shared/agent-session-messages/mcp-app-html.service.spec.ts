@@ -146,8 +146,35 @@ describe("McpAppHtmlService", () => {
           agentId: "agent-1",
           sessionId: "session-1",
           externalVisitorId: "visitor-1",
+          locale: null,
         },
       }),
+    )
+  })
+
+  it("forwards the agent's language on the MCP connection so the card can be localized", async () => {
+    readResource.mockResolvedValue(mcpAppResource("<html lang='fr'>carte</html>"))
+
+    await service.readLiveHtml({
+      agentId: "agent-1",
+      sessionId: "session-1",
+      locale: "fr",
+      messages: [
+        {
+          toolCalls: [
+            {
+              id: "call-1",
+              name: "get_patient",
+              arguments: {},
+              mcpApp: { mcpServerId, resourceUri },
+            },
+          ],
+        },
+      ],
+    })
+
+    expect(connect).toHaveBeenCalledWith(
+      expect.objectContaining({ context: expect.objectContaining({ locale: "fr" }) }),
     )
   })
 })

@@ -98,11 +98,14 @@ navigates natively. The host must sandbox the iframe with at least
 `allow-popups allow-popups-to-escape-sandbox allow-downloads`: without the first two the
 link cannot open a new tab, and without `allow-downloads` browsers open the tab but
 block the download because it was started from a sandboxed frame. The card follows
-`hostContext.theme` (light by default) rather than the OS colour scheme, and
-`hostContext.locale` for its language: the platform host sends the agent's configured
-language, so a `fr` locale renders the card in French and anything else in English.
-The locale is read from the `ui/initialize` response and again from
-`ui/notifications/host-context-changed`, redrawing the current state in place.
+`hostContext.theme` (light by default) rather than the OS colour scheme.
+
+The card is served in the agent's language. The platform API sends the agent's
+configured language as the `Accept-Language` header of every MCP call, and
+`resources/read` stamps it on the card's `<html lang>`: `fr` (or any `fr-*` tag) gives
+a French card, anything else English. The script starts from that attribute and still
+honours a `hostContext.locale` sent by a host, on `ui/initialize` or on
+`ui/notifications/host-context-changed`, redrawing its current state in place.
 
 ### The `tmp/pdf-exports/` prefix and the TTL contract
 

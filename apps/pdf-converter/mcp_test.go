@@ -383,9 +383,10 @@ func TestMCPReadDownloadCard(t *testing.T) {
 		"ui/notifications/size-changed",
 		// The card must validate downloadUrl before using it as an href.
 		`"https:"`,
-		// The card follows the host's locale (the agent's language) and
+		// The card starts in the language stamped on its root element and
 		// ships both languages it supports.
-		"hostContext.locale",
+		`<html lang="en">`,
+		"documentElement.lang",
 		"Download PDF",
 		"Télécharger le PDF",
 	} {
@@ -401,6 +402,98 @@ func TestMCPReadDownloadCard(t *testing.T) {
 	// The host rewrites this literal, so the card must never contain it.
 	if strings.Contains(contents.Text, "</iframe") {
 		t.Fatalf("the card must not contain a closing iframe tag")
+	}
+}
+
+// headerRoundTripper adds fixed headers to every request, standing in for the
+// platform API, which sends the agent's language as Accept-Language.
+type headerRoundTripper struct {
+	header http.Header
+}
+
+func (rt headerRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	for name, values := range rt.header {
+		for _, value := range values {
+			req.Header.Add(name, value)
+		}
+	}
+	return http.DefaultTransport.RoundTrip(req)
+}
+
+func connectMCPWithHeaders(t *testing.T, handler http.Handler, header http.Header) *mcp.ClientSession {
+	t.Helper()
+	httpServer := httptest.NewServer(handler)
+	t.Cleanup(httpServer.Close)
+	client := mcp.NewClient(&mcp.Implementation{Name: "pdf-converter-test", Version: "1.0.0"}, nil)
+	session, err := client.Connect(context.Background(), &mcp.StreamableClientTransport{
+		Endpoint:   httpServer.URL,
+		HTTPClient: &http.Client{Transport: headerRoundTripper{header: header}},
+	}, nil)
+	if err != nil {
+		t.Fatalf("connect to the mcp endpoint: %v", err)
+	}
+	t.Cleanup(func() {
+		if err := session.Close(); err != nil {
+			t.Errorf("close the mcp session: %v", err)
+		}
+	})
+	return session
+}
+
+func TestMCPReadDownloadCardFollowsAcceptLanguage(t *testing.T) {
+	for _, testCase := range []struct {
+		acceptLanguage string
+		wantLang       string
+	}{
+		{acceptLanguage: "fr", wantLang: "fr"},
+		{acceptLanguage: "fr-CA,fr;q=0.9,en;q=0.8", wantLang: "fr"},
+		{acceptLanguage: "en", wantLang: "en"},
+		{acceptLanguage: "de", wantLang: "en"},
+		{acceptLanguage: "", wantLang: "en"},
+	} {
+		t.Run(testCase.acceptLanguage, func(t *testing.T) {
+			header := http.Header{}
+			if testCase.acceptLanguage != "" {
+				header.Set("Accept-Language", testCase.acceptLanguage)
+			}
+			session := connectMCPWithHeaders(t,
+				newMCPHandler(&fakeStore{objects: map[string][]byte{}}, newTestExportConfig()), header)
+			result, err := session.ReadResource(context.Background(), &mcp.ReadResourceParams{URI: downloadCardURI})
+			if err != nil {
+				t.Fatalf("read %s: %v", downloadCardURI, err)
+			}
+			want := `<html lang="` + testCase.wantLang + `">`
+			if !strings.Contains(result.Contents[0].Text, want) {
+				t.Fatalf("expected the card to carry %s", want)
+			}
+		})
+	}
+}
+
+func TestCardLanguage(t *testing.T) {
+	for input, want := range map[string]string{
+		"fr":               "fr",
+		"FR":               "fr",
+		"fr-FR":            "fr",
+		"fr-CA;q=0.8,en":   "fr",
+		"fr;q=0.5, en;q=1": "fr",
+		"en":               "en",
+		"en-GB,fr;q=0.9":   "en",
+		"frisian-ish":      "en",
+		"":                 "en",
+		" fr , en ":        "fr",
+		"de-CH":            "en",
+	} {
+		header := http.Header{}
+		if input != "" {
+			header.Set("Accept-Language", input)
+		}
+		if got := cardLanguage(header); got != want {
+			t.Errorf("cardLanguage(%q) = %q, want %q", input, got, want)
+		}
+	}
+	if got := cardLanguage(nil); got != "en" {
+		t.Errorf("cardLanguage(nil) = %q, want en", got)
 	}
 }
 

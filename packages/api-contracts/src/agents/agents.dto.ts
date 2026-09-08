@@ -2,7 +2,6 @@ import { z } from "zod"
 import { updateDocumentTagsSchema } from "../document-tags/document-tag.dto"
 import { type TimeType, timeTypeSchema } from "../generic"
 import {
-  type AgentLocale,
   agentSettingsValidationSchema,
   hasRequiredDocumentTags,
   refineFillFormOutputJsonSchema,
@@ -19,8 +18,6 @@ export type AgentDto = {
   name: string
   projectId: string
   type: AgentType
-  /** Language of the current revision, so chat surfaces can render agent-facing UI in it. */
-  locale: AgentLocale
   currentRevision: {
     updatedAt: TimeType
     name?: string

@@ -22,6 +22,8 @@ import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { BaseAgentSessionGuard } from "@/domains/agents/base-agent-sessions/base-agent-session.guard"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import {
   extractFileExtension,
@@ -51,6 +53,7 @@ export class AgentMessagesController {
     private readonly agentMessageAttachmentDocumentsService: AgentMessageAttachmentDocumentsService,
     private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
     private readonly mcpAppHtmlService: McpAppHtmlService,
+    private readonly agentSettingsService: AgentSettingsService,
   ) {}
 
   @CheckPolicy((policy) => policy.canList())
@@ -80,10 +83,17 @@ export class AgentMessagesController {
       agentSessionId,
       connectScope,
     })
+    // Cards are re-read in the agent's current language: a draft under edit
+    // does not change what an existing conversation shows.
+    const agentSettings = await this.agentSettingsService.getLast({
+      connectScope,
+      agentId: request.agent.id,
+    })
     const htmlByKey = await this.mcpAppHtmlService.readLiveHtml({
       agentId: request.agent.id,
       sessionId: agentSessionId,
       messages,
+      locale: agentSettings.locale,
     })
     return { data: toMcpAppHtmlDtos(htmlByKey) }
   }

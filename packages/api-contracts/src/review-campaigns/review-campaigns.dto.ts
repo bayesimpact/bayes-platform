@@ -92,7 +92,7 @@ export type ListReviewCampaignsResponseDto = {
 // === Tester API ===
 
 export type TesterAgentSnapshotDto = Pick<AgentDto, "id" | "name" | "type"> &
-  Pick<AgentSettingsDto, "greetingMessage" | "outputJsonSchema" | "fillFormEnabled" | "locale">
+  Pick<AgentSettingsDto, "greetingMessage" | "outputJsonSchema" | "fillFormEnabled">
 
 export type ReviewCampaignTesterContextDto = {
   id: string

@@ -46,7 +46,6 @@ const toAgent = (dto: AgentDto): Agent => ({
   name: dto.name,
   projectId: dto.projectId,
   type: dto.type,
-  locale: dto.locale,
   currentRevision: {
     updatedAt: dto.currentRevision.updatedAt,
     name: dto.currentRevision.name,

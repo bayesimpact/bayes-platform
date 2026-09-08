@@ -1,4 +1,4 @@
-import { AgentLocale, AgentsRoutes } from "@caseai-connect/api-contracts"
+import { AgentsRoutes } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -125,23 +125,6 @@ describe("Agents - getAll", () => {
       description: "The revision we launched with",
       updatedAt: storedSettings.updatedAt.getTime(),
     })
-  })
-
-  it("should expose the locale of the current revision", async () => {
-    const { organization, project, user } = await createContext()
-
-    const agent = agentFactory.transient({ organization, project }).build()
-    await repositories.agentRepository.save(agent)
-    const agentSettings = agentSettingsFactory
-      .transient({ organization, project, agent })
-      .build({ locale: AgentLocale.FR })
-    await repositories.agentSettingsRepository.save(agentSettings)
-    await addUserToAgent({ repositories, agent, user })
-
-    const response = await subject()
-
-    expectResponse(response, 200)
-    expect(response.body.data[0]?.locale).toBe(AgentLocale.FR)
   })
 
   it("should return the last published revision and ignore a newer draft", async () => {

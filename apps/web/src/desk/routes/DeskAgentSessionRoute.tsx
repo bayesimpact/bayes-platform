@@ -50,7 +50,6 @@ export function DeskAgentSessionRoute({ agentSession }: { agentSession: AgentSes
           session={agentSession}
           messages={messages}
           formResultSchema={fillFormOutputJsonSchema.value ?? undefined}
-          agentLocale={agent.locale}
         />
       </div>
     </div>

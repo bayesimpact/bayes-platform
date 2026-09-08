@@ -1,14 +1,13 @@
-import {
-  AgentLocale,
-  type ListMyReviewCampaignsResponseDto,
-  type MyTesterSessionSummaryDto,
-  type ReviewCampaignAgentType,
-  type ReviewCampaignQuestionDto,
-  type ReviewCampaignTesterContextDto,
-  type ReviewCampaignTesterFeedbackAnswerDto,
-  type TesterAgentSnapshotDto,
-  type TesterCampaignSurveyDto,
-  type TesterSessionFeedbackDto,
+import type {
+  ListMyReviewCampaignsResponseDto,
+  MyTesterSessionSummaryDto,
+  ReviewCampaignAgentType,
+  ReviewCampaignQuestionDto,
+  ReviewCampaignTesterContextDto,
+  ReviewCampaignTesterFeedbackAnswerDto,
+  TesterAgentSnapshotDto,
+  TesterCampaignSurveyDto,
+  TesterSessionFeedbackDto,
 } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
@@ -32,7 +31,6 @@ export const testerAgentSnapshotFactory = TesterAgentSnapshotFactory.define(({ p
   greetingMessage: params.greetingMessage ?? undefined,
   fillFormEnabled: params.fillFormEnabled ?? false,
   outputJsonSchema: params.outputJsonSchema ?? undefined,
-  locale: params.locale ?? AgentLocale.EN,
 }))
 
 type TesterContextTransientParams = {

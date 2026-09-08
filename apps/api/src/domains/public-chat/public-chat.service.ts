@@ -61,11 +61,21 @@ export class PublicChatService {
     const { session, messages } = await this.publicAgentSessionsService.getSessionWithMessages(
       publicSession.id,
     )
+    // Same published settings as the replies themselves, so the cards come back
+    // in the language the visitor was answered in.
+    const agentSettings = await this.agentSettingsService.getLast({
+      connectScope: {
+        organizationId: publicSession.organizationId,
+        projectId: publicSession.projectId,
+      },
+      agentId: session.agentId,
+    })
     const htmlByKey = await this.mcpAppHtmlService.readLiveHtml({
       agentId: session.agentId,
       sessionId: session.id,
       messages,
       externalVisitorId: session.externalVisitorId,
+      locale: agentSettings.locale,
     })
     return toMcpAppHtmlDtos(htmlByKey)
   }
