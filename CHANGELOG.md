@@ -16,6 +16,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 - (beta) PDF export: when the download card cannot load, the reply shows the export result as text.
 
+- (beta) PDF export: large documents no longer fail at the upload step after a slow render.
+
 ### Security
 - MCP servers can no longer be enabled or disabled on an agent that belongs to another project.
 
