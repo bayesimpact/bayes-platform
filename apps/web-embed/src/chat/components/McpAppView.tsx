@@ -178,6 +178,13 @@ export function McpAppView({
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [hasFailed, setHasFailed] = useState(false)
+  // Parents pass an inline arrow that changes identity when any sibling card
+  // fails. Reading it through a ref keeps it out of the render effect deps, so
+  // a sibling failure does not tear down and re-handshake this card.
+  const onRenderFailedRef = useRef(onRenderFailed)
+  useEffect(() => {
+    onRenderFailedRef.current = onRenderFailed
+  })
 
   useEffect(() => {
     const iframe = iframeRef.current
@@ -269,7 +276,7 @@ export function McpAppView({
           error instanceof Error ? error.message : "unknown error",
         )
         setHasFailed(true)
-        onRenderFailed?.()
+        onRenderFailedRef.current?.()
       }
     }
 
@@ -312,7 +319,7 @@ export function McpAppView({
           void currentBridge.close()
         })
     }
-  }, [html, toolInput, toolResult, onRenderFailed])
+  }, [html, toolInput, toolResult])
 
   if (hasFailed) return null
 

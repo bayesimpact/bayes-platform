@@ -16,6 +16,8 @@ Both sides read the same env var names, so they must be set to the same values i
 | `PDF_EXPORT_SWEEP_INTERVAL_SECONDS` | `300` | workers only: how often the sweep runs |
 | `PDF_EXPORTS_SWEEP_QUEUE_NAME` | (required, no default) | every worker process: the sweep queue name, must match `WORKER_QUEUE_NAMES` |
 
+Both sides parse these the same way: an unset or empty variable takes the default, and the integer ones only accept plain digits (`15m` or `1.5` are rejected on both sides rather than truncated to `15` or `1`).
+
 If the converter signs URLs for longer than `PDF_EXPORT_TTL_MINUTES`, the sweep can delete an object a user still holds a valid URL for.
 
 Without `GCS_STORAGE_BUCKET_NAME` the sweep has nothing to sweep (local setups store files on disk through `LocalStorageService`), so the bucket provider yields `null` and each run returns immediately.

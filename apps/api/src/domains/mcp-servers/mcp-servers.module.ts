@@ -1,10 +1,12 @@
 import { Module } from "@nestjs/common"
 import { ConfigModule } from "@nestjs/config"
 import { TypeOrmModule } from "@nestjs/typeorm"
+import { AgentContextResolver } from "@/common/context/resolvers/agent-context.resolver"
 import { McpServerContextResolver } from "@/common/context/resolvers/mcp-server-context.resolver"
 import { OrganizationContextResolver } from "@/common/context/resolvers/organization-context.resolver"
 import { ProjectContextResolver } from "@/common/context/resolvers/project-context.resolver"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
+import { Agent } from "@/domains/agents/agent.entity"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
@@ -20,7 +22,7 @@ import { McpServersService } from "./mcp-servers.service"
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([McpServer, AgentMcpServer, Project]),
+    TypeOrmModule.forFeature([McpServer, AgentMcpServer, Project, Agent]),
     ConfigModule,
     MembershipsModule,
     OrganizationsModule,
@@ -35,6 +37,7 @@ import { McpServersService } from "./mcp-servers.service"
     ResourceContextGuard,
     OrganizationContextResolver,
     ProjectContextResolver,
+    AgentContextResolver,
     McpServerContextResolver,
   ],
   controllers: [McpServersController],

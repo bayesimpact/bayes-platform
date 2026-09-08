@@ -3,6 +3,7 @@ import {
   buildErrorMessage,
   buildStreamingMessage,
   emptyConversation,
+  failedMcpAppCardConversation,
   longConversation,
   markdownConversation,
   resourceCardsConversation,
@@ -106,6 +107,13 @@ export const ErrorState: Story = {
       { id: "user-err", role: "user", content: "This will fail.", status: "completed" },
       buildErrorMessage(),
     ],
+  },
+}
+
+export const FailedMcpAppCard: Story = {
+  name: "MCP App card failed to load",
+  args: {
+    messages: failedMcpAppCardConversation,
   },
 }
 
