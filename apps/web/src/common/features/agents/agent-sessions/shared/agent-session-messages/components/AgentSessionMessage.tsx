@@ -25,7 +25,7 @@ import { useFormResult } from "./form-result-context"
 import { useFormSubSessions } from "./form-sub-sessions-context"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { McpAppView } from "./McpAppView"
-import { getRenderableMcpApp } from "./mcp-app-view"
+import { getFailedMcpAppFallbackText, getRenderableMcpApp } from "./mcp-app-view"
 import { SourcesTool } from "./SourcesTool"
 import { SubAgentFormResultSheet } from "./SubAgentFormResultSheet"
 import { SurfaceResourcesTool } from "./SurfaceResourcesTool"
@@ -67,6 +67,13 @@ export function AgentSessionMessage({
       const hideMarkdownRecap =
         !isStreaming &&
         mcpAppViews.some(({ toolCall }) => !failedMcpAppToolCallIds.includes(toolCall.id))
+      // The model may have written nothing because it expected the card to speak for the tool:
+      // once the card gave up, the tool result text stands in for the reply.
+      const failedMcpAppFallbackText = hasContent
+        ? ""
+        : getFailedMcpAppFallbackText(message.toolCalls, failedMcpAppToolCallIds)
+      const bubbleContent =
+        hasContent && !hideMarkdownRecap ? message.content : failedMcpAppFallbackText
       // Tool names this message delegated to that resolved to a form sub-session,
       // deduplicated so a sub-agent invoked twice shows a single affordance.
       const delegatedToolNames = [
@@ -96,11 +103,10 @@ export function AgentSessionMessage({
                 </BubbleContent>
               </Bubble>
             ) : (
-              hasContent &&
-              !hideMarkdownRecap && (
+              bubbleContent.length > 0 && (
                 <Bubble variant="muted">
                   <BubbleContent className="px-4 py-3">
-                    <MarkdownWrapper content={message.content} />
+                    <MarkdownWrapper content={bubbleContent} />
                   </BubbleContent>
                 </Bubble>
               )
@@ -131,8 +137,8 @@ export function AgentSessionMessage({
                     still persisted their results, so those affordances stay. */}
                 {!isInterrupted && <FeedbackCreator message={message} />}
 
-                {!isInterrupted && !hideMarkdownRecap && (
-                  <CopyToClipboard content={message.content} />
+                {!isInterrupted && bubbleContent.length > 0 && (
+                  <CopyToClipboard content={bubbleContent} />
                 )}
 
                 {renderMessageVersion?.(message)}
