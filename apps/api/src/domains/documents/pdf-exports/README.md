@@ -14,7 +14,7 @@ Both sides read the same env var names, so they must be set to the same values i
 | `PDF_EXPORT_TMP_PREFIX` | `tmp/pdf-exports/` | both: the folder exports live in |
 | `PDF_EXPORT_TTL_MINUTES` | `15` | both: lifetime of a signed download URL |
 | `PDF_EXPORT_SWEEP_INTERVAL_SECONDS` | `300` | workers only: how often the sweep runs |
-| `PDF_EXPORTS_SWEEP_QUEUE_NAME` | (required, no default) | every worker process: the sweep queue name, must match `WORKER_QUEUE_NAMES` |
+| `PDF_EXPORTS_SWEEP_QUEUE_NAME` | `pdf-exports-sweep` | workers only: the sweep queue name, must match the name listed in `WORKER_QUEUE_NAMES` |
 
 If the converter signs URLs for longer than `PDF_EXPORT_TTL_MINUTES`, the sweep can delete an object a user still holds a valid URL for.
 

@@ -94,7 +94,6 @@ services:
       # `all` boots every worker module (see worker-pools.ts), so the smoke check never carries a queue list that can drift from the code.
       WORKER_QUEUE_NAMES: all
       WORKERS_HEALTH_QUEUE_NAME: evaluation-extraction-run-queue
-      PDF_EXPORTS_SWEEP_QUEUE_NAME: pdf-exports-sweep
     restart: "no"
 
   # GPU pool: ships Docling. Boots every queue so each worker module is exercised with Docling.
@@ -130,5 +129,4 @@ services:
       MCP_ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
       WORKER_QUEUE_NAMES: all
       WORKERS_HEALTH_QUEUE_NAME: document-embeddings
-      PDF_EXPORTS_SWEEP_QUEUE_NAME: pdf-exports-sweep
     restart: "no"

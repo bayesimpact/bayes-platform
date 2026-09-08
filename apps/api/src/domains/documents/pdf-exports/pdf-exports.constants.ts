@@ -1,21 +1,7 @@
-const PDF_EXPORTS_SWEEP_QUEUE_NAME_ENV = "PDF_EXPORTS_SWEEP_QUEUE_NAME"
+const DEFAULT_PDF_EXPORTS_SWEEP_QUEUE_NAME = "pdf-exports-sweep"
 
-/**
- * The queue name has no default: every worker process must declare it, so the
- * value a pool consumes (`WORKER_QUEUE_NAMES`) and the value the module
- * registers can never drift apart silently.
- */
-export function resolvePdfExportsSweepQueueName(): string {
-  const queueName = process.env[PDF_EXPORTS_SWEEP_QUEUE_NAME_ENV]
-  if (!queueName) {
-    throw new Error(
-      `${PDF_EXPORTS_SWEEP_QUEUE_NAME_ENV} must be set (for example "pdf-exports-sweep") on every worker process.`,
-    )
-  }
-  return queueName
-}
-
-export const PDF_EXPORTS_SWEEP_QUEUE_NAME = resolvePdfExportsSweepQueueName()
+export const PDF_EXPORTS_SWEEP_QUEUE_NAME =
+  process.env.PDF_EXPORTS_SWEEP_QUEUE_NAME ?? DEFAULT_PDF_EXPORTS_SWEEP_QUEUE_NAME
 
 export const PDF_EXPORTS_SWEEP_JOB_NAME = "sweep-expired-pdf-exports"
 

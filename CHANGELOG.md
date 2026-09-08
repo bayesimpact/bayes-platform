@@ -13,6 +13,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
+- Worker pools start without the PDF export sweep queue variable, which now defaults to pdf-exports-sweep.
+
 ### Security
 
 ## [26.09.2] - 2026-09-08

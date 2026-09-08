@@ -8,5 +8,3 @@ delete process.env.BULL_BOARD_ENABLED
 // enables every known queue, so this file never carries a copy of the list.
 process.env.WORKER_QUEUE_NAMES ??= "all"
 process.env.WORKERS_HEALTH_QUEUE_NAME ??= "document-embeddings"
-// Required by every worker process (no default in code), see pdf-exports.constants.ts.
-process.env.PDF_EXPORTS_SWEEP_QUEUE_NAME ??= "pdf-exports-sweep"
