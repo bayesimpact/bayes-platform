@@ -59,6 +59,15 @@ export class McpOauthService {
 
   async initiateAuthorization(mcpServer: McpServer): Promise<{ authorizationUrl: string }> {
     const config = this.readConfig(mcpServer)
+    // Storing oauth state next to an API key would make the server look
+    // oauthPending and replace the key with a token that does not exist yet.
+    // Legacy configs predate authMethod, so a stored key with no oauth state
+    // counts as an API key server too.
+    if (config.authMethod === "apiKey" || (config.apiKey && !config.oauth)) {
+      throw new BadRequestException(
+        "This MCP server authenticates with an API key. OAuth cannot be started on it.",
+      )
+    }
     const redirectUri = this.configService.getOrThrow<string>("MCP_OAUTH_REDIRECT_URL")
 
     const discovery = await discoverOauthConfiguration(config.url)

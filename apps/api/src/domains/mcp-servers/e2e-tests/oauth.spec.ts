@@ -15,6 +15,7 @@ import { createOrganizationWithProject } from "@/domains/organizations/organizat
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { McpServersModule } from "../mcp-servers.module"
+import { McpServersService } from "../mcp-servers.service"
 
 global.fetch = jest.fn()
 const fetchMock = global.fetch as jest.Mock
@@ -101,12 +102,12 @@ describe("McpServers - oauth", () => {
     return { organization, project }
   }
 
-  const createServer = async (): Promise<string> => {
+  const createServer = async (payload: { apiKey?: string } = {}): Promise<string> => {
     const response = await request({
       route: McpServersRoutes.createOne,
       pathParams: removeNullish({ organizationId, projectId }),
       token: accessToken,
-      request: { payload: { name: "Knowledge Base", url: MCP_URL } },
+      request: { payload: { name: "Knowledge Base", url: MCP_URL, ...payload } },
     })
     expectResponse(response, 201)
     return response.body.data.id
@@ -148,6 +149,20 @@ describe("McpServers - oauth", () => {
     const response = await initiate()
 
     expectResponse(response, 400)
+  })
+
+  it("returns 400 on an API key server and keeps its key", async () => {
+    await createContext()
+    mcpServerId = await createServer({ apiKey: "secret-key" })
+
+    const response = await initiate()
+
+    expectResponse(response, 400)
+    expect(fetchMock).not.toHaveBeenCalled()
+    const mcpServer = await repositories.mcpServerRepository.findOneByOrFail({ id: mcpServerId })
+    const config = setup.module.get(McpServersService).getConfig(mcpServer)
+    expect(config.apiKey).toBe("secret-key")
+    expect(config.oauth).toBeUndefined()
   })
 
   it("completes OAuth and marks the server connected", async () => {
