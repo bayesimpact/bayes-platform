@@ -25,64 +25,61 @@ function buildAssistantMessage(overrides: Partial<AgentMessage> = {}): AgentMess
 }
 
 describe("PublicChatService", () => {
-  it("hydrates MCP App HTML onto public session toolCalls", async () => {
-    const session = publicAgentSessionFactory.build({ externalVisitorId: "visitor-1" })
-    const message = buildAssistantMessage({
-      content: "Here is the summary.",
-      toolCalls: [
-        {
-          id: "call-1",
-          name: "get_patient",
-          arguments: { patientId: "p-1" },
-          result: { structuredContent: { title: "Ada" } },
-          mcpApp: { mcpServerId, resourceUri },
-        },
-      ],
-    })
+  const session = publicAgentSessionFactory.build({ externalVisitorId: "visitor-1" })
+  const messageWithCard = buildAssistantMessage({
+    content: "Here is the summary.",
+    toolCalls: [
+      {
+        id: "call-1",
+        name: "get_patient",
+        arguments: { patientId: "p-1" },
+        result: { structuredContent: { title: "Ada" } },
+        mcpApp: { mcpServerId, resourceUri },
+      },
+    ],
+  })
 
-    const readLiveHtml = jest
-      .fn()
-      .mockResolvedValue(new Map([[mcpAppHtmlCacheKey(mcpServerId, resourceUri), html]]))
-    const getSessionWithMessages = jest.fn().mockResolvedValue({ session, messages: [message] })
-
-    const service = new PublicChatService(
+  function buildService(readLiveHtml: jest.Mock, messages: AgentMessage[]) {
+    return new PublicChatService(
       {} as never,
       {} as never,
       {} as never,
-      { getSessionWithMessages } as never,
+      { getSessionWithMessages: jest.fn().mockResolvedValue({ session, messages }) } as never,
       {} as never,
       { readLiveHtml } as never,
     )
+  }
+
+  it("returns the session with card pointers without reading any MCP server", async () => {
+    // The widget shows the transcript at once and loads the card HTML afterwards.
+    const readLiveHtml = jest.fn()
+    const service = buildService(readLiveHtml, [messageWithCard])
 
     const dto = await service.getSession(session)
+
+    expect(readLiveHtml).not.toHaveBeenCalled()
+    expect(dto.messages[0]?.toolCalls?.[0]?.mcpApp).toEqual({ mcpServerId, resourceUri })
+  })
+
+  it("reads the current HTML of the cards the session points at", async () => {
+    const readLiveHtml = jest
+      .fn()
+      .mockResolvedValue(new Map([[mcpAppHtmlCacheKey(mcpServerId, resourceUri), html]]))
+    const service = buildService(readLiveHtml, [messageWithCard])
+
+    const entries = await service.getMcpAppHtml(session)
 
     expect(readLiveHtml).toHaveBeenCalledWith({
       agentId: session.agentId,
       sessionId: session.id,
-      messages: [message],
+      messages: [messageWithCard],
       externalVisitorId: "visitor-1",
     })
-    expect(dto.messages[0]?.toolCalls?.[0]?.mcpApp).toEqual({
-      mcpServerId,
-      resourceUri,
-      html,
-    })
+    expect(entries).toEqual([{ mcpServerId, resourceUri, html }])
   })
 
   it("omits toolCalls when the message has none", async () => {
-    const session = publicAgentSessionFactory.build()
-    const message = buildAssistantMessage()
-
-    const service = new PublicChatService(
-      {} as never,
-      {} as never,
-      {} as never,
-      {
-        getSessionWithMessages: jest.fn().mockResolvedValue({ session, messages: [message] }),
-      } as never,
-      {} as never,
-      { readLiveHtml: jest.fn().mockResolvedValue(new Map()) } as never,
-    )
+    const service = buildService(jest.fn(), [buildAssistantMessage()])
 
     const dto = await service.getSession(session)
 

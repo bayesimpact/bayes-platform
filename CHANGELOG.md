@@ -12,6 +12,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+- (beta) Conversations with MCP App cards now open at once, each card showing a placeholder until it is ready.
 - (beta) PDF export: the built-in server disappears from workspaces when the export feature is turned off.
 - (beta) MCP App cards no longer reload when a sibling card in the same reply fails to render.
 - (beta) PDF export: when the download card cannot load, the reply shows the export result as text.

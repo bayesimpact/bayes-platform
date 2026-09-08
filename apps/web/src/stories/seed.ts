@@ -12,7 +12,10 @@ import type {
   ConversationSubSession,
 } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import type { ExtractionAgentSessions } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
-import type { AgentSessionMessage } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
+import type {
+  AgentSessionMcpAppHtml,
+  AgentSessionMessage,
+} from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { User } from "@/common/features/me/me.models"
@@ -270,6 +273,14 @@ export const seed = {
 
   agentSessionMessages(messages: AgentSessionMessage[]): StoryPreloadedState {
     return { agentSessionMessages: { data: ads.fulfilled(messages) } }
+  },
+
+  /** Loaded MCP App card HTML; pass `undefined` to show the cards still loading. */
+  agentSessionMcpAppHtml(entries: AgentSessionMcpAppHtml[] | undefined): StoryPreloadedState {
+    if (entries === undefined) {
+      return { agentSessionMessages: { mcpAppHtml: ads.loading<AgentSessionMcpAppHtml[]>() } }
+    }
+    return { agentSessionMessages: { mcpAppHtml: ads.fulfilled(entries) } }
   },
 
   studio: {

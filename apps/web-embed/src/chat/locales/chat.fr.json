@@ -10,6 +10,7 @@
     },
     "message": {
       "thinking": "Réflexion en cours…",
+      "loadingCard": "Chargement de la carte interactive…",
       "error": "Une erreur s'est produite. Veuillez réessayer.",
       "copyAriaLabel": "Copier dans le presse-papiers",
       "sources_one": "{{count}} source",

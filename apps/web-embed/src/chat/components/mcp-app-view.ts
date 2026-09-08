@@ -1,4 +1,8 @@
-import type { AgentSessionToolCallDto } from "@caseai-connect/api-contracts"
+import type {
+  AgentSessionMcpAppDto,
+  AgentSessionMcpAppHtmlDto,
+  AgentSessionToolCallDto,
+} from "@caseai-connect/api-contracts"
 
 export type McpAppViewModel = {
   html: string
@@ -6,12 +10,48 @@ export type McpAppViewModel = {
   toolResult: unknown
 }
 
+/** Whether a reply points at an MCP App card, so the card HTML is worth loading. */
+export function hasMcpAppPointer(
+  messages: { toolCalls?: AgentSessionToolCallDto[] | null }[],
+): boolean {
+  return messages.some((message) =>
+    (message.toolCalls ?? []).some((toolCall) => typeof toolCall.mcpApp?.resourceUri === "string"),
+  )
+}
+
+/**
+ * A tool call that shows an MCP App card: it points at one and has a result to hand it. Its HTML
+ * may still be loading, so this says a card belongs here, not that it can render yet.
+ */
+export function hasMcpAppCard(toolCall: AgentSessionToolCallDto): boolean {
+  return typeof toolCall.mcpApp?.resourceUri === "string" && toolCall.result !== undefined
+}
+
+/**
+ * Current HTML for a card pointer. The HTML embedded on the tool call wins (stories); otherwise
+ * the entry read from the same server, or, for a pointer recorded without a server id, the
+ * entry any server returned for that `ui://`.
+ */
+export function findMcpAppHtml(
+  mcpApp: AgentSessionMcpAppDto,
+  htmlEntries: AgentSessionMcpAppHtmlDto[],
+): string | undefined {
+  if (typeof mcpApp.html === "string" && mcpApp.html.trim().length > 0) return mcpApp.html
+  const entry = htmlEntries.find(
+    (candidate) =>
+      candidate.resourceUri === mcpApp.resourceUri &&
+      (!mcpApp.mcpServerId || candidate.mcpServerId === mcpApp.mcpServerId),
+  )
+  return entry && entry.html.trim().length > 0 ? entry.html : undefined
+}
+
 export function getRenderableMcpApp(
   toolCall: AgentSessionToolCallDto,
+  htmlEntries: AgentSessionMcpAppHtmlDto[] = [],
 ): McpAppViewModel | undefined {
-  const html = toolCall.mcpApp?.html
-  if (typeof html !== "string" || html.trim().length === 0) return undefined
-  if (toolCall.result === undefined) return undefined
+  if (!toolCall.mcpApp || toolCall.result === undefined) return undefined
+  const html = findMcpAppHtml(toolCall.mcpApp, htmlEntries)
+  if (html === undefined) return undefined
 
   return {
     html,
@@ -21,8 +61,13 @@ export function getRenderableMcpApp(
 }
 
 /** The MCP App iframe already shows the tool result, so the markdown recap is redundant. */
-export function hasRenderableMcpApp(toolCalls: AgentSessionToolCallDto[] | undefined): boolean {
-  return (toolCalls ?? []).some((toolCall) => getRenderableMcpApp(toolCall) !== undefined)
+export function hasRenderableMcpApp(
+  toolCalls: AgentSessionToolCallDto[] | undefined,
+  htmlEntries: AgentSessionMcpAppHtmlDto[] = [],
+): boolean {
+  return (toolCalls ?? []).some(
+    (toolCall) => getRenderableMcpApp(toolCall, htmlEntries) !== undefined,
+  )
 }
 
 /**

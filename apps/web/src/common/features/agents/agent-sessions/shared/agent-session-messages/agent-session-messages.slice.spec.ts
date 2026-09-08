@@ -8,7 +8,7 @@ import {
   agentSessionMessagesInitialState,
   agentSessionMessagesSlice,
 } from "./agent-session-messages.slice"
-import { getMessage, listMessages } from "./agent-session-messages.thunks"
+import { getMessage, listMcpAppHtml, listMessages } from "./agent-session-messages.thunks"
 
 // The thunks module reaches the Auth0 client and `window.location` transitively; neither exists
 // under vitest's node environment, and the reducer under test needs only the action creators.
@@ -36,6 +36,59 @@ const completedReply: AgentSessionMessage = {
 }
 
 describe("agentSessionMessages slice", () => {
+  describe("listMcpAppHtml", () => {
+    const entry = {
+      mcpServerId: "mcp-server-1",
+      resourceUri: "ui://pdf-export/mcp-app.html",
+      html: "<html>card</html>",
+    }
+
+    it("reports the cards loading until the MCP servers answered", () => {
+      const state = reducer(
+        agentSessionMessagesInitialState,
+        listMcpAppHtml.pending("request-1", "session-1"),
+      )
+
+      expect(ADS.isLoading(state.mcpAppHtml)).toBe(true)
+    })
+
+    it("stores the HTML of every card once loaded", () => {
+      const state = reducer(
+        agentSessionMessagesInitialState,
+        listMcpAppHtml.fulfilled([entry], "request-1", "session-1"),
+      )
+
+      expect(state.mcpAppHtml).toEqual({ status: ADS.Fulfilled, error: null, value: [entry] })
+    })
+
+    it("keeps the cards already shown while a refresh runs or fails", () => {
+      // Reloading the thread must not swap a working card for its placeholder, nor drop it
+      // because the MCP server was unreachable this time.
+      const loadedState = reducer(
+        agentSessionMessagesInitialState,
+        listMcpAppHtml.fulfilled([entry], "request-1", "session-1"),
+      )
+
+      const refreshing = reducer(loadedState, listMcpAppHtml.pending("request-2", "session-1"))
+      expect(refreshing.mcpAppHtml.value).toEqual([entry])
+
+      const failed = reducer(
+        refreshing,
+        listMcpAppHtml.rejected(new Error("MCP server unreachable"), "request-2", "session-1"),
+      )
+      expect(failed.mcpAppHtml.value).toEqual([entry])
+    })
+
+    it("gives the placeholders up when the first load fails", () => {
+      const state = reducer(
+        reducer(agentSessionMessagesInitialState, listMcpAppHtml.pending("request-1", "session-1")),
+        listMcpAppHtml.rejected(new Error("MCP server unreachable"), "request-1", "session-1"),
+      )
+
+      expect(ADS.isError(state.mcpAppHtml)).toBe(true)
+    })
+  })
+
   describe("listMessages.fulfilled", () => {
     it("treats a reply that is still streaming server-side as streaming", () => {
       // After a page refresh the persisted reply can still be "streaming": the server keeps

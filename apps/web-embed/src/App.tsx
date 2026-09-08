@@ -115,7 +115,8 @@ function LiveChat({
     logoUrl: remoteConfig?.logoUrl ?? undefined,
   }
 
-  const { status, messages, isStreaming, errorKey, send, reset } = usePublicChat(embedToken)
+  const { status, messages, mcpAppHtml, isMcpAppHtmlLoading, isStreaming, errorKey, send, reset } =
+    usePublicChat(embedToken)
 
   useEffect(() => {
     function onMessage(event: MessageEvent) {
@@ -150,6 +151,8 @@ function LiveChat({
       displayMode={displayMode}
       hideHeader={hideHeader}
       messages={messages}
+      mcpAppHtml={mcpAppHtml}
+      isMcpAppHtmlLoading={isMcpAppHtmlLoading}
       isStreaming={isStreaming}
       onSendMessage={send}
       onClose={onClose}

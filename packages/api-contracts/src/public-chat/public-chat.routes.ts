@@ -1,4 +1,5 @@
 import type { EmbedPublicConfigDto } from "../agent-embed-configs/agent-embed-configs.dto"
+import type { AgentSessionMcpAppHtmlDto } from "../agents/shared/agent-session-messages/agent-session-messages.dto"
 import type { RequestPayload, ResponseData } from "../generic"
 import { defineRoute } from "../helpers"
 import type {
@@ -38,6 +39,16 @@ export const PublicChatRoutes = {
   getSession: defineRoute<ResponseData<PublicAgentSessionDto>>({
     method: "get",
     path: sessionBasePath,
+  }),
+
+  /**
+   * Current HTML of every MCP App card the session's replies point at. Separate from
+   * `getSession` because reading it connects to each MCP server, which must not delay the
+   * transcript; the widget loads it once the messages are on screen.
+   */
+  getMcpAppHtml: defineRoute<ResponseData<AgentSessionMcpAppHtmlDto[]>>({
+    method: "get",
+    path: `${sessionBasePath}/mcp-app-html`,
   }),
 
   streamMessages: defineRoute<

@@ -1,4 +1,5 @@
 import type {
+  AgentSessionMcpAppHtmlDto,
   EmbedPublicConfigDto,
   PublicAgentSessionDto,
   StreamEventPayload,
@@ -41,6 +42,24 @@ export async function getSession(
   })
   if (!response.ok) throw new ApiError(response.status, "Failed to load session")
   const json = (await response.json()) as { data: PublicAgentSessionDto }
+  return json.data
+}
+
+/**
+ * Current HTML of the MCP App cards the session points at. Separate from `getSession` because
+ * the server has to contact each MCP server, which must not delay the transcript.
+ */
+export async function getMcpAppHtml(
+  embedToken: string,
+  sessionId: string,
+  sessionToken: string,
+): Promise<AgentSessionMcpAppHtmlDto[]> {
+  const response = await fetch(
+    `${API_BASE}/public/agents/${embedToken}/sessions/${sessionId}/mcp-app-html`,
+    { headers: { "X-Session-Token": sessionToken } },
+  )
+  if (!response.ok) throw new ApiError(response.status, "Failed to load MCP App cards")
+  const json = (await response.json()) as { data: AgentSessionMcpAppHtmlDto[] }
   return json.data
 }
 

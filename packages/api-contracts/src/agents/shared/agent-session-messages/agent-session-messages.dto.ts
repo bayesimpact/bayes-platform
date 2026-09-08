@@ -21,13 +21,21 @@ export type AgentSessionToolName = ToolName | (string & {})
 
 /**
  * MCP App attached to a tool. The `ui://` pointer is persisted; `html` is the
- * current `resources/read` result, hydrated when messages are loaded so card
- * UI updates apply to old conversations.
+ * current `resources/read` result so card UI updates apply to old conversations.
+ * Message lists leave it out and clients load it through their `getMcpAppHtml`
+ * route, so a slow MCP server never delays the transcript.
  */
 export type AgentSessionMcpAppDto = {
   mcpServerId: string
   resourceUri: string
   html?: string
+}
+
+/** Current HTML of one MCP App card used in a session, keyed by the server that serves it. */
+export type AgentSessionMcpAppHtmlDto = {
+  mcpServerId: string
+  resourceUri: string
+  html: string
 }
 
 export type AgentSessionToolCallDto = {

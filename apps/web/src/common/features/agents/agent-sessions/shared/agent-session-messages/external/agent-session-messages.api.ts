@@ -24,6 +24,14 @@ export default {
     )
     return fromDto(response.data.data)
   },
+  getMcpAppHtml: async ({ payload, ...params }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<typeof AgentSessionMessagesRoutes.getMcpAppHtml.response>(
+      AgentSessionMessagesRoutes.getMcpAppHtml.getPath(params),
+      { payload } satisfies typeof AgentSessionMessagesRoutes.getMcpAppHtml.request,
+    )
+    return response.data.data
+  },
   uploadAttachmentDocument: async ({ file, payload, ...params }) => {
     const axios = getAxiosInstance()
     const response = await axios.post<

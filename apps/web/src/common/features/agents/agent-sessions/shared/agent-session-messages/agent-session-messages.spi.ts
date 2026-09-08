@@ -2,7 +2,7 @@ import type {
   BaseAgentSessionTypeDto,
   PresignAgentSessionMessageAttachmentDocumentResponseDto,
 } from "@caseai-connect/api-contracts"
-import type { AgentSessionMessage } from "./agent-session-messages.models"
+import type { AgentSessionMcpAppHtml, AgentSessionMessage } from "./agent-session-messages.models"
 
 type BaseParams = {
   organizationId: string
@@ -17,6 +17,9 @@ export interface IAgentSessionMessagesSpi {
   getOne: (
     params: BaseParams & { messageId: string } & { payload: { type: BaseAgentSessionTypeDto } },
   ) => Promise<AgentSessionMessage>
+  getMcpAppHtml: (
+    params: BaseParams & { payload: { type: BaseAgentSessionTypeDto } },
+  ) => Promise<AgentSessionMcpAppHtml[]>
   uploadAttachmentDocument: (
     params: BaseParams & { file: File; payload: { type: BaseAgentSessionTypeDto } },
   ) => Promise<
