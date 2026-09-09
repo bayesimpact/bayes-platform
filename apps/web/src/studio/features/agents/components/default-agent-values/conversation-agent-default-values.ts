@@ -1,6 +1,8 @@
+import { runtimeConfig } from "@/config/runtime-config"
+
 export const conversationAgentDefaultValues = {
   prompt:
-    (import.meta.env.VITE_DEFAULT_CONVERSATION_AGENT_PROMPT as string | undefined) ??
+    runtimeConfig.defaultConversationAgentPrompt ??
     `## Purpose
 Your purpose is to assist users by answering their questions and helping them accomplish their goals.
 

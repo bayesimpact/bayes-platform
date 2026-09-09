@@ -1,14 +1,15 @@
 import type { outputJsonSchemaSchema } from "@caseai-connect/api-contracts"
 import type { z } from "zod"
+import { runtimeConfig } from "@/config/runtime-config"
 import { buildOutputJsonSchema } from "./default-agent-values.helpers"
 
 export const formAgentDefaultValues = {
   prompt:
-    (import.meta.env.VITE_DEFAULT_FORM_AGENT_PROMPT as string | undefined) ??
+    runtimeConfig.defaultFormAgentPrompt ??
     `Your main task is to help the user fill out the form by asking questions and providing guidance. Ask one question at a time to fill out the form.`,
 
   getOutputJsonSchema: () => {
-    const envSchema = import.meta.env.VITE_DEFAULT_FORM_AGENT_SCHEMA as string | undefined
+    const envSchema = runtimeConfig.defaultFormAgentSchema
 
     const defaultSchema: z.infer<typeof outputJsonSchemaSchema> = {
       type: "object",

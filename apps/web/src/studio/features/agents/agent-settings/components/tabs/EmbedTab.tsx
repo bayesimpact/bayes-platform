@@ -14,6 +14,7 @@ import { useMount } from "@/common/hooks/use-mount"
 import { useCurrentId, useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import { runtimeConfig } from "@/config/runtime-config"
 import { useReportDirty } from "@/studio/features/agents/agent-settings/components/agent-tab-form.shared"
 import type { AgentEmbedConfig } from "../../../../agent-embed-configs/agent-embed-configs.models"
 import { selectAgentEmbedConfig } from "../../../../agent-embed-configs/agent-embed-configs.selectors"
@@ -79,8 +80,7 @@ function WithData({ onDirtyChange }: { onDirtyChange: (dirty: boolean) => void }
   const isDirty = config ? JSON.stringify(form) !== JSON.stringify(toFormState(config)) : false
   useReportDirty(isDirty, onDirtyChange)
 
-  const embedBaseUrl =
-    (import.meta.env.VITE_AGENT_EMBED_URL as string | undefined) ?? window.location.origin
+  const embedBaseUrl = runtimeConfig.agentEmbedUrl ?? window.location.origin
   const embedSnippet = config
     ? `<script src="${embedBaseUrl}/launcher.js" data-token="${config.embedToken}"></script>`
     : ""

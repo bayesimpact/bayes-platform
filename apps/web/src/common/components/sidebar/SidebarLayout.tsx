@@ -15,9 +15,9 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import { RouteNames } from "@/common/routes/helpers"
+import { publicAssetUrl } from "@/config/runtime-config"
 import type { DeskRoutes } from "@/desk/routes/helpers"
 import { isStudioInterface, type StudioRoutes } from "@/studio/routes/helpers"
-
 import { EditProfileDialog } from "./nav/EditProfileDialog"
 import { NavUserMenuItems } from "./nav/NavUserMenuItems"
 import { SidebarBreadcrumb } from "./SidebarBreadcrumb"
@@ -97,7 +97,7 @@ export function HeaderWithLogo({ organization }: { organization?: Organization }
   return (
     <div className="flex flex-1 gap-2 items-center">
       <button type="button" onClick={onClick} className="p-1 size-10 contain-content">
-        <img src="/theme/logo.svg" alt="Logo" className="max-h-10 w-auto" />
+        <img src={publicAssetUrl("theme/logo.svg")} alt="Logo" className="max-h-10 w-auto" />
       </button>
 
       <button type="button" onClick={onClick} className="flex-1">
