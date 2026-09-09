@@ -22,13 +22,13 @@ const RULE = "docs/public-api-contract.md"
 const VERSION_FILE = "packages/api-contracts/src/public-chat/public-chat.version.ts"
 const VERSION_PATTERN = /PUBLIC_API_VERSION\s*=\s*"(\d+\.\d+)"/
 
-/** Any change here needs the label. */
+/** Any change here needs the label. A new major (`v2/`) needs its own entry here and in CODEOWNERS. */
 const LABEL_PATHS = [
   "packages/api-contracts/src/public-chat/",
+  "apps/api/src/domains/public-chat/v1/",
+  "apps/api/src/domains/public-chat/legacy/",
   "apps/api/src/domains/public-chat/public-chat.controller.ts",
-  "apps/api/src/domains/public-chat/public-chat.mappers.ts",
   "apps/api/src/domains/public-chat/guards/",
-  "apps/api/src/domains/public-chat/e2e-tests/public-contract.spec.ts",
   "apps/api/src/config/cors.ts",
   "apps/help/src/content/docs/en/public-chat-api",
   "apps/help/src/content/docs/fr/public-chat-api",
