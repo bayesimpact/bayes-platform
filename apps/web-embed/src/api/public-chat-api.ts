@@ -1,16 +1,21 @@
 import type {
-  AgentSessionMcpAppHtmlDto,
+  CreatePublicSessionResponseDto,
   EmbedPublicConfigDto,
   PublicAgentSessionDto,
-  StreamEventPayload,
+  PublicMcpAppHtmlDto,
+  PublicStreamEventPayload,
 } from "@caseai-connect/api-contracts"
+import { PublicChatRoutes } from "@caseai-connect/api-contracts"
 
 const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:3000"
+
+/** Reference client of the public chat API v1 (`docs/public-api-contract.md`). */
+const routeUrl = (path: string) => `${API_BASE}${path}`
 
 // ─── Public embed config ───────────────────────────────────────────────────
 
 export async function getEmbedConfig(embedToken: string): Promise<EmbedPublicConfigDto> {
-  const response = await fetch(`${API_BASE}/public/agents/${embedToken}/config`)
+  const response = await fetch(routeUrl(PublicChatRoutes.getConfig.getPath({ embedToken })))
   if (!response.ok) throw new ApiError(response.status, "Failed to load embed config")
   const json = (await response.json()) as { data: EmbedPublicConfigDto }
   return json.data
@@ -21,14 +26,14 @@ export async function getEmbedConfig(embedToken: string): Promise<EmbedPublicCon
 export async function createSession(
   embedToken: string,
   externalVisitorId?: string,
-): Promise<{ sessionId: string; sessionToken: string }> {
-  const response = await fetch(`${API_BASE}/public/agents/${embedToken}/sessions`, {
+): Promise<CreatePublicSessionResponseDto> {
+  const response = await fetch(routeUrl(PublicChatRoutes.createSession.getPath({ embedToken })), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ payload: { externalVisitorId } }),
   })
   if (!response.ok) throw new ApiError(response.status, "Failed to create session")
-  const json = (await response.json()) as { data: { sessionId: string; sessionToken: string } }
+  const json = (await response.json()) as { data: CreatePublicSessionResponseDto }
   return json.data
 }
 
@@ -37,9 +42,10 @@ export async function getSession(
   sessionId: string,
   sessionToken: string,
 ): Promise<PublicAgentSessionDto> {
-  const response = await fetch(`${API_BASE}/public/agents/${embedToken}/sessions/${sessionId}`, {
-    headers: { "X-Session-Token": sessionToken },
-  })
+  const response = await fetch(
+    routeUrl(PublicChatRoutes.getSession.getPath({ embedToken, sessionId })),
+    { headers: { "X-Session-Token": sessionToken } },
+  )
   if (!response.ok) throw new ApiError(response.status, "Failed to load session")
   const json = (await response.json()) as { data: PublicAgentSessionDto }
   return json.data
@@ -53,13 +59,13 @@ export async function getMcpAppHtml(
   embedToken: string,
   sessionId: string,
   sessionToken: string,
-): Promise<AgentSessionMcpAppHtmlDto[]> {
+): Promise<PublicMcpAppHtmlDto[]> {
   const response = await fetch(
-    `${API_BASE}/public/agents/${embedToken}/sessions/${sessionId}/mcp-app-html`,
+    routeUrl(PublicChatRoutes.getMcpAppHtml.getPath({ embedToken, sessionId })),
     { headers: { "X-Session-Token": sessionToken } },
   )
   if (!response.ok) throw new ApiError(response.status, "Failed to load MCP App cards")
-  const json = (await response.json()) as { data: AgentSessionMcpAppHtmlDto[] }
+  const json = (await response.json()) as { data: PublicMcpAppHtmlDto[] }
   return json.data
 }
 
@@ -70,16 +76,16 @@ export async function getMcpAppHtml(
  * We use fetch instead of EventSource because EventSource does not support
  * custom request headers and we need X-Session-Token.
  *
- * Yields parsed StreamEventPayload objects as they arrive.
+ * Yields parsed PublicStreamEventPayload objects as they arrive.
  */
 export async function* streamMessages(
   embedToken: string,
   sessionId: string,
   sessionToken: string,
   content: string,
-): AsyncGenerator<StreamEventPayload, void, unknown> {
+): AsyncGenerator<PublicStreamEventPayload, void, unknown> {
   const query = encodeURIComponent(JSON.stringify({ payload: { content } }))
-  const url = `${API_BASE}/public/agents/${embedToken}/sessions/${sessionId}/messages/stream?q=${query}`
+  const url = `${routeUrl(PublicChatRoutes.streamMessages.getPath({ embedToken, sessionId }))}?q=${query}`
 
   const response = await fetch(url, {
     headers: { "X-Session-Token": sessionToken, Accept: "text/event-stream" },
@@ -106,7 +112,7 @@ export async function* streamMessages(
         const raw = line.slice("data: ".length).trim()
         if (!raw || raw === "[DONE]") continue
         try {
-          yield JSON.parse(raw) as StreamEventPayload
+          yield JSON.parse(raw) as PublicStreamEventPayload
         } catch {
           // Ignore malformed lines
         }

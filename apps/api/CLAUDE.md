@@ -52,6 +52,10 @@ export type { CreateProjectRequestDto, CreateProjectResponseDto, ... } from "./p
 
 ---
 
+## Public API contract
+
+The routes under `PUBLIC_PATH_PREFIX` (`/public/...`) are a frozen contract with external integrators. Read `docs/public-api-contract.md` before touching `packages/api-contracts/src/public-chat/`, the public chat controller, guards, CORS or the public help pages. No change without a maintainer's written go and the `public-contract-approved` label.
+
 ## Controller Guidelines
 
 ### Route Definition Strategy (`defineRoute`)

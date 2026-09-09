@@ -1,8 +1,7 @@
 import type {
-  AgentEmbedConfigDto,
-  AgentSessionMcpAppHtmlDto,
+  CreatePublicSessionResponseDto,
   PublicAgentSessionDto,
-  PublicSessionMessageDto,
+  PublicMcpAppHtmlDto,
   StreamEvent,
 } from "@caseai-connect/api-contracts"
 import { Injectable, NotFoundException } from "@nestjs/common"
@@ -11,18 +10,16 @@ import type { Repository } from "typeorm"
 import { Agent } from "@/domains/agents/agent.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
-import type { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import { toMcpAppHtmlDtos } from "@/domains/agents/shared/agent-session-messages/agent-message.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpAppHtmlService } from "@/domains/agents/shared/agent-session-messages/mcp-app-html.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { StreamingLlmService } from "@/domains/agents/shared/agent-session-messages/streaming/streaming-llm.service"
 import type { AgentEmbedConfig } from "./agent-embed-configs/agent-embed-config.entity"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { AgentEmbedConfigsService } from "./agent-embed-configs/agent-embed-configs.service"
 import type { PublicAgentSession } from "./public-agent-sessions/public-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PublicAgentSessionsService } from "./public-agent-sessions/public-agent-sessions.service"
+import { toPublicAgentSessionDto } from "./public-chat.mappers"
 
 @Injectable()
 export class PublicChatService {
@@ -30,7 +27,6 @@ export class PublicChatService {
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
     private readonly agentSettingsService: AgentSettingsService,
-    readonly agentEmbedConfigsService: AgentEmbedConfigsService,
     private readonly publicAgentSessionsService: PublicAgentSessionsService,
     private readonly streamingLLMService: StreamingLlmService,
     private readonly mcpAppHtmlService: McpAppHtmlService,
@@ -39,7 +35,7 @@ export class PublicChatService {
   async createSession(
     embedConfig: AgentEmbedConfig,
     externalVisitorId?: string,
-  ): Promise<{ sessionId: string; sessionToken: string }> {
+  ): Promise<CreatePublicSessionResponseDto> {
     const { session, sessionToken } = await this.publicAgentSessionsService.createSession(
       embedConfig,
       externalVisitorId,
@@ -53,11 +49,11 @@ export class PublicChatService {
     )
     // MCP App HTML is served by `getMcpAppHtml`: reading it connects to every MCP server the
     // transcript points at, which used to hold the whole widget behind its loading shell.
-    return this.toSessionDto(session, messages)
+    return toPublicAgentSessionDto(session, messages)
   }
 
   /** Current HTML of every MCP App card the session's replies point at. */
-  async getMcpAppHtml(publicSession: PublicAgentSession): Promise<AgentSessionMcpAppHtmlDto[]> {
+  async getMcpAppHtml(publicSession: PublicAgentSession): Promise<PublicMcpAppHtmlDto[]> {
     const { session, messages } = await this.publicAgentSessionsService.getSessionWithMessages(
       publicSession.id,
     )
@@ -110,42 +106,5 @@ export class PublicChatService {
       sessionResult: publicSession.result ?? null,
       externalVisitorId: publicSession.externalVisitorId,
     })
-  }
-
-  toEmbedConfigDto(embedConfig: AgentEmbedConfig): AgentEmbedConfigDto {
-    return {
-      id: embedConfig.id,
-      agentId: embedConfig.agentId,
-      embedToken: embedConfig.embedToken,
-      isEnabled: embedConfig.isEnabled,
-      allowedOrigins: embedConfig.allowedOrigins,
-      title: embedConfig.title,
-      logoUrl: embedConfig.logoUrl,
-      primaryColor: embedConfig.primaryColor,
-      bannerText: embedConfig.bannerText,
-      createdAt: embedConfig.createdAt.getTime(),
-      updatedAt: embedConfig.updatedAt.getTime(),
-    }
-  }
-
-  private toSessionDto(
-    session: PublicAgentSession,
-    messages: AgentMessage[],
-  ): PublicAgentSessionDto {
-    return {
-      id: session.id,
-      agentId: session.agentId,
-      messages: messages.map(
-        (message): PublicSessionMessageDto => ({
-          id: message.id,
-          role: message.role,
-          content: message.content,
-          status: message.status ?? undefined,
-          createdAt: message.createdAt.getTime(),
-          toolCalls: message.toolCalls ?? undefined,
-        }),
-      ),
-      createdAt: session.createdAt.getTime(),
-    }
   }
 }

@@ -43,7 +43,6 @@ describe("PublicChatService", () => {
     return new PublicChatService(
       {} as never,
       {} as never,
-      {} as never,
       { getSessionWithMessages: jest.fn().mockResolvedValue({ session, messages }) } as never,
       {} as never,
       { readLiveHtml } as never,

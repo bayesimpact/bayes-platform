@@ -1,15 +1,15 @@
-import type { EmbedPublicConfigDto } from "../agent-embed-configs/agent-embed-configs.dto"
-import type { AgentSessionMcpAppHtmlDto } from "../agents/shared/agent-session-messages/agent-session-messages.dto"
 import type { RequestPayload, ResponseData } from "../generic"
 import { defineRoute } from "../helpers"
 import type {
   CreatePublicSessionRequestDto,
   CreatePublicSessionResponseDto,
+  EmbedPublicConfigDto,
   PublicAgentSessionDto,
+  PublicChatStreamRequestDto,
+  PublicMcpAppHtmlDto,
+  PublicStreamEventPayload,
 } from "./public-chat.dto"
-
-// SSE streaming responses do not follow the usual ResponseData<T> shape.
-export type PublicChatStreamResponse = unknown
+import { PUBLIC_API_MAJOR } from "./public-chat.version"
 
 /**
  * Namespace for endpoints callable from arbitrary host pages (embed widget).
@@ -19,43 +19,65 @@ export type PublicChatStreamResponse = unknown
  */
 export const PUBLIC_PATH_PREFIX = "public"
 
-const agentBasePath = `${PUBLIC_PATH_PREFIX}/agents/:embedToken`
-const sessionBasePath = `${agentBasePath}/sessions/:sessionId`
+/**
+ * The public chat API is a versioned contract with external integrators:
+ * `docs/public-api-contract.md`. Routes live under `/public/v1/...`. The
+ * unprefixed paths (`/public/agents/...`) predate versioning and stay served as
+ * a legacy alias of v1 for as long as v1 is served (`PublicChatLegacyRoutes`).
+ */
+function buildPublicChatRoutes(agentBasePath: string) {
+  const sessionBasePath = `${agentBasePath}/sessions/:sessionId`
+  return {
+    getConfig: defineRoute<ResponseData<EmbedPublicConfigDto>>({
+      method: "get",
+      path: `${agentBasePath}/config`,
+    }),
 
-export const PublicChatRoutes = {
-  getConfig: defineRoute<ResponseData<EmbedPublicConfigDto>>({
-    method: "get",
-    path: `${agentBasePath}/config`,
-  }),
+    createSession: defineRoute<
+      ResponseData<CreatePublicSessionResponseDto>,
+      RequestPayload<CreatePublicSessionRequestDto>
+    >({
+      method: "post",
+      path: `${agentBasePath}/sessions`,
+    }),
 
-  createSession: defineRoute<
-    ResponseData<CreatePublicSessionResponseDto>,
-    RequestPayload<CreatePublicSessionRequestDto>
-  >({
-    method: "post",
-    path: `${agentBasePath}/sessions`,
-  }),
+    getSession: defineRoute<ResponseData<PublicAgentSessionDto>>({
+      method: "get",
+      path: sessionBasePath,
+    }),
 
-  getSession: defineRoute<ResponseData<PublicAgentSessionDto>>({
-    method: "get",
-    path: sessionBasePath,
-  }),
+    /**
+     * Current HTML of every MCP App card the session's replies point at. Separate from
+     * `getSession` because reading it connects to each MCP server, which must not delay the
+     * transcript; the widget loads it once the messages are on screen.
+     */
+    getMcpAppHtml: defineRoute<ResponseData<PublicMcpAppHtmlDto[]>>({
+      method: "get",
+      path: `${sessionBasePath}/mcp-app-html`,
+    }),
 
-  /**
-   * Current HTML of every MCP App card the session's replies point at. Separate from
-   * `getSession` because reading it connects to each MCP server, which must not delay the
-   * transcript; the widget loads it once the messages are on screen.
-   */
-  getMcpAppHtml: defineRoute<ResponseData<AgentSessionMcpAppHtmlDto[]>>({
-    method: "get",
-    path: `${sessionBasePath}/mcp-app-html`,
-  }),
-
-  streamMessages: defineRoute<
-    ResponseData<PublicChatStreamResponse>,
-    RequestPayload<{ content: string }>
-  >({
-    method: "post",
-    path: `${sessionBasePath}/messages/stream`,
-  }),
+    /**
+     * Server-sent events. The request payload travels URL-encoded in the `q` query
+     * parameter (`?q=<encodeURIComponent(JSON.stringify({ payload: { content } }))>`) so
+     * the route stays reachable with GET. Each `data:` line of the response is one
+     * JSON-encoded `PublicStreamEventPayload`; the `ResponseData` wrapper does not apply.
+     */
+    streamMessages: defineRoute<
+      ResponseData<PublicStreamEventPayload>,
+      RequestPayload<PublicChatStreamRequestDto>
+    >({
+      method: "get",
+      path: `${sessionBasePath}/messages/stream`,
+    }),
+  }
 }
+
+/** Versioned public routes: `/public/v1/agents/:embedToken/...`. New integrations use these. */
+export const PublicChatRoutes = buildPublicChatRoutes(
+  `${PUBLIC_PATH_PREFIX}/${PUBLIC_API_MAJOR}/agents/:embedToken`,
+)
+
+/** Legacy alias of v1 at the unprefixed paths: `/public/agents/:embedToken/...`. */
+export const PublicChatLegacyRoutes = buildPublicChatRoutes(
+  `${PUBLIC_PATH_PREFIX}/agents/:embedToken`,
+)

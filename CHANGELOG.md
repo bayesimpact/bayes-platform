@@ -8,6 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- Public chat API: the routes are now versioned under /public/v1/ and documented on the help site.
 - (beta) MCP servers: connect servers that use OAuth by authorizing access in the browser, alongside API keys.
 
 ### Changed
