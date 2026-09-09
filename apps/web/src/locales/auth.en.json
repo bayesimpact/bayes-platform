@@ -1,0 +1,10 @@
+{
+  "auth": {
+    "callbackError": {
+      "title": "Sign-in failed",
+      "hint": "The identity provider refused the sign-in. If the problem persists, contact the administrator of this platform with the message above.",
+      "retry": "try again",
+      "logout": "log out"
+    }
+  }
+}
