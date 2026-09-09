@@ -326,7 +326,7 @@ This will start all apps in watch mode using Turbo.
 
 - **With HTTPS** (certs present): API at `https://connect.localhost:3000`, web at `https://connect.localhost:5173`
 - **Without HTTPS** (no certs): API at `http://localhost:3000`, web at `http://localhost:5173`
-- **PDF converter** (Go): `http://localhost:3002`, with the PDF export MCP endpoint at `/mcp`. It reuses the bucket and service-account key from `apps/api/.env`. Without a Go toolchain or a configured bucket it prints a warning and the other apps start anyway. See [apps/pdf-converter/README.md](apps/pdf-converter/README.md).
+- **PDF converter** (Go): `http://localhost:3002`, with the PDF export MCP endpoint at `/mcp`. Started when Go is installed and `apps/pdf-converter/.env` exists (copy `.env-example`), skipped otherwise. See [apps/pdf-converter/README.md](apps/pdf-converter/README.md).
 
 #### Run Individual Projects
 

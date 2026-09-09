@@ -191,13 +191,9 @@ service is only bound on the developer's machine.
 
 ## Local development
 
-`npm run dev` at the repository root starts this service together with the API and the
-web app: `scripts/dev.mjs` runs `go run .` on port 3002 (override with
-`PDF_CONVERTER_PORT`) and reuses `GCS_STORAGE_BUCKET_NAME` and
-`GOOGLE_APPLICATION_CREDENTIALS` from `apps/api/.env` unless they are already set in the
-environment. Without a Go toolchain (looked up on `PATH`, then `$GOROOT/bin`,
-`/usr/local/go/bin` and `~/go/bin`) or without a bucket, it prints a warning and exits
-so the other apps still start.
+Copy `.env-example` to `.env`, then `npm run dev` at the repository root starts this
+service together with the API and the web app. Without `go` on `PATH` or without a
+`.env` file, the service is skipped and the other apps start anyway.
 
 To run it on its own:
 

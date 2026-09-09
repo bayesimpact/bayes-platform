@@ -2,12 +2,7 @@
   "name": "@caseai-connect/pdf-converter",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
-  "description": "Go service: PDF page rasterizer and markdown-to-PDF MCP server. This package only lets `npm run dev` start it alongside the Node apps.",
   "scripts": {
-    "dev": "node scripts/dev.mjs"
-  },
-  "engines": {
-    "node": ">=20.12"
+    "dev": "command -v go >/dev/null || { echo '[pdf-converter] go not found, skipping'; exit 0; }; [ -f .env ] || { echo '[pdf-converter] no .env file, skipping (copy .env-example to .env to start it)'; exit 0; }; go run ."
   }
 }
