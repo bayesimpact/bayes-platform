@@ -94,6 +94,9 @@ jobs:
             # (its appVersion is "main"). Moves with every push, like latest.
             type=ref,event=branch
             type=raw,value=latest,enable={{is_default_branch}}
+            # Sortable tag for GitOps image automation (Flux ImagePolicy):
+            # main-<timestamp>-<sha>, newest wins.
+            type=raw,value=main-{{date 'YYYYMMDDHHmmss'}}-{{sha}},enable={{is_default_branch}}
 
       - name: Build and push
         id: build
