@@ -15,6 +15,28 @@ if (process.env.DATABASE_HOST?.startsWith("/cloudsql")) {
 
 const databaseUrl = process.env.DATABASE_URL
 
+/**
+ * TLS towards the database. Managed instances (Cloud SQL in ENCRYPTED_ONLY
+ * mode, RDS...) refuse plain connections.
+ *
+ * DATABASE_SSL unset, "false" or "disable": no TLS (local Docker Postgres).
+ * DATABASE_SSL=require: encrypted, server certificate not verified. Cloud SQL
+ *   signs its certificate with a per-instance CA, so this is the usual setting
+ *   inside a private network.
+ * DATABASE_SSL=verify-full: encrypted and verified against DATABASE_SSL_CA
+ *   (the CA certificate, PEM).
+ */
+function sslOptions(): { ssl?: { rejectUnauthorized: boolean; ca?: string } } {
+  const mode = process.env.DATABASE_SSL?.trim().toLowerCase()
+  if (!mode || mode === "false" || mode === "disable") return {}
+  if (mode === "verify-full") {
+    const ca = process.env.DATABASE_SSL_CA
+    if (!ca) throw new Error("DATABASE_SSL=verify-full requires DATABASE_SSL_CA (PEM certificate)")
+    return { ssl: { rejectUnauthorized: true, ca } }
+  }
+  return { ssl: { rejectUnauthorized: false } }
+}
+
 export const config: () => TypeOrmModuleOptions = () => ({
   type: "postgres",
   ...(databaseUrl
@@ -26,6 +48,7 @@ export const config: () => TypeOrmModuleOptions = () => ({
         password: process.env.DATABASE_PASSWORD,
         database: process.env.DATABASE_NAME,
       }),
+  ...sslOptions(),
   entities: [`${__dirname}/../**/*.entity.{js,ts}`],
   migrations: [`${__dirname}/../**/migrations/*.{js,ts}`],
   autoLoadEntities: true,

@@ -137,6 +137,17 @@ on other chart values.
       name: {{ include "bayes-platform.secretName" . }}
       key: {{ .Values.externalDatabase.passwordKey }}
 {{- end }}
+{{- if and (not .Values.postgresql.enabled) .Values.externalDatabase.ssl }}
+- name: DATABASE_SSL
+  value: {{ .Values.externalDatabase.ssl | quote }}
+{{- if .Values.externalDatabase.sslCaSecretKey }}
+- name: DATABASE_SSL_CA
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "bayes-platform.secretName" . }}
+      key: {{ .Values.externalDatabase.sslCaSecretKey }}
+{{- end }}
+{{- end }}
 {{- if .Values.redis.enabled }}
 - name: BULLMQ_REDIS_URL
   value: {{ printf "redis://%s:6379" (include "bayes-platform.componentName" (dict "root" . "component" "redis")) | quote }}
