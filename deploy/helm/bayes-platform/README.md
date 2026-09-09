@@ -4,11 +4,10 @@ This chart installs the full platform on a Kubernetes cluster:
 
 | Component | What it is | Image |
 |---|---|---|
-| api | NestJS API | `api` |
+| api | NestJS API, and the web front it serves under `/app` | `app` |
 | cpu-workers | async jobs (extraction, crawling, evaluations) | `cpu-workers` |
 | gpu-workers | document embeddings with Docling on one GPU (optional) | `gpu-workers` |
 | pdf-converter | PDF to page images for image-only LLMs (GCS storage only) | `pdf-converter` |
-| web | the main front end | `web` |
 | web-embed | the embeddable widget and its `launcher.js` | `web-embed` |
 | help | the help center | `help` |
 | postgresql | bundled Postgres with pgvector (optional) | `pgvector/pgvector` |
@@ -32,7 +31,7 @@ Minimum cluster size for the self-contained install without GPU: 4 vCPU and 8 Gi
 
 ## Images
 
-Every release publishes the seven images, public, on GitHub Container Registry: `ghcr.io/bayesimpact/bayes-platform/<component>:<version>` (for example `.../api:26.09.1`). Every push to `main` also publishes `sha-<short sha>` and `latest`. No credentials are needed to pull them.
+Every release publishes the six images, public, on GitHub Container Registry: `ghcr.io/bayesimpact/bayes-platform/<component>:<version>` (for example `.../app:26.09.1`). Every push to `main` also publishes `sha-<short sha>` and `latest`. No credentials are needed to pull them.
 
 The chart is published with the same version as an OCI artifact:
 
@@ -50,11 +49,10 @@ From the repository root, one image per component:
 REGISTRY=ghcr.io/your-org/bayes-platform
 TAG=$(git rev-parse --short HEAD)
 
-docker build -f apps/api/Dockerfile --target api-runtime         -t $REGISTRY/api:$TAG .
+docker build -f apps/api/Dockerfile --target app-runtime         -t $REGISTRY/app:$TAG .
 docker build -f apps/api/Dockerfile --target cpu-workers-runtime -t $REGISTRY/cpu-workers:$TAG .
 docker build -f apps/api/Dockerfile --target gpu-workers-runtime -t $REGISTRY/gpu-workers:$TAG .
 docker build -f apps/pdf-converter/Dockerfile                    -t $REGISTRY/pdf-converter:$TAG .
-docker build -f apps/web/Dockerfile                              -t $REGISTRY/web:$TAG .
 docker build -f apps/web-embed/Dockerfile                        -t $REGISTRY/web-embed:$TAG .
 docker build -f apps/help/Dockerfile                             -t $REGISTRY/help:$TAG .
 ```
@@ -63,7 +61,7 @@ Push them to your registry, then set `global.image.registry` and `global.image.t
 
 The GPU workers image is close to 10 GB (Torch with CUDA, Docling). Build it only if you enable `gpuWorkers`.
 
-The front ends are static sites served by nginx. Their configuration (API URL, Auth0 client...) is injected when the container starts, so the same image works for every install.
+The web front is inside the `app` image: the API serves it under `/app` and hands the browser its configuration (`window.__CONFIG__`) from the `WEB_*` environment variables, so the same image works for every install. `web-embed` and `help` are static sites served by nginx, configured the same way when their container starts.
 
 ## Secrets
 
@@ -99,8 +97,8 @@ helm upgrade --install platform deploy/helm/bayes-platform \
 
 ```yaml
 urls:
-  api: https://api.platform.example.org
-  web: https://platform.example.org
+  api: https://platform.example.org        # the API, and the web front under /app
+  web: https://platform.example.org/app
   webEmbed: https://embed.platform.example.org
   help: https://help.platform.example.org
 
@@ -117,17 +115,15 @@ config:
 
 web:
   env:
-    VITE_AUTH0_DOMAIN: your-tenant.eu.auth0.com
-    VITE_AUTH0_CLIENT_ID: xxx
-    VITE_AUTH0_AUDIENCE: https://your-tenant.eu.auth0.com/api/v2/
-    VITE_AUTH0_ORGANIZATION_ID: org_xxx
+    WEB_APP_TITLE: My platform
+    WEB_AUTH0_CLIENT_ID: xxx   # the SPA application of the Auth0 tenant
 
 ingress:
   clusterIssuer: letsencrypt-prod
   tls: true
 ```
 
-Point the four DNS names at the ingress controller. In Auth0, add the `web` URL to the allowed callback, logout and web origins of the application.
+Point the three DNS names (`api`, `webEmbed`, `help`) at the ingress controller. In Auth0, add the `web` URL to the allowed callback, logout and web origins of the SPA application.
 
 The database migrations run as a Job after the first install and before every upgrade. To read its output:
 
@@ -144,9 +140,9 @@ See `values-managed.example.yaml`. The differences with the default:
 - `storage.mode: gcs` with `storage.gcs.bucket`. The pods reach the bucket through the service account (`serviceAccount.annotations` for GKE Workload Identity). This mode also enables the `pdf-converter`.
 - `gpuWorkers.enabled: true` with `gpuWorkers.gpu.nodeSelector` set to the label of your GPU node pool. The pods request `nvidia.com/gpu: 1` and tolerate the `nvidia.com/gpu` taint.
 
-## Tenant theme
+## Title and theme
 
-The `web` image ships a default logo and favicon under `/theme/`. To replace them, create a ConfigMap with `logo.svg` and `favicon.svg` and set `web.themeConfigMap` to its name. The title comes from `web.env.VITE_APP_TITLE`.
+The title comes from `web.env.WEB_APP_TITLE`. The logo and favicon are built into the image (`apps/web/public/theme`); a per-install override is not available yet.
 
 ## Upgrade
 
@@ -171,13 +167,14 @@ See `values.yaml`. Every key is documented in place. The main sections:
 | Section | What it controls |
 |---|---|
 | `global.image` | registry, tag, pull policy, pull secrets |
-| `urls` | the four public URLs, used by the API (CORS, links) and by the front ends |
+| `urls` | the public URLs, used by the API (CORS, links) and by the front ends |
+| `web.env` | browser configuration of the web front (`WEB_*`), served by the API |
 | `secrets` | the Secret with the application secrets |
 | `config` | the non-secret environment shared by the API and the workers |
 | `postgresql`, `externalDatabase` | bundled or external database |
 | `redis`, `externalRedis` | bundled or external Redis |
 | `storage` | `local` volume or `gcs` bucket |
-| `api`, `cpuWorkers`, `gpuWorkers`, `pdfConverter`, `web`, `webEmbed`, `help` | one block per component: replicas, resources, placement |
+| `api`, `cpuWorkers`, `gpuWorkers`, `pdfConverter`, `webEmbed`, `help` | one block per component: replicas, resources, placement |
 | `migrations` | the migration Job |
 | `ingress` | class, annotations, cert-manager issuer, TLS |
 

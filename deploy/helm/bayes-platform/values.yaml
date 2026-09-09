@@ -15,9 +15,12 @@ global:
   imagePullSecrets: []
 
 # Public URLs. The API and the front ends need each other's addresses.
+# The web front is served by the API (app image) under /app on the api URL:
+# `web` is the address users open, `api` the origin the browser calls. Keep
+# them on the same host unless you serve the front from somewhere else.
 urls:
-  api: https://api.platform.example.org
-  web: https://platform.example.org
+  api: https://platform.example.org
+  web: https://platform.example.org/app
   webEmbed: https://embed.platform.example.org
   help: https://help.platform.example.org
 
@@ -160,9 +163,10 @@ storage:
 # ---------------------------------------------------------------------------
 # Components
 # ---------------------------------------------------------------------------
+# The API, and the web front it serves under /app (image target app-runtime).
 api:
   enabled: true
-  image: api
+  image: app
   replicas: 1
   port: 3000
   resources:
@@ -254,30 +258,19 @@ pdfConverter:
   nodeSelector: {}
   tolerations: []
 
+# Runtime configuration of the web front, handed to the browser by the API as
+# window.__CONFIG__ (apps/api/src/common/web-app). The API fills the Auth0
+# domain, audience and organization from its own AUTH0_* settings, and the API
+# URL is the page origin. WEB_AGENT_EMBED_URL and WEB_HELP_CENTER_URL come from
+# `urls`. WEB_AUTH0_CLIENT_ID is the SPA application: always required.
 web:
-  enabled: true
-  image: web
-  replicas: 1
-  # Runtime configuration of the front end (see apps/web/docker/40-runtime-config.sh).
-  # VITE_API_URL, VITE_AGENT_EMBED_URL and VITE_HELP_CENTER_URL come from `urls`.
   env:
-    VITE_APP_TITLE: Bayes platform
-    VITE_AUTH0_DOMAIN: example.eu.auth0.com
-    VITE_AUTH0_CLIENT_ID: example_client_id
-    VITE_AUTH0_AUDIENCE: https://example.eu.auth0.com/api/v2/
-    VITE_AUTH0_ORGANIZATION_ID: org_example
-    VITE_HELP_AGENT_EMBED_URL: ""
-    VITE_HELP_AGENT_EMBED_TOKEN: ""
-    VITE_HELP_AGENT_EMBED_COLOR: ""
-    VITE_HELP_AGENT_EMBED_HINT: ""
-  # Tenant theme: a ConfigMap with logo.svg and favicon.svg mounted over /theme.
-  themeConfigMap: ""
-  resources:
-    requests:
-      cpu: 50m
-      memory: 64Mi
-    limits:
-      memory: 128Mi
+    WEB_APP_TITLE: Bayes platform
+    WEB_AUTH0_CLIENT_ID: example_spa_client_id
+    # Optional in-app help bubble (an agent of this platform, embedded).
+    WEB_HELP_AGENT_EMBED_TOKEN: ""
+    WEB_HELP_AGENT_EMBED_COLOR: ""
+    WEB_HELP_AGENT_EMBED_HINT: ""
 
 webEmbed:
   enabled: true

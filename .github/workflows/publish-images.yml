@@ -1,8 +1,9 @@
 name: Publish images
 
-# Builds the seven container images and pushes them to GitHub Container
+# Builds the six container images and pushes them to GitHub Container
 # Registry, public, so any cluster can pull them without credentials:
 #   ghcr.io/bayesimpact/bayes-platform/<component>:<tag>
+# app = the API plus the web front served under /app (target app-runtime).
 #
 # Tags: sha-<short sha> and main on every push to main, the CalVer version on a release
 # tag (v26.09.1 -> 26.09.1), and latest on main. A release tag also publishes
@@ -34,9 +35,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - image: api
+          - image: app
             dockerfile: apps/api/Dockerfile
-            target: api-runtime
+            target: app-runtime
             runner: ubuntu-latest
           - image: cpu-workers
             dockerfile: apps/api/Dockerfile
@@ -49,10 +50,6 @@ jobs:
             runner: ubuntu-latest-m
           - image: pdf-converter
             dockerfile: apps/pdf-converter/Dockerfile
-            target: ""
-            runner: ubuntu-latest
-          - image: web
-            dockerfile: apps/web/Dockerfile
             target: ""
             runner: ubuntu-latest
           - image: web-embed

@@ -11,8 +11,8 @@ global:
     tag: "26.09.1"
 
 urls:
-  api: https://api.staging.example.org
-  web: https://staging.example.org
+  api: https://staging.example.org
+  web: https://staging.example.org/app
   webEmbed: https://embed.staging.example.org
   help: https://help.staging.example.org
 
@@ -62,11 +62,8 @@ gpuWorkers:
 
 web:
   env:
-    VITE_APP_TITLE: My platform
-    VITE_AUTH0_DOMAIN: my-tenant.eu.auth0.com
-    VITE_AUTH0_CLIENT_ID: xxx
-    VITE_AUTH0_AUDIENCE: https://my-tenant.eu.auth0.com/api/v2/
-    VITE_AUTH0_ORGANIZATION_ID: org_xxx
+    WEB_APP_TITLE: My platform
+    WEB_AUTH0_CLIENT_ID: xxx
 
 ingress:
   className: nginx

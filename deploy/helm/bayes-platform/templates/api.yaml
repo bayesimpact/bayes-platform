@@ -43,6 +43,15 @@ spec:
           env:
             - name: PORT
               value: {{ .Values.api.port | quote }}
+            # Web front served under /app: its browser configuration.
+            - name: WEB_AGENT_EMBED_URL
+              value: {{ .Values.urls.webEmbed | quote }}
+            - name: WEB_HELP_CENTER_URL
+              value: {{ .Values.urls.help | quote }}
+            {{- range $key, $value := .Values.web.env }}
+            - name: {{ $key }}
+              value: {{ $value | toString | quote }}
+            {{- end }}
             {{- include "bayes-platform.sharedEnv" . | nindent 12 }}
             {{- range $key, $value := .Values.api.extraEnv }}
             - name: {{ $key }}
