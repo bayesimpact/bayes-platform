@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a Turborepo monorepo with the following structure:
 
 - `apps/api` - NestJS backend application (runs on port 3000)
-- `apps/pdf-converter` - Go service rendering PDFs to PNG page images in GCS for image-only LLMs (Gemma, MedGemma), runs on port 3002
+- `apps/pdf-converter` - Go service rendering PDFs to PNG page images in GCS for image-only LLMs (Gemma, MedGemma), runs on port 3002 and serves the PDF export MCP endpoint at `/mcp`; started by `npm run dev` through `scripts/dev.mjs` (needs a Go toolchain)
 - `apps/web` - Vite + React frontend application (runs on port 5173)
 - `packages/@caseai-connect/api-contracts` - Shared API contracts and DTOs
 - `packages/@repo/jest-config` - Shared Jest configurations
