@@ -52,7 +52,7 @@ describe("PublicChat - getConfig", () => {
 
   const subject = () =>
     request(app.getHttpServer())
-      .get(`/public/agents/${embedToken}/config`)
+      .get(`/public/v1/agents/${embedToken}/config`)
       .set("Connection", "close")
 
   it("should return config", async () => {

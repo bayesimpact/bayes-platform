@@ -42,7 +42,7 @@ describe("PublicChatService", () => {
   function buildService(readLiveHtml: jest.Mock, messages: AgentMessage[]) {
     return new PublicChatService(
       {} as never,
-      {} as never,
+      { getLast: jest.fn().mockResolvedValue({ locale: "fr" }) } as never,
       { getSessionWithMessages: jest.fn().mockResolvedValue({ session, messages }) } as never,
       {} as never,
       { readLiveHtml } as never,
@@ -72,7 +72,10 @@ describe("PublicChatService", () => {
       sessionId: session.id,
       messages: [messageWithCard],
       externalVisitorId: "visitor-1",
+      resolveLocale: expect.any(Function),
     })
+    // The language comes from the published settings, looked up on demand.
+    await expect(readLiveHtml.mock.calls[0]?.[0].resolveLocale()).resolves.toBe("fr")
     expect(result).toBe(htmlByKey)
   })
 })

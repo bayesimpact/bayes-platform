@@ -30,6 +30,7 @@
     "migration:generate": "node -r tsconfig-paths/register -r ts-node/register ../../node_modules/typeorm/cli.js migration:generate src/migrations/pending/dontsave-mig -d src/config/typeorm.ts",
     "migration:create": "node -r tsconfig-paths/register -r ts-node/register ../../node_modules/typeorm/cli.js migration:create ./src/migrations/mig",
     "migration:run": "node -r tsconfig-paths/register -r ts-node/register ../../node_modules/typeorm/cli.js migration:run -d src/config/typeorm.ts",
+    "migration:run:prod": "node ../../node_modules/typeorm/cli.js migration:run -d dist/config/typeorm.js",
     "migration:revert": "node -r tsconfig-paths/register -r ts-node/register ../../node_modules/typeorm/cli.js migration:revert -d src/config/typeorm.ts",
     "migration:show": "node -r tsconfig-paths/register -r ts-node/register ../../node_modules/typeorm/cli.js migration:show -d src/config/typeorm.ts",
     "migration:test:run": "node -r tsconfig-paths/register -r ts-node/register ../../node_modules/typeorm/cli.js migration:run -d src/config/typeorm.test.ts",

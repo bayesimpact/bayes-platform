@@ -67,7 +67,7 @@ describe("PublicChat - getSession", () => {
 
   const subject = () =>
     request(app.getHttpServer())
-      .get(`/public/agents/${embedToken}/sessions/${sessionId}`)
+      .get(`/public/v1/agents/${embedToken}/sessions/${sessionId}`)
       .set("Connection", "close")
       .set("X-Session-Token", sessionToken)
 
@@ -91,7 +91,7 @@ describe("PublicChat - getSession", () => {
     embedToken = embedConfig.embedToken
 
     const createResponse = await request(app.getHttpServer())
-      .post(`/public/agents/${embedToken}/sessions`)
+      .post(`/public/v1/agents/${embedToken}/sessions`)
       .set("Connection", "close")
       .send({ payload: {} })
     expect(createResponse.status).toBe(201)

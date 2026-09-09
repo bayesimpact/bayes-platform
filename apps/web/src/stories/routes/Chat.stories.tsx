@@ -18,6 +18,7 @@ import {
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import { projectFactory } from "@/common/features/projects/projects.factory"
 import { DotsBackground } from "@/studio/components/DotsBackground"
+import { SAMPLE_CARD_HTML } from "../common/McpAppView.stories"
 import { withRedux } from "../decorators"
 import { mergeSeeds, seed } from "../seed"
 
@@ -192,6 +193,43 @@ export const LoadingMcpAppCard: Story = {
               structuredContent: { fileName: "Notes.pdf" },
             },
             mcpApp: { mcpServerId: "mcp-server-1", resourceUri: "ui://pdf-export/mcp-app.html" },
+          },
+        ],
+      }),
+    ],
+  },
+}
+
+/**
+ * A reply with prose and a rendered MCP App card: the text stays in its bubble above the card,
+ * the card shows the tool result below it.
+ */
+export const TextWithMcpAppCard: Story = {
+  ...Default,
+  args: {
+    messages: [
+      agentSessionMessageFactory.build({ role: "user", content: "Export these notes as a PDF." }),
+      agentSessionMessageFactory.build({
+        role: "assistant",
+        content: "Done! You can download the PDF from the card below.\n\nAnything else?",
+        toolCalls: [
+          {
+            id: "call-pdf-export",
+            name: "export_pdf",
+            arguments: { markdown: "# Notes" },
+            result: {
+              content: [{ type: "text", text: "Created Notes.pdf (2 pages)." }],
+              structuredContent: {
+                fileName: "Notes.pdf",
+                downloadUrl: "https://example.com/notes.pdf",
+                expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+              },
+            },
+            mcpApp: {
+              mcpServerId: "mcp-server-1",
+              resourceUri: "ui://pdf-export/mcp-app.html",
+              html: SAMPLE_CARD_HTML,
+            },
           },
         ],
       }),

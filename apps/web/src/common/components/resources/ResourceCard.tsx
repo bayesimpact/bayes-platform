@@ -1,5 +1,6 @@
 import { ExternalLinkIcon, PlayIcon } from "lucide-react"
 import { useState } from "react"
+import { runtimeConfig } from "@/config/runtime-config"
 
 export type ResourceCardData = {
   title: string
@@ -10,7 +11,7 @@ export type ResourceCardData = {
 /** Absolutizes uploaded-file links (relative API paths) against the API base URL. */
 export function resolveLink(link: string): string {
   if (/^https?:\/\//.test(link)) return link
-  const baseUrl = import.meta.env.VITE_API_URL as string
+  const baseUrl = runtimeConfig.apiUrl
   return `${baseUrl}${link}`
 }
 

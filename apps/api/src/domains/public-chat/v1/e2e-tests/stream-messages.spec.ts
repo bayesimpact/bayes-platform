@@ -70,7 +70,7 @@ describe("PublicChat - streamMessages", () => {
 
   const subject = (content: string) =>
     request(app.getHttpServer())
-      .get(`/public/agents/${embedToken}/sessions/${sessionId}/messages/stream`)
+      .get(`/public/v1/agents/${embedToken}/sessions/${sessionId}/messages/stream`)
       .query({ q: JSON.stringify({ payload: { content } }) })
       .set("Connection", "close")
       .set("X-Session-Token", sessionToken)

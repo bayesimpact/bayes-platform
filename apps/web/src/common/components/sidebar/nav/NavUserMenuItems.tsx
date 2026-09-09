@@ -2,6 +2,7 @@ import { DropdownMenuItem, DropdownMenuSeparator } from "@caseai-connect/ui/shad
 import { ExternalLinkIcon, LogOutIcon, UserPenIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useAuthHandler } from "@/common/hooks/use-auth-handler"
+import { runtimeConfig } from "@/config/runtime-config"
 
 type Props = {
   onEditProfile: () => void
@@ -35,7 +36,7 @@ function EditProfileMenuItem({ onOpen }: { onOpen: () => void }) {
 
 function HelpCenter() {
   const { t } = useTranslation("user")
-  const path = import.meta.env.VITE_HELP_CENTER_URL as string | undefined
+  const path = runtimeConfig.helpCenterUrl
   if (!path) return null
   return (
     <DropdownMenuItem onSelect={() => window.open(path, "_blank")}>

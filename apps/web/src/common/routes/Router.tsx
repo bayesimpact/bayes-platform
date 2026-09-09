@@ -4,6 +4,7 @@ import { HomeRoute } from "@/common/routes/HomeRoute"
 import { LogoutRoute } from "@/common/routes/LogoutRoute"
 import { McpOauthCallbackRoute } from "@/common/routes/McpOauthCallbackRoute"
 import { NotFoundRoute } from "@/common/routes/NotFoundRoute"
+import { APP_BASE_PATH } from "@/config/runtime-config"
 import { deskRoutes } from "@/desk/routes/DeskRoutes"
 import { evalRoutes } from "@/eval/routes/EvalRoutes"
 import { reviewerRoutes } from "@/reviewer/routes/ReviewerRoutes"
@@ -14,40 +15,44 @@ import { OnboardingRoute } from "./OnboardingRoute"
 import { ProtectedRoute } from "./ProtectedRoute"
 
 const router = () =>
-  createBrowserRouter([
-    {
-      path: RouteNames.HOME,
-      element: <HomeRoute />,
-    },
+  createBrowserRouter(
+    [
+      {
+        path: RouteNames.HOME,
+        element: <HomeRoute />,
+      },
 
-    {
-      path: RouteNames.LOGOUT,
-      element: <LogoutRoute />,
-    },
+      {
+        path: RouteNames.LOGOUT,
+        element: <LogoutRoute />,
+      },
 
-    {
-      element: (
-        <ProtectedRoute>
-          <Outlet />
-        </ProtectedRoute>
-      ),
-      children: [
-        onboardingRoute,
-        mcpOauthCallbackRoute,
-        studioRoutes,
-        deskRoutes,
-        evalRoutes,
-        backofficeRoutes,
-        testerRoutes,
-        reviewerRoutes,
-      ],
-    },
+      {
+        element: (
+          <ProtectedRoute>
+            <Outlet />
+          </ProtectedRoute>
+        ),
+        children: [
+          onboardingRoute,
+          mcpOauthCallbackRoute,
+          studioRoutes,
+          deskRoutes,
+          evalRoutes,
+          backofficeRoutes,
+          testerRoutes,
+          reviewerRoutes,
+        ],
+      },
 
-    {
-      path: "*",
-      element: <NotFoundRoute />,
-    },
-  ])
+      {
+        path: "*",
+        element: <NotFoundRoute />,
+      },
+    ],
+    // Served under a sub-path by the API (`/app`), at the root by static hosting.
+    { basename: APP_BASE_PATH.replace(/\/$/, "") || undefined },
+  )
 
 export function Router() {
   return <RouterProvider router={router()} />

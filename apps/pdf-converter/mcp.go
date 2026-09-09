@@ -289,15 +289,39 @@ func newMCPServer(store objectStore, cfg pdfExportConfig) *mcp.Server {
 		Title:       "PDF download card",
 		Description: "MCP App card showing the generated PDF and its download button.",
 		MIMEType:    mcpAppMIMEType,
-	}, func(_ context.Context, _ *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+	}, func(_ context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
+		var header http.Header
+		if req != nil && req.Extra != nil {
+			header = req.Extra.Header
+		}
 		return &mcp.ReadResourceResult{Contents: []*mcp.ResourceContents{{
 			URI:      downloadCardURI,
 			MIMEType: mcpAppMIMEType,
-			Text:     downloadCardHTML,
+			Text:     localizedDownloadCard(cardLanguage(header)),
 		}}}, nil
 	})
 
 	return server
+}
+
+// cardLanguage picks the card's language from the Accept-Language header the
+// platform sends on every MCP call with the agent's configured language. Only
+// the first tag is considered: French renders French, anything else English.
+func cardLanguage(header http.Header) string {
+	first, _, _ := strings.Cut(header.Get("Accept-Language"), ",")
+	tag, _, _ := strings.Cut(first, ";")
+	tag = strings.ToLower(strings.TrimSpace(tag))
+	if tag == "fr" || strings.HasPrefix(tag, "fr-") {
+		return "fr"
+	}
+	return "en"
+}
+
+// localizedDownloadCard stamps the language on the card's root element. The
+// card's script reads it back as its starting language, so the same HTML
+// serves both languages without a second file.
+func localizedDownloadCard(lang string) string {
+	return strings.Replace(downloadCardHTML, `<html lang="en">`, `<html lang="`+lang+`">`, 1)
 }
 
 func newMCPHandler(store objectStore, cfg pdfExportConfig) http.Handler {

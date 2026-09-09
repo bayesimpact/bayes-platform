@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
+import { runtimeConfig } from "@/config/runtime-config"
 import i18n from "@/i18n"
 
 declare global {
@@ -39,19 +40,18 @@ export function useHelpLauncher() {
 
   // Inject the launcher script once on mount.
   useEffect(() => {
-    const token = import.meta.env.VITE_HELP_AGENT_EMBED_TOKEN as string | undefined
+    const token = runtimeConfig.helpAgentEmbedToken
     if (!token || document.getElementById(HELP_SCRIPT_ID)) return
 
-    const embedBaseUrl =
-      (import.meta.env.VITE_AGENT_EMBED_URL as string | undefined) ?? window.location.origin
+    const embedBaseUrl = runtimeConfig.agentEmbedUrl ?? window.location.origin
     const script = document.createElement("script")
     script.id = HELP_SCRIPT_ID
     script.src = `${embedBaseUrl}/launcher.js`
 
-    const color = import.meta.env.VITE_HELP_AGENT_EMBED_COLOR as string | undefined
+    const color = runtimeConfig.helpAgentEmbedColor
     if (color) script.dataset.color = color
 
-    const hintRaw = import.meta.env.VITE_HELP_AGENT_EMBED_HINT as string | undefined
+    const hintRaw = runtimeConfig.helpAgentEmbedHint
     if (hintRaw) script.dataset.hint = resolveHint(hintRaw, i18n.language)
 
     script.dataset.displayMode = "drawer"
@@ -64,7 +64,7 @@ export function useHelpLauncher() {
   // Update the hint bubble text in-place when the user changes language.
   // Skipped on the first render (the injection effect above already set it).
   useEffect(() => {
-    const hintRaw = import.meta.env.VITE_HELP_AGENT_EMBED_HINT as string | undefined
+    const hintRaw = runtimeConfig.helpAgentEmbedHint
     if (!hintRaw) return
     window.__agentStudioSetHint?.(resolveHint(hintRaw, reactiveI18n.language))
   }, [reactiveI18n.language])

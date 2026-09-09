@@ -107,13 +107,13 @@ describe("PublicChat - getMcpAppHtml", () => {
 
   const getSession = () =>
     request(app.getHttpServer())
-      .get(`/public/agents/${embedToken}/sessions/${sessionId}`)
+      .get(`/public/v1/agents/${embedToken}/sessions/${sessionId}`)
       .set("Connection", "close")
       .set("X-Session-Token", sessionToken)
 
   const subject = () =>
     request(app.getHttpServer())
-      .get(`/public/agents/${embedToken}/sessions/${sessionId}/mcp-app-html`)
+      .get(`/public/v1/agents/${embedToken}/sessions/${sessionId}/mcp-app-html`)
       .set("Connection", "close")
       .set("X-Session-Token", sessionToken)
 

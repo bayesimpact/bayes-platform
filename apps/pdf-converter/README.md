@@ -100,6 +100,13 @@ link cannot open a new tab, and without `allow-downloads` browsers open the tab 
 block the download because it was started from a sandboxed frame. The card follows
 `hostContext.theme` (light by default) rather than the OS colour scheme.
 
+The card is served in the agent's language. The platform API sends the agent's
+configured language as the `Accept-Language` header of every MCP call, and
+`resources/read` stamps it on the card's `<html lang>`: `fr` (or any `fr-*` tag) gives
+a French card, anything else English. The script starts from that attribute and still
+honours a `hostContext.locale` sent by a host, on `ui/initialize` or on
+`ui/notifications/host-context-changed`, redrawing its current state in place.
+
 ### The `tmp/pdf-exports/` prefix and the TTL contract
 
 Every export is written once to `{PDF_EXPORT_TMP_PREFIX}{uuid}/{fileName}` and this
@@ -183,6 +190,12 @@ service is only bound on the developer's machine.
 - `PDF_EXPORT_TMP_PREFIX` (default `tmp/pdf-exports/`) — GCS prefix PDF exports are written under.
 
 ## Local development
+
+Copy `.env-example` to `.env`, then `npm run dev` at the repository root starts this
+service together with the API and the web app. Without `go` on `PATH` or without a
+`.env` file, the service is skipped and the other apps start anyway.
+
+To run it on its own:
 
 ```bash
 # Start the converter (requires GOOGLE_APPLICATION_CREDENTIALS pointing to a service account)

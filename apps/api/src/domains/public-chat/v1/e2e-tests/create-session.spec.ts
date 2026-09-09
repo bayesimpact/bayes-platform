@@ -56,7 +56,7 @@ describe("PublicChat - createSession", () => {
 
   const subject = (payload?: { externalVisitorId?: string }) =>
     request(app.getHttpServer())
-      .post(`/public/agents/${embedToken}/sessions`)
+      .post(`/public/v1/agents/${embedToken}/sessions`)
       .set("Connection", "close")
       .send({ payload: payload ?? {} })
 

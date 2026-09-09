@@ -19,6 +19,10 @@ export default defineConfig(({ mode }) => {
     : undefined
 
   return {
+    // Public path of the SPA. `/` for `vite dev` and the static hosting builds,
+    // `/app/` when the API serves the build (the `app-runtime` image). Fixed at
+    // build time on purpose: a property of the image, not of the tenant.
+    base: env.VITE_BASE_PATH?.trim() || "/",
     plugins: [
       react({
         babel: {

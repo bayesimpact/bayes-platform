@@ -715,11 +715,16 @@ describe("Tools execution", () => {
     expect(agentCalls).toHaveLength(3)
     expect(agentCalls[1]?.prompt).toContain("resource-1")
     // The conversation context reaches the MCP transport as plumbing, with no
-    // model involvement: a server can attribute the call.
+    // model involvement: a server can attribute the call and answer in the
+    // agent's language.
     expect(mockMcpClientService.connect).toHaveBeenCalledWith(
       expect.objectContaining({
         url: "http://mcp.test",
-        context: expect.objectContaining({ agentId: agent.id, sessionId: session.id }),
+        context: expect.objectContaining({
+          agentId: agent.id,
+          sessionId: session.id,
+          locale: agentSettings.locale,
+        }),
       }),
     )
   })

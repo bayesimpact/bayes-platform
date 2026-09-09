@@ -1,0 +1,71 @@
+# Example: GKE with managed services (Cloud SQL, Memorystore, GCS, Vertex AI)
+# and a GPU node pool. Secrets come from an existing Kubernetes Secret, filled
+# by External Secrets Operator from Secret Manager.
+#
+#   helm upgrade --install platform deploy/helm/bayes-platform \
+#     -n platform --create-namespace -f my-values.yaml
+
+global:
+  image:
+    # Public images from GitHub Container Registry (the default), pinned to a release.
+    tag: "26.09.1"
+
+urls:
+  api: https://staging.example.org
+  web: https://staging.example.org/app
+  webEmbed: https://embed.staging.example.org
+  help: https://help.staging.example.org
+
+serviceAccount:
+  annotations:
+    iam.gke.io/gcp-service-account: platform-api@my-project.iam.gserviceaccount.com
+
+secrets:
+  existingSecret: platform-secrets
+
+config:
+  AUTH0_ISSUER_URL: https://my-tenant.eu.auth0.com/
+  AUTH0_AUDIENCE: https://my-tenant.eu.auth0.com/api/v2/
+  AUTH0_ORGANIZATION_ID: org_xxx
+  AUTH0_CLIENT_ID: xxx
+  AUTH0_M2M_CLIENT_ID: xxx
+  ORGANIZATION_CREATOR_EMAIL_DOMAIN: "@example.org"
+  BACKOFFICE_AUTHORIZED_DOMAIN: "@example.org"
+  GOOGLE_VERTEX_PROJECT: my-project
+  GOOGLE_VERTEX_LOCATION: europe-west1
+  LANGFUSE_BASE_URL: https://langfuse.example.org
+  LANGFUSE_PK: pk-lf-xxx
+
+postgresql:
+  enabled: false
+externalDatabase:
+  # Private IP of the Cloud SQL instance, or 127.0.0.1 with a Cloud SQL Auth
+  # Proxy sidecar. The `vector` extension must exist in the database.
+  host: 10.20.0.3
+  database: platform
+  username: platform
+
+redis:
+  enabled: false
+# BULLMQ_REDIS_URL is read from the secret.
+
+storage:
+  mode: gcs
+  gcs:
+    bucket: my-project-platform-files
+
+gpuWorkers:
+  enabled: true
+  gpu:
+    nodeSelector:
+      cloud.google.com/gke-accelerator: nvidia-l4
+
+web:
+  env:
+    WEB_APP_TITLE: My platform
+    WEB_AUTH0_CLIENT_ID: xxx
+
+ingress:
+  className: nginx
+  clusterIssuer: letsencrypt-prod
+  tls: true
