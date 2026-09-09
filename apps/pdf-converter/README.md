@@ -191,6 +191,12 @@ service is only bound on the developer's machine.
 
 ## Local development
 
+Copy `.env-example` to `.env`, then `npm run dev` at the repository root starts this
+service together with the API and the web app. Without `go` on `PATH` or without a
+`.env` file, the service is skipped and the other apps start anyway.
+
+To run it on its own:
+
 ```bash
 # Start the converter (requires GOOGLE_APPLICATION_CREDENTIALS pointing to a service account)
 PORT=3002 \

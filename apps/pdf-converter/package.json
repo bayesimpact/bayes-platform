@@ -1,0 +1,8 @@
+{
+  "name": "@caseai-connect/pdf-converter",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "command -v go >/dev/null || { echo '[pdf-converter] go not found, skipping'; exit 0; }; [ -f .env ] || { echo '[pdf-converter] no .env file, skipping (copy .env-example to .env to start it)'; exit 0; }; go run ."
+  }
+}
