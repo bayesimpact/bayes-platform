@@ -1,0 +1,51 @@
+{{- if .Values.migrations.enabled }}
+# Runs the TypeORM migrations from the compiled API image.
+# post-install: the bundled Postgres exists by then. pre-upgrade: the schema is
+# ready before the new pods roll out.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "bayes-platform.componentName" (dict "root" . "component" "migrate") }}
+  labels:
+    {{- include "bayes-platform.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migrate
+  annotations:
+    helm.sh/hook: post-install,pre-upgrade
+    helm.sh/hook-weight: "0"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: {{ .Values.migrations.backoffLimit }}
+  template:
+    metadata:
+      labels:
+        {{- include "bayes-platform.selectorLabels" (dict "root" . "component" "migrate") | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "bayes-platform.serviceAccountName" . }}
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      initContainers:
+        {{- include "bayes-platform.waitForDatabase" . | nindent 8 }}
+      containers:
+        - name: migrate
+          image: {{ include "bayes-platform.image" (dict "root" . "image" .Values.api.image) }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          workingDir: /app/apps/api
+          command:
+            - node
+            - /app/node_modules/typeorm/cli.js
+            - migration:run
+            - -d
+            - /app/apps/api/dist/config/typeorm.js
+          env:
+            {{- include "bayes-platform.sharedEnv" . | nindent 12 }}
+          envFrom:
+            {{- include "bayes-platform.sharedEnvFrom" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.migrations.resources | nindent 12 }}
+{{- end }}

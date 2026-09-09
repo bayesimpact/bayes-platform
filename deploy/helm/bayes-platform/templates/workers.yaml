@@ -1,0 +1,139 @@
+{{- /*
+Two worker pools built from the same template: cpu (no Docling, no GPU) and
+gpu (Docling, one GPU). Both run the workers entrypoint of the API image
+family and select their queues with WORKER_QUEUE_NAMES.
+*/ -}}
+{{- $root := . }}
+{{- $pools := list }}
+{{- if .Values.cpuWorkers.enabled }}
+  {{- $cpuQueues := .Values.cpuWorkers.queues }}
+  {{- if and .Values.cpuWorkers.takeEmbeddingsWhenNoGpu (not .Values.gpuWorkers.enabled) }}
+    {{- $cpuQueues = concat $cpuQueues .Values.gpuWorkers.queues }}
+  {{- end }}
+  {{- $pools = append $pools (dict "component" "cpu-workers" "values" .Values.cpuWorkers "queues" $cpuQueues "gpu" false) }}
+{{- end }}
+{{- if .Values.gpuWorkers.enabled }}
+  {{- $pools = append $pools (dict "component" "gpu-workers" "values" .Values.gpuWorkers "queues" .Values.gpuWorkers.queues "gpu" true) }}
+{{- end }}
+{{- range $pool := $pools }}
+{{- $values := $pool.values }}
+{{- $name := include "bayes-platform.componentName" (dict "root" $root "component" $pool.component) }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "bayes-platform.labels" $root | nindent 4 }}
+    app.kubernetes.io/component: {{ $pool.component }}
+spec:
+  replicas: {{ $values.replicas }}
+  selector:
+    matchLabels:
+      {{- include "bayes-platform.selectorLabels" (dict "root" $root "component" $pool.component) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "bayes-platform.selectorLabels" (dict "root" $root "component" $pool.component) | nindent 8 }}
+      annotations:
+        checksum/config: {{ toYaml $root.Values.config | sha256sum }}
+        {{- with $values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "bayes-platform.serviceAccountName" $root }}
+      {{- with $root.Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      # Workers drain their current jobs before they stop.
+      terminationGracePeriodSeconds: 120
+      initContainers:
+        {{- include "bayes-platform.waitForDatabase" $root | nindent 8 }}
+      containers:
+        - name: workers
+          image: {{ include "bayes-platform.image" (dict "root" $root "image" $values.image) }}
+          imagePullPolicy: {{ $root.Values.global.image.pullPolicy }}
+          ports:
+            - name: health
+              containerPort: {{ $values.healthPort }}
+          env:
+            - name: WORKER_HEALTH_PORT
+              value: {{ $values.healthPort | quote }}
+            - name: WORKER_QUEUE_NAMES
+              value: {{ join "," $pool.queues | quote }}
+            - name: WORKERS_HEALTH_QUEUE_NAME
+              value: {{ first $pool.queues | quote }}
+            - name: DOCUMENT_EXTRACTOR_DOCLING_ENABLED
+              value: {{ $pool.gpu | quote }}
+            {{- if $pool.gpu }}
+            - name: DOCUMENT_EXTRACTOR_DOCLING_TIMEOUT_MS
+              value: {{ $values.docling.timeoutMs | quote }}
+            - name: WORKER_DOCLING_HEALTH_CHECK_TIMEOUT_MS
+              value: {{ $values.docling.healthCheckTimeoutMs | quote }}
+            {{- end }}
+            {{- include "bayes-platform.sharedEnv" $root | nindent 12 }}
+            {{- range $key, $value := $values.extraEnv }}
+            - name: {{ $key }}
+              value: {{ $value | toString | quote }}
+            {{- end }}
+          envFrom:
+            {{- include "bayes-platform.sharedEnvFrom" $root | nindent 12 }}
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            periodSeconds: 10
+            # The GPU image loads Docling and its models at start.
+            failureThreshold: {{ if $pool.gpu }}60{{ else }}30{{ end }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            periodSeconds: 30
+            failureThreshold: 3
+          resources:
+            {{- if $pool.gpu }}
+            requests:
+              {{- toYaml $values.resources.requests | nindent 14 }}
+              nvidia.com/gpu: {{ $values.gpu.count }}
+            limits:
+              {{- toYaml $values.resources.limits | nindent 14 }}
+              nvidia.com/gpu: {{ $values.gpu.count }}
+            {{- else }}
+            {{- toYaml $values.resources | nindent 12 }}
+            {{- end }}
+          volumeMounts:
+            {{- include "bayes-platform.storageVolumeMount" $root | nindent 12 }}
+            - name: tmp
+              mountPath: /tmp
+          securityContext:
+            allowPrivilegeEscalation: false
+      volumes:
+        {{- include "bayes-platform.storageVolume" $root | nindent 8 }}
+        - name: tmp
+          emptyDir: {}
+      {{- if $pool.gpu }}
+      {{- with $values.gpu.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- else }}
+      {{- with $values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      {{- with $values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
