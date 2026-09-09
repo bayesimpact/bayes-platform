@@ -38,8 +38,10 @@ Cette API est un contrat versionné. Lisez la
 Toutes les routes de la version 1 commencent par `/public/v1/agents/{embedToken}`.
 
 Les chemins sans préfixe `/public/agents/{embedToken}/...` datent d'avant le versionnage.
-Ils répondent exactement comme les chemins `v1` et restent disponibles tant que la version
-1 est servie. Utilisez les chemins `v1` dans les nouvelles intégrations.
+Ils servent les routes et les champs de la version 1 qui existaient avant le versionnage, et
+restent disponibles tant que la version 1 est servie. Ils ne servent pas la route du HTML des
+cartes MCP App, et leur réponse de configuration n'a pas de champ `bannerText`. Utilisez les
+chemins `v1` dans les nouvelles intégrations.
 
 ## Version
 

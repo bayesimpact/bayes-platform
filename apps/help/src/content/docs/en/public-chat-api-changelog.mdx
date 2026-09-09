@@ -47,9 +47,10 @@ clients and come with a deprecation period. See the
 ### Changed
 
 - The unprefixed paths `/public/agents/{embedToken}/...` become a legacy alias of version
-  1. They keep answering for as long as version 1 is served.
+  1, frozen at their pre-versioning shape: no MCP App card HTML route, no `bannerText`. They
+  keep answering for as long as version 1 is served.
 
 ### Migration
 
 - None. Existing clients keep working without change. Move to the `/public/v1/` paths
-  when convenient.
+  to get `bannerText` and the MCP App card HTML route.

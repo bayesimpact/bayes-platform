@@ -48,9 +48,10 @@ de dépréciation. Voir la
 ### Modifié
 
 - Les chemins sans préfixe `/public/agents/{embedToken}/...` deviennent un alias historique
-  de la version 1. Ils continuent de répondre tant que la version 1 est servie.
+  de la version 1, figé dans sa forme d'avant le versionnage : pas de route du HTML des cartes
+  MCP App, pas de `bannerText`. Ils continuent de répondre tant que la version 1 est servie.
 
 ### Migration
 
 - Aucune. Les clients existants continuent de fonctionner sans changement. Passez aux
-  chemins `/public/v1/` quand cela vous convient.
+  chemins `/public/v1/` pour obtenir `bannerText` et la route du HTML des cartes MCP App.

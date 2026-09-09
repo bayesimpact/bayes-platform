@@ -36,9 +36,10 @@ This API is a versioned contract. Read the
 
 All routes of version 1 start with `/public/v1/agents/{embedToken}`.
 
-The unprefixed paths `/public/agents/{embedToken}/...` predate versioning. They answer
-exactly like the `v1` paths and stay available for as long as version 1 is served. Use the
-`v1` paths in new integrations.
+The unprefixed paths `/public/agents/{embedToken}/...` predate versioning. They serve the
+version 1 routes and fields that existed before versioning, and stay available for as long
+as version 1 is served. They do not serve the MCP App card HTML route, and their
+configuration response has no `bannerText`. Use the `v1` paths in new integrations.
 
 ## Version
 
