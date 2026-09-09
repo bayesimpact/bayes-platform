@@ -1,7 +1,7 @@
 import { useAuth0 } from "@auth0/auth0-react"
 import { useEffect } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { getAuthCallbackError } from "@/common/auth/auth-callback-error"
+import { useAuthCallbackError } from "@/common/auth/use-auth-callback-error"
 import { selectOrganizationsData } from "@/common/features/organizations/organizations.selectors"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
@@ -36,7 +36,7 @@ export function HomeRoute() {
   const organizations = useAppSelector(selectOrganizationsData)
   const [searchParams] = useSearchParams()
   // Auth0 sent us back with an error: show it instead of redirecting again.
-  const callbackError = getAuthCallbackError(searchParams.toString())
+  const callbackError = useAuthCallbackError()
 
   useEffect(() => {
     if (isLoading || callbackError) return

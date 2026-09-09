@@ -1,7 +1,6 @@
 import { useAuth0 } from "@auth0/auth0-react"
 import { useEffect } from "react"
-import { useLocation } from "react-router-dom"
-import { getAuthCallbackError } from "@/common/auth/auth-callback-error"
+import { useAuthCallbackError } from "@/common/auth/use-auth-callback-error"
 import { selectTermsAccepted } from "@/common/features/me/me.selectors"
 import { useAppSelector } from "@/common/store/hooks"
 import { AUTH0_ORGANIZATION_ID } from "@/config/auth0.config"
@@ -13,9 +12,8 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, loginWithRedirect } = useAuth0()
   const isPlatformLoading = useAppSelector((state) => state.auth.isLoading)
   const termsAccepted = useAppSelector(selectTermsAccepted)
-  const location = useLocation()
   // Auth0 sent us back with an error: show it instead of redirecting again.
-  const callbackError = getAuthCallbackError(location.search)
+  const callbackError = useAuthCallbackError()
 
   useEffect(() => {
     if (callbackError) return
