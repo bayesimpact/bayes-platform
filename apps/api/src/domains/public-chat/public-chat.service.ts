@@ -1,16 +1,11 @@
-import type {
-  CreatePublicSessionResponseDto,
-  PublicAgentSessionDto,
-  PublicMcpAppHtmlDto,
-  StreamEvent,
-} from "@caseai-connect/api-contracts"
+import type { StreamEvent } from "@caseai-connect/api-contracts"
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import { Agent } from "@/domains/agents/agent.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
-import { toMcpAppHtmlDtos } from "@/domains/agents/shared/agent-session-messages/agent-message.helpers"
+import type { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpAppHtmlService } from "@/domains/agents/shared/agent-session-messages/mcp-app-html.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -19,8 +14,11 @@ import type { AgentEmbedConfig } from "./agent-embed-configs/agent-embed-config.
 import type { PublicAgentSession } from "./public-agent-sessions/public-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PublicAgentSessionsService } from "./public-agent-sessions/public-agent-sessions.service"
-import { toPublicAgentSessionDto } from "./public-chat.mappers"
 
+/**
+ * Domain operations behind the public chat API. Returns entities and raw values; the
+ * per-version controllers (`v1/`, `legacy/`) shape them into their contract's DTOs.
+ */
 @Injectable()
 export class PublicChatService {
   constructor(
@@ -35,35 +33,32 @@ export class PublicChatService {
   async createSession(
     embedConfig: AgentEmbedConfig,
     externalVisitorId?: string,
-  ): Promise<CreatePublicSessionResponseDto> {
-    const { session, sessionToken } = await this.publicAgentSessionsService.createSession(
-      embedConfig,
-      externalVisitorId,
-    )
-    return { sessionId: session.id, sessionToken }
+  ): Promise<{ session: PublicAgentSession; sessionToken: string }> {
+    return this.publicAgentSessionsService.createSession(embedConfig, externalVisitorId)
   }
 
-  async getSession(publicSession: PublicAgentSession): Promise<PublicAgentSessionDto> {
+  /**
+   * The session and its transcript, without MCP App HTML: reading that connects to every
+   * MCP server the transcript points at, which used to hold the whole widget behind its
+   * loading shell. It is served separately by `getMcpAppHtml`.
+   */
+  async getSession(
+    publicSession: PublicAgentSession,
+  ): Promise<{ session: PublicAgentSession; messages: AgentMessage[] }> {
+    return this.publicAgentSessionsService.getSessionWithMessages(publicSession.id)
+  }
+
+  /** Current HTML of every MCP App card the session's replies point at, by cache key. */
+  async getMcpAppHtml(publicSession: PublicAgentSession): Promise<Map<string, string>> {
     const { session, messages } = await this.publicAgentSessionsService.getSessionWithMessages(
       publicSession.id,
     )
-    // MCP App HTML is served by `getMcpAppHtml`: reading it connects to every MCP server the
-    // transcript points at, which used to hold the whole widget behind its loading shell.
-    return toPublicAgentSessionDto(session, messages)
-  }
-
-  /** Current HTML of every MCP App card the session's replies point at. */
-  async getMcpAppHtml(publicSession: PublicAgentSession): Promise<PublicMcpAppHtmlDto[]> {
-    const { session, messages } = await this.publicAgentSessionsService.getSessionWithMessages(
-      publicSession.id,
-    )
-    const htmlByKey = await this.mcpAppHtmlService.readLiveHtml({
+    return this.mcpAppHtmlService.readLiveHtml({
       agentId: session.agentId,
       sessionId: session.id,
       messages,
       externalVisitorId: session.externalVisitorId,
     })
-    return toMcpAppHtmlDtos(htmlByKey)
   }
 
   async *streamResponse(

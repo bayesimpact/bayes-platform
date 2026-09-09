@@ -27,6 +27,17 @@ export type EmbedPublicConfigDto = {
   bannerText: string | null
 }
 
+/**
+ * Config served on the legacy alias (`/public/agents/...`). The alias predates the banner:
+ * embed snippets deployed against it never received `bannerText`, so it is not added.
+ */
+export type LegacyEmbedPublicConfigDto = {
+  agentName: string
+  title: string | null
+  logoUrl: string | null
+  primaryColor: string | null
+}
+
 /** Name of a tool the agent ran: a built-in tool or any MCP tool name. */
 export type PublicToolName = ToolName | (string & {})
 

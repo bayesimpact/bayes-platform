@@ -14,9 +14,9 @@ import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
-import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
-import { publicAgentSessionFactory } from "../public-agent-sessions/public-agent-session.factory"
-import { PublicChatModule } from "../public-chat.module"
+import { agentEmbedConfigFactory } from "../../agent-embed-configs/agent-embed-config.factory"
+import { publicAgentSessionFactory } from "../../public-agent-sessions/public-agent-session.factory"
+import { PublicChatModule } from "../../public-chat.module"
 
 describe("PublicChat - Auth", () => {
   let app: INestApplication<App>

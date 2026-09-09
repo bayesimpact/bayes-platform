@@ -18,9 +18,9 @@ import {
 } from "@/common/test/test-database"
 import { buildCorsOptionsDelegate } from "@/config/cors"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
-import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
-import { publicAgentSessionFactory } from "../public-agent-sessions/public-agent-session.factory"
-import { PublicChatModule } from "../public-chat.module"
+import { agentEmbedConfigFactory } from "../../agent-embed-configs/agent-embed-config.factory"
+import { publicAgentSessionFactory } from "../../public-agent-sessions/public-agent-session.factory"
+import { PublicChatModule } from "../../public-chat.module"
 
 /**
  * Pins the wire-level facts of the public chat API contract v1 that types cannot
@@ -37,7 +37,6 @@ describe("PublicChat - contract v1", () => {
   let sessionToken: string
 
   const publicBase = `/${PUBLIC_PATH_PREFIX}/${PUBLIC_API_MAJOR}/agents/:embedToken`
-  const legacyBase = `/${PUBLIC_PATH_PREFIX}/agents/:embedToken`
   const hostOrigin = "https://host-page.example"
 
   beforeAll(async () => {
@@ -116,46 +115,6 @@ describe("PublicChat - contract v1", () => {
         method: "get",
         path: `${publicBase}/sessions/:sessionId/messages/stream`,
       })
-    })
-
-    it("keeps the unprefixed legacy alias of v1", () => {
-      for (const key of Object.keys(PublicChatRoutes) as (keyof typeof PublicChatRoutes)[]) {
-        const versioned = PublicChatRoutes[key]
-        const legacy = PublicChatLegacyRoutes[key]
-        expect(legacy.method).toBe(versioned.method)
-        expect(legacy.path).toBe(versioned.path.replace(publicBase, legacyBase))
-      }
-    })
-
-    it("answers the same on the v1 path and on the legacy alias", async () => {
-      await createContext()
-      const routePairs = [
-        [PublicChatRoutes.getConfig, PublicChatLegacyRoutes.getConfig, 200],
-        [PublicChatRoutes.getSession, PublicChatLegacyRoutes.getSession, 200],
-        [PublicChatRoutes.getMcpAppHtml, PublicChatLegacyRoutes.getMcpAppHtml, 200],
-      ] as const
-      for (const [versioned, legacy, status] of routePairs) {
-        const versionedResponse = await request(app.getHttpServer())
-          .get(versioned.getPath(pathParams()))
-          .set("Connection", "close")
-          .set("X-Session-Token", sessionToken)
-        const legacyResponse = await request(app.getHttpServer())
-          .get(legacy.getPath(pathParams()))
-          .set("Connection", "close")
-          .set("X-Session-Token", sessionToken)
-        expect(versionedResponse.status).toBe(status)
-        expect(legacyResponse.status).toBe(status)
-        expect(legacyResponse.body).toEqual(versionedResponse.body)
-      }
-
-      for (const route of [PublicChatRoutes.createSession, PublicChatLegacyRoutes.createSession]) {
-        const response = await request(app.getHttpServer())
-          .post(route.getPath(pathParams()))
-          .set("Connection", "close")
-          .send({ payload: {} })
-        expect(response.status).toBe(201)
-        expect(Object.keys(response.body.data).sort()).toEqual(["sessionId", "sessionToken"])
-      }
     })
 
     it("does not accept POST on the stream path", async () => {

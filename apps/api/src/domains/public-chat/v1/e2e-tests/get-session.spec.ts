@@ -10,9 +10,9 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
-import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
-import { publicAgentSessionFactory } from "../public-agent-sessions/public-agent-session.factory"
-import { PublicChatModule } from "../public-chat.module"
+import { agentEmbedConfigFactory } from "../../agent-embed-configs/agent-embed-config.factory"
+import { publicAgentSessionFactory } from "../../public-agent-sessions/public-agent-session.factory"
+import { PublicChatModule } from "../../public-chat.module"
 
 describe("PublicChat - getSession", () => {
   let app: INestApplication<App>

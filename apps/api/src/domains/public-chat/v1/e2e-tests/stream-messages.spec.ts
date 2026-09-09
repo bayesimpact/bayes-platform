@@ -13,9 +13,9 @@ import {
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import type { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
-import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
-import { publicAgentSessionFactory } from "../public-agent-sessions/public-agent-session.factory"
-import { PublicChatModule } from "../public-chat.module"
+import { agentEmbedConfigFactory } from "../../agent-embed-configs/agent-embed-config.factory"
+import { publicAgentSessionFactory } from "../../public-agent-sessions/public-agent-session.factory"
+import { PublicChatModule } from "../../public-chat.module"
 
 describe("PublicChat - streamMessages", () => {
   let app: INestApplication<App>

@@ -1,14 +1,16 @@
 import type {
-  EmbedPublicConfigDto,
+  CreatePublicSessionResponseDto,
+  LegacyEmbedPublicConfigDto,
   PublicAgentSessionDto,
   PublicSessionMessageDto,
 } from "@caseai-connect/api-contracts"
-import type { AgentEmbedConfig } from "./agent-embed-configs/agent-embed-config.entity"
-import type { PublicAgentSession } from "./public-agent-sessions/public-agent-session.entity"
+import type { AgentEmbedConfig } from "../agent-embed-configs/agent-embed-config.entity"
+import type { PublicAgentSession } from "../public-agent-sessions/public-agent-session.entity"
 
 /**
- * Wire shapes of the public chat API (`docs/public-api-contract.md`). Pure
- * functions, so the contract stays visible in one place and out of the service.
+ * Wire shapes of the legacy alias of the public chat API (`docs/public-api-contract.md`). Pure
+ * functions owned by the legacy controller: the alias must keep answering exactly as it did
+ * before versioning, so v1 additions (`bannerText`, MCP App HTML) do not appear here.
  */
 
 /** The message fields the public transcript exposes (structural, so no cross-domain entity import). */
@@ -22,14 +24,20 @@ type PublicMessageSource = {
 }
 
 /** Branding only, no secrets: what an anonymous host page may learn about the agent. */
-export function toEmbedPublicConfigDto(embedConfig: AgentEmbedConfig): EmbedPublicConfigDto {
+export function toEmbedPublicConfigDto(embedConfig: AgentEmbedConfig): LegacyEmbedPublicConfigDto {
   return {
     agentName: embedConfig.agent.name,
     title: embedConfig.title,
     logoUrl: embedConfig.logoUrl,
     primaryColor: embedConfig.primaryColor,
-    bannerText: embedConfig.bannerText,
   }
+}
+
+export function toCreatePublicSessionResponseDto(
+  session: PublicAgentSession,
+  sessionToken: string,
+): CreatePublicSessionResponseDto {
+  return { sessionId: session.id, sessionToken }
 }
 
 export function toPublicAgentSessionDto(
