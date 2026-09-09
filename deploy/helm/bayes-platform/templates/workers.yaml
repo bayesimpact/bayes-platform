@@ -28,6 +28,13 @@ metadata:
     app.kubernetes.io/component: {{ $pool.component }}
 spec:
   replicas: {{ $values.replicas }}
+  {{- if $pool.gpu }}
+  # One GPU per node and a small pool: a rolling update would wait for a new
+  # pod that cannot get a GPU while the old pod still holds it. Stop the old
+  # pod first. The queues buffer the jobs meanwhile.
+  strategy:
+    type: Recreate
+  {{- end }}
   selector:
     matchLabels:
       {{- include "bayes-platform.selectorLabels" (dict "root" $root "component" $pool.component) | nindent 6 }}
