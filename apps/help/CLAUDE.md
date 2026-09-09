@@ -562,3 +562,22 @@ node ../../node_modules/astro/astro.js build   # run from apps/help; node at "C:
 Then confirm: build is 0-error; the new pages exist in `dist/{en,fr}/<slug>/`; the
 component root class appears in the built HTML; the `##` skeleton and component
 constants match the sibling guides. `astro check` also works for type-checking.
+
+---
+
+# API reference pages (Developers category)
+
+The pages `public-chat-api*.mdx` document the public chat API for external
+integrators. They are reference pages, not walkthrough guides:
+
+- **Apply**: the EN/FR pair with identical slugs, the frontmatter schema (plus
+  `apiVersion`), the category registry, design tokens, neutral sample data, and the
+  `astro build` + `astro check` gate.
+- **Do not apply**: the "make a guide" checklist, the walkthrough component, the MDX
+  skeleton with `## Step by step`, and the Studio fidelity method. There is no UI to
+  replicate.
+- **Source of truth**: `packages/api-contracts/src/public-chat/`, the public chat
+  controller and guards, and `public-contract.spec.ts`. Never the old `docs/` file.
+- These pages are part of the frozen public contract (`docs/public-api-contract.md`):
+  editing them needs a maintainer's go and the `public-contract-approved` label, and
+  their `apiVersion` must equal `PUBLIC_API_VERSION`.

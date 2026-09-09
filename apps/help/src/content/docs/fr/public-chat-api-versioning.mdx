@@ -1,0 +1,66 @@
+---
+title: Versions et dépréciation de l'API de chat publique
+highlight: Versions
+description: Comment l'API de chat publique est versionnée, ce qui compte comme un changement compatible ou cassant, et combien de temps une ancienne version reste disponible.
+category: developers
+order: 2
+updated: 2026-09-09
+apiVersion: "1.0"
+---
+
+L'API de chat publique est un contrat. Cette page explique comment elle évolue et comment
+vous en êtes informé. La version courante est la **1.0**.
+
+## Format des versions
+
+- Une version s'écrit `majeure.mineure`, par exemple `1.0`.
+- La **majeure** est dans le chemin : `/public/v1/agents/...`.
+- La **mineure** n'est pas dans le chemin. Le
+  [journal des modifications](/fr/public-chat-api-changelog) la liste.
+- Les chemins sans préfixe `/public/agents/...` sont un alias historique de la version 1.
+  Ils répondent exactement comme `/public/v1/...` et restent disponibles tant que la
+  version 1 est servie.
+
+## Ce que couvre le contrat
+
+Chaque route, chaque champ de requête et de réponse, chaque en-tête, code de statut,
+message d'erreur et événement envoyé par le serveur décrit sur la
+[page de référence](/fr/public-chat-api). Les comportements décrits là, comme l'ordre des
+événements, font aussi partie du contrat.
+
+## Changements compatibles (version mineure)
+
+Une version mineure ajoute des éléments et ne change rien de ce qui existe :
+
+- une nouvelle route,
+- un nouveau champ dans une réponse,
+- un nouveau champ optionnel dans une requête,
+- un nouveau type d'événement dans le flux.
+
+Votre client reste compatible s'il ignore les champs et les types d'événements inconnus.
+Faites-en une règle dans votre code.
+
+## Changements cassants (version majeure)
+
+Une version majeure peut renommer ou supprimer un élément, changer un type, rendre un champ
+optionnel obligatoire, ou changer un code de statut, un message d'erreur ou le format du
+flux. Une version majeure est servie sous un nouveau préfixe de chemin, par exemple
+`/public/v2/...`. La majeure précédente continue de répondre sur ses propres chemins
+pendant la période de dépréciation.
+
+## Politique de dépréciation
+
+- Quand une nouvelle version majeure est publiée, la majeure précédente reste disponible au
+  moins **6 mois** après la date de publication de la nouvelle.
+- Le [journal des modifications](/fr/public-chat-api-changelog) annonce la nouvelle
+  version, la date d'arrêt de l'ancienne et les étapes de migration.
+- Pendant la période de dépréciation, les réponses de l'ancienne version peuvent porter les
+  en-têtes standard `Deprecation` et `Sunset` avec la date d'arrêt.
+- Après la date d'arrêt, les anciens chemins répondent `404`.
+
+## Rester informé
+
+- Ajoutez le [journal des modifications](/fr/public-chat-api-changelog) à vos favoris.
+  Chaque changement y figure avec sa date.
+- Les notes de version de la plateforme mentionnent aussi les changements de l'API publique.
+- Testez votre intégration sur la page de référence après chaque changement annoncé.

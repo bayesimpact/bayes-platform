@@ -19,6 +19,7 @@ export type CategoryId =
   | "guides-team"
   | "guides-eval"
   | "account"
+  | "developers"
   | "faq"
 
 export type Category = {
@@ -109,8 +110,18 @@ export const categories: Category[] = [
     },
   },
   {
-    id: "faq",
+    id: "developers",
     order: 4,
+    icon: "code",
+    label: { en: "Developers", fr: "Développeurs" },
+    description: {
+      en: "Build your own client on the public chat API.",
+      fr: "Construisez votre propre client sur l'API de chat publique.",
+    },
+  },
+  {
+    id: "faq",
+    order: 5,
     icon: "help-circle",
     label: { en: "FAQ", fr: "FAQ" },
     description: {

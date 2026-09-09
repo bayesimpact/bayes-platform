@@ -17,6 +17,8 @@ interface Props {
   description: string
   category: string
   updated?: Date
+  /** Public API version documented by the page, shown as a pill under the title. */
+  apiVersion?: string
   locale: Locale
   currentSlug: string
   groups: CategoryGroup[]
@@ -33,6 +35,7 @@ const {
   description,
   category,
   updated,
+  apiVersion,
   locale,
   currentSlug,
   groups,
@@ -76,14 +79,17 @@ const dateFormatter = new Intl.DateTimeFormat(locale, {
             }
           </nav>
           <h1 class="font-display mt-3 text-4xl leading-[1.1]" set:html={highlightKeyword(title, highlight)}></h1>
-          {
-            readingMinutes && (
-              <p class="mt-3 flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Icon name="clock" size={14} />
-                {readingMinutes} {t("article.readingTime")}
-              </p>
-            )
-          }
+          <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+            {
+              readingMinutes && (
+                <p class="flex items-center gap-1.5">
+                  <Icon name="clock" size={14} />
+                  {readingMinutes} {t("article.readingTime")}
+                </p>
+              )
+            }
+            {apiVersion && <span class="pill">{t("article.apiVersion")} {apiVersion}</span>}
+          </div>
           <p class="mt-3 text-lg text-muted-foreground">{description}</p>
           <hr class="my-6 border-border" />
           <div class="prose max-w-none">

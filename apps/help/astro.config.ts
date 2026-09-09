@@ -12,9 +12,13 @@ import { DEFAULT_LOCALE, LOCALES, SITE_URL } from "./src/consts"
 type VitePlugins = NonNullable<NonNullable<AstroUserConfig["vite"]>["plugins"]>
 const vitePlugins = [tailwindcss()] as unknown as VitePlugins
 
+// The deploy job passes the tenant's help URL (canonical links, sitemap). `process.env`
+// is the accessor available inside the config file.
+const siteUrl = process.env.PUBLIC_SITE_URL || SITE_URL
+
 // https://astro.build/config
 export default defineConfig({
-  site: SITE_URL,
+  site: siteUrl,
   output: "static",
   trailingSlash: "ignore",
   i18n: {
@@ -28,6 +32,10 @@ export default defineConfig({
     },
   },
   integrations: [mdx(), sitemap()],
+  // The site is light-only; Astro's default Shiki theme paints code blocks dark.
+  markdown: {
+    shikiConfig: { theme: "github-light" },
+  },
   vite: {
     plugins: vitePlugins,
   },

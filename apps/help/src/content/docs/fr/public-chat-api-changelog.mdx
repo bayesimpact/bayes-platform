@@ -1,0 +1,56 @@
+---
+title: Journal des modifications de l'API de chat publique
+highlight: Journal
+description: Chaque version de l'API de chat publique, avec la date, les changements et les étapes de migration quand un changement est cassant.
+category: developers
+order: 3
+updated: 2026-09-09
+apiVersion: "1.0"
+---
+
+Cette page liste chaque version de l'API de chat publique. La version courante est la
+**1.0**. Les versions mineures ajoutent des éléments et gardent les clients existants
+fonctionnels. Les versions majeures peuvent casser des clients et viennent avec une période
+de dépréciation. Voir la
+[politique de versions et de dépréciation](/fr/public-chat-api-versioning).
+
+{/*
+  Modèle d'entrée. Gardez le format du titre : la vérification CI lit "## <majeure.mineure> (<date>)".
+
+  ## 1.1 (AAAA-MM-JJ)
+
+  ### Ajouté
+  - ...
+
+  ### Modifié
+  - ...
+
+  ### Déprécié
+  - ...
+
+  ### Supprimé
+  - ...
+
+  ### Migration
+  - ... (obligatoire pour une version majeure)
+*/}
+
+## 1.0 (2026-09-09)
+
+### Ajouté
+
+- Première version publiée de l'API de chat publique, sous `/public/v1/agents/{embedToken}/`.
+- Cinq routes : configuration de l'agent, création d'une session, lecture d'une session,
+  lecture du HTML des cartes MCP App, envoi d'un message avec réponse en flux.
+- La [page de référence](/fr/public-chat-api) documente les routes, les événements envoyés
+  par le serveur, les codes d'erreur, le comportement CORS et les limites.
+
+### Modifié
+
+- Les chemins sans préfixe `/public/agents/{embedToken}/...` deviennent un alias historique
+  de la version 1. Ils continuent de répondre tant que la version 1 est servie.
+
+### Migration
+
+- Aucune. Les clients existants continuent de fonctionner sans changement. Passez aux
+  chemins `/public/v1/` quand cela vous convient.

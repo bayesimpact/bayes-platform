@@ -1,0 +1,477 @@
+---
+title: Public chat API reference
+highlight: API
+description: Build your own chat client on a public agent. Routes, headers, server-sent events, error codes and limits of the public chat API, version 1.
+category: developers
+order: 1
+updated: 2026-09-09
+apiVersion: "1.0"
+---
+
+import PublicApiBaseUrl from "@/components/PublicApiBaseUrl.astro"
+
+The public chat API lets your application talk to a **conversation agent** without the
+platform user interface. You create a chat session, send messages and receive the reply
+as a stream. The [Embed](/en/agent-embed) guide covers the no-code widget. This page
+covers the HTTP API behind it.
+
+This API is a versioned contract. Read the
+[versioning and deprecation policy](/en/public-chat-api-versioning) and follow the
+[changelog](/en/public-chat-api-changelog).
+
+## Before you start
+
+- You need an **embed token**. A workspace member with access to the agent finds it on the
+  **Embed** tab of the agent editor, inside the embed snippet (`data-token`) and in the
+  **Public page link** (`embedToken`).
+- Embedding must be turned on for the agent (**Enable embed** on the same tab). The API
+  answers `403` while it is off.
+- The embed token identifies the agent. It is not a secret. Restrict **Allowed origins**
+  when browsers call the API from your pages.
+- No API key is needed. Server-to-server calls work with the embed token alone.
+
+## Base URL
+
+<PublicApiBaseUrl lang="en" />
+
+All routes of version 1 start with `/public/v1/agents/{embedToken}`.
+
+The unprefixed paths `/public/agents/{embedToken}/...` predate versioning. They answer
+exactly like the `v1` paths and stay available for as long as version 1 is served. Use the
+`v1` paths in new integrations.
+
+## Version
+
+This page documents version **1.0**. The major version is in the path (`v1`). Minor versions
+add fields or routes and never change existing ones. The
+[changelog](/en/public-chat-api-changelog) lists every version. Your client must ignore
+unknown fields and unknown event types. This keeps it compatible with future minor versions.
+
+## Authentication
+
+### Embed token
+
+The embed token is the `{embedToken}` segment of every path. The API rejects an unknown
+token with `401` and a disabled one with `403`.
+
+### Session token
+
+A **session** is one conversation. [Create a session](#create-a-session) returns a
+`sessionToken`. Send it in the `X-Session-Token` header on every session route. The token
+is returned once. The server stores only a hash of it. Store it on your side.
+
+Session tokens do not expire. The workspace retention rule can empty the conversation
+content later (see [Limits and lifetimes](#limits-and-lifetimes)). When a session route
+answers `401`, discard the stored session and create a new one.
+
+## Conventions
+
+- Responses wrap their content in `{ "data": ... }`.
+- Request bodies wrap their content in `{ "payload": ... }`. Send
+  `Content-Type: application/json`.
+- Times are numbers: milliseconds since 1970-01-01 UTC.
+- Identifiers and tokens are UUID strings. Treat them as opaque.
+- A field with no value is `null`. An optional field can be absent.
+- Ignore fields and event types you do not know.
+
+## Routes
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/public/v1/agents/{embedToken}/config` | Read the agent's public configuration |
+| `POST` | `/public/v1/agents/{embedToken}/sessions` | Create a session |
+| `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}` | Read a session and its messages |
+| `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/mcp-app-html` | Read the HTML of MCP App cards |
+| `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream` | Send a message and stream the reply |
+
+### Get the agent configuration
+
+```
+GET /public/v1/agents/{embedToken}/config
+```
+
+Returns the branding of the agent. Use it to render your own header.
+
+```bash
+curl "$API_BASE/public/v1/agents/$EMBED_TOKEN/config"
+```
+
+```json
+{
+  "data": {
+    "agentName": "Helpful Assistant",
+    "title": "Help Center",
+    "logoUrl": "https://example.com/logo.png",
+    "primaryColor": "#2563eb",
+    "bannerText": "Test version, for the pilot team only"
+  }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `agentName` | string | Name of the agent |
+| `title` | string or null | Widget title. Fall back to `agentName` when null |
+| `logoUrl` | string or null | Logo image URL |
+| `primaryColor` | string or null | Brand color, hex |
+| `bannerText` | string or null | Notice to pin above the conversation |
+
+Status: `200`. Errors: `401`, `403`.
+
+### Create a session
+
+```
+POST /public/v1/agents/{embedToken}/sessions
+```
+
+Creates a conversation and returns its token. Call it once per visitor, then store
+`sessionId` and `sessionToken`.
+
+```bash
+curl -X POST "$API_BASE/public/v1/agents/$EMBED_TOKEN/sessions" \
+  -H "Content-Type: application/json" \
+  -d '{ "payload": { "externalVisitorId": "visitor-42" } }'
+```
+
+| Request field | Type | Description |
+|---|---|---|
+| `payload.externalVisitorId` | string, optional | Your own stable identifier for the visitor. Tools receive it. Do not put personal data in it |
+
+```json
+{
+  "data": {
+    "sessionId": "8d1f5c2e-3b7a-4e9c-9f0d-2a6b7c8d9e10",
+    "sessionToken": "0f9e8d7c-6b5a-4433-2211-00ffeeddccbb"
+  }
+}
+```
+
+Status: `201`. Errors: `401`, `403`.
+
+When the agent has a greeting message, the session starts with that message as its first
+`assistant` message. Read it with [Get a session](#get-a-session).
+
+### Get a session
+
+```
+GET /public/v1/agents/{embedToken}/sessions/{sessionId}
+X-Session-Token: {sessionToken}
+```
+
+Returns the session and all its messages, oldest first.
+
+```json
+{
+  "data": {
+    "id": "8d1f5c2e-3b7a-4e9c-9f0d-2a6b7c8d9e10",
+    "agentId": "2c4e6a8b-0d1f-4a2b-8c3d-4e5f6a7b8c9d",
+    "createdAt": 1788000000000,
+    "messages": [
+      {
+        "id": "5a6b7c8d-9e0f-4a1b-8c2d-3e4f5a6b7c8d",
+        "role": "user",
+        "content": "What is your return policy?",
+        "status": "completed",
+        "createdAt": 1788000001000
+      },
+      {
+        "id": "6b7c8d9e-0f1a-4b2c-9d3e-4f5a6b7c8d9e",
+        "role": "assistant",
+        "content": "You can return an item within 30 days.",
+        "status": "completed",
+        "createdAt": 1788000002000,
+        "toolCalls": [
+          {
+            "id": "call-1",
+            "name": "lookup_knowledge_base",
+            "arguments": { "query": "return policy" }
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | string | Session identifier |
+| `agentId` | string | Agent identifier |
+| `createdAt` | number | Creation time |
+| `messages[].id` | string | Message identifier |
+| `messages[].role` | `user`, `assistant` or `tool` | Author of the message |
+| `messages[].content` | string | Text of the message |
+| `messages[].status` | `streaming`, `completed`, `aborted` or `error`, optional | State of an assistant reply |
+| `messages[].createdAt` | number | Creation time |
+| `messages[].toolCalls` | array, optional | Tools the agent ran for this reply |
+| `toolCalls[].id` | string | Call identifier |
+| `toolCalls[].name` | string | Tool name |
+| `toolCalls[].arguments` | object | Arguments the agent sent |
+| `toolCalls[].result` | any, optional | Raw tool result, present for MCP App cards |
+| `toolCalls[].mcpApp` | object, optional | MCP App card pointer: `mcpServerId`, `resourceUri` |
+
+A message with `status: "streaming"` is still being written. Read the session again until
+the status settles. The reference widget reads it every 2 seconds. A reply that makes no
+progress for 5 minutes becomes `aborted`.
+
+The `mcpApp` pointer never carries HTML here. Read it with the next route.
+
+Status: `200`. Errors: `401`, `403`.
+
+### Get MCP App card HTML
+
+```
+GET /public/v1/agents/{embedToken}/sessions/{sessionId}/mcp-app-html
+X-Session-Token: {sessionToken}
+```
+
+Returns the current HTML of every MCP App card the session's replies point at. The server
+contacts each MCP server, so call this route after you display the messages, and only when
+a message has `toolCalls[].mcpApp`.
+
+```json
+{
+  "data": [
+    {
+      "mcpServerId": "3d5f7a9b-1c2e-4f3a-9b4c-5d6e7f8a9b0c",
+      "resourceUri": "ui://order-summary/card.html",
+      "html": "<!doctype html>..."
+    }
+  ]
+}
+```
+
+Match a card to its message with `mcpServerId` and `resourceUri`. The array is empty when
+no card exists.
+
+Status: `200`. Errors: `401`, `403`.
+
+### Send a message and stream the reply
+
+```
+GET /public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream?q={encodedPayload}
+X-Session-Token: {sessionToken}
+Accept: text/event-stream
+```
+
+Sends the visitor's message and returns the reply as
+[server-sent events](#server-sent-events). The payload travels URL-encoded in the `q`
+query parameter, so the route works with `GET`:
+
+```js
+const q = encodeURIComponent(JSON.stringify({ payload: { content: "What is your return policy?" } }))
+```
+
+| Payload field | Type | Description |
+|---|---|---|
+| `payload.content` | string, required | The visitor's message. Must not be empty |
+
+```bash
+curl -N "$API_BASE/public/v1/agents/$EMBED_TOKEN/sessions/$SESSION_ID/messages/stream?q=%7B%22payload%22%3A%7B%22content%22%3A%22Hello%22%7D%7D" \
+  -H "X-Session-Token: $SESSION_TOKEN" \
+  -H "Accept: text/event-stream"
+```
+
+The browser `EventSource` API cannot send the `X-Session-Token` header. Use `fetch` and read
+the response body as a stream (see [Quick start](#quick-start)). `POST` on this path
+returns `404`.
+
+Status: `200` with `Content-Type: text/event-stream`. Errors before the stream starts:
+`401`, `403`. Errors on the payload arrive inside the stream (see below).
+
+After the final event, read the session again to get the persisted reply and its
+`toolCalls`. The stream carries text only.
+
+## Server-sent events
+
+### Wire format
+
+The response starts with one empty line. Then each event is two lines followed by an
+empty line:
+
+```
+id: 1
+data: {"type":"start","messageId":"6b7c8d9e-0f1a-4b2c-9d3e-4f5a6b7c8d9e"}
+
+id: 2
+data: {"type":"chunk","messageId":"6b7c8d9e-0f1a-4b2c-9d3e-4f5a6b7c8d9e","content":"You can"}
+
+id: 3
+data: {"type":"chunk","messageId":"6b7c8d9e-0f1a-4b2c-9d3e-4f5a6b7c8d9e","content":" return an item within 30 days."}
+
+id: 4
+data: {"type":"end","messageId":"6b7c8d9e-0f1a-4b2c-9d3e-4f5a6b7c8d9e","fullContent":"You can return an item within 30 days."}
+```
+
+- `id` counts from 1 for each response. It is not a resume token: the server ignores
+  `Last-Event-ID`.
+- `data` is one JSON object. Its `type` field names the event.
+- Normal events have no `event:` line. Browsers deliver them as `message` events.
+- The server sends no heartbeat and no `[DONE]` marker. It closes the connection after
+  the final event.
+
+### Event catalog
+
+| `type` | Fields | Meaning |
+|---|---|---|
+| `start` | `messageId` | The reply starts. `messageId` is the identifier of the assistant message |
+| `chunk` | `messageId`, `content` | A piece of text. Append it to the reply |
+| `notify_client` | `toolName` | The agent ran a tool. Informational |
+| `end` | `messageId`, `fullContent` | The reply is complete. `fullContent` is the whole text |
+| `error` | `messageId`, `error` | The reply failed. `error` is a message for logs |
+
+### Order and end of stream
+
+1. One `start` event.
+2. Any number of `chunk` and `notify_client` events, in any order.
+3. Exactly one `end` or `error` event.
+
+Then the server closes the connection.
+
+### Stream-level errors
+
+When the request cannot start a reply, the HTTP status is still `200` and the stream
+carries one named error event with a plain text `data` line, then the connection closes:
+
+```
+event: error
+id: 1
+data: User content must not be empty
+```
+
+| `data` | Cause |
+|---|---|
+| `Invalid query format` | `q` is not valid JSON |
+| `User content must not be empty` | `payload.content` is missing or blank |
+| `Agent not found` | The agent was deleted |
+
+A failed generation sends the `error` JSON event, then this named error event, then closes.
+
+### Reconnection
+
+There is no resume. When the connection drops, read the session: the server keeps writing
+the reply and settles its status on its own. Poll until the last assistant message is no
+longer `streaming`.
+
+## Errors
+
+Error responses are JSON:
+
+```json
+{ "statusCode": 401, "message": "Invalid embed token", "error": "Unauthorized" }
+```
+
+| Status | `message` | Cause | What to do |
+|---|---|---|---|
+| `401` | `Invalid embed token` | Unknown embed token | Check the token on the Embed tab |
+| `403` | `Embed access is disabled for this agent` | **Enable embed** is off | Turn embedding on |
+| `403` | `Origin not allowed` | The browser `Origin` is not in **Allowed origins** | Add your origin, or clear the list |
+| `401` | `Missing session token` | No `X-Session-Token` header | Send the header |
+| `401` | `Invalid session token` | Token and session do not match | Create a new session |
+| `401` | `Session does not belong to this agent` | Session created with another embed token | Create a new session |
+| `404` | `Cannot GET /public/...` | Unknown path or method | Check the route table |
+| `400` | (parser message) | Malformed JSON body | Fix the body. This response has no `error` field |
+| `413` | `request entity too large` | Body over 500 kB | Shorten the body. This response has no `error` field |
+| `500` | `Internal server error` | Server fault | Retry later |
+
+The stream route reports payload errors inside the stream, see
+[Stream-level errors](#stream-level-errors).
+
+## CORS
+
+Browsers on any origin can call these routes:
+
+- The response `Access-Control-Allow-Origin` echoes the request `Origin`.
+- The preflight allows the headers you request, including `X-Session-Token` and
+  `Content-Type`.
+- No cookies and no credentials are used.
+
+When **Allowed origins** is set on the Embed tab, the API compares the browser `Origin`
+header to that list and answers `403 Origin not allowed` on a mismatch. Server-to-server
+calls send no `Origin` header and are not filtered by the list.
+
+## Limits and lifetimes
+
+- JSON request bodies are limited to 500 kB (`413` above).
+- The stream request travels in the URL. Keep the encoded `q` parameter under 8 kB.
+- One reply per stream request. Wait for `end` before you send the next message.
+- No rate limit is enforced today. Use the API fairly. A limit would be announced on the
+  [changelog](/en/public-chat-api-changelog) as a minor change, with `429` responses.
+- Session content follows the workspace retention rule (30 days after creation by
+  default). After that, the messages have empty `content` and no `toolCalls`. The session
+  identifier and token still work. Create a new session for a new conversation.
+
+## Quick start
+
+A minimal JavaScript client. It creates or restores a session, streams a reply, and reads
+the session again after the final event.
+
+```js
+const API_BASE = "https://<your-api-host>"
+const EMBED_TOKEN = "<embedToken>"
+
+async function api(path, init = {}) {
+  const response = await fetch(`${API_BASE}${path}`, init)
+  if (!response.ok) throw new Error(`HTTP ${response.status}`)
+  return response
+}
+
+// 1. Create or restore a session
+let session = JSON.parse(localStorage.getItem("chat-session") ?? "null")
+if (!session) {
+  const response = await api(`/public/v1/agents/${EMBED_TOKEN}/sessions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ payload: {} }),
+  })
+  session = (await response.json()).data
+  localStorage.setItem("chat-session", JSON.stringify(session))
+}
+
+const sessionPath = `/public/v1/agents/${EMBED_TOKEN}/sessions/${session.sessionId}`
+const sessionHeaders = { "X-Session-Token": session.sessionToken }
+
+// 2. Send a message and stream the reply
+async function send(content, onChunk) {
+  const q = encodeURIComponent(JSON.stringify({ payload: { content } }))
+  const response = await api(`${sessionPath}/messages/stream?q=${q}`, {
+    headers: { ...sessionHeaders, Accept: "text/event-stream" },
+  })
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ""
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    const blocks = buffer.split("\n\n")
+    buffer = blocks.pop() ?? ""
+    for (const block of blocks) {
+      const lines = block.split("\n")
+      const data = lines.find((line) => line.startsWith("data: "))?.slice(6)
+      if (!data) continue
+      if (lines.some((line) => line.startsWith("event: error"))) throw new Error(data)
+      const event = JSON.parse(data)
+      if (event.type === "chunk") onChunk(event.content)
+      if (event.type === "error") throw new Error(event.error)
+    }
+  }
+}
+
+// 3. Read the persisted conversation
+async function readSession() {
+  const response = await api(sessionPath, { headers: sessionHeaders })
+  return (await response.json()).data
+}
+
+await send("Hello!", (text) => process.stdout.write(text))
+console.log(await readSession())
+```
+
+Handle `401` on a session route by clearing the stored session and creating a new one.
+
+## Related pages
+
+- [Embed](/en/agent-embed): the no-code widget and the Embed tab settings.
+- [Versioning and deprecation policy](/en/public-chat-api-versioning).
+- [Public chat API changelog](/en/public-chat-api-changelog).
