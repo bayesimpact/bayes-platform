@@ -1,0 +1,14 @@
+apiVersion: v2
+name: bayes-platform
+description: The Bayes platform (API, web front ends, async workers, PDF converter) on Kubernetes, with optional bundled Postgres and Redis.
+type: application
+version: 0.1.0
+appVersion: "main"
+kubeVersion: ">=1.27.0-0"
+home: https://github.com/bayesimpact/bayes-platform
+sources:
+  - https://github.com/bayesimpact/bayes-platform
+keywords:
+  - ai
+  - agents
+  - rag

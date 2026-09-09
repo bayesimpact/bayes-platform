@@ -21,7 +21,7 @@ import { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { AgentMessage } from "../../shared/agent-session-messages/agent-message.entity"
-import { StreamingService } from "../../shared/agent-session-messages/streaming/streaming.service"
+import { StreamingLlmService } from "../../shared/agent-session-messages/streaming/streaming-llm.service"
 import { ToolsService } from "../../shared/agent-session-messages/streaming/tools.service"
 import { ConversationAgentSession } from "../conversation-agent-session.entity"
 import { ConversationAgentSessionCategory } from "../conversation-agent-session-category.entity"
@@ -30,7 +30,7 @@ import { ConversationAgentSessionsService } from "../conversation-agent-sessions
 
 export function agentSessionControllerTestSetup() {
   let service: ConversationAgentSessionsService
-  let streamingService: StreamingService
+  let streamingLLMService: StreamingLlmService
   let toolsService: ToolsService
   let conversationAgentSessionRepository: Repository<ConversationAgentSession>
   let conversationAgentSessionCategoryRepository: Repository<ConversationAgentSessionCategory>
@@ -58,17 +58,8 @@ export function agentSessionControllerTestSetup() {
     setup = await setupE2eTestDatabase({
       additionalImports: [ConversationAgentSessionsModule],
     })
-  })
-
-  afterAll(async () => {
-    await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
-  })
-
-  beforeEach(async () => {
-    await clearTestDatabase(setup.dataSource)
     service = setup.module.get<ConversationAgentSessionsService>(ConversationAgentSessionsService)
-    streamingService = setup.module.get<StreamingService>(StreamingService)
+    streamingLLMService = setup.module.get<StreamingLlmService>(StreamingLlmService)
     toolsService = setup.module.get<ToolsService>(ToolsService)
     conversationAgentSessionRepository = setup.getRepository(ConversationAgentSession)
     conversationAgentSessionCategoryRepository = setup.getRepository(
@@ -85,6 +76,15 @@ export function agentSessionControllerTestSetup() {
     projectRepository = setup.getRepository(Project)
     userMembershipRepository = setup.getRepository(UserMembership)
     repositories = setup.getAllRepositories()
+  })
+
+  afterAll(async () => {
+    await teardownE2eTestDatabase(setup)
+    await sdk.shutdown()
+  })
+
+  beforeEach(async () => {
+    await clearTestDatabase(setup.dataSource)
 
     // Use unique identifier to avoid conflicts between tests
     const uniqueId = Date.now().toString()
@@ -148,7 +148,7 @@ export function agentSessionControllerTestSetup() {
       testProject,
       testUser,
       userRepository,
-      streamingService,
+      streamingLLMService,
       toolsService,
     }
   }

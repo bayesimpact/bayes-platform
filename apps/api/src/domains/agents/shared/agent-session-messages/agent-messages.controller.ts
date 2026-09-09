@@ -22,6 +22,8 @@ import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { BaseAgentSessionGuard } from "@/domains/agents/base-agent-sessions/base-agent-session.guard"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import {
   extractFileExtension,
@@ -35,7 +37,7 @@ import { UserGuard } from "@/domains/users/user.guard"
 import type { ConversationAgentSession } from "../../conversation-agent-sessions/conversation-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ConversationAgentSessionsService } from "../../conversation-agent-sessions/conversation-agent-sessions.service"
-import { toDto, toDtos } from "./agent-message.helpers"
+import { toDto, toDtos, toMcpAppHtmlDtos } from "./agent-message.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMessageAttachmentDocumentsService } from "./agent-message-attachment-documents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -51,6 +53,7 @@ export class AgentMessagesController {
     private readonly agentMessageAttachmentDocumentsService: AgentMessageAttachmentDocumentsService,
     private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
     private readonly mcpAppHtmlService: McpAppHtmlService,
+    private readonly agentSettingsService: AgentSettingsService,
   ) {}
 
   @CheckPolicy((policy) => policy.canList())
@@ -64,34 +67,57 @@ export class AgentMessagesController {
       agentSessionId,
       connectScope,
     })
+    // MCP App HTML is served by `getMcpAppHtml`: reading it connects to every MCP server the
+    // transcript points at, which used to hold the whole thread behind a spinner.
+    return { data: toDtos(messages) }
+  }
+
+  @CheckPolicy((policy) => policy.canList())
+  @Post(AgentSessionMessagesRoutes.getMcpAppHtml.path)
+  async getMcpAppHtml(
+    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
+  ): Promise<typeof AgentSessionMessagesRoutes.getMcpAppHtml.response> {
+    const connectScope = getRequiredConnectScope(request)
+    const agentSessionId = request.agentSession.id
+    const messages = await this.conversationAgentSessionsService.listMessagesForSession({
+      agentSessionId,
+      connectScope,
+    })
     const htmlByKey = await this.mcpAppHtmlService.readLiveHtml({
       agentId: request.agent.id,
       sessionId: agentSessionId,
       messages,
+      // Cards are re-read in the agent's published language: a draft under
+      // edit does not change what an existing conversation shows.
+      resolveLocale: async () => {
+        const agentSettings = await this.agentSettingsService.getLast({
+          connectScope,
+          agentId: request.agent.id,
+        })
+        return agentSettings.locale
+      },
     })
-    return { data: toDtos(messages, htmlByKey) }
+    return { data: toMcpAppHtmlDtos(htmlByKey) }
   }
 
   @CheckPolicy((policy) => policy.canList())
   @Post(AgentSessionMessagesRoutes.getOne.path)
   async getOne(
     @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
-    @Param("messageId") messageId: string, // TODO: add context
+    @Param("messageId") messageId: string,
   ): Promise<typeof AgentSessionMessagesRoutes.getOne.response> {
     const connectScope = getRequiredConnectScope(request)
     const message = await this.conversationAgentSessionsService.getMessageById({
       id: messageId,
+      agentSessionId: request.agentSession.id,
       connectScope,
     })
     if (!message) {
       throw new NotFoundException("Message not found")
     }
-    const htmlByKey = await this.mcpAppHtmlService.readLiveHtml({
-      agentId: request.agent.id,
-      sessionId: request.agentSession.id,
-      messages: [message],
-    })
-    return { data: toDto(message, htmlByKey) }
+    // The client polls this while a reply is still being written; the MCP App HTML it may
+    // need once settled is loaded through `getMcpAppHtml`, off the polling path.
+    return { data: toDto(message) }
   }
 
   @CheckPolicy((policy) => policy.canCreate())

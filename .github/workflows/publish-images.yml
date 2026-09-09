@@ -1,0 +1,201 @@
+name: Publish images
+
+# Builds the six container images and pushes them to GitHub Container
+# Registry, public, so any cluster can pull them without credentials:
+#   ghcr.io/bayesimpact/bayes-platform/<component>:<tag>
+# app = the API plus the web front served under /app (target app-runtime).
+#
+# Tags: sha-<short sha>, main and main-<run>-<sha> on every push to main, the CalVer version on a release
+# tag (v26.09.1 -> 26.09.1), and latest on main. A release tag also publishes
+# the Helm chart as an OCI artifact: oci://ghcr.io/bayesimpact/charts/bayes-platform.
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v[0-9][0-9].[0-9][0-9].*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  attestations: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_BASE: ghcr.io/${{ github.repository }}
+
+jobs:
+  images:
+    name: ${{ matrix.image }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: app
+            dockerfile: apps/api/Dockerfile
+            target: app-runtime
+            runner: ubuntu-latest
+            cache_from: |
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:app
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:cpu-workers
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:gpu-workers
+          - image: cpu-workers
+            dockerfile: apps/api/Dockerfile
+            target: cpu-workers-runtime
+            runner: ubuntu-latest
+            cache_from: |
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:app
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:cpu-workers
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:gpu-workers
+          # Close to 10 GB uncompressed (Torch with CUDA, Docling). Built on the
+          # self-hosted runner with its persistent BuildKit builder: the
+          # extracted Torch layers stay on the runner between builds, where a
+          # GitHub runner re-extracts 6 GB from the registry cache every time
+          # (ten minutes of the sixteen). This workflow runs on pushes to main,
+          # tags and manual dispatch only, never on pull requests.
+          - image: gpu-workers
+            dockerfile: apps/api/Dockerfile
+            target: gpu-workers-runtime
+            runner: self-hosted
+            builder: platform
+            cache_from: |
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:app
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:cpu-workers
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:gpu-workers
+          - image: pdf-converter
+            dockerfile: apps/pdf-converter/Dockerfile
+            target: ""
+            runner: ubuntu-latest
+            cache_from: |
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:pdf-converter
+          - image: web-embed
+            dockerfile: apps/web-embed/Dockerfile
+            target: ""
+            runner: ubuntu-latest
+            cache_from: |
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:web-embed
+          - image: help
+            dockerfile: apps/help/Dockerfile
+            target: ""
+            runner: ubuntu-latest
+            cache_from: |
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:help
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space on the runner
+        if: matrix.image == 'gpu-workers' && matrix.runner != 'self-hosted'
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af
+          df -h /
+
+      # GitHub runners get a throwaway builder. The self-hosted runner has a
+      # persistent one, selected by name on the build step.
+      - uses: docker/setup-buildx-action@v3
+        if: matrix.runner != 'self-hosted'
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_BASE }}/${{ matrix.image }}
+          tags: |
+            type=sha,prefix=sha-,format=short
+            type=match,pattern=v(.*),group=1
+            # "main": what a chart installed from a checkout of main pulls
+            # (its appVersion is "main"). Moves with every push, like latest.
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+            # Sortable tag for GitOps image automation (Flux ImagePolicy):
+            # main-<run number>-<sha>, newest run wins. The run number is the
+            # same for the six images of one run, a timestamp would not be.
+            type=raw,value=main-${{ github.run_number }}-{{sha}},enable={{is_default_branch}}
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          target: ${{ matrix.target }}
+          builder: ${{ matrix.builder }}
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # BuildKit cache in the registry, all stages (mode=max): the images
+          # that share a Dockerfile reuse each other's build stages, and the
+          # 10 GB limit of the GitHub Actions cache does not apply (the GPU
+          # image alone would evict everything).
+          cache-from: ${{ matrix.cache_from }}
+          cache-to: type=registry,ref=${{ env.IMAGE_BASE }}/cache:${{ matrix.image }},mode=max
+          provenance: true
+          sbom: true
+
+      - name: Attest the build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ${{ env.IMAGE_BASE }}/${{ matrix.image }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+  # Tell the deployment repository which tag is ready. The staging cluster
+  # follows main; the deployment repository turns this event into a pull
+  # request on its values and Flux deploys. Same GitHub App as prod.yml.
+  notify:
+    name: notify deployments
+    if: github.ref == 'refs/heads/main'
+    needs: [images]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate GitHub App token
+        uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          app-id: ${{ secrets.DEPLOY_APP_ID }}
+          private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Dispatch platform-images-published
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          gh api repos/${{ github.repository_owner }}/infra/dispatches \
+            -f event_type=platform-images-published \
+            -f "client_payload[tag]=main-${{ github.run_number }}-${GITHUB_SHA::7}" \
+            -f "client_payload[sha]=${{ github.sha }}" \
+            -f "client_payload[repo]=${{ github.repository }}"
+
+  chart:
+    name: helm chart
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [images]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ${{ env.REGISTRY }} --username ${{ github.actor }} --password-stdin
+
+      - name: Package and push
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          helm lint deploy/helm/bayes-platform
+          # The chart keeps its own semver; the app version is the release tag,
+          # and it is the default image tag (see global.image.tag).
+          helm package deploy/helm/bayes-platform --app-version "$VERSION" --destination dist
+          helm push dist/bayes-platform-*.tgz "oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts"

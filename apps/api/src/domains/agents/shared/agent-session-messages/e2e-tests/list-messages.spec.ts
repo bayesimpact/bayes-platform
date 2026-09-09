@@ -11,7 +11,6 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { type Requester, testRequester } from "../../../../../../test/request"
 import { agentMessageFactory, createChitChatConversation } from "../agent-messages.factory"
@@ -48,7 +47,6 @@ describe("AgentSessionMessagesRoutes.listMessages", () => {
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
     await app.close()
   })
 

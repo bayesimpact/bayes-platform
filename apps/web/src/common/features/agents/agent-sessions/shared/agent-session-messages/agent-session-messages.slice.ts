@@ -2,19 +2,27 @@ import type { AgentSessionToolName } from "@caseai-connect/api-contracts"
 import { createSlice, isAnyOf, type PayloadAction } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import { conversationAgentSessionsActions } from "../../conversation/conversation-agent-sessions.slice"
-import type { AgentSessionMessage } from "./agent-session-messages.models"
-import { getMessage, listMessages } from "./agent-session-messages.thunks"
+import type { AgentSessionMcpAppHtml, AgentSessionMessage } from "./agent-session-messages.models"
+import { getMessage, listMcpAppHtml, listMessages } from "./agent-session-messages.thunks"
 
+/**
+ * Whether a reply is being written is not stored: it is read off the messages (see
+ * `selectStreaming`), so the composer lock can never drift from what the thread shows.
+ */
 type State = {
   data: AsyncData<AgentSessionMessage[]>
-  isStreaming: boolean
+  /**
+   * Current HTML of the MCP App cards the thread points at. Loaded after the messages, so the
+   * transcript shows at once and each card holds a placeholder until its HTML is here.
+   */
+  mcpAppHtml: AsyncData<AgentSessionMcpAppHtml[]>
   /** Ordered tools the agent has run during the current streaming turn, driving the status timeline. */
   streamingToolSteps: AgentSessionToolName[]
 }
 
 const initialState: State = {
   data: defaultAsyncData,
-  isStreaming: false,
+  mcpAppHtml: defaultAsyncData,
   streamingToolSteps: [],
 }
 
@@ -38,7 +46,6 @@ const slice = createSlice({
       if (!ADS.isFulfilled(state.data))
         state.data = { value: [], status: ADS.Fulfilled, error: null }
 
-      state.isStreaming = true
       state.streamingToolSteps = []
       state.data.value.push(action.payload.userMessage)
       state.data.value.push({
@@ -56,7 +63,7 @@ const slice = createSlice({
       if (!ADS.isFulfilled(state.data)) return
 
       const message = state.data.value.find((msg) => msg.id === action.payload.oldMessageId)
-      if (message && message.role === "assistant" && message.status === "streaming") {
+      if (message && isStreamingReply(message)) {
         message.id = action.payload.newMessageId
       }
     },
@@ -90,7 +97,6 @@ const slice = createSlice({
           message.completedAt = Date.now()
         }
       }
-      state.isStreaming = false
       state.streamingToolSteps = []
     },
     failAssistantMessage: (state, action: PayloadAction<{ messageId: string; error: string }>) => {
@@ -104,7 +110,20 @@ const slice = createSlice({
           message.completedAt = Date.now()
         }
       }
-      state.isStreaming = false
+      state.streamingToolSteps = []
+    },
+    /**
+     * The reply can no longer be followed (see the recovery poll): shown as interrupted, with the
+     * turn offered again, rather than as a spinner for good. Nothing written so far is kept.
+     */
+    interruptAssistantMessage: (state, action: PayloadAction<{ messageId: string }>) => {
+      if (!ADS.isFulfilled(state.data)) return
+
+      const message = state.data.value.find((msg) => msg.id === action.payload.messageId)
+      if (message && isStreamingReply(message)) {
+        message.status = "aborted"
+        message.content = ""
+      }
       state.streamingToolSteps = []
     },
   },
@@ -115,8 +134,22 @@ const slice = createSlice({
         state.data.error = null
       })
       .addCase(listMessages.fulfilled, (state, action) => {
+        const localReply = ADS.isFulfilled(state.data)
+          ? state.data.value.find(isStreamingReply)
+          : undefined
+        // A list fetched before the turn being written here was persisted knows nothing of it:
+        // applying it would drop the optimistic turn and unlock the composer while the stream
+        // still runs. The stream, or the recovery poll, settles the thread itself.
+        if (localReply && !action.payload.some((message) => message.id === localReply.id)) return
         state.data = {
-          value: action.payload,
+          // The server persists a reply's content at completion only, so while it still reports
+          // the reply streaming the chunks received here are the fuller picture. A list that
+          // shows it settled, on the other hand, is the outcome and replaces it.
+          value: action.payload.map((message) =>
+            localReply && message.id === localReply.id && isStreamingReply(message)
+              ? { ...localReply }
+              : message,
+          ),
           status: ADS.Fulfilled,
           error: null,
         }
@@ -126,9 +159,33 @@ const slice = createSlice({
         state.data.error = action.error.message || "Failed to load session messages"
       })
 
+    builder
+      .addCase(listMcpAppHtml.pending, (state) => {
+        // HTML already shown stays on screen while a refresh runs: a card must not fall back to
+        // its placeholder every time the thread is reloaded.
+        if (!ADS.isFulfilled(state.mcpAppHtml)) state.mcpAppHtml.status = ADS.Loading
+        state.mcpAppHtml.error = null
+      })
+      .addCase(listMcpAppHtml.fulfilled, (state, action) => {
+        state.mcpAppHtml = { value: action.payload, status: ADS.Fulfilled, error: null }
+      })
+      .addCase(listMcpAppHtml.rejected, (state, action) => {
+        // Cards already loaded keep rendering; only the placeholders give way to their text.
+        if (ADS.isFulfilled(state.mcpAppHtml)) return
+        state.mcpAppHtml = {
+          value: null,
+          status: ADS.Error,
+          error: action.error.message || "Failed to load MCP App cards",
+        }
+      })
+
     builder.addCase(getMessage.fulfilled, (state, action) => {
       if (!ADS.isFulfilled(state.data)) return
       const updatedMessage = action.payload
+      // A snapshot of a reply still being written carries no content (it is persisted at
+      // completion) and may even trail a completion the client already saw. Only a settled
+      // snapshot may replace what the client holds.
+      if (isStreamingReply(updatedMessage)) return
       const messageIndex = state.data.value.findIndex((msg) => msg.id === updatedMessage.id)
       if (messageIndex !== -1) {
         state.data.value[messageIndex] = updatedMessage
@@ -139,6 +196,14 @@ const slice = createSlice({
     builder.addMatcher(isAnyOf(conversationAgentSessionsActions.sessionUnmount), () => initialState)
   },
 })
+
+/** An assistant reply still being written, live over SSE or recovered after a refresh. */
+export const isStreamingReply = (message: AgentSessionMessage): boolean =>
+  message.role === "assistant" && message.status === "streaming"
+
+/** Whether an assistant reply in the thread is still being written. */
+export const hasStreamingReply = (messages: AgentSessionMessage[]): boolean =>
+  messages.some(isStreamingReply)
 
 export type { State as agentSessionMessagesState }
 export const agentSessionMessagesInitialState = initialState

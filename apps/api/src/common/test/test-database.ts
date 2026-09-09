@@ -123,11 +123,6 @@ export async function setupE2eTestDatabase(
   }
 }
 
-/**
- * Clears all test data from the database.
- * Tables are cleared in the correct order to respect foreign key constraints.
- * Uses TRUNCATE CASCADE for faster and safer cleanup that respects foreign keys.
- */
 export async function clearTestDatabase(dataSource: DataSource): Promise<void> {
   if (!dataSource || !dataSource.isInitialized) {
     return
@@ -141,30 +136,81 @@ export async function clearTestDatabase(dataSource: DataSource): Promise<void> {
 
     try {
       // Delete in order: child tables first, then parent tables
-      await queryRunner.query(`DELETE FROM "activity"`)
-      await queryRunner.query(`DELETE FROM "agent_csv_extraction_run_record"`)
-      await queryRunner.query(`DELETE FROM "agent_csv_extraction_run"`)
-      await queryRunner.query(`DELETE FROM "evaluation_extraction_run_record"`)
-      await queryRunner.query(`DELETE FROM "evaluation_extraction_run"`)
-      await queryRunner.query(`DELETE FROM "evaluation_extraction_dataset_document"`)
-      await queryRunner.query(`DELETE FROM "evaluation_extraction_dataset_record"`)
-      await queryRunner.query(`DELETE FROM "evaluation_extraction_dataset"`)
-      await queryRunner.query(`DELETE FROM "evaluation_conversation_run_record"`)
-      await queryRunner.query(`DELETE FROM "evaluation_conversation_run"`)
-      await queryRunner.query(`DELETE FROM "evaluation_conversation_dataset_record"`)
-      await queryRunner.query(`DELETE FROM "evaluation_conversation_dataset"`)
-      await queryRunner.query(`DELETE FROM "document_document_tag"`)
-      await queryRunner.query(`DELETE FROM "agent_document_tag"`)
-      await queryRunner.query(`DELETE FROM "document_tag"`)
-      await queryRunner.query(`DELETE FROM "agent_resource_library"`)
-      await queryRunner.query(`DELETE FROM "resource_library"`)
-      await queryRunner.query(`DELETE FROM "feature_flag"`)
-      await queryRunner.query(`DELETE FROM "agent_message_feedback"`)
-      await queryRunner.query(`DELETE FROM "agent_message"`)
-      await queryRunner.query(`DELETE FROM "agent_message_attachment_document"`)
-      await queryRunner.query(`DELETE FROM "tester_session_feedback"`)
-      await queryRunner.query(`DELETE FROM "tester_campaign_survey"`)
-      await queryRunner.query(`DELETE FROM "user_membership"`)
+      await queryRunner.query(`
+WITH
+  del_activity AS (
+    DELETE FROM "activity"
+  ),
+  del_agent_csv_extraction_run_record AS (
+    DELETE FROM "agent_csv_extraction_run_record"
+  ),
+  del_agent_csv_extraction_run AS (
+    DELETE FROM "agent_csv_extraction_run"
+  ),
+  del_evaluation_extraction_run_record AS (
+    DELETE FROM "evaluation_extraction_run_record"
+  ),
+  del_evaluation_extraction_run AS (
+    DELETE FROM "evaluation_extraction_run"
+  ),
+  del_evaluation_extraction_dataset_document AS (
+    DELETE FROM "evaluation_extraction_dataset_document"
+  ),
+  del_evaluation_extraction_dataset_record AS (
+    DELETE FROM "evaluation_extraction_dataset_record"
+  ),
+  del_evaluation_extraction_dataset AS (
+    DELETE FROM "evaluation_extraction_dataset"
+  ),
+  del_evaluation_conversation_run_record AS (
+    DELETE FROM "evaluation_conversation_run_record"
+  ),
+  del_evaluation_conversation_run AS (
+    DELETE FROM "evaluation_conversation_run"
+  ),
+  del_evaluation_conversation_dataset_record AS (
+    DELETE FROM "evaluation_conversation_dataset_record"
+  ),
+  del_evaluation_conversation_dataset AS (
+    DELETE FROM "evaluation_conversation_dataset"
+  ),
+  del_document_document_tag AS (
+    DELETE FROM "document_document_tag"
+  ),
+  del_agent_document_tag AS (
+    DELETE FROM "agent_document_tag"
+  ),
+  del_document_tag AS (
+    DELETE FROM "document_tag"
+  ),
+  del_agent_resource_library AS (
+    DELETE FROM "agent_resource_library"
+  ),
+  del_resource_library AS (
+    DELETE FROM "resource_library"
+  ),
+  del_feature_flag AS (
+    DELETE FROM "feature_flag"
+  ),
+  del_agent_message_feedback AS (
+    DELETE FROM "agent_message_feedback"
+  ),
+  del_agent_message AS (
+    DELETE FROM "agent_message"
+  ),
+  del_agent_message_attachment_document AS (
+    DELETE FROM "agent_message_attachment_document"
+  ),
+  del_tester_session_feedback AS (
+    DELETE FROM "tester_session_feedback"
+  ),
+  del_tester_campaign_survey AS (
+    DELETE FROM "tester_campaign_survey"
+  ),
+  del_user_membership AS (
+    DELETE FROM "user_membership"
+  )
+SELECT 1;`)
       // Legacy membership tables are kept in production for now; test DBs may still
       // have them from older migrations or synchronize.
       await queryRunner.query(`
@@ -196,22 +242,61 @@ export async function clearTestDatabase(dataSource: DataSource): Promise<void> {
           END IF;
         END $$;
       `)
-      await queryRunner.query(`DELETE FROM "invitation"`)
-      await queryRunner.query(`DELETE FROM "extraction_agent_session"`)
-      await queryRunner.query(`DELETE FROM "conversation_retention_sweep_run"`)
-      await queryRunner.query(`DELETE FROM "conversation_agent_session"`)
-      await queryRunner.query(`DELETE FROM "review_campaign"`)
-      await queryRunner.query(`DELETE FROM "document"`)
-      await queryRunner.query(`DELETE FROM "agent_mcp_server"`)
-      await queryRunner.query(`DELETE FROM "agent_sub_agent"`)
-      await queryRunner.query(`DELETE FROM "agent_settings"`)
-      await queryRunner.query(`DELETE FROM "agent"`)
-      await queryRunner.query(`DELETE FROM "mcp_server"`)
-      await queryRunner.query(`DELETE FROM "project"`)
-      await queryRunner.query(`DELETE FROM "organization"`)
-      await queryRunner.query(`DELETE FROM "terms_acceptance"`)
-      await queryRunner.query(`DELETE FROM "user"`)
-      await queryRunner.query(`DELETE FROM "terms_document"`)
+      await queryRunner.query(`
+WITH
+  del_invitation AS (
+    DELETE FROM "invitation"
+  ),
+  del_extraction_agent_session AS (
+    DELETE FROM "extraction_agent_session"
+  ),
+  del_conversation_retention_sweep_run AS (
+    DELETE FROM "conversation_retention_sweep_run"
+  ),
+  del_conversation_agent_session AS (
+    DELETE FROM "conversation_agent_session"
+  ),
+  del_reviewer_session_review AS (
+    DELETE FROM "reviewer_session_review"
+  ),
+  del_review_campaign AS (
+    DELETE FROM "review_campaign"
+  ),
+  del_document AS (
+    DELETE FROM "document"
+  ),
+  del_agent_mcp_server AS (
+    DELETE FROM "agent_mcp_server"
+  ),
+  del_agent_sub_agent AS (
+    DELETE FROM "agent_sub_agent"
+  ),
+  del_agent_settings AS (
+    DELETE FROM "agent_settings"
+  ),
+  del_agent AS (
+    DELETE FROM "agent"
+  ),
+  del_mcp_server AS (
+    DELETE FROM "mcp_server"
+  ),
+  del_project AS (
+    DELETE FROM "project"
+  ),
+  del_organization AS (
+    DELETE FROM "organization"
+  ),
+  del_terms_acceptance AS (
+    DELETE FROM "terms_acceptance"
+  ),
+  del_user AS (
+    DELETE FROM "user"
+  ),
+  del_terms_document AS (
+    DELETE FROM "terms_document"
+  )
+SELECT 1;
+`)
       // Reseed the three required terms documents the production migration
       // installs as a permanent invariant — `getMe` and other handlers throw
       // 404 if any type is missing. The e2e setup uses `synchronize: true`,

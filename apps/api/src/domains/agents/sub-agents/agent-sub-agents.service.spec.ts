@@ -10,7 +10,6 @@ import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { AgentsModule } from "../agents.module"
 import { AgentSubAgentsService } from "./agent-sub-agents.service"
 
@@ -23,17 +22,16 @@ describe("AgentSubAgentsService", () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [AgentsModule],
     })
+    service = setup.module.get<AgentSubAgentsService>(AgentSubAgentsService)
+    repositories = setup.getAllRepositories()
   })
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
   })
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    service = setup.module.get<AgentSubAgentsService>(AgentSubAgentsService)
-    repositories = setup.getAllRepositories()
   })
 
   it("replaces and lists sub-agents for a conversation agent", async () => {

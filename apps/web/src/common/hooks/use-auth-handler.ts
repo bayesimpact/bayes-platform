@@ -1,5 +1,6 @@
 import { useAuth0 } from "@auth0/auth0-react"
 import { AUTH0_ORGANIZATION_ID } from "@/config/auth0.config"
+import { getAppUrl } from "@/config/runtime-config"
 
 export function useAuthHandler() {
   const { loginWithRedirect, logout } = useAuth0()
@@ -12,7 +13,7 @@ export function useAuthHandler() {
     })
 
   const handleLogOut = () => {
-    logout({ logoutParams: { returnTo: window.location.origin } })
+    logout({ logoutParams: { returnTo: getAppUrl() } })
   }
   return { handleLogOut, handleLogIn }
 }

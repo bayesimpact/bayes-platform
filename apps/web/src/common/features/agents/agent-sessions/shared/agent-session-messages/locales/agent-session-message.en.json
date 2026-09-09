@@ -15,6 +15,10 @@
       "Putting it together…",
       "Starting to write…"
     ],
+    "interrupted": "This reply was interrupted before it finished.",
+    "mcpApp": {
+      "loading": "Loading interactive card…"
+    },
     "steps": {
       "working_one": "Working through {{count}} step",
       "working_other": "Working through {{count}} steps",

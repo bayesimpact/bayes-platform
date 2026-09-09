@@ -344,7 +344,7 @@ export const backofficeUserGlobalRoleFactory = BackofficeUserGlobalRoleFactory.d
   ({ params }) => ({
     key: params.key ?? "platform_staff",
     name: params.name ?? "Platform Staff",
-    permissions: params.permissions ?? ["backoffice.read", "trace.read", "backoffice.terms.update"],
+    permissions: params.permissions ?? ["backoffice.read", "trace.read"],
   }),
 )
 
@@ -356,7 +356,7 @@ export const backofficeRbacCatalogFactory = BackofficeRbacCatalogFactory.define(
       key: "platform_staff",
       name: "Platform Staff",
       scopeType: "global" as const,
-      permissions: ["backoffice.read", "trace.read", "backoffice.terms.update"],
+      permissions: ["backoffice.read", "trace.read"],
     },
     {
       key: "platform_superadmin",

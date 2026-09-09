@@ -9,6 +9,10 @@ import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 import type { AgentSessionCategory } from "../session-categories/agent-session-category.entity"
 import { AgentMessage } from "../shared/agent-session-messages/agent-message.entity"
+import {
+  recoverAbortedStream,
+  recoverAbortedStreams,
+} from "../shared/agent-session-messages/stream-recovery"
 import { ConversationAgentSession } from "./conversation-agent-session.entity"
 import { ConversationAgentSessionCategory } from "./conversation-agent-session-category.entity"
 
@@ -57,6 +61,12 @@ export class ConversationAgentSessionsService {
     agentSessionId: string
     connectScope: RequiredConnectScope
   }): Promise<AgentMessage[]> {
+    // A reply whose stream died with the server would otherwise be listed as live forever.
+    await recoverAbortedStreams({
+      agentMessageConnectRepository: this.agentMessageConnectRepository,
+      connectScope,
+      sessionId: agentSessionId,
+    })
     return this.agentMessageConnectRepository.find(connectScope, {
       where: { sessionId: agentSessionId },
       order: { createdAt: "ASC" },
@@ -65,17 +75,31 @@ export class ConversationAgentSessionsService {
     })
   }
 
+  /**
+   * One message of the given session. The session is part of the lookup: the client polls this
+   * with ids it holds, and a read that also settles stale streams must not reach into another
+   * session of the same project.
+   */
   async getMessageById({
     id,
+    agentSessionId,
     connectScope,
   }: {
     id: string
+    agentSessionId: string
     connectScope: RequiredConnectScope
   }): Promise<AgentMessage | null> {
-    // `getOneById` builds a query builder, so relations are named as strings here — unlike
-    // the `find` above, which forwards TypeORM's object-form FindManyOptions.
-    return this.agentMessageConnectRepository.getOneById(connectScope, id, {
-      relations: ["agentSettings"],
+    const [message] = await this.agentMessageConnectRepository.find(connectScope, {
+      where: { id, sessionId: agentSessionId },
+      relations: { agentSettings: true },
+      take: 1,
+    })
+    if (!message) return null
+    // The client polls this after a refresh until the reply settles; a dead stream must settle too.
+    return recoverAbortedStream({
+      agentMessageConnectRepository: this.agentMessageConnectRepository,
+      connectScope,
+      message,
     })
   }
 

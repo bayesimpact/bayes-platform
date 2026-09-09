@@ -27,8 +27,10 @@ class AgentMessageFactory extends Factory<AgentMessage, AgentMessageTransientPar
     return this.params({ status: "streaming" })
   }
 
+  /** Started that long ago and not written to since. */
   sentMinutesAgo(minutes: number) {
-    return this.params({ startedAt: new Date(Date.now() - minutes * 60 * 1000) })
+    const sentAt = new Date(Date.now() - minutes * 60 * 1000)
+    return this.params({ startedAt: sentAt, updatedAt: sentAt })
   }
 }
 

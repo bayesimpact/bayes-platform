@@ -6,7 +6,8 @@ import { Injectable, NotImplementedException } from "@nestjs/common"
 import type { ToolSet } from "ai"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { GetAgentModelKeyFromValue } from "@/external/llm/agent-provider"
-import { AISDKLLMProviderBase, CallOrigin } from "@/external/llm/ai-sdk-llm-provider-base"
+import { CallOrigin } from "@/external/llm/ai-sdk-llm-common"
+import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk-llm-provider-base"
 import { GemmaPromptHelper } from "@/external/llm/providers/gemma/gemma-prompt-helper"
 import { CustomMedGemmaLanguageModel } from "@/external/llm/providers/medgemma/custom-med-gemma-language-model"
 
@@ -31,8 +32,6 @@ export class AISDKMedGemmaProvider extends AISDKLLMProviderBase {
   }): LanguageModelV3 {
     switch (callOrigin) {
       case CallOrigin.generateText:
-      case CallOrigin.generateChatResponse:
-      case CallOrigin.generateObject:
         return this.getOpenResponsesProvider(config)
       case CallOrigin.streamChatResponse:
         return this.getOpenAiProvider(config)

@@ -29,7 +29,7 @@ import { EvaluationConversationDatasetRecord } from "./conversation/datasets/rec
 import { EvaluationConversationRun } from "./conversation/runs/evaluation-conversation-run.entity"
 import { EvaluationConversationRunGuard } from "./conversation/runs/evaluation-conversation-run.guard"
 import { EvaluationConversationRunBatchModule } from "./conversation/runs/evaluation-conversation-run-batch.module"
-import { EvaluationConversationRunGraderService } from "./conversation/runs/evaluation-conversation-run-grader.service"
+import { EvaluationConversationRunGraderLlmService } from "./conversation/runs/evaluation-conversation-run-grader-llm.service"
 import { EvaluationConversationRunStatusNotifierService } from "./conversation/runs/evaluation-conversation-run-status-notifier.service"
 import { EvaluationConversationRunStatusStreamService } from "./conversation/runs/evaluation-conversation-run-status-stream.service"
 import { EvaluationConversationRunsController } from "./conversation/runs/evaluation-conversation-runs.controller"
@@ -87,7 +87,7 @@ import { EvaluationExtractionRunRecord } from "./extraction/runs/records/evaluat
     EvaluationConversationDatasetGuard,
     EvaluationConversationDatasetsService,
     EvaluationConversationRunContextResolver,
-    EvaluationConversationRunGraderService,
+    EvaluationConversationRunGraderLlmService,
     EvaluationConversationRunGuard,
     EvaluationConversationRunStatusNotifierService,
     EvaluationConversationRunStatusStreamService,

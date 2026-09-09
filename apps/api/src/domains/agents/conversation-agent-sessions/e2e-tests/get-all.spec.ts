@@ -13,7 +13,6 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { inviteUserToProject } from "@/domains/projects/memberships/project-membership.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { conversationAgentSessionFactory } from "../conversation-agent-session.factory"
@@ -50,7 +49,6 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
     await app.close()
   })
 

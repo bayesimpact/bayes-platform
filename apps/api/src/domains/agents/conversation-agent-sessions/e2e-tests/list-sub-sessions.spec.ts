@@ -12,7 +12,6 @@ import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { agentSubAgentFactory } from "@/domains/agents/sub-agents/agent-sub-agent.factory"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { conversationAgentSessionFactory } from "../conversation-agent-session.factory"
@@ -52,7 +51,6 @@ describe("ConversationAgentSessionsRoutes.listSubSessions", () => {
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
     await app.close()
   })
 

@@ -9,6 +9,7 @@ export type AgentEmbedConfig = {
   title: string | null
   logoUrl: string | null
   primaryColor: string | null
+  bannerText: string | null
   createdAt: TimeType
   updatedAt: TimeType
 }

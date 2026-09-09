@@ -326,6 +326,7 @@ This will start all apps in watch mode using Turbo.
 
 - **With HTTPS** (certs present): API at `https://connect.localhost:3000`, web at `https://connect.localhost:5173`
 - **Without HTTPS** (no certs): API at `http://localhost:3000`, web at `http://localhost:5173`
+- **PDF converter** (Go): `http://localhost:3002`, with the PDF export MCP endpoint at `/mcp`. Started when Go is installed and `apps/pdf-converter/.env` exists (copy `.env-example`), skipped otherwise. See [apps/pdf-converter/README.md](apps/pdf-converter/README.md).
 
 #### Run Individual Projects
 
@@ -371,6 +372,12 @@ Notes:
   - API: `http://localhost:3003`
   - Postgres: `localhost:55432`
   - Redis: `localhost:56379`
+
+### Deploy on Kubernetes
+
+A Helm chart installs the full platform (API, workers, front ends, PDF converter) on any Kubernetes cluster, with bundled Postgres and Redis or with managed services. See [deploy/helm/bayes-platform/README.md](deploy/helm/bayes-platform/README.md).
+
+Global roles are granted by an operator, never at sign-in: `initialAdmins` in the chart values for the first administrators, then `npm run platform-role -- grant|revoke|list --email <email> [--role <role>]` (or the same script from the runtime image).
 
 ## Running Tests
 

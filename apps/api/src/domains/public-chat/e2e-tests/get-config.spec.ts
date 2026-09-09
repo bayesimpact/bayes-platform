@@ -10,7 +10,6 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
 import { PublicChatModule } from "../public-chat.module"
 
@@ -37,7 +36,6 @@ describe("PublicChat - getConfig", () => {
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
     await app.close()
   })
 
@@ -46,7 +44,7 @@ describe("PublicChat - getConfig", () => {
       await createOrganizationWithAgent(repositories)
     const embedConfig = agentEmbedConfigFactory
       .transient({ organization, project, agent })
-      .build({ isEnabled: true })
+      .build({ isEnabled: true, bannerText: "Test version, healthcare staff only" })
     await repositories.agentEmbedConfigRepository.save(embedConfig)
     embedToken = embedConfig.embedToken
     return { organization, project, agent, agentSettings, embedConfig }
@@ -66,5 +64,6 @@ describe("PublicChat - getConfig", () => {
     expect(response.body.data.title).toBe(embedConfig.title)
     expect(response.body.data.logoUrl).toBe(embedConfig.logoUrl)
     expect(response.body.data.primaryColor).toBe(embedConfig.primaryColor)
+    expect(response.body.data.bannerText).toBe("Test version, healthcare staff only")
   })
 })

@@ -12,7 +12,6 @@ import {
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
 import { PublicChatModule } from "../public-chat.module"
 
@@ -39,7 +38,6 @@ describe("PublicChat - createSession", () => {
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
     await app.close()
   })
 

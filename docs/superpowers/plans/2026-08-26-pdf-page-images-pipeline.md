@@ -1417,7 +1417,7 @@ git commit -m "feat(api): public 302 redirect endpoints for rendered pdf pages"
 - Modify: `apps/api/src/domains/agents/shared/agent-session-messages/agent-message-attachment-documents.service.ts` (add `updatePdfPageCount`)
 - Modify: `apps/api/src/domains/agents/shared/agent-session-messages/streaming/agent-llm-request.service.ts:84-157,246-315`
 - Modify: the module(s) providing `AgentLlmRequestService` (grep `AgentLlmRequestService` in `*.module.ts`; add `PdfPagesModule` to their imports)
-- Test: extend `apps/api/src/domains/agents/shared/agent-session-messages/streaming/streaming.service.spec.ts` (or the existing spec that covers `handleAttachmentDocumentInLLMMessage` — grep `attachmentDocument` in `streaming/*.spec.ts` and pick the file that already builds LLM requests)
+- Test: extend `apps/api/src/domains/agents/shared/agent-session-messages/streaming/streaming-llm.service.spec.ts` (or the existing spec that covers `handleAttachmentDocumentInLLMMessage` — grep `attachmentDocument` in `streaming/*.spec.ts` and pick the file that already builds LLM requests)
 
 **Interfaces:**
 - Consumes: `PdfPagesService` (Task 7), `modelRequiresPdfAsImages` from `@/external/llm/agent-provider` (Task 7), `pdfPageCount` (Task 4).
@@ -1535,7 +1535,7 @@ git commit -m "feat(api): chat pdf attachments become stable page image urls for
 - Modify: `apps/api/src/domains/documents/documents.service.ts` (add `updatePdfPageCount`, mirror `updateContent` at `documents.service.ts:183-206`)
 - Modify: `apps/api/src/domains/agents/extraction-agent-sessions/extraction-agent-session-runner.service.ts:106-125,194-245`
 - Modify: `apps/api/src/domains/agents/extraction-agent-sessions/extraction-agent-sessions.module.ts` (or wherever the runner is provided — import `PdfPagesModule`)
-- Test: extend `apps/api/src/domains/agents/extraction-agent-sessions/extraction-agent-session-runner.service.spec.ts`
+- Test: extend `apps/api/src/domains/agents/extraction-agent-sessions/extraction-agent-session-run-llm.service.spec.ts`
 
 **Interfaces:**
 - Consumes: `PdfPagesService`, `modelRequiresPdfAsImages`, `Document.pdfPageCount`.

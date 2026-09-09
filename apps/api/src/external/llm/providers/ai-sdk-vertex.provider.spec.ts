@@ -2,7 +2,6 @@ import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-co
 import { afterAll, beforeAll } from "@jest/globals"
 import { BatchSpanProcessor, ConsoleSpanExporter } from "@opentelemetry/sdk-trace-base"
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
-import { config as dotenvConfig } from "dotenv"
 import { LangfuseIntegrationExporter } from "@/external/langfuse/langfuse-integration-exporter"
 import { GetAgentModelKeyFromValue } from "@/external/llm/agent-provider"
 import { sdk } from "@/external/llm/open-telemetry-init"
@@ -10,8 +9,6 @@ import { AISDKVertexProvider } from "@/external/llm/providers/ai-sdk-vertex.prov
 import { ProviderSpecs } from "@/external/llm/providers/provider-specs"
 import { gcpCredentialsCheck } from "@/external/llm/providers/spec-gcp-tools"
 
-dotenvConfig({ path: ".env", override: true, quiet: true })
-dotenvConfig({ path: ".env.test", override: true, quiet: true })
 const testModels = Object.values(AgentModel)
   .filter(
     (am) =>
@@ -56,10 +53,6 @@ if (process.env.IS_TEST === "true" && process.env.VERTEX_TEST === "true") {
 
     it.each(testModels)("generateText - $name", async ({ model }) => {
       await ProviderSpecs.testGenerateText({ provider, model })
-    })
-
-    it.each(testModels)("generateObject - $name", async ({ model }) => {
-      await ProviderSpecs.testGenerateObject({ provider, model })
     })
 
     it.each(testModels)("generateStructuredOutput -pdf - $name", async ({ model }) => {

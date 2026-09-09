@@ -242,7 +242,6 @@ describe("MeController (e2e)", () => {
       expectResponse(response, 200)
       expect([...response.body.data.user.globalPermissions].sort()).toEqual([
         "backoffice.read",
-        "backoffice.terms.update",
         "trace.read",
       ])
     })

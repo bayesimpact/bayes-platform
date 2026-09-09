@@ -7,12 +7,16 @@ import {
   studioStoryArgTypes,
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
-import { mcpServerFactory } from "@/studio/features/mcp-servers/mcp-servers.factory"
+import {
+  buildPdfExportMcpServer,
+  mcpServerFactory,
+} from "@/studio/features/mcp-servers/mcp-servers.factory"
 import type { IMcpServersSpi } from "@/studio/features/mcp-servers/mcp-servers.spi"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
+  withBuiltIn?: boolean
   withServers?: boolean
 }
 
@@ -30,6 +34,14 @@ function buildMockMcpServersService(
     async deleteOne() {},
     async enableForAgent() {},
     async disableForAgent() {},
+    async initiateOauth() {
+      return { authorizationUrl: "https://example.com/oauth/authorize" }
+    },
+    async completeOauth() {
+      return (
+        mcpServers[0] ?? mcpServerFactory.transient({ project: { id: "mock" } as never }).build()
+      )
+    },
   }
 }
 
@@ -38,11 +50,13 @@ const meta = {
   parameters: { layout: "fullscreen" },
   argTypes: {
     ...studioStoryArgTypes,
+    withBuiltIn: { control: "boolean" },
     withServers: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
     featureFlags: [...studioStoryArgs.featureFlags, "agent-mcp"],
+    withBuiltIn: true,
     withServers: false,
   },
   render: render({ routes: studioRoutes, path: StudioRoutes.mcpServers.path }),
@@ -52,23 +66,65 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Empty: Story = {
+  args: { withBuiltIn: false, withServers: false },
   decorators: [
-    buildDecorator<StoryArgs>(({ withServers: _withServers, ...args }) => {
-      const { baseSeeds } = buildStudioData(args)
+    buildDecorator<StoryArgs>(
+      ({ withBuiltIn: _withBuiltIn, withServers: _withServers, ...args }) => {
+        const { baseSeeds } = buildStudioData(args)
+        return {
+          state: mergeSeeds(baseSeeds, seed.studio.mcpServers([])),
+          services: { mcpServers: buildMockMcpServersService({ mcpServers: [] }) },
+        }
+      },
+    ),
+  ],
+}
+
+export const BuiltInOnly: Story = {
+  args: { withBuiltIn: true, withServers: false },
+  decorators: [
+    buildDecorator<StoryArgs>(({ withBuiltIn, withServers, ...args }) => {
+      const { baseSeeds, project } = buildStudioData(args)
+      const mcpServers = [
+        ...(withBuiltIn ? [buildPdfExportMcpServer(project)] : []),
+        ...(withServers ? mcpServerFactory.transient({ project }).buildList(3) : []),
+      ]
       return {
-        state: mergeSeeds(baseSeeds, seed.studio.mcpServers([])),
-        services: { mcpServers: buildMockMcpServersService({ mcpServers: [] }) },
+        state: mergeSeeds(baseSeeds, seed.studio.mcpServers(mcpServers)),
+        services: { mcpServers: buildMockMcpServersService({ mcpServers }) },
       }
     }),
   ],
 }
 
 export const WithServers: Story = {
+  args: { withBuiltIn: true, withServers: true },
+  decorators: [
+    buildDecorator<StoryArgs>(({ withBuiltIn, withServers, ...args }) => {
+      const { baseSeeds, project } = buildStudioData(args)
+      const mcpServers = [
+        ...(withBuiltIn ? [buildPdfExportMcpServer(project)] : []),
+        ...(withServers ? mcpServerFactory.transient({ project }).buildList(3) : []),
+      ]
+      return {
+        state: mergeSeeds(baseSeeds, seed.studio.mcpServers(mcpServers)),
+        services: { mcpServers: buildMockMcpServersService({ mcpServers }) },
+      }
+    }),
+  ],
+}
+
+export const WithAuthStatuses: Story = {
   args: { withServers: true },
   decorators: [
-    buildDecorator<StoryArgs>(({ withServers, ...args }) => {
+    buildDecorator<StoryArgs>(({ withServers: _withServers, ...args }) => {
       const { baseSeeds, project } = buildStudioData(args)
-      const mcpServers = withServers ? mcpServerFactory.transient({ project }).buildList(3) : []
+      const mcpServers = [
+        mcpServerFactory.build({ authStatus: "none" }, { transient: { project } }),
+        mcpServerFactory.build({ authStatus: "oauthPending" }, { transient: { project } }),
+        mcpServerFactory.build({ authStatus: "oauthConnected" }, { transient: { project } }),
+        mcpServerFactory.build({ authStatus: "apiKey" }, { transient: { project } }),
+      ]
       return {
         state: mergeSeeds(baseSeeds, seed.studio.mcpServers(mcpServers)),
         services: { mcpServers: buildMockMcpServersService({ mcpServers }) },

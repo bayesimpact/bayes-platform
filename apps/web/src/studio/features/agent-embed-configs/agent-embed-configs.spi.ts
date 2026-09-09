@@ -14,6 +14,7 @@ export interface IAgentEmbedConfigsSpi {
       title?: string | null
       logoUrl?: string | null
       primaryColor?: string | null
+      bannerText?: string | null
     },
   ) => Promise<void>
 }

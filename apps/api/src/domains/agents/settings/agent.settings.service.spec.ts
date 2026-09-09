@@ -1,5 +1,6 @@
-import { DocumentsRagMode } from "@caseai-connect/api-contracts"
+import { AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { afterAll, expect } from "@jest/globals"
+import { NotFoundException } from "@nestjs/common"
 import {
   type AllRepositories,
   clearTestDatabase,
@@ -24,7 +25,6 @@ import {
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { createResourceLibraryForProject } from "@/domains/resource-libraries/resource-library.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { AgentSettingsService } from "./agent-settings.service"
 
 async function createAgentWithSettings(
@@ -71,7 +71,6 @@ describe("AgentSettings", () => {
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
   })
 
   beforeEach(async () => {
@@ -145,12 +144,8 @@ describe("AgentSettings", () => {
       expect(settings[1]?.isArchived).toBeTruthy()
       assertOnSettings(agentSettingsValuesRev1, settings[2])
     })
-    it("archive should works - not draft", async () => {
-      const { organization, project, agent } = await createAgentWithSettings(
-        setup,
-        repositories,
-        true,
-      )
+    it("archive should works - not last - not draft", async () => {
+      const { organization, project, agent } = await createAgentWithSettings(setup, repositories)
       const { success } = await service.archive({
         connectScope: { organizationId: organization.id, projectId: project.id },
         agentId: agent.id,
@@ -163,9 +158,34 @@ describe("AgentSettings", () => {
         includesDraft: true,
         includesArchived: true,
       })
-      expect(settings.length).toBe(1)
-      assertOnSettings(agentSettingsValuesRev1, settings[0])
-      expect(settings[0]?.isArchived).toBeTruthy()
+      expect(settings.length).toBe(3)
+      assertOnSettings(agentSettingsValuesRev1, settings[2])
+      expect(settings[2]?.isArchived).toBeTruthy()
+    })
+    it("archive NOT should works - last - returns 422", async () => {
+      const { organization, project, agent } = await createAgentWithSettings(setup, repositories)
+      await service.publish({
+        connectScope: { organizationId: organization.id, projectId: project.id },
+        agentId: agent.id,
+        revision: 3,
+      })
+      await expect(
+        service.archive({
+          connectScope: { organizationId: organization.id, projectId: project.id },
+          agentId: agent.id,
+          revision: 3,
+        }),
+      ).rejects.toThrow("Cannot archive the last revision")
+
+      const settings = await service.getAll({
+        connectScope: { organizationId: organization.id, projectId: project.id },
+        agentId: agent.id,
+        includesDraft: true,
+        includesArchived: true,
+      })
+      expect(settings.length).toBe(3)
+      assertOnSettings(agentSettingsValuesRev3Draft, settings[0])
+      expect(settings[0]?.isArchived).toBeFalsy()
     })
     it("archive should NOT works - draft", async () => {
       const { organization, project, agent } = await createAgentWithSettings(setup, repositories)
@@ -325,58 +345,6 @@ describe("AgentSettings", () => {
       expect(savedSettings[0]?.revision).toBe(2)
       expect(savedSettings[0]?.isDraft).toBeTruthy()
     })
-    it("updateAllSettings should create draft settings with revision = last revision +1 - no existing draft - last (first) revision archived", async () => {
-      const { organization, project, agent } = await createAgentWithSettings(
-        setup,
-        repositories,
-        true,
-      )
-
-      let savedSettings = await service.getAll({
-        connectScope: {
-          organizationId: organization.id,
-          projectId: project.id,
-        },
-        agentId: agent.id,
-        includesDraft: true,
-        includesArchived: true,
-      })
-      expect(savedSettings.length).toBe(1)
-      // @ts-expect-error
-      const archivedSettings: AgentSettings = savedSettings[0]
-      archivedSettings.isArchived = true
-      repositories.agentSettingsRepository.save(archivedSettings)
-
-      const updatedFields = {
-        ...agentSettingsValuesRev1,
-        instructions: "My new instructions",
-      }
-
-      const { agentSettings: updatedAgentSettings } = await service.updateAllSettings({
-        connectScope: {
-          organizationId: organization.id,
-          projectId: project.id,
-        },
-        fieldsToUpdate: updatedFields,
-        agentId: agent.id,
-      })
-      assertOnSettings(updatedFields, updatedAgentSettings)
-
-      savedSettings = await service.getAll({
-        connectScope: {
-          organizationId: organization.id,
-          projectId: project.id,
-        },
-        agentId: agent.id,
-        includesDraft: true,
-        includesArchived: true,
-      })
-      expect(savedSettings.length).toBe(2)
-      assertOnSettings(updatedFields, savedSettings[0])
-      expect(savedSettings[0]?.revision).toBe(2)
-      expect(savedSettings[0]?.isDraft).toBeTruthy()
-    })
-
     it("updateAllSettings should create draft settings with revision = last revision +1 - no existing draft - last revision archived", async () => {
       const { organization, project, agent } = await createAgentWithSettings(setup, repositories)
 
@@ -394,7 +362,7 @@ describe("AgentSettings", () => {
       const archivedSettings: AgentSettings = savedSettings[0]
       archivedSettings.isArchived = true
       archivedSettings.isDraft = false
-      repositories.agentSettingsRepository.save(archivedSettings)
+      await repositories.agentSettingsRepository.save(archivedSettings)
 
       const updatedFields = {
         ...agentSettingsValuesRev3Draft,
@@ -620,6 +588,62 @@ describe("AgentSettings", () => {
         resourceLibrary1.id,
         resourceLibrary2.id,
       ])
+    })
+    describe("priority calls", () => {
+      it("updateAllSettings should persist priorityCallsEnabled on any model", async () => {
+        const { organization, project, agent } = await createOrganizationWithAgent(repositories)
+
+        const { agentSettings: updatedAgentSettings } = await service.updateAllSettings({
+          connectScope: { organizationId: organization.id, projectId: project.id },
+          agentId: agent.id,
+          fieldsToUpdate: { model: AgentModel.Gemini35Flash, priorityCallsEnabled: true },
+        })
+
+        expect(updatedAgentSettings.priorityCallsEnabled).toBe(true)
+        const savedSettings = await repositories.agentSettingsRepository.findOne({
+          where: { agentId: agent.id, revision: updatedAgentSettings.revision },
+        })
+        expect(savedSettings?.priorityCallsEnabled).toBe(true)
+      })
+    })
+
+    it("updateAllSettings should THROW on unexpected use case => only one revision that is archived (impossible use case : archive is not possible on the last revision)", async () => {
+      const { organization, project, agent } = await createAgentWithSettings(
+        setup,
+        repositories,
+        true,
+      )
+
+      const savedSettings = await service.getAll({
+        connectScope: {
+          organizationId: organization.id,
+          projectId: project.id,
+        },
+        agentId: agent.id,
+        includesDraft: true,
+        includesArchived: true,
+      })
+      expect(savedSettings.length).toBe(1)
+      // @ts-expect-error
+      const archivedSettings: AgentSettings = savedSettings[0]
+      archivedSettings.isArchived = true
+      await repositories.agentSettingsRepository.save(archivedSettings)
+
+      const updatedFields = {
+        ...agentSettingsValuesRev1,
+        instructions: "My new instructions",
+      }
+
+      await expect(
+        service.updateAllSettings({
+          connectScope: {
+            organizationId: organization.id,
+            projectId: project.id,
+          },
+          fieldsToUpdate: updatedFields,
+          agentId: agent.id,
+        }),
+      ).rejects.toThrow(NotFoundException)
     })
 
     it("deleteAgent should also delete settings", async () => {

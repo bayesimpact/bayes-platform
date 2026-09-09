@@ -5,7 +5,7 @@ import { agentSettingsFactory } from "@/common/features/agents/agent-settings/ag
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import { projectFactory } from "@/common/features/projects/projects.factory"
 import type { RootState } from "@/common/store"
-import { ADS } from "@/common/store/async-data-status"
+import { ADS, defaultAsyncData } from "@/common/store/async-data-status"
 import type { Services } from "@/di/services"
 import { isStudioInterface } from "@/studio/routes/helpers"
 import { sendMessage } from "./agent-session-messages.thunks"
@@ -59,7 +59,7 @@ function buildState({
 } = {}): RootState {
   return {
     currentIds: { organizationId, projectId, agentId, agentSessionId },
-    agentSessionMessages: { isStreaming: false },
+    agentSessionMessages: { data: defaultAsyncData },
     agentSettings: {
       history: Object.fromEntries(
         Object.entries(history).map(([historyAgentId, versions]) => [
@@ -171,6 +171,31 @@ describe("sendMessage", () => {
     expect(findAction(dispatch, "failAssistantMessage")?.payload).toEqual({
       messageId: startStreaming?.payload.assistantMessageId,
       error: "The response ended unexpectedly",
+    })
+  })
+
+  it("resends with the original attachment instead of uploading again", async () => {
+    // Resending an interrupted turn reuses the document the user already attached to it.
+    mockedIsStudioInterface.mockReturnValue(false)
+    const dispatch = vi.fn()
+
+    const agentSession = {
+      id: agentSessionId,
+      type: "live",
+      agentId,
+    } as ConversationAgentSession
+
+    await sendMessage({ content: "Hello", agentSession, attachmentDocumentId: "attachment-1" })(
+      dispatch,
+      () => buildState(),
+      extra,
+    )
+
+    expect(mockedStreamChatResponse).toHaveBeenCalledWith(
+      expect.objectContaining({ attachmentDocumentId: "attachment-1" }),
+    )
+    expect(findAction(dispatch, "startStreaming")?.payload).toMatchObject({
+      userMessage: expect.objectContaining({ attachmentDocumentId: "attachment-1" }),
     })
   })
 

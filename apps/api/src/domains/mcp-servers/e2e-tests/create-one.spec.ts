@@ -14,6 +14,7 @@ import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { McpServer } from "../mcp-server.entity"
 import { McpServersModule } from "../mcp-servers.module"
+import { McpServersService } from "../mcp-servers.service"
 
 describe("McpServers - createOne", () => {
   let app: INestApplication<App>
@@ -68,19 +69,102 @@ describe("McpServers - createOne", () => {
     await createContext()
 
     const response = await subject({
-      payload: { name: "Knowledge Base", url: "https://mcp.example.com" },
+      payload: {
+        name: "Knowledge Base",
+        url: "https://mcp.example.com",
+        headers: { "X-Api-Version": "2" },
+      },
     })
 
     expectResponse(response, 201)
     expect(response.body.data.name).toBe("Knowledge Base")
     expect(response.body.data.projectId).toBe(projectId)
     expect(response.body.data.id).toBeDefined()
+    expect(response.body.data.authStatus).toBe("none")
 
     const stored = await setup.getRepository(McpServer).findOne({
       where: { id: response.body.data.id },
     })
     expect(stored).not.toBeNull()
     expect(stored?.name).toBe("Knowledge Base")
+
+    const mcpServersService = setup.module.get(McpServersService)
+    const config = mcpServersService.getConfig(stored!)
+    expect(config.headers).toEqual({ "X-Api-Version": "2" })
+  })
+
+  it("should store the api key and report apiKey status for the apiKey method", async () => {
+    await createContext()
+
+    const response = await subject({
+      payload: {
+        name: "Keyed",
+        url: "https://mcp.example.com",
+        authMethod: "apiKey",
+        apiKey: "secret-key",
+      },
+    })
+
+    expectResponse(response, 201)
+    expect(response.body.data.authStatus).toBe("apiKey")
+
+    const stored = await setup.getRepository(McpServer).findOneOrFail({
+      where: { id: response.body.data.id },
+    })
+    const config = setup.module.get(McpServersService).getConfig(stored)
+    expect(config.apiKey).toBe("secret-key")
+    expect(config.authMethod).toBe("apiKey")
+  })
+
+  it("should reject the apiKey method without a key", async () => {
+    await createContext()
+
+    const response = await subject({
+      payload: { name: "Keyless", url: "https://mcp.example.com", authMethod: "apiKey" },
+    })
+
+    expectResponse(response, 400)
+  })
+
+  it("should report oauthPending for the oauth method before authorization", async () => {
+    await createContext()
+
+    const response = await subject({
+      payload: { name: "OAuth server", url: "https://mcp.example.com", authMethod: "oauth" },
+    })
+
+    expectResponse(response, 201)
+    expect(response.body.data.authStatus).toBe("oauthPending")
+
+    const stored = await setup.getRepository(McpServer).findOneOrFail({
+      where: { id: response.body.data.id },
+    })
+    const config = setup.module.get(McpServersService).getConfig(stored)
+    expect(config.authMethod).toBe("oauth")
+    expect(config.apiKey).toBeUndefined()
+  })
+
+  it("should report none status for the none method and drop any key", async () => {
+    await createContext()
+
+    const response = await subject({
+      payload: {
+        name: "Open server",
+        url: "https://mcp.example.com",
+        authMethod: "none",
+        apiKey: "ignored",
+      },
+    })
+
+    expectResponse(response, 201)
+    expect(response.body.data.authStatus).toBe("none")
+
+    const stored = await setup.getRepository(McpServer).findOneOrFail({
+      where: { id: response.body.data.id },
+    })
+    const config = setup.module.get(McpServersService).getConfig(stored)
+    expect(config.authMethod).toBe("none")
+    expect(config.apiKey).toBeUndefined()
   })
 
   it("should reject creation without a name", async () => {

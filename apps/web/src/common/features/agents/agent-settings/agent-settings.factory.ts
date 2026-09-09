@@ -38,6 +38,10 @@ class AgentSettingsFactory extends Factory<AgentSettings, AgentSettingsTransient
       outputJsonSchema: agentOutputJsonSchemaFactory.build(),
     })
   }
+
+  priorityCalls() {
+    return this.params({ priorityCallsEnabled: true })
+  }
 }
 
 export const agentSettingsFactory = AgentSettingsFactory.define(({ params, transientParams }) => {

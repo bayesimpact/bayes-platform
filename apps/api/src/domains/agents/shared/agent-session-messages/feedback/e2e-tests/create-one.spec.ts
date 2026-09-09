@@ -10,7 +10,6 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithAgentMessage } from "@/domains/organizations/organization.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { setupUserGuardForTesting } from "../../../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../../test/request"
 import { AgentMessageFeedbackModule } from "../agent-message-feedback.module"
@@ -46,7 +45,6 @@ describe("AgentMessageFeedbackRoutes.createOne", () => {
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
     await app.close()
   })
 

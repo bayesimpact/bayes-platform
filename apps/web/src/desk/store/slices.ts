@@ -2,6 +2,7 @@ import { conversationAgentSessionsMiddleware } from "@/common/features/agents/ag
 import { conversationAgentSessionsSlice } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.slice"
 import { extractionAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.middleware"
 import { extractionAgentSessionsSlice } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.slice"
+import { agentSessionMessagesMiddleware } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.middleware"
 import { agentSessionMessagesSlice } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.slice"
 import { baseAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.middleware"
 import { agentsMiddleware } from "@/common/features/agents/agents.middleware"
@@ -14,6 +15,7 @@ import { currentIdsSlice } from "./currentIds.slice"
 
 const deskMiddlewareList = [
   agentCsvExtractionRunsMiddleware,
+  agentSessionMessagesMiddleware,
   agentsMiddleware,
   baseAgentSessionsMiddleware,
   conversationAgentSessionsMiddleware,

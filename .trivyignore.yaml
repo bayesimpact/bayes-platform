@@ -1,37 +1,18 @@
 vulnerabilities:
-  - id: CVE-2026-33671
-    expired_at: 2026-10-23
-    reason: "picomatch 4.0.3 — fix in 4.0.4, present via npm CLI's bundled tinyglobby in the base node image"
-  - id: CVE-2025-32434
-    expired_at: 2026-10-23
-    reason: "torch 2.5.1+cu121 — fix requires 2.6.0+; bump deferred pending GCP/CUDA compatibility validation (docling itself supports torch <3.0.0)"
-  - id: CVE-2026-40192
-    expired_at: 2026-10-23
-    reason: "pillow 12.1.1 — fix in 12.2.0, pulled in transitively by docling; deferred together with the docling/torch refresh pending GCP/CUDA compatibility validation"
-  - id: CVE-2026-13149
-    expired_at: 2026-10-23
-    reason: "brace-expansion 5.0.5 — fix in 5.0.7+, present via npm CLI in node:24.16.0-bookworm-slim; still unpatched in 24.19.0"
+  # npm CLI bundled in node:24.20.0-bookworm-slim. Build-time tooling only, not part
+  # of the runtime attack surface. Lift on the next node image that bundles the fixes.
   - id: CVE-2026-14257
     expired_at: 2026-10-23
-    reason: "brace-expansion 5.0.5 — fix in 5.0.8+, present via npm CLI in node:24.16.0-bookworm-slim; still unpatched in 24.19.0"
+    reason: "brace-expansion 5.0.7 — fix in 5.0.8+, present via npm CLI in node:24.20.0-bookworm-slim"
   - id: CVE-2026-69152
     expired_at: 2026-10-23
-    reason: "brace-expansion 5.0.5 — fix in 5.0.9+, present via npm CLI in node:24.16.0-bookworm-slim; still unpatched in 24.19.0"
+    reason: "brace-expansion 5.0.7 — fix in 5.0.9+, present via npm CLI in node:24.20.0-bookworm-slim"
   - id: CVE-2026-69192
     expired_at: 2026-10-23
-    reason: "ip-address 10.1.0 — fix in 10.3.1, present via npm CLI in node:24.16.0-bookworm-slim; still unpatched in 24.19.0 (10.2.0)"
-  - id: CVE-2026-48815
-    expired_at: 2026-10-23
-    reason: "sigstore 4.1.0 — fix in 4.1.1, present via npm CLI in node:24.16.0-bookworm-slim"
-  - id: CVE-2026-59873
-    expired_at: 2026-10-23
-    reason: "tar 7.5.13 — fix in 7.5.19, present via npm CLI in node:24.16.0-bookworm-slim; still unpatched in 24.19.0 (7.5.16)"
-  - id: CVE-2026-59874
-    expired_at: 2026-10-23
-    reason: "tar 7.5.13 — fix in 7.5.18, present via npm CLI in node:24.16.0-bookworm-slim; still unpatched in 24.19.0 (7.5.16)"
+    reason: "ip-address 10.2.0 — fix in 10.3.1, present via npm CLI in node:24.20.0-bookworm-slim"
   - id: CVE-2026-73566
     expired_at: 2026-10-23
-    reason: "tar 7.5.13 — fix in 7.5.21, present via npm CLI in node:24.16.0-bookworm-slim; still unpatched in 24.19.0 (7.5.16)"
-  - id: CVE-2026-12151
+    reason: "tar 7.5.19 — fix in 7.5.21, present via npm CLI in node:24.20.0-bookworm-slim"
+  - id: CVE-2026-9496
     expired_at: 2026-10-23
-    reason: "undici 6.25.0 — fix in 6.27.0, present via npm CLI in node:24.16.0-bookworm-slim; still unpatched in 24.19.0 (6.26.0)"
+    reason: "pacote 21.5.0 — fix in 21.5.1, present via npm CLI in node:24.20.0-bookworm-slim"

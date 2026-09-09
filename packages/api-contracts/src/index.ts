@@ -67,6 +67,7 @@ export { defineRoute } from "./helpers"
 // Invitations
 export type * from "./invitations/invitations.dto"
 export { InvitationsRoutes } from "./invitations/invitations.routes"
+export { isAllowedOauthEndpointUrl } from "./mcp-servers/mcp-oauth-endpoint-url"
 // MCP Servers
 export * from "./mcp-servers/mcp-servers.dto"
 export { McpServersRoutes } from "./mcp-servers/mcp-servers.routes"
@@ -92,7 +93,7 @@ export {
 export { ProjectsRoutes } from "./projects/projects.routes"
 // Public Chat (anonymous embed access)
 export type * from "./public-chat/public-chat.dto"
-export { PublicChatRoutes } from "./public-chat/public-chat.routes"
+export { PUBLIC_PATH_PREFIX, PublicChatRoutes } from "./public-chat/public-chat.routes"
 // RBAC
 export * from "./rbac/permissions"
 // Resource Libraries

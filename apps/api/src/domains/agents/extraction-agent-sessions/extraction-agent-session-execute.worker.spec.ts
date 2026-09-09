@@ -1,11 +1,11 @@
 import { ExtractionAgentSessionExecuteWorker } from "./extraction-agent-session-execute.worker"
-import type { ExtractionAgentSessionRunnerService } from "./extraction-agent-session-runner.service"
+import type { ExtractionAgentSessionRunLlmService } from "./extraction-agent-session-run-llm.service"
 
 describe("ExtractionAgentSessionExecuteWorker", () => {
   it("delegates jobs to the runner service", async () => {
     const mockRunnerService = {
       runById: jest.fn().mockResolvedValue(undefined),
-    } as unknown as ExtractionAgentSessionRunnerService
+    } as unknown as ExtractionAgentSessionRunLlmService
 
     const worker = new ExtractionAgentSessionExecuteWorker(mockRunnerService)
 

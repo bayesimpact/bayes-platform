@@ -9,13 +9,13 @@ import {
 import { AgentLlmModule } from "@/domains/agents/shared/agent-session-messages/streaming/agent-llm.module"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { LlmModule } from "@/external/llm/llm.module"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import type { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
 import { evaluationConversationDatasetFactory } from "../datasets/evaluation-conversation-dataset.factory"
 import { evaluationConversationDatasetRecordFactory } from "../datasets/records/evaluation-conversation-dataset-record.factory"
 import { evaluationConversationRunFactory } from "./evaluation-conversation-run.factory"
 import type { ProcessEvaluationConversationRunRecordJobPayload } from "./evaluation-conversation-run.types"
-import { EvaluationConversationRunGraderService } from "./evaluation-conversation-run-grader.service"
+import { EvaluationConversationRunGraderLlmService } from "./evaluation-conversation-run-grader-llm.service"
+import { EvaluationConversationRunLlmService } from "./evaluation-conversation-run-llm.service"
 import { EvaluationConversationRunProcessorService } from "./evaluation-conversation-run-processor.service"
 import { EvaluationConversationRunStatusNotifierService } from "./evaluation-conversation-run-status-notifier.service"
 import { evaluationConversationRunRecordFactory } from "./records/evaluation-conversation-run-record.factory"
@@ -34,7 +34,8 @@ describe("EvaluationConversationRunProcessorService", () => {
       additionalImports: [LlmModule, AgentLlmModule],
       providers: [
         EvaluationConversationRunProcessorService,
-        EvaluationConversationRunGraderService,
+        EvaluationConversationRunGraderLlmService,
+        EvaluationConversationRunLlmService,
         { provide: EvaluationConversationRunStatusNotifierService, useValue: mockStatusNotifier },
       ],
     })
@@ -45,7 +46,6 @@ describe("EvaluationConversationRunProcessorService", () => {
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
   })
 
   beforeEach(async () => {

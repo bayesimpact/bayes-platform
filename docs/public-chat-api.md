@@ -11,7 +11,7 @@ Base URL: `https://<your-api-host>`
 
 | Step | Endpoint | Description |
 |------|----------|-------------|
-| 1 | `GET /public/agents/:embedToken/config` | Fetch branding (title, logo, color) |
+| 1 | `GET /public/agents/:embedToken/config` | Fetch branding (title, logo, color) and the banner text |
 | 2 | `POST /public/agents/:embedToken/sessions` | Create (or resume) a chat session |
 | 3 | `GET /public/agents/:embedToken/sessions/:sessionId` | Restore session history |
 | 4 | `GET /public/agents/:embedToken/sessions/:sessionId/messages/stream` | Stream an assistant reply (SSE) |
@@ -34,13 +34,13 @@ GET /public/agents/:embedToken/config
     "title": "Help Center",
     "logoUrl": "https://example.com/logo.png",
     "primaryColor": "#2563eb",
-    "displayMode": "modal"
+    "bannerText": "Test version, for the pilot team only"
   }
 }
 ```
 
-`title`, `logoUrl`, and `primaryColor` are `null` when not configured — fall back to your own defaults.  
-`displayMode` is `"modal"` (floating bubble, default) or `"drawer"` (side panel) — use it to adapt how your custom UI presents the chat window.
+`title`, `logoUrl`, `primaryColor`, and `bannerText` are `null` when not configured — fall back to your own defaults.  
+`bannerText` is a notice the organization wants every visitor to see (test version, intended audience, and so on). Pin it above the conversation so it stays visible while messages scroll.
 
 ---
 

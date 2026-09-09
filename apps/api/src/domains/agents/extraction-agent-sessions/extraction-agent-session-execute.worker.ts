@@ -4,13 +4,13 @@ import type { Job } from "bullmq"
 import { EXTRACTION_AGENT_SESSION_QUEUE_NAME } from "./extraction-agent-session.constants"
 import type { ExecuteExtractionAgentSessionJobPayload } from "./extraction-agent-session.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { ExtractionAgentSessionRunnerService } from "./extraction-agent-session-runner.service"
+import { ExtractionAgentSessionRunLlmService } from "./extraction-agent-session-run-llm.service"
 
 @Processor(EXTRACTION_AGENT_SESSION_QUEUE_NAME)
 export class ExtractionAgentSessionExecuteWorker extends WorkerHost {
   private readonly logger = new Logger(ExtractionAgentSessionExecuteWorker.name)
 
-  constructor(private readonly runnerService: ExtractionAgentSessionRunnerService) {
+  constructor(private readonly runnerService: ExtractionAgentSessionRunLlmService) {
     super()
   }
 

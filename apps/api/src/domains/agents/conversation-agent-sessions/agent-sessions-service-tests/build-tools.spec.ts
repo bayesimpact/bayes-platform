@@ -2,12 +2,14 @@ import { DocumentsRagMode, ToolName } from "@caseai-connect/api-contracts"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { addFeature } from "@/domains/organizations/organization.factory"
-import type { StreamingService } from "../../shared/agent-session-messages/streaming/streaming.service"
+import type { StreamingLlmService } from "../../shared/agent-session-messages/streaming/streaming-llm.service"
 import { agentSessionControllerTestSetup } from "./test-setup"
 
 const getTestContext = agentSessionControllerTestSetup()
 
-type AgentSessionScope = Parameters<StreamingService["streamAgentResponse"]>[0]["agentSessionScope"]
+type AgentSessionScope = Parameters<
+  StreamingLlmService["streamAgentResponse"]
+>[0]["agentSessionScope"]
 
 type BuildToolsArgs = {
   agentSessionScope: AgentSessionScope

@@ -32,6 +32,22 @@ export function buildAgentModelOptions(hasFeature: HasFeature): AgentModel[] {
 }
 
 /**
+ * Whether the priority service tier can be offered for `model`: the project must hold the
+ * `llm-priority-calls` flag and the model must be a Gemini 3.x one (the only provider with tiers).
+ * The API enforces the same rule; this only decides whether to show the toggle.
+ */
+export function isPriorityCallsAvailable({
+  hasFeature,
+  model,
+}: {
+  hasFeature: HasFeature
+  model: AgentModel | undefined
+}): boolean {
+  if (!hasFeature("llm-priority-calls")) return false
+  return model !== undefined && AgentModelToAgentProvider[model] === AgentProvider.Vertex3
+}
+
+/**
  * Interpolation values for the `agent:model.deprecation.*` strings, shared by every surface that
  * announces a retirement (banner, sidebar tooltip). Returns `undefined` when the model is supported
  * or unknown, so callers can use it as their render gate.

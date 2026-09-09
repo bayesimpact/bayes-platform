@@ -1,5 +1,6 @@
 import { conversationAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.middleware"
 import { conversationAgentSessionsSlice } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.slice"
+import { agentSessionMessagesMiddleware } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.middleware"
 import { agentSessionMessagesSlice } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.slice"
 import { baseAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.middleware"
 import { agentsSlice } from "@/common/features/agents/agents.slice"
@@ -10,6 +11,7 @@ import { reviewCampaignsTesterSlice } from "../features/review-campaigns/tester.
 import { currentIdsSlice } from "./currentIds.slice"
 
 const testerMiddlewareList = [
+  agentSessionMessagesMiddleware,
   baseAgentSessionsMiddleware,
   conversationAgentSessionsMiddleware,
   reviewCampaignsTesterMiddleware,

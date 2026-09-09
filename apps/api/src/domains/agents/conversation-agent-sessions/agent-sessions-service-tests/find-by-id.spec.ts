@@ -1,15 +1,10 @@
-import { afterAll } from "@jest/globals"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { agentMessageFactory } from "../../shared/agent-session-messages/agent-messages.factory"
 import { agentSessionControllerTestSetup } from "./test-setup"
 
 const getTestContext = agentSessionControllerTestSetup()
 
 describe("findById", () => {
-  afterAll(async () => {
-    await sdk.shutdown()
-  })
   it("should find an existing session", async () => {
     const {
       service,
@@ -17,7 +12,7 @@ describe("findById", () => {
       testOrganization,
       testUser,
       testProject,
-      streamingService,
+      streamingLLMService,
     } = getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
@@ -30,7 +25,7 @@ describe("findById", () => {
       type: "playground",
     })
 
-    const foundSession = await streamingService.findSessionById({
+    const foundSession = await streamingLLMService.findSessionById({
       sessionId: createdSession.id,
     })
 
@@ -40,11 +35,11 @@ describe("findById", () => {
   })
 
   it("should return null for non-existent session", async () => {
-    const { streamingService } = getTestContext()
+    const { streamingLLMService } = getTestContext()
 
     // Use a valid UUID format for non-existent session
     const nonExistentId = "00000000-0000-0000-0000-000000000000"
-    const foundSession = await streamingService.findSessionById({
+    const foundSession = await streamingLLMService.findSessionById({
       sessionId: nonExistentId,
     })
 
@@ -59,7 +54,7 @@ describe("findById", () => {
       testUser,
       agentMessageRepository,
       testProject,
-      streamingService,
+      streamingLLMService,
     } = getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
@@ -92,7 +87,7 @@ describe("findById", () => {
     await agentMessageRepository.save(oldMessage)
 
     // Load the session - should recover the aborted stream
-    const loadedSession = await streamingService.findSessionById({
+    const loadedSession = await streamingLLMService.findSessionById({
       sessionId: session.id,
     })
 

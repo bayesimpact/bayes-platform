@@ -1,7 +1,11 @@
 import { DocumentsRagMode, ToolName } from "@caseai-connect/api-contracts"
 import { Inject, Injectable, Logger } from "@nestjs/common"
 import type { ToolSet } from "ai"
-import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"
+import type {
+  BuildLLMConfigParams,
+  LLMConfig,
+  LLMProvider,
+} from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
@@ -11,7 +15,6 @@ import { DocumentChunkRetrievalService } from "@/domains/documents/embeddings/do
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { type EnabledMcpServer, McpServersService } from "@/domains/mcp-servers/mcp-servers.service"
 import { ProjectsService } from "@/domains/projects/projects.service"
-import { ServiceWithLLM } from "@/external/llm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpClientService } from "@/external/mcp"
 import { readMcpAppHtml } from "@/external/mcp/mcp-app-resource"
@@ -54,16 +57,26 @@ type McpToolset = {
   // Descriptions for the tools exposed by the agent's enabled MCP servers.
   toolDescriptions: Record<string, string>
 }
+type BuildToolsParams = {
+  agentSessionScope: AgentSessionScope
+  getProviderForModel: (model: string) => LLMProvider
+  buildLLMConfig: (params: BuildLLMConfigParams) => LLMConfig
+  onExecute: OnExecute
+  includeSessionMetadataTools?: boolean
+  includeSubAgentTools?: boolean
+  /** Overrides where stateful tools persist (public sessions). */
+  sessionState?: SessionStateTarget
+}
 
 /**
  * Builds the tool sets exposed to the LLM for a given agent.
  *
  * Owns everything related to tools: MCP tool wiring, conversation agent
  * tools, sub-agent tools, and the helpers that merge and filter them. Extracted
- * from StreamingService so that service can focus on the streaming lifecycle.
+ * from StreamingLLMService so that service can focus on the streaming lifecycle.
  */
 @Injectable()
-export class ToolsService extends ServiceWithLLM {
+export class ToolsService {
   private readonly logger = new Logger(ToolsService.name)
 
   constructor(
@@ -79,47 +92,25 @@ export class ToolsService extends ServiceWithLLM {
     private readonly documentChunkRetrievalService: DocumentChunkRetrievalService,
     private readonly mcpClientService: McpClientService,
     private readonly mcpServersService: McpServersService,
+  ) {}
 
-    @Inject("_MockLLMProvider")
-    mockLlmProvider: LLMProvider,
-    @Inject("VertexLLMProvider")
-    vertexLlmProvider: LLMProvider,
-    @Inject("Vertex3LLMProvider")
-    vertex3LlmProvider: LLMProvider,
-    @Inject("MistralLLMProvider")
-    mistralLlmProvider: LLMProvider,
-    @Inject("MedGemmaLLMProvider")
-    medGemmaLlmProvider: LLMProvider,
-    @Inject("GemmaLLMProvider")
-    gemmaLlmProvider: LLMProvider,
-  ) {
-    super({
-      mockLlmProvider,
-      vertexLlmProvider,
-      vertex3LlmProvider,
-      medGemmaLlmProvider,
-      gemmaLlmProvider,
-      mistralLlmProvider,
-    })
+  buildTools: (params: BuildToolsParams) => Promise<BuiltTools> = async (params) => {
+    return this.buildToolsImpl(params)
   }
 
-  async buildTools({
+  private async buildToolsImpl({
     agentSessionScope,
+    getProviderForModel,
+    buildLLMConfig,
     onExecute,
     includeSessionMetadataTools = true,
     includeSubAgentTools = true,
     sessionState,
-  }: {
-    agentSessionScope: AgentSessionScope
-    onExecute: OnExecute
-    includeSessionMetadataTools?: boolean
-    includeSubAgentTools?: boolean
-    /** Overrides where stateful tools persist (public sessions). */
-    sessionState?: SessionStateTarget
-  }): Promise<BuiltTools> {
+  }: BuildToolsParams): Promise<BuiltTools> {
     const { agent } = agentSessionScope
     const mcp = await this.buildMcpTools({
       agent,
+      locale: agentSessionScope.agentSettings.locale,
       session: agentSessionScope.session,
       onExecute,
     })
@@ -131,6 +122,8 @@ export class ToolsService extends ServiceWithLLM {
           includeSessionMetadataTools,
           includeSubAgentTools,
           mcp,
+          getProviderForModel,
+          buildLLMConfig,
           onExecute,
           sessionState,
         })
@@ -154,10 +147,13 @@ export class ToolsService extends ServiceWithLLM {
    */
   private async buildMcpTools({
     agent,
+    locale,
     session,
     onExecute,
   }: {
     agent: Agent
+    /** Language of the settings revision being run, so servers can answer in it. */
+    locale: string
     session: AgentSessionScope["session"]
     onExecute: OnExecute
   }): Promise<McpToolset> {
@@ -165,12 +161,13 @@ export class ToolsService extends ServiceWithLLM {
     const tools: ToolSet = {}
     const toolDescriptions: Record<string, string> = {}
     const validatedAppResources = new Set<string>()
-    // Headers, not prompt text: the server can attribute the call without
-    // the model having to copy agent/session ids.
+    // Headers, not prompt text: the server can attribute the call and pick its
+    // language without the model having to copy agent/session ids or a locale.
     const context: McpConversationContext = {
       agentId: agent.id,
       sessionId: session.id,
       externalVisitorId: "externalVisitorId" in session ? session.externalVisitorId : null,
+      locale,
     }
 
     for (const server of await this.mcpServersService.getEnabledServersForAgent(agent.id)) {
@@ -374,6 +371,8 @@ export class ToolsService extends ServiceWithLLM {
     includeSessionMetadataTools,
     includeSubAgentTools,
     mcp,
+    getProviderForModel,
+    buildLLMConfig,
     onExecute,
     sessionState,
   }: {
@@ -381,6 +380,8 @@ export class ToolsService extends ServiceWithLLM {
     includeSessionMetadataTools: boolean
     includeSubAgentTools: boolean
     mcp: McpToolset
+    getProviderForModel: (model: string) => LLMProvider
+    buildLLMConfig: (params: BuildLLMConfigParams) => LLMConfig
     onExecute: OnExecute
     sessionState?: SessionStateTarget
   }): Promise<BuiltTools> {
@@ -399,12 +400,12 @@ export class ToolsService extends ServiceWithLLM {
           ? buildSubAgentTools({
               agentSessionScope,
               agentSubAgentsService: this.agentSubAgentsService,
-              buildLLMConfig: (params) => this.buildLLMConfig(params),
-              buildTools: (params) => this.buildTools(params),
+              buildLLMConfig,
+              buildTools: this.buildTools,
               conversationAgentSessionsService: this.conversationAgentSessionsService,
               agentSettingsService: this.agentSettingsService,
               generateMasterPrompt,
-              getProviderForModel: (model) => this.getProviderForModel(model),
+              getProviderForModel,
               onExecute,
               projectsService: this.projectsService,
             })

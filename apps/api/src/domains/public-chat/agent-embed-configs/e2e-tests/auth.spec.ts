@@ -13,7 +13,6 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentEmbedConfigsManagementModule } from "../agent-embed-configs-management.module"
@@ -52,7 +51,6 @@ describe("AgentEmbedConfigs Management - Auth", () => {
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
     await app.close()
   })
 

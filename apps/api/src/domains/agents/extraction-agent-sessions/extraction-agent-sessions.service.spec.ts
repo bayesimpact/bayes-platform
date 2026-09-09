@@ -9,7 +9,6 @@ import {
 import { AgentsModule } from "@/domains/agents/agents.module"
 import { documentFactory } from "@/domains/documents/document.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { EXTRACTION_AGENT_SESSION_BATCH_SERVICE } from "./extraction-agent-session-batch.interface"
 import { ExtractionAgentSessionsService } from "./extraction-agent-sessions.service"
 
@@ -42,7 +41,6 @@ describe("ExtractionAgentSessionsService", () => {
   })
 
   afterAll(async () => {
-    await sdk.shutdown()
     await teardownE2eTestDatabase(setup)
   })
 

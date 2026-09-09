@@ -1,6 +1,11 @@
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
-import type { CreateMcpServerDto, McpServerDto } from "./mcp-servers.dto"
+import type {
+  CompleteMcpServerOauthDto,
+  CreateMcpServerDto,
+  McpServerDto,
+  McpServerOauthInitiationDto,
+} from "./mcp-servers.dto"
 
 export const McpServersRoutes = {
   createOne: defineRoute<ResponseData<McpServerDto>, RequestPayload<CreateMcpServerDto>>({
@@ -23,4 +28,14 @@ export const McpServersRoutes = {
     method: "delete",
     path: "organizations/:organizationId/projects/:projectId/mcp-servers/:mcpServerId/agents/:agentId",
   }),
+  initiateOauth: defineRoute<ResponseData<McpServerOauthInitiationDto>>({
+    method: "post",
+    path: "organizations/:organizationId/projects/:projectId/mcp-servers/:mcpServerId/oauth/initiate",
+  }),
+  completeOauth: defineRoute<ResponseData<McpServerDto>, RequestPayload<CompleteMcpServerOauthDto>>(
+    {
+      method: "post",
+      path: "organizations/:organizationId/projects/:projectId/mcp-servers/:mcpServerId/oauth/complete",
+    },
+  ),
 }

@@ -59,33 +59,6 @@ export class ProviderSpecs {
     expect(result).toBeDefined()
     expectIncludes(result, "Elvis")
   }
-  static async testGenerateObject({
-    provider,
-    model,
-    serviceTier,
-  }: {
-    provider: LLMProvider
-    model: string
-    serviceTier?: LLMServiceTier
-  }): Promise<void> {
-    const metadata = ProviderSpecs.getMetadata()
-    const prompt = "Can I use aspirin if I am bleeding?"
-    const schema = z.object({
-      yesOrNo: z.string().describe("'yes' or 'no'"),
-      justification: z.string().describe("Explain why in 2 or 3 sentences"),
-    })
-    const config = {
-      model,
-      temperature: ProviderSpecs.temperature,
-      systemPrompt: ProviderSpecs.systemPrompt,
-      serviceTier,
-    }
-    const result = await provider.generateObject({ schema, prompt, config, metadata })
-    expect(result).toBeDefined()
-    expect(() => schema.parse(result)).not.toThrow()
-    const parsed = schema.parse(result)
-    expectIncludes(parsed.yesOrNo, "no")
-  }
   static async testStreamChatResponse({
     provider,
     model,
@@ -429,7 +402,7 @@ export class ProviderSpecs {
     advancedExpectation: boolean
     serviceTier?: LLMServiceTier
   }): Promise<void> {
-    const prompt = `Today's date: 4/1/2026
+    const prompt = `Today's date: 2026-04-01 (Date format YYYY-MM-DD)
 
 ## Identity
 You are **Warmachine rules**, a conversational AI assistant.
@@ -524,7 +497,7 @@ Always answer in English.`
     advancedExpectation: boolean
     serviceTier?: LLMServiceTier
   }): Promise<void> {
-    const prompt = `Today's date: 4/1/2026
+    const prompt = `Today's date: 2026-04-01 (Date format YYYY-MM-DD)
 
 ## Identity
 You are **Warmachine rules**, a conversational AI assistant.

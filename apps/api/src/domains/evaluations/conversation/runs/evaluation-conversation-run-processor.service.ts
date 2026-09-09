@@ -7,14 +7,14 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 import { Agent } from "@/domains/agents/agent.entity"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { AgentLlmRequestService } from "@/domains/agents/shared/agent-session-messages/streaming/agent-llm-request.service"
+import { EvaluationConversationRunLlmService } from "@/domains/evaluations/conversation/runs/evaluation-conversation-run-llm.service"
 import {
   EvaluationConversationRun,
   type EvaluationConversationRunSummary,
 } from "./evaluation-conversation-run.entity"
 import type { ProcessEvaluationConversationRunRecordJobPayload } from "./evaluation-conversation-run.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { EvaluationConversationRunGraderService } from "./evaluation-conversation-run-grader.service"
+import { EvaluationConversationRunGraderLlmService } from "./evaluation-conversation-run-grader-llm.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationConversationRunStatusNotifierService } from "./evaluation-conversation-run-status-notifier.service"
 import {
@@ -39,8 +39,8 @@ export class EvaluationConversationRunProcessorService {
     agentRepository: Repository<Agent>,
     @InjectRepository(AgentSettings)
     agentSettingsRepository: Repository<AgentSettings>,
-    private readonly agentLlmRequestService: AgentLlmRequestService,
-    private readonly graderService: EvaluationConversationRunGraderService,
+    private readonly evaluationConversationRunLlmService: EvaluationConversationRunLlmService,
+    private readonly graderService: EvaluationConversationRunGraderLlmService,
     private readonly statusNotifierService: EvaluationConversationRunStatusNotifierService,
     private readonly dataSource: DataSource,
   ) {
@@ -278,7 +278,7 @@ export class EvaluationConversationRunProcessorService {
       // Run the agent through the exact same request building as Studio
       // (tools, master prompt, streaming provider call), so the evaluation
       // measures the agent as users actually experience it.
-      const { output, traceId } = await this.agentLlmRequestService.runSingleTurn({
+      const { output, traceId } = await this.evaluationConversationRunLlmService.runSingleTurn({
         agent,
         agentSettings,
         connectScope,

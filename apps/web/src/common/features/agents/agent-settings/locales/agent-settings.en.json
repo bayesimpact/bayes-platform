@@ -13,6 +13,7 @@
       "model": "Model",
       "outputJsonSchema": "Output JSON Schema",
       "fillFormEnabled": "Form filling",
+      "priorityCallsEnabled": "Priority calls",
       "schemaBuilder": {
         "advancedMode": "Advanced mode",
         "visualMode": "Visual editor",
@@ -102,7 +103,8 @@
       "label": "MCP Servers",
       "manage": "Manage servers",
       "emptyTitle": "No MCP servers",
-      "emptyDescription": "Add MCP servers to this project to give your agents access to external tools."
+      "emptyDescription": "Add MCP servers to this project to give your agents access to external tools.",
+      "builtInDescription": "Built into the platform, no configuration needed."
     },
     "unsavedChanges": {
       "title": "Unsaved changes",
@@ -185,6 +187,9 @@
       "snippetLabel": "Embed snippet",
       "snippetDescription": "Paste this <script> tag before the closing </body> tag on any page where you want the chat widget to appear.",
       "snippetHint": "Optional attributes: data-color=\"#2563eb\" (button color), data-locale=\"fr\" (widget language), data-display-mode=\"drawer\" (side panel instead of bubble), data-hint=\"Need help?\" (tooltip shown on load and hover).",
+      "publicPageLabel": "Public page link",
+      "publicPageDescription": "Share this link, or a QR code of it, to make {{name}} available without a host website.",
+      "publicPageHint": "The page only works while embedding is enabled. Add &locale=fr to force the language.",
       "allowedOriginsLabel": "Allowed origins",
       "allowedOriginsDescription": "Comma-separated list of allowed origins (e.g. https://app.example.com). Leave empty to allow all origins.",
       "allowedOriginsPlaceholder": "https://app.example.com, https://staging.example.com",
@@ -194,11 +199,20 @@
       "logoUrlDescription": "URL of the logo image shown in the chat header.",
       "logoUrlPlaceholder": "https://example.com/logo.png",
       "primaryColorLabel": "Brand color",
-      "primaryColorDescription": "Primary color used in the chat widget header. Enter a hex value (e.g. #2563eb)."
+      "primaryColorDescription": "Primary color used in the chat widget header. Enter a hex value (e.g. #2563eb).",
+      "bannerTextLabel": "Banner text",
+      "bannerTextDescription": "Optional notice pinned above the conversation, on the public page and in the widget. Use it to state the context, such as a test version or the intended audience.",
+      "bannerTextPlaceholder": "Test version, for the pilot team only"
     },
     "source_one": "{{count}} source",
     "source_other": "{{count}} sources",
     "source_zero": "No sources",
+    "model": {
+      "priorityCalls": {
+        "title": "Priority calls",
+        "description": "Lower and more stable response time, at a higher cost per call."
+      }
+    },
     "tools": {
       "fillForm": {
         "title": "Form filling",

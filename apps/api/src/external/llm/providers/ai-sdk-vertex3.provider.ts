@@ -1,15 +1,12 @@
 import { createVertex } from "@ai-sdk/google-vertex"
 import type { JSONValue } from "@ai-sdk/provider"
-import {
-  AgentModel,
-  AgentProvider,
-  isAgentModelServedOutsideEu,
-} from "@caseai-connect/api-contracts"
+import { AgentProvider, isAgentModelServedOutsideEu } from "@caseai-connect/api-contracts"
 import { Injectable } from "@nestjs/common"
 import type { LanguageModel } from "ai"
 import { Agent, fetch as undiciFetch } from "undici"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
-import { AISDKLLMProviderBase, type CallOrigin } from "@/external/llm/ai-sdk-llm-provider-base"
+import type { CallOrigin } from "@/external/llm/ai-sdk-llm-common"
+import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk-llm-provider-base"
 
 // Default network timeouts (ms) applied to the extended-timeout fetch when the
 // corresponding env vars are unset. Sized for long-running calls such as
@@ -25,25 +22,20 @@ function readTimeoutMs(value: string | undefined, defaultMs: number): number {
 }
 
 /**
- * Models NOT yet served on the EU regional endpoint (verified 2026-07-30:
- * 404 on aiplatform.eu.rep.googleapis.com, while 3.5-flash, 3.5-flash-lite
- * and 3.1-flash-lite all answer there) — they can only run through the
- * "global" endpoint, which does NOT guarantee EU data processing. Every
- * other model stays on "eu" (data residency).
+ * A model flagged `servedOutsideEu` in `AgentModelMetadataMap` is not served on the EU
+ * regional endpoint (aiplatform.eu.rep.googleapis.com) and can only run through the "global"
+ * endpoint, which does NOT guarantee EU data processing. Every other model stays on "eu"
+ * (data residency).
  *
- * The list is derived from `servedOutsideEu` in `AgentModelMetadataMap`, the
- * shared catalog that also drives the "(non-EU)" label in the model pickers.
- * When Google opens EU serving for a model, clear the flag there — this
- * routing and the UI label follow from the same fact.
+ * No model carries the flag since the 2026-09-04 probe: every Gemini 3.x flash and flash-lite
+ * in the catalog answers on "eu" (3.6-flash was global-only at the 2026-07-30 probe). The same
+ * catalog entry drives the "(non-EU)" label in the model pickers, so when a new model ships
+ * global-only, set the flag there and routing and label follow together.
  */
-const GLOBAL_ONLY_MODELS: string[] = Object.values(AgentModel).filter((model) =>
-  isAgentModelServedOutsideEu(model),
-)
-
 type VertexLocation = "eu" | "global"
 
 function locationForModel(model: string): VertexLocation {
-  return GLOBAL_ONLY_MODELS.includes(model) ? "global" : "eu"
+  return isAgentModelServedOutsideEu(model) ? "global" : "eu"
 }
 
 @Injectable()

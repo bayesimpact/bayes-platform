@@ -10,7 +10,6 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentEmbedConfig } from "../agent-embed-config.entity"
@@ -67,7 +66,6 @@ describe("AgentEmbedConfigs Management - PATCH one", () => {
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
     await app.close()
   })
 
@@ -102,6 +100,32 @@ describe("AgentEmbedConfigs Management - PATCH one", () => {
       .getRepository(AgentEmbedConfig)
       .findOneOrFail({ where: { agentId } })
     expect(updated.allowedOrigins).toEqual(origins)
+  })
+
+  it("updates bannerText and clears it with null", async () => {
+    const response = await request({
+      route: AgentEmbedConfigsRoutes.updateOne,
+      pathParams: { organizationId, projectId, agentId },
+      token: "token",
+      request: { payload: { bannerText: "Test version, healthcare staff only" } },
+    })
+
+    expectResponse(response, 200)
+    const updated = await setup
+      .getRepository(AgentEmbedConfig)
+      .findOneOrFail({ where: { agentId } })
+    expect(updated.bannerText).toBe("Test version, healthcare staff only")
+
+    await request({
+      route: AgentEmbedConfigsRoutes.updateOne,
+      pathParams: { organizationId, projectId, agentId },
+      token: "token",
+      request: { payload: { bannerText: null } },
+    })
+    const cleared = await setup
+      .getRepository(AgentEmbedConfig)
+      .findOneOrFail({ where: { agentId } })
+    expect(cleared.bannerText).toBeNull()
   })
 
   it("only updates specified fields (partial update)", async () => {

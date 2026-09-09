@@ -8,6 +8,7 @@ import {
   deleteMcpServer,
   disableMcpServerForAgent,
   enableMcpServerForAgent,
+  initiateMcpServerOauth,
   listMcpServers,
 } from "./mcp-servers.thunks"
 
@@ -101,6 +102,19 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({ title: "Failed to disable MCP server", type: "error" }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: initiateMcpServerOauth.rejected,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "MCP server authorization failed",
+          description: action.payload || undefined,
+          type: "error",
+        }),
       )
     },
   })

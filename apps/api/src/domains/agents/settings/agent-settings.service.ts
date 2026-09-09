@@ -187,6 +187,10 @@ export class AgentSettingsService {
     if (!found || found.length !== 1) return { success: false }
     if (!found[0] || found[0].isDraft) return { success: false }
 
+    const last = await this.getLastOrUndefined({ connectScope, agentId, includesDraft: true })
+    if (last && last.revision === revision)
+      throw new UnprocessableEntityException("Cannot archive the last revision")
+
     return this.agentSettingsConnectRepository.updateOneById({
       connectScope,
       id: found[0].id,

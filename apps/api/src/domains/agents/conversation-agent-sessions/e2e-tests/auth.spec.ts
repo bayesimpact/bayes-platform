@@ -15,7 +15,6 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import {
   mockAuth0EmailForSub,
   mockForeignAuth0Id,
@@ -62,7 +61,6 @@ describe("Agent Sessions - Auth", () => {
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
     await app.close()
   })
 

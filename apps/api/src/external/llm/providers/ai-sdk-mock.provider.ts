@@ -5,7 +5,8 @@ import { type LanguageModel, simulateReadableStream } from "ai"
 import { MockLanguageModelV3 } from "ai/test"
 import type { LLMConfig, MockValue } from "@/common/interfaces/llm-provider.interface"
 import { generateRandomFromJSONSchema } from "@/common/test/random-generator"
-import { AISDKLLMProviderBase, CallOrigin } from "@/external/llm/ai-sdk-llm-provider-base"
+import { CallOrigin } from "@/external/llm/ai-sdk-llm-common"
+import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk-llm-provider-base"
 
 export type MockCall = {
   agentId: string | undefined
@@ -185,9 +186,7 @@ export class AISDKMockProvider extends AISDKLLMProviderBase {
     const jsonSchema =
       options.responseFormat?.type === "json" ? options.responseFormat.schema : undefined
     const withJsonSchema =
-      jsonSchema !== undefined ||
-      callOrigin === CallOrigin.generateObject ||
-      callOrigin === CallOrigin.generateStructuredOutput
+      jsonSchema !== undefined || callOrigin === CallOrigin.generateStructuredOutput
     if (withJsonSchema) {
       const object = jsonSchema
         ? generateRandomFromJSONSchema(jsonSchema)

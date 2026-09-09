@@ -8,6 +8,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { createOrganizationWithAgentMessage } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
@@ -60,7 +61,7 @@ describe("AgentSessionMessagesRoutes.getOne", () => {
     agentMessageId = agentMessage.id
     auth0Id = user.auth0Id
 
-    return { organization, project }
+    return { organization, project, user, agent }
   }
 
   const subject = async ({
@@ -104,6 +105,27 @@ describe("AgentSessionMessagesRoutes.getOne", () => {
 
     const response = await subject({
       messageId: nonExistentId,
+      payload: {
+        type: "live",
+      },
+    })
+
+    expectResponse(response, 404)
+    expect(response.body.data).toBeUndefined()
+  })
+
+  it("should not find a message through another session of the same project", async () => {
+    // The endpoint is polled with ids the client holds, so a message must only be reachable
+    // under the session it belongs to.
+    const { organization, project, user, agent } = await createContext()
+    const otherSession = conversationAgentSessionFactory
+      .transient({ organization, project, user, agent })
+      .build()
+    await repositories.conversationAgentSessionRepository.save(otherSession)
+    agentSessionId = otherSession.id
+
+    const response = await subject({
+      messageId: agentMessageId,
       payload: {
         type: "live",
       },

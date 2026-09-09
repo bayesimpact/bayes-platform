@@ -9,7 +9,7 @@ import { ConversationAgentSession } from "@/domains/agents/conversation-agent-se
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { AgentLlmModule } from "./agent-llm.module"
 import { StreamingController } from "./streaming.controller"
-import { StreamingService } from "./streaming.service"
+import { StreamingLlmService } from "./streaming-llm.service"
 
 @Module({
   imports: [
@@ -18,8 +18,8 @@ import { StreamingService } from "./streaming.service"
     forwardRef(() => AgentLlmModule),
     forwardRef(() => ConversationAgentSessionsModule),
   ],
-  providers: [...moduleProviders, StreamingService],
+  providers: [...moduleProviders, StreamingLlmService],
   controllers: [StreamingController],
-  exports: [StreamingService],
+  exports: [StreamingLlmService],
 })
 export class StreamingModule {}

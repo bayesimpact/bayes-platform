@@ -25,6 +25,8 @@ describe("ReviewCampaignRepository", () => {
       additionalImports: [MembershipsModule],
       providers: [ReviewCampaignRepository],
     })
+    repository = setup.module.get(ReviewCampaignRepository)
+    repositories = setup.getAllRepositories()
   })
 
   afterAll(async () => {
@@ -33,8 +35,6 @@ describe("ReviewCampaignRepository", () => {
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    repository = setup.module.get(ReviewCampaignRepository)
-    repositories = setup.getAllRepositories()
   })
 
   describe("listWithMemberCounts", () => {

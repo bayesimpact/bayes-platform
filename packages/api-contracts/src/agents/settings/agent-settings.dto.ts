@@ -14,6 +14,8 @@ export enum AgentModel {
   Gemini35FlashLite = "gemini-3.5-flash-lite",
   Gemini35Flash = "gemini-3.5-flash",
   Gemini36Flash = "gemini-3.6-flash",
+  Gemini37Flash = "gemini-3.7-flash",
+  Gemini38Flash = "gemini-3.8-flash",
   MedGemma10_27B = "google/medgemma-27b-it",
   Gemma4_26B = "google/gemma-4-26b-A4B-it",
   MistralSmall31_24B = "mistralai/Mistral-Small-3.1-24B-Instruct-2503",
@@ -35,6 +37,8 @@ export const AgentModelToAgentProvider: Record<AgentModel, AgentProvider> = {
   [AgentModel.Gemini35FlashLite]: AgentProvider.Vertex3,
   [AgentModel.Gemini35Flash]: AgentProvider.Vertex3,
   [AgentModel.Gemini36Flash]: AgentProvider.Vertex3,
+  [AgentModel.Gemini37Flash]: AgentProvider.Vertex3,
+  [AgentModel.Gemini38Flash]: AgentProvider.Vertex3,
   [AgentModel.MedGemma10_27B]: AgentProvider.MedGemma,
   [AgentModel.Gemma4_26B]: AgentProvider.Gemma,
   [AgentModel.MistralSmall31_24B]: AgentProvider.Mistral,
@@ -80,7 +84,9 @@ export const AgentModelMetadataMap: Record<AgentModel, AgentModelMetadata> = {
   [AgentModel.Gemini31FlashLite]: {},
   [AgentModel.Gemini35FlashLite]: {},
   [AgentModel.Gemini35Flash]: {},
-  [AgentModel.Gemini36Flash]: { servedOutsideEu: true },
+  [AgentModel.Gemini36Flash]: {},
+  [AgentModel.Gemini37Flash]: {},
+  [AgentModel.Gemini38Flash]: {},
   [AgentModel.MedGemma10_27B]: {},
   [AgentModel.Gemma4_26B]: {},
   [AgentModel.MistralSmall31_24B]: {},
@@ -244,6 +250,7 @@ export const agentSettingsValidationSchema = z.object({
   documentsRagMode: z.enum(DocumentsRagMode),
   fillFormEnabled: z.boolean(),
   locale: z.enum(AgentLocale),
+  priorityCallsEnabled: z.boolean(),
   model: z.enum(AgentModel),
   outputJsonSchema: outputJsonSchemaSchema.optional(),
   projectAgentSessionCategoryIds: z.array(z.string().uuid()),
@@ -339,6 +346,7 @@ export type UpdateAgentSettingsGeneralDto = z.infer<typeof updateAgentSettingsGe
 export const updateAgentSettingsModelSchema = agentSettingsValidationSchema.pick({
   model: true,
   temperature: true,
+  priorityCallsEnabled: true,
 })
 export type UpdateAgentSettingsModelDto = z.infer<typeof updateAgentSettingsModelSchema>
 

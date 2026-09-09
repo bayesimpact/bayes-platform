@@ -3,9 +3,15 @@ import {
   buildErrorMessage,
   buildStreamingMessage,
   emptyConversation,
+  failedMcpAppCardConversation,
+  loadingMcpAppCardConversation,
   longConversation,
   markdownConversation,
+  resourceCardsConversation,
+  resourceCardsOnlyConversation,
   shortConversation,
+  sourcesConversation,
+  textWithMcpAppCardConversation,
 } from "./chat.factory"
 import { EmbedChat } from "./EmbedChat"
 
@@ -42,6 +48,22 @@ export const Empty: Story = {
 export const ShortConversation: Story = {
   args: {
     messages: shortConversation,
+  },
+}
+
+export const WithBanner: Story = {
+  args: {
+    messages: shortConversation,
+    bannerText: "Test version, for the pilot team only. Answers may be incomplete.",
+  },
+}
+
+export const WithBannerNoHeader: Story = {
+  name: "With banner — header hidden",
+  args: {
+    messages: shortConversation,
+    hideHeader: true,
+    bannerText: "Test version, for the pilot team only.",
   },
 }
 
@@ -87,6 +109,28 @@ export const ErrorState: Story = {
       { id: "user-err", role: "user", content: "This will fail.", status: "completed" },
       buildErrorMessage(),
     ],
+  },
+}
+
+export const LoadingMcpAppCard: Story = {
+  name: "MCP App card loading",
+  args: {
+    messages: loadingMcpAppCardConversation,
+    isMcpAppHtmlLoading: true,
+  },
+}
+
+export const TextWithMcpAppCard: Story = {
+  name: "MCP App card with reply text",
+  args: {
+    messages: textWithMcpAppCardConversation,
+  },
+}
+
+export const FailedMcpAppCard: Story = {
+  name: "MCP App card failed to load",
+  args: {
+    messages: failedMcpAppCardConversation,
   },
 }
 
@@ -178,6 +222,35 @@ export const CustomLogo: Story = {
       primaryColor: "#0f766e",
       logoUrl: "https://placehold.co/36x36/0f766e/ffffff?text=A",
     },
+  },
+}
+
+export const Sources: Story = {
+  name: "Sources",
+  args: {
+    messages: sourcesConversation,
+  },
+}
+
+export const SourcesFrench: Story = {
+  name: "Sources — French",
+  args: {
+    locale: "fr",
+    messages: sourcesConversation,
+  },
+}
+
+export const ResourceCards: Story = {
+  name: "Resource cards",
+  args: {
+    messages: resourceCardsConversation,
+  },
+}
+
+export const ResourceCardsOnly: Story = {
+  name: "Resource cards — no assistant text",
+  args: {
+    messages: resourceCardsOnlyConversation,
   },
 }
 

@@ -9,7 +9,6 @@ import {
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
 import { PublicChatModule } from "../public-chat.module"
 import { publicAgentSessionFactory } from "./public-agent-session.factory"
@@ -34,7 +33,6 @@ describe("PublicAgentSessionsService", () => {
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
   })
 
   const buildEmbedConfig = async () => {

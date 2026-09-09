@@ -1,3 +1,4 @@
+import { runtimeConfig } from "@/config/runtime-config"
 import { getAccessToken } from "@/external/auth0Client"
 
 function parseSSEEvent<TDto>(eventText: string, label: string): TDto | null {
@@ -47,7 +48,7 @@ export async function readSSEStream<TDto, TEvent>(params: {
 }): Promise<void> {
   const { config, onStatusChanged } = params
   const token = await getAccessToken()
-  const baseURL = import.meta.env.VITE_API_URL as string
+  const baseURL = runtimeConfig.apiUrl
   const streamPath = config.getStreamPath({
     organizationId: params.organizationId,
     projectId: params.projectId,

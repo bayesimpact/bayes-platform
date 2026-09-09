@@ -15,7 +15,6 @@ import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.f
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import type { Project } from "@/domains/projects/project.entity"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { setupUserGuardForTesting } from "../../../../../../../test/e2e.helpers"
 import { StreamingModule } from "../streaming.module"
 
@@ -49,7 +48,6 @@ describe("AgentSessionMessagesRoutes.stream", () => {
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
     await app.close()
   })
 

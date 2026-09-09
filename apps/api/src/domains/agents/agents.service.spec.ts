@@ -14,7 +14,6 @@ import {
 } from "@/domains/organizations/organization.factory"
 import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { userFactory } from "@/domains/users/user.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { AgentsModule } from "./agents.module"
 import { AgentsService } from "./agents.service"
 import { addUserToAgent } from "./memberships/agent-membership.factory"
@@ -30,18 +29,17 @@ describe("AgentsService", () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [AgentsModule],
     })
+    service = setup.module.get<AgentsService>(AgentsService)
+    agentSettingsService = setup.module.get<AgentSettingsService>(AgentSettingsService)
+    repositories = setup.getAllRepositories()
   })
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
   })
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    service = setup.module.get<AgentsService>(AgentsService)
-    agentSettingsService = setup.module.get<AgentSettingsService>(AgentSettingsService)
-    repositories = setup.getAllRepositories()
   })
 
   describe("createAgent", () => {

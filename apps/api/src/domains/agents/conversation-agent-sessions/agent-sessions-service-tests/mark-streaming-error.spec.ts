@@ -1,13 +1,9 @@
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { agentSessionControllerTestSetup } from "./test-setup"
 
 const getTestContext = agentSessionControllerTestSetup()
 
 describe("markStreamingError", () => {
-  afterAll(async () => {
-    await sdk.shutdown()
-  })
   it("should mark assistant message as error", async () => {
     const {
       service,
@@ -16,7 +12,7 @@ describe("markStreamingError", () => {
       testOrganization,
       testUser,
       testProject,
-      streamingService,
+      streamingLLMService,
     } = getTestContext()
     const connectScope: RequiredConnectScope = {
       organizationId: testOrganization.id,
@@ -30,7 +26,7 @@ describe("markStreamingError", () => {
       type: "playground",
     })
 
-    const { assistantMessageId } = await streamingService.prepareForStreaming({
+    const { assistantMessageId } = await streamingLLMService.prepareForStreaming({
       agentSessionScope: {
         agent: testAgent,
         agentSettings: testAgentSettings,
@@ -40,7 +36,7 @@ describe("markStreamingError", () => {
       userContent: "Hello",
     })
 
-    const errorSession = await streamingService.markStreamingError({
+    const errorSession = await streamingLLMService.markStreamingError({
       sessionId: session.id,
       assistantMessageId,
       errorMessage: "An error occurred",

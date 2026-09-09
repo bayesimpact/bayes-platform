@@ -1,6 +1,6 @@
 import { AgentModel } from "@caseai-connect/api-contracts"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
-import { CallOrigin } from "@/external/llm/ai-sdk-llm-provider-base"
+import { CallOrigin } from "@/external/llm/ai-sdk-llm-common"
 import { CustomMedGemmaLanguageModel } from "./custom-med-gemma-language-model"
 
 describe("CustomMedGemmaLanguageModel", () => {

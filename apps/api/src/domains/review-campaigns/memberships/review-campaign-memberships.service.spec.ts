@@ -23,6 +23,8 @@ describe("ReviewCampaignMembershipsService", () => {
       additionalImports: [MembershipsModule],
       providers: [ReviewCampaignMembershipRepository, ReviewCampaignMembershipsService],
     })
+    service = setup.module.get(ReviewCampaignMembershipsService)
+    repositories = setup.getAllRepositories()
   })
 
   afterAll(async () => {
@@ -31,8 +33,6 @@ describe("ReviewCampaignMembershipsService", () => {
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    service = setup.module.get(ReviewCampaignMembershipsService)
-    repositories = setup.getAllRepositories()
   })
 
   const saveActiveCampaign = async (

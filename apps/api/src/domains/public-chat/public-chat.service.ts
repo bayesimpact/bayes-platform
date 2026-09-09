@@ -1,5 +1,6 @@
 import type {
   AgentEmbedConfigDto,
+  AgentSessionMcpAppHtmlDto,
   PublicAgentSessionDto,
   PublicSessionMessageDto,
   StreamEvent,
@@ -11,11 +12,11 @@ import { Agent } from "@/domains/agents/agent.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import type { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
-import { applyLiveMcpAppHtml } from "@/domains/agents/shared/agent-session-messages/agent-message.helpers"
+import { toMcpAppHtmlDtos } from "@/domains/agents/shared/agent-session-messages/agent-message.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpAppHtmlService } from "@/domains/agents/shared/agent-session-messages/mcp-app-html.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { StreamingService } from "@/domains/agents/shared/agent-session-messages/streaming/streaming.service"
+import { StreamingLlmService } from "@/domains/agents/shared/agent-session-messages/streaming/streaming-llm.service"
 import type { AgentEmbedConfig } from "./agent-embed-configs/agent-embed-config.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentEmbedConfigsService } from "./agent-embed-configs/agent-embed-configs.service"
@@ -31,7 +32,7 @@ export class PublicChatService {
     private readonly agentSettingsService: AgentSettingsService,
     readonly agentEmbedConfigsService: AgentEmbedConfigsService,
     private readonly publicAgentSessionsService: PublicAgentSessionsService,
-    private readonly streamingService: StreamingService,
+    private readonly streamingLLMService: StreamingLlmService,
     private readonly mcpAppHtmlService: McpAppHtmlService,
   ) {}
 
@@ -50,13 +51,35 @@ export class PublicChatService {
     const { session, messages } = await this.publicAgentSessionsService.getSessionWithMessages(
       publicSession.id,
     )
+    // MCP App HTML is served by `getMcpAppHtml`: reading it connects to every MCP server the
+    // transcript points at, which used to hold the whole widget behind its loading shell.
+    return this.toSessionDto(session, messages)
+  }
+
+  /** Current HTML of every MCP App card the session's replies point at. */
+  async getMcpAppHtml(publicSession: PublicAgentSession): Promise<AgentSessionMcpAppHtmlDto[]> {
+    const { session, messages } = await this.publicAgentSessionsService.getSessionWithMessages(
+      publicSession.id,
+    )
     const htmlByKey = await this.mcpAppHtmlService.readLiveHtml({
       agentId: session.agentId,
       sessionId: session.id,
       messages,
       externalVisitorId: session.externalVisitorId,
+      // Same published settings as the replies themselves, so the cards come
+      // back in the language the visitor was answered in.
+      resolveLocale: async () => {
+        const agentSettings = await this.agentSettingsService.getLast({
+          connectScope: {
+            organizationId: publicSession.organizationId,
+            projectId: publicSession.projectId,
+          },
+          agentId: session.agentId,
+        })
+        return agentSettings.locale
+      },
     })
-    return this.toSessionDto(session, messages, htmlByKey)
+    return toMcpAppHtmlDtos(htmlByKey)
   }
 
   async *streamResponse(
@@ -83,7 +106,7 @@ export class PublicChatService {
 
     await this.publicAgentSessionsService.updateLastActivity(publicSession.id)
 
-    yield* this.streamingService.streamPublicAgentResponse({
+    yield* this.streamingLLMService.streamPublicAgentResponse({
       connectScope,
       publicSessionId: publicSession.id,
       agent,
@@ -111,6 +134,7 @@ export class PublicChatService {
       title: embedConfig.title,
       logoUrl: embedConfig.logoUrl,
       primaryColor: embedConfig.primaryColor,
+      bannerText: embedConfig.bannerText,
       createdAt: embedConfig.createdAt.getTime(),
       updatedAt: embedConfig.updatedAt.getTime(),
     }
@@ -119,7 +143,6 @@ export class PublicChatService {
   private toSessionDto(
     session: PublicAgentSession,
     messages: AgentMessage[],
-    htmlByKey: Map<string, string> = new Map(),
   ): PublicAgentSessionDto {
     return {
       id: session.id,
@@ -131,7 +154,7 @@ export class PublicChatService {
           content: message.content,
           status: message.status ?? undefined,
           createdAt: message.createdAt.getTime(),
-          toolCalls: applyLiveMcpAppHtml(message.toolCalls, htmlByKey),
+          toolCalls: message.toolCalls ?? undefined,
         }),
       ),
       createdAt: session.createdAt.getTime(),

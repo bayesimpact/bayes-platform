@@ -43,6 +43,7 @@ import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { AttachDocument } from "@/studio/features/documents/components/AttachDocument"
 import { selectStreaming } from "../agent-session-messages.selectors"
 import { sendMessage } from "../agent-session-messages.thunks"
+import { findFailedLastTurn } from "./failed-last-turn"
 
 type AgentSession = ConversationAgentSession
 
@@ -68,10 +69,27 @@ export function AgentSessionMessages({
   renderVersionSelect?: React.ReactNode
 }) {
   const isStreaming = useAppSelector(selectStreaming)
+  const dispatch = useAppDispatch()
 
   const formResult = formResultSchema
     ? { outputJsonSchema: formResultSchema, result: session.result }
     : null
+
+  // A failed or interrupted last reply offers to send its turn again: the same content and
+  // attachment the user already provided, so nothing has to be retyped or re-uploaded.
+  const failedTurn = findFailedLastTurn(messages)
+  const handleResendLast =
+    failedTurn && !isStreaming
+      ? () =>
+          void dispatch(
+            sendMessage({
+              content: failedTurn.userMessage.content,
+              attachmentDocumentId: failedTurn.userMessage.attachmentDocumentId,
+              onFillFormToolEvent,
+              agentSession: session,
+            }),
+          )
+      : undefined
 
   const desktopHeightClasses = "h-[85dvh] md:h-[calc(100dvh-11rem)] xl:h-[calc(100dvh-17rem)]"
   return (
@@ -81,7 +99,12 @@ export function AgentSessionMessages({
           <MessageScrollerProvider scrollPreviousItemPeek={168} defaultScrollPosition="end">
             <FormSubSessionsProvider value={formSubSessions}>
               <FormResultProvider value={formResult}>
-                <Messages messages={messages} renderMessageVersion={renderMessageVersion} />
+                <Messages
+                  messages={messages}
+                  renderMessageVersion={renderMessageVersion}
+                  resendReplyIndex={failedTurn?.replyIndex}
+                  onResendLast={handleResendLast}
+                />
               </FormResultProvider>
             </FormSubSessionsProvider>
 
@@ -102,9 +125,14 @@ export function AgentSessionMessages({
 function Messages({
   messages,
   renderMessageVersion,
+  resendReplyIndex,
+  onResendLast,
 }: {
   messages: AgentSessionMessageType[]
   renderMessageVersion?: (message: AgentSessionMessageType) => React.ReactNode
+  /** Index of the failed reply that renders the Retry affordance. */
+  resendReplyIndex?: number
+  onResendLast?: () => void
 }) {
   return (
     <MessageScroller className="flex-1">
@@ -117,7 +145,11 @@ function Messages({
               // Anchor on user turns so jumps land on a question with prior context peeking above.
               scrollAnchor={message.role === "user"}
             >
-              <AgentSessionMessage message={message} renderMessageVersion={renderMessageVersion} />
+              <AgentSessionMessage
+                message={message}
+                renderMessageVersion={renderMessageVersion}
+                onResend={index === resendReplyIndex ? onResendLast : undefined}
+              />
             </MessageScrollerItem>
           ))}
         </MessageScrollerContent>

@@ -4,9 +4,9 @@
 # instead of pulling the default PyPI one.
 
 docling
-transformers>=4.34.0,<5.0.0
-# rapidocr 3.8.2 ships a broken wheel (missing pytorch/networks/arch_config.yaml); pin until fixed upstream
-rapidocr==3.8.1
+# docling-ibm-models excludes the transformers 5.x releases it does not support;
+# leave the upper bound to it so security fixes flow (CVE-2026-4372, CVE-2026-5241).
+transformers>=4.42.0
 llama-index-core
 llama-index-readers-docling
 llama-index-node-parser-docling

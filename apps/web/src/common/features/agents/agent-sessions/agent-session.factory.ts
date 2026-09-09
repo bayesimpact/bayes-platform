@@ -6,7 +6,10 @@ import type {
   ConversationSubSession,
 } from "./conversation/conversation-agent-sessions.models"
 import type { ExtractionAgentSessionSummary } from "./extraction/extraction-agent-sessions.models"
-import type { AgentSessionMessage } from "./shared/agent-session-messages/agent-session-messages.models"
+import type {
+  AgentSessionMcpAppHtml,
+  AgentSessionMessage,
+} from "./shared/agent-session-messages/agent-session-messages.models"
 
 type SessionTransientParams = {
   agent?: Pick<Agent, "id">
@@ -103,4 +106,12 @@ export const agentSessionMessageFactory = AgentSessionMessageFactory.define(({ p
   status: params.status ?? "completed",
   agentRevision: params.agentRevision,
   toolCalls: params.toolCalls,
+}))
+
+class AgentSessionMcpAppHtmlFactory extends Factory<AgentSessionMcpAppHtml> {}
+
+export const agentSessionMcpAppHtmlFactory = AgentSessionMcpAppHtmlFactory.define(({ params }) => ({
+  mcpServerId: params.mcpServerId ?? faker.string.uuid(),
+  resourceUri: params.resourceUri ?? `ui://${faker.lorem.slug()}/mcp-app.html`,
+  html: params.html ?? "<!DOCTYPE html><html><body></body></html>",
 }))

@@ -1,4 +1,5 @@
 import axios, { type AxiosInstance } from "axios"
+import { runtimeConfig } from "@/config/runtime-config"
 import { Auth0AuthenticationError, getAccessToken, logoutAuth0 } from "./auth0Client"
 
 let axiosInstance: AxiosInstance | null = null
@@ -9,8 +10,8 @@ export const getAxiosInstance = (): AxiosInstance => {
 }
 
 const buildAxiosInstance = (): AxiosInstance => {
-  const baseURL = import.meta.env.VITE_API_URL as string
-  const timeoutMs = Number(import.meta.env.VITE_API_TIMEOUT_MS ?? "10000")
+  const baseURL = runtimeConfig.apiUrl
+  const timeoutMs = Number(runtimeConfig.apiTimeoutMs ?? "10000")
   const axiosInstance = axios.create({ baseURL: `${baseURL}/`, timeout: timeoutMs })
 
   // Set up request interceptor to automatically inject Auth0 access token

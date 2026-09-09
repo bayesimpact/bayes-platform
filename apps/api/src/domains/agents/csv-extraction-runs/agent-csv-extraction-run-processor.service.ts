@@ -6,7 +6,7 @@ import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { AgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-with-settings-run.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { StructuredExtractionAgentRunnerService } from "@/domains/agents/shared/structured-extraction-agent-runner.service"
+import { StructuredExtractionAgentRunLlmService } from "@/domains/agents/shared/structured-extraction-agent-run-llm.service"
 import type {
   AgentCsvExtractionRunColumnSchema,
   AgentCsvExtractionRunSummary,
@@ -35,7 +35,7 @@ export class AgentCsvExtractionRunProcessorService {
     runRecordRepository: Repository<AgentCsvExtractionRunRecord>,
     private readonly statusNotifierService: AgentCsvExtractionRunStatusNotifierService,
     private readonly csvExportService: AgentCsvExtractionRunCsvExportService,
-    private readonly structuredExtractionAgentRunner: StructuredExtractionAgentRunnerService,
+    private readonly structuredExtractionAgentRunner: StructuredExtractionAgentRunLlmService,
     private readonly dataSource: DataSource,
   ) {
     this.runConnectRepository = new ConnectRepository(runRepository, "agentCsvExtractionRun")

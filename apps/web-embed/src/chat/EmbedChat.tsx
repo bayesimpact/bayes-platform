@@ -1,4 +1,8 @@
-import type { AgentSessionMessageDto, EmbedDisplayMode } from "@caseai-connect/api-contracts"
+import type {
+  AgentSessionMcpAppHtmlDto,
+  AgentSessionMessageDto,
+  EmbedDisplayMode,
+} from "@caseai-connect/api-contracts"
 import { useEffect, useMemo, useRef } from "react"
 import { I18nextProvider, useTranslation } from "react-i18next"
 import type { SupportedLocale } from "../i18n"
@@ -6,6 +10,7 @@ import { createEmbedI18n } from "../i18n"
 import {
   Chat,
   ChatActions,
+  ChatBanner,
   ChatContent,
   ChatFooter,
   ChatHeader,
@@ -33,6 +38,10 @@ export type EmbedChatProps = {
   displayMode?: EmbedDisplayMode
   /** All messages to display, in order */
   messages: AgentSessionMessageDto[]
+  /** Current HTML of the MCP App cards in the thread, loaded after the messages. */
+  mcpAppHtml?: AgentSessionMcpAppHtmlDto[]
+  /** The MCP servers have not answered yet: cards without HTML show a placeholder. */
+  isMcpAppHtmlLoading?: boolean
   /** Whether the assistant is currently streaming a response */
   isStreaming: boolean
   /** Called when the user submits a message */
@@ -43,6 +52,8 @@ export type EmbedChatProps = {
   onClose?: () => void
   /** Hide the branded header (agent name, logo, close). Useful when the host already has chrome. */
   hideHeader?: boolean
+  /** Optional notice pinned above the conversation (e.g. "Test version, staff only"). */
+  bannerText?: string
 }
 
 export function EmbedChat(props: EmbedChatProps) {
@@ -68,11 +79,14 @@ function EmbedChatInner({
   theme,
   displayMode = "modal",
   messages,
+  mcpAppHtml = [],
+  isMcpAppHtmlLoading = false,
   isStreaming,
   onSendMessage,
   placeholder,
   onClose,
   hideHeader = false,
+  bannerText,
 }: EmbedChatProps) {
   const { t } = useTranslation("chat")
   const chatEndRef = useRef<HTMLDivElement>(null)
@@ -102,9 +116,16 @@ function EmbedChatInner({
         <ChatHeader agentName={agentName} logoUrl={theme?.logoUrl} onClose={onClose} />
       )}
 
+      {bannerText && <ChatBanner text={bannerText} />}
+
       <ChatContent>
         {messages.map((message) => (
-          <ChatMessage key={message.id} message={message} />
+          <ChatMessage
+            key={message.id}
+            message={message}
+            mcpAppHtml={mcpAppHtml}
+            isMcpAppHtmlLoading={isMcpAppHtmlLoading}
+          />
         ))}
         <div ref={chatEndRef} />
       </ChatContent>

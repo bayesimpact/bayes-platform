@@ -1,43 +1,111 @@
 #
-# 🏡 Production Build
+# Layer order matters for the build cache: dependency manifests are copied and
+# installed before the sources, so a code change only re-runs the compile
+# steps. The Python/Torch layers of the GPU image depend on the requirements
+# files only, never on the application code.
 #
-FROM node:24.16.0-bookworm-slim AS build
+
+#
+# 📦 Dependencies of the API (dev + prod), from the manifests only
+#
+FROM node:24.20.0-bookworm-slim AS api-deps
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends libc6 && rm -rf /var/lib/apt/lists/*
 
-# Copy source code
-COPY apps/api ./apps/api
-COPY ./packages ./packages
-COPY package-lock.json ./
-COPY package.json ./
+# Every workspace manifest the lockfile knows about, no sources.
+COPY package.json package-lock.json ./
+COPY apps/api/package.json ./apps/api/
+COPY packages/api-contracts/package.json ./packages/api-contracts/
+COPY packages/jest-config/package.json ./packages/jest-config/
+COPY packages/typescript-config/package.json ./packages/typescript-config/
+COPY packages/ui/package.json ./packages/ui/
 
-# Generate the production build. The build script runs "nest build" to compile the application.
 # Scope install to API + api-contracts so packages/ui's runtime deps (vite, tailwind, radix, react)
 # never enter node_modules/. Frontend workspaces are left on disk but their deps aren't installed.
 RUN npm ci \
     --workspace=@caseai-connect/api \
     --workspace=@caseai-connect/api-contracts \
     --include-workspace-root
-RUN cd apps/api && npm run build
-RUN cd packages/api-contracts && npm run build
 
-# Discard the dev install and reinstall only production deps. A fresh `npm ci --omit=dev`
-# produces a cleaner tree than `npm prune --omit=dev`, which leaves extraneous packages
-# (e.g. next/react pulled by @repo/jest-config's devDeps) lingering in node_modules.
-RUN rm -rf node_modules apps/api/node_modules packages/*/node_modules
+#
+# 📦 Production dependencies of the API, from the manifests only
+#
+# A fresh `npm ci --omit=dev` produces a cleaner tree than `npm prune --omit=dev`,
+# which leaves extraneous packages (e.g. next/react pulled by @repo/jest-config's
+# devDeps) lingering in node_modules.
+#
+FROM node:24.20.0-bookworm-slim AS api-prod-deps
+
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY apps/api/package.json ./apps/api/
+COPY packages/api-contracts/package.json ./packages/api-contracts/
+COPY packages/jest-config/package.json ./packages/jest-config/
+COPY packages/typescript-config/package.json ./packages/typescript-config/
+COPY packages/ui/package.json ./packages/ui/
+
 RUN npm ci --omit=dev \
     --workspace=@caseai-connect/api \
     --workspace=@caseai-connect/api-contracts \
     --include-workspace-root
 
+# `next` is an optional peer of @llamaindex/workflow-core (via llamaindex) that npm
+# auto-installs, and `sharp` only comes in as an optional dependency of `next`. The API
+# uses neither at runtime. npm 11.19 (bundled in node 24.20) ignores `--omit=peer`, so
+# drop them explicitly: they pin postcss 8.4.31 and sharp 0.34 with open HIGH CVEs.
+RUN rm -rf node_modules/next node_modules/sharp node_modules/@img
+
 # Ensure apps/api/node_modules exists (npm may skip creating it when everything hoists to root).
 RUN mkdir -p /app/apps/api/node_modules
 
 #
+# 🏡 Production Build
+#
+FROM api-deps AS build
+
+# Sources, after the install: a code change starts here.
+COPY apps/api ./apps/api
+COPY ./packages ./packages
+
+# Generate the production build. The build script runs "nest build" to compile the application.
+RUN cd apps/api && npm run build
+RUN cd packages/api-contracts && npm run build
+
+#
+# 🌐 Web front build (only used by the app-runtime target)
+#
+# Builds apps/web with `/app/` as public path: the API serves the result under
+# /app (see apps/api/src/common/web-app). No VITE_* tenant value is baked in:
+# the API injects the runtime configuration into index.html from its own
+# environment, so one image serves every tenant.
+#
+FROM node:24.20.0-bookworm-slim AS web-build
+
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/api-contracts/package.json ./packages/api-contracts/
+COPY packages/jest-config/package.json ./packages/jest-config/
+COPY packages/typescript-config/package.json ./packages/typescript-config/
+COPY packages/ui/package.json ./packages/ui/
+
+RUN npm ci \
+    --workspace=@caseai-connect/web \
+    --workspace=@caseai-connect/ui \
+    --workspace=@caseai-connect/api-contracts \
+    --include-workspace-root
+
+COPY apps/web ./apps/web
+COPY ./packages ./packages
+
+ENV VITE_BASE_PATH=/app/
+RUN cd apps/web && npm run build
+
+#
 # 🚀 Runtime Base (shared)
 #
-FROM node:24.16.0-bookworm-slim AS runtime-base
+FROM node:24.20.0-bookworm-slim AS runtime-base
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends libc6 && rm -rf /var/lib/apt/lists/*
@@ -46,10 +114,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends libc6 && rm -rf
 ENV NODE_ENV=production
 
 # Copy only the necessary files
-COPY --from=build /app/apps/api/dist /app/apps/api/dist
+COPY --from=api-prod-deps /app/node_modules node_modules
+COPY --from=api-prod-deps /app/apps/api/node_modules /app/apps/api/node_modules
 COPY --from=build /app/packages/api-contracts /app/packages/api-contracts
-COPY --from=build /app/apps/api/node_modules /app/apps/api/node_modules
-COPY --from=build /app/node_modules node_modules
+COPY --from=build /app/apps/api/dist /app/apps/api/dist
 
 #
 # 🚀 API Runtime (no Docling)
@@ -57,6 +125,17 @@ COPY --from=build /app/node_modules node_modules
 FROM runtime-base AS api-runtime
 
 CMD ["node", "--enable-source-maps", "/app/apps/api/dist/main.js"]
+
+#
+# 🚀 App Runtime: API + web front in one image
+#
+# Same process as api-runtime, plus the built web front served under /app.
+# WEB_APP_DIST_DIR switches the serving on; the API image stays API-only.
+#
+FROM api-runtime AS app-runtime
+
+COPY --from=web-build /app/apps/web/dist /app/apps/web/dist
+ENV WEB_APP_DIST_DIR=/app/apps/web/dist
 
 #
 # 🚀 CPU Workers Runtime (no Docling)
@@ -70,24 +149,19 @@ FROM runtime-base AS cpu-workers-runtime
 CMD ["node", "--enable-source-maps", "/app/apps/api/dist/workers-main.js"]
 
 #
-# 🚀 GPU Workers Runtime (Docling enabled)
+# 🐍 Docling base: Python, Torch (CUDA) and Docling, from the requirements only
 #
-FROM runtime-base AS gpu-workers-runtime
+# Nothing here depends on the application code, so these layers (several GB)
+# survive every commit and only rebuild when a requirements file changes.
+#
+FROM node:24.20.0-bookworm-slim AS docling-base
 
+WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
+  libc6 \
   python3 python3-pip python3-venv \
   libxcb1 libgl1 libglib2.0-0 \
   && rm -rf /var/lib/apt/lists/*
-
-# Needed for the docling TS wrapper to execute our custom document_chunker CLI
-# inside the container (`apps/api/bin` is not copied into runtime-base).
-COPY --from=build /app/apps/api/bin /app/apps/api/bin
-
-# We need the sample PDF for the Docling self-test
-# Warning: this test is only run if the environment variable WORKER_DOCLING_SELF_TEST_ENABLED is set to true
-COPY --from=build /app/apps/api/test/fixtures/sample.pdf /app/apps/api/bin/sample.pdf
-
-RUN chmod +x /app/apps/api/bin/document_chunker || true
 
 # Python dependencies are pinned in the requirements files (single source of
 # truth for both this image and local testing). Torch must be installed first
@@ -95,13 +169,42 @@ RUN chmod +x /app/apps/api/bin/document_chunker || true
 COPY apps/api/requirements-torch.txt apps/api/requirements-docling.txt /app/apps/api/
 
 RUN python3 -m venv /opt/docling-venv \
-  && /opt/docling-venv/bin/pip install --no-cache-dir --upgrade pip \
+  && /opt/docling-venv/bin/pip install --no-cache-dir --upgrade pip setuptools \
   && /opt/docling-venv/bin/pip install --no-cache-dir -r /app/apps/api/requirements-torch.txt \
   && /opt/docling-venv/bin/pip install --no-cache-dir -r /app/apps/api/requirements-docling.txt \
+  # pip is build-time only. Its vendored msgpack/setuptools copies carry HIGH CVEs
+  # that trivy reports, so remove it from the runtime venv once installs are done.
+  && /opt/docling-venv/bin/pip uninstall -y pip \
+  && ln -s /opt/docling-venv/bin/docling /usr/local/bin/docling
+
+# Needed for the docling TS wrapper to execute our custom document_chunker CLI
+# inside the container (`apps/api/bin` is not part of runtime-base).
+COPY apps/api/bin /app/apps/api/bin
+
+# We need the sample PDF for the Docling self-test
+# Warning: this test is only run if the environment variable WORKER_DOCLING_SELF_TEST_ENABLED is set to true
+COPY apps/api/test/fixtures/sample.pdf /app/apps/api/bin/sample.pdf
+
+# Pre-warm: downloads the Docling models into the image. Depends on the
+# chunker script and the fixture only.
+RUN chmod +x /app/apps/api/bin/document_chunker || true \
   && /opt/docling-venv/bin/python /app/apps/api/bin/document_chunker.py \
     --doc-path /app/apps/api/bin/sample.pdf \
     --output-json /tmp/docling-prewarm.json \
-    --max-nodes 1 \
-  && ln -s /opt/docling-venv/bin/docling /usr/local/bin/docling
+    --max-nodes 1
+
+#
+# 🚀 GPU Workers Runtime (Docling enabled)
+#
+# The Docling base plus the same runtime files as runtime-base.
+#
+FROM docling-base AS gpu-workers-runtime
+
+ENV NODE_ENV=production
+
+COPY --from=api-prod-deps /app/node_modules node_modules
+COPY --from=api-prod-deps /app/apps/api/node_modules /app/apps/api/node_modules
+COPY --from=build /app/packages/api-contracts /app/packages/api-contracts
+COPY --from=build /app/apps/api/dist /app/apps/api/dist
 
 CMD ["node", "--enable-source-maps", "/app/apps/api/dist/workers-main.js"]

@@ -1,18 +1,13 @@
 import type { BaseAgentSessionTypeDto } from "@caseai-connect/api-contracts"
-import { afterAll } from "@jest/globals"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { userFactory } from "@/domains/users/user.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { agentSessionControllerTestSetup } from "./test-setup"
 
 const getTestContext = agentSessionControllerTestSetup()
 
 describe("getAllSessionsForAgent", () => {
-  afterAll(async () => {
-    await sdk.shutdown()
-  })
   describe("type: live", () => {
     it("leaves purged sessions out of the list", async () => {
       const {

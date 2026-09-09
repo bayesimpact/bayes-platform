@@ -29,6 +29,7 @@ const fromDto = (dto: AgentEmbedConfigDto): AgentEmbedConfig => ({
   title: dto.title,
   logoUrl: dto.logoUrl,
   primaryColor: dto.primaryColor,
+  bannerText: dto.bannerText,
   createdAt: dto.createdAt,
   updatedAt: dto.updatedAt,
 })

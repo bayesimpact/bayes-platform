@@ -2,6 +2,7 @@ import type { Repository } from "typeorm"
 import type { Document } from "../document.entity"
 import type { DocumentsService } from "../documents.service"
 import type { DocumentEmbeddingStatusNotifierService } from "./document-embedding-status-notifier.service"
+import { DOCUMENT_EMBEDDINGS_ENQUEUE_FAILED_ERROR_MESSAGE } from "./document-embeddings.constants"
 import { DOCUMENT_EMBEDDINGS_STUCK_TIMEOUT_ERROR_MESSAGE } from "./document-embeddings-stuck.constants"
 import { DocumentEmbeddingsStuckSweepService } from "./document-embeddings-stuck-sweep.service"
 
@@ -116,5 +117,47 @@ describe("DocumentEmbeddingsStuckSweepService", () => {
 
     expect(result).toEqual({ timedOutCount: 0 })
     expect(documentsService.saveOne).not.toHaveBeenCalled()
+  })
+
+  it("marks uploaded project documents left pending as failed with the enqueue error", async () => {
+    const pendingDocument = {
+      id: "doc-2",
+      organizationId: "org-1",
+      projectId: "proj-1",
+      sourceType: "project",
+      uploadStatus: "uploaded",
+      embeddingStatus: "pending",
+      embeddingError: null,
+      updatedAt: new Date("2020-01-01T00:00:00.000Z"),
+    } as Document
+
+    const queryBuilder = {
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      getMany: jest.fn().mockResolvedValue([pendingDocument]),
+    }
+    const documentRepository = {
+      createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
+    } as unknown as Repository<Document>
+
+    const saveOne = jest.fn().mockImplementation((entity: Document) => Promise.resolve(entity))
+    const notifyEmbeddingStatusChanged = jest.fn().mockResolvedValue(undefined)
+
+    const service = new DocumentEmbeddingsStuckSweepService(
+      documentRepository,
+      { saveOne } as unknown as DocumentsService,
+      { notifyEmbeddingStatusChanged } as unknown as DocumentEmbeddingStatusNotifierService,
+    )
+
+    const result = await service.sweepStuckDocuments()
+
+    expect(pendingDocument.embeddingStatus).toBe("failed")
+    expect(pendingDocument.embeddingError).toBe(DOCUMENT_EMBEDDINGS_ENQUEUE_FAILED_ERROR_MESSAGE)
+    expect(notifyEmbeddingStatusChanged).toHaveBeenCalledWith(
+      expect.objectContaining({ documentId: "doc-2", embeddingStatus: "failed" }),
+    )
+    expect(result).toEqual({ timedOutCount: 1 })
   })
 })

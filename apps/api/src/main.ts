@@ -1,7 +1,7 @@
 import "./external/llm/open-telemetry-init" // must be first — patches http/pg before they are imported
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
-import { ValidationPipe } from "@nestjs/common"
+import { Logger, ValidationPipe } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS
 import { NestExpressApplication } from "@nestjs/platform-express"
@@ -10,12 +10,16 @@ import { registerBullBoardOpenIdConnect } from "./common/bull-board/bull-board-o
 import { StackTraceLoggingExceptionFilter } from "./common/filters/stack-trace-logging-exception.filter"
 import { getLogLevels, StructuredLogger } from "./common/logger/structured-logger"
 import { enableDbListeners } from "./common/sse/postgres-status-stream.service"
+import { registerWebAppStaticAssets } from "./common/web-app/web-app.module"
+import { buildCorsOptionsDelegate, parseFrontendUrls } from "./config/cors"
+import { BuiltInMcpServersService } from "./domains/mcp-servers/built-in/built-in-mcp-servers.service"
 
 const isProduction = process.env.NODE_ENV === "production"
+const logger = new Logger("Bootstrap")
 
 async function bootstrap() {
   enableDbListeners()
-  const _frontendUrls = parseFrontendUrls(process.env.FRONTEND_URL)
+  const frontendUrls = parseFrontendUrls(process.env.FRONTEND_URL, isProduction)
   const httpsOptions = loadHttpsCertificates()
   const logLevels = getLogLevels()
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -27,6 +31,8 @@ async function bootstrap() {
     app.set("trust proxy", true)
   }
   registerBullBoardOpenIdConnect(app)
+  // Web front served from this process in the app-runtime image (no-op otherwise).
+  registerWebAppStaticAssets(app)
   app.useBodyParser("json", { limit: "500kb" })
   app.useGlobalPipes(
     new ValidationPipe({
@@ -36,49 +42,23 @@ async function bootstrap() {
     }),
   )
   app.useGlobalFilters(new StackTraceLoggingExceptionFilter(app.getHttpAdapter()))
-  // CORS strategy:
-  // - Authenticated endpoints are secured by JWT — the real security layer.
-  //   No cookies are used (Auth0 Bearer tokens), so reflecting back the request
-  //   origin is safe: a cross-origin attacker cannot inject the Bearer token.
-  // - Public embed endpoints (/public/*) are designed to be called from arbitrary
-  //   host pages. Their security is enforced by EmbedTokenGuard (embed token +
-  //   per-config allowedOrigins check), not by CORS.
-  // Reflecting the origin (instead of using '*') is required because the embed
-  // widget's fetch calls don't use `credentials: 'include'`, but some browsers
-  // are stricter with '*' when custom headers (X-Session-Token) are present.
-  app.enableCors({
-    origin: (origin, callback) => callback(null, origin ?? true),
-    credentials: true,
-  })
+  // Two CORS policies, split by path — see buildCorsOptionsDelegate (#366).
+  app.enableCors(buildCorsOptionsDelegate(frontendUrls))
+  // Platform-provided MCP servers are rows in mcp_server, kept in sync with
+  // the environment here rather than by a migration or a lifecycle hook (which
+  // would also run in the workers and in tests).
+  try {
+    await app.get(BuiltInMcpServersService).syncFromEnvironment()
+  } catch (error) {
+    // The built-in servers are an optional add-on: failing to sync them must
+    // not stop the API from serving every other route.
+    logger.error(
+      `Could not sync the built-in MCP servers: ${error instanceof Error ? error.message : String(error)}`,
+      error instanceof Error ? error.stack : undefined,
+    )
+  }
   const port = Number(process.env.PORT) || 3000
   await app.listen(port)
-}
-
-const DEFAULT_LOCAL_FRONTEND_URLS = [
-  // `vite dev` and `vite preview` — see apps/web/vite.config.ts.
-  "https://connect.localhost:5173",
-  "https://connect.localhost:5174",
-]
-
-/**
- * Parses `FRONTEND_URL` into a list of CORS origins. Accepts a single URL or
- * a comma-separated list. Each entry is trimmed and normalized to https://
- * if no scheme is given. When the env var is unset and we're not in
- * production, falls back to the local dev/preview URLs so a fresh checkout
- * works without extra `.env` setup. In production, an unset env var yields
- * an empty array (no origins allowed).
- */
-function parseFrontendUrls(frontendUrl: string | undefined): string[] {
-  if (!frontendUrl) {
-    return isProduction ? [] : DEFAULT_LOCAL_FRONTEND_URLS
-  }
-  return frontendUrl
-    .split(",")
-    .map((url) => url.trim())
-    .filter(Boolean)
-    .map((url) =>
-      url.startsWith("http://") || url.startsWith("https://") ? url : `https://${url}`,
-    )
 }
 
 /**

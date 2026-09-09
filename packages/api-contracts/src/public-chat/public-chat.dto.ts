@@ -7,7 +7,10 @@ export type PublicSessionMessageDto = {
   content: string
   status?: "streaming" | "completed" | "aborted" | "error"
   createdAt: TimeType
-  /** Present when the turn ran tools. MCP Apps include a hydrated `ui://` card. */
+  /**
+   * Present when the turn ran tools. MCP Apps carry their `ui://` card pointer; the card HTML
+   * is served by `getMcpAppHtml`.
+   */
   toolCalls?: AgentSessionToolCallDto[]
 }
 

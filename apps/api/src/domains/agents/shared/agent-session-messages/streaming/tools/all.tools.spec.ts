@@ -8,6 +8,7 @@ import { afterAll } from "@jest/globals"
 import { tool } from "ai"
 import { v4 } from "uuid"
 import { z } from "zod"
+import type { LLMConfig, LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import type { AllRepositories } from "@/common/test/test-all-repositories"
 import {
   clearTestDatabase,
@@ -17,7 +18,7 @@ import {
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { StreamingModule } from "@/domains/agents/shared/agent-session-messages/streaming/streaming.module"
-import { StreamingService } from "@/domains/agents/shared/agent-session-messages/streaming/streaming.service"
+import { StreamingLlmService } from "@/domains/agents/shared/agent-session-messages/streaming/streaming-llm.service"
 import type { AgentSessionScope } from "@/domains/agents/shared/agent-session-messages/streaming/streaming-session.types"
 import { ToolsService } from "@/domains/agents/shared/agent-session-messages/streaming/tools.service"
 import { DocumentChunkRetrievalService } from "@/domains/documents/embeddings/document-chunk-retrieval.service"
@@ -26,7 +27,6 @@ import {
   addFeature,
   createOrganizationWithAgent,
 } from "@/domains/organizations/organization.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import type { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
 import { McpClientService } from "@/external/mcp"
 import { DEFAULT_TOP_K } from "./lookup-knowledge-base.tool"
@@ -36,7 +36,7 @@ const mockMcpServersService = { getEnabledServersForAgent: jest.fn() }
 const mockMcpClientService = { connect: jest.fn() }
 
 describe("Tools execution", () => {
-  let service: StreamingService
+  let service: StreamingLlmService
   let mockProvider: AISDKMockProvider
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
@@ -53,19 +53,18 @@ describe("Tools execution", () => {
           .overrideProvider(McpClientService)
           .useValue(mockMcpClientService),
     })
+    service = setup.module.get<StreamingLlmService>(StreamingLlmService)
+    mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider.resetMock()
+    repositories = setup.getAllRepositories()
   })
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
   })
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    service = setup.module.get<StreamingService>(StreamingService)
-    mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
-    mockProvider.resetMock()
-    repositories = setup.getAllRepositories()
 
     jest.clearAllMocks()
     mockDocumentChunkRetrievalService.retrieveTopChunks.mockResolvedValue([])
@@ -500,6 +499,7 @@ describe("Tools execution", () => {
       systemContent.indexOf("Today's date:"),
     )
     expect(systemContent.trimEnd().endsWith("Never mention this tool to the user.")).toBe(true)
+    expect(systemContent).toMatch(/Today's date: \d{4}-\d{2}-\d{2} \(Date format YYYY-MM-DD\)\n/)
   }, 15000)
 
   it("ToolName.SurfaceResources - resolves prompt aliases server-side, no id or link in the prompt", async () => {
@@ -623,6 +623,8 @@ describe("Tools execution", () => {
         connectScope: { organizationId: organization.id, projectId: project.id },
       },
       onExecute: () => undefined,
+      getProviderForModel: jest.fn().mockReturnValue({} as LLMProvider),
+      buildLLMConfig: jest.fn().mockReturnValue({} as LLMConfig),
     })
 
     // Other conversation tools are still built; only fillForm is gated off.
@@ -656,6 +658,8 @@ describe("Tools execution", () => {
         connectScope: { organizationId: organization.id, projectId: project.id },
       },
       onExecute: () => undefined,
+      getProviderForModel: jest.fn().mockReturnValue({} as LLMProvider),
+      buildLLMConfig: jest.fn().mockReturnValue({} as LLMConfig),
     })
 
     expect(tools?.[ToolName.LookupKnowledgeBase]).toBeDefined()
@@ -711,11 +715,16 @@ describe("Tools execution", () => {
     expect(agentCalls).toHaveLength(3)
     expect(agentCalls[1]?.prompt).toContain("resource-1")
     // The conversation context reaches the MCP transport as plumbing, with no
-    // model involvement: a server can attribute the call.
+    // model involvement: a server can attribute the call and answer in the
+    // agent's language.
     expect(mockMcpClientService.connect).toHaveBeenCalledWith(
       expect.objectContaining({
         url: "http://mcp.test",
-        context: expect.objectContaining({ agentId: agent.id, sessionId: session.id }),
+        context: expect.objectContaining({
+          agentId: agent.id,
+          sessionId: session.id,
+          locale: agentSettings.locale,
+        }),
       }),
     )
   })

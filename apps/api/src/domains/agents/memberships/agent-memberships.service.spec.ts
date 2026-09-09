@@ -14,7 +14,6 @@ import {
 } from "@/domains/organizations/organization.factory"
 import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { AGENT_ROLES } from "@/domains/rbac/rbac.constants"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { agentFactory } from "../agent.factory"
 import { AgentsModule } from "../agents.module"
@@ -35,17 +34,16 @@ describe("AgentMembershipsService", () => {
       additionalImports: [AgentsModule],
     })
     await ensureRbacCatalog(setup.module)
+    service = setup.module.get(AgentMembershipsService)
+    repositories = setup.getAllRepositories()
   })
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
   })
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    service = setup.module.get(AgentMembershipsService)
-    repositories = setup.getAllRepositories()
   })
 
   describe("createAgentOwnerMembership", () => {

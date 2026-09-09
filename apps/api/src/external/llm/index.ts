@@ -1,1 +1,1 @@
-export * from "./service-with-llm"
+export * from "./llm-service-base"

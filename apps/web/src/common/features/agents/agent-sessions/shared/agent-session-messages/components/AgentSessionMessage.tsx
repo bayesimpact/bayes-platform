@@ -10,7 +10,7 @@ import { Marker, MarkerContent, MarkerIcon } from "@caseai-connect/ui/shad/marke
 import { Message, MessageContent, MessageFooter } from "@caseai-connect/ui/shad/message"
 import { Spinner } from "@caseai-connect/ui/shad/spinner"
 import type { TFunction } from "i18next"
-import { AlertCircleIcon, CheckIcon, ChevronRightIcon, CopyIcon } from "lucide-react"
+import { AlertCircleIcon, CheckIcon, ChevronRightIcon, CopyIcon, RotateCcwIcon } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FeedbackCreator } from "@/common/components/FeedbackCreator"
@@ -18,14 +18,15 @@ import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import { FormResultSheet } from "@/common/features/agents/agent-sessions/conversation/components/FormResultSheet"
 import type { AgentSessionMessage as AgentSessionMessageType } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import { useCopyToClipboard } from "@/common/hooks/use-copy-to-clipboard"
+import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
-import { selectStreamingToolSteps } from "../agent-session-messages.selectors"
+import { selectMcpAppHtml, selectStreamingToolSteps } from "../agent-session-messages.selectors"
 import { Attachment } from "./Attachment"
 import { useFormResult } from "./form-result-context"
 import { useFormSubSessions } from "./form-sub-sessions-context"
 import { MarkdownWrapper } from "./MarkdownWrapper"
-import { McpAppView } from "./McpAppView"
-import { getRenderableMcpApp, hasRenderableMcpApp } from "./mcp-app-view"
+import { McpAppPlaceholder, McpAppView } from "./McpAppView"
+import { getRenderableMcpApp, getReplyBubbleText, hasMcpAppCard } from "./mcp-app-view"
 import { SourcesTool } from "./SourcesTool"
 import { SubAgentFormResultSheet } from "./SubAgentFormResultSheet"
 import { SurfaceResourcesTool } from "./SurfaceResourcesTool"
@@ -33,29 +34,56 @@ import { SurfaceResourcesTool } from "./SurfaceResourcesTool"
 export function AgentSessionMessage({
   message,
   renderMessageVersion,
+  onResend,
 }: {
   message: AgentSessionMessageType
   renderMessageVersion?: (message: AgentSessionMessageType) => React.ReactNode
+  /** Sends the turn that led to this reply again. Only offered on a failed last reply. */
+  onResend?: () => void
 }) {
+  const { t } = useTranslation()
   const formSubSessions = useFormSubSessions()
   const formResult = useFormResult()
+  // Card HTML is loaded after the transcript so a slow MCP server never delays the messages;
+  // until it lands, each card holds its place with a placeholder.
+  const mcpAppHtml = useAppSelector(selectMcpAppHtml)
+  const mcpAppHtmlEntries = ADS.isFulfilled(mcpAppHtml) ? mcpAppHtml.value : []
+  const isMcpAppHtmlPending = !ADS.isFulfilled(mcpAppHtml) && !ADS.isError(mcpAppHtml)
+  // MCP App cards that gave up rendering; their reply text is shown instead.
+  const [failedMcpAppToolCallIds, setFailedMcpAppToolCallIds] = useState<string[]>([])
 
   switch (message.role) {
     case "assistant": {
       const isStreaming = message.status === "streaming"
-      const hasContent = message.content.trim().length > 0
       const isError = message.status === "error"
+      // The stream died with the server (typically a deploy mid-reply): nothing was written.
+      const isInterrupted = message.status === "aborted"
       // This turn ran the fillForm tool, so its footer can open the form result.
       const filledForm = (message.toolCalls ?? []).some((call) => call.name === ToolName.FillForm)
       const sourcesTool = message.toolCalls?.find((call) => call.name === ToolName.Sources)
       const surfaceResourcesTool = message.toolCalls?.find(
         (call) => call.name === ToolName.SurfaceResources,
       )
-      const mcpAppViews = (message.toolCalls ?? []).flatMap((toolCall) => {
-        const view = getRenderableMcpApp(toolCall)
-        return view ? [{ toolCall, view }] : []
-      })
-      const hideMarkdownRecap = !isStreaming && hasRenderableMcpApp(message.toolCalls)
+      // Every card this reply shows, with its view once the HTML is here. A card without a view
+      // is either still loading (placeholder) or unavailable (its text stands in).
+      const mcpAppCards = (message.toolCalls ?? [])
+        .filter(hasMcpAppCard)
+        .map((toolCall) => ({ toolCall, view: getRenderableMcpApp(toolCall, mcpAppHtmlEntries) }))
+      // Cards whose HTML never came, or that gave up rendering: their reply text is shown instead.
+      const unavailableMcpAppToolCallIds = [
+        ...failedMcpAppToolCallIds,
+        ...mcpAppCards
+          .filter(({ view }) => view === undefined && !isMcpAppHtmlPending)
+          .map(({ toolCall }) => toolCall.id),
+      ]
+      // The reply text stays on screen next to its cards. The model may have written nothing
+      // because it expected the card to speak for the tool: once the card gave up, the tool
+      // result text stands in for the reply.
+      const bubbleContent = getReplyBubbleText(
+        message.content,
+        message.toolCalls,
+        unavailableMcpAppToolCallIds,
+      )
       // Tool names this message delegated to that resolved to a form sub-session,
       // deduplicated so a sub-agent invoked twice shows a single affordance.
       const delegatedToolNames = [
@@ -72,18 +100,23 @@ export function AgentSessionMessage({
             {/* Reasoning / tool timeline lives above the answer, outside the bubble. */}
             <ThinkingSteps message={message} isStreaming={isStreaming} />
 
-            {isError ? (
+            {isError || isInterrupted ? (
               <Bubble variant="destructive">
                 <BubbleContent className="px-4 py-3">
-                  <ErrorMessage detail={message.content} />
+                  <FailureNotice
+                    title={isInterrupted ? t("agentSessionMessage:interrupted") : t("status:error")}
+                    // Failed turns store the human-readable reason in the message content (e.g.
+                    // "PDF has 92 pages, but at most 20 pages can be converted to images").
+                    detail={isInterrupted ? undefined : message.content}
+                    onResend={onResend}
+                  />
                 </BubbleContent>
               </Bubble>
             ) : (
-              hasContent &&
-              !hideMarkdownRecap && (
+              bubbleContent.length > 0 && (
                 <Bubble variant="muted">
                   <BubbleContent className="px-4 py-3">
-                    <MarkdownWrapper content={message.content} />
+                    <MarkdownWrapper content={bubbleContent} />
                   </BubbleContent>
                 </Bubble>
               )
@@ -94,20 +127,33 @@ export function AgentSessionMessage({
             )}
 
             {!isStreaming &&
-              mcpAppViews.map(({ toolCall, view }) => (
-                <McpAppView
-                  key={toolCall.id}
-                  html={view.html}
-                  toolInput={view.toolInput}
-                  toolResult={view.toolResult}
-                />
-              ))}
+              mcpAppCards.map(({ toolCall, view }) =>
+                view ? (
+                  <McpAppView
+                    key={toolCall.id}
+                    html={view.html}
+                    toolInput={view.toolInput}
+                    toolResult={view.toolResult}
+                    onRenderFailed={() =>
+                      setFailedMcpAppToolCallIds((previous) =>
+                        previous.includes(toolCall.id) ? previous : [...previous, toolCall.id],
+                      )
+                    }
+                  />
+                ) : (
+                  isMcpAppHtmlPending && <McpAppPlaceholder key={toolCall.id} className="mt-2" />
+                ),
+              )}
 
             {!isStreaming && (
               <MessageFooter className="gap-0 px-1">
-                <FeedbackCreator message={message} />
+                {/* Nothing was written to rate or copy; tools that ran before the interruption
+                    still persisted their results, so those affordances stay. */}
+                {!isInterrupted && <FeedbackCreator message={message} />}
 
-                {!hideMarkdownRecap && <CopyToClipboard content={message.content} />}
+                {!isInterrupted && bubbleContent.length > 0 && (
+                  <CopyToClipboard content={bubbleContent} />
+                )}
 
                 {renderMessageVersion?.(message)}
 
@@ -156,20 +202,33 @@ export function AgentSessionMessage({
 }
 
 /**
- * Failed turns store the human-readable reason in the message content (e.g.
- * "PDF has 92 pages, but at most 20 pages can be converted to images"), so
- * show it under the generic label instead of leaving the user guessing.
+ * A reply that failed or was interrupted: a title, the reason when one was recorded, and, on the
+ * last reply of the thread, a way to send the turn again.
  */
-function ErrorMessage({ detail }: { detail: string }) {
-  const { t } = useTranslation("status")
-  const trimmedDetail = detail.trim()
+function FailureNotice({
+  title,
+  detail,
+  onResend,
+}: {
+  title: string
+  detail?: string
+  onResend?: () => void
+}) {
+  const { t } = useTranslation()
+  const trimmedDetail = detail?.trim()
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <AlertCircleIcon className="size-4" />
-        <span className="font-semibold">{t("error")}</span>
+        <AlertCircleIcon className="size-4 shrink-0" />
+        <span className="font-semibold">{title}</span>
       </div>
-      {trimmedDetail.length > 0 && <p className="whitespace-pre-wrap text-sm">{trimmedDetail}</p>}
+      {trimmedDetail && <p className="whitespace-pre-wrap text-sm">{trimmedDetail}</p>}
+      {onResend && (
+        <Button variant="outline" size="sm" className="w-fit" onClick={onResend}>
+          <RotateCcwIcon className="size-3.5" />
+          {t("actions:retry")}
+        </Button>
+      )}
     </div>
   )
 }

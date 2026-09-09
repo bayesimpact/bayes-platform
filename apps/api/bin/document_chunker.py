@@ -377,6 +377,8 @@ def _collect_runtime_info() -> dict[str, Any]:
 
     Returns:
         Dict with keys: python_version, platform, cuda_visible_devices,
+        torch_version, torch_cuda_version, torch_cuda_available (plus
+        torch_cuda_device_name when CUDA is available, or torch_error),
         nvidia_smi_available, and optionally nvidia_smi_output / nvidia_smi_error.
     """
     runtime_info: dict[str, Any] = {
@@ -384,6 +386,19 @@ def _collect_runtime_info() -> dict[str, Any]:
         "platform": platform.platform(),
         "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
     }
+
+    # Torch is what docling actually runs on. nvidia-smi only proves the driver
+    # is mounted; this proves the installed torch build can use it.
+    try:
+        import torch
+
+        runtime_info["torch_version"] = torch.__version__
+        runtime_info["torch_cuda_version"] = torch.version.cuda
+        runtime_info["torch_cuda_available"] = torch.cuda.is_available()
+        if torch.cuda.is_available():
+            runtime_info["torch_cuda_device_name"] = torch.cuda.get_device_name(0)
+    except Exception as error:  # noqa: BLE001
+        runtime_info["torch_error"] = str(error)
 
     nvidia_smi_path = shutil.which("nvidia-smi")
     runtime_info["nvidia_smi_available"] = nvidia_smi_path is not None

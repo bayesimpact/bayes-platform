@@ -1,8 +1,36 @@
 import type { AgentMessage } from "./agent-message.entity"
-import { applyLiveMcpAppHtml, mcpAppHtmlCacheKey, toDto, toDtos } from "./agent-message.helpers"
+import {
+  applyLiveMcpAppHtml,
+  mcpAppHtmlCacheKey,
+  toDto,
+  toDtos,
+  toMcpAppHtmlDtos,
+} from "./agent-message.helpers"
 
 const resourceUri = "ui://patient-summary/mcp-app.html"
 const mcpServerId = "mcp-server-1"
+
+describe("toMcpAppHtmlDtos", () => {
+  it("splits each cache key back into the server and uri the client matches on", () => {
+    const htmlByKey = new Map([
+      [mcpAppHtmlCacheKey(mcpServerId, resourceUri), "<html>card</html>"],
+      [mcpAppHtmlCacheKey("mcp-server-2", "ui://other/app.html"), "<html>other</html>"],
+    ])
+
+    expect(toMcpAppHtmlDtos(htmlByKey)).toEqual([
+      { mcpServerId, resourceUri, html: "<html>card</html>" },
+      {
+        mcpServerId: "mcp-server-2",
+        resourceUri: "ui://other/app.html",
+        html: "<html>other</html>",
+      },
+    ])
+  })
+
+  it("returns nothing when no card could be read", () => {
+    expect(toMcpAppHtmlDtos(new Map())).toEqual([])
+  })
+})
 
 describe("applyLiveMcpAppHtml", () => {
   it("hydrates live HTML onto the persisted MCP App pointer", () => {
@@ -109,6 +137,23 @@ describe("toDto", () => {
       ],
       attachmentDocumentId: undefined,
     })
+  })
+
+  it("keeps the MCP App pointer without HTML when no live map is given", () => {
+    // The message list is served without HTML: the client loads it separately so the
+    // transcript never waits on an MCP server.
+    const message = buildMessage({
+      toolCalls: [
+        {
+          id: "call-1",
+          name: "get_patient",
+          arguments: {},
+          mcpApp: { mcpServerId, resourceUri },
+        },
+      ],
+    })
+
+    expect(toDto(message).toolCalls?.[0]?.mcpApp).toEqual({ mcpServerId, resourceUri })
   })
 
   it("throws when agent settings are not loaded", () => {

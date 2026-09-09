@@ -8,12 +8,14 @@ Wrap up a feature by running its final steps. Present a checklist form, then exe
 
 ## Step 0 — Show the checklist form
 
-Before doing anything, call `AskUserQuestion` with a single **multi-select** question so the user can check/uncheck the steps. All four steps are pre-selected by default (list them as the options; the user unchecks any they want to skip):
+Before doing anything, call `AskUserQuestion` with a single **multi-select** question so the user can check/uncheck the steps (list them as the options; the user unchecks any they want to skip):
 
 - **Update changelog** — add an entry under `## [Unreleased]` in `CHANGELOG.md`
 - **Create a branch** — move current work onto a feature branch
 - **Run tests-parallel** — `make tests-parallel`
 - **Create a PR** — open a pull request with `gh`
+
+All steps are pre-selected by default EXCEPT the changelog, which is optional: pre-select it only when the change is visible to end users or security-relevant. Leave it unchecked for internal work — refactors, CI/tooling, docs, tests. Mention in the question why you left it unchecked; the user can still check it.
 
 Use `header: "Steps"`, `multiSelect: true`. Whatever the user leaves checked is the set to run.
 
@@ -23,7 +25,7 @@ Then run the checked steps **strictly in this order** (skip unchecked ones):
 
 Only if checked. Edit `CHANGELOG.md`, adding a line under `## [Unreleased]`:
 
-- New capability → `### Added`; modified behavior → `### Changed`; bug fix → `### Fixed`.
+- New capability → `### Added`; modified behavior → `### Changed`; bug fix → `### Fixed`; security hardening or vulnerability fix → `### Security`.
 - **Write for end users, not developers** — describe the visible outcome, not entities/services/migrations.
 - Prefix with `(beta)` if the feature is behind a flag or not yet exposed in the UI.
 - **Write in STE (Simplified Technical English)**: short sentences (max 20 words), one fact per sentence, active voice.

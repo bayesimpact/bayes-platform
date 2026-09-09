@@ -6,6 +6,7 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 import { Document } from "../document.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentEmbeddingStatusNotifierService } from "./document-embedding-status-notifier.service"
+import { DOCUMENT_EMBEDDINGS_ENQUEUE_FAILED_ERROR_MESSAGE } from "./document-embeddings.constants"
 import type {
   CreateDocumentEmbeddingsJobPayload,
   DocumentEmbeddingAfterEnqueuePatch,
@@ -25,6 +26,26 @@ export class DocumentEmbeddingQueueSyncService {
   async markDocumentAsQueuedAndNotify(
     payload: CreateDocumentEmbeddingsJobPayload,
   ): Promise<DocumentEmbeddingAfterEnqueuePatch> {
+    return await this.markDocumentStatusAndNotify(payload, {
+      embeddingStatus: "queued",
+      embeddingError: null,
+    })
+  }
+
+  /** Called when the job never reached the queue, so the document does not stay `pending` forever. */
+  async markDocumentAsEnqueueFailedAndNotify(
+    payload: CreateDocumentEmbeddingsJobPayload,
+  ): Promise<DocumentEmbeddingAfterEnqueuePatch> {
+    return await this.markDocumentStatusAndNotify(payload, {
+      embeddingStatus: "failed",
+      embeddingError: DOCUMENT_EMBEDDINGS_ENQUEUE_FAILED_ERROR_MESSAGE,
+    })
+  }
+
+  private async markDocumentStatusAndNotify(
+    payload: CreateDocumentEmbeddingsJobPayload,
+    patch: Pick<Document, "embeddingStatus" | "embeddingError">,
+  ): Promise<DocumentEmbeddingAfterEnqueuePatch> {
     const connectScope: RequiredConnectScope = {
       organizationId: payload.organizationId,
       projectId: payload.projectId,
@@ -36,8 +57,8 @@ export class DocumentEmbeddingQueueSyncService {
     if (!document) {
       throw new NotFoundException(`Document with id ${payload.documentId} not found`)
     }
-    document.embeddingStatus = "queued"
-    document.embeddingError = null
+    document.embeddingStatus = patch.embeddingStatus
+    document.embeddingError = patch.embeddingError
     const savedDocument = await this.documentConnectRepository.saveOne(document)
     await this.embeddingStatusNotifierService.notifyEmbeddingStatusChanged({
       documentId: savedDocument.id,

@@ -1,3 +1,4 @@
+import { Badge } from "@caseai-connect/ui/shad/badge"
 import {
   Empty,
   EmptyDescription,
@@ -6,7 +7,14 @@ import {
   EmptyTitle,
 } from "@caseai-connect/ui/shad/empty"
 import { FieldGroup } from "@caseai-connect/ui/shad/field"
-import { Item, ItemContent, ItemGroup, ItemMedia, ItemTitle } from "@caseai-connect/ui/shad/item"
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemTitle,
+} from "@caseai-connect/ui/shad/item"
 import { Switch } from "@caseai-connect/ui/shad/switch"
 import { ExternalLinkIcon, ServerIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
@@ -89,7 +97,15 @@ export function McpServersTab({
               <ServerIcon />
             </ItemMedia>
             <ItemContent>
-              <ItemTitle>{server.name}</ItemTitle>
+              <ItemTitle className="gap-2">
+                {server.name}
+                {server.isBuiltIn && <Badge variant="secondary">{t("mcpServers:builtIn")}</Badge>}
+              </ItemTitle>
+              {server.isBuiltIn && (
+                <ItemDescription>
+                  {t("agentSettings:mcpServers.builtInDescription")}
+                </ItemDescription>
+              )}
             </ItemContent>
             <Switch
               checked={enabledServerIds.has(server.id)}

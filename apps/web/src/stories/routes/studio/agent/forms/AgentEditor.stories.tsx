@@ -15,7 +15,10 @@ import { withRedux } from "@/stories/decorators"
 import { mergeSeeds, seed } from "@/stories/seed"
 import { AgentEditor } from "@/studio/features/agents/components/AgentEditor"
 import { documentTagFactory } from "@/studio/features/document-tags/document-tags.factory"
-import { mcpServerFactory } from "@/studio/features/mcp-servers/mcp-servers.factory"
+import {
+  buildPdfExportMcpServer,
+  mcpServerFactory,
+} from "@/studio/features/mcp-servers/mcp-servers.factory"
 
 const organization = organizationFactory.build()
 const billingCategory = projectAgentSessionCategoryFactory.build({ name: "Billing" })
@@ -31,7 +34,10 @@ const projectWithMcp = {
   ...project,
   featureFlags: ["agent-mcp" as const],
 }
-const mcpServers = mcpServerFactory.transient({ project }).buildList(3)
+const mcpServers = [
+  buildPdfExportMcpServer(project),
+  ...mcpServerFactory.transient({ project }).buildList(3),
+]
 const enabledMcpServers = mcpServers.map((server) => ({
   id: server.id,
   name: server.name,

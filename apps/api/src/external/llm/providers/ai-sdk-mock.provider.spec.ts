@@ -1,5 +1,5 @@
 import { AgentModel } from "@caseai-connect/api-contracts"
-import { afterAll, beforeAll, beforeEach } from "@jest/globals"
+import { beforeAll, beforeEach } from "@jest/globals"
 import { tool } from "ai"
 import { v4 } from "uuid"
 import { z } from "zod"
@@ -9,7 +9,6 @@ import type {
   LLMFile,
   LLMMetadata,
 } from "@/common/interfaces/llm-provider.interface"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
 
 describe("AISDKMockProvider", () => {
@@ -36,9 +35,6 @@ describe("AISDKMockProvider", () => {
     provider.resetMock()
     metadata.traceId = v4()
   })
-  afterAll(async () => {
-    await sdk.shutdown()
-  })
 
   it("streamChatResponse - default mock value", async () => {
     const stream = provider.streamChatResponse({ messages, config, metadata })
@@ -51,15 +47,6 @@ describe("AISDKMockProvider", () => {
   it("generateText - default mock value", async () => {
     const result = await provider.generateText({ prompt: "", config, metadata })
     expect(result).toBe("Hello, I'm the text default mock value!")
-  })
-
-  it("generateObject - default mock value", async () => {
-    const schema = z.object({ content: z.string(), source: z.string() })
-    const result = await provider.generateObject({ schema, prompt: "", config, metadata })
-    expect(() => schema.parse(result)).not.toThrow()
-    const parsed = schema.parse(result)
-    expect(parsed.source).toBe("source-value")
-    expect(parsed.content).toBe("content-value")
   })
 
   it("generateStructuredOutput - default mock value", async () => {
@@ -148,13 +135,6 @@ describe("AISDKMockProvider", () => {
     await expect(
       streamToStringArray(provider.streamChatResponse({ messages, config, metadata })),
     ).rejects.toThrow("Unsupported chat content part type: 'file'")
-  })
-
-  it("addObjectTurn - should works", async () => {
-    const schema = z.object({ content: z.string(), source: z.string() })
-    provider.addObjectTurn(metadata.agentId, { content: "hello", source: "queued" })
-    const result = await provider.generateObject({ schema, prompt: "", config, metadata })
-    expect(schema.parse(result)).toEqual({ content: "hello", source: "queued" })
   })
 
   it("addToolCallTurn - should works", async () => {

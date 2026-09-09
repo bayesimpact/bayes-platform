@@ -13,6 +13,7 @@ import {
   selectOrganizationsWithProjectsData,
 } from "@/common/features/organizations/organizations.selectors"
 import { useAppSelector } from "@/common/store/hooks"
+import { publicAssetUrl } from "@/config/runtime-config"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import { ProjectCreatorButton } from "@/studio/features/projects/components/ProjectCreator"
 import { PendingInvitationList } from "../components/home/PendingInvitationList"
@@ -23,7 +24,6 @@ import {
 } from "../components/home/SearchWorkspaces"
 import { WorkspaceItem } from "../components/home/WorkspaceItem"
 import { Wrap } from "../components/layouts/Wrap"
-
 import type { User } from "../features/me/me.models"
 import { selectMe, selectPendingInvitations } from "../features/me/me.selectors"
 import { meActions } from "../features/me/me.slice"
@@ -94,7 +94,11 @@ function Main({
             title={
               <div className="flex items-center gap-4">
                 <div className="size-9">
-                  <img src="/theme/logo.svg" alt="Logo" className="max-h-10 w-auto" />
+                  <img
+                    src={publicAssetUrl("theme/logo.svg")}
+                    alt="Logo"
+                    className="max-h-10 w-auto"
+                  />
                 </div>
                 {t("organization:list:title", { name: user.name })}
               </div>

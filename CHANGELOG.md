@@ -8,21 +8,73 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- Kubernetes: the first administrators of a new install are set from the values, no database access needed.
+- Kubernetes: the platform connects to databases that require TLS (Cloud SQL, RDS) with one setting.
+- (beta) MCP servers: connect servers that use OAuth by authorizing access in the browser, alongside API keys.
+- Kubernetes: the platform can be installed on any cluster with a Helm chart, with bundled Postgres and Redis.
+
+### Changed
+
+### Fixed
+- Sign-in: an error returned by the identity provider is shown with a retry button instead of reloading endlessly.
+- (beta) MCP App cards: the reply text now stays on screen next to the card instead of disappearing once the card shows.
+- (beta) Conversations with MCP App cards now open at once, each card showing a placeholder until it is ready.
+- (beta) PDF export: more reliable on large documents, download card in the agent's language, files kept as long as the link works.
+- (beta) MCP App cards no longer reload when a sibling card in the same reply fails to render.
+
+### Security
+- MCP servers can no longer be enabled or disabled on an agent that belongs to another project.
+
+## [26.09.2] - 2026-09-08
+
+### Added
+
+- Self-hosting: one Docker image can serve the web app and the API together, configured by environment variables.
+- (beta) Priority calls: agents on Gemini 3.x models can now enable the priority tier from the Model tab.
+- Agents can run on gemini-3.7-flash and gemini-3.8-flash.
+- Public agent banner: an optional notice pinned above the conversation on the public page and in the widget.
+- Public page link: the Embed tab shows the shareable URL that serves an agent without a host website.
+- (beta) PDF export: agents can turn markdown into a downloadable PDF with a built-in MCP server in every workspace.
+
+### Changed
+- (beta) Links and downloads inside MCP App cards now open in a new tab.
+
+### Fixed
+- Refreshing the page during a reply no longer loses the answer.
+- An interrupted reply can be sent again.
+
+### Security
+- Security updates of dependencies and base images across all services.
+- Deleting a document or purging a conversation now also removes its file and rendered page images from storage.
+
+## [26.09.1] - 2026-09-02
+
+### Added
+
+### Changed
+
+### Fixed
+- Agents no longer confuse the day and month of today's date.
+
+### Security
+- Only platform superadmins can update terms documents.
+
+## [26.09.0] - 2026-09-01
+
+### Added
 - Backoffice staff can review user roles and browse a catalog of role permissions.
-- Conversation retention: conversations are now kept 30 days by default, configurable per workspace.
+- Conversation retention: conversations are kept 30 days by default, configurable per workspace.
 - (beta) Gemma and MedGemma agents accept PDF documents in chat and extraction.
 - (beta) Embedded public chat shows the MCP App UI for tools that provide one.
 
 ### Changed
-- PDF documents sent to Gemma and MedGemma agents are now converted to images by a dedicated service, so heavy PDF processing no longer slows down the platform.
 
 ### Fixed
 - The chat widget hint no longer blocks clicks on the page underneath.
 - (beta) The MCP Servers tab on the agent editor shows translated labels and each server's saved state.
 - Chat shows an error message instead of an empty reply when the model fails.
 - Agent replies no longer show a leaked internal tool-call tag; the platform hides it and still runs the tool.
-- Chat: a server error carrying no message now ends the reply with an error instead of being dropped.
-- Agent and session pages now display correctly on small screens.
+- Agent and session pages display correctly on small screens.
 - Opening a workspace no longer intermittently shows an unexpected error page.
 
 ### Security
@@ -61,6 +113,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Studio no longer crashes when a project opens right after onboarding restarts.
 
 ### Security
+- Cross-origin browser calls to authenticated endpoints are now limited to the platform's own domains.
+
 ## [26.07.3] - 2026-07-24
 
 ### Added

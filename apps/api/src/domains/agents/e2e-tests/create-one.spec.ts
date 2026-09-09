@@ -18,7 +18,6 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { DocumentTag } from "../../documents/tags/document-tag.entity"
@@ -58,7 +57,6 @@ describe("Agents - createOne", () => {
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
     await app.close()
   })
 

@@ -1,35 +1,44 @@
-import { Injectable } from "@nestjs/common"
+import type { McpServerAuthStatus } from "@caseai-connect/api-contracts"
+import { ForbiddenException, Injectable, Logger } from "@nestjs/common"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ConfigService } from "@nestjs/config"
 import { InjectRepository } from "@nestjs/typeorm"
-import type { Repository } from "typeorm"
+import { In, IsNull, type Repository } from "typeorm"
+import { isGoogleIamAuthEnabled } from "@/external/google-iam"
 import { AgentMcpServer } from "./agent-mcp-server.entity"
+import {
+  BUILT_IN_PRESET_SLUGS,
+  isBuiltInMcpServer,
+  PDF_EXPORT_PRESET_SLUG,
+} from "./built-in/built-in-mcp-servers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EncryptionService } from "./encryption.service"
 import { McpServer } from "./mcp-server.entity"
+import type { EnabledMcpServer, McpServerConfig } from "./mcp-server-config.types"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { McpOauthService } from "./oauth/mcp-oauth.service"
+import { canStillAuthenticate } from "./oauth/oauth-tokens"
 
-export type McpServerConfig = {
-  url: string
-  apiKey?: string
-  /**
-   * Static headers sent on every call to this server, for whatever a given
-   * server expects beyond its auth (an API version, a tenant). Stored in the
-   * encrypted config blob, so adding them needs no migration. The conversation
-   * context is applied after them and cannot be overridden here.
-   */
-  headers?: Record<string, string>
-}
-
-export type EnabledMcpServer = McpServerConfig & {
-  id: string
-}
+export type {
+  EnabledMcpServer,
+  McpServerConfig,
+  McpServerOauthPendingAuth,
+  McpServerOauthState,
+  McpServerOauthTokens,
+} from "./mcp-server-config.types"
 
 @Injectable()
 export class McpServersService {
+  private readonly logger = new Logger(McpServersService.name)
+
   constructor(
     @InjectRepository(McpServer)
     private readonly mcpServerRepository: Repository<McpServer>,
     @InjectRepository(AgentMcpServer)
     private readonly agentMcpServerRepository: Repository<AgentMcpServer>,
     private readonly encryptionService: EncryptionService,
+    private readonly mcpOauthService: McpOauthService,
+    private readonly configService: ConfigService,
   ) {}
 
   async getEnabledServersForAgent(agentId: string): Promise<EnabledMcpServer[]> {
@@ -38,12 +47,35 @@ export class McpServersService {
       relations: ["mcpServer"],
     })
 
-    return agentMcpServers
-      .filter((agentMcpServer) => agentMcpServer.mcpServer)
-      .map((agentMcpServer) => ({
-        id: agentMcpServer.mcpServer.id,
-        ...this.decryptConfig(agentMcpServer.mcpServer),
-      }))
+    const enabledServers = agentMcpServers.filter((agentMcpServer) => agentMcpServer.mcpServer)
+    const servers = await Promise.all(
+      enabledServers.map((agentMcpServer) =>
+        this.toEnabledServerIfUsable(agentMcpServer.mcpServer),
+      ),
+    )
+    return servers.filter((server) => server !== null)
+  }
+
+  /**
+   * An OAuth server with no usable access token (never authorized, or tokens
+   * dropped after a definitive refresh failure) is left out rather than dialed
+   * unauthenticated, which would only produce a 401 on every turn.
+   */
+  private async toEnabledServerIfUsable(mcpServer: McpServer): Promise<EnabledMcpServer | null> {
+    const { oauth, ...config } = this.decryptConfig(mcpServer)
+    const usesOauth = oauth !== undefined || config.authMethod === "oauth"
+    if (!usesOauth) return this.toEnabledServer(mcpServer, config)
+
+    const accessToken = oauth
+      ? await this.mcpOauthService.getValidAccessToken(mcpServer.id, oauth)
+      : null
+    if (!accessToken) {
+      this.logger.warn(
+        `Skipping MCP server "${mcpServer.name}" (${mcpServer.id}): OAuth authorization is missing or expired`,
+      )
+      return null
+    }
+    return this.toEnabledServer(mcpServer, { ...config, apiKey: accessToken })
   }
 
   async createPreset(slug: string, name: string, config: McpServerConfig): Promise<McpServer> {
@@ -78,25 +110,46 @@ export class McpServersService {
     )
   }
 
+  /** The project's own servers plus the built-in ones, which belong to none. */
   async listMcpServers(projectId: string): Promise<McpServer[]> {
-    return this.mcpServerRepository.find({
-      where: { projectId },
-      order: { name: "ASC" },
+    const mcpServers = await this.mcpServerRepository.find({
+      where: [{ projectId }, { projectId: IsNull(), presetSlug: In(BUILT_IN_PRESET_SLUGS) }],
+    })
+    return mcpServers.sort((first, second) => {
+      if (isBuiltInMcpServer(first) !== isBuiltInMcpServer(second)) {
+        return isBuiltInMcpServer(first) ? -1 : 1
+      }
+      return first.name.localeCompare(second.name)
     })
   }
 
   async findMcpServerById(mcpServerId: string, projectId: string): Promise<McpServer | null> {
     return this.mcpServerRepository.findOne({
-      where: { id: mcpServerId, projectId },
+      where: [
+        { id: mcpServerId, projectId },
+        { id: mcpServerId, projectId: IsNull(), presetSlug: In(BUILT_IN_PRESET_SLUGS) },
+      ],
     })
   }
 
   async deleteMcpServer(mcpServerId: string): Promise<void> {
+    const mcpServer = await this.mcpServerRepository.findOne({ where: { id: mcpServerId } })
+    if (mcpServer && isBuiltInMcpServer(mcpServer)) {
+      throw new ForbiddenException("Built-in MCP servers cannot be deleted")
+    }
     await this.agentMcpServerRepository.softDelete({ mcpServerId })
     await this.mcpServerRepository.softDelete({ id: mcpServerId })
   }
 
   async enableForAgent(agentId: string, mcpServerId: string): Promise<AgentMcpServer> {
+    const existing = await this.agentMcpServerRepository.findOne({
+      where: { agentId, mcpServerId },
+    })
+    if (existing) {
+      if (existing.enabled) return existing
+      existing.enabled = true
+      return this.agentMcpServerRepository.save(existing)
+    }
     return this.agentMcpServerRepository.save(
       this.agentMcpServerRepository.create({
         agentId,
@@ -110,8 +163,31 @@ export class McpServersService {
     await this.agentMcpServerRepository.delete({ agentId, mcpServerId })
   }
 
-  decryptUrl(mcpServer: McpServer): string {
-    return this.decryptConfig(mcpServer).url
+  getConfig(mcpServer: McpServer): McpServerConfig {
+    return this.decryptConfig(mcpServer)
+  }
+
+  getAuthStatus(config: McpServerConfig): McpServerAuthStatus {
+    if (canStillAuthenticate(config.oauth?.tokens)) return "oauthConnected"
+    if (config.oauth || config.authMethod === "oauth") return "oauthPending"
+    if (config.apiKey) return "apiKey"
+    return "none"
+  }
+
+  /**
+   * The built-in PDF export server runs on Cloud Run behind invoker IAM in
+   * production: its audience is the service root URL, and the MCP client mints
+   * an ID token for it. Custom servers keep their own configured auth.
+   */
+  private toEnabledServer(mcpServer: McpServer, config: McpServerConfig): EnabledMcpServer {
+    const usesGoogleIam =
+      mcpServer.presetSlug === PDF_EXPORT_PRESET_SLUG &&
+      isGoogleIamAuthEnabled(this.configService.get<string>("PDF_CONVERTER_AUTH"))
+    return {
+      id: mcpServer.id,
+      ...config,
+      ...(usesGoogleIam ? { googleIamAudience: new URL(config.url).origin } : {}),
+    }
   }
 
   private decryptConfig(mcpServer: McpServer): McpServerConfig {

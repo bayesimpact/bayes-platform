@@ -6,10 +6,11 @@ import { DocumentsModule } from "@/domains/documents/documents.module"
 import { PdfPagesModule } from "@/domains/documents/pdf-pages/pdf-pages.module"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
 import { ProjectRepository } from "@/domains/projects/project.repository"
+import { ProjectsModule } from "@/domains/projects/projects.module"
 import { LlmModule } from "@/external/llm/llm.module"
 import { EXTRACTION_AGENT_SESSION_QUEUE_NAME } from "./extraction-agent-session.constants"
 import { ExtractionAgentSessionExecuteWorker } from "./extraction-agent-session-execute.worker"
-import { ExtractionAgentSessionRunnerService } from "./extraction-agent-session-runner.service"
+import { ExtractionAgentSessionRunLlmService } from "./extraction-agent-session-run-llm.service"
 import { ExtractionAgentSessionStatusNotifierService } from "./extraction-agent-session-status-notifier.service"
 import { ExtractionAgentSessionQueueMetricsService } from "./queue-metrics.service"
 
@@ -21,10 +22,12 @@ import { ExtractionAgentSessionQueueMetricsService } from "./queue-metrics.servi
     DocumentsModule,
     PdfPagesModule,
     StorageModule,
+    // ExtractionAgentSessionRunLlmService injects ProjectsService (flex service tier lookup).
+    ProjectsModule,
   ],
   providers: [
     ExtractionAgentSessionExecuteWorker,
-    ExtractionAgentSessionRunnerService,
+    ExtractionAgentSessionRunLlmService,
     ExtractionAgentSessionStatusNotifierService,
     ExtractionAgentSessionQueueMetricsService,
     ProjectRepository,

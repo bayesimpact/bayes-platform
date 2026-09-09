@@ -2,6 +2,7 @@
   "mcpServers": {
     "title": "Serveurs MCP",
     "description": "Gérer les serveurs d'outils externes connectés à ce projet.",
+    "builtIn": "Intégré",
     "empty": "Aucun serveur MCP configuré. Ajoutez-en un pour donner à vos agents accès à des outils externes.",
     "actions": {
       "newServer": "Nouveau serveur"
@@ -18,8 +19,23 @@
       "name": "Nom",
       "namePlaceholder": "Entrez le nom du serveur",
       "url": "URL",
+      "authMethod": "Authentification",
+      "authMethodApiKey": "Clé API",
+      "authMethodOauth": "OAuth",
+      "authMethodNone": "Aucune",
+      "oauthHint": "Vous cliquerez sur Autoriser sur la carte du serveur une fois celui-ci créé.",
       "apiKey": "Clé API",
-      "apiKeyPlaceholder": "Clé d'authentification optionnelle"
+      "apiKeyPlaceholder": "Saisir la clé API du serveur"
+    },
+    "oauthCallback": {
+      "errorTitle": "Échec de l'autorisation",
+      "denied": "L'autorisation a été refusée par le fournisseur.",
+      "missingContext": "Ce lien d'autorisation est invalide ou a expiré. Recommencez depuis la page des serveurs MCP.",
+      "failed": "Le serveur a rejeté l'autorisation. Recommencez depuis la page des serveurs MCP."
+    },
+    "oauth": {
+      "authorize": "Autoriser",
+      "connected": "Connecté via OAuth"
     }
   }
 }

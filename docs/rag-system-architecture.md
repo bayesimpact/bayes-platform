@@ -42,7 +42,7 @@ At a high level, the system has two flows:
 - **Vector retrieval service**
   - `apps/api/src/domains/documents/embeddings/document-chunk-retrieval.service.ts`
 - **Chat streaming + tool loop**
-  - `apps/api/src/domains/agents/shared/agent-session-messages/streaming/streaming.service.ts`
+  - `apps/api/src/domains/agents/shared/agent-session-messages/streaming/streaming-llm.service.ts`
   - `apps/api/src/domains/agents/shared/agent-session-messages/streaming/tools/lookup-knowledge-base.tool.ts`
   - `apps/api/src/domains/agents/shared/agent-session-messages/streaming/master-promts/conversation-agent.prompt.ts`
 

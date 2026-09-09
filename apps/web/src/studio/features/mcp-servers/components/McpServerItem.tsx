@@ -9,9 +9,11 @@ import type { McpServerDisplay } from "./mcp-servers.types"
 export function McpServerItem({
   mcpServer,
   onDelete,
+  onAuthorize,
 }: {
   mcpServer: McpServerDisplay
   onDelete: (id: string) => void
+  onAuthorize: (id: string) => void
 }) {
   const { t } = useTranslation()
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
@@ -19,21 +21,34 @@ export function McpServerItem({
   return (
     <>
       <GridCard>
-        <GridCard.TopAction>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={t("actions:delete")}
-            onClick={() => setIsConfirmingDelete(true)}
-          >
-            <Trash2Icon className="size-3.5" />
-          </Button>
-        </GridCard.TopAction>
+        {!mcpServer.isBuiltIn && (
+          <GridCard.TopAction>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t("actions:delete")}
+              onClick={() => setIsConfirmingDelete(true)}
+            >
+              <Trash2Icon className="size-3.5" />
+            </Button>
+          </GridCard.TopAction>
+        )}
+        {mcpServer.isBuiltIn && <GridCard.Badge>{t("mcpServers:builtIn")}</GridCard.Badge>}
         <GridCard.Body>
           <GridCard.Title>{mcpServer.name}</GridCard.Title>
-          <p className="text-base text-muted-foreground leading-snug mt-1 mb-4 truncate">
-            {mcpServer.url}
-          </p>
+          {!mcpServer.isBuiltIn && (
+            <p className="text-base text-muted-foreground leading-snug mt-1 mb-4 truncate">
+              {mcpServer.url}
+            </p>
+          )}
+          {mcpServer.authStatus === "oauthPending" && (
+            <Button variant="outline" size="sm" onClick={() => onAuthorize(mcpServer.id)}>
+              {t("mcpServers:oauth.authorize")}
+            </Button>
+          )}
+          {mcpServer.authStatus === "oauthConnected" && (
+            <p className="text-sm text-muted-foreground">{t("mcpServers:oauth.connected")}</p>
+          )}
         </GridCard.Body>
       </GridCard>
 

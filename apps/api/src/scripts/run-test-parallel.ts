@@ -94,7 +94,7 @@ async function main(): Promise<void> {
   try {
     const prepareResult = await runCommand(
       "npm",
-      ["run", "test:workers:prepare", "--", `--workers=${resolvedWorkerCount}`],
+      ["run", "dbs4tests:prepare", "--", `--workers=${resolvedWorkerCount}`],
       scriptEnvironment,
     )
     prepareExitCode = prepareResult.exitCode
@@ -117,7 +117,7 @@ async function main(): Promise<void> {
   } finally {
     const cleanupResult = await runCommand(
       "npm",
-      ["run", "test:workers:cleanup", "--", `--workers=${resolvedWorkerCount}`],
+      ["run", "dbs4tests:cleanup", "--", `--workers=${resolvedWorkerCount}`],
       scriptEnvironment,
     )
     cleanupExitCode = cleanupResult.exitCode

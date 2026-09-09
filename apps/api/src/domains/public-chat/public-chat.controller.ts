@@ -33,6 +33,7 @@ export class PublicChatController {
         title: embedConfig.title,
         logoUrl: embedConfig.logoUrl,
         primaryColor: embedConfig.primaryColor,
+        bannerText: embedConfig.bannerText,
       } satisfies EmbedPublicConfigDto,
     }
   }
@@ -56,6 +57,14 @@ export class PublicChatController {
   ): Promise<typeof PublicChatRoutes.getSession.response> {
     const sessionDto = await this.publicChatService.getSession(request.publicSession)
     return { data: sessionDto }
+  }
+
+  @UseGuards(PublicSessionTokenGuard)
+  @Get(PublicChatRoutes.getMcpAppHtml.path)
+  async getMcpAppHtml(
+    @Req() request: PublicChatSessionRequest,
+  ): Promise<typeof PublicChatRoutes.getMcpAppHtml.response> {
+    return { data: await this.publicChatService.getMcpAppHtml(request.publicSession) }
   }
 
   @UseGuards(PublicSessionTokenGuard)

@@ -1,18 +1,25 @@
-import { Injectable, NotFoundException } from "@nestjs/common"
+import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository, UpdateResult } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Document } from "./document.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { PdfPagesService } from "./pdf-pages/pdf-pages.service"
+import { FILE_STORAGE_SERVICE, type IFileStorage } from "./storage/file-storage.interface"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentTagsService } from "./tags/document-tags.service"
 import type { DocumentTagsUpdateFields } from "./tags/document-tags.types"
 
 @Injectable()
 export class DocumentsService {
+  private readonly logger = new Logger(DocumentsService.name)
+
   constructor(
     @InjectRepository(Document) private readonly documentRepository: Repository<Document>,
     private readonly documentTagsService: DocumentTagsService,
+    @Inject(FILE_STORAGE_SERVICE) private readonly fileStorageService: IFileStorage,
+    private readonly pdfPagesService: PdfPagesService,
   ) {
     this.documentConnectRepository = new ConnectRepository(documentRepository, "documents")
   }
@@ -281,6 +288,10 @@ export class DocumentsService {
     connectScope: RequiredConnectScope
     documentId: string
   }): Promise<true> {
+    const document = await this.documentConnectRepository.getOneById(connectScope, documentId)
+    if (!document) {
+      throw new NotFoundException(`Document with id ${documentId} not found`)
+    }
     const isDeleted = await this.documentConnectRepository.deleteOneById({
       connectScope,
       id: documentId,
@@ -288,6 +299,30 @@ export class DocumentsService {
     if (!isDeleted) {
       throw new NotFoundException(`Document with id ${documentId} not found`)
     }
+
+    // Storage cleanup happens after the row is gone: a storage hiccup must not
+    // resurrect the document, and a missing object is not an error.
+    await this.deleteStoredFiles(document)
     return true
+  }
+
+  /** Removes the source object and every rendered page image of a document from storage. */
+  private async deleteStoredFiles(document: Document): Promise<void> {
+    // Crawled documents have no stored file: their content lives in the row only.
+    if (!document.storageRelativePath) return
+
+    try {
+      await Promise.all([
+        this.fileStorageService.deleteFile(document.storageRelativePath),
+        this.pdfPagesService.deleteRenderedPages({
+          document,
+          fileStorageService: this.fileStorageService,
+        }),
+      ])
+    } catch (error) {
+      this.logger.warn(
+        `Could not delete stored files of document ${document.id} (${document.storageRelativePath}): ${(error as Error).message}`,
+      )
+    }
   }
 }

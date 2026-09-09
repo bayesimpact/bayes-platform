@@ -1,8 +1,30 @@
-import type { AgentSessionMessageDto, AgentSessionToolCallDto } from "@caseai-connect/api-contracts"
+import type {
+  AgentSessionMcpAppHtmlDto,
+  AgentSessionMessageDto,
+  AgentSessionToolCallDto,
+} from "@caseai-connect/api-contracts"
 import type { AgentMessage, AgentMessageToolCall } from "./agent-message.entity"
 
+const MCP_APP_HTML_CACHE_KEY_SEPARATOR = "::"
+
 export function mcpAppHtmlCacheKey(mcpServerId: string, resourceUri: string): string {
-  return `${mcpServerId}::${resourceUri}`
+  return `${mcpServerId}${MCP_APP_HTML_CACHE_KEY_SEPARATOR}${resourceUri}`
+}
+
+/**
+ * The live HTML map as the client receives it: one entry per server and `ui://` the
+ * transcript points at. The client matches each tool call's pointer against it.
+ */
+export function toMcpAppHtmlDtos(htmlByKey: Map<string, string>): AgentSessionMcpAppHtmlDto[] {
+  return [...htmlByKey].map(([cacheKey, html]) => {
+    // A server id is a uuid and never contains the separator, so the first one splits the key.
+    const separatorIndex = cacheKey.indexOf(MCP_APP_HTML_CACHE_KEY_SEPARATOR)
+    return {
+      mcpServerId: cacheKey.slice(0, separatorIndex),
+      resourceUri: cacheKey.slice(separatorIndex + MCP_APP_HTML_CACHE_KEY_SEPARATOR.length),
+      html,
+    }
+  })
 }
 
 function liveHtmlForMcpApp(

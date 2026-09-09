@@ -1,27 +1,75 @@
-import type { AgentSessionMessageDto } from "@caseai-connect/api-contracts"
+import type {
+  AgentSessionMcpAppHtmlDto,
+  AgentSessionMessageDto,
+} from "@caseai-connect/api-contracts"
 import { AlertCircleIcon, CopyIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { cn } from "../lib/cn"
 import { ChatBotMessage, ChatUserMessage } from "./index"
 import { MarkdownWrapper } from "./MarkdownWrapper"
-import { McpAppView } from "./McpAppView"
-import { getRenderableMcpApp, hasRenderableMcpApp } from "./mcp-app-view"
+import { McpAppPlaceholder, McpAppView } from "./McpAppView"
+import { getRenderableMcpApp, getReplyBubbleText, hasMcpAppCard } from "./mcp-app-view"
+import { findSourcesTool, SourcesTool } from "./SourcesTool"
+import { Spinner } from "./Spinner"
+import {
+  findSurfaceResourcesTool,
+  hasSurfacedResources,
+  SurfaceResourcesTool,
+} from "./SurfaceResourcesTool"
 
-export function ChatMessage({ message }: { message: AgentSessionMessageDto }) {
+export function ChatMessage({
+  message,
+  mcpAppHtml = [],
+  isMcpAppHtmlLoading = false,
+}: {
+  message: AgentSessionMessageDto
+  /** Current HTML of the MCP App cards in the thread, loaded after the messages. */
+  mcpAppHtml?: AgentSessionMcpAppHtmlDto[]
+  /** The MCP servers have not answered yet: cards without HTML hold their place. */
+  isMcpAppHtmlLoading?: boolean
+}) {
+  // MCP App cards that gave up rendering; their reply text is shown instead.
+  const [failedMcpAppToolCallIds, setFailedMcpAppToolCallIds] = useState<string[]>([])
+
   switch (message.role) {
     case "assistant": {
       const isStreaming = message.status === "streaming"
-      const mcpAppViews = (message.toolCalls ?? []).flatMap((toolCall) => {
-        const view = getRenderableMcpApp(toolCall)
-        return view ? [{ toolCall, view }] : []
-      })
-      const hideMarkdownRecap = !isStreaming && hasRenderableMcpApp(message.toolCalls)
+      // Every card this reply shows, with its view once the HTML is here. A card without a view
+      // is either still loading (placeholder) or unavailable (its text stands in).
+      const mcpAppCards = (message.toolCalls ?? [])
+        .filter(hasMcpAppCard)
+        .map((toolCall) => ({ toolCall, view: getRenderableMcpApp(toolCall, mcpAppHtml) }))
+      // Cards whose HTML never came, or that gave up rendering: their reply text is shown instead.
+      const unavailableMcpAppToolCallIds = [
+        ...failedMcpAppToolCallIds,
+        ...mcpAppCards
+          .filter(({ view }) => view === undefined && !isMcpAppHtmlLoading)
+          .map(({ toolCall }) => toolCall.id),
+      ]
+      // The reply text stays on screen next to its cards. The model may have written nothing
+      // because it expected the card to speak for the tool: once the card gave up, the tool
+      // result text stands in for the reply.
+      const bubbleContent = getReplyBubbleText(
+        message.content,
+        message.toolCalls,
+        unavailableMcpAppToolCallIds,
+      )
+      const surfaceResourcesTool = findSurfaceResourcesTool(message.toolCalls)
+      const sourcesTool = findSourcesTool(message.toolCalls)
+      // A card on screen, loading or rendered even if it later gave up, means the reply is not
+      // empty, only quiet. A card whose HTML never came counts as absent.
+      const hasCardOnScreen = mcpAppCards.some(
+        ({ view }) => view !== undefined || isMcpAppHtmlLoading,
+      )
       const isEmpty =
-        message.content.trim().length === 0 && message.status === "completed" && !hideMarkdownRecap
-      const isError = message.status === "error" || isEmpty
-      const showTextBubble =
-        isError || isStreaming || (!hideMarkdownRecap && message.content.trim().length > 0)
+        message.status === "completed" &&
+        !hasCardOnScreen &&
+        bubbleContent.length === 0 &&
+        !hasSurfacedResources(message.toolCalls)
+      // "aborted": the stream died with the server before anything was written.
+      const isError = message.status === "error" || message.status === "aborted" || isEmpty
+      const showTextBubble = isError || isStreaming || bubbleContent.length > 0
 
       return (
         <div className="flex w-full flex-col">
@@ -36,26 +84,40 @@ export function ChatMessage({ message }: { message: AgentSessionMessageDto }) {
                 )}
               >
                 {isStreaming && message.content.trim().length === 0 && <ThinkingIndicator />}
-                {isError ? <ErrorIndicator /> : <MarkdownWrapper content={message.content} />}
+                {isError ? <ErrorIndicator /> : <MarkdownWrapper content={bubbleContent} />}
               </div>
 
-              {!isStreaming && !isError && message.content.trim().length > 0 && (
-                <div className="mt-1 flex items-center">
-                  <CopyButton content={message.content} />
+              {!isStreaming && !isError && bubbleContent.length > 0 && (
+                <div className="mt-1 flex flex-col items-start">
+                  <CopyButton content={bubbleContent} />
+                  {sourcesTool && <SourcesTool toolCall={sourcesTool} />}
                 </div>
               )}
             </ChatBotMessage>
           )}
 
+          {!isStreaming && surfaceResourcesTool && (
+            <SurfaceResourcesTool toolCall={surfaceResourcesTool} />
+          )}
+
           {!isStreaming &&
-            mcpAppViews.map(({ toolCall, view }) => (
-              <McpAppView
-                key={toolCall.id}
-                html={view.html}
-                toolInput={view.toolInput}
-                toolResult={view.toolResult}
-              />
-            ))}
+            mcpAppCards.map(({ toolCall, view }) =>
+              view ? (
+                <McpAppView
+                  key={toolCall.id}
+                  html={view.html}
+                  toolInput={view.toolInput}
+                  toolResult={view.toolResult}
+                  onRenderFailed={() =>
+                    setFailedMcpAppToolCallIds((previous) =>
+                      previous.includes(toolCall.id) ? previous : [...previous, toolCall.id],
+                    )
+                  }
+                />
+              ) : (
+                isMcpAppHtmlLoading && <McpAppPlaceholder key={toolCall.id} className="mt-2" />
+              ),
+            )}
         </div>
       )
     }
@@ -85,26 +147,6 @@ function ErrorIndicator() {
       <AlertCircleIcon className="size-4 shrink-0 text-red-600" />
       <span className="font-semibold">{t("message.error")}</span>
     </div>
-  )
-}
-
-function Spinner() {
-  return (
-    <svg
-      role="img"
-      aria-label="Loading"
-      className="size-4 animate-spin text-gray-400"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-      />
-    </svg>
   )
 }
 

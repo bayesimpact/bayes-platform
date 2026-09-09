@@ -11,6 +11,7 @@ import {
   buildAgentModelDeprecationInterpolation,
   buildAgentModelOptions,
   formatAgentModelLabel,
+  isPriorityCallsAvailable,
 } from "./agent-model.helpers"
 
 describe("AgentModelMetadataMap", () => {
@@ -62,12 +63,13 @@ describe("AgentModelMetadataMap", () => {
     expect(getAgentModelDeprecation("")).toBeUndefined()
   })
 
-  it("reports only the non-EU model as served outside the EU", () => {
+  it("reports no model as served outside the EU", () => {
+    // Verified 2026-09-04: every Gemini 3.x model answers on the EU regional endpoint.
     const servedOutsideEu = Object.values(AgentModel).filter((model) =>
       isAgentModelServedOutsideEu(model),
     )
 
-    expect(servedOutsideEu).toEqual([AgentModel.Gemini36Flash])
+    expect(servedOutsideEu).toEqual([])
   })
 
   it("treats an unknown model as EU-served rather than throwing", () => {
@@ -114,10 +116,17 @@ describe("formatAgentModelLabel", () => {
     )
   })
 
-  it("appends the residency suffix to the model served outside the EU", () => {
-    expect(formatAgentModelLabel(AgentModel.Gemini36Flash, labels)).toBe(
-      "gemini-3.6-flash (non-EU)",
-    )
+  it("appends the residency suffix to a model served outside the EU", () => {
+    // No catalog entry carries the flag today, so it is seeded on the real catalog and restored.
+    const metadata = AgentModelMetadataMap[AgentModel.Gemini36Flash]
+    metadata.servedOutsideEu = true
+    try {
+      expect(formatAgentModelLabel(AgentModel.Gemini36Flash, labels)).toBe(
+        "gemini-3.6-flash (non-EU)",
+      )
+    } finally {
+      delete metadata.servedOutsideEu
+    }
   })
 
   it("does not mark the other vertex 3 models as non-EU", () => {
@@ -125,13 +134,16 @@ describe("formatAgentModelLabel", () => {
       "gemini-3.1-flash-lite",
     )
     expect(formatAgentModelLabel(AgentModel.Gemini35Flash, labels)).toBe("gemini-3.5-flash")
+    expect(formatAgentModelLabel(AgentModel.Gemini36Flash, labels)).toBe("gemini-3.6-flash")
+    expect(formatAgentModelLabel(AgentModel.Gemini38Flash, labels)).toBe("gemini-3.8-flash")
   })
 
   it("appends both suffixes when a model is deprecated and served outside the EU", () => {
-    // No catalog entry carries both facts today, so the combination is seeded on the real catalog
-    // and restored: the assertion is about the formatter, not about the current data.
+    // No catalog entry carries either fact today, so both are seeded on the real catalog and
+    // restored: the assertion is about the formatter, not about the current data.
     const metadata = AgentModelMetadataMap[AgentModel.Gemini36Flash]
     const originalDeprecation = metadata.deprecation
+    metadata.servedOutsideEu = true
     metadata.deprecation = {
       deprecatedOn: "2027-01-01",
       recommendedReplacement: AgentModel.Gemini35Flash,
@@ -143,6 +155,7 @@ describe("formatAgentModelLabel", () => {
       )
     } finally {
       metadata.deprecation = originalDeprecation
+      delete metadata.servedOutsideEu
     }
   })
 })
@@ -158,6 +171,8 @@ describe("buildAgentModelOptions", () => {
       AgentModel.Gemini35FlashLite,
       AgentModel.Gemini35Flash,
       AgentModel.Gemini36Flash,
+      AgentModel.Gemini37Flash,
+      AgentModel.Gemini38Flash,
     ])
   })
 
@@ -182,5 +197,28 @@ describe("buildAgentModelOptions", () => {
 
   it("never offers the mock model", () => {
     expect(buildAgentModelOptions(() => true)).not.toContain(AgentModel._Mock)
+  })
+})
+
+describe("isPriorityCallsAvailable", () => {
+  const withPriorityFlag: HasFeature = (feature) => feature === "llm-priority-calls"
+
+  it("is available for a Gemini 3.x model when the project has the flag", () => {
+    expect(
+      isPriorityCallsAvailable({ hasFeature: withPriorityFlag, model: AgentModel.Gemini35Flash }),
+    ).toBe(true)
+  })
+
+  it("is hidden without the project flag", () => {
+    expect(
+      isPriorityCallsAvailable({ hasFeature: () => false, model: AgentModel.Gemini35Flash }),
+    ).toBe(false)
+  })
+
+  it("is hidden for models outside the vertex 3 provider", () => {
+    expect(
+      isPriorityCallsAvailable({ hasFeature: withPriorityFlag, model: AgentModel.Gemini25Flash }),
+    ).toBe(false)
+    expect(isPriorityCallsAvailable({ hasFeature: withPriorityFlag, model: undefined })).toBe(false)
   })
 })

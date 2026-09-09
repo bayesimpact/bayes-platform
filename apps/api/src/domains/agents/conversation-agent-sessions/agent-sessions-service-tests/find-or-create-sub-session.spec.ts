@@ -1,6 +1,4 @@
-import { afterAll } from "@jest/globals"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { agentSessionControllerTestSetup } from "./test-setup"
 
 const getTestContext = agentSessionControllerTestSetup()
@@ -8,10 +6,6 @@ const getTestContext = agentSessionControllerTestSetup()
 const PARENT_SESSION_ID = "11111111-1111-1111-1111-111111111111"
 
 describe("findOrCreateSubSession", () => {
-  afterAll(async () => {
-    await sdk.shutdown()
-  })
-
   it("creates a conversation sub-session marked as a sub-session and linked to the parent", async () => {
     const { service, testAgent, testOrganization, testProject, testUser } = getTestContext()
 

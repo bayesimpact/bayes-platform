@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import { CirclePlusIcon, MicIcon, PaperclipIcon } from "lucide-react"
 import { useState } from "react"
 import { withRouter } from "storybook-addon-remix-react-router"
+import { agentSessionMessageFactory } from "@/common/features/agents/agent-sessions/agent-session.factory"
 import type { AgentSessionMessage } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import { AgentSessionMessage as AgentSessionMessageComponent } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/AgentSessionMessage"
 import {
@@ -17,8 +18,9 @@ import {
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import { projectFactory } from "@/common/features/projects/projects.factory"
 import { DotsBackground } from "@/studio/components/DotsBackground"
+import { SAMPLE_CARD_HTML } from "../common/McpAppView.stories"
 import { withRedux } from "../decorators"
-import { seed } from "../seed"
+import { mergeSeeds, seed } from "../seed"
 
 type StoryArgs = {
   messages: AgentSessionMessage[]
@@ -145,5 +147,134 @@ export const Default: Story = {
         </DotsBackground>
       </div>
     )
+  },
+}
+
+/** The thread ends on a reply whose stream died before anything was written. */
+export const InterruptedReply: Story = {
+  ...Default,
+  args: {
+    messages: [
+      agentSessionMessageFactory.build({ role: "user", content: "What can you do?" }),
+      agentSessionMessageFactory.build({ role: "assistant", content: "", status: "aborted" }),
+    ],
+  },
+}
+
+/**
+ * A reply whose MCP App card HTML is still being read from the MCP server: the transcript is on
+ * screen and the card holds its place with a placeholder.
+ */
+export const LoadingMcpAppCard: Story = {
+  ...Default,
+  decorators: [
+    withRedux({
+      state: mergeSeeds(
+        seed.currentProject(
+          projectFactory.transient({ organization: organizationFactory.build() }).build(),
+        ),
+        seed.agentSessionMcpAppHtml(undefined),
+      ),
+    }),
+  ],
+  args: {
+    messages: [
+      agentSessionMessageFactory.build({ role: "user", content: "Export these notes as a PDF." }),
+      agentSessionMessageFactory.build({
+        role: "assistant",
+        content: "",
+        toolCalls: [
+          {
+            id: "call-pdf-export",
+            name: "export_pdf",
+            arguments: { markdown: "# Notes" },
+            result: {
+              content: [{ type: "text", text: "Created Notes.pdf (2 pages)." }],
+              structuredContent: { fileName: "Notes.pdf" },
+            },
+            mcpApp: { mcpServerId: "mcp-server-1", resourceUri: "ui://pdf-export/mcp-app.html" },
+          },
+        ],
+      }),
+    ],
+  },
+}
+
+/**
+ * A reply with prose and a rendered MCP App card: the text stays in its bubble above the card,
+ * the card shows the tool result below it.
+ */
+export const TextWithMcpAppCard: Story = {
+  ...Default,
+  args: {
+    messages: [
+      agentSessionMessageFactory.build({ role: "user", content: "Export these notes as a PDF." }),
+      agentSessionMessageFactory.build({
+        role: "assistant",
+        content: "Done! You can download the PDF from the card below.\n\nAnything else?",
+        toolCalls: [
+          {
+            id: "call-pdf-export",
+            name: "export_pdf",
+            arguments: { markdown: "# Notes" },
+            result: {
+              content: [{ type: "text", text: "Created Notes.pdf (2 pages)." }],
+              structuredContent: {
+                fileName: "Notes.pdf",
+                downloadUrl: "https://example.com/notes.pdf",
+                expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+              },
+            },
+            mcpApp: {
+              mcpServerId: "mcp-server-1",
+              resourceUri: "ui://pdf-export/mcp-app.html",
+              html: SAMPLE_CARD_HTML,
+            },
+          },
+        ],
+      }),
+    ],
+  },
+}
+
+/**
+ * A reply with no prose whose MCP App card never completes its handshake. The card gives up
+ * after its 15 s initialization timeout and the tool result text takes its place in the bubble.
+ */
+export const FailedMcpAppCard: Story = {
+  ...Default,
+  args: {
+    messages: [
+      agentSessionMessageFactory.build({ role: "user", content: "Export these notes as a PDF." }),
+      agentSessionMessageFactory.build({
+        role: "assistant",
+        content: "",
+        toolCalls: [
+          {
+            id: "call-pdf-export",
+            name: "export_pdf",
+            arguments: { markdown: "# Notes" },
+            result: {
+              content: [
+                {
+                  type: "text",
+                  text: "Created Notes.pdf (2 pages). Download: https://example.com/notes.pdf",
+                },
+              ],
+              structuredContent: {
+                fileName: "Notes.pdf",
+                downloadUrl: "https://example.com/notes.pdf",
+              },
+            },
+            mcpApp: {
+              mcpServerId: "mcp-server-1",
+              resourceUri: "ui://pdf-export/mcp-app.html",
+              // Never sends `ui/initialize`, so the host times out and falls back to text.
+              html: "<!DOCTYPE html><html><body></body></html>",
+            },
+          },
+        ],
+      }),
+    ],
   },
 }

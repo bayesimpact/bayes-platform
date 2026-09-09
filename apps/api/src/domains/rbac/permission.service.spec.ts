@@ -359,11 +359,29 @@ describe("PermissionService", () => {
     )
 
     const permissions = await service.listGlobalPermissions(user.id)
-    expect(permissions.sort()).toEqual([
-      BACKOFFICE_READ_PERMISSION,
-      BACKOFFICE_TERMS_UPDATE_PERMISSION,
-      TRACE_READ_PERMISSION,
-    ])
+    expect(permissions.sort()).toEqual([BACKOFFICE_READ_PERMISSION, TRACE_READ_PERMISSION])
+  })
+
+  it("denies backoffice.terms.update to platform_staff members", async () => {
+    const repositories = setup.getAllRepositories()
+    const user = userFactory.build({ email: "staff@bayesimpact.org" })
+    await repositories.userRepository.save(user)
+    const platformStaffRole = await repositories.roleRepository.findOneOrFail({
+      where: { key: PLATFORM_STAFF_ROLE },
+    })
+    await repositories.userMembershipRepository.save(
+      userMembershipFactory.build({
+        userId: user.id,
+        resourceType: "global",
+        resourceId: null,
+        role: "member",
+        roleId: platformStaffRole.id,
+      }),
+    )
+
+    await expect(service.hasGlobal(user.id, BACKOFFICE_TERMS_UPDATE_PERMISSION)).resolves.toBe(
+      false,
+    )
   })
 
   it("lists global permissions for platform_superadmin users", async () => {

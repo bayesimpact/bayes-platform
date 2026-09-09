@@ -1,7 +1,11 @@
+import { Spinner } from "@caseai-connect/ui/shad/spinner"
+import { cn } from "@caseai-connect/ui/utils"
 import { AppBridge } from "@modelcontextprotocol/ext-apps/app-bridge"
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js"
 import type { JSONRPCMessage, MessageExtraInfo } from "@modelcontextprotocol/sdk/types.js"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
+import { isOpenableLink } from "./mcp-app-view"
 
 const HOST_INFO = { name: "caseai-connect", version: "1.0.0" }
 const INITIALIZE_TIMEOUT_MS = 15_000
@@ -22,6 +26,22 @@ const TOOL_RESULT_RETRY_DELAYS_MS = [50, 250] as const
  * RPC is wrapped with a sandbox id so two cards on the same page do not share
  * JSON-RPC over `window`. Unique-origin `event.source === contentWindow` is
  * not reliable, so PostMessageTransport would mix or drop replies at random.
+ *
+ * Both frames also carry `allow-popups allow-popups-to-escape-sandbox
+ * allow-downloads`: a nested frame inherits the parent's sandbox restrictions,
+ * so the flags have to be present on the outer and inner iframe for a guest's
+ * own `<a target="_blank">` or `window.open` to do anything. The escape flag
+ * makes the opened tab a normal top-level page (not itself sandboxed), and
+ * `allow-downloads` is what lets that tab actually save a file: browsers judge
+ * a download by the frame that started the navigation, so without it the tab
+ * opens on the signed URL and nothing happens.
+ *
+ * Two paths can open a tab and both are gated. A guest anchor navigates
+ * natively, which the browser only allows from a real user gesture inside the
+ * sandboxed guest. The spec-compliant `ui/open-link` fallback below is gated
+ * on the browser's own transient activation check and severs `opener` on the
+ * tab it opens, so either way the new tab carries the same power as a plain
+ * link in a markdown reply.
  */
 const SANDBOX_BOOTSTRAP_HTML = `<!DOCTYPE html>
 <html>
@@ -38,7 +58,7 @@ const SANDBOX_BOOTSTRAP_HTML = `<!DOCTYPE html>
       (function () {
         var sandboxId = "${SANDBOX_ID_PLACEHOLDER}"
         var inner = document.createElement("iframe")
-        inner.setAttribute("sandbox", "allow-scripts allow-same-origin")
+        inner.setAttribute("sandbox", "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-downloads")
         inner.setAttribute("title", "MCP App view")
         document.body.appendChild(inner)
 
@@ -144,6 +164,29 @@ class SandboxedPostMessageTransport implements Transport {
 }
 
 /**
+ * Holds a card's place while it cannot show yet: its HTML is still being read from the MCP
+ * server, or the iframe has not finished its handshake. Sized like the empty iframe so the
+ * reply does not jump when the card takes over.
+ */
+export function McpAppPlaceholder({ className }: { className?: string }) {
+  const { t } = useTranslation("agentSessionMessage")
+  return (
+    <div
+      aria-live="polite"
+      aria-busy="true"
+      className={cn(
+        "flex w-full items-center gap-2 rounded-md border bg-muted/40 px-4 text-sm text-muted-foreground",
+        className,
+      )}
+      style={{ minHeight: INITIAL_IFRAME_HEIGHT_PX }}
+    >
+      <Spinner />
+      <span className="animate-pulse">{t("mcpApp.loading")}</span>
+    </div>
+  )
+}
+
+/**
  * POC host: double iframe without a second domain.
  * Outer frame is sandboxed unique-origin; inner frame loads the MCP App HTML.
  */
@@ -151,18 +194,31 @@ export function McpAppView({
   html,
   toolInput,
   toolResult,
+  onRenderFailed,
 }: {
   html: string
   toolInput: unknown
   toolResult: unknown
+  /** The card gave up (handshake error or timeout); the parent can show its text fallback. */
+  onRenderFailed?: () => void
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [hasFailed, setHasFailed] = useState(false)
+  // The guest completed `ui/initialize`: until then the frame is blank and a placeholder covers it.
+  const [isInitialized, setIsInitialized] = useState(false)
+  // Parents pass an inline arrow that changes identity when any sibling card
+  // fails. Reading it through a ref keeps it out of the render effect deps, so
+  // a sibling failure does not tear down and re-handshake this card.
+  const onRenderFailedRef = useRef(onRenderFailed)
+  useEffect(() => {
+    onRenderFailedRef.current = onRenderFailed
+  })
 
   useEffect(() => {
     const iframe = iframeRef.current
     if (!iframe) return
 
+    setIsInitialized(false)
     const sandboxId = crypto.randomUUID()
     let cancelled = false
     let attempt = 0
@@ -178,9 +234,10 @@ export function McpAppView({
         const appBridge = new AppBridge(
           null,
           HOST_INFO,
-          { logging: {}, sandbox: {} },
+          { logging: {}, sandbox: {}, openLinks: {} },
           {
-            hostContext: { displayMode: "inline", platform: "web" },
+            // The app has no dark mode, so guests are told to render light.
+            hostContext: { displayMode: "inline", platform: "web", theme: "light" },
           },
         )
         bridge = appBridge
@@ -202,6 +259,14 @@ export function McpAppView({
             resendOnNextSizeChange = false
             void pushToolData()
           }
+        }
+        appBridge.onopenlink = async ({ url }) => {
+          if (!isOpenableLink(url)) return { isError: true }
+          if (navigator.userActivation?.isActive === false) return { isError: true }
+          const opened = window.open(url, "_blank")
+          if (!opened) return { isError: true }
+          opened.opener = null
+          return {}
         }
 
         const initialized = new Promise<void>((resolve, reject) => {
@@ -226,6 +291,7 @@ export function McpAppView({
         if (thisAttempt !== attempt || cancelled) return
 
         console.debug("MCP App initialized")
+        setIsInitialized(true)
         // Apps often register `ontoolresult` after `connect()`, so the first
         // notification is dropped and the UI stays on its loading shell.
         resendOnNextSizeChange = true
@@ -235,11 +301,13 @@ export function McpAppView({
           retryTimeoutIds.push(window.setTimeout(() => void pushToolData(), delayMs))
         }
       } catch (error) {
-        console.debug(
+        if (thisAttempt !== attempt || cancelled) return
+        console.warn(
           "MCP App render failed",
           error instanceof Error ? error.message : "unknown error",
         )
-        if (thisAttempt === attempt && !cancelled) setHasFailed(true)
+        setHasFailed(true)
+        onRenderFailedRef.current?.()
       }
     }
 
@@ -286,13 +354,21 @@ export function McpAppView({
 
   if (hasFailed) return null
 
+  // The frame stays laid out (not hidden) while it initializes so the guest measures a real
+  // width and reports a usable height; the placeholder simply covers it until then.
   return (
-    <iframe
-      ref={iframeRef}
-      className="mt-2 w-full overflow-hidden rounded-md border bg-background"
-      sandbox="allow-scripts"
-      style={{ height: INITIAL_IFRAME_HEIGHT_PX, border: 0 }}
-      title="MCP App"
-    />
+    <div className="relative mt-2">
+      {!isInitialized && <McpAppPlaceholder className="absolute inset-0" />}
+      <iframe
+        ref={iframeRef}
+        className={cn(
+          "block w-full overflow-hidden rounded-md border bg-background",
+          !isInitialized && "invisible",
+        )}
+        sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-downloads"
+        style={{ height: INITIAL_IFRAME_HEIGHT_PX, border: 0 }}
+        title="MCP App"
+      />
+    </div>
   )
 }

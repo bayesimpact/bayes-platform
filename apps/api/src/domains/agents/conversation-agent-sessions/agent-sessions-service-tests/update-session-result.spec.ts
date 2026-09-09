@@ -1,14 +1,8 @@
-import { afterAll } from "@jest/globals"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { agentSessionControllerTestSetup } from "./test-setup"
 
 const getTestContext = agentSessionControllerTestSetup()
 
 describe("updateSessionResult", () => {
-  afterAll(async () => {
-    await sdk.shutdown()
-  })
-
   it("merges sequential partial updates into the session result", async () => {
     const {
       service,

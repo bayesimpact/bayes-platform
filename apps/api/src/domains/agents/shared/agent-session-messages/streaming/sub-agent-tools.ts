@@ -2,6 +2,7 @@ import { Logger } from "@nestjs/common"
 import { trace } from "@opentelemetry/api"
 import type { ToolSet } from "ai"
 import type {
+  BuildLLMConfigParams,
   LLMConfig,
   LLMFeatures,
   LLMMetadata,
@@ -62,7 +63,11 @@ type BuildTools = (params: {
   agentSessionScope: AgentSessionScope
   includeSessionMetadataTools?: boolean
   includeSubAgentTools?: boolean
+  getProviderForModel: (model: string) => LLMProvider
+  buildLLMConfig: (params: BuildLLMConfigParams) => LLMConfig
   onExecute: OnExecute
+  priorityCallsEnabled: boolean
+  llmFeatures: LLMFeatures
 }) => Promise<BuiltTools>
 
 export async function buildSubAgentTools({
@@ -216,11 +221,15 @@ async function runSubAgentTool({
     agentSessionScope: childScope,
     includeSessionMetadataTools: false,
     includeSubAgentTools: false,
+    buildLLMConfig,
+    getProviderForModel,
     onExecute: (toolExecution) =>
       onExecute({
         ...toolExecution,
         notifyToolName: subAgent.toolName,
       }),
+    priorityCallsEnabled: childAgentSettings.priorityCallsEnabled,
+    llmFeatures,
   })
 
   try {

@@ -460,7 +460,7 @@ Commit both baseline files alongside the entity change.
 
 - **Full suite**: `npm run test:parallel` (from `apps/api`). Provisions per-worker DBs (`connect_test_w1`..`w6`), isolates each worker's transactional state, cleans up after. Do NOT use plain `npm run test` for the full suite — it runs `--runInBand` against a single DB and leaks state across suites, producing flaky failures.
 - **Single file iteration**: `npx jest --colors --runInBand --forceExit <path>`. `--forceExit` is required — leaked async handles otherwise hang the runner. Don't pipe Jest output through `| tail` etc.; it can block the runner indefinitely.
-- **Per-worker DB bootstrap is off-limits**: `apps/api/src/scripts/prepare-test-worker-dbs.ts` and adjacent worker-DB scripts are user-owned infrastructure. If `test:parallel` fails with a `permission denied for schema public` or similar bootstrap error, **stop and report** — don't patch the script.
+- **Per-worker DB bootstrap is off-limits**: `src/scripts/dbs4tests-create.ts` and adjacent worker-DB scripts are user-owned infrastructure. If `test:parallel` fails with a `permission denied for schema public` or similar bootstrap error, **stop and report** — don't patch the script.
 
 ---
 

@@ -14,7 +14,6 @@ import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
-import { sdk } from "@/external/llm/open-telemetry-init"
 import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
 import { publicAgentSessionFactory } from "../public-agent-sessions/public-agent-session.factory"
 import { PublicChatModule } from "../public-chat.module"
@@ -46,7 +45,6 @@ describe("PublicChat - Auth", () => {
 
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
-    await sdk.shutdown()
     await app.close()
   })
 
@@ -186,6 +184,46 @@ describe("PublicChat - Auth", () => {
       await createContext()
       const response = await subject()
       expect(response.status).toBe(200)
+    })
+  })
+
+  // ──────────────────────────────────────────────────
+  // GET /public/agents/:embedToken/sessions/:sessionId/mcp-app-html
+  // ──────────────────────────────────────────────────
+  describe("getMcpAppHtml", () => {
+    const subject = () =>
+      request(app.getHttpServer())
+        .get(`/public/agents/${embedToken}/sessions/${sessionId}/mcp-app-html`)
+        .set("Connection", "close")
+        .set("X-Session-Token", sessionToken ?? "")
+
+    it("returns 401 when embedToken does not exist", async () => {
+      await createContext()
+      embedToken = randomUUID()
+      const response = await subject()
+      expect(response.status).toBe(401)
+    })
+
+    it("returns 401 when X-Session-Token header is missing", async () => {
+      await createContext()
+      const response = await request(app.getHttpServer())
+        .get(`/public/agents/${embedToken}/sessions/${sessionId}/mcp-app-html`)
+        .set("Connection", "close")
+      expect(response.status).toBe(401)
+    })
+
+    it("returns 401 when session token is invalid", async () => {
+      await createContext()
+      sessionToken = "wrong-token"
+      const response = await subject()
+      expect(response.status).toBe(401)
+    })
+
+    it("returns 200 with an empty list for a session without cards", async () => {
+      await createContext()
+      const response = await subject()
+      expect(response.status).toBe(200)
+      expect(response.body.data).toEqual([])
     })
   })
 })

@@ -22,6 +22,8 @@ type StoryArgs = StudioStoryArgs & {
   withDraft?: boolean
   /** Puts the agent on a retired model so the deprecation banner renders. */
   withDeprecatedModel?: boolean
+  /** Turns the priority tier on; pair it with the `llm-priority-calls` flag to see the toggle. */
+  withPriorityCalls?: boolean
 }
 
 /** Older revisions of the agent so the version history sheet has content to compare. */
@@ -90,6 +92,7 @@ const meta = {
     withSubAgents: { control: "boolean" },
     withDraft: { control: "boolean" },
     withDeprecatedModel: { control: "boolean" },
+    withPriorityCalls: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
@@ -98,6 +101,7 @@ const meta = {
     withSubAgents: true,
     withDraft: true,
     withDeprecatedModel: false,
+    withPriorityCalls: false,
   },
   render: render({ routes: studioRoutes, path: StudioRoutes.agentEdit.path }),
 } satisfies Meta<StoryArgs>
@@ -107,57 +111,72 @@ type Story = StoryObj<typeof meta>
 
 export const ConversationAgent: Story = {
   decorators: [
-    buildDecorator<StoryArgs>(({ withSubAgents, withDraft, withDeprecatedModel, ...args }) => {
-      const { baseSeeds, agents } = buildStudioData({ ...args, withAgents: true })
-      const [rawParentAgent, ...rawChildAgents] = agents
-      if (!rawParentAgent) {
-        throw new Error("Agent editor route story requires a parent agent")
-      }
-      const parentAgentSettings = {
-        agentId: rawParentAgent.id,
-        name: "Helpful Assistant",
-        revision: 3,
-        isDraft: !!withDraft,
-        model: withDeprecatedModel ? AgentModel.Gemini25Flash : DEFAULT_AGENT_MODEL,
-      } as AgentSettings
-      const childAgents = rawChildAgents.map((agent, index) => ({
-        ...agent,
-        name: index === 0 ? "Research Agent" : "Summary Bot",
-        type: "conversation" as const,
-      }))
-      const subAgents =
-        withSubAgents && childAgents[0]
-          ? [
-              agentSubAgentFactory
-                .transient({ parentAgent: rawParentAgent, childAgent: childAgents[0] })
-                .build({
-                  toolName: "ask_research_agent",
-                  description: "Use for research and source discovery questions.",
-                }),
-            ]
-          : []
+    buildDecorator<StoryArgs>(
+      ({ withSubAgents, withDraft, withDeprecatedModel, withPriorityCalls, ...args }) => {
+        const { baseSeeds, agents } = buildStudioData({ ...args, withAgents: true })
+        const [rawParentAgent, ...rawChildAgents] = agents
+        if (!rawParentAgent) {
+          throw new Error("Agent editor route story requires a parent agent")
+        }
+        const parentAgentSettings = {
+          agentId: rawParentAgent.id,
+          name: "Helpful Assistant",
+          revision: 3,
+          isDraft: !!withDraft,
+          model: withDeprecatedModel ? AgentModel.Gemini25Flash : DEFAULT_AGENT_MODEL,
+          priorityCallsEnabled: !!withPriorityCalls,
+        } as AgentSettings
+        const childAgents = rawChildAgents.map((agent, index) => ({
+          ...agent,
+          name: index === 0 ? "Research Agent" : "Summary Bot",
+          type: "conversation" as const,
+        }))
+        const subAgents =
+          withSubAgents && childAgents[0]
+            ? [
+                agentSubAgentFactory
+                  .transient({ parentAgent: rawParentAgent, childAgent: childAgents[0] })
+                  .build({
+                    toolName: "ask_research_agent",
+                    description: "Use for research and source discovery questions.",
+                  }),
+              ]
+            : []
 
-      const allAgents = [rawParentAgent, ...childAgents]
-      const versions = buildVersions(parentAgentSettings)
+        const allAgents = [rawParentAgent, ...childAgents]
+        const versions = buildVersions(parentAgentSettings)
 
-      return {
-        state: mergeSeeds(
-          baseSeeds,
-          seed.agents(allAgents, { currentId: rawParentAgent.id }),
-          seed.studio.agentSubAgents(subAgents),
-          seed.studio.documentTags([]),
-          seed.studio.agentHistory({ agentId: rawParentAgent.id, versions }),
-        ),
-        services: {
-          agents: buildMockAgentsService(allAgents),
-          agentSettings: buildMockAgentSettingsService(versions),
-        },
-      }
-    }),
+        return {
+          state: mergeSeeds(
+            baseSeeds,
+            seed.agents(allAgents, { currentId: rawParentAgent.id }),
+            seed.studio.agentSubAgents(subAgents),
+            seed.studio.documentTags([]),
+            seed.studio.agentHistory({ agentId: rawParentAgent.id, versions }),
+            // The agent layout above the editor lists the agent's conversations.
+            seed.conversationAgentSessions({ [rawParentAgent.id]: [] }),
+            seed.studio.mcpServers([]),
+          ),
+          services: {
+            agents: buildMockAgentsService(allAgents),
+            agentSettings: buildMockAgentSettingsService(versions),
+          },
+        }
+      },
+    ),
   ],
 }
 
 export const ConversationAgentOnDeprecatedModel: Story = {
   args: { withDeprecatedModel: true },
+  decorators: ConversationAgent.decorators,
+}
+
+/** The Model tab shows the priority tier toggle: flag on, Gemini 3.x model, option already on. */
+export const ConversationAgentWithPriorityCalls: Story = {
+  args: {
+    featureFlags: [...studioStoryArgs.featureFlags, "agent-orchestration", "llm-priority-calls"],
+    withPriorityCalls: true,
+  },
   decorators: ConversationAgent.decorators,
 }

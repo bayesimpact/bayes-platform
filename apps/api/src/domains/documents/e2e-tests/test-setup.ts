@@ -30,6 +30,12 @@ export function documentsControllerTestSetup() {
       applyOverrides: withDocumentEmbeddingsBatchServiceMock,
     })
     await clearTestDatabase(setup.dataSource)
+    controller = setup.module.get<DocumentsController>(DocumentsController)
+    fileStorageService = setup.module.get<IFileStorage>(FILE_STORAGE_SERVICE)
+    userRepository = setup.getRepository(User)
+    organizationRepository = setup.getRepository(Organization)
+    projectRepository = setup.getRepository(Project)
+    documentRepository = setup.getRepository(Document)
   })
 
   afterAll(async () => {
@@ -38,13 +44,6 @@ export function documentsControllerTestSetup() {
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    controller = setup.module.get<DocumentsController>(DocumentsController)
-    fileStorageService = setup.module.get<IFileStorage>(FILE_STORAGE_SERVICE)
-    userRepository = setup.getRepository(User)
-    organizationRepository = setup.getRepository(Organization)
-    projectRepository = setup.getRepository(Project)
-    documentRepository = setup.getRepository(Document)
-
     const org = organizationFactory.build({ name: "Org1" })
     organization = await organizationRepository.save(org)
   })
