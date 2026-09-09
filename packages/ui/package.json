@@ -2,6 +2,7 @@
   "name": "@caseai-connect/ui",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "exports": {
     "./utils": "./src/lib/utils.ts",
     "./lib/calendar-date-helpers": "./src/lib/calendar-date-helpers.ts",

@@ -2,6 +2,7 @@
   "name": "@caseai-connect/api",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "nest start --watch",
     "dev:workers-main": "BULL_BOARD_ENABLED=false nest start --entryFile workers-main --watch",
