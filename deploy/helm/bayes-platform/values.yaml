@@ -303,6 +303,17 @@ help:
       memory: 128Mi
 
 # ---------------------------------------------------------------------------
+# First administrators: emails granted platform_superadmin by a Job after the
+# migrations (they create organizations and open the back office). The users
+# are created if they never signed in, and linked to their identity at first
+# sign-in. Nothing is granted at sign-in: this list is the only automatic
+# grant, and it is a decision in the values. Later grants: the platform-role
+# command (see README.md).
+# ---------------------------------------------------------------------------
+initialAdmins: []
+#  - admin@example.org
+
+# ---------------------------------------------------------------------------
 # Migrations: a Job that runs the TypeORM migrations with the API image,
 # after the first install and before every upgrade.
 # ---------------------------------------------------------------------------
