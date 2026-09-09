@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
-	"github.com/joho/godotenv"
 
 	"github.com/bayesimpact/bayes-platform/apps/pdf-converter/internal/render"
 )
@@ -22,7 +21,9 @@ func main() {
 	// Local development reads apps/pdf-converter/.env (see .env-example). The
 	// file is absent in the image and in production, where this is a no-op;
 	// variables already set in the environment always win.
-	_ = godotenv.Load()
+	if err := loadDotenv(".env"); err != nil {
+		log.Fatalf("reading .env: %v", err)
+	}
 	bucketName := os.Getenv("GCS_STORAGE_BUCKET_NAME")
 	if bucketName == "" {
 		log.Fatal("GCS_STORAGE_BUCKET_NAME is required: set it in the environment or in apps/pdf-converter/.env (see .env-example)")

@@ -6,7 +6,6 @@ require (
 	cloud.google.com/go/storage v1.65.0
 	codeberg.org/go-pdf/fpdf v0.12.0
 	github.com/google/uuid v1.6.0
-	github.com/joho/godotenv v1.5.1
 	github.com/klippa-app/go-pdfium v1.19.8
 	github.com/modelcontextprotocol/go-sdk v1.7.0
 	github.com/tetratelabs/wazero v1.12.0
