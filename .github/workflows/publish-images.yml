@@ -39,27 +39,45 @@ jobs:
             dockerfile: apps/api/Dockerfile
             target: app-runtime
             runner: ubuntu-latest
+            cache_from: |
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:app
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:cpu-workers
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:gpu-workers
           - image: cpu-workers
             dockerfile: apps/api/Dockerfile
             target: cpu-workers-runtime
             runner: ubuntu-latest
+            cache_from: |
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:app
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:cpu-workers
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:gpu-workers
           # Close to 10 GB uncompressed (Torch with CUDA, Docling): bigger runner.
           - image: gpu-workers
             dockerfile: apps/api/Dockerfile
             target: gpu-workers-runtime
             runner: ubuntu-latest-m
+            cache_from: |
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:app
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:cpu-workers
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:gpu-workers
           - image: pdf-converter
             dockerfile: apps/pdf-converter/Dockerfile
             target: ""
             runner: ubuntu-latest
+            cache_from: |
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:pdf-converter
           - image: web-embed
             dockerfile: apps/web-embed/Dockerfile
             target: ""
             runner: ubuntu-latest
+            cache_from: |
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:web-embed
           - image: help
             dockerfile: apps/help/Dockerfile
             target: ""
             runner: ubuntu-latest
+            cache_from: |
+              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:help
     steps:
       - uses: actions/checkout@v4
 
@@ -106,8 +124,12 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ matrix.image }}
-          cache-to: type=gha,scope=${{ matrix.image }},mode=max
+          # BuildKit cache in the registry, all stages (mode=max): the images
+          # that share a Dockerfile reuse each other's build stages, and the
+          # 10 GB limit of the GitHub Actions cache does not apply (the GPU
+          # image alone would evict everything).
+          cache-from: ${{ matrix.cache_from }}
+          cache-to: type=registry,ref=${{ env.IMAGE_BASE }}/cache:${{ matrix.image }},mode=max
           provenance: true
           sbom: true
 
