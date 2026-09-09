@@ -133,19 +133,17 @@ kubectl -n platform logs job/platform-bayes-platform-migrate
 
 ## First administrator
 
-Global roles are granted at sign-in from the configuration, so a fresh install needs no manual step:
+Global roles (`platform_superadmin`, `platform_staff`) are never granted automatically at sign-in: an operator decides who holds them.
 
-- every email in `config.BACKOFFICE_AUTHORIZED_EMAILS` gets `platform_superadmin` (creates organizations, opens the back office);
-- every email of `config.ORGANIZATION_CREATOR_EMAIL_DOMAIN` gets `platform_staff`.
-
-Sign in once with an email of the list: the onboarding lets you create the first organization. To grant or revoke a role later without changing the values:
+- **At install**: list the emails in `initialAdmins`. A Job runs after the migrations and grants `platform_superadmin` to each of them. The users are created if they never signed in, and linked to their identity at first sign-in, so the first administrator can sign in and create the first organization right away.
+- **Later**: the `platform-role` command, from any api pod:
 
 ```bash
 kubectl -n platform exec deploy/platform-bayes-platform-api -- \
   node /app/apps/api/dist/scripts/platform-role.js grant --email someone@example.org --role platform_superadmin
 ```
 
-(`revoke` and `list` work the same way; the user must have signed in once.)
+`revoke` and `list` work the same way.
 
 ## Managed services
 

@@ -1,9 +1,18 @@
-import { Injectable, Logger } from "@nestjs/common"
+import { Injectable } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
 import type { DataSource } from "typeorm"
-import { type PlatformRoleKey, resolveBootstrapRoles } from "./platform-role-bootstrap"
+import { PLATFORM_STAFF_ROLE, PLATFORM_SUPERADMIN_ROLE } from "./rbac.constants"
 
-type UserIdentity = { id: string; email: string }
+export type PlatformRoleKey = typeof PLATFORM_STAFF_ROLE | typeof PLATFORM_SUPERADMIN_ROLE
+
+export const PLATFORM_ROLE_KEYS: readonly PlatformRoleKey[] = [
+  PLATFORM_SUPERADMIN_ROLE,
+  PLATFORM_STAFF_ROLE,
+]
+
+export function isPlatformRoleKey(value: string): value is PlatformRoleKey {
+  return (PLATFORM_ROLE_KEYS as readonly string[]).includes(value)
+}
 
 /**
  * TypeORM's raw query returns the rows for SELECT and INSERT ... RETURNING,
@@ -19,35 +28,15 @@ function affectedRows(result: unknown): number {
 /**
  * Grants and revokes the global roles (platform_superadmin, platform_staff).
  *
- * ensureGlobalRolesForUser runs at every sign-in: the roles promised by
- * BACKOFFICE_AUTHORIZED_EMAILS and ORGANIZATION_CREATOR_EMAIL_DOMAIN are
- * granted when missing. This is what makes a fresh install usable: the seed
- * migrations only reach users that exist when they run, so the first
- * administrator would otherwise have no role at all.
- *
- * grantGlobalRole / revokeGlobalRole serve the administration command
- * (scripts/platform-role.ts) and, later, the back office.
+ * Deliberately not called at sign-in: granting a global role from the email
+ * the identity provider reports would let anyone who can register an address
+ * of the right shape become staff. Roles are granted by an operator, through
+ * the platform-role command (scripts/platform-role.ts), the chart's
+ * initialAdmins job, or later the back office.
  */
 @Injectable()
-export class PlatformRoleBootstrapService {
-  private readonly logger = new Logger(PlatformRoleBootstrapService.name)
-  /** user id + role key already checked in this process: one query per user, not per request. */
-  private readonly ensured = new Set<string>()
-
+export class PlatformRoleService {
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
-
-  async ensureGlobalRolesForUser(user: UserIdentity): Promise<void> {
-    const roles = resolveBootstrapRoles(user.email)
-    for (const roleKey of roles) {
-      const cacheKey = `${user.id}:${roleKey}`
-      if (this.ensured.has(cacheKey)) continue
-      const granted = await this.grantGlobalRole(user.id, roleKey)
-      if (granted) {
-        this.logger.log(`Granted ${roleKey} to ${user.email} (bootstrap from configuration)`)
-      }
-      this.ensured.add(cacheKey)
-    }
-  }
 
   /** Returns true when a membership was created, false when it already existed. */
   async grantGlobalRole(userId: string, roleKey: PlatformRoleKey): Promise<boolean> {
@@ -70,17 +59,20 @@ export class PlatformRoleBootstrapService {
     return affectedRows(result) > 0
   }
 
-  /** Returns true when a membership was revoked, false when there was none. */
+  /**
+   * Returns true when a membership was revoked, false when there was none.
+   * Hard delete, like UserMembershipRepository.deleteMembership: the unique
+   * index on (user, role) for global memberships ignores deleted_at, so a
+   * soft-deleted row would block a later grant.
+   */
   async revokeGlobalRole(userId: string, roleKey: PlatformRoleKey): Promise<boolean> {
     const result: unknown = await this.dataSource.query(
-      `UPDATE "user_membership" AS membership
-       SET "deleted_at" = NOW()
-       FROM "role" AS role
+      `DELETE FROM "user_membership" AS membership
+       USING "role" AS role
        WHERE role.id = membership.role_id
          AND role.key = $2
          AND membership.user_id = $1
          AND membership.resource_type = 'global'
-         AND membership.deleted_at IS NULL
        RETURNING membership.id`,
       [userId, roleKey],
     )

@@ -3,8 +3,6 @@ import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import { normalizeAuth0Name } from "@/domains/auth/auth0-userinfo.helper"
 import type { Auth0UserInfoResponse } from "@/domains/auth/auth0-userinfo.service"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { PlatformRoleBootstrapService } from "@/domains/rbac/platform-role-bootstrap.service"
 import { User } from "./user.entity"
 
 @Injectable()
@@ -12,7 +10,6 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly platformRoleBootstrap: PlatformRoleBootstrapService,
   ) {}
 
   async findByAuth0Id(auth0Id: string): Promise<User | null> {
@@ -68,14 +65,12 @@ export class UsersService {
       user = await this.findByEmail(auth0UserInfo.email)
 
       if (user) {
-        user = await this.userRepository.save({
+        return this.userRepository.save({
           ...user,
           auth0Id: auth0UserInfo.sub, // Link existing user to Auth0 ID
           name: normalizeAuth0Name(auth0UserInfo.name, auth0UserInfo.email),
           picture: auth0UserInfo.picture,
         })
-        await this.platformRoleBootstrap.ensureGlobalRolesForUser(user)
-        return user
       }
 
       user = await this.create({
@@ -85,8 +80,6 @@ export class UsersService {
         picture: auth0UserInfo.picture,
       })
     }
-    // Global roles promised by the configuration (first administrator, staff).
-    await this.platformRoleBootstrap.ensureGlobalRolesForUser(user)
     return user
   }
 }

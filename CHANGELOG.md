@@ -8,7 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
-- Administrators listed in the configuration get their platform role at sign-in, on a fresh install too.
+- Kubernetes: the first administrators of a new install are set from the values, no database access needed.
 - Kubernetes: the platform connects to databases that require TLS (Cloud SQL, RDS) with one setting.
 - (beta) MCP servers: connect servers that use OAuth by authorizing access in the browser, alongside API keys.
 - Kubernetes: the platform can be installed on any cluster with a Helm chart, with bundled Postgres and Redis.
