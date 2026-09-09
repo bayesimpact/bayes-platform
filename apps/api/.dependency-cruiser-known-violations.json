@@ -4506,5 +4506,14 @@
       "severity": "warn",
       "name": "no-cross-domain-service-reach"
     }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/users/users.service.ts",
+    "to": "src/domains/rbac/platform-role-bootstrap.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
   }
 ]

@@ -377,6 +377,8 @@ Notes:
 
 A Helm chart installs the full platform (API, workers, front ends, PDF converter) on any Kubernetes cluster, with bundled Postgres and Redis or with managed services. See [deploy/helm/bayes-platform/README.md](deploy/helm/bayes-platform/README.md).
 
+The first administrators are the emails of `BACKOFFICE_AUTHORIZED_EMAILS`: they get the `platform_superadmin` role at sign-in. `npm run platform-role -- grant|revoke|list --email <email> [--role <role>]` manages the global roles afterwards.
+
 ## Running Tests
 
 ### Run All Tests
