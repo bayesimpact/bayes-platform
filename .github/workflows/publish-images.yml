@@ -5,7 +5,7 @@ name: Publish images
 #   ghcr.io/bayesimpact/bayes-platform/<component>:<tag>
 # app = the API plus the web front served under /app (target app-runtime).
 #
-# Tags: sha-<short sha> and main on every push to main, the CalVer version on a release
+# Tags: sha-<short sha>, main and main-<run>-<sha> on every push to main, the CalVer version on a release
 # tag (v26.09.1 -> 26.09.1), and latest on main. A release tag also publishes
 # the Helm chart as an OCI artifact: oci://ghcr.io/bayesimpact/charts/bayes-platform.
 
@@ -110,8 +110,9 @@ jobs:
             type=ref,event=branch
             type=raw,value=latest,enable={{is_default_branch}}
             # Sortable tag for GitOps image automation (Flux ImagePolicy):
-            # main-<timestamp>-<sha>, newest wins.
-            type=raw,value=main-{{date 'YYYYMMDDHHmmss'}}-{{sha}},enable={{is_default_branch}}
+            # main-<run number>-<sha>, newest run wins. The run number is the
+            # same for the six images of one run, a timestamp would not be.
+            type=raw,value=main-${{ github.run_number }}-{{sha}},enable={{is_default_branch}}
 
       - name: Build and push
         id: build
