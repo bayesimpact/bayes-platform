@@ -135,7 +135,7 @@ kubectl -n platform logs job/platform-bayes-platform-migrate
 
 See `values-managed.example.yaml`. The differences with the default:
 
-- `postgresql.enabled: false` and `externalDatabase.*`. The database must have the `vector` extension: `CREATE EXTENSION IF NOT EXISTS vector;` run once by an administrator. On Cloud SQL the database user can run it.
+- `postgresql.enabled: false` and `externalDatabase.*`. `externalDatabase.ssl` is `require` by default (Cloud SQL refuses plain connections when its `ssl_mode` is `ENCRYPTED_ONLY`); set `verify-full` and `sslCaSecretKey` to check the server certificate. The `vector` extension is created by the first migration when the database user is allowed to; otherwise run `CREATE EXTENSION IF NOT EXISTS vector;` once as an administrator.
 - `redis.enabled: false` and `BULLMQ_REDIS_URL` in the Secret.
 - `storage.mode: gcs` with `storage.gcs.bucket`. The pods reach the bucket through the service account (`serviceAccount.annotations` for GKE Workload Identity). This mode also enables the `pdf-converter`.
 - `gpuWorkers.enabled: true` with `gpuWorkers.gpu.nodeSelector` set to the label of your GPU node pool. The pods request `nvidia.com/gpu: 1` and tolerate the `nvidia.com/gpu` taint.

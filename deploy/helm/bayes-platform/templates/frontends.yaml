@@ -39,7 +39,10 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
+        # nginx-unprivileged runs as user nginx (uid 101); runAsNonRoot needs a number.
         runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
       containers:
         - name: nginx
           image: {{ include "bayes-platform.image" (dict "root" $root "image" $values.image) }}

@@ -84,6 +84,8 @@ config:
   # Tracing (optional). LANGFUSE_SK goes in the secret.
   LANGFUSE_BASE_URL: ""
   LANGFUSE_PK: ""
+  # Queue of the PDF exports sweep. Required on every worker process.
+  PDF_EXPORTS_SWEEP_QUEUE_NAME: pdf-exports-sweep
   # Bull Board (queue dashboard) on the API.
   BULL_BOARD_ENABLED: "false"
   BULL_BOARD_ALLOWED_EMAIL_DOMAIN: "@example.org"
@@ -120,6 +122,11 @@ externalDatabase:
   username: platform
   # Key of the password in secrets.existingSecret.
   passwordKey: DATABASE_PASSWORD
+  # TLS: "" (none), "require" (encrypted, certificate not verified: Cloud SQL,
+  # private network), or "verify-full" with sslCaSecretKey (PEM in the Secret).
+  ssl: require
+  sslCaSecretKey: ""
+
 
 # ---------------------------------------------------------------------------
 # Redis (BullMQ queues)
@@ -198,6 +205,7 @@ cpuWorkers:
     - web-source-embeddings
     - extraction-agent-session-queue
     - conversation-retention-sweep
+    - pdf-exports-sweep
   # Without GPU workers, the CPU pool also takes the document embeddings
   # (Docling disabled: text extraction without OCR).
   takeEmbeddingsWhenNoGpu: true
