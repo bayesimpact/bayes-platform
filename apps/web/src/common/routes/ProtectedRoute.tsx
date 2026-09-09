@@ -12,7 +12,6 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, loginWithRedirect } = useAuth0()
   const isPlatformLoading = useAppSelector((state) => state.auth.isLoading)
   const termsAccepted = useAppSelector(selectTermsAccepted)
-  // Auth0 sent us back with an error: show it instead of redirecting again.
   const callbackError = useAuthCallbackError()
 
   useEffect(() => {

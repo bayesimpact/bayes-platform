@@ -35,7 +35,6 @@ export function HomeRoute() {
   const { isLoading, isAuthenticated, loginWithRedirect, logout } = useAuth0()
   const organizations = useAppSelector(selectOrganizationsData)
   const [searchParams] = useSearchParams()
-  // Auth0 sent us back with an error: show it instead of redirecting again.
   const callbackError = useAuthCallbackError()
 
   useEffect(() => {
