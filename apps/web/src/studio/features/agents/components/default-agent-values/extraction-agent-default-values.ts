@@ -1,10 +1,11 @@
 import type { outputJsonSchemaSchema } from "@caseai-connect/api-contracts"
 import type { z } from "zod"
+import { runtimeConfig } from "@/config/runtime-config"
 import { buildOutputJsonSchema } from "./default-agent-values.helpers"
 
 export const extractionAgentDefaultValues = {
   prompt:
-    (import.meta.env.VITE_DEFAULT_EXTRACTION_AGENT_PROMPT as string | undefined) ??
+    runtimeConfig.defaultExtractionAgentPrompt ??
     `Extract structured information from the uploaded document.
 
 Return ONLY the JSON object that matches the provided output schema.
@@ -16,7 +17,7 @@ Rules:
 - Do not include explanations or markdown.`,
 
   getOutputJsonSchema: () => {
-    const envSchema = import.meta.env.VITE_DEFAULT_EXTRACTION_AGENT_SCHEMA as string | undefined
+    const envSchema = runtimeConfig.defaultExtractionAgentSchema
 
     const defaultSchema: z.infer<typeof outputJsonSchemaSchema> = {
       type: "object",

@@ -1,3 +1,4 @@
+import { runtimeConfig } from "@/config/runtime-config"
 import { getAccessToken } from "@/external/auth0Client"
 import {
   processSSEChunk,
@@ -43,8 +44,7 @@ export async function streamChatResponse({
     const token = await getAccessToken()
     if (!token) throw new Error("No access token available")
 
-    const baseURL = import.meta.env.VITE_API_URL as string | undefined
-    if (!baseURL) throw new Error("VITE_API_URL is not defined")
+    const baseURL = runtimeConfig.apiUrl
 
     const url = buildStreamUrl({
       baseURL,

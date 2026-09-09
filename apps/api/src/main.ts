@@ -10,6 +10,7 @@ import { registerBullBoardOpenIdConnect } from "./common/bull-board/bull-board-o
 import { StackTraceLoggingExceptionFilter } from "./common/filters/stack-trace-logging-exception.filter"
 import { getLogLevels, StructuredLogger } from "./common/logger/structured-logger"
 import { enableDbListeners } from "./common/sse/postgres-status-stream.service"
+import { registerWebAppStaticAssets } from "./common/web-app/web-app.module"
 import { buildCorsOptionsDelegate, parseFrontendUrls } from "./config/cors"
 import { BuiltInMcpServersService } from "./domains/mcp-servers/built-in/built-in-mcp-servers.service"
 
@@ -30,6 +31,8 @@ async function bootstrap() {
     app.set("trust proxy", true)
   }
   registerBullBoardOpenIdConnect(app)
+  // Web front served from this process in the app-runtime image (no-op otherwise).
+  registerWebAppStaticAssets(app)
   app.useBodyParser("json", { limit: "500kb" })
   app.useGlobalPipes(
     new ValidationPipe({

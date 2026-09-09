@@ -1,19 +1,21 @@
+import { getAppUrl, runtimeConfig } from "./runtime-config"
+
 /**
- * Auth0 organization ID from environment variables.
+ * Auth0 organization ID from the runtime configuration.
  * Used for all loginWithRedirect calls.
  */
-export const AUTH0_ORGANIZATION_ID = import.meta.env.VITE_AUTH0_ORGANIZATION_ID as string
+export const AUTH0_ORGANIZATION_ID = runtimeConfig.auth0OrganizationId
 
 /**
  * Shared Auth0 configuration used by both Auth0Provider and Auth0 client instances.
  * This ensures a single source of truth for Auth0 settings.
  */
 export const auth0Config = {
-  domain: import.meta.env.VITE_AUTH0_DOMAIN as string,
-  clientId: import.meta.env.VITE_AUTH0_CLIENT_ID as string,
+  domain: runtimeConfig.auth0Domain,
+  clientId: runtimeConfig.auth0ClientId,
   authorizationParams: {
-    redirect_uri: window.location.origin,
-    audience: import.meta.env.VITE_AUTH0_AUDIENCE as string,
+    redirect_uri: getAppUrl(),
+    audience: runtimeConfig.auth0Audience,
     scope: "openid profile email offline_access",
   },
   useRefreshTokens: true,

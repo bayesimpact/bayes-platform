@@ -41,6 +41,30 @@ RUN rm -rf node_modules/next node_modules/sharp node_modules/@img
 RUN mkdir -p /app/apps/api/node_modules
 
 #
+# 🌐 Web front build (only used by the app-runtime target)
+#
+# Builds apps/web with `/app/` as public path: the API serves the result under
+# /app (see apps/api/src/common/web-app). No VITE_* tenant value is baked in:
+# the API injects the runtime configuration into index.html from its own
+# environment, so one image serves every tenant.
+#
+FROM node:24.20.0-bookworm-slim AS web-build
+
+WORKDIR /app
+COPY apps/web ./apps/web
+COPY ./packages ./packages
+COPY package-lock.json ./
+COPY package.json ./
+
+RUN npm ci \
+    --workspace=@caseai-connect/web \
+    --workspace=@caseai-connect/ui \
+    --workspace=@caseai-connect/api-contracts \
+    --include-workspace-root
+ENV VITE_BASE_PATH=/app/
+RUN cd apps/web && npm run build
+
+#
 # 🚀 Runtime Base (shared)
 #
 FROM node:24.20.0-bookworm-slim AS runtime-base
@@ -63,6 +87,17 @@ COPY --from=build /app/node_modules node_modules
 FROM runtime-base AS api-runtime
 
 CMD ["node", "--enable-source-maps", "/app/apps/api/dist/main.js"]
+
+#
+# 🚀 App Runtime: API + web front in one image
+#
+# Same process as api-runtime, plus the built web front served under /app.
+# WEB_APP_DIST_DIR switches the serving on; the API image stays API-only.
+#
+FROM api-runtime AS app-runtime
+
+COPY --from=web-build /app/apps/web/dist /app/apps/web/dist
+ENV WEB_APP_DIST_DIR=/app/apps/web/dist
 
 #
 # 🚀 CPU Workers Runtime (no Docling)

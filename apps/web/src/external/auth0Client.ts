@@ -1,5 +1,6 @@
 import { type Auth0Client, createAuth0Client } from "@auth0/auth0-spa-js"
 import { auth0ClientConfig } from "@/config/auth0.config"
+import { getAppUrl } from "@/config/runtime-config"
 
 /**
  * Singleton Auth0 client instance.
@@ -84,7 +85,7 @@ export async function logoutAuth0(): Promise<void> {
   const client = await getAuth0Client()
   await client.logout({
     logoutParams: {
-      returnTo: window.location.origin,
+      returnTo: getAppUrl(),
     },
   })
 }
