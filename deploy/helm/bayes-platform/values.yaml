@@ -18,6 +18,8 @@ global:
 # The web front is served by the API (app image) under /app on the api URL:
 # `web` is the address users open, `api` the origin the browser calls. Keep
 # them on the same host unless you serve the front from somewhere else.
+# The addresses the platform derives from `web` (the OAuth callback of MCP
+# servers, for example) follow it: no other URL setting is needed.
 urls:
   api: https://platform.example.org
   web: https://platform.example.org/app
@@ -303,14 +305,16 @@ help:
       memory: 128Mi
 
 # ---------------------------------------------------------------------------
-# First administrators: emails granted platform_superadmin by a Job after the
-# migrations (they create organizations and open the back office). The users
-# are created if they never signed in, and linked to their identity at first
-# sign-in. Nothing is granted at sign-in: this list is the only automatic
-# grant, and it is a decision in the values. Later grants: the platform-role
-# command (see README.md).
+# Platform super administrators: emails granted platform_superadmin by a Job
+# after the migrations, on every install and upgrade (they create
+# organizations and open the back office). Adding an email grants the role at
+# the next upgrade. Removing one revokes nothing: revocation is the
+# platform-role command (see README.md), so a role granted by an operator is
+# never undone by a deployment. The users are created if they never signed
+# in, and linked to their identity at first sign-in. Nothing is granted at
+# sign-in: this list is the only automatic grant.
 # ---------------------------------------------------------------------------
-initialAdmins: []
+platformSuperadmins: []
 #  - admin@example.org
 
 # ---------------------------------------------------------------------------

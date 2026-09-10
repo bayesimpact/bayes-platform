@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       help-only: ${{ steps.filter.outputs.help-only }}
+      api-tests: ${{ steps.filter.outputs.api-tests }}
+      web-tests: ${{ steps.filter.outputs.web-tests }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,6 +29,22 @@ jobs:
             echo "help-only=false" >> "$GITHUB_OUTPUT"
           else
             echo "help-only=true" >> "$GITHUB_OUTPUT"
+          fi
+          # The API tests run only when something they exercise changed: the
+          # API, the shared packages, the dependencies, the test database
+          # stack or the Makefile that drives them. A chart, workflow or docs
+          # change does not queue twenty minutes on the self-hosted runner.
+          if echo "$CHANGED" | grep -qE '^(apps/api/|packages/|infra/database/|package\.json$|package-lock\.json$|Makefile$)'; then
+            echo "api-tests=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "api-tests=false" >> "$GITHUB_OUTPUT"
+          fi
+          # The web tests (vitest, no database) run when the web front, the
+          # shared packages or the dependencies changed.
+          if echo "$CHANGED" | grep -qE '^(apps/web/|packages/|package\.json$|package-lock\.json$)'; then
+            echo "web-tests=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "web-tests=false" >> "$GITHUB_OUTPUT"
           fi
 
   ci-checks:
@@ -49,28 +67,69 @@ jobs:
 
   tests:
     needs: changes
-    runs-on: ${{ needs.changes.outputs.help-only == 'true' && 'ubuntu-latest' || 'self-hosted' }}
+    runs-on: ${{ needs.changes.outputs.api-tests == 'true' && 'self-hosted' || 'ubuntu-latest' }}
+    # One tests job at a time on the self-hosted runner, across workflows: the
+    # jobs share the Docker daemon, the database ports and the cleanup below.
+    # Two at once wipe each other's containers and overload the machine.
+    # Queued, not cancelled.
+    concurrency:
+      group: tests-self-hosted
+      cancel-in-progress: false
     steps:
-      - name: Skip — only apps/help changed
-        if: needs.changes.outputs.help-only == 'true'
-        run: echo "Skipping tests — only apps/help changed"
+      - name: Skip, nothing the API tests exercise changed
+        if: needs.changes.outputs.api-tests == 'false'
+        run: echo "Skipping the API tests, no change under apps/api, packages, infra/database, package.json, package-lock.json or Makefile"
 
       - name: Clean up Docker artifacts
-        if: needs.changes.outputs.help-only == 'false'
-        run: docker ps -q | xargs -r docker stop; docker ps -aq | xargs -r docker rm; docker volume prune -f; sudo rm -rf infra/database/dontsave 2>/dev/null || true
+        if: needs.changes.outputs.api-tests == 'true'
+        # The buildx builder containers stay: the persistent builder of the GPU
+        # image lives in one of them, with its cache volume.
+        run: |
+          docker ps -aq --format '{{.ID}} {{.Names}}' | awk '$2 !~ /^buildx_buildkit_/ { print $1 }' | xargs -r docker rm -f
+          docker volume prune -f
+          sudo rm -rf infra/database/dontsave 2>/dev/null || true
 
       - name: Use Node.js
-        if: needs.changes.outputs.help-only == 'false'
+        if: needs.changes.outputs.api-tests == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '24.x'
 
       - name: Checkout code
-        if: needs.changes.outputs.help-only == 'false'
+        if: needs.changes.outputs.api-tests == 'true'
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - name: Run tests
-        if: needs.changes.outputs.help-only == 'false'
+        if: needs.changes.outputs.api-tests == 'true'
         run: TEST_WORKERS=6 make tests-only-parallel
+
+  web-tests:
+    needs: changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip, nothing the web tests exercise changed
+        if: needs.changes.outputs.web-tests == 'false'
+        run: echo "Skipping the web tests, no change under apps/web, packages, package.json or package-lock.json"
+
+      - name: Use Node.js
+        if: needs.changes.outputs.web-tests == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: npm
+
+      - name: Checkout code
+        if: needs.changes.outputs.web-tests == 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install dependencies
+        if: needs.changes.outputs.web-tests == 'true'
+        run: npm ci
+
+      - name: Run web tests
+        if: needs.changes.outputs.web-tests == 'true'
+        run: npm run test --workspace=@caseai-connect/web
