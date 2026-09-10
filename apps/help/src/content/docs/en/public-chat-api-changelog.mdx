@@ -44,13 +44,6 @@ clients and come with a deprecation period. See the
 - The [reference page](/en/public-chat-api) documents the routes, the server-sent events,
   the error codes, the CORS behavior and the limits.
 
-### Changed
-
-- The unprefixed paths `/public/agents/{embedToken}/...` become a legacy alias of version
-  1. They answer exactly like the `v1` paths and keep answering for as long as version 1 is
-  served.
-
 ### Migration
 
-- None. Existing clients keep working without change. Move to the `/public/v1/` paths at
-  your own pace.
+- None. This is the first published version of the contract.
