@@ -1,0 +1,55 @@
+{{- if .Values.initialAdmins }}
+# Grants platform_superadmin to the emails of initialAdmins, after the
+# migrations. Idempotent: an email already granted is left as is. The users
+# are created if they never signed in, and linked to their identity at first
+# sign-in. This is the only automatic role grant: an operator lists the
+# emails in the values, nothing is decided at sign-in.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "bayes-platform.componentName" (dict "root" . "component" "initial-admins") }}
+  labels:
+    {{- include "bayes-platform.labels" . | nindent 4 }}
+    app.kubernetes.io/component: initial-admins
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "10"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "bayes-platform.selectorLabels" (dict "root" . "component" "initial-admins") | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "bayes-platform.serviceAccountName" . }}
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      initContainers:
+        {{- include "bayes-platform.waitForDatabase" . | nindent 8 }}
+      containers:
+        - name: initial-admins
+          image: {{ include "bayes-platform.image" (dict "root" . "image" .Values.api.image) }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          workingDir: /app/apps/api
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              {{- range .Values.initialAdmins }}
+              node /app/apps/api/dist/scripts/platform-role.js grant --email {{ . | quote }} --role platform_superadmin
+              {{- end }}
+          env:
+            {{- include "bayes-platform.sharedEnv" . | nindent 12 }}
+          envFrom:
+            {{- include "bayes-platform.sharedEnvFrom" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.migrations.resources | nindent 12 }}
+{{- end }}

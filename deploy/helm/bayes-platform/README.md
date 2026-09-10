@@ -131,6 +131,20 @@ The database migrations run as a Job after the first install and before every up
 kubectl -n platform logs job/platform-bayes-platform-migrate
 ```
 
+## First administrator
+
+Global roles (`platform_superadmin`, `platform_staff`) are never granted automatically at sign-in: an operator decides who holds them.
+
+- **At install**: list the emails in `initialAdmins`. A Job runs after the migrations and grants `platform_superadmin` to each of them. The users are created if they never signed in, and linked to their identity at first sign-in, so the first administrator can sign in and create the first organization right away.
+- **Later**: the `platform-role` command, from any api pod:
+
+```bash
+kubectl -n platform exec deploy/platform-bayes-platform-api -- \
+  node /app/apps/api/dist/scripts/platform-role.js grant --email someone@example.org --role platform_superadmin
+```
+
+`revoke` and `list` work the same way.
+
 ## Managed services
 
 See `values-managed.example.yaml`. The differences with the default:

@@ -1,0 +1,10 @@
+{
+  "auth": {
+    "callbackError": {
+      "title": "Connexion impossible",
+      "hint": "Le fournisseur d'identité a refusé la connexion. Si le problème persiste, contactez l'administrateur de la plateforme avec le message ci-dessus.",
+      "retry": "réessayer",
+      "logout": "se déconnecter"
+    }
+  }
+}

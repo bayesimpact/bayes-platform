@@ -9,6 +9,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 - Public chat API: the routes are now versioned under /public/v1/ and documented on the help site.
+- Kubernetes: the first administrators of a new install are set from the values, no database access needed.
 - Kubernetes: the platform connects to databases that require TLS (Cloud SQL, RDS) with one setting.
 - (beta) MCP servers: connect servers that use OAuth by authorizing access in the browser, alongside API keys.
 - Kubernetes: the platform can be installed on any cluster with a Helm chart, with bundled Postgres and Redis.
@@ -16,6 +17,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+- Sign-in: an error returned by the identity provider is shown with a retry button instead of reloading endlessly.
 - (beta) MCP App cards: the reply text now stays on screen next to the card instead of disappearing once the card shows.
 - (beta) Conversations with MCP App cards now open at once, each card showing a placeholder until it is ready.
 - (beta) PDF export: more reliable on large documents, download card in the agent's language, files kept as long as the link works.

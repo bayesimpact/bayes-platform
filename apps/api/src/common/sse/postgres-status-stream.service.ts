@@ -1,6 +1,7 @@
 import { Logger, type OnModuleDestroy, type OnModuleInit } from "@nestjs/common"
 import { Client } from "pg"
 import { type Observable, Subject } from "rxjs"
+import { databaseSslOptions } from "@/config/database-ssl"
 
 let dbListenersEnabled = false
 
@@ -66,6 +67,8 @@ export abstract class PostgresStatusStreamService<TEventDto>
       user: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
+      // Same TLS setting as the TypeORM data source (DATABASE_SSL).
+      ...databaseSslOptions(),
     })
 
     listenerClient.on("notification", (notification) => {
