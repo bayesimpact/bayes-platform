@@ -72,7 +72,9 @@ const touches = (prefixes) =>
 const labelPathsTouched = touches(LABEL_PATHS)
 const versionPathsTouched = touches(VERSION_PATHS)
 
-const headVersion = readVersion(readFileSync(VERSION_FILE, "utf8"))
+const headVersion = existsSync(VERSION_FILE)
+  ? readVersion(readFileSync(VERSION_FILE, "utf8"))
+  : null
 const baseVersion = readVersion(gitShowOrNull(`${baseSha}:${VERSION_FILE}`))
 if (!headVersion) failures.push(`${VERSION_FILE} does not define PUBLIC_API_VERSION.`)
 

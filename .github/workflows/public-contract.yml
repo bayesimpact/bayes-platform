@@ -10,6 +10,8 @@ on:
 
 permissions:
   contents: read
+  # The label check reads the PR timeline through the issues endpoint.
+  issues: read
   pull-requests: read
 
 jobs:
