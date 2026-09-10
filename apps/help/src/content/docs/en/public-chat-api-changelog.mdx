@@ -4,7 +4,7 @@ highlight: changelog
 description: Every version of the public chat API, with the date, the changes and the migration steps when a change is breaking.
 category: developers
 order: 3
-updated: 2026-09-09
+updated: 2026-09-10
 apiVersion: "1.0"
 ---
 
@@ -47,10 +47,10 @@ clients and come with a deprecation period. See the
 ### Changed
 
 - The unprefixed paths `/public/agents/{embedToken}/...` become a legacy alias of version
-  1, frozen at their pre-versioning shape: no MCP App card HTML route, no `bannerText`. They
-  keep answering for as long as version 1 is served.
+  1. They answer exactly like the `v1` paths and keep answering for as long as version 1 is
+  served.
 
 ### Migration
 
-- None. Existing clients keep working without change. Move to the `/public/v1/` paths
-  to get `bannerText` and the MCP App card HTML route.
+- None. Existing clients keep working without change. Move to the `/public/v1/` paths at
+  your own pace.

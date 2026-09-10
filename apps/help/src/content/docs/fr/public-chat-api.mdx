@@ -4,7 +4,7 @@ highlight: API
 description: Construisez votre propre client de chat sur un agent public. Routes, en-têtes, événements envoyés par le serveur, codes d'erreur et limites de l'API de chat publique, version 1.
 category: developers
 order: 1
-updated: 2026-09-09
+updated: 2026-09-10
 apiVersion: "1.0"
 ---
 
@@ -38,10 +38,9 @@ Cette API est un contrat versionné. Lisez la
 Toutes les routes de la version 1 commencent par `/public/v1/agents/{embedToken}`.
 
 Les chemins sans préfixe `/public/agents/{embedToken}/...` datent d'avant le versionnage.
-Ils servent les routes et les champs de la version 1 qui existaient avant le versionnage, et
-restent disponibles tant que la version 1 est servie. Ils ne servent pas la route du HTML des
-cartes MCP App, et leur réponse de configuration n'a pas de champ `bannerText`. Utilisez les
-chemins `v1` dans les nouvelles intégrations.
+Ils sont un alias des chemins `v1` : mêmes routes, mêmes réponses, mêmes erreurs. Ils
+restent disponibles tant que la version 1 est servie. Utilisez les chemins `v1` dans les
+nouvelles intégrations.
 
 ## Version
 
@@ -337,23 +336,24 @@ Puis le serveur ferme la connexion.
 ### Erreurs au niveau du flux
 
 Quand la requête ne peut pas démarrer une réponse, le statut HTTP reste `200` et le flux
-transporte un événement d'erreur nommé avec une ligne `data` en texte brut, puis la
-connexion se ferme :
+transporte un événement `error`, puis la connexion se ferme. `messageId` est vide car
+aucune réponse n'a démarré :
 
 ```
-event: error
 id: 1
-data: User content must not be empty
+data: {"type":"error","messageId":"","error":"User content must not be empty"}
 ```
 
-| `data` | Cause |
+| `error` | Cause |
 |---|---|
 | `Invalid query format` | `q` n'est pas du JSON valide |
 | `User content must not be empty` | `payload.content` est absent ou vide |
 | `Agent not found` | L'agent a été supprimé |
+| `Internal server error` | Défaut du serveur. Réessayez plus tard |
 
-Une génération qui échoue envoie l'événement JSON `error`, puis cet événement d'erreur
-nommé, puis ferme la connexion.
+Une génération qui échoue envoie un événement `error` avec le `messageId` de la réponse,
+puis ferme la connexion. Toute erreur prend cette forme. Le flux ne transporte jamais
+d'événement nommé `event: error`.
 
 ### Reconnexion
 
@@ -461,7 +461,6 @@ async function send(content, onChunk) {
       const lines = block.split("\n")
       const data = lines.find((line) => line.startsWith("data: "))?.slice(6)
       if (!data) continue
-      if (lines.some((line) => line.startsWith("event: error"))) throw new Error(data)
       const event = JSON.parse(data)
       if (event.type === "chunk") onChunk(event.content)
       if (event.type === "error") throw new Error(event.error)

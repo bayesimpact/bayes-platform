@@ -4,7 +4,7 @@ highlight: API
 description: Build your own chat client on a public agent. Routes, headers, server-sent events, error codes and limits of the public chat API, version 1.
 category: developers
 order: 1
-updated: 2026-09-09
+updated: 2026-09-10
 apiVersion: "1.0"
 ---
 
@@ -36,10 +36,9 @@ This API is a versioned contract. Read the
 
 All routes of version 1 start with `/public/v1/agents/{embedToken}`.
 
-The unprefixed paths `/public/agents/{embedToken}/...` predate versioning. They serve the
-version 1 routes and fields that existed before versioning, and stay available for as long
-as version 1 is served. They do not serve the MCP App card HTML route, and their
-configuration response has no `bannerText`. Use the `v1` paths in new integrations.
+The unprefixed paths `/public/agents/{embedToken}/...` predate versioning. They are an
+alias of the `v1` paths: same routes, same responses, same errors. They stay available for
+as long as version 1 is served. Use the `v1` paths in new integrations.
 
 ## Version
 
@@ -332,21 +331,23 @@ Then the server closes the connection.
 ### Stream-level errors
 
 When the request cannot start a reply, the HTTP status is still `200` and the stream
-carries one named error event with a plain text `data` line, then the connection closes:
+carries one `error` event, then the connection closes. `messageId` is empty because no
+reply was started:
 
 ```
-event: error
 id: 1
-data: User content must not be empty
+data: {"type":"error","messageId":"","error":"User content must not be empty"}
 ```
 
-| `data` | Cause |
+| `error` | Cause |
 |---|---|
 | `Invalid query format` | `q` is not valid JSON |
 | `User content must not be empty` | `payload.content` is missing or blank |
 | `Agent not found` | The agent was deleted |
+| `Internal server error` | Server fault. Retry later |
 
-A failed generation sends the `error` JSON event, then this named error event, then closes.
+A failed generation sends one `error` event with the `messageId` of the reply, then closes.
+Every failure takes this form. The stream never carries a named `event: error` frame.
 
 ### Reconnection
 
@@ -451,7 +452,6 @@ async function send(content, onChunk) {
       const lines = block.split("\n")
       const data = lines.find((line) => line.startsWith("data: "))?.slice(6)
       if (!data) continue
-      if (lines.some((line) => line.startsWith("event: error"))) throw new Error(data)
       const event = JSON.parse(data)
       if (event.type === "chunk") onChunk(event.content)
       if (event.type === "error") throw new Error(event.error)

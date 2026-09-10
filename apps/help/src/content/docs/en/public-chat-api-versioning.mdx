@@ -4,7 +4,7 @@ highlight: versioning
 description: How the public chat API is versioned, what counts as a compatible or a breaking change, and how long an old version stays available.
 category: developers
 order: 2
-updated: 2026-09-09
+updated: 2026-09-10
 apiVersion: "1.0"
 ---
 
@@ -16,9 +16,8 @@ about it. The current version is **1.0**.
 - A version is `major.minor`, for example `1.0`.
 - The **major** is in the path: `/public/v1/agents/...`.
 - The **minor** is not in the path. The [changelog](/en/public-chat-api-changelog) lists it.
-- The unprefixed paths `/public/agents/...` are a legacy alias of version 1, frozen at their
-  pre-versioning shape: no MCP App card HTML route, no `bannerText`. They stay available for
-  as long as version 1 is served.
+- The unprefixed paths `/public/agents/...` are a legacy alias of version 1: same routes,
+  same responses, same errors. They stay available for as long as version 1 is served.
 
 ## What the contract covers
 
