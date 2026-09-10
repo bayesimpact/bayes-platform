@@ -13,7 +13,7 @@ graph TB
     end
 
     subgraph "GitHub"
-        GH["GitHub Actions CI/CD<br/>ci.yml / prod.yml"]
+        GH["GitHub Actions CI/CD<br/>ci.yml / publish-images.yml"]
     end
 
     subgraph "Slack"
@@ -152,16 +152,18 @@ sequenceDiagram
     Note over API: First login triggers<br/>user provisioning from Auth0 userinfo
 ```
 
-## CI/CD Pipeline (prod.yml)
+## CI/CD Pipeline (publish-images.yml)
 
 ```mermaid
 flowchart LR
-    PUSH["Push to main"] --> DETECT{"API changes?"}
-    DETECT -- No --> SKIP["Skip deploy"]
-    DETECT -- Yes --> TEST["Run Tests"]
-    TEST --> BUILD["Build & Push<br/>Docker Image"]
-    BUILD --> MIGRATE["Run DB Migrations<br/>(Cloud SQL Proxy)"]
-    MIGRATE --> DEPLOY_API["Deploy API<br/>to Cloud Run"]
-    DEPLOY_API --> DEPLOY_WORKERS["Deploy Workers<br/>to Cloud Run"]
-    DEPLOY_WORKERS --> NOTIFY["Slack Notification"]
+    PUSH["Push to main<br/>or release tag"] --> CHECKS["Checks"]
+    PUSH --> TEST["Tests"]
+    PUSH --> BUILD["Build the six images<br/>pushed as sha-&lt;sha&gt;"]
+    CHECKS --> PUBLISH
+    TEST --> PUBLISH
+    BUILD --> PUBLISH["Add the deployment tags<br/>main, latest, main-&lt;run&gt;-&lt;sha&gt;<br/>or the release version"]
+    PUBLISH --> NOTIFY["repository_dispatch<br/>to the deployment repository"]
+    NOTIFY --> FLUX["Flux upgrades the<br/>Helm release"]
 ```
+
+The images are published only when the checks and the tests pass. Deployments are GitOps: the deployment repository holds the image tag in the Helm values, a workflow there turns the event into a pull request, and Flux applies it. The deploy notifications come from Flux.
