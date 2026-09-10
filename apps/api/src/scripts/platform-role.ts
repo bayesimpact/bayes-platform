@@ -13,7 +13,7 @@
  * with a placeholder identity and linked to the real one at first sign-in
  * (the same path as an invited member). This is how the first administrator
  * of a fresh install gets in. Roles are never granted automatically at
- * sign-in: an operator decides, here or in the chart's initialAdmins job.
+ * sign-in: an operator decides, here or in the chart's platformSuperadmins job.
  */
 import { randomUUID } from "node:crypto"
 import { Logger } from "@nestjs/common"

@@ -21,7 +21,7 @@ export function isPlatformRoleKey(value: string): value is PlatformRoleKey {
  * the identity provider reports would let anyone who can register an address
  * of the right shape become staff. Roles are granted by an operator, through
  * the platform-role command (scripts/platform-role.ts), the chart's
- * initialAdmins job, or later the back office.
+ * platformSuperadmins job, or later the back office.
  */
 @Injectable()
 export class PlatformRoleService {

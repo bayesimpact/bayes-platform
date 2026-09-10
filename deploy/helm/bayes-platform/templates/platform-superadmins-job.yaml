@@ -1,16 +1,18 @@
-{{- if .Values.initialAdmins }}
-# Grants platform_superadmin to the emails of initialAdmins, after the
-# migrations. Idempotent: an email already granted is left as is. The users
+{{- if .Values.platformSuperadmins }}
+# Grants platform_superadmin to the emails of platformSuperadmins, after the
+# migrations, on every install and upgrade. Idempotent: an email already
+# granted is left as is. Grant only: an email removed from the list keeps its
+# role, revocation is an operator command (platform-role revoke). The users
 # are created if they never signed in, and linked to their identity at first
 # sign-in. This is the only automatic role grant: an operator lists the
 # emails in the values, nothing is decided at sign-in.
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "bayes-platform.componentName" (dict "root" . "component" "initial-admins") }}
+  name: {{ include "bayes-platform.componentName" (dict "root" . "component" "platform-superadmins") }}
   labels:
     {{- include "bayes-platform.labels" . | nindent 4 }}
-    app.kubernetes.io/component: initial-admins
+    app.kubernetes.io/component: platform-superadmins
   annotations:
     helm.sh/hook: post-install,post-upgrade
     helm.sh/hook-weight: "10"
@@ -20,7 +22,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "bayes-platform.selectorLabels" (dict "root" . "component" "initial-admins") | nindent 8 }}
+        {{- include "bayes-platform.selectorLabels" (dict "root" . "component" "platform-superadmins") | nindent 8 }}
     spec:
       restartPolicy: Never
       serviceAccountName: {{ include "bayes-platform.serviceAccountName" . }}
@@ -34,7 +36,7 @@ spec:
       initContainers:
         {{- include "bayes-platform.waitForDatabase" . | nindent 8 }}
       containers:
-        - name: initial-admins
+        - name: platform-superadmins
           image: {{ include "bayes-platform.image" (dict "root" . "image" .Values.api.image) }}
           imagePullPolicy: {{ .Values.global.image.pullPolicy }}
           workingDir: /app/apps/api
@@ -43,7 +45,7 @@ spec:
             - -c
             - |
               set -e
-              {{- range .Values.initialAdmins }}
+              {{- range .Values.platformSuperadmins }}
               node /app/apps/api/dist/scripts/platform-role.js grant --email {{ . | quote }} --role platform_superadmin
               {{- end }}
           env:
