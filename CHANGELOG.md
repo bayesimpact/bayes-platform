@@ -9,11 +9,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 - Public chat API: the routes are now versioned under /public/v1/ and documented on the help site.
-- Kubernetes: the first administrators of a new install are set from the values, no database access needed.
-- Kubernetes: the platform administrators are listed in the chart values, no database access needed.
-- Kubernetes: the platform connects to databases that require TLS (Cloud SQL, RDS) with one setting.
+- Kubernetes: a Helm chart installs the platform anywhere, with bundled Postgres and Redis.
 - (beta) MCP servers: connect servers that use OAuth by authorizing access in the browser, alongside API keys.
-- Kubernetes: the platform can be installed on any cluster with a Helm chart, with bundled Postgres and Redis.
 
 ### Changed
 
