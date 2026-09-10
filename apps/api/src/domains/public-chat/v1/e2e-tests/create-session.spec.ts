@@ -12,8 +12,8 @@ import {
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
-import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
-import { PublicChatModule } from "../public-chat.module"
+import { agentEmbedConfigFactory } from "../../agent-embed-configs/agent-embed-config.factory"
+import { PublicChatModule } from "../../public-chat.module"
 
 describe("PublicChat - createSession", () => {
   let app: INestApplication<App>
@@ -56,7 +56,7 @@ describe("PublicChat - createSession", () => {
 
   const subject = (payload?: { externalVisitorId?: string }) =>
     request(app.getHttpServer())
-      .post(`/public/agents/${embedToken}/sessions`)
+      .post(`/public/v1/agents/${embedToken}/sessions`)
       .set("Connection", "close")
       .send({ payload: payload ?? {} })
 

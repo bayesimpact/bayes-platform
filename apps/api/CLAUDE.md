@@ -52,6 +52,10 @@ export type { CreateProjectRequestDto, CreateProjectResponseDto, ... } from "./p
 
 ---
 
+## Public API contract
+
+The routes under `PUBLIC_PATH_PREFIX` (`/public/...`) are a frozen contract with external integrators. Read `docs/public-api-contract.md` before touching `packages/api-contracts/src/public-chat/`, the public chat controller, guards, CORS or the public help pages. No change without a maintainer's written go and the `public-contract-approved` label.
+
 ## Controller Guidelines
 
 ### Route Definition Strategy (`defineRoute`)
@@ -187,6 +191,8 @@ apps/api/src/domains/{domain}/
     delete-{resource}.spec.ts
     update-{resource}.spec.ts
 ```
+
+Versioned public API domains keep one `e2e-tests/` per served contract instead: `public-chat/v1/e2e-tests/` and `public-chat/legacy/e2e-tests/` (see `docs/public-api-contract.md`).
 
 **Two categories**:
 1. **Auth spec** (`auth.spec.ts`) — Tests authorization for every route: no token, not a member, wrong role, allowed roles. Uses `createContextForRole(role)`.

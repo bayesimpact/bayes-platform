@@ -10,9 +10,9 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
-import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
-import { publicAgentSessionFactory } from "../public-agent-sessions/public-agent-session.factory"
-import { PublicChatModule } from "../public-chat.module"
+import { agentEmbedConfigFactory } from "../../agent-embed-configs/agent-embed-config.factory"
+import { publicAgentSessionFactory } from "../../public-agent-sessions/public-agent-session.factory"
+import { PublicChatModule } from "../../public-chat.module"
 
 describe("PublicChat - getSession", () => {
   let app: INestApplication<App>
@@ -67,7 +67,7 @@ describe("PublicChat - getSession", () => {
 
   const subject = () =>
     request(app.getHttpServer())
-      .get(`/public/agents/${embedToken}/sessions/${sessionId}`)
+      .get(`/public/v1/agents/${embedToken}/sessions/${sessionId}`)
       .set("Connection", "close")
       .set("X-Session-Token", sessionToken)
 
@@ -91,7 +91,7 @@ describe("PublicChat - getSession", () => {
     embedToken = embedConfig.embedToken
 
     const createResponse = await request(app.getHttpServer())
-      .post(`/public/agents/${embedToken}/sessions`)
+      .post(`/public/v1/agents/${embedToken}/sessions`)
       .set("Connection", "close")
       .send({ payload: {} })
     expect(createResponse.status).toBe(201)

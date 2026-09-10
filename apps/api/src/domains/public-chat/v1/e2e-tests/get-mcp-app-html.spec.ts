@@ -11,9 +11,9 @@ import {
 } from "@/common/test/test-database"
 import { McpAppHtmlService } from "@/domains/agents/shared/agent-session-messages/mcp-app-html.service"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
-import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
-import { publicAgentSessionFactory } from "../public-agent-sessions/public-agent-session.factory"
-import { PublicChatModule } from "../public-chat.module"
+import { agentEmbedConfigFactory } from "../../agent-embed-configs/agent-embed-config.factory"
+import { publicAgentSessionFactory } from "../../public-agent-sessions/public-agent-session.factory"
+import { PublicChatModule } from "../../public-chat.module"
 
 const resourceUri = "ui://pdf-export/mcp-app.html"
 
@@ -107,13 +107,13 @@ describe("PublicChat - getMcpAppHtml", () => {
 
   const getSession = () =>
     request(app.getHttpServer())
-      .get(`/public/agents/${embedToken}/sessions/${sessionId}`)
+      .get(`/public/v1/agents/${embedToken}/sessions/${sessionId}`)
       .set("Connection", "close")
       .set("X-Session-Token", sessionToken)
 
   const subject = () =>
     request(app.getHttpServer())
-      .get(`/public/agents/${embedToken}/sessions/${sessionId}/mcp-app-html`)
+      .get(`/public/v1/agents/${embedToken}/sessions/${sessionId}/mcp-app-html`)
       .set("Connection", "close")
       .set("X-Session-Token", sessionToken)
 

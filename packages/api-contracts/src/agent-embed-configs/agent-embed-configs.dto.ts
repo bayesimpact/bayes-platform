@@ -26,12 +26,3 @@ export type UpdateAgentEmbedConfigDto = {
   primaryColor?: string | null
   bannerText?: string | null
 }
-
-/** Returned by the public (unauthenticated) config endpoint — branding only, no secrets. */
-export type EmbedPublicConfigDto = {
-  agentName: string
-  title: string | null
-  logoUrl: string | null
-  primaryColor: string | null
-  bannerText: string | null
-}

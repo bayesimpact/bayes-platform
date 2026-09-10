@@ -43,31 +43,29 @@ describe("PublicChatService", () => {
     return new PublicChatService(
       {} as never,
       { getLast: jest.fn().mockResolvedValue({ locale: "fr" }) } as never,
-      {} as never,
       { getSessionWithMessages: jest.fn().mockResolvedValue({ session, messages }) } as never,
       {} as never,
       { readLiveHtml } as never,
     )
   }
 
-  it("returns the session with card pointers without reading any MCP server", async () => {
+  it("returns the session and its transcript without reading any MCP server", async () => {
     // The widget shows the transcript at once and loads the card HTML afterwards.
     const readLiveHtml = jest.fn()
     const service = buildService(readLiveHtml, [messageWithCard])
 
-    const dto = await service.getSession(session)
+    const result = await service.getSession(session)
 
     expect(readLiveHtml).not.toHaveBeenCalled()
-    expect(dto.messages[0]?.toolCalls?.[0]?.mcpApp).toEqual({ mcpServerId, resourceUri })
+    expect(result).toEqual({ session, messages: [messageWithCard] })
   })
 
   it("reads the current HTML of the cards the session points at", async () => {
-    const readLiveHtml = jest
-      .fn()
-      .mockResolvedValue(new Map([[mcpAppHtmlCacheKey(mcpServerId, resourceUri), html]]))
+    const htmlByKey = new Map([[mcpAppHtmlCacheKey(mcpServerId, resourceUri), html]])
+    const readLiveHtml = jest.fn().mockResolvedValue(htmlByKey)
     const service = buildService(readLiveHtml, [messageWithCard])
 
-    const entries = await service.getMcpAppHtml(session)
+    const result = await service.getMcpAppHtml(session)
 
     expect(readLiveHtml).toHaveBeenCalledWith({
       agentId: session.agentId,
@@ -78,14 +76,6 @@ describe("PublicChatService", () => {
     })
     // The language comes from the published settings, looked up on demand.
     await expect(readLiveHtml.mock.calls[0]?.[0].resolveLocale()).resolves.toBe("fr")
-    expect(entries).toEqual([{ mcpServerId, resourceUri, html }])
-  })
-
-  it("omits toolCalls when the message has none", async () => {
-    const service = buildService(jest.fn(), [buildAssistantMessage()])
-
-    const dto = await service.getSession(session)
-
-    expect(dto.messages[0]?.toolCalls).toBeUndefined()
+    expect(result).toBe(htmlByKey)
   })
 })

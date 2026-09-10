@@ -10,8 +10,8 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
-import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
-import { PublicChatModule } from "../public-chat.module"
+import { agentEmbedConfigFactory } from "../../agent-embed-configs/agent-embed-config.factory"
+import { PublicChatModule } from "../../public-chat.module"
 
 describe("PublicChat - getConfig", () => {
   let app: INestApplication<App>
@@ -52,7 +52,7 @@ describe("PublicChat - getConfig", () => {
 
   const subject = () =>
     request(app.getHttpServer())
-      .get(`/public/agents/${embedToken}/config`)
+      .get(`/public/v1/agents/${embedToken}/config`)
       .set("Connection", "close")
 
   it("should return config", async () => {

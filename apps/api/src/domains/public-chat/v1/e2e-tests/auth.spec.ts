@@ -14,9 +14,9 @@ import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
-import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
-import { publicAgentSessionFactory } from "../public-agent-sessions/public-agent-session.factory"
-import { PublicChatModule } from "../public-chat.module"
+import { agentEmbedConfigFactory } from "../../agent-embed-configs/agent-embed-config.factory"
+import { publicAgentSessionFactory } from "../../public-agent-sessions/public-agent-session.factory"
+import { PublicChatModule } from "../../public-chat.module"
 
 describe("PublicChat - Auth", () => {
   let app: INestApplication<App>
@@ -71,12 +71,12 @@ describe("PublicChat - Auth", () => {
   }
 
   // ──────────────────────────────────────────────────
-  // POST /public/agents/:embedToken/sessions
+  // POST /public/v1/agents/:embedToken/sessions
   // ──────────────────────────────────────────────────
   describe("createSession", () => {
     const subject = () =>
       request(app.getHttpServer())
-        .post(`/public/agents/${embedToken}/sessions`)
+        .post(`/public/v1/agents/${embedToken}/sessions`)
         .set("Connection", "close")
         .send({ payload: {} })
 
@@ -109,7 +109,7 @@ describe("PublicChat - Auth", () => {
 
       embedToken = restrictedConfig.embedToken
       const response = await request(app.getHttpServer())
-        .post(`/public/agents/${embedToken}/sessions`)
+        .post(`/public/v1/agents/${embedToken}/sessions`)
         .set("Connection", "close")
         .set("Origin", "https://evil.example.com")
         .send({ payload: {} })
@@ -125,7 +125,7 @@ describe("PublicChat - Auth", () => {
 
       embedToken = restrictedConfig.embedToken
       const response = await request(app.getHttpServer())
-        .post(`/public/agents/${embedToken}/sessions`)
+        .post(`/public/v1/agents/${embedToken}/sessions`)
         .set("Connection", "close")
         .set("Origin", "https://allowed.example.com")
         .send({ payload: {} })
@@ -134,12 +134,12 @@ describe("PublicChat - Auth", () => {
   })
 
   // ──────────────────────────────────────────────────
-  // GET /public/agents/:embedToken/sessions/:sessionId
+  // GET /public/v1/agents/:embedToken/sessions/:sessionId
   // ──────────────────────────────────────────────────
   describe("getSession", () => {
     const subject = () =>
       request(app.getHttpServer())
-        .get(`/public/agents/${embedToken}/sessions/${sessionId}`)
+        .get(`/public/v1/agents/${embedToken}/sessions/${sessionId}`)
         .set("Connection", "close")
         .set("X-Session-Token", sessionToken ?? "")
 
@@ -153,7 +153,7 @@ describe("PublicChat - Auth", () => {
     it("returns 401 when X-Session-Token header is missing", async () => {
       await createContext()
       const response = await request(app.getHttpServer())
-        .get(`/public/agents/${embedToken}/sessions/${sessionId}`)
+        .get(`/public/v1/agents/${embedToken}/sessions/${sessionId}`)
         .set("Connection", "close")
       expect(response.status).toBe(401)
     })
@@ -188,12 +188,12 @@ describe("PublicChat - Auth", () => {
   })
 
   // ──────────────────────────────────────────────────
-  // GET /public/agents/:embedToken/sessions/:sessionId/mcp-app-html
+  // GET /public/v1/agents/:embedToken/sessions/:sessionId/mcp-app-html
   // ──────────────────────────────────────────────────
   describe("getMcpAppHtml", () => {
     const subject = () =>
       request(app.getHttpServer())
-        .get(`/public/agents/${embedToken}/sessions/${sessionId}/mcp-app-html`)
+        .get(`/public/v1/agents/${embedToken}/sessions/${sessionId}/mcp-app-html`)
         .set("Connection", "close")
         .set("X-Session-Token", sessionToken ?? "")
 
@@ -207,7 +207,7 @@ describe("PublicChat - Auth", () => {
     it("returns 401 when X-Session-Token header is missing", async () => {
       await createContext()
       const response = await request(app.getHttpServer())
-        .get(`/public/agents/${embedToken}/sessions/${sessionId}/mcp-app-html`)
+        .get(`/public/v1/agents/${embedToken}/sessions/${sessionId}/mcp-app-html`)
         .set("Connection", "close")
       expect(response.status).toBe(401)
     })

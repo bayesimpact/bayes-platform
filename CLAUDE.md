@@ -65,6 +65,10 @@ All commands should be run from the root directory using Turbo (via npm scripts)
 - All packages use TypeScript with strict configuration
 - Jest configuration centralized in `@repo/jest-config`
 
+## Public API contract
+
+The routes under `PUBLIC_PATH_PREFIX` (`/public/...`) are a frozen contract with external integrators. Read `docs/public-api-contract.md` before touching `packages/api-contracts/src/public-chat/`, the public chat controller, guards, CORS or the public help pages. No change without a maintainer's written go and the `public-contract-approved` label.
+
 ## Package Management
 
 - Uses npm workspaces for monorepo management

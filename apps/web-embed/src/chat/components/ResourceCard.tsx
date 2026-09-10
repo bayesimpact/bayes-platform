@@ -1,5 +1,6 @@
 import { ExternalLinkIcon, PlayIcon } from "lucide-react"
 import { useState } from "react"
+import { apiUrl } from "../../api/api-base"
 
 export type ResourceCardData = {
   title: string
@@ -7,12 +8,10 @@ export type ResourceCardData = {
   link: string
 }
 
-const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? ""
-
 /** Absolutizes uploaded-file links (relative API paths) against the API base URL. */
 export function resolveLink(link: string): string {
   if (/^https?:\/\//.test(link)) return link
-  return `${API_BASE}${link}`
+  return apiUrl(link)
 }
 
 function getYouTubeId(link: string): string | null {

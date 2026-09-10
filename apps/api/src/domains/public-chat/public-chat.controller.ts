@@ -1,108 +1,26 @@
-import type { EmbedPublicConfigDto, StreamEvent } from "@caseai-connect/api-contracts"
-import { PublicChatRoutes } from "@caseai-connect/api-contracts"
-import type { MessageEvent } from "@nestjs/common"
-import {
-  Body,
-  Controller,
-  ForbiddenException,
-  Get,
-  Post,
-  Query,
-  Req,
-  Sse,
-  UseGuards,
-} from "@nestjs/common"
-import { Observable } from "rxjs"
-import { EmbedTokenGuard } from "./guards/embed-token.guard"
-import { PublicSessionTokenGuard } from "./guards/public-session-token.guard"
-import type { PublicChatRequest, PublicChatSessionRequest } from "./public-chat.request"
+import { Injectable } from "@nestjs/common"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PublicChatService } from "./public-chat.service"
 
-@UseGuards(EmbedTokenGuard)
-@Controller()
-export class PublicChatController {
-  constructor(private readonly publicChatService: PublicChatService) {}
-
-  @Get(PublicChatRoutes.getConfig.path)
-  getConfig(@Req() request: PublicChatRequest): typeof PublicChatRoutes.getConfig.response {
-    const { embedConfig } = request
-    return {
-      data: {
-        agentName: embedConfig.agent.name,
-        title: embedConfig.title,
-        logoUrl: embedConfig.logoUrl,
-        primaryColor: embedConfig.primaryColor,
-        bannerText: embedConfig.bannerText,
-      } satisfies EmbedPublicConfigDto,
-    }
-  }
-
-  @Post(PublicChatRoutes.createSession.path)
-  async createSession(
-    @Req() request: PublicChatRequest,
-    @Body() body: typeof PublicChatRoutes.createSession.request,
-  ): Promise<typeof PublicChatRoutes.createSession.response> {
-    const { sessionId, sessionToken } = await this.publicChatService.createSession(
-      request.embedConfig,
-      body.payload?.externalVisitorId,
-    )
-    return { data: { sessionId, sessionToken } }
-  }
-
-  @UseGuards(PublicSessionTokenGuard)
-  @Get(PublicChatRoutes.getSession.path)
-  async getSession(
-    @Req() request: PublicChatSessionRequest,
-  ): Promise<typeof PublicChatRoutes.getSession.response> {
-    const sessionDto = await this.publicChatService.getSession(request.publicSession)
-    return { data: sessionDto }
-  }
-
-  @UseGuards(PublicSessionTokenGuard)
-  @Get(PublicChatRoutes.getMcpAppHtml.path)
-  async getMcpAppHtml(
-    @Req() request: PublicChatSessionRequest,
-  ): Promise<typeof PublicChatRoutes.getMcpAppHtml.response> {
-    return { data: await this.publicChatService.getMcpAppHtml(request.publicSession) }
-  }
-
-  @UseGuards(PublicSessionTokenGuard)
-  @Sse(PublicChatRoutes.streamMessages.path, { method: 0 /* GET */ })
-  streamMessages(
-    @Req() request: PublicChatSessionRequest,
-    @Query("q") query: string,
-  ): Observable<MessageEvent> {
-    let parsedQuery: typeof PublicChatRoutes.streamMessages.request
-    try {
-      parsedQuery = JSON.parse(query) as typeof PublicChatRoutes.streamMessages.request
-    } catch {
-      throw new ForbiddenException("Invalid query format")
-    }
-
-    const userContent = parsedQuery.payload?.content
-    if (!userContent?.trim()) {
-      throw new ForbiddenException("User content must not be empty")
-    }
-
-    const { publicSession } = request
-
-    return new Observable<StreamEvent>((subscriber) => {
-      void (async () => {
-        try {
-          const events = this.publicChatService.streamResponse(
-            publicSession,
-            userContent,
-            (event) => subscriber.next(event),
-          )
-          for await (const event of events) {
-            subscriber.next(event)
-          }
-          subscriber.complete()
-        } catch (error) {
-          subscriber.error(error)
-        }
-      })()
-    })
-  }
+/**
+ * Base of the public chat API controllers, a versioned contract with external
+ * integrators (`docs/public-api-contract.md`).
+ *
+ * Each served contract has its own folder and controller extending this class: `v1/`
+ * (`/public/v1/...`) and `legacy/` (the unprefixed paths that predate versioning, kept
+ * until the last integrator migrates). Every controller carries the full body of each of
+ * its routes and its own DTO mappers, so a contract can change without touching another.
+ * Nothing is shared here but the injected service, which returns entities, never DTOs.
+ *
+ * Before adding a `v2/` folder, follow the "Shipping a new major version" checklist
+ * in `docs/public-api-contract.md`: the DTOs and route definitions must be split per
+ * major in `api-contracts` first, or the new mappers will silently change what v1 serves.
+ *
+ * This class declares no routes and no guards and is not registered in the module.
+ * `@Injectable()` only makes TypeScript emit the constructor metadata the subclasses
+ * inherit for dependency injection.
+ */
+@Injectable()
+export abstract class PublicChatController {
+  constructor(protected readonly publicChatService: PublicChatService) {}
 }
