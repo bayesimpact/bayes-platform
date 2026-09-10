@@ -6,6 +6,7 @@ import App from "./App.tsx"
 import { RouteNames } from "./common/routes/helpers.ts"
 import { store } from "./common/store/index.ts"
 import { auth0ProviderConfig } from "./config/auth0.config.ts"
+import { getAppPathname } from "./config/runtime-config.ts"
 import "./i18n"
 import "./index.css"
 
@@ -17,7 +18,7 @@ createRoot(document.getElementById("root")!).render(
         // Auth0 also uses ?code=&state= in its callbacks, so by default the SDK
         // consumes those params on ANY page load. The MCP OAuth callback carries
         // a third-party code/state pair that must reach our own handler intact.
-        skipRedirectCallback={window.location.pathname === RouteNames.MCP_OAUTH_CALLBACK}
+        skipRedirectCallback={getAppPathname() === RouteNames.MCP_OAUTH_CALLBACK}
       >
         <App />
       </Auth0Provider>
