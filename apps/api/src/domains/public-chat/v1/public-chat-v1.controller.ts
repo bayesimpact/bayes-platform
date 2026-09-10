@@ -1,5 +1,5 @@
 import type { StreamEvent, StreamEventPayload } from "@caseai-connect/api-contracts"
-import { PublicChatLegacyRoutes, PublicChatRoutes } from "@caseai-connect/api-contracts"
+import { PublicChatRoutes } from "@caseai-connect/api-contracts"
 import type { MessageEvent } from "@nestjs/common"
 import {
   BadRequestException,
@@ -19,9 +19,8 @@ import { toMcpAppHtmlDtos } from "@/domains/agents/shared/agent-session-messages
 import { EmbedTokenGuard } from "../guards/embed-token.guard"
 import { PublicSessionTokenGuard } from "../guards/public-session-token.guard"
 import type { PublicAgentSession } from "../public-agent-sessions/public-agent-session.entity"
+import { PublicChatController } from "../public-chat.controller"
 import type { PublicChatRequest, PublicChatSessionRequest } from "../public-chat.request"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { PublicChatService } from "../public-chat.service"
 import {
   toCreatePublicSessionResponseDto,
   toEmbedPublicConfigDto,
@@ -29,11 +28,12 @@ import {
 } from "./public-chat-v1.mappers"
 
 /**
- * Public chat API v1, a versioned contract with external integrators
- * (`docs/public-api-contract.md`). Every route answers on two paths: the versioned
- * `/public/v1/agents/:embedToken/...` and the unprefixed `/public/agents/:embedToken/...`,
- * which predates versioning and is a plain alias of v1. Same bodies, same errors, only the
- * prefix differs, so one method serves both paths.
+ * Public chat API v1 at `/public/v1/agents/:embedToken/...`, a versioned contract with
+ * external integrators (`docs/public-api-contract.md`). New integrations use these paths.
+ *
+ * The unprefixed paths that predate versioning are served by `legacy/`, which has its own
+ * controller and its own mappers and is frozen on its pre-versioning shape. Nothing is
+ * shared but the injected service, so what is added here never reaches them.
  *
  * Before adding a `v2/` folder, follow "Shipping a new major version" in
  * `docs/public-api-contract.md`: the DTOs and route definitions must be split per major in
@@ -41,17 +41,15 @@ import {
  */
 @UseGuards(EmbedTokenGuard)
 @Controller()
-export class PublicChatV1Controller {
+export class PublicChatV1Controller extends PublicChatController {
   private readonly logger = new Logger(PublicChatV1Controller.name)
 
-  constructor(private readonly publicChatService: PublicChatService) {}
-
-  @Get([PublicChatRoutes.getConfig.path, PublicChatLegacyRoutes.getConfig.path])
+  @Get(PublicChatRoutes.getConfig.path)
   getConfig(@Req() request: PublicChatRequest): typeof PublicChatRoutes.getConfig.response {
     return { data: toEmbedPublicConfigDto(request.embedConfig) }
   }
 
-  @Post([PublicChatRoutes.createSession.path, PublicChatLegacyRoutes.createSession.path])
+  @Post(PublicChatRoutes.createSession.path)
   async createSession(
     @Req() request: PublicChatRequest,
     @Body() body: typeof PublicChatRoutes.createSession.request,
@@ -64,7 +62,7 @@ export class PublicChatV1Controller {
   }
 
   @UseGuards(PublicSessionTokenGuard)
-  @Get([PublicChatRoutes.getSession.path, PublicChatLegacyRoutes.getSession.path])
+  @Get(PublicChatRoutes.getSession.path)
   async getSession(
     @Req() request: PublicChatSessionRequest,
   ): Promise<typeof PublicChatRoutes.getSession.response> {
@@ -73,7 +71,7 @@ export class PublicChatV1Controller {
   }
 
   @UseGuards(PublicSessionTokenGuard)
-  @Get([PublicChatRoutes.getMcpAppHtml.path, PublicChatLegacyRoutes.getMcpAppHtml.path])
+  @Get(PublicChatRoutes.getMcpAppHtml.path)
   async getMcpAppHtml(
     @Req() request: PublicChatSessionRequest,
   ): Promise<typeof PublicChatRoutes.getMcpAppHtml.response> {
@@ -81,19 +79,9 @@ export class PublicChatV1Controller {
     return { data: toMcpAppHtmlDtos(htmlByKey) }
   }
 
-  /** `@Sse` takes a single path, so the alias gets its own method building the same stream. */
   @UseGuards(PublicSessionTokenGuard)
   @Sse(PublicChatRoutes.streamMessages.path, { method: 0 /* GET */ })
   streamMessages(
-    @Req() request: PublicChatSessionRequest,
-    @Query("q") query: string,
-  ): Observable<MessageEvent> {
-    return this.buildStream(request.publicSession, query)
-  }
-
-  @UseGuards(PublicSessionTokenGuard)
-  @Sse(PublicChatLegacyRoutes.streamMessages.path, { method: 0 /* GET */ })
-  streamMessagesOnLegacyAlias(
     @Req() request: PublicChatSessionRequest,
     @Query("q") query: string,
   ): Observable<MessageEvent> {

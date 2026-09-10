@@ -16,6 +16,7 @@ import type {
 } from "../agents/shared/agent-session-messages/agent-session-messages.dto"
 import type { TimeType } from "../generic"
 import type { Assert, Equals } from "../internal/type-equality"
+import type { PUBLIC_API_MAJOR } from "./public-chat.version"
 
 /** Returned by the public config route: branding only, no secrets. */
 export type EmbedPublicConfigDto = {
@@ -24,6 +25,18 @@ export type EmbedPublicConfigDto = {
   logoUrl: string | null
   primaryColor: string | null
   bannerText: string | null
+}
+
+/**
+ * Config served on the unprefixed paths (`/public/agents/...`), which predate versioning.
+ * Snippets deployed against them never received `bannerText`, so it is not added there.
+ * Retired with those paths once the last integrator moves to v1.
+ */
+export type LegacyEmbedPublicConfigDto = {
+  agentName: string
+  title: string | null
+  logoUrl: string | null
+  primaryColor: string | null
 }
 
 /** Name of a tool the agent ran: a built-in tool or any MCP tool name. */
@@ -103,4 +116,5 @@ export type PublicContractPins = [
   Assert<Equals<PublicToolCallDto, AgentSessionToolCallDto>>,
   Assert<Equals<PublicMcpAppHtmlDto, AgentSessionMcpAppHtmlDto>>,
   Assert<Equals<PublicStreamEventPayload, StreamEventPayload>>,
+  Assert<Equals<typeof PUBLIC_API_MAJOR, "v1">>,
 ]
