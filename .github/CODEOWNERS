@@ -4,8 +4,6 @@
 # review automatically and names them.
 /packages/api-contracts/src/public-chat/                            @jdoucy @alexisjamet @did @OlivierDoucy
 /apps/api/src/domains/public-chat/v1/                               @jdoucy @alexisjamet @did @OlivierDoucy
-/apps/api/src/domains/public-chat/legacy/                           @jdoucy @alexisjamet @did @OlivierDoucy
-/apps/api/src/domains/public-chat/public-chat.controller.ts         @jdoucy @alexisjamet @did @OlivierDoucy
 /apps/api/src/domains/public-chat/guards/                           @jdoucy @alexisjamet @did @OlivierDoucy
 /apps/api/src/config/cors.ts                                        @jdoucy @alexisjamet @did @OlivierDoucy
 /apps/help/src/content/docs/en/public-chat-api*.mdx                 @jdoucy @alexisjamet @did @OlivierDoucy

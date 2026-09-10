@@ -26,8 +26,6 @@ const VERSION_PATTERN = /PUBLIC_API_VERSION\s*=\s*"(\d+\.\d+)"/
 const LABEL_PATHS = [
   "packages/api-contracts/src/public-chat/",
   "apps/api/src/domains/public-chat/v1/",
-  "apps/api/src/domains/public-chat/legacy/",
-  "apps/api/src/domains/public-chat/public-chat.controller.ts",
   "apps/api/src/domains/public-chat/guards/",
   "apps/api/src/config/cors.ts",
   "apps/help/src/content/docs/en/public-chat-api",
