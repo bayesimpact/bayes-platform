@@ -50,9 +50,20 @@ jobs:
   tests:
     name: tests
     runs-on: self-hosted
+    # One tests job at a time on the runner: they share the Docker daemon and
+    # the database ports. Queued, not cancelled.
+    concurrency:
+      group: tests-self-hosted
+      cancel-in-progress: false
     steps:
+      # Containers and volumes of a previous run. The buildx builder
+      # containers stay: the persistent builder of the GPU image lives in one
+      # of them, with its cache volume.
       - name: Clean up Docker artifacts of a previous run
-        run: docker ps -q | xargs -r docker stop; docker ps -aq | xargs -r docker rm; docker volume prune -f; sudo rm -rf infra/database/dontsave 2>/dev/null || true
+        run: |
+          docker ps -aq --format '{{.ID}} {{.Names}}' | awk '$2 !~ /^buildx_buildkit_/ { print $1 }' | xargs -r docker rm -f
+          docker volume prune -f
+          sudo rm -rf infra/database/dontsave 2>/dev/null || true
 
       - uses: actions/setup-node@v4
         with:
