@@ -1,0 +1,49 @@
+---
+title: Public chat API changelog
+highlight: changelog
+description: Every version of the public chat API, with the date, the changes and the migration steps when a change is breaking.
+category: developers
+order: 3
+updated: 2026-09-10
+apiVersion: "1.0"
+---
+
+This page lists every version of the public chat API. The current version is **1.0**.
+Minor versions add things and keep existing clients working. Major versions can break
+clients and come with a deprecation period. See the
+[versioning and deprecation policy](/en/public-chat-api-versioning).
+
+{/*
+  Entry template. Keep the heading format: the CI check reads "## <major.minor> (<date>)".
+
+  ## 1.1 (YYYY-MM-DD)
+
+  ### Added
+  - ...
+
+  ### Changed
+  - ...
+
+  ### Deprecated
+  - ...
+
+  ### Removed
+  - ...
+
+  ### Migration
+  - ... (mandatory for a major version)
+*/}
+
+## 1.0 (2026-09-09)
+
+### Added
+
+- First versioned release of the public chat API, under `/public/v1/agents/{embedToken}/`.
+- Five routes: agent configuration, create a session, read a session, read MCP App card
+  HTML, send a message and stream the reply.
+- The [reference page](/en/public-chat-api) documents the routes, the server-sent events,
+  the error codes, the CORS behavior and the limits.
+
+### Migration
+
+- None. This is the first published version of the contract.

@@ -48,6 +48,10 @@ draft: false # optional; drafts are hidden in production
 
 - `PUBLIC_APP_URL` (optional) — shows a "Back to the app" link in the header.
   Copy `.env.example` to `.env` to set it locally.
+- `PUBLIC_API_BASE_URL` (optional) — the tenant's API base URL, shown on the public
+  API reference page. A placeholder is shown when unset.
+- `PUBLIC_SITE_URL` (optional) — the public URL of this site, used for canonical
+  links and the sitemap. Falls back to `SITE_URL`.
 - `SITE_URL` / `SITE_TITLE` / `LOCALES` — see `src/consts.ts`.
 
 ## Deployment

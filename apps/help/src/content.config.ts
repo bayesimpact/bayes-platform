@@ -24,6 +24,12 @@ const docs = defineCollection({
     order: z.number().default(100),
     // Optional publication metadata.
     updated: z.coerce.date().optional(),
+    // Version of the public API a reference page documents (`major.minor`). The
+    // `public-contract` CI check keeps it equal to `PUBLIC_API_VERSION` in api-contracts.
+    apiVersion: z
+      .string()
+      .regex(/^\d+\.\d+$/)
+      .optional(),
     draft: z.boolean().default(false),
   }),
 })

@@ -1,0 +1,60 @@
+---
+title: Public chat API versioning and deprecation
+highlight: versioning
+description: How the public chat API is versioned, what counts as a compatible or a breaking change, and how long an old version stays available.
+category: developers
+order: 2
+updated: 2026-09-10
+apiVersion: "1.0"
+---
+
+The public chat API is a contract. This page tells you how it changes and how you learn
+about it. The current version is **1.0**.
+
+## Version format
+
+- A version is `major.minor`, for example `1.0`.
+- The **major** is in the path: `/public/v1/agents/...`.
+- The **minor** is not in the path. The [changelog](/en/public-chat-api-changelog) lists it.
+
+## What the contract covers
+
+Every route, request and response field, header, status code, error message and
+server-sent event described on the [reference page](/en/public-chat-api). Behaviors
+described there, such as the order of events, are part of the contract too.
+
+## Compatible changes (minor version)
+
+A minor version adds things and changes nothing that exists:
+
+- a new route,
+- a new field in a response,
+- a new optional field in a request,
+- a new event type in the stream.
+
+Your client stays compatible when it ignores unknown fields and unknown event types. Make
+this a rule in your code.
+
+## Breaking changes (major version)
+
+A major version can rename or remove an element, change a type, make an optional field
+required, or change a status code, an error message or the stream format. A major version
+is served under a new path prefix, for example `/public/v2/...`. The previous major keeps
+answering at its own paths during the deprecation period.
+
+## Deprecation policy
+
+- When a new major version is published, the previous major stays available for at least
+  **6 months** after the publication date of the new one.
+- The [changelog](/en/public-chat-api-changelog) announces the new version, the date the
+  old version stops, and the migration steps.
+- During the deprecation period, responses of the old version can carry the standard
+  `Deprecation` and `Sunset` headers with the stop date.
+- After the stop date, the old paths answer `404`.
+
+## How to stay informed
+
+- Bookmark the [changelog](/en/public-chat-api-changelog). Every change is listed there
+  with its date.
+- The platform release notes mention public API changes too.
+- Test your integration against the reference page after each announced change.

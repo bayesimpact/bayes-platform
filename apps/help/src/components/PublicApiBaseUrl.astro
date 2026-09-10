@@ -1,0 +1,35 @@
+---
+/**
+ * Base URL of the tenant's API, for the public API reference page. The deploy job
+ * sets PUBLIC_API_BASE_URL per tenant; without it the page shows a placeholder.
+ */
+import { API_BASE_URL_PLACEHOLDER } from "@/consts"
+
+interface Props {
+  lang: "en" | "fr"
+}
+
+const { lang } = Astro.props
+const baseUrl = (import.meta.env.PUBLIC_API_BASE_URL as string | undefined) || undefined
+const strings = {
+  en: {
+    known: "Base URL of this platform:",
+    unknown: "Base URL:",
+    hint: "Ask your platform administrator for the API host.",
+    note: "Every path on this page is relative to this base URL. The examples call it",
+  },
+  fr: {
+    known: "URL de base de cette plateforme :",
+    unknown: "URL de base :",
+    hint: "Demandez l'hôte de l'API à l'administrateur de votre plateforme.",
+    note: "Tous les chemins de cette page sont relatifs à cette URL de base. Les exemples l'appellent",
+  },
+}[lang]
+---
+
+<p>
+  <strong>{baseUrl ? strings.known : strings.unknown}</strong>
+  <code>{baseUrl ?? API_BASE_URL_PLACEHOLDER}</code>
+  {!baseUrl && <span> {strings.hint}</span>}
+</p>
+<p>{strings.note} <code>$API_BASE</code>.</p>
