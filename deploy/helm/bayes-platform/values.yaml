@@ -18,6 +18,8 @@ global:
 # The web front is served by the API (app image) under /app on the api URL:
 # `web` is the address users open, `api` the origin the browser calls. Keep
 # them on the same host unless you serve the front from somewhere else.
+# The addresses the platform derives from `web` (the OAuth callback of MCP
+# servers, for example) follow it: no other URL setting is needed.
 urls:
   api: https://platform.example.org
   web: https://platform.example.org/app

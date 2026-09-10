@@ -16,6 +16,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+- Kubernetes: authorizing an MCP server with OAuth works out of the box, the callback address follows the web URL.
 - Sign-in: an error returned by the identity provider is shown with a retry button instead of reloading endlessly.
 - (beta) MCP App cards: the reply text now stays on screen next to the card instead of disappearing once the card shows.
 - (beta) Conversations with MCP App cards now open at once, each card showing a placeholder until it is ready.
