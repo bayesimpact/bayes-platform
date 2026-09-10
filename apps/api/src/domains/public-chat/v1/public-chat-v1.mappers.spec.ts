@@ -1,22 +1,27 @@
-import { mcpAppHtmlCacheKey } from "@/domains/agents/shared/agent-session-messages/agent-message.helpers"
+import { agentFactory } from "@/domains/agents/agent.factory"
+import { organizationFactory } from "@/domains/organizations/organization.factory"
+import { projectFactory } from "@/domains/projects/project.factory"
 import { agentEmbedConfigFactory } from "../agent-embed-configs/agent-embed-config.factory"
 import { publicAgentSessionFactory } from "../public-agent-sessions/public-agent-session.factory"
 import {
   toCreatePublicSessionResponseDto,
   toEmbedPublicConfigDto,
   toPublicAgentSessionDto,
-  toPublicMcpAppHtmlDtos,
 } from "./public-chat-v1.mappers"
 
 describe("public chat v1 mappers", () => {
   it("exposes branding only from the embed configuration", () => {
-    const embedConfig = agentEmbedConfigFactory.build({
+    const organization = organizationFactory.build()
+    const project = projectFactory.transient({ organization }).build()
+    const agent = agentFactory
+      .transient({ organization, project })
+      .build({ name: "Helpful Assistant" })
+    const embedConfig = agentEmbedConfigFactory.transient({ organization, project, agent }).build({
       title: "Help Center",
       logoUrl: null,
       primaryColor: "#2563eb",
       bannerText: null,
     })
-    embedConfig.agent = { name: "Helpful Assistant" } as typeof embedConfig.agent
 
     expect(toEmbedPublicConfigDto(embedConfig)).toEqual({
       agentName: "Helpful Assistant",
@@ -56,14 +61,7 @@ describe("public chat v1 mappers", () => {
     expect(dto.messages).toEqual([
       { id: "message-1", role: "assistant", content: "Hello", createdAt: createdAt.getTime() },
     ])
-    expect("status" in dto.messages[0]! && dto.messages[0].status).toBeUndefined()
-  })
-
-  it("splits each cache key into a server id and a resource uri", () => {
-    const htmlByKey = new Map([[mcpAppHtmlCacheKey("server-1", "ui://card/app.html"), "<p/>"]])
-
-    expect(toPublicMcpAppHtmlDtos(htmlByKey)).toEqual([
-      { mcpServerId: "server-1", resourceUri: "ui://card/app.html", html: "<p/>" },
-    ])
+    expect(dto.messages[0]?.status).toBeUndefined()
+    expect(dto.messages[0]?.toolCalls).toBeUndefined()
   })
 })

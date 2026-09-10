@@ -4,6 +4,7 @@ import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import request from "supertest"
 import type { App } from "supertest/types"
+import { parseSseDataEvents } from "@/common/test/sse.helpers"
 import {
   type AllRepositories,
   clearTestDatabase,
@@ -89,13 +90,6 @@ describe("AgentSessionMessagesRoutes.stream", () => {
   const subject = (content: string, agentSettingsRevision?: number) =>
     rawSubject(JSON.stringify({ payload: { content, agentSettingsRevision } }))
 
-  const parseSseEvents = (text: string): StreamEventPayload[] =>
-    text
-      .split("\n\n")
-      .map((block) => block.split("\n").find((line) => line.startsWith("data:")))
-      .filter((line): line is string => Boolean(line))
-      .map((line) => JSON.parse(line.slice("data:".length).trim()) as StreamEventPayload)
-
   const seedRevision = async ({
     organization,
     project,
@@ -140,7 +134,7 @@ describe("AgentSessionMessagesRoutes.stream", () => {
 
     expect(response.status).toBe(200)
 
-    const events = parseSseEvents(response.text)
+    const events = parseSseDataEvents<StreamEventPayload>(response.text)
     expect(events.length).toBeGreaterThan(0)
 
     const fulltextStream = events

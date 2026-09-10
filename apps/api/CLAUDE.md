@@ -192,6 +192,8 @@ apps/api/src/domains/{domain}/
     update-{resource}.spec.ts
 ```
 
+Versioned public API domains keep one `e2e-tests/` per served major instead: `public-chat/v1/e2e-tests/` (see `docs/public-api-contract.md`).
+
 **Two categories**:
 1. **Auth spec** (`auth.spec.ts`) — Tests authorization for every route: no token, not a member, wrong role, allowed roles. Uses `createContextForRole(role)`.
 2. **Functional specs** (one file per action) — Happy path and business logic only. Assumes owner. Uses `createContext()`.

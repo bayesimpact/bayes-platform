@@ -6,11 +6,9 @@ import type {
   PublicStreamEventPayload,
 } from "@caseai-connect/api-contracts"
 import { PublicChatRoutes } from "@caseai-connect/api-contracts"
-
-const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:3000"
+import { apiUrl as routeUrl } from "./api-base"
 
 /** Reference client of the public chat API v1 (`docs/public-api-contract.md`). */
-const routeUrl = (path: string) => `${API_BASE}${path}`
 
 // ─── Public embed config ───────────────────────────────────────────────────
 

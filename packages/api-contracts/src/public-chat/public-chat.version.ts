@@ -6,5 +6,15 @@
  */
 export const PUBLIC_API_VERSION = "1.0"
 
-/** Path segment that carries the major version of the public routes. */
-export const PUBLIC_API_MAJOR = `v${PUBLIC_API_VERSION.split(".")[0]}` as "v1"
+/** `"1.0"` gives `"v1"`: the path segment a version string belongs to. */
+type MajorOf<Version extends string> = Version extends `${infer Major}.${string}`
+  ? `v${Major}`
+  : never
+
+/**
+ * Path segment that carries the major version of the public routes. A literal, so the
+ * routes never move on their own: bumping `PUBLIC_API_VERSION` to `2.0` fails typecheck
+ * here until a maintainer decides how v2 is served (`docs/public-api-contract.md`,
+ * "Shipping a new major version").
+ */
+export const PUBLIC_API_MAJOR: MajorOf<typeof PUBLIC_API_VERSION> = "v1"

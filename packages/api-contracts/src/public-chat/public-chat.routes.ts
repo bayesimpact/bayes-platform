@@ -4,7 +4,6 @@ import type {
   CreatePublicSessionRequestDto,
   CreatePublicSessionResponseDto,
   EmbedPublicConfigDto,
-  LegacyEmbedPublicConfigDto,
   PublicAgentSessionDto,
   PublicChatStreamRequestDto,
   PublicMcpAppHtmlDto,
@@ -24,14 +23,14 @@ export const PUBLIC_PATH_PREFIX = "public"
  * The public chat API is a versioned contract with external integrators:
  * `docs/public-api-contract.md`. Routes live under `/public/v1/...`. The
  * unprefixed paths (`/public/agents/...`) predate versioning and stay served as
- * a legacy alias for as long as v1 is served (`PublicChatLegacyRoutes`). The alias
- * serves what it served before versioning: the routes below, minus the MCP App HTML
- * route and the `bannerText` config field, both added with v1.
+ * an alias of v1 for as long as v1 is served (`PublicChatLegacyRoutes`): same
+ * routes, same bodies, only the prefix differs. One builder for both, so the two
+ * route sets cannot drift apart.
  */
-function buildPublicChatRoutes<ConfigDto>(agentBasePath: string) {
+function buildPublicChatRoutes(agentBasePath: string) {
   const sessionBasePath = `${agentBasePath}/sessions/:sessionId`
   return {
-    getConfig: defineRoute<ResponseData<ConfigDto>>({
+    getConfig: defineRoute<ResponseData<EmbedPublicConfigDto>>({
       method: "get",
       path: `${agentBasePath}/config`,
     }),
@@ -50,10 +49,21 @@ function buildPublicChatRoutes<ConfigDto>(agentBasePath: string) {
     }),
 
     /**
+     * Current HTML of every MCP App card the session's replies point at. Separate from
+     * `getSession` because reading it connects to each MCP server, which must not delay the
+     * transcript; the widget loads it once the messages are on screen.
+     */
+    getMcpAppHtml: defineRoute<ResponseData<PublicMcpAppHtmlDto[]>>({
+      method: "get",
+      path: `${sessionBasePath}/mcp-app-html`,
+    }),
+
+    /**
      * Server-sent events. The request payload travels URL-encoded in the `q` query
      * parameter (`?q=<encodeURIComponent(JSON.stringify({ payload: { content } }))>`) so
      * the route stays reachable with GET. Each `data:` line of the response is one
      * JSON-encoded `PublicStreamEventPayload`; the `ResponseData` wrapper does not apply.
+     * Failures reach the client as a `{ type: "error" }` event on a 200 response.
      */
     streamMessages: defineRoute<
       ResponseData<PublicStreamEventPayload>,
@@ -65,27 +75,12 @@ function buildPublicChatRoutes<ConfigDto>(agentBasePath: string) {
   }
 }
 
-const v1AgentBasePath = `${PUBLIC_PATH_PREFIX}/${PUBLIC_API_MAJOR}/agents/:embedToken`
-
 /** Versioned public routes: `/public/v1/agents/:embedToken/...`. New integrations use these. */
-export const PublicChatRoutes = {
-  ...buildPublicChatRoutes<EmbedPublicConfigDto>(v1AgentBasePath),
+export const PublicChatRoutes = buildPublicChatRoutes(
+  `${PUBLIC_PATH_PREFIX}/${PUBLIC_API_MAJOR}/agents/:embedToken`,
+)
 
-  /**
-   * Current HTML of every MCP App card the session's replies point at. Separate from
-   * `getSession` because reading it connects to each MCP server, which must not delay the
-   * transcript; the widget loads it once the messages are on screen.
-   */
-  getMcpAppHtml: defineRoute<ResponseData<PublicMcpAppHtmlDto[]>>({
-    method: "get",
-    path: `${v1AgentBasePath}/sessions/:sessionId/mcp-app-html`,
-  }),
-}
-
-/**
- * Legacy alias at the unprefixed paths: `/public/agents/:embedToken/...`. No MCP App HTML
- * route, no `bannerText` in the config: the alias predates both.
- */
-export const PublicChatLegacyRoutes = buildPublicChatRoutes<LegacyEmbedPublicConfigDto>(
+/** Pre-versioning alias of v1 at the unprefixed paths: `/public/agents/:embedToken/...`. */
+export const PublicChatLegacyRoutes = buildPublicChatRoutes(
   `${PUBLIC_PATH_PREFIX}/agents/:embedToken`,
 )

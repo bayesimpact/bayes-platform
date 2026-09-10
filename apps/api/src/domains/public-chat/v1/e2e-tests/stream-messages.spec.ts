@@ -4,6 +4,7 @@ import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import request from "supertest"
 import type { App } from "supertest/types"
+import { parseSseDataEvents } from "@/common/test/sse.helpers"
 import {
   type AllRepositories,
   clearTestDatabase,
@@ -11,10 +12,8 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
-import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import type { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
-import { agentEmbedConfigFactory } from "../../agent-embed-configs/agent-embed-config.factory"
-import { publicAgentSessionFactory } from "../../public-agent-sessions/public-agent-session.factory"
+import { createEmbedConfigWithSession } from "../../public-chat.factory"
 import { PublicChatModule } from "../../public-chat.module"
 
 describe("PublicChat - streamMessages", () => {
@@ -48,24 +47,11 @@ describe("PublicChat - streamMessages", () => {
   })
 
   const createContext = async () => {
-    const { organization, project, agent, agentSettings } =
-      await createOrganizationWithAgent(repositories)
-    const embedConfig = agentEmbedConfigFactory
-      .transient({ organization, project, agent })
-      .build({ isEnabled: true })
-    await repositories.agentEmbedConfigRepository.save(embedConfig)
-
-    const knownToken = randomUUID()
-    const session = publicAgentSessionFactory
-      .transient({ embedConfig, sessionToken: knownToken })
-      .build()
-    await repositories.publicAgentSessionRepository.save(session)
-
-    embedToken = embedConfig.embedToken
-    sessionId = session.id
-    sessionToken = knownToken
-
-    return { organization, project, agent, agentSettings, embedConfig, session }
+    const context = await createEmbedConfigWithSession(repositories)
+    embedToken = context.embedConfig.embedToken
+    sessionId = context.session.id
+    sessionToken = context.sessionToken
+    return context
   }
 
   const subject = (content: string) =>
@@ -75,20 +61,13 @@ describe("PublicChat - streamMessages", () => {
       .set("Connection", "close")
       .set("X-Session-Token", sessionToken)
 
-  const parseSseEvents = (text: string): StreamEventPayload[] =>
-    text
-      .split("\n\n")
-      .map((block) => block.split("\n").find((line) => line.startsWith("data:")))
-      .filter((line): line is string => Boolean(line))
-      .map((line) => JSON.parse(line.slice("data:".length).trim()) as StreamEventPayload)
-
   it("should stream the response", async () => {
     await createContext()
 
     const response = await subject("Hello")
     expect(response.status).toBe(200)
 
-    const events = parseSseEvents(response.text)
+    const events = parseSseDataEvents<StreamEventPayload>(response.text)
     expect(events.length).toBeGreaterThan(0)
 
     const fulltextStream = events
@@ -186,12 +165,14 @@ describe("PublicChat - streamMessages", () => {
     }
   })
 
-  it("should return error when empty content", async () => {
+  it("answers an empty message with one error event inside the stream", async () => {
     await createContext()
 
     const response = await subject("")
     expect(response.status).toBe(200)
-    expect(response.text).toContain("event: error")
+    expect(parseSseDataEvents<StreamEventPayload>(response.text)).toEqual([
+      { type: "error", messageId: "", error: "User content must not be empty" },
+    ])
   })
 
   it("should return 401 when invalid token", async () => {

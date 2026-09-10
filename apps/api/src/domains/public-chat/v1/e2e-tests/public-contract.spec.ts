@@ -10,6 +10,7 @@ import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import request from "supertest"
 import type { App } from "supertest/types"
+import { parseSseBlocks, parseSseDataEvents } from "@/common/test/sse.helpers"
 import {
   type AllRepositories,
   clearTestDatabase,
@@ -19,7 +20,7 @@ import {
 import { buildCorsOptionsDelegate } from "@/config/cors"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { agentEmbedConfigFactory } from "../../agent-embed-configs/agent-embed-config.factory"
-import { publicAgentSessionFactory } from "../../public-agent-sessions/public-agent-session.factory"
+import { createEmbedConfigWithSession } from "../../public-chat.factory"
 import { PublicChatModule } from "../../public-chat.module"
 
 /**
@@ -59,37 +60,16 @@ describe("PublicChat - contract v1", () => {
   })
 
   const createContext = async () => {
-    const { organization, project, agent } = await createOrganizationWithAgent(repositories)
-    const embedConfig = agentEmbedConfigFactory
-      .transient({ organization, project, agent })
-      .build({ isEnabled: true })
-    await repositories.agentEmbedConfigRepository.save(embedConfig)
-
-    const knownToken = randomUUID()
-    const session = publicAgentSessionFactory
-      .transient({ embedConfig, sessionToken: knownToken })
-      .build()
-    await repositories.publicAgentSessionRepository.save(session)
-
-    embedToken = embedConfig.embedToken
-    sessionId = session.id
-    sessionToken = knownToken
-    return { embedConfig, session, agent }
+    const context = await createEmbedConfigWithSession(repositories)
+    embedToken = context.embedConfig.embedToken
+    sessionId = context.session.id
+    sessionToken = context.sessionToken
+    return context
   }
 
   const pathParams = () => ({ embedToken, sessionId })
 
-  const parseSseBlocks = (text: string) =>
-    text
-      .split("\n\n")
-      .map((block) => block.split("\n").filter((line) => line.length > 0))
-      .filter((lines) => lines.length > 0)
-
-  const parseDataEvents = (text: string): PublicStreamEventPayload[] =>
-    parseSseBlocks(text)
-      .map((lines) => lines.find((line) => line.startsWith("data:")))
-      .filter((line): line is string => Boolean(line))
-      .map((line) => JSON.parse(line.slice("data:".length).trim()) as PublicStreamEventPayload)
+  const parseDataEvents = (text: string) => parseSseDataEvents<PublicStreamEventPayload>(text)
 
   describe("routes", () => {
     it("declares the v1 paths and methods", () => {
@@ -243,21 +223,25 @@ describe("PublicChat - contract v1", () => {
       expect(chunks.every((event) => event.messageId === startMessageId)).toBe(true)
     })
 
-    it("rejects an invalid q payload inside the stream, not as a JSON error", async () => {
+    it("rejects an invalid q payload as one error event inside the stream, not as a JSON error", async () => {
       await createContext()
       const response = await stream("not-json")
       expect(response.status).toBe(200)
-      expect(response.text).toContain("event: error")
-      expect(response.text).toContain("data: Invalid query format")
-      expect(response.text).not.toContain('"type":"start"')
+      expect(response.headers["content-type"]).toMatch(/^text\/event-stream/)
+      expect(response.text).not.toContain("event:")
+      expect(parseDataEvents(response.text)).toEqual([
+        { type: "error", messageId: "", error: "Invalid query format" },
+      ])
     })
 
-    it("rejects an empty message inside the stream", async () => {
+    it("rejects an empty message as one error event inside the stream", async () => {
       await createContext()
       const response = await stream(JSON.stringify({ payload: { content: "   " } }))
       expect(response.status).toBe(200)
-      expect(response.text).toContain("event: error")
-      expect(response.text).toContain("data: User content must not be empty")
+      expect(response.text).not.toContain("event:")
+      expect(parseDataEvents(response.text)).toEqual([
+        { type: "error", messageId: "", error: "User content must not be empty" },
+      ])
     })
   })
 

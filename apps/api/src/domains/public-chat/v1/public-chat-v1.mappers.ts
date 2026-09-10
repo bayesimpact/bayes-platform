@@ -2,10 +2,8 @@ import type {
   CreatePublicSessionResponseDto,
   EmbedPublicConfigDto,
   PublicAgentSessionDto,
-  PublicMcpAppHtmlDto,
   PublicSessionMessageDto,
 } from "@caseai-connect/api-contracts"
-import { toMcpAppHtmlDtos } from "@/domains/agents/shared/agent-session-messages/agent-message.helpers"
 import type { AgentEmbedConfig } from "../agent-embed-configs/agent-embed-config.entity"
 import type { PublicAgentSession } from "../public-agent-sessions/public-agent-session.entity"
 
@@ -63,9 +61,4 @@ function toPublicSessionMessageDto(message: PublicMessageSource): PublicSessionM
     createdAt: message.createdAt.getTime(),
     toolCalls: message.toolCalls ?? undefined,
   }
-}
-
-/** One entry per MCP App card, from the `mcpServerId + resourceUri` cache keys. */
-export function toPublicMcpAppHtmlDtos(htmlByKey: Map<string, string>): PublicMcpAppHtmlDto[] {
-  return toMcpAppHtmlDtos(htmlByKey)
 }
