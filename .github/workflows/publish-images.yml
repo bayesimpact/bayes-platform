@@ -1,13 +1,20 @@
 name: Publish images
 
-# Builds the six container images and pushes them to GitHub Container
-# Registry, public, so any cluster can pull them without credentials:
-#   ghcr.io/bayesimpact/bayes-platform/<component>:<tag>
-# app = the API plus the web front served under /app (target app-runtime).
+# On every push to main and on every release tag: the checks and the tests
+# run in parallel with the build of the six container images. The images are
+# published, and the deployment repository notified, only when the tests
+# pass.
 #
-# Tags: sha-<short sha>, main and main-<run>-<sha> on every push to main, the CalVer version on a release
-# tag (v26.09.1 -> 26.09.1), and latest on main. A release tag also publishes
-# the Helm chart as an OCI artifact: oci://ghcr.io/bayesimpact/charts/bayes-platform.
+# The build pushes each image under its sha-<short sha> tag right away, a tag
+# nothing consumes. The publish step then adds the tags that deployments
+# follow, without a rebuild: main, latest and main-<run>-<sha> on main, the
+# CalVer version on a release tag (v26.09.1 -> 26.09.1). When the tests fail,
+# only the sha- tag exists.
+#
+# Images: ghcr.io/bayesimpact/bayes-platform/<component>:<tag>, public.
+# app = the API plus the web front served under /app (target app-runtime).
+# A release tag also publishes the Helm chart as an OCI artifact:
+# oci://ghcr.io/bayesimpact/charts/bayes-platform.
 
 on:
   push:
@@ -28,8 +35,36 @@ env:
   IMAGE_BASE: ghcr.io/${{ github.repository }}
 
 jobs:
+  ci-checks:
+    name: checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.x"
+
+      - uses: actions/checkout@v4
+
+      - run: make ci-checks
+
+  tests:
+    name: tests
+    runs-on: self-hosted
+    steps:
+      - name: Clean up Docker artifacts of a previous run
+        run: docker ps -q | xargs -r docker stop; docker ps -aq | xargs -r docker rm; docker volume prune -f; sudo rm -rf infra/database/dontsave 2>/dev/null || true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.x"
+
+      - uses: actions/checkout@v4
+
+      - run: TEST_WORKERS=6 make tests-only-parallel
+
+  # Build in parallel with the tests, pushed under the sha- tag only.
   images:
-    name: ${{ matrix.image }}
+    name: build ${{ matrix.image }}
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -111,17 +146,10 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.IMAGE_BASE }}/${{ matrix.image }}
+          # Only the candidate tag here. The deployment tags are added by the
+          # publish job once the tests pass.
           tags: |
             type=sha,prefix=sha-,format=short
-            type=match,pattern=v(.*),group=1
-            # "main": what a chart installed from a checkout of main pulls
-            # (its appVersion is "main"). Moves with every push, like latest.
-            type=ref,event=branch
-            type=raw,value=latest,enable={{is_default_branch}}
-            # Sortable tag for GitOps image automation (Flux ImagePolicy):
-            # main-<run number>-<sha>, newest run wins. The run number is the
-            # same for the six images of one run, a timestamp would not be.
-            type=raw,value=main-${{ github.run_number }}-{{sha}},enable={{is_default_branch}}
 
       - name: Build and push
         id: build
@@ -151,15 +179,52 @@ jobs:
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
 
-  # Tell the deployment repository which tag is ready. The staging cluster
-  # follows main; the deployment repository turns this event into a pull
-  # request on its values and Flux deploys. Same GitHub App as prod.yml.
-  notify:
-    name: notify deployments
-    if: github.ref == 'refs/heads/main'
-    needs: [images]
+  # Tests green: add the deployment tags to the six images (manifest only,
+  # no rebuild) and tell the deployment repository which tag is ready. The
+  # staging cluster follows main; the deployment repository turns the event
+  # into a pull request on its values and Flux deploys.
+  publish:
+    name: publish
+    needs: [ci-checks, tests, images]
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tags.outputs.deploy_tag }}
     steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deployment tags
+        id: tags
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+            echo "tags=$VERSION" >> "$GITHUB_OUTPUT"
+            echo "deploy_tag=$VERSION" >> "$GITHUB_OUTPUT"
+          else
+            # "main": what a chart installed from a checkout of main pulls (its
+            # appVersion is "main"). main-<run number>-<sha>: sortable, the
+            # same for the six images of one run, what the deployments follow.
+            echo "tags=main latest main-${{ github.run_number }}-$SHORT_SHA" >> "$GITHUB_OUTPUT"
+            echo "deploy_tag=main-${{ github.run_number }}-$SHORT_SHA" >> "$GITHUB_OUTPUT"
+          fi
+          echo "candidate=sha-$SHORT_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Add the tags to the images
+        run: |
+          set -e
+          for image in app cpu-workers gpu-workers pdf-converter web-embed help; do
+            args=()
+            for tag in ${{ steps.tags.outputs.tags }}; do
+              args+=(--tag "${IMAGE_BASE}/${image}:${tag}")
+            done
+            docker buildx imagetools create "${args[@]}" "${IMAGE_BASE}/${image}:${{ steps.tags.outputs.candidate }}"
+          done
+
       - name: Generate GitHub App token
         uses: actions/create-github-app-token@v3
         id: app-token
@@ -174,14 +239,14 @@ jobs:
         run: |
           gh api repos/${{ github.repository_owner }}/infra/dispatches \
             -f event_type=platform-images-published \
-            -f "client_payload[tag]=main-${{ github.run_number }}-${GITHUB_SHA::7}" \
+            -f "client_payload[tag]=${{ steps.tags.outputs.deploy_tag }}" \
             -f "client_payload[sha]=${{ github.sha }}" \
             -f "client_payload[repo]=${{ github.repository }}"
 
   chart:
     name: helm chart
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [images]
+    needs: [publish]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
