@@ -1,0 +1,15 @@
+# Public API contract (docs/public-api-contract.md). A change needs a written go from one of
+# these maintainers and the public-contract-approved label, set by a maintainer who is not
+# the PR author. The ruleset does not require code owner review; this file requests their
+# review automatically and names them.
+/packages/api-contracts/src/public-chat/                            @jdoucy @alexisjamet @did @OlivierDoucy
+/apps/api/src/domains/public-chat/v1/                               @jdoucy @alexisjamet @did @OlivierDoucy
+/apps/api/src/domains/public-chat/guards/                           @jdoucy @alexisjamet @did @OlivierDoucy
+/apps/api/src/config/cors.ts                                        @jdoucy @alexisjamet @did @OlivierDoucy
+/apps/help/src/content/docs/en/public-chat-api*.mdx                 @jdoucy @alexisjamet @did @OlivierDoucy
+/apps/help/src/content/docs/fr/public-chat-api*.mdx                 @jdoucy @alexisjamet @did @OlivierDoucy
+/docs/public-api-contract.md                                        @jdoucy @alexisjamet @did @OlivierDoucy
+/docs/public-chat-api.md                                            @jdoucy @alexisjamet @did @OlivierDoucy
+/.github/workflows/public-contract.yml                              @jdoucy @alexisjamet @did @OlivierDoucy
+/.github/scripts/public-contract-check.mjs                          @jdoucy @alexisjamet @did @OlivierDoucy
+/.github/CODEOWNERS                                                 @jdoucy @alexisjamet @did @OlivierDoucy
