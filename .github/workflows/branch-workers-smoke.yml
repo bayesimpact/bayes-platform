@@ -12,7 +12,15 @@ on:
 
 jobs:
   workers-smoke:
-    runs-on: ubuntu-latest
+    # Self-hosted: the Docker daemon of the runner keeps the build cache
+    # between runs, so only the layers that depend on the branch are rebuilt
+    # (the Torch install alone is two minutes on a GitHub runner). Push events
+    # fire for branches of this repository only, never for forks.
+    runs-on: self-hosted
+    # One smoke at a time on the runner: the compose stack binds fixed ports.
+    concurrency:
+      group: workers-smoke-self-hosted
+      cancel-in-progress: false
     steps:
       - name: Use Node.js
         uses: actions/setup-node@v4
