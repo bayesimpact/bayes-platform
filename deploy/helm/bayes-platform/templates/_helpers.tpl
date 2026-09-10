@@ -160,6 +160,12 @@ on other chart values.
 {{- end }}
 - name: FRONTEND_URL
   value: {{ .Values.urls.web | quote }}
+{{- if not (hasKey .Values.config "MCP_OAUTH_REDIRECT_URL") }}
+# Where MCP servers send the browser back after an OAuth authorization: a
+# route of the web front. Set config.MCP_OAUTH_REDIRECT_URL to override.
+- name: MCP_OAUTH_REDIRECT_URL
+  value: {{ printf "%s/oauth/mcp/callback" (trimSuffix "/" .Values.urls.web) | quote }}
+{{- end }}
 {{- if eq .Values.storage.mode "gcs" }}
 - name: GCS_STORAGE_BUCKET_NAME
   value: {{ required "storage.gcs.bucket is required when storage.mode is gcs" .Values.storage.gcs.bucket | quote }}
