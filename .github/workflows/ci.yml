@@ -50,6 +50,13 @@ jobs:
   tests:
     needs: changes
     runs-on: ${{ needs.changes.outputs.help-only == 'true' && 'ubuntu-latest' || 'self-hosted' }}
+    # One tests job at a time on the self-hosted runner, across workflows: the
+    # jobs share the Docker daemon, the database ports and the cleanup below.
+    # Two at once wipe each other's containers and overload the machine.
+    # Queued, not cancelled.
+    concurrency:
+      group: tests-self-hosted
+      cancel-in-progress: false
     steps:
       - name: Skip — only apps/help changed
         if: needs.changes.outputs.help-only == 'true'
@@ -57,7 +64,12 @@ jobs:
 
       - name: Clean up Docker artifacts
         if: needs.changes.outputs.help-only == 'false'
-        run: docker ps -q | xargs -r docker stop; docker ps -aq | xargs -r docker rm; docker volume prune -f; sudo rm -rf infra/database/dontsave 2>/dev/null || true
+        # The buildx builder containers stay: the persistent builder of the GPU
+        # image lives in one of them, with its cache volume.
+        run: |
+          docker ps -aq --format '{{.ID}} {{.Names}}' | awk '$2 !~ /^buildx_buildkit_/ { print $1 }' | xargs -r docker rm -f
+          docker volume prune -f
+          sudo rm -rf infra/database/dontsave 2>/dev/null || true
 
       - name: Use Node.js
         if: needs.changes.outputs.help-only == 'false'
