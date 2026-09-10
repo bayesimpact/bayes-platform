@@ -113,18 +113,19 @@ jobs:
         if: needs.changes.outputs.web-tests == 'false'
         run: echo "Skipping the web tests, no change under apps/web, packages, package.json or package-lock.json"
 
+      # Checkout first: the npm cache of setup-node hashes package-lock.json.
+      - name: Checkout code
+        if: needs.changes.outputs.web-tests == 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
       - name: Use Node.js
         if: needs.changes.outputs.web-tests == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '24.x'
           cache: npm
-
-      - name: Checkout code
-        if: needs.changes.outputs.web-tests == 'true'
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
 
       - name: Install dependencies
         if: needs.changes.outputs.web-tests == 'true'
