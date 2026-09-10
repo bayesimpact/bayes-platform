@@ -16,6 +16,7 @@ import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
 import { useValue } from "@/common/hooks/use-value"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
+import { toAppHref } from "@/config/runtime-config"
 import type { DeskRoutes } from "@/desk/routes/helpers"
 import type { StudioRoutes } from "@/studio/routes/helpers"
 
@@ -36,7 +37,7 @@ export function BreadcrumbAgent({
     const nextAgent = agents.find((candidateAgent) => candidateAgent.id === agentId)
     if (!nextAgent) return
     const path = buildPath({ organizationId, projectId: agent.value.projectId, agentId })
-    window.location.assign(path)
+    window.location.assign(toAppHref(path))
   }
 
   if (agents.length === 1)

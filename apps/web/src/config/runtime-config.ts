@@ -90,7 +90,34 @@ export const APP_BASE_PATH: string = import.meta.env.BASE_URL
 
 /** Absolute URL of the SPA root, without trailing slash. Used for Auth0 redirects. */
 export function getAppUrl(): string {
-  return `${window.location.origin}${APP_BASE_PATH.replace(/\/$/, "")}`
+  return `${window.location.origin}${trimTrailingSlash(APP_BASE_PATH)}`
+}
+
+/**
+ * Prefixes an app path (as built by the route helpers) with the SPA base path.
+ * React Router applies the basename itself; this is for full-page navigations
+ * (`window.location.assign`, `window.open`) that bypass it.
+ */
+export function toAppHref(path: string, basePath: string = APP_BASE_PATH): string {
+  return `${trimTrailingSlash(basePath)}${path}`
+}
+
+/**
+ * Current `window.location.pathname` with the SPA base path removed, so it can
+ * be compared with route paths the way React Router's `location.pathname` is.
+ */
+export function getAppPathname(
+  pathname: string = window.location.pathname,
+  basePath: string = APP_BASE_PATH,
+): string {
+  const base = trimTrailingSlash(basePath)
+  if (!base) return pathname
+  if (pathname === base) return "/"
+  return pathname.startsWith(`${base}/`) ? pathname.slice(base.length) : pathname
+}
+
+function trimTrailingSlash(path: string): string {
+  return path.replace(/\/$/, "")
 }
 
 /** URL of a file from `public/`, resolved against the SPA base path. */

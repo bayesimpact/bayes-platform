@@ -25,6 +25,7 @@ import type { MyProject } from "@/common/features/projects/projects.models"
 import { useAbility } from "@/common/hooks/use-ability"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useAppSelector } from "@/common/store/hooks"
+import { toAppHref } from "@/config/runtime-config"
 import { DeskRoutes } from "@/desk/routes/helpers"
 import { EvalRoutes } from "@/eval/routes/helpers"
 import { ReviewerRoutes } from "@/reviewer/routes/helpers"
@@ -65,7 +66,7 @@ function OpenButton({ apps }: { apps: AppData[] }) {
     const app = apps[0]
     if (!app) return null
     return (
-      <Button variant="outline" onClick={() => window.location.assign(app.path)}>
+      <Button variant="outline" onClick={() => window.location.assign(toAppHref(app.path))}>
         {app.icon} {app.name} <ArrowRightIcon className="ml-4" />
       </Button>
     )
@@ -87,7 +88,7 @@ function OpenButton({ apps }: { apps: AppData[] }) {
       <div>
         <Button
           variant="outline"
-          onClick={() => window.location.assign(firstApp.path)}
+          onClick={() => window.location.assign(toAppHref(firstApp.path))}
           className="rounded-r-none"
         >
           {firstApp.icon} {firstApp.name} <div className="w-2" />
@@ -102,7 +103,10 @@ function OpenButton({ apps }: { apps: AppData[] }) {
         <DropdownMenuGroup>
           {filteredApps.map((app) => {
             return (
-              <DropdownMenuItem key={app.id} onClick={() => window.location.assign(app.path)}>
+              <DropdownMenuItem
+                key={app.id}
+                onClick={() => window.location.assign(toAppHref(app.path))}
+              >
                 {app.icon} {app.name}
               </DropdownMenuItem>
             )

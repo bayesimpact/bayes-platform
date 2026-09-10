@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next"
 import { GridCard } from "@/common/components/grid/Grid"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import { useAppDispatch } from "@/common/store/hooks"
+import { toAppHref } from "@/config/runtime-config"
 import { ProjectForm } from "@/studio/features/projects/components/ProjectForm"
 import { createProject } from "@/studio/features/projects/projects.thunks"
 import { StudioRoutes } from "@/studio/routes/helpers"
@@ -54,7 +55,7 @@ export function ProjectCreator({
       projectId,
     })
     // NOTE: do not use navigate from react-router
-    window.location.assign(path)
+    window.location.assign(toAppHref(path))
   }
 
   return (

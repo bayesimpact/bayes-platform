@@ -1,4 +1,5 @@
 import { defineRoute } from "@/common/routes/helpers"
+import { getAppPathname } from "@/config/runtime-config"
 
 const home = defineRoute("/studio")
 const organization = home.extend("/o/:organizationId")
@@ -63,4 +64,4 @@ export const StudioRoutes = {
 }
 
 // FIXME: to be removed (alexis)
-export const isStudioInterface = () => window.location.pathname.startsWith(StudioRoutes.home.path)
+export const isStudioInterface = () => getAppPathname().startsWith(StudioRoutes.home.path)

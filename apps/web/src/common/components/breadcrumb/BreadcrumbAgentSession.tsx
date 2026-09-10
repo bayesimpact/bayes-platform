@@ -24,6 +24,7 @@ import { selectCurrentProjectId } from "@/common/features/projects/projects.sele
 import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
+import { toAppHref } from "@/config/runtime-config"
 import type { DeskRoutes } from "@/desk/routes/helpers"
 import type { StudioRoutes } from "@/studio/routes/helpers"
 
@@ -100,7 +101,7 @@ function WithData({
         agentId,
         agentSessionId,
       })
-      window.location.assign(path)
+      window.location.assign(toAppHref(path))
     }
   if (sessions.length === 1)
     return (

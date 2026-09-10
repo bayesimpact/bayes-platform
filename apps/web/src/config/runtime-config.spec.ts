@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { mergeRuntimeConfig, type RuntimeConfig } from "./runtime-config"
+import { getAppPathname, mergeRuntimeConfig, type RuntimeConfig, toAppHref } from "./runtime-config"
 
 const buildTime: RuntimeConfig = {
   apiUrl: "https://api.build",
@@ -29,5 +29,36 @@ describe("mergeRuntimeConfig", () => {
     } as unknown as Partial<RuntimeConfig>
     expect(mergeRuntimeConfig(buildTime, injected).appTitle).toBe("Build title")
     expect(mergeRuntimeConfig(buildTime, injected).helpCenterUrl).toBeUndefined()
+  })
+})
+
+describe("toAppHref", () => {
+  it("keeps the path as is when the app is served from the root", () => {
+    expect(toAppHref("/studio/o/1", "/")).toBe("/studio/o/1")
+  })
+
+  it("prefixes the path with the base path, without doubling the slash", () => {
+    expect(toAppHref("/studio/o/1", "/app/")).toBe("/app/studio/o/1")
+    expect(toAppHref("/studio/o/1", "/app")).toBe("/app/studio/o/1")
+  })
+})
+
+describe("getAppPathname", () => {
+  it("returns the pathname untouched when the app is served from the root", () => {
+    expect(getAppPathname("/app/o/1", "/")).toBe("/app/o/1")
+  })
+
+  it("strips the base path", () => {
+    expect(getAppPathname("/app/studio/o/1", "/app/")).toBe("/studio/o/1")
+    expect(getAppPathname("/app", "/app/")).toBe("/")
+    expect(getAppPathname("/app/", "/app/")).toBe("/")
+  })
+
+  it("does not strip a segment that only shares the base path as a prefix", () => {
+    expect(getAppPathname("/application/x", "/app/")).toBe("/application/x")
+  })
+
+  it("distinguishes the base path from a route of the same name", () => {
+    expect(getAppPathname("/app/app/o/1", "/app/")).toBe("/app/o/1")
   })
 })
