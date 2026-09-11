@@ -59,6 +59,8 @@ gpuWorkers:
   gpu:
     nodeSelector:
       cloud.google.com/gke-accelerator: nvidia-l4
+    # GKE mounts the driver libraries here without putting them on the loader path.
+    driverLibraryPath: /usr/local/nvidia/lib64
 
 web:
   env:

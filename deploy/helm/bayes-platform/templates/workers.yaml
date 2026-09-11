@@ -80,6 +80,10 @@ spec:
             {{- if $pool.gpu }}
             - name: DOCUMENT_EXTRACTOR_DOCLING_TIMEOUT_MS
               value: {{ $values.docling.timeoutMs | quote }}
+            {{- with $values.gpu.driverLibraryPath }}
+            - name: LD_LIBRARY_PATH
+              value: {{ . | quote }}
+            {{- end }}
             - name: WORKER_DOCLING_HEALTH_CHECK_TIMEOUT_MS
               value: {{ $values.docling.healthCheckTimeoutMs | quote }}
             {{- end }}
