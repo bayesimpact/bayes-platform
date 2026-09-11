@@ -4,8 +4,12 @@
 # Build from the repository root:
 #   docker build -f apps/help/Dockerfile -t bayes-platform/help .
 #
-# PUBLIC_APP_URL (the "back to the app" link) is built with a placeholder and
-# replaced at container start, so one image serves every install.
+# The per-install URLs are built with placeholders and replaced at container
+# start (docker/40-runtime-config.sh), so one image serves every install:
+#   PUBLIC_APP_URL       the "back to the app" link
+#   PUBLIC_API_BASE_URL  the API base URL shown on the public API pages
+#   PUBLIC_SITE_URL      canonical links and sitemap; Astro requires a valid
+#                        URL at build time, hence a placeholder host
 #
 FROM node:24.20.0-bookworm-slim AS build
 
@@ -19,7 +23,9 @@ RUN npm ci \
     --workspace=@caseai-connect/help \
     --include-workspace-root
 
-ENV PUBLIC_APP_URL=__PUBLIC_APP_URL__
+ENV PUBLIC_APP_URL=__PUBLIC_APP_URL__ \
+    PUBLIC_API_BASE_URL=__PUBLIC_API_BASE_URL__ \
+    PUBLIC_SITE_URL=https://public-site-url.placeholder.invalid
 
 RUN npx turbo run build --filter=@caseai-connect/help
 

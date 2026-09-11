@@ -54,6 +54,10 @@ draft: false # optional; drafts are hidden in production
   links and the sitemap. Falls back to `SITE_URL`.
 - `SITE_URL` / `SITE_TITLE` / `LOCALES` — see `src/consts.ts`.
 
+In the container image (`apps/help/Dockerfile`) the three `PUBLIC_*` variables are
+build-time placeholders replaced when the container starts, from its environment.
+One image serves every install; the Helm chart sets them from `urls`.
+
 ## Deployment
 
 Static output (`astro build` → `dist/`). Deploy the folder to any static host /
