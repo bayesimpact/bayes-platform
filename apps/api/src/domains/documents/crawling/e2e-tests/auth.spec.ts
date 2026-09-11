@@ -67,10 +67,10 @@ describe("Documents Crawling - Auth", () => {
     return { organization, project, document }
   }
 
-  describe("DocumentsRoutes.crawlUrl", () => {
+  describe("DocumentsRoutes.crawlUrlDocling", () => {
     const subject = async () =>
       request({
-        route: DocumentsRoutes.crawlUrl,
+        route: DocumentsRoutes.crawlUrlDocling,
         pathParams: removeNullish({ organizationId, projectId }),
         token: accessToken ?? undefined,
         request: { payload: { url: "https://example.com" } },

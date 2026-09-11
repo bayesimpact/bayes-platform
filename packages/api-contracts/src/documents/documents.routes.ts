@@ -57,9 +57,12 @@ export const DocumentsRoutes = {
     method: "post",
     path: "organizations/:organizationId/projects/:projectId/documents/:documentId/reprocess",
   }),
-  crawlUrl: defineRoute<ResponseData<CrawlUrlResponseDto>, RequestPayload<CrawlUrlRequestDto>>({
+  crawlUrlDocling: defineRoute<
+    ResponseData<CrawlUrlResponseDto>,
+    RequestPayload<CrawlUrlRequestDto>
+  >({
     method: "post",
-    path: "organizations/:organizationId/projects/:projectId/documents/crawl-url",
+    path: "organizations/:organizationId/projects/:projectId/documents/crawl-url-docling",
   }),
   reCrawlUrl: defineRoute<ResponseData<ReCrawlUrlResponseDto>>({
     method: "post",

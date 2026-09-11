@@ -1,13 +1,15 @@
 import { Inject, Injectable, Logger } from "@nestjs/common"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { SpiderClientService } from "@/external/spider/spider-client.service"
+import { DoclingCrawlerClientService } from "@/external/docling-crawler/docling-crawler-client.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "../documents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentEmbeddingStatusNotifierService } from "../embeddings/document-embedding-status-notifier.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { DoclingCrawlGenerationService } from "./docling-crawl-generation.service"
+import type { CrawlUrlDoclingJobPayload } from "./docling-crawling.types"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentCrawlProgressNotifierService } from "./document-crawl-progress-notifier.service"
-import type { CrawlUrlJobPayload } from "./url-crawling.types"
 import {
   WEB_SOURCE_EMBEDDINGS_BATCH_SERVICE,
   type WebSourceEmbeddingsBatchService,
@@ -16,21 +18,22 @@ import {
 const PROGRESS_LOG_INTERVAL = 25
 
 @Injectable()
-export class UrlCrawlingProcessorService {
-  private readonly logger = new Logger(UrlCrawlingProcessorService.name)
+export class DoclingCrawlingProcessorService {
+  private readonly logger = new Logger(DoclingCrawlingProcessorService.name)
 
   constructor(
-    private readonly spiderClientService: SpiderClientService,
+    private readonly doclingCrawlerClientService: DoclingCrawlerClientService,
     private readonly documentsService: DocumentsService,
     private readonly embeddingStatusNotifierService: DocumentEmbeddingStatusNotifierService,
     private readonly crawlProgressNotifierService: DocumentCrawlProgressNotifierService,
+    private readonly generationService: DoclingCrawlGenerationService,
     @Inject(WEB_SOURCE_EMBEDDINGS_BATCH_SERVICE)
     private readonly embeddingsBatchService: WebSourceEmbeddingsBatchService,
   ) {}
 
-  async processCrawlJob(payload: CrawlUrlJobPayload): Promise<void> {
+  async processCrawlJob(payload: CrawlUrlDoclingJobPayload): Promise<void> {
     const tag = `[doc:${payload.documentId}]`
-    this.logger.log(`${tag} Started crawl for ${payload.url}`)
+    this.logger.log(`${tag} Started Docling crawl for ${payload.url}`)
 
     const connectScope = {
       organizationId: payload.organizationId,
@@ -41,8 +44,10 @@ export class UrlCrawlingProcessorService {
     const startedAt = Date.now()
 
     try {
-      const pages = await this.spiderClientService.crawlUrl({
+      const pages = await this.doclingCrawlerClientService.crawlUrl({
         url: payload.url,
+        isCancelled: () =>
+          this.generationService.isSuperseded(payload.documentId, payload.generation),
         onPage: () => {
           pagesCrawled += 1
 
@@ -64,19 +69,27 @@ export class UrlCrawlingProcessorService {
         },
       })
 
-      const durationSeconds = ((Date.now() - startedAt) / 1000).toFixed(1)
-      this.logger.log(
-        `${tag} Crawl complete: ${pages.length} pages in ${durationSeconds}s — storing content`,
-      )
-
       const latestDoc = await this.documentsService.findById({
         connectScope,
         documentId: payload.documentId,
       })
-      if (latestDoc?.embeddingStatus === "failed") {
-        this.logger.log(`${tag} Crawl was cancelled — skipping content save`)
+      const isSuperseded = await this.generationService.isSuperseded(
+        payload.documentId,
+        payload.generation,
+      )
+      if (latestDoc?.embeddingStatus === "failed" || isSuperseded) {
+        this.logger.log(`${tag} Crawl was cancelled or superseded — skipping content save`)
         return
       }
+
+      if (pages.length === 0) {
+        throw new Error(`Docling crawl of ${payload.url} produced no pages`)
+      }
+
+      const durationSeconds = ((Date.now() - startedAt) / 1000).toFixed(1)
+      this.logger.log(
+        `${tag} Crawl complete: ${pages.length} pages in ${durationSeconds}s — storing content`,
+      )
 
       const contentPages = pages.map((page) => ({
         url: page.url,
@@ -108,19 +121,25 @@ export class UrlCrawlingProcessorService {
         (error as Error).stack,
       )
       try {
-        await this.documentsService.updateEmbeddingStatus({
-          connectScope,
-          documentId: payload.documentId,
-          status: "failed",
-        })
-        await this.embeddingStatusNotifierService.notifyEmbeddingStatusChanged({
-          documentId: payload.documentId,
-          organizationId: payload.organizationId,
-          projectId: payload.projectId,
-          embeddingStatus: "failed",
-          embeddingError: null,
-          updatedAt: Date.now(),
-        })
+        const isSuperseded = await this.generationService.isSuperseded(
+          payload.documentId,
+          payload.generation,
+        )
+        if (!isSuperseded) {
+          await this.documentsService.updateEmbeddingStatus({
+            connectScope,
+            documentId: payload.documentId,
+            status: "failed",
+          })
+          await this.embeddingStatusNotifierService.notifyEmbeddingStatusChanged({
+            documentId: payload.documentId,
+            organizationId: payload.organizationId,
+            projectId: payload.projectId,
+            embeddingStatus: "failed",
+            embeddingError: null,
+            updatedAt: Date.now(),
+          })
+        }
       } catch (notifyError) {
         this.logger.error(
           `${tag} Failed to mark document as failed: ${(notifyError as Error).message}`,
@@ -128,5 +147,41 @@ export class UrlCrawlingProcessorService {
       }
       throw error
     }
+  }
+
+  async markCrawlJobFailed(payload: CrawlUrlDoclingJobPayload, error: Error): Promise<void> {
+    const tag = `[doc:${payload.documentId}]`
+    const connectScope = {
+      organizationId: payload.organizationId,
+      projectId: payload.projectId,
+    }
+
+    const latestDoc = await this.documentsService.findById({
+      connectScope,
+      documentId: payload.documentId,
+    })
+    const isSuperseded = await this.generationService.isSuperseded(
+      payload.documentId,
+      payload.generation,
+    )
+    if (latestDoc?.embeddingStatus === "failed" || isSuperseded) {
+      return
+    }
+
+    this.logger.error(`${tag} Crawl job stalled: ${error.message}`, error.stack)
+
+    await this.documentsService.updateEmbeddingStatus({
+      connectScope,
+      documentId: payload.documentId,
+      status: "failed",
+    })
+    await this.embeddingStatusNotifierService.notifyEmbeddingStatusChanged({
+      documentId: payload.documentId,
+      organizationId: payload.organizationId,
+      projectId: payload.projectId,
+      embeddingStatus: "failed",
+      embeddingError: null,
+      updatedAt: Date.now(),
+    })
   }
 }

@@ -12,4 +12,8 @@ export const DOCUMENT_EMBEDDINGS_STUCK_SWEEP_SCHEDULER_ID = "document-embeddings
 export const DOCUMENT_EMBEDDINGS_STUCK_TIMEOUT_ERROR_MESSAGE =
   "Document embedding did not complete within the allowed time."
 
+/** User-visible reason when a web crawl stays pending past the stuck threshold. */
+export const DOCUMENT_EMBEDDINGS_STUCK_CRAWL_TIMEOUT_ERROR_MESSAGE =
+  "Website crawl did not complete within the allowed time."
+
 export const DOCUMENT_EMBEDDINGS_STUCK_SWEEP_BATCH_LIMIT = 500

@@ -1,3 +1,4 @@
+import { crawlUrlSchema } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Dialog,
@@ -7,21 +8,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@caseai-connect/ui/shad/dialog"
-import { Field, FieldGroup, FieldLabel } from "@caseai-connect/ui/shad/field"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@caseai-connect/ui/shad/form"
 import { Input } from "@caseai-connect/ui/shad/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { GlobeIcon, Loader2Icon } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
-import { z } from "zod"
+import type { z } from "zod"
 import { useAppDispatch } from "@/common/store/hooks"
-import { crawlUrl } from "../../documents.thunks"
-
-const crawlUrlSchema = z.object({
-  url: z.string().url(),
-  name: z.string(),
-})
+import { crawlUrlDocling } from "../../documents.thunks"
 
 type CrawlUrlFormData = z.infer<typeof crawlUrlSchema>
 
@@ -47,56 +50,60 @@ function CrawlUrlForm({ onSuccess }: { onSuccess: () => void }) {
   const dispatch = useAppDispatch()
   const { t } = useTranslation("document")
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<CrawlUrlFormData>({
+  const form = useForm<CrawlUrlFormData>({
     resolver: zodResolver(crawlUrlSchema),
     defaultValues: { url: "", name: "" },
   })
+  const { control, handleSubmit, formState } = form
 
   const onSubmit = async (data: CrawlUrlFormData) => {
-    await dispatch(crawlUrl({ url: data.url, name: data.name.trim() || undefined })).unwrap()
+    const payload = { url: data.url, name: data.name || undefined }
+    await dispatch(crawlUrlDocling(payload)).unwrap()
     onSuccess()
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <DialogHeader>
-        <DialogTitle>{t("document:crawl.title")}</DialogTitle>
-        <DialogDescription>{t("document:crawl.description")}</DialogDescription>
-      </DialogHeader>
-      <div className="flex flex-col gap-4 pt-4">
-        <FieldGroup>
-          <Field>
-            <FieldLabel htmlFor="crawl-url">{t("document:crawl.urlLabel")}</FieldLabel>
-            <Input
-              id="crawl-url"
-              type="url"
-              placeholder="https://example.com"
-              {...register("url")}
-              aria-invalid={errors.url ? "true" : "false"}
-            />
-            {errors.url && <p className="text-sm text-destructive">{errors.url.message}</p>}
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="crawl-name">{t("document:crawl.nameLabel")}</FieldLabel>
-            <Input
-              id="crawl-name"
-              type="text"
-              placeholder={t("document:crawl.namePlaceholder")}
-              {...register("name")}
-            />
-          </Field>
-        </FieldGroup>
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting && <Loader2Icon className="size-4 animate-spin" />}
-            {t("document:crawl.submit")}
-          </Button>
+    <Form {...form}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <DialogHeader>
+          <DialogTitle>{t("document:crawl.title")}</DialogTitle>
+          <DialogDescription>{t("document:crawl.description")}</DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col gap-4 pt-4">
+          <FormField
+            control={control}
+            name="url"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("document:crawl.urlLabel")}</FormLabel>
+                <FormControl>
+                  <Input type="url" placeholder="https://example.com" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("document:crawl.nameLabel")}</FormLabel>
+                <FormControl>
+                  <Input type="text" placeholder={t("document:crawl.namePlaceholder")} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div className="flex justify-end">
+            <Button type="submit" disabled={formState.isSubmitting}>
+              {formState.isSubmitting && <Loader2Icon className="size-4 animate-spin" />}
+              {t("document:crawl.submit")}
+            </Button>
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </Form>
   )
 }

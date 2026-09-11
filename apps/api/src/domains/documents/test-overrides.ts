@@ -1,6 +1,9 @@
 import type { TestingModuleBuilder } from "@nestjs/testing"
 import { setupUserGuardForTesting } from "../../../test/e2e.helpers"
-import { URL_CRAWLING_BATCH_SERVICE } from "./crawling/url-crawling-batch.interface"
+import {
+  DOCLING_CRAWLING_BATCH_SERVICE,
+  type DoclingCrawlingBatchService,
+} from "./crawling/docling-crawling-batch.interface"
 import { DocumentEmbeddingStatusNotifierService } from "./embeddings/document-embedding-status-notifier.service"
 import { DOCUMENT_EMBEDDINGS_BATCH_SERVICE } from "./embeddings/document-embeddings-batch.interface"
 
@@ -29,16 +32,19 @@ export function withDocumentAuthAndEmbeddingsMocks(
   return setupUserGuardForTesting(withDocumentEmbeddingsBatchServiceMock(moduleBuilder), getAuth0Id)
 }
 
-function createUrlCrawlingBatchServiceMock() {
-  return { enqueueCrawlUrl: jest.fn().mockResolvedValue(undefined) }
+function createDoclingCrawlingBatchServiceMock(): jest.Mocked<DoclingCrawlingBatchService> {
+  return {
+    enqueueCrawlUrl: jest.fn().mockResolvedValue(undefined),
+    cancelCrawlUrl: jest.fn().mockResolvedValue(undefined),
+  }
 }
 
-export function withUrlCrawlingBatchServiceMock(
+export function withDoclingCrawlingBatchServiceMock(
   moduleBuilder: TestingModuleBuilder,
 ): TestingModuleBuilder {
   return moduleBuilder
-    .overrideProvider(URL_CRAWLING_BATCH_SERVICE)
-    .useValue(createUrlCrawlingBatchServiceMock())
+    .overrideProvider(DOCLING_CRAWLING_BATCH_SERVICE)
+    .useValue(createDoclingCrawlingBatchServiceMock())
 }
 
 export function withDocumentEmbeddingStatusNotifierMock(
@@ -54,7 +60,7 @@ export function withCrawlingAndAuthMocks(
   getAuth0Id: () => string,
 ): TestingModuleBuilder {
   return setupUserGuardForTesting(
-    withUrlCrawlingBatchServiceMock(
+    withDoclingCrawlingBatchServiceMock(
       withDocumentEmbeddingsBatchServiceMock(
         withDocumentEmbeddingStatusNotifierMock(moduleBuilder),
       ),

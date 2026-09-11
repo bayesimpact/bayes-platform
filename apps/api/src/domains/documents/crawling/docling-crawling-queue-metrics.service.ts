@@ -2,13 +2,13 @@ import { InjectQueue } from "@nestjs/bullmq"
 import { Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from "@nestjs/common"
 import { metrics } from "@opentelemetry/api"
 import type { Queue } from "bullmq"
-import { URL_CRAWLING_QUEUE_NAME } from "./url-crawling.constants"
+import { DOCLING_CRAWLING_QUEUE_NAME } from "./docling-crawling.constants"
 
 const QUEUE_METRICS_INTERVAL_MS = 30_000
 
 @Injectable()
-export class UrlCrawlingQueueMetricsService implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = new Logger(UrlCrawlingQueueMetricsService.name)
+export class DoclingCrawlingQueueMetricsService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(DoclingCrawlingQueueMetricsService.name)
   private intervalHandle: NodeJS.Timeout | null = null
 
   private readonly meter = metrics.getMeter("bullmq")
@@ -28,10 +28,10 @@ export class UrlCrawlingQueueMetricsService implements OnModuleInit, OnModuleDes
   private lastCounts: Record<string, number> = { waiting: 0, active: 0, completed: 0, failed: 0 }
 
   constructor(
-    @InjectQueue(URL_CRAWLING_QUEUE_NAME)
-    private readonly urlCrawlingQueue: Queue,
+    @InjectQueue(DOCLING_CRAWLING_QUEUE_NAME)
+    private readonly doclingCrawlingQueue: Queue,
   ) {
-    const queueAttr = { queue: URL_CRAWLING_QUEUE_NAME }
+    const queueAttr = { queue: DOCLING_CRAWLING_QUEUE_NAME }
     this.waitingGauge.addCallback((result) =>
       result.observe(this.lastCounts.waiting ?? 0, queueAttr),
     )
@@ -57,9 +57,9 @@ export class UrlCrawlingQueueMetricsService implements OnModuleInit, OnModuleDes
 
   private async collectQueueMetrics(): Promise<void> {
     try {
-      this.lastCounts = await this.urlCrawlingQueue.getJobCounts()
+      this.lastCounts = await this.doclingCrawlingQueue.getJobCounts()
       this.logger.debug(
-        `queue_metrics queue=${URL_CRAWLING_QUEUE_NAME} waiting=${this.lastCounts.waiting} active=${this.lastCounts.active} completed=${this.lastCounts.completed} failed=${this.lastCounts.failed}`,
+        `queue_metrics queue=${DOCLING_CRAWLING_QUEUE_NAME} waiting=${this.lastCounts.waiting} active=${this.lastCounts.active} completed=${this.lastCounts.completed} failed=${this.lastCounts.failed}`,
       )
     } catch (error) {
       this.logger.error(
