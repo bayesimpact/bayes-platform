@@ -12,7 +12,7 @@ global:
 
 urls:
   api: https://staging.example.org
-  web: https://staging.example.org/app
+  web: https://staging.example.org
   webEmbed: https://embed.staging.example.org
   help: https://help.staging.example.org
 

@@ -2,8 +2,8 @@ import type { ResourceDto } from "@caseai-connect/api-contracts"
 
 /**
  * Computes the link surfaced for a resource. Typed-URL resources use their url directly; uploaded
- * files use a relative path to the public download endpoint, which the frontend absolutizes against
- * the API base URL it already knows.
+ * files use a path relative to the private API base URL (`<origin>/api`), which the web front and
+ * the embed widget absolutize against the API base URL they already know.
  */
 export function buildResourceLink({
   resource,

@@ -7,6 +7,7 @@ import type { ConfigService } from "@nestjs/config"
 import { v4 as uuidv4 } from "uuid"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { MulterFile } from "@/common/types"
+import { PRIVATE_API_PATH } from "@/config/api-prefix"
 import type { IFileStorage } from "./file-storage.interface"
 
 @Injectable()
@@ -31,7 +32,7 @@ export class LocalStorageService implements IFileStorage {
   }): Promise<string> {
     const token = uuidv4()
     this.pendingUploads.set(token, { storagePath, expiresAt: Date.now() + expiresInSeconds * 1000 })
-    return `${this.baseUrl}/local-presign-upload/${token}`
+    return `${this.baseUrl}${PRIVATE_API_PATH}/local-presign-upload/${token}`
   }
 
   async handleLocalUpload(token: string, fileBuffer: Buffer): Promise<void> {
@@ -51,7 +52,7 @@ export class LocalStorageService implements IFileStorage {
   }
 
   getTemporaryUrl(storageRelativePath: string): Promise<string> {
-    return Promise.resolve(`${this.baseUrl}/documents/${storageRelativePath}`)
+    return Promise.resolve(`${this.baseUrl}${PRIVATE_API_PATH}/documents/${storageRelativePath}`)
   }
 
   async readFile(storageRelativePath: string): Promise<Buffer> {

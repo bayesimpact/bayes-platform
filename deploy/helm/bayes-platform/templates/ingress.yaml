@@ -1,7 +1,7 @@
 {{- if .Values.ingress.enabled }}
 {{- $root := . }}
 {{- $rules := list }}
-{{- /* The api host also serves the web front under /app. */}}
+{{- /* The api host serves the web front at /, the private API under /api and the public API under /public. */}}
 {{- if .Values.api.enabled }}
   {{- $rules = append $rules (dict "component" "api" "url" .Values.urls.api "port" .Values.api.port "annotations" .Values.ingress.apiAnnotations) }}
 {{- end }}

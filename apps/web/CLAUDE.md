@@ -6,7 +6,9 @@
 
 Vite inlines `VITE_*` values at build time. In the `app-runtime` Docker image the API injects `window.__CONFIG__` into `index.html` from its environment, and `runtimeConfig` prefers those values. A direct `import.meta.env` read would ignore them. New settings go in three places: the `RuntimeConfig` type and its build-time fallback, the `WEB_*` mapping in `apps/api/src/common/web-app/web-app-config.ts`, and both `.env-example` files.
 
-URLs that point back to the SPA (Auth0 redirects, `public/` assets) go through `getAppUrl()` and `publicAssetUrl()`: the SPA is served under `/app` by the API and at `/` by static hosting.
+URLs that point back to the SPA (Auth0 redirects, `public/` assets) go through `getAppUrl()` and `publicAssetUrl()`, which follow the build's base path (`/` by default).
+
+On one origin the SPA is served at `/`, the private API under `/api` (`runtimeConfig.apiUrl`, `/api` on the page origin by default) and the public chat API under `/public`. No client route may start with `/api` or `/public`: `src/common/routes/reserved-paths.spec.ts` keeps it true.
 
 ## Redux & Feature Architecture
 

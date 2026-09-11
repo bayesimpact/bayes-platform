@@ -50,7 +50,7 @@ const router = () =>
         element: <NotFoundRoute />,
       },
     ],
-    // Served under a sub-path by the API (`/app`), at the root by static hosting.
+    // `/` unless the build sets VITE_BASE_PATH (see APP_BASE_PATH).
     { basename: APP_BASE_PATH.replace(/\/$/, "") || undefined },
   )
 

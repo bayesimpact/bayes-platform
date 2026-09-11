@@ -75,10 +75,10 @@ RUN cd packages/api-contracts && npm run build
 #
 # 🌐 Web front build (only used by the app-runtime target)
 #
-# Builds apps/web with `/app/` as public path: the API serves the result under
-# /app (see apps/api/src/common/web-app). No VITE_* tenant value is baked in:
-# the API injects the runtime configuration into index.html from its own
-# environment, so one image serves every tenant.
+# Builds apps/web with `/` as public path: the API serves the result at the
+# root of its origin (see apps/api/src/common/web-app). No VITE_* tenant value
+# is baked in: the API injects the runtime configuration into index.html from
+# its own environment, so one image serves every tenant.
 #
 FROM node:24.20.0-bookworm-slim AS web-build
 
@@ -99,7 +99,6 @@ RUN npm ci \
 COPY apps/web ./apps/web
 COPY ./packages ./packages
 
-ENV VITE_BASE_PATH=/app/
 RUN cd apps/web && npm run build
 
 #
@@ -129,8 +128,9 @@ CMD ["node", "--enable-source-maps", "/app/apps/api/dist/main.js"]
 #
 # 🚀 App Runtime: API + web front in one image
 #
-# Same process as api-runtime, plus the built web front served under /app.
-# WEB_APP_DIST_DIR switches the serving on; the API image stays API-only.
+# Same process as api-runtime, plus the built web front served at /. The API
+# keeps /api and /public. WEB_APP_DIST_DIR switches the serving on; the API
+# image stays API-only.
 #
 FROM api-runtime AS app-runtime
 

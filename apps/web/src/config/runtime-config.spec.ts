@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest"
-import { getAppPathname, mergeRuntimeConfig, type RuntimeConfig, toAppHref } from "./runtime-config"
+import {
+  getAppPathname,
+  mergeRuntimeConfig,
+  type RuntimeConfig,
+  resolveApiUrl,
+  toAppHref,
+} from "./runtime-config"
 
 const buildTime: RuntimeConfig = {
   apiUrl: "https://api.build",
@@ -60,5 +66,23 @@ describe("getAppPathname", () => {
 
   it("distinguishes the base path from a route of the same name", () => {
     expect(getAppPathname("/app/app/o/1", "/app/")).toBe("/app/o/1")
+  })
+})
+
+describe("resolveApiUrl", () => {
+  const origin = "https://platform.example.org"
+
+  it("resolves the default /api against the page origin", () => {
+    expect(resolveApiUrl("/api", origin)).toBe("https://platform.example.org/api")
+  })
+
+  it("treats an empty value as the default", () => {
+    expect(resolveApiUrl("", origin)).toBe("https://platform.example.org/api")
+  })
+
+  it("keeps an absolute URL, without a trailing slash", () => {
+    expect(resolveApiUrl("https://api.example.org/api/", origin)).toBe(
+      "https://api.example.org/api",
+    )
   })
 })

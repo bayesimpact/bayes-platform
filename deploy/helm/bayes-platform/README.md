@@ -4,7 +4,7 @@ This chart installs the full platform on a Kubernetes cluster:
 
 | Component | What it is | Image |
 |---|---|---|
-| api | NestJS API, and the web front it serves under `/app` | `app` |
+| api | NestJS API (`/api`, `/public`), and the web front it serves at `/` | `app` |
 | cpu-workers | async jobs (extraction, crawling, evaluations) | `cpu-workers` |
 | gpu-workers | document embeddings with Docling on one GPU (optional) | `gpu-workers` |
 | pdf-converter | PDF to page images for image-only LLMs (GCS storage only) | `pdf-converter` |
@@ -61,7 +61,7 @@ Push them to your registry, then set `global.image.registry` and `global.image.t
 
 The GPU workers image is close to 10 GB (Torch with CUDA, Docling). Build it only if you enable `gpuWorkers`.
 
-The web front is inside the `app` image: the API serves it under `/app` and hands the browser its configuration (`window.__CONFIG__`) from the `WEB_*` environment variables, so the same image works for every install. `web-embed` and `help` are static sites served by nginx, configured the same way when their container starts.
+The web front is inside the `app` image: the API serves it at `/` (its own routes live under `/api` and `/public`) and hands the browser its configuration (`window.__CONFIG__`) from the `WEB_*` environment variables, so the same image works for every install. `web-embed` and `help` are static sites served by nginx, configured the same way when their container starts.
 
 ## Secrets
 
@@ -97,8 +97,8 @@ helm upgrade --install platform deploy/helm/bayes-platform \
 
 ```yaml
 urls:
-  api: https://platform.example.org        # the API, and the web front under /app
-  web: https://platform.example.org/app
+  api: https://platform.example.org        # the API (/api, /public), and the web front at /
+  web: https://platform.example.org
   webEmbed: https://embed.platform.example.org
   help: https://help.platform.example.org
 

@@ -13,6 +13,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) MCP servers: connect servers that use OAuth by authorizing access in the browser, alongside API keys.
 
 ### Changed
+- Single-origin deployments: the web app opens at the root of the domain and the API answers under /api.
 
 ### Fixed
 - Navigation: opening a workspace, a new project, another agent or session now lands on the right page when the platform is served under a sub-path.

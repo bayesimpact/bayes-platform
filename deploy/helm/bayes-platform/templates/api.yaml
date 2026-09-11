@@ -43,7 +43,7 @@ spec:
           env:
             - name: PORT
               value: {{ .Values.api.port | quote }}
-            # Web front served under /app: its browser configuration.
+            # Web front served at /: its browser configuration.
             - name: WEB_AGENT_EMBED_URL
               value: {{ .Values.urls.webEmbed | quote }}
             - name: WEB_HELP_CENTER_URL
@@ -59,18 +59,20 @@ spec:
             {{- end }}
           envFrom:
             {{- include "bayes-platform.sharedEnvFrom" . | nindent 12 }}
-          # The API has no health route yet: TCP probes on the listening port.
           startupProbe:
-            tcpSocket:
+            httpGet:
+              path: /api/healthz
               port: http
             periodSeconds: 5
             failureThreshold: 36
           livenessProbe:
-            tcpSocket:
+            httpGet:
+              path: /api/healthz
               port: http
             periodSeconds: 30
           readinessProbe:
-            tcpSocket:
+            httpGet:
+              path: /api/healthz
               port: http
             periodSeconds: 10
           resources:

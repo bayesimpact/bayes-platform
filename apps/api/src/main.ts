@@ -10,7 +10,8 @@ import { registerBullBoardOpenIdConnect } from "./common/bull-board/bull-board-o
 import { StackTraceLoggingExceptionFilter } from "./common/filters/stack-trace-logging-exception.filter"
 import { getLogLevels, StructuredLogger } from "./common/logger/structured-logger"
 import { enableDbListeners } from "./common/sse/postgres-status-stream.service"
-import { registerWebAppStaticAssets } from "./common/web-app/web-app.module"
+import { registerWebApp } from "./common/web-app/web-app.middleware"
+import { configureGlobalPrefix } from "./config/api-prefix"
 import { buildCorsOptionsDelegate, parseFrontendUrls } from "./config/cors"
 import { BuiltInMcpServersService } from "./domains/mcp-servers/built-in/built-in-mcp-servers.service"
 
@@ -30,9 +31,11 @@ async function bootstrap() {
     // Behind Cloud Run/reverse proxies, trust X-Forwarded-* so OIDC/cookies see HTTPS correctly.
     app.set("trust proxy", true)
   }
+  // Private API under /api, public chat API at /public (see config/api-prefix).
+  configureGlobalPrefix(app)
   registerBullBoardOpenIdConnect(app)
-  // Web front served from this process in the app-runtime image (no-op otherwise).
-  registerWebAppStaticAssets(app)
+  // Web front served at / from this process in the app-runtime image (no-op otherwise).
+  registerWebApp(app)
   app.useBodyParser("json", { limit: "500kb" })
   app.useGlobalPipes(
     new ValidationPipe({
