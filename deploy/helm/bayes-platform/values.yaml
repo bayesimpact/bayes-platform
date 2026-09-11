@@ -236,6 +236,12 @@ gpuWorkers:
     # Set to the accelerator label of your GPU node pool, for example on GKE
     # cloud.google.com/gke-accelerator: nvidia-l4
     nodeSelector: {}
+    # Where the cluster mounts the NVIDIA driver libraries in the container,
+    # when it does not put them on the loader path itself. GKE mounts them at
+    # /usr/local/nvidia/lib64 and needs this, otherwise Torch runs on the CPU.
+    # Clusters with the NVIDIA container toolkit or GPU Operator (EKS, AKS,
+    # on-prem) need nothing: leave empty.
+    driverLibraryPath: ""
   docling:
     timeoutMs: "600000"
     healthCheckTimeoutMs: "30000"
