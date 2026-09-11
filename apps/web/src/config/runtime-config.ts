@@ -12,7 +12,10 @@
  * `import.meta.env.VITE_*` elsewhere: the value would be frozen at build time.
  */
 export type RuntimeConfig = {
-  /** Base URL of the API. Empty string means same origin as the page. */
+  /**
+   * Base URL of the private API, without a trailing slash. A path such as
+   * `/api` (the default) is resolved against the page origin.
+   */
   apiUrl: string
   apiTimeoutMs?: string
   appTitle?: string
@@ -39,10 +42,13 @@ declare global {
   }
 }
 
+/** Where the API serves its private routes when nothing else is configured. */
+export const DEFAULT_API_URL = "/api"
+
 function readBuildTimeConfig(): RuntimeConfig {
   const env = import.meta.env
   return {
-    apiUrl: env.VITE_API_URL ?? "",
+    apiUrl: env.VITE_API_URL ?? DEFAULT_API_URL,
     apiTimeoutMs: env.VITE_API_TIMEOUT_MS,
     appTitle: env.VITE_APP_TITLE,
     agentEmbedUrl: env.VITE_AGENT_EMBED_URL,
@@ -76,15 +82,34 @@ export function mergeRuntimeConfig(
   return merged
 }
 
-export const runtimeConfig: RuntimeConfig = mergeRuntimeConfig(
-  readBuildTimeConfig(),
-  typeof window === "undefined" ? undefined : window.__CONFIG__,
-)
+/**
+ * Makes the API base URL absolute and free of a trailing slash. `/api` (the
+ * default, and what the API injects when it serves the SPA) becomes
+ * `<origin>/api`; a full URL (static hosting talking to another host) is kept.
+ */
+export function resolveApiUrl(apiUrl: string, origin: string): string {
+  const trimmed = apiUrl.trim().replace(/\/+$/, "")
+  if (trimmed === "") return `${origin}${DEFAULT_API_URL}`
+  if (trimmed.startsWith("/")) return `${origin}${trimmed}`
+  return trimmed
+}
+
+function buildRuntimeConfig(): RuntimeConfig {
+  const merged = mergeRuntimeConfig(
+    readBuildTimeConfig(),
+    typeof window === "undefined" ? undefined : window.__CONFIG__,
+  )
+  if (typeof window === "undefined") return merged
+  return { ...merged, apiUrl: resolveApiUrl(merged.apiUrl, window.location.origin) }
+}
+
+export const runtimeConfig: RuntimeConfig = buildRuntimeConfig()
 
 /**
- * Public path the SPA is served from, with a trailing slash: `/` for the static
- * hosting builds, `/app/` when the API serves it. Fixed at build time by Vite
- * (`base` in vite.config.ts), this is a property of the image, not of the tenant.
+ * Public path the SPA is served from, with a trailing slash: `/` both for the
+ * static hosting builds and when the API serves it. Fixed at build time by Vite
+ * (`base` in vite.config.ts, `VITE_BASE_PATH`) for the rare install that mounts
+ * the front under a sub-path behind its own proxy.
  */
 export const APP_BASE_PATH: string = import.meta.env.BASE_URL
 

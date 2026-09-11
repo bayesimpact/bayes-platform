@@ -1,6 +1,7 @@
 import type { RequestHandler } from "express"
 import type { ConfigParams } from "express-openid-connect"
 import { requiresAuth } from "express-openid-connect"
+import { PRIVATE_API_PATH } from "@/config/api-prefix"
 
 /** Public URL of the API (scheme + host + optional port), no trailing slash. Used for OIDC redirects. */
 export function normalizedBullBoardPublicBaseUrl(): string {
@@ -11,14 +12,18 @@ export function normalizedBullBoardPublicBaseUrl(): string {
   return raw.replace(/\/+$/u, "")
 }
 
-/** Path prefix where Bull Board UI is mounted (no leading/trailing slash). */
+/**
+ * Route where Bull Board is mounted, relative to the private API prefix (no
+ * leading/trailing slash). Nest applies the global prefix to it.
+ */
 export function normalizedBullBoardRoute(): string {
   const raw = process.env.BULL_BOARD_ROUTE ?? "internal/bull-board"
   return raw.replace(/^\/+/u, "").replace(/\/+$/u, "")
 }
 
+/** Absolute path of the dashboard: `/api/<BULL_BOARD_ROUTE>`. The OIDC routes live under it. */
 export function bullBoardMountPath(): string {
-  return `/${normalizedBullBoardRoute()}`
+  return `${PRIVATE_API_PATH}/${normalizedBullBoardRoute()}`
 }
 
 export function normalizedBullBoardAllowedEmailDomain(): string | undefined {

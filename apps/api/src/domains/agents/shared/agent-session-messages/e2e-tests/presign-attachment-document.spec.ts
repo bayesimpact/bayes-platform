@@ -97,7 +97,7 @@ describe("AgentSessionMessagesRoutes.presignAttachmentDocument", () => {
 
     expectResponse(response, 201)
     expect(response.body.data.attachmentDocumentId).toBeDefined()
-    expect(response.body.data.uploadUrl).toContain("/local-presign-upload/")
+    expect(response.body.data.uploadUrl).toContain("/api/local-presign-upload/")
 
     const attachmentDocument = await repositories.agentMessageAttachmentDocumentRepository.findOne({
       where: { id: response.body.data.attachmentDocumentId },

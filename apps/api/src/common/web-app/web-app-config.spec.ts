@@ -24,14 +24,14 @@ describe("getWebAppSettings", () => {
 })
 
 describe("buildWebAppRuntimeConfig", () => {
-  it("defaults to the same origin and the Auth0 tenant the API validates", () => {
+  it("defaults to /api on the page origin and the Auth0 tenant the API validates", () => {
     const config = buildWebAppRuntimeConfig({
       AUTH0_ISSUER_URL: "https://tenant.eu.auth0.com/",
       AUTH0_AUDIENCE: "https://tenant.eu.auth0.com/api/v2/",
       AUTH0_ORGANIZATION_ID: "org_123",
     })
     expect(config).toEqual({
-      apiUrl: "",
+      apiUrl: "/api",
       auth0Domain: "tenant.eu.auth0.com",
       auth0Audience: "https://tenant.eu.auth0.com/api/v2/",
       auth0OrganizationId: "org_123",

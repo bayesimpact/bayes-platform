@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs"
 import { join } from "node:path"
+import { PRIVATE_API_PATH } from "@/config/api-prefix"
 
 /**
  * The web front (apps/web) served by the API, from the `app-runtime` image.
@@ -8,18 +9,14 @@ import { join } from "node:path"
  * image sets it; the plain `api-runtime` image and local development do not,
  * so the API stays API-only there.
  *
- * The SPA lives under /app. The API routes stay at the root, so a browser
- * reload on a SPA route never hits an API route by accident.
+ * The SPA lives at `/`. The private API lives under `/api` and the public API
+ * under `/public`, so a browser reload on a SPA route never hits an API route
+ * by accident, and an unknown API path gets a 404 rather than the SPA.
  */
-export const WEB_APP_PREFIX = "/app"
-
 export type WebAppSettings = {
   distDir: string
   indexHtmlPath: string
 }
-
-/** DI token of the WebAppSettings value (a plain object, so no class to inject by type). */
-export const WEB_APP_SETTINGS = "WEB_APP_SETTINGS"
 
 export function getWebAppSettings(env: NodeJS.ProcessEnv = process.env): WebAppSettings | null {
   const distDir = env.WEB_APP_DIST_DIR?.trim()
@@ -59,17 +56,18 @@ const ENV_TO_CONFIG_KEY: Record<string, string> = {
 /**
  * Builds the browser configuration from the environment.
  *
- * Defaults keep the Helm values short: the API URL is the page origin (same
- * image, same host), and the Auth0 tenant, audience and organization are
- * those the API already validates tokens against. The SPA client id has no
- * API-side counterpart (AUTH0_CLIENT_ID is a different application), so
- * WEB_AUTH0_CLIENT_ID is always required.
+ * Defaults keep the Helm values short: the API URL is `/api` on the page
+ * origin (same image, same host; the SPA resolves it against its origin), and
+ * the Auth0 tenant, audience and organization are those the API already
+ * validates tokens against. The SPA client id has no API-side counterpart
+ * (AUTH0_CLIENT_ID is a different application), so WEB_AUTH0_CLIENT_ID is
+ * always required.
  */
 export function buildWebAppRuntimeConfig(
   env: NodeJS.ProcessEnv = process.env,
 ): WebAppRuntimeConfig {
   const config: WebAppRuntimeConfig = {
-    apiUrl: "",
+    apiUrl: PRIVATE_API_PATH,
     auth0Domain: auth0DomainFromIssuerUrl(env.AUTH0_ISSUER_URL) ?? "",
     auth0Audience: env.AUTH0_AUDIENCE ?? "",
     auth0OrganizationId: env.AUTH0_ORGANIZATION_ID ?? "",

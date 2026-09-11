@@ -15,14 +15,15 @@ global:
   imagePullSecrets: []
 
 # Public URLs. The API and the front ends need each other's addresses.
-# The web front is served by the API (app image) under /app on the api URL:
-# `web` is the address users open, `api` the origin the browser calls. Keep
-# them on the same host unless you serve the front from somewhere else.
-# The addresses the platform derives from `web` (the OAuth callback of MCP
-# servers, for example) follow it: no other URL setting is needed.
+# One origin serves three surfaces: the web front at /, the private API under
+# /api and the public chat API under /public. `web` is the address users open,
+# `api` the origin the browser calls: the same value unless you serve the
+# front from somewhere else. The addresses the platform derives from `web`
+# (the OAuth callback of MCP servers, for example) follow it: no other URL
+# setting is needed.
 urls:
   api: https://platform.example.org
-  web: https://platform.example.org/app
+  web: https://platform.example.org
   webEmbed: https://embed.platform.example.org
   help: https://help.platform.example.org
 
@@ -172,7 +173,7 @@ storage:
 # ---------------------------------------------------------------------------
 # Components
 # ---------------------------------------------------------------------------
-# The API, and the web front it serves under /app (image target app-runtime).
+# The API, and the web front it serves at / (image target app-runtime).
 api:
   enabled: true
   image: app
@@ -271,7 +272,7 @@ pdfConverter:
 # Runtime configuration of the web front, handed to the browser by the API as
 # window.__CONFIG__ (apps/api/src/common/web-app). The API fills the Auth0
 # domain, audience and organization from its own AUTH0_* settings, and the API
-# URL is the page origin. WEB_AGENT_EMBED_URL and WEB_HELP_CENTER_URL come from
+# URL is /api on the page origin. WEB_AGENT_EMBED_URL and WEB_HELP_CENTER_URL come from
 # `urls`. WEB_AUTH0_CLIENT_ID is the SPA application: always required.
 web:
   env:

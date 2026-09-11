@@ -28,7 +28,7 @@ Leaving `DIAGNOSTICS_SECRET` unset in production effectively disables the endpoi
 ## Usage
 
 ```bash
-curl -i "http://localhost:3000/diagnostics/$DIAGNOSTICS_SECRET/test-error"
+curl -i "http://localhost:3000/api/diagnostics/$DIAGNOSTICS_SECRET/test-error"
 ```
 
 Expected: HTTP 500, plus one new error in whichever reporter the environment is wired to.

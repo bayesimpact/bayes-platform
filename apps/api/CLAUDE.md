@@ -114,7 +114,7 @@ export const MyRoutes = {
 #### Step 2: Use Routes in Controller
 
 ```typescript
-@Controller() // No prefix - paths come from route definitions
+@Controller() // No prefix - paths come from route definitions; Nest adds the global `api` prefix (src/config/api-prefix.ts)
 export class MyController {
   @Get(MyRoutes.getAll.path)
   async list(): Promise<typeof MyRoutes.getAll.response> {

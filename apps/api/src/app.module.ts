@@ -5,9 +5,9 @@ import { TypeOrmModule } from "@nestjs/typeorm"
 import { getBullMqConnection } from "./bullmq.config"
 import { BullBoardAdminModule } from "./common/bull-board/bull-board-admin.module"
 import { DiagnosticsModule } from "./common/diagnostics/diagnostics.module"
+import { HealthModule } from "./common/health/health.module"
 import { RequestLoggerMiddleware } from "./common/middleware/request-logger.middleware"
 import { TransactionModule } from "./common/transaction/transaction.module"
-import { WebAppModule } from "./common/web-app/web-app.module"
 import typeorm from "./config/typeorm"
 import { AgentsModule } from "./domains/agents/agents.module"
 import { ConversationAgentSessionsModule } from "./domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
@@ -51,7 +51,6 @@ import { UsersModule } from "./domains/users/users.module"
       useFactory: async (configService: ConfigService) => configService.get("typeorm")(),
     }),
     TransactionModule,
-    WebAppModule.register(),
     AgentEmbedConfigsManagementModule,
     AgentMessageFeedbackModule,
     AgentsAnalyticsModule,
@@ -61,6 +60,7 @@ import { UsersModule } from "./domains/users/users.module"
     BackofficeModule,
     ConversationAgentSessionsModule,
     DiagnosticsModule,
+    HealthModule,
     DocumentsModule,
     DocumentTagsModule,
     EvaluationsModule,
