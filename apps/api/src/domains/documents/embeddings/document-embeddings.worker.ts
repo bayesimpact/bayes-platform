@@ -6,7 +6,12 @@ import type { CreateDocumentEmbeddingsJobPayload } from "./document-embeddings.t
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentEmbeddingsProcessorService } from "./document-embeddings-processor.service"
 
-@Processor(DOCUMENT_EMBEDDINGS_QUEUE_NAME)
+@Processor(DOCUMENT_EMBEDDINGS_QUEUE_NAME, {
+  // A job interrupted by a rollout goes back to the queue when its lock
+  // expires. Two rollouts in a row (chart, then image tag) must not fail it:
+  // the default of 1 did.
+  maxStalledCount: 3,
+})
 export class DocumentEmbeddingsWorker extends WorkerHost {
   private readonly logger = new Logger(DocumentEmbeddingsWorker.name)
 
