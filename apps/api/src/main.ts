@@ -1,7 +1,7 @@
 import "./external/llm/open-telemetry-init" // must be first — patches http/pg before they are imported
 import { readFileSync } from "node:fs"
 import { join } from "node:path"
-import { Logger, ValidationPipe } from "@nestjs/common"
+import { type INestApplication, Logger, ValidationPipe } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS
 import { NestExpressApplication } from "@nestjs/platform-express"
@@ -17,6 +17,51 @@ import { BuiltInMcpServersService } from "./domains/mcp-servers/built-in/built-i
 
 const isProduction = process.env.NODE_ENV === "production"
 const logger = new Logger("Bootstrap")
+// Below the termination grace of the Helm chart (30 s). Cloud Run gives 10 s:
+// set API_SHUTDOWN_TIMEOUT_MS lower there.
+const DEFAULT_API_SHUTDOWN_TIMEOUT_MS = 25_000
+
+function getApiShutdownTimeoutMs(): number {
+  const timeoutValue = process.env.API_SHUTDOWN_TIMEOUT_MS
+  if (!timeoutValue) {
+    return DEFAULT_API_SHUTDOWN_TIMEOUT_MS
+  }
+  const parsedTimeout = Number.parseInt(timeoutValue, 10)
+  return Number.isNaN(parsedTimeout) || parsedTimeout < 0
+    ? DEFAULT_API_SHUTDOWN_TIMEOUT_MS
+    : parsedTimeout
+}
+
+/**
+ * On SIGTERM (a rollout, a scale down), stop accepting connections and let the
+ * requests in flight finish: app.close() closes the HTTP server, then runs the
+ * shutdown hooks (database pool, queues). Streams (SSE) hold the server open,
+ * so the wait is bounded: past the timeout the process exits and the clients
+ * reconnect.
+ */
+function registerGracefulShutdown(app: INestApplication, timeoutMs: number): void {
+  let shuttingDown = false
+  const shutdown = async (signal: NodeJS.Signals): Promise<void> => {
+    if (shuttingDown) return
+    shuttingDown = true
+    logger.log(`${signal} received: closing, waiting up to ${timeoutMs} ms for requests in flight`)
+    const deadline = setTimeout(() => {
+      logger.warn(`Connections still open after ${timeoutMs} ms, exiting`)
+      process.exit(0)
+    }, timeoutMs)
+    deadline.unref()
+    try {
+      await app.close()
+      logger.log("Closed, exiting")
+      process.exit(0)
+    } catch (error) {
+      logger.error("Error while closing", error instanceof Error ? error.stack : String(error))
+      process.exit(1)
+    }
+  }
+  process.once("SIGTERM", () => void shutdown("SIGTERM"))
+  process.once("SIGINT", () => void shutdown("SIGINT"))
+}
 
 async function bootstrap() {
   enableDbListeners()
@@ -60,6 +105,7 @@ async function bootstrap() {
       error instanceof Error ? error.stack : undefined,
     )
   }
+  registerGracefulShutdown(app, getApiShutdownTimeoutMs())
   const port = Number(process.env.PORT) || 3000
   await app.listen(port)
 }

@@ -33,10 +33,19 @@ spec:
         fsGroup: 1000
       initContainers:
         {{- include "bayes-platform.waitForDatabase" . | nindent 8 }}
+      # SIGTERM is sent after the preStop sleep, which gives the Service
+      # endpoints and the Ingress the time to drop the pod: no request lands
+      # on a closing process. The API then drains its requests in flight
+      # (API_SHUTDOWN_TIMEOUT_MS, 25 s by default) within the grace period.
+      terminationGracePeriodSeconds: 35
       containers:
         - name: api
           image: {{ include "bayes-platform.image" (dict "root" . "image" .Values.api.image) }}
           imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sleep", "5"]
           ports:
             - name: http
               containerPort: {{ .Values.api.port }}
