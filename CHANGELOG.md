@@ -71,7 +71,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
-- Agent replies no longer show a leaked tool call written as `tool_name{...}`; the tool still runs.
+- Improved detection of tool calls leaked into agent replies.
 - The chat widget hint no longer blocks clicks on the page underneath.
 - (beta) The MCP Servers tab on the agent editor shows translated labels and each server's saved state.
 - Chat shows an error message instead of an empty reply when the model fails.
