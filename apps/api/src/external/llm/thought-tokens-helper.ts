@@ -25,13 +25,56 @@ const PSEUDO_TOOL_CALL_OPEN_RE =
 // stream forever.
 const PSEUDO_TOOL_CALL_MAX_LEN = 600
 
+// Newest variant (Gemma, production): the bare tool name glued to its
+// argument braces, `mandatory_tool{categoryNames:[...],suggestedTitle:...}`.
+// No `<`, no `call:`, no `default_api:` namespace: nothing generic marks it as
+// a call. The only anchor left is the tool name itself, so this variant is
+// matched against the tools DECLARED for the call and nothing else; ordinary
+// prose with braces (`function foo() {}`) never matches.
+const TOOL_NAME_RE = /^[a-zA-Z_][a-zA-Z0-9_]*$/
+
+export type ThoughtTokensOptions = {
+  /** Tool names declared for this call (regular and end-of-turn tools). */
+  toolNames?: readonly string[]
+}
+
+/** Names of every tool declared for a call: regular and end-of-turn tools. */
+export function declaredToolNames(
+  config: { tools?: object; endOfTurnTools?: object } | undefined,
+): string[] {
+  return [...Object.keys(config?.tools ?? {}), ...Object.keys(config?.endOfTurnTools ?? {})]
+}
+
+type BareToolCallPatterns = {
+  /** A complete `tool_name{...}` call, with an optional `/>` glued after. */
+  complete: RegExp
+  /** A `tool_name{` opener whose closing `}` has not arrived yet. */
+  open: RegExp
+}
+
+function buildBareToolCallPatterns(
+  toolNames: readonly string[] | undefined,
+): BareToolCallPatterns | null {
+  const names = [...new Set((toolNames ?? []).filter((name) => TOOL_NAME_RE.test(name)))]
+  if (names.length === 0) return null
+  // Not preceded by a word char or `:` so `default_api:mandatory_tool{...}`
+  // stays with the generic family above (which also removes its prefix).
+  const alternation = `(?<![w:])(?:${names.join("|")})`
+  return {
+    complete: new RegExp(`${alternation}{[^{}]*}/?>?`, "g"),
+    open: new RegExp(`${alternation}{[^}]*$`),
+  }
+}
+
 // Composite removals that need a full self-contained match. Safe to run on a
 // partial streaming buffer because they only fire once both ends are present.
-function stripPairedChannelMarkers(text: string): string {
+function stripPairedChannelMarkers(text: string, bare: BareToolCallPatterns | null): string {
   return (
     text
       // Hallucinated tool-call tags verbalized into the text
       .replace(PSEUDO_TOOL_CALL_RE, "")
+      // Bare `tool_name{...}` variant, declared tool names only
+      .replace(bare?.complete ?? /(?!)/g, "")
       // <|channel>thought<channel|> ... <channel|> (eats nested openers too)
       .replace(new RegExp(`<\\|channel>(?:${CHANNEL_KEYWORDS})[\\s\\S]*?<channel\\|>`, "gi"), "")
       // Gemma 3 legacy: <unused N>thought ... <unused N>
@@ -65,8 +108,12 @@ export type LeakedToolCall = {
   raw: string
 }
 
-export function findLeakedToolCalls(text: string): LeakedToolCall[] {
+export function findLeakedToolCalls(
+  text: string,
+  options: ThoughtTokensOptions = {},
+): LeakedToolCall[] {
   const byName = new Map<string, LeakedToolCall>()
+  const bare = buildBareToolCallPatterns(options.toolNames)
   // The leaked tag is malformed and comes in variants; the tool name is the
   // last `:`-separated segment of the tag opener, before its arguments
   // (`{...}`, ` attr=...`, or the closing `>`).
@@ -80,11 +127,32 @@ export function findLeakedToolCalls(text: string): LeakedToolCall[] {
       if (!byName.has(name)) byName.set(name, { name, raw })
     }
   }
+  if (bare !== null) {
+    for (const match of text.matchAll(bare.complete)) {
+      const raw = match[0]
+      const name = raw.slice(0, raw.indexOf("{"))
+      if (!byName.has(name)) byName.set(name, { name, raw })
+    }
+  }
   return [...byName.values()]
 }
 
-export function findLeakedToolCallNames(text: string): string[] {
-  return findLeakedToolCalls(text).map((leakedCall) => leakedCall.name)
+export function findLeakedToolCallNames(
+  text: string,
+  options: ThoughtTokensOptions = {},
+): string[] {
+  return findLeakedToolCalls(text, options).map((leakedCall) => leakedCall.name)
+}
+
+// Earliest position at which any of the given patterns matches, -1 if none.
+function firstMatchIndex(text: string, patterns: Array<RegExp | undefined>): number {
+  let earliest = -1
+  for (const pattern of patterns) {
+    if (pattern === undefined) continue
+    const index = text.search(pattern)
+    if (index !== -1 && (earliest === -1 || index < earliest)) earliest = index
+  }
+  return earliest
 }
 
 // biome-ignore lint/complexity/noStaticOnlyClass: helper
@@ -94,8 +162,9 @@ export class ThoughtTokensHelper {
    * `<unusedN>thought ...`, `<|...>`, `<...|>`, `<unusedN>`) from a complete
    * text string. Use `createStripper()` for streaming.
    */
-  static removeThoughtTokens(text: string): string {
-    return stripStrayChannelTokens(stripPairedChannelMarkers(text))
+  static removeThoughtTokens(text: string, options: ThoughtTokensOptions = {}): string {
+    const bare = buildBareToolCallPatterns(options.toolNames)
+    return stripStrayChannelTokens(stripPairedChannelMarkers(text, bare))
   }
 
   /**
@@ -105,7 +174,8 @@ export class ThoughtTokensHelper {
    * are confident no marker is still mid-emission, then emits the cleaned
    * prefix. Call `flush()` at end of stream.
    */
-  static createStripper() {
+  static createStripper(options: ThoughtTokensOptions = {}) {
+    const bare = buildBareToolCallPatterns(options.toolNames)
     let pending = ""
     // How many trailing characters to hold back from emission. Must be longer
     // than the longest marker we might want to recognise once its closer
@@ -121,14 +191,14 @@ export class ThoughtTokensHelper {
         pending += chunk
         // Strip any FULLY PAIRED markers from the buffer. Safe mid-stream:
         // paired regexes only fire once both ends are present.
-        pending = stripPairedChannelMarkers(pending)
+        pending = stripPairedChannelMarkers(pending, bare)
 
         let safeUntil = pending.length - HOLD_TAIL
         if (safeUntil <= 0) return ""
         // A pseudo tool-call tag can be far longer than MAX_MARKER_LEN: if
         // one is still open in the buffer, hold everything back from its
         // `<` (bounded — a never-closing lookalike must not stall the stream).
-        const pseudoOpen = pending.search(PSEUDO_TOOL_CALL_OPEN_RE)
+        const pseudoOpen = firstMatchIndex(pending, [PSEUDO_TOOL_CALL_OPEN_RE, bare?.open])
         if (pseudoOpen !== -1 && pending.length - pseudoOpen < PSEUDO_TOOL_CALL_MAX_LEN) {
           safeUntil = Math.min(safeUntil, pseudoOpen)
         }
@@ -143,7 +213,7 @@ export class ThoughtTokensHelper {
         return emit
       },
       flush(): string {
-        const tail = stripStrayChannelTokens(stripPairedChannelMarkers(pending))
+        const tail = stripStrayChannelTokens(stripPairedChannelMarkers(pending, bare))
         pending = ""
         return tail
       },

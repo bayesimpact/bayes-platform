@@ -15,6 +15,12 @@ const LEAKED_FUNCTION_CALL =
 // word and only the argument braces delimit the call.
 const LEAKED_BARE_CALL = "Lie:default_api:mandatory_tool{categoryNames:[],suggestedTitle:null}"
 
+// Captured in production on Gemma: the bare tool name glued to its
+// arguments, with no `<`, no `call:` and no `default_api:` at all.
+const LEAKED_NAME_ONLY_CALL =
+  "mandatory_tool{categoryNames:[greetings,QA],suggestedTitle:Horaires d'ouverture le week-end}"
+const DECLARED_TOOLS = { toolNames: ["lookup_knowledge_base", "mandatory_tool"] }
+
 describe("ThoughtTokensHelper - hallucinated tool-call XML", () => {
   it("removes a pseudo-call tag from a complete text", () => {
     const text = `C'est noté, tu habites en France !\n\n${LEAKED_PSEUDO_CALL}`
@@ -55,6 +61,24 @@ describe("ThoughtTokensHelper - hallucinated tool-call XML", () => {
     expect(cleaned).not.toContain("default_api")
     expect(cleaned).not.toContain("Lie:")
     expect(cleaned).toBe("Bonjour ! Comment puis-je vous aider aujourd'hui ? ")
+  })
+
+  it("removes the name-only variant when the tool name is declared", () => {
+    const text = `Les oublis passagers arrivent à tout le monde.\n\n${LEAKED_NAME_ONLY_CALL}`
+    const cleaned = ThoughtTokensHelper.removeThoughtTokens(text, DECLARED_TOOLS)
+
+    expect(cleaned).toBe("Les oublis passagers arrivent à tout le monde.\n\n")
+  })
+
+  it("leaves the name-only variant alone when no tool names are declared", () => {
+    const text = `Réponse. ${LEAKED_NAME_ONLY_CALL}`
+    expect(ThoughtTokensHelper.removeThoughtTokens(text)).toBe(text)
+    expect(ThoughtTokensHelper.removeThoughtTokens(text, { toolNames: ["other_tool"] })).toBe(text)
+  })
+
+  it("keeps prose that contains a declared tool name without argument braces", () => {
+    const text = "L'outil mandatory_tool est appelé à chaque tour, et function foo() {} reste."
+    expect(ThoughtTokensHelper.removeThoughtTokens(text, DECLARED_TOOLS)).toBe(text)
   })
 
   it("keeps legitimate text mentioning the function keyword", () => {
@@ -110,6 +134,20 @@ describe("ThoughtTokensHelper - hallucinated tool-call XML", () => {
     expect(out).toContain("Voici ma réponse complète")
   })
 
+  it("strips the name-only variant even when split across stream deltas", () => {
+    const stripper = ThoughtTokensHelper.createStripper(DECLARED_TOOLS)
+    const full = `Voici ma réponse complète pour toi, avec assez de texte pour dépasser la retenue du stripper.\n\n${LEAKED_NAME_ONLY_CALL}`
+    let out = ""
+    for (let i = 0; i < full.length; i += 7) {
+      out += stripper.feed(full.slice(i, i + 7))
+    }
+    out += stripper.flush()
+
+    expect(out).not.toContain("mandatory_tool")
+    expect(out).not.toContain("suggestedTitle")
+    expect(out).toContain("Voici ma réponse complète")
+  })
+
   it("does not stall the stream on a never-closed lookalike", () => {
     const stripper = ThoughtTokensHelper.createStripper()
     const full = `Début. <call:jamais fermé ${"x".repeat(700)} fin du texte.`
@@ -146,6 +184,12 @@ describe("findLeakedToolCallNames", () => {
 
   it("extracts the tool name from the bare variant with no angle bracket", () => {
     expect(findLeakedToolCallNames(`Bonjour ! ${LEAKED_BARE_CALL}`)).toEqual(["mandatory_tool"])
+  })
+
+  it("extracts the tool name from the name-only variant, declared tools only", () => {
+    const text = `Bonjour ! ${LEAKED_NAME_ONLY_CALL}`
+    expect(findLeakedToolCallNames(text, DECLARED_TOOLS)).toEqual(["mandatory_tool"])
+    expect(findLeakedToolCallNames(text)).toEqual([])
   })
 
   it("returns nothing for legitimate text, including angle brackets and markup", () => {

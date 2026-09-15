@@ -8,7 +8,11 @@ import type {
 } from "@/common/interfaces/llm-provider.interface"
 import { AISDKLLMBuilders } from "@/external/llm/ai-sdk-llm-builders"
 import type { CallOrigin } from "@/external/llm/ai-sdk-llm-common"
-import { findLeakedToolCalls, type LeakedToolCall } from "@/external/llm/thought-tokens-helper"
+import {
+  declaredToolNames,
+  findLeakedToolCalls,
+  type LeakedToolCall,
+} from "@/external/llm/thought-tokens-helper"
 
 export abstract class AISDKLLMToolsMgmt extends AISDKLLMBuilders {
   protected readonly endOfTurnLogger = new Logger("EndOfTurnTools")
@@ -257,18 +261,15 @@ ${leakedCall.raw}`,
     leakedToolCalls?: LeakedToolCall[]
   }): void {
     try {
-      const found = findLeakedToolCalls(originalText)
+      const declared = declaredToolNames(config)
+      const found = findLeakedToolCalls(originalText, { toolNames: declared })
       if (found.length === 0) return
       const leakedToolNames = found.map((leakedCall) => leakedCall.name)
       leakedToolCalls?.push(...found)
-      const declaredToolNames = [
-        ...Object.keys(config?.tools ?? {}),
-        ...Object.keys(config?.endOfTurnTools ?? {}),
-      ]
       this.leakedToolCallLogger.error(
         `model verbalized tool call(s) in the text channel instead of calling them — NOT executed: ${JSON.stringify(
           leakedToolNames,
-        )} (declared: ${JSON.stringify(declaredToolNames)}, model: ${config?.model})`,
+        )} (declared: ${JSON.stringify(declared)}, model: ${config?.model})`,
       )
     } catch {
       // never let diagnostics break the generation
