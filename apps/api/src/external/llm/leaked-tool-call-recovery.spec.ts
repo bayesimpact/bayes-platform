@@ -121,6 +121,33 @@ describe("leaked tool call recovery", () => {
     })
   })
 
+  it("recovers the name-only variant", async () => {
+    const execute = jest.fn().mockResolvedValue({ ok: true })
+    provider.addTextTurn(
+      "agent-1",
+      "Voici votre réponse, votre demande est bien prise en compte.\n\n" +
+        "notify_operator{severity:high," +
+        "summary:Escalation requested by the user.,reference:ABC-123}",
+    )
+    provider.addObjectTurn("agent-1", {
+      severity: "high",
+      summary: "Escalation requested by the user.",
+      reference: "ABC-123",
+    })
+
+    const text = await streamAll(buildConfig({ execute }))
+
+    expect(text).not.toContain("notify_operator")
+    expect(text).not.toContain("severity")
+    expect(text).toContain("bien prise en compte")
+    expect(execute).toHaveBeenCalledTimes(1)
+    expect(execute).toHaveBeenCalledWith({
+      severity: "high",
+      summary: "Escalation requested by the user.",
+      reference: "ABC-123",
+    })
+  })
+
   it("does not run recovery when no call leaked", async () => {
     const execute = jest.fn()
     provider.addTextTurn("agent-1", "Voici votre réponse, sans balise.")

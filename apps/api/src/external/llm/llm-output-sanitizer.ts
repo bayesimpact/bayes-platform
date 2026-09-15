@@ -14,12 +14,29 @@ const CHANNEL_KEYWORDS = "thought|analysis|reasoning|finalize|commentary|final"
 // ever be legitimate user-facing content. A tag is complete either at its
 // closing `>` or, for the brace variant, at the `}` that closes its (flat)
 // argument object — with an optional `/>` glued right after.
-const PSEUDO_TOOL_CALL_RE =
-  /<\/?(?:call|function|default_api)[:\s](?:[^>{]*\{[^{}]*\}\/?>?|[^>]*\/?>)|(?:[^\s<>{}]*:)?default_api:[^\s<>{}]*\{[^{}]*\}\/?>?/gi
+//
+// Newest variant (Gemma, production): the bare tool name glued to its
+// argument object, `mandatory_tool{categoryNames:[...],suggestedTitle:...}`.
+// No `<`, no `call:`, no `default_api:` — the only shape left is
+// `identifier{key:value,...}`. The match is tool-name agnostic on purpose:
+// the model can hallucinate the name too, and a leaked call to an unknown
+// tool must still be hidden (recovery then reports it as undeclared). The
+// argument object must start with a `key:` so prose such as
+// `function foo() {}` or `{a, b}` never matches; the identifier must not be
+// glued to a preceding word char, `:` or `.` (a `default_api:` prefix stays
+// with the family above, which also removes the prefix).
+const BARE_CALL = String.raw`(?<![\w:.])[a-zA-Z_][a-zA-Z0-9_]*\{\s*(?:[a-zA-Z_][a-zA-Z0-9_]*\s*:[^{}]*)?\}\/?>?`
+const BARE_CALL_OPEN = String.raw`(?<![\w:.])[a-zA-Z_][a-zA-Z0-9_]*\{\s*(?:[a-zA-Z_][a-zA-Z0-9_]*\s*:[^}]*)?$`
+const PSEUDO_TOOL_CALL_RE = new RegExp(
+  String.raw`<\/?(?:call|function|default_api)[:\s](?:[^>{]*\{[^{}]*\}\/?>?|[^>]*\/?>)|(?:[^\s<>{}]*:)?default_api:[^\s<>{}]*\{[^{}]*\}\/?>?|${BARE_CALL}`,
+  "gi",
+)
 // An opener of that family that has no closer yet (still streaming): no `>`
-// for the tag variants, no `}` for the bare brace variant.
-const PSEUDO_TOOL_CALL_OPEN_RE =
-  /<\/?(?:call|function|default_api)[:\s][^>]*$|(?:[^\s<>{}]*:)?default_api:[^}]*$/i
+// for the tag variants, no `}` for the brace variants.
+const PSEUDO_TOOL_CALL_OPEN_RE = new RegExp(
+  String.raw`<\/?(?:call|function|default_api)[:\s][^>]*$|(?:[^\s<>{}]*:)?default_api:[^}]*$|${BARE_CALL_OPEN}`,
+  "i",
+)
 // Give up holding the stream back after this many buffered characters: a
 // legitimate `<call:`-looking text (vanishingly unlikely) must not stall the
 // stream forever.
@@ -74,7 +91,9 @@ export function findLeakedToolCalls(text: string): LeakedToolCall[] {
     const raw = match[0]
     const opener =
       /(?:<\/?(?:call|function)[:\s]|<?\/?(?:[^\s<>{}]*:)?default_api[:\s])([^>{(\s]+)/i.exec(raw)
-    const segments = (opener?.[1] ?? "").split(":").filter(Boolean)
+    // Bare `identifier{...}` variant: the identifier is the tool name.
+    const bareName = opener === null ? /^[a-zA-Z_][a-zA-Z0-9_]*(?=\{)/.exec(raw)?.[0] : undefined
+    const segments = (opener?.[1] ?? bareName ?? "").split(":").filter(Boolean)
     const name = segments.at(-1)
     if (name && name !== "default_api" && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
       if (!byName.has(name)) byName.set(name, { name, raw })
@@ -88,24 +107,25 @@ export function findLeakedToolCallNames(text: string): string[] {
 }
 
 // biome-ignore lint/complexity/noStaticOnlyClass: helper
-export class ThoughtTokensHelper {
+export class LLMOutputSanitizer {
   /**
-   * One-shot removal of all thought-tokens (`<|channel>...<channel|>`,
-   * `<unusedN>thought ...`, `<|...>`, `<...|>`, `<unusedN>`) from a complete
-   * text string. Use `createStripper()` for streaming.
+   * One-shot removal of everything a model leaks into its user-visible text
+   * that is not content: thought tokens (`<|channel>...<channel|>`,
+   * `<unusedN>thought ...`, `<|...>`, `<...|>`, `<unusedN>`) and tool calls
+   * verbalized in the text channel (see `PSEUDO_TOOL_CALL_RE`). Use `createStreamSanitizer()` for streaming.
    */
-  static removeThoughtTokens(text: string): string {
+  static sanitize(text: string): string {
     return stripStrayChannelTokens(stripPairedChannelMarkers(text))
   }
 
   /**
-   * Streaming-safe stripper. A marker like `<|channel>thought<channel|>` can
+   * Streaming-safe sanitizer. A marker like `<|channel>thought<channel|>` can
    * be split across multiple stream deltas, so we cannot regex each delta in
    * isolation. This holds back a small tail of the most recent text until we
    * are confident no marker is still mid-emission, then emits the cleaned
    * prefix. Call `flush()` at end of stream.
    */
-  static createStripper() {
+  static createStreamSanitizer() {
     let pending = ""
     // How many trailing characters to hold back from emission. Must be longer
     // than the longest marker we might want to recognise once its closer

@@ -8,7 +8,7 @@ import type {
 } from "@/common/interfaces/llm-provider.interface"
 import { AISDKLLMBuilders } from "@/external/llm/ai-sdk-llm-builders"
 import type { CallOrigin } from "@/external/llm/ai-sdk-llm-common"
-import { findLeakedToolCalls, type LeakedToolCall } from "@/external/llm/thought-tokens-helper"
+import { findLeakedToolCalls, type LeakedToolCall } from "@/external/llm/llm-output-sanitizer"
 
 export abstract class AISDKLLMToolsMgmt extends AISDKLLMBuilders {
   protected readonly endOfTurnLogger = new Logger("EndOfTurnTools")
