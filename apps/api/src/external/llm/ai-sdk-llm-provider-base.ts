@@ -28,13 +28,9 @@ import {
 } from "@/external/llm/ai-sdk-llm-common"
 import { AISDKLLMToolsMgmt } from "@/external/llm/ai-sdk-llm-tools-mgmt"
 import { fireAndForgetStopCondition } from "@/external/llm/fire-and-forget-stop-condition"
+import { type LeakedToolCall, LLMOutputSanitizer } from "@/external/llm/llm-output-sanitizer"
 import { ResponseHelper } from "@/external/llm/response-helper"
 import { withStrictTools } from "@/external/llm/strict-tools"
-import {
-  declaredToolNames,
-  type LeakedToolCall,
-  ThoughtTokensHelper,
-} from "@/external/llm/thought-tokens-helper"
 
 export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements LLMProvider {
   async *streamChatResponse({
@@ -286,9 +282,6 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
     const baseModel = this.getLanguageModel(args)
     // Bound for use inside the stream TransformStream, where `this` is the
     // transformer, not the provider.
-    // Tool names declared for this call: the sanitizer needs them to spot the
-    // bare `tool_name{...}` leak variant, which carries no other marker.
-    const stripOptions = { toolNames: declaredToolNames(args.config) }
     const logLeaked = ({ originalText }: { originalText: string }) =>
       this.logLeakedToolCalls({
         originalText,
@@ -315,10 +308,7 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
             activeSpan?.setAttribute(RAW_LLM_RESPONSE_ATTR, rawStr)
             const originalText = extractTextFromContent(result.content)
             if (originalText !== "") {
-              const strippedText = ThoughtTokensHelper.removeThoughtTokens(
-                originalText,
-                stripOptions,
-              )
+              const strippedText = LLMOutputSanitizer.sanitize(originalText)
               if (strippedText !== originalText) {
                 activeSpan?.setAttribute(RAW_LLM_RESPONSE_STRIPPED_ATTR, strippedText)
               }
@@ -344,10 +334,7 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
                   typeof (part as { text?: unknown }).text === "string"
                 ) {
                   const original = (part as { text: string }).text
-                  return {
-                    ...part,
-                    text: ThoughtTokensHelper.removeThoughtTokens(original, stripOptions),
-                  }
+                  return { ...part, text: LLMOutputSanitizer.sanitize(original) }
                 }
                 return part
               })
@@ -373,7 +360,7 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
             // never let telemetry capture break the stream
           }
           const rawChunks: unknown[] = []
-          let stripper: ReturnType<typeof ThoughtTokensHelper.createStripper> | null = null
+          let stripper: ReturnType<typeof LLMOutputSanitizer.createStreamSanitizer> | null = null
           let currentTextId: string | undefined
           const transformed = stream.pipeThrough(
             new TransformStream({
@@ -382,7 +369,7 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
                 const c = chunk as any
                 rawChunks.push(chunk)
                 if (c?.type === "text-start") {
-                  stripper = ThoughtTokensHelper.createStripper(stripOptions)
+                  stripper = LLMOutputSanitizer.createStreamSanitizer()
                   currentTextId = typeof c.id === "string" ? c.id : undefined
                   controller.enqueue(chunk)
                 } else if (
@@ -430,10 +417,7 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
                   activeSpan?.setAttribute(RAW_LLM_RESPONSE_ATTR, groupedStr)
                   const originalText = extractTextFromStreamChunks(rawChunks)
                   if (originalText !== "") {
-                    const strippedText = ThoughtTokensHelper.removeThoughtTokens(
-                      originalText,
-                      stripOptions,
-                    )
+                    const strippedText = LLMOutputSanitizer.sanitize(originalText)
                     if (strippedText !== originalText) {
                       activeSpan?.setAttribute(RAW_LLM_RESPONSE_STRIPPED_ATTR, strippedText)
                     }

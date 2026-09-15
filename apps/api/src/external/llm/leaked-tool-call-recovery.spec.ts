@@ -121,7 +121,7 @@ describe("leaked tool call recovery", () => {
     })
   })
 
-  it("recovers the name-only variant, matched through the declared tool names", async () => {
+  it("recovers the name-only variant", async () => {
     const execute = jest.fn().mockResolvedValue({ ok: true })
     provider.addTextTurn(
       "agent-1",
