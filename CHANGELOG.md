@@ -16,6 +16,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Single-origin deployments: the web app opens at the root of the domain and the API answers under /api.
 
 ### Fixed
+- Voice input: microphone transcription now follows the interface language, including French set as fr-FR.
 - Navigation: opening a workspace, a new project, another agent or session now lands on the right page when the platform is served under a sub-path.
 - Sign-in: an error returned by the identity provider is shown with a retry button instead of reloading endlessly.
 - (beta) MCP App cards: the reply text now stays on screen next to the card instead of disappearing once the card shows.

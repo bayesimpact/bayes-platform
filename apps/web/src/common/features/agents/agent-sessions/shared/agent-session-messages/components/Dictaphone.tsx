@@ -1,14 +1,16 @@
 import { Button } from "@caseai-connect/ui/shad/button"
 import { MicIcon } from "lucide-react"
 import { useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import { useChatFooter } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/context"
 import { useSpeechRecognition } from "@/common/hooks/use-speech-recognition"
-import { getLocale } from "@/common/utils/get-locale"
+import { getSpeechRecognitionLanguage } from "@/common/utils/get-locale"
 
 export function Dictaphone({ disabled }: { disabled: boolean }) {
   const { input } = useChatFooter()
+  const { i18n } = useTranslation()
   const { supported, listening, transcript, start, stop, resetTranscript } = useSpeechRecognition({
-    language: getLocale().code,
+    language: getSpeechRecognitionLanguage(i18n.language),
   })
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: do not add input to deps to avoid loop
