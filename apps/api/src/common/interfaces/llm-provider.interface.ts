@@ -84,6 +84,12 @@ export type LLMMetadata = (
    * dedicated traces group under the same langfuse session as the parent run.
    */
   langfuseSessionId?: string
+  /**
+   * Labels the observations of a call that is not the answering loop of the
+   * turn (e.g. the post-turn classification) so langfuse shows
+   * "Turn #4 · classification" instead of a second bare "Turn #4".
+   */
+  spanLabel?: string
 }
 
 export interface LLMProvider {

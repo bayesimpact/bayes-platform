@@ -351,7 +351,11 @@ export async function runTurnClassification({
       message: { role: "user", content: userContent },
       schema,
       config: buildConfig(systemPrompt),
-      metadata: { ...metadata, tags: [...metadata.tags, "turn-classification"] },
+      metadata: {
+        ...metadata,
+        tags: [...metadata.tags, "turn-classification"],
+        spanLabel: "classification",
+      },
     })
     const parsed = turnClassificationOutputSchema.safeParse(rawOutput)
     if (!parsed.success) {
