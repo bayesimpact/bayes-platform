@@ -3,21 +3,47 @@ import type { ToolSet } from "ai"
 // biome-ignore lint/complexity/noStaticOnlyClass: helper
 export class GemmaPromptHelper {
   /**
+   * Gemma 4 emits ONE tool call per generation unless told otherwise: a
+   * turn that needs a resource card AND a knowledge base lookup costs an
+   * extra generation, and on some messages the second tool is simply
+   * skipped. This line makes it group independent calls (measured 2026-09-16
+   * on the vLLM deployment and through the platform pipeline: grouped on the
+   * "charge" turn, card recovered on a French paid-leave question, neutral
+   * on the English one). Gemma-only on purpose: the same line is neutral on
+   * Gemini 3.6+ and DEGRADES Gemini 3.5 Flash Lite (drops the card), see
+   * live-regressions/independent-tools-scenario.ts.
+   *
+   * POSITION-SENSITIVE: placed right after the null rule below, the line
+   * stopped working on the French question (card skipped 5/5); placed
+   * before it, both tools run 5/5. Keep it first, and re-measure with the
+   * live suite before moving anything around it.
+   */
+  static readonly GROUPED_TOOL_CALLS_INSTRUCTION =
+    "When several tools are needed and do not depend on each other's results, call them all in the SAME response instead of one per response."
+
+  /**
    * Gemma calls tools natively through the OpenAI-compatible endpoint, so tool
    * definitions are NOT described in the prompt (unlike Mistral and MedGemma).
-   * The only prompt adjustment it needs is this instruction about nullable
-   * argument fields, which Gemma otherwise fills with the string "null".
+   * The prompt adjustments it needs: the instruction about nullable argument
+   * fields, which Gemma otherwise fills with the string "null", and, when
+   * more than one tool is declared, the grouped-calls instruction above.
    */
-  static injectNullValueInstruction({ prompt, tools }: { prompt: string; tools: ToolSet }): string {
-    // The instruction only concerns tool-call arguments, so it is pointless
+  static injectToolCallInstructions({ prompt, tools }: { prompt: string; tools: ToolSet }): string {
+    // The instructions only concern tool calls, so they are pointless
     // without tools.
-    if (Object.keys(tools ?? {}).length === 0) return prompt
+    const toolCount = Object.keys(tools ?? {}).length
+    if (toolCount === 0) return prompt
 
-    // FIXME: anchoring on a prompt substring is fragile — the instruction is
+    // FIXME: anchoring on a prompt substring is fragile — the instructions are
     // silently dropped if the master prompt stops emitting this exact heading.
     const marker = "## Response language:\nAlways answer in"
-    const injection = `(CRITICAL) If a field value allows null, set the value to null when unknown. Set to null not to quoted "null"`
-    return prompt.includes(marker) ? prompt.replace(marker, `${injection}\n${marker}`) : prompt
+    const injections = [
+      ...(toolCount > 1 ? [GemmaPromptHelper.GROUPED_TOOL_CALLS_INSTRUCTION] : []),
+      `(CRITICAL) If a field value allows null, set the value to null when unknown. Set to null not to quoted "null"`,
+    ]
+    return prompt.includes(marker)
+      ? prompt.replace(marker, `${injections.join("\n")}\n${marker}`)
+      : prompt
   }
 
   /**

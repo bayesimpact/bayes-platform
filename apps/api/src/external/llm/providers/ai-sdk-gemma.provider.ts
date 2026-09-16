@@ -87,7 +87,7 @@ export class AISDKGemmaProvider extends AISDKLLMProviderBase {
     callOrigin: CallOrigin
   }): string {
     if (callOrigin === CallOrigin.streamChatResponse_withTools && config.tools) {
-      return GemmaPromptHelper.injectNullValueInstruction({
+      return GemmaPromptHelper.injectToolCallInstructions({
         prompt: systemPrompt,
         tools: config.tools,
       })
