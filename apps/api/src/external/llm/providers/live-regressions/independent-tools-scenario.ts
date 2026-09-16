@@ -15,7 +15,6 @@ import {
 } from "@/domains/agents/shared/agent-session-messages/streaming/tools/surfaced-resources-registry"
 import type { ToolExecutionLog } from "@/domains/agents/shared/agent-session-messages/streaming/tools/tool-execution-log"
 import type { AISDKLLMProviderBase } from "@/external/llm/ai-sdk-llm-provider-base"
-import { GemmaPromptHelper } from "@/external/llm/providers/gemma/gemma-prompt-helper"
 import { HANDBOOK_CHUNKS } from "./employee-handbook.fixture"
 
 /**
@@ -25,26 +24,21 @@ import { HANDBOOK_CHUNKS } from "./employee-handbook.fixture"
  * when both calls come in the first generation (calls, then answer),
  * three when the model emits one call per generation.
  *
- * The `groupedCallsInstruction` switch appends a candidate master-prompt
- * line ("call independent tools in the same response") for the providers
- * that do NOT inject it themselves. MEASURED 2026-09-16, 5 runs per case,
- * temperature 0 (deterministic per case):
- * - Gemma 4: the line groups the calls on the "charge" turn (infra suites),
- *   recovers a skipped card on a French paid-leave question, neutral on the
- *   English one. ADOPTED for Gemma only: the Gemma provider injects it in
- *   the system prompt whenever several tools are declared
- *   (GemmaPromptHelper.GROUPED_TOOL_CALLS_INSTRUCTION), so on Gemma both
- *   variants of this scenario carry it.
- * - Gemini 3.1/3.6/3.7/3.8 Flash: 2 generations, both tools, with or
- *   without the line (neutral).
- * - Gemini 3.5 Flash Lite: EN 3 to 2 generations; FR, the line DROPS the
- *   card. Gemini 2.5 Flash: EN 3/3; FR, without the line NO lookup, with it
- *   both tools. Not adopted on Gemini: the effect on tool selection goes
- *   both ways depending on the message.
+ * The `groupedCallsInstruction` switch adds a candidate master-prompt line
+ * ("call independent tools in the same response"). MEASURED 2026-09-16,
+ * 5 runs per case, temperature 0 (deterministic per case): the line changes
+ * WHICH tools get called as much as how they are grouped, in both
+ * directions depending on model and message. Gemma 4: EN 3/3 generations;
+ * FR, without the line the card is skipped, with it both tools run in 3.
+ * Gemini 2.5 Flash: EN 3/3; FR, without the line NO lookup (answer from
+ * training data), with it both in 2. Gemini 3.5 Flash Lite: EN 3 to 2; FR,
+ * with the line the card is dropped. Gemini 3.1/3.6/3.7/3.8: 2/2. Not
+ * adopted in production; kept here to re-measure on new models.
  */
 
-/** Candidate line for the providers that do not inject it (see the header). */
-export const GROUPED_CALLS_LINE = GemmaPromptHelper.GROUPED_TOOL_CALLS_INSTRUCTION
+/** Candidate line, NOT in the production prompt (see the header). */
+export const GROUPED_CALLS_LINE =
+  "When several tools are needed and do not depend on each other's results, call them all in the SAME response instead of one per response."
 
 const connectScope = { organizationId: "org-1", projectId: "project-1" }
 

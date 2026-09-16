@@ -30,12 +30,12 @@ classification call (structured output).
 - `independent-tools.live.spec.ts` — two independent tools on one turn
   (resource card + knowledge base lookup): both run and the answer is
   grounded. The number of generations (two when the model groups the calls,
-  three otherwise) and the effect of a "group independent calls" prompt
-  line are logged, not asserted. Measured on 2026-09-16 the line helps
-  Gemma 4 on every case (adopted, injected by the Gemma provider), is
-  neutral on Gemini 3.6+ and degrades Gemini 3.5 Flash Lite (not adopted
-  on Gemini); details in `independent-tools-scenario.ts`.
-  `INDEPENDENT_TOOLS_USER_MESSAGE` overrides the user message.
+  three otherwise) and the effect of a candidate "group independent calls"
+  prompt line are logged, not asserted: measured on 2026-09-16 the line
+  changes which tools get called as much as their grouping, in both
+  directions per model and message, so it is not in production (details
+  in `independent-tools-scenario.ts`). `INDEPENDENT_TOOLS_USER_MESSAGE`
+  overrides the user message for measurement.
 - `fat-prompt-turn.live.spec.ts` — no-RAG agent with a ~9k-token system
   prompt and strict guardrails (anonymized production shape), across
   greeting / service question / strict refusal / off-topic: metadata logged

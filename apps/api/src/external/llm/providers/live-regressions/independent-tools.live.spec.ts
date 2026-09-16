@@ -6,11 +6,10 @@ import { PROVIDER_CASES } from "./provider-cases"
 /**
  * LIVE: two independent tools (resource card + knowledge base lookup) on
  * one turn. The contract, with the production prompt: both tools run and
- * the answer is grounded. On Gemma the production prompt carries the
- * grouped-calls instruction (injected by the provider). The number of
- * generations (two when the model groups both calls, three otherwise) and
- * the effect of the candidate line on the other providers are measured and
- * logged, not asserted: see the scenario header.
+ * the answer is grounded. The number of generations (two when the model
+ * groups both calls, three otherwise) and the effect of the candidate
+ * grouped-calls line are measured and logged, not asserted: see the
+ * scenario header for why the line is not in production.
  *
  *   LIVE_PROVIDER_REGRESSIONS=1 NODE_OPTIONS=--experimental-vm-modules \
  *     npx jest --runInBand --forceExit src/external/llm/providers/live-regressions
