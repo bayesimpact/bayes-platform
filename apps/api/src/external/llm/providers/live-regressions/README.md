@@ -10,21 +10,27 @@ Vertex AI). **None of it runs in CI**, by construction:
   `*.live.spec.ts` to inherit this exclusion.
 - The `describe.skip` gate on the same env var is kept inside the specs as a
   second layer.
-- `measure-voluntary-rate.ts` is a plain ts-node script (deliberately not a
+- `measure-citation-rate.ts` is a plain ts-node script (deliberately not a
   `*.spec.ts`, so jest never collects it).
 
 ## Contract suites
 
 One production-shaped turn per provider/model (`provider-cases.ts` is the
-shared matrix; unavailable providers auto-skip with a visible reason):
+shared matrix; unavailable providers auto-skip with a visible reason). Both
+run the full pipeline of ADR 0016: answering loop with conversation tools
+only, inline citation extraction on the stream, then the post-turn
+classification call (structured output).
 
-- `turn-summary.live.spec.ts` — RAG turn on the handbook fixture: grounded
+- `rag-turn.live.spec.ts` — RAG turn on the handbook fixture: grounded
   answer (the fixture value is deliberately NOT the statutory number, so a
-  correct answer proves retrieval) + `mandatory_tool` executed exactly
-  once (voluntarily or through the forced end-of-turn generation, never both).
-- `fat-prompt-turn-summary.live.spec.ts` — no-RAG agent with a ~9k-token
-  system prompt and strict guardrails (anonymized production shape), across
-  greeting / service question / strict refusal / off-topic.
+  correct answer proves retrieval), no citation marker left in the text,
+  sources logged exactly once (inline citations, or the classifier's
+  attribution when the model cited nothing), metadata logged exactly once
+  with in-list categories.
+- `fat-prompt-turn.live.spec.ts` — no-RAG agent with a ~9k-token system
+  prompt and strict guardrails (anonymized production shape), across
+  greeting / service question / strict refusal / off-topic: metadata logged
+  exactly once, in-list categories, a title on non-greeting turns.
 
 Run them with (NODE_OPTIONS required by google-auth dynamic imports):
 
@@ -35,15 +41,18 @@ LIVE_PROVIDER_REGRESSIONS=1 NODE_OPTIONS=--experimental-vm-modules \
 
 ## Behavior measurement (not a test)
 
-The contract suites assert outcomes; `measure-voluntary-rate.ts` observes the
-steps and measures HOW the outcome was reached (voluntary call vs would-need
-the forced generation, lookup ran or skipped), over repeated attempts. Use it
-to evaluate prompt-engineering iterations before changing production wording:
+The contract suites assert outcomes; `measure-citation-rate.ts` measures HOW
+the outcome was reached over repeated attempts (temperature 0 is not
+deterministic): the inline citation rate versus classifier attribution, the
+grounding rate, the title and category outputs. Use it to evaluate prompt
+iterations on the citation rule or the classifier prompt before changing
+the production wording:
 
 ```bash
-npx ts-node --transpile-only -r tsconfig-paths/register \
-  src/external/llm/providers/live-regressions/measure-voluntary-rate.ts \
-  --model gemini-3.1-flash-lite --scenario fat --attempts 5
+NODE_OPTIONS=--experimental-vm-modules npx ts-node --transpile-only \
+  -r tsconfig-paths/register \
+  src/external/llm/providers/live-regressions/measure-citation-rate.ts \
+  --model gemini-3.6-flash --scenario rag --attempts 5
 ```
 
 The serving-level counterpart of these suites (raw vLLM behavior: parser
