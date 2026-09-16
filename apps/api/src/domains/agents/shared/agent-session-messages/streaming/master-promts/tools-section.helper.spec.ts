@@ -1,34 +1,41 @@
 import { ToolName } from "@caseai-connect/api-contracts"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+import { inlineCitationInstruction } from "@/domains/agents/shared/agent-session-messages/streaming/tools/lookup-knowledge-base.tool"
 import { applyMcpAppToolDescription } from "@/external/mcp/mcp-app-tool-description"
 import { promptHelpers } from "./helpers"
 
 const agentSettings = {} as AgentSettings
 
 describe("promptHelpers.tools", () => {
-  it("lists EVERY declared tool, the mandatory one included, with a description line", () => {
+  it("lists every declared tool with a description line", () => {
     const section = promptHelpers.tools({
       agentSettings,
-      names: [ToolName.MandatoryTool, ToolName.LookupKnowledgeBase],
+      names: [ToolName.LookupKnowledgeBase, ToolName.SurfaceResources],
     })
 
     expect(section).toContain("## Tools:")
     expect(section).toContain(`[${ToolName.LookupKnowledgeBase}]:`)
-    expect(section).toContain(`[${ToolName.MandatoryTool}]:`)
-    // The line POINTS to the protocol (prompt epilogue) instead of
-    // repeating its imperative — no duplicated instruction.
-    expect(section).toContain('see the "Response protocol" section')
-    expect(section).not.toContain("EVERY response you produce")
+    expect(section).toContain(`[${ToolName.SurfaceResources}]:`)
+    // No bookkeeping protocol in the prompt any more (ADR 0016).
+    expect(section).not.toContain("Response protocol")
+    expect(section).not.toContain("mandatory")
   })
 
-  it("still renders the section when the only tool is the mandatory one (never an empty header)", () => {
-    const section = promptHelpers.tools({
+  it("appends the inline citation rule to the lookup line only when provided", () => {
+    const withoutSources = promptHelpers.tools({
       agentSettings,
-      names: [ToolName.MandatoryTool],
+      names: [ToolName.LookupKnowledgeBase],
     })
+    expect(withoutSources).not.toContain("Cite your sources inline")
 
-    expect(section).toContain("## Tools:")
-    expect(section).toContain(`[${ToolName.MandatoryTool}]: mandatory bookkeeping report`)
+    const withSources = promptHelpers.tools({
+      agentSettings,
+      names: [ToolName.LookupKnowledgeBase],
+      descriptions: { [ToolName.LookupKnowledgeBase]: inlineCitationInstruction() },
+    })
+    expect(withSources).toContain(`[${ToolName.LookupKnowledgeBase}]:`)
+    expect(withSources).toContain("Cite your sources inline")
+    expect(withSources.match(/\[lookup_knowledge_base\]:/g) ?? []).toHaveLength(1)
   })
 
   it("explains that MCP App tools render a UI when called", () => {

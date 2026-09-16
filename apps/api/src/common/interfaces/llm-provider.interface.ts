@@ -26,8 +26,6 @@ export type BuildLLMConfigParams = {
   temperature: AgentSettings["temperature"]
   tools?: ToolSet
   fireAndForgetToolNames?: string[]
-  endOfTurnTools?: ToolSet
-  endOfTurnExecutionCounts?: (toolResult: { toolName: string; output: unknown }) => boolean
   priorityCallsEnabled: boolean
   llmFeatures: LLMFeatures
   useExtendedTimeouts?: boolean
@@ -39,8 +37,6 @@ export type LLMConfig =
       systemPrompt?: string
       tools?: ToolSet
       fireAndForgetToolNames?: string[]
-      endOfTurnTools?: ToolSet
-      endOfTurnExecutionCounts?: (toolResult: { toolName: string; output: unknown }) => boolean
       useExtendedTimeouts?: never
       serviceTier: never
     }
@@ -55,21 +51,6 @@ export type LLMConfig =
        * invokes these, the loop stops instead of running another generation.
        */
       fireAndForgetToolNames?: string[]
-      /**
-       * Tools invoked by a forced generation (toolChoice "required") after
-       * the tool loop completes, on EVERY turn (e.g. the mandatory_tool
-       * bookkeeping). Kept out of {@link tools} so the answering loop never
-       * depends on the model volunteering the call.
-       */
-      endOfTurnTools?: ToolSet
-      /**
-       * Decides whether a loop execution of an end-of-turn tool satisfies
-       * the guarantee. Lets the tool declare an execution STALE after the
-       * fact (e.g. a turn summary submitted before the knowledge base call
-       * cannot have cited sources) so the forced retry still runs. Default:
-       * every execution counts.
-       */
-      endOfTurnExecutionCounts?: (toolResult: { toolName: string; output: unknown }) => boolean
       /**
        * Opt in to the extended network timeouts on the underlying provider fetch
        * (see {@link AISDKVertexProvider}). Reserved for long-running calls such as

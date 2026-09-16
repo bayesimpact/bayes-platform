@@ -69,7 +69,7 @@ export class EvaluationConversationRunLlmService extends LlmServiceBase {
       messages: [userMessage],
     }
 
-    const { config, metadata, messages, mcpClose } =
+    const { config, metadata, messages, mcpClose, citations, classifyTurn } =
       await this.agentLlmRequestService.buildLLMRequest({
         agentSessionScope: { agent, agentSettings, session, connectScope },
         includeSessionMetadataTools: false,
@@ -91,8 +91,11 @@ export class EvaluationConversationRunLlmService extends LlmServiceBase {
         metadata,
       })
       for await (const chunk of chunks) {
-        output += chunk
+        output += citations.feed(chunk)
       }
+      output += citations.flush()
+      // Same post-turn step as Studio (sources only: no session to title).
+      await classifyTurn({ answerText: output })
       return { output, traceId }
     } finally {
       await mcpClose?.()

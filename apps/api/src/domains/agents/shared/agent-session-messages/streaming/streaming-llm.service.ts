@@ -132,10 +132,17 @@ export class StreamingLlmService extends LlmServiceBase {
       const chunks = this.getProviderForModel(llmRequest.config.model).streamChatResponse(
         llmRequest,
       )
-      for await (const chunk of chunks) {
-        fullContent += chunk
+      for await (const rawChunk of chunks) {
+        const chunk = llmRequest.citations.feed(rawChunk)
         onProgress()
+        if (chunk === "") continue
+        fullContent += chunk
         yield this.sseEvent({ type: "chunk", content: chunk, messageId: assistantMessageId })
+      }
+      const tail = llmRequest.citations.flush()
+      if (tail !== "") {
+        fullContent += tail
+        yield this.sseEvent({ type: "chunk", content: tail, messageId: assistantMessageId })
       }
 
       await this.finalizeStreaming({
@@ -143,6 +150,10 @@ export class StreamingLlmService extends LlmServiceBase {
         assistantMessageId,
         fullContent,
       })
+
+      // Post-turn step: sources, title and categories (ADR 0016). The reply
+      // is already persisted; this only adds tool logs and session metadata.
+      await llmRequest.classifyTurn({ answerText: fullContent })
 
       yield this.sseEvent({ type: "end", messageId: assistantMessageId, fullContent })
     } catch (error) {
@@ -271,10 +282,17 @@ export class StreamingLlmService extends LlmServiceBase {
       const chunks = this.getProviderForModel(llmRequest.config.model).streamChatResponse(
         llmRequest,
       )
-      for await (const chunk of chunks) {
-        fullContent += chunk
+      for await (const rawChunk of chunks) {
+        const chunk = llmRequest.citations.feed(rawChunk)
         onProgress()
+        if (chunk === "") continue
+        fullContent += chunk
         yield this.sseEvent({ type: "chunk", content: chunk, messageId: assistantMessageId })
+      }
+      const tail = llmRequest.citations.flush()
+      if (tail !== "") {
+        fullContent += tail
+        yield this.sseEvent({ type: "chunk", content: tail, messageId: assistantMessageId })
       }
 
       await this.updateMessageStatusWithIds({
@@ -283,6 +301,8 @@ export class StreamingLlmService extends LlmServiceBase {
         status: "completed",
         content: fullContent,
       })
+
+      await llmRequest.classifyTurn({ answerText: fullContent })
 
       yield this.sseEvent({ type: "end", messageId: assistantMessageId, fullContent })
     } catch (error) {

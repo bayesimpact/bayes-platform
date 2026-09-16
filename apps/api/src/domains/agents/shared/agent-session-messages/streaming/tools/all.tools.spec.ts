@@ -118,9 +118,9 @@ describe("Tools execution", () => {
   }) => {
     mockProvider.addToolCallTurn(agent.id, toolName, toolInput)
     mockProvider.addTextTurn(agent.id, "Done.")
-    // Every conversation agent now submits the turn summary: the provider
-    // forces it in a third generation when the loop did not call it.
-    mockProvider.addToolCallTurn(agent.id, ToolName.MandatoryTool, { suggestedTitle: null })
+    // Every conversation agent gets the post-turn classification (title):
+    // a third, structured-output generation after the answer.
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
 
     const { fulltextStream } = await aggregateStream(
       service.streamAgentResponse({
@@ -146,215 +146,132 @@ describe("Tools execution", () => {
     isParentChunk: false,
   }
 
-  it("ToolName.MandatoryTool (sources part) - runs via the systematic end-of-turn call", async () => {
-    const { connectScope, agent, agentSettings, session, project } =
-      await createContextWithSession()
-    const ragAgentSettings = { ...agentSettings, documentsRagMode: DocumentsRagMode.All }
-
+  const createRagContextWithSources = async () => {
+    const context = await createContextWithSession()
     await addFeature({
       featureFlagRepository: repositories.featureFlagRepository,
-      projectId: project.id,
+      projectId: context.project.id,
       featureFlagKey: "sources-tool",
     })
     mockDocumentChunkRetrievalService.retrieveTopChunks.mockResolvedValue([retrievedChunkFixture])
-
-    // Generation 1: the lookup. Generation 2: the answer, without the
-    // voluntary report. Generation 3: the forced end-of-turn call.
-    mockProvider.addToolCallTurn(agent.id, ToolName.LookupKnowledgeBase, { query: "paid leave" })
-    mockProvider.addTextTurn(agent.id, "Here is the answer.")
-    mockProvider.addToolCallTurn(agent.id, ToolName.MandatoryTool, { chunkIds: ["c1"] })
-
-    const { events, fulltextStream } = await aggregateStream(
-      service.streamAgentResponse({
-        agentSessionScope: { agent, agentSettings: ragAgentSettings, session, connectScope },
-        userContent: "Hello",
-        notifyClient: () => undefined,
-      }),
-    )
-
-    expect(fulltextStream).toBe("Here is the answer.")
-    expect(events.at(-1)?.type).toBe("end")
-
-    const agentCalls = mockProvider.getCalls().filter((call) => call.agentId === agent.id)
-    expect(agentCalls).toHaveLength(3)
-  }, 15000)
-
-  it("ToolName.MandatoryTool - chunkIds enters the declared schema only after a lookup ran", async () => {
-    // The user-visible contract: on a step where no knowledge base call
-    // happened yet, the declared schema (and description) must not mention
-    // chunkIds at all — including in the forced end-of-turn generation.
-    const { connectScope, agent, agentSettings, session, project } =
-      await createContextWithSession()
-    const ragAgentSettings = { ...agentSettings, documentsRagMode: DocumentsRagMode.All }
-
-    await addFeature({
-      featureFlagRepository: repositories.featureFlagRepository,
-      projectId: project.id,
-      featureFlagKey: "sources-tool",
-    })
-    mockDocumentChunkRetrievalService.retrieveTopChunks.mockResolvedValue([retrievedChunkFixture])
-
-    // Generation 1: the lookup. Generation 2: answer + voluntary report.
-    mockProvider.addToolCallTurn(agent.id, ToolName.LookupKnowledgeBase, { query: "paid leave" })
-    mockProvider.addTextWithToolCallTurn(agent.id, "27 days.", ToolName.MandatoryTool, {
-      chunkIds: ["c1"],
-    })
-
-    await aggregateStream(
-      service.streamAgentResponse({
-        agentSessionScope: { agent, agentSettings: ragAgentSettings, session, connectScope },
-        userContent: "How many days of leave?",
-        notifyClient: () => undefined,
-      }),
-    )
-
-    const agentCalls = mockProvider.getCalls().filter((call) => call.agentId === agent.id)
-    expect(agentCalls).toHaveLength(2)
-    // Step 0 (before any lookup): declared, but without chunkIds.
-    expect(agentCalls[0]?.toolNames).toContain(ToolName.MandatoryTool)
-    expect(agentCalls[0]?.toolSchemas[ToolName.MandatoryTool]).not.toContain("chunkIds")
-    // Step 1 (the lookup registered chunks): chunkIds is now declared.
-    expect(agentCalls[1]?.toolSchemas[ToolName.MandatoryTool]).toContain("chunkIds")
-  }, 15000)
-
-  it("ToolName.MandatoryTool - a report submitted BEFORE the lookup is stale: the forced retry still reports sources", async () => {
-    // Gemini Flash sometimes calls the report alongside/before the lookup in
-    // the first step (metadata only — no chunk exists yet). That execution
-    // must not consume the end-of-turn guarantee: once the lookup registered
-    // chunks, the forced generation retries and the sources get reported.
-    const { connectScope, agent, agentSettings, session, project } =
-      await createContextWithSession()
-    const ragAgentSettings = { ...agentSettings, documentsRagMode: DocumentsRagMode.All }
-
-    await addFeature({
-      featureFlagRepository: repositories.featureFlagRepository,
-      projectId: project.id,
-      featureFlagKey: "sources-tool",
-    })
-    mockDocumentChunkRetrievalService.retrieveTopChunks.mockResolvedValue([retrievedChunkFixture])
-
-    const category = await repositories.agentSessionCategoryRepository.save(
-      repositories.agentSessionCategoryRepository.create({ agentId: agent.id, name: "Bayes" }),
-    )
-    agent.sessionCategories = [category]
-
-    // Generation 1: PREMATURE report (before any lookup). Generation 2: the
-    // lookup. Generation 3: the answer. Generation 4: the forced retry.
-    mockProvider.addToolCallTurn(agent.id, ToolName.MandatoryTool, {
-      suggestedTitle: "Leave days",
-      categoryNames: ["Bayes"],
-    })
-    mockProvider.addToolCallTurn(agent.id, ToolName.LookupKnowledgeBase, { query: "leave days" })
-    mockProvider.addTextTurn(agent.id, "27 days.")
-    mockProvider.addToolCallTurn(agent.id, ToolName.MandatoryTool, {
-      chunkIds: ["c1"],
-      suggestedTitle: "Leave days",
-      categoryNames: ["Bayes"],
-    })
-
-    const { events } = await aggregateStream(
-      service.streamAgentResponse({
-        agentSessionScope: { agent, agentSettings: ragAgentSettings, session, connectScope },
-        userContent: "How many days of leave?",
-        notifyClient: () => undefined,
-      }),
-    )
-
-    expect(events.at(-1)?.type).toBe("end")
-    const agentCalls = mockProvider.getCalls().filter((call) => call.agentId === agent.id)
-    // The forced retry DID run (4 generations) despite the premature report,
-    // and its declared schema carried chunkIds (the lookup ran by then).
-    expect(agentCalls).toHaveLength(4)
-    expect(agentCalls[3]?.toolSchemas[ToolName.MandatoryTool]).toContain("chunkIds")
-  }, 15000)
-
-  it("ToolName.MandatoryTool - no lookup in the turn: chunkIds never declared, forced call included", async () => {
-    // Greeting turn on a RAG agent: the forced end-of-turn generation must
-    // use the same runtime-dynamic schema — no chunkIds without a lookup.
-    const { connectScope, agent, agentSettings, session, project } =
-      await createContextWithSession()
-    const ragAgentSettings = { ...agentSettings, documentsRagMode: DocumentsRagMode.All }
-
-    await addFeature({
-      featureFlagRepository: repositories.featureFlagRepository,
-      projectId: project.id,
-      featureFlagKey: "sources-tool",
-    })
-
-    const category = await repositories.agentSessionCategoryRepository.save(
-      repositories.agentSessionCategoryRepository.create({ agentId: agent.id, name: "Greeting" }),
-    )
-    agent.sessionCategories = [category]
-
-    // Generation 1: the greeting answer. Generation 2: the forced report.
-    mockProvider.addTextTurn(agent.id, "Hello!")
-    mockProvider.addToolCallTurn(agent.id, ToolName.MandatoryTool, {
-      suggestedTitle: "Greetings",
-      categoryNames: ["Greeting"],
-    })
-
-    const { events } = await aggregateStream(
-      service.streamAgentResponse({
-        agentSessionScope: { agent, agentSettings: ragAgentSettings, session, connectScope },
-        userContent: "hi",
-        notifyClient: () => undefined,
-      }),
-    )
-
-    expect(events.at(-1)?.type).toBe("end")
-    const agentCalls = mockProvider.getCalls().filter((call) => call.agentId === agent.id)
-    expect(agentCalls).toHaveLength(2)
-    for (const call of agentCalls) {
-      expect(call.toolSchemas[ToolName.MandatoryTool]).toBeDefined()
-      expect(call.toolSchemas[ToolName.MandatoryTool]).not.toContain("chunkIds")
+    return {
+      ...context,
+      agentSettings: { ...context.agentSettings, documentsRagMode: DocumentsRagMode.All },
     }
-  }, 15000)
+  }
 
-  it("ToolName.MandatoryTool - voluntary in-loop call skips the forced generation (dedupe)", async () => {
-    // A cooperative model (Gemma) calls the report in the SAME generation as
-    // its answer: the loop stops (fire-and-forget) and the provider must NOT
-    // force a second call — the report side effects would run twice.
-    const { connectScope, agent, agentSettings, session } = await createContextWithSession()
+  const findToolMessages = async (sessionId: string, toolName: string) => {
+    const toolMessages = await repositories.agentMessageRepository.find({
+      where: { sessionId, role: "tool" },
+    })
+    return toolMessages.filter((message) => message.toolCalls?.[0]?.name === toolName)
+  }
 
-    const category = await repositories.agentSessionCategoryRepository.save(
-      repositories.agentSessionCategoryRepository.create({ agentId: agent.id, name: "Bayes" }),
-    )
-    agent.sessionCategories = [category]
+  it("Sources - inline citations are stripped from the reply and logged as sources", async () => {
+    const { connectScope, agent, agentSettings, session } = await createRagContextWithSources()
 
-    mockProvider.addTextWithToolCallTurn(
-      agent.id,
-      "Answer with the call.",
-      ToolName.MandatoryTool,
-      {
-        suggestedTitle: "Voluntary title",
-        categoryNames: ["Bayes"],
-      },
-    )
+    // Generation 1: the lookup. Generation 2: the answer, citing inline.
+    // Generation 3: the post-turn classification (title only — the sources
+    // were cited inline, so the classifier is not asked about them).
+    mockProvider.addToolCallTurn(agent.id, ToolName.LookupKnowledgeBase, { query: "paid leave" })
+    mockProvider.addStreamTurn(agent.id, ["You get 27 days of paid leave [c", "1].", " Enjoy!"])
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: "Paid leave" })
 
     const { events, fulltextStream } = await aggregateStream(
       service.streamAgentResponse({
         agentSessionScope: { agent, agentSettings, session, connectScope },
-        userContent: "Hello",
+        userContent: "How many days of leave?",
         notifyClient: () => undefined,
       }),
     )
 
-    expect(fulltextStream).toBe("Answer with the call.")
+    expect(fulltextStream).toBe("You get 27 days of paid leave. Enjoy!")
     expect(events.at(-1)?.type).toBe("end")
 
-    // Single generation: the voluntary call satisfied the guarantee.
-    const agentCalls = mockProvider.getCalls().filter((call) => call.agentId === agent.id)
-    expect(agentCalls).toHaveLength(1)
-    const updatedSession = await repositories.conversationAgentSessionRepository.findOneByOrFail({
-      id: session.id,
+    const [sourcesMessage, ...otherSources] = await findToolMessages(session.id, ToolName.Sources)
+    expect(otherSources).toHaveLength(0)
+    const sources = sourcesMessage?.toolCalls?.[0]?.arguments.sources as Array<{
+      documentId: string
+      chunks: Array<{ chunkId: string }>
+    }>
+    expect(sources[0]?.documentId).toBe(retrievedChunkFixture.documentId)
+    expect(sources[0]?.chunks[0]?.chunkId).toBe(retrievedChunkFixture.chunkId)
+
+    const persistedReply = await repositories.agentMessageRepository.findOneByOrFail({
+      sessionId: session.id,
+      role: "assistant",
     })
-    expect(updatedSession.title).toBe("Voluntary title")
+    expect(persistedReply.content).toBe("You get 27 days of paid leave. Enjoy!")
+
+    const agentCalls = mockProvider.getCalls().filter((call) => call.agentId === agent.id)
+    expect(agentCalls).toHaveLength(3)
+    // The answering loop declares no bookkeeping tool, and the lookup tool
+    // carries the inline citation rule.
+    expect(agentCalls[0]?.toolNames).toContain(ToolName.LookupKnowledgeBase)
+    expect(agentCalls[0]?.toolNames).not.toContain("mandatory_tool")
+    expect(agentCalls[0]?.prompt).toContain("Cite your sources inline")
+    // The classifier is a structured-output call with no tools, and it is
+    // not asked about sources when they were cited inline.
+    expect(agentCalls[2]?.toolNames).toEqual([])
+    expect(agentCalls[2]?.responseFormatSchema).toContain("suggestedTitle")
+    expect(agentCalls[2]?.responseFormatSchema).not.toContain("chunkIds")
   }, 15000)
 
-  it("ToolName.MandatoryTool (session metadata part) - systematic forced call updates the session", async () => {
-    // The report is invoked through a forced generation after the answer, on
-    // every turn — the model has no way to skip it (Gemini Flash never
-    // volunteers bookkeeping calls in auto mode).
+  it("Sources - without inline citations, the classifier attributes the retrieved passages", async () => {
+    const { connectScope, agent, agentSettings, session } = await createRagContextWithSources()
+
+    mockProvider.addToolCallTurn(agent.id, ToolName.LookupKnowledgeBase, { query: "paid leave" })
+    mockProvider.addTextTurn(agent.id, "You get 27 days of paid leave.")
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: "Paid leave", chunkIds: ["c1"] })
+
+    const { events } = await aggregateStream(
+      service.streamAgentResponse({
+        agentSessionScope: { agent, agentSettings, session, connectScope },
+        userContent: "How many days of leave?",
+        notifyClient: () => undefined,
+      }),
+    )
+    expect(events.at(-1)?.type).toBe("end")
+
+    const agentCalls = mockProvider.getCalls().filter((call) => call.agentId === agent.id)
+    expect(agentCalls).toHaveLength(3)
+    // The classifier schema lists the retrieved aliases as a closed enum and
+    // its prompt carries the passage excerpts.
+    expect(agentCalls[2]?.responseFormatSchema).toContain("chunkIds")
+    expect(agentCalls[2]?.responseFormatSchema).toContain('"c1"')
+    expect(agentCalls[2]?.prompt).toContain("Employees get 27 days of paid leave.")
+
+    const sourcesMessages = await findToolMessages(session.id, ToolName.Sources)
+    expect(sourcesMessages).toHaveLength(1)
+    const sources = sourcesMessages[0]?.toolCalls?.[0]?.arguments.sources as Array<{
+      documentId: string
+    }>
+    expect(sources[0]?.documentId).toBe(retrievedChunkFixture.documentId)
+  }, 15000)
+
+  it("Sources - no lookup in the turn: the classifier is not asked about passages", async () => {
+    const { connectScope, agent, agentSettings, session } = await createRagContextWithSources()
+
+    // Greeting turn on a RAG agent: answer, then the classification.
+    mockProvider.addTextTurn(agent.id, "Hello!")
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
+
+    const { events } = await aggregateStream(
+      service.streamAgentResponse({
+        agentSessionScope: { agent, agentSettings, session, connectScope },
+        userContent: "hi",
+        notifyClient: () => undefined,
+      }),
+    )
+    expect(events.at(-1)?.type).toBe("end")
+
+    const agentCalls = mockProvider.getCalls().filter((call) => call.agentId === agent.id)
+    expect(agentCalls).toHaveLength(2)
+    expect(agentCalls[1]?.responseFormatSchema).not.toContain("chunkIds")
+    expect(await findToolMessages(session.id, ToolName.Sources)).toHaveLength(0)
+  }, 15000)
+
+  it("Session metadata - the classification updates the title and categories on every turn", async () => {
     const { connectScope, agent, agentSettings, session } = await createContextWithSession()
 
     const category = await repositories.agentSessionCategoryRepository.save(
@@ -362,9 +279,10 @@ describe("Tools execution", () => {
     )
     agent.sessionCategories = [category]
 
-    // Generation 1: the answer. Generation 2: the forced end-of-turn call.
+    // Generation 1: the answer, with no tool call at all. Generation 2: the
+    // classification — the model has no way to skip it.
     mockProvider.addTextTurn(agent.id, "Answer without any tool call.")
-    mockProvider.addToolCallTurn(agent.id, ToolName.MandatoryTool, {
+    mockProvider.addObjectTurn(agent.id, {
       suggestedTitle: "About Bayes",
       categoryNames: ["Bayes"],
     })
@@ -380,103 +298,56 @@ describe("Tools execution", () => {
     expect(fulltextStream).toBe("Answer without any tool call.")
     expect(events.at(-1)?.type).toBe("end")
 
-    // The forced generation ran and its tool execution went through the
-    // normal dispatch: the session metadata was actually recalculated.
     const agentCalls = mockProvider.getCalls().filter((call) => call.agentId === agent.id)
     expect(agentCalls).toHaveLength(2)
+    // The categories are a closed enum in the classifier schema.
+    expect(agentCalls[1]?.responseFormatSchema).toContain('"enum":["Bayes"]')
+    expect(agentCalls[1]?.prompt).toContain("Available categories: Bayes")
+
     const updatedSession = await repositories.conversationAgentSessionRepository.findOneByOrFail({
       id: session.id,
     })
     expect(updatedSession.title).toBe("About Bayes")
-  }, 15000)
-
-  it("ToolName.MandatoryTool - tolerates an empty voluntary call (Gemma greeting shape)", async () => {
-    // On greeting turns Gemma 4 sometimes calls the summary with {} — no
-    // chunkIds, no categories, no title. This must NOT error the stream and
-    // must NOT touch the session metadata (a no-op report). A no-op does not
-    // consume the end-of-turn guarantee: the forced generation retries.
-    const { connectScope, agent, agentSettings, session } = await createContextWithSession()
-
-    const category = await repositories.agentSessionCategoryRepository.save(
-      repositories.agentSessionCategoryRepository.create({ agentId: agent.id, name: "Bayes" }),
+    const metadataMessages = await findToolMessages(
+      session.id,
+      ToolName.RecalculateConversationSessionMetadata,
     )
-    agent.sessionCategories = [category]
-    const initialTitle = session.title
-
-    mockProvider.addTextWithToolCallTurn(agent.id, "Hello!", ToolName.MandatoryTool, {})
-
-    const { events, fulltextStream } = await aggregateStream(
-      service.streamAgentResponse({
-        agentSessionScope: { agent, agentSettings, session, connectScope },
-        userContent: "hi",
-        notifyClient: () => undefined,
-      }),
-    )
-
-    expect(fulltextStream).toBe("Hello!")
-    expect(events.at(-1)?.type).toBe("end")
-    expect(events.some((event) => event.type === "error")).toBe(false)
-
-    // The no-op voluntary call did not consume the guarantee: the forced
-    // generation ran as a second chance (the mock answers it with text, so
-    // nothing is recorded — the point is the retry happened).
-    const agentCalls = mockProvider.getCalls().filter((call) => call.agentId === agent.id)
-    expect(agentCalls).toHaveLength(2)
-    const updatedSession = await repositories.conversationAgentSessionRepository.findOneByOrFail({
-      id: session.id,
-    })
-    expect(updatedSession.title).toBe(initialTitle)
-  }, 15000)
-
-  it("ToolName.MandatoryTool - an INVALID voluntary call still triggers the forced generation", async () => {
-    // A voluntary call with arguments that fail validation never executes —
-    // the end-of-turn guarantee must be based on EXECUTIONS, not calls, so
-    // the forced generation still runs and the report happens.
-    const { connectScope, agent, agentSettings, session } = await createContextWithSession()
-
-    const category = await repositories.agentSessionCategoryRepository.save(
-      repositories.agentSessionCategoryRepository.create({ agentId: agent.id, name: "Bayes" }),
-    )
-    agent.sessionCategories = [category]
-
-    mockProvider.addTextWithToolCallTurn(agent.id, "Answer.", ToolName.MandatoryTool, {
-      categoryNames: "not-an-array",
-    })
-    mockProvider.addToolCallTurn(agent.id, ToolName.MandatoryTool, {
-      suggestedTitle: "Recovered title",
+    expect(metadataMessages).toHaveLength(1)
+    expect(metadataMessages[0]?.toolCalls?.[0]?.arguments).toEqual({
+      suggestedTitle: "About Bayes",
       categoryNames: ["Bayes"],
     })
+  }, 15000)
+
+  it("Session metadata - a failing classification never breaks the stream", async () => {
+    const { connectScope, agent, agentSettings, session } = await createContextWithSession()
+    const initialTitle = session.title
+
+    mockProvider.addTextTurn(agent.id, "Answer.")
+    mockProvider.addErrorTurn(agent.id, new Error("provider down"))
 
     const { events, fulltextStream } = await aggregateStream(
       service.streamAgentResponse({
         agentSessionScope: { agent, agentSettings, session, connectScope },
-        userContent: "Question",
+        userContent: "Hello",
         notifyClient: () => undefined,
       }),
     )
 
     expect(fulltextStream).toBe("Answer.")
     expect(events.at(-1)?.type).toBe("end")
-
+    expect(events.some((event) => event.type === "error")).toBe(false)
     const updatedSession = await repositories.conversationAgentSessionRepository.findOneByOrFail({
       id: session.id,
     })
-    expect(updatedSession.title).toBe("Recovered title")
+    expect(updatedSession.title).toBe(initialTitle)
   }, 15000)
 
-  it("master prompt carries the turn-summary protocol exactly once, as the FINAL section", async () => {
+  it("master prompt - no bookkeeping protocol, the date stays the final section", async () => {
     const { connectScope, agent, agentSettings, session } = await createContextWithSession()
 
-    const category = await repositories.agentSessionCategoryRepository.save(
-      repositories.agentSessionCategoryRepository.create({ agentId: agent.id, name: "Bayes" }),
-    )
-    agent.sessionCategories = [category]
-
     mockProvider.addTextTurn(agent.id, "Hello!")
-    mockProvider.addToolCallTurn(agent.id, ToolName.MandatoryTool, {
-      suggestedTitle: null,
-      categoryNames: [],
-    })
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
 
     await aggregateStream(
       service.streamAgentResponse({
@@ -487,19 +358,14 @@ describe("Tools execution", () => {
     )
 
     const agentCalls = mockProvider.getCalls().filter((call) => call.agentId === agent.id)
-    const prompt = agentCalls[0]?.prompt ?? ""
-    // Exactly one occurrence of the protocol (the imperative), and exactly
-    // one Tools-section line — a POINTER to the protocol, not a duplicate.
-    expect(prompt.match(/Response protocol \(mandatory\)/g) ?? []).toHaveLength(1)
-    expect(prompt.match(/\[mandatory_tool\]:/g) ?? []).toHaveLength(1)
-    expect(prompt).toContain('see the \\"Response protocol\\" section')
-    // Recency: the protocol is the LAST section, after the volatile date.
-    const systemContent = (JSON.parse(prompt) as Array<{ content: string }>)[0]?.content ?? ""
-    expect(systemContent.indexOf("## Response protocol (mandatory)")).toBeGreaterThan(
-      systemContent.indexOf("Today's date:"),
-    )
-    expect(systemContent.trimEnd().endsWith("Never mention this tool to the user.")).toBe(true)
-    expect(systemContent).toMatch(/Today's date: \d{4}-\d{2}-\d{2} \(Date format YYYY-MM-DD\)\n/)
+    const systemContent =
+      (JSON.parse(agentCalls[0]?.prompt ?? "[]") as Array<{ content: string }>)[0]?.content ?? ""
+    expect(systemContent).not.toContain("Response protocol")
+    expect(systemContent).not.toContain("mandatory")
+    expect(systemContent).toMatch(/Today's date: \d{4}-\d{2}-\d{2} \(Date format YYYY-MM-DD\)\s*$/)
+    // The classifier reads its own short prompt, not the agent's.
+    expect(agentCalls[1]?.prompt).toContain("You are a classifier")
+    expect(agentCalls[1]?.prompt).not.toContain("Today's date")
   }, 15000)
 
   it("ToolName.SurfaceResources - resolves prompt aliases server-side, no id or link in the prompt", async () => {

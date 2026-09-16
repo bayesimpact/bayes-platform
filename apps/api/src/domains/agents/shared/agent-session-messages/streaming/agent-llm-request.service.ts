@@ -27,7 +27,13 @@ import { AgentMessageAttachmentDocumentsService } from "../agent-message-attachm
 import { isLLMVisibleMessage } from "./llm-visible-message.helper"
 import { generateMasterPrompt } from "./master-promts/generate-master-prompt"
 import type { AgentSessionScope, OnExecute, StreamingSession } from "./streaming-session.types"
+import {
+  createInlineCitationExtractor,
+  createPassthroughCitationExtractor,
+  type InlineCitationExtractor,
+} from "./tools/inline-citations"
 import type { SessionStateTarget } from "./tools/session-state-target"
+import { llmMessageText, runTurnClassification } from "./tools/turn-classification"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ToolsService } from "./tools.service"
 
@@ -36,6 +42,20 @@ export type BuiltLLMRequest = {
   metadata: LLMMetadata
   messages: LLMChatMessage[]
   mcpClose: (() => Promise<void>) | undefined
+  /**
+   * Pass every streamed delta through it and flush it at the end: it strips
+   * the inline source citations (`[c1]`) from the text the user sees and
+   * records them for {@link classifyTurn}. A passthrough when the turn does
+   * not report sources.
+   */
+  citations: InlineCitationExtractor
+  /**
+   * The post-turn step (ADR 0016): logs the cited sources and runs the
+   * classification call that produces the session title, the categories
+   * and, when nothing was cited inline, the sources. Call it once the reply
+   * is complete, with the final text. Never throws.
+   */
+  classifyTurn: (params: { answerText: string }) => Promise<void>
 }
 
 /**
@@ -86,9 +106,7 @@ export class AgentLlmRequestService {
       mcpClose,
       toolDescriptions,
       fireAndForgetToolNames,
-      endOfTurnTools,
-      endOfTurnExecutionCounts,
-      masterPromptEpilogue,
+      turnClassification,
       hasSubAgentTools,
     } = await this.toolsService.buildTools({
       agentSessionScope,
@@ -99,11 +117,7 @@ export class AgentLlmRequestService {
       sessionState,
     })
 
-    // End-of-turn tool names are included so the master prompt can explain
-    // the report; deduplicated because they are also declared in `tools`.
-    const toolNames = [
-      ...new Set([...(tools ? Object.keys(tools) : []), ...Object.keys(endOfTurnTools)]),
-    ]
+    const toolNames = tools ? Object.keys(tools) : []
     const llmFeatures = await this.projectsService.getLlmFeatures(connectScope)
     const config = buildLLMConfig({
       systemPrompt: generateMasterPrompt({
@@ -111,14 +125,11 @@ export class AgentLlmRequestService {
         agentSettings,
         toolNames,
         toolDescriptions,
-        epilogue: masterPromptEpilogue,
       }),
       model: agentSettings.model,
       temperature: agentSettings.temperature,
       tools,
       fireAndForgetToolNames,
-      endOfTurnTools,
-      endOfTurnExecutionCounts,
       priorityCallsEnabled: agentSettings.priorityCallsEnabled,
       llmFeatures,
     })
@@ -142,7 +153,33 @@ export class AgentLlmRequestService {
         model: agentSettings.model,
       })
 
-    return { config, metadata, messages, mcpClose }
+    const citations = turnClassification?.retrievedChunksRegistry
+      ? createInlineCitationExtractor()
+      : createPassthroughCitationExtractor()
+    const classifyTurn = async ({ answerText }: { answerText: string }) => {
+      if (!turnClassification) return
+      // The history sent to the model ends with the current user message.
+      const currentUserMessage = messages.at(-1)
+      await runTurnClassification({
+        context: turnClassification,
+        provider: getProviderForModel(agentSettings.model),
+        buildConfig: (classifierSystemPrompt) =>
+          buildLLMConfig({
+            systemPrompt: classifierSystemPrompt,
+            model: agentSettings.model,
+            temperature: 0,
+            priorityCallsEnabled: agentSettings.priorityCallsEnabled,
+            llmFeatures,
+          }),
+        metadata,
+        earlierMessages: messages.slice(0, -1),
+        userMessage: currentUserMessage ? llmMessageText(currentUserMessage) : "",
+        answerText,
+        citedChunkAliases: citations.citedAliases(),
+      })
+    }
+
+    return { config, metadata, messages, mcpClose, citations, classifyTurn }
   }
 
   private buildLLMData({

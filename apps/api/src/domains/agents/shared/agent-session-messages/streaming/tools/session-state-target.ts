@@ -1,5 +1,5 @@
 import type { SessionResultUpdater } from "./fill-form.tool"
-import type { SessionMetadataRecalculator } from "./mandatory.tool"
+import type { SessionMetadataRecalculator } from "./turn-classification"
 
 /**
  * Where the stateful tools persist their session state. Conversation

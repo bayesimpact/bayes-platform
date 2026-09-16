@@ -27,6 +27,10 @@ type BuildToolsAccessor = {
   buildTools: (args: BuildToolsArgs) => Promise<{
     toolDescriptions: Record<string, string>
     tools: Record<string, unknown> | undefined
+    turnClassification?: {
+      retrievedChunksRegistry?: unknown
+      sessionMetadata?: { availableCategoryNames: string[] }
+    }
   }>
 }
 
@@ -39,7 +43,9 @@ describe("buildTools", () => {
       projectId: testProject.id,
     }
 
-    const { tools } = await (toolsService as unknown as BuildToolsAccessor).buildTools({
+    const { tools, turnClassification } = await (
+      toolsService as unknown as BuildToolsAccessor
+    ).buildTools({
       agentSessionScope: {
         agent: testAgent,
         agentSettings: { ...testAgentSettings, documentsRagMode: DocumentsRagMode.None },
@@ -50,10 +56,11 @@ describe("buildTools", () => {
     })
 
     expect(tools?.[ToolName.LookupKnowledgeBase]).toBeUndefined()
-    // The legacy recalculate tool is gone: session metadata lives in the
-    // composite mandatory_tool, present on every conversation agent.
+    // No bookkeeping tool in the loop: session metadata is computed by the
+    // post-turn classification, present on every conversation agent.
     expect(tools?.[ToolName.RecalculateConversationSessionMetadata]).toBeUndefined()
-    expect(tools?.[ToolName.MandatoryTool]).toBeDefined()
+    expect(turnClassification?.sessionMetadata).toBeDefined()
+    expect(turnClassification?.retrievedChunksRegistry).toBeUndefined()
   })
 
   it("should expose document retrieval when documentsRagMode is all", async () => {
@@ -100,7 +107,7 @@ describe("buildTools", () => {
     expect(tools?.[ToolName.RecalculateConversationSessionMetadata]).toBeUndefined()
   })
 
-  it("exposes the mandatory tool with categories when the agent has some", async () => {
+  it("hands the agent's categories to the post-turn classification", async () => {
     const {
       toolsService,
       service,
@@ -138,7 +145,9 @@ describe("buildTools", () => {
     })
     if (!agent) throw new Error("Agent not found")
 
-    const { tools } = await (toolsService as unknown as BuildToolsAccessor).buildTools({
+    const { tools, turnClassification } = await (
+      toolsService as unknown as BuildToolsAccessor
+    ).buildTools({
       agentSessionScope: {
         agent: agent,
         agentSettings: { ...testAgentSettings, documentsRagMode: DocumentsRagMode.None },
@@ -148,10 +157,9 @@ describe("buildTools", () => {
       onExecute: () => undefined,
     })
 
-    // Metadata reporting is part of the composite mandatory_tool; the
-    // legacy tool name only survives in execution logs.
+    // The legacy tool name only survives in execution logs.
     expect(tools?.[ToolName.RecalculateConversationSessionMetadata]).toBeUndefined()
-    expect(tools?.[ToolName.MandatoryTool]).toBeDefined()
+    expect(turnClassification?.sessionMetadata?.availableCategoryNames).toEqual(["billing"])
   })
 
   it("should omit configured sub-agent tools when orchestration feature is disabled", async () => {
