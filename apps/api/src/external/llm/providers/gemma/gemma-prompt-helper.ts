@@ -1,25 +1,5 @@
-import type { ToolSet } from "ai"
-
 // biome-ignore lint/complexity/noStaticOnlyClass: helper
 export class GemmaPromptHelper {
-  /**
-   * Gemma calls tools natively through the OpenAI-compatible endpoint, so tool
-   * definitions are NOT described in the prompt (unlike Mistral and MedGemma).
-   * The only prompt adjustment it needs is this instruction about nullable
-   * argument fields, which Gemma otherwise fills with the string "null".
-   */
-  static injectNullValueInstruction({ prompt, tools }: { prompt: string; tools: ToolSet }): string {
-    // The instruction only concerns tool-call arguments, so it is pointless
-    // without tools.
-    if (Object.keys(tools ?? {}).length === 0) return prompt
-
-    // FIXME: anchoring on a prompt substring is fragile — the instruction is
-    // silently dropped if the master prompt stops emitting this exact heading.
-    const marker = "## Response language:\nAlways answer in"
-    const injection = `(CRITICAL) If a field value allows null, set the value to null when unknown. Set to null not to quoted "null"`
-    return prompt.includes(marker) ? prompt.replace(marker, `${injection}\n${marker}`) : prompt
-  }
-
   /**
    * Kept because the MedGemma provider renders tool docs in-prompt and reuses
    * this — see ai-sdk-med-gemma.provider.ts. Not used for Gemma itself.

@@ -14,10 +14,22 @@ export function objectToRecord(value: unknown): Record<string, unknown> | undefi
   return undefined
 }
 
+/**
+ * Coerces the scalar values a model sends for form fields (see `castValue`)
+ * and DROPS the fields it left empty: `null`, `undefined` and the string
+ * "null" that small models emit for an unknown value. Dropping the key, not
+ * setting it to undefined, matters because the result is merged into the
+ * stored form (`{ ...stored, ...input }`): an undefined key would erase a
+ * value collected on an earlier turn, which is exactly what a model
+ * re-sending the whole form with "null" for the fields it does not know
+ * would do. An unknown value never overwrites a known one; a revision goes
+ * through a real value.
+ */
 export function castToolInputParameters(input: Record<string, unknown>): Record<string, unknown> {
   const result: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(input)) {
-    result[key] = castValue(value)
+    const castedValue = castValue(value)
+    if (castedValue !== undefined) result[key] = castedValue
   }
   return result
 }

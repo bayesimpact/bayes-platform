@@ -30,38 +30,7 @@ describe("GemmaPromptHelper", () => {
       }
     },
   })
-  const testTools = { test: testTool } as ToolSet
-  it("injectNullValueInstruction - returns prompt unchanged when marker is absent", async () => {
-    const initialPrompt = "initial prompt"
-    const result = GemmaPromptHelper.injectNullValueInstruction({
-      prompt: initialPrompt,
-      tools: testTools,
-    })
-    expect(result).toBe(initialPrompt)
-  })
-  it("injectNullValueInstruction - returns prompt unchanged when no tools", async () => {
-    const prompt = `some text\n## Response language:\nAlways answer in English.`
-    const result = GemmaPromptHelper.injectNullValueInstruction({
-      prompt,
-      tools: {} as ToolSet,
-    })
-    expect(result).toBe(prompt)
-  })
-  it("injectNullValueInstruction - injects CRITICAL instruction before language marker", async () => {
-    const prompt = `some text\n## Response language:\nAlways answer in English.`
-    const result = GemmaPromptHelper.injectNullValueInstruction({ prompt, tools: testTools })
-    expect(result).toContain("(CRITICAL)")
-    expect(result).toContain("## Response language:\nAlways answer in")
-    expect(result.indexOf("(CRITICAL)")).toBeLessThan(result.indexOf("## Response language:"))
-  })
-  it("injectNullValueInstruction - does not describe the tools in the prompt", async () => {
-    const prompt = `some text\n## Response language:\nAlways answer in English.`
-    const result = GemmaPromptHelper.injectNullValueInstruction({ prompt, tools: testTools })
-    // Gemma receives tool definitions through native function calling, never in
-    // the prompt. Guards against reintroducing the Mistral-style tool listing.
-    expect(result).not.toContain("A test tool")
-    expect(result).not.toContain("##TOOLS")
-  })
+  const _testTools = { test: testTool } as ToolSet
   it("jsonSchemaToArgumentString", async () => {
     const schema1 = z.object({
       stringVal: zNullableType(z.string(), "String"),

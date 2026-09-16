@@ -455,6 +455,30 @@ describe("Tools execution", () => {
     expect(updatedSession.result).toEqual({ fullName: "Lara Croft", city: "Lyon" })
   })
 
+  it("ToolName.FillForm - an unknown value never erases a field filled on an earlier turn", async () => {
+    // Small models re-send the whole form with "null" (or null) for the
+    // fields they do not know. Those must be dropped before the merge, or
+    // they would wipe answers collected earlier.
+    const { connectScope, agent, agentSettings, session } = await createFillFormContextWithSession({
+      fullName: "Lara Croft",
+      city: "Lyon",
+    })
+
+    await runWithToolCall({
+      agent,
+      agentSettings,
+      session,
+      connectScope,
+      toolName: ToolName.FillForm,
+      toolInput: { formFields: { fullName: "null", city: null } },
+    })
+
+    const updatedSession = await repositories.conversationAgentSessionRepository.findOneByOrFail({
+      id: session.id,
+    })
+    expect(updatedSession.result).toEqual({ fullName: "Lara Croft", city: "Lyon" })
+  })
+
   it("ToolName.FillForm - should works - getFormState", async () => {
     const { connectScope, agent, agentSettings, session } = await createFillFormContextWithSession({
       fullName: "Lara Croft",
