@@ -18,7 +18,12 @@ import type { ProjectsService } from "@/domains/projects/projects.service"
 import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
 import { isLLMVisibleMessage } from "./llm-visible-message.helper"
 import type { AgentSessionScope, OnExecute, StreamingSession } from "./streaming-session.types"
+import {
+  createInlineCitationExtractor,
+  createPassthroughCitationExtractor,
+} from "./tools/inline-citations"
 import { type SubAgentToolInput, subAgentTool } from "./tools/sub-agent.tool"
+import { runTurnClassification, type TurnClassificationContext } from "./tools/turn-classification"
 
 const logger = new Logger("SubAgentTools")
 const tracer = trace.getTracer("caseai-sub-agent")
@@ -27,14 +32,11 @@ export type BuiltTools = {
   tools: ToolSet | undefined
   fireAndForgetToolNames: string[]
   /**
-   * Tools the provider invokes through a forced generation after the
-   * answering loop, on every turn (mandatory_tool). Not part of `tools`.
+   * What the post-turn classification needs (chunks registry, session
+   * metadata target). Absent when the turn records nothing about itself
+   * (a sub-agent without source reporting).
    */
-  endOfTurnTools: ToolSet
-  /** Optional freshness check for loop executions of end-of-turn tools. */
-  endOfTurnExecutionCounts?: (toolResult: { toolName: string; output: unknown }) => boolean
-  /** Final master-prompt section (e.g. the turn-summary response protocol). */
-  masterPromptEpilogue?: string
+  turnClassification?: TurnClassificationContext
   mcpClose?: () => Promise<void>
   toolDescriptions: Record<string, string>
   hasSubAgentTools: boolean
@@ -46,7 +48,6 @@ type BuildLLMConfig = (params: {
   temperature: AgentSettings["temperature"]
   tools?: ToolSet
   fireAndForgetToolNames?: string[]
-  endOfTurnTools?: ToolSet
   priorityCallsEnabled: boolean
   llmFeatures: LLMFeatures
 }) => LLMConfig
@@ -56,7 +57,6 @@ type GenerateMasterPrompt = (params: {
   agentSettings: AgentSettings
   toolDescriptions?: Record<string, string>
   toolNames: string[]
-  epilogue?: string
 }) => string
 
 type BuildTools = (params: {
@@ -210,27 +210,21 @@ async function runSubAgentTool({
     .getActiveSpan()
     ?.setAttribute("ai.telemetry.metadata.subAgentTraceUrl", getTraceUrl(subAgentTraceId))
 
-  const {
-    tools,
-    mcpClose,
-    toolDescriptions,
-    fireAndForgetToolNames,
-    endOfTurnTools,
-    masterPromptEpilogue,
-  } = await buildTools({
-    agentSessionScope: childScope,
-    includeSessionMetadataTools: false,
-    includeSubAgentTools: false,
-    buildLLMConfig,
-    getProviderForModel,
-    onExecute: (toolExecution) =>
-      onExecute({
-        ...toolExecution,
-        notifyToolName: subAgent.toolName,
-      }),
-    priorityCallsEnabled: childAgentSettings.priorityCallsEnabled,
-    llmFeatures,
-  })
+  const { tools, mcpClose, toolDescriptions, fireAndForgetToolNames, turnClassification } =
+    await buildTools({
+      agentSessionScope: childScope,
+      includeSessionMetadataTools: false,
+      includeSubAgentTools: false,
+      buildLLMConfig,
+      getProviderForModel,
+      onExecute: (toolExecution) =>
+        onExecute({
+          ...toolExecution,
+          notifyToolName: subAgent.toolName,
+        }),
+      priorityCallsEnabled: childAgentSettings.priorityCallsEnabled,
+      llmFeatures,
+    })
 
   try {
     const toolNames = tools ? Object.keys(tools) : []
@@ -239,7 +233,6 @@ async function runSubAgentTool({
       agentSettings: childAgentSettings,
       toolNames,
       toolDescriptions,
-      epilogue: masterPromptEpilogue,
     })
 
     const config = buildLLMConfig({
@@ -248,7 +241,6 @@ async function runSubAgentTool({
       temperature: childAgentSettings.temperature,
       tools,
       fireAndForgetToolNames,
-      endOfTurnTools,
       priorityCallsEnabled: childAgentSettings.priorityCallsEnabled,
       llmFeatures,
     })
@@ -277,19 +269,43 @@ async function runSubAgentTool({
       async (rootSpan) => {
         try {
           const recentConversation = buildRecentParentConversation(agentSessionScope.session)
-          const chunks = getProviderForModel(config.model).streamChatResponse({
-            messages: [
-              {
-                role: "user",
-                content: buildSubAgentPrompt(input, childAgentSettings, recentConversation),
-              },
-            ],
+          const userMessage = buildSubAgentPrompt(input, childAgentSettings, recentConversation)
+          const provider = getProviderForModel(config.model)
+          const chunks = provider.streamChatResponse({
+            messages: [{ role: "user", content: userMessage }],
             config,
             metadata,
           })
 
+          // The child's inline citations are stripped from the answer the
+          // parent reads, and its sources (when it reports them) are logged
+          // on the parent turn like any of its tool executions.
+          const citations = turnClassification?.retrievedChunksRegistry
+            ? createInlineCitationExtractor()
+            : createPassthroughCitationExtractor()
           let answer = ""
-          for await (const chunk of chunks) answer += chunk
+          for await (const chunk of chunks) answer += citations.feed(chunk)
+          answer += citations.flush()
+
+          if (turnClassification) {
+            await runTurnClassification({
+              context: turnClassification,
+              provider,
+              buildConfig: (classifierSystemPrompt) =>
+                buildLLMConfig({
+                  systemPrompt: classifierSystemPrompt,
+                  model: childAgentSettings.model,
+                  temperature: 0,
+                  priorityCallsEnabled: childAgentSettings.priorityCallsEnabled,
+                  llmFeatures,
+                }),
+              metadata,
+              earlierMessages: [],
+              userMessage,
+              answerText: answer,
+              citedChunkAliases: citations.citedAliases(),
+            })
+          }
           return { answer }
         } finally {
           rootSpan.end()

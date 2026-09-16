@@ -8,7 +8,6 @@ import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { GetAgentModelKeyFromValue } from "@/external/llm/agent-provider"
 import { CallOrigin } from "@/external/llm/ai-sdk-llm-common"
 import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk-llm-provider-base"
-import { GemmaPromptHelper } from "@/external/llm/providers/gemma/gemma-prompt-helper"
 
 @Injectable()
 export class AISDKGemmaProvider extends AISDKLLMProviderBase {
@@ -76,25 +75,6 @@ export class AISDKGemmaProvider extends AISDKLLMProviderBase {
   //     apiKey,
   //   })(config.model)
   // }
-
-  override applySpecificToSystemPrompt({
-    config,
-    systemPrompt,
-    callOrigin,
-  }: {
-    config: LLMConfig
-    systemPrompt: string
-    callOrigin: CallOrigin
-  }): string {
-    if (callOrigin === CallOrigin.streamChatResponse_withTools && config.tools) {
-      return GemmaPromptHelper.injectNullValueInstruction({
-        prompt: systemPrompt,
-        tools: config.tools,
-      })
-    }
-
-    return systemPrompt
-  }
 
   getModelEnvSettings(model: string) {
     const agentModelKey = GetAgentModelKeyFromValue(model)

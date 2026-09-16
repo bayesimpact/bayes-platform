@@ -257,7 +257,7 @@ export class ProjectsAnalyticsService {
     }>()
 
     // PUBLIC (embed) sessions enter the same aggregation — their categories
-    // come from the agent's mandatory report (#616). Values are summed with
+    // come from the post-turn classification (#616). Values are summed with
     // the conversation-session rows per (date, agent, category).
     const publicRows = await getPublicSessionCategoryRows({
       publicAgentSessionConnectRepository: this.publicAgentSessionConnectRepository,

@@ -75,14 +75,13 @@ These tools display an interactive UI in the chat when called: ${toolNames.join(
 ${names
   .map((name) => {
     switch (name) {
-      // Every declared tool is listed, this one included. The line POINTS
-      // to the response protocol (the prompt epilogue) instead of repeating
-      // it — the imperative lives there, in recency position.
-      case ToolName.MandatoryTool:
-        return `[${name}]: mandatory bookkeeping report (session categories, title, sources) attached to every response — see the "Response protocol" section at the end of this prompt.`
-
+      // The lookup line carries the fixed usage rules; ToolsService appends
+      // the inline-citation rule through `descriptions` when the project
+      // reports sources (see inlineCitationInstruction).
       case ToolName.LookupKnowledgeBase:
-        return `[${name}]: ${lookupKnowledgeBaseInstruction()}`
+        return `[${name}]: ${lookupKnowledgeBaseInstruction()}${
+          descriptions[name] ? ` ${descriptions[name]}` : ""
+        }`
 
       case ToolName.FillForm: {
         const parsedSchema = outputJsonSchemaSchema.safeParse(agentSettings.outputJsonSchema)

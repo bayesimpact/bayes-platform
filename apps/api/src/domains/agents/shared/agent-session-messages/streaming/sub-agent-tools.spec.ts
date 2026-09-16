@@ -69,7 +69,6 @@ describe("buildSubAgentTools", () => {
       }) => ({
         toolDescriptions: {},
         fireAndForgetToolNames: [],
-        endOfTurnTools: {},
         hasSubAgentTools: false,
         tools: {
           child_lookup: tool({
@@ -207,7 +206,6 @@ describe("buildSubAgentTools", () => {
         toolDescriptions: {},
         tools: {},
         fireAndForgetToolNames: [],
-        endOfTurnTools: {},
         hasSubAgentTools: false,
       }),
       generateMasterPrompt: () => "system prompt",
@@ -331,7 +329,6 @@ describe("buildSubAgentTools", () => {
         toolDescriptions: {},
         tools: {},
         fireAndForgetToolNames: [],
-        endOfTurnTools: {},
         hasSubAgentTools: false,
       }),
       generateMasterPrompt: () => "system prompt",

@@ -12,8 +12,8 @@ import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-
 import { PublicAgentSession } from "./public-agent-session.entity"
 
 /**
- * Categories attached to a PUBLIC (embed) session by the agent's mandatory
- * report — the public mirror of conversation_agent_session_category, so
+ * Categories attached to a PUBLIC (embed) session by the post-turn
+ * classification (see turn-classification.ts).
  * embed sessions can enter the same category analytics.
  */
 @Entity("public_agent_session_category")

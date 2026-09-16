@@ -16,6 +16,8 @@ export type MockCall = {
   toolNames: string[]
   /** Serialized JSON schema DECLARED per tool for this generation. */
   toolSchemas: Record<string, string>
+  /** Serialized JSON schema of the structured output requested, if any. */
+  responseFormatSchema?: string
 }
 
 type ResolvedMock =
@@ -158,6 +160,9 @@ export class AISDKMockProvider extends AISDKLLMProviderBase {
           .filter((declaredTool) => declaredTool.type === "function")
           .map((declaredTool) => [declaredTool.name, JSON.stringify(declaredTool.inputSchema)]),
       ),
+      ...(options.responseFormat?.type === "json" && options.responseFormat.schema !== undefined
+        ? { responseFormatSchema: JSON.stringify(options.responseFormat.schema) }
+        : {}),
     })
 
     const next = agentId !== undefined ? this.queuesByAgentId.get(agentId)?.shift() : undefined

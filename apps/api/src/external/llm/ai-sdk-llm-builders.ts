@@ -33,6 +33,7 @@ export abstract class AISDKLLMBuilders {
       revision: metadata.revision,
       outputSchema: JSON.stringify(schema),
       availableTools: JSON.stringify(config.tools),
+      spanLabel: metadata.spanLabel,
     })
   }
 

@@ -1,17 +1,12 @@
 import type { LanguageModelV3 } from "@ai-sdk/provider"
 import { Logger } from "@nestjs/common"
 import { asSchema, generateText, Output } from "ai"
-import type {
-  LLMChatMessage,
-  LLMConfig,
-  LLMMetadata,
-} from "@/common/interfaces/llm-provider.interface"
+import type { LLMConfig, LLMMetadata } from "@/common/interfaces/llm-provider.interface"
 import { AISDKLLMBuilders } from "@/external/llm/ai-sdk-llm-builders"
 import type { CallOrigin } from "@/external/llm/ai-sdk-llm-common"
 import { findLeakedToolCalls, type LeakedToolCall } from "@/external/llm/llm-output-sanitizer"
 
 export abstract class AISDKLLMToolsMgmt extends AISDKLLMBuilders {
-  protected readonly endOfTurnLogger = new Logger("EndOfTurnTools")
   /**
    * A model that VERBALIZES a tool call in the text channel instead of
    * emitting it (documented Gemini failure family) means the tool never
@@ -21,20 +16,6 @@ export abstract class AISDKLLMToolsMgmt extends AISDKLLMBuilders {
    */
   protected readonly leakedToolCallLogger = new Logger("LeakedToolCall")
 
-  /**
-   * Guarantees the end-of-turn tools (e.g. mandatory_tool) ran on this turn.
-   * They are declared in the answering loop, so a cooperative model (Gemma)
-   * calls them in the same generation as its answer — zero extra cost. When
-   * the loop finished without calling them (Gemini Flash never volunteers
-   * bookkeeping calls), ONE forced generation (toolChoice "required",
-   * restricted to the missing tools) runs on top of the produced answer.
-   * Already-called tools are skipped so nothing executes twice.
-   * "required" is used rather than a named tool_choice because named forcing
-   * is silently ignored by the vLLM gemma4 parser on 0.26.0.
-   *
-   * Best-effort: the user already received the streamed answer, so a failure
-   * here is logged but never breaks the stream.
-   */
   /**
    * Recovers a tool call the model VERBALIZED in the text channel instead of
    * emitting it (documented Gemini failure family). Without this, the call
@@ -144,109 +125,6 @@ ${leakedCall.raw}`,
     }
   }
 
-  protected async runEndOfTurnTools({
-    model,
-    config,
-    callOrigin,
-    metadata,
-    functionId,
-    messages,
-    streamResult,
-    tags,
-  }: {
-    model: LanguageModelV3
-    config: LLMConfig
-    callOrigin: CallOrigin
-    metadata: LLMMetadata
-    /**
-     * MUST be the same functionId as the answering loop: the langfuse
-     * exporter names the whole trace after the first resource.name it sees,
-     * and langfuse.trace() upserts — a distinct functionId here renames the
-     * user-facing trace to the bookkeeping call's name.
-     */
-    functionId: string
-    messages: LLMChatMessage[]
-    streamResult: {
-      steps: PromiseLike<Array<{ toolResults: Array<{ toolName: string; output: unknown }> }>>
-      response: PromiseLike<{ messages: LLMChatMessage[] }>
-    }
-    tags: string[]
-  }): Promise<void> {
-    const endOfTurnTools = config.endOfTurnTools
-    if (!endOfTurnTools || Object.keys(endOfTurnTools).length === 0) return
-
-    try {
-      // Skip the tools the loop already EXECUTED — forcing them again would
-      // run their side effects twice. Executions (toolResults), not calls:
-      // a voluntary call with invalid arguments never executes and must not
-      // suppress the forced retry. Executions flagged endOfTurnNoOp recorded
-      // nothing (e.g. an empty {} report) and do not count either.
-      // A tool can also invalidate an execution after the fact through
-      // config.endOfTurnExecutionCounts (e.g. a turn summary submitted
-      // BEFORE the knowledge base lookup cannot have cited sources).
-      const executionCounts = config.endOfTurnExecutionCounts ?? (() => true)
-      const steps = await streamResult.steps
-      const executedToolNames = new Set(
-        steps.flatMap((step) =>
-          step.toolResults
-            .filter(
-              (toolResult) =>
-                (toolResult.output as { endOfTurnNoOp?: boolean } | undefined)?.endOfTurnNoOp !==
-                  true && executionCounts(toolResult),
-            )
-            .map((toolResult) => toolResult.toolName),
-        ),
-      )
-      const missingEndOfTurnTools = Object.fromEntries(
-        Object.entries(endOfTurnTools).filter(([toolName]) => !executedToolNames.has(toolName)),
-      )
-      if (Object.keys(missingEndOfTurnTools).length === 0) return
-
-      const responseMessages = (await streamResult.response).messages
-      const endOfTurnResult = await generateText({
-        model,
-        messages: [
-          ...messages,
-          ...responseMessages,
-          // Some providers (Vertex gemini-3.5-flash-lite and newer) reject
-          // requests ending with a model turn — close with an explicit user
-          // instruction for the bookkeeping call. Phrased so its content
-          // never leaks into the report (a session got titled "Demande de
-          // résumé de tour" after an earlier wording of this message).
-          {
-            role: "user",
-            content:
-              "(bookkeeping, not a user message) Call the required tool now. Base its content ONLY on the conversation above — ignore this message entirely.",
-          },
-        ],
-        temperature: config.temperature,
-        tools: missingEndOfTurnTools,
-        toolChoice: "required",
-        experimental_telemetry: {
-          isEnabled: true,
-          functionId,
-          // Distinguish the forced bookkeeping generation from the answering
-          // loop in langfuse via metadata, not functionId (see above).
-          metadata: { ...this.buildMetadata({ config, metadata, tags }), endOfTurnTools: true },
-        },
-        providerOptions: this.buildProviderOptions({ config, callOrigin, metadata, tags }),
-      })
-      // toolChoice "required" guarantees a call was EMITTED, not that it was
-      // EXECUTED: invalid arguments or a provider quirk leave toolResults
-      // empty and the report silently skipped — make that loud.
-      if (endOfTurnResult.toolResults.length === 0) {
-        this.endOfTurnLogger.error(
-          `end-of-turn tools produced no executed result (calls: ${JSON.stringify(
-            endOfTurnResult.toolCalls.map((toolCall) => toolCall.toolName),
-          )}, finishReason: ${endOfTurnResult.finishReason})`,
-        )
-      }
-    } catch (error) {
-      this.endOfTurnLogger.error(
-        `end-of-turn tools call failed: ${error instanceof Error ? error.message : error}`,
-      )
-    }
-  }
   protected logLeakedToolCalls({
     originalText,
     config,
@@ -261,10 +139,7 @@ ${leakedCall.raw}`,
       if (found.length === 0) return
       const leakedToolNames = found.map((leakedCall) => leakedCall.name)
       leakedToolCalls?.push(...found)
-      const declaredToolNames = [
-        ...Object.keys(config?.tools ?? {}),
-        ...Object.keys(config?.endOfTurnTools ?? {}),
-      ]
+      const declaredToolNames = Object.keys(config?.tools ?? {})
       this.leakedToolCallLogger.error(
         `model verbalized tool call(s) in the text channel instead of calling them — NOT executed: ${JSON.stringify(
           leakedToolNames,
@@ -276,9 +151,7 @@ ${leakedCall.raw}`,
   }
   /**
    * Providers whose backend enforces tool argument schemas when tools are
-   * marked `strict` opt in here (Vertex Gemini: mode VALIDATED). Applied to
-   * the answering loop only — never to the forced end-of-turn generation,
-   * which needs mode ANY to actually force the call.
+   * marked `strict` opt in here (Vertex Gemini: mode VALIDATED).
    */
   protected supportsStrictTools(): boolean {
     return false

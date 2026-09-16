@@ -209,7 +209,11 @@ describe("PublicChat - contract v1", () => {
       const types = events.map((event) => event.type)
       expect(types[0]).toBe("start")
       expect(types.at(-1)).toBe("end")
-      expect(types.slice(1, -1).every((type) => type === "chunk")).toBe(true)
+      // Documented order: any number of chunk and notify_client events in
+      // between (the post-turn classification notifies the session update).
+      expect(types.slice(1, -1).every((type) => type === "chunk" || type === "notify_client")).toBe(
+        true,
+      )
       const endEvent = events.at(-1)
       const startEvent = events[0]
       const chunks = events.filter(

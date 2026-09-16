@@ -35,7 +35,7 @@ const AGENT_ALIAS = "publicSessionAgent"
  * PUBLIC (embed) sessions' contribution to the conversations-by-category
  * analytics — same row shapes as the conversation-session queries, so both
  * sources merge by summing values per (date, agent, category). Embed
- * sessions get their categories from the agent's mandatory report (#616).
+ * sessions get their categories from the post-turn classification (#616).
  */
 export async function getPublicSessionCategoryRows({
   publicAgentSessionConnectRepository,

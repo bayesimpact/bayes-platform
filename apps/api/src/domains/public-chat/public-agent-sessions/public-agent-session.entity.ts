@@ -27,7 +27,7 @@ export class PublicAgentSession extends Base4AllEntity {
   @Column({ type: "timestamp", name: "last_activity_at", nullable: true })
   lastActivityAt!: Date | null
 
-  /** Session title suggested by the agent's mandatory report. */
+  /** Session title produced by the post-turn classification. */
   @Column({ type: "varchar", name: "title", nullable: true })
   title!: string | null
 

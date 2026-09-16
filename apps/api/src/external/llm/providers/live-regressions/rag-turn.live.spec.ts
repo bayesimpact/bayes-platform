@@ -1,13 +1,18 @@
 import "dotenv/config"
 import { ToolName } from "@caseai-connect/api-contracts"
 import { PROVIDER_CASES } from "./provider-cases"
-import { HANDBOOK_DOCUMENT_ID, runTurnSummaryScenario } from "./turn-summary-scenario"
+import {
+  HANDBOOK_CATEGORY_NAMES,
+  HANDBOOK_DOCUMENT_ID,
+  runRagTurnScenario,
+} from "./turn-classification-scenario"
 
 /**
  * Centralized LIVE reliability suite, one production-shaped RAG turn per
  * provider/model: the model must answer the user (grounded on the handbook
- * fixture) and the mandatory_tool bookkeeping must execute EXACTLY once
- * — voluntarily during the loop or through the forced end-of-turn generation.
+ * fixture), the sources must be logged EXACTLY once (from the inline
+ * citations, or from the classifier's attribution when the model cited
+ * nothing inline) and the session metadata must be recorded once.
  *
  * Run it with (NODE_OPTIONS required by google-auth dynamic imports):
  *
@@ -19,26 +24,24 @@ const describeLive = runLive ? describe : describe.skip
 
 const LIVE_TIMEOUT_MS = 180_000
 
-describeLive("Turn summary reliability across providers (LIVE)", () => {
+describeLive("RAG turn: answer, sources and classification across providers (LIVE)", () => {
   for (const providerCase of PROVIDER_CASES) {
     const reason = runLive ? providerCase.unavailableReason() : null
     const testFn = reason ? it.skip : it
 
     testFn(
-      `${providerCase.label}${reason ? ` — SKIPPED: ${reason}` : ""} — answers AND executes mandatory_tool exactly once`,
+      `${providerCase.label}${reason ? ` — SKIPPED: ${reason}` : ""} — grounded answer, sources once, metadata once`,
       async () => {
-        const { text, toolExecutions } = await runTurnSummaryScenario({
+        const { text, citedAliases, toolExecutions } = await runRagTurnScenario({
           provider: providerCase.buildProvider(),
           model: providerCase.model,
         })
 
-        // The user got a grounded answer.
+        // The user got a grounded answer, with no citation marker left in it.
         expect(text.trim().length).toBeGreaterThan(0)
         expect(text).toContain("27")
+        expect(text).not.toMatch(/\[\s*c\d+/i)
 
-        // The turn summary executed exactly once (dedupe: voluntary + forced
-        // must never both run), with the REAL chunk UUID resolved from the
-        // alias, and the session categorization dispatched.
         const sourcesLogs = toolExecutions.filter(
           (toolExecution) => toolExecution.toolName === ToolName.Sources,
         )
@@ -46,10 +49,20 @@ describeLive("Turn summary reliability across providers (LIVE)", () => {
           (toolExecution) =>
             toolExecution.toolName === ToolName.RecalculateConversationSessionMetadata,
         )
-        expect(metadataLogs).toHaveLength(1)
         expect(sourcesLogs).toHaveLength(1)
         const sources = sourcesLogs[0]?.arguments.sources as Array<{ documentId: string }>
         expect(sources[0]?.documentId).toBe(HANDBOOK_DOCUMENT_ID)
+
+        expect(metadataLogs).toHaveLength(1)
+        const categoryNames = metadataLogs[0]?.arguments.categoryNames as string[]
+        for (const categoryName of categoryNames) {
+          expect(HANDBOOK_CATEGORY_NAMES).toContain(categoryName)
+        }
+
+        // Observability, not a contract: how the sources were obtained.
+        console.log(
+          `[${providerCase.label}] sources via ${citedAliases.length > 0 ? `inline citations ${JSON.stringify(citedAliases)}` : "classifier attribution"}; title=${JSON.stringify(metadataLogs[0]?.arguments.suggestedTitle)} categories=${JSON.stringify(categoryNames)}`,
+        )
       },
       LIVE_TIMEOUT_MS,
     )

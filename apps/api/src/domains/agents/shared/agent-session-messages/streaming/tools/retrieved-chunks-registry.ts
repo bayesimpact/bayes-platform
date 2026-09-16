@@ -6,9 +6,9 @@ import type { RetrievedDocumentChunk } from "@/domains/documents/embeddings/docu
  * Each registered chunk gets a short sequential alias (c1, c2, ...) — the
  * ONLY id the model ever sees. UUIDs are unreliable for small models to copy
  * (a single dropped character silently loses the source) and cost ~15 tokens
- * each; a 2-character alias is practically un-manglable. The mandatory_tool
- * tool resolves the cited aliases back to the real chunks server-side, so
- * persisted sources keep their real UUIDs.
+ * each; a 2-character alias is practically un-manglable. The model cites an
+ * alias inline (`[c1]`, see inline-citations.ts) and the server resolves it
+ * back to the real chunk, so persisted sources keep their real UUIDs.
  *
  * Purely in-memory and request-scoped: built once per streaming turn in
  * ToolsService and garbage-collected with it. Aliases restart at c1 on every
@@ -25,6 +25,8 @@ export type RetrievedChunksRegistry = {
   get(alias: string): RetrievedDocumentChunk | undefined
   /** True once at least one lookup registered chunks in this turn. */
   hasChunks(): boolean
+  /** Every registered chunk with its alias, in registration order. */
+  entries(): Array<{ alias: string; chunk: RetrievedDocumentChunk }>
 }
 
 export function createRetrievedChunksRegistry(): RetrievedChunksRegistry {
@@ -40,6 +42,9 @@ export function createRetrievedChunksRegistry(): RetrievedChunksRegistry {
     },
     hasChunks() {
       return chunksByAlias.size > 0
+    },
+    entries() {
+      return [...chunksByAlias.entries()].map(([alias, chunk]) => ({ alias, chunk }))
     },
   }
 }

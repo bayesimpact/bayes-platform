@@ -77,7 +77,7 @@ describe("PublicChat - streamMessages", () => {
     expect(fulltextStream).toBe("Hello, I'm the stream default mock value!")
   })
 
-  it("persists the mandatory report's title and categories on the PUBLIC session (#616)", async () => {
+  it("persists the classified title and categories on the PUBLIC session (#616)", async () => {
     const { agent, session } = await createContext()
     const category = await repositories.agentSessionCategoryRepository.save(
       repositories.agentSessionCategoryRepository.create({ agentId: agent.id, name: "Billing" }),
@@ -85,9 +85,9 @@ describe("PublicChat - streamMessages", () => {
 
     const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
     mockProvider.resetMock()
-    // Generation 1: the answer. Generation 2: the forced end-of-turn report.
+    // Generation 1: the answer. Generation 2: the post-turn classification.
     mockProvider.addTextTurn(agent.id, "Here you go.")
-    mockProvider.addToolCallTurn(agent.id, "mandatory_tool", {
+    mockProvider.addObjectTurn(agent.id, {
       suggestedTitle: "Invoice question",
       categoryNames: ["Billing"],
     })
@@ -118,10 +118,10 @@ describe("PublicChat - streamMessages", () => {
 
     const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
     mockProvider.resetMock()
-    // Turn 1: fill fullName, then answer, then the forced report.
+    // Turn 1: fill fullName, then answer, then the post-turn classification.
     mockProvider.addToolCallTurn(agent.id, "fillForm", { formFields: { fullName: "Ada" } })
     mockProvider.addTextTurn(agent.id, "Noted!")
-    mockProvider.addToolCallTurn(agent.id, "mandatory_tool", { suggestedTitle: null })
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
     const firstResponse = await subject("My name is Ada")
     expect(firstResponse.status).toBe(200)
 
@@ -133,7 +133,7 @@ describe("PublicChat - streamMessages", () => {
     // Turn 2: fill city — the state must accumulate, not reset.
     mockProvider.addToolCallTurn(agent.id, "fillForm", { formFields: { city: "Paris" } })
     mockProvider.addTextTurn(agent.id, "Saved!")
-    mockProvider.addToolCallTurn(agent.id, "mandatory_tool", { suggestedTitle: null })
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
     const secondResponse = await subject("I live in Paris")
     expect(secondResponse.status).toBe(200)
 

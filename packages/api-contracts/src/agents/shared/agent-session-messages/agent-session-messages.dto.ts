@@ -8,13 +8,6 @@ export enum ToolName {
   McpSearchResources = "search_resources",
   McpSmartSearch = "smart_search",
   SurfaceResources = "surfaceResources",
-  /**
-   * Composite turn-summary tool exposed to the LLM: one call carries the
-   * used chunkIds (sources) and/or the session categorization. Its execution
-   * is logged as separate Sources / RecalculateConversationSessionMetadata
-   * entries so persisted tool calls and the UI keep their historical names.
-   */
-  MandatoryTool = "mandatory_tool",
 }
 
 export type AgentSessionToolName = ToolName | (string & {})

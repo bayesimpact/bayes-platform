@@ -7,14 +7,11 @@ export function generateMasterPrompt({
   agentSettings,
   toolDescriptions,
   toolNames,
-  epilogue,
 }: {
   agent: Agent
   agentSettings: AgentSettings
   toolDescriptions?: Record<string, string>
   toolNames: string[]
-  /** Final prompt section, after the date (e.g. the turn-summary protocol). */
-  epilogue?: string
 }): string {
   switch (agent.type) {
     case "conversation":
@@ -23,7 +20,6 @@ export function generateMasterPrompt({
         agentSettings,
         toolNames,
         toolDescriptions,
-        epilogue,
       })
     default:
       throw new Error(`Unsupported agent type: ${agent.type}`)

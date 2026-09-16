@@ -111,20 +111,8 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
       if (part.type === "text-delta") yield part.text
       else if (part.type === "error") throw part.error
     }
-    const model = this.getLanguageModelWithRawCapture({ config, callOrigin })
-    await this.runEndOfTurnTools({
-      model,
-      config,
-      callOrigin,
-      metadata,
-      functionId,
-      messages: fullMessages,
-      streamResult,
-      tags,
-    })
-
     await this.recoverLeakedToolCalls({
-      model,
+      model: this.getLanguageModelWithRawCapture({ config, callOrigin }),
       config,
       callOrigin,
       metadata,
@@ -175,7 +163,14 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
   }): Promise<Record<string, unknown>> {
     const callOrigin = CallOrigin.generateStructuredOutput
     this.checkConfigProviderAndModel(config)
-    if (AgentModelToAgentProvider[config.model] === AgentProvider._Mock) {
+    // The mock cannot fetch the storage URLs an extraction run attaches:
+    // a message carrying a file/image part is swapped for an inline fake
+    // PDF. Text-only messages (e.g. the turn classification) pass through
+    // so tests can assert on the prompt.
+    const carriesFilePart =
+      Array.isArray(message.content) &&
+      message.content.some((part) => part.type === "file" || part.type === "image")
+    if (AgentModelToAgentProvider[config.model] === AgentProvider._Mock && carriesFilePart) {
       const fakeFile: LLMFile = {
         type: "file",
         name: "file1.pdf",

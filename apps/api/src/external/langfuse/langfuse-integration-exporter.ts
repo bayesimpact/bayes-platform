@@ -117,15 +117,30 @@ export class LangfuseIntegrationExporter implements SpanExporter {
       if (this.isGenerationSpan(span)) {
         this.processSpanAsLangfuseGeneration(finalTraceId, span, langfusePrompt)
       } else {
-        const spanName = currentTurn
+        const baseSpanName = currentTurn
           ? `Turn #${currentTurn}`
           : userProvidedTraceId
             ? this.parseTraceName(spans)
             : undefined
 
-        this.processSpanAsLangfuseSpan(finalTraceId, span, spanName)
+        this.processSpanAsLangfuseSpan(
+          finalTraceId,
+          span,
+          baseSpanName ? this.withSpanLabel(span, baseSpanName) : undefined,
+        )
       }
     }
+  }
+
+  /**
+   * A call that is not the answering loop of the turn (the post-turn
+   * classification) sets `spanLabel` in its telemetry metadata; its
+   * observations read "Turn #4 · classification" instead of a second bare
+   * "Turn #4" next to the answer.
+   */
+  private withSpanLabel(span: ReadableSpan, name: string): string {
+    const spanLabel = this.parseSpanMetadata(span).spanLabel
+    return spanLabel ? `${name} · ${spanLabel}` : name
   }
 
   private processSpanAsLangfuseSpan(traceId: string, span: ReadableSpan, spanName?: string): void {
@@ -175,7 +190,7 @@ export class LangfuseIntegrationExporter implements SpanExporter {
       traceId,
       parentObservationId: this.getParentSpanId(span) ?? undefined,
       id: spanContext.spanId,
-      name: span.name,
+      name: this.withSpanLabel(span, span.name),
       startTime: this.hrTimeToDate(span.startTime),
       endTime: this.hrTimeToDate(span.endTime),
       completionStartTime:

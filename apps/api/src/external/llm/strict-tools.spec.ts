@@ -14,9 +14,9 @@ describe("withStrictTools", () => {
   })
 
   it("preserves getter-based dynamic properties instead of materializing them", () => {
-    // mandatory_tool exposes description/inputSchema as getters that
-    // follow the turn state (chunkIds after a lookup): the strict wrapper
-    // must keep re-evaluating them, not snapshot them at wrap time.
+    // A tool may expose description/inputSchema as getters that follow the
+    // turn state: the strict wrapper must keep re-evaluating them, not
+    // snapshot them at wrap time.
     let lookupRan = false
     const dynamicTool = tool({
       get description() {
@@ -47,7 +47,7 @@ describe("withStrictTools", () => {
     expect(withStrictTools(undefined)).toBeUndefined()
   })
 
-  it("does not mutate the original tools (the forced end-of-turn call stays non-strict)", () => {
+  it("does not mutate the original tools", () => {
     const original = tool({ description: "a", inputSchema: z.object({}) })
     withStrictTools({ alpha: original })
 

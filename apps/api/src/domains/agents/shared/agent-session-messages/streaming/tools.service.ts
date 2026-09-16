@@ -26,25 +26,24 @@ import { generateMasterPrompt } from "./master-promts/generate-master-prompt"
 import type { AgentSessionScope, OnExecute } from "./streaming-session.types"
 import { type BuiltTools, buildSubAgentTools } from "./sub-agent-tools"
 import { fillFormTool } from "./tools/fill-form.tool"
-import { lookupKnowledgeBaseTool } from "./tools/lookup-knowledge-base.tool"
 import {
-  mandatoryTool,
-  mandatoryToolExecutionCounts,
-  mandatoryToolInstruction,
-} from "./tools/mandatory.tool"
+  inlineCitationInstruction,
+  lookupKnowledgeBaseTool,
+} from "./tools/lookup-knowledge-base.tool"
 import { createRetrievedChunksRegistry } from "./tools/retrieved-chunks-registry"
 import type { SessionStateTarget } from "./tools/session-state-target"
 import { surfaceResourcesTool } from "./tools/surface-resources.tool"
 import { createSurfacedResourcesRegistry } from "./tools/surfaced-resources-registry"
+import type { TurnClassificationContext } from "./tools/turn-classification"
 
 /**
- * Tools whose output the model never needs: they only log/notify (sources,
- * resource cards, session metadata). When a tool-loop step invokes only these,
- * the loop stops instead of paying an extra LLM generation for an empty
- * follow-up. Round-trip tools (lookup_knowledge_base, fillForm, MCP,
- * sub-agents) stay out of this list because the model consumes their output.
+ * Tools whose output the model never needs: they only log/notify (resource
+ * cards). When a tool-loop step invokes only these, the loop stops instead
+ * of paying an extra LLM generation for an empty follow-up. Round-trip tools
+ * (lookup_knowledge_base, fillForm, MCP, sub-agents) stay out of this list
+ * because the model consumes their output.
  */
-const FIRE_AND_FORGET_TOOL_NAMES: string[] = [ToolName.SurfaceResources, ToolName.MandatoryTool]
+const FIRE_AND_FORGET_TOOL_NAMES: string[] = [ToolName.SurfaceResources]
 
 /**
  * The tools exposed by an agent's enabled MCP servers
@@ -134,7 +133,6 @@ export class ToolsService {
           toolDescriptions: {},
           tools: undefined,
           fireAndForgetToolNames: [],
-          endOfTurnTools: {},
           hasSubAgentTools: false,
         }
     }
@@ -412,32 +410,23 @@ export class ToolsService {
           : Promise.resolve({ tools: {}, toolDescriptions: {} }),
       ])
 
-    // chunkIds only make sense when the agent can actually retrieve chunks:
-    // the sources part of the turn summary requires BOTH the project feature
-    // flag and an active RAG mode (lookup tool present).
+    // Sources are reported only when the agent can actually retrieve chunks:
+    // BOTH the project feature flag and an active RAG mode (lookup tool present).
     const hasSourcesReporting =
       hasSourcesTool && agentSettings.documentsRagMode !== DocumentsRagMode.None
-    // Every conversation agent submits a turn summary: suggestedTitle is
-    // always reported; categories only when the agent has some configured;
-    // chunkIds only per hasSourcesReporting. Sub-agents are excluded
-    // (includeSessionMetadataTools=false) unless they report sources.
-    const hasMandatoryToolTool = hasSourcesReporting || includeSessionMetadataTools
 
-    // Shared between lookup (writer) and mandatory_tool (reader) within this
-    // request: the report resolves the chunkIds cited by the model against
-    // the chunks lookup actually retrieved.
+    // Written by the lookup tool, read after the turn: the inline citations
+    // (and the classifier's fallback attribution) resolve the aliases the
+    // model cited against the chunks the lookup actually retrieved.
     const retrievedChunksRegistry = createRetrievedChunksRegistry()
 
-    // The end-of-turn report is declared in the answering loop (the model
-    // can call it in the same generation as its answer — no extra call) AND
-    // referenced in endOfTurnTools: the provider forces it after the answer
-    // whenever the loop did not call it, so it runs on every turn no matter
-    // what. The SAME tool instance backs both paths: its schema getters read
-    // the chunks registry, so chunkIds only appears (in loop steps and in
-    // the forced call alike) once a lookup registered chunks this turn.
-    const endOfTurnTools: ToolSet = hasMandatoryToolTool
-      ? {
-          [ToolName.MandatoryTool]: mandatoryTool({
+    // Everything the platform records ABOUT the reply (title, categories,
+    // sources) is computed after the turn, not by a tool in the loop (see
+    // turn-classification.ts). Sub-agents and evaluation runs pass
+    // includeSessionMetadataTools=false: no session of their own to title.
+    const turnClassification: TurnClassificationContext | undefined =
+      hasSourcesReporting || includeSessionMetadataTools
+        ? {
             retrievedChunksRegistry: hasSourcesReporting ? retrievedChunksRegistry : undefined,
             sessionMetadata: includeSessionMetadataTools
               ? {
@@ -453,14 +442,10 @@ export class ToolsService {
                 }
               : undefined,
             onExecute,
-          }),
-        }
-      : {}
+          }
+        : undefined
 
     const tools: ToolSet = {
-      // The end-of-turn report is callable from turn 1, like any other tool.
-      ...endOfTurnTools,
-
       // Add the document retrieval tool if the agent has a RAG mode enabled
       ...(agentSettings.documentsRagMode === DocumentsRagMode.None
         ? {}
@@ -473,6 +458,7 @@ export class ToolsService {
                   : [],
               retrievalService: this.documentChunkRetrievalService,
               retrievedChunksRegistry,
+              citeInline: hasSourcesReporting,
               onExecute,
             }),
           }),
@@ -519,20 +505,20 @@ export class ToolsService {
       tools,
       toolDescriptions: {
         ...this.filterToolDescriptions({
-          descriptions: { ...mcp.toolDescriptions, ...subAgentToolDescriptions },
+          descriptions: {
+            ...mcp.toolDescriptions,
+            ...subAgentToolDescriptions,
+            // The master prompt repeats the citation rule on the lookup line
+            // (see promptHelpers.tools) when sources are reported.
+            ...(hasSourcesReporting
+              ? { [ToolName.LookupKnowledgeBase]: inlineCitationInstruction() }
+              : {}),
+          },
           tools,
         }),
       },
-      // Final section of the master prompt (recency): the response protocol
-      // demanding the turn summary on every response.
-      masterPromptEpilogue: hasMandatoryToolTool ? mandatoryToolInstruction() : undefined,
       fireAndForgetToolNames: FIRE_AND_FORGET_TOOL_NAMES.filter((toolName) => toolName in tools),
-      endOfTurnTools,
-      // A report submitted before the lookup registered chunks is stale for
-      // the sources part: the forced end-of-turn retry must still run.
-      endOfTurnExecutionCounts: hasSourcesReporting
-        ? mandatoryToolExecutionCounts(retrievedChunksRegistry)
-        : undefined,
+      turnClassification,
       hasSubAgentTools: Object.keys(subAgentTools).length > 0,
     }
   }

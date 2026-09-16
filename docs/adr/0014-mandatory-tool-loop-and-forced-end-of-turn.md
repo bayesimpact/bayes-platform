@@ -1,6 +1,6 @@
 # ADR 0014: Mandatory Bookkeeping Tool — Declared in the Loop, Guaranteed by One Forced End-of-Turn Generation
 
-* **Status**: Accepted
+* **Status**: Superseded by ADR 0016 (post-turn classification and inline citations)
 * **Date**: 2026-07-30
 * **Deciders**: Jérémie
 * **Scope**: Backend `apps/api` — streaming pipeline (`external/llm/ai-sdk-llm-provider-base.ts`, `domains/agents/.../streaming/tools.service.ts`, `tools/mandatory.tool.ts`).
