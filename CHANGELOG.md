@@ -14,6 +14,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 - Single-origin deployments: the web app opens at the root of the domain and the API answers under /api.
+- Sources: the assistant cites the passages it uses as it writes, and the sources panel is built from those citations.
+- Session titles and categories are now computed after each reply, reliably on every model.
 
 ### Fixed
 - Voice input: microphone transcription now follows the interface language, including French set as fr-FR.
