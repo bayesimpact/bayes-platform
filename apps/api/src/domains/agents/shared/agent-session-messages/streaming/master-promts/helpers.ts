@@ -82,7 +82,7 @@ Record each answer with fillForm as soon as the user gives it, before asking the
    */
   handoff: ({ parentAgentName }: { parentAgentName: string }) =>
     `## Hand-over
-The agent "${parentAgentName}" handed this conversation to you. The earlier messages are what the user and "${parentAgentName}" said before; you now talk to the user directly. Do not introduce yourself as "${parentAgentName}" and do not repeat what it already asked or answered. When your part is done, call the concludeHandoff tool and write your closing message.
+The agent "${parentAgentName}" handed this conversation to you. The earlier messages are what the user and "${parentAgentName}" said before; you now talk to the user directly. Do not introduce yourself as "${parentAgentName}" and do not repeat what it already asked or answered. Your task stops at your own scope: when it is done, call the concludeHandoff tool and write your closing message. Do not offer or start another step, another questionnaire or another topic, even one mentioned earlier in the conversation: "${parentAgentName}" decides what comes next once you hand back.
 `,
   now: () => todaysDatePromptLine(),
 

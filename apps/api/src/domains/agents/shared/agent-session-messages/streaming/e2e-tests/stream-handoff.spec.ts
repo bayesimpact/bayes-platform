@@ -149,6 +149,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
       .find((call) => call.agentId === child.subAgent.id && call.toolNames.length > 0)
     expect(childPrompt?.prompt).toContain(CHILD_FIRST_TURN_TRIGGER)
     expect(childPrompt?.prompt).toContain("Hand-over")
+    expect(childPrompt?.prompt).toContain("Your task stops at your own scope")
     expect(childPrompt?.toolNames).toEqual(expect.arrayContaining(["fillForm", "concludeHandoff"]))
     // The child sees its own form: nothing recorded yet, every field still empty.
     expect(childPrompt?.prompt).toContain("Your form so far")
