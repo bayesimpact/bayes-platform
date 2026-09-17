@@ -54,6 +54,7 @@ const fromDto = (dto: ConversationAgentSessionDto): ConversationAgentSession => 
   updatedAt: dto.updatedAt,
   traceUrl: dto.traceUrl,
   forms: dto.forms,
+  activeAgentId: dto.activeAgentId,
 })
 
 const fromSubSessionDto = (dto: ConversationSubSessionDto): ConversationSubSession => ({
