@@ -149,6 +149,7 @@ export class ToolsService {
           fireAndForgetToolNames: [],
           hasSubAgentTools: false,
           promptSections: [],
+          terminalToolNames: [],
         }
     }
   }
@@ -405,30 +406,36 @@ export class ToolsService {
       agentSettings.fillFormEnabled &&
       agentSettings.outputJsonSchema != null &&
       sessionPersistsForms(session)
-    const [hasSourcesTool, { tools: subAgentTools, toolDescriptions: subAgentToolDescriptions }] =
-      await Promise.all([
-        // Check if the agent has the sources tool enabled
-        this.projectsService.hasFeature({ connectScope, feature: "sources-tool" }),
+    const [
+      hasSourcesTool,
+      {
+        tools: subAgentTools,
+        toolDescriptions: subAgentToolDescriptions,
+        terminalToolNames: subAgentTerminalToolNames,
+      },
+    ] = await Promise.all([
+      // Check if the agent has the sources tool enabled
+      this.projectsService.hasFeature({ connectScope, feature: "sources-tool" }),
 
-        // Build sub-agent tools if requested
-        includeSubAgentTools
-          ? buildSubAgentTools({
-              agentSessionScope,
-              agentSubAgentsService: this.agentSubAgentsService,
-              buildLLMConfig,
-              buildTools: this.buildTools,
-              conversationAgentSessionsService: this.conversationAgentSessionsService,
-              agentSettingsService: this.agentSettingsService,
-              generateMasterPrompt,
-              getProviderForModel,
-              onExecute,
-              projectsService: this.projectsService,
-              activeAgentController:
-                sessionState?.activeAgent ?? this.conversationAgentSessionsService,
-              formReader: this.conversationFormsService,
-            })
-          : Promise.resolve({ tools: {}, toolDescriptions: {} }),
-      ])
+      // Build sub-agent tools if requested
+      includeSubAgentTools
+        ? buildSubAgentTools({
+            agentSessionScope,
+            agentSubAgentsService: this.agentSubAgentsService,
+            buildLLMConfig,
+            buildTools: this.buildTools,
+            conversationAgentSessionsService: this.conversationAgentSessionsService,
+            agentSettingsService: this.agentSettingsService,
+            generateMasterPrompt,
+            getProviderForModel,
+            onExecute,
+            projectsService: this.projectsService,
+            activeAgentController:
+              sessionState?.activeAgent ?? this.conversationAgentSessionsService,
+            formReader: this.conversationFormsService,
+          })
+        : Promise.resolve({ tools: {}, toolDescriptions: {}, terminalToolNames: [] }),
+    ])
     // A sub-agent answering as the active agent of a handoff hands the
     // conversation back itself, with this tool; the post-turn step also reads
     // its reply for a conclusion it forgot to signal, and summarizes its part.
@@ -620,6 +627,7 @@ export class ToolsService {
       turnClassification,
       hasSubAgentTools: Object.keys(subAgentTools).length > 0,
       promptSections,
+      terminalToolNames: subAgentTerminalToolNames,
     }
   }
 

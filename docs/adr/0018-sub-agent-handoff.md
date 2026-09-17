@@ -47,6 +47,15 @@ parent could not read.
 * **No second handoff to a concluded form.** One form per agent and per
   conversation (ADR 0017); the tool refuses and returns the collected state,
   so the parent decides the next step from it.
+* **One hand-over per turn, and the turn ends there.** A model that keeps
+  generating after the hand-over tool (observed with Gemma: it calls a second
+  questionnaire in the same turn, then talks in the sub-agent's place) would
+  move the conversation to the last agent called, not to the one it announced.
+  The handoff tools of a turn share a state: the first call wins, later calls
+  are refused with the name of the agent that took over. The hand-over tools
+  are declared terminal to the tool loop: once one ran, the loop allows one
+  more generation for the closing sentence (none when the hand-over step
+  already carried it) and stops, whatever else the model would call.
 * **No nested handoff.** A child in control keeps its relay links but gets no
   handoff tools: its conclusion always returns to the session's agent.
 

@@ -442,4 +442,76 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     expect(consolidationCall?.prompt).not.toContain("Form Filler takes it from here.")
     expect(consolidationCall?.prompt).toContain("John Doe")
   })
+
+  it("keeps the first hand-over of a turn and ends the parent's turn after its sentence", async () => {
+    const { user, organization, project, agent, subAgents } =
+      await createOrganizationWithAgentAndSubAgents(repositories, {
+        agent: { name: "Orchestrator", type: "conversation" },
+        agentSettings: { model: AgentModel._Mock },
+        subAgents: [
+          {
+            subAgent: { name: "First", type: "conversation" },
+            subAgentSettings: { model: AgentModel._Mock },
+            agentSubAgent: { toolName: "take_over_first", mode: "handoff" },
+          },
+          {
+            subAgent: { name: "Second", type: "conversation" },
+            subAgentSettings: { model: AgentModel._Mock },
+            agentSubAgent: { toolName: "take_over_second", mode: "handoff" },
+          },
+        ],
+      })
+    const session = await repositories.conversationAgentSessionRepository.save(
+      conversationAgentSessionFactory
+        .transient({ organization, project, agent, user })
+        .live()
+        .build(),
+    )
+    organizationId = organization.id
+    projectId = project.id
+    agentId = agent.id
+    agentSessionId = session.id
+    auth0Id = user.auth0Id
+    const [first, second] = subAgents
+    if (!first || !second) throw new Error("sub-agents not created")
+
+    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider.resetMock()
+    // The parent hands over to First, then keeps going: it writes its sentence
+    // and calls Second in the same generation. Second is refused, the turn ends
+    // there (no third parent generation), and First speaks next.
+    mockProvider.addToolCallTurn(agent.id, "take_over_first", {})
+    mockProvider.addTextWithToolCallTurn(
+      agent.id,
+      "First will take it from here.",
+      "take_over_second",
+      {},
+    )
+    mockProvider.addTextTurn(agent.id, "THIS GENERATION MUST NOT RUN")
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
+    mockProvider.addTextTurn(first.subAgent.id, "Hello from First.")
+    mockProvider.addObjectTurn(first.subAgent.id, {
+      suggestedTitle: null,
+      taskConcluded: false,
+      handoffSummary: "",
+    })
+
+    const response = await subject("Hello")
+    expect(response.status).toBe(200)
+    const texts = eventsOf(response.text)
+      .filter((event) => event.type === "end")
+      .map((event) => (event.type === "end" ? event.fullContent : ""))
+    expect(texts).toEqual(["First will take it from here.", "Hello from First."])
+
+    const persisted = await repositories.conversationAgentSessionRepository.findOneByOrFail({
+      id: session.id,
+    })
+    expect(persisted.activeAgentId).toBe(first.subAgent.id)
+
+    // Two parent generations only: the hand-over, then the sentence with the refused second call.
+    const parentGenerations = mockProvider
+      .getCalls()
+      .filter((call) => call.agentId === agent.id && call.toolNames.length > 0)
+    expect(parentGenerations).toHaveLength(2)
+  })
 })

@@ -66,6 +66,7 @@ export abstract class LlmServiceBase {
       temperature,
       tools,
       fireAndForgetToolNames,
+      terminalToolNames,
       useExtendedTimeouts,
       priorityCallsEnabled,
       llmFeatures,
@@ -94,6 +95,7 @@ export abstract class LlmServiceBase {
       systemPrompt,
       tools,
       fireAndForgetToolNames,
+      terminalToolNames,
       useExtendedTimeouts,
       serviceTier,
     } as LLMConfig
