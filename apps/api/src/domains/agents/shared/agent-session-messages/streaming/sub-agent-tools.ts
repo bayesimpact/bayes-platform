@@ -116,6 +116,10 @@ export async function buildSubAgentTools({
   hasSubAgentTools: boolean
   /** The handoff tools: a call ends the turn (see terminalToolsStopCondition). */
   terminalToolNames: string[]
+  /** The handoff links, for the post-turn check of a hand-over announced without its tool. */
+  handoffCandidates: Array<{ toolName: string; agentId: string; agentName: string }>
+  /** Shared by the handoff tools of the turn: which sub-agent took over, if any. */
+  handoffTurnState: HandoffTurnState
 }> {
   const { agent, connectScope } = agentSessionScope
   const hasAgentOrchestration = await projectsService.hasFeature({
@@ -123,7 +127,14 @@ export async function buildSubAgentTools({
     feature: "agent-orchestration",
   })
   if (!hasAgentOrchestration) {
-    return { tools: {}, toolDescriptions: {}, hasSubAgentTools: false, terminalToolNames: [] }
+    return {
+      tools: {},
+      toolDescriptions: {},
+      hasSubAgentTools: false,
+      terminalToolNames: [],
+      handoffCandidates: [],
+      handoffTurnState: {},
+    }
   }
   const llmFeatures = await projectsService.getLlmFeatures(connectScope)
 
@@ -135,6 +146,7 @@ export async function buildSubAgentTools({
   const toolDescriptions: Record<string, string> = {}
   const terminalToolNames: string[] = []
   const handoffTurnState: HandoffTurnState = {}
+  const handoffCandidates: Array<{ toolName: string; agentId: string; agentName: string }> = []
 
   for (const subAgent of subAgents) {
     if (!subAgent.enabled) continue
@@ -160,6 +172,11 @@ export async function buildSubAgentTools({
       })
       toolDescriptions[subAgent.toolName] = description
       terminalToolNames.push(subAgent.toolName)
+      handoffCandidates.push({
+        toolName: subAgent.toolName,
+        agentId: subAgent.childAgent.id,
+        agentName: subAgent.childAgent.name,
+      })
       continue
     }
 
@@ -191,6 +208,8 @@ export async function buildSubAgentTools({
     toolDescriptions,
     hasSubAgentTools: Object.keys(tools).length > 0,
     terminalToolNames,
+    handoffCandidates,
+    handoffTurnState,
   }
 }
 

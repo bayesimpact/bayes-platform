@@ -527,6 +527,69 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     ])
   })
 
+  it("hands the conversation over when the parent announces the hand-over without calling its tool", async () => {
+    const { agent, session, child } = await createContext()
+    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider.resetMock()
+
+    // The parent writes the transfer sentence and calls nothing. The classifier
+    // names the announced sub-agent, the platform hands over, and the child's
+    // first turn follows in the same response.
+    mockProvider.addTextTurn(agent.id, "Form Filler takes it from here.")
+    mockProvider.addObjectTurn(agent.id, {
+      suggestedTitle: null,
+      announcedHandoffTo: "take_over_form",
+    })
+    mockProvider.addTextTurn(child.subAgent.id, "Hello! What is your first name?")
+    mockProvider.addObjectTurn(child.subAgent.id, {
+      suggestedTitle: null,
+      taskConcluded: false,
+      handoffSummary: "",
+    })
+
+    const response = await subject("Hello, I would like to enroll.")
+    expect(response.status).toBe(200)
+    const texts = eventsOf(response.text)
+      .filter((event) => event.type === "end")
+      .map((event) => (event.type === "end" ? event.fullContent : ""))
+    expect(texts).toEqual(["Form Filler takes it from here.", "Hello! What is your first name?"])
+
+    const persisted = await repositories.conversationAgentSessionRepository.findOneByOrFail({
+      id: session.id,
+    })
+    expect(persisted.activeAgentId).toBe(child.subAgent.id)
+
+    // The parent's classification was asked about the announced hand-over, closed on its tools.
+    const parentClassification = mockProvider
+      .getCalls()
+      .find((call) => call.agentId === agent.id && call.responseFormatSchema !== undefined)
+    expect(parentClassification?.responseFormatSchema).toContain("announcedHandoffTo")
+    expect(parentClassification?.responseFormatSchema).toContain("take_over_form")
+    expect(parentClassification?.prompt).toContain("Announced hand-over")
+  })
+
+  it("does not ask about an announced hand-over when the hand-over tool ran", async () => {
+    const { agent, child } = await createContext()
+    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider.resetMock()
+
+    mockProvider.addToolCallTurn(agent.id, "take_over_form", {})
+    mockProvider.addTextTurn(agent.id, "I hand you over to Form Filler.")
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
+    mockProvider.addTextTurn(child.subAgent.id, "Hello!")
+    mockProvider.addObjectTurn(child.subAgent.id, {
+      suggestedTitle: null,
+      taskConcluded: false,
+      handoffSummary: "",
+    })
+
+    expect((await subject("Hello")).status).toBe(200)
+    const parentClassification = mockProvider
+      .getCalls()
+      .find((call) => call.agentId === agent.id && call.responseFormatSchema !== undefined)
+    expect(parentClassification?.responseFormatSchema).not.toContain("announcedHandoffTo")
+  })
+
   it("keeps the first hand-over of a turn and ends the parent's turn after its sentence", async () => {
     const { user, organization, project, agent, subAgents } =
       await createOrganizationWithAgentAndSubAgents(repositories, {

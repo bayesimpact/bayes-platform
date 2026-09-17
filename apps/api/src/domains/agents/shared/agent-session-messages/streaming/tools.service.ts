@@ -36,6 +36,7 @@ import { type BuiltTools, buildSubAgentTools } from "./sub-agent-tools"
 import { concludeHandoffInstruction, concludeHandoffTool } from "./tools/conclude-handoff.tool"
 import { fillFormTool } from "./tools/fill-form.tool"
 import { handoffTranscriptWindow, runFormConsolidation } from "./tools/form-consolidation"
+import type { HandoffTurnState } from "./tools/handoff.tool"
 import {
   inlineCitationInstruction,
   lookupKnowledgeBaseTool,
@@ -412,6 +413,8 @@ export class ToolsService {
         tools: subAgentTools,
         toolDescriptions: subAgentToolDescriptions,
         terminalToolNames: subAgentTerminalToolNames,
+        handoffCandidates,
+        handoffTurnState: subAgentHandoffTurnState,
       },
     ] = await Promise.all([
       // Check if the agent has the sources tool enabled
@@ -434,7 +437,17 @@ export class ToolsService {
               sessionState?.activeAgent ?? this.conversationAgentSessionsService,
             formReader: this.conversationFormsService,
           })
-        : Promise.resolve({ tools: {}, toolDescriptions: {}, terminalToolNames: [] }),
+        : Promise.resolve({
+            tools: {},
+            toolDescriptions: {},
+            terminalToolNames: [],
+            handoffCandidates: [] as Array<{
+              toolName: string
+              agentId: string
+              agentName: string
+            }>,
+            handoffTurnState: {} as HandoffTurnState,
+          }),
     ])
     // A sub-agent answering as the active agent of a handoff hands the
     // conversation back itself, with this tool; the post-turn step also reads
@@ -482,6 +495,43 @@ export class ToolsService {
           }
         }
       : undefined
+    // The parent announced a hand-over in its reply without calling the tool:
+    // the classifier names the sub-agent, the platform hands over as the tool
+    // would have, and the sub-agent's first turn follows in the same response.
+    const announcedHandoff: TurnClassificationContext["announcedHandoff"] =
+      handoffCandidates.length > 0
+        ? {
+            candidates: handoffCandidates.map(({ toolName, agentName }) => ({
+              toolName,
+              agentName,
+            })),
+            handedOffByTool: () => subAgentHandoffTurnState.handedOffTo !== undefined,
+            handOff: async ({ toolName }) => {
+              const candidate = handoffCandidates.find((link) => link.toolName === toolName)
+              if (!candidate) return
+              const form = await this.conversationFormsService.findOne({
+                connectScope,
+                sessionId: session.id,
+                agentId: candidate.agentId,
+              })
+              // A sub-agent that concluded its part cannot take over again.
+              if (form?.status === "concluded") return
+              await activeAgentController.setActiveAgent({
+                connectScope,
+                sessionId: session.id,
+                activeAgentId: candidate.agentId,
+              })
+              subAgentHandoffTurnState.handedOffTo = {
+                agentId: candidate.agentId,
+                agentName: candidate.agentName,
+              }
+              await onExecute({
+                toolName: candidate.toolName,
+                arguments: { detectedByClassifier: true },
+              })
+            },
+          }
+        : undefined
     const promptSections = await this.buildConversationContextSections({
       connectScope,
       agent,
@@ -505,7 +555,7 @@ export class ToolsService {
     // turn-classification.ts). Sub-agents and evaluation runs pass
     // includeSessionMetadataTools=false: no session of their own to title.
     const turnClassification: TurnClassificationContext | undefined =
-      hasSourcesReporting || includeSessionMetadataTools || handoff
+      hasSourcesReporting || includeSessionMetadataTools || handoff || announcedHandoff
         ? {
             retrievedChunksRegistry: hasSourcesReporting ? retrievedChunksRegistry : undefined,
             sessionMetadata: includeSessionMetadataTools
@@ -530,6 +580,7 @@ export class ToolsService {
                     conclude: concludeHandoffFromClassifier,
                   }
                 : undefined,
+            announcedHandoff,
             onExecute,
           }
         : undefined

@@ -63,6 +63,14 @@ parent could not read.
   LLM provider holds a step's text back while it matches the previous step's
   text and drops it when the step ends still matching. A step that diverges
   is released whole, so only a word for word repeat is lost.
+* **A hand-over announced without its tool is applied.** A model sometimes
+  writes the transfer sentence ("I hand you over to the questionnaire") and
+  calls nothing: the turn ends, nobody takes over, and the user answers a
+  question nobody asked. The post-turn classifier of an agent with handoff
+  sub-agents is asked, when no hand-over tool ran, which sub-agent the reply
+  announces, closed on the tool names. The platform then sets the active
+  agent as the tool would have and the sub-agent's first turn follows in the
+  same response. Same safety net as the conclusion detected by the classifier.
 * **No nested handoff.** A child in control keeps its relay links but gets no
   handoff tools: its conclusion always returns to the session's agent.
 
