@@ -443,6 +443,79 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     expect(consolidationCall?.prompt).toContain("John Doe")
   })
 
+  it("streams the sentence once when the sub-agent repeats it after a tool result, and ends its turn on the conclusion", async () => {
+    const { agent, session, child } = await createContext()
+    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider.resetMock()
+
+    // Turn 1: hand-over, the child asks for the name.
+    mockProvider.addToolCallTurn(agent.id, "take_over_form", {})
+    mockProvider.addTextTurn(agent.id, "Form Filler takes it from here.")
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
+    mockProvider.addTextTurn(child.subAgent.id, "Hello! Your first name?")
+    mockProvider.addObjectTurn(child.subAgent.id, {
+      suggestedTitle: null,
+      taskConcluded: false,
+      handoffSummary: "",
+    })
+    expect((await subject("Hi")).status).toBe(200)
+
+    // Turn 2: the child writes its sentence and records the name in the same
+    // generation, then writes the very same sentence again after the tool
+    // result. The user reads it once.
+    mockProvider.addTextWithToolCallTurn(child.subAgent.id, "Noted, thank you John.", "fillForm", {
+      formFields: { forName: "John" },
+    })
+    mockProvider.addTextTurn(child.subAgent.id, "Noted, thank you John.")
+    mockProvider.addObjectTurn(child.subAgent.id, {
+      suggestedTitle: null,
+      taskConcluded: false,
+      handoffSummary: "",
+    })
+    const second = await subject("John")
+    expect(second.status).toBe(200)
+    const secondTexts = eventsOf(second.text)
+      .filter((event) => event.type === "end")
+      .map((event) => (event.type === "end" ? event.fullContent : ""))
+    expect(secondTexts).toEqual(["Noted, thank you John."])
+
+    // Turn 3: the child concludes with its closing sentence in the same
+    // generation. The conclusion ends its turn: no further child generation,
+    // the parent resumes.
+    mockProvider.addTextWithToolCallTurn(
+      child.subAgent.id,
+      "All done, I hand you back.",
+      "concludeHandoff",
+      {},
+    )
+    mockProvider.addTextTurn(child.subAgent.id, "THIS GENERATION MUST NOT RUN")
+    mockProvider.addObjectTurn(child.subAgent.id, { suggestedTitle: null })
+    mockProvider.addTextTurn(agent.id, "Welcome John!")
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
+    const third = await subject("That is all")
+    expect(third.status).toBe(200)
+    const thirdTexts = eventsOf(third.text)
+      .filter((event) => event.type === "end")
+      .map((event) => (event.type === "end" ? event.fullContent : ""))
+    expect(thirdTexts).toEqual(["All done, I hand you back.", "Welcome John!"])
+
+    const persisted = await repositories.conversationAgentSessionRepository.findOneByOrFail({
+      id: session.id,
+    })
+    expect(persisted.activeAgentId).toBeNull()
+    const storedReplies = await repositories.agentMessageRepository.find({
+      where: { sessionId: session.id, role: "assistant" },
+      order: { createdAt: "ASC" },
+    })
+    expect(storedReplies.map((message) => message.content)).toEqual([
+      "Form Filler takes it from here.",
+      "Hello! Your first name?",
+      "Noted, thank you John.",
+      "All done, I hand you back.",
+      "Welcome John!",
+    ])
+  })
+
   it("keeps the first hand-over of a turn and ends the parent's turn after its sentence", async () => {
     const { user, organization, project, agent, subAgents } =
       await createOrganizationWithAgentAndSubAgents(repositories, {

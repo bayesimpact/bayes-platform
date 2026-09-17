@@ -55,7 +55,14 @@ parent could not read.
   are refused with the name of the agent that took over. The hand-over tools
   are declared terminal to the tool loop: once one ran, the loop allows one
   more generation for the closing sentence (none when the hand-over step
-  already carried it) and stops, whatever else the model would call.
+  already carried it) and stops, whatever else the model would call. The
+  conclusion tool is terminal in the same way for the child's turn.
+* **A sentence repeated after a tool result is streamed once.** The same
+  model writes its sentence, calls the tool, then writes the same sentence
+  again once the tool result comes back; both steps end up in one reply. The
+  LLM provider holds a step's text back while it matches the previous step's
+  text and drops it when the step ends still matching. A step that diverges
+  is released whole, so only a word for word repeat is lost.
 * **No nested handoff.** A child in control keeps its relay links but gets no
   handoff tools: its conclusion always returns to the session's agent.
 

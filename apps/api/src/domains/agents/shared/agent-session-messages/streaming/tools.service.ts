@@ -627,7 +627,11 @@ export class ToolsService {
       turnClassification,
       hasSubAgentTools: Object.keys(subAgentTools).length > 0,
       promptSections,
-      terminalToolNames: subAgentTerminalToolNames,
+      // A hand-over ends the parent's turn; a conclusion ends the child's:
+      // after either, the model gets one generation for its sentence and stops.
+      terminalToolNames: handoff
+        ? [...subAgentTerminalToolNames, ToolName.ConcludeHandoff]
+        : subAgentTerminalToolNames,
     }
   }
 
