@@ -75,8 +75,16 @@ parent could not read.
   in control reads what other agents already collected ("Already known about
   the user", read-only: it does not ask again). No new call: the classifier
   already runs after each reply.
-* **Not in this decision.** Consolidating a form at conclusion from the
-  transcript is the next step.
+* **Form consolidation at conclusion (third change).** When a sub-agent with
+  a form concludes, the platform reads its part of the transcript once (from
+  its first reply, with the user's messages in between) with the form schema,
+  every field nullable, at temperature 0, under the rule "only what the user
+  stated, null otherwise". It adds the fields the exchange left empty and
+  never overwrites a value fillForm wrote, whatever the extraction says.
+  Logged as a `consolidateForm` tool execution with the added fields, traced
+  under `· consolidation`. One call per hand-over, none when the form is
+  complete. Forcing fillForm on every turn was tried before and rejected: it
+  makes the model invent values.
 
 ## 4. Alternatives Considered
 

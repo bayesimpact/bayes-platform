@@ -89,8 +89,19 @@ export type HandoffClassificationConfig = {
   parentAgentName: string
   /** True when the sub-agent called concludeHandoff during this turn. */
   concludedByTool: () => boolean
-  /** Applies the conclusion (active agent cleared, form concluded with the summary). */
-  conclude: (params: { summary: string; detectedByClassifier: boolean }) => Promise<void>
+  /**
+   * Applies the conclusion (active agent cleared, form concluded with the
+   * summary, form consolidated from the transcript with the given model).
+   */
+  conclude: (params: {
+    summary: string
+    detectedByClassifier: boolean
+    llm: {
+      provider: LLMProvider
+      buildConfig: (systemPrompt: string) => LLMConfig
+      metadata: LLMMetadata
+    }
+  }) => Promise<void>
 }
 
 export type TurnClassificationContext = {
@@ -423,6 +434,7 @@ export async function runTurnClassification({
         await handoff.conclude({
           summary: parsed.data.handoffSummary ?? "",
           detectedByClassifier: !concludedByTool,
+          llm: { provider, buildConfig, metadata },
         })
       }
     }

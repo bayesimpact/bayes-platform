@@ -20,6 +20,8 @@
       "gatheringSources": "Collecte des sources…",
       "surfacingResources": "Mise en avant des ressources…",
       "fillingForm": "Remplissage du formulaire…",
+      "completingForm": "Complément du formulaire…",
+      "handingBack": "Retour de la conversation…",
       "recalculating": "Mise à jour de la session…"
     },
     "asyncLoading": "Chargement...",

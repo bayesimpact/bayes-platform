@@ -378,4 +378,68 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     })
     expect(persisted.activeAgentId).toBe(needs.subAgent.id)
   })
+
+  it("completes the form from the sub-agent's transcript when it concludes, without overwriting what fillForm wrote", async () => {
+    const { agent, session, child } = await createContext()
+    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider.resetMock()
+
+    // Turn 1: hand-over, the child asks for both names.
+    mockProvider.addToolCallTurn(agent.id, "take_over_form", {})
+    mockProvider.addTextTurn(agent.id, "Form Filler takes it from here.")
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
+    mockProvider.addTextTurn(child.subAgent.id, "Hello! Your first and last name?")
+    mockProvider.addObjectTurn(child.subAgent.id, {
+      suggestedTitle: null,
+      taskConcluded: false,
+      handoffSummary: "",
+    })
+    expect((await subject("Hi")).status).toBe(200)
+
+    // Turn 2: the user gives both, the child records the first name only and
+    // concludes with its tool. The consolidation reads the transcript and adds
+    // the last name; its different first name does not replace the stored one.
+    mockProvider.addToolCallTurn(child.subAgent.id, "fillForm", { formFields: { forName: "John" } })
+    mockProvider.addToolCallTurn(child.subAgent.id, "concludeHandoff", {})
+    mockProvider.addTextTurn(child.subAgent.id, "Thanks, all done.")
+    mockProvider.addObjectTurn(child.subAgent.id, {
+      suggestedTitle: null,
+      taskConcluded: true,
+      handoffSummary: "The user is John Doe.",
+    })
+    mockProvider.addObjectTurn(child.subAgent.id, { forName: "Johnny", name: "Doe" })
+    mockProvider.addTextTurn(agent.id, "Welcome John Doe!")
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
+
+    const response = await subject("John Doe")
+    expect(response.status).toBe(200)
+
+    const form = await repositories.conversationFormRepository.findOneByOrFail({
+      sessionId: session.id,
+      agentId: child.subAgent.id,
+    })
+    expect(form.state).toEqual({ forName: "John", name: "Doe" })
+    expect(form.status).toBe("concluded")
+    expect(form.summary).toBe("The user is John Doe.")
+
+    // The addition is logged on the child's reply, after its own tool calls.
+    const childReply = await repositories.agentMessageRepository.findOne({
+      where: { sessionId: session.id, role: "assistant", content: "Thanks, all done." },
+    })
+    const consolidation = childReply?.toolCalls?.find(
+      (toolCall) => toolCall.name === "consolidateForm",
+    )
+    expect(consolidation?.arguments).toEqual({ name: "Doe" })
+
+    // The extraction ran once, with the form schema, over the child's part only.
+    const consolidationCall = mockProvider
+      .getCalls()
+      .find(
+        (call) =>
+          call.responseFormatSchema?.includes('"name"') && call.prompt.includes("## Transcript"),
+      )
+    expect(consolidationCall?.agentId).toBe(child.subAgent.id)
+    expect(consolidationCall?.prompt).not.toContain("Form Filler takes it from here.")
+    expect(consolidationCall?.prompt).toContain("John Doe")
+  })
 })

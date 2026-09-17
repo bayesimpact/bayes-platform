@@ -1,6 +1,8 @@
-import { DocumentsRagMode, ToolName } from "@caseai-connect/api-contracts"
+import { DocumentsRagMode, outputJsonSchemaSchema, ToolName } from "@caseai-connect/api-contracts"
 import { Inject, Injectable, Logger } from "@nestjs/common"
+import { InjectRepository } from "@nestjs/typeorm"
 import type { ToolSet } from "ai"
+import { In, type Repository } from "typeorm"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type {
   BuildLLMConfigParams,
@@ -9,7 +11,9 @@ import type {
 } from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
+import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
+import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import { ConversationFormsService } from "@/domains/agents/shared/conversation-forms/conversation-forms.service"
 import { AgentSubAgentsService } from "@/domains/agents/sub-agents/agent-sub-agents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -31,6 +35,7 @@ import { sessionPersistsForms } from "./streaming-session.types"
 import { type BuiltTools, buildSubAgentTools } from "./sub-agent-tools"
 import { concludeHandoffInstruction, concludeHandoffTool } from "./tools/conclude-handoff.tool"
 import { fillFormTool } from "./tools/fill-form.tool"
+import { handoffTranscriptWindow, runFormConsolidation } from "./tools/form-consolidation"
 import {
   inlineCitationInstruction,
   lookupKnowledgeBaseTool,
@@ -98,6 +103,8 @@ export class ToolsService {
     private readonly documentChunkRetrievalService: DocumentChunkRetrievalService,
     private readonly mcpClientService: McpClientService,
     private readonly mcpServersService: McpServersService,
+    @InjectRepository(AgentMessage)
+    private readonly agentMessageRepository: Repository<AgentMessage>,
   ) {}
 
   buildTools: (params: BuildToolsParams) => Promise<BuiltTools> = async (params) => {
@@ -432,9 +439,11 @@ export class ToolsService {
       ? async ({
           summary,
           detectedByClassifier,
+          llm,
         }: {
           summary: string
           detectedByClassifier: boolean
+          llm: Parameters<NonNullable<TurnClassificationContext["handoff"]>["conclude"]>[0]["llm"]
         }) => {
           if (detectedByClassifier) {
             await activeAgentController.clearActiveAgentIfCurrent({
@@ -454,6 +463,16 @@ export class ToolsService {
             agentSettingsId: agentSettings.id,
             summary: summary || undefined,
           })
+          if (hasFillFormTool) {
+            await this.consolidateFormAtConclusion({
+              connectScope,
+              agent,
+              agentSettings,
+              sessionId: session.id,
+              llm,
+              onExecute,
+            })
+          }
         }
       : undefined
     const promptSections = await this.buildConversationContextSections({
@@ -602,6 +621,65 @@ export class ToolsService {
       hasSubAgentTools: Object.keys(subAgentTools).length > 0,
       promptSections,
     }
+  }
+
+  /**
+   * Once, when a sub-agent concludes: reads its part of the transcript with
+   * the form schema and adds the fields the exchange left empty. Never
+   * overwrites a value fillForm wrote (see form-consolidation.ts). Logged as
+   * a tool execution so the Studio timeline and the trace show what it added.
+   */
+  private async consolidateFormAtConclusion({
+    connectScope,
+    agent,
+    agentSettings,
+    sessionId,
+    llm,
+    onExecute,
+  }: {
+    connectScope: RequiredConnectScope
+    agent: Agent
+    agentSettings: AgentSettings
+    sessionId: string
+    llm: Parameters<NonNullable<TurnClassificationContext["handoff"]>["conclude"]>[0]["llm"]
+    onExecute: OnExecute
+  }): Promise<void> {
+    const parsedSchema = outputJsonSchemaSchema.safeParse(agentSettings.outputJsonSchema)
+    if (!parsedSchema.success) return
+    const [messages, form] = await Promise.all([
+      this.agentMessageRepository.find({
+        where: { sessionId, role: In(["user", "assistant"]) },
+        order: { createdAt: "ASC" },
+        relations: { agentSettings: true },
+      }),
+      this.conversationFormsService.findOne({ connectScope, sessionId, agentId: agent.id }),
+    ])
+    const transcript = handoffTranscriptWindow(
+      messages.map((message) => ({
+        role: message.role as "user" | "assistant",
+        content: message.content,
+        agentId: message.agentSettings?.agentId,
+      })),
+      agent.id,
+    )
+    const added = await runFormConsolidation({
+      provider: llm.provider,
+      buildConfig: llm.buildConfig,
+      metadata: llm.metadata,
+      schema: parsedSchema.data,
+      transcript,
+      state: form?.state ?? {},
+      agentName: agent.name,
+    })
+    if (Object.keys(added).length === 0) return
+    await this.conversationFormsService.mergeFields({
+      connectScope,
+      sessionId,
+      agentId: agent.id,
+      agentSettingsId: agentSettings.id,
+      fields: added,
+    })
+    await onExecute({ toolName: ToolName.ConsolidateForm, arguments: added })
   }
 
   /**

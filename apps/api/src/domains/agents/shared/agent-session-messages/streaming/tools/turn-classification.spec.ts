@@ -354,10 +354,9 @@ describe("runTurnClassification", () => {
       expect(String(call?.message.content)).toContain("## Hand-over")
       expect(String(call?.message.content)).toContain('"Form Filler"')
       // The sub-agent forgot its tool: the classifier's reading applies the conclusion.
-      expect(conclude).toHaveBeenCalledWith({
-        summary: "The user is John Doe.",
-        detectedByClassifier: true,
-      })
+      expect(conclude).toHaveBeenCalledWith(
+        expect.objectContaining({ summary: "The user is John Doe.", detectedByClassifier: true }),
+      )
     })
 
     it("only records the summary when the sub-agent already concluded with its tool", async () => {
@@ -374,10 +373,9 @@ describe("runTurnClassification", () => {
         provider,
       })
 
-      expect(conclude).toHaveBeenCalledWith({
-        summary: "All fields collected.",
-        detectedByClassifier: false,
-      })
+      expect(conclude).toHaveBeenCalledWith(
+        expect.objectContaining({ summary: "All fields collected.", detectedByClassifier: false }),
+      )
     })
 
     it("leaves an ongoing hand-over alone", async () => {

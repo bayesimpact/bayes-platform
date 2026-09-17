@@ -133,7 +133,9 @@ second time: the orchestrator uses what it collected instead. The orchestrator i
 each sub-agent collected and whether it is done, and a sub-agent that takes over is told what
 earlier sub-agents already collected, so the user is not asked the same question twice. A
 sub-agent that ends its part without saying so explicitly is still handed back: the platform
-reads its last reply for a conclusion.
+reads its last reply for a conclusion. When a form sub-agent concludes, the platform reads its
+part of the conversation once more and fills in the fields the exchange left empty, without
+changing an answer already recorded.
 
 ## Tips
 
