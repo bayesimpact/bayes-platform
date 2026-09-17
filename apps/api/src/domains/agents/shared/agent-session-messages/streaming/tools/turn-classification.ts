@@ -232,7 +232,7 @@ export function buildTurnClassificationSchema({
     properties.taskConcluded = {
       type: "boolean",
       description:
-        "true when the reply ends the sub-agent's part: it gives its conclusion, says it has everything it needs, or says goodbye with nothing further to ask. false when it still asks the user something or waits for an answer.",
+        "true when the reply ends the sub-agent's part: it gives its conclusion, says it has everything it needs, says goodbye with nothing further to ask, or asks whether to move on to something else (another questionnaire, another step) that is not its part. false when it still asks the user something about its own part or waits for an answer to it.",
     }
     properties.handoffSummary = {
       type: "string",
@@ -332,7 +332,7 @@ export function buildTurnClassificationPrompt({
   }
   if (handoff) {
     sections.push(
-      `## Hand-over\nThe assistant is "${handoff.childAgentName}", a sub-agent that took the conversation over from "${handoff.parentAgentName}" for one part of it. Say whether this reply ENDS its part (taskConcluded): a conclusion, a statement that it has everything it needs, or a goodbye with nothing further to ask. A reply that still asks the user something is not a conclusion. Then summarize, in two to four sentences and in the conversation's language, what "${handoff.childAgentName}" collected or answered during its whole part, for "${handoff.parentAgentName}" (handoffSummary). Facts the user stated only.`,
+      `## Hand-over\nThe assistant is "${handoff.childAgentName}", a sub-agent that took the conversation over from "${handoff.parentAgentName}" for one part of it. Say whether this reply ENDS its part (taskConcluded): a conclusion, a statement that it has everything it needs, or a goodbye with nothing further to ask. A reply that still asks the user something about its own part is not a conclusion. A reply that has finished its part and asks whether to move on to something else (another questionnaire, another step) IS a conclusion: what comes next is not its task. Then summarize, in two to four sentences and in the conversation's language, what "${handoff.childAgentName}" collected or answered during its whole part, for "${handoff.parentAgentName}" (handoffSummary). Facts the user stated only.`,
     )
   }
   return { systemPrompt, userContent: sections.join("\n\n") }
