@@ -50,6 +50,11 @@ export class ConversationForm extends ConnectEntityBase {
   @Column({ type: "varchar", default: "in_progress" })
   status!: ConversationFormStatus
 
+  // Written at conclusion: what the agent collected or answered during its
+  // part of the conversation, in a few sentences, for the agent that resumes.
+  @Column({ type: "text", nullable: true })
+  summary!: string | null
+
   // The collected answers, keyed by form field. Merged field by field on each
   // fillForm call; a field is never erased by a later unknown value.
   @Column({ type: "jsonb", default: () => "'{}'" })

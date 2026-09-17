@@ -250,4 +250,132 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     expect(parentAnswerCall?.prompt).toContain("already_concluded")
     expect(parentAnswerCall?.prompt).toContain("Ada")
   })
+
+  it("concludes a hand-over the sub-agent forgot to signal, summarizes it for the parent, and tells the next sub-agent what is already known", async () => {
+    const { user, organization, project, agent, subAgents } =
+      await createOrganizationWithAgentAndSubAgents(repositories, {
+        agent: { name: "Orchestrator", type: "conversation" },
+        agentSettings: { model: AgentModel._Mock },
+        subAgents: [
+          {
+            subAgent: { name: "Identity", type: "conversation" },
+            subAgentSettings: {
+              model: AgentModel._Mock,
+              fillFormEnabled: true,
+              outputJsonSchema: FORM_SCHEMA,
+            },
+            agentSubAgent: { toolName: "take_over_identity", mode: "handoff" },
+          },
+          {
+            subAgent: { name: "Needs", type: "conversation" },
+            subAgentSettings: {
+              model: AgentModel._Mock,
+              fillFormEnabled: true,
+              outputJsonSchema: { type: "object", properties: { need: { type: "string" } } },
+            },
+            agentSubAgent: { toolName: "take_over_needs", mode: "handoff" },
+          },
+        ],
+      })
+    const session = await repositories.conversationAgentSessionRepository.save(
+      conversationAgentSessionFactory
+        .transient({ organization, project, agent, user })
+        .live()
+        .build(),
+    )
+    organizationId = organization.id
+    projectId = project.id
+    agentId = agent.id
+    agentSessionId = session.id
+    auth0Id = user.auth0Id
+    const [identity, needs] = subAgents
+    if (!identity || !needs) throw new Error("sub-agents not created")
+
+    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider.resetMock()
+
+    // Turn 1: hand-over to Identity, which fills the form and says goodbye WITHOUT
+    // calling concludeHandoff. The classifier reads the conclusion and summarizes.
+    mockProvider.addToolCallTurn(agent.id, "take_over_identity", {})
+    mockProvider.addTextTurn(agent.id, "Identity will take it from here.")
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
+    mockProvider.addToolCallTurn(identity.subAgent.id, "fillForm", {
+      formFields: { forName: "John", name: "Doe" },
+    })
+    mockProvider.addTextTurn(
+      identity.subAgent.id,
+      "Thanks John Doe, that is all I needed. Goodbye!",
+    )
+    mockProvider.addObjectTurn(identity.subAgent.id, {
+      suggestedTitle: null,
+      taskConcluded: true,
+      handoffSummary: "The user is John Doe.",
+    })
+    // The parent resumes and hands over to Needs at once.
+    mockProvider.addToolCallTurn(agent.id, "take_over_needs", {})
+    mockProvider.addTextTurn(agent.id, "Now Needs will ask about your situation.")
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
+    mockProvider.addTextTurn(needs.subAgent.id, "Hello John, what do you need today?")
+    mockProvider.addObjectTurn(needs.subAgent.id, {
+      suggestedTitle: null,
+      taskConcluded: false,
+      handoffSummary: "",
+    })
+
+    const response = await subject("My name is John Doe")
+    expect(response.status).toBe(200)
+    const texts = eventsOf(response.text)
+      .filter((event) => event.type === "end")
+      .map((event) => (event.type === "end" ? event.fullContent : ""))
+    expect(texts).toEqual([
+      "Identity will take it from here.",
+      "Thanks John Doe, that is all I needed. Goodbye!",
+      "Now Needs will ask about your situation.",
+      "Hello John, what do you need today?",
+    ])
+
+    // Identity's form is concluded with the classifier's summary, and the conclusion is logged.
+    const identityForm = await repositories.conversationFormRepository.findOneByOrFail({
+      sessionId: session.id,
+      agentId: identity.subAgent.id,
+    })
+    expect(identityForm.status).toBe("concluded")
+    expect(identityForm.summary).toBe("The user is John Doe.")
+    const identityReply = await repositories.agentMessageRepository.findOne({
+      where: {
+        sessionId: session.id,
+        role: "assistant",
+        content: "Thanks John Doe, that is all I needed. Goodbye!",
+      },
+    })
+    expect(identityReply?.toolCalls?.map((toolCall) => toolCall.name)).toEqual(
+      expect.arrayContaining(["fillForm", "concludeHandoff"]),
+    )
+
+    // The parent's resumption saw what Identity collected and concluded.
+    const calls = mockProvider.getCalls()
+    const parentResume = calls
+      .filter((call) => call.agentId === agent.id && call.toolNames.length > 0)
+      .at(-1)
+    expect(parentResume?.prompt).toContain("## Your sub-agents in this conversation")
+    // The recorded prompt is JSON-serialized: quotes are escaped, so match on the words.
+    expect(parentResume?.prompt).toContain("Identity")
+    expect(parentResume?.prompt).toContain("concluded its part")
+    expect(parentResume?.prompt).toContain("The user is John Doe.")
+    expect(parentResume?.prompt).toContain("forName")
+    expect(parentResume?.prompt).toContain("John")
+
+    // Needs knows what Identity collected and is told not to ask again.
+    const needsFirstTurn = calls.find(
+      (call) => call.agentId === needs.subAgent.id && call.toolNames.length > 0,
+    )
+    expect(needsFirstTurn?.prompt).toContain("## Already known about the user")
+    expect(needsFirstTurn?.prompt).toContain("Identity")
+    expect(needsFirstTurn?.prompt).toContain("Doe")
+
+    const persisted = await repositories.conversationAgentSessionRepository.findOneByOrFail({
+      id: session.id,
+    })
+    expect(persisted.activeAgentId).toBe(needs.subAgent.id)
+  })
 })

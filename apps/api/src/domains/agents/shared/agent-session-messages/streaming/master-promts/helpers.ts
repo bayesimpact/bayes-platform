@@ -12,7 +12,53 @@ import {
 } from "@/domains/agents/shared/agent-session-messages/streaming/tools/surfaced-resources-registry"
 import { mcpAppToolNamesFromDescriptions } from "@/external/mcp/mcp-app-tool-description"
 
+export type SubAgentOutcome = {
+  agentName: string
+  status: "in_progress" | "concluded"
+  state: Record<string, unknown>
+  summary: string | null
+}
+
+export type KnownFact = { agentName: string; state: Record<string, unknown> }
+
 export const promptHelpers = {
+  /**
+   * Shown to an agent whose sub-agents took the conversation over: what each
+   * of them collected, and whether it is done. Rebuilt every turn from the
+   * conversation's forms, never persisted as a message.
+   */
+  subAgentOutcomes: (outcomes: SubAgentOutcome[]) =>
+    outcomes.length === 0
+      ? ""
+      : `## Your sub-agents in this conversation
+${outcomes
+  .map((outcome) => {
+    const lines = [
+      `- "${outcome.agentName}": ${outcome.status === "concluded" ? "concluded its part" : "still talking to the user"}.`,
+    ]
+    if (outcome.summary) lines.push(`  Summary: ${outcome.summary}`)
+    if (Object.keys(outcome.state).length > 0) {
+      lines.push(`  Collected: ${JSON.stringify(outcome.state)}`)
+    }
+    return lines.join("\n")
+  })
+  .join("\n")}
+Use what a concluded sub-agent collected to decide the next step. Do not hand the conversation to a sub-agent that concluded, and do not ask the user again for what is collected above.
+`,
+
+  /**
+   * Shown to a sub-agent in control of the conversation: what other agents
+   * already collected in it. Read-only: it does not ask again, and writes in
+   * its own form only what the user says to it.
+   */
+  knownFacts: (facts: KnownFact[]) =>
+    facts.length === 0
+      ? ""
+      : `## Already known about the user
+Collected earlier in this conversation by other agents. Do not ask for it again; you may confirm it briefly when it matters to your part.
+${facts.map((fact) => `- From "${fact.agentName}": ${JSON.stringify(fact.state)}`).join("\n")}
+`,
+
   /**
    * Shown to a sub-agent answering as the active agent of a handoff: the
    * transcript above it belongs to the same conversation, started by the

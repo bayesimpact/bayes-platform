@@ -49,7 +49,7 @@ describe("buildTools", () => {
       agentSessionScope: {
         agent: testAgent,
         agentSettings: { ...testAgentSettings, documentsRagMode: DocumentsRagMode.None },
-        session: buildSessionStub("session-id"),
+        session: buildSessionStub("00000000-0000-4000-8000-000000000001"),
         connectScope,
       },
       onExecute: () => undefined,
@@ -75,7 +75,7 @@ describe("buildTools", () => {
       agentSessionScope: {
         agent: testAgent,
         agentSettings: { ...testAgentSettings, documentsRagMode: DocumentsRagMode.All },
-        session: buildSessionStub("session-id"),
+        session: buildSessionStub("00000000-0000-4000-8000-000000000001"),
         connectScope,
       },
       onExecute: () => undefined,
@@ -97,7 +97,7 @@ describe("buildTools", () => {
       agentSessionScope: {
         agent: testAgent,
         agentSettings: { ...testAgentSettings, documentsRagMode: DocumentsRagMode.Tags },
-        session: buildSessionStub("session-id"),
+        session: buildSessionStub("00000000-0000-4000-8000-000000000001"),
         connectScope,
       },
       onExecute: () => undefined,
@@ -214,7 +214,7 @@ describe("buildTools", () => {
       agentSessionScope: {
         agent: testAgent,
         agentSettings: { ...testAgentSettings, documentsRagMode: DocumentsRagMode.None },
-        session: buildSessionStub("session-id"),
+        session: buildSessionStub("00000000-0000-4000-8000-000000000001"),
         connectScope,
       },
       onExecute: () => undefined,
@@ -280,7 +280,7 @@ describe("buildTools", () => {
       agentSessionScope: {
         agent: testAgent,
         agentSettings: { ...testAgentSettings, documentsRagMode: DocumentsRagMode.None },
-        session: buildSessionStub("session-id"),
+        session: buildSessionStub("00000000-0000-4000-8000-000000000001"),
         connectScope,
       },
       onExecute: () => undefined,

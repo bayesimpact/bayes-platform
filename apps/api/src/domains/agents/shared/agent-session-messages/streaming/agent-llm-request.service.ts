@@ -115,6 +115,7 @@ export class AgentLlmRequestService {
       fireAndForgetToolNames,
       turnClassification,
       hasSubAgentTools,
+      promptSections,
     } = await this.toolsService.buildTools({
       agentSessionScope,
       getProviderForModel,
@@ -135,6 +136,7 @@ export class AgentLlmRequestService {
         handoff: agentSessionScope.handoff
           ? { parentAgentName: agentSessionScope.handoff.parentAgent.name }
           : undefined,
+        contextSections: promptSections,
       }),
       model: agentSettings.model,
       temperature: agentSettings.temperature,
@@ -150,6 +152,13 @@ export class AgentLlmRequestService {
       agentSettings,
       hasSubAgentTools,
       extraTags,
+      // Langfuse: the turns of one user message share a number; the label says
+      // which one is the sub-agent's, and which one the parent's resumption.
+      spanLabel: agentSessionScope.handoff
+        ? `handoff · ${agent.name}`
+        : syntheticUserContent !== undefined
+          ? "resume"
+          : undefined,
     })
 
     const messages = await this.convertToLLMFormat(session.messages)
@@ -201,12 +210,14 @@ export class AgentLlmRequestService {
     agentSettings,
     hasSubAgentTools,
     extraTags,
+    spanLabel,
   }: {
     session: StreamingSession
     agent: Agent
     agentSettings: AgentSettings
     hasSubAgentTools: boolean
     extraTags: string[]
+    spanLabel?: string
   }): LLMMetadata {
     this.logger.log(
       `Agent "${agent.name}" (${agent.id}) trace: ${getTraceUrl(session.traceId)} (session ${session.id})`,
@@ -221,6 +232,7 @@ export class AgentLlmRequestService {
       organizationId: session.organizationId,
       currentTurn: session.messages.filter((message) => message.role === "user").length,
       tags: hasSubAgentTools ? [...tags, "parent-agent"] : tags,
+      ...(spanLabel ? { spanLabel } : {}),
     }
   }
 

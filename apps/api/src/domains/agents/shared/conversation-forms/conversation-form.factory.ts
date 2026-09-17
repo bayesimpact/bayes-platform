@@ -37,6 +37,7 @@ export const conversationFormFactory = ConversationFormFactory.define(
       agentSettingsId: transientParams.agentSettings.id,
       agentSettings: transientParams.agentSettings,
       status: params.status ?? "in_progress",
+      summary: params.summary ?? null,
       state: (params.state as Record<string, unknown> | undefined) ?? {},
       createdAt: params.createdAt ?? now,
       updatedAt: params.updatedAt ?? now,

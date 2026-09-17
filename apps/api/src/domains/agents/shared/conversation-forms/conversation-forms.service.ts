@@ -24,17 +24,20 @@ export class ConversationFormsService {
     )
   }
 
-  /** The forms of one session, oldest first. */
+  /** The forms of one session, oldest first, with their agent when asked. */
   async listForSession({
     connectScope,
     sessionId,
+    withAgent = false,
   }: {
     connectScope: RequiredConnectScope
     sessionId: string
+    withAgent?: boolean
   }): Promise<ConversationForm[]> {
     return this.conversationFormConnectRepository.find(connectScope, {
       where: { sessionId },
       order: { createdAt: "ASC" },
+      ...(withAgent ? { relations: { agent: true } } : {}),
     })
   }
 
@@ -112,23 +115,40 @@ export class ConversationFormsService {
   }
 
   /**
-   * Marks the form of the agent in the session as concluded, when it exists:
-   * the handoff ended and the agent has nothing more to collect.
+   * Marks the form of the agent in the session as concluded: the handoff
+   * ended and the agent has nothing more to collect. Records the summary of
+   * its part when given. An agent that wrote no field still gets a row when
+   * its settings are known, so its summary has a place and the parent sees
+   * that it concluded.
    */
   async conclude({
     connectScope,
     sessionId,
     agentId,
+    agentSettingsId,
+    summary,
   }: {
     connectScope: RequiredConnectScope
     sessionId: string
     agentId: string
+    agentSettingsId?: string
+    summary?: string
   }): Promise<void> {
-    await this.conversationFormConnectRepository.updateManyBy({
+    const fields = { status: "concluded" as const, ...(summary ? { summary } : {}) }
+    const updated = await this.conversationFormConnectRepository.updateManyBy({
       connectScope,
       where: { sessionId, agentId },
-      fields: { status: "concluded" },
+      fields,
     })
+    if (updated === 0 && agentSettingsId) {
+      await this.conversationFormConnectRepository.createAndSave(connectScope, {
+        sessionId,
+        agentId,
+        agentSettingsId,
+        state: {},
+        ...fields,
+      })
+    }
   }
 
   /**

@@ -11,7 +11,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Public chat API: the routes are now versioned under /public/v1/ and documented on the help site.
 - Kubernetes: a Helm chart installs the platform anywhere, with bundled Postgres and Redis.
 - (beta) MCP servers: connect servers that use OAuth by authorizing access in the browser, alongside API keys.
-- (beta) Orchestration: a sub-agent can take the conversation over and talk to the user until its part is done.
+- (beta) Orchestration: a sub-agent can take the conversation over, then hand back what it collected.
 
 ### Changed
 - Single-origin deployments: the web app opens at the root of the domain and the API answers under /api.

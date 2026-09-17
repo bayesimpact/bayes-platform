@@ -75,6 +75,7 @@ describe("buildSubAgentTools", () => {
         toolDescriptions: {},
         fireAndForgetToolNames: [],
         hasSubAgentTools: false,
+        promptSections: [],
         tools: {
           child_lookup: tool({
             description: "Look up child context.",
@@ -217,6 +218,7 @@ describe("buildSubAgentTools", () => {
         tools: {},
         fireAndForgetToolNames: [],
         hasSubAgentTools: false,
+        promptSections: [],
       }),
       generateMasterPrompt: () => "system prompt",
       getProviderForModel: () =>
@@ -345,6 +347,7 @@ describe("buildSubAgentTools", () => {
         tools: {},
         fireAndForgetToolNames: [],
         hasSubAgentTools: false,
+        promptSections: [],
       }),
       generateMasterPrompt: () => "system prompt",
       getProviderForModel: () =>

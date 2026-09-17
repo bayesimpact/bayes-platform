@@ -304,4 +304,98 @@ describe("runTurnClassification", () => {
       recalculator.recalculateSessionMetadataFromMessages.mock.calls[0]?.[0]?.suggestedTitle,
     ).toHaveLength(120)
   })
+
+  describe("runTurnClassification - handoff", () => {
+    const handoffParams = {
+      metadata,
+      buildConfig,
+      earlierMessages: [],
+      userMessage: "Doe",
+      answerText: "Thank you John Doe, I have everything I need. Goodbye!",
+      citedChunkAliases: [],
+    }
+    const fakeHandoff = (concludedByTool: boolean) => {
+      const conclude = jest.fn(
+        async (_params: { summary: string; detectedByClassifier: boolean }) => {},
+      )
+      return {
+        handoff: {
+          childAgentName: "Form Filler",
+          parentAgentName: "Orchestrator",
+          concludedByTool: () => concludedByTool,
+          conclude,
+        },
+        conclude,
+      }
+    }
+
+    it("asks about the conclusion and the summary when a sub-agent is in control", async () => {
+      const { provider, generateStructuredOutput } = fakeProvider({
+        suggestedTitle: null,
+        taskConcluded: true,
+        handoffSummary: "The user is John Doe.",
+      })
+      const { handoff, conclude } = fakeHandoff(false)
+      const executions: ToolExecutionLog[] = []
+
+      await runTurnClassification({
+        ...handoffParams,
+        context: { handoff, onExecute: (execution) => void executions.push(execution) },
+        provider,
+      })
+
+      const call = generateStructuredOutput.mock.calls[0]?.[0]
+      const schema = call?.schema as { properties: Record<string, unknown> }
+      expect(Object.keys(schema.properties)).toEqual([
+        "suggestedTitle",
+        "taskConcluded",
+        "handoffSummary",
+      ])
+      expect(String(call?.message.content)).toContain("## Hand-over")
+      expect(String(call?.message.content)).toContain('"Form Filler"')
+      // The sub-agent forgot its tool: the classifier's reading applies the conclusion.
+      expect(conclude).toHaveBeenCalledWith({
+        summary: "The user is John Doe.",
+        detectedByClassifier: true,
+      })
+    })
+
+    it("only records the summary when the sub-agent already concluded with its tool", async () => {
+      const { provider } = fakeProvider({
+        suggestedTitle: null,
+        taskConcluded: true,
+        handoffSummary: "All fields collected.",
+      })
+      const { handoff, conclude } = fakeHandoff(true)
+
+      await runTurnClassification({
+        ...handoffParams,
+        context: { handoff, onExecute: () => undefined },
+        provider,
+      })
+
+      expect(conclude).toHaveBeenCalledWith({
+        summary: "All fields collected.",
+        detectedByClassifier: false,
+      })
+    })
+
+    it("leaves an ongoing hand-over alone", async () => {
+      const { provider } = fakeProvider({
+        suggestedTitle: null,
+        taskConcluded: false,
+        handoffSummary: "First name collected, last name pending.",
+      })
+      const { handoff, conclude } = fakeHandoff(false)
+
+      await runTurnClassification({
+        ...handoffParams,
+        answerText: "Thanks John. And your last name?",
+        context: { handoff, onExecute: () => undefined },
+        provider,
+      })
+
+      expect(conclude).not.toHaveBeenCalled()
+    })
+  })
 })

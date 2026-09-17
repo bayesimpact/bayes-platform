@@ -28,8 +28,8 @@ export const CHILD_FIRST_TURN_TRIGGER =
 
 export const PARENT_RESUME_TRIGGER =
   "(platform trigger, not a message from the user: ignore its literal content) The agent you handed " +
-  "the conversation to has concluded. Continue the conversation: decide the next step as you would " +
-  "after any other turn."
+  "the conversation to has concluded. What it collected is in your instructions, under your " +
+  "sub-agents. Continue the conversation: decide the next step as you would after any other turn."
 
 /**
  * One user message, one to several turns. The agent in control answers; when

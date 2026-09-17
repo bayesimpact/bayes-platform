@@ -129,7 +129,11 @@ conversation over, it writes one sentence of transition and the sub-agent asks i
 question right away, in the same reply. The user's next messages go to the sub-agent
 until it judges its part complete; the orchestrator then resumes on its own, without a
 message from the user. A sub-agent that filled a form is not handed the conversation a
-second time: the orchestrator uses what it collected instead.
+second time: the orchestrator uses what it collected instead. The orchestrator is told what
+each sub-agent collected and whether it is done, and a sub-agent that takes over is told what
+earlier sub-agents already collected, so the user is not asked the same question twice. A
+sub-agent that ends its part without saying so explicitly is still handed back: the platform
+reads its last reply for a conclusion.
 
 ## Tips
 
