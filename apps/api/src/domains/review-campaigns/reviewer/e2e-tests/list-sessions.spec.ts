@@ -12,6 +12,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import { conversationFormFactory } from "@/domains/agents/shared/conversation-forms/conversation-form.factory"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
@@ -132,11 +133,19 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
     await repositories.agentSettingsRepository.save(fillFormAgentSettings)
     const fillFormSession = conversationAgentSessionFactory
       .transient({ organization, project, agent: fillFormAgent, user: tester })
-      .build({
-        campaignId: campaign.id,
-        result: { title: "Session note", summary: "Filled by the agent" },
-      })
+      .build({ campaignId: campaign.id })
     await repositories.conversationAgentSessionRepository.save(fillFormSession)
+    await repositories.conversationFormRepository.save(
+      conversationFormFactory
+        .transient({
+          organization,
+          project,
+          agent: fillFormAgent,
+          agentSettings: fillFormAgentSettings,
+          session: fillFormSession,
+        })
+        .build({ state: { title: "Session note", summary: "Filled by the agent" } }),
+    )
 
     const response = await subject()
     expectResponse(response, 200)

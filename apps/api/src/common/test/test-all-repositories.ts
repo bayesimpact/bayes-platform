@@ -12,6 +12,7 @@ import { ProjectAgentSessionCategory } from "@/domains/agents/session-categories
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import { AgentMessageAttachmentDocument } from "@/domains/agents/shared/agent-session-messages/agent-message-attachment-document.entity"
 import { AgentMessageFeedback } from "@/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity"
+import { ConversationForm } from "@/domains/agents/shared/conversation-forms/conversation-form.entity"
 import { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
 import { Document } from "@/domains/documents/document.entity"
 import { EvaluationConversationDataset } from "@/domains/evaluations/conversation/datasets/evaluation-conversation-dataset.entity"
@@ -58,6 +59,7 @@ export type AllRepositories = {
   conversationAgentSessionRepository: Repository<ConversationAgentSession>
   conversationRetentionSweepRunRepository: Repository<ConversationRetentionSweepRun>
   conversationAgentSessionCategoryRepository: Repository<ConversationAgentSessionCategory>
+  conversationFormRepository: Repository<ConversationForm>
   agentCsvExtractionRunRepository: Repository<AgentCsvExtractionRun>
   agentCsvExtractionRunRecordRepository: Repository<AgentCsvExtractionRunRecord>
   documentRepository: Repository<Document>
@@ -108,6 +110,7 @@ export function buildAllRepositories(
     conversationAgentSessionRepository: getRepository(ConversationAgentSession),
     conversationRetentionSweepRunRepository: getRepository(ConversationRetentionSweepRun),
     conversationAgentSessionCategoryRepository: getRepository(ConversationAgentSessionCategory),
+    conversationFormRepository: getRepository(ConversationForm),
     agentCsvExtractionRunRepository: getRepository(AgentCsvExtractionRun),
     agentCsvExtractionRunRecordRepository: getRepository(AgentCsvExtractionRunRecord),
     documentRepository: getRepository(Document),

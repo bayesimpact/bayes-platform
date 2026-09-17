@@ -9,6 +9,7 @@ import type {
 import type { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
+import { ConversationFormsService } from "@/domains/agents/shared/conversation-forms/conversation-forms.service"
 import { AgentSubAgentsService } from "@/domains/agents/sub-agents/agent-sub-agents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentChunkRetrievalService } from "@/domains/documents/embeddings/document-chunk-retrieval.service"
@@ -24,6 +25,7 @@ import type { McpSession } from "@/external/mcp/mcp-client.service"
 import type { McpConversationContext } from "@/external/mcp/mcp-request-headers"
 import { generateMasterPrompt } from "./master-promts/generate-master-prompt"
 import type { AgentSessionScope, OnExecute } from "./streaming-session.types"
+import { sessionPersistsForms } from "./streaming-session.types"
 import { type BuiltTools, buildSubAgentTools } from "./sub-agent-tools"
 import { fillFormTool } from "./tools/fill-form.tool"
 import {
@@ -81,6 +83,8 @@ export class ToolsService {
   constructor(
     @Inject(ConversationAgentSessionsService)
     private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
+    @Inject(ConversationFormsService)
+    private readonly conversationFormsService: ConversationFormsService,
     @Inject(AgentSubAgentsService)
     private readonly agentSubAgentsService: AgentSubAgentsService,
     @Inject(AgentSettingsService)
@@ -384,10 +388,12 @@ export class ToolsService {
     sessionState?: SessionStateTarget
   }): Promise<BuiltTools> {
     const { agent, agentSettings, connectScope, session } = agentSessionScope
-    // fillForm needs a persisted session carrying a `result` column — public
-    // streaming sessions (proxy, no DB row) can't accumulate form state.
+    // fillForm needs a session row for its form to attach to: evaluation runs
+    // have none and get no fillForm tool.
     const hasFillFormTool =
-      agentSettings.fillFormEnabled && agentSettings.outputJsonSchema != null && "result" in session
+      agentSettings.fillFormEnabled &&
+      agentSettings.outputJsonSchema != null &&
+      sessionPersistsForms(session)
     const [hasSourcesTool, { tools: subAgentTools, toolDescriptions: subAgentToolDescriptions }] =
       await Promise.all([
         // Check if the agent has the sources tool enabled
@@ -482,8 +488,7 @@ export class ToolsService {
         ? {
             [ToolName.FillForm]: fillFormTool({
               agentSessionScope,
-              sessionResultUpdater:
-                sessionState?.resultUpdater ?? this.conversationAgentSessionsService,
+              conversationFormStore: this.conversationFormsService,
               onExecute,
             }),
           }

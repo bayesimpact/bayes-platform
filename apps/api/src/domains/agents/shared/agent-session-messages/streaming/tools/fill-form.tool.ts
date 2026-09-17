@@ -8,30 +8,40 @@ import { buildFormFieldsZodSchema } from "./form-schema.helper"
 import type { ToolExecutionLog } from "./tool-execution-log"
 
 /**
- * The slice of the session service the fillForm tool needs: merging partial
- * form input into the session's accumulated `result`.
+ * The slice of ConversationFormsService the fillForm tool needs: the form of
+ * the agent in the session, and the field-by-field merge into it.
  */
-export type SessionResultUpdater = {
-  updateSessionResult(params: {
+export type ConversationFormStore = {
+  findOne(params: {
     connectScope: RequiredConnectScope
-    input: Record<string, unknown>
     sessionId: string
-  }): Promise<{ result: Record<string, unknown> | null }>
+    agentId: string
+  }): Promise<{ state: Record<string, unknown> } | null>
+  mergeFields(params: {
+    connectScope: RequiredConnectScope
+    sessionId: string
+    agentId: string
+    agentSettingsId: string
+    fields: Record<string, unknown>
+  }): Promise<{ state: Record<string, unknown> }>
 }
 
 export function fillFormTool({
   agentSessionScope,
-  sessionResultUpdater,
+  conversationFormStore,
   onExecute,
 }: {
   agentSessionScope: AgentSessionScope
-  sessionResultUpdater: SessionResultUpdater
+  conversationFormStore: ConversationFormStore
   onExecute: (toolExecution: ToolExecutionLog) => void
 }) {
-  const { agentSettings, connectScope, session } = agentSessionScope
+  const { agent, agentSettings, connectScope, session } = agentSessionScope
   const schema = outputJsonSchemaSchema.parse(agentSettings.outputJsonSchema) // validate the schema from the agent definition
 
   const inputSchema = buildFormFieldsZodSchema(schema)
+  // The form is the one this agent fills in this session: a sub-agent running
+  // in its parent's session gets its own form there.
+  const formKey = { connectScope, sessionId: session.id, agentId: agent.id }
 
   return tool({
     description: "Fill out a form. Get the values from user's answers.",
@@ -56,33 +66,18 @@ export function fillFormTool({
     execute: async (input, _options) => {
       if (input.formFields) {
         const typedInput = castToolInputParameters(input.formFields)
-        const { result: formState } = await sessionResultUpdater.updateSessionResult({
-          connectScope,
-          sessionId: session.id,
-          input: typedInput,
+        const { state } = await conversationFormStore.mergeFields({
+          ...formKey,
+          agentSettingsId: agentSettings.id,
+          fields: typedInput,
         })
         await onExecute({ toolName: ToolName.FillForm, arguments: typedInput })
-        return { formState }
+        return { formState: state }
       }
 
       await onExecute({ toolName: ToolName.FillForm, arguments: input })
-      assertSessionSupportsFormResult(agentSessionScope)
-      return { formState: agentSessionScope.session.result || {} }
+      const form = await conversationFormStore.findOne(formKey)
+      return { formState: form?.state ?? {} }
     },
   })
-}
-
-/**
- * The fillForm tool only runs against persisted sessions carrying a `result`
- * column (not the public streaming session proxy).
- */
-function assertSessionSupportsFormResult(
-  agentSessionScope: AgentSessionScope,
-): asserts agentSessionScope is AgentSessionScope & {
-  session: AgentSessionScope["session"] & { result: Record<string, unknown> | null }
-} {
-  const { session } = agentSessionScope
-  if (!("result" in session)) {
-    throw new Error("Agent session result is not initialized")
-  }
 }

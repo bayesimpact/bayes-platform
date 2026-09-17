@@ -61,12 +61,12 @@ const mockConversationSession = conversationAgentSessionFactory
 
 const mockFillFormSession = conversationAgentSessionFactory
   .transient({ agent: mockFillFormAgent })
+  .withForm({ reason: "Account access", priority: "Medium" })
   .build({
     id: "session-2",
     type: "live",
     createdAt: Date.now() - 3 * 60_000,
     updatedAt: Date.now(),
-    result: { reason: "Account access", priority: "Medium" },
   })
 
 const mockMessages = [

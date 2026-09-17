@@ -2,6 +2,22 @@ import type { TimeType } from "../../generic"
 
 export type BaseAgentSessionTypeDto = "playground" | "live"
 
+export type ConversationFormStatusDto = "in_progress" | "concluded"
+
+/**
+ * One form of a conversation: the answers the fillForm tool collected for one
+ * agent of the conversation (the session's agent, or a sub-agent that ran in
+ * it). A conversation keeps every form filled in it.
+ */
+export type ConversationFormDto = {
+  agentId: string
+  /** The agent settings revision in force at the last write. */
+  agentSettingsId: string
+  status: ConversationFormStatusDto
+  state: Record<string, unknown>
+  updatedAt: TimeType
+}
+
 export type ConversationAgentSessionDto = {
   id: string
   agentId: string
@@ -10,15 +26,15 @@ export type ConversationAgentSessionDto = {
   createdAt: TimeType
   updatedAt: TimeType
   traceUrl?: string
-  // Form state accumulated by the fillForm tool, when the agent has it enabled.
-  result?: Record<string, unknown>
+  /** The forms filled in this conversation; empty when no agent has fillForm or nothing was written. */
+  forms: ConversationFormDto[]
 }
 
 /**
  * A sub-session spawned when a parent agent delegates to a fillForm-enabled
  * sub-agent during a session. Carries the child agent's identity and output
- * schema alongside the accumulated session result so the parent session view
- * can render the sub-agent's form result without extra lookups.
+ * schema alongside the session and its forms so the parent session view can
+ * render the sub-agent's form without extra lookups.
  */
 export type ConversationSubSessionDto = {
   toolName: string

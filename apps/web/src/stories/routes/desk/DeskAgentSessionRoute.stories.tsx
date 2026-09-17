@@ -54,7 +54,7 @@ export const Default: Story = {
 
       const sessionFactory = conversationAgentSessionFactory.transient({ agent: currentAgent })
       // fillForm-enabled agents accumulate a form result on the session, shown in the right panel.
-      const session = (fillForm ? sessionFactory.withResult() : sessionFactory).build()
+      const session = (fillForm ? sessionFactory.withForm() : sessionFactory).build()
 
       const messages = withMessages
         ? [

@@ -192,6 +192,9 @@ WITH
   del_feature_flag AS (
     DELETE FROM "feature_flag"
   ),
+  del_conversation_form AS (
+    DELETE FROM "conversation_form"
+  ),
   del_agent_message_feedback AS (
     DELETE FROM "agent_message_feedback"
   ),

@@ -175,13 +175,14 @@ export class ReviewerService {
     if (!agent) {
       throw new Error(`Agent ${campaign.agentId} not found for campaign ${campaign.id}`)
     }
+    const connectScope = {
+      organizationId: campaign.organizationId,
+      projectId: campaign.projectId,
+    }
     // The reviewer context must describe the published settings, not the draft an
     // author may be editing in the agent editor (#636).
     const agentSettings = await this.agentSettingsService.getLast({
-      connectScope: {
-        organizationId: campaign.organizationId,
-        projectId: campaign.projectId,
-      },
+      connectScope,
       agentId: campaign.agentId,
     })
     // Loads everything we need in parallel. Redaction happens below based on
@@ -194,18 +195,22 @@ export class ReviewerService {
       this.reviewRepository.findOne({ where: { sessionId, reviewerUserId } }),
       this.reviewRepository.find({ where: { sessionId } }),
       this.testerFeedbackRepository.findOne({ where: { sessionId } }),
+      // Joined with its forms and the settings revision that wrote each one:
+      // the reviewer reads the answers against the schema that collected
+      // them, not against a later edit.
       this.conversationSessionRepository.findOne({
         where: { id: sessionId },
-        select: { id: true, createdAt: true, result: true },
+        relations: { forms: { agentSettings: true } },
       }),
     ])
     if (!session) throw new Error(`Conversation session ${sessionId} not found`)
 
     const otherReviews = allReviews.filter((review) => review.reviewerUserId !== reviewerUserId)
+    const form = session.forms?.find((sessionForm) => sessionForm.agentId === campaign.agentId)
     const formResult: ReviewerFormResult | null = agentSettings.fillFormEnabled
       ? {
-          schema: agentSettings.outputJsonSchema ?? {},
-          value: session.result ?? null,
+          schema: form?.agentSettings.outputJsonSchema ?? agentSettings.outputJsonSchema ?? {},
+          value: form?.state ?? null,
         }
       : null
     const meta: ReviewerSessionMetaResult = {

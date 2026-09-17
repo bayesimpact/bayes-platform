@@ -27,6 +27,7 @@ import type {
   ConversationAgentSession,
   ConversationSubSession,
 } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
+import { findConversationForm } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import type { AgentSessionMessage as AgentSessionMessageType } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import { AgentSessionMessage } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/AgentSessionMessage"
 import {
@@ -71,8 +72,12 @@ export function AgentSessionMessages({
   const isStreaming = useAppSelector(selectStreaming)
   const dispatch = useAppDispatch()
 
+  // The form this session's agent fills; sub-agent forms open from their own sheet.
   const formResult = formResultSchema
-    ? { outputJsonSchema: formResultSchema, result: session.result }
+    ? {
+        outputJsonSchema: formResultSchema,
+        result: findConversationForm(session, session.agentId)?.state,
+      }
     : null
 
   // A failed or interrupted last reply offers to send its turn again: the same content and

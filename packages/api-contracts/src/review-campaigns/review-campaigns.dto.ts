@@ -172,7 +172,7 @@ export type MyTesterSessionSummaryDto = {
   feedbackStatus: ReviewCampaignFeedbackStatus
 } & Pick<
   ConversationAgentSessionDto,
-  "id" | "result" | "createdAt" | "updatedAt" | "agentId" | "type"
+  "id" | "forms" | "createdAt" | "updatedAt" | "agentId" | "type"
 >
 
 export type ListMyTesterSessionsResponseDto = {

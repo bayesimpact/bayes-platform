@@ -10,6 +10,8 @@ import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.f
 import { agentMessageAttachmentDocumentFactory } from "@/domains/agents/shared/agent-session-messages/agent-message-attachment-document.factory"
 import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messages/agent-messages.factory"
 import { agentMessageFeedbackFactory } from "@/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.factory"
+import { conversationFormFactory } from "@/domains/agents/shared/conversation-forms/conversation-form.factory"
+import { ConversationFormsService } from "@/domains/agents/shared/conversation-forms/conversation-forms.service"
 import { documentFactory } from "@/domains/documents/document.factory"
 import { PdfConverterClient } from "@/domains/documents/pdf-pages/pdf-converter.client"
 import { PdfPagesService } from "@/domains/documents/pdf-pages/pdf-pages.service"
@@ -41,6 +43,7 @@ describe("ConversationAgentSessionPurgeService", () => {
       setup.dataSource,
       fileStorageFake,
       new PdfPagesService(new PdfConverterClient(new GoogleIdTokenService())),
+      new ConversationFormsService(repositories.conversationFormRepository),
     )
   })
 
@@ -62,7 +65,18 @@ describe("ConversationAgentSessionPurgeService", () => {
 
     await repositories.conversationAgentSessionRepository.update(
       { id: agentSession.id },
-      { title: "Sample title", result: { field: "sample value" } },
+      { title: "Sample title" },
+    )
+    await repositories.conversationFormRepository.save(
+      conversationFormFactory
+        .transient({
+          organization,
+          project,
+          agent: agentSession.agent,
+          agentSettings,
+          session: agentSession,
+        })
+        .build({ state: { field: "sample value" } }),
     )
     await repositories.agentMessageRepository.update(
       { id: agentMessage.id },
@@ -111,8 +125,11 @@ describe("ConversationAgentSessionPurgeService", () => {
       id: agentSession.id,
     })
     expect(session.title).toBeNull()
-    expect(session.result).toBeNull()
     expect(session.purgedAt).not.toBeNull()
+    // The answers are user content: the form rows go with the messages.
+    expect(
+      await repositories.conversationFormRepository.findBy({ sessionId: agentSession.id }),
+    ).toEqual([])
 
     const savedFeedback = await repositories.agentMessageFeedbackRepository.findOneByOrFail({
       id: feedback.id,
@@ -205,10 +222,14 @@ describe("ConversationAgentSessionPurgeService", () => {
 
     const publicSession = publicAgentSessionFactory.transient({ embedConfig }).build({
       title: "Embed session title",
-      result: { field: "embed value" },
       externalVisitorId: "visitor-42",
     })
     await repositories.publicAgentSessionRepository.save(publicSession)
+    await repositories.conversationFormRepository.save(
+      conversationFormFactory
+        .transient({ organization, project, agent, agentSettings, session: publicSession })
+        .build({ state: { field: "embed value" } }),
+    )
 
     const publicMessage = agentMessageFactory
       .user()
@@ -243,7 +264,9 @@ describe("ConversationAgentSessionPurgeService", () => {
       id: publicSession.id,
     })
     expect(session.title).toBeNull()
-    expect(session.result).toBeNull()
+    expect(
+      await repositories.conversationFormRepository.findBy({ sessionId: publicSession.id }),
+    ).toEqual([])
     expect(session.externalVisitorId).toBeNull()
     expect(session.purgedAt).not.toBeNull()
     expect(session.createdAt).toEqual(publicSession.createdAt)

@@ -19,6 +19,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 - Forms: an answer already collected is no longer erased when the assistant does not know a later field.
+- (beta) Review campaigns: reviewers see a session's form with the version of the form that collected the answers.
 - Voice input: microphone transcription now follows the interface language, including French set as fr-FR.
 - Navigation: opening a workspace, a new project, another agent or session now lands on the right page when the platform is served under a sub-path.
 - Sign-in: an error returned by the identity provider is shown with a retry button instead of reloading endlessly.

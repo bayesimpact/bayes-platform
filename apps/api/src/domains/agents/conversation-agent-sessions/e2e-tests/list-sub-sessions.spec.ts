@@ -10,6 +10,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import { conversationFormFactory } from "@/domains/agents/shared/conversation-forms/conversation-form.factory"
 import { agentSubAgentFactory } from "@/domains/agents/sub-agents/agent-sub-agent.factory"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
@@ -31,6 +32,7 @@ describe("ConversationAgentSessionsRoutes.listSubSessions", () => {
   let organizationId: string
   let projectId: string
   let parentAgentId: string
+  let fillFormChildAgentSettingsId: string
   let auth0Id = "auth0|123"
 
   beforeAll(async () => {
@@ -69,11 +71,12 @@ describe("ConversationAgentSessionsRoutes.listSubSessions", () => {
         type: "conversation",
       }),
     )
-    await repositories.agentSettingsRepository.save(
+    const fillFormChildAgentSettings = await repositories.agentSettingsRepository.save(
       agentSettingsFactory
         .transient({ organization, project, agent: fillFormChildAgent })
         .build({ fillFormEnabled: true, outputJsonSchema: OUTPUT_JSON_SCHEMA }),
     )
+    fillFormChildAgentSettingsId = fillFormChildAgentSettings.id
     await repositories.agentSubAgentRepository.save(
       agentSubAgentFactory
         .transient({ parentAgent: agent, childAgent: fillFormChildAgent })
@@ -84,10 +87,18 @@ describe("ConversationAgentSessionsRoutes.listSubSessions", () => {
       conversationAgentSessionFactory
         .transient({ organization, project, user, agent: fillFormChildAgent })
         .playground()
-        .build({
-          parentSessionId: agentSession.id,
-          result: { title: "Draft title" },
-        }),
+        .build({ parentSessionId: agentSession.id }),
+    )
+    await repositories.conversationFormRepository.save(
+      conversationFormFactory
+        .transient({
+          organization,
+          project,
+          agent: fillFormChildAgent,
+          agentSettings: fillFormChildAgentSettings,
+          session: fillFormSubSession,
+        })
+        .build({ state: { title: "Draft title" } }),
     )
 
     // A plain conversation sub-agent (no fillForm) with its own sub-session: excluded.
@@ -146,7 +157,13 @@ describe("ConversationAgentSessionsRoutes.listSubSessions", () => {
       outputJsonSchema: OUTPUT_JSON_SCHEMA,
     })
     expect(subSessions[0]?.session.id).toBe(fillFormSubSession.id)
-    expect(subSessions[0]?.session.result).toEqual({ title: "Draft title" })
+    expect(subSessions[0]?.session.forms).toHaveLength(1)
+    expect(subSessions[0]?.session.forms[0]).toMatchObject({
+      agentId: fillFormChildAgent.id,
+      agentSettingsId: fillFormChildAgentSettingsId,
+      status: "in_progress",
+      state: { title: "Draft title" },
+    })
   })
 
   it("returns an empty list when the parent session has no sub-sessions", async () => {

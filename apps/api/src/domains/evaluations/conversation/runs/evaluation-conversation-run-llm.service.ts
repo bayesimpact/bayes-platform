@@ -67,6 +67,8 @@ export class EvaluationConversationRunLlmService extends LlmServiceBase {
       traceId,
       organizationId: connectScope.organizationId,
       messages: [userMessage],
+      // No session row: nothing for a form to attach to, so no fillForm tool.
+      persistsForms: false,
     }
 
     const { config, metadata, messages, mcpClose, citations, classifyTurn } =

@@ -6,6 +6,7 @@ import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entit
 import { User } from "@/domains/users/user.entity"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 import { AgentMessage } from "../shared/agent-session-messages/agent-message.entity"
+import { ConversationForm } from "../shared/conversation-forms/conversation-form.entity"
 import { ConversationAgentSessionCategory } from "./conversation-agent-session-category.entity"
 
 @ConnectEntity("conversation_agent_session", "agentId", "type")
@@ -24,10 +25,6 @@ export class ConversationAgentSession extends ConnectEntityBase {
 
   @Column({ type: "varchar", nullable: true })
   title!: string | null
-
-  // Form state accumulated by the fillForm tool, when the agent has it enabled.
-  @Column({ type: "jsonb", nullable: true })
-  result!: Record<string, unknown> | null
 
   // The parent agent session that spawned this sub-session, if any. Used to
   // find-or-create a single conversation sub-session per parent conversation so
@@ -77,6 +74,15 @@ export class ConversationAgentSession extends ConnectEntityBase {
     (message) => message.conversationAgentSession,
   )
   messages!: AgentMessage[]
+
+  // The forms filled in this conversation, one per agent that collected
+  // answers in it (the session's agent, and its sub-agents when they run in
+  // this session). Loaded on demand; absent when the relation is not joined.
+  @OneToMany(
+    () => ConversationForm,
+    (form) => form.conversationAgentSession,
+  )
+  forms?: ConversationForm[]
 
   @Column({ type: "uuid", name: "campaign_id", nullable: true })
   campaignId!: string | null

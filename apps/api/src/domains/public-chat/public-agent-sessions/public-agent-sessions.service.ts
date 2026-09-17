@@ -97,33 +97,6 @@ export class PublicAgentSessionsService {
     }
   }
 
-  /**
-   * SessionResultUpdater implementation for PUBLIC sessions: merges the
-   * fillForm fields into public_agent_session.result.
-   */
-  async updateSessionResult({
-    connectScope,
-    input,
-    sessionId,
-  }: {
-    connectScope: RequiredConnectScope
-    input: Record<string, unknown>
-    sessionId: string
-  }): Promise<{ result: Record<string, unknown> | null }> {
-    const session = await this.publicAgentSessionRepository.findOne({
-      where: {
-        id: sessionId,
-        organizationId: connectScope.organizationId,
-        projectId: connectScope.projectId,
-      },
-    })
-    if (!session) return { result: null }
-
-    session.result = { ...session.result, ...input }
-    const updatedSession = await this.publicAgentSessionRepository.save(session)
-    return { result: updatedSession.result }
-  }
-
   async createSession(
     embedConfig: AgentEmbedConfig,
     externalVisitorId?: string,

@@ -38,6 +38,7 @@ import { ProjectAgentSessionCategory } from "./session-categories/project-agent-
 import { AgentSettingsController } from "./settings/agent-settings.controller"
 import { AgentSettings } from "./settings/agent-settings.entity"
 import { AgentSettingsModule } from "./settings/agent-settings.module"
+import { ConversationFormsModule } from "./shared/conversation-forms/conversation-forms.module"
 import { AgentSubAgent } from "./sub-agents/agent-sub-agent.entity"
 import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
 
@@ -65,6 +66,7 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
     forwardRef(() => ResourceLibrariesModule),
     forwardRef(() => ConversationAgentSessionsModule),
     forwardRef(() => ExtractionAgentSessionsModule),
+    ConversationFormsModule,
   ],
   providers: [
     AgentsService,

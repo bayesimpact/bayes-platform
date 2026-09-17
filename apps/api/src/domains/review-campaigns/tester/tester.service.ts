@@ -15,6 +15,9 @@ import { ConversationAgentSessionsService } from "@/domains/agents/conversation-
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
+import type { ConversationForm } from "@/domains/agents/shared/conversation-forms/conversation-form.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ConversationFormsService } from "@/domains/agents/shared/conversation-forms/conversation-forms.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ReviewCampaignMembershipsService } from "../memberships/review-campaign-memberships.service"
 import type { ReviewCampaign } from "../review-campaign.entity"
@@ -25,10 +28,8 @@ import { TesterSessionFeedback } from "../tester-session-feedbacks/tester-sessio
 export type MyTesterSessionSummary = {
   agentType: ReviewCampaignAgentType
   feedbackStatus: "submitted" | "pending" | "abandoned"
-} & {} & Pick<
-    ConversationAgentSession,
-    "id" | "result" | "createdAt" | "updatedAt" | "agentId" | "type"
-  >
+  forms: ConversationForm[]
+} & Pick<ConversationAgentSession, "id" | "createdAt" | "updatedAt" | "agentId" | "type">
 
 export type CampaignAggregates = {
   meanTesterRating: number | null
@@ -58,6 +59,7 @@ export class TesterService {
     private readonly surveyRepository: Repository<TesterCampaignSurvey>,
     private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
     private readonly agentSettingsService: AgentSettingsService,
+    private readonly conversationFormsService: ConversationFormsService,
   ) {}
 
   async listMyCampaigns(
@@ -94,9 +96,11 @@ export class TesterService {
   }
 
   async listMyTesterSessions({
+    connectScope,
     userId,
     campaignId,
   }: {
+    connectScope: RequiredConnectScope
     userId: string
     campaignId: string
   }): Promise<MyTesterSessionSummary[]> {
@@ -108,11 +112,14 @@ export class TesterService {
         updatedAt: true,
         agentId: true,
         type: true,
-        result: true,
       },
     })
 
     const sessionIds = conversationSessions.map((session) => session.id)
+    const formsBySessionId = await this.conversationFormsService.listForSessions({
+      connectScope,
+      sessionIds,
+    })
     const feedbacks =
       sessionIds.length > 0
         ? await this.feedbackRepository
@@ -129,7 +136,7 @@ export class TesterService {
       feedbackStatus: feedbackBySessionId.has(session.id)
         ? ("submitted" as const)
         : ("pending" as const),
-      result: session.result,
+      forms: formsBySessionId.get(session.id) ?? [],
       updatedAt: session.updatedAt,
       createdAt: session.createdAt,
       agentId: session.agentId,

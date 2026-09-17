@@ -186,7 +186,6 @@ export class StreamingLlmService extends LlmServiceBase {
     userContent,
     notifyClient,
     sessionState,
-    sessionResult,
     externalVisitorId,
   }: {
     connectScope: RequiredConnectScope
@@ -200,8 +199,6 @@ export class StreamingLlmService extends LlmServiceBase {
      * the public-chat domain — agents must not import it (domain cycle).
      */
     sessionState: SessionStateTarget
-    /** Current fillForm state from public_agent_session.result. */
-    sessionResult: Record<string, unknown> | null
     /** Identifier the embedding page attached to the session, if any. */
     externalVisitorId?: string | null
   }): AsyncGenerator<StreamEvent, void, unknown> {
@@ -249,7 +246,7 @@ export class StreamingLlmService extends LlmServiceBase {
       organizationId: connectScope.organizationId,
       externalVisitorId,
       messages,
-      result: sessionResult,
+      persistsForms: true,
     }
 
     let fullContent = ""

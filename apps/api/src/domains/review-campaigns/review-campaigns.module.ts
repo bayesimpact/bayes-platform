@@ -14,6 +14,7 @@ import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessio
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { AgentSettingsModule } from "@/domains/agents/settings/agent-settings.module"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
+import { ConversationFormsModule } from "@/domains/agents/shared/conversation-forms/conversation-forms.module"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { InvitationsModule } from "@/domains/invitations/invitations.module"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
@@ -74,6 +75,7 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
     UsersModule,
     AuthModule,
     forwardRef(() => ConversationAgentSessionsModule),
+    ConversationFormsModule,
   ],
   providers: [
     AgentSessionInCampaignContextResolver,

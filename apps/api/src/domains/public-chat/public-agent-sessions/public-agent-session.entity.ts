@@ -31,10 +31,6 @@ export class PublicAgentSession extends Base4AllEntity {
   @Column({ type: "varchar", name: "title", nullable: true })
   title!: string | null
 
-  /** fillForm accumulated state, mirroring conversation_agent_session.result. */
-  @Column({ type: "jsonb", name: "result", nullable: true })
-  result!: Record<string, unknown> | null
-
   // Set when the retention sweep purged this session's content (GDPR). The
   // session and message rows survive for analytics; content fields are emptied
   // and externalVisitorId is cleared so no link to a person remains.

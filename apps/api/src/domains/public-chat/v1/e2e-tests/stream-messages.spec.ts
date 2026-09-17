@@ -125,10 +125,13 @@ describe("PublicChat - streamMessages", () => {
     const firstResponse = await subject("My name is Ada")
     expect(firstResponse.status).toBe(200)
 
-    let updatedSession = await repositories.publicAgentSessionRepository.findOneByOrFail({
-      id: session.id,
-    })
-    expect(updatedSession.result).toEqual({ fullName: "Ada" })
+    // Public sessions own their forms like Studio sessions do, in conversation_form.
+    const readForm = () =>
+      repositories.conversationFormRepository.findOneByOrFail({
+        sessionId: session.id,
+        agentId: agent.id,
+      })
+    expect((await readForm()).state).toEqual({ fullName: "Ada" })
 
     // Turn 2: fill city — the state must accumulate, not reset.
     mockProvider.addToolCallTurn(agent.id, "fillForm", { formFields: { city: "Paris" } })
@@ -137,10 +140,7 @@ describe("PublicChat - streamMessages", () => {
     const secondResponse = await subject("I live in Paris")
     expect(secondResponse.status).toBe(200)
 
-    updatedSession = await repositories.publicAgentSessionRepository.findOneByOrFail({
-      id: session.id,
-    })
-    expect(updatedSession.result).toEqual({ fullName: "Ada", city: "Paris" })
+    expect((await readForm()).state).toEqual({ fullName: "Ada", city: "Paris" })
   })
 
   it("answers with the last published revision, not the newer draft (#636)", async () => {
