@@ -7,6 +7,7 @@ export function toConversationFormDto(
 ): ConversationFormDto {
   return {
     agentId: form.agentId,
+    ...(form.agent?.name ? { agentName: form.agent.name } : {}),
     ...(outputJsonSchema ? { outputJsonSchema } : {}),
     agentSettingsId: form.agentSettingsId,
     status: form.status,

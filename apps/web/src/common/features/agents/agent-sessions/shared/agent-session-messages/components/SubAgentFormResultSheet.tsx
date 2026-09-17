@@ -11,26 +11,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@caseai-connect/ui/sha
 import { ClipboardListIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { FormResultFields } from "@/common/features/agents/agent-sessions/conversation/components/FormResultFields"
-import {
-  type ConversationSubSession,
-  findConversationForm,
-} from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
+import type { FormResultEntry } from "./form-result-context"
 
 /**
- * Opens a sheet showing the form result of every fillForm-enabled sub-agent the
- * parent session delegated to, one tab per sub-agent. Triggered from a
- * delegation tool call; the clicked sub-agent's tab is selected by default.
+ * Opens a sheet with every form of the conversation, one tab per agent: the
+ * sub-agents that took the conversation over, the relay sub-agents with a
+ * form, and the session's own agent when it has one. The tab of the agent
+ * that wrote the message is selected by default.
  */
 export function SubAgentFormResultSheet({
-  subSessions,
-  defaultToolName,
+  forms,
+  defaultAgentId,
 }: {
-  subSessions: ConversationSubSession[]
-  defaultToolName: string
+  forms: FormResultEntry[]
+  defaultAgentId?: string
 }) {
   const { t } = useTranslation()
 
-  if (subSessions.length === 0) return null
+  if (forms.length === 0) return null
+  const defaultValue = forms.some((form) => form.agentId === defaultAgentId)
+    ? defaultAgentId
+    : forms[0]?.agentId
 
   return (
     <Sheet>
@@ -48,20 +49,17 @@ export function SubAgentFormResultSheet({
           </SheetDescription>
         </SheetHeader>
         <div className="px-4 pb-4">
-          <Tabs defaultValue={defaultToolName}>
+          <Tabs defaultValue={defaultValue}>
             <TabsList className="flex h-auto w-full flex-wrap justify-start">
-              {subSessions.map((subSession) => (
-                <TabsTrigger key={subSession.toolName} value={subSession.toolName}>
-                  {subSession.agentName}
+              {forms.map((form) => (
+                <TabsTrigger key={form.agentId} value={form.agentId}>
+                  {form.agentName}
                 </TabsTrigger>
               ))}
             </TabsList>
-            {subSessions.map((subSession) => (
-              <TabsContent key={subSession.toolName} value={subSession.toolName}>
-                <FormResultFields
-                  outputJsonSchema={subSession.outputJsonSchema}
-                  result={findConversationForm(subSession.session, subSession.agentId)?.state}
-                />
+            {forms.map((form) => (
+              <TabsContent key={form.agentId} value={form.agentId}>
+                <FormResultFields outputJsonSchema={form.outputJsonSchema} result={form.result} />
               </TabsContent>
             ))}
           </Tabs>
