@@ -150,6 +150,9 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     expect(childPrompt?.prompt).toContain(CHILD_FIRST_TURN_TRIGGER)
     expect(childPrompt?.prompt).toContain("Hand-over")
     expect(childPrompt?.toolNames).toEqual(expect.arrayContaining(["fillForm", "concludeHandoff"]))
+    // The child sees its own form: nothing recorded yet, every field still empty.
+    expect(childPrompt?.prompt).toContain("Your form so far")
+    expect(childPrompt?.prompt).toContain("nothing yet")
 
     // Turn 2. The user's message goes to the child, which fills the form.
     mockProvider.addToolCallTurn(child.subAgent.id, "fillForm", { formFields: { forName: "John" } })
@@ -158,6 +161,13 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
 
     const second = await subject("John")
     expect(second.status).toBe(200)
+    // The generation after fillForm shows what was recorded and what is still empty.
+    const childPromptAfterFill = mockProvider
+      .getCalls()
+      .filter((call) => call.agentId === child.subAgent.id && call.toolNames.length > 0)
+      .at(-1)
+    expect(childPromptAfterFill?.prompt).toContain("Still empty: name")
+    expect(childPromptAfterFill?.prompt).not.toContain("Still empty: forName")
     expect(eventsOf(second.text).filter((event) => event.type === "start")).toHaveLength(1)
     const parentCallsAfterSecond = mockProvider
       .getCalls()

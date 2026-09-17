@@ -189,6 +189,17 @@ ${malformed}`,
           continue
         }
 
+        // A tool without arguments (a conclusion, a hand-back) has nothing to
+        // regenerate: the leaked name is the whole call.
+        const toolJsonSchema = await asSchema(tool.inputSchema).jsonSchema
+        if (Object.keys(toolJsonSchema.properties ?? {}).length === 0) {
+          await tool.execute({}, { toolCallId: `recovered-${leakedCall.name}`, messages: [] })
+          this.leakedToolCallLogger.warn(
+            `recovered the leaked call to "${leakedCall.name}" (no arguments) and executed it`,
+          )
+          continue
+        }
+
         const recoveredInput = await generateText({
           model,
           temperature: config.temperature,

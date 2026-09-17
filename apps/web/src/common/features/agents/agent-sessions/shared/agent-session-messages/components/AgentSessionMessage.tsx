@@ -15,14 +15,13 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FeedbackCreator } from "@/common/components/FeedbackCreator"
 import { RestrictedFeature } from "@/common/components/RestrictedFeature"
-import { FormResultSheet } from "@/common/features/agents/agent-sessions/conversation/components/FormResultSheet"
 import type { AgentSessionMessage as AgentSessionMessageType } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import { useCopyToClipboard } from "@/common/hooks/use-copy-to-clipboard"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
 import { selectMcpAppHtml, selectStreamingToolSteps } from "../agent-session-messages.selectors"
 import { Attachment } from "./Attachment"
-import { useConversationForms, useFormResult } from "./form-result-context"
+import { useConversationForms } from "./form-result-context"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { McpAppPlaceholder, McpAppView } from "./McpAppView"
 import { getRenderableMcpApp, getReplyBubbleText, hasMcpAppCard } from "./mcp-app-view"
@@ -42,8 +41,6 @@ export function AgentSessionMessage({
 }) {
   const { t } = useTranslation()
   const conversationForms = useConversationForms()
-  // The form of the agent that wrote this message: a sub-agent in control has its own.
-  const formResult = useFormResult(message.agentId)
   // Card HTML is loaded after the transcript so a slow MCP server never delays the messages;
   // until it lands, each card holds its place with a placeholder.
   const mcpAppHtml = useAppSelector(selectMcpAppHtml)
@@ -58,10 +55,6 @@ export function AgentSessionMessage({
       const isError = message.status === "error"
       // The stream died with the server (typically a deploy mid-reply): nothing was written.
       const isInterrupted = message.status === "aborted"
-      // This turn ran the fillForm tool, so its footer can open the form result.
-      const filledForm = (message.toolCalls ?? []).some(
-        (call) => call.name === ToolName.FillForm || call.name === ToolName.ConsolidateForm,
-      )
       const sourcesTool = message.toolCalls?.find((call) => call.name === ToolName.Sources)
       const surfaceResourcesTool = message.toolCalls?.find(
         (call) => call.name === ToolName.SurfaceResources,
@@ -152,20 +145,14 @@ export function AgentSessionMessage({
 
                 {renderMessageVersion?.(message)}
 
-                {filledForm && formResult && (
-                  <FormResultSheet
-                    outputJsonSchema={formResult.outputJsonSchema}
-                    result={formResult.result}
-                  />
-                )}
-
                 <RestrictedFeature feature="sources-tool">
                   {sourcesTool && <SourcesTool toolCall={sourcesTool} />}
                 </RestrictedFeature>
 
-                {conversationForms.some((form) => form.agentId !== message.agentId) && (
-                  // Every form of the conversation, once another agent has one:
-                  // the sheet reads live data, so it is right on any reply.
+                {conversationForms.length > 0 && (
+                  // One button on every reply, the same for all: every form
+                  // of the conversation, the tab of this reply's agent first.
+                  // The sheet reads live data, so it is right on any reply.
                   <SubAgentFormResultSheet
                     forms={conversationForms}
                     defaultAgentId={message.agentId}

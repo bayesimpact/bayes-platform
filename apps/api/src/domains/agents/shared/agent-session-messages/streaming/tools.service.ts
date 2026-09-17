@@ -487,6 +487,7 @@ export class ToolsService {
       agent,
       session,
       handoff,
+      ownFormSchema: hasFillFormTool ? agentSettings.outputJsonSchema : null,
     })
 
     // Sources are reported only when the agent can actually retrieve chunks:
@@ -705,11 +706,14 @@ export class ToolsService {
     agent,
     session,
     handoff,
+    ownFormSchema,
   }: {
     connectScope: RequiredConnectScope
     agent: Agent
     session: StreamingSession
     handoff: AgentSessionScope["handoff"]
+    /** The agent's form definition when it has the fillForm tool in this session. */
+    ownFormSchema: AgentSettings["outputJsonSchema"] | null
   }): Promise<string[]> {
     if (!sessionPersistsForms(session)) return []
     const forms = await this.conversationFormsService.listForSession({
@@ -717,13 +721,27 @@ export class ToolsService {
       sessionId: session.id,
       withAgent: true,
     })
-    if (forms.length === 0) return []
+
+    // The agent's own form: what it recorded and what is still empty. The
+    // transcript shows the answers but not the tool calls, so this is the
+    // only way the model knows what it saved.
+    const ownSections: string[] = []
+    if (ownFormSchema) {
+      const ownForm = forms.find((form) => form.agentId === agent.id)
+      const filled = ownForm?.state ?? {}
+      const fieldNames = Object.keys(outputJsonSchemaSchema.parse(ownFormSchema).properties ?? {})
+      const missingFields = fieldNames.filter(
+        (fieldName) => filled[fieldName] === undefined || filled[fieldName] === null,
+      )
+      ownSections.push(promptHelpers.ownFormState({ filled, missingFields }))
+    }
+    if (forms.length === 0) return ownSections.filter(Boolean)
 
     if (handoff) {
       const facts = forms
         .filter((form) => form.agentId !== agent.id && Object.keys(form.state).length > 0)
         .map((form) => ({ agentName: form.agent?.name ?? "another agent", state: form.state }))
-      return [promptHelpers.knownFacts(facts)].filter(Boolean)
+      return [...ownSections, promptHelpers.knownFacts(facts)].filter(Boolean)
     }
 
     // Only the sub-agents that take the conversation over write forms in this
@@ -747,7 +765,7 @@ export class ToolsService {
         state: form.state,
         summary: form.summary,
       }))
-    return [promptHelpers.subAgentOutcomes(outcomes)].filter(Boolean)
+    return [...ownSections, promptHelpers.subAgentOutcomes(outcomes)].filter(Boolean)
   }
 
   private addToolsWithoutCollisions({

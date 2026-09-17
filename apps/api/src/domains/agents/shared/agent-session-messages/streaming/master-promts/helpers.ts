@@ -20,6 +20,7 @@ export type SubAgentOutcome = {
 }
 
 export type KnownFact = { agentName: string; state: Record<string, unknown> }
+export type OwnFormState = { filled: Record<string, unknown>; missingFields: string[] }
 
 export const promptHelpers = {
   /**
@@ -57,6 +58,21 @@ Use what a concluded sub-agent collected to decide the next step. Do not hand th
       : `## Already known about the user
 Collected earlier in this conversation by other agents. Do not ask for it again; you may confirm it briefly when it matters to your part.
 ${facts.map((fact) => `- From "${fact.agentName}": ${JSON.stringify(fact.state)}`).join("\n")}
+`,
+
+  /**
+   * The agent's own form, as stored: what it already recorded with fillForm
+   * and the fields still empty. The transcript carries the questions and
+   * the answers, not the tool calls, so without this the model cannot tell
+   * what it saved and stops calling the tool after a few turns.
+   */
+  ownFormState: ({ filled, missingFields }: OwnFormState) =>
+    Object.keys(filled).length === 0 && missingFields.length === 0
+      ? ""
+      : `## Your form so far
+Recorded with fillForm: ${Object.keys(filled).length === 0 ? "nothing yet" : JSON.stringify(filled)}
+Still empty: ${missingFields.length === 0 ? "nothing, every field is recorded" : missingFields.join(", ")}
+Record each answer with fillForm as soon as the user gives it, before asking the next question.
 `,
 
   /**
