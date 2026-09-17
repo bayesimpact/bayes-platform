@@ -636,8 +636,21 @@ export class ToolsService {
       return [promptHelpers.knownFacts(facts)].filter(Boolean)
     }
 
+    // Only the sub-agents that take the conversation over write forms in this
+    // session; a relay sub-agent's form lives in its own sub-session and its
+    // exchanges are already in the transcript. An embed session has no
+    // sub-session, so a relay child's form can sit here too: it is left out.
+    const subAgents = await this.agentSubAgentsService.listSubAgents({
+      connectScope,
+      parentAgent: agent,
+    })
+    const handoffChildIds = new Set(
+      subAgents
+        .filter((subAgent) => subAgent.mode === "handoff" && subAgent.enabled)
+        .map((subAgent) => subAgent.childAgentId),
+    )
     const outcomes = forms
-      .filter((form) => form.agentId !== agent.id)
+      .filter((form) => form.agentId !== agent.id && handoffChildIds.has(form.agentId))
       .map((form) => ({
         agentName: form.agent?.name ?? "a sub-agent",
         status: form.status,
