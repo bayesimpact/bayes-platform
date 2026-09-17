@@ -24,6 +24,7 @@ type ResolvedMock =
   | { type: "text"; chunks: string[] }
   | { type: "toolCall"; toolName: string; params: unknown }
   | { type: "textWithToolCall"; text: string; toolName: string; params: unknown }
+  | { type: "malformedToolCall"; toolName: string; rawInput: string }
   | { type: "error"; error: Error }
 
 @Injectable()
@@ -62,6 +63,13 @@ export class AISDKMockProvider extends AISDKLLMProviderBase {
   ): void {
     this.enqueue(agentId, [{ type: "textWithToolCall", text, toolName, input }])
   }
+  /**
+   * A tool call whose arguments are not valid JSON, the way the OpenAI chat
+   * provider streams it: the arguments arrive, the `tool-call` part never does.
+   */
+  addMalformedToolCallTurn(agentId: string, toolName: string, rawInput: string): void {
+    this.enqueue(agentId, [{ type: "malformedToolCall", toolName, rawInput }])
+  }
   /** The next generation fails at the provider, the way a real 400 does. */
   addErrorTurn(agentId: string, error: Error): void {
     this.enqueue(agentId, [{ type: "error", error }])
@@ -98,6 +106,9 @@ export class AISDKMockProvider extends AISDKLLMProviderBase {
       doGenerate: async (options) => {
         const resolved = this.resolve({ mode: "generate", callOrigin, options })
         if (resolved.type === "error") throw resolved.error
+        if (resolved.type === "malformedToolCall") {
+          throw new Error("malformed tool call turns are only supported in stream mode")
+        }
         if (resolved.type === "toolCall") {
           return {
             content: [
@@ -134,7 +145,9 @@ export class AISDKMockProvider extends AISDKLLMProviderBase {
               ? this.toToolCallStream(resolved.toolName, resolved.params)
               : resolved.type === "textWithToolCall"
                 ? this.toTextWithToolCallStream(resolved.text, resolved.toolName, resolved.params)
-                : this.toTextStream(resolved.chunks),
+                : resolved.type === "malformedToolCall"
+                  ? this.toMalformedToolCallStream(resolved.toolName, resolved.rawInput)
+                  : this.toTextStream(resolved.chunks),
         }
       },
     })
@@ -183,6 +196,8 @@ export class AISDKMockProvider extends AISDKLLMProviderBase {
             toolName: next.toolName,
             params: next.input,
           }
+        case "malformedToolCall":
+          return { type: "malformedToolCall", toolName: next.toolName, rawInput: next.rawInput }
         case "error":
           return { type: "error", error: next.error }
       }
@@ -247,6 +262,20 @@ export class AISDKMockProvider extends AISDKLLMProviderBase {
         toolName,
         input: JSON.stringify(input),
       },
+      {
+        type: "finish",
+        finishReason: { unified: "tool-calls", raw: undefined },
+        usage: this.usage,
+      },
+    ]
+    return simulateReadableStream({ chunks: parts })
+  }
+
+  private toMalformedToolCallStream(toolName: string, rawInput: string) {
+    const id = this.getNextToolCallId()
+    const parts: LanguageModelV3StreamPart[] = [
+      { type: "tool-input-start", id, toolName },
+      { type: "tool-input-delta", id, delta: rawInput },
       {
         type: "finish",
         finishReason: { unified: "tool-calls", raw: undefined },

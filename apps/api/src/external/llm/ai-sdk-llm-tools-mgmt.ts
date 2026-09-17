@@ -1,6 +1,13 @@
 import type { LanguageModelV3 } from "@ai-sdk/provider"
 import { Logger } from "@nestjs/common"
-import { asSchema, generateText, Output } from "ai"
+import {
+  asSchema,
+  generateText,
+  InvalidToolInputError,
+  Output,
+  type ToolCallRepairFunction,
+  type ToolSet,
+} from "ai"
 import type { LLMConfig, LLMMetadata } from "@/common/interfaces/llm-provider.interface"
 import { AISDKLLMBuilders } from "@/external/llm/ai-sdk-llm-builders"
 import type { CallOrigin } from "@/external/llm/ai-sdk-llm-common"
@@ -15,6 +22,112 @@ export abstract class AISDKLLMToolsMgmt extends AISDKLLMBuilders {
    * catch it — a tool with side effects must never fail unnoticed.
    */
   protected readonly leakedToolCallLogger = new Logger("LeakedToolCall")
+  protected readonly malformedToolCallLogger = new Logger("MalformedToolCall")
+
+  /**
+   * Repairs a tool call whose arguments are not valid JSON (Gemma breaks a
+   * long form now and then: a quote too many, a comma missing). The
+   * arguments are regenerated through structured output, constrained by the
+   * tool's schema, from the broken text: the values are there, only the
+   * syntax is wrong. Returns null when the repair fails or the tool does
+   * not exist: the SDK then reports the error to the model as a tool
+   * result, and the model can call again.
+   */
+  protected buildToolCallRepair({
+    model,
+    config,
+    callOrigin,
+    metadata,
+    functionId,
+    tags,
+  }: {
+    model: LanguageModelV3
+    config: LLMConfig
+    callOrigin: CallOrigin
+    metadata: LLMMetadata
+    functionId: string
+    tags: string[]
+  }): ToolCallRepairFunction<ToolSet> {
+    return async ({ toolCall, tools, error }) => {
+      if (!InvalidToolInputError.isInstance(error)) return null
+      const inputSchema = tools[toolCall.toolName]?.inputSchema
+      if (inputSchema === undefined) return null
+      try {
+        const repaired = await this.regenerateToolInput({
+          model,
+          config,
+          callOrigin,
+          metadata,
+          functionId,
+          tags,
+          inputSchema,
+          instruction:
+            "The arguments of a tool call are not valid JSON. Return them as valid arguments, verbatim: copy every value exactly as written, invent nothing, and drop nothing.",
+          malformed: toolCall.input,
+          telemetryKey: "repairedMalformedToolCall",
+          toolName: toolCall.toolName,
+        })
+        this.malformedToolCallLogger.warn(
+          `repaired the malformed arguments of "${toolCall.toolName}" through structured output`,
+        )
+        return { ...toolCall, input: JSON.stringify(repaired) }
+      } catch (repairError) {
+        this.malformedToolCallLogger.error(
+          `could not repair the malformed arguments of "${toolCall.toolName}": ${repairError instanceof Error ? repairError.message : repairError}`,
+        )
+        return null
+      }
+    }
+  }
+
+  /** Structured output, constrained by the tool's schema, from a malformed rendering of the arguments. */
+  private async regenerateToolInput({
+    model,
+    config,
+    callOrigin,
+    metadata,
+    functionId,
+    tags,
+    inputSchema,
+    instruction,
+    malformed,
+    telemetryKey,
+    toolName,
+  }: {
+    model: LanguageModelV3
+    config: LLMConfig
+    callOrigin: CallOrigin
+    metadata: LLMMetadata
+    functionId: string
+    tags: string[]
+    inputSchema: NonNullable<Parameters<typeof asSchema>[0]>
+    instruction: string
+    malformed: string
+    telemetryKey: string
+    toolName: string
+  }): Promise<unknown> {
+    const regenerated = await generateText({
+      model,
+      temperature: config.temperature,
+      messages: [
+        {
+          role: "user",
+          content: `${instruction}
+
+Malformed call:
+${malformed}`,
+        },
+      ],
+      output: Output.object({ schema: inputSchema }),
+      experimental_telemetry: {
+        isEnabled: true,
+        functionId,
+        metadata: { ...this.buildMetadata({ config, metadata, tags }), [telemetryKey]: toolName },
+      },
+      providerOptions: this.buildProviderOptions({ config, callOrigin, metadata, tags }),
+    })
+    return regenerated.output
+  }
 
   /**
    * Recovers a tool call the model VERBALIZED in the text channel instead of

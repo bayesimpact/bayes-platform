@@ -33,6 +33,7 @@ import { createRepeatedStepTextFilter } from "@/external/llm/repeated-step-text-
 import { ResponseHelper } from "@/external/llm/response-helper"
 import { withStrictTools } from "@/external/llm/strict-tools"
 import { terminalToolsStopCondition } from "@/external/llm/terminal-tools-stop-condition"
+import { createUnfinishedToolCallTracker } from "@/external/llm/unfinished-tool-calls"
 
 const logger = new Logger("AISDKLLMProviderBase")
 
@@ -98,6 +99,16 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
             ],
           }
         : {}),
+      // Arguments the model broke (invalid JSON) are regenerated through
+      // structured output instead of being lost.
+      experimental_repairToolCall: this.buildToolCallRepair({
+        model: this.getLanguageModelWithRawCapture({ config, callOrigin }),
+        config,
+        callOrigin,
+        metadata,
+        functionId,
+        tags,
+      }),
       experimental_telemetry: {
         isEnabled: true,
         functionId,
@@ -388,12 +399,17 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
           const rawChunks: unknown[] = []
           let stripper: ReturnType<typeof LLMOutputSanitizer.createStreamSanitizer> | null = null
           let currentTextId: string | undefined
+          // A tool call whose arguments never parsed as JSON is dropped by the
+          // OpenAI chat provider: the tracker emits it so the SDK can repair
+          // it or report it to the model.
+          const unfinishedToolCalls = createUnfinishedToolCallTracker()
           const transformed = stream.pipeThrough(
             new TransformStream({
               transform(chunk, controller) {
                 // biome-ignore lint/suspicious/noExplicitAny: stream chunk shape varies by provider
                 const c = chunk as any
                 rawChunks.push(chunk)
+                for (const part of unfinishedToolCalls.before(chunk)) controller.enqueue(part)
                 if (c?.type === "text-start") {
                   stripper = LLMOutputSanitizer.createStreamSanitizer()
                   currentTextId = typeof c.id === "string" ? c.id : undefined
@@ -441,6 +457,17 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
                   const groupedStr = JSON.stringify(grouped)
                   const activeSpan = trace.getActiveSpan()
                   activeSpan?.setAttribute(RAW_LLM_RESPONSE_ATTR, groupedStr)
+                  const emittedToolCalls = unfinishedToolCalls.emitted()
+                  if (emittedToolCalls.length > 0) {
+                    activeSpan?.setAttribute(
+                      "llm.tool_call.emitted_from_unfinished_input",
+                      emittedToolCalls.join(","),
+                    )
+                    logger.warn("Emitted tool calls the provider dropped for malformed arguments", {
+                      model: args.config.model,
+                      toolNames: emittedToolCalls,
+                    })
+                  }
                   const originalText = extractTextFromStreamChunks(rawChunks)
                   if (originalText !== "") {
                     const strippedText = LLMOutputSanitizer.sanitize(originalText)
