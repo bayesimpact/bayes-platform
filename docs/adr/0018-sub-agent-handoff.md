@@ -47,6 +47,30 @@ parent could not read.
 * **No second handoff to a concluded form.** One form per agent and per
   conversation (ADR 0017); the tool refuses and returns the collected state,
   so the parent decides the next step from it.
+* **One hand-over per turn, and the turn ends there.** A model that keeps
+  generating after the hand-over tool (observed with Gemma: it calls a second
+  questionnaire in the same turn, then talks in the sub-agent's place) would
+  move the conversation to the last agent called, not to the one it announced.
+  The handoff tools of a turn share a state: the first call wins, later calls
+  are refused with the name of the agent that took over. The hand-over tools
+  are declared terminal to the tool loop: once one ran, the loop allows one
+  more generation for the closing sentence (none when the hand-over step
+  already carried it) and stops, whatever else the model would call. The
+  conclusion tool is terminal in the same way for the child's turn.
+* **A sentence repeated after a tool result is streamed once.** The same
+  model writes its sentence, calls the tool, then writes the same sentence
+  again once the tool result comes back; both steps end up in one reply. The
+  LLM provider holds a step's text back while it matches the previous step's
+  text and drops it when the step ends still matching. A step that diverges
+  is released whole, so only a word for word repeat is lost.
+* **A hand-over announced without its tool is applied.** A model sometimes
+  writes the transfer sentence ("I hand you over to the questionnaire") and
+  calls nothing: the turn ends, nobody takes over, and the user answers a
+  question nobody asked. The post-turn classifier of an agent with handoff
+  sub-agents is asked, when no hand-over tool ran, which sub-agent the reply
+  announces, closed on the tool names. The platform then sets the active
+  agent as the tool would have and the sub-agent's first turn follows in the
+  same response. Same safety net as the conclusion detected by the classifier.
 * **No nested handoff.** A child in control keeps its relay links but gets no
   handoff tools: its conclusion always returns to the session's agent.
 

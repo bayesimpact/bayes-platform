@@ -11,6 +11,8 @@ export type ConversationFormStatusDto = "in_progress" | "concluded"
  */
 export type ConversationFormDto = {
   agentId: string
+  /** The name of the agent that fills the form, for the Studio tabs. */
+  agentName?: string
   /** The agent settings revision in force at the last write. */
   agentSettingsId: string
   status: ConversationFormStatusDto

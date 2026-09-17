@@ -36,6 +36,7 @@ import { type BuiltTools, buildSubAgentTools } from "./sub-agent-tools"
 import { concludeHandoffInstruction, concludeHandoffTool } from "./tools/conclude-handoff.tool"
 import { fillFormTool } from "./tools/fill-form.tool"
 import { handoffTranscriptWindow, runFormConsolidation } from "./tools/form-consolidation"
+import type { HandoffTurnState } from "./tools/handoff.tool"
 import {
   inlineCitationInstruction,
   lookupKnowledgeBaseTool,
@@ -149,6 +150,7 @@ export class ToolsService {
           fireAndForgetToolNames: [],
           hasSubAgentTools: false,
           promptSections: [],
+          terminalToolNames: [],
         }
     }
   }
@@ -405,30 +407,48 @@ export class ToolsService {
       agentSettings.fillFormEnabled &&
       agentSettings.outputJsonSchema != null &&
       sessionPersistsForms(session)
-    const [hasSourcesTool, { tools: subAgentTools, toolDescriptions: subAgentToolDescriptions }] =
-      await Promise.all([
-        // Check if the agent has the sources tool enabled
-        this.projectsService.hasFeature({ connectScope, feature: "sources-tool" }),
+    const [
+      hasSourcesTool,
+      {
+        tools: subAgentTools,
+        toolDescriptions: subAgentToolDescriptions,
+        terminalToolNames: subAgentTerminalToolNames,
+        handoffCandidates,
+        handoffTurnState: subAgentHandoffTurnState,
+      },
+    ] = await Promise.all([
+      // Check if the agent has the sources tool enabled
+      this.projectsService.hasFeature({ connectScope, feature: "sources-tool" }),
 
-        // Build sub-agent tools if requested
-        includeSubAgentTools
-          ? buildSubAgentTools({
-              agentSessionScope,
-              agentSubAgentsService: this.agentSubAgentsService,
-              buildLLMConfig,
-              buildTools: this.buildTools,
-              conversationAgentSessionsService: this.conversationAgentSessionsService,
-              agentSettingsService: this.agentSettingsService,
-              generateMasterPrompt,
-              getProviderForModel,
-              onExecute,
-              projectsService: this.projectsService,
-              activeAgentController:
-                sessionState?.activeAgent ?? this.conversationAgentSessionsService,
-              formReader: this.conversationFormsService,
-            })
-          : Promise.resolve({ tools: {}, toolDescriptions: {} }),
-      ])
+      // Build sub-agent tools if requested
+      includeSubAgentTools
+        ? buildSubAgentTools({
+            agentSessionScope,
+            agentSubAgentsService: this.agentSubAgentsService,
+            buildLLMConfig,
+            buildTools: this.buildTools,
+            conversationAgentSessionsService: this.conversationAgentSessionsService,
+            agentSettingsService: this.agentSettingsService,
+            generateMasterPrompt,
+            getProviderForModel,
+            onExecute,
+            projectsService: this.projectsService,
+            activeAgentController:
+              sessionState?.activeAgent ?? this.conversationAgentSessionsService,
+            formReader: this.conversationFormsService,
+          })
+        : Promise.resolve({
+            tools: {},
+            toolDescriptions: {},
+            terminalToolNames: [],
+            handoffCandidates: [] as Array<{
+              toolName: string
+              agentId: string
+              agentName: string
+            }>,
+            handoffTurnState: {} as HandoffTurnState,
+          }),
+    ])
     // A sub-agent answering as the active agent of a handoff hands the
     // conversation back itself, with this tool; the post-turn step also reads
     // its reply for a conclusion it forgot to signal, and summarizes its part.
@@ -475,11 +495,49 @@ export class ToolsService {
           }
         }
       : undefined
+    // The parent announced a hand-over in its reply without calling the tool:
+    // the classifier names the sub-agent, the platform hands over as the tool
+    // would have, and the sub-agent's first turn follows in the same response.
+    const announcedHandoff: TurnClassificationContext["announcedHandoff"] =
+      handoffCandidates.length > 0
+        ? {
+            candidates: handoffCandidates.map(({ toolName, agentName }) => ({
+              toolName,
+              agentName,
+            })),
+            handedOffByTool: () => subAgentHandoffTurnState.handedOffTo !== undefined,
+            handOff: async ({ toolName }) => {
+              const candidate = handoffCandidates.find((link) => link.toolName === toolName)
+              if (!candidate) return
+              const form = await this.conversationFormsService.findOne({
+                connectScope,
+                sessionId: session.id,
+                agentId: candidate.agentId,
+              })
+              // A sub-agent that concluded its part cannot take over again.
+              if (form?.status === "concluded") return
+              await activeAgentController.setActiveAgent({
+                connectScope,
+                sessionId: session.id,
+                activeAgentId: candidate.agentId,
+              })
+              subAgentHandoffTurnState.handedOffTo = {
+                agentId: candidate.agentId,
+                agentName: candidate.agentName,
+              }
+              await onExecute({
+                toolName: candidate.toolName,
+                arguments: { detectedByClassifier: true },
+              })
+            },
+          }
+        : undefined
     const promptSections = await this.buildConversationContextSections({
       connectScope,
       agent,
       session,
       handoff,
+      ownFormSchema: hasFillFormTool ? agentSettings.outputJsonSchema : null,
     })
 
     // Sources are reported only when the agent can actually retrieve chunks:
@@ -497,7 +555,7 @@ export class ToolsService {
     // turn-classification.ts). Sub-agents and evaluation runs pass
     // includeSessionMetadataTools=false: no session of their own to title.
     const turnClassification: TurnClassificationContext | undefined =
-      hasSourcesReporting || includeSessionMetadataTools || handoff
+      hasSourcesReporting || includeSessionMetadataTools || handoff || announcedHandoff
         ? {
             retrievedChunksRegistry: hasSourcesReporting ? retrievedChunksRegistry : undefined,
             sessionMetadata: includeSessionMetadataTools
@@ -522,6 +580,7 @@ export class ToolsService {
                     conclude: concludeHandoffFromClassifier,
                   }
                 : undefined,
+            announcedHandoff,
             onExecute,
           }
         : undefined
@@ -620,6 +679,11 @@ export class ToolsService {
       turnClassification,
       hasSubAgentTools: Object.keys(subAgentTools).length > 0,
       promptSections,
+      // A hand-over ends the parent's turn; a conclusion ends the child's:
+      // after either, the model gets one generation for its sentence and stops.
+      terminalToolNames: handoff
+        ? [...subAgentTerminalToolNames, ToolName.ConcludeHandoff]
+        : subAgentTerminalToolNames,
     }
   }
 
@@ -693,11 +757,14 @@ export class ToolsService {
     agent,
     session,
     handoff,
+    ownFormSchema,
   }: {
     connectScope: RequiredConnectScope
     agent: Agent
     session: StreamingSession
     handoff: AgentSessionScope["handoff"]
+    /** The agent's form definition when it has the fillForm tool in this session. */
+    ownFormSchema: AgentSettings["outputJsonSchema"] | null
   }): Promise<string[]> {
     if (!sessionPersistsForms(session)) return []
     const forms = await this.conversationFormsService.listForSession({
@@ -705,13 +772,27 @@ export class ToolsService {
       sessionId: session.id,
       withAgent: true,
     })
-    if (forms.length === 0) return []
+
+    // The agent's own form: what it recorded and what is still empty. The
+    // transcript shows the answers but not the tool calls, so this is the
+    // only way the model knows what it saved.
+    const ownSections: string[] = []
+    if (ownFormSchema) {
+      const ownForm = forms.find((form) => form.agentId === agent.id)
+      const filled = ownForm?.state ?? {}
+      const fieldNames = Object.keys(outputJsonSchemaSchema.parse(ownFormSchema).properties ?? {})
+      const missingFields = fieldNames.filter(
+        (fieldName) => filled[fieldName] === undefined || filled[fieldName] === null,
+      )
+      ownSections.push(promptHelpers.ownFormState({ filled, missingFields }))
+    }
+    if (forms.length === 0) return ownSections.filter(Boolean)
 
     if (handoff) {
       const facts = forms
         .filter((form) => form.agentId !== agent.id && Object.keys(form.state).length > 0)
         .map((form) => ({ agentName: form.agent?.name ?? "another agent", state: form.state }))
-      return [promptHelpers.knownFacts(facts)].filter(Boolean)
+      return [...ownSections, promptHelpers.knownFacts(facts)].filter(Boolean)
     }
 
     // Only the sub-agents that take the conversation over write forms in this
@@ -735,7 +816,7 @@ export class ToolsService {
         state: form.state,
         summary: form.summary,
       }))
-    return [promptHelpers.subAgentOutcomes(outcomes)].filter(Boolean)
+    return [...ownSections, promptHelpers.subAgentOutcomes(outcomes)].filter(Boolean)
   }
 
   private addToolsWithoutCollisions({

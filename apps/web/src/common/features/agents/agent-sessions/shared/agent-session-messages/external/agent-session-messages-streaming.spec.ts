@@ -99,6 +99,29 @@ describe("streamChatResponse", () => {
     expect(handlers.onError).not.toHaveBeenCalled()
   })
 
+  it("reads every reply of the response, not only the first", async () => {
+    respondWith(
+      [
+        'data: {"type":"start","messageId":"persisted-1"}\n\n',
+        'data: {"type":"end","messageId":"persisted-1","fullContent":"I hand you over."}\n\n',
+        'data: {"type":"start","messageId":"persisted-2"}\n\n',
+        'data: {"type":"chunk","content":"Hello!","messageId":"persisted-2"}\n\n',
+        'data: {"type":"end","messageId":"persisted-2","fullContent":"Hello!"}\n\n',
+      ].join(""),
+    )
+    const handlers = buildHandlers()
+
+    await streamChatResponse({ ...params, handlers })
+
+    expect(handlers.onStart).toHaveBeenCalledTimes(2)
+    expect(handlers.onEnd).toHaveBeenLastCalledWith({
+      type: "end",
+      messageId: "persisted-2",
+      fullContent: "Hello!",
+    })
+    expect(handlers.onError).not.toHaveBeenCalled()
+  })
+
   it("carries the chosen settings revision in the query", async () => {
     respondWith('data: {"type":"end","messageId":"persisted-1","fullContent":""}\n\n')
 

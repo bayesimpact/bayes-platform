@@ -13,6 +13,9 @@ export type MockValue =
   // A production-shaped generation: text answer followed by a tool call in
   // the SAME generation (what Gemma emits for fire-and-forget tools).
   | { type: "textWithToolCall"; text: string; toolName: string; input: unknown }
+  // A tool call whose arguments the model broke (invalid JSON): the provider
+  // streams the arguments but never emits the call itself.
+  | { type: "malformedToolCall"; toolName: string; rawInput: string }
   // A generation that fails at the provider (e.g. a 400 APICallError).
   | { type: "error"; error: Error }
 
@@ -26,6 +29,7 @@ export type BuildLLMConfigParams = {
   temperature: AgentSettings["temperature"]
   tools?: ToolSet
   fireAndForgetToolNames?: string[]
+  terminalToolNames?: string[]
   priorityCallsEnabled: boolean
   llmFeatures: LLMFeatures
   useExtendedTimeouts?: boolean
@@ -37,6 +41,7 @@ export type LLMConfig =
       systemPrompt?: string
       tools?: ToolSet
       fireAndForgetToolNames?: string[]
+      terminalToolNames?: string[]
       useExtendedTimeouts?: never
       serviceTier: never
     }
@@ -51,6 +56,13 @@ export type LLMConfig =
        * invokes these, the loop stops instead of running another generation.
        */
       fireAndForgetToolNames?: string[]
+      /**
+       * Names of tools in {@link tools} whose call ends the turn: once one ran,
+       * the loop allows at most one more generation (the closing sentence) and
+       * stops, whatever else the model would call. Used for a hand-over to a
+       * sub-agent: the next words belong to the sub-agent.
+       */
+      terminalToolNames?: string[]
       /**
        * Opt in to the extended network timeouts on the underlying provider fetch
        * (see {@link AISDKVertexProvider}). Reserved for long-running calls such as

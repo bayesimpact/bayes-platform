@@ -20,6 +20,7 @@ export type SubAgentOutcome = {
 }
 
 export type KnownFact = { agentName: string; state: Record<string, unknown> }
+export type OwnFormState = { filled: Record<string, unknown>; missingFields: string[] }
 
 export const promptHelpers = {
   /**
@@ -60,13 +61,28 @@ ${facts.map((fact) => `- From "${fact.agentName}": ${JSON.stringify(fact.state)}
 `,
 
   /**
+   * The agent's own form, as stored: what it already recorded with fillForm
+   * and the fields still empty. The transcript carries the questions and
+   * the answers, not the tool calls, so without this the model cannot tell
+   * what it saved and stops calling the tool after a few turns.
+   */
+  ownFormState: ({ filled, missingFields }: OwnFormState) =>
+    Object.keys(filled).length === 0 && missingFields.length === 0
+      ? ""
+      : `## Your form so far
+Recorded with fillForm: ${Object.keys(filled).length === 0 ? "nothing yet" : JSON.stringify(filled)}
+Still empty: ${missingFields.length === 0 ? "nothing, every field is recorded" : missingFields.join(", ")}
+Record each answer with fillForm as soon as the user gives it, before asking the next question.
+`,
+
+  /**
    * Shown to a sub-agent answering as the active agent of a handoff: the
    * transcript above it belongs to the same conversation, started by the
    * parent, and it talks to the user directly until it concludes.
    */
   handoff: ({ parentAgentName }: { parentAgentName: string }) =>
     `## Hand-over
-The agent "${parentAgentName}" handed this conversation to you. The earlier messages are what the user and "${parentAgentName}" said before; you now talk to the user directly. Do not introduce yourself as "${parentAgentName}" and do not repeat what it already asked or answered. When your part is done, call the concludeHandoff tool and write your closing message.
+The agent "${parentAgentName}" handed this conversation to you. The earlier messages are what the user and "${parentAgentName}" said before; you now talk to the user directly. Do not introduce yourself as "${parentAgentName}" and do not repeat what it already asked or answered. Your task stops at your own scope: when it is done, call the concludeHandoff tool and write your closing message. Do not offer or start another step, another questionnaire or another topic, even one mentioned earlier in the conversation: "${parentAgentName}" decides what comes next once you hand back.
 `,
   now: () => todaysDatePromptLine(),
 

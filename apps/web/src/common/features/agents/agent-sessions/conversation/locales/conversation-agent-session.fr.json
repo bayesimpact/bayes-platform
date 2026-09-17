@@ -26,7 +26,8 @@
     },
     "formState": {
       "show": "État du formulaire",
-      "description": "Les informations que l'agent a collectées jusqu'à présent."
+      "description": "Les informations que l'agent a collectées jusqu'à présent.",
+      "thisAgent": "Cet agent"
     }
   }
 }

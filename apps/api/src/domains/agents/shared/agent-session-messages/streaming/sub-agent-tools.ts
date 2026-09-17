@@ -19,7 +19,12 @@ import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
 import { isLLMVisibleMessage } from "./llm-visible-message.helper"
 import type { AgentSessionScope, OnExecute, StreamingSession } from "./streaming-session.types"
 import type { ActiveAgentController } from "./tools/active-agent-controller"
-import { type HandoffFormReader, handoffTool, handoffToolInstruction } from "./tools/handoff.tool"
+import {
+  type HandoffFormReader,
+  type HandoffTurnState,
+  handoffTool,
+  handoffToolInstruction,
+} from "./tools/handoff.tool"
 import {
   createInlineCitationExtractor,
   createPassthroughCitationExtractor,
@@ -44,6 +49,8 @@ export type BuiltTools = {
   hasSubAgentTools: boolean
   /** Sections built from the conversation's state, appended to the master prompt. */
   promptSections: string[]
+  /** Tools whose call ends the turn (the hand-overs). */
+  terminalToolNames: string[]
 }
 
 type BuildLLMConfig = (params: {
@@ -52,6 +59,7 @@ type BuildLLMConfig = (params: {
   temperature: AgentSettings["temperature"]
   tools?: ToolSet
   fireAndForgetToolNames?: string[]
+  terminalToolNames?: string[]
   priorityCallsEnabled: boolean
   llmFeatures: LLMFeatures
 }) => LLMConfig
@@ -106,6 +114,12 @@ export async function buildSubAgentTools({
   tools: ToolSet
   toolDescriptions: Record<string, string>
   hasSubAgentTools: boolean
+  /** The handoff tools: a call ends the turn (see terminalToolsStopCondition). */
+  terminalToolNames: string[]
+  /** The handoff links, for the post-turn check of a hand-over announced without its tool. */
+  handoffCandidates: Array<{ toolName: string; agentId: string; agentName: string }>
+  /** Shared by the handoff tools of the turn: which sub-agent took over, if any. */
+  handoffTurnState: HandoffTurnState
 }> {
   const { agent, connectScope } = agentSessionScope
   const hasAgentOrchestration = await projectsService.hasFeature({
@@ -113,7 +127,14 @@ export async function buildSubAgentTools({
     feature: "agent-orchestration",
   })
   if (!hasAgentOrchestration) {
-    return { tools: {}, toolDescriptions: {}, hasSubAgentTools: false }
+    return {
+      tools: {},
+      toolDescriptions: {},
+      hasSubAgentTools: false,
+      terminalToolNames: [],
+      handoffCandidates: [],
+      handoffTurnState: {},
+    }
   }
   const llmFeatures = await projectsService.getLlmFeatures(connectScope)
 
@@ -123,6 +144,9 @@ export async function buildSubAgentTools({
   })
   const tools: ToolSet = {}
   const toolDescriptions: Record<string, string> = {}
+  const terminalToolNames: string[] = []
+  const handoffTurnState: HandoffTurnState = {}
+  const handoffCandidates: Array<{ toolName: string; agentId: string; agentName: string }> = []
 
   for (const subAgent of subAgents) {
     if (!subAgent.enabled) continue
@@ -143,9 +167,16 @@ export async function buildSubAgentTools({
         sessionId: agentSessionScope.session.id,
         activeAgentController,
         formReader,
+        turnState: handoffTurnState,
         onExecute,
       })
       toolDescriptions[subAgent.toolName] = description
+      terminalToolNames.push(subAgent.toolName)
+      handoffCandidates.push({
+        toolName: subAgent.toolName,
+        agentId: subAgent.childAgent.id,
+        agentName: subAgent.childAgent.name,
+      })
       continue
     }
 
@@ -172,7 +203,14 @@ export async function buildSubAgentTools({
     toolDescriptions[subAgent.toolName] = description
   }
 
-  return { tools, toolDescriptions, hasSubAgentTools: Object.keys(tools).length > 0 }
+  return {
+    tools,
+    toolDescriptions,
+    hasSubAgentTools: Object.keys(tools).length > 0,
+    terminalToolNames,
+    handoffCandidates,
+    handoffTurnState,
+  }
 }
 
 async function runSubAgentTool({

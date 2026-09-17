@@ -108,24 +108,53 @@ describe("processSSEChunk", () => {
     })
   })
 
-  it("dispatches the app's own events and stops on end", () => {
+  it("dispatches the app's own events and keeps reading after end", () => {
     const handlers = buildHandlers()
     const chunk = [
       jsonFrame({ type: "start", messageId: "m1" }),
       jsonFrame({ type: "chunk", content: "Hello", messageId: "m1" }),
       jsonFrame({ type: "end", messageId: "m1", fullContent: "Hello" }),
-      jsonFrame({ type: "chunk", content: "ignored", messageId: "m1" }),
     ].join("")
 
     const { done } = processSSEChunk(chunk, handlers, buildContext())
 
-    expect(done).toBe(true)
+    expect(done).toBe(false)
     expect(handlers.onStart).toHaveBeenCalledWith({ type: "start", messageId: "m1" })
     expect(handlers.onChunk).toHaveBeenCalledTimes(1)
     expect(handlers.onEnd).toHaveBeenCalledWith({
       type: "end",
       messageId: "m1",
       fullContent: "Hello",
+    })
+  })
+
+  it("dispatches the next agent's reply that follows a hand-over in the same response", () => {
+    // After a hand-over the response carries two replies: the hand-over sentence, then the
+    // sub-agent's first reply. Stopping on the first `end` left the second one to a page reload.
+    const handlers = buildHandlers()
+    const chunk = [
+      jsonFrame({ type: "start", messageId: "m1" }),
+      jsonFrame({ type: "end", messageId: "m1", fullContent: "I hand you over." }),
+      jsonFrame({ type: "start", messageId: "m2" }),
+      jsonFrame({ type: "chunk", content: "Hello!", messageId: "m2" }),
+      jsonFrame({ type: "end", messageId: "m2", fullContent: "Hello!" }),
+    ].join("")
+
+    const { done } = processSSEChunk(chunk, handlers, buildContext())
+
+    expect(done).toBe(false)
+    expect(handlers.onStart).toHaveBeenCalledTimes(2)
+    expect(handlers.onStart).toHaveBeenLastCalledWith({ type: "start", messageId: "m2" })
+    expect(handlers.onChunk).toHaveBeenCalledWith({
+      type: "chunk",
+      content: "Hello!",
+      messageId: "m2",
+    })
+    expect(handlers.onEnd).toHaveBeenCalledTimes(2)
+    expect(handlers.onEnd).toHaveBeenLastCalledWith({
+      type: "end",
+      messageId: "m2",
+      fullContent: "Hello!",
     })
   })
 

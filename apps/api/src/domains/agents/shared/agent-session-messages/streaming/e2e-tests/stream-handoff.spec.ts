@@ -149,7 +149,11 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
       .find((call) => call.agentId === child.subAgent.id && call.toolNames.length > 0)
     expect(childPrompt?.prompt).toContain(CHILD_FIRST_TURN_TRIGGER)
     expect(childPrompt?.prompt).toContain("Hand-over")
+    expect(childPrompt?.prompt).toContain("Your task stops at your own scope")
     expect(childPrompt?.toolNames).toEqual(expect.arrayContaining(["fillForm", "concludeHandoff"]))
+    // The child sees its own form: nothing recorded yet, every field still empty.
+    expect(childPrompt?.prompt).toContain("Your form so far")
+    expect(childPrompt?.prompt).toContain("nothing yet")
 
     // Turn 2. The user's message goes to the child, which fills the form.
     mockProvider.addToolCallTurn(child.subAgent.id, "fillForm", { formFields: { forName: "John" } })
@@ -158,6 +162,13 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
 
     const second = await subject("John")
     expect(second.status).toBe(200)
+    // The generation after fillForm shows what was recorded and what is still empty.
+    const childPromptAfterFill = mockProvider
+      .getCalls()
+      .filter((call) => call.agentId === child.subAgent.id && call.toolNames.length > 0)
+      .at(-1)
+    expect(childPromptAfterFill?.prompt).toContain("Still empty: name")
+    expect(childPromptAfterFill?.prompt).not.toContain("Still empty: forName")
     expect(eventsOf(second.text).filter((event) => event.type === "start")).toHaveLength(1)
     const parentCallsAfterSecond = mockProvider
       .getCalls()
@@ -441,5 +452,213 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     expect(consolidationCall?.agentId).toBe(child.subAgent.id)
     expect(consolidationCall?.prompt).not.toContain("Form Filler takes it from here.")
     expect(consolidationCall?.prompt).toContain("John Doe")
+  })
+
+  it("streams the sentence once when the sub-agent repeats it after a tool result, and ends its turn on the conclusion", async () => {
+    const { agent, session, child } = await createContext()
+    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider.resetMock()
+
+    // Turn 1: hand-over, the child asks for the name.
+    mockProvider.addToolCallTurn(agent.id, "take_over_form", {})
+    mockProvider.addTextTurn(agent.id, "Form Filler takes it from here.")
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
+    mockProvider.addTextTurn(child.subAgent.id, "Hello! Your first name?")
+    mockProvider.addObjectTurn(child.subAgent.id, {
+      suggestedTitle: null,
+      taskConcluded: false,
+      handoffSummary: "",
+    })
+    expect((await subject("Hi")).status).toBe(200)
+
+    // Turn 2: the child writes its sentence and records the name in the same
+    // generation, then writes the very same sentence again after the tool
+    // result. The user reads it once.
+    mockProvider.addTextWithToolCallTurn(child.subAgent.id, "Noted, thank you John.", "fillForm", {
+      formFields: { forName: "John" },
+    })
+    mockProvider.addTextTurn(child.subAgent.id, "Noted, thank you John.")
+    mockProvider.addObjectTurn(child.subAgent.id, {
+      suggestedTitle: null,
+      taskConcluded: false,
+      handoffSummary: "",
+    })
+    const second = await subject("John")
+    expect(second.status).toBe(200)
+    const secondTexts = eventsOf(second.text)
+      .filter((event) => event.type === "end")
+      .map((event) => (event.type === "end" ? event.fullContent : ""))
+    expect(secondTexts).toEqual(["Noted, thank you John."])
+
+    // Turn 3: the child concludes with its closing sentence in the same
+    // generation. The conclusion ends its turn: no further child generation,
+    // the parent resumes.
+    mockProvider.addTextWithToolCallTurn(
+      child.subAgent.id,
+      "All done, I hand you back.",
+      "concludeHandoff",
+      {},
+    )
+    mockProvider.addTextTurn(child.subAgent.id, "THIS GENERATION MUST NOT RUN")
+    mockProvider.addObjectTurn(child.subAgent.id, { suggestedTitle: null })
+    mockProvider.addTextTurn(agent.id, "Welcome John!")
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
+    const third = await subject("That is all")
+    expect(third.status).toBe(200)
+    const thirdTexts = eventsOf(third.text)
+      .filter((event) => event.type === "end")
+      .map((event) => (event.type === "end" ? event.fullContent : ""))
+    expect(thirdTexts).toEqual(["All done, I hand you back.", "Welcome John!"])
+
+    const persisted = await repositories.conversationAgentSessionRepository.findOneByOrFail({
+      id: session.id,
+    })
+    expect(persisted.activeAgentId).toBeNull()
+    const storedReplies = await repositories.agentMessageRepository.find({
+      where: { sessionId: session.id, role: "assistant" },
+      order: { createdAt: "ASC" },
+    })
+    expect(storedReplies.map((message) => message.content)).toEqual([
+      "Form Filler takes it from here.",
+      "Hello! Your first name?",
+      "Noted, thank you John.",
+      "All done, I hand you back.",
+      "Welcome John!",
+    ])
+  })
+
+  it("hands the conversation over when the parent announces the hand-over without calling its tool", async () => {
+    const { agent, session, child } = await createContext()
+    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider.resetMock()
+
+    // The parent writes the transfer sentence and calls nothing. The classifier
+    // names the announced sub-agent, the platform hands over, and the child's
+    // first turn follows in the same response.
+    mockProvider.addTextTurn(agent.id, "Form Filler takes it from here.")
+    mockProvider.addObjectTurn(agent.id, {
+      suggestedTitle: null,
+      announcedHandoffTo: "take_over_form",
+    })
+    mockProvider.addTextTurn(child.subAgent.id, "Hello! What is your first name?")
+    mockProvider.addObjectTurn(child.subAgent.id, {
+      suggestedTitle: null,
+      taskConcluded: false,
+      handoffSummary: "",
+    })
+
+    const response = await subject("Hello, I would like to enroll.")
+    expect(response.status).toBe(200)
+    const texts = eventsOf(response.text)
+      .filter((event) => event.type === "end")
+      .map((event) => (event.type === "end" ? event.fullContent : ""))
+    expect(texts).toEqual(["Form Filler takes it from here.", "Hello! What is your first name?"])
+
+    const persisted = await repositories.conversationAgentSessionRepository.findOneByOrFail({
+      id: session.id,
+    })
+    expect(persisted.activeAgentId).toBe(child.subAgent.id)
+
+    // The parent's classification was asked about the announced hand-over, closed on its tools.
+    const parentClassification = mockProvider
+      .getCalls()
+      .find((call) => call.agentId === agent.id && call.responseFormatSchema !== undefined)
+    expect(parentClassification?.responseFormatSchema).toContain("announcedHandoffTo")
+    expect(parentClassification?.responseFormatSchema).toContain("take_over_form")
+    expect(parentClassification?.prompt).toContain("Announced hand-over")
+  })
+
+  it("does not ask about an announced hand-over when the hand-over tool ran", async () => {
+    const { agent, child } = await createContext()
+    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider.resetMock()
+
+    mockProvider.addToolCallTurn(agent.id, "take_over_form", {})
+    mockProvider.addTextTurn(agent.id, "I hand you over to Form Filler.")
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
+    mockProvider.addTextTurn(child.subAgent.id, "Hello!")
+    mockProvider.addObjectTurn(child.subAgent.id, {
+      suggestedTitle: null,
+      taskConcluded: false,
+      handoffSummary: "",
+    })
+
+    expect((await subject("Hello")).status).toBe(200)
+    const parentClassification = mockProvider
+      .getCalls()
+      .find((call) => call.agentId === agent.id && call.responseFormatSchema !== undefined)
+    expect(parentClassification?.responseFormatSchema).not.toContain("announcedHandoffTo")
+  })
+
+  it("keeps the first hand-over of a turn and ends the parent's turn after its sentence", async () => {
+    const { user, organization, project, agent, subAgents } =
+      await createOrganizationWithAgentAndSubAgents(repositories, {
+        agent: { name: "Orchestrator", type: "conversation" },
+        agentSettings: { model: AgentModel._Mock },
+        subAgents: [
+          {
+            subAgent: { name: "First", type: "conversation" },
+            subAgentSettings: { model: AgentModel._Mock },
+            agentSubAgent: { toolName: "take_over_first", mode: "handoff" },
+          },
+          {
+            subAgent: { name: "Second", type: "conversation" },
+            subAgentSettings: { model: AgentModel._Mock },
+            agentSubAgent: { toolName: "take_over_second", mode: "handoff" },
+          },
+        ],
+      })
+    const session = await repositories.conversationAgentSessionRepository.save(
+      conversationAgentSessionFactory
+        .transient({ organization, project, agent, user })
+        .live()
+        .build(),
+    )
+    organizationId = organization.id
+    projectId = project.id
+    agentId = agent.id
+    agentSessionId = session.id
+    auth0Id = user.auth0Id
+    const [first, second] = subAgents
+    if (!first || !second) throw new Error("sub-agents not created")
+
+    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider.resetMock()
+    // The parent hands over to First, then keeps going: it writes its sentence
+    // and calls Second in the same generation. Second is refused, the turn ends
+    // there (no third parent generation), and First speaks next.
+    mockProvider.addToolCallTurn(agent.id, "take_over_first", {})
+    mockProvider.addTextWithToolCallTurn(
+      agent.id,
+      "First will take it from here.",
+      "take_over_second",
+      {},
+    )
+    mockProvider.addTextTurn(agent.id, "THIS GENERATION MUST NOT RUN")
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
+    mockProvider.addTextTurn(first.subAgent.id, "Hello from First.")
+    mockProvider.addObjectTurn(first.subAgent.id, {
+      suggestedTitle: null,
+      taskConcluded: false,
+      handoffSummary: "",
+    })
+
+    const response = await subject("Hello")
+    expect(response.status).toBe(200)
+    const texts = eventsOf(response.text)
+      .filter((event) => event.type === "end")
+      .map((event) => (event.type === "end" ? event.fullContent : ""))
+    expect(texts).toEqual(["First will take it from here.", "Hello from First."])
+
+    const persisted = await repositories.conversationAgentSessionRepository.findOneByOrFail({
+      id: session.id,
+    })
+    expect(persisted.activeAgentId).toBe(first.subAgent.id)
+
+    // Two parent generations only: the hand-over, then the sentence with the refused second call.
+    const parentGenerations = mockProvider
+      .getCalls()
+      .filter((call) => call.agentId === agent.id && call.toolNames.length > 0)
+    expect(parentGenerations).toHaveLength(2)
   })
 })

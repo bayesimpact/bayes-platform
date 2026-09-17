@@ -133,6 +133,7 @@ export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentS
       <div className="flex-1">
         <AgentSessionMessages
           session={agentSession}
+          agentName={agent.name}
           messages={messages}
           formSubSessions={formSubSessions}
           formResultSchema={

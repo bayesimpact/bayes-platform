@@ -27,9 +27,14 @@ const CHANNEL_KEYWORDS = "thought|analysis|reasoning|finalize|commentary|final"
 // with the family above, which also removes the prefix).
 const BARE_CALL = String.raw`(?<![\w:.])[a-zA-Z_][a-zA-Z0-9_]*\{\s*(?:[a-zA-Z_][a-zA-Z0-9_]*\s*:[^{}]*)?\}\/?>?`
 const BARE_CALL_OPEN = String.raw`(?<![\w:.])[a-zA-Z_][a-zA-Z0-9_]*\{\s*(?:[a-zA-Z_][a-zA-Z0-9_]*\s*:[^}]*)?$`
+// Gemma variant: the bare tool name in square brackets, `[concludeHandoff]`,
+// written as a marker at the end of the message instead of calling the tool.
+// A camelCase identifier (one inner capital at least) keeps citations `[1]`
+// and plain words out; a following `(` or `[` is a markdown link, kept.
+const BRACKET_CALL = String.raw`\[([a-z][a-z0-9]*[A-Z][a-zA-Z0-9_]*)\](?![(\[])`
 const PSEUDO_TOOL_CALL_RE = new RegExp(
-  String.raw`<\/?(?:call|function|default_api)[:\s](?:[^>{]*\{[^{}]*\}\/?>?|[^>]*\/?>)|(?:[^\s<>{}]*:)?default_api:[^\s<>{}]*\{[^{}]*\}\/?>?|${BARE_CALL}`,
-  "gi",
+  String.raw`<\/?(?:call|function|default_api)[:\s](?:[^>{]*\{[^{}]*\}\/?>?|[^>]*\/?>)|(?:[^\s<>{}]*:)?default_api:[^\s<>{}]*\{[^{}]*\}\/?>?|${BARE_CALL}|${BRACKET_CALL}`,
+  "g",
 )
 // An opener of that family that has no closer yet (still streaming): no `>`
 // for the tag variants, no `}` for the brace variants.
@@ -49,6 +54,10 @@ function stripPairedChannelMarkers(text: string): string {
     text
       // Hallucinated tool-call tags verbalized into the text
       .replace(PSEUDO_TOOL_CALL_RE, "")
+      // The wrapper a model puts around such a call (`<code>…</code>`, a
+      // fenced block) is left empty by the removal above: drop it too.
+      .replace(/<code>\s*<\/code>/gi, "")
+      .replace(/```[a-z]*\s*```/gi, "")
       // <|channel>thought<channel|> ... <channel|> (eats nested openers too)
       .replace(new RegExp(`<\\|channel>(?:${CHANNEL_KEYWORDS})[\\s\\S]*?<channel\\|>`, "gi"), "")
       // Gemma 3 legacy: <unused N>thought ... <unused N>
@@ -93,7 +102,10 @@ export function findLeakedToolCalls(text: string): LeakedToolCall[] {
       /(?:<\/?(?:call|function)[:\s]|<?\/?(?:[^\s<>{}]*:)?default_api[:\s])([^>{(\s]+)/i.exec(raw)
     // Bare `identifier{...}` variant: the identifier is the tool name.
     const bareName = opener === null ? /^[a-zA-Z_][a-zA-Z0-9_]*(?=\{)/.exec(raw)?.[0] : undefined
-    const segments = (opener?.[1] ?? bareName ?? "").split(":").filter(Boolean)
+    // Bracketed `[identifier]` variant.
+    const bracketName =
+      opener === null ? /^\[([a-zA-Z_][a-zA-Z0-9_]*)\]$/.exec(raw)?.[1] : undefined
+    const segments = (opener?.[1] ?? bareName ?? bracketName ?? "").split(":").filter(Boolean)
     const name = segments.at(-1)
     if (name && name !== "default_api" && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
       if (!byName.has(name)) byName.set(name, { name, raw })
@@ -152,7 +164,10 @@ export class LLMOutputSanitizer {
         if (pseudoOpen !== -1 && pending.length - pseudoOpen < PSEUDO_TOOL_CALL_MAX_LEN) {
           safeUntil = Math.min(safeUntil, pseudoOpen)
         }
-        const ltBeforeCut = pending.lastIndexOf("<", safeUntil - 1)
+        const ltBeforeCut = Math.max(
+          pending.lastIndexOf("<", safeUntil - 1),
+          pending.lastIndexOf("[", safeUntil - 1),
+        )
         if (ltBeforeCut !== -1 && safeUntil - ltBeforeCut < MAX_MARKER_LEN) {
           safeUntil = ltBeforeCut
         }

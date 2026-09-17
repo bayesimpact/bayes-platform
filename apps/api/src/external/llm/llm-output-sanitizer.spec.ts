@@ -158,7 +158,37 @@ describe("LLMOutputSanitizer - hallucinated tool-call XML", () => {
   })
 })
 
+describe("LLMOutputSanitizer - bracketed tool name", () => {
+  it("removes the tool name a model writes in square brackets instead of calling it", () => {
+    expect(LLMOutputSanitizer.sanitize("Merci, tout est transmis.\n\n[concludeHandoff]")).toBe(
+      "Merci, tout est transmis.\n\n",
+    )
+  })
+
+  it("keeps markdown links, citations and plain bracketed words", () => {
+    const text = "Voir [la fiche](https://example.org) et [1], puis [TODO] et [note]."
+    expect(LLMOutputSanitizer.sanitize(text)).toBe(text)
+  })
+
+  it("strips the bracketed name even when split across stream deltas", () => {
+    const sanitizer = LLMOutputSanitizer.createStreamSanitizer()
+    const deltas = [
+      "Merci, tout est transmis à l'équipe médicale pour la suite.",
+      " [conclude",
+      "Handoff]",
+    ]
+    let out = ""
+    for (const delta of deltas) out += sanitizer.feed(delta)
+    out += sanitizer.flush()
+    expect(out).toBe("Merci, tout est transmis à l'équipe médicale pour la suite. ")
+  })
+})
+
 describe("findLeakedToolCallNames", () => {
+  it("extracts the tool name from the bracketed variant", () => {
+    expect(findLeakedToolCallNames("Tout est noté. [concludeHandoff]")).toEqual(["concludeHandoff"])
+  })
+
   it("extracts the tool name from the brace-argument variant", () => {
     const text =
       "Voici votre réponse.\n\n<call:default_api:notify_operator{severity:high," +
@@ -194,5 +224,21 @@ describe("findLeakedToolCallNames", () => {
   it("deduplicates repeated leaks of the same tool", () => {
     const text = `${LEAKED_PSEUDO_CALL} then again ${LEAKED_PSEUDO_CALL}`
     expect(findLeakedToolCallNames(text)).toEqual(["mandatory_tool"])
+  })
+})
+
+describe("LLMOutputSanitizer - wrappers around a removed call", () => {
+  it("drops the <code> wrapper a model put around a verbalized call", () => {
+    expect(
+      LLMOutputSanitizer.sanitize("Je vous transfère.\n<code>DHI{reason:test}</code>\nÀ bientôt."),
+    ).toBe("Je vous transfère.\n\nÀ bientôt.")
+  })
+
+  it("drops a fenced block left empty by the removal", () => {
+    expect(LLMOutputSanitizer.sanitize("Voilà.\n```\nNVI{reason:x}\n```")).toBe("Voilà.\n")
+  })
+
+  it("keeps a code block with real content", () => {
+    expect(LLMOutputSanitizer.sanitize("<code>const a = 1</code>")).toBe("<code>const a = 1</code>")
   })
 })

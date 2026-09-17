@@ -63,7 +63,13 @@ export function parseSSEEvent(
   }
 }
 
-/** Returns true if the stream should terminate. */
+/**
+ * Returns true if the stream should terminate.
+ *
+ * `end` closes one reply, not the stream: after a hand-over, the next agent's
+ * first reply follows in the same response, with its own `start`. The reader
+ * goes on until the server closes the body. Only an error ends it early.
+ */
 export function dispatchStreamEvent(
   event: StreamEventPayload,
   handlers: StreamEventHandler,
@@ -75,10 +81,8 @@ export function dispatchStreamEvent(
   if (event.type === "start") handlers.onStart(event)
   else if (event.type === "chunk") handlers.onChunk(event)
   else if (event.type === "notify_client") handlers.onNotifyClient(event)
-  else if (event.type === "end") {
-    handlers.onEnd(event)
-    return true
-  } else if (event.type === "error") {
+  else if (event.type === "end") handlers.onEnd(event)
+  else if (event.type === "error") {
     handlers.onError(event)
     return true
   }

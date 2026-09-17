@@ -104,6 +104,22 @@ export type HandoffClassificationConfig = {
   }) => Promise<void>
 }
 
+/**
+ * Present when the replying agent can hand the conversation to sub-agents.
+ * A model sometimes announces the hand-over in its reply ("I transfer you to
+ * the questionnaire") without calling the tool: nothing happens and the user
+ * answers a question nobody asked. The classifier reads the reply and names
+ * the sub-agent it announced; the platform then performs the hand-over the
+ * tool would have done. Not asked when a hand-over tool ran in the turn.
+ */
+export type AnnouncedHandoffClassificationConfig = {
+  candidates: Array<{ toolName: string; agentName: string }>
+  /** True when a hand-over tool ran during this turn. */
+  handedOffByTool: () => boolean
+  /** Performs the hand-over the reply announced (active agent set to that sub-agent). */
+  handOff: (params: { toolName: string }) => Promise<void>
+}
+
 export type TurnClassificationContext = {
   /** Present when the sources feature is enabled for the project and the agent retrieves. */
   retrievedChunksRegistry?: RetrievedChunksRegistry
@@ -111,6 +127,8 @@ export type TurnClassificationContext = {
   sessionMetadata?: SessionMetadataConfig
   /** Present when the replying agent is a sub-agent in control of the conversation. */
   handoff?: HandoffClassificationConfig
+  /** Present when the replying agent has handoff sub-agents. */
+  announcedHandoff?: AnnouncedHandoffClassificationConfig
   onExecute: OnExecute
 }
 
@@ -198,11 +216,14 @@ export function buildTurnClassificationSchema({
   availableCategoryNames,
   chunkAliases,
   handoff = false,
+  announcedHandoffToolNames = [],
 }: {
   availableCategoryNames: string[]
   chunkAliases: string[]
   /** Adds the hand-over fields (task concluded, summary). */
   handoff?: boolean
+  /** Adds the announced hand-over field, closed on these tool names. */
+  announcedHandoffToolNames?: string[]
 }): Record<string, unknown> {
   const properties: Record<string, unknown> = {
     suggestedTitle: {
@@ -232,12 +253,20 @@ export function buildTurnClassificationSchema({
     properties.taskConcluded = {
       type: "boolean",
       description:
-        "true when the reply ends the sub-agent's part: it gives its conclusion, says it has everything it needs, or says goodbye with nothing further to ask. false when it still asks the user something or waits for an answer.",
+        "true when the reply ends the sub-agent's part: it gives its conclusion, says it has everything it needs, says goodbye with nothing further to ask, or asks whether to move on to something else (another questionnaire, another step) that is not its part. false when it still asks the user something about its own part or waits for an answer to it.",
     }
     properties.handoffSummary = {
       type: "string",
       description:
         "Two to four sentences, in the conversation's language, on what the sub-agent collected or answered during its whole part of the conversation, for the agent that resumes. Facts the user stated only; no advice.",
+    }
+  }
+  if (announcedHandoffToolNames.length > 0) {
+    properties.announcedHandoffTo = {
+      type: ["string", "null"],
+      enum: [...announcedHandoffToolNames, null],
+      description:
+        "The sub-agent tool whose hand-over the reply announces (it tells the user it transfers them, passes them on, or lets that sub-agent take over) while no tool ran. null when the reply announces no hand-over.",
     }
   }
   return {
@@ -261,6 +290,7 @@ const turnClassificationOutputSchema = z.object({
   chunkIds: z.array(z.string()).optional(),
   taskConcluded: z.boolean().optional(),
   handoffSummary: z.string().trim().optional(),
+  announcedHandoffTo: z.string().nullable().optional(),
 })
 
 function truncate(text: string, maxLength: number): string {
@@ -284,6 +314,7 @@ export function buildTurnClassificationPrompt({
   availableCategoryNames,
   passages,
   handoff,
+  announcedHandoff,
 }: {
   /** LLM-visible history BEFORE the latest user message. */
   earlierMessages: LLMChatMessage[]
@@ -292,6 +323,7 @@ export function buildTurnClassificationPrompt({
   availableCategoryNames: string[]
   passages: Array<{ alias: string; documentTitle: string; content: string }>
   handoff?: Pick<HandoffClassificationConfig, "childAgentName" | "parentAgentName">
+  announcedHandoff?: Pick<AnnouncedHandoffClassificationConfig, "candidates">
 }): { systemPrompt: string; userContent: string } {
   const systemPrompt = [
     "You are a classifier working behind a conversational assistant. You read one exchange between a user and the assistant and return a structured report about it.",
@@ -332,7 +364,18 @@ export function buildTurnClassificationPrompt({
   }
   if (handoff) {
     sections.push(
-      `## Hand-over\nThe assistant is "${handoff.childAgentName}", a sub-agent that took the conversation over from "${handoff.parentAgentName}" for one part of it. Say whether this reply ENDS its part (taskConcluded): a conclusion, a statement that it has everything it needs, or a goodbye with nothing further to ask. A reply that still asks the user something is not a conclusion. Then summarize, in two to four sentences and in the conversation's language, what "${handoff.childAgentName}" collected or answered during its whole part, for "${handoff.parentAgentName}" (handoffSummary). Facts the user stated only.`,
+      `## Hand-over\nThe assistant is "${handoff.childAgentName}", a sub-agent that took the conversation over from "${handoff.parentAgentName}" for one part of it. Say whether this reply ENDS its part (taskConcluded): a conclusion, a statement that it has everything it needs, or a goodbye with nothing further to ask. A reply that still asks the user something about its own part is not a conclusion. A reply that has finished its part and asks whether to move on to something else (another questionnaire, another step) IS a conclusion: what comes next is not its task. Then summarize, in two to four sentences and in the conversation's language, what "${handoff.childAgentName}" collected or answered during its whole part, for "${handoff.parentAgentName}" (handoffSummary). Facts the user stated only.`,
+    )
+  }
+  if (announcedHandoff && announcedHandoff.candidates.length > 0) {
+    const candidateLines = announcedHandoff.candidates
+      .map(
+        (candidate) =>
+          `- ${candidate.toolName}: hands the conversation to "${candidate.agentName}"`,
+      )
+      .join("\n")
+    sections.push(
+      `## Announced hand-over\nThe assistant can hand the conversation to these sub-agents by calling a tool, and called none in this reply:\n${candidateLines}\nIf the reply tells the user it hands them over to one of them (transfers them, passes them on, lets it take over, starts its questionnaire), return that tool name (announcedHandoffTo). Return null when the reply announces no hand-over, or only mentions a sub-agent without handing over now.`,
     )
   }
   return { systemPrompt, userContent: sections.join("\n\n") }
@@ -365,6 +408,13 @@ export async function runTurnClassification({
   citedChunkAliases: string[]
 }): Promise<void> {
   const { retrievedChunksRegistry, sessionMetadata, handoff, onExecute } = context
+  // Asked only when no hand-over tool ran: the reply may have announced one.
+  const announcedHandoff =
+    context.announcedHandoff &&
+    context.announcedHandoff.candidates.length > 0 &&
+    !context.announcedHandoff.handedOffByTool()
+      ? context.announcedHandoff
+      : undefined
   try {
     let sourcesDispatched = false
     if (retrievedChunksRegistry && citedChunkAliases.length > 0) {
@@ -378,7 +428,7 @@ export async function runTurnClassification({
     // Sources only need the classifier when passages were retrieved and the
     // reply cited none of them inline.
     const needsSources = retrievedChunksRegistry?.hasChunks() && !sourcesDispatched
-    if (!needsSources && !sessionMetadata && !handoff) return
+    if (!needsSources && !sessionMetadata && !handoff && !announcedHandoff) return
 
     const passages = needsSources
       ? (retrievedChunksRegistry?.entries() ?? []).map(({ alias, chunk }) => ({
@@ -395,11 +445,15 @@ export async function runTurnClassification({
       availableCategoryNames,
       passages,
       handoff,
+      announcedHandoff,
     })
     const schema = buildTurnClassificationSchema({
       availableCategoryNames,
       chunkAliases: passages.map((passage) => passage.alias),
       handoff: handoff !== undefined,
+      announcedHandoffToolNames: announcedHandoff?.candidates.map(
+        (candidate) => candidate.toolName,
+      ),
     })
 
     const rawOutput = await provider.generateStructuredOutput({
@@ -436,6 +490,13 @@ export async function runTurnClassification({
           detectedByClassifier: !concludedByTool,
           llm: { provider, buildConfig, metadata },
         })
+      }
+    }
+
+    if (announcedHandoff && parsed.data.announcedHandoffTo) {
+      const toolName = parsed.data.announcedHandoffTo
+      if (announcedHandoff.candidates.some((candidate) => candidate.toolName === toolName)) {
+        await announcedHandoff.handOff({ toolName })
       }
     }
 

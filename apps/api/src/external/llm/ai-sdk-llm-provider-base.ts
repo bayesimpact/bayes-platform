@@ -1,6 +1,6 @@
 import type { LanguageModelV3 } from "@ai-sdk/provider"
 import { AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
-import { NotImplementedException } from "@nestjs/common"
+import { Logger, NotImplementedException } from "@nestjs/common"
 import { trace } from "@opentelemetry/api"
 import {
   type FilePart,
@@ -29,8 +29,13 @@ import {
 import { AISDKLLMToolsMgmt } from "@/external/llm/ai-sdk-llm-tools-mgmt"
 import { fireAndForgetStopCondition } from "@/external/llm/fire-and-forget-stop-condition"
 import { type LeakedToolCall, LLMOutputSanitizer } from "@/external/llm/llm-output-sanitizer"
+import { createRepeatedStepTextFilter } from "@/external/llm/repeated-step-text-filter"
 import { ResponseHelper } from "@/external/llm/response-helper"
 import { withStrictTools } from "@/external/llm/strict-tools"
+import { terminalToolsStopCondition } from "@/external/llm/terminal-tools-stop-condition"
+import { createUnfinishedToolCallTracker } from "@/external/llm/unfinished-tool-calls"
+
+const logger = new Logger("AISDKLLMProviderBase")
 
 export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements LLMProvider {
   async *streamChatResponse({
@@ -75,17 +80,35 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
       temperature: config.temperature,
       tools: this.supportsStrictTools() ? withStrictTools(config.tools) : config.tools,
       // Keep the default step safety net, but skip the follow-up generation
-      // when a step only ran fire-and-forget tools (their output is noise).
-      ...(config.fireAndForgetToolNames?.length
+      // when a step only ran fire-and-forget tools (their output is noise),
+      // and end the turn once a terminal tool (a hand-over) ran.
+      ...(config.fireAndForgetToolNames?.length || config.terminalToolNames?.length
         ? {
             stopWhen: [
               stepCountIs(20),
-              fireAndForgetStopCondition({
-                fireAndForgetToolNames: config.fireAndForgetToolNames,
-              }),
+              ...(config.fireAndForgetToolNames?.length
+                ? [
+                    fireAndForgetStopCondition({
+                      fireAndForgetToolNames: config.fireAndForgetToolNames,
+                    }),
+                  ]
+                : []),
+              ...(config.terminalToolNames?.length
+                ? [terminalToolsStopCondition({ terminalToolNames: config.terminalToolNames })]
+                : []),
             ],
           }
         : {}),
+      // Arguments the model broke (invalid JSON) are regenerated through
+      // structured output instead of being lost.
+      experimental_repairToolCall: this.buildToolCallRepair({
+        model: this.getLanguageModelWithRawCapture({ config, callOrigin }),
+        config,
+        callOrigin,
+        metadata,
+        functionId,
+        tags,
+      }),
       experimental_telemetry: {
         isEnabled: true,
         functionId,
@@ -107,9 +130,28 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
     // as `error` parts on fullStream, which textStream filters out — the
     // stream just ends, indistinguishable from an empty answer. Consume
     // fullStream so a failed generation rejects and callers can report it.
+    //
+    // Some models (Gemma) write their message, call a tool in the same step,
+    // then write the very same message again once the tool result comes
+    // back. The steps are stored as one reply, so the user would read it
+    // twice: the filter drops a step's text when it repeats the previous
+    // step's text word for word.
+    const repeatedStepTextFilter = createRepeatedStepTextFilter()
     for await (const part of streamResult.fullStream) {
-      if (part.type === "text-delta") yield part.text
-      else if (part.type === "error") throw part.error
+      if (part.type === "error") throw part.error
+      const text = repeatedStepTextFilter.feed(part)
+      if (text.length > 0) yield text
+    }
+    const remainingText = repeatedStepTextFilter.flush()
+    if (remainingText.length > 0) yield remainingText
+    const droppedBlocks = repeatedStepTextFilter.dropped()
+    if (droppedBlocks.length > 0) {
+      logger.warn("Dropped text the model repeated after a tool result", {
+        model: config.model,
+        blocks: droppedBlocks.length,
+        characters: droppedBlocks.reduce((total, block) => total + block.length, 0),
+      })
+      trace.getActiveSpan()?.setAttribute("llm.repeated_step_text.blocks", droppedBlocks.length)
     }
     await this.recoverLeakedToolCalls({
       model: this.getLanguageModelWithRawCapture({ config, callOrigin }),
@@ -357,12 +399,17 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
           const rawChunks: unknown[] = []
           let stripper: ReturnType<typeof LLMOutputSanitizer.createStreamSanitizer> | null = null
           let currentTextId: string | undefined
+          // A tool call whose arguments never parsed as JSON is dropped by the
+          // OpenAI chat provider: the tracker emits it so the SDK can repair
+          // it or report it to the model.
+          const unfinishedToolCalls = createUnfinishedToolCallTracker()
           const transformed = stream.pipeThrough(
             new TransformStream({
               transform(chunk, controller) {
                 // biome-ignore lint/suspicious/noExplicitAny: stream chunk shape varies by provider
                 const c = chunk as any
                 rawChunks.push(chunk)
+                for (const part of unfinishedToolCalls.before(chunk)) controller.enqueue(part)
                 if (c?.type === "text-start") {
                   stripper = LLMOutputSanitizer.createStreamSanitizer()
                   currentTextId = typeof c.id === "string" ? c.id : undefined
@@ -410,6 +457,17 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
                   const groupedStr = JSON.stringify(grouped)
                   const activeSpan = trace.getActiveSpan()
                   activeSpan?.setAttribute(RAW_LLM_RESPONSE_ATTR, groupedStr)
+                  const emittedToolCalls = unfinishedToolCalls.emitted()
+                  if (emittedToolCalls.length > 0) {
+                    activeSpan?.setAttribute(
+                      "llm.tool_call.emitted_from_unfinished_input",
+                      emittedToolCalls.join(","),
+                    )
+                    logger.warn("Emitted tool calls the provider dropped for malformed arguments", {
+                      model: args.config.model,
+                      toolNames: emittedToolCalls,
+                    })
+                  }
                   const originalText = extractTextFromStreamChunks(rawChunks)
                   if (originalText !== "") {
                     const strippedText = LLMOutputSanitizer.sanitize(originalText)
