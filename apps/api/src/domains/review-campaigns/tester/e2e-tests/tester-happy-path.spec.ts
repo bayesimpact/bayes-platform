@@ -12,6 +12,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+import { conversationFormFactory } from "@/domains/agents/shared/conversation-forms/conversation-form.factory"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
@@ -276,14 +277,17 @@ describe("ReviewCampaigns - Tester happy path", () => {
     expect(session?.campaignId).toBe(reviewCampaignId)
   })
 
-  it("startTesterSession on a fillForm-enabled campaign returns agentType conversation; listMyTesterSessions carries the session result", async () => {
-    await seedActiveCampaignWithTester("conversation", {
-      fillFormEnabled: true,
-      outputJsonSchema: {
-        type: "object",
-        properties: { title: { type: "string" }, summary: { type: "string" } },
+  it("startTesterSession on a fillForm-enabled campaign returns agentType conversation; listMyTesterSessions carries the session forms", async () => {
+    const { organization, project, agent, agentSettings } = await seedActiveCampaignWithTester(
+      "conversation",
+      {
+        fillFormEnabled: true,
+        outputJsonSchema: {
+          type: "object",
+          properties: { title: { type: "string" }, summary: { type: "string" } },
+        },
       },
-    })
+    )
 
     const started = await request({
       route: ReviewCampaignsRoutes.startTesterSession,
@@ -294,10 +298,11 @@ describe("ReviewCampaigns - Tester happy path", () => {
     expectResponse(started, 201)
     expect(started.body.data.agentType).toBe("conversation")
 
-    // Simulate the fillForm tool having written the session result mid-chat.
-    await repositories.conversationAgentSessionRepository.update(
-      { id: started.body.data.id },
-      { result: { title: "Session note", summary: "Filled by the agent" } },
+    // Simulate the fillForm tool having written the form mid-chat.
+    await repositories.conversationFormRepository.save(
+      conversationFormFactory
+        .transient({ organization, project, agent, agentSettings, session: started.body.data })
+        .build({ state: { title: "Session note", summary: "Filled by the agent" } }),
     )
 
     const list = await request({
@@ -308,7 +313,11 @@ describe("ReviewCampaigns - Tester happy path", () => {
     expectResponse(list, 200)
     const [summary] = list.body.data.sessions
     expect(summary?.agentType).toBe("conversation")
-    expect(summary?.result).toEqual({ title: "Session note", summary: "Filled by the agent" })
+    expect(summary?.forms).toHaveLength(1)
+    expect(summary?.forms[0]).toMatchObject({
+      agentId: agent.id,
+      state: { title: "Session note", summary: "Filled by the agent" },
+    })
   })
 
   it("listMyTesterSessions returns sessions for this campaign with feedback status", async () => {

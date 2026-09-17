@@ -93,7 +93,7 @@ export const Default: Story = {
         const conversationSessions =
           withAgentSessions && agentType === "conversation"
             ? // fillForm-enabled agents accumulate a form result on their sessions.
-              (withFillForm ? conversationSessionFactory.withResult() : conversationSessionFactory)
+              (withFillForm ? conversationSessionFactory.withForm() : conversationSessionFactory)
                 .buildList(3)
                 .sort(sortRecentlyCreated)
             : []

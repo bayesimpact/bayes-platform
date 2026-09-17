@@ -15,6 +15,7 @@ import { ProjectAgentSessionCategory } from "@/domains/agents/session-categories
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import { AgentMessageAttachmentDocument } from "@/domains/agents/shared/agent-session-messages/agent-message-attachment-document.entity"
 import { AgentMessageFeedback } from "@/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity"
+import { ConversationForm } from "@/domains/agents/shared/conversation-forms/conversation-form.entity"
 import { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
 import { Document } from "@/domains/documents/document.entity"
 import { DocumentChunk } from "@/domains/documents/embeddings/document-chunk.entity"
@@ -68,6 +69,7 @@ export const ALL_ENTITIES = [
   ConversationAgentSession,
   ConversationRetentionSweepRun,
   ConversationAgentSessionCategory,
+  ConversationForm,
   Document,
   DocumentChunk,
   DocumentChunkEmbedding,

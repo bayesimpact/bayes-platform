@@ -29,6 +29,7 @@ import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import type { Agent } from "@/domains/agents/agent.entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+import { toConversationFormDto } from "@/domains/agents/shared/conversation-forms/conversation-form.mapper"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { ReviewCampaign } from "../review-campaign.entity"
@@ -86,6 +87,7 @@ export class TesterController {
     @Req() request: EndpointRequestWithReviewCampaignMembership,
   ): Promise<typeof ReviewCampaignsRoutes.listMyTesterSessions.response> {
     const summaries = await this.testerService.listMyTesterSessions({
+      connectScope: getRequiredConnectScope(request),
       userId: request.user.id,
       campaignId: request.reviewCampaign.id,
     })
@@ -254,7 +256,7 @@ function toMyTesterSessionSummaryDto(summary: MyTesterSessionSummary): MyTesterS
     createdAt: summary.createdAt.getTime(),
     updatedAt: summary.updatedAt.getTime(),
     feedbackStatus: summary.feedbackStatus,
-    result: summary.result ?? undefined,
+    forms: summary.forms.map(toConversationFormDto),
     agentId: summary.agentId,
     type: summary.type,
   }

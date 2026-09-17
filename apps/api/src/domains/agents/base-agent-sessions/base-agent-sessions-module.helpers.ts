@@ -21,6 +21,7 @@ import { ExtractionAgentSession } from "../extraction-agent-sessions/extraction-
 import { AgentSessionCategory } from "../session-categories/agent-session-category.entity"
 import { AgentMessage } from "../shared/agent-session-messages/agent-message.entity"
 import { AgentMessageAttachmentDocument } from "../shared/agent-session-messages/agent-message-attachment-document.entity"
+import { ConversationForm } from "../shared/conversation-forms/conversation-form.entity"
 import { BaseAgentSessionGuard } from "./base-agent-session.guard"
 import { BaseAgentSessionsService } from "./base-agent-sessions.service"
 
@@ -47,6 +48,7 @@ export const moduleFeatures = [
   AgentMessageAttachmentDocument,
   ConversationAgentSession,
   ConversationAgentSessionCategory,
+  ConversationForm,
   Document,
   ExtractionAgentSession,
   Organization,

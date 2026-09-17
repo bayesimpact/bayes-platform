@@ -104,13 +104,10 @@ export class PublicChatService {
       agentSettings,
       userContent,
       notifyClient,
-      // Public sessions persist their state on public_agent_session — the
-      // same service implements both stateful-tool interfaces.
-      sessionState: {
-        metadataRecalculator: this.publicAgentSessionsService,
-        resultUpdater: this.publicAgentSessionsService,
-      },
-      sessionResult: publicSession.result ?? null,
+      // Public sessions persist their title and categories on
+      // public_agent_session; their forms live in conversation_form like
+      // every session's.
+      sessionState: { metadataRecalculator: this.publicAgentSessionsService },
       externalVisitorId: publicSession.externalVisitorId,
     })
   }

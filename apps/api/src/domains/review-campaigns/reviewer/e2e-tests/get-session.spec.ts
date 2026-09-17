@@ -12,6 +12,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import { conversationFormFactory } from "@/domains/agents/shared/conversation-forms/conversation-form.factory"
 import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import {
   createOrganizationWithAgent,
@@ -350,9 +351,10 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
   /**
    * Seeds a campaign whose agent has fillForm enabled (outputJsonSchema +
    * fillFormEnabled on the latest settings) and one conversation session
-   * carrying the given `result`. The caller is an accepted reviewer.
+   * whose form holds the given state (no form row when null). The caller is
+   * an accepted reviewer.
    */
-  const seedFillFormCampaignAndSession = async (result: Record<string, unknown> | null) => {
+  const seedFillFormCampaignAndSession = async (state: Record<string, unknown> | null) => {
     const {
       organization,
       project,
@@ -397,8 +399,21 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
     })
     const session = conversationAgentSessionFactory
       .transient({ organization, project, agent: fillFormAgent, user: tester })
-      .build({ campaignId: campaign.id, result })
+      .build({ campaignId: campaign.id })
     await repositories.conversationAgentSessionRepository.save(session)
+    if (state) {
+      await repositories.conversationFormRepository.save(
+        conversationFormFactory
+          .transient({
+            organization,
+            project,
+            agent: fillFormAgent,
+            agentSettings: fillFormAgentSettings,
+            session,
+          })
+          .build({ state }),
+      )
+    }
 
     organizationId = organization.id
     projectId = project.id
@@ -423,7 +438,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
     })
   })
 
-  it("returns formResult with a null value when the form was abandoned (no result written)", async () => {
+  it("returns formResult with a null value when the form was abandoned (nothing written)", async () => {
     await seedFillFormCampaignAndSession(null)
 
     const response = await subject()

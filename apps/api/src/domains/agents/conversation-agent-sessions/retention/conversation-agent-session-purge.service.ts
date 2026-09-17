@@ -11,6 +11,7 @@ import {
 import { AgentMessage } from "../../shared/agent-session-messages/agent-message.entity"
 import { AgentMessageAttachmentDocument } from "../../shared/agent-session-messages/agent-message-attachment-document.entity"
 import { AgentMessageFeedback } from "../../shared/agent-session-messages/feedback/agent-message-feedback.entity"
+import { ConversationFormsService } from "../../shared/conversation-forms/conversation-forms.service"
 import { ConversationAgentSession } from "../conversation-agent-session.entity"
 
 /** What is needed to remove a deleted document's source object and rendered pages from storage. */
@@ -41,11 +42,13 @@ export class ConversationAgentSessionPurgeService {
       if (!session || session.purgedAt) return false
 
       deletedDocumentFiles.push(...(await this.purgeSessionMessages(entityManager, sessionId)))
+      // The forms hold answers only: the rows go.
+      await ConversationFormsService.deleteForSession(entityManager, sessionId)
 
       await entityManager.update(
         ConversationAgentSession,
         { id: sessionId },
-        { title: null, result: null, purgedAt: new Date() },
+        { title: null, purgedAt: new Date() },
       )
       return true
     })
@@ -71,11 +74,12 @@ export class ConversationAgentSessionPurgeService {
       if (!session || session.purgedAt) return false
 
       deletedDocumentFiles.push(...(await this.purgeSessionMessages(entityManager, sessionId)))
+      await ConversationFormsService.deleteForSession(entityManager, sessionId)
 
       await entityManager.update(
         "PublicAgentSession",
         { id: sessionId },
-        { title: null, result: null, externalVisitorId: null, purgedAt: new Date() },
+        { title: null, externalVisitorId: null, purgedAt: new Date() },
       )
       return true
     })

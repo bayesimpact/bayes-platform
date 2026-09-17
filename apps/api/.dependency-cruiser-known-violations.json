@@ -640,6 +640,25 @@
   {
     "type": "cycle",
     "from": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
+    "to": "src/domains/agents/shared/conversation-forms/conversation-form.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/domains/agents/shared/conversation-forms/conversation-form.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
     "to": "src/domains/organizations/organization.entity.ts",
     "rule": {
       "severity": "error",
@@ -1029,11 +1048,11 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity.ts",
+        "name": "src/domains/agents/shared/conversation-forms/conversation-form.entity.ts",
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/domains/agents/session-categories/agent-session-category.entity.ts",
+        "name": "src/domains/agents/agent.entity.ts",
         "dependencyTypes": [
           "aliased",
           "aliased-tsconfig",
@@ -1041,10 +1060,6 @@
           "local",
           "import"
         ]
-      },
-      {
-        "name": "src/domains/agents/agent.entity.ts",
-        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/documents/tags/document-tag.entity.ts",
@@ -1668,6 +1683,127 @@
   },
   {
     "type": "cycle",
+    "from": "src/domains/agents/shared/conversation-forms/conversation-form.entity.ts",
+    "to": "src/domains/agents/agent.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/domains/agents/agent.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/documents/tags/document-tag.entity.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "src/domains/documents/document.entity.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "src/domains/projects/project.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/shared/conversation-forms/conversation-form.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/domains/agents/shared/conversation-forms/conversation-form.entity.ts",
+    "to": "src/domains/agents/settings/agent-settings.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/domains/agents/settings/agent-settings.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/agents/agent.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/documents/tags/document-tag.entity.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "src/domains/documents/document.entity.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "src/domains/projects/project.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/shared/agent-session-messages/agent-message.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/agents/shared/conversation-forms/conversation-form.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
     "from": "src/domains/documents/document.entity.ts",
     "to": "src/domains/documents/tags/document-tag.entity.ts",
     "rule": {
@@ -1997,11 +2133,11 @@
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity.ts",
+        "name": "src/domains/agents/shared/conversation-forms/conversation-form.entity.ts",
         "dependencyTypes": ["local", "import"]
       },
       {
-        "name": "src/domains/agents/session-categories/agent-session-category.entity.ts",
+        "name": "src/domains/agents/agent.entity.ts",
         "dependencyTypes": [
           "aliased",
           "aliased-tsconfig",
@@ -2009,10 +2145,6 @@
           "local",
           "import"
         ]
-      },
-      {
-        "name": "src/domains/agents/agent.entity.ts",
-        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/mcp-servers/agent-mcp-server.entity.ts",
@@ -3906,6 +4038,15 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/review-campaigns/tester/tester.service.ts",
+    "to": "src/domains/agents/shared/conversation-forms/conversation-form.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/agents/conversation-agent-sessions/retention/conversation-agent-session-purge.service.ts",
     "to": "src/domains/documents/pdf-pages/pdf-pages.service.ts",
     "rule": {
@@ -4473,6 +4614,15 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/review-campaigns/reviewer/reviewer.service.ts",
+    "to": "src/domains/agents/shared/conversation-forms/conversation-forms.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/review-campaigns/tester/tester.service.ts",
     "to": "src/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service.ts",
     "rule": {
@@ -4484,6 +4634,15 @@
     "type": "dependency",
     "from": "src/domains/review-campaigns/tester/tester.service.ts",
     "to": "src/domains/agents/settings/agent-settings.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/review-campaigns/tester/tester.service.ts",
+    "to": "src/domains/agents/shared/conversation-forms/conversation-forms.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"

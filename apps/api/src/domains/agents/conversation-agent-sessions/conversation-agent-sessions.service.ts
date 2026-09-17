@@ -121,6 +121,7 @@ export class ConversationAgentSessionsService {
       // empty husks: they stay out of the list too.
       where: { agentId, userId, type, parentSessionId: IsNull(), purgedAt: IsNull() },
       order: { createdAt: "DESC" },
+      relations: { forms: true },
     })
   }
 
@@ -239,32 +240,8 @@ export class ConversationAgentSessionsService {
     return this.conversationAgentSessionConnectRepository.find(connectScope, {
       where: { parentSessionId, userId, type, purgedAt: IsNull() },
       order: { createdAt: "ASC" },
+      relations: { forms: true },
     })
-  }
-
-  /**
-   * Merges the given fillForm input into the session's accumulated form state.
-   */
-  async updateSessionResult({
-    connectScope,
-    input,
-    sessionId,
-  }: {
-    connectScope: RequiredConnectScope
-    input: Record<string, unknown>
-    sessionId: string
-  }): Promise<{ result: Record<string, unknown> | null }> {
-    const session = await this.conversationAgentSessionConnectRepository.getOneById(
-      connectScope,
-      sessionId,
-    )
-    if (!session) return { result: null }
-
-    session.result = { ...session.result, ...input } // mergedResult
-
-    const updatedSession = await this.conversationAgentSessionConnectRepository.saveOne(session)
-
-    return { result: updatedSession.result }
   }
 
   async getCurrentCategoryNamesForSession({

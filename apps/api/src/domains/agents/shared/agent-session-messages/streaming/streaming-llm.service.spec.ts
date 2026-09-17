@@ -128,11 +128,7 @@ describe("StreamingLLMService", () => {
             suggestedTitle,
           }) => ({ suggestedTitle, selectedCategoryNames }),
         },
-        resultUpdater: {
-          updateSessionResult: async () => ({ result: null }),
-        },
       },
-      sessionResult: null,
     })
 
     const { events, fulltextStream } = await aggregateStream(stream)
@@ -577,7 +573,12 @@ describe("StreamingLLMService", () => {
     const formSubSession = await repositories.conversationAgentSessionRepository.findOne({
       where: { parentSessionId: session.id, agentId: formFillerAgent.id },
     })
-    expect(formSubSession?.result).toEqual({ forName: "John", name: "Doe" })
+    // The form the sub-agent fills lives in its sub-session, keyed by the sub-agent.
+    const subSessionForm = await repositories.conversationFormRepository.findOneByOrFail({
+      sessionId: formSubSession!.id,
+      agentId: formFillerAgent.id,
+    })
+    expect(subSessionForm.state).toEqual({ forName: "John", name: "Doe" })
 
     const calls = mockProvider.getCalls()
 

@@ -32,7 +32,6 @@ export const publicAgentSessionFactory = PublicAgentSessionFactory.define(
       externalVisitorId: params.externalVisitorId ?? null,
       lastActivityAt: params.lastActivityAt ?? now,
       title: params.title ?? null,
-      result: (params.result as Record<string, unknown> | null) ?? null,
       purgedAt: params.purgedAt ?? null,
       sessionCategories: [],
       createdAt: params.createdAt ?? now,

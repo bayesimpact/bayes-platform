@@ -10,8 +10,12 @@ import type { ToolExecutionLog } from "./tools/tool-execution-log"
  * corresponding ConversationAgentSession row.
  */
 export type PublicStreamingSessionProxy = {
-  /** fillForm state from public_agent_session.result — presence gates the tool. */
-  result?: Record<string, unknown> | null
+  /**
+   * Whether the session has a row the forms can attach to. True for public
+   * (embed) sessions, false for evaluation runs, which have no session and
+   * therefore no fillForm tool.
+   */
+  persistsForms: boolean
   id: string
   traceId: string
   organizationId: string
@@ -24,6 +28,11 @@ export type PublicStreamingSessionProxy = {
 }
 
 export type StreamingSession = ConversationAgentSession | PublicStreamingSessionProxy
+
+/** Whether the fillForm tool can store a form for this session (see {@link PublicStreamingSessionProxy.persistsForms}). */
+export function sessionPersistsForms(session: StreamingSession): boolean {
+  return "persistsForms" in session ? session.persistsForms : true
+}
 
 export type AgentSessionScope = {
   agent: Agent

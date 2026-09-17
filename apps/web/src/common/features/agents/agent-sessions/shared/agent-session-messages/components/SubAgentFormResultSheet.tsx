@@ -11,7 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@caseai-connect/ui/sha
 import { ClipboardListIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { FormResultFields } from "@/common/features/agents/agent-sessions/conversation/components/FormResultFields"
-import type { ConversationSubSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
+import {
+  type ConversationSubSession,
+  findConversationForm,
+} from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 
 /**
  * Opens a sheet showing the form result of every fillForm-enabled sub-agent the
@@ -57,7 +60,7 @@ export function SubAgentFormResultSheet({
               <TabsContent key={subSession.toolName} value={subSession.toolName}>
                 <FormResultFields
                   outputJsonSchema={subSession.outputJsonSchema}
-                  result={subSession.session.result}
+                  result={findConversationForm(subSession.session, subSession.agentId)?.state}
                 />
               </TabsContent>
             ))}

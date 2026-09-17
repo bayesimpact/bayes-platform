@@ -8,6 +8,7 @@ import { ConversationAgentSession } from "../conversation-agent-sessions/convers
 import { ExtractionAgentSession } from "../extraction-agent-sessions/extraction-agent-session.entity"
 import { AgentMessage } from "../shared/agent-session-messages/agent-message.entity"
 import { AgentMessageFeedback } from "../shared/agent-session-messages/feedback/agent-message-feedback.entity"
+import { ConversationFormsService } from "../shared/conversation-forms/conversation-forms.service"
 
 type AgentSession = ConversationAgentSession | ExtractionAgentSession
 
@@ -31,6 +32,7 @@ export class BaseAgentSessionsService {
   }): Promise<void> {
     await this.dataSource.transaction(async (entityManager) => {
       await this.deleteSessionMessages({ entityManager, sessionId: agentSession.id })
+      await ConversationFormsService.deleteForSession(entityManager, agentSession.id)
       await entityManager.delete(sessionEntityByType[agentType] as EntityTarget<AgentSession>, {
         agentId,
         id: agentSession.id,

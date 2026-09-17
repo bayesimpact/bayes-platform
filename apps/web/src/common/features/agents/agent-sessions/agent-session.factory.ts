@@ -3,6 +3,7 @@ import { Factory } from "fishery"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type {
   ConversationAgentSession,
+  ConversationForm,
   ConversationSubSession,
 } from "./conversation/conversation-agent-sessions.models"
 import type { ExtractionAgentSessionSummary } from "./extraction/extraction-agent-sessions.models"
@@ -19,16 +20,28 @@ class ConversationAgentSessionFactory extends Factory<
   ConversationAgentSession,
   SessionTransientParams
 > {
-  /** A session carrying a filled form state, for fillForm-enabled agents. */
-  withResult() {
-    return this.params({
-      result: {
-        title: faker.commerce.productName(),
-        summary: faker.lorem.sentence(),
-      },
+  /** A session whose agent has filled part of its form, for fillForm-enabled agents. */
+  withForm(state?: Record<string, unknown>) {
+    return this.afterBuild((session) => {
+      session.forms = [
+        conversationFormFactory.build({
+          agentId: session.agentId,
+          state: state ?? { title: faker.commerce.productName(), summary: faker.lorem.sentence() },
+        }),
+      ]
     })
   }
 }
+
+class ConversationFormFactory extends Factory<ConversationForm> {}
+
+export const conversationFormFactory = ConversationFormFactory.define(({ params }) => ({
+  agentId: params.agentId ?? faker.string.uuid(),
+  agentSettingsId: params.agentSettingsId ?? faker.string.uuid(),
+  status: params.status ?? "in_progress",
+  state: (params.state as Record<string, unknown> | undefined) ?? {},
+  updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
+}))
 
 export const conversationAgentSessionFactory = ConversationAgentSessionFactory.define(
   ({ params, transientParams }) => {
@@ -39,7 +52,7 @@ export const conversationAgentSessionFactory = ConversationAgentSessionFactory.d
       type: params.type ?? "live",
       createdAt: time,
       updatedAt: params.updatedAt ?? time,
-      result: params.result ?? undefined,
+      forms: (params.forms as ConversationForm[] | undefined) ?? [],
     } satisfies ConversationAgentSession
   },
 )
@@ -58,7 +71,7 @@ export const conversationSubSessionFactory = ConversationSubSessionFactory.defin
     const session =
       transientParams.session ??
       conversationAgentSessionFactory
-        .withResult()
+        .withForm()
         .transient(transientParams)
         .build({ type: "playground" })
     return {

@@ -14,6 +14,7 @@ import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
+import { toConversationFormDto } from "@/domains/agents/shared/conversation-forms/conversation-form.mapper"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
@@ -117,7 +118,7 @@ export class ConversationAgentSessionsController {
           connectScope,
           agentId: subAgent.childAgentId,
         })
-        // Only fillForm-enabled sub-agents accumulate a form result worth surfacing.
+        // Only fillForm-enabled sub-agents accumulate a form worth surfacing.
         if (!settings.fillFormEnabled) return []
 
         return [
@@ -148,7 +149,9 @@ function toDto(agentSessionType: BaseAgentSessionType) {
       createdAt: entity.createdAt.getTime(),
       updatedAt: entity.updatedAt.getTime(),
       traceUrl,
-      result: entity.result ?? undefined,
+      // Loaded with the session where the list is built; a session just
+      // created has none yet.
+      forms: (entity.forms ?? []).map(toConversationFormDto),
     }
   }
 }

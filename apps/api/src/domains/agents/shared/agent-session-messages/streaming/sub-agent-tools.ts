@@ -182,7 +182,7 @@ async function runSubAgentTool({
 
   // Each sub-agent gets its own persistent sub-session, keyed to the parent
   // session: it carries trace continuity and, for fillForm-enabled sub-agents,
-  // accumulates the form state (session.result) across parent turns.
+  // owns the form they fill across parent turns (conversation_form).
   const childSession: StreamingSession = await resolveConversationSubSession({
     agentSessionScope,
     childAgent,

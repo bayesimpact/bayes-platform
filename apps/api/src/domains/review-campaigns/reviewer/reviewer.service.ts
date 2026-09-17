@@ -13,6 +13,8 @@ import { ConversationAgentSession } from "@/domains/agents/conversation-agent-se
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ConversationFormsService } from "@/domains/agents/shared/conversation-forms/conversation-forms.service"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type {
   ReviewCampaignAgentType,
@@ -86,6 +88,7 @@ export class ReviewerService {
     @InjectRepository(TesterSessionFeedback)
     private readonly testerFeedbackRepository: Repository<TesterSessionFeedback>,
     private readonly agentSettingsService: AgentSettingsService,
+    private readonly conversationFormsService: ConversationFormsService,
   ) {}
 
   async listSessionsForCampaign({
@@ -175,37 +178,49 @@ export class ReviewerService {
     if (!agent) {
       throw new Error(`Agent ${campaign.agentId} not found for campaign ${campaign.id}`)
     }
+    const connectScope = {
+      organizationId: campaign.organizationId,
+      projectId: campaign.projectId,
+    }
     // The reviewer context must describe the published settings, not the draft an
     // author may be editing in the agent editor (#636).
     const agentSettings = await this.agentSettingsService.getLast({
-      connectScope: {
-        organizationId: campaign.organizationId,
-        projectId: campaign.projectId,
-      },
+      connectScope,
       agentId: campaign.agentId,
     })
     // Loads everything we need in parallel. Redaction happens below based on
     // whether the caller has already reviewed.
-    const [transcript, callerReview, allReviews, testerFeedback, session] = await Promise.all([
-      this.agentMessageRepository.find({
-        where: { sessionId, role: In(["user", "assistant"]) },
-        order: { createdAt: "ASC" },
-      }),
-      this.reviewRepository.findOne({ where: { sessionId, reviewerUserId } }),
-      this.reviewRepository.find({ where: { sessionId } }),
-      this.testerFeedbackRepository.findOne({ where: { sessionId } }),
-      this.conversationSessionRepository.findOne({
-        where: { id: sessionId },
-        select: { id: true, createdAt: true, result: true },
-      }),
-    ])
+    const [transcript, callerReview, allReviews, testerFeedback, session, form] = await Promise.all(
+      [
+        this.agentMessageRepository.find({
+          where: { sessionId, role: In(["user", "assistant"]) },
+          order: { createdAt: "ASC" },
+        }),
+        this.reviewRepository.findOne({ where: { sessionId, reviewerUserId } }),
+        this.reviewRepository.find({ where: { sessionId } }),
+        this.testerFeedbackRepository.findOne({ where: { sessionId } }),
+        this.conversationSessionRepository.findOne({
+          where: { id: sessionId },
+          select: { id: true, createdAt: true },
+        }),
+        // The form the campaign's agent filled in this session, with the
+        // settings revision that wrote it: the reviewer reads the answers
+        // against the schema that collected them, not against a later edit.
+        this.conversationFormsService.findOne({
+          connectScope,
+          sessionId,
+          agentId: campaign.agentId,
+          withAgentSettings: true,
+        }),
+      ],
+    )
     if (!session) throw new Error(`Conversation session ${sessionId} not found`)
 
     const otherReviews = allReviews.filter((review) => review.reviewerUserId !== reviewerUserId)
     const formResult: ReviewerFormResult | null = agentSettings.fillFormEnabled
       ? {
-          schema: agentSettings.outputJsonSchema ?? {},
-          value: session.result ?? null,
+          schema: form?.agentSettings.outputJsonSchema ?? agentSettings.outputJsonSchema ?? {},
+          value: form?.state ?? null,
         }
       : null
     const meta: ReviewerSessionMetaResult = {
