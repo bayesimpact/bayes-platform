@@ -354,7 +354,7 @@ export async function runTurnClassification({
       metadata: {
         ...metadata,
         tags: [...metadata.tags, "turn-classification"],
-        spanLabel: "classification",
+        spanLabel: metadata.spanLabel ? `${metadata.spanLabel} · classification` : "classification",
       },
     })
     const parsed = turnClassificationOutputSchema.safeParse(rawOutput)
