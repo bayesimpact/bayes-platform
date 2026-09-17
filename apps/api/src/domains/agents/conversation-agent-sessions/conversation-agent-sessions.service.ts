@@ -244,6 +244,47 @@ export class ConversationAgentSessionsService {
     })
   }
 
+  /**
+   * Hands the conversation to a sub-agent: its turns answer the user in this
+   * session until it concludes. No-op for an unknown session.
+   */
+  async setActiveAgent({
+    connectScope,
+    sessionId,
+    activeAgentId,
+  }: {
+    connectScope: RequiredConnectScope
+    sessionId: string
+    activeAgentId: string
+  }): Promise<void> {
+    await this.conversationAgentSessionConnectRepository.updateManyBy({
+      connectScope,
+      where: { id: sessionId },
+      fields: { activeAgentId },
+    })
+  }
+
+  /**
+   * Hands the conversation back to the session's agent, only if the given
+   * sub-agent is still the one in control: a stale conclusion must not undo a
+   * newer handoff.
+   */
+  async clearActiveAgentIfCurrent({
+    connectScope,
+    sessionId,
+    expectedActiveAgentId,
+  }: {
+    connectScope: RequiredConnectScope
+    sessionId: string
+    expectedActiveAgentId: string
+  }): Promise<void> {
+    await this.conversationAgentSessionConnectRepository.updateManyBy({
+      connectScope,
+      where: { id: sessionId, activeAgentId: expectedActiveAgentId },
+      fields: { activeAgentId: null },
+    })
+  }
+
   async getCurrentCategoryNamesForSession({
     connectScope,
     sessionId,

@@ -81,6 +81,7 @@ export function toDto(
     startedAt: message.startedAt?.getTime(),
     completedAt: message.completedAt?.getTime(),
     agentRevision: message.agentSettings.revision,
+    agentId: message.agentSettings.agentId,
     toolCalls: applyLiveMcpAppHtml(message.toolCalls, htmlByKey),
     attachmentDocumentId: message.attachmentDocumentId ?? undefined,
   }

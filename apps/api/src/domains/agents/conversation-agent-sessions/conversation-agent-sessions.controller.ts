@@ -152,6 +152,7 @@ function toDto(agentSessionType: BaseAgentSessionType) {
       // Loaded with the session where the list is built; a session just
       // created has none yet.
       forms: (entity.forms ?? []).map(toConversationFormDto),
+      ...(entity.activeAgentId ? { activeAgentId: entity.activeAgentId } : {}),
     }
   }
 }

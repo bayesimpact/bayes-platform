@@ -80,6 +80,7 @@ export const WithSubAgents: Story = {
         toolName: "ask_resource_navigator",
         description: "Route resource lookup and eligibility questions to Resource Navigator.",
         enabled: true,
+        mode: "relay",
       },
       {
         id: "sub-agent-policy",
@@ -87,6 +88,7 @@ export const WithSubAgents: Story = {
         toolName: "ask_policy_analyst",
         description: "Use Policy Analyst for questions that need regulatory or policy framing.",
         enabled: false,
+        mode: "relay",
       },
     ],
   },
@@ -101,6 +103,7 @@ export const NoAvailableConversationAgents: Story = {
         toolName: "ask_resource_navigator",
         description: "Route resource lookup and eligibility questions to Resource Navigator.",
         enabled: true,
+        mode: "relay",
       },
       {
         id: "sub-agent-policy",
@@ -108,6 +111,7 @@ export const NoAvailableConversationAgents: Story = {
         toolName: "ask_policy_analyst",
         description: "Use Policy Analyst for questions that need regulatory or policy framing.",
         enabled: true,
+        mode: "relay",
       },
       {
         id: "sub-agent-drafting",
@@ -115,6 +119,7 @@ export const NoAvailableConversationAgents: Story = {
         toolName: "ask_drafting_assistant",
         description: "Use Drafting Assistant for short operational drafts.",
         enabled: true,
+        mode: "relay",
       },
       {
         id: "sub-agent-intake",
@@ -122,6 +127,7 @@ export const NoAvailableConversationAgents: Story = {
         toolName: "ask_intake_assistant",
         description: "Delegate structured intake questions to Intake Assistant.",
         enabled: true,
+        mode: "relay",
       },
     ],
   },

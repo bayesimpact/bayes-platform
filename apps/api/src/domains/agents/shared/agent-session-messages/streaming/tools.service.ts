@@ -27,6 +27,7 @@ import { generateMasterPrompt } from "./master-promts/generate-master-prompt"
 import type { AgentSessionScope, OnExecute } from "./streaming-session.types"
 import { sessionPersistsForms } from "./streaming-session.types"
 import { type BuiltTools, buildSubAgentTools } from "./sub-agent-tools"
+import { concludeHandoffInstruction, concludeHandoffTool } from "./tools/conclude-handoff.tool"
 import { fillFormTool } from "./tools/fill-form.tool"
 import {
   inlineCitationInstruction,
@@ -412,9 +413,15 @@ export class ToolsService {
               getProviderForModel,
               onExecute,
               projectsService: this.projectsService,
+              activeAgentController:
+                sessionState?.activeAgent ?? this.conversationAgentSessionsService,
+              formReader: this.conversationFormsService,
             })
           : Promise.resolve({ tools: {}, toolDescriptions: {} }),
       ])
+    // A sub-agent answering as the active agent of a handoff hands the
+    // conversation back itself, with this tool.
+    const handoff = agentSessionScope.handoff
 
     // Sources are reported only when the agent can actually retrieve chunks:
     // BOTH the project feature flag and an active RAG mode (lookup tool present).
@@ -493,6 +500,20 @@ export class ToolsService {
             }),
           }
         : {}),
+
+      ...(handoff
+        ? {
+            [ToolName.ConcludeHandoff]: concludeHandoffTool({
+              connectScope,
+              sessionId: session.id,
+              childAgentId: agent.id,
+              activeAgentController:
+                sessionState?.activeAgent ?? this.conversationAgentSessionsService,
+              formConcluder: this.conversationFormsService,
+              onExecute,
+            }),
+          }
+        : {}),
     }
 
     // Merge the MCP tools into the final tool set
@@ -517,6 +538,9 @@ export class ToolsService {
             // (see promptHelpers.tools) when sources are reported.
             ...(hasSourcesReporting
               ? { [ToolName.LookupKnowledgeBase]: inlineCitationInstruction() }
+              : {}),
+            ...(handoff
+              ? { [ToolName.ConcludeHandoff]: concludeHandoffInstruction(handoff.parentAgent.name) }
               : {}),
           },
           tools,

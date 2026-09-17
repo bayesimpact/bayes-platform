@@ -182,11 +182,13 @@ export class AgentsService {
   async findAgentById({
     connectScope,
     agentId,
+    relations,
   }: {
     connectScope: RequiredConnectScope
     agentId: string
+    relations?: string[]
   }): Promise<Agent | null> {
-    return this.agentConnectRepository.getOneById(connectScope, agentId)
+    return this.agentConnectRepository.getOneById(connectScope, agentId, { relations })
   }
 
   /**

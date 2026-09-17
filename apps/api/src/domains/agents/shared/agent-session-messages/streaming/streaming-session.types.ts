@@ -39,6 +39,12 @@ export type AgentSessionScope = {
   agentSettings: AgentSettings
   session: StreamingSession
   connectScope: RequiredConnectScope
+  /**
+   * Set when `agent` is a sub-agent answering as the session's active agent
+   * (handoff mode): it gets the concludeHandoff tool and a hand-over section
+   * in its prompt, and none of its own handoff links.
+   */
+  handoff?: { parentAgent: Agent }
 }
 
 /**

@@ -36,6 +36,11 @@ describe("buildSubAgentTools", () => {
     }
 
     const { tools } = await buildSubAgentTools({
+      activeAgentController: {
+        setActiveAgent: async () => undefined,
+        clearActiveAgentIfCurrent: async () => undefined,
+      },
+      formReader: { findOne: async () => null },
       agentSessionScope: {
         agent: parentAgent,
         agentSettings: parentAgentSettings,
@@ -171,6 +176,11 @@ describe("buildSubAgentTools", () => {
       | undefined
 
     const { tools } = await buildSubAgentTools({
+      activeAgentController: {
+        setActiveAgent: async () => undefined,
+        clearActiveAgentIfCurrent: async () => undefined,
+      },
+      formReader: { findOne: async () => null },
       agentSessionScope: {
         agent: parentAgent,
         agentSettings: parentAgentSettings,
@@ -294,6 +304,11 @@ describe("buildSubAgentTools", () => {
       | undefined
 
     const { tools } = await buildSubAgentTools({
+      activeAgentController: {
+        setActiveAgent: async () => undefined,
+        clearActiveAgentIfCurrent: async () => undefined,
+      },
+      formReader: { findOne: async () => null },
       agentSessionScope: {
         agent: parentAgent,
         agentSettings: parentAgentSettings,

@@ -28,6 +28,11 @@ export type ConversationAgentSessionDto = {
   traceUrl?: string
   /** The forms filled in this conversation; empty when no agent has fillForm or nothing was written. */
   forms: ConversationFormDto[]
+  /**
+   * The sub-agent the user is talking to right now, when a handoff is in progress. Absent when
+   * the session's own agent answers.
+   */
+  activeAgentId?: string
 }
 
 /**

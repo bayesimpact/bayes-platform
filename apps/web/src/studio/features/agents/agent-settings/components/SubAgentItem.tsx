@@ -10,6 +10,13 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@caseai-connect/ui/shad/item"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@caseai-connect/ui/shad/select"
 import { Switch } from "@caseai-connect/ui/shad/switch"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
@@ -52,7 +59,15 @@ export function SubAgentItem({
                 : t("agentSettings:orchestration.disabled")}
             </Badge>
           </ItemTitle>
-          <ItemDescription>{subAgent.toolName}</ItemDescription>
+          <ItemDescription>
+            {subAgent.toolName}
+            {subAgent.mode === "handoff" && (
+              <>
+                {" "}
+                <Badge variant="outline">{t("agentSettings:orchestration.modeHandoff")}</Badge>
+              </>
+            )}
+          </ItemDescription>
         </ItemContent>
         <ItemActions>
           <Switch
@@ -78,6 +93,31 @@ export function SubAgentItem({
         </ItemActions>
       </Item>
       <div className="grid gap-4 border-t p-4 md:grid-cols-[minmax(12rem,18rem)_1fr]">
+        <Field>
+          <FieldLabel htmlFor={`sub-agent-mode-${subAgent.id}`}>
+            {t("agentSettings:orchestration.mode")}
+          </FieldLabel>
+          <Select
+            value={subAgent.mode}
+            onValueChange={(mode) => onUpdate({ mode: mode as AgentSubAgentFormValue["mode"] })}
+          >
+            <SelectTrigger id={`sub-agent-mode-${subAgent.id}`}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="relay">{t("agentSettings:orchestration.modeRelay")}</SelectItem>
+              <SelectItem value="handoff">
+                {t("agentSettings:orchestration.modeHandoff")}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-muted-foreground text-sm">
+            {subAgent.mode === "handoff"
+              ? t("agentSettings:orchestration.modeHandoffHint")
+              : t("agentSettings:orchestration.modeRelayHint")}
+          </p>
+        </Field>
+        <div className="hidden md:block" />
         <Field>
           <FieldLabel htmlFor={`sub-agent-tool-name-${subAgent.id}`}>
             {t("agentSettings:orchestration.toolName")}

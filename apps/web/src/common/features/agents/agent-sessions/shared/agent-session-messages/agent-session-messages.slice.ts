@@ -56,6 +56,21 @@ const slice = createSlice({
         agentRevision: action.payload.agentRevision,
       })
     },
+    /**
+     * A turn can stream more than one reply: after a hand-over, the next agent's
+     * first reply follows the hand-over sentence in the same response. Each
+     * later reply gets its own streaming bubble.
+     */
+    startNewStreamingMessage: (state, action: PayloadAction<{ id: string }>) => {
+      if (!ADS.isFulfilled(state.data)) return
+      state.streamingToolSteps = []
+      state.data.value.push({
+        id: action.payload.id,
+        role: "assistant",
+        content: "",
+        status: "streaming",
+      })
+    },
     updateAssistantMessageId: (
       state,
       action: PayloadAction<{ oldMessageId: string; newMessageId: string }>,

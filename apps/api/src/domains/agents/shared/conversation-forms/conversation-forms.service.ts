@@ -112,6 +112,26 @@ export class ConversationFormsService {
   }
 
   /**
+   * Marks the form of the agent in the session as concluded, when it exists:
+   * the handoff ended and the agent has nothing more to collect.
+   */
+  async conclude({
+    connectScope,
+    sessionId,
+    agentId,
+  }: {
+    connectScope: RequiredConnectScope
+    sessionId: string
+    agentId: string
+  }): Promise<void> {
+    await this.conversationFormConnectRepository.updateManyBy({
+      connectScope,
+      where: { sessionId, agentId },
+      fields: { status: "concluded" },
+    })
+  }
+
+  /**
    * Removes every form of a session. Used by the content purge (the answers
    * are user content, the row has no analytics value) and by session deletion.
    * Runs in the caller's transaction.

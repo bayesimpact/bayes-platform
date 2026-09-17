@@ -53,6 +53,7 @@ export const conversationAgentSessionFactory = ConversationAgentSessionFactory.d
       createdAt: time,
       updatedAt: params.updatedAt ?? time,
       forms: (params.forms as ConversationForm[] | undefined) ?? [],
+      activeAgentId: params.activeAgentId,
     } satisfies ConversationAgentSession
   },
 )
@@ -118,6 +119,7 @@ export const agentSessionMessageFactory = AgentSessionMessageFactory.define(({ p
   content: params.content ?? faker.lorem.sentence(),
   status: params.status ?? "completed",
   agentRevision: params.agentRevision,
+  agentId: params.agentId,
   toolCalls: params.toolCalls,
 }))
 

@@ -198,6 +198,7 @@ function toAgentSubAgentDto(entity: AgentSubAgent): AgentSubAgentDto {
     toolName: entity.toolName,
     description: entity.description,
     enabled: entity.enabled,
+    mode: entity.mode,
     childAgent: entity.childAgent
       ? {
           id: entity.childAgent.id,

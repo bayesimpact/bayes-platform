@@ -75,8 +75,9 @@ export class AgentSubAgentsService {
           parentAgentId: parentAgent.id,
           childAgentId: subAgent.childAgentId,
           toolName: subAgent.toolName,
-          description: subAgent.description,
+          description: subAgent.description ?? "",
           enabled: subAgent.enabled,
+          mode: subAgent.mode ?? "relay",
         }),
       )
       await entityManager.save(AgentSubAgent, rows)

@@ -13,6 +13,10 @@ class AgentSubAgentFactory extends Factory<AgentSubAgent, AgentSubAgentTransient
   tool({ toolName, description }: { toolName: string; description: string }) {
     return this.params({ toolName, description })
   }
+
+  handoff() {
+    return this.params({ mode: "handoff" })
+  }
 }
 
 export const agentSubAgentFactory = AgentSubAgentFactory.define(({ params, transientParams }) => {
@@ -36,5 +40,6 @@ export const agentSubAgentFactory = AgentSubAgentFactory.define(({ params, trans
     toolName: params.toolName ?? `ask_${transientParams.childAgent.name}`,
     description: params.description ?? `if necessary, call ask_${transientParams.childAgent.name}`,
     enabled: params.enabled ?? true,
+    mode: params.mode ?? "relay",
   } satisfies AgentSubAgent
 })

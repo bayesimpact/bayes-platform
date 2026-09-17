@@ -7,6 +7,7 @@ import {
 } from "@/domains/agents/base-agent-sessions/base-agent-sessions-module.helpers"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
+import { ActiveAgentScopeService } from "./active-agent-scope.service"
 import { AgentLlmModule } from "./agent-llm.module"
 import { StreamingController } from "./streaming.controller"
 import { StreamingLlmService } from "./streaming-llm.service"
@@ -18,8 +19,8 @@ import { StreamingLlmService } from "./streaming-llm.service"
     forwardRef(() => AgentLlmModule),
     forwardRef(() => ConversationAgentSessionsModule),
   ],
-  providers: [...moduleProviders, StreamingLlmService],
+  providers: [...moduleProviders, StreamingLlmService, ActiveAgentScopeService],
   controllers: [StreamingController],
-  exports: [StreamingLlmService],
+  exports: [StreamingLlmService, ActiveAgentScopeService],
 })
 export class StreamingModule {}

@@ -177,7 +177,13 @@
       "toolName": "Tool name",
       "toolNamePlaceholder": "ask_specialist_agent",
       "description": "Tool description",
-      "defaultDescription": "Route specialized requests to {{name}}."
+      "defaultDescription": "Route specialized requests to {{name}}.",
+      "mode": "Mode",
+      "modeRelay": "Consulted",
+      "modeHandoff": "Takes over",
+      "modeRelayHint": "The orchestrator calls this agent for one exchange and answers the user itself.",
+      "modeHandoffHint": "This agent talks to the user directly until its part is done, then hands the conversation back.",
+      "talkingTo": "Talking to {{name}}"
     },
     "embed": {
       "loading": "Loading embed configuration…",

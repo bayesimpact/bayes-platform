@@ -92,7 +92,7 @@ défaut et disparaît de la liste des disponibles.
 
 ### 5. Configurer le sous-agent
 
-Chaque sous-agent rattaché a deux champs :
+Chaque sous-agent rattaché a trois champs :
 
 - **Nom de l'outil** — l'identifiant que le modèle appelle, prérempli en
   `ask_<nom de l'agent>` (placeholder **ask_specialist_agent**). Il n'accepte que des
@@ -101,6 +101,13 @@ Chaque sous-agent rattaché a deux champs :
   `<nom>`.* C'est le champ le plus important : le modèle de l'orchestrateur le lit pour
   décider **quand** déléguer, alors décrivez précisément la spécialité du sous-agent
   (jusqu'à 2000 caractères).
+- **Mode** : la façon dont l'orchestrateur utilise le sous-agent.
+  - **Consulté** (par défaut) : l'orchestrateur consulte le sous-agent pour un échange et
+    répond lui-même à l'usager. Adapté à un expert auquel on pose une question.
+  - **Prend la main** : le sous-agent parle directement à l'usager, dans la même
+    conversation, jusqu'à la fin de sa partie, puis rend la conversation. Adapté à un
+    formulaire ou à un entretien que le sous-agent doit mener lui-même. L'en-tête de la
+    session indique à qui l'usager parle, et chaque réponse nomme l'agent qui l'a écrite.
 
 ### 6. Activer, désactiver ou retirer
 
@@ -128,6 +135,13 @@ tâche et le contexte utile — puis utilise la réponse du sous-agent pour comp
 sienne. Les sous-agents conversationnels répondent directement ; les sous-agents de
 formulaire déroulent leur formulaire. La délégation dépend entièrement des
 descriptions d'outils : des descriptions claires produisent un meilleur routage.
+
+Un sous-agent en mode **Prend la main** change qui parle. Quand l'orchestrateur lui passe
+la conversation, il écrit une phrase de transition et le sous-agent pose sa première
+question aussitôt, dans la même réponse. Les messages suivants de l'usager vont au
+sous-agent jusqu'à ce qu'il juge sa partie terminée ; l'orchestrateur reprend alors de
+lui-même, sans message de l'usager. Un sous-agent qui a rempli un formulaire ne reçoit pas
+la conversation une seconde fois : l'orchestrateur s'appuie sur ce qu'il a collecté.
 
 ## Conseils
 

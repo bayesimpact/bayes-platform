@@ -1,3 +1,4 @@
+import { Badge } from "@caseai-connect/ui/shad/badge"
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
@@ -16,7 +17,7 @@ import {
   selectAgentSettingsHistoryDataByAgentId,
   selectPlaygroundRevision,
 } from "@/common/features/agents/agent-settings/agent-settings.selectors"
-import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
+import { selectAgentsData, selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
 import { DeleteAgentSessionButton } from "@/common/features/agents/components/DeleteAgentSessionButton"
 import { useGetAgentRoute } from "@/common/hooks/use-get-path"
 import { useValue } from "@/common/hooks/use-value"
@@ -29,6 +30,14 @@ import { AgentSettingsVersionSelect } from "../features/agents/agent-settings/co
 type AgentSession = ConversationAgentSession
 export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentSession }) {
   const agent = useValue(selectCurrentAgentData)
+  const agents = useValue(selectAgentsData)
+  const agentNameById = (agentId: string) =>
+    agents.find((candidate) => candidate.id === agentId)?.name ??
+    t("agentSettings:orchestration.missingAgent")
+  // The sub-agent the user is talking to while a handoff is in progress.
+  const activeAgentName = agentSession.activeAgentId
+    ? agentNameById(agentSession.activeAgentId)
+    : undefined
   const publishedSettings = useValue(selectAgentSettingsDataByAgentId({ agentId: agent.id }))
   const messages = useValue(selectCurrentMessagesData)
   const selectSubSessions = useMemo(
@@ -62,6 +71,11 @@ export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentS
     publishedSettings
 
   const renderMessageVersion = (message: AgentSessionMessage) => {
+    // A message written by a sub-agent in control names that agent; the
+    // revision badge only describes the session's own agent.
+    if (message.agentId && message.agentId !== agent.id) {
+      return <Badge variant="outline">{agentNameById(message.agentId)}</Badge>
+    }
     const revision = resolveMessageRevision(message, runningRevision)
     if (revision === undefined) return null
     return (
@@ -92,6 +106,15 @@ export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentS
                   versions={versions}
                   tooltipKey="headerRevisionTooltip"
                 />
+              </>
+            )}
+            {activeAgentName && (
+              <>
+                {" "}
+                •
+                <Badge variant="secondary">
+                  {t("agentSettings:orchestration.talkingTo", { name: activeAgentName })}
+                </Badge>
               </>
             )}
           </div>

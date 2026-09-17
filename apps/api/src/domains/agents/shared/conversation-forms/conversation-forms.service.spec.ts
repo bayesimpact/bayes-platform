@@ -159,4 +159,27 @@ describe("ConversationFormsService", () => {
       await service.findOne({ connectScope: otherScope, sessionId: session.id, agentId: agent.id }),
     ).toBeNull()
   })
+
+  it("marks the form of an agent as concluded, leaving the others in progress", async () => {
+    const { connectScope, agent, agentSettings, session } = await createSession()
+    await service.mergeFields({
+      connectScope,
+      sessionId: session.id,
+      agentId: agent.id,
+      agentSettingsId: agentSettings.id,
+      fields: { title: "Done" },
+    })
+
+    await service.conclude({ connectScope, sessionId: session.id, agentId: agent.id })
+
+    const form = await service.findOne({ connectScope, sessionId: session.id, agentId: agent.id })
+    expect(form?.status).toBe("concluded")
+    expect(form?.state).toEqual({ title: "Done" })
+    // Concluding an agent that wrote nothing is a no-op.
+    await service.conclude({
+      connectScope,
+      sessionId: session.id,
+      agentId: "00000000-0000-0000-0000-000000000000",
+    })
+  })
 })
