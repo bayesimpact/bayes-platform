@@ -217,6 +217,7 @@ export const sendMessage = createAsyncThunk<
 
             switch (event.toolName) {
               case ToolName.FillForm:
+              case ToolName.ConsolidateForm:
                 if (onFillFormToolEvent) onFillFormToolEvent()
                 // FIXME: should be replace by getOne
                 else dispatch(conversationAgentSessionsActions.getAll({ agentId }))

@@ -59,7 +59,9 @@ export function AgentSessionMessage({
       // The stream died with the server (typically a deploy mid-reply): nothing was written.
       const isInterrupted = message.status === "aborted"
       // This turn ran the fillForm tool, so its footer can open the form result.
-      const filledForm = (message.toolCalls ?? []).some((call) => call.name === ToolName.FillForm)
+      const filledForm = (message.toolCalls ?? []).some(
+        (call) => call.name === ToolName.FillForm || call.name === ToolName.ConsolidateForm,
+      )
       const sourcesTool = message.toolCalls?.find((call) => call.name === ToolName.Sources)
       const surfaceResourcesTool = message.toolCalls?.find(
         (call) => call.name === ToolName.SurfaceResources,
@@ -243,6 +245,8 @@ const TOOL_ACTIVITY_KEY: Record<string, string> = {
   [ToolName.Sources]: "activity.gatheringSources",
   [ToolName.SurfaceResources]: "activity.surfacingResources",
   [ToolName.FillForm]: "activity.fillingForm",
+  [ToolName.ConsolidateForm]: "activity.completingForm",
+  [ToolName.ConcludeHandoff]: "activity.handingBack",
   [ToolName.RecalculateConversationSessionMetadata]: "activity.recalculating",
 }
 

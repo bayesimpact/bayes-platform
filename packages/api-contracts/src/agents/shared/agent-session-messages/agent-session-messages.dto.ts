@@ -10,6 +10,8 @@ export enum ToolName {
   SurfaceResources = "surfaceResources",
   /** A sub-agent in handoff mode hands the conversation back to its parent. */
   ConcludeHandoff = "concludeHandoff",
+  /** At the end of a hand-over, the platform adds to the form the fields the exchange left empty. */
+  ConsolidateForm = "consolidateForm",
 }
 
 export type AgentSessionToolName = ToolName | (string & {})

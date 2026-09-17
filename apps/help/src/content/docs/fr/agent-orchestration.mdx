@@ -145,7 +145,9 @@ la conversation une seconde fois : l'orchestrateur s'appuie sur ce qu'il a colle
 L'orchestrateur sait ce que chaque sous-agent a collecté et s'il a terminé, et un sous-agent
 qui prend la main sait ce que les précédents ont déjà collecté, pour ne pas poser deux fois la
 même question. Un sous-agent qui termine sa partie sans le signaler explicitement rend quand
-même la main : la plateforme lit sa dernière réponse pour y voir une conclusion.
+même la main : la plateforme lit sa dernière réponse pour y voir une conclusion. Quand un
+sous-agent de formulaire termine, la plateforme relit sa partie de la conversation et complète
+les champs restés vides, sans modifier une réponse déjà enregistrée.
 
 ## Conseils
 
