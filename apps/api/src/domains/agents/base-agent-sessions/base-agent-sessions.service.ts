@@ -8,6 +8,7 @@ import { ConversationAgentSession } from "../conversation-agent-sessions/convers
 import { ExtractionAgentSession } from "../extraction-agent-sessions/extraction-agent-session.entity"
 import { AgentMessage } from "../shared/agent-session-messages/agent-message.entity"
 import { AgentMessageFeedback } from "../shared/agent-session-messages/feedback/agent-message-feedback.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ConversationFormsService } from "../shared/conversation-forms/conversation-forms.service"
 
 type AgentSession = ConversationAgentSession | ExtractionAgentSession
@@ -19,7 +20,10 @@ const sessionEntityByType: Record<Agent["type"], EntityTarget<AgentSession>> = {
 
 @Injectable()
 export class BaseAgentSessionsService {
-  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
+  constructor(
+    @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly conversationFormsService: ConversationFormsService,
+  ) {}
 
   async deleteAgentSession({
     agentType,
@@ -32,7 +36,7 @@ export class BaseAgentSessionsService {
   }): Promise<void> {
     await this.dataSource.transaction(async (entityManager) => {
       await this.deleteSessionMessages({ entityManager, sessionId: agentSession.id })
-      await ConversationFormsService.deleteForSession(entityManager, agentSession.id)
+      await this.conversationFormsService.deleteForSession(entityManager, agentSession.id)
       await entityManager.delete(sessionEntityByType[agentType] as EntityTarget<AgentSession>, {
         agentId,
         id: agentSession.id,

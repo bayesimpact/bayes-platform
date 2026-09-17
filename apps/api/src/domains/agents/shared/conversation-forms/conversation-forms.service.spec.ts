@@ -99,9 +99,6 @@ describe("ConversationFormsService", () => {
     })
     expect(form.agentSettingsId).toBe(nextRevision.id)
     expect(form.state).toEqual({ a: 1, b: 2 })
-
-    const withSettings = await service.findOne({ ...key, withAgentSettings: true })
-    expect(withSettings?.agentSettings.id).toBe(nextRevision.id)
   })
 
   it("keeps one form per agent in the same session", async () => {

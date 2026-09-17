@@ -22,6 +22,7 @@ import { AgentSessionCategory } from "../session-categories/agent-session-catego
 import { AgentMessage } from "../shared/agent-session-messages/agent-message.entity"
 import { AgentMessageAttachmentDocument } from "../shared/agent-session-messages/agent-message-attachment-document.entity"
 import { ConversationForm } from "../shared/conversation-forms/conversation-form.entity"
+import { ConversationFormsModule } from "../shared/conversation-forms/conversation-forms.module"
 import { BaseAgentSessionGuard } from "./base-agent-session.guard"
 import { BaseAgentSessionsService } from "./base-agent-sessions.service"
 
@@ -35,6 +36,7 @@ export const moduleImports = [
   forwardRef(() => require("../../documents/documents.module").DocumentsModule),
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   forwardRef(() => require("../../projects/projects.module").ProjectsModule),
+  ConversationFormsModule,
   LlmModule,
   OrganizationsModule,
   StorageModule,

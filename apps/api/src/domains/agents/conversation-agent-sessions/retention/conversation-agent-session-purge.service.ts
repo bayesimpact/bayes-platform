@@ -11,6 +11,7 @@ import {
 import { AgentMessage } from "../../shared/agent-session-messages/agent-message.entity"
 import { AgentMessageAttachmentDocument } from "../../shared/agent-session-messages/agent-message-attachment-document.entity"
 import { AgentMessageFeedback } from "../../shared/agent-session-messages/feedback/agent-message-feedback.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ConversationFormsService } from "../../shared/conversation-forms/conversation-forms.service"
 import { ConversationAgentSession } from "../conversation-agent-session.entity"
 
@@ -30,6 +31,7 @@ export class ConversationAgentSessionPurgeService {
     @InjectDataSource() private readonly dataSource: DataSource,
     @Inject(FILE_STORAGE_SERVICE) private readonly fileStorage: IFileStorage,
     private readonly pdfPagesService: PdfPagesService,
+    private readonly conversationFormsService: ConversationFormsService,
   ) {}
 
   async purgeSessionContent(sessionId: string): Promise<{ purged: boolean }> {
@@ -43,7 +45,7 @@ export class ConversationAgentSessionPurgeService {
 
       deletedDocumentFiles.push(...(await this.purgeSessionMessages(entityManager, sessionId)))
       // The forms hold answers only: the rows go.
-      await ConversationFormsService.deleteForSession(entityManager, sessionId)
+      await this.conversationFormsService.deleteForSession(entityManager, sessionId)
 
       await entityManager.update(
         ConversationAgentSession,
@@ -74,7 +76,7 @@ export class ConversationAgentSessionPurgeService {
       if (!session || session.purgedAt) return false
 
       deletedDocumentFiles.push(...(await this.purgeSessionMessages(entityManager, sessionId)))
-      await ConversationFormsService.deleteForSession(entityManager, sessionId)
+      await this.conversationFormsService.deleteForSession(entityManager, sessionId)
 
       await entityManager.update(
         "PublicAgentSession",

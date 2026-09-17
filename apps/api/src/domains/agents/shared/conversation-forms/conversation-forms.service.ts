@@ -65,17 +65,13 @@ export class ConversationFormsService {
     connectScope,
     sessionId,
     agentId,
-    withAgentSettings = false,
   }: {
     connectScope: RequiredConnectScope
     sessionId: string
     agentId: string
-    /** Joins the settings revision of the last write, to read the schema that produced the state. */
-    withAgentSettings?: boolean
   }): Promise<ConversationForm | null> {
     const [form] = await this.conversationFormConnectRepository.find(connectScope, {
       where: { sessionId, agentId },
-      ...(withAgentSettings ? { relations: { agentSettings: true } } : {}),
       take: 1,
     })
     return form ?? null
@@ -120,7 +116,7 @@ export class ConversationFormsService {
    * are user content, the row has no analytics value) and by session deletion.
    * Runs in the caller's transaction.
    */
-  static async deleteForSession(entityManager: EntityManager, sessionId: string): Promise<void> {
+  async deleteForSession(entityManager: EntityManager, sessionId: string): Promise<void> {
     await entityManager.delete(ConversationForm, { sessionId })
   }
 }

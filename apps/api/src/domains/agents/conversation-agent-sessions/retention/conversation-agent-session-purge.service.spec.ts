@@ -11,6 +11,7 @@ import { agentMessageAttachmentDocumentFactory } from "@/domains/agents/shared/a
 import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messages/agent-messages.factory"
 import { agentMessageFeedbackFactory } from "@/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.factory"
 import { conversationFormFactory } from "@/domains/agents/shared/conversation-forms/conversation-form.factory"
+import { ConversationFormsService } from "@/domains/agents/shared/conversation-forms/conversation-forms.service"
 import { documentFactory } from "@/domains/documents/document.factory"
 import { PdfConverterClient } from "@/domains/documents/pdf-pages/pdf-converter.client"
 import { PdfPagesService } from "@/domains/documents/pdf-pages/pdf-pages.service"
@@ -42,6 +43,7 @@ describe("ConversationAgentSessionPurgeService", () => {
       setup.dataSource,
       fileStorageFake,
       new PdfPagesService(new PdfConverterClient(new GoogleIdTokenService())),
+      new ConversationFormsService(repositories.conversationFormRepository),
     )
   })
 
