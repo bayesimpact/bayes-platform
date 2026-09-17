@@ -97,8 +97,8 @@ helm upgrade --install platform deploy/helm/bayes-platform \
 
 ```yaml
 urls:
-  api: https://platform.example.org        # the API (/api, /public), and the web front at /
-  web: https://platform.example.org
+  web: https://platform.example.org        # the web front at /, which calls /api on its own origin
+  api: https://api.platform.example.org    # the API for everything else (/api, /public); may equal web
   webEmbed: https://embed.platform.example.org
   help: https://help.platform.example.org
 
@@ -181,7 +181,7 @@ See `values.yaml`. Every key is documented in place. The main sections:
 | Section | What it controls |
 |---|---|
 | `global.image` | registry, tag, pull policy, pull secrets |
-| `urls` | the public URLs, used by the API (CORS, links) and by the front ends |
+| `urls` | the public URLs, used by the API (CORS, links) and by the front ends; `web` and `api` may be one host or two, the second serves `/api` and `/public` only |
 | `web.env` | browser configuration of the web front (`WEB_*`), served by the API |
 | `secrets` | the Secret with the application secrets |
 | `config` | the non-secret environment shared by the API and the workers |
