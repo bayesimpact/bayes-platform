@@ -12,7 +12,7 @@ export class ConversationForms1789630241709 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `CREATE TABLE "conversation_form" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "deleted_at" TIMESTAMP, "organization_id" uuid NOT NULL, "project_id" uuid NOT NULL, "session_id" uuid NOT NULL, "agent_id" uuid NOT NULL, "agent_settings_id" uuid NOT NULL, "status" character varying NOT NULL DEFAULT 'in_progress', "state" jsonb NOT NULL DEFAULT '{}'::jsonb, CONSTRAINT "UQ_1336fea8d0d5ce6378bc06cd85f" UNIQUE ("organization_id", "project_id", "session_id", "agent_id"), CONSTRAINT "PK_fe774d55fa7a17b946716aa3f94" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "conversation_form" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "deleted_at" TIMESTAMP, "organization_id" uuid NOT NULL, "project_id" uuid NOT NULL, "session_id" uuid NOT NULL, "agent_id" uuid NOT NULL, "agent_settings_id" uuid NOT NULL, "status" character varying NOT NULL DEFAULT 'in_progress', "state" jsonb NOT NULL DEFAULT '{}', CONSTRAINT "UQ_1336fea8d0d5ce6378bc06cd85f" UNIQUE ("organization_id", "project_id", "session_id", "agent_id"), CONSTRAINT "PK_fe774d55fa7a17b946716aa3f94" PRIMARY KEY ("id"))`,
     )
     await queryRunner.query(
       `ALTER TABLE "conversation_form" ADD CONSTRAINT "FK_464daec9b3710b88476fb8d4ecf" FOREIGN KEY ("agent_id") REFERENCES "agent"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,

@@ -52,6 +52,6 @@ export class ConversationForm extends ConnectEntityBase {
 
   // The collected answers, keyed by form field. Merged field by field on each
   // fillForm call; a field is never erased by a later unknown value.
-  @Column({ type: "jsonb", default: () => "'{}'::jsonb" })
+  @Column({ type: "jsonb", default: () => "'{}'" })
   state!: Record<string, unknown>
 }
