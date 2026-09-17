@@ -1,6 +1,7 @@
 import { DocumentsRagMode, ToolName } from "@caseai-connect/api-contracts"
 import { Inject, Injectable, Logger } from "@nestjs/common"
 import type { ToolSet } from "ai"
+import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type {
   BuildLLMConfigParams,
   LLMConfig,
@@ -24,7 +25,8 @@ import { applyMcpAppToolDescription } from "@/external/mcp/mcp-app-tool-descript
 import type { McpSession } from "@/external/mcp/mcp-client.service"
 import type { McpConversationContext } from "@/external/mcp/mcp-request-headers"
 import { generateMasterPrompt } from "./master-promts/generate-master-prompt"
-import type { AgentSessionScope, OnExecute } from "./streaming-session.types"
+import { promptHelpers } from "./master-promts/helpers"
+import type { AgentSessionScope, OnExecute, StreamingSession } from "./streaming-session.types"
 import { sessionPersistsForms } from "./streaming-session.types"
 import { type BuiltTools, buildSubAgentTools } from "./sub-agent-tools"
 import { concludeHandoffInstruction, concludeHandoffTool } from "./tools/conclude-handoff.tool"
@@ -139,6 +141,7 @@ export class ToolsService {
           tools: undefined,
           fireAndForgetToolNames: [],
           hasSubAgentTools: false,
+          promptSections: [],
         }
     }
   }
@@ -420,8 +423,45 @@ export class ToolsService {
           : Promise.resolve({ tools: {}, toolDescriptions: {} }),
       ])
     // A sub-agent answering as the active agent of a handoff hands the
-    // conversation back itself, with this tool.
+    // conversation back itself, with this tool; the post-turn step also reads
+    // its reply for a conclusion it forgot to signal, and summarizes its part.
     const handoff = agentSessionScope.handoff
+    const handoffTurnState = { concludedByTool: false }
+    const activeAgentController = sessionState?.activeAgent ?? this.conversationAgentSessionsService
+    const concludeHandoffFromClassifier = handoff
+      ? async ({
+          summary,
+          detectedByClassifier,
+        }: {
+          summary: string
+          detectedByClassifier: boolean
+        }) => {
+          if (detectedByClassifier) {
+            await activeAgentController.clearActiveAgentIfCurrent({
+              connectScope,
+              sessionId: session.id,
+              expectedActiveAgentId: agent.id,
+            })
+            await onExecute({
+              toolName: ToolName.ConcludeHandoff,
+              arguments: { detectedByClassifier: true, summary },
+            })
+          }
+          await this.conversationFormsService.conclude({
+            connectScope,
+            sessionId: session.id,
+            agentId: agent.id,
+            agentSettingsId: agentSettings.id,
+            summary: summary || undefined,
+          })
+        }
+      : undefined
+    const promptSections = await this.buildConversationContextSections({
+      connectScope,
+      agent,
+      session,
+      handoff,
+    })
 
     // Sources are reported only when the agent can actually retrieve chunks:
     // BOTH the project feature flag and an active RAG mode (lookup tool present).
@@ -438,7 +478,7 @@ export class ToolsService {
     // turn-classification.ts). Sub-agents and evaluation runs pass
     // includeSessionMetadataTools=false: no session of their own to title.
     const turnClassification: TurnClassificationContext | undefined =
-      hasSourcesReporting || includeSessionMetadataTools
+      hasSourcesReporting || includeSessionMetadataTools || handoff
         ? {
             retrievedChunksRegistry: hasSourcesReporting ? retrievedChunksRegistry : undefined,
             sessionMetadata: includeSessionMetadataTools
@@ -454,6 +494,15 @@ export class ToolsService {
                     sessionState?.metadataRecalculator ?? this.conversationAgentSessionsService,
                 }
               : undefined,
+            handoff:
+              handoff && concludeHandoffFromClassifier
+                ? {
+                    childAgentName: agent.name,
+                    parentAgentName: handoff.parentAgent.name,
+                    concludedByTool: () => handoffTurnState.concludedByTool,
+                    conclude: concludeHandoffFromClassifier,
+                  }
+                : undefined,
             onExecute,
           }
         : undefined
@@ -507,10 +556,12 @@ export class ToolsService {
               connectScope,
               sessionId: session.id,
               childAgentId: agent.id,
-              activeAgentController:
-                sessionState?.activeAgent ?? this.conversationAgentSessionsService,
+              activeAgentController,
               formConcluder: this.conversationFormsService,
               onExecute,
+              onConcluded: () => {
+                handoffTurnState.concludedByTool = true
+              },
             }),
           }
         : {}),
@@ -549,7 +600,51 @@ export class ToolsService {
       fireAndForgetToolNames: FIRE_AND_FORGET_TOOL_NAMES.filter((toolName) => toolName in tools),
       turnClassification,
       hasSubAgentTools: Object.keys(subAgentTools).length > 0,
+      promptSections,
     }
+  }
+
+  /**
+   * Prompt sections built from the conversation's forms. The session's agent
+   * sees what its handoff sub-agents collected and whether they concluded; a
+   * sub-agent in control sees what other agents already collected, so the
+   * user is not asked twice. Nothing here for a session without forms.
+   */
+  private async buildConversationContextSections({
+    connectScope,
+    agent,
+    session,
+    handoff,
+  }: {
+    connectScope: RequiredConnectScope
+    agent: Agent
+    session: StreamingSession
+    handoff: AgentSessionScope["handoff"]
+  }): Promise<string[]> {
+    if (!sessionPersistsForms(session)) return []
+    const forms = await this.conversationFormsService.listForSession({
+      connectScope,
+      sessionId: session.id,
+      withAgent: true,
+    })
+    if (forms.length === 0) return []
+
+    if (handoff) {
+      const facts = forms
+        .filter((form) => form.agentId !== agent.id && Object.keys(form.state).length > 0)
+        .map((form) => ({ agentName: form.agent?.name ?? "another agent", state: form.state }))
+      return [promptHelpers.knownFacts(facts)].filter(Boolean)
+    }
+
+    const outcomes = forms
+      .filter((form) => form.agentId !== agent.id)
+      .map((form) => ({
+        agentName: form.agent?.name ?? "a sub-agent",
+        status: form.status,
+        state: form.state,
+        summary: form.summary,
+      }))
+    return [promptHelpers.subAgentOutcomes(outcomes)].filter(Boolean)
   }
 
   private addToolsWithoutCollisions({

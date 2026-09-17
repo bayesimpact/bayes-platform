@@ -15,6 +15,8 @@ export type ConversationFormDto = {
   agentSettingsId: string
   status: ConversationFormStatusDto
   state: Record<string, unknown>
+  /** Written at conclusion: what the agent collected or answered, in a few sentences. */
+  summary?: string
   updatedAt: TimeType
 }
 

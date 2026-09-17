@@ -37,6 +37,7 @@ export function concludeHandoffTool({
   activeAgentController,
   formConcluder,
   onExecute,
+  onConcluded,
 }: {
   connectScope: RequiredConnectScope
   sessionId: string
@@ -44,6 +45,8 @@ export function concludeHandoffTool({
   activeAgentController: ActiveAgentController
   formConcluder: HandoffFormConcluder
   onExecute: (toolExecution: ToolExecutionLog) => void | Promise<void>
+  /** Tells the turn that the sub-agent concluded itself (the post-turn step then only summarizes). */
+  onConcluded?: () => void
 }) {
   return tool({
     description:
@@ -59,6 +62,7 @@ export function concludeHandoffTool({
         expectedActiveAgentId: childAgentId,
       })
       await formConcluder.conclude({ connectScope, sessionId, agentId: childAgentId })
+      onConcluded?.()
       return {
         status: "concluded" as const,
         note: "The conversation goes back to the agent that handed it to you. Write your closing message.",

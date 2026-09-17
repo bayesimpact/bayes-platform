@@ -142,6 +142,10 @@ question aussitôt, dans la même réponse. Les messages suivants de l'usager vo
 sous-agent jusqu'à ce qu'il juge sa partie terminée ; l'orchestrateur reprend alors de
 lui-même, sans message de l'usager. Un sous-agent qui a rempli un formulaire ne reçoit pas
 la conversation une seconde fois : l'orchestrateur s'appuie sur ce qu'il a collecté.
+L'orchestrateur sait ce que chaque sous-agent a collecté et s'il a terminé, et un sous-agent
+qui prend la main sait ce que les précédents ont déjà collecté, pour ne pas poser deux fois la
+même question. Un sous-agent qui termine sa partie sans le signaler explicitement rend quand
+même la main : la plateforme lit sa dernière réponse pour y voir une conclusion.
 
 ## Conseils
 

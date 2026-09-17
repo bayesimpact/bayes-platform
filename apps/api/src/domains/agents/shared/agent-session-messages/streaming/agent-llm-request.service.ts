@@ -115,6 +115,7 @@ export class AgentLlmRequestService {
       fireAndForgetToolNames,
       turnClassification,
       hasSubAgentTools,
+      promptSections,
     } = await this.toolsService.buildTools({
       agentSessionScope,
       getProviderForModel,
@@ -135,6 +136,7 @@ export class AgentLlmRequestService {
         handoff: agentSessionScope.handoff
           ? { parentAgentName: agentSessionScope.handoff.parentAgent.name }
           : undefined,
+        contextSections: promptSections,
       }),
       model: agentSettings.model,
       temperature: agentSettings.temperature,

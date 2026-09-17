@@ -63,11 +63,20 @@ parent could not read.
 * **Data.** `agent_sub_agent.mode`, `active_agent_id` on both session tables.
   Messages already carry the settings revision, hence the agent, that wrote
   them; the DTO now exposes `agentId`.
-* **Not in this decision.** Detecting a conclusion the child forgot to signal,
-  telling the parent what its children collected, telling a child what earlier
-  forms already know, and consolidating a form at conclusion are the next
-  steps, built on the post-turn classification (ADR 0016) and the conversation
-  forms (ADR 0017).
+* **Ending and returning (second change, same day).** The post-turn
+  classification (ADR 0016) of a child's reply also answers `taskConcluded`
+  and writes a `handoffSummary`. A conclusion the child forgot to signal is
+  applied from that reading; a conclusion it signaled with its tool is not
+  repeated. The summary is stored on the child's conversation form
+  (`summary`, ADR 0017); a child without a form gets a concluded row so its
+  summary has a place. Two prompt sections are rebuilt every turn from the
+  conversation's forms: the parent reads what each handoff child collected
+  and whether it concluded ("Your sub-agents in this conversation"), a child
+  in control reads what other agents already collected ("Already known about
+  the user", read-only: it does not ask again). No new call: the classifier
+  already runs after each reply.
+* **Not in this decision.** Consolidating a form at conclusion from the
+  transcript is the next step.
 
 ## 4. Alternatives Considered
 

@@ -7,6 +7,7 @@ export function toConversationFormDto(form: ConversationForm): ConversationFormD
     agentSettingsId: form.agentSettingsId,
     status: form.status,
     state: form.state,
+    ...(form.summary ? { summary: form.summary } : {}),
     updatedAt: form.updatedAt.getTime(),
   }
 }

@@ -42,6 +42,8 @@ export type BuiltTools = {
   mcpClose?: () => Promise<void>
   toolDescriptions: Record<string, string>
   hasSubAgentTools: boolean
+  /** Sections built from the conversation's state, appended to the master prompt. */
+  promptSections: string[]
 }
 
 type BuildLLMConfig = (params: {
