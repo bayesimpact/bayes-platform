@@ -1,25 +1,38 @@
 {{- if .Values.ingress.enabled }}
 {{- $root := . }}
 {{- $rules := list }}
-{{- /* The api host serves the web front at /, the private API under /api and the public API under /public. */}}
+{{- $apiService := include "bayes-platform.componentName" (dict "root" $root "component" "api") }}
+{{- $webHost := include "bayes-platform.host" .Values.urls.web }}
+{{- $apiHost := include "bayes-platform.host" .Values.urls.api }}
+{{- /*
+The api Deployment serves three surfaces on one process: the web front at /,
+the private API under /api, the public API under /public.
+- The web host (urls.web) gets all three: the front calls /api on its own origin.
+- When urls.api names another host, that host gets the API surfaces only, /api
+  and /public, never the front: it is the URL given to integrators.
+Both carry ingress.apiAnnotations (uploads, long answers).
+*/}}
 {{- if .Values.api.enabled }}
-  {{- $rules = append $rules (dict "component" "api" "url" .Values.urls.api "port" .Values.api.port "annotations" .Values.ingress.apiAnnotations) }}
+  {{- $rules = append $rules (dict "name" $apiService "component" "api" "host" $webHost "paths" (list "/") "service" $apiService "port" .Values.api.port "annotations" .Values.ingress.apiAnnotations) }}
+  {{- if ne $apiHost $webHost }}
+  {{- $rules = append $rules (dict "name" (printf "%s-host" $apiService) "component" "api" "host" $apiHost "paths" (list "/api" "/public") "service" $apiService "port" .Values.api.port "annotations" .Values.ingress.apiAnnotations) }}
+  {{- end }}
 {{- end }}
 {{- if .Values.webEmbed.enabled }}
-  {{- $rules = append $rules (dict "component" "web-embed" "url" .Values.urls.webEmbed "port" 80 "annotations" dict) }}
+  {{- $s := include "bayes-platform.componentName" (dict "root" $root "component" "web-embed") }}
+  {{- $rules = append $rules (dict "name" $s "component" "web-embed" "host" (include "bayes-platform.host" .Values.urls.webEmbed) "paths" (list "/") "service" $s "port" 80 "annotations" dict) }}
 {{- end }}
 {{- if .Values.help.enabled }}
-  {{- $rules = append $rules (dict "component" "help" "url" .Values.urls.help "port" 80 "annotations" dict) }}
+  {{- $s := include "bayes-platform.componentName" (dict "root" $root "component" "help") }}
+  {{- $rules = append $rules (dict "name" $s "component" "help" "host" (include "bayes-platform.host" .Values.urls.help) "paths" (list "/") "service" $s "port" 80 "annotations" dict) }}
 {{- end }}
 {{- range $rule := $rules }}
-{{- $host := include "bayes-platform.host" $rule.url }}
-{{- $service := include "bayes-platform.componentName" (dict "root" $root "component" $rule.component) }}
 ---
 # One Ingress per host, so each component can carry its own annotations.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ $service }}
+  name: {{ $rule.name }}
   labels:
     {{- include "bayes-platform.labels" $root | nindent 4 }}
     app.kubernetes.io/component: {{ $rule.component }}
@@ -40,19 +53,21 @@ spec:
   {{- if $root.Values.ingress.tls }}
   tls:
     - hosts:
-        - {{ $host }}
-      secretName: {{ $service }}-tls
+        - {{ $rule.host }}
+      secretName: {{ $rule.name }}-tls
   {{- end }}
   rules:
-    - host: {{ $host }}
+    - host: {{ $rule.host }}
       http:
         paths:
-          - path: /
+          {{- range $path := $rule.paths }}
+          - path: {{ $path }}
             pathType: Prefix
             backend:
               service:
-                name: {{ $service }}
+                name: {{ $rule.service }}
                 port:
                   number: {{ $rule.port }}
+          {{- end }}
 {{- end }}
 {{- end }}
