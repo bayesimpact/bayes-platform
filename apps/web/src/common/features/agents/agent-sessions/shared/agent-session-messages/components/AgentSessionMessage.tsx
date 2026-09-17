@@ -43,7 +43,8 @@ export function AgentSessionMessage({
 }) {
   const { t } = useTranslation()
   const formSubSessions = useFormSubSessions()
-  const formResult = useFormResult()
+  // The form of the agent that wrote this message: a sub-agent in control has its own.
+  const formResult = useFormResult(message.agentId)
   // Card HTML is loaded after the transcript so a slow MCP server never delays the messages;
   // until it lands, each card holds its place with a placeholder.
   const mcpAppHtml = useAppSelector(selectMcpAppHtml)

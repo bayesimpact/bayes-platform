@@ -10,6 +10,7 @@ import type {
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
+import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -51,7 +52,11 @@ export class ConversationAgentSessionsController {
       userId: request.user.id,
       type: payload.type,
     })
-    return { data: sessions.map(toDto(payload.type)) }
+    const formSchemas = await this.resolveFormSchemas({
+      connectScope: getRequiredConnectScope(request),
+      sessions,
+    })
+    return { data: sessions.map(toDto(payload.type, formSchemas)) }
   }
 
   @CheckPolicy((policy) => policy.canCreate())
@@ -71,7 +76,7 @@ export class ConversationAgentSessionsController {
       userId: request.user.id,
       type: payload.type,
     })
-    return { data: toDto(payload.type)(session) }
+    return { data: toDto(payload.type, new Map())(session) }
   }
 
   @Post(ConversationAgentSessionsRoutes.deleteOne.path)
@@ -108,6 +113,7 @@ export class ConversationAgentSessionsController {
     ])
 
     const sessionByAgentId = new Map(sessions.map((session) => [session.agentId, session]))
+    const formSchemas = await this.resolveFormSchemas({ connectScope, sessions })
 
     const results = await Promise.all(
       subAgents.map(async (subAgent) => {
@@ -127,7 +133,7 @@ export class ConversationAgentSessionsController {
             agentId: subAgent.childAgentId,
             agentName: subAgent.childAgent.name,
             outputJsonSchema: settings.outputJsonSchema ?? undefined,
-            session: toDto(payload.type)(session),
+            session: toDto(payload.type, formSchemas)(session),
           },
         ]
       }),
@@ -135,9 +141,37 @@ export class ConversationAgentSessionsController {
 
     return { data: results.flat() }
   }
+
+  /**
+   * The current form schema of every agent that filled a form in these
+   * sessions (the session's agent, or a sub-agent that took the conversation
+   * over): the Studio renders each form with its own agent's fields.
+   */
+  private async resolveFormSchemas({
+    connectScope,
+    sessions,
+  }: {
+    connectScope: RequiredConnectScope
+    sessions: ConversationAgentSession[]
+  }): Promise<Map<string, Record<string, unknown> | null>> {
+    const agentIds = new Set(
+      sessions.flatMap((session) => (session.forms ?? []).map((form) => form.agentId)),
+    )
+    const entries = await Promise.all(
+      [...agentIds].map(async (agentId) => {
+        const settings = await this.agentSettingsService.getLast({ connectScope, agentId })
+        return [agentId, settings.fillFormEnabled ? settings.outputJsonSchema : null] as const
+      }),
+    )
+    return new Map(entries)
+  }
 }
 
-function toDto(agentSessionType: BaseAgentSessionType) {
+function toDto(
+  agentSessionType: BaseAgentSessionType,
+  /** The current form schema of each agent that has forms in these sessions. */
+  formSchemas: Map<string, Record<string, unknown> | null>,
+) {
   return (entity: ConversationAgentSession): ConversationAgentSessionDto => {
     // FIXME: should use this.permissionService.listGlobalPermissions(user.id) to determine if the user can view the trace
     const traceUrl = agentSessionType === "live" ? undefined : getTraceUrl(entity.traceId)
@@ -151,7 +185,9 @@ function toDto(agentSessionType: BaseAgentSessionType) {
       traceUrl,
       // Loaded with the session where the list is built; a session just
       // created has none yet.
-      forms: (entity.forms ?? []).map(toConversationFormDto),
+      forms: (entity.forms ?? []).map((form) =>
+        toConversationFormDto(form, formSchemas.get(form.agentId)),
+      ),
       ...(entity.activeAgentId ? { activeAgentId: entity.activeAgentId } : {}),
     }
   }

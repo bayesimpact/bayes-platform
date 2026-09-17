@@ -163,6 +163,7 @@ describe("ConversationAgentSessionsRoutes.listSubSessions", () => {
       agentSettingsId: fillFormChildAgentSettingsId,
       status: "in_progress",
       state: { title: "Draft title" },
+      outputJsonSchema: OUTPUT_JSON_SCHEMA,
     })
   })
 
