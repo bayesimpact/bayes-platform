@@ -41,6 +41,9 @@ export function handoffToolInstruction(childAgentName: string): string {
  * concluded one is final. The tool says so and gives the collected state, so
  * the parent decides the next step from it.
  */
+/** Shared by the handoff tools of one turn: the first hand-over wins. */
+export type HandoffTurnState = { handedOffTo?: { agentId: string; agentName: string } }
+
 export function handoffTool({
   subAgent,
   description,
@@ -48,6 +51,7 @@ export function handoffTool({
   sessionId,
   activeAgentController,
   formReader,
+  turnState,
   onExecute,
 }: {
   subAgent: AgentSubAgent
@@ -56,6 +60,7 @@ export function handoffTool({
   sessionId: string
   activeAgentController: ActiveAgentController
   formReader: HandoffFormReader
+  turnState: HandoffTurnState
   onExecute: (toolExecution: ToolExecutionLog) => void | Promise<void>
 }) {
   const childAgent: Agent = subAgent.childAgent
@@ -68,12 +73,24 @@ export function handoffTool({
         .describe("One sentence on why the conversation goes to this agent now (for the trace)."),
     }),
     outputSchema: z.object({
-      status: z.enum(["handed_off", "already_concluded"]),
+      status: z.enum(["handed_off", "already_concluded", "already_handed_off"]),
       note: z.string(),
       collectedState: z.record(z.string(), z.unknown()).optional(),
     }),
     execute: async (input) => {
       await onExecute({ toolName: subAgent.toolName, arguments: input })
+
+      // One hand-over per turn: a model that keeps calling tools after the
+      // first one would otherwise move the conversation to the last agent
+      // called, not to the one it announced to the user.
+      if (turnState.handedOffTo) {
+        return {
+          status: "already_handed_off" as const,
+          note:
+            `The conversation was already handed to "${turnState.handedOffTo.agentName}" in this ` +
+            `turn; it speaks next. Do not call another hand-over now. Write your one sentence and stop.`,
+        }
+      }
 
       const form = await formReader.findOne({ connectScope, sessionId, agentId: childAgent.id })
       if (form?.status === "concluded") {
@@ -92,6 +109,7 @@ export function handoffTool({
         sessionId,
         activeAgentId: childAgent.id,
       })
+      turnState.handedOffTo = { agentId: childAgent.id, agentName: childAgent.name }
       return {
         status: "handed_off" as const,
         note:

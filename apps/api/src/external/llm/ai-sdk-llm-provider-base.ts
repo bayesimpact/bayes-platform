@@ -31,6 +31,7 @@ import { fireAndForgetStopCondition } from "@/external/llm/fire-and-forget-stop-
 import { type LeakedToolCall, LLMOutputSanitizer } from "@/external/llm/llm-output-sanitizer"
 import { ResponseHelper } from "@/external/llm/response-helper"
 import { withStrictTools } from "@/external/llm/strict-tools"
+import { terminalToolsStopCondition } from "@/external/llm/terminal-tools-stop-condition"
 
 export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements LLMProvider {
   async *streamChatResponse({
@@ -75,14 +76,22 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
       temperature: config.temperature,
       tools: this.supportsStrictTools() ? withStrictTools(config.tools) : config.tools,
       // Keep the default step safety net, but skip the follow-up generation
-      // when a step only ran fire-and-forget tools (their output is noise).
-      ...(config.fireAndForgetToolNames?.length
+      // when a step only ran fire-and-forget tools (their output is noise),
+      // and end the turn once a terminal tool (a hand-over) ran.
+      ...(config.fireAndForgetToolNames?.length || config.terminalToolNames?.length
         ? {
             stopWhen: [
               stepCountIs(20),
-              fireAndForgetStopCondition({
-                fireAndForgetToolNames: config.fireAndForgetToolNames,
-              }),
+              ...(config.fireAndForgetToolNames?.length
+                ? [
+                    fireAndForgetStopCondition({
+                      fireAndForgetToolNames: config.fireAndForgetToolNames,
+                    }),
+                  ]
+                : []),
+              ...(config.terminalToolNames?.length
+                ? [terminalToolsStopCondition({ terminalToolNames: config.terminalToolNames })]
+                : []),
             ],
           }
         : {}),

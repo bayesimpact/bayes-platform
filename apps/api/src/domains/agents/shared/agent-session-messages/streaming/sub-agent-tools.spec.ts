@@ -76,6 +76,7 @@ describe("buildSubAgentTools", () => {
         fireAndForgetToolNames: [],
         hasSubAgentTools: false,
         promptSections: [],
+        terminalToolNames: [],
         tools: {
           child_lookup: tool({
             description: "Look up child context.",
@@ -219,6 +220,7 @@ describe("buildSubAgentTools", () => {
         fireAndForgetToolNames: [],
         hasSubAgentTools: false,
         promptSections: [],
+        terminalToolNames: [],
       }),
       generateMasterPrompt: () => "system prompt",
       getProviderForModel: () =>
@@ -348,6 +350,7 @@ describe("buildSubAgentTools", () => {
         fireAndForgetToolNames: [],
         hasSubAgentTools: false,
         promptSections: [],
+        terminalToolNames: [],
       }),
       generateMasterPrompt: () => "system prompt",
       getProviderForModel: () =>

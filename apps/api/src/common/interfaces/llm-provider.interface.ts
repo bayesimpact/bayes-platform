@@ -26,6 +26,7 @@ export type BuildLLMConfigParams = {
   temperature: AgentSettings["temperature"]
   tools?: ToolSet
   fireAndForgetToolNames?: string[]
+  terminalToolNames?: string[]
   priorityCallsEnabled: boolean
   llmFeatures: LLMFeatures
   useExtendedTimeouts?: boolean
@@ -37,6 +38,7 @@ export type LLMConfig =
       systemPrompt?: string
       tools?: ToolSet
       fireAndForgetToolNames?: string[]
+      terminalToolNames?: string[]
       useExtendedTimeouts?: never
       serviceTier: never
     }
@@ -51,6 +53,13 @@ export type LLMConfig =
        * invokes these, the loop stops instead of running another generation.
        */
       fireAndForgetToolNames?: string[]
+      /**
+       * Names of tools in {@link tools} whose call ends the turn: once one ran,
+       * the loop allows at most one more generation (the closing sentence) and
+       * stops, whatever else the model would call. Used for a hand-over to a
+       * sub-agent: the next words belong to the sub-agent.
+       */
+      terminalToolNames?: string[]
       /**
        * Opt in to the extended network timeouts on the underlying provider fetch
        * (see {@link AISDKVertexProvider}). Reserved for long-running calls such as

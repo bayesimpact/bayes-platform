@@ -196,3 +196,19 @@ describe("findLeakedToolCallNames", () => {
     expect(findLeakedToolCallNames(text)).toEqual(["mandatory_tool"])
   })
 })
+
+describe("LLMOutputSanitizer - wrappers around a removed call", () => {
+  it("drops the <code> wrapper a model put around a verbalized call", () => {
+    expect(
+      LLMOutputSanitizer.sanitize("Je vous transfère.\n<code>DHI{reason:test}</code>\nÀ bientôt."),
+    ).toBe("Je vous transfère.\n\nÀ bientôt.")
+  })
+
+  it("drops a fenced block left empty by the removal", () => {
+    expect(LLMOutputSanitizer.sanitize("Voilà.\n```\nNVI{reason:x}\n```")).toBe("Voilà.\n")
+  })
+
+  it("keeps a code block with real content", () => {
+    expect(LLMOutputSanitizer.sanitize("<code>const a = 1</code>")).toBe("<code>const a = 1</code>")
+  })
+})

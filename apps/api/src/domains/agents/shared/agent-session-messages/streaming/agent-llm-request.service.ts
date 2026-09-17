@@ -116,6 +116,7 @@ export class AgentLlmRequestService {
       turnClassification,
       hasSubAgentTools,
       promptSections,
+      terminalToolNames,
     } = await this.toolsService.buildTools({
       agentSessionScope,
       getProviderForModel,
@@ -142,6 +143,7 @@ export class AgentLlmRequestService {
       temperature: agentSettings.temperature,
       tools,
       fireAndForgetToolNames,
+      terminalToolNames,
       priorityCallsEnabled: agentSettings.priorityCallsEnabled,
       llmFeatures,
     })

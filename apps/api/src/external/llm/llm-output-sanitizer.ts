@@ -49,6 +49,10 @@ function stripPairedChannelMarkers(text: string): string {
     text
       // Hallucinated tool-call tags verbalized into the text
       .replace(PSEUDO_TOOL_CALL_RE, "")
+      // The wrapper a model puts around such a call (`<code>…</code>`, a
+      // fenced block) is left empty by the removal above: drop it too.
+      .replace(/<code>\s*<\/code>/gi, "")
+      .replace(/```[a-z]*\s*```/gi, "")
       // <|channel>thought<channel|> ... <channel|> (eats nested openers too)
       .replace(new RegExp(`<\\|channel>(?:${CHANNEL_KEYWORDS})[\\s\\S]*?<channel\\|>`, "gi"), "")
       // Gemma 3 legacy: <unused N>thought ... <unused N>
