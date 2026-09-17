@@ -1,4 +1,4 @@
-import type { StreamEvent } from "@caseai-connect/api-contracts"
+import type { StreamEvent, StreamEventPayload } from "@caseai-connect/api-contracts"
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
@@ -8,6 +8,9 @@ import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.s
 import type { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpAppHtmlService } from "@/domains/agents/shared/agent-session-messages/mcp-app-html.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ActiveAgentScopeService } from "@/domains/agents/shared/agent-session-messages/streaming/active-agent-scope.service"
+import { runHandoffTurns } from "@/domains/agents/shared/agent-session-messages/streaming/handoff-turn-loop"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { StreamingLlmService } from "@/domains/agents/shared/agent-session-messages/streaming/streaming-llm.service"
 import type { AgentEmbedConfig } from "./agent-embed-configs/agent-embed-config.entity"
@@ -28,6 +31,7 @@ export class PublicChatService {
     private readonly publicAgentSessionsService: PublicAgentSessionsService,
     private readonly streamingLLMService: StreamingLlmService,
     private readonly mcpAppHtmlService: McpAppHtmlService,
+    private readonly activeAgentScopeService: ActiveAgentScopeService,
   ) {}
 
   async createSession(
@@ -97,18 +101,90 @@ export class PublicChatService {
 
     await this.publicAgentSessionsService.updateLastActivity(publicSession.id)
 
-    yield* this.streamingLLMService.streamPublicAgentResponse({
-      connectScope,
-      publicSessionId: publicSession.id,
-      agent,
-      agentSettings,
+    // The agent in control answers, and a hand-over runs the next agent's turn
+    // in the same response (see handoff-turn-loop.ts). The public contract is
+    // one reply per request (one `start`, one `end`), so the turns of one
+    // request are streamed as one reply: later `start` events are dropped, the
+    // texts are joined by a blank line, and a single `end` carries the whole
+    // text. Each turn is still stored as its own message, attributed to the
+    // agent that wrote it, which is what the session read returns.
+    const turns = runHandoffTurns({
       userContent,
-      notifyClient,
-      // Public sessions persist their title and categories on
-      // public_agent_session; their forms live in conversation_form like
-      // every session's.
-      sessionState: { metadataRecalculator: this.publicAgentSessionsService },
-      externalVisitorId: publicSession.externalVisitorId,
+      resolveActiveAgent: async () =>
+        this.activeAgentScopeService.resolve({
+          connectScope,
+          rootAgent: agent,
+          rootAgentSettings: agentSettings,
+          activeAgentId: await this.publicAgentSessionsService.getActiveAgentId(publicSession.id),
+        }),
+      runTurn: ({ active, userContent: turnContent, persistUserMessage }) =>
+        this.streamingLLMService.streamPublicAgentResponse({
+          connectScope,
+          publicSessionId: publicSession.id,
+          agent: active.agent,
+          agentSettings: active.agentSettings,
+          handoff: active.handoff,
+          userContent: turnContent,
+          persistUserMessage,
+          notifyClient,
+          // Public sessions persist their title, categories and active agent
+          // on public_agent_session; their forms live in conversation_form
+          // like every session's.
+          sessionState: {
+            metadataRecalculator: this.publicAgentSessionsService,
+            activeAgent: this.publicAgentSessionsService,
+          },
+          externalVisitorId: publicSession.externalVisitorId,
+        }),
     })
+    yield* coalesceTurnsIntoOneReply(turns)
   }
+}
+
+/**
+ * Folds the events of several turns into the frame of one reply: the first
+ * `start`, every `chunk` and `notify_client`, one `end` whose `fullContent` is
+ * the texts of the turns joined by a blank line. An `error` ends the reply
+ * where it happens, as before.
+ */
+export async function* coalesceTurnsIntoOneReply(
+  turns: AsyncGenerator<StreamEvent, void, unknown>,
+): AsyncGenerator<StreamEvent, void, unknown> {
+  let messageId: string | undefined
+  const texts: string[] = []
+  for await (const event of turns) {
+    const payload = JSON.parse(String(event.data)) as StreamEventPayload
+    switch (payload.type) {
+      case "start":
+        if (messageId === undefined) {
+          messageId = payload.messageId
+          yield event
+        } else {
+          yield toStreamEvent({ type: "chunk", content: "\n\n", messageId })
+        }
+        break
+      case "chunk":
+        yield toStreamEvent({
+          type: "chunk",
+          content: payload.content,
+          messageId: messageId ?? payload.messageId,
+        })
+        break
+      case "end":
+        texts.push(payload.fullContent)
+        break
+      case "error":
+        yield toStreamEvent({ ...payload, messageId: messageId ?? payload.messageId })
+        return
+      default:
+        yield event
+    }
+  }
+  if (messageId !== undefined) {
+    yield toStreamEvent({ type: "end", messageId, fullContent: texts.join("\n\n") })
+  }
+}
+
+function toStreamEvent(payload: StreamEventPayload): StreamEvent {
+  return { data: JSON.stringify(payload) } as StreamEvent
 }

@@ -13,6 +13,15 @@ import {
 import { mcpAppToolNamesFromDescriptions } from "@/external/mcp/mcp-app-tool-description"
 
 export const promptHelpers = {
+  /**
+   * Shown to a sub-agent answering as the active agent of a handoff: the
+   * transcript above it belongs to the same conversation, started by the
+   * parent, and it talks to the user directly until it concludes.
+   */
+  handoff: ({ parentAgentName }: { parentAgentName: string }) =>
+    `## Hand-over
+The agent "${parentAgentName}" handed this conversation to you. The earlier messages are what the user and "${parentAgentName}" said before; you now talk to the user directly. Do not introduce yourself as "${parentAgentName}" and do not repeat what it already asked or answered. When your part is done, call the concludeHandoff tool and write your closing message.
+`,
   now: () => todaysDatePromptLine(),
 
   resourceLibraries: (libraries: SurfaceableLibrary[]) => {

@@ -84,7 +84,7 @@ available list.
 
 ### 5. Configure the sub-agent
 
-Each attached sub-agent has two fields:
+Each attached sub-agent has three fields:
 
 - **Tool name** — the identifier the model calls, pre-filled as `ask_<agent name>`
   (placeholder **ask_specialist_agent**). It may contain only letters, numbers,
@@ -92,6 +92,13 @@ Each attached sub-agent has two fields:
 - **Tool description** — pre-filled as *Route specialized requests to `<name>`.* This
   is the most important field: the orchestrator's model reads it to decide **when** to
   delegate, so describe the sub-agent's specialty precisely (up to 2000 characters).
+- **Mode** — how the orchestrator uses the sub-agent:
+  - **Consulted** (default): the orchestrator calls the sub-agent for one exchange and
+    answers the user itself. Right for an expert you ask a question to.
+  - **Takes over**: the sub-agent talks to the user directly, in the same conversation,
+    until its part is done, then hands the conversation back. Right for a form or an
+    interview the sub-agent must lead itself. The session header shows who the user is
+    talking to, and each reply names the agent that wrote it.
 
 ### 6. Enable, disable, or remove
 
@@ -116,6 +123,13 @@ on its own whether to call one — handing it a task and relevant context — th
 the sub-agent's answer to compose its reply. Conversation sub-agents reply directly;
 form sub-agents run their form flow. Delegation is driven entirely by the tool
 descriptions, so clear descriptions produce better routing.
+
+A sub-agent in **Takes over** mode changes who speaks. When the orchestrator hands the
+conversation over, it writes one sentence of transition and the sub-agent asks its first
+question right away, in the same reply. The user's next messages go to the sub-agent
+until it judges its part complete; the orchestrator then resumes on its own, without a
+message from the user. A sub-agent that filled a form is not handed the conversation a
+second time: the orchestrator uses what it collected instead.
 
 ## Tips
 

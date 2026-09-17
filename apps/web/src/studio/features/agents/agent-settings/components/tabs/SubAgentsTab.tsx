@@ -1,3 +1,4 @@
+import type { AgentSubAgentMode } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Empty,
@@ -30,6 +31,7 @@ export type AgentSubAgentFormValue = {
   toolName: string
   description: string
   enabled: boolean
+  mode: AgentSubAgentMode
 }
 
 export function SubAgentsTab({
@@ -72,6 +74,7 @@ export function SubAgentsTab({
         toolName: buildDefaultToolName(agent.name),
         description: t("agentSettings:orchestration.defaultDescription", { name: agent.name }),
         enabled: true,
+        mode: "relay",
       },
     ])
   }

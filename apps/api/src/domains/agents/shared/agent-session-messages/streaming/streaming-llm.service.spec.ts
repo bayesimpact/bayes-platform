@@ -128,6 +128,10 @@ describe("StreamingLLMService", () => {
             suggestedTitle,
           }) => ({ suggestedTitle, selectedCategoryNames }),
         },
+        activeAgent: {
+          setActiveAgent: async () => undefined,
+          clearActiveAgentIfCurrent: async () => undefined,
+        },
       },
     })
 

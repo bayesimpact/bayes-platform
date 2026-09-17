@@ -18,11 +18,16 @@ import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ActiveAgentScopeService } from "./active-agent-scope.service"
+import { runHandoffTurns } from "./handoff-turn-loop"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { StreamingLlmService } from "./streaming-llm.service"
 import type { AgentSessionScope } from "./streaming-session.types"
@@ -34,6 +39,8 @@ export class StreamingController {
   constructor(
     private readonly chatStreamingLLMService: StreamingLlmService,
     private readonly agentSettingsService: AgentSettingsService,
+    private readonly activeAgentScopeService: ActiveAgentScopeService,
+    private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
   ) {}
 
   @CheckPolicy((policy) => policy.canList())
@@ -73,18 +80,43 @@ export class StreamingController {
             sessionType: session.type,
             revision: agentSettingsRevision,
           })
-          const agentSessionScope: AgentSessionScope = {
-            connectScope,
-            agent,
-            agentSettings,
-            session,
-          }
-          const events = this.chatStreamingLLMService.streamAgentResponse({
-            agentSessionScope,
+
+          // The agent in control answers: the session's agent, or the
+          // sub-agent a handoff gave the conversation to. Re-read after each
+          // turn so a hand-over or a conclusion runs the next agent's turn in
+          // the same response (see handoff-turn-loop.ts).
+          const events = runHandoffTurns({
             userContent,
-            attachmentDocumentId,
-            notifyClient: (event) => {
-              subscriber.next(event)
+            resolveActiveAgent: async () => {
+              const current = await this.conversationAgentSessionsService.findById({
+                connectScope,
+                id: session.id,
+              })
+              return this.activeAgentScopeService.resolve({
+                connectScope,
+                rootAgent: agent,
+                rootAgentSettings: agentSettings,
+                activeAgentId: current?.activeAgentId ?? null,
+              })
+            },
+            runTurn: ({ active, userContent: turnContent, persistUserMessage }) => {
+              const agentSessionScope: AgentSessionScope = {
+                connectScope,
+                agent: active.agent,
+                agentSettings: active.agentSettings,
+                session,
+                handoff: active.handoff,
+              }
+              return this.chatStreamingLLMService.streamAgentResponse({
+                agentSessionScope,
+                userContent: turnContent,
+                // The attachment belongs to the message the user typed.
+                attachmentDocumentId: persistUserMessage ? attachmentDocumentId : undefined,
+                persistUserMessage,
+                notifyClient: (event) => {
+                  subscriber.next(event)
+                },
+              })
             },
           })
 

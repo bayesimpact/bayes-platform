@@ -7,11 +7,14 @@ export function generateMasterPrompt({
   agentSettings,
   toolDescriptions,
   toolNames,
+  handoff,
 }: {
   agent: Agent
   agentSettings: AgentSettings
   toolDescriptions?: Record<string, string>
   toolNames: string[]
+  /** Set when the agent answers as the active sub-agent of a handoff. */
+  handoff?: { parentAgentName: string }
 }): string {
   switch (agent.type) {
     case "conversation":
@@ -20,6 +23,7 @@ export function generateMasterPrompt({
         agentSettings,
         toolNames,
         toolDescriptions,
+        handoff,
       })
     default:
       throw new Error(`Unsupported agent type: ${agent.type}`)

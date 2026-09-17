@@ -143,4 +143,36 @@ describe("Agents - sub-agents", () => {
 
     expectResponse(response, 422)
   })
+
+  it("stores the handoff mode of a sub-agent and defaults to relay", async () => {
+    const { organization, project } = await createContext()
+    const [relayChild, handoffChild] = await Promise.all([
+      repositories.agentRepository.save(
+        agentFactory.transient({ organization, project }).build({ type: "conversation" }),
+      ),
+      repositories.agentRepository.save(
+        agentFactory.transient({ organization, project }).build({ type: "conversation" }),
+      ),
+    ])
+
+    const response = await updateAllSubAgents({
+      payload: {
+        subAgents: [
+          { childAgentId: relayChild.id, toolName: "ask_relay", description: "", enabled: true },
+          {
+            childAgentId: handoffChild.id,
+            toolName: "take_over",
+            description: "",
+            enabled: true,
+            mode: "handoff",
+          },
+        ],
+      },
+    })
+
+    expectResponse(response, 200)
+    const modeByChildId = new Map(response.body.data.map((row) => [row.childAgentId, row.mode]))
+    expect(modeByChildId.get(relayChild.id)).toBe("relay")
+    expect(modeByChildId.get(handoffChild.id)).toBe("handoff")
+  })
 })

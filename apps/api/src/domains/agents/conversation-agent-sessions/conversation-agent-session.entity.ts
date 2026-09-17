@@ -26,6 +26,12 @@ export class ConversationAgentSession extends ConnectEntityBase {
   @Column({ type: "varchar", nullable: true })
   title!: string | null
 
+  // The sub-agent in control of the conversation while a handoff is in
+  // progress: the user's messages go to it, in this same session, until it
+  // concludes. Null when the session's own agent answers.
+  @Column({ type: "uuid", name: "active_agent_id", nullable: true })
+  activeAgentId!: string | null
+
   // The parent agent session that spawned this sub-session, if any. Used to
   // find-or-create a single conversation sub-session per parent conversation so
   // the sub-agent's turns land in one persistent trace. Its presence is what

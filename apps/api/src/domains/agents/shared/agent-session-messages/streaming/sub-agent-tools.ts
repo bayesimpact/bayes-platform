@@ -18,6 +18,8 @@ import type { ProjectsService } from "@/domains/projects/projects.service"
 import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
 import { isLLMVisibleMessage } from "./llm-visible-message.helper"
 import type { AgentSessionScope, OnExecute, StreamingSession } from "./streaming-session.types"
+import type { ActiveAgentController } from "./tools/active-agent-controller"
+import { type HandoffFormReader, handoffTool, handoffToolInstruction } from "./tools/handoff.tool"
 import {
   createInlineCitationExtractor,
   createPassthroughCitationExtractor,
@@ -81,6 +83,8 @@ export async function buildSubAgentTools({
   onExecute,
   projectsService,
   agentSessionScope,
+  activeAgentController,
+  formReader,
 }: {
   agentSessionScope: AgentSessionScope
   agentSubAgentsService: AgentSubAgentsService
@@ -92,6 +96,10 @@ export async function buildSubAgentTools({
   getProviderForModel: (model: string) => LLMProvider
   onExecute: OnExecute
   projectsService: ProjectsService
+  /** Where a handoff records the active agent (the session's own table). */
+  activeAgentController: ActiveAgentController
+  /** Tells a handoff tool whether the child already concluded in this conversation. */
+  formReader: HandoffFormReader
 }): Promise<{
   tools: ToolSet
   toolDescriptions: Record<string, string>
@@ -117,6 +125,27 @@ export async function buildSubAgentTools({
   for (const subAgent of subAgents) {
     if (!subAgent.enabled) continue
     if (subAgent.childAgent.type === "extraction") continue
+
+    if (subAgent.mode === "handoff") {
+      // A sub-agent answering as the active agent keeps its relay links but
+      // cannot hand the conversation further: the conclusion always returns
+      // to the session's own agent, so a nested handoff would skip a level.
+      if (agentSessionScope.handoff) continue
+      const description = [subAgent.description, handoffToolInstruction(subAgent.childAgent.name)]
+        .filter(Boolean)
+        .join(" ")
+      tools[subAgent.toolName] = handoffTool({
+        subAgent,
+        description,
+        connectScope,
+        sessionId: agentSessionScope.session.id,
+        activeAgentController,
+        formReader,
+        onExecute,
+      })
+      toolDescriptions[subAgent.toolName] = description
+      continue
+    }
 
     const description = subAgent.description
     tools[subAgent.toolName] = subAgentTool({

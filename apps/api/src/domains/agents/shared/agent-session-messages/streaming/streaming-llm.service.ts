@@ -84,11 +84,18 @@ export class StreamingLlmService extends LlmServiceBase {
     userContent,
     attachmentDocumentId,
     notifyClient,
+    persistUserMessage = true,
   }: {
     agentSessionScope: AgentSessionScope
     userContent: string
     attachmentDocumentId?: string
     notifyClient: NotifyClient
+    /**
+     * False for a turn the user did not type (a handoff's next turn, see
+     * handoff-turn-loop.ts): `userContent` reaches the model as a trigger and
+     * is never stored nor shown.
+     */
+    persistUserMessage?: boolean
   }): AsyncGenerator<StreamEvent, void, unknown> {
     const {
       session: updatedSession,
@@ -98,6 +105,7 @@ export class StreamingLlmService extends LlmServiceBase {
       agentSessionScope,
       userContent,
       attachmentDocumentId,
+      persistUserMessage,
     })
 
     // Update the session in the agentSessionScope to reflect the latest state after preparing for streaming
@@ -116,6 +124,7 @@ export class StreamingLlmService extends LlmServiceBase {
       const llmRequest = await this.agentLlmRequestService.buildLLMRequest({
         agentSessionScope,
         attachmentDocumentId: turnAttachmentDocumentId,
+        syntheticUserContent: persistUserMessage ? undefined : userContent,
         onToolExecute: async (toolExecution) => {
           await this.persistToolExecutionAndNotifyClient({
             agentSessionScope,
@@ -187,6 +196,8 @@ export class StreamingLlmService extends LlmServiceBase {
     notifyClient,
     sessionState,
     externalVisitorId,
+    handoff,
+    persistUserMessage = true,
   }: {
     connectScope: RequiredConnectScope
     publicSessionId: string
@@ -194,6 +205,10 @@ export class StreamingLlmService extends LlmServiceBase {
     agentSettings: AgentSettings
     userContent: string
     notifyClient: NotifyClient
+    /** Set when `agent` answers as the active sub-agent of a handoff. */
+    handoff?: AgentSessionScope["handoff"]
+    /** False for a handoff's next turn: `userContent` is a trigger, not stored (see handoff-turn-loop.ts). */
+    persistUserMessage?: boolean
     /**
      * Public persistence target (PublicAgentSessionsService), provided by
      * the public-chat domain — agents must not import it (domain cycle).
@@ -208,17 +223,19 @@ export class StreamingLlmService extends LlmServiceBase {
       sessionId: publicSessionId,
     })
 
-    await this.agentMessageConnectRepository.createAndSave(connectScope, {
-      sessionId: publicSessionId,
-      agentSettingsId: agentSettings.id,
-      role: "user",
-      content: userContent,
-      status: null,
-      startedAt: null,
-      completedAt: null,
-      toolCalls: null,
-      attachmentDocumentId: null,
-    })
+    if (persistUserMessage) {
+      await this.agentMessageConnectRepository.createAndSave(connectScope, {
+        sessionId: publicSessionId,
+        agentSettingsId: agentSettings.id,
+        role: "user",
+        content: userContent,
+        status: null,
+        startedAt: null,
+        completedAt: null,
+        toolCalls: null,
+        attachmentDocumentId: null,
+      })
+    }
 
     const assistantMessageId = v4()
     await this.agentMessageConnectRepository.createAndSave(connectScope, {
@@ -259,10 +276,12 @@ export class StreamingLlmService extends LlmServiceBase {
         agent,
         agentSettings,
         connectScope,
+        handoff,
       }
       const llmRequest = await this.agentLlmRequestService.buildLLMRequest({
         agentSessionScope,
         sessionState,
+        syntheticUserContent: persistUserMessage ? undefined : userContent,
         onToolExecute: async (toolExecution) => {
           await this.persistToolExecutionAndNotifyClient({
             agentSessionScope,
@@ -395,10 +414,12 @@ export class StreamingLlmService extends LlmServiceBase {
     agentSessionScope,
     attachmentDocumentId,
     userContent,
+    persistUserMessage = true,
   }: {
     agentSessionScope: AgentSessionScope
     attachmentDocumentId?: string
     userContent: string
+    persistUserMessage?: boolean
   }): Promise<{
     session: ConversationAgentSession
     assistantMessageId: string
@@ -412,18 +433,21 @@ export class StreamingLlmService extends LlmServiceBase {
       ? await this.attachmentForTurn({ connectScope, sessionId, attachmentDocumentId })
       : undefined
 
-    // Create user message
-    await this.agentMessageConnectRepository.createAndSave(connectScope, {
-      sessionId,
-      agentSettingsId,
-      role: "user",
-      content: userContent,
-      status: null,
-      startedAt: null,
-      completedAt: null,
-      toolCalls: null,
-      attachmentDocumentId: turnAttachmentDocumentId ?? null,
-    })
+    // Create user message, unless the turn is a platform trigger (handoff):
+    // the model sees it, the transcript does not.
+    if (persistUserMessage) {
+      await this.agentMessageConnectRepository.createAndSave(connectScope, {
+        sessionId,
+        agentSettingsId,
+        role: "user",
+        content: userContent,
+        status: null,
+        startedAt: null,
+        completedAt: null,
+        toolCalls: null,
+        attachmentDocumentId: turnAttachmentDocumentId ?? null,
+      })
+    }
 
     // Create empty assistant message with streaming status
     const assistantMessageId = v4()

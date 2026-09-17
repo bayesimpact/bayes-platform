@@ -7,11 +7,13 @@ export function buildConversationAgentPrompt({
   agentSettings,
   toolDescriptions,
   toolNames,
+  handoff,
 }: {
   agent: Agent
   agentSettings: AgentSettings
   toolDescriptions?: Record<string, string>
   toolNames: string[]
+  handoff?: { parentAgentName: string }
 }): string {
   // Keep the volatile timestamp LAST so the stable content above forms a
   // byte-stable prefix that Vertex/Gemini implicit caching can reuse across
@@ -24,6 +26,8 @@ ${promptHelpers.resourceLibraries(agent.resourceLibraries ?? [])}
 ${promptHelpers.tools({ names: toolNames, descriptions: toolDescriptions, agentSettings })}
 
 ${promptHelpers.mcpAppUis(toolDescriptions)}
+
+${handoff ? promptHelpers.handoff(handoff) : ""}
 
 ${promptHelpers.language(agentSettings.locale)}
 

@@ -1,8 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { useState } from "react"
 import { agentFactory } from "@/common/features/agents/agent.factory"
+import { agentSettingsFactory } from "@/common/features/agents/agent-settings/agent-settings.factory"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import { projectFactory } from "@/common/features/projects/projects.factory"
+import { buildDecorator } from "@/stories/decorators"
+import { buildStudioData, studioStoryArgs } from "@/stories/routes/studio/helpers"
+import { mergeSeeds, seed } from "@/stories/seed"
 import {
   type AgentSubAgentFormValue,
   SubAgentsTab,
@@ -60,6 +64,22 @@ function StatefulStory({ value: initialValue }: StoryArgs) {
 const meta = {
   title: "routes/studio/project/agent/AgentSubAgentsTab",
   component: StatefulStory,
+  // The available agents list reads the studio store: seed it like the agent route.
+  decorators: [
+    buildDecorator(() => ({
+      state: mergeSeeds(
+        buildStudioData(studioStoryArgs).baseSeeds,
+        seed.agents(agents, { currentId: masterAgent.id }),
+        // The available-agent rows read each agent's published settings.
+        ...agents.map((agent) =>
+          seed.studio.agentHistory({
+            agentId: agent.id,
+            versions: [agentSettingsFactory.transient({ agent }).build()],
+          }),
+        ),
+      ),
+    })),
+  ],
   parameters: { layout: "fullscreen" },
   args: {
     value: [],
@@ -80,13 +100,15 @@ export const WithSubAgents: Story = {
         toolName: "ask_resource_navigator",
         description: "Route resource lookup and eligibility questions to Resource Navigator.",
         enabled: true,
+        mode: "relay",
       },
       {
         id: "sub-agent-policy",
         agentId: policyAgent.id,
-        toolName: "ask_policy_analyst",
-        description: "Use Policy Analyst for questions that need regulatory or policy framing.",
-        enabled: false,
+        toolName: "take_over_policy_interview",
+        description: "Hand the conversation to Policy Analyst for the eligibility interview.",
+        enabled: true,
+        mode: "handoff",
       },
     ],
   },
@@ -101,6 +123,7 @@ export const NoAvailableConversationAgents: Story = {
         toolName: "ask_resource_navigator",
         description: "Route resource lookup and eligibility questions to Resource Navigator.",
         enabled: true,
+        mode: "relay",
       },
       {
         id: "sub-agent-policy",
@@ -108,6 +131,7 @@ export const NoAvailableConversationAgents: Story = {
         toolName: "ask_policy_analyst",
         description: "Use Policy Analyst for questions that need regulatory or policy framing.",
         enabled: true,
+        mode: "relay",
       },
       {
         id: "sub-agent-drafting",
@@ -115,6 +139,7 @@ export const NoAvailableConversationAgents: Story = {
         toolName: "ask_drafting_assistant",
         description: "Use Drafting Assistant for short operational drafts.",
         enabled: true,
+        mode: "relay",
       },
       {
         id: "sub-agent-intake",
@@ -122,6 +147,7 @@ export const NoAvailableConversationAgents: Story = {
         toolName: "ask_intake_assistant",
         description: "Delegate structured intake questions to Intake Assistant.",
         enabled: true,
+        mode: "relay",
       },
     ],
   },

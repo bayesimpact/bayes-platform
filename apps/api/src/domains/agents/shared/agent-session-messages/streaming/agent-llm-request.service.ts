@@ -89,6 +89,7 @@ export class AgentLlmRequestService {
     includeSessionMetadataTools = true,
     extraTags = [],
     sessionState,
+    syntheticUserContent,
   }: {
     agentSessionScope: AgentSessionScope
     getProviderForModel: (model: string) => LLMProvider
@@ -98,6 +99,12 @@ export class AgentLlmRequestService {
     includeSessionMetadataTools?: boolean
     extraTags?: string[]
     sessionState?: SessionStateTarget
+    /**
+     * A user-role message appended for this call only, never persisted nor
+     * shown: it triggers a turn the user did not type (a sub-agent's first
+     * turn after a handoff, the parent's turn after a conclusion).
+     */
+    syntheticUserContent?: string
   }): Promise<BuiltLLMRequest> {
     const { session, agent, agentSettings, connectScope } = agentSessionScope
 
@@ -125,6 +132,9 @@ export class AgentLlmRequestService {
         agentSettings,
         toolNames,
         toolDescriptions,
+        handoff: agentSessionScope.handoff
+          ? { parentAgentName: agentSessionScope.handoff.parentAgent.name }
+          : undefined,
       }),
       model: agentSettings.model,
       temperature: agentSettings.temperature,
@@ -143,6 +153,9 @@ export class AgentLlmRequestService {
     })
 
     const messages = await this.convertToLLMFormat(session.messages)
+    if (syntheticUserContent !== undefined) {
+      messages.push({ role: "user", content: syntheticUserContent })
+    }
 
     // If there's an attachment document, we need to handle it and add it to the LLM messages
     if (attachmentDocumentId)

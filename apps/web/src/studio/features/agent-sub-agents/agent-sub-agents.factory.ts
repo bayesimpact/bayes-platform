@@ -26,6 +26,7 @@ export const agentSubAgentFactory = AgentSubAgentFactory.define(({ params, trans
     toolName: params.toolName ?? buildDefaultToolName(childAgent.name),
     description: params.description ?? faker.lorem.sentence(),
     enabled: params.enabled ?? true,
+    mode: params.mode ?? "relay",
     childAgent: {
       id: params.childAgent?.id ?? childAgent.id,
       name: params.childAgent?.name ?? childAgent.name,

@@ -173,4 +173,53 @@ export class PublicAgentSessionsService {
   async updateLastActivity(sessionId: string): Promise<void> {
     await this.publicAgentSessionRepository.update(sessionId, { lastActivityAt: new Date() })
   }
+
+  /** ActiveAgentController for PUBLIC sessions, same semantics as ConversationAgentSessionsService. */
+  async setActiveAgent({
+    connectScope,
+    sessionId,
+    activeAgentId,
+  }: {
+    connectScope: RequiredConnectScope
+    sessionId: string
+    activeAgentId: string
+  }): Promise<void> {
+    await this.publicAgentSessionRepository.update(
+      {
+        id: sessionId,
+        organizationId: connectScope.organizationId,
+        projectId: connectScope.projectId,
+      },
+      { activeAgentId },
+    )
+  }
+
+  async clearActiveAgentIfCurrent({
+    connectScope,
+    sessionId,
+    expectedActiveAgentId,
+  }: {
+    connectScope: RequiredConnectScope
+    sessionId: string
+    expectedActiveAgentId: string
+  }): Promise<void> {
+    await this.publicAgentSessionRepository.update(
+      {
+        id: sessionId,
+        organizationId: connectScope.organizationId,
+        projectId: connectScope.projectId,
+        activeAgentId: expectedActiveAgentId,
+      },
+      { activeAgentId: null },
+    )
+  }
+
+  /** The current active agent of a public session, re-read after a turn. */
+  async getActiveAgentId(sessionId: string): Promise<string | null> {
+    const session = await this.publicAgentSessionRepository.findOne({
+      where: { id: sessionId },
+      select: { id: true, activeAgentId: true },
+    })
+    return session?.activeAgentId ?? null
+  }
 }

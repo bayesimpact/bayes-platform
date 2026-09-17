@@ -8,6 +8,8 @@ export enum ToolName {
   McpSearchResources = "search_resources",
   McpSmartSearch = "smart_search",
   SurfaceResources = "surfaceResources",
+  /** A sub-agent in handoff mode hands the conversation back to its parent. */
+  ConcludeHandoff = "concludeHandoff",
 }
 
 export type AgentSessionToolName = ToolName | (string & {})
@@ -55,6 +57,8 @@ export type AgentSessionMessageDto = {
    * stays right until the persisted message replaces it.
    */
   agentRevision?: number
+  /** The agent that produced this message: the session's agent, or the sub-agent in control. */
+  agentId?: string
   toolCalls?: AgentSessionToolCallDto[]
 }
 

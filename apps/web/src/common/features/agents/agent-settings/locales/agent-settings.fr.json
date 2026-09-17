@@ -177,7 +177,13 @@
       "toolName": "Nom de l'outil",
       "toolNamePlaceholder": "ask_specialist_agent",
       "description": "Description de l'outil",
-      "defaultDescription": "Transmettre les demandes spécialisées à {{name}}."
+      "defaultDescription": "Transmettre les demandes spécialisées à {{name}}.",
+      "mode": "Mode",
+      "modeRelay": "Consulté",
+      "modeHandoff": "Prend la main",
+      "modeRelayHint": "L'orchestrateur consulte cet agent pour un échange et répond lui-même à l'usager.",
+      "modeHandoffHint": "Cet agent parle directement à l'usager jusqu'à la fin de sa partie, puis rend la conversation.",
+      "talkingTo": "En conversation avec {{name}}"
     },
     "embed": {
       "loading": "Chargement de la configuration d'intégration…",

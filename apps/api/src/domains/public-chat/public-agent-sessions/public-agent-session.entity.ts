@@ -31,6 +31,10 @@ export class PublicAgentSession extends Base4AllEntity {
   @Column({ type: "varchar", name: "title", nullable: true })
   title!: string | null
 
+  /** The sub-agent in control while a handoff is in progress (see ConversationAgentSession). */
+  @Column({ type: "uuid", name: "active_agent_id", nullable: true })
+  activeAgentId!: string | null
+
   // Set when the retention sweep purged this session's content (GDPR). The
   // session and message rows survive for analytics; content fields are emptied
   // and externalVisitorId is cleared so no link to a person remains.

@@ -44,11 +44,21 @@ const agentSubAgentToolNameSchema = z
     message: "Tool name can only contain letters, numbers, underscores, and hyphens",
   })
 
+/**
+ * How a parent agent uses a sub-agent.
+ * - "relay": the parent calls the sub-agent as a tool for one exchange and answers the user itself.
+ * - "handoff": the sub-agent takes the conversation over. The user's next messages go to it
+ *   directly, in the same session, until it concludes and hands the conversation back.
+ */
+export const agentSubAgentModeSchema = z.enum(["relay", "handoff"])
+export type AgentSubAgentMode = z.infer<typeof agentSubAgentModeSchema>
+
 const replaceAgentSubAgentSchema = z.object({
   childAgentId: z.string().uuid(),
   toolName: agentSubAgentToolNameSchema,
   description: z.string().trim().max(2000).default(""),
   enabled: z.boolean(),
+  mode: agentSubAgentModeSchema.default("relay"),
 })
 
 export const replaceAgentSubAgentsSchema = z.object({
@@ -62,6 +72,7 @@ export const agentSubAgentSchema = z.object({
   toolName: z.string(),
   description: z.string(),
   enabled: z.boolean(),
+  mode: agentSubAgentModeSchema,
   childAgent: z
     .object({
       id: z.string().uuid(),
@@ -73,8 +84,9 @@ export const agentSubAgentSchema = z.object({
   updatedAt: timeTypeSchema,
 })
 
-export type ReplaceAgentSubAgentDto = z.infer<typeof replaceAgentSubAgentSchema>
-export type ReplaceAgentSubAgentsDto = z.infer<typeof replaceAgentSubAgentsSchema>
+/** Request shape: `mode` may be omitted and defaults to "relay". */
+export type ReplaceAgentSubAgentDto = z.input<typeof replaceAgentSubAgentSchema>
+export type ReplaceAgentSubAgentsDto = z.input<typeof replaceAgentSubAgentsSchema>
 export type AgentSubAgentDto = z.infer<typeof agentSubAgentSchema>
 
 export const agentValidationSchema = z.object({

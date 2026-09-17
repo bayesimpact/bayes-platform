@@ -168,6 +168,9 @@ export const sendMessage = createAsyncThunk<
     // The message the answer is being written into: the optimistic one until the stream names the
     // persisted one. Errors and truncations are attributed to whichever is current.
     let streamedMessageId = assistantMessageId
+    // The first `start` names the persisted id of the optimistic bubble; a later one
+    // (the next agent's reply after a hand-over) opens a new bubble.
+    let repliesStarted = 0
     // A stream that ends with neither `end` nor `error` left the message half-written. Without
     // this the bubble would stay in `streaming` for good and block every later send.
     let sawTerminalEvent = false
@@ -185,13 +188,20 @@ export const sendMessage = createAsyncThunk<
         handlers: {
           onStart: (event) => {
             streamedMessageId = event.messageId
-            // Update the optimistic message ID to match the backend's ID
-            dispatch(
-              agentSessionMessagesActions.updateAssistantMessageId({
-                oldMessageId: assistantMessageId,
-                newMessageId: event.messageId,
-              }),
-            )
+            repliesStarted += 1
+            if (repliesStarted === 1) {
+              // Update the optimistic message ID to match the backend's ID
+              dispatch(
+                agentSessionMessagesActions.updateAssistantMessageId({
+                  oldMessageId: assistantMessageId,
+                  newMessageId: event.messageId,
+                }),
+              )
+            } else {
+              dispatch(
+                agentSessionMessagesActions.startNewStreamingMessage({ id: event.messageId }),
+              )
+            }
           },
           onChunk: (event) => {
             dispatch(
@@ -226,6 +236,10 @@ export const sendMessage = createAsyncThunk<
               }),
             )
             dispatch(getMessage(event.messageId))
+            // A hand-over or a conclusion changes who the user talks to: the
+            // session's active agent is refreshed after every reply.
+            // FIXME: should be replaced by getOne
+            dispatch(conversationAgentSessionsActions.getAll({ agentId }))
           },
           onError: (event) => {
             sawTerminalEvent = true

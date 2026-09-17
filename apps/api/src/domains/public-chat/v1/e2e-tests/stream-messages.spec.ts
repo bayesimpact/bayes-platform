@@ -11,7 +11,10 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import { agentSubAgentFactory } from "@/domains/agents/sub-agents/agent-sub-agent.factory"
+import { addFeature } from "@/domains/organizations/organization.factory"
 import type { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
 import { createEmbedConfigWithSession } from "../../public-chat.factory"
 import { PublicChatModule } from "../../public-chat.module"
@@ -181,5 +184,68 @@ describe("PublicChat - streamMessages", () => {
 
     const response = await subject("Hello")
     expect(response.status).toBe(401)
+  })
+
+  it("streams a handoff as one reply: the hand-over sentence and the sub-agent's first question", async () => {
+    const { organization, project, agent, session } = await createContext()
+    const child = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project }).build({
+        name: "Form Filler",
+        type: "conversation",
+      }),
+    )
+    const childSettings = await repositories.agentSettingsRepository.save(
+      agentSettingsFactory.transient({ organization, project, agent: child }).build({
+        fillFormEnabled: true,
+        outputJsonSchema: { type: "object", properties: { fullName: { type: "string" } } },
+      }),
+    )
+    await repositories.agentSubAgentRepository.save(
+      agentSubAgentFactory
+        .transient({ organization, project, parentAgent: agent, childAgent: child })
+        .tool({ toolName: "take_over_form", description: "When the visitor wants to enroll." })
+        .handoff()
+        .build(),
+    )
+    await addFeature({
+      featureFlagRepository: repositories.featureFlagRepository,
+      projectId: project.id,
+      featureFlagKey: "agent-orchestration",
+    })
+
+    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider.resetMock()
+    mockProvider.addToolCallTurn(agent.id, "take_over_form", {})
+    mockProvider.addTextTurn(agent.id, "I hand you over.")
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
+    mockProvider.addTextTurn(child.id, "Hello, what is your name?")
+    mockProvider.addObjectTurn(child.id, { suggestedTitle: null })
+
+    const response = await subject("I want to enroll")
+    expect(response.status).toBe(200)
+    const events = parseSseDataEvents<StreamEventPayload>(response.text)
+    // The public contract: one start, one end per request, whatever the platform ran.
+    expect(events.filter((event) => event.type === "start")).toHaveLength(1)
+    const endEvents = events.filter((event) => event.type === "end")
+    expect(endEvents).toHaveLength(1)
+    expect(endEvents[0]).toMatchObject({
+      fullContent: "I hand you over.\n\nHello, what is your name?",
+    })
+    expect(events.at(-1)?.type).toBe("end")
+
+    // The session now routes the visitor's messages to the sub-agent, and each
+    // reply is stored on its own, attributed to the agent that wrote it.
+    const updatedSession = await repositories.publicAgentSessionRepository.findOneByOrFail({
+      id: session.id,
+    })
+    expect(updatedSession.activeAgentId).toBe(child.id)
+    const replies = await repositories.agentMessageRepository.find({
+      where: { sessionId: session.id, role: "assistant" },
+      order: { createdAt: "ASC" },
+    })
+    expect(replies.map((reply) => reply.agentSettingsId)).toEqual([
+      expect.any(String),
+      childSettings.id,
+    ])
   })
 })
