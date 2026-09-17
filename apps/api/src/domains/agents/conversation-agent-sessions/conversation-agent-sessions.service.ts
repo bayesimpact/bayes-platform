@@ -121,7 +121,7 @@ export class ConversationAgentSessionsService {
       // empty husks: they stay out of the list too.
       where: { agentId, userId, type, parentSessionId: IsNull(), purgedAt: IsNull() },
       order: { createdAt: "DESC" },
-      relations: { forms: true },
+      relations: { forms: { agent: true } },
     })
   }
 
@@ -240,7 +240,7 @@ export class ConversationAgentSessionsService {
     return this.conversationAgentSessionConnectRepository.find(connectScope, {
       where: { parentSessionId, userId, type, purgedAt: IsNull() },
       order: { createdAt: "ASC" },
-      relations: { forms: true },
+      relations: { forms: { agent: true } },
     })
   }
 

@@ -22,8 +22,7 @@ import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
 import { selectMcpAppHtml, selectStreamingToolSteps } from "../agent-session-messages.selectors"
 import { Attachment } from "./Attachment"
-import { useFormResult } from "./form-result-context"
-import { useFormSubSessions } from "./form-sub-sessions-context"
+import { useConversationForms, useFormResult } from "./form-result-context"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { McpAppPlaceholder, McpAppView } from "./McpAppView"
 import { getRenderableMcpApp, getReplyBubbleText, hasMcpAppCard } from "./mcp-app-view"
@@ -42,7 +41,7 @@ export function AgentSessionMessage({
   onResend?: () => void
 }) {
   const { t } = useTranslation()
-  const formSubSessions = useFormSubSessions()
+  const conversationForms = useConversationForms()
   // The form of the agent that wrote this message: a sub-agent in control has its own.
   const formResult = useFormResult(message.agentId)
   // Card HTML is loaded after the transcript so a slow MCP server never delays the messages;
@@ -89,13 +88,6 @@ export function AgentSessionMessage({
       )
       // Tool names this message delegated to that resolved to a form sub-session,
       // deduplicated so a sub-agent invoked twice shows a single affordance.
-      const delegatedToolNames = [
-        ...new Set(
-          (message.toolCalls ?? [])
-            .map((call) => call.name)
-            .filter((name) => formSubSessions.some((subSession) => subSession.toolName === name)),
-        ),
-      ]
 
       return (
         <Message align="start">
@@ -171,13 +163,14 @@ export function AgentSessionMessage({
                   {sourcesTool && <SourcesTool toolCall={sourcesTool} />}
                 </RestrictedFeature>
 
-                {delegatedToolNames.map((toolName) => (
+                {conversationForms.some((form) => form.agentId !== message.agentId) && (
+                  // Every form of the conversation, once another agent has one:
+                  // the sheet reads live data, so it is right on any reply.
                   <SubAgentFormResultSheet
-                    key={toolName}
-                    subSessions={formSubSessions}
-                    defaultToolName={toolName}
+                    forms={conversationForms}
+                    defaultAgentId={message.agentId}
                   />
-                ))}
+                )}
               </MessageFooter>
             )}
           </MessageContent>

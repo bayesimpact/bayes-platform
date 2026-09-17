@@ -57,6 +57,7 @@ export function AgentSessionMessages({
   onFillFormToolEvent,
   formSubSessions = [],
   formResultSchema,
+  agentName,
   renderMessageVersion,
   renderVersionSelect,
 }: {
@@ -65,6 +66,8 @@ export function AgentSessionMessages({
   onFillFormToolEvent?: () => void
   formSubSessions?: ConversationSubSession[]
   formResultSchema?: Record<string, unknown>
+  /** The session agent's name, for the tab of its own form. */
+  agentName?: string
   /**
    * Optional per-message affordance rendered in the footer, after the copy button.
    * Studio uses it for the agent settings revision badge; the other surfaces omit it.
@@ -72,6 +75,7 @@ export function AgentSessionMessages({
   renderMessageVersion?: (message: AgentSessionMessageType) => React.ReactNode
   renderVersionSelect?: React.ReactNode
 }) {
+  const { t } = useTranslation()
   const isStreaming = useAppSelector(selectStreaming)
   const dispatch = useAppDispatch()
 
@@ -81,11 +85,28 @@ export function AgentSessionMessages({
   const byAgentId: FormResultContextValue["byAgentId"] = {}
   for (const form of session.forms) {
     if (form.outputJsonSchema && form.agentId !== session.agentId) {
-      byAgentId[form.agentId] = { outputJsonSchema: form.outputJsonSchema, result: form.state }
+      byAgentId[form.agentId] = {
+        agentId: form.agentId,
+        agentName: form.agentName ?? t("agentSettings:orchestration.missingAgent"),
+        outputJsonSchema: form.outputJsonSchema,
+        result: form.state,
+      }
+    }
+  }
+  // Relay sub-agents fill their form in their own sub-session.
+  for (const subSession of formSubSessions) {
+    if (!subSession.outputJsonSchema) continue
+    byAgentId[subSession.agentId] = {
+      agentId: subSession.agentId,
+      agentName: subSession.agentName,
+      outputJsonSchema: subSession.outputJsonSchema,
+      result: findConversationForm(subSession.session, subSession.agentId)?.state,
     }
   }
   if (formResultSchema) {
     byAgentId[session.agentId] = {
+      agentId: session.agentId,
+      agentName: agentName ?? t("conversationAgentSession:formState.thisAgent"),
       outputJsonSchema: formResultSchema,
       result: findConversationForm(session, session.agentId)?.state,
     }
