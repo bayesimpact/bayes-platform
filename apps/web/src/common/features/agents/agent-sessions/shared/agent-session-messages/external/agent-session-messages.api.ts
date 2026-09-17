@@ -1,11 +1,10 @@
 import {
-  type AgentSessionMessageDto,
   AgentSessionMessagesRoutes,
   type PresignAgentSessionMessageAttachmentDocumentRequestDto,
 } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
-import type { AgentSessionMessage } from "../agent-session-messages.models"
 import type { IAgentSessionMessagesSpi } from "../agent-session-messages.spi"
+import { fromDto } from "./agent-session-messages.mappers"
 
 export default {
   getAll: async ({ payload, ...params }) => {
@@ -68,17 +67,3 @@ export default {
     return response.data.data
   },
 } satisfies IAgentSessionMessagesSpi
-
-const fromDto = (dto: AgentSessionMessageDto): AgentSessionMessage => ({
-  id: dto.id,
-  role: dto.role,
-  content: dto.content,
-  createdAt: dto.createdAt,
-  attachmentDocumentId: dto.attachmentDocumentId,
-  status: dto.status,
-  startedAt: dto.startedAt,
-  completedAt: dto.completedAt,
-  agentRevision: dto.agentRevision,
-  agentId: dto.agentId,
-  toolCalls: dto.toolCalls,
-})
