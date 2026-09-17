@@ -256,7 +256,7 @@ function toMyTesterSessionSummaryDto(summary: MyTesterSessionSummary): MyTesterS
     createdAt: summary.createdAt.getTime(),
     updatedAt: summary.updatedAt.getTime(),
     feedbackStatus: summary.feedbackStatus,
-    forms: summary.forms.map(toConversationFormDto),
+    forms: summary.forms.map((form) => toConversationFormDto(form)),
     agentId: summary.agentId,
     type: summary.type,
   }

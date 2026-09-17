@@ -17,6 +17,8 @@ export type ConversationFormDto = {
   state: Record<string, unknown>
   /** Written at conclusion: what the agent collected or answered, in a few sentences. */
   summary?: string
+  /** The agent's current form schema, to render the state. Absent when the agent has no form. */
+  outputJsonSchema?: Record<string, unknown>
   updatedAt: TimeType
 }
 

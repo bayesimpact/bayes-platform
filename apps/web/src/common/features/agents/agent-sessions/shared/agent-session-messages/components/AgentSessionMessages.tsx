@@ -38,7 +38,10 @@ import {
   ChatSubmit,
 } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/Chat"
 import { Dictaphone } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/Dictaphone"
-import { FormResultProvider } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/form-result-context"
+import {
+  type FormResultContextValue,
+  FormResultProvider,
+} from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/form-result-context"
 import { FormSubSessionsProvider } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/form-sub-sessions-context"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { AttachDocument } from "@/studio/features/documents/components/AttachDocument"
@@ -72,13 +75,23 @@ export function AgentSessionMessages({
   const isStreaming = useAppSelector(selectStreaming)
   const dispatch = useAppDispatch()
 
-  // The form this session's agent fills; sub-agent forms open from their own sheet.
-  const formResult = formResultSchema
-    ? {
-        outputJsonSchema: formResultSchema,
-        result: findConversationForm(session, session.agentId)?.state,
-      }
-    : null
+  // One form per agent of the conversation: the session's agent (schema from
+  // the running settings) and the sub-agents that took the conversation over
+  // (schema carried by their form). Relay sub-agent forms open from their own sheet.
+  const byAgentId: FormResultContextValue["byAgentId"] = {}
+  for (const form of session.forms) {
+    if (form.outputJsonSchema && form.agentId !== session.agentId) {
+      byAgentId[form.agentId] = { outputJsonSchema: form.outputJsonSchema, result: form.state }
+    }
+  }
+  if (formResultSchema) {
+    byAgentId[session.agentId] = {
+      outputJsonSchema: formResultSchema,
+      result: findConversationForm(session, session.agentId)?.state,
+    }
+  }
+  const formResult: FormResultContextValue | null =
+    Object.keys(byAgentId).length > 0 ? { rootAgentId: session.agentId, byAgentId } : null
 
   // A failed or interrupted last reply offers to send its turn again: the same content and
   // attachment the user already provided, so nothing has to be retyped or re-uploaded.
