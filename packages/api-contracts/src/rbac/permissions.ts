@@ -18,6 +18,33 @@ export const BACKOFFICE_USER_READ_PERMISSION = "backoffice.user.read" as const
 
 export const BACKOFFICE_TERMS_UPDATE_PERMISSION = "backoffice.terms.update" as const
 
+/** Install an App on a project. Global, same wiring as `backoffice.read`. */
+export const APP_INSTALL_PERMISSION = "app.install" as const
+
+/** AppManifest back-office CRUD. Superadmin only in V0; not granted by `app.install`. */
+export const BACKOFFICE_APP_MANAGE_PERMISSION = "backoffice.app.manage" as const
+
+export const DOCUMENT_READ_PERMISSION = "document.read" as const
+
+export const DOCUMENT_CREATE_PERMISSION = "document.create" as const
+
+export const DOCUMENT_UPDATE_PERMISSION = "document.update" as const
+
+export const DOCUMENT_DELETE_PERMISSION = "document.delete" as const
+
+/**
+ * Permissions an App may be granted. Policy lives in code, not in the database.
+ * Intersect this list with `AppManifest.grantable_permissions` on save and on authorize.
+ */
+export const APP_GRANTABLE_PERMISSIONS = [
+  DOCUMENT_READ_PERMISSION,
+  DOCUMENT_CREATE_PERMISSION,
+  DOCUMENT_UPDATE_PERMISSION,
+  DOCUMENT_DELETE_PERMISSION,
+] as const
+
+export type AppGrantablePermission = (typeof APP_GRANTABLE_PERMISSIONS)[number]
+
 export const PROJECT_CREATE_PERMISSION = "project.create" as const
 
 export const PROJECT_READ_PERMISSION = "project.read" as const
@@ -50,5 +77,7 @@ export type GlobalPermission =
   | typeof BACKOFFICE_AGENT_READ_PERMISSION
   | typeof BACKOFFICE_USER_READ_PERMISSION
   | typeof BACKOFFICE_TERMS_UPDATE_PERMISSION
+  | typeof APP_INSTALL_PERMISSION
+  | typeof BACKOFFICE_APP_MANAGE_PERMISSION
 
 export type OrganizationPermission = OrganizationScopedPermission

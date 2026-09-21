@@ -14,7 +14,9 @@ import { PermissionService } from "@/domains/rbac/permission.service"
 import {
   AGENT_ROLE_PERMISSIONS,
   AGENT_ROLES,
+  APP_INSTALL_PERMISSION,
   BACKOFFICE_AGENT_READ_PERMISSION,
+  BACKOFFICE_APP_MANAGE_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_READ_PERMISSION,
   BACKOFFICE_PROJECT_UPDATE_PERMISSION,
@@ -22,6 +24,10 @@ import {
   BACKOFFICE_TERMS_UPDATE_PERMISSION,
   BACKOFFICE_USER_READ_PERMISSION,
   CATALOG_ROLE_KEYS,
+  DOCUMENT_CREATE_PERMISSION,
+  DOCUMENT_DELETE_PERMISSION,
+  DOCUMENT_READ_PERMISSION,
+  DOCUMENT_UPDATE_PERMISSION,
   ORGANIZATION_CREATE_PERMISSION,
   ORGANIZATION_ROLE_PERMISSIONS,
   ORGANIZATION_ROLES,
@@ -359,7 +365,12 @@ describe("PermissionService", () => {
     )
 
     const permissions = await service.listGlobalPermissions(user.id)
-    expect(permissions.sort()).toEqual([BACKOFFICE_READ_PERMISSION, TRACE_READ_PERMISSION])
+    expect(permissions.sort()).toEqual([
+      APP_INSTALL_PERMISSION,
+      BACKOFFICE_PROJECT_READ_PERMISSION,
+      BACKOFFICE_READ_PERMISSION,
+      TRACE_READ_PERMISSION,
+    ])
   })
 
   it("denies backoffice.terms.update to platform_staff members", async () => {
@@ -384,6 +395,80 @@ describe("PermissionService", () => {
     )
   })
 
+  it("grants app.install to platform_staff and platform_superadmin", async () => {
+    const repositories = setup.getAllRepositories()
+    const staff = userFactory.build({ email: "staff-install@bayesimpact.org" })
+    const superadmin = userFactory.build({ email: "superadmin-install@bayesimpact.org" })
+    await repositories.userRepository.save([staff, superadmin])
+    const platformStaffRole = await repositories.roleRepository.findOneOrFail({
+      where: { key: PLATFORM_STAFF_ROLE },
+    })
+    const platformSuperadminRole = await repositories.roleRepository.findOneOrFail({
+      where: { key: PLATFORM_SUPERADMIN_ROLE },
+    })
+    await repositories.userMembershipRepository.save([
+      userMembershipFactory.build({
+        userId: staff.id,
+        resourceType: "global",
+        resourceId: null,
+        role: "member",
+        roleId: platformStaffRole.id,
+      }),
+      userMembershipFactory.build({
+        userId: superadmin.id,
+        resourceType: "global",
+        resourceId: null,
+        role: "member",
+        roleId: platformSuperadminRole.id,
+      }),
+    ])
+
+    await expect(service.hasGlobal(staff.id, APP_INSTALL_PERMISSION)).resolves.toBe(true)
+    await expect(service.hasGlobal(superadmin.id, APP_INSTALL_PERMISSION)).resolves.toBe(true)
+  })
+
+  it("denies app.install without any global membership", async () => {
+    const repositories = setup.getAllRepositories()
+    const user = userFactory.build({ email: "outsider@example.com" })
+    await repositories.userRepository.save(user)
+
+    await expect(service.hasGlobal(user.id, APP_INSTALL_PERMISSION)).resolves.toBe(false)
+  })
+
+  it("grants backoffice.app.manage to platform_superadmin only", async () => {
+    const repositories = setup.getAllRepositories()
+    const staff = userFactory.build({ email: "staff-apps@bayesimpact.org" })
+    const superadmin = userFactory.build({ email: "superadmin-apps@bayesimpact.org" })
+    await repositories.userRepository.save([staff, superadmin])
+    const platformStaffRole = await repositories.roleRepository.findOneOrFail({
+      where: { key: PLATFORM_STAFF_ROLE },
+    })
+    const platformSuperadminRole = await repositories.roleRepository.findOneOrFail({
+      where: { key: PLATFORM_SUPERADMIN_ROLE },
+    })
+    await repositories.userMembershipRepository.save([
+      userMembershipFactory.build({
+        userId: staff.id,
+        resourceType: "global",
+        resourceId: null,
+        role: "member",
+        roleId: platformStaffRole.id,
+      }),
+      userMembershipFactory.build({
+        userId: superadmin.id,
+        resourceType: "global",
+        resourceId: null,
+        role: "member",
+        roleId: platformSuperadminRole.id,
+      }),
+    ])
+
+    await expect(service.hasGlobal(staff.id, BACKOFFICE_APP_MANAGE_PERMISSION)).resolves.toBe(false)
+    await expect(service.hasGlobal(superadmin.id, BACKOFFICE_APP_MANAGE_PERMISSION)).resolves.toBe(
+      true,
+    )
+  })
+
   it("lists global permissions for platform_superadmin users", async () => {
     const repositories = setup.getAllRepositories()
     const user = userFactory.build({ email: "superadmin@bayesimpact.org" })
@@ -403,7 +488,9 @@ describe("PermissionService", () => {
 
     const permissions = await service.listGlobalPermissions(user.id)
     expect(permissions.sort()).toEqual([
+      APP_INSTALL_PERMISSION,
       BACKOFFICE_AGENT_READ_PERMISSION,
+      BACKOFFICE_APP_MANAGE_PERMISSION,
       BACKOFFICE_ORGANIZATION_READ_PERMISSION,
       BACKOFFICE_PROJECT_READ_PERMISSION,
       BACKOFFICE_PROJECT_UPDATE_PERMISSION,
@@ -1257,6 +1344,89 @@ describe("PermissionService", () => {
       await expect(
         service.has(projectUser.id, "project.update", { type: "project", id: project.id }),
       ).resolves.toBe(true)
+    })
+
+    it("grants document permissions to project owners and admins", async () => {
+      const repositories = setup.getAllRepositories()
+      const { organization } = await createOrganizationWithOwner(repositories)
+      const project = projectFactory.transient({ organization }).build()
+      await repositories.projectRepository.save(project)
+
+      const projectOwnerRole = await repositories.roleRepository.findOneOrFail({
+        where: { key: PROJECT_ROLES.owner },
+      })
+      const projectAdminRole = await repositories.roleRepository.findOneOrFail({
+        where: { key: PROJECT_ROLES.admin },
+      })
+      const ownerUser = userFactory.build()
+      const adminUser = userFactory.build()
+      await repositories.userRepository.save([ownerUser, adminUser])
+      await repositories.userMembershipRepository.save([
+        userMembershipFactory.build({
+          userId: ownerUser.id,
+          resourceType: "project",
+          resourceId: project.id,
+          role: "owner",
+          roleId: projectOwnerRole.id,
+        }),
+        userMembershipFactory.build({
+          userId: adminUser.id,
+          resourceType: "project",
+          resourceId: project.id,
+          role: "admin",
+          roleId: projectAdminRole.id,
+        }),
+      ])
+
+      const documentPermissions = [
+        DOCUMENT_READ_PERMISSION,
+        DOCUMENT_CREATE_PERMISSION,
+        DOCUMENT_UPDATE_PERMISSION,
+        DOCUMENT_DELETE_PERMISSION,
+      ]
+      for (const documentPermission of documentPermissions) {
+        await expect(
+          service.has(ownerUser.id, documentPermission, { type: "project", id: project.id }),
+        ).resolves.toBe(true)
+        await expect(
+          service.has(adminUser.id, documentPermission, { type: "project", id: project.id }),
+        ).resolves.toBe(true)
+      }
+    })
+
+    it("denies document.create to a project member and to an org owner without a project role", async () => {
+      const repositories = setup.getAllRepositories()
+      const { organization, user: orgOwner } = await createOrganizationWithOwner(repositories)
+      const project = projectFactory.transient({ organization }).build()
+      await repositories.projectRepository.save(project)
+
+      const projectMemberRole = await repositories.roleRepository.findOneOrFail({
+        where: { key: PROJECT_ROLES.member },
+      })
+      const memberUser = userFactory.build()
+      await repositories.userRepository.save(memberUser)
+      await repositories.userMembershipRepository.save(
+        userMembershipFactory.build({
+          userId: memberUser.id,
+          resourceType: "project",
+          resourceId: project.id,
+          role: "member",
+          roleId: projectMemberRole.id,
+        }),
+      )
+
+      await expect(
+        service.has(memberUser.id, DOCUMENT_CREATE_PERMISSION, {
+          type: "project",
+          id: project.id,
+        }),
+      ).resolves.toBe(false)
+      await expect(
+        service.has(orgOwner.id, DOCUMENT_CREATE_PERMISSION, {
+          type: "project",
+          id: project.id,
+        }),
+      ).resolves.toBe(false)
     })
 
     it("does not inherit across organizations", async () => {

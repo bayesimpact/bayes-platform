@@ -44,6 +44,54 @@ export const BACKOFFICE_USER_READ_PERMISSION = "backoffice.user.read" as const
 
 export const BACKOFFICE_TERMS_UPDATE_PERMISSION = "backoffice.terms.update" as const
 
+/** Install an App on a project. Global, same wiring as `backoffice.read`. */
+export const APP_INSTALL_PERMISSION = "app.install" as const
+
+/** AppManifest back-office CRUD. Superadmin only in V0; not granted by `app.install`. */
+export const BACKOFFICE_APP_MANAGE_PERMISSION = "backoffice.app.manage" as const
+
+export const DOCUMENT_READ_PERMISSION = "document.read" as const
+
+export const DOCUMENT_CREATE_PERMISSION = "document.create" as const
+
+export const DOCUMENT_UPDATE_PERMISSION = "document.update" as const
+
+export const DOCUMENT_DELETE_PERMISSION = "document.delete" as const
+
+/**
+ * Permissions an App may be granted. Policy lives here, not in the database:
+ * there is no Permission entity and no `app_grantable` column. Intersect this
+ * list with `AppManifest.grantable_permissions` on save and on authorize.
+ */
+export const APP_GRANTABLE_PERMISSIONS = [
+  DOCUMENT_READ_PERMISSION,
+  DOCUMENT_CREATE_PERMISSION,
+  DOCUMENT_UPDATE_PERMISSION,
+  DOCUMENT_DELETE_PERMISSION,
+] as const
+
+export type AppGrantablePermission = (typeof APP_GRANTABLE_PERMISSIONS)[number]
+
+const APP_GRANTABLE_PERMISSION_SET: ReadonlySet<string> = new Set(APP_GRANTABLE_PERMISSIONS)
+
+function isAppGrantablePermission(permission: string): permission is AppGrantablePermission {
+  return APP_GRANTABLE_PERMISSION_SET.has(permission)
+}
+
+/** Drop any permission that is not on the server-side App allowlist. */
+export function intersectWithAppGrantablePermissions(
+  permissions: readonly string[],
+): AppGrantablePermission[] {
+  const seen = new Set<AppGrantablePermission>()
+  const granted: AppGrantablePermission[] = []
+  for (const permission of permissions) {
+    if (!isAppGrantablePermission(permission) || seen.has(permission)) continue
+    seen.add(permission)
+    granted.push(permission)
+  }
+  return granted
+}
+
 /** See the users who are members of a resource you hold this permission on. */
 export const USER_READ_PERMISSION = "user.read" as const
 
@@ -87,8 +135,17 @@ export const ORGANIZATION_ROLE_PERMISSIONS = {
     BACKOFFICE_AGENT_READ_PERMISSION,
   ],
   org_member: ["organization.read"],
-  [PLATFORM_STAFF_ROLE]: [BACKOFFICE_READ_PERMISSION, TRACE_READ_PERMISSION],
+  // `backoffice.project.read` is global for staff so the App install picker
+  // is not empty for the people who hold `app.install`.
+  [PLATFORM_STAFF_ROLE]: [
+    APP_INSTALL_PERMISSION,
+    BACKOFFICE_READ_PERMISSION,
+    BACKOFFICE_PROJECT_READ_PERMISSION,
+    TRACE_READ_PERMISSION,
+  ],
   [PLATFORM_SUPERADMIN_ROLE]: [
+    APP_INSTALL_PERMISSION,
+    BACKOFFICE_APP_MANAGE_PERMISSION,
     BACKOFFICE_READ_PERMISSION,
     TRACE_READ_PERMISSION,
     BACKOFFICE_TERMS_UPDATE_PERMISSION,
@@ -109,6 +166,10 @@ export const PROJECT_ROLE_PERMISSIONS = {
     "project.delete",
     "agent.create",
     "agent.read",
+    DOCUMENT_READ_PERMISSION,
+    DOCUMENT_CREATE_PERMISSION,
+    DOCUMENT_UPDATE_PERMISSION,
+    DOCUMENT_DELETE_PERMISSION,
     USER_READ_PERMISSION,
     BACKOFFICE_PROJECT_READ_PERMISSION,
     BACKOFFICE_PROJECT_UPDATE_PERMISSION,
@@ -120,6 +181,10 @@ export const PROJECT_ROLE_PERMISSIONS = {
     "project.delete",
     "agent.create",
     "agent.read",
+    DOCUMENT_READ_PERMISSION,
+    DOCUMENT_CREATE_PERMISSION,
+    DOCUMENT_UPDATE_PERMISSION,
+    DOCUMENT_DELETE_PERMISSION,
     USER_READ_PERMISSION,
     BACKOFFICE_PROJECT_READ_PERMISSION,
     BACKOFFICE_PROJECT_UPDATE_PERMISSION,
@@ -228,8 +293,14 @@ export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
   "agent.read": "See an agent",
   "agent.update": "Update an agent",
   "agent.delete": "Delete an agent",
+  [DOCUMENT_READ_PERMISSION]: "See a document",
+  [DOCUMENT_CREATE_PERMISSION]: "Create documents in a project",
+  [DOCUMENT_UPDATE_PERMISSION]: "Update a document",
+  [DOCUMENT_DELETE_PERMISSION]: "Delete a document",
   [USER_READ_PERMISSION]: "See the users who are members of a resource",
   [TRACE_READ_PERMISSION]: "See Langfuse trace links",
+  [APP_INSTALL_PERMISSION]: "Install apps on a project",
+  [BACKOFFICE_APP_MANAGE_PERMISSION]: "Manage app definitions in the backoffice",
   [BACKOFFICE_READ_PERMISSION]: "Access /backoffice routes",
   [BACKOFFICE_TERMS_UPDATE_PERMISSION]: "Manage terms documents",
   [BACKOFFICE_ORGANIZATION_READ_PERMISSION]: "See organizations in the backoffice",
