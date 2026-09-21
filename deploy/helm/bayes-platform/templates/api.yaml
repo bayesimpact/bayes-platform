@@ -18,6 +18,7 @@ spec:
         {{- include "bayes-platform.selectorLabels" (dict "root" . "component" "api") | nindent 8 }}
       annotations:
         checksum/config: {{ toYaml .Values.config | sha256sum }}
+        checksum/web-theme: {{ toYaml .Values.web.theme | sha256sum }}
         {{- with .Values.api.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -90,6 +91,11 @@ spec:
             {{- include "bayes-platform.storageVolumeMount" . | nindent 12 }}
             - name: tmp
               mountPath: /tmp
+            {{- if .Values.web.theme.enabled }}
+            - name: web-theme
+              mountPath: {{ .Values.web.distDir }}/theme
+              readOnly: true
+            {{- end }}
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: false
@@ -97,6 +103,11 @@ spec:
         {{- include "bayes-platform.storageVolume" . | nindent 8 }}
         - name: tmp
           emptyDir: {}
+        {{- if .Values.web.theme.enabled }}
+        - name: web-theme
+          configMap:
+            name: {{ include "bayes-platform.componentName" (dict "root" . "component" "web-theme") }}
+        {{- end }}
       {{- with .Values.api.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -1,0 +1,17 @@
+{{- if and .Values.api.enabled .Values.web.theme.enabled }}
+# Tenant theme of the web front: the three files of dist/theme, mounted over
+# the ones built into the image (web.theme). All three are served as they are.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "bayes-platform.componentName" (dict "root" . "component" "web-theme") }}
+  labels:
+    {{- include "bayes-platform.labels" . | nindent 4 }}
+data:
+  theme.css: |
+    {{- .Values.web.theme.css | nindent 4 }}
+  logo.svg: |
+    {{- .Values.web.theme.logo | nindent 4 }}
+  favicon.svg: |
+    {{- .Values.web.theme.favicon | nindent 4 }}
+{{- end }}

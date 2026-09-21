@@ -156,7 +156,23 @@ See `values-managed.example.yaml`. The differences with the default:
 
 ## Title and theme
 
-The title comes from `web.env.WEB_APP_TITLE`. The logo and favicon are built into the image (`apps/web/public/theme`); a per-install override is not available yet.
+The title comes from `web.env.WEB_APP_TITLE`. The accent color, logo and favicon are the three files of `apps/web/public/theme` (`theme.css` with `--primary`, `logo.svg`, `favicon.svg`), read by the browser at runtime. The image ships a dev default; `web.theme` mounts a tenant's files over it without rebuilding:
+
+```yaml
+web:
+  theme:
+    enabled: true
+    css: |
+      :root {
+        --primary: oklch(74% 0.13 37);
+      }
+    logo: |
+      <svg ...>...</svg>
+    favicon: |
+      <svg ...>...</svg>
+```
+
+All three files must be given: the mount replaces the whole `theme/` folder. A change to `web.theme` rolls the API pods.
 
 ## Upgrade
 
