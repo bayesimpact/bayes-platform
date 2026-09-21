@@ -53,5 +53,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site).toString()
       <slot />
     </main>
     <Footer />
+    {/* Tenant theme (--brand-primary), read at runtime so a deployment can replace
+        the file without rebuilding. In the body on purpose: Astro puts the bundle
+        stylesheet in the head, and the later sheet wins the cascade. */}
+    <link rel="stylesheet" href="/theme/theme.css" />
   </body>
 </html>
