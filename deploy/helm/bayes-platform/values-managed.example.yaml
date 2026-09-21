@@ -47,7 +47,11 @@ externalDatabase:
 
 redis:
   enabled: false
-# BULLMQ_REDIS_URL is read from the secret.
+# BULLMQ_REDIS_URL is read from the secret: rediss://:<auth string>@<ip>:6378
+# for Memorystore with in-transit encryption, whose CA certificate goes in the
+# secret too.
+externalRedis:
+  sslCaSecretKey: BULLMQ_REDIS_TLS_CA
 
 storage:
   mode: gcs
