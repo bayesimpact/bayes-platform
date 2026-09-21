@@ -25,13 +25,16 @@ describe("getBullMqConnection", () => {
 
   it("verifies the server against BULLMQ_REDIS_TLS_CA when set", () => {
     expect(
-      getBullMqConnection({ BULLMQ_REDIS_URL: "rediss://10.0.0.3:6378", BULLMQ_REDIS_TLS_CA: "PEM\n" }),
+      getBullMqConnection({
+        BULLMQ_REDIS_URL: "rediss://10.0.0.3:6378",
+        BULLMQ_REDIS_TLS_CA: "PEM\n",
+      }),
     ).toEqual({ host: "10.0.0.3", port: 6378, tls: { ca: "PEM" } })
   })
 
   it("ignores the CA without TLS", () => {
-    expect(getBullMqConnection({ BULLMQ_REDIS_URL: "redis://redis", BULLMQ_REDIS_TLS_CA: "PEM" })).toEqual(
-      { host: "redis", port: 6379 },
-    )
+    expect(
+      getBullMqConnection({ BULLMQ_REDIS_URL: "redis://redis", BULLMQ_REDIS_TLS_CA: "PEM" }),
+    ).toEqual({ host: "redis", port: 6379 })
   })
 })
