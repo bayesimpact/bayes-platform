@@ -9,7 +9,8 @@ The main web front is served by the API itself (see api.yaml).
   {{- $fronts = append $fronts (dict "component" "web-embed" "values" .Values.webEmbed "env" (dict "VITE_API_URL" .Values.urls.api)) }}
 {{- end }}
 {{- if .Values.help.enabled }}
-  {{- $fronts = append $fronts (dict "component" "help" "values" .Values.help "env" (dict "PUBLIC_APP_URL" .Values.urls.web "PUBLIC_API_BASE_URL" .Values.urls.api "PUBLIC_SITE_URL" .Values.urls.help)) }}
+  {{- $helpTheme := ternary .Values.help.theme dict .Values.help.theme.enabled }}
+  {{- $fronts = append $fronts (dict "component" "help" "values" .Values.help "env" (dict "PUBLIC_APP_URL" .Values.urls.web "PUBLIC_API_BASE_URL" .Values.urls.api "PUBLIC_SITE_URL" .Values.urls.help) "theme" $helpTheme) }}
 {{- end }}
 {{- range $front := $fronts }}
 {{- $values := $front.values }}
@@ -33,6 +34,9 @@ spec:
         {{- include "bayes-platform.selectorLabels" (dict "root" $root "component" $front.component) | nindent 8 }}
       annotations:
         checksum/env: {{ toYaml $front.env | sha256sum }}
+        {{- if $front.theme }}
+        checksum/theme: {{ toYaml $front.theme | sha256sum }}
+        {{- end }}
     spec:
       {{- with $root.Values.global.imagePullSecrets }}
       imagePullSecrets:
@@ -69,6 +73,30 @@ spec:
             {{- toYaml $values.resources | nindent 12 }}
           securityContext:
             allowPrivilegeEscalation: false
+          {{- if $front.theme }}
+          # The tenant theme over the image's theme/ folder (one file, theme.css).
+          volumeMounts:
+            - name: theme
+              mountPath: /usr/share/nginx/html/theme
+              readOnly: true
+      volumes:
+        - name: theme
+          configMap:
+            name: {{ $name }}-theme
+          {{- end }}
+{{- if $front.theme }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $name }}-theme
+  labels:
+    {{- include "bayes-platform.labels" $root | nindent 4 }}
+    app.kubernetes.io/component: {{ $front.component }}
+data:
+  theme.css: |
+    {{- $front.theme.css | nindent 4 }}
+{{- end }}
 ---
 apiVersion: v1
 kind: Service

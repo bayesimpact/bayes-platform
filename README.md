@@ -161,6 +161,8 @@ Visual branding (logo, favicon, primary color) is controlled by static files in 
 
 The repository ships a dev default (purple accent, placeholder logo). The browser reads the three files at runtime, so a deployment replaces them without rebuilding: the Helm chart mounts them from `web.theme`, a static host copies them over `dist/theme/`. No env vars or code changes needed.
 
+The help center (`apps/help`) works the same way with one file, `apps/help/public/theme/theme.css`, which sets `--brand-primary` (the accent of its feature walkthroughs); the chart mounts it from `help.theme`.
+
 ### 3.1 Install Docling for Worker Extraction (macOS, Linux, Windows)
 
 The embedding worker uses Docling in-process for document extraction.

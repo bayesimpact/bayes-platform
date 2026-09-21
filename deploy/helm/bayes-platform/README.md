@@ -174,6 +174,8 @@ web:
 
 All three files must be given: the mount replaces the whole `theme/` folder. A change to `web.theme` rolls the API pods.
 
+The help center has its own accent, `--brand-primary`, used by its feature walkthroughs. Same mechanism, one file: `help.theme.enabled: true` and `help.theme.css` with `:root { --brand-primary: ...; }`, usually the web front's `--primary`. A change rolls the help pods.
+
 ## Upgrade
 
 ```bash

@@ -1,0 +1,7 @@
+/* Dev default, intentionally distinct so local dev is never mistaken for a
+   tenant. Loaded at runtime from /theme/theme.css (see BaseLayout.astro), so a
+   deployment replaces this file without rebuilding: the CI copies the tenant's
+   file here before a build, the Helm chart mounts one over it (help.theme). */
+:root {
+  --brand-primary: oklch(62.8% 0.2 303.9);
+}

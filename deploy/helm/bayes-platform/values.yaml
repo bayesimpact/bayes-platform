@@ -325,6 +325,15 @@ help:
   enabled: true
   image: help
   replicas: 1
+  # Tenant accent of the help center (`--brand-primary`, used by the feature
+  # walkthroughs), mounted over theme/theme.css of the image. Disabled, the
+  # image's dev default applies. Derive it from the web front's `--primary`.
+  theme:
+    enabled: false
+    css: |
+      :root {
+        --brand-primary: oklch(62.8% 0.2 303.9);
+      }
   resources:
     requests:
       cpu: 50m
