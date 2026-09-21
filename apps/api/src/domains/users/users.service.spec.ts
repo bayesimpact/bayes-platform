@@ -1,23 +1,41 @@
+import { randomUUID } from "node:crypto"
+import { UnauthorizedException } from "@nestjs/common"
 import type { Repository } from "typeorm"
+import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import {
+  type AllRepositories,
   clearTestDatabase,
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import type { Auth0UserInfoResponse } from "@/domains/auth/auth0-userinfo.service"
+import { MembershipsModule } from "@/domains/memberships/memberships.module"
+import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
+import { RbacModule } from "@/domains/rbac/rbac.module"
+import {
+  findOrganizationMembershipRow,
+  findProjectMembershipRow,
+} from "../../../test/membership-test.helpers"
+import { ensureRbacCatalog } from "../../../test/rbac-test.helpers"
+import { buildServiceUserAuth0Id, buildServiceUserEmail } from "./service-user.helpers"
 import { User } from "./user.entity"
 import { userFactory } from "./user.factory"
+import { USER_TYPE_HUMAN, USER_TYPE_SERVICE } from "./user.types"
 import { UsersService } from "./users.service"
 
 describe("UsersService", () => {
   let service: UsersService
   let repository: Repository<User>
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
+  let repositories: AllRepositories
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       providers: [UsersService],
+      additionalImports: [RbacModule, MembershipsModule],
     })
+    await ensureRbacCatalog(setup.module)
   })
 
   afterAll(async () => {
@@ -28,6 +46,7 @@ describe("UsersService", () => {
     await clearTestDatabase(setup.dataSource)
     service = setup.module.get<UsersService>(UsersService)
     repository = setup.getRepository(User)
+    repositories = setup.getAllRepositories()
   })
 
   describe("findByAuth0Id", () => {
@@ -87,6 +106,7 @@ describe("UsersService", () => {
       expect(user.email).toBe("newuser@example.com")
       expect(user.name).toBe("New User")
       expect(user.pictureUrl).toBe("https://example.com/picture.jpg")
+      expect(user.type).toBe(USER_TYPE_HUMAN)
       expect(user.createdAt).toBeInstanceOf(Date)
       expect(user.updatedAt).toBeInstanceOf(Date)
     })
@@ -202,6 +222,134 @@ describe("UsersService", () => {
       // Verify no duplicate was created
       const count = await repository.count({ where: { auth0Id: "auth0|user-existing" } })
       expect(count).toBe(1)
+    })
+
+    it("links an existing human user found by email to the Auth0 subject", async () => {
+      const existingUser = userFactory.build({
+        auth0Id: "auth0|placeholder",
+        email: "invitee@example.com",
+        type: USER_TYPE_HUMAN,
+      })
+      await repository.save(existingUser)
+
+      const user = await service.findOrCreate({
+        sub: "auth0|real-subject",
+        getUserInfo: () =>
+          Promise.resolve({
+            sub: "auth0|real-subject",
+            email: "invitee@example.com",
+            name: "Invitee",
+          } as Auth0UserInfoResponse),
+      })
+
+      expect(user.id).toBe(existingUser.id)
+      expect(user.auth0Id).toBe("auth0|real-subject")
+    })
+
+    it("refuses to attach a real Auth0 subject to a service user with the same email", async () => {
+      const installationId = "22222222-2222-4222-8222-222222222222"
+      const serviceUser = userFactory.build({
+        auth0Id: buildServiceUserAuth0Id(installationId),
+        email: buildServiceUserEmail("helpful-assistant", installationId),
+        type: USER_TYPE_SERVICE,
+      })
+      await repository.save(serviceUser)
+
+      await expect(
+        service.findOrCreate({
+          sub: "auth0|human-subject",
+          getUserInfo: () =>
+            Promise.resolve({
+              sub: "auth0|human-subject",
+              email: serviceUser.email,
+              name: "Human",
+            } as Auth0UserInfoResponse),
+        }),
+      ).rejects.toThrow(AUTH_ERRORS.SERVICE_USERS_CANNOT_AUTHENTICATE)
+
+      const persisted = await repository.findOneOrFail({ where: { id: serviceUser.id } })
+      expect(persisted.auth0Id).toBe(serviceUser.auth0Id)
+      expect(persisted.type).toBe(USER_TYPE_SERVICE)
+    })
+
+    it("refuses Auth0 login when the subject is a service user identity", async () => {
+      await expect(
+        service.findOrCreate({
+          sub: buildServiceUserAuth0Id("33333333-3333-4333-8333-333333333333"),
+          getUserInfo: () => Promise.resolve({} as Auth0UserInfoResponse),
+        }),
+      ).rejects.toBeInstanceOf(UnauthorizedException)
+    })
+  })
+
+  describe("createServiceUser", () => {
+    it("creates a service user with a synthetic email and auth0 id", async () => {
+      const installationId = "44444444-4444-4444-8444-444444444444"
+      const user = await service.createServiceUser({
+        appSlug: "Helpful-Assistant",
+        installationId,
+      })
+
+      expect(user.type).toBe(USER_TYPE_SERVICE)
+      expect(user.email).toBe(buildServiceUserEmail("helpful-assistant", installationId))
+      expect(user.auth0Id).toBe(buildServiceUserAuth0Id(installationId))
+      expect(user.name).toBe("Helpful-Assistant")
+    })
+  })
+
+  describe("attachServiceUserMemberships", () => {
+    it("attaches org_member and a project member membership with the custom role", async () => {
+      const { organization, project } = await createOrganizationWithProject(repositories)
+      const installationId = randomUUID()
+      const serviceUser = await service.createServiceUser({
+        appSlug: "helpful-assistant",
+        installationId,
+      })
+      const customRole = await repositories.roleRepository.save(
+        repositories.roleRepository.create({
+          key: `app_install_${installationId}`,
+          name: "App install",
+          scopeType: "project",
+        }),
+      )
+
+      await service.attachServiceUserMemberships({
+        userId: serviceUser.id,
+        organizationId: organization.id,
+        projectId: project.id,
+        customRoleId: customRole.id,
+      })
+
+      const organizationMembership = await findOrganizationMembershipRow(repositories, {
+        userId: serviceUser.id,
+        organizationId: organization.id,
+      })
+      const projectMembership = await findProjectMembershipRow(repositories, {
+        userId: serviceUser.id,
+        projectId: project.id,
+      })
+      const orgMemberRole = await repositories.roleRepository.findOneOrFail({
+        where: { key: ORGANIZATION_ROLES.member },
+      })
+
+      expect(organizationMembership?.role).toBe("member")
+      expect(organizationMembership?.roleId).toBe(orgMemberRole.id)
+      expect(projectMembership?.role).toBe("member")
+      expect(projectMembership?.role).not.toBe("admin")
+      expect(projectMembership?.roleId).toBe(customRole.id)
+    })
+
+    it("refuses to attach memberships for a human user", async () => {
+      const { organization, project, user } = await createOrganizationWithProject(repositories)
+
+      await expect(
+        service.attachServiceUserMemberships({
+          userId: user.id,
+          organizationId: organization.id,
+          projectId: project.id,
+          customRoleId: "00000000-0000-4000-8000-000000000000",
+        }),
+      ).rejects.toThrow("Only service users can be attached as app installations")
     })
   })
 })

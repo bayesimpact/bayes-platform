@@ -8,6 +8,8 @@ import {
 } from "@/domains/memberships/user-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { resolveOrganizationRoleId } from "@/domains/rbac/resolve-organization-role-id"
+import { HUMAN_USER_TYPE_FILTER } from "@/domains/users/service-user.helpers"
+import { USER_TYPE_HUMAN } from "@/domains/users/user.types"
 import type { OrganizationMembershipModel } from "./organization-membership.model"
 import type { OrganizationMembershipRole } from "./organization-membership.types"
 
@@ -76,6 +78,7 @@ export class OrganizationMembershipRepository {
         resourceType: ORGANIZATION_RESOURCE_TYPE,
       })
       .andWhere("membership.resourceId = :organizationId", { organizationId })
+      .andWhere("user.type = :humanUserType", { humanUserType: USER_TYPE_HUMAN })
       .orderBy("LOWER(user.email)", "ASC")
       .getMany()
 
@@ -94,6 +97,7 @@ export class OrganizationMembershipRepository {
       where: {
         resourceType: ORGANIZATION_RESOURCE_TYPE,
         resourceId: In(organizationIds),
+        user: HUMAN_USER_TYPE_FILTER,
       },
       relations: ["user"],
     })

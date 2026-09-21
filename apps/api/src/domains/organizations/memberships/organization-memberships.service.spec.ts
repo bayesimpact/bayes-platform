@@ -17,6 +17,8 @@ import {
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
 import { RbacModule } from "@/domains/rbac/rbac.module"
+import { userFactory } from "@/domains/users/user.factory"
+import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 
 describe("OrganizationMembershipsService", () => {
@@ -255,6 +257,31 @@ describe("OrganizationMembershipsService", () => {
         where: { key: ORGANIZATION_ROLES.member },
       })
       expect(membership.roleId).toBe(orgMemberRole.id)
+    })
+  })
+
+  describe("listOrganizationMemberships", () => {
+    it("hides service users from the organization member list", async () => {
+      const { user, organization } = await createOrganizationWithOwner(repositories)
+      const serviceUser = await repositories.userRepository.save(
+        userFactory.build({
+          type: USER_TYPE_SERVICE,
+          email: "app+install@service.bayes.internal",
+          auth0Id: "service|install-list",
+        }),
+      )
+      await saveOrgMembership({
+        repositories,
+        membership: organizationMembershipFactory
+          .transient({ user: serviceUser, organization })
+          .member()
+          .build(),
+      })
+
+      const memberships = await service.listOrganizationMemberships(organization.id)
+
+      expect(memberships.map((membership) => membership.userId)).toContain(user.id)
+      expect(memberships.map((membership) => membership.userId)).not.toContain(serviceUser.id)
     })
   })
 })

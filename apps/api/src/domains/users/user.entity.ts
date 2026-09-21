@@ -5,6 +5,7 @@ import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { ReviewerSessionReview } from "@/domains/review-campaigns/reviewer-session-reviews/reviewer-session-review.entity"
 import { TesterCampaignSurvey } from "@/domains/review-campaigns/tester-campaign-surveys/tester-campaign-survey.entity"
 import { AgentMessageFeedback } from "../agents/shared/agent-session-messages/feedback/agent-message-feedback.entity"
+import { USER_TYPE_HUMAN, type UserType } from "./user.types"
 
 @Entity("user")
 export class User extends Base4AllEntity {
@@ -13,6 +14,9 @@ export class User extends Base4AllEntity {
 
   @Column({ type: "varchar" })
   email!: string
+
+  @Column({ type: "varchar", default: USER_TYPE_HUMAN })
+  type!: UserType
 
   @Column({ type: "varchar", nullable: true })
   name!: string | null

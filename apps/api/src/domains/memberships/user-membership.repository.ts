@@ -87,6 +87,22 @@ export class UserMembershipRepository {
       .execute()
   }
 
+  async insertMembership(
+    params: UpsertMembershipParams & { roleId: string | null },
+    manager?: EntityManager,
+  ): Promise<void> {
+    const repo = this.repo(manager)
+    await repo.save(
+      repo.create({
+        userId: params.userId,
+        resourceType: params.resourceType,
+        resourceId: params.resourceId,
+        role: params.role,
+        roleId: params.roleId,
+      }),
+    )
+  }
+
   private async upsertNonCampaignMembership(
     repo: Repository<UserMembership>,
     params: UpsertMembershipParams,

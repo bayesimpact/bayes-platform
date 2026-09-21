@@ -8,6 +8,7 @@ import {
 } from "@/domains/memberships/user-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { resolveProjectRoleId } from "@/domains/rbac/resolve-project-role-id"
+import { HUMAN_USER_TYPE_FILTER } from "@/domains/users/service-user.helpers"
 import type { ProjectMembershipModel } from "./project-membership.model"
 import type { ProjectMembershipRole } from "./project-membership.types"
 
@@ -48,7 +49,11 @@ export class ProjectMembershipRepository {
 
   async findAllByProject(projectId: string): Promise<ProjectMembershipModel[]> {
     const memberships = await this.userMembershipRepo().find({
-      where: { resourceType: PROJECT_RESOURCE_TYPE, resourceId: projectId },
+      where: {
+        resourceType: PROJECT_RESOURCE_TYPE,
+        resourceId: projectId,
+        user: HUMAN_USER_TYPE_FILTER,
+      },
       relations: ["user"],
       order: { createdAt: "DESC" },
     })
@@ -80,7 +85,11 @@ export class ProjectMembershipRepository {
     if (projectIds.length === 0) return []
 
     const memberships = await this.userMembershipRepo().find({
-      where: { resourceType: PROJECT_RESOURCE_TYPE, resourceId: In(projectIds) },
+      where: {
+        resourceType: PROJECT_RESOURCE_TYPE,
+        resourceId: In(projectIds),
+        user: HUMAN_USER_TYPE_FILTER,
+      },
       relations: ["user"],
     })
     return this.toModels(memberships)

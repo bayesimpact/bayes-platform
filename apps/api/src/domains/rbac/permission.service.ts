@@ -399,10 +399,14 @@ export class PermissionService {
          ON other_membership.resource_type = my_membership.resource_type
          AND other_membership.resource_id = my_membership.resource_id
          AND other_membership.deleted_at IS NULL
+       INNER JOIN "user" other_user
+         ON other_user.id = other_membership.user_id
+         AND other_user.deleted_at IS NULL
+         AND other_user.type = $3
        WHERE my_membership.user_id = $1
          AND my_membership.resource_id IS NOT NULL
          AND my_membership.deleted_at IS NULL`,
-      [userId, USER_READ_PERMISSION],
+      [userId, USER_READ_PERMISSION, "human"],
     )
 
     const visibleUserIds = new Set<string>([userId, ...rows.map((row) => row.userId)])

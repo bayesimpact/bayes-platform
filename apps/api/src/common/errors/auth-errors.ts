@@ -5,6 +5,7 @@ export const AUTH_ERRORS = {
   NOT_MEMBER_OF_ORG: "Not a member of organization",
   SUB_NOT_FOUND: "Sub not found in request",
   USER_NOT_FOUND: "Could not ensure user exists",
+  SERVICE_USERS_CANNOT_AUTHENTICATE: "Service users cannot authenticate through Auth0",
 
   UNAUTHORIZED_RESOURCE: "You are not authorized to access this resource",
 } as const

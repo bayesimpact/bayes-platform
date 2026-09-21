@@ -45,6 +45,7 @@ import { RbacService } from "@/domains/rbac/rbac.service"
 import { Role } from "@/domains/rbac/role.entity"
 import { RolePermission } from "@/domains/rbac/role-permission.entity"
 import { userFactory } from "@/domains/users/user.factory"
+import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
 import { ensureRbacCatalog } from "../../../test/rbac-test.helpers"
 
 describe("PermissionService", () => {
@@ -549,6 +550,37 @@ describe("PermissionService", () => {
       if (scope.scope === "ids") {
         expect(scope.ids.sort()).toEqual([owner.id, fellowMember.id].sort())
         expect(scope.ids).not.toContain(strangerUser.id)
+      }
+    })
+
+    it("excludes service users from the visible member directory", async () => {
+      const repositories = setup.getAllRepositories()
+      const { organization, user: owner } = await createOrganizationWithOwner(repositories)
+      const serviceUser = userFactory.build({
+        type: USER_TYPE_SERVICE,
+        email: "app+install@service.bayes.internal",
+        auth0Id: "service|directory",
+      })
+      await repositories.userRepository.save(serviceUser)
+      const memberRole = await repositories.roleRepository.findOneOrFail({
+        where: { key: ORGANIZATION_ROLES.member },
+      })
+      await repositories.userMembershipRepository.save(
+        userMembershipFactory.build({
+          userId: serviceUser.id,
+          resourceType: "organization",
+          resourceId: organization.id,
+          role: "member",
+          roleId: memberRole.id,
+        }),
+      )
+
+      const scope = await service.listUserIds(owner.id)
+
+      expect(scope.scope).toBe("ids")
+      if (scope.scope === "ids") {
+        expect(scope.ids).toContain(owner.id)
+        expect(scope.ids).not.toContain(serviceUser.id)
       }
     })
 
