@@ -9,15 +9,17 @@ This document mirrors those files. Whenever a role or a role/permission grant ch
 
 ## Global roles
 
-Global roles are stored as `user_membership` rows with `resource_type = 'global'`. `platform_staff` is renamed from `org_creator` and seeded by email domain (`SeedPlatformStaffByEmailDomain` / `ORGANIZATION_CREATOR_EMAIL_DOMAIN`). `platform_superadmin` is seeded from `BACKOFFICE_AUTHORIZED_EMAILS` by `SeedPlatformSuperadminByEmails`. The app itself never reads those env vars for authorization.
+Global roles are stored as `user_membership` rows with `resource_type = 'global'`. `platform_staff` is renamed from `org_creator` and seeded by email domain (`SeedPlatformStaffByEmailDomain` / `ORGANIZATION_CREATOR_EMAIL_DOMAIN`). `platform_superadmin` is seeded from `BACKOFFICE_AUTHORIZED_EMAILS` by `SeedPlatformSuperadminByEmails`. The app itself never reads those env vars for authorization. `platform_staff` holds global `backoffice.project.read` so the App install picker is not empty for the people who hold `app.install`. `backoffice.app.manage` is superadmin-only and is not granted by `app.install`.
 
 | Permission | `platform_staff` | `platform_superadmin` |
 |---|---|---|
+| `app.install` — install apps on a project | ✅ | ✅ |
+| `backoffice.app.manage` — manage app definitions in the backoffice | — | ✅ |
 | `backoffice.read` — access `/backoffice` routes | ✅ | ✅ |
 | `trace.read` — see Langfuse trace links | ✅ | ✅ |
 | `backoffice.terms.update` — manage terms documents | — | ✅ |
 | `backoffice.organization.read` — see every organization in the backoffice | — | ✅ |
-| `backoffice.project.read` — see every project in the backoffice | — | ✅ |
+| `backoffice.project.read` — see every project in the backoffice | ✅ | ✅ |
 | `backoffice.project.update` — mutate projects from the backoffice (e.g. feature flags) | — | ✅ |
 | `backoffice.agent.read` — see every agent in the backoffice | — | ✅ |
 | `backoffice.user.read` — see every user in the backoffice | — | ✅ |
@@ -49,6 +51,10 @@ Scoped to one project via `user_membership` (`resource_type = 'project'`).
 | `project.delete` | ✅ | ✅ | — |
 | `agent.create` | ✅ | ✅ | — |
 | `agent.read` | ✅ | ✅ | — |
+| `document.read` | ✅ | ✅ | — |
+| `document.create` | ✅ | ✅ | — |
+| `document.update` | ✅ | ✅ | — |
+| `document.delete` | ✅ | ✅ | — |
 | `user.read` — see the project's members | ✅ | ✅ | — |
 | `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — |
 | `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — |
@@ -65,3 +71,7 @@ Scoped to one agent via `user_membership` (`resource_type = 'agent'`).
 | `agent.delete` | ✅ | ✅ | — |
 | `user.read` — see the agent's members | ✅ | ✅ | — |
 | `backoffice.agent.read` — see the agent in the backoffice | ✅ | ✅ | — |
+
+## App grantable permissions
+
+Apps may only be granted the permissions in `APP_GRANTABLE_PERMISSIONS` (`document.read`, `document.create`, `document.update`, `document.delete`). This allowlist is code, not a database column. Manifest save and authorize intersect requested permissions with it.
