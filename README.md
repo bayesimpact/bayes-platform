@@ -159,7 +159,7 @@ Visual branding (logo, favicon, primary color) is controlled by static files in 
 | `logo.svg` | Logo displayed in the sidebar, navbar, and onboarding screen |
 | `favicon.svg` | Browser tab icon |
 
-The repository ships defaults (coral accent). To rebrand for a specific deployment, replace these files before building — no env vars or code changes needed.
+The repository ships a dev default (purple accent, placeholder logo). The browser reads the three files at runtime, so a deployment replaces them without rebuilding: the Helm chart mounts them from `web.theme`, a static host copies them over `dist/theme/`. No env vars or code changes needed.
 
 ### 3.1 Install Docling for Worker Extraction (macOS, Linux, Windows)
 

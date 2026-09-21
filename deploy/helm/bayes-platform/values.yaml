@@ -295,6 +295,20 @@ web:
     WEB_HELP_AGENT_EMBED_TOKEN: ""
     WEB_HELP_AGENT_EMBED_COLOR: ""
     WEB_HELP_AGENT_EMBED_HINT: ""
+  # Where the image keeps the built front (WEB_APP_DIST_DIR of the app image).
+  distDir: /app/apps/web/dist
+  # Tenant theme, mounted over dist/theme of the image: the accent color
+  # (theme.css, `--primary`), the logo of the sidebar and onboarding, the
+  # favicon. Disabled, the image's files apply (a dev default color, a
+  # placeholder logo). Enabled, give all three.
+  theme:
+    enabled: false
+    css: |
+      :root {
+        --primary: oklch(62.8% 0.2 303.9);
+      }
+    logo: ""
+    favicon: ""
 
 webEmbed:
   enabled: true
