@@ -157,6 +157,13 @@ on other chart values.
     secretKeyRef:
       name: {{ include "bayes-platform.secretName" . }}
       key: {{ .Values.externalRedis.urlKey }}
+{{- if .Values.externalRedis.sslCaSecretKey }}
+- name: BULLMQ_REDIS_TLS_CA
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "bayes-platform.secretName" . }}
+      key: {{ .Values.externalRedis.sslCaSecretKey }}
+{{- end }}
 {{- end }}
 - name: FRONTEND_URL
   value: {{ .Values.urls.web | quote }}

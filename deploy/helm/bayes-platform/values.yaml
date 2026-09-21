@@ -152,8 +152,13 @@ redis:
 
 # External Redis (Memorystore, ElastiCache...) when redis.enabled is false.
 externalRedis:
-  # Key of the redis:// URL in secrets.existingSecret.
+  # Key of the redis:// or rediss:// URL in secrets.existingSecret.
   urlKey: BULLMQ_REDIS_URL
+  # With rediss://, the server certificate is checked against the system store,
+  # or against the CA certificate (PEM) under this key of the Secret. Managed
+  # instances (Memorystore with in-transit encryption) sign with a per-instance
+  # CA and need it.
+  sslCaSecretKey: ""
 
 # ---------------------------------------------------------------------------
 # File storage
