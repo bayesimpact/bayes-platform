@@ -5,10 +5,18 @@ import {
   DOCUMENT_READ_PERMISSION,
   DOCUMENT_UPDATE_PERMISSION,
   intersectWithAppGrantablePermissions,
+  PROJECT_CREATE_PERMISSION,
+  PROJECT_DELETE_PERMISSION,
+  PROJECT_READ_PERMISSION,
+  PROJECT_UPDATE_PERMISSION,
 } from "./rbac.constants"
 
 describe("intersectWithAppGrantablePermissions", () => {
-  it("keeps only the V0 document permissions", () => {
+  it("does not allow granting project.create", () => {
+    expect(APP_GRANTABLE_PERMISSIONS).not.toContain(PROJECT_CREATE_PERMISSION)
+  })
+
+  it("keeps only allowlisted permissions, grouped by resource type", () => {
     expect(
       intersectWithAppGrantablePermissions([
         DOCUMENT_READ_PERMISSION,
@@ -17,6 +25,10 @@ describe("intersectWithAppGrantablePermissions", () => {
         DOCUMENT_UPDATE_PERMISSION,
         DOCUMENT_DELETE_PERMISSION,
         "agent.create",
+        PROJECT_READ_PERMISSION,
+        PROJECT_UPDATE_PERMISSION,
+        PROJECT_DELETE_PERMISSION,
+        PROJECT_CREATE_PERMISSION,
       ]),
     ).toEqual([...APP_GRANTABLE_PERMISSIONS])
   })

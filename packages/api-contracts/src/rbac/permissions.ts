@@ -32,22 +32,72 @@ export const DOCUMENT_UPDATE_PERMISSION = "document.update" as const
 
 export const DOCUMENT_DELETE_PERMISSION = "document.delete" as const
 
+export const PROJECT_CREATE_PERMISSION = "project.create" as const
+
+export const PROJECT_READ_PERMISSION = "project.read" as const
+
+export const PROJECT_UPDATE_PERMISSION = "project.update" as const
+
+export const PROJECT_DELETE_PERMISSION = "project.delete" as const
+
 /**
  * Permissions an App may be granted. Policy lives in code, not in the database.
  * Intersect this list with `AppManifest.grantable_permissions` on save and on authorize.
+ * Grouped by resource type (document, project/workspace, agent, …).
  */
 export const APP_GRANTABLE_PERMISSIONS = [
   DOCUMENT_READ_PERMISSION,
   DOCUMENT_CREATE_PERMISSION,
   DOCUMENT_UPDATE_PERMISSION,
   DOCUMENT_DELETE_PERMISSION,
+  PROJECT_READ_PERMISSION,
+  PROJECT_UPDATE_PERMISSION,
+  PROJECT_DELETE_PERMISSION,
 ] as const
 
 export type AppGrantablePermission = (typeof APP_GRANTABLE_PERMISSIONS)[number]
 
-export const PROJECT_CREATE_PERMISSION = "project.create" as const
+/** Product labels for the resource-type prefix of an App-grantable permission. */
+export const APP_GRANTABLE_RESOURCE_LABELS = {
+  document: "Document",
+  project: "Workspace",
+  agent: "Agent",
+  organization: "Organization",
+} as const
 
-export const PROJECT_READ_PERMISSION = "project.read" as const
+export type AppGrantableResourceType = keyof typeof APP_GRANTABLE_RESOURCE_LABELS
+
+export type AppGrantablePermissionGroup = {
+  resourceType: string
+  label: string
+  permissions: AppGrantablePermission[]
+}
+
+export function groupAppGrantablePermissions(
+  permissions: readonly AppGrantablePermission[] = APP_GRANTABLE_PERMISSIONS,
+): AppGrantablePermissionGroup[] {
+  const groups: AppGrantablePermissionGroup[] = []
+  for (const permission of permissions) {
+    const resourceType = permission.split(".")[0] ?? permission
+    const existingGroup = groups.find((group) => group.resourceType === resourceType)
+    if (existingGroup) {
+      existingGroup.permissions.push(permission)
+      continue
+    }
+    const label =
+      resourceType in APP_GRANTABLE_RESOURCE_LABELS
+        ? APP_GRANTABLE_RESOURCE_LABELS[resourceType as AppGrantableResourceType]
+        : resourceType
+    groups.push({ resourceType, label, permissions: [permission] })
+  }
+  return groups
+}
+
+export function appGrantablePermissionActionLabel(permission: AppGrantablePermission): string {
+  const action = permission.slice(permission.indexOf(".") + 1)
+  if (!action) return permission
+  return action.charAt(0).toUpperCase() + action.slice(1)
+}
 
 /** See the users who are members of a resource you hold this permission on. */
 export const USER_READ_PERMISSION = "user.read" as const

@@ -1,7 +1,7 @@
 import {
-  APP_GRANTABLE_PERMISSIONS,
-  type AppGrantablePermission,
+  appGrantablePermissionActionLabel,
   createAppManifestSchema,
+  groupAppGrantablePermissions,
 } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
@@ -53,12 +53,7 @@ type DialogState =
   | { kind: "edit"; manifest: AppManifest }
   | { kind: "delete"; manifest: AppManifest }
 
-const GRANTABLE_PERMISSION_LABELS: Record<AppGrantablePermission, string> = {
-  "document.read": "Read documents",
-  "document.create": "Create documents",
-  "document.update": "Update documents",
-  "document.delete": "Delete documents",
-}
+const GRANTABLE_PERMISSION_GROUPS = groupAppGrantablePermissions()
 
 const emptyFormValues: ManifestFormValues = {
   name: "",
@@ -116,13 +111,29 @@ function WithData() {
       {
         accessorKey: "grantablePermissions",
         header: () => <span className="text-muted-foreground">Grantable permissions</span>,
-        cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">
-            {row.original.grantablePermissions.length === 0
-              ? "None"
-              : row.original.grantablePermissions.join(", ")}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const groups = groupAppGrantablePermissions(row.original.grantablePermissions)
+          if (groups.length === 0) {
+            return <span className="text-sm text-muted-foreground">None</span>
+          }
+          return (
+            <div
+              className="grid gap-4"
+              style={{
+                gridTemplateColumns: `repeat(${groups.length}, minmax(6rem, max-content))`,
+              }}
+            >
+              {groups.map((group) => (
+                <span key={group.resourceType} className="text-sm">
+                  <span className="text-muted-foreground">{group.label}: </span>
+                  {group.permissions
+                    .map((permission) => appGrantablePermissionActionLabel(permission))
+                    .join(", ")}
+                </span>
+              ))}
+            </div>
+          )
+        },
       },
       {
         id: "actions",
@@ -266,7 +277,7 @@ function AppManifestFormDialog({
 
   return (
     <Dialog open onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{manifest ? "Edit app" : "Create app"}</DialogTitle>
           <DialogDescription>
@@ -341,30 +352,40 @@ function AppManifestFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Grantable permissions</FormLabel>
-                  <div className="flex flex-col gap-2">
-                    {APP_GRANTABLE_PERMISSIONS.map((permission) => {
-                      const checkboxId = `grantable-${permission}`
-                      return (
-                        <div key={permission} className="flex items-center gap-2 text-sm">
-                          <Checkbox
-                            id={checkboxId}
-                            checked={field.value.includes(permission)}
-                            onCheckedChange={(checked) => {
-                              field.onChange(
-                                checked === true
-                                  ? [...field.value, permission]
-                                  : field.value.filter(
-                                      (selectedPermission) => selectedPermission !== permission,
-                                    ),
-                              )
-                            }}
-                          />
-                          <label htmlFor={checkboxId} className="cursor-pointer">
-                            {GRANTABLE_PERMISSION_LABELS[permission]}
-                          </label>
-                        </div>
-                      )
-                    })}
+                  <div
+                    className="grid gap-4"
+                    style={{
+                      gridTemplateColumns: `repeat(${GRANTABLE_PERMISSION_GROUPS.length}, minmax(8rem, 1fr))`,
+                    }}
+                  >
+                    {GRANTABLE_PERMISSION_GROUPS.map((group) => (
+                      <fieldset key={group.resourceType} className="flex flex-col gap-2">
+                        <legend className="text-sm font-medium">{group.label}</legend>
+                        {group.permissions.map((permission) => {
+                          const checkboxId = `grantable-${permission}`
+                          return (
+                            <div key={permission} className="flex items-center gap-2 text-sm">
+                              <Checkbox
+                                id={checkboxId}
+                                checked={field.value.includes(permission)}
+                                onCheckedChange={(checked) => {
+                                  field.onChange(
+                                    checked === true
+                                      ? [...field.value, permission]
+                                      : field.value.filter(
+                                          (selectedPermission) => selectedPermission !== permission,
+                                        ),
+                                  )
+                                }}
+                              />
+                              <label htmlFor={checkboxId} className="cursor-pointer">
+                                {appGrantablePermissionActionLabel(permission)}
+                              </label>
+                            </div>
+                          )
+                        })}
+                      </fieldset>
+                    ))}
                   </div>
                   <FormMessage />
                 </FormItem>
