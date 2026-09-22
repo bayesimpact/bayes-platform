@@ -14,8 +14,6 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) Orchestration: a sub-agent can take the conversation over, then hand back what it collected.
 
 ### Changed
-- Single-origin deployments: the web app opens at the root of the domain and the API answers under /api.
-- Sources: the assistant cites the passages it uses as it writes, and the sources panel is built from those citations.
 - Session titles and categories are now computed after each reply, reliably on every model.
 
 ### Fixed
@@ -24,10 +22,9 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Voice input: microphone transcription now follows the interface language, including French set as fr-FR.
 - Navigation: opening a workspace, a new project, another agent or session now lands on the right page when the platform is served under a sub-path.
 - Sign-in: an error returned by the identity provider is shown with a retry button instead of reloading endlessly.
-- (beta) MCP App cards: the reply text now stays on screen next to the card instead of disappearing once the card shows.
+- (beta) MCP App cards: the reply text stays visible next to the card, and a failing sibling card no longer reloads the others.
 - (beta) Conversations with MCP App cards now open at once, each card showing a placeholder until it is ready.
 - (beta) PDF export: more reliable on large documents, download card in the agent's language, files kept as long as the link works.
-- (beta) MCP App cards no longer reload when a sibling card in the same reply fails to render.
 
 ### Security
 - MCP servers can no longer be enabled or disabled on an agent that belongs to another project.
