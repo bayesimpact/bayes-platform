@@ -11,6 +11,7 @@ import {
 } from "@/domains/organizations/organization.factory"
 import { PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
 import { userFactory } from "@/domains/users/user.factory"
+import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { projectFactory } from "../project.factory"
 import { ProjectsModule } from "../projects.module"
@@ -90,6 +91,22 @@ describe("ProjectMembershipsService", () => {
       const timestamps = memberships.map((membership) => membership.createdAt.getTime())
       const sortedDescending = [...timestamps].sort((left, right) => right - left)
       expect(timestamps).toEqual(sortedDescending)
+    })
+
+    it("hides service users from the project member list", async () => {
+      const { project, user } = await createOrganizationWithProject(repositories)
+      const serviceUser = await repositories.userRepository.save(
+        userFactory.build({
+          type: USER_TYPE_SERVICE,
+          email: "app+install@service.bayes.internal",
+          auth0Id: "service|project-list",
+        }),
+      )
+      await addUserToProject({ repositories, project, user: serviceUser })
+
+      const memberships = await service.listProjectMemberships(project.id)
+      expect(memberships.map((membership) => membership.userId)).toContain(user.id)
+      expect(memberships.map((membership) => membership.userId)).not.toContain(serviceUser.id)
     })
   })
 

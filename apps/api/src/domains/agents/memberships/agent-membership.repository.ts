@@ -8,6 +8,7 @@ import {
   UserMembership,
 } from "@/domains/memberships/user-membership.entity"
 import { resolveAgentRoleId } from "@/domains/rbac/resolve-agent-role-id"
+import { HUMAN_USER_TYPE_FILTER } from "@/domains/users/service-user.helpers"
 import type { AgentMembershipModel } from "./agent-membership.model"
 import type { AgentMembershipRole } from "./agent-membership.types"
 
@@ -49,7 +50,11 @@ export class AgentMembershipRepository {
 
   async findAllByAgent(agentId: string): Promise<AgentMembershipModel[]> {
     const memberships = await this.userMembershipRepo().find({
-      where: { resourceType: AGENT_RESOURCE_TYPE, resourceId: agentId },
+      where: {
+        resourceType: AGENT_RESOURCE_TYPE,
+        resourceId: agentId,
+        user: HUMAN_USER_TYPE_FILTER,
+      },
       relations: ["user"],
       order: { createdAt: "DESC" },
     })
@@ -81,7 +86,11 @@ export class AgentMembershipRepository {
     if (agentIds.length === 0) return []
 
     const memberships = await this.userMembershipRepo().find({
-      where: { resourceType: AGENT_RESOURCE_TYPE, resourceId: In(agentIds) },
+      where: {
+        resourceType: AGENT_RESOURCE_TYPE,
+        resourceId: In(agentIds),
+        user: HUMAN_USER_TYPE_FILTER,
+      },
       relations: ["user"],
     })
     return this.toModels(memberships)

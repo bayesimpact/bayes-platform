@@ -1,0 +1,61 @@
+---
+description: Keep NestJS services free of TypeORM; persist through custom repositories
+globs:
+  - "apps/api/**/*.service.ts"
+  - "apps/api/**/*.repository.ts"
+  - "apps/api/**/*.module.ts"
+alwaysApply: false
+---
+
+# Custom Repositories — No TypeORM in Services
+
+**Rule**: Services MUST NOT depend on TypeORM. All persistence goes through a custom `{Entity}Repository` that exposes only the methods the service needs.
+
+## Forbidden in services
+
+- `import ... from "typeorm"` or `@nestjs/typeorm`
+- `@InjectRepository(...)` / `Repository<T>`
+- TypeORM query APIs (`find`, `findOne`, `save`, `create`, `In()`, query builders)
+- Constructing `ConnectRepository` (it wraps TypeORM `Repository<T>`)
+
+## Required pattern
+
+1. Add `{entity}.repository.ts` as an `@Injectable()` Nest provider.
+2. Inject `TransactionService` and get the TypeORM repo inside the custom repository (`getManager().getRepository(Entity)`).
+3. Expose named methods only (`createProject`, `findAllByIds`, `softDelete`). Do not leak TypeORM types in the public API.
+4. Inject the custom repository into the service. Register it in the module `providers` (and `exports` if other modules need it).
+5. For connect-scoped entities, keep `ConnectRepository` **inside** the custom repository. The service passes `connectScope` into named methods.
+
+```typescript
+// ✅ Service — no TypeORM
+@Injectable()
+export class PlatformRoleService {
+  constructor(private readonly platformRoleRepository: PlatformRoleRepository) {}
+
+  grantGlobalRole(userId: string, roleKey: PlatformRoleKey): Promise<boolean> {
+    return this.platformRoleRepository.grantGlobalRole(userId, roleKey)
+  }
+}
+
+// ✅ Custom repository — TypeORM stays here
+@Injectable()
+export class ProjectRepository {
+  constructor(private readonly transactionService: TransactionService) {}
+
+  async createProject(params: { organizationId: string; name: string }): Promise<ProjectRecord> {
+    const saved = await this.repo().save(this.repo().create(params))
+    return this.toRecord(saved)
+  }
+
+  private repo(): Repository<Project> {
+    return this.transactionService.getManager().getRepository(Project)
+  }
+}
+```
+
+```typescript
+// ❌ Service talking to TypeORM
+constructor(@InjectRepository(Project) private readonly projectRepository: Repository<Project>) {}
+```
+
+References: `platform-role.service.ts` / `platform-role.repository.ts`, `projects.service.ts` / `project.repository.ts`. Many existing services still inject TypeORM; treat those as legacy and do not copy that pattern.

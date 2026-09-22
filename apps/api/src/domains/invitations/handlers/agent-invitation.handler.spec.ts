@@ -22,6 +22,7 @@ import {
 import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { userFactory } from "@/domains/users/user.factory"
+import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
 import { mockInvitationSender, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { InvitationsModule } from "../invitations.module"
@@ -400,6 +401,35 @@ describe("AgentInvitationHandler", () => {
         where: { id: existingUser.id },
       })
       expect(updated.auth0Id).toBe("auth0|new-sub")
+    })
+
+    it("refuses to attach a real Auth0 subject to a service user", async () => {
+      const { agent, organization, project } = await createOrganizationWithAgent(repositories)
+      const serviceUser = userFactory.build({
+        type: USER_TYPE_SERVICE,
+        email: "app+install@service.bayes.internal",
+        auth0Id: "service|accept-block",
+      })
+      await repositories.userRepository.save(serviceUser)
+      await seedPendingInvitation({
+        agentId: agent.id,
+        organizationId: organization.id,
+        projectId: project.id,
+        invitedEmail: serviceUser.email,
+      })
+
+      await expect(
+        handler.acceptInvitation({
+          ticketId: "accept-ticket",
+          auth0Sub: "auth0|human-subject",
+          email: serviceUser.email,
+        }),
+      ).rejects.toThrow(UnauthorizedException)
+
+      const persisted = await repositories.userRepository.findOneOrFail({
+        where: { id: serviceUser.id },
+      })
+      expect(persisted.auth0Id).toBe("service|accept-block")
     })
 
     it("throws BadRequestException when the invitation has been revoked", async () => {

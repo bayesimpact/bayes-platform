@@ -464,39 +464,34 @@ describe("Domain - actionName", () => {
 
 **Note**: Use the existing test utilities (`setupTransactionalTestDatabase`) from `@/common/test/test-transaction-manager` for consistent test setup.
 
-### Connect Scope Pattern for Services
+### Custom Repositories — No TypeORM in Services
 
-**Rule**: For connect-scoped entities, services MUST accept a `connectScope: RequiredConnectScope` argument and delegate scoping to `ConnectRepository` methods.
+**Rule**: Services MUST NOT depend on TypeORM. Persist through a custom `{Entity}Repository` that exposes only the methods the service needs. See `.cursor/rules/api-custom-repositories.mdc`.
 
 **Required Pattern**:
-- Initialize a `ConnectRepository<Entity>` in the service constructor
+- Custom repository is an `@Injectable()` Nest provider using `TransactionService.getManager().getRepository(Entity)`
+- Service injects the custom repository, never `@InjectRepository` / `Repository<T>`
+- Register the custom repository in the module `providers`
+
+### Connect Scope Pattern
+
+**Rule**: For connect-scoped entities, services MUST accept a `connectScope: RequiredConnectScope` argument and pass it to named custom-repository methods.
+
+**Required Pattern**:
+- Keep `ConnectRepository` inside the custom repository (it wraps TypeORM `Repository<T>`)
 - Accept `connectScope: RequiredConnectScope` in service methods that read/write scoped entities
-- Pass `connectScope` directly to `ConnectRepository` methods (`createAndSave`, `getMany`, `getOneById`, `deleteOneById`, `find`)
-- Keep service logic focused on business behavior (validation, sorting, error mapping), not SQL scope plumbing
+- Pass `connectScope` to repository methods; keep service logic on business behavior (validation, sorting, error mapping), not SQL scope plumbing
 
 **Forbidden Pattern**:
-- Do not manually re-implement connect scoping in service `where` clauses when a `ConnectRepository` is available
+- Do not construct `ConnectRepository` or use TypeORM `where` clauses in a service
 - Do not duplicate `organizationId` / `projectId` filtering logic in each service method
 
-**Why this pattern?**
-- Centralizes scope enforcement in one abstraction
-- Reduces copy-paste query conditions and security drift
-- Keeps services readable and consistent across domains
-
-**Example**:
 ```typescript
-import { ConnectRepository } from "@/common/entities/connect-repository"
-import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-
 export class DocumentsService {
-  constructor(@InjectRepository(Document) documentRepository: Repository<Document>) {
-    this.documentConnectRepository = new ConnectRepository(documentRepository, "documents")
-  }
-
-  private readonly documentConnectRepository: ConnectRepository<Document>
+  constructor(private readonly documentRepository: DocumentRepository) {}
 
   async listDocuments(connectScope: RequiredConnectScope): Promise<Document[]> {
-    return this.documentConnectRepository.getMany(connectScope)
+    return this.documentRepository.getMany(connectScope)
   }
 }
 ```
@@ -643,7 +638,7 @@ it("should return membership when user is a member", async () => {
 - Create verification methods in the service (e.g., `verifyUserCanCreateProject`, `verifyUserCanUpdateProject`)
 - Check membership first, then check role
 - Throw `ForbiddenException` with clear error messages if authorization fails
-- Use the `UserMembership` repository to check membership and role
+- Query membership through a custom repository, not TypeORM `Repository<T>` in the service
 
 **Role Requirements**:
 - **If unsure about which role is required for an operation, ASK THE USER before implementing**
@@ -655,8 +650,9 @@ it("should return membership when user is a member", async () => {
 **Example Implementation**:
 ```typescript
 async verifyUserCanCreateProject(userId: string, organizationId: string): Promise<void> {
-  const membership = await this.membershipRepository.findOne({
-    where: { userId, organizationId },
+  const membership = await this.userMembershipRepository.findByUserAndOrganization({
+    userId,
+    organizationId,
   })
 
   if (!membership) {
@@ -829,22 +825,24 @@ auth0Id!: string  // This would create "auth0Id" column in DB
 
 Passing both is redundant and unnecessary.
 
+These examples apply **inside custom repositories**, not services.
+
 **Examples**:
 ```typescript
 // ✅ Correct - Pass only the foreign key ID
-const project = this.projectRepository.create({
+const project = this.repo().create({
   name: "My Project",
   organizationId, // This is sufficient
 })
 
 // ✅ Correct - Pass only the entity object
-const project = this.projectRepository.create({
+const project = this.repo().create({
   name: "My Project",
   organization, // TypeORM will extract the ID from this
 })
 
 // ❌ Wrong - Passing both is redundant
-const project = this.projectRepository.create({
+const project = this.repo().create({
   name: "My Project",
   organizationId, // Redundant
   organization,   // Redundant - only one is needed

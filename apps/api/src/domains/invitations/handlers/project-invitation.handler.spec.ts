@@ -16,6 +16,7 @@ import {
   saveProjectMembership,
 } from "@/domains/projects/memberships/project-membership.factory"
 import { userFactory } from "@/domains/users/user.factory"
+import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
 import { mockInvitationSender, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { InvitationsModule } from "../invitations.module"
 import { ProjectInvitationHandler } from "./project-invitation.handler"
@@ -102,6 +103,25 @@ describe("ProjectInvitationHandler", () => {
         projectId: project.id,
         emails: [user.email],
         inviterName: "Inviter",
+      })
+
+      expect(invitations).toHaveLength(0)
+      expect(mockInvitationSender.sendInvitation).not.toHaveBeenCalled()
+    })
+
+    it("skips invitations to service users and service email addresses", async () => {
+      const { project, user } = await createOrganizationWithProject(repositories)
+      const serviceUser = userFactory.build({
+        type: USER_TYPE_SERVICE,
+        email: "app+install@service.bayes.internal",
+        auth0Id: "service|invite-skip",
+      })
+      await repositories.userRepository.save(serviceUser)
+
+      const invitations = await handler.inviteMembers({
+        projectId: project.id,
+        emails: [serviceUser.email, "other-app+new@service.bayes.internal"],
+        inviterName: user.name ?? "Inviter",
       })
 
       expect(invitations).toHaveLength(0)

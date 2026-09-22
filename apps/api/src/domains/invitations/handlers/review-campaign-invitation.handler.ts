@@ -25,6 +25,7 @@ import { ProjectMembershipsService } from "@/domains/projects/memberships/projec
 import { ReviewCampaignMembershipsService } from "@/domains/review-campaigns/memberships/review-campaign-memberships.service"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import type { ReviewCampaignMembershipRole } from "@/domains/review-campaigns/review-campaigns.types"
+import { isUninvitableServiceIdentity } from "@/domains/users/service-user.helpers"
 import { User } from "@/domains/users/user.entity"
 import { Invitation } from "../invitation.entity"
 import type {
@@ -205,6 +206,11 @@ export class ReviewCampaignInvitationHandler
     role: ReviewCampaignMembershipRole
     context: InviteMembersContext
   }): Promise<boolean> {
+    if (
+      isUninvitableServiceIdentity({ email: params.normalizedEmail, user: params.existingUser })
+    ) {
+      return true
+    }
     if (params.existingUser) {
       const existingMembership =
         await this.reviewCampaignMembershipsService.findByUserCampaignAndRole({
@@ -274,7 +280,6 @@ export class ReviewCampaignInvitationHandler
       const manager = this.transactionService.getManager()
       const invitationRepository = manager.getRepository(Invitation)
       const reviewCampaignRepository = manager.getRepository(ReviewCampaign)
-      const userRepository = manager.getRepository(User)
 
       const invitation = await this.acceptanceHelpers.findAndValidateInvitation(
         invitationRepository,
@@ -282,11 +287,7 @@ export class ReviewCampaignInvitationHandler
         params.email,
         this.targetType,
       )
-      const user = await this.acceptanceHelpers.resolveAcceptedUser(
-        userRepository,
-        params.auth0Sub,
-        params.email,
-      )
+      const user = await this.acceptanceHelpers.resolveAcceptedUser(params.auth0Sub, params.email)
       const campaign = await reviewCampaignRepository.findOneOrFail({
         where: { id: invitation.targetId },
       })

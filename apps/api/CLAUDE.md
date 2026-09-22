@@ -274,24 +274,25 @@ describe("Domain - actionName", () => {
 
 Every service MUST have a corresponding `*.service.spec.ts`. Use `setupTransactionalTestDatabase` from `@/common/test/test-transaction-manager`.
 
-### Connect Scope Pattern for Services
+### Custom Repositories — No TypeORM in Services
 
-Services MUST accept `connectScope: RequiredConnectScope` and delegate to `ConnectRepository`:
+Services MUST NOT depend on TypeORM (`import from "typeorm"` / `@nestjs/typeorm`, `@InjectRepository`, `Repository<T>`). Persist through a custom `{Entity}Repository` that exposes only the methods the service needs. TypeORM stays in the repository via `TransactionService.getManager().getRepository(Entity)`. See `.cursor/rules/api-custom-repositories.mdc`.
+
+### Connect Scope Pattern
+
+Services MUST accept `connectScope: RequiredConnectScope` and pass it to named custom-repository methods. Keep `ConnectRepository` inside the custom repository — do not construct it in a service.
 
 ```typescript
 export class DocumentsService {
-  constructor(@InjectRepository(Document) documentRepository: Repository<Document>) {
-    this.documentConnectRepository = new ConnectRepository(documentRepository, "documents")
-  }
-  private readonly documentConnectRepository: ConnectRepository<Document>
+  constructor(private readonly documentRepository: DocumentRepository) {}
 
   async listDocuments(connectScope: RequiredConnectScope): Promise<Document[]> {
-    return this.documentConnectRepository.getMany(connectScope)
+    return this.documentRepository.getMany(connectScope)
   }
 }
 ```
 
-Do **not** manually re-implement connect scoping in service `where` clauses.
+Do **not** re-implement connect scoping in service `where` clauses.
 
 ### Always Use Factory Functions for Test Data
 
@@ -334,7 +335,10 @@ const { user, organization } = await createOrganizationWithOwner(mainRepositorie
 
 ```typescript
 async verifyUserCanCreateProject(userId: string, organizationId: string): Promise<void> {
-  const membership = await this.membershipRepository.findOne({ where: { userId, organizationId } })
+  const membership = await this.userMembershipRepository.findByUserAndOrganization({
+    userId,
+    organizationId,
+  })
   if (!membership) throw new ForbiddenException(`User does not have access to organization ${organizationId}`)
   const allowedRoles: MembershipRole[] = ["owner", "admin"]
   if (!allowedRoles.includes(membership.role)) {
@@ -411,14 +415,14 @@ organizationId!: string
 
 ### Foreign Key Relationships
 
-Pass EITHER the foreign key ID OR the entity object, NOT both:
+Pass EITHER the foreign key ID OR the entity object, NOT both. Do this inside the custom repository, not a service:
 
 ```typescript
 // ✅ Correct
-const project = this.projectRepository.create({ name: "My Project", organizationId })
+const project = this.repo().create({ name: "My Project", organizationId })
 
 // ❌ Wrong - redundant
-const project = this.projectRepository.create({ name: "My Project", organizationId, organization })
+const project = this.repo().create({ name: "My Project", organizationId, organization })
 ```
 
 Prefer passing the foreign key ID for consistency.

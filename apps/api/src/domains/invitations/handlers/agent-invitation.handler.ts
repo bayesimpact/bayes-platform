@@ -18,6 +18,7 @@ import { InvitationPersistenceService } from "@/domains/invitations/invitation-p
 import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
+import { isUninvitableServiceIdentity } from "@/domains/users/service-user.helpers"
 import { User } from "@/domains/users/user.entity"
 import { Invitation } from "../invitation.entity"
 import type {
@@ -154,6 +155,11 @@ export class AgentInvitationHandler
     agentId: string
     context: InviteMembersContext
   }): Promise<boolean> {
+    if (
+      isUninvitableServiceIdentity({ email: params.normalizedEmail, user: params.existingUser })
+    ) {
+      return true
+    }
     if (params.existingUser) {
       const existingMembership = await this.agentMembershipsService.findAgentMembership({
         agentId: params.agentId,
@@ -215,7 +221,6 @@ export class AgentInvitationHandler
     return this.transactionService.run(async () => {
       const manager = this.transactionService.getManager()
       const invitationRepository = manager.getRepository(Invitation)
-      const userRepository = manager.getRepository(User)
 
       const invitation = await this.acceptanceHelpers.findAndValidateInvitation(
         invitationRepository,
@@ -223,11 +228,7 @@ export class AgentInvitationHandler
         params.email,
         this.targetType,
       )
-      const user = await this.acceptanceHelpers.resolveAcceptedUser(
-        userRepository,
-        params.auth0Sub,
-        params.email,
-      )
+      const user = await this.acceptanceHelpers.resolveAcceptedUser(params.auth0Sub, params.email)
       const agent = await this.agentRepository.findOneOrFail({
         where: { id: invitation.targetId },
       })

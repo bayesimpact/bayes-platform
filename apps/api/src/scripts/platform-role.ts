@@ -25,6 +25,7 @@ import {
   PLATFORM_ROLE_KEYS,
   PlatformRoleService,
 } from "@/domains/rbac/platform-role.service"
+import { isServiceUser, isServiceUserEmail } from "@/domains/users/service-user.helpers"
 import { UsersService } from "@/domains/users/users.service"
 
 const logger = new Logger("PlatformRole")
@@ -60,6 +61,10 @@ function readArguments(argv: string[]): { command: Command; email: string; role:
 
 async function main(): Promise<void> {
   const { command, email, role } = readArguments(process.argv.slice(2))
+  if (isServiceUserEmail(email)) {
+    logger.error("Refusing platform role for a service user email")
+    process.exit(1)
+  }
   if (role !== null && !isPlatformRoleKey(role)) {
     usage(`Unknown role ${role}. Expected one of ${PLATFORM_ROLE_KEYS.join(", ")}`)
   }
@@ -72,6 +77,10 @@ async function main(): Promise<void> {
     const platformRoles = app.get(PlatformRoleService)
 
     let user = await usersService.findByEmail(email)
+    if (user && isServiceUser(user)) {
+      logger.error("Refusing platform role for a service user")
+      process.exit(1)
+    }
 
     if (command === "list") {
       if (!user) {
