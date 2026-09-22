@@ -31,6 +31,7 @@ import {
   TableRow,
 } from "@caseai-connect/ui/shad/table"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
+import { cn } from "@caseai-connect/ui/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
@@ -102,9 +103,12 @@ function WithData() {
         accessorKey: "name",
         header: () => <span className="text-muted-foreground">App</span>,
         cell: ({ row }) => (
-          <div className="flex flex-col">
-            <span className="font-medium">{row.original.name}</span>
-            <span className="text-xs text-muted-foreground">{row.original.slug}</span>
+          <div className="flex items-center gap-3">
+            <AppLogo src={row.original.logoUrl} />
+            <div className="flex min-w-0 flex-col">
+              <span className="font-medium">{row.original.name}</span>
+              <span className="text-xs text-muted-foreground">{row.original.slug}</span>
+            </div>
           </div>
         ),
       },
@@ -335,13 +339,16 @@ function AppManifestFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Logo URL</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="https://example.com/logo.png"
-                      value={field.value ?? ""}
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
+                  <div className="flex items-center gap-3">
+                    <AppLogo src={field.value} className="size-10" />
+                    <FormControl>
+                      <Input
+                        placeholder="https://example.com/logo.png"
+                        value={field.value ?? ""}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -448,5 +455,16 @@ function DeleteAppManifestDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  )
+}
+
+function AppLogo({ src, className }: { src: string | null | undefined; className?: string }) {
+  if (!src) return null
+  return (
+    <img
+      src={src}
+      alt=""
+      className={cn("size-8 shrink-0 rounded-md border bg-muted object-contain", className)}
+    />
   )
 }

@@ -119,7 +119,15 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
       ? termsDocumentsFactory.build()
       : null
   const appManifests =
-    args.isAppManagementAuthorized && args.withAppManifests ? appManifestFactory.buildList(3) : []
+    args.isAppManagementAuthorized && args.withAppManifests
+      ? [
+          appManifestFactory.build({
+            logoUrl:
+              "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232563eb'/%3E%3C/svg%3E",
+          }),
+          ...appManifestFactory.buildList(2),
+        ]
+      : []
 
   const seeds: StoryPreloadedState[] = [seed.me(user), seed.backoffice.organizations(organizations)]
   seeds.push(seed.backoffice.agents(agents))
