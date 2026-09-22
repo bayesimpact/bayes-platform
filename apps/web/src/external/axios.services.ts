@@ -5,6 +5,7 @@ import agentSessionMessages from "@/common/features/agents/agent-sessions/shared
 import agentSettings from "@/common/features/agents/agent-settings/external/agent-settings.api"
 import agentCsvExtractionRuns from "@/common/features/agents/csv-extraction-runs/external/agent-csv-extraction-runs.api"
 import agents from "@/common/features/agents/external/agents.api"
+import appInstall from "@/common/features/app-install/external/app-install.api"
 import me from "@/common/features/me/external/me.api"
 import organizations from "@/common/features/organizations/external/organizations.api"
 import projects from "@/common/features/projects/external/projects.api"
@@ -39,6 +40,7 @@ export const services = {
   agents,
   agentSettings,
   agentSessionMessages,
+  appInstall,
   backoffice,
   conversationAgentSessions,
   documents,

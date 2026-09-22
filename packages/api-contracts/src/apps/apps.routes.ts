@@ -1,7 +1,10 @@
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
 import type {
+  AppInstallPageDto,
   AppManifestDto,
+  AuthorizeAppInstallRequestDto,
+  AuthorizeAppInstallResponseDto,
   CreateAppManifestRequestDto,
   UpdateAppManifestRequestDto,
 } from "./apps.dto"
@@ -30,5 +33,16 @@ export const AppsRoutes = {
   deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
     method: "delete",
     path: "backoffice/apps/:appManifestId",
+  }),
+  getInstall: defineRoute<ResponseData<AppInstallPageDto>>({
+    method: "get",
+    path: "apps/install/:slug",
+  }),
+  authorize: defineRoute<
+    ResponseData<AuthorizeAppInstallResponseDto>,
+    RequestPayload<AuthorizeAppInstallRequestDto>
+  >({
+    method: "post",
+    path: "apps/install/:slug/authorize",
   }),
 }

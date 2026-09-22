@@ -12,7 +12,9 @@
 type Lang = "en" | "fr"
 const { lang = "en" } = Astro.props as { lang?: Lang }
 
-const SNIPPET = '<script src="https://app.example.com/launcher.js" data-token="emb_1a2b3c4d"></script>'
+// Split the tag so Vite's HTML scanner does not treat this string as a real script element.
+const SNIPPET =
+  "<scr" + 'ipt src="https://app.example.com/launcher.js" data-token="emb_1a2b3c4d"></scr' + "ipt>"
 const PUBLIC_PAGE_URL = "https://app.example.com/index.html?embedToken=emb_1a2b3c4d&displayMode=drawer"
 
 const STRINGS = {
@@ -30,7 +32,9 @@ const STRINGS = {
     enabledLabel: "Enable embed",
     enabledDescription: "Allow Helpful Assistant to be embedded on external websites via an iframe.",
     snippetLabel: "Embed snippet",
-    snippetDescription: "Paste this <script> tag before the closing </body> tag on any page where you want the chat widget to appear.",
+    snippetDescription:
+      "Paste this <scr" +
+      "ipt> tag before the closing </body> tag on any page where you want the chat widget to appear.",
     snippetValue: SNIPPET,
     snippetHint: "Optional attributes: data-color, data-locale, data-display-mode, data-hint.",
     publicPageLabel: "Public page link",
@@ -76,7 +80,9 @@ const STRINGS = {
     enabledLabel: "Activer l'intégration",
     enabledDescription: "Permettre à Helpful Assistant d'être intégré sur des sites externes via un iframe.",
     snippetLabel: "Extrait d'intégration",
-    snippetDescription: "Collez cette balise <script> avant la balise </body> fermante sur chaque page où vous souhaitez afficher le widget de chat.",
+    snippetDescription:
+      "Collez cette balise <scr" +
+      "ipt> avant la balise </body> fermante sur chaque page où vous souhaitez afficher le widget de chat.",
     snippetValue: SNIPPET,
     snippetHint: "Attributs optionnels : data-color, data-locale, data-display-mode, data-hint.",
     publicPageLabel: "Lien de la page publique",

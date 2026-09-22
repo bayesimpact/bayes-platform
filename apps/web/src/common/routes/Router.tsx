@@ -1,5 +1,6 @@
 import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom"
 import { backofficeRoutes } from "@/backoffice/routes/BackofficeRoutes"
+import { AppsInstallRoute } from "@/common/routes/AppsInstallRoute"
 import { HomeRoute } from "@/common/routes/HomeRoute"
 import { LogoutRoute } from "@/common/routes/LogoutRoute"
 import { McpOauthCallbackRoute } from "@/common/routes/McpOauthCallbackRoute"
@@ -36,6 +37,7 @@ const router = () =>
         children: [
           onboardingRoute,
           mcpOauthCallbackRoute,
+          appsInstallRoute,
           studioRoutes,
           deskRoutes,
           evalRoutes,
@@ -66,4 +68,9 @@ export const onboardingRoute = {
 export const mcpOauthCallbackRoute = {
   path: RouteNames.MCP_OAUTH_CALLBACK,
   element: <McpOauthCallbackRoute />,
+}
+
+export const appsInstallRoute = {
+  path: RouteNames.APPS_INSTALL,
+  element: <AppsInstallRoute />,
 }

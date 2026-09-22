@@ -273,7 +273,11 @@ export const PARENT_RESOURCE_TYPE_MAP = {
   agent: ["organization", "project"],
 } as const satisfies Record<PermissionResourceType, readonly PermissionResourceType[]>
 
-/** Official catalog role keys, in display order within each scope. */
+/**
+ * Official catalog role keys, in display order within each scope.
+ * Custom install roles (`app_install_<installation_id>`) stay out of this list
+ * so catalog reconcile and the back-office role picker never touch them.
+ */
 export const CATALOG_ROLE_KEYS = [
   PLATFORM_STAFF_ROLE,
   PLATFORM_SUPERADMIN_ROLE,

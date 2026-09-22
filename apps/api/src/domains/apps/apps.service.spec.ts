@@ -5,12 +5,22 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { MembershipsModule } from "@/domains/memberships/memberships.module"
+import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { ProjectRepository } from "@/domains/projects/project.repository"
+import { PermissionService } from "@/domains/rbac/permission.service"
 import { DOCUMENT_CREATE_PERMISSION, DOCUMENT_READ_PERMISSION } from "@/domains/rbac/rbac.constants"
+import { RbacModule } from "@/domains/rbac/rbac.module"
+import { UserRepository } from "@/domains/users/user.repository"
+import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
+import { UsersService } from "@/domains/users/users.service"
+import { assignPlatformStaffToUser, ensureRbacCatalog } from "../../../test/rbac-test.helpers"
 import {
   APP_INSTALLATION_STATUS_ACTIVE,
   APP_INSTALLATION_STATUS_REVOKED,
 } from "./app-installation.entity"
 import { appInstallationFactory } from "./app-installation.factory"
+import { AppInstallationRepository } from "./app-installation.repository"
 import { AppManifestRepository } from "./app-manifest.repository"
 import { AppsService } from "./apps.service"
 
@@ -20,8 +30,17 @@ describe("AppsService", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      providers: [AppsService, AppManifestRepository],
+      providers: [
+        AppsService,
+        AppManifestRepository,
+        AppInstallationRepository,
+        ProjectRepository,
+        UsersService,
+        UserRepository,
+      ],
+      additionalImports: [RbacModule, MembershipsModule],
     })
+    await ensureRbacCatalog(setup.module)
   })
 
   afterAll(async () => {
@@ -108,9 +127,11 @@ describe("AppsService", () => {
     expect(updated.grantablePermissions).toEqual([DOCUMENT_READ_PERMISSION])
 
     const repositories = setup.getAllRepositories()
+    const { project } = await createOrganizationWithProject(repositories)
     await repositories.appInstallationRepository.save(
       appInstallationFactory.build({
         appManifestId: created.id,
+        projectId: project.id,
         status: APP_INSTALLATION_STATUS_ACTIVE,
       }),
     )
@@ -131,5 +152,71 @@ describe("AppsService", () => {
       NotFoundException,
     )
     await expect(service.deleteAppManifest(unknownId)).rejects.toBeInstanceOf(NotFoundException)
+  })
+
+  it("authorizes an install with a hashed secret, custom role, and service user", async () => {
+    const repositories = setup.getAllRepositories()
+    const { project, user } = await createOrganizationWithProject(repositories)
+    await assignPlatformStaffToUser({ repositories, user })
+    const created = await service.createAppManifest(createPayload)
+    const redirectUri = "http://127.0.0.1:8787/callback"
+
+    const authorized = await service.authorizeInstall({
+      slug: created.slug,
+      userId: user.id,
+      projectId: project.id,
+      permissions: [DOCUMENT_READ_PERMISSION],
+      redirectUri,
+      state: "csrf-state",
+    })
+
+    expect(authorized.redirectUri).toBe(redirectUri)
+    expect(authorized.state).toBe("csrf-state")
+    expect(authorized.clientId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    )
+    expect(authorized.clientSecret).toBeTruthy()
+
+    const installation = await repositories.appInstallationRepository.findOneByOrFail({
+      appManifestId: created.id,
+      projectId: project.id,
+    })
+    expect(installation.clientId).toBe(authorized.clientId)
+    expect(installation.clientSecretHash).not.toContain(authorized.clientSecret)
+    expect(installation.createdByUserId).toBe(user.id)
+    expect(installation.customRoleId).toBeTruthy()
+
+    const serviceUser = await repositories.userRepository.findOneByOrFail({
+      id: installation.serviceUserId ?? undefined,
+    })
+    expect(serviceUser.type).toBe(USER_TYPE_SERVICE)
+
+    const permissionService = setup.module.get(PermissionService)
+    await expect(
+      permissionService.has(serviceUser.id, DOCUMENT_READ_PERMISSION, {
+        type: "project",
+        id: project.id,
+      }),
+    ).resolves.toBe(true)
+    await expect(
+      permissionService.has(serviceUser.id, DOCUMENT_CREATE_PERMISSION, {
+        type: "project",
+        id: project.id,
+      }),
+    ).resolves.toBe(false)
+
+    const catalog = await permissionService.getCatalog()
+    expect(catalog.roles.some((role) => role.key.startsWith("app_install_"))).toBe(false)
+
+    await expect(
+      service.authorizeInstall({
+        slug: created.slug,
+        userId: user.id,
+        projectId: project.id,
+        permissions: [DOCUMENT_READ_PERMISSION],
+        redirectUri,
+        state: "csrf-state",
+      }),
+    ).rejects.toBeInstanceOf(ConflictException)
   })
 })

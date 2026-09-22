@@ -10,7 +10,10 @@ import {
 } from "@/common/test/test-database"
 import { APP_INSTALLATION_STATUS_ACTIVE } from "@/domains/apps/app-installation.entity"
 import { appInstallationFactory } from "@/domains/apps/app-installation.factory"
-import { createOrganizationWithOwner } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithOwner,
+  createOrganizationWithProject,
+} from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { mockAuth0EmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
@@ -145,9 +148,11 @@ describe("Apps - CRUD", () => {
   it("refuses to delete a manifest with active installations", async () => {
     const created = await createApp({ slug: "installed-assistant" })
     expectResponse(created, 201)
+    const { project } = await createOrganizationWithProject(repositories)
     await repositories.appInstallationRepository.save(
       appInstallationFactory.build({
         appManifestId: created.body.data.id,
+        projectId: project.id,
         status: APP_INSTALLATION_STATUS_ACTIVE,
       }),
     )

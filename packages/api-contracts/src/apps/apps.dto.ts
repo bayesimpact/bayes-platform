@@ -75,3 +75,40 @@ export type UpdateAppManifestRequestDto = {
   logoUrl?: string | null
   grantablePermissions?: AppGrantablePermission[]
 }
+
+export type AppInstallProjectDto = {
+  id: string
+  name: string
+  organizationId: string
+  organizationName: string
+}
+
+export type AppInstallPageDto = {
+  app: {
+    id: string
+    name: string
+    slug: string
+    description: string | null
+    logoUrl: string | null
+    grantablePermissions: AppGrantablePermission[]
+  }
+  projects: AppInstallProjectDto[]
+}
+
+export const authorizeAppInstallSchema = z
+  .object({
+    projectId: z.string().uuid(),
+    permissions: z.array(grantablePermissionSchema),
+    redirectUri: z.string().url(),
+    state: z.string().min(1).max(512),
+  })
+  .strict()
+
+export type AuthorizeAppInstallRequestDto = z.infer<typeof authorizeAppInstallSchema>
+
+export type AuthorizeAppInstallResponseDto = {
+  clientId: string
+  clientSecret: string
+  redirectUri: string
+  state: string
+}

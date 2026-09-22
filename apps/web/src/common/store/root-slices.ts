@@ -1,4 +1,5 @@
 import { combineSlices } from "@reduxjs/toolkit"
+import { appInstallSlice } from "@/common/features/app-install/app-install.slice"
 import { authSlice } from "@/common/features/auth/auth.slice"
 import { meSlice } from "@/common/features/me/me.slice"
 import { notificationsSlice } from "@/common/features/notifications/notifications.slice"
@@ -10,6 +11,7 @@ import { organizationsSlice } from "../features/organizations/organizations.slic
 // injected lazily via injectTesterSlices / injectReviewerSlices.
 
 export const rootSliceList = [
+  appInstallSlice,
   authSlice,
   meSlice,
   notificationsSlice,
