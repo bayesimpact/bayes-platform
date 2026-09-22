@@ -11,7 +11,7 @@
 #   PUBLIC_SITE_URL      canonical links and sitemap; Astro requires a valid
 #                        URL at build time, hence a placeholder host
 #
-FROM node:24.20.0-bookworm-slim AS build
+FROM node:24.21.0-bookworm-slim AS build
 
 WORKDIR /app
 
