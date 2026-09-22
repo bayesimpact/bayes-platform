@@ -37,6 +37,12 @@ export { AgentAnalyticsRoutes, AnalyticsRoutes } from "./analytics/analytics.rou
 // Apps
 export * from "./apps/apps.dto"
 export { AppsRoutes } from "./apps/apps.routes"
+export {
+  buildAppInstallCallbackUrl,
+  InvalidLoopbackRedirectUriError,
+  isLoopbackRedirectUri,
+  parseLoopbackRedirectUri,
+} from "./apps/loopback-redirect"
 // Backoffice
 export type * from "./backoffice/backoffice.dto"
 export { createBackofficeOrganizationSchema } from "./backoffice/backoffice.dto"

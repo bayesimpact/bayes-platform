@@ -137,6 +137,36 @@ export class ProjectRepository {
     }
   }
 
+  async findPickerProjectsByIds(projectIds: string[]): Promise<
+    {
+      id: string
+      name: string
+      organizationId: string
+      organizationName: string
+    }[]
+  > {
+    if (projectIds.length === 0) return []
+
+    const projects = await this.repo().find({
+      where: { id: In(projectIds) },
+      relations: { organization: true },
+      order: { name: "ASC" },
+    })
+
+    return projects.flatMap((project) =>
+      project.organization
+        ? [
+            {
+              id: project.id,
+              name: project.name,
+              organizationId: project.organizationId,
+              organizationName: project.organization.name,
+            },
+          ]
+        : [],
+    )
+  }
+
   private repo(): Repository<Project> {
     return this.transactionService.getManager().getRepository(Project)
   }

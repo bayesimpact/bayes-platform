@@ -1,0 +1,13 @@
+{
+  "appInstall": {
+    "title": "Install {{name}}",
+    "description": "Choose a workspace and the permissions this app may use there.",
+    "workspace": "Workspace",
+    "workspacePlaceholder": "Select a workspace",
+    "noWorkspaces": "No workspaces are available to install this app on.",
+    "permissions": "Permissions",
+    "submit": "Authorize",
+    "invalidRedirect": "This install link needs a loopback redirect_uri (localhost or 127.0.0.1) and a state.",
+    "missingSlug": "Missing app slug."
+  }
+}

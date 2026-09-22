@@ -129,4 +129,35 @@ describe("Apps - Auth", () => {
       expectResponse(await subject(), 201)
     })
   })
+
+  describe("AppsRoutes.getInstall", () => {
+    const subject = async () =>
+      request({
+        route: AppsRoutes.getInstall,
+        pathParams: { slug: "helpful-assistant" },
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+
+    it("rejects users without app.install", async () => {
+      await createOrganizationWithOwner(repositories, {
+        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+      })
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("allows platform staff", async () => {
+      await createStaff()
+      expectResponse(await subject(), 404)
+    })
+
+    it("allows a superadmin", async () => {
+      await createSuperadmin()
+      expectResponse(await subject(), 404)
+    })
+  })
 })

@@ -32,4 +32,5 @@ export enum RouteNames {
   LOGOUT = "/logout",
   MCP_OAUTH_CALLBACK = "/oauth/mcp/callback",
   ONBOARDING = "/onboarding",
+  APPS_INSTALL = "/apps/install/:slug",
 }

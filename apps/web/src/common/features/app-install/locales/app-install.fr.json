@@ -1,0 +1,13 @@
+{
+  "appInstall": {
+    "title": "Installer {{name}}",
+    "description": "Choisissez un espace de travail et les permissions que cette app pourra y utiliser.",
+    "workspace": "Espace de travail",
+    "workspacePlaceholder": "Sélectionner un espace de travail",
+    "noWorkspaces": "Aucun espace de travail n'est disponible pour installer cette app.",
+    "permissions": "Permissions",
+    "submit": "Autoriser",
+    "invalidRedirect": "Ce lien d'installation nécessite une redirect_uri loopback (localhost ou 127.0.0.1) et un state.",
+    "missingSlug": "Slug d'app manquant."
+  }
+}
