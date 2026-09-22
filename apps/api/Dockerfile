@@ -8,7 +8,7 @@
 #
 # 📦 Dependencies of the API (dev + prod), from the manifests only
 #
-FROM node:24.20.0-bookworm-slim AS api-deps
+FROM node:24.21.0-bookworm-slim AS api-deps
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends libc6 && rm -rf /var/lib/apt/lists/*
@@ -35,7 +35,7 @@ RUN npm ci \
 # which leaves extraneous packages (e.g. next/react pulled by @repo/jest-config's
 # devDeps) lingering in node_modules.
 #
-FROM node:24.20.0-bookworm-slim AS api-prod-deps
+FROM node:24.21.0-bookworm-slim AS api-prod-deps
 
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -80,7 +80,7 @@ RUN cd packages/api-contracts && npm run build
 # is baked in: the API injects the runtime configuration into index.html from
 # its own environment, so one image serves every tenant.
 #
-FROM node:24.20.0-bookworm-slim AS web-build
+FROM node:24.21.0-bookworm-slim AS web-build
 
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -104,7 +104,7 @@ RUN cd apps/web && npm run build
 #
 # 🚀 Runtime Base (shared)
 #
-FROM node:24.20.0-bookworm-slim AS runtime-base
+FROM node:24.21.0-bookworm-slim AS runtime-base
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends libc6 && rm -rf /var/lib/apt/lists/*
@@ -154,7 +154,7 @@ CMD ["node", "--enable-source-maps", "/app/apps/api/dist/workers-main.js"]
 # Nothing here depends on the application code, so these layers (several GB)
 # survive every commit and only rebuild when a requirements file changes.
 #
-FROM node:24.20.0-bookworm-slim AS docling-base
+FROM node:24.21.0-bookworm-slim AS docling-base
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \

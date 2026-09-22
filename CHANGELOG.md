@@ -28,6 +28,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Security
 - MCP servers can no longer be enabled or disabled on an agent that belongs to another project.
+- Security updates of dependencies and base images across all services.
 
 ## [26.09.2] - 2026-09-08
 

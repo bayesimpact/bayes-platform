@@ -1,18 +1,15 @@
 vulnerabilities:
-  # npm CLI bundled in node:24.20.0-bookworm-slim. Build-time tooling only, not part
+  # npm CLI bundled in node:24.21.0-bookworm-slim. Build-time tooling only, not part
   # of the runtime attack surface. Lift on the next node image that bundles the fixes.
   - id: CVE-2026-14257
     expired_at: 2026-10-23
-    reason: "brace-expansion 5.0.7 — fix in 5.0.8+, present via npm CLI in node:24.20.0-bookworm-slim"
+    reason: "brace-expansion 5.0.7 — fix in 5.0.8+, present via npm CLI in node:24.21.0-bookworm-slim"
   - id: CVE-2026-69152
     expired_at: 2026-10-23
-    reason: "brace-expansion 5.0.7 — fix in 5.0.9+, present via npm CLI in node:24.20.0-bookworm-slim"
+    reason: "brace-expansion 5.0.7 — fix in 5.0.9+, present via npm CLI in node:24.21.0-bookworm-slim"
   - id: CVE-2026-69192
     expired_at: 2026-10-23
-    reason: "ip-address 10.2.0 — fix in 10.3.1, present via npm CLI in node:24.20.0-bookworm-slim"
+    reason: "ip-address 10.2.0 — fix in 10.3.1, present via npm CLI in node:24.21.0-bookworm-slim"
   - id: CVE-2026-73566
     expired_at: 2026-10-23
-    reason: "tar 7.5.19 — fix in 7.5.21, present via npm CLI in node:24.20.0-bookworm-slim"
-  - id: CVE-2026-9496
-    expired_at: 2026-10-23
-    reason: "pacote 21.5.0 — fix in 21.5.1, present via npm CLI in node:24.20.0-bookworm-slim"
+    reason: "tar 7.5.19 — fix in 7.5.21, present via npm CLI in node:24.21.0-bookworm-slim"
