@@ -48,3 +48,10 @@ export function buildAppInstallCallbackUrl(params: {
   url.searchParams.set("state", params.state)
   return url.toString()
 }
+
+export function buildAppInstallDeniedUrl(params: { redirectUri: string; state: string }): string {
+  const url = parseLoopbackRedirectUri(params.redirectUri)
+  url.searchParams.set("error", "access_denied")
+  url.searchParams.set("state", params.state)
+  return url.toString()
+}

@@ -1,13 +1,45 @@
 {
   "appInstall": {
-    "title": "Install {{name}}",
-    "description": "Choose a workspace and the permissions this app may use there.",
+    "headline": "{{name}} wants access to your Bayes workspace",
     "workspace": "Workspace",
-    "workspacePlaceholder": "Select a workspace",
     "noWorkspaces": "No workspaces are available to install this app on.",
-    "permissions": "Permissions",
-    "submit": "Authorize",
+    "permissionsRequested": "Permissions requested",
+    "submit": "Authorize {{name}}",
+    "authorizing": "Authorizing…",
+    "authorized": "✓ Authorized — return to your terminal",
+    "cancel": "Cancel and return to the terminal",
+    "revocability": "Access can be revoked at any time from the workspace's <settings>Apps & integrations</settings> settings. {{name}} will only be able to reach the workspace you selected above.",
     "invalidRedirect": "This install link needs a loopback redirect_uri (localhost or 127.0.0.1) and a state.",
-    "missingSlug": "Missing app slug."
+    "missingSlug": "Missing app slug.",
+    "copy": {
+      "document_read": {
+        "name": "Read documents",
+        "description": "Access titles, content, and metadata of documents in this workspace."
+      },
+      "document_create": {
+        "name": "Create documents",
+        "description": "Add new documents to the workspace. Existing documents won't be modified."
+      },
+      "document_update": {
+        "name": "Update documents",
+        "description": "Edit the content of existing documents in this workspace."
+      },
+      "document_delete": {
+        "name": "Delete documents",
+        "description": "Permanently remove documents from this workspace."
+      },
+      "project_read": {
+        "name": "Read workspace",
+        "description": "See this workspace and its settings."
+      },
+      "project_update": {
+        "name": "Update workspace",
+        "description": "Change this workspace's settings."
+      },
+      "project_delete": {
+        "name": "Delete workspace",
+        "description": "Permanently delete this workspace."
+      }
+    }
   }
 }

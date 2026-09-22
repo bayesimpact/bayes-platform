@@ -39,6 +39,7 @@ export * from "./apps/apps.dto"
 export { AppsRoutes } from "./apps/apps.routes"
 export {
   buildAppInstallCallbackUrl,
+  buildAppInstallDeniedUrl,
   InvalidLoopbackRedirectUriError,
   isLoopbackRedirectUri,
   parseLoopbackRedirectUri,

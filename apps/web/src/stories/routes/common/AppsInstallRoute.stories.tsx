@@ -45,6 +45,33 @@ export const Ready: Story = {
   render: renderAt(loopbackEntry, true),
 }
 
+export const WithLogo: Story = {
+  render: () => {
+    const pageWithLogo = appInstallPageFactory.build({
+      app: {
+        name: "Helpful Assistant",
+        slug: "helpful-assistant",
+        logoUrl: "https://placehold.co/52x52/png",
+        grantablePermissions: ["document.read", "document.create", "document.update"],
+      },
+    })
+    const store = buildMockStore({
+      state: mergeSeeds(
+        seed.me(userFactory.build({ globalPermissions: ["app.install"], termsAccepted: true })),
+        seed.appInstallPage(pageWithLogo),
+      ),
+    })
+    const router = createMemoryRouter([appsInstallRoute], {
+      initialEntries: [loopbackEntry],
+    })
+    return (
+      <Provider store={store}>
+        <RouterProvider router={router} />
+      </Provider>
+    )
+  },
+}
+
 export const InvalidRedirect: Story = {
   render: renderAt("/apps/install/helpful-assistant", false),
 }

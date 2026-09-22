@@ -1,5 +1,6 @@
 import {
   buildAppInstallCallbackUrl,
+  buildAppInstallDeniedUrl,
   InvalidLoopbackRedirectUriError,
   isLoopbackRedirectUri,
   parseLoopbackRedirectUri,
@@ -33,5 +34,14 @@ describe("loopback redirect URIs", () => {
     ).toBe(
       "http://127.0.0.1:8787/callback?client_id=client-id&client_secret=client-secret&state=abc",
     )
+  })
+
+  it("builds the OAuth access_denied cancel URL", () => {
+    expect(
+      buildAppInstallDeniedUrl({
+        redirectUri: "http://127.0.0.1:8787/callback",
+        state: "abc",
+      }),
+    ).toBe("http://127.0.0.1:8787/callback?error=access_denied&state=abc")
   })
 })

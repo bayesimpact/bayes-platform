@@ -1,13 +1,45 @@
 {
   "appInstall": {
-    "title": "Installer {{name}}",
-    "description": "Choisissez un espace de travail et les permissions que cette app pourra y utiliser.",
+    "headline": "{{name}} demande l'accès à votre espace de travail Bayes",
     "workspace": "Espace de travail",
-    "workspacePlaceholder": "Sélectionner un espace de travail",
     "noWorkspaces": "Aucun espace de travail n'est disponible pour installer cette app.",
-    "permissions": "Permissions",
-    "submit": "Autoriser",
+    "permissionsRequested": "Permissions demandées",
+    "submit": "Autoriser {{name}}",
+    "authorizing": "Autorisation…",
+    "authorized": "✓ Autorisé — retournez dans le terminal",
+    "cancel": "Annuler et revenir au terminal",
+    "revocability": "L'accès peut être révoqué à tout moment depuis les paramètres <settings>Apps & integrations</settings> de l'espace de travail. {{name}} ne pourra atteindre que l'espace sélectionné ci-dessus.",
     "invalidRedirect": "Ce lien d'installation nécessite une redirect_uri loopback (localhost ou 127.0.0.1) et un state.",
-    "missingSlug": "Slug d'app manquant."
+    "missingSlug": "Slug d'app manquant.",
+    "copy": {
+      "document_read": {
+        "name": "Lire les documents",
+        "description": "Accéder aux titres, contenus et métadonnées des documents de cet espace."
+      },
+      "document_create": {
+        "name": "Créer des documents",
+        "description": "Ajouter de nouveaux documents à l'espace. Les documents existants ne seront pas modifiés."
+      },
+      "document_update": {
+        "name": "Modifier des documents",
+        "description": "Modifier le contenu des documents existants de cet espace."
+      },
+      "document_delete": {
+        "name": "Supprimer des documents",
+        "description": "Supprimer définitivement des documents de cet espace."
+      },
+      "project_read": {
+        "name": "Lire l'espace de travail",
+        "description": "Voir cet espace de travail et ses paramètres."
+      },
+      "project_update": {
+        "name": "Modifier l'espace de travail",
+        "description": "Changer les paramètres de cet espace de travail."
+      },
+      "project_delete": {
+        "name": "Supprimer l'espace de travail",
+        "description": "Supprimer définitivement cet espace de travail."
+      }
+    }
   }
 }
