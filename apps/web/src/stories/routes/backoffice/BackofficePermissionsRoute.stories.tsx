@@ -15,7 +15,8 @@ import { mergeSeeds, seed } from "@/stories/seed"
 type StoryArgs = BackofficeStoryArgs
 
 const decorator = buildDecorator<StoryArgs>((args) => {
-  const { baseSeeds, organizations, users, termsDocuments } = buildBackofficeData(args)
+  const { baseSeeds, organizations, users, termsDocuments, appManifests } =
+    buildBackofficeData(args)
   const catalog = backofficeRbacCatalogFactory.build()
   return {
     state: mergeSeeds(baseSeeds, seed.backoffice.rbacCatalog(catalog)),
@@ -25,6 +26,7 @@ const decorator = buildDecorator<StoryArgs>((args) => {
         users,
         termsDocuments,
         rbacCatalog: catalog,
+        appManifests,
       }),
     },
   }

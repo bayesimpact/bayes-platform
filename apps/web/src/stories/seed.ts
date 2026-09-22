@@ -1,4 +1,5 @@
 import type {
+  AppManifest,
   BackofficeRbacCatalog,
   BackofficeUserDetail,
   PaginatedBackofficeAgents,
@@ -444,6 +445,10 @@ export const seed = {
 
     termsDocuments(termsDocuments: TermsDocuments): StoryPreloadedState {
       return { backoffice: { termsDocuments: ads.fulfilled(termsDocuments) } }
+    },
+
+    appManifests(appManifests: AppManifest[]): StoryPreloadedState {
+      return { backoffice: { appManifests: ads.fulfilled(appManifests) } }
     },
   },
 

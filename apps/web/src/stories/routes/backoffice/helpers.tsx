@@ -1,4 +1,5 @@
 import {
+  appManifestFactory,
   backofficeAgentDetailFactory,
   backofficeAgentListItemFactory,
   backofficeOrganizationDetailFactory,
@@ -20,6 +21,7 @@ import {
   termsDocumentsFactory,
 } from "@/backoffice/features/backoffice/backoffice.factory"
 import type {
+  AppManifest,
   BackofficeAgentDetail,
   BackofficeAgentListItem,
   BackofficeOrganization,
@@ -44,31 +46,37 @@ import { mergeSeeds, seed } from "@/stories/seed"
 export type BackofficeStoryArgs = {
   isBackofficeAuthorized: boolean
   isTermsManagementAuthorized: boolean
+  isAppManagementAuthorized: boolean
   withOrganizations: boolean
   withAgents: boolean
   withProjects: boolean
   withUsers: boolean
   withTermsDocuments: boolean
+  withAppManifests: boolean
 }
 
 export const backofficeStoryArgs = {
   isBackofficeAuthorized: true,
   isTermsManagementAuthorized: false,
+  isAppManagementAuthorized: false,
   withOrganizations: true,
   withAgents: true,
   withProjects: true,
   withUsers: true,
   withTermsDocuments: false,
+  withAppManifests: false,
 } satisfies BackofficeStoryArgs
 
 export const backofficeStoryArgTypes = {
   isBackofficeAuthorized: { control: "boolean" },
   isTermsManagementAuthorized: { control: "boolean" },
+  isAppManagementAuthorized: { control: "boolean" },
   withOrganizations: { control: "boolean" },
   withAgents: { control: "boolean" },
   withProjects: { control: "boolean" },
   withUsers: { control: "boolean" },
   withTermsDocuments: { control: "boolean" },
+  withAppManifests: { control: "boolean" },
 } as const
 
 export function buildBackofficeData(args: BackofficeStoryArgs): {
@@ -78,12 +86,14 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
   projects: PaginatedBackofficeProjects
   users: PaginatedBackofficeUsers
   termsDocuments: TermsDocuments | null
+  appManifests: AppManifest[]
   baseSeeds: StoryPreloadedState
 } {
   const user = userFactory.build({
     globalPermissions: [
       ...(args.isBackofficeAuthorized ? (["backoffice.read"] as const) : []),
       ...(args.isTermsManagementAuthorized ? (["backoffice.terms.update"] as const) : []),
+      ...(args.isAppManagementAuthorized ? (["backoffice.app.manage"] as const) : []),
     ],
   })
 
@@ -108,12 +118,15 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
     args.isTermsManagementAuthorized && args.withTermsDocuments
       ? termsDocumentsFactory.build()
       : null
+  const appManifests =
+    args.isAppManagementAuthorized && args.withAppManifests ? appManifestFactory.buildList(3) : []
 
   const seeds: StoryPreloadedState[] = [seed.me(user), seed.backoffice.organizations(organizations)]
   seeds.push(seed.backoffice.agents(agents))
   seeds.push(seed.backoffice.projects(projects))
   seeds.push(seed.backoffice.users(users))
   if (termsDocuments) seeds.push(seed.backoffice.termsDocuments(termsDocuments))
+  if (args.isAppManagementAuthorized) seeds.push(seed.backoffice.appManifests(appManifests))
 
   return {
     user,
@@ -122,6 +135,7 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
     projects,
     users,
     termsDocuments,
+    appManifests,
     baseSeeds: mergeSeeds(...seeds),
   }
 }
@@ -168,6 +182,7 @@ export function buildMockBackofficeService(overrides: {
   userDetails?: Record<string, BackofficeUserDetail>
   rbacCatalog?: BackofficeRbacCatalog | null
   termsDocuments?: TermsDocuments | null
+  appManifests?: AppManifest[]
 }): IBackofficeSpi {
   const organizations =
     overrides.organizations ??
@@ -192,6 +207,7 @@ export function buildMockBackofficeService(overrides: {
   const userDetails = overrides.userDetails ?? {}
   const rbacCatalog = overrides.rbacCatalog ?? null
   const termsDocuments = overrides.termsDocuments ?? null
+  let appManifests = overrides.appManifests ?? []
   return {
     async listOrganizations() {
       return organizations
@@ -249,6 +265,28 @@ export function buildMockBackofficeService(overrides: {
     async updateTermsDocuments() {
       if (!termsDocuments) throw new Error("No terms documents seeded in mock service")
       return termsDocuments
+    },
+    async listAppManifests() {
+      return appManifests
+    },
+    async createAppManifest(input) {
+      const created = appManifestFactory.build(input)
+      appManifests = [...appManifests, created]
+      return created
+    },
+    async updateAppManifest({ appManifestId, input }) {
+      const current = appManifests.find((manifest) => manifest.id === appManifestId)
+      const updated = appManifestFactory.build({
+        ...(current ?? { id: appManifestId }),
+        ...input,
+      })
+      appManifests = appManifests.map((manifest) =>
+        manifest.id === appManifestId ? updated : manifest,
+      )
+      return updated
+    },
+    async deleteAppManifest(appManifestId) {
+      appManifests = appManifests.filter((manifest) => manifest.id !== appManifestId)
     },
   }
 }

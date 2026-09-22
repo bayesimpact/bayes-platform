@@ -2,6 +2,7 @@ import type { TermsDocumentType, TimeType } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type {
+  AppManifest,
   BackofficeAgentDetail,
   BackofficeAgentListItem,
   BackofficeAgentMember,
@@ -542,4 +543,16 @@ export const termsDocumentsFactory = TermsDocumentsFactory.define(({ params }) =
   generalConditions: { ...termsDocument("general_conditions"), ...params.generalConditions },
   privacyPolicy: { ...termsDocument("privacy_policy"), ...params.privacyPolicy },
   aiUsagePolicy: { ...termsDocument("ai_usage_policy"), ...params.aiUsagePolicy },
+}))
+
+class AppManifestFactory extends Factory<AppManifest> {}
+
+export const appManifestFactory = AppManifestFactory.define(({ params, sequence }) => ({
+  id: params.id ?? faker.string.uuid(),
+  name: params.name ?? "Helpful Assistant",
+  slug: params.slug ?? `helpful-assistant-${sequence}`,
+  description: params.description ?? "A generic assistant used in tests.",
+  logoUrl: params.logoUrl ?? null,
+  grantablePermissions: params.grantablePermissions ?? ["document.read", "document.create"],
+  createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
 }))

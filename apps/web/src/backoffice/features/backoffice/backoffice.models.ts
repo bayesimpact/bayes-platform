@@ -1,5 +1,7 @@
 import type {
   AgentMembershipRoleDto,
+  AppGrantablePermission,
+  AppManifestDto,
   BackofficeAgentDetailDto,
   BackofficeAgentListItemDto,
   BackofficeAgentMemberDto,
@@ -466,3 +468,33 @@ export type UpdateTermsDocumentsInput = {
   privacyPolicy: { url: string; version: number }
   aiUsagePolicy: { url: string; version: number }
 }
+
+export type AppManifest = {
+  id: string
+  name: string
+  slug: string
+  description: string | null
+  logoUrl: string | null
+  grantablePermissions: AppGrantablePermission[]
+  createdAt: TimeType
+}
+
+export type CreateAppManifestInput = {
+  name: string
+  slug: string
+  description: string | null
+  logoUrl: string | null
+  grantablePermissions: AppGrantablePermission[]
+}
+
+export type UpdateAppManifestInput = Partial<CreateAppManifestInput>
+
+export const toAppManifest = (dto: AppManifestDto): AppManifest => ({
+  id: dto.id,
+  name: dto.name,
+  slug: dto.slug,
+  description: dto.description,
+  logoUrl: dto.logoUrl,
+  grantablePermissions: dto.grantablePermissions,
+  createdAt: dto.createdAt,
+})

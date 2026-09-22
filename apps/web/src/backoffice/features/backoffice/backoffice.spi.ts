@@ -1,16 +1,19 @@
 import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
 import type {
+  AppManifest,
   BackofficeAgentDetail,
   BackofficeOrganization,
   BackofficeOrganizationDetail,
   BackofficeProjectDetail,
   BackofficeRbacCatalog,
   BackofficeUserDetail,
+  CreateAppManifestInput,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
   PaginatedBackofficeUsers,
   TermsDocuments,
+  UpdateAppManifestInput,
   UpdateTermsDocumentsInput,
 } from "./backoffice.models"
 
@@ -49,4 +52,11 @@ export interface IBackofficeSpi {
 
   listTermsDocuments: () => Promise<TermsDocuments>
   updateTermsDocuments: (input: UpdateTermsDocumentsInput) => Promise<TermsDocuments>
+  listAppManifests: () => Promise<AppManifest[]>
+  createAppManifest: (input: CreateAppManifestInput) => Promise<AppManifest>
+  updateAppManifest: (params: {
+    appManifestId: string
+    input: UpdateAppManifestInput
+  }) => Promise<AppManifest>
+  deleteAppManifest: (appManifestId: string) => Promise<void>
 }

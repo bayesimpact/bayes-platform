@@ -16,3 +16,4 @@ export const selectBackofficeUsersQuery = (state: RootState) => state.backoffice
 export const selectBackofficeUserDetail = (state: RootState) => state.backoffice.userDetail
 export const selectBackofficeRbacCatalog = (state: RootState) => state.backoffice.rbacCatalog
 export const selectTermsDocuments = (state: RootState) => state.backoffice.termsDocuments
+export const selectAppManifests = (state: RootState) => state.backoffice.appManifests

@@ -243,6 +243,18 @@ SELECT 1;`)
           ) THEN
             DELETE FROM "agent_membership";
           END IF;
+          IF EXISTS (
+            SELECT FROM information_schema.tables
+            WHERE table_schema = 'public' AND table_name = 'app_installation'
+          ) THEN
+            DELETE FROM "app_installation";
+          END IF;
+          IF EXISTS (
+            SELECT FROM information_schema.tables
+            WHERE table_schema = 'public' AND table_name = 'app_manifest'
+          ) THEN
+            DELETE FROM "app_manifest";
+          END IF;
         END $$;
       `)
       await queryRunner.query(`

@@ -17,6 +17,7 @@ import { AgentMessageFeedbackModule } from "./domains/agents/shared/agent-sessio
 import { StreamingModule } from "./domains/agents/shared/agent-session-messages/streaming/streaming.module"
 import { AgentsAnalyticsModule } from "./domains/analytics/agents-analytics/agents-analytics.module"
 import { ProjectsAnalyticsModule } from "./domains/analytics/projects-analytics/projects-analytics.module"
+import { AppsModule } from "./domains/apps/apps.module"
 import { AuthModule } from "./domains/auth/auth.module"
 import { BackofficeModule } from "./domains/backoffice/backoffice.module"
 import { DocumentsModule } from "./domains/documents/documents.module"
@@ -56,6 +57,7 @@ import { UsersModule } from "./domains/users/users.module"
     AgentsAnalyticsModule,
     AgentCsvExtractionRunsModule,
     AgentsModule,
+    AppsModule,
     AuthModule,
     BackofficeModule,
     ConversationAgentSessionsModule,
