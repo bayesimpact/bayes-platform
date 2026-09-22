@@ -1,14 +1,9 @@
 import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common"
-import { InjectRepository } from "@nestjs/typeorm"
-import type { Repository } from "typeorm"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { TransactionService } from "@/common/transaction/transaction.service"
 import { normalizeAuth0Name } from "@/domains/auth/auth0-userinfo.helper"
 import type { Auth0UserInfoResponse } from "@/domains/auth/auth0-userinfo.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UserMembershipRepository } from "@/domains/memberships/user-membership.repository"
-import { resolveOrganizationRoleId } from "@/domains/rbac/resolve-organization-role-id"
 import {
   buildServiceUserAuth0Id,
   buildServiceUserEmail,
@@ -16,57 +11,52 @@ import {
   isServiceUser,
   isServiceUserEmail,
 } from "./service-user.helpers"
-import { User } from "./user.entity"
+import type { User } from "./user.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { UserRepository } from "./user.repository"
 import { USER_TYPE_HUMAN, USER_TYPE_SERVICE } from "./user.types"
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    private readonly transactionService: TransactionService,
+    private readonly userRepository: UserRepository,
     private readonly userMembershipRepository: UserMembershipRepository,
   ) {}
 
   async findByAuth0Id(auth0Id: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { auth0Id } })
+    return this.userRepository.findByAuth0Id(auth0Id)
   }
   async findByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { email } })
+    return this.userRepository.findByEmail(email)
   }
 
   async findById(id: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { id } })
+    return this.userRepository.findById(id)
   }
 
   async create(auth0UserInfo: Auth0UserInfoResponse): Promise<User> {
-    // Ensure email is provided (required field)
     if (!auth0UserInfo.email) {
       throw new Error("Email is required from Auth0 token")
     }
     this.assertHumanAuth0Login({ sub: auth0UserInfo.sub, email: auth0UserInfo.email })
 
-    const user = this.userRepository.create({
+    return this.userRepository.createUser({
       auth0Id: auth0UserInfo.sub,
       email: auth0UserInfo.email,
       name: auth0UserInfo.name || null,
       pictureUrl: auth0UserInfo.picture || null,
       type: USER_TYPE_HUMAN,
     })
-
-    return this.userRepository.save(user)
   }
 
   async createServiceUser(params: { appSlug: string; installationId: string }): Promise<User> {
-    return this.userRepository.save(
-      this.userRepository.create({
-        auth0Id: buildServiceUserAuth0Id(params.installationId),
-        email: buildServiceUserEmail(params.appSlug, params.installationId),
-        name: params.appSlug,
-        pictureUrl: null,
-        type: USER_TYPE_SERVICE,
-      }),
-    )
+    return this.userRepository.createUser({
+      auth0Id: buildServiceUserAuth0Id(params.installationId),
+      email: buildServiceUserEmail(params.appSlug, params.installationId),
+      name: params.appSlug,
+      pictureUrl: null,
+      type: USER_TYPE_SERVICE,
+    })
   }
 
   /**
@@ -85,32 +75,11 @@ export class UsersService {
       throw new BadRequestException("Only service users can be attached as app installations")
     }
 
-    await this.transactionService.run(async () => {
-      const organizationRoleId = await resolveOrganizationRoleId(
-        this.transactionService.getManager(),
-        "member",
-      )
-
-      await this.userMembershipRepository.insertMembership({
-        userId: params.userId,
-        resourceType: "organization",
-        resourceId: params.organizationId,
-        role: "member",
-        roleId: organizationRoleId,
-      })
-      await this.userMembershipRepository.insertMembership({
-        userId: params.userId,
-        resourceType: "project",
-        resourceId: params.projectId,
-        role: "member",
-        roleId: params.customRoleId,
-      })
-    })
+    await this.userMembershipRepository.insertServiceUserInstallMemberships(params)
   }
 
   async updateUser(userId: string, name: string): Promise<User> {
-    await this.userRepository.update(userId, { name })
-    const updated = await this.findById(userId)
+    const updated = await this.userRepository.updateName(userId, name)
     if (!updated) throw new Error(`User ${userId} not found after update`)
     return updated
   }
@@ -139,11 +108,11 @@ export class UsersService {
       this.assertHumanAuth0Login({ sub: auth0UserInfo.sub, email: auth0UserInfo.email, user })
 
       if (user) {
-        return this.userRepository.save({
-          ...user,
-          auth0Id: auth0UserInfo.sub, // Link existing user to Auth0 ID
-          name: normalizeAuth0Name(auth0UserInfo.name, auth0UserInfo.email),
-          picture: auth0UserInfo.picture,
+        return this.userRepository.linkAuth0Identity({
+          user,
+          auth0Id: auth0UserInfo.sub,
+          name: normalizeAuth0Name(auth0UserInfo.name, auth0UserInfo.email) ?? null,
+          pictureUrl: auth0UserInfo.picture || null,
         })
       }
 

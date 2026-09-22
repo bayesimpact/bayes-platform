@@ -12,48 +12,45 @@ import {
   isServiceUserEmail,
 } from "@/domains/users/service-user.helpers"
 import type { User } from "@/domains/users/user.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { UserRepository } from "@/domains/users/user.repository"
 import { USER_TYPE_HUMAN } from "@/domains/users/user.types"
 import type { Invitation, InvitationTargetType } from "../invitation.entity"
 
 @Injectable()
 export class InvitationAcceptanceHelpersService {
-  async resolveAcceptedUser(
-    userRepository: Repository<User>,
-    auth0Sub: string,
-    email: string,
-  ): Promise<User> {
+  constructor(private readonly userRepository: UserRepository) {}
+
+  async resolveAcceptedUser(auth0Sub: string, email: string): Promise<User> {
     const normalizedEmail = email.trim().toLowerCase()
     if (isServiceAuth0Id(auth0Sub) || isServiceUserEmail(normalizedEmail)) {
       throw new UnauthorizedException(AUTH_ERRORS.SERVICE_USERS_CANNOT_AUTHENTICATE)
     }
 
-    const byAuth0Id = await userRepository.findOne({ where: { auth0Id: auth0Sub } })
+    const byAuth0Id = await this.userRepository.findByAuth0Id(auth0Sub)
     if (byAuth0Id) {
       if (isServiceUser(byAuth0Id)) {
         throw new UnauthorizedException(AUTH_ERRORS.SERVICE_USERS_CANNOT_AUTHENTICATE)
       }
       return byAuth0Id
     }
-    const byEmail = await userRepository.findOne({ where: { email: normalizedEmail } })
+    const byEmail = await this.userRepository.findByEmail(normalizedEmail)
     if (byEmail) {
       if (isServiceUser(byEmail)) {
         throw new UnauthorizedException(AUTH_ERRORS.SERVICE_USERS_CANNOT_AUTHENTICATE)
       }
       if (byEmail.auth0Id !== auth0Sub) {
-        byEmail.auth0Id = auth0Sub
-        return userRepository.save(byEmail)
+        return this.userRepository.updateAuth0Id(byEmail, auth0Sub)
       }
       return byEmail
     }
-    return userRepository.save(
-      userRepository.create({
-        auth0Id: auth0Sub,
-        email: normalizedEmail,
-        name: null,
-        pictureUrl: null,
-        type: USER_TYPE_HUMAN,
-      }),
-    )
+    return this.userRepository.createUser({
+      auth0Id: auth0Sub,
+      email: normalizedEmail,
+      name: null,
+      pictureUrl: null,
+      type: USER_TYPE_HUMAN,
+    })
   }
 
   async findAndValidateInvitation(

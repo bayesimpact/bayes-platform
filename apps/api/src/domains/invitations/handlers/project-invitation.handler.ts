@@ -119,7 +119,6 @@ export class ProjectInvitationHandler
     return this.transactionService.run(async () => {
       const manager = this.transactionService.getManager()
       const invitationRepository = manager.getRepository(Invitation)
-      const userRepository = manager.getRepository(User)
 
       const invitation = await this.acceptanceHelpers.findAndValidateInvitation(
         invitationRepository,
@@ -130,11 +129,7 @@ export class ProjectInvitationHandler
       const project = await this.projectRepository.findOneOrFail({
         where: { id: invitation.projectId },
       })
-      const user = await this.acceptanceHelpers.resolveAcceptedUser(
-        userRepository,
-        params.auth0Sub,
-        params.email,
-      )
+      const user = await this.acceptanceHelpers.resolveAcceptedUser(params.auth0Sub, params.email)
 
       await this.organizationMembershipsService.upsertOrganizationAdminMembership({
         userId: user.id,

@@ -280,7 +280,6 @@ export class ReviewCampaignInvitationHandler
       const manager = this.transactionService.getManager()
       const invitationRepository = manager.getRepository(Invitation)
       const reviewCampaignRepository = manager.getRepository(ReviewCampaign)
-      const userRepository = manager.getRepository(User)
 
       const invitation = await this.acceptanceHelpers.findAndValidateInvitation(
         invitationRepository,
@@ -288,11 +287,7 @@ export class ReviewCampaignInvitationHandler
         params.email,
         this.targetType,
       )
-      const user = await this.acceptanceHelpers.resolveAcceptedUser(
-        userRepository,
-        params.auth0Sub,
-        params.email,
-      )
+      const user = await this.acceptanceHelpers.resolveAcceptedUser(params.auth0Sub, params.email)
       const campaign = await reviewCampaignRepository.findOneOrFail({
         where: { id: invitation.targetId },
       })

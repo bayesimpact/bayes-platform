@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common"
 import type { EntityManager, Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
+import { resolveOrganizationRoleId } from "@/domains/rbac/resolve-organization-role-id"
 import {
   UserMembership,
   type UserMembershipResourceType,
@@ -101,6 +102,38 @@ export class UserMembershipRepository {
         roleId: params.roleId,
       }),
     )
+  }
+
+  /**
+   * Org `member` plus a project membership whose legacy role stays `"member"`
+   * and whose `roleId` is the installation custom role.
+   */
+  async insertServiceUserInstallMemberships(params: {
+    userId: string
+    organizationId: string
+    projectId: string
+    customRoleId: string
+  }): Promise<void> {
+    await this.transactionService.run(async () => {
+      const organizationRoleId = await resolveOrganizationRoleId(
+        this.transactionService.getManager(),
+        "member",
+      )
+      await this.insertMembership({
+        userId: params.userId,
+        resourceType: "organization",
+        resourceId: params.organizationId,
+        role: "member",
+        roleId: organizationRoleId,
+      })
+      await this.insertMembership({
+        userId: params.userId,
+        resourceType: "project",
+        resourceId: params.projectId,
+        role: "member",
+        roleId: params.customRoleId,
+      })
+    })
   }
 
   private async upsertNonCampaignMembership(

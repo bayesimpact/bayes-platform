@@ -21,6 +21,7 @@ import { ensureRbacCatalog } from "../../../test/rbac-test.helpers"
 import { buildServiceUserAuth0Id, buildServiceUserEmail } from "./service-user.helpers"
 import { User } from "./user.entity"
 import { userFactory } from "./user.factory"
+import { UserRepository } from "./user.repository"
 import { USER_TYPE_HUMAN, USER_TYPE_SERVICE } from "./user.types"
 import { UsersService } from "./users.service"
 
@@ -32,7 +33,7 @@ describe("UsersService", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      providers: [UsersService],
+      providers: [UsersService, UserRepository],
       additionalImports: [RbacModule, MembershipsModule],
     })
     await ensureRbacCatalog(setup.module)

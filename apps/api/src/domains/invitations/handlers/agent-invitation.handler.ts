@@ -221,7 +221,6 @@ export class AgentInvitationHandler
     return this.transactionService.run(async () => {
       const manager = this.transactionService.getManager()
       const invitationRepository = manager.getRepository(Invitation)
-      const userRepository = manager.getRepository(User)
 
       const invitation = await this.acceptanceHelpers.findAndValidateInvitation(
         invitationRepository,
@@ -229,11 +228,7 @@ export class AgentInvitationHandler
         params.email,
         this.targetType,
       )
-      const user = await this.acceptanceHelpers.resolveAcceptedUser(
-        userRepository,
-        params.auth0Sub,
-        params.email,
-      )
+      const user = await this.acceptanceHelpers.resolveAcceptedUser(params.auth0Sub, params.email)
       const agent = await this.agentRepository.findOneOrFail({
         where: { id: invitation.targetId },
       })
