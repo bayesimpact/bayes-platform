@@ -1,39 +1,60 @@
-import { isLoopbackRedirectUri } from "@caseai-connect/api-contracts"
 import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { useParams, useSearchParams } from "react-router-dom"
-import { selectAppInstallPage } from "@/common/features/app-install/app-install.selectors"
+import {
+  selectAppInstallHasValidLoopback,
+  selectAppInstallPage,
+  selectAppInstallSlug,
+} from "@/common/features/app-install/app-install.selectors"
 import { appInstallActions } from "@/common/features/app-install/app-install.slice"
-import { fetchInstallPage } from "@/common/features/app-install/app-install.thunks"
 import { AppsInstallCard } from "@/common/features/app-install/components/AppsInstallCard"
+import { useMount } from "@/common/hooks/use-mount"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { AsyncRoute } from "./AsyncRoute"
 import { ErrorRoute } from "./ErrorRoute"
+import { LoadingRoute } from "./LoadingRoute"
+
+function useSetCurrentIds() {
+  const dispatch = useAppDispatch()
+  const { slug } = useParams<{ slug: string }>()
+  const [searchParams] = useSearchParams()
+  const redirectUri = searchParams.get("redirect_uri") ?? ""
+  const callbackState = searchParams.get("state") ?? ""
+
+  useEffect(() => {
+    dispatch(
+      appInstallActions.setCurrentIds({
+        slug: slug ?? null,
+        redirectUri,
+        callbackState,
+      }),
+    )
+  }, [callbackState, dispatch, redirectUri, slug])
+
+  return slug ?? null
+}
 
 export function AppsInstallRoute() {
   const { t } = useTranslation("appInstall")
-  const { slug } = useParams<{ slug: string }>()
-  const [searchParams] = useSearchParams()
-  const dispatch = useAppDispatch()
+  const slugParam = useSetCurrentIds()
+  const slug = useAppSelector(selectAppInstallSlug)
+  const hasValidLoopback = useAppSelector(selectAppInstallHasValidLoopback)
   const page = useAppSelector(selectAppInstallPage)
-  const redirectUri = searchParams.get("redirect_uri") ?? ""
-  const state = searchParams.get("state") ?? ""
-  const hasValidLoopback = isLoopbackRedirectUri(redirectUri) && state.length > 0
+  const idsReady = slug === slugParam
 
-  useEffect(() => {
-    if (!slug || !hasValidLoopback) return
-    dispatch(fetchInstallPage(slug))
-    return () => {
-      dispatch(appInstallActions.reset())
-    }
-  }, [dispatch, slug, hasValidLoopback])
+  useMount({
+    actions: appInstallActions,
+    condition: idsReady && !!slug && hasValidLoopback,
+    refreshOn: [slug],
+  })
 
+  if (!idsReady) return <LoadingRoute />
   if (!slug) return <ErrorRoute error={t("missingSlug")} />
   if (!hasValidLoopback) return <ErrorRoute error={t("invalidRedirect")} />
 
   return (
     <AsyncRoute data={[page]}>
-      <AppsInstallCard slug={slug} redirectUri={redirectUri} state={state} />
+      <AppsInstallCard />
     </AsyncRoute>
   )
 }

@@ -73,7 +73,26 @@ export const WithLogo: Story = {
 }
 
 export const InvalidRedirect: Story = {
-  render: renderAt("/apps/install/helpful-assistant", false),
+  render: () => {
+    const store = buildMockStore({
+      state: mergeSeeds(
+        seed.me(userFactory.build({ globalPermissions: ["app.install"], termsAccepted: true })),
+        seed.appInstallCallback({
+          slug: "helpful-assistant",
+          redirectUri: "",
+          callbackState: "",
+        }),
+      ),
+    })
+    const router = createMemoryRouter([appsInstallRoute], {
+      initialEntries: ["/apps/install/helpful-assistant"],
+    })
+    return (
+      <Provider store={store}>
+        <RouterProvider router={router} />
+      </Provider>
+    )
+  },
 }
 
 export const EmptyWorkspaces: Story = {

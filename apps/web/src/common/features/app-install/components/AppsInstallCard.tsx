@@ -1,67 +1,82 @@
-import { buildAppInstallCallbackUrl, buildAppInstallDeniedUrl } from "@caseai-connect/api-contracts"
+import {
+  authorizeAppInstallSchema,
+  buildAppInstallCallbackUrl,
+  buildAppInstallDeniedUrl,
+} from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@caseai-connect/ui/shad/form"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@caseai-connect/ui/shad/select"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowRightIcon, GlobeIcon, ShieldCheckIcon } from "lucide-react"
-import { useState } from "react"
+import { useForm } from "react-hook-form"
 import { Trans, useTranslation } from "react-i18next"
-import { selectAppInstallPage } from "@/common/features/app-install/app-install.selectors"
+import type { z } from "zod"
+import {
+  selectAppInstallCallbackState,
+  selectAppInstallPage,
+  selectAppInstallRedirectUri,
+  selectAppInstallSlug,
+} from "@/common/features/app-install/app-install.selectors"
 import { authorizeAppInstall } from "@/common/features/app-install/app-install.thunks"
-import { useValue } from "@/common/hooks/use-value"
-import { useAppDispatch } from "@/common/store/hooks"
+import { useCurrentId, useValue } from "@/common/hooks/use-value"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { AppInstallPermissionIcon, permissionCopyKey } from "./AppInstallPermissionIcon"
 import { BayesCrossMark } from "./BayesCrossMark"
 
-type SubmitPhase = "idle" | "authorizing" | "authorized"
+type FormValues = z.infer<typeof authorizeAppInstallSchema>
 
-export function AppsInstallCard({
-  slug,
-  redirectUri,
-  state,
-}: {
-  slug: string
-  redirectUri: string
-  state: string
-}) {
+export function AppsInstallCard() {
   const { t } = useTranslation("appInstall")
   const dispatch = useAppDispatch()
   const page = useValue(selectAppInstallPage)
-  const [submitPhase, setSubmitPhase] = useState<SubmitPhase>("idle")
-  const [projectId, setProjectId] = useState(page.projects[0]?.id ?? "")
+  const slug = useCurrentId(selectAppInstallSlug)
+  const redirectUri = useAppSelector(selectAppInstallRedirectUri)
+  const callbackState = useAppSelector(selectAppInstallCallbackState)
   const canInstall = page.projects.length > 0
-  const cancelUrl = buildAppInstallDeniedUrl({ redirectUri, state })
+  const cancelUrl = buildAppInstallDeniedUrl({ redirectUri, state: callbackState })
 
-  const onAuthorize = async () => {
-    if (!canInstall || submitPhase !== "idle") return
-    setSubmitPhase("authorizing")
-    try {
-      const result = await dispatch(
-        authorizeAppInstall({
-          slug,
-          projectId,
-          permissions: page.app.grantablePermissions,
-          redirectUri,
-          state,
-        }),
-      ).unwrap()
-      setSubmitPhase("authorized")
-      window.location.assign(
-        buildAppInstallCallbackUrl({
-          redirectUri: result.redirectUri,
-          clientId: result.clientId,
-          clientSecret: result.clientSecret,
-          state: result.state,
-        }),
-      )
-    } catch {
-      setSubmitPhase("idle")
-    }
+  const form = useForm<FormValues>({
+    resolver: zodResolver(authorizeAppInstallSchema),
+    defaultValues: {
+      projectId: page.projects[0]?.id ?? "",
+      permissions: page.app.grantablePermissions,
+      redirectUri,
+      state: callbackState,
+    },
+  })
+
+  const onValid = async (values: FormValues) => {
+    const result = await dispatch(
+      authorizeAppInstall({
+        slug,
+        projectId: values.projectId,
+        permissions: values.permissions,
+        redirectUri: values.redirectUri,
+        state: values.state,
+      }),
+    ).unwrap()
+    window.location.assign(
+      buildAppInstallCallbackUrl({
+        redirectUri: result.redirectUri,
+        clientId: result.clientId,
+        clientSecret: result.clientSecret,
+        state: result.state,
+      }),
+    )
   }
-
-  const submitLabel =
-    submitPhase === "authorizing"
-      ? t("authorizing")
-      : submitPhase === "authorized"
-        ? t("authorized")
-        : t("submit", { name: page.app.name })
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#f4f4f6] p-6 font-[Inter,system-ui,sans-serif] text-[#111118]">
@@ -76,63 +91,62 @@ export function AppsInstallCard({
         </h1>
 
         {canInstall ? (
-          <label className="mt-6 flex flex-col gap-1.5">
-            <span className="text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase">
-              {t("workspace")}
-            </span>
-            <select
-              className="h-10 w-full rounded-lg border border-[#e4e4e7] bg-white px-3 text-sm text-[#111118]"
-              value={projectId}
-              onChange={(event) => setProjectId(event.target.value)}
-              disabled={submitPhase !== "idle"}
-            >
-              {page.projects.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.organizationName} / {project.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onValid)} className="mt-6 flex flex-col">
+              <FormField
+                control={form.control}
+                name="projectId"
+                render={({ field }) => (
+                  <FormItem className="gap-1.5">
+                    <FormLabel className="text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase">
+                      {t("workspace")}
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={form.formState.isSubmitting}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="h-10 w-full rounded-lg border-[#e4e4e7] text-[#111118] shadow-none">
+                          <SelectValue placeholder={t("workspacePlaceholder")} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {page.projects.map((project) => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.organizationName} / {project.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <PermissionList />
+
+              <Button
+                type="submit"
+                className="mt-6 h-11 w-full rounded-lg bg-[#7c3aed] text-sm font-semibold text-white hover:bg-[#6d28d9]"
+                disabled={form.formState.isSubmitting}
+              >
+                {form.formState.isSubmitting ? null : (
+                  <ShieldCheckIcon className="size-4" aria-hidden />
+                )}
+                {form.formState.isSubmitting
+                  ? t("authorizing")
+                  : t("submit", { name: page.app.name })}
+              </Button>
+            </form>
+          </Form>
         ) : (
-          <p className="mt-6 text-sm text-[#71717a]">{t("noWorkspaces")}</p>
+          <>
+            <p className="mt-6 text-sm text-[#71717a]">{t("noWorkspaces")}</p>
+            <PermissionList />
+          </>
         )}
 
-        <div className="mt-6 flex flex-col gap-3">
-          <span className="text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase">
-            {t("permissionsRequested")}
-          </span>
-          <ul className="flex flex-col gap-3">
-            {page.app.grantablePermissions.map((permission) => {
-              const copyKey = permissionCopyKey(permission)
-              return (
-                <li key={permission} className="flex items-start gap-3">
-                  <AppInstallPermissionIcon permission={permission} />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold">
-                      {t(`copy.${copyKey}.name`, { defaultValue: permission })}
-                    </p>
-                    <p className="text-sm text-[#71717a]">
-                      {t(`copy.${copyKey}.description`, { defaultValue: "" })}
-                    </p>
-                  </div>
-                  <code className="shrink-0 rounded-full bg-[#f4f4f6] px-2 py-0.5 font-mono text-[11px] text-[#71717a]">
-                    {permission}
-                  </code>
-                </li>
-              )
-            })}
-          </ul>
-        </div>
-
-        <Button
-          type="button"
-          className="mt-6 h-11 w-full rounded-lg bg-[#7c3aed] text-sm font-semibold text-white hover:bg-[#6d28d9] disabled:opacity-100"
-          disabled={!canInstall || submitPhase === "authorized"}
-          onClick={onAuthorize}
-        >
-          {submitPhase === "idle" ? <ShieldCheckIcon className="size-4" aria-hidden /> : null}
-          {submitLabel}
-        </Button>
         <a
           href={cancelUrl}
           className="mt-3 block text-center text-sm text-[#71717a] underline-offset-2 hover:underline"
@@ -148,6 +162,40 @@ export function AppsInstallCard({
           components={{ settings: <strong className="font-semibold text-[#111118]" /> }}
         />
       </p>
+    </div>
+  )
+}
+
+function PermissionList() {
+  const { t } = useTranslation("appInstall")
+  const page = useValue(selectAppInstallPage)
+
+  return (
+    <div className="mt-6 flex flex-col gap-3">
+      <span className="text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase">
+        {t("permissionsRequested")}
+      </span>
+      <ul className="flex flex-col gap-3">
+        {page.app.grantablePermissions.map((permission) => {
+          const copyKey = permissionCopyKey(permission)
+          return (
+            <li key={permission} className="flex items-start gap-3">
+              <AppInstallPermissionIcon permission={permission} />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold">
+                  {t(`copy.${copyKey}.name`, { defaultValue: permission })}
+                </p>
+                <p className="text-sm text-[#71717a]">
+                  {t(`copy.${copyKey}.description`, { defaultValue: "" })}
+                </p>
+              </div>
+              <code className="shrink-0 rounded-full bg-[#f4f4f6] px-2 py-0.5 font-mono text-[11px] text-[#71717a]">
+                {permission}
+              </code>
+            </li>
+          )
+        })}
+      </ul>
     </div>
   )
 }

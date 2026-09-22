@@ -1,5 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import type { RootState, ThunkExtraArg } from "@/common/store"
+import { getApiErrorMessage } from "@/common/utils/api-error"
 import type {
   AppInstallPage,
   AuthorizeAppInstallInput,
@@ -9,6 +10,7 @@ import type {
 type ThunkConfig = {
   state: RootState
   extra: ThunkExtraArg
+  rejectValue: string
 }
 
 export const fetchInstallPage = createAsyncThunk<AppInstallPage, string, ThunkConfig>(
@@ -20,6 +22,10 @@ export const authorizeAppInstall = createAsyncThunk<
   AuthorizeAppInstallResult,
   AuthorizeAppInstallInput,
   ThunkConfig
->("appInstall/authorize", async (input, { extra: { services } }) =>
-  services.appInstall.authorize(input),
-)
+>("appInstall/authorize", async (input, { extra: { services }, rejectWithValue }) => {
+  try {
+    return await services.appInstall.authorize(input)
+  } catch (error) {
+    return rejectWithValue(getApiErrorMessage(error, "App installation failed"))
+  }
+})

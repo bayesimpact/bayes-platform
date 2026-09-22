@@ -2,6 +2,7 @@
   "appInstall": {
     "headline": "{{name}} demande l'accès à votre espace de travail Bayes",
     "workspace": "Espace de travail",
+    "workspacePlaceholder": "Sélectionner un espace de travail",
     "noWorkspaces": "Aucun espace de travail n'est disponible pour installer cette app.",
     "permissionsRequested": "Permissions demandées",
     "submit": "Autoriser {{name}}",

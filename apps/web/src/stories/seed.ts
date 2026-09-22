@@ -131,9 +131,34 @@ export function mergeSeeds(...seeds: StoryPreloadedState[]): StoryPreloadedState
  *   `withRedux({ state: { someSlice: { ... } } })`
  */
 export const seed = {
-  /** Seeds the operator app-install page. */
-  appInstallPage(page: AppInstallPage): StoryPreloadedState {
-    return { appInstall: { page: ads.fulfilled(page) } }
+  /** Seeds the operator app-install page and the loopback callback ids the route reads. */
+  appInstallPage(
+    page: AppInstallPage,
+    callback: { redirectUri?: string; callbackState?: string } = {},
+  ): StoryPreloadedState {
+    return {
+      appInstall: {
+        slug: page.app.slug,
+        redirectUri: callback.redirectUri ?? "http://127.0.0.1:8787/callback",
+        callbackState: callback.callbackState ?? "csrf-state",
+        page: ads.fulfilled(page),
+      },
+    }
+  },
+
+  /** Seeds only the URL-driven install ids (invalid-callback and loading stories). */
+  appInstallCallback(params: {
+    slug: string | null
+    redirectUri?: string
+    callbackState?: string
+  }): StoryPreloadedState {
+    return {
+      appInstall: {
+        slug: params.slug,
+        redirectUri: params.redirectUri ?? "http://127.0.0.1:8787/callback",
+        callbackState: params.callbackState ?? "csrf-state",
+      },
+    }
   },
 
   me(user: User): StoryPreloadedState {

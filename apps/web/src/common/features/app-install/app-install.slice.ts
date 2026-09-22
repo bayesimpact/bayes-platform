@@ -1,13 +1,19 @@
-import { createSlice } from "@reduxjs/toolkit"
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { AppInstallPage } from "./app-install.models"
 import { fetchInstallPage } from "./app-install.thunks"
 
 interface State {
+  slug: string | null
+  redirectUri: string
+  callbackState: string
   page: AsyncData<AppInstallPage>
 }
 
 const initialState: State = {
+  slug: null,
+  redirectUri: "",
+  callbackState: "",
   page: defaultAsyncData,
 }
 
@@ -15,7 +21,16 @@ const slice = createSlice({
   name: "appInstall",
   initialState,
   reducers: {
-    reset: () => initialState,
+    mount: () => {},
+    unmount: () => initialState,
+    setCurrentIds: (
+      state,
+      action: PayloadAction<{ slug: string | null; redirectUri: string; callbackState: string }>,
+    ) => {
+      state.slug = action.payload.slug
+      state.redirectUri = action.payload.redirectUri
+      state.callbackState = action.payload.callbackState
+    },
   },
   extraReducers: (builder) => {
     builder

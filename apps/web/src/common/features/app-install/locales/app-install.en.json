@@ -2,6 +2,7 @@
   "appInstall": {
     "headline": "{{name}} wants access to your Bayes workspace",
     "workspace": "Workspace",
+    "workspacePlaceholder": "Select a workspace",
     "noWorkspaces": "No workspaces are available to install this app on.",
     "permissionsRequested": "Permissions requested",
     "submit": "Authorize {{name}}",
