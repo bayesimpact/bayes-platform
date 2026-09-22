@@ -58,12 +58,12 @@ export const backofficeRoutes = {
       element: <BackofficePermissionsRoute />,
     },
     {
-      path: "terms",
-      element: <BackofficeTermsRoute />,
-    },
-    {
       path: "apps",
       element: <BackofficeAppsRoute />,
+    },
+    {
+      path: "terms",
+      element: <BackofficeTermsRoute />,
     },
   ],
 }

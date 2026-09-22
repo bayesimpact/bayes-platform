@@ -109,20 +109,6 @@ function Layout() {
         >
           Permissions
         </NavLink>
-        {canManageTerms && (
-          <NavLink
-            to="terms"
-            className={({ isActive }) =>
-              `px-3 py-1.5 text-sm rounded-md font-medium transition-colors ${
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              }`
-            }
-          >
-            Terms & Compliance
-          </NavLink>
-        )}
         {canManageApps && (
           <NavLink
             to={BackofficeAppsRoutes.apps.path.replace("/backoffice/", "")}
@@ -135,6 +121,20 @@ function Layout() {
             }
           >
             Apps
+          </NavLink>
+        )}
+        {canManageTerms && (
+          <NavLink
+            to="terms"
+            className={({ isActive }) =>
+              `px-3 py-1.5 text-sm rounded-md font-medium transition-colors ${
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`
+            }
+          >
+            Terms & Compliance
           </NavLink>
         )}
       </nav>
