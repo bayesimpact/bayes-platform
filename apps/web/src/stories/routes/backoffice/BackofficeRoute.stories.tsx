@@ -26,11 +26,17 @@ type Story = StoryObj<typeof meta>
 export const Populated: Story = {
   decorators: [
     buildDecorator<BackofficeStoryArgs>((args) => {
-      const { baseSeeds, organizations, users, termsDocuments } = buildBackofficeData(args)
+      const { baseSeeds, organizations, users, termsDocuments, appManifests } =
+        buildBackofficeData(args)
       return {
         state: baseSeeds,
         services: {
-          backoffice: buildMockBackofficeService({ organizations, users, termsDocuments }),
+          backoffice: buildMockBackofficeService({
+            organizations,
+            users,
+            termsDocuments,
+            appManifests,
+          }),
         },
       }
     }),
@@ -45,11 +51,17 @@ export const Empty: Story = {
   },
   decorators: [
     buildDecorator<BackofficeStoryArgs>((args) => {
-      const { baseSeeds, organizations, users, termsDocuments } = buildBackofficeData(args)
+      const { baseSeeds, organizations, users, termsDocuments, appManifests } =
+        buildBackofficeData(args)
       return {
         state: baseSeeds,
         services: {
-          backoffice: buildMockBackofficeService({ organizations, users, termsDocuments }),
+          backoffice: buildMockBackofficeService({
+            organizations,
+            users,
+            termsDocuments,
+            appManifests,
+          }),
         },
       }
     }),
@@ -64,11 +76,42 @@ export const WithTermsManagement: Story = {
   },
   decorators: [
     buildDecorator<BackofficeStoryArgs>((args) => {
-      const { baseSeeds, organizations, users, termsDocuments } = buildBackofficeData(args)
+      const { baseSeeds, organizations, users, termsDocuments, appManifests } =
+        buildBackofficeData(args)
       return {
         state: baseSeeds,
         services: {
-          backoffice: buildMockBackofficeService({ organizations, users, termsDocuments }),
+          backoffice: buildMockBackofficeService({
+            organizations,
+            users,
+            termsDocuments,
+            appManifests,
+          }),
+        },
+      }
+    }),
+  ],
+}
+
+export const WithAppManagement: Story = {
+  args: {
+    ...backofficeStoryArgs,
+    isAppManagementAuthorized: true,
+    withAppManifests: true,
+  },
+  decorators: [
+    buildDecorator<BackofficeStoryArgs>((args) => {
+      const { baseSeeds, organizations, users, termsDocuments, appManifests } =
+        buildBackofficeData(args)
+      return {
+        state: baseSeeds,
+        services: {
+          backoffice: buildMockBackofficeService({
+            organizations,
+            users,
+            termsDocuments,
+            appManifests,
+          }),
         },
       }
     }),
@@ -88,6 +131,7 @@ export const Unauthorized: Story = {
             globalPermissions: [
               ...(args.isBackofficeAuthorized ? (["backoffice.read"] as const) : []),
               ...(args.isTermsManagementAuthorized ? (["backoffice.terms.update"] as const) : []),
+              ...(args.isAppManagementAuthorized ? (["backoffice.app.manage"] as const) : []),
             ],
           }),
         ),

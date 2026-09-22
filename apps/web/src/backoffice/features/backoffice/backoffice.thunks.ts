@@ -3,17 +3,20 @@ import { createAsyncThunk } from "@reduxjs/toolkit"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 
 import type {
+  AppManifest,
   BackofficeAgentDetail,
   BackofficeOrganization,
   BackofficeOrganizationDetail,
   BackofficeProjectDetail,
   BackofficeRbacCatalog,
   BackofficeUserDetail,
+  CreateAppManifestInput,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
   PaginatedBackofficeUsers,
   TermsDocuments,
+  UpdateAppManifestInput,
   UpdateTermsDocumentsInput,
 } from "./backoffice.models"
 
@@ -122,6 +125,32 @@ const updateTermsDocuments = createAsyncThunk<
   services.backoffice.updateTermsDocuments(input),
 )
 
+const listAppManifests = createAsyncThunk<AppManifest[], void, ThunkConfig>(
+  "backoffice/listAppManifests",
+  async (_, { extra: { services } }) => services.backoffice.listAppManifests(),
+)
+
+const createAppManifest = createAsyncThunk<AppManifest, CreateAppManifestInput, ThunkConfig>(
+  "backoffice/createAppManifest",
+  async (input, { extra: { services } }) => services.backoffice.createAppManifest(input),
+)
+
+const updateAppManifest = createAsyncThunk<
+  AppManifest,
+  { appManifestId: string; input: UpdateAppManifestInput },
+  ThunkConfig
+>("backoffice/updateAppManifest", async (params, { extra: { services } }) =>
+  services.backoffice.updateAppManifest(params),
+)
+
+const deleteAppManifest = createAsyncThunk<string, string, ThunkConfig>(
+  "backoffice/deleteAppManifest",
+  async (appManifestId, { extra: { services } }) => {
+    await services.backoffice.deleteAppManifest(appManifestId)
+    return appManifestId
+  },
+)
+
 export const backofficeThunks = {
   listOrganizations,
   getOrganization,
@@ -137,4 +166,8 @@ export const backofficeThunks = {
   removeFeatureFlag,
   listTermsDocuments,
   updateTermsDocuments,
+  listAppManifests,
+  createAppManifest,
+  updateAppManifest,
+  deleteAppManifest,
 }

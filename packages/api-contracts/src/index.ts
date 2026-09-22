@@ -34,6 +34,9 @@ export { AgentSubAgentsRoutes } from "./agents/sub-agents/agent-sub-agents.route
 // Analytics
 export type * from "./analytics/analytics.dto"
 export { AgentAnalyticsRoutes, AnalyticsRoutes } from "./analytics/analytics.routes"
+// Apps
+export * from "./apps/apps.dto"
+export { AppsRoutes } from "./apps/apps.routes"
 // Backoffice
 export type * from "./backoffice/backoffice.dto"
 export { createBackofficeOrganizationSchema } from "./backoffice/backoffice.dto"

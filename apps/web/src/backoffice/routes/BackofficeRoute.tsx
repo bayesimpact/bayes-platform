@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
 import {
+  selectIsAppManagementAuthorized,
   selectIsBackofficeAuthorized,
   selectIsTermsManagementAuthorized,
 } from "@/common/features/me/me.selectors"
@@ -14,6 +15,7 @@ import { backofficeActions } from "../features/backoffice/backoffice.slice"
 import { injectBackofficeSlices, resetBackofficeSlices } from "../store/slices"
 import {
   BackofficeAgentRoutes,
+  BackofficeAppsRoutes,
   BackofficePermissionsRoutes,
   BackofficeProjectRoutes,
   BackofficeUserRoutes,
@@ -35,6 +37,7 @@ export function BackofficeRoute() {
 function Layout() {
   const navigate = useNavigate()
   const canManageTerms = useAppSelector(selectIsTermsManagementAuthorized)
+  const canManageApps = useAppSelector(selectIsAppManagementAuthorized)
 
   useMount({ actions: backofficeActions })
 
@@ -106,6 +109,20 @@ function Layout() {
         >
           Permissions
         </NavLink>
+        {canManageApps && (
+          <NavLink
+            to={BackofficeAppsRoutes.apps.path.replace("/backoffice/", "")}
+            className={({ isActive }) =>
+              `px-3 py-1.5 text-sm rounded-md font-medium transition-colors ${
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`
+            }
+          >
+            Apps
+          </NavLink>
+        )}
         {canManageTerms && (
           <NavLink
             to="terms"

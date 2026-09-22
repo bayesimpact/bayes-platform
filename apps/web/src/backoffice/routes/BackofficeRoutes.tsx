@@ -1,6 +1,7 @@
 import { Navigate } from "react-router-dom"
 import { BackofficeAgentDetailRoute } from "./BackofficeAgentDetailRoute"
 import { BackofficeAgentsListRoute } from "./BackofficeAgentsListRoute"
+import { BackofficeAppsRoute } from "./BackofficeAppsRoute"
 import { BackofficeOrganizationDetailRoute } from "./BackofficeOrganizationDetailRoute"
 import { BackofficeOrganizationsRoute } from "./BackofficeOrganizationsRoute"
 import { BackofficePermissionsRoute } from "./BackofficePermissionsRoute"
@@ -55,6 +56,10 @@ export const backofficeRoutes = {
     {
       path: "permissions",
       element: <BackofficePermissionsRoute />,
+    },
+    {
+      path: "apps",
+      element: <BackofficeAppsRoute />,
     },
     {
       path: "terms",

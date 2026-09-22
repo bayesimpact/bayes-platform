@@ -74,4 +74,4 @@ Scoped to one agent via `user_membership` (`resource_type = 'agent'`).
 
 ## App grantable permissions
 
-Apps may only be granted the permissions in `APP_GRANTABLE_PERMISSIONS` (`document.read`, `document.create`, `document.update`, `document.delete`). This allowlist is code, not a database column. Manifest save and authorize intersect requested permissions with it.
+Apps may only be granted the permissions in `APP_GRANTABLE_PERMISSIONS`, grouped by resource type: document (`document.read`, `document.create`, `document.update`, `document.delete`) and workspace (`project.read`, `project.update`, `project.delete`). `project.create` is not grantable. This allowlist is code, not a database column. Manifest save and authorize intersect requested permissions with it.

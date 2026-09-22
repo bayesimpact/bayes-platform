@@ -1,5 +1,8 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
-import { selectIsTermsManagementAuthorized } from "@/common/features/me/me.selectors"
+import {
+  selectIsAppManagementAuthorized,
+  selectIsTermsManagementAuthorized,
+} from "@/common/features/me/me.selectors"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { backofficeActions } from "./backoffice.slice"
@@ -10,8 +13,11 @@ function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: backofficeActions.mount,
     effect: async (_, listenerApi) => {
-      if (selectIsTermsManagementAuthorized(listenerApi.getState()))
+      const state = listenerApi.getState()
+      if (selectIsTermsManagementAuthorized(state))
         listenerApi.dispatch(backofficeActions.listTermsDocuments())
+      if (selectIsAppManagementAuthorized(state))
+        listenerApi.dispatch(backofficeActions.listAppManifests())
     },
   })
   listenerMiddleware.startListening({
@@ -53,6 +59,13 @@ function registerListeners() {
     actionCreator: backofficeActions.rbacCatalogMount,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(backofficeActions.getRbacCatalog())
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: backofficeActions.appsPanelMount,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(backofficeActions.listAppManifests())
     },
   })
 
@@ -130,6 +143,62 @@ function registerListeners() {
       listenerApi.dispatch(
         notificationsActions.show({
           title: "Failed to save terms documents",
+          description: action.error.message,
+          type: "error",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    matcher: isAnyOf(
+      backofficeActions.createAppManifest.fulfilled,
+      backofficeActions.updateAppManifest.fulfilled,
+      backofficeActions.deleteAppManifest.fulfilled,
+    ),
+    effect: async (action, listenerApi) => {
+      const title = backofficeActions.createAppManifest.fulfilled.match(action)
+        ? "App created"
+        : backofficeActions.updateAppManifest.fulfilled.match(action)
+          ? "App updated"
+          : "App deleted"
+      listenerApi.dispatch(notificationsActions.show({ title, type: "success" }))
+      listenerApi.dispatch(backofficeActions.listAppManifests())
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: backofficeActions.createAppManifest.rejected,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "Failed to create app",
+          description: action.error.message,
+          type: "error",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: backofficeActions.updateAppManifest.rejected,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "Failed to update app",
+          description: action.error.message,
+          type: "error",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: backofficeActions.deleteAppManifest.rejected,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "Failed to delete app",
           description: action.error.message,
           type: "error",
         }),

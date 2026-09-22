@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type {
+  AppManifest,
   BackofficeAgentDetail,
   BackofficeOrganizationDetail,
   BackofficeProjectDetail,
@@ -35,6 +36,7 @@ interface State {
   userDetail: AsyncData<BackofficeUserDetail>
   rbacCatalog: AsyncData<BackofficeRbacCatalog>
   termsDocuments: AsyncData<TermsDocuments>
+  appManifests: AsyncData<AppManifest[]>
 }
 
 const defaultListQuery: ListQuery = { page: 0, limit: 10, search: "" }
@@ -54,6 +56,7 @@ const initialState: State = {
   userDetail: defaultAsyncData,
   rbacCatalog: defaultAsyncData,
   termsDocuments: defaultAsyncData,
+  appManifests: defaultAsyncData,
 }
 
 const slice = createSlice({
@@ -73,6 +76,8 @@ const slice = createSlice({
     usersPanelUnmount: () => {},
     rbacCatalogMount: () => {},
     rbacCatalogUnmount: () => {},
+    appsPanelMount: () => {},
+    appsPanelUnmount: () => {},
     resetOrganizationDetail: (state) => {
       state.organizationDetail = defaultAsyncData
     },
@@ -356,6 +361,22 @@ const slice = createSlice({
     builder.addCase(backofficeThunks.updateTermsDocuments.fulfilled, (state, action) => {
       state.termsDocuments = { status: ADS.Fulfilled, error: null, value: action.payload }
     })
+
+    builder
+      .addCase(backofficeThunks.listAppManifests.pending, (state) => {
+        if (!ADS.isFulfilled(state.appManifests)) state.appManifests.status = ADS.Loading
+        state.appManifests.error = null
+      })
+      .addCase(backofficeThunks.listAppManifests.fulfilled, (state, action) => {
+        state.appManifests = { status: ADS.Fulfilled, error: null, value: action.payload }
+      })
+      .addCase(backofficeThunks.listAppManifests.rejected, (state, action) => {
+        state.appManifests = {
+          status: ADS.Error,
+          error: action.error.message || "Failed to fetch apps",
+          value: null,
+        }
+      })
   },
 })
 

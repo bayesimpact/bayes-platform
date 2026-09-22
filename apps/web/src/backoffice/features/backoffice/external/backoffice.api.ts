@@ -1,6 +1,7 @@
-import { BackofficeRoutes } from "@caseai-connect/api-contracts"
+import { AppsRoutes, BackofficeRoutes } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import {
+  toAppManifest,
   toBackofficeAgentDetail,
   toBackofficeOrganization,
   toBackofficeOrganizationDetail,
@@ -136,5 +137,30 @@ export default {
       } satisfies typeof BackofficeRoutes.updateTermsDocuments.request,
     )
     return response.data.data.documents
+  },
+  listAppManifests: async () => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof AppsRoutes.getAll.response>(AppsRoutes.getAll.getPath())
+    return response.data.data.map(toAppManifest)
+  },
+  createAppManifest: async (input) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<typeof AppsRoutes.createOne.response>(
+      AppsRoutes.createOne.getPath(),
+      { payload: input } satisfies typeof AppsRoutes.createOne.request,
+    )
+    return toAppManifest(response.data.data)
+  },
+  updateAppManifest: async ({ appManifestId, input }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.patch<typeof AppsRoutes.updateOne.response>(
+      AppsRoutes.updateOne.getPath({ appManifestId }),
+      { payload: input } satisfies typeof AppsRoutes.updateOne.request,
+    )
+    return toAppManifest(response.data.data)
+  },
+  deleteAppManifest: async (appManifestId) => {
+    const axios = getAxiosInstance()
+    await axios.delete(AppsRoutes.deleteOne.getPath({ appManifestId }))
   },
 } satisfies IBackofficeSpi

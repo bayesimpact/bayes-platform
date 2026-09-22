@@ -58,16 +58,28 @@ export const DOCUMENT_UPDATE_PERMISSION = "document.update" as const
 
 export const DOCUMENT_DELETE_PERMISSION = "document.delete" as const
 
+export const PROJECT_CREATE_PERMISSION = "project.create" as const
+
+export const PROJECT_READ_PERMISSION = "project.read" as const
+
+export const PROJECT_UPDATE_PERMISSION = "project.update" as const
+
+export const PROJECT_DELETE_PERMISSION = "project.delete" as const
+
 /**
  * Permissions an App may be granted. Policy lives here, not in the database:
  * there is no Permission entity and no `app_grantable` column. Intersect this
  * list with `AppManifest.grantable_permissions` on save and on authorize.
+ * Grouped by resource type (document, project/workspace, agent, …).
  */
 export const APP_GRANTABLE_PERMISSIONS = [
   DOCUMENT_READ_PERMISSION,
   DOCUMENT_CREATE_PERMISSION,
   DOCUMENT_UPDATE_PERMISSION,
   DOCUMENT_DELETE_PERMISSION,
+  PROJECT_READ_PERMISSION,
+  PROJECT_UPDATE_PERMISSION,
+  PROJECT_DELETE_PERMISSION,
 ] as const
 
 export type AppGrantablePermission = (typeof APP_GRANTABLE_PERMISSIONS)[number]
@@ -94,10 +106,6 @@ export function intersectWithAppGrantablePermissions(
 
 /** See the users who are members of a resource you hold this permission on. */
 export const USER_READ_PERMISSION = "user.read" as const
-
-export const PROJECT_CREATE_PERMISSION = "project.create" as const
-
-export const PROJECT_READ_PERMISSION = "project.read" as const
 
 export const ORGANIZATION_PERMISSIONS = [
   ORGANIZATION_CREATE_PERMISSION,
@@ -287,8 +295,8 @@ export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
   "organization.delete": "Delete an organization",
   [PROJECT_CREATE_PERMISSION]: "Create projects in an organization",
   [PROJECT_READ_PERMISSION]: "See a project",
-  "project.update": "Update a project",
-  "project.delete": "Delete a project",
+  [PROJECT_UPDATE_PERMISSION]: "Update a project",
+  [PROJECT_DELETE_PERMISSION]: "Delete a project",
   "agent.create": "Create agents in a project",
   "agent.read": "See an agent",
   "agent.update": "Update an agent",

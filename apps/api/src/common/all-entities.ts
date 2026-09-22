@@ -17,6 +17,8 @@ import { AgentMessageAttachmentDocument } from "@/domains/agents/shared/agent-se
 import { AgentMessageFeedback } from "@/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity"
 import { ConversationForm } from "@/domains/agents/shared/conversation-forms/conversation-form.entity"
 import { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
+import { AppInstallation } from "@/domains/apps/app-installation.entity"
+import { AppManifest } from "@/domains/apps/app-manifest.entity"
 import { Document } from "@/domains/documents/document.entity"
 import { DocumentChunk } from "@/domains/documents/embeddings/document-chunk.entity"
 import { DocumentChunkEmbedding } from "@/domains/documents/embeddings/document-chunk-embedding.entity"
@@ -66,6 +68,8 @@ export const ALL_ENTITIES = [
   AgentSubAgent,
   AgentCsvExtractionRun,
   AgentCsvExtractionRunRecord,
+  AppInstallation,
+  AppManifest,
   ConversationAgentSession,
   ConversationRetentionSweepRun,
   ConversationAgentSessionCategory,

@@ -27,3 +27,7 @@ export const BackofficeProjectRoutes = {
 export const BackofficePermissionsRoutes = {
   permissions: home.extend("/permissions"),
 }
+
+export const BackofficeAppsRoutes = {
+  apps: home.extend("/apps"),
+}
