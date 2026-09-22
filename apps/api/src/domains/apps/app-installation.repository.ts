@@ -46,6 +46,20 @@ export class AppInstallationRepository {
     return installation ? this.toRecord(installation) : null
   }
 
+  async findActiveByClientId(clientId: string): Promise<AppInstallationRecord | null> {
+    const installation = await this.repo().findOne({
+      where: { clientId, status: APP_INSTALLATION_STATUS_ACTIVE },
+    })
+    return installation ? this.toRecord(installation) : null
+  }
+
+  async findActiveById(installationId: string): Promise<AppInstallationRecord | null> {
+    const installation = await this.repo().findOne({
+      where: { id: installationId, status: APP_INSTALLATION_STATUS_ACTIVE },
+    })
+    return installation ? this.toRecord(installation) : null
+  }
+
   async createInstallation(fields: CreateAppInstallationFields): Promise<AppInstallationRecord> {
     const saved = await this.repo().save(
       this.repo().create({

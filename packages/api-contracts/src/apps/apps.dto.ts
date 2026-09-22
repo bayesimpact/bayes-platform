@@ -112,3 +112,25 @@ export type AuthorizeAppInstallResponseDto = {
   redirectUri: string
   state: string
 }
+
+export const appClientCredentialsTokenSchema = z
+  .object({
+    grant_type: z.literal("client_credentials"),
+    client_id: z.string().uuid(),
+    client_secret: z.string().min(1).max(256),
+  })
+  .strict()
+
+export type AppClientCredentialsTokenRequestDto = z.infer<typeof appClientCredentialsTokenSchema>
+
+export type AppAccessTokenResponseDto = {
+  accessToken: string
+  tokenType: "Bearer"
+  expiresIn: number
+}
+
+export type AppMeResponseDto = {
+  userId: string
+  projectId: string
+  installationId: string
+}

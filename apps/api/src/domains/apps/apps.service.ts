@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto"
 import {
   type AppGrantablePermission,
+  appClientCredentialsTokenSchema,
   InvalidLoopbackRedirectUriError,
   parseLoopbackRedirectUri,
 } from "@caseai-connect/api-contracts"
@@ -10,8 +11,10 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
   UnprocessableEntityException,
 } from "@nestjs/common"
+import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -24,11 +27,14 @@ import {
 } from "@/domains/rbac/rbac.constants"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { RoleRepository } from "@/domains/rbac/role.repository"
+import { isServiceUser } from "@/domains/users/service-user.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UsersService } from "@/domains/users/users.service"
 import { buildAppInstallRoleKey } from "./app-install-role"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AppInstallationRepository } from "./app-installation.repository"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AppJwtService } from "./app-jwt.service"
 import type {
   AppManifestRecord,
   CreateAppManifestFields,
@@ -36,7 +42,15 @@ import type {
 } from "./app-manifest.repository"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AppManifestRepository } from "./app-manifest.repository"
-import { generateClientId, generateClientSecret, hashClientSecret } from "./client-credentials"
+import {
+  generateClientId,
+  generateClientSecret,
+  hashClientSecret,
+  verifyClientSecret,
+} from "./client-credentials"
+
+const INVALID_CLIENT_MESSAGE = "Invalid client credentials"
+let dummyClientSecretHash: Promise<string> | undefined
 
 export type AppInstallPage = {
   app: AppManifestRecord
@@ -55,6 +69,18 @@ export type AuthorizeAppInstallResult = {
   state: string
 }
 
+export type AppAccessTokenResult = {
+  accessToken: string
+  tokenType: "Bearer"
+  expiresIn: number
+}
+
+export type AppPrincipal = {
+  user: NonNullable<Awaited<ReturnType<UsersService["findById"]>>>
+  projectId: string
+  installationId: string
+}
+
 @Injectable()
 export class AppsService {
   constructor(
@@ -65,6 +91,7 @@ export class AppsService {
     private readonly usersService: UsersService,
     private readonly projectRepository: ProjectRepository,
     private readonly transactionService: TransactionService,
+    private readonly appJwtService: AppJwtService,
   ) {}
 
   listAppManifests(): Promise<AppManifestRecord[]> {
@@ -189,6 +216,51 @@ export class AppsService {
     }
   }
 
+  async issueToken(body: unknown): Promise<AppAccessTokenResult> {
+    const parsed = parseClientCredentialsBody(body)
+    const installation = await this.appInstallationRepository.findActiveByClientId(parsed.client_id)
+    const storedHash = installation?.clientSecretHash ?? (await dummySecretHash())
+    const secretMatches = await verifyClientSecret(parsed.client_secret, storedHash)
+    if (
+      !installation ||
+      !installation.serviceUserId ||
+      !installation.clientSecretHash ||
+      !secretMatches
+    ) {
+      throw new UnauthorizedException(INVALID_CLIENT_MESSAGE)
+    }
+
+    const accessToken = this.appJwtService.sign({
+      subject: installation.serviceUserId,
+      projectId: installation.projectId,
+      installationId: installation.id,
+    })
+    return {
+      accessToken,
+      tokenType: "Bearer",
+      expiresIn: this.appJwtService.ttlSeconds,
+    }
+  }
+
+  async resolveAppPrincipal(token: string): Promise<AppPrincipal> {
+    const claims = this.appJwtService.verify(token)
+    const installation = await this.appInstallationRepository.findActiveById(claims.installation_id)
+    if (!installation || installation.projectId !== claims.project_id) {
+      throw new UnauthorizedException(AUTH_ERRORS.INVALID_ACCESS_TOKEN)
+    }
+
+    const user = await this.usersService.findById(claims.sub)
+    if (!user || !isServiceUser(user) || installation.serviceUserId !== user.id) {
+      throw new UnauthorizedException(AUTH_ERRORS.INVALID_ACCESS_TOKEN)
+    }
+
+    return {
+      user,
+      projectId: installation.projectId,
+      installationId: installation.id,
+    }
+  }
+
   private requireLoopbackRedirectUri(raw: string): string {
     try {
       parseLoopbackRedirectUri(raw)
@@ -255,4 +327,21 @@ export class AppsService {
       throw new ConflictException(`An app with slug "${slug}" already exists`)
     }
   }
+}
+
+function parseClientCredentialsBody(body: unknown): {
+  grant_type: "client_credentials"
+  client_id: string
+  client_secret: string
+} {
+  const parsed = appClientCredentialsTokenSchema.safeParse(body)
+  if (!parsed.success) {
+    throw new UnauthorizedException(INVALID_CLIENT_MESSAGE)
+  }
+  return parsed.data
+}
+
+function dummySecretHash(): Promise<string> {
+  dummyClientSecretHash ??= hashClientSecret("timing-safe-dummy")
+  return dummyClientSecretHash
 }

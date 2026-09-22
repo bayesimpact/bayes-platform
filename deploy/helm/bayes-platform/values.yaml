@@ -45,6 +45,8 @@ serviceAccount:
 # Keys read by the API and the workers:
 #   MCP_ENCRYPTION_KEY           64 hex chars, encrypts MCP server credentials at rest
 #   AUTH0_M2M_CLIENT_SECRET      Auth0 machine-to-machine client secret
+#   APPS_JWT_PRIVATE_KEY         RSA private PEM, signs App access tokens (literal \n is accepted)
+#   APPS_JWT_PUBLIC_KEY          RSA public PEM, verifies App access tokens
 #   LANGFUSE_SK                  optional, Langfuse secret key
 #   DIAGNOSTICS_SECRET           optional, protects the diagnostics endpoint
 #   SPIDER_API_KEY               optional, web crawling provider (cpu workers)
