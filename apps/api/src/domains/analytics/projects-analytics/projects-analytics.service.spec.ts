@@ -458,4 +458,92 @@ describe("ProjectsAnalyticsService", () => {
       },
     ])
   })
+
+  it("counts embed sessions in conversations and questions per session", async () => {
+    const day1Start = new Date("2026-04-01T00:00:00.000Z")
+    const day2Start = days(1).after(day1Start)
+    const day1Key = day1Start.toISOString().slice(0, 10)
+    const day2Key = day2Start.toISOString().slice(0, 10)
+
+    const { organization, project, user } = await createOrganizationWithProject(repositories)
+    const agent = agentFactory.transient({ organization, project }).build()
+    const otherAgent = agentFactory.transient({ organization, project }).build()
+    await repositories.agentRepository.save([agent, otherAgent])
+    const agentSettings = agentSettingsFactory.transient({ organization, project, agent }).build()
+    await repositories.agentSettingsRepository.save(agentSettings)
+
+    const conversationSession = conversationAgentSessionFactory
+      .transient({ organization, project, agent, user })
+      .build({ createdAt: hours(1).after(day1Start), updatedAt: new Date() })
+    await repositories.conversationAgentSessionRepository.save(conversationSession)
+
+    const embedConfig = agentEmbedConfigFactory
+      .transient({ organization, project, agent })
+      .build({ isEnabled: true })
+    await repositories.agentEmbedConfigRepository.save(embedConfig)
+    const embedSessionA = publicAgentSessionFactory
+      .transient({ embedConfig })
+      .build({ createdAt: hours(2).after(day1Start), updatedAt: new Date() })
+    const embedSessionB = publicAgentSessionFactory
+      .transient({ embedConfig })
+      .build({ createdAt: hours(3).after(day1Start), updatedAt: new Date() })
+    const embedSessionDay2 = publicAgentSessionFactory
+      .transient({ embedConfig })
+      .build({ createdAt: hours(1).after(day2Start), updatedAt: new Date() })
+    await repositories.publicAgentSessionRepository.save([
+      embedSessionA,
+      embedSessionB,
+      embedSessionDay2,
+    ])
+
+    // Messages of a public session reference it through the same session_id column.
+    const buildUserMessages = (sessionId: string, count: number) =>
+      Array.from({ length: count }, (_unusedValue, messageIndex) => ({
+        ...agentMessageFactory
+          .user()
+          .transient({ organization, project, session: conversationSession, agentSettings })
+          .build({ createdAt: minutes(messageIndex + 1).after(day1Start) }),
+        sessionId,
+      }))
+    await repositories.agentMessageRepository.save([
+      ...buildUserMessages(conversationSession.id, 1),
+      ...buildUserMessages(embedSessionA.id, 2),
+      ...buildUserMessages(embedSessionB.id, 4),
+      {
+        ...agentMessageFactory
+          .assistant()
+          .transient({ organization, project, session: conversationSession, agentSettings })
+          .build(),
+        sessionId: embedSessionA.id,
+      },
+    ])
+
+    const params = {
+      connectScope: { organizationId: organization.id, projectId: project.id, userId: user.id },
+      startAt: day1Start.getTime(),
+      endAt: endOfUtcDay(day2Start).getTime(),
+    }
+
+    const conversations = await service.getConversationsPerDay(params)
+    expect(conversations).toEqual([
+      { date: day1Key, value: 3 },
+      { date: day2Key, value: 1 },
+    ])
+
+    // Weighted over all sessions of the day: (1 + 2 + 4) / 3, not a mean of per-source means.
+    const averages = await service.getAvgUserQuestionsPerSessionPerDay(params)
+    expect(averages).toEqual([
+      { date: day1Key, value: 7 / 3 },
+      { date: day2Key, value: 0 },
+    ])
+
+    const otherAgentConversations = await service.getConversationsPerDay({
+      ...params,
+      agentId: otherAgent.id,
+    })
+    expect(otherAgentConversations).toEqual([
+      { date: day1Key, value: 0 },
+      { date: day2Key, value: 0 },
+    ])
+  })
 })
