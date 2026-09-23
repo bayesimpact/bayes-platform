@@ -13,7 +13,8 @@ name: Publish images
 #
 # Images: ghcr.io/bayesimpact/bayes-platform/<component>:<tag>, public.
 # app = the API plus the web front served under /app (target app-runtime).
-# A release tag also publishes the Helm chart as an OCI artifact:
+# A release tag also publishes the Helm chart as an OCI artifact, chart version
+# = release version without the leading zero of the month (semver):
 # oci://ghcr.io/bayesimpact/charts/bayes-platform.
 
 on:
@@ -270,8 +271,13 @@ jobs:
       - name: Package and push
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
+          # The chart version is the release version without the leading zero
+          # of the month: 26.09.2 -> 26.9.2. CalVer allows the zero, semver
+          # does not, and Helm and Flux read OCI chart tags as strict semver
+          # (a 26.09.2 tag is pushed, then never found). The app version, the
+          # default image tag (see global.image.tag), keeps the release
+          # version as the images carry it.
+          CHART_VERSION="$(sed -E 's/\.0+([0-9])/.\1/g' <<<"$VERSION")"
           helm lint deploy/helm/bayes-platform
-          # The chart keeps its own semver; the app version is the release tag,
-          # and it is the default image tag (see global.image.tag).
-          helm package deploy/helm/bayes-platform --app-version "$VERSION" --destination dist
-          helm push dist/bayes-platform-*.tgz "oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts"
+          helm package deploy/helm/bayes-platform --version "$CHART_VERSION" --app-version "$VERSION" --destination dist
+          helm push "dist/bayes-platform-${CHART_VERSION}.tgz" "oci://${{ env.REGISTRY }}/${{ github.repository_owner }}/charts"
