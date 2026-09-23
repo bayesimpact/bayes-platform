@@ -12,6 +12,7 @@ export type AppsInstallIO = {
   writeError: (text: string) => void
   state?: string
   timeoutMs?: number
+  color?: boolean
 }
 
 export function parseFrontendOrigin(raw: string): string {
@@ -52,20 +53,23 @@ export async function runAppsInstall(io: AppsInstallIO): Promise<number> {
   const outcome = await waitForCallback({
     state,
     timeoutMs: io.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+    slug: slug.data,
     onListening: (redirectUri) => {
       parseLoopbackRedirectUri(redirectUri)
       const installUrl = new URL(`/apps/install/${slug.data}`, frontendOrigin)
       installUrl.searchParams.set("redirect_uri", redirectUri)
       installUrl.searchParams.set("state", state)
-      io.write(`Opening ${installUrl.toString()}\n`)
+      io.write(
+        `${emphasis(`Approve ${slug.data} in your browser.`, io.color)}\nThis command waits here until you do.\n\n${muted(installUrl.toString(), io.color)}\n`,
+      )
       io.openUrl(installUrl.toString())
     },
   })
 
   if (outcome.kind === "authorized") {
-    io.write(`client_id: ${outcome.clientId}\n`)
-    io.write(`client_secret: ${outcome.clientSecret}\n`)
-    io.write("\nSave the client secret now. It cannot be retrieved later.\n")
+    io.write(
+      `\n${emphasis(`${slug.data} is installed.`, io.color)}\n\n${emphasis("Client id", io.color)}\n${outcome.clientId}\n\n${emphasis("Client secret", io.color)}\n${outcome.clientSecret}\n\nSave the client secret now. It cannot be retrieved later.\n`,
+    )
     return 0
   }
 
@@ -85,6 +89,71 @@ export async function runAppsInstall(io: AppsInstallIO): Promise<number> {
   return 1
 }
 
+function emphasis(text: string, color: boolean | undefined): string {
+  if (!color) return text
+  return `\u001b[1m${text}\u001b[0m`
+}
+
+function muted(text: string, color: boolean | undefined): string {
+  if (!color) return text
+  return `\u001b[2m${text}\u001b[0m`
+}
+
+function renderCallbackPage(slug: string, outcome: CallbackOutcome["kind"]): string {
+  const copy =
+    outcome === "authorized"
+      ? {
+          title: `${slug} is installed`,
+          detail:
+            "The client id and client secret are in your terminal. Save the secret now. It cannot be retrieved later.",
+        }
+      : outcome === "denied"
+        ? {
+            title: "Authorization cancelled",
+            detail: "Nothing was saved. You can close this tab.",
+          }
+        : {
+            title: "Authorization failed",
+            detail: "Return to your terminal for what went wrong.",
+          }
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${escapeHtml(copy.title)}</title>
+<style>
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; background: #f4f4f6; color: #111118; font: 16px/1.5 Inter, system-ui, sans-serif; }
+  .card { width: 100%; max-width: 440px; box-sizing: border-box; background: #fff; border: 1px solid #e4e4e7; border-radius: 12px; padding: 24px; box-shadow: 0 1px 2px rgb(0 0 0 / 0.05); }
+  .mark { width: 40px; height: 40px; display: grid; grid-template-columns: 1fr 1fr; border-radius: 10px; overflow: hidden; border: 1px solid #e4e4e7; margin-bottom: 16px; }
+  .mark span:nth-child(1) { background: #1e1154; }
+  .mark span:nth-child(2) { background: #7c3aed; }
+  .mark span:nth-child(3) { background: #a855f7; }
+  .mark span:nth-child(4) { background: #c084fc; }
+  h1 { font-size: 18px; line-height: 1.35; margin: 0 0 8px; }
+  p { margin: 0; color: #71717a; font-size: 14px; }
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    <h1>${escapeHtml(copy.title)}</h1>
+    <p>${escapeHtml(copy.detail)}</p>
+  </main>
+  <script>history.replaceState(null, "", "/callback")</script>
+</body>
+</html>`
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+}
+
 type CallbackOutcome =
   | { kind: "authorized"; clientId: string; clientSecret: string }
   | { kind: "denied" }
@@ -93,6 +162,7 @@ type CallbackOutcome =
   | { kind: "timeout" }
 
 async function waitForCallback(params: {
+  slug: string
   state: string
   timeoutMs: number
   onListening: (redirectUri: string) => void
@@ -125,15 +195,9 @@ async function waitForCallback(params: {
     }
 
     const outcome = readCallback(requestUrl, params.state)
-    const body =
-      outcome.kind === "authorized"
-        ? "Authorization complete. Return to your terminal."
-        : outcome.kind === "denied"
-          ? "Authorization cancelled. Return to your terminal."
-          : "Authorization failed. Return to your terminal."
     const status = outcome.kind === "mismatch" || outcome.kind === "invalid" ? 400 : 200
     response.writeHead(status, { "content-type": "text/html; charset=utf-8" })
-    response.end(`<!doctype html><title>Bayes</title><p>${body}</p>`, () => settle(outcome))
+    response.end(renderCallbackPage(params.slug, outcome.kind), () => settle(outcome))
   }
 
   const servers = await listenOnLoopback(handler)

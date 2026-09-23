@@ -6,6 +6,7 @@ const frontendOrigin = "https://connect.localhost:5173"
 describe("runAppsInstall", () => {
   it("opens a loopback install URL and prints the credentials once", async () => {
     const lines: string[] = []
+    let page = Promise.resolve("")
     const exitCode = await runAppsInstall({
       slug: "sitecrawler",
       frontendOrigin,
@@ -21,17 +22,26 @@ describe("runAppsInstall", () => {
         callback.searchParams.set("client_id", "client-1")
         callback.searchParams.set("client_secret", "secret-1")
         callback.searchParams.set("state", installUrl.searchParams.get("state") ?? "")
-        void fetch(callback)
+        page = fetch(callback).then((response) => response.text())
       },
     })
 
     expect(exitCode).toBe(0)
+    expect(lines[0]).toContain("Approve sitecrawler")
     expect(lines[0]).toContain("/apps/install/sitecrawler?")
     expect(lines[0]).toContain("redirect_uri=http%3A%2F%2Flocalhost%3A")
     expect(lines[0]).toContain("state=session-state")
-    expect(lines.join("")).toContain("client_id: client-1")
-    expect(lines.join("")).toContain("client_secret: secret-1")
-    expect(lines.join("")).toContain("cannot be retrieved later")
+    const printed = lines.join("")
+    expect(printed).toContain("sitecrawler is installed")
+    expect(printed).toContain("Client id")
+    expect(printed).toContain("client-1")
+    expect(printed).toContain("Client secret")
+    expect(printed).toContain("secret-1")
+    expect(printed).toContain("cannot be retrieved later")
+    const html = await page
+    expect(html).toContain("sitecrawler is installed")
+    expect(html).toContain("in your terminal")
+    expect(html).not.toContain("secret-1")
   })
 
   it("rejects a mismatched state and does not print the secret", async () => {

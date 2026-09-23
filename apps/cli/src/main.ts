@@ -18,6 +18,7 @@ async function main(): Promise<void> {
   process.exitCode = await runAppsInstall({
     slug: parsed.slug,
     frontendOrigin: parsed.frontendOrigin,
+    color: process.stdout.isTTY === true,
     openUrl: openBrowser,
     write: (text) => process.stdout.write(text),
     writeError: (text) => process.stderr.write(text),
