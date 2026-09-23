@@ -12,7 +12,6 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Kubernetes: a Helm chart installs the platform anywhere, with bundled Postgres and Redis.
 - (beta) MCP servers: connect servers that use OAuth by authorizing access in the browser, alongside API keys.
 - (beta) Orchestration: a sub-agent can take the conversation over, then hand back what it collected.
-- (beta) Apps: superadmins register apps in the back-office, and staff install them on a project with scoped credentials.
 
 ### Changed
 - Session titles and categories are now computed after each reply, reliably on every model.
