@@ -1,5 +1,6 @@
 export const AUTH_ERRORS = {
   NO_ACCESS_TOKEN: "No access token provided",
+  INVALID_ACCESS_TOKEN: "Invalid access token",
   NO_ORGANIZATION_ID: "Organization ID is required",
   NO_PROJECT_ID: "Project ID is required",
   NOT_MEMBER_OF_ORG: "Not a member of organization",

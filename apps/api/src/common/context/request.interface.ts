@@ -33,6 +33,9 @@ export interface JwtPayload {
 export interface EndpointRequest {
   jwtPayload: JwtPayload
   user: User
+  headers?: { authorization?: string }
+  appInstallationId?: string
+  appProjectId?: string
 }
 
 export interface EndpointRequestWithOrganizationId extends EndpointRequest {

@@ -72,6 +72,8 @@ kubectl create namespace platform
 kubectl -n platform create secret generic platform-secrets \
   --from-literal=MCP_ENCRYPTION_KEY=$(openssl rand -hex 32) \
   --from-literal=AUTH0_M2M_CLIENT_SECRET=... \
+  --from-file=APPS_JWT_PRIVATE_KEY=./apps-jwt-private.pem \
+  --from-file=APPS_JWT_PUBLIC_KEY=./apps-jwt-public.pem \
   --from-literal=LANGFUSE_SK=... \
   --from-literal=VLLM_MYMODEL_URL=https://... \
   --from-literal=VLLM_MYMODEL_APIKEY=...

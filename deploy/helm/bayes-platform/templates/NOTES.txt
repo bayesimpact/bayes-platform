@@ -19,6 +19,7 @@ Pods:
 {{- if not (or .Values.secrets.existingSecret .Values.secrets.create) }}
 
 WARNING: no application Secret is configured (secrets.existingSecret is empty and
-secrets.create is false). The API needs at least MCP_ENCRYPTION_KEY and
-AUTH0_M2M_CLIENT_SECRET. See values.yaml, section "Secrets".
+secrets.create is false). The API needs at least MCP_ENCRYPTION_KEY,
+AUTH0_M2M_CLIENT_SECRET, APPS_JWT_PRIVATE_KEY and APPS_JWT_PUBLIC_KEY.
+See values.yaml, section "Secrets".
 {{- end }}

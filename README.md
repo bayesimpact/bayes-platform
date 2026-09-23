@@ -116,6 +116,7 @@ AUTH0_M2M_CLIENT_SECRET=XXX
 - `AUTH0_CLIENT_ID` - Auth0 web SPA application client ID (used in invitation links)
 - `AUTH0_M2M_CLIENT_ID` - Auth0 M2M application client ID (for Management API)
 - `AUTH0_M2M_CLIENT_SECRET` - Auth0 M2M application client secret
+- `APPS_JWT_PRIVATE_KEY` / `APPS_JWT_PUBLIC_KEY` - RS256 PEM pair used to sign App access tokens (literal `\n` is accepted)
 
 **Optional variables:**
 - `GOOGLE_APPLICATION_CREDENTIALS` - Path to Google Cloud service account key (for AI features)

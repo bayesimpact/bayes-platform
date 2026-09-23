@@ -27,6 +27,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) PDF export: more reliable on large documents, download card in the agent's language, files kept as long as the link works.
 
 ### Security
+- (beta) Installed apps exchange their secret for a short-lived token that cannot open the studio.
 - MCP servers can no longer be enabled or disabled on an agent that belongs to another project.
 - Security updates of dependencies and base images across all services.
 

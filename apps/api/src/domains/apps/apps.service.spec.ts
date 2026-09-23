@@ -1,5 +1,10 @@
 import { randomUUID } from "node:crypto"
-import { ConflictException, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
+import {
+  ConflictException,
+  NotFoundException,
+  UnauthorizedException,
+  UnprocessableEntityException,
+} from "@nestjs/common"
 import {
   clearTestDatabase,
   setupE2eTestDatabase,
@@ -21,6 +26,7 @@ import {
 } from "./app-installation.entity"
 import { appInstallationFactory } from "./app-installation.factory"
 import { AppInstallationRepository } from "./app-installation.repository"
+import { AppJwtService } from "./app-jwt.service"
 import { AppManifestRepository } from "./app-manifest.repository"
 import { AppsService } from "./apps.service"
 
@@ -37,6 +43,7 @@ describe("AppsService", () => {
         ProjectRepository,
         UsersService,
         UserRepository,
+        AppJwtService,
       ],
       additionalImports: [RbacModule, MembershipsModule],
     })
@@ -218,5 +225,71 @@ describe("AppsService", () => {
         state: "csrf-state",
       }),
     ).rejects.toBeInstanceOf(ConflictException)
+  })
+
+  it("issues an App JWT for valid client credentials and rejects a bad secret", async () => {
+    const repositories = setup.getAllRepositories()
+    const { project, user } = await createOrganizationWithProject(repositories)
+    await assignPlatformStaffToUser({ repositories, user })
+    const created = await service.createAppManifest(createPayload)
+    const authorized = await service.authorizeInstall({
+      slug: created.slug,
+      userId: user.id,
+      projectId: project.id,
+      permissions: [DOCUMENT_READ_PERMISSION],
+      redirectUri: "http://127.0.0.1:8787/callback",
+      state: "csrf-state",
+    })
+
+    const token = await service.issueToken({
+      grant_type: "client_credentials",
+      client_id: authorized.clientId,
+      client_secret: authorized.clientSecret,
+    })
+    expect(token.tokenType).toBe("Bearer")
+    expect(token.expiresIn).toBe(3600)
+    expect(token.accessToken.split(".")).toHaveLength(3)
+
+    const principal = await service.resolveAppPrincipal(token.accessToken)
+    expect(principal.projectId).toBe(project.id)
+    expect(principal.user.type).toBe(USER_TYPE_SERVICE)
+
+    await expect(
+      service.issueToken({
+        grant_type: "client_credentials",
+        client_id: authorized.clientId,
+        client_secret: "wrong-secret",
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException)
+
+    await expect(
+      service.issueToken({
+        grant_type: "password",
+        client_id: authorized.clientId,
+        client_secret: authorized.clientSecret,
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException)
+
+    await expect(
+      service.issueToken({
+        grant_type: "client_credentials",
+        client_id: randomUUID(),
+        client_secret: authorized.clientSecret,
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException)
+
+    const stored = await repositories.appInstallationRepository.findOneByOrFail({
+      clientId: authorized.clientId,
+    })
+    stored.status = APP_INSTALLATION_STATUS_REVOKED
+    stored.revokedAt = new Date()
+    await repositories.appInstallationRepository.save(stored)
+    await expect(
+      service.issueToken({
+        grant_type: "client_credentials",
+        client_id: authorized.clientId,
+        client_secret: authorized.clientSecret,
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException)
   })
 })
