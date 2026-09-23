@@ -1,5 +1,11 @@
 import { randomUUID } from "node:crypto"
-import { AppsRoutes, AppsV1Routes, DOCUMENT_READ_PERMISSION } from "@caseai-connect/api-contracts"
+import {
+  AgentsRoutes,
+  AppsRoutes,
+  AppsV1Routes,
+  DOCUMENT_READ_PERMISSION,
+  DocumentsRoutes,
+} from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import request from "supertest"
 import type { App } from "supertest/types"
@@ -9,6 +15,7 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersService } from "@/domains/users/users.service"
@@ -25,6 +32,7 @@ describe("Apps - JWT isolation", () => {
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [AppsModule, RbacModule],
+      applyOverrides: withDocumentEmbeddingsBatchServiceMock,
     })
     await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
@@ -69,7 +77,12 @@ describe("Apps - JWT isolation", () => {
       client_id: authorized.clientId,
       client_secret: authorized.clientSecret,
     })
-    return { slug: created.slug, accessToken: token.accessToken, projectId: project.id }
+    return {
+      slug: created.slug,
+      accessToken: token.accessToken,
+      projectId: project.id,
+      organizationId: project.organizationId,
+    }
   }
 
   it("accepts an App JWT on /apps/v1/me without calling UserGuard.findOrCreate", async () => {
@@ -116,5 +129,32 @@ describe("Apps - JWT isolation", () => {
     expect(installPage.status).toBe(401)
     expect(installPage.status).not.toBe(403)
     expect(findOrCreate).not.toHaveBeenCalled()
+  })
+
+  it("rejects an App JWT on studio document and agent routes with 401, not 403", async () => {
+    const { accessToken, projectId, organizationId } = await installAndIssueToken()
+
+    const documents = await request(app.getHttpServer())
+      .get(
+        DocumentsRoutes.getAll.getPath({
+          organizationId,
+          projectId,
+          sourceType: "project",
+        }),
+      )
+      .set("Connection", "close")
+      .set("Authorization", `Bearer ${accessToken}`)
+
+    expect(documents.status).toBe(401)
+    expect(documents.status).not.toBe(403)
+
+    const agents = await request(app.getHttpServer())
+      .post(AgentsRoutes.createOne.getPath({ organizationId, projectId }))
+      .set("Connection", "close")
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ payload: { name: "Helpful Assistant" } })
+
+    expect(agents.status).toBe(401)
+    expect(agents.status).not.toBe(403)
   })
 })

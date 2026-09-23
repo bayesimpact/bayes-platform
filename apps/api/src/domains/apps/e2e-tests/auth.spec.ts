@@ -9,6 +9,7 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
 import { createOrganizationWithOwner } from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { mockAuth0EmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
@@ -32,7 +33,11 @@ describe("Apps - Auth", () => {
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [AppsModule, RbacModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) =>
+        setupUserGuardForTesting(
+          withDocumentEmbeddingsBatchServiceMock(moduleBuilder),
+          () => auth0Id,
+        ),
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()

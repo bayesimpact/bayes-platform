@@ -11,6 +11,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { APP_INSTALLATION_STATUS_REVOKED } from "@/domains/apps/app-installation.entity"
+import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { assignPlatformStaffToUser, ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
@@ -26,6 +27,7 @@ describe("Apps - Token", () => {
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [AppsModule, RbacModule],
+      applyOverrides: withDocumentEmbeddingsBatchServiceMock,
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()

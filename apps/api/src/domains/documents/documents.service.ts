@@ -1,9 +1,15 @@
+import { randomUUID } from "node:crypto"
+import { Readable } from "node:stream"
+import { MimeTypes } from "@caseai-connect/api-contracts"
 import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository, UpdateResult } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+import type { MulterFile } from "@/common/types"
 import { Document } from "./document.entity"
+import type { DocumentEmbeddingsBatchService } from "./embeddings/document-embeddings-batch.interface"
+import { DOCUMENT_EMBEDDINGS_BATCH_SERVICE } from "./embeddings/document-embeddings-batch.interface"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PdfPagesService } from "./pdf-pages/pdf-pages.service"
 import { FILE_STORAGE_SERVICE, type IFileStorage } from "./storage/file-storage.interface"
@@ -20,6 +26,8 @@ export class DocumentsService {
     private readonly documentTagsService: DocumentTagsService,
     @Inject(FILE_STORAGE_SERVICE) private readonly fileStorageService: IFileStorage,
     private readonly pdfPagesService: PdfPagesService,
+    @Inject(DOCUMENT_EMBEDDINGS_BATCH_SERVICE)
+    private readonly documentEmbeddingsBatchService: DocumentEmbeddingsBatchService,
   ) {
     this.documentConnectRepository = new ConnectRepository(documentRepository, "documents")
   }
@@ -306,6 +314,50 @@ export class DocumentsService {
     return true
   }
 
+  async createInlineProjectDocument(params: {
+    connectScope: RequiredConnectScope
+    userId: string
+    title: string
+    content: string
+    sourceUrl?: string | null
+  }): Promise<Document> {
+    const buffer = Buffer.from(params.content, "utf8")
+    const { fileId, storageRelativePath } = await this.fileStorageService.save({
+      extension: "txt",
+      connectScope: params.connectScope,
+      file: inlineTextFile(params.title, buffer),
+    })
+    const document = await this.createDocument({
+      connectScope: params.connectScope,
+      documentId: fileId,
+      userId: params.userId,
+      uploadStatus: "uploaded",
+      fields: {
+        title: params.title,
+        content: params.content,
+        fileName: `${fileId}.txt`,
+        mimeType: MimeTypes.txt,
+        size: buffer.length,
+        storageRelativePath,
+        sourceType: "project",
+        sourceUrl: params.sourceUrl ?? null,
+      },
+    })
+    const embeddingPatch =
+      await this.documentEmbeddingsBatchService.enqueueCreateEmbeddingsForDocument({
+        documentId: document.id,
+        organizationId: params.connectScope.organizationId,
+        projectId: params.connectScope.projectId,
+        uploadedByUserId: params.userId,
+        origin: "document-upload",
+        currentTraceId: randomUUID(),
+      })
+    document.embeddingStatus = embeddingPatch.embeddingStatus
+    document.embeddingError = embeddingPatch.embeddingError
+    document.updatedAt = embeddingPatch.updatedAt
+    return document
+  }
+
   /** Removes the source object and every rendered page image of a document from storage. */
   private async deleteStoredFiles(document: Document): Promise<void> {
     // Crawled documents have no stored file: their content lives in the row only.
@@ -324,5 +376,20 @@ export class DocumentsService {
         `Could not delete stored files of document ${document.id} (${document.storageRelativePath}): ${(error as Error).message}`,
       )
     }
+  }
+}
+
+function inlineTextFile(title: string, buffer: Buffer): MulterFile {
+  return {
+    fieldname: "file",
+    originalname: `${title}.txt`,
+    encoding: "7bit",
+    mimetype: MimeTypes.txt,
+    size: buffer.length,
+    buffer,
+    stream: Readable.from(buffer),
+    destination: "",
+    filename: "",
+    path: "",
   }
 }
