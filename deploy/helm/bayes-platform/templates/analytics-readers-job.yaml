@@ -1,0 +1,56 @@
+{{- if .Values.analyticsReaders.roles }}
+# Grants the analytics schema to the database roles of analyticsReaders.roles,
+# after the migrations, on every install and upgrade: membership of
+# analytics_reader and a statement timeout. Idempotent. Grant only: a role
+# removed from the list keeps its membership. The roles exist already: they
+# are the logins of a dashboard tool, created by the operator.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "bayes-platform.componentName" (dict "root" . "component" "analytics-readers") }}
+  labels:
+    {{- include "bayes-platform.labels" . | nindent 4 }}
+    app.kubernetes.io/component: analytics-readers
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "10"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "bayes-platform.selectorLabels" (dict "root" . "component" "analytics-readers") | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "bayes-platform.serviceAccountName" . }}
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      initContainers:
+        {{- include "bayes-platform.waitForDatabase" . | nindent 8 }}
+      containers:
+        - name: analytics-readers
+          image: {{ include "bayes-platform.image" (dict "root" . "image" .Values.api.image) }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          workingDir: /app/apps/api
+          command:
+            - node
+            - /app/apps/api/dist/scripts/analytics-readers.js
+            {{- range .Values.analyticsReaders.roles }}
+            - --role
+            - {{ . | quote }}
+            {{- end }}
+            - --statement-timeout
+            - {{ .Values.analyticsReaders.statementTimeout | quote }}
+          env:
+            {{- include "bayes-platform.sharedEnv" . | nindent 12 }}
+          envFrom:
+            {{- include "bayes-platform.sharedEnvFrom" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.migrations.resources | nindent 12 }}
+{{- end }}

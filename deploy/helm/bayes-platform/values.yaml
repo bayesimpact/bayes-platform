@@ -371,6 +371,30 @@ migrations:
       memory: 2Gi
 
 # ---------------------------------------------------------------------------
+# Analytics readers: database roles granted the read-only `analytics` schema
+# (docs/analytics-schema.md) by a Job after the migrations, on every install
+# and upgrade: membership of analytics_reader and a statement timeout. The
+# roles are created by the operator (the login of a dashboard tool), not by
+# the chart. Grant only: a role removed from the list keeps its membership.
+# ---------------------------------------------------------------------------
+analyticsReaders:
+  roles: []
+  #  - grafana_ro
+  statementTimeout: 30s
+
+# ---------------------------------------------------------------------------
+# Grafana dashboards: the JSON files of dashboards/ as ConfigMaps for the
+# sidecar of a Grafana running in the cluster. They query the `analytics`
+# schema (docs/analytics-schema.md) through a datasource named `analytics`.
+# Off by default: the chart does not install Grafana.
+# ---------------------------------------------------------------------------
+grafanaDashboards:
+  enabled: false
+  label: grafana_dashboard
+  folderAnnotation: grafana_folder
+  folder: Platform
+
+# ---------------------------------------------------------------------------
 # Ingress
 # ---------------------------------------------------------------------------
 ingress:
