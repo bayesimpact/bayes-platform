@@ -123,7 +123,7 @@ ingress:
   tls: true
 ```
 
-Point the three DNS names (`api`, `webEmbed`, `help`) at the ingress controller. In Auth0, add the `web` URL to the allowed callback, logout and web origins of the SPA application.
+Point the three DNS names (`api`, `webEmbed`, `help`) at the ingress controller. `/api/healthz` is not reachable through it (403): the probes call the pod directly, and the endpoint queries the database on every call. Set `ingress.healthzAllowFrom` to the ranges of an uptime checker that must call it. In Auth0, add the `web` URL to the allowed callback, logout and web origins of the SPA application.
 
 The database migrations run as a Job after the first install and before every upgrade. To read its output:
 

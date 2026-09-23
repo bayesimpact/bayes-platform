@@ -378,6 +378,11 @@ ingress:
   # For cert-manager, set clusterIssuer and tls: true.
   clusterIssuer: ""
   tls: false
+  # Who may call /api/healthz through the ingress (comma-separated CIDRs). The
+  # kubelet probes reach the pod directly and never need this. The default
+  # lets nobody in: the endpoint queries the database on every call. Put an
+  # uptime checker's ranges here if it must call it.
+  healthzAllowFrom: 127.0.0.1/32
   # Uploads and long LLM answers: raise the nginx limits on the API host.
   apiAnnotations:
     nginx.ingress.kubernetes.io/proxy-body-size: 100m
