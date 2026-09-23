@@ -1,0 +1,20 @@
+# The analytics schema of the local database, read with the dashboard role
+# (`make analytics-dev-role` creates it). Same wiring as staging and production:
+# Grafana never reads the tables, only analytics.* through analytics_reader.
+apiVersion: 1
+datasources:
+  - name: analytics
+    uid: analytics
+    type: grafana-postgresql-datasource
+    access: proxy
+    url: pgvector:5432
+    user: grafana_ro
+    secureJsonData:
+      password: passpass
+    jsonData:
+      database: connect
+      sslmode: disable
+      postgresVersion: 1700
+      timescaledb: false
+    isDefault: true
+    editable: false

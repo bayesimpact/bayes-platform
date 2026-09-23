@@ -55,6 +55,22 @@ This will:
 - Main Database: `caseai_connect`
 - Test Database: `caseai_connect_test`
 
+#### Grafana on the analytics schema (optional)
+
+The compose stack also has a Grafana at [http://localhost:3300](http://localhost:3300)
+(no login) with the `Platform activity` dashboard on the `analytics` schema:
+activity per workspace, never a user or a conversation (see
+[docs/analytics-schema.md](docs/analytics-schema.md)). The datasource is
+provisioned from `infra/database/grafana`, the dashboards are the JSON files of
+`deploy/helm/bayes-platform/dashboards`, the same the chart ships to the cluster;
+a change made in the UI is lost at the next start, export the JSON and commit it.
+
+```bash
+cd infra/database
+docker compose up -d --no-recreate grafana   # --no-recreate keeps the running database untouched
+cd ../.. && make analytics-dev-role          # once, after the migrations: the read-only role Grafana uses
+```
+
 #### Stop the Database
 
 ```bash
@@ -229,6 +245,14 @@ npm run migration:run
 ```
 
 This will apply all pending migrations to the `caseai_connect` database.
+
+The analytics migration creates a database role, which needs `CREATEROLE` on the
+migration user. New stacks have it (`infra/database/sql/common.sql`); on a stack
+started before, grant it once:
+
+```bash
+docker exec connect-db-pgvector-1 psql -U admin -d connect -c "ALTER ROLE connect_admin CREATEROLE;"
+```
 
 **Migration Commands:**
 

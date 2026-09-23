@@ -1,0 +1,12 @@
+# Dashboards as code: the JSON files of deploy/helm/bayes-platform/dashboards,
+# shipped to the cluster by the chart. A change in Grafana's UI is lost at the
+# next start; export the JSON and commit it instead.
+apiVersion: 1
+providers:
+  - name: platform
+    folder: Platform
+    type: file
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false
