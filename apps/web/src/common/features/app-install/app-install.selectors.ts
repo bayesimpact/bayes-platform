@@ -6,5 +6,8 @@ export const selectAppInstallSlug = (state: RootState) => state.appInstall.slug
 export const selectAppInstallRedirectUri = (state: RootState) => state.appInstall.redirectUri
 export const selectAppInstallCallbackState = (state: RootState) => state.appInstall.callbackState
 
+export const selectProjectInstallations = (state: RootState) =>
+  state.appInstall.projectInstallations
+
 export const selectAppInstallHasValidLoopback = (state: RootState): boolean =>
   isLoopbackRedirectUri(state.appInstall.redirectUri) && state.appInstall.callbackState.length > 0

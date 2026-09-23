@@ -9,7 +9,7 @@
     "authorizing": "Authorizing…",
     "authorized": "✓ Authorized — return to your terminal",
     "cancel": "Cancel and return to the terminal",
-    "revocability": "Access can be revoked at any time from the workspace's <settings>Apps & integrations</settings> settings. {{name}} will only be able to reach the workspace you selected above.",
+    "revocability": "Access can be revoked at any time from this project's page in the <settings>backoffice</settings>. {{name}} will only be able to reach the workspace you selected above.",
     "invalidRedirect": "This install link needs a loopback redirect_uri (localhost or 127.0.0.1) and a state.",
     "missingSlug": "Missing app slug.",
     "copy": {

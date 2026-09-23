@@ -95,6 +95,15 @@ export type AppInstallPageDto = {
   projects: AppInstallProjectDto[]
 }
 
+export type AppInstallationSummaryDto = {
+  id: string
+  appName: string
+  description: string | null
+  logoUrl: string | null
+  permissions: string[]
+  createdAt: TimeType
+}
+
 export const authorizeAppInstallSchema = z
   .object({
     projectId: z.string().uuid(),

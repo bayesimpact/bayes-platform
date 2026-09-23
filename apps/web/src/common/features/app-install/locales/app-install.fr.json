@@ -9,7 +9,7 @@
     "authorizing": "Autorisation…",
     "authorized": "✓ Autorisé — retournez dans le terminal",
     "cancel": "Annuler et revenir au terminal",
-    "revocability": "L'accès peut être révoqué à tout moment depuis les paramètres <settings>Apps & integrations</settings> de l'espace de travail. {{name}} ne pourra atteindre que l'espace sélectionné ci-dessus.",
+    "revocability": "L'accès peut être révoqué à tout moment depuis la page de ce projet dans le <settings>backoffice</settings>. {{name}} ne pourra atteindre que l'espace sélectionné ci-dessus.",
     "invalidRedirect": "Ce lien d'installation nécessite une redirect_uri loopback (localhost ou 127.0.0.1) et un state.",
     "missingSlug": "Slug d'app manquant.",
     "copy": {

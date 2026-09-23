@@ -1,9 +1,20 @@
 import {
+  type AppInstallationSummaryDto,
   type AppInstallPageDto,
   AppsRoutes,
   authorizeAppInstallSchema,
 } from "@caseai-connect/api-contracts"
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from "@nestjs/common"
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
@@ -11,6 +22,7 @@ import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import { APP_INSTALL_PERMISSION } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
+import type { ActiveAppInstallationSummary } from "./app-installation.repository"
 import type { AppInstallPage } from "./apps.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AppsService } from "./apps.service"
@@ -47,6 +59,42 @@ export class AppsInstallController {
       state: body.payload.state,
     })
     return { data: result }
+  }
+
+  @CheckPermission(APP_INSTALL_PERMISSION)
+  @Get(AppsRoutes.listForProject.path)
+  async listForProject(
+    @Param("projectId") projectId: string,
+  ): Promise<typeof AppsRoutes.listForProject.response> {
+    const installations = await this.appsService.listActiveInstallations(projectId)
+    return { data: installations.map(toAppInstallationSummaryDto) }
+  }
+
+  @CheckPermission(APP_INSTALL_PERMISSION)
+  @Post(AppsRoutes.revoke.path)
+  @HttpCode(HttpStatus.OK)
+  async revoke(
+    @Req() request: EndpointRequest,
+    @Param("id") installationId: string,
+  ): Promise<typeof AppsRoutes.revoke.response> {
+    await this.appsService.revokeInstallation({
+      installationId,
+      userId: request.user.id,
+    })
+    return { data: { success: true } }
+  }
+}
+
+function toAppInstallationSummaryDto(
+  installation: ActiveAppInstallationSummary,
+): AppInstallationSummaryDto {
+  return {
+    id: installation.id,
+    appName: installation.appName,
+    description: installation.description,
+    logoUrl: installation.logoUrl,
+    permissions: installation.permissions,
+    createdAt: installation.createdAt.getTime(),
   }
 }
 

@@ -10,6 +10,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
   UnprocessableEntityException,
@@ -31,8 +32,13 @@ import { isServiceUser } from "@/domains/users/service-user.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UsersService } from "@/domains/users/users.service"
 import { buildAppInstallRoleKey } from "./app-install-role"
+import { APP_INSTALLATION_STATUS_REVOKED } from "./app-installation.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { AppInstallationRepository } from "./app-installation.repository"
+import {
+  type ActiveAppInstallationSummary,
+  AppInstallationRepository,
+  type ListedAppInstallation,
+} from "./app-installation.repository"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AppJwtService } from "./app-jwt.service"
 import type {
@@ -83,6 +89,8 @@ export type AppPrincipal = {
 
 @Injectable()
 export class AppsService {
+  private readonly logger = new Logger(AppsService.name)
+
   constructor(
     private readonly appManifestRepository: AppManifestRepository,
     private readonly appInstallationRepository: AppInstallationRepository,
@@ -216,6 +224,42 @@ export class AppsService {
     }
   }
 
+  async listActiveInstallations(projectId: string): Promise<ActiveAppInstallationSummary[]> {
+    const [project] = await this.projectRepository.findPickerProjectsByIds([projectId])
+    if (!project) throw new NotFoundException(`Project ${projectId} not found`)
+    const installations = await this.appInstallationRepository.listActiveByProjectId(project.id)
+    const permissionsByRoleId = await this.roleRepository.listPermissionKeysByRoleIds(
+      installations.flatMap((installation) =>
+        installation.customRoleId ? [installation.customRoleId] : [],
+      ),
+    )
+    return installations.map((installation) =>
+      toActiveInstallationSummary(installation, permissionsByRoleId),
+    )
+  }
+
+  async revokeInstallation(params: { installationId: string; userId: string }): Promise<void> {
+    const installation = await this.appInstallationRepository.findById(params.installationId)
+    if (!installation) {
+      throw new NotFoundException(`App installation ${params.installationId} not found`)
+    }
+
+    const [project] = await this.projectRepository.findPickerProjectsByIds([installation.projectId])
+    if (!project) {
+      throw new NotFoundException(`Project ${installation.projectId} not found`)
+    }
+
+    if (installation.status === APP_INSTALLATION_STATUS_REVOKED) return
+
+    const revokedAt = new Date()
+    const revoked = await this.appInstallationRepository.markRevoked(installation.id, revokedAt)
+    if (!revoked) return
+
+    this.logger.log(
+      `Revoked app installation ${installation.id} on project ${project.id} by user ${params.userId}`,
+    )
+  }
+
   async issueToken(body: unknown): Promise<AppAccessTokenResult> {
     const parsed = parseClientCredentialsBody(body)
     const installation = await this.appInstallationRepository.findActiveByClientId(parsed.client_id)
@@ -244,7 +288,8 @@ export class AppsService {
 
   async resolveAppPrincipal(token: string): Promise<AppPrincipal> {
     const claims = this.appJwtService.verify(token)
-    const installation = await this.appInstallationRepository.findActiveById(claims.installation_id)
+    // Revocation stops new tokens only. An issued JWT stays valid until exp.
+    const installation = await this.appInstallationRepository.findById(claims.installation_id)
     if (!installation || installation.projectId !== claims.project_id) {
       throw new UnauthorizedException(AUTH_ERRORS.INVALID_ACCESS_TOKEN)
     }
@@ -344,4 +389,20 @@ function parseClientCredentialsBody(body: unknown): {
 function dummySecretHash(): Promise<string> {
   dummyClientSecretHash ??= hashClientSecret("timing-safe-dummy")
   return dummyClientSecretHash
+}
+
+function toActiveInstallationSummary(
+  installation: ListedAppInstallation,
+  permissionsByRoleId: Map<string, string[]>,
+): ActiveAppInstallationSummary {
+  return {
+    id: installation.id,
+    appName: installation.appName,
+    description: installation.description,
+    logoUrl: installation.logoUrl,
+    permissions: installation.customRoleId
+      ? (permissionsByRoleId.get(installation.customRoleId) ?? [])
+      : [],
+    createdAt: installation.createdAt,
+  }
 }
