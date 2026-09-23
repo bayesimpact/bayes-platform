@@ -37,16 +37,14 @@ export function parseFrontendOrigin(raw: string): string {
 export async function runAppsInstall(io: AppsInstallIO): Promise<number> {
   const slug = appManifestSlugSchema.safeParse(io.slug)
   if (!slug.success) {
-    io.writeError("Slug must be lowercase kebab-case.\n")
-    return 1
+    return fail(io, "Slug must be lowercase kebab-case.")
   }
 
   let frontendOrigin: string
   try {
     frontendOrigin = parseFrontendOrigin(io.frontendOrigin)
   } catch (error) {
-    io.writeError(`${error instanceof Error ? error.message : "Invalid frontend origin"}\n`)
-    return 1
+    return fail(io, error instanceof Error ? error.message : "Invalid frontend origin")
   }
 
   const state = io.state ?? randomBytes(32).toString("base64url")
@@ -60,7 +58,7 @@ export async function runAppsInstall(io: AppsInstallIO): Promise<number> {
       installUrl.searchParams.set("redirect_uri", redirectUri)
       installUrl.searchParams.set("state", state)
       io.write(
-        `${emphasis(`Approve ${slug.data} in your browser.`, io.color)}\nThis command waits here until you do.\n\n${muted(installUrl.toString(), io.color)}\n`,
+        `${style(`Approve ${slug.data} in your browser.`, io.color, "1;35")}\n${style("This command waits here until you do.", io.color, "2")}\n\n${style(installUrl.toString(), io.color, "2")}\n`,
       )
       io.openUrl(installUrl.toString())
     },
@@ -68,35 +66,27 @@ export async function runAppsInstall(io: AppsInstallIO): Promise<number> {
 
   if (outcome.kind === "authorized") {
     io.write(
-      `\n${emphasis(`${slug.data} is installed.`, io.color)}\n\n${emphasis("Client id", io.color)}\n${outcome.clientId}\n\n${emphasis("Client secret", io.color)}\n${outcome.clientSecret}\n\nSave the client secret now. It cannot be retrieved later.\n`,
+      `\n${style(`${slug.data} is installed.`, io.color, "1;32")}\n\n${style("Client id", io.color, "1")}\n${style(outcome.clientId, io.color, "36")}\n\n${style("Client secret", io.color, "1")}\n${style(outcome.clientSecret, io.color, "1;36")}\n\n${style("Save the client secret now. It cannot be retrieved later.", io.color, "33")}\n`,
     )
     return 0
   }
 
-  if (outcome.kind === "denied") {
-    io.writeError("Authorization was cancelled.\n")
-    return 1
-  }
+  if (outcome.kind === "denied") return fail(io, "Authorization was cancelled.")
   if (outcome.kind === "mismatch") {
-    io.writeError("The callback state did not match this session. Nothing was saved.\n")
-    return 1
+    return fail(io, "The callback state did not match this session. Nothing was saved.")
   }
-  if (outcome.kind === "timeout") {
-    io.writeError("Authorization timed out.\n")
-    return 1
-  }
-  io.writeError("The callback did not include a client id and client secret.\n")
+  if (outcome.kind === "timeout") return fail(io, "Authorization timed out.")
+  return fail(io, "The callback did not include a client id and client secret.")
+}
+
+function fail(io: AppsInstallIO, message: string): number {
+  io.writeError(`${style(message, io.color, "1;31")}\n`)
   return 1
 }
 
-function emphasis(text: string, color: boolean | undefined): string {
-  if (!color) return text
-  return `\u001b[1m${text}\u001b[0m`
-}
-
-function muted(text: string, color: boolean | undefined): string {
-  if (!color) return text
-  return `\u001b[2m${text}\u001b[0m`
+function style(text: string, enabled: boolean | undefined, code: string): string {
+  if (!enabled) return text
+  return `\u001b[${code}m${text}\u001b[0m`
 }
 
 function renderCallbackPage(slug: string, outcome: CallbackOutcome["kind"]): string {

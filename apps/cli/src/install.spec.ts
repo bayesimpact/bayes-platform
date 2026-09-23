@@ -44,6 +44,35 @@ describe("runAppsInstall", () => {
     expect(html).not.toContain("secret-1")
   })
 
+  it("colors the client secret when color is enabled", async () => {
+    const lines: string[] = []
+    const exitCode = await runAppsInstall({
+      slug: "sitecrawler",
+      frontendOrigin,
+      state: "session-state",
+      timeoutMs: 2_000,
+      color: true,
+      write: (text) => lines.push(text),
+      writeError: (text) => lines.push(text),
+      openUrl: (url) => {
+        const installUrl = new URL(url)
+        const callback = new URL(installUrl.searchParams.get("redirect_uri") ?? "")
+        callback.searchParams.set("client_id", "client-1")
+        callback.searchParams.set("client_secret", "secret-1")
+        callback.searchParams.set("state", "session-state")
+        void fetch(callback)
+      },
+    })
+
+    expect(exitCode).toBe(0)
+    const printed = lines.join("")
+    expect(printed).toContain("\u001b[1;35mApprove sitecrawler in your browser.\u001b[0m")
+    expect(printed).toContain("\u001b[1;32msitecrawler is installed.\u001b[0m")
+    expect(printed).toContain("\u001b[36mclient-1\u001b[0m")
+    expect(printed).toContain("\u001b[1;36msecret-1\u001b[0m")
+    expect(printed).toContain("\u001b[33mSave the client secret now.")
+  })
+
   it("rejects a mismatched state and does not print the secret", async () => {
     const output: string[] = []
     const errors: string[] = []
