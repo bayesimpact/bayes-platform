@@ -17,6 +17,20 @@ Both carry ingress.apiAnnotations (uploads, long answers).
   {{- if ne $apiHost $webHost }}
   {{- $rules = append $rules (dict "name" (printf "%s-host" $apiService) "component" "api" "host" $apiHost "paths" (list "/api" "/public") "service" $apiService "port" .Values.api.port "annotations" .Values.ingress.apiAnnotations) }}
   {{- end }}
+  {{- /*
+  /api/healthz is for the kubelet, which reaches the pod directly: it queries
+  the database on every call and would tell the Internet which version runs.
+  A separate Ingress per API host carries that exact path with a source
+  whitelist (ingress.healthzAllowFrom, nobody by default): ingress-nginx gives
+  the path its own location, 403 for everyone else. The other paths are not
+  affected. No TLS block on it: the host's certificate comes from the main
+  Ingress, a second one would order a second certificate.
+  */}}
+  {{- $healthzAnnotations := dict "nginx.ingress.kubernetes.io/whitelist-source-range" .Values.ingress.healthzAllowFrom }}
+  {{- $rules = append $rules (dict "name" (printf "%s-healthz" $apiService) "component" "api" "host" $webHost "paths" (list "/api/healthz") "pathType" "Exact" "noTLS" true "service" $apiService "port" .Values.api.port "annotations" $healthzAnnotations) }}
+  {{- if ne $apiHost $webHost }}
+  {{- $rules = append $rules (dict "name" (printf "%s-host-healthz" $apiService) "component" "api" "host" $apiHost "paths" (list "/api/healthz") "pathType" "Exact" "noTLS" true "service" $apiService "port" .Values.api.port "annotations" $healthzAnnotations) }}
+  {{- end }}
 {{- end }}
 {{- if .Values.webEmbed.enabled }}
   {{- $s := include "bayes-platform.componentName" (dict "root" $root "component" "web-embed") }}
@@ -37,8 +51,8 @@ metadata:
     {{- include "bayes-platform.labels" $root | nindent 4 }}
     app.kubernetes.io/component: {{ $rule.component }}
   annotations:
-    {{- with $root.Values.ingress.clusterIssuer }}
-    cert-manager.io/cluster-issuer: {{ . }}
+    {{- if and $root.Values.ingress.clusterIssuer (not $rule.noTLS) }}
+    cert-manager.io/cluster-issuer: {{ $root.Values.ingress.clusterIssuer }}
     {{- end }}
     {{- with $root.Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
@@ -50,7 +64,7 @@ spec:
   {{- with $root.Values.ingress.className }}
   ingressClassName: {{ . }}
   {{- end }}
-  {{- if $root.Values.ingress.tls }}
+  {{- if and $root.Values.ingress.tls (not $rule.noTLS) }}
   tls:
     - hosts:
         - {{ $rule.host }}
@@ -62,7 +76,7 @@ spec:
         paths:
           {{- range $path := $rule.paths }}
           - path: {{ $path }}
-            pathType: Prefix
+            pathType: {{ $rule.pathType | default "Prefix" }}
             backend:
               service:
                 name: {{ $rule.service }}
