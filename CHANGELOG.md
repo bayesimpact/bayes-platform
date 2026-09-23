@@ -8,6 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- Usage statistics: a read-only analytics schema gives activity per workspace to dashboards, never a user or a conversation.
 - Public chat API: the routes are now versioned under /public/v1/ and documented on the help site.
 - Kubernetes: a Helm chart installs the platform anywhere, with bundled Postgres and Redis.
 - (beta) MCP servers: connect servers that use OAuth by authorizing access in the browser, alongside API keys.

@@ -245,6 +245,15 @@ ci-checks: npm-ci
 db-tests:
 	docker compose -f infra/database/docker-compose.yaml -f infra/database/docker-compose.test.yaml up -d
 
+# The dashboard role of the local Grafana (infra/database/grafana): reads the
+# analytics schema through analytics_reader, created by the analytics migration.
+# Run once after `npm run migration:run`; safe to run again.
+analytics-dev-role:
+	docker compose -f infra/database/docker-compose.yaml exec pgvector psql -U admin -d connect -v ON_ERROR_STOP=1 -c \
+	  "DO \$$\$$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'grafana_ro') THEN CREATE ROLE grafana_ro LOGIN PASSWORD 'passpass'; END IF; END \$$\$$;" \
+	  -c "GRANT analytics_reader TO grafana_ro;" \
+	  -c "ALTER ROLE grafana_ro SET statement_timeout = '30s';"
+
 tests: db-tests ci-checks
 	cd apps/api && DATABASE_URL=${TEST_DATABASE_URL} MCP_ENCRYPTION_KEY=${TEST_MCP_ENCRYPTION_KEY} npm run migration:test:run && DATABASE_URL=${TEST_DATABASE_URL} MCP_ENCRYPTION_KEY=${TEST_MCP_ENCRYPTION_KEY} npm run test
 

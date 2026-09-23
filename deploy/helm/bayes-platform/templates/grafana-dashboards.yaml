@@ -1,0 +1,24 @@
+{{- /*
+Grafana dashboards shipped with the product: one ConfigMap per JSON file of
+dashboards/, labelled for the Grafana sidecar (label grafana_dashboard=1,
+folder from the annotation). They read the `analytics` schema through a
+datasource named `analytics`, provided by the Grafana of the cluster.
+*/ -}}
+{{- if .Values.grafanaDashboards.enabled }}
+{{- range $path, $bytes := .Files.Glob "dashboards/*.json" }}
+{{- $name := base $path | trimSuffix ".json" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "bayes-platform.componentName" (dict "root" $ "component" (printf "dashboard-%s" $name)) }}
+  labels:
+    {{- include "bayes-platform.labels" $ | nindent 4 }}
+    {{ $.Values.grafanaDashboards.label }}: "1"
+  annotations:
+    {{ $.Values.grafanaDashboards.folderAnnotation }}: {{ $.Values.grafanaDashboards.folder | quote }}
+data:
+  {{ base $path }}: |-
+{{ $bytes | toString | indent 4 }}
+{{- end }}
+{{- end }}

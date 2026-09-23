@@ -147,6 +147,20 @@ kubectl -n platform exec deploy/platform-bayes-platform-api -- \
 
 `revoke` and `list` work the same way.
 
+## Analytics readers
+
+The database has a read-only `analytics` schema for dashboards (`docs/analytics-schema.md`), readable through the role `analytics_reader` that the migrations create. List in `analyticsReaders.roles` the database roles of your dashboard tool (created by you, outside the chart): a Job runs after the migrations, on every install and upgrade, grants them the membership and sets `analyticsReaders.statementTimeout` on them (best effort: the timeout needs the ADMIN OPTION on the role, the Job logs the statement for an administrator when it is refused). Removing a role revokes nothing.
+
+## Grafana dashboards
+
+The chart ships the product dashboards (`dashboards/*.json`) for a Grafana
+running in the cluster with the dashboards sidecar. `grafanaDashboards.enabled:
+true` creates one ConfigMap per file, labelled `grafana_dashboard: "1"`, folder
+from the annotation `grafana_folder` (value `grafanaDashboards.folder`). The
+dashboards query a datasource named `analytics`: the platform database through
+its read-only `analytics` schema (`docs/analytics-schema.md`). The chart installs
+neither Grafana nor the datasource.
+
 ## Managed services
 
 See `values-managed.example.yaml`. The differences with the default:
