@@ -79,13 +79,13 @@ describe("Apps - Token", () => {
       client_secret: credentials.clientSecret,
     })
     expectResponse(issued, 200)
-    expect(issued.body.data.tokenType).toBe("Bearer")
-    expect(issued.body.data.expiresIn).toBe(3600)
-    expect(issued.body.data.accessToken.split(".")).toHaveLength(3)
+    expect(issued.body.token_type).toBe("Bearer")
+    expect(issued.body.expires_in).toBe(3600)
+    expect(issued.body.access_token.split(".")).toHaveLength(3)
 
     const me = await testRequester(app)({
       route: AppsV1Routes.getMe,
-      token: issued.body.data.accessToken,
+      token: issued.body.access_token,
     })
     expectResponse(me, 200)
     expect(me.body.data.projectId).toBe(project.id)

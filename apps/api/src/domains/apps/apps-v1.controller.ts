@@ -13,7 +13,11 @@ export class AppsV1Controller {
   @HttpCode(HttpStatus.OK)
   async createToken(@Body() body: unknown): Promise<typeof AppsV1Routes.createToken.response> {
     const token = await this.appsService.issueToken(body)
-    return { data: token }
+    return {
+      access_token: token.accessToken,
+      token_type: token.tokenType,
+      expires_in: token.expiresIn,
+    }
   }
 
   @UseGuards(AppGuard)

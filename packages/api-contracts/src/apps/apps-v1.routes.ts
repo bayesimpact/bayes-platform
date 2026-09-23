@@ -3,7 +3,8 @@ import { defineRoute } from "../helpers"
 import type { AppAccessTokenResponseDto, AppMeResponseDto } from "./apps.dto"
 
 export const AppsV1Routes = {
-  createToken: defineRoute<ResponseData<AppAccessTokenResponseDto>>({
+  // RFC 6749 token response: unwrapped snake_case, not { data }.
+  createToken: defineRoute<AppAccessTokenResponseDto>({
     method: "post",
     path: "apps/v1/token",
   }),

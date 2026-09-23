@@ -124,9 +124,9 @@ export const appClientCredentialsTokenSchema = z
 export type AppClientCredentialsTokenRequestDto = z.infer<typeof appClientCredentialsTokenSchema>
 
 export type AppAccessTokenResponseDto = {
-  accessToken: string
-  tokenType: "Bearer"
-  expiresIn: number
+  access_token: string
+  token_type: "Bearer"
+  expires_in: number
 }
 
 export type AppMeResponseDto = {

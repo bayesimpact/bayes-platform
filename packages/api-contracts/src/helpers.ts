@@ -1,4 +1,4 @@
-import type { RequestPayload, ResponseData } from "./generic"
+import type { RequestPayload } from "./generic"
 
 type GetPath = (options?: Record<string, string>) => string
 type Method = "get" | "post" | "put" | "delete" | "patch"
@@ -10,7 +10,7 @@ type Return<TMethod extends Method, TResponse> = {
 }
 
 export function defineRoute<
-  TResponse extends ResponseData<unknown>,
+  TResponse extends object,
   TRequest extends RequestPayload<unknown> = RequestPayload<unknown>,
 >(def: { path: string; method: Method }): Return<Method, TResponse> & { request: TRequest } {
   const normalizedPath = def.path.startsWith("/") ? def.path : `/${def.path}`
