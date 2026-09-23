@@ -8,7 +8,7 @@
 # VITE_API_URL is built with a placeholder and replaced at container start
 # (see docker/40-runtime-config.sh), so one image serves every install.
 #
-FROM node:24.20.0-bookworm-slim AS build
+FROM node:24.21.0-bookworm-slim AS build
 
 WORKDIR /app
 
