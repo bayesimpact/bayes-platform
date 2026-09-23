@@ -10,7 +10,6 @@ import { AppInstallationRepository } from "./app-installation.repository"
 import { AppJwtService } from "./app-jwt.service"
 import { AppManifest } from "./app-manifest.entity"
 import { AppManifestRepository } from "./app-manifest.repository"
-import { AppTokenRateLimiter } from "./app-token-rate-limiter"
 import { AppsController } from "./apps.controller"
 import { AppsService } from "./apps.service"
 import { AppsInstallController } from "./apps-install.controller"
@@ -30,7 +29,6 @@ import { AppsV1Controller } from "./apps-v1.controller"
     AppInstallationRepository,
     AppJwtService,
     AppGuard,
-    AppTokenRateLimiter,
     ProjectRepository,
   ],
   exports: [AppsService, AppManifestRepository, AppInstallationRepository, AppJwtService],
