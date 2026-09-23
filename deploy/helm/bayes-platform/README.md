@@ -33,10 +33,10 @@ Minimum cluster size for the self-contained install without GPU: 4 vCPU and 8 Gi
 
 Every release publishes the six images, public, on GitHub Container Registry: `ghcr.io/bayesimpact/bayes-platform/<component>:<version>` (for example `.../app:26.09.1`). Every push to `main` also publishes `sha-<short sha>` and `latest`. No credentials are needed to pull them.
 
-The chart is published with the same version as an OCI artifact:
+The chart is published as an OCI artifact under the release version without the leading zero of the month (release `26.09.1`, chart `26.9.1`: CalVer allows the zero, semver does not, and OCI chart tags are semver):
 
 ```bash
-helm install platform oci://ghcr.io/bayesimpact/charts/bayes-platform --version 0.1.0 -n platform --create-namespace -f my-values.yaml
+helm install platform oci://ghcr.io/bayesimpact/charts/bayes-platform --version 26.9.1 -n platform --create-namespace -f my-values.yaml
 ```
 
 Its `appVersion` is the release tag, and it is the default image tag. Set `global.image.tag` to run another build.
