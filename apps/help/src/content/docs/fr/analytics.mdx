@@ -1,43 +1,60 @@
 ---
 title: Analytique
 highlight: Analytique
-description: Consultez les analyses de conversation de votre espace de travail — conversations par jour, questions moyennes par session, sessions par catégorie — et filtrez par agent et par plage de dates.
+description: Consultez les analyses de conversation de votre espace de travail, conversations par jour et questions moyennes par session, puis ouvrez l'analytique d'un agent pour voir ses conversations classées par catégorie.
 category: guides-eval
 order: 1
-updated: 2026-07-22
+updated: 2026-09-24
 ---
 
 import AnalyticsWalkthrough from "@/components/AnalyticsWalkthrough.astro"
 
-**Analytique** montre comment vos agents sont utilisés. C'est un tableau de bord en
-lecture seule des **indicateurs de conversation** de votre espace de travail —
-combien de conversations ont lieu, à quel point les utilisateurs sont engagés, et
-comment les sessions se répartissent par catégorie — que vous pouvez filtrer par
-**agent** et par **plage de dates**.
+**Analytique** montre comment vos agents sont utilisés. C'est une vue en lecture
+seule des **indicateurs de conversation** : combien de conversations ont lieu, à quel
+point les utilisateurs sont engagés et, pour chaque agent, quelles **catégories de
+conversation** reviennent le plus.
 
-Vous l'ouvrez depuis **Analytique** dans la barre latérale gauche de **Studio**. Le
-tableau de bord couvre tout l'**espace de travail** ; chaque agent conversationnel
-possède aussi sa propre vue Analytique, accessible depuis la page de l'agent.
+Vous ouvrez le tableau de bord de l'espace de travail depuis **Analytique** dans la
+barre latérale gauche de **Studio**. Il couvre tout l'**espace de travail** et se
+filtre par **agent** et par **plage de dates**. Chaque agent conversationnel possède
+aussi sa propre vue Analytique, ouverte depuis la carte **Analytique** de la page de
+l'agent. C'est là que s'affichent les catégories, agent par agent.
 
 > **Fonctionnalité optionnelle — à faire activer.** L'analytique s'active espace de
 > travail par espace de travail. Si vous ne voyez pas **Analytique** dans la barre
 > latérale de Studio, c'est que la fonctionnalité n'est pas encore activée pour votre
 > espace de travail — contactez l'équipe Bayes pour en faire la demande.
 
-## Ce que montre le tableau de bord
+## Ce que montrent les tableaux de bord
 
-La page comporte une **rangée de filtres** en haut à droite et trois graphiques :
+Le **tableau de bord de l'espace de travail** comporte une **rangée de filtres** en
+haut à droite et deux graphiques :
 
-- **Conversations par jour** — le nombre de sessions conversationnelles démarrées
-  chaque jour.
-- **Questions utilisateur moy. par session** — le nombre moyen de messages
+- **Conversations par jour** : le nombre de sessions conversationnelles démarrées
+  chaque jour, avec **Total des conversations** comme chiffre clé.
+- **Questions utilisateur moy. par session** : le nombre moyen de messages
   utilisateur par session, par jour.
-- **Sessions par jour par catégorie** — un graphique à barres empilées répartissant
-  le volume quotidien de sessions par **catégorie de conversation**.
 
-Chaque graphique affiche un chiffre clé et un histogramme sur la période
-sélectionnée. Les graphiques lisent les sessions qu'ont eues vos agents : un espace
-de travail tout neuf, sans conversation, affichera donc des données vides ou à zéro.
+La **vue Analytique d'un agent** montre les deux mêmes graphiques pour cet agent,
+puis **Conversations par catégorie** : la liste des catégories de l'agent, classées
+par volume de conversations sur la période. Chaque ligne affiche :
+
+- le nom de la catégorie, avec une barre qui compare son volume aux autres
+  catégories ;
+- **Conversations** : le nombre de conversations dans cette catégorie ;
+- **Part** : la part des conversations de la période qui relèvent de cette
+  catégorie. Une conversation peut avoir plusieurs catégories, donc la somme des
+  parts peut dépasser 100 % ;
+- **Tendance** : une petite courbe du volume quotidien de la catégorie sur la
+  période.
+
+Les conversations sans catégorie sont regroupées dans une ligne **Non catégorisé**,
+affichée en gris en bas de la liste. Cliquez sur une ligne pour afficher son volume
+par jour sous forme d'histogramme.
+
+Les graphiques lisent les sessions qu'ont eues vos agents, y compris les
+conversations tenues dans le chat intégré : un espace de travail tout neuf, sans
+conversation, affichera donc des données vides ou à zéro.
 
 ## Le parcours complet en un coup d'œil
 
@@ -78,27 +95,43 @@ chiffre clé de la période.
 ### 6. Questions utilisateur moy. par session
 
 Le graphique **Questions utilisateur moy. par session** montre le nombre moyen de
-messages utilisateur par session — une mesure des échanges au sein de chaque
+messages utilisateur par session, une mesure des échanges au sein de chaque
 conversation.
 
-### 7. Sessions par jour par catégorie
+### 7. Ouvrir un agent conversationnel
 
-Le graphique **Sessions par jour par catégorie** empile les sessions de chaque jour
-par catégorie de conversation, avec une **légende** en couleurs. Les sessions sans
-catégorie apparaissent en **Non categorise**. Avec **Tous les agents** sélectionné,
-les catégories sont combinées sur l'ensemble des agents.
+Les catégories se lisent agent par agent. Dans la liste **Agents** de la barre
+latérale, cliquez sur un agent conversationnel. Sa page s'ouvre avec trois cartes :
+**Nouvelle discussion**, **Analytique** et **Retours utilisateurs**.
+
+### 8. Ouvrir l'analytique de l'agent
+
+Cliquez sur la carte **Analytique** (*Indicateurs de conversation pour cet agent.*).
+La page **Analytique de l’agent** s'ouvre, avec le nom et le type de l'agent sous le
+titre et un sélecteur **Plage de dates** en haut à droite. Elle affiche
+**Conversations par jour** et **Questions utilisateur moy. par session** pour cet
+agent.
+
+### 9. Lire Conversations par catégorie
+
+Descendez jusqu'à **Conversations par catégorie**. Les catégories sont classées de la
+plus fréquente à la moins fréquente, avec leurs **Conversations**, leur **Part** et
+leur **Tendance**. **Non catégorisé** est à part, en bas. Cliquez sur une ligne pour
+afficher le volume par jour de cette catégorie juste en dessous ; survolez une barre
+pour voir la date et le nombre de conversations. Cliquez à nouveau sur la ligne pour
+la refermer.
 
 ## Conseils
 
-- Commencez avec **Tous les agents** pour la vue d'ensemble, puis filtrez sur un
-  agent pour repérer ceux qui génèrent le plus d'activité.
-- Comparez des périodes en changeant la **Plage de dates** — par exemple cette
-  semaine contre la semaine dernière.
-- Le graphique **par catégorie** est surtout utile quand vos agents conversationnels
-  utilisent des catégories ; sinon, la plupart des sessions tombent sous
-  **Non categorise**.
-- Chaque **agent conversationnel** possède aussi sa propre vue Analytique (depuis la
-  page de l'agent) si vous voulez creuser un agent en particulier.
+- Commencez avec **Tous les agents** sur le tableau de bord de l'espace de travail
+  pour la vue d'ensemble, puis filtrez sur un agent pour repérer ceux qui génèrent le
+  plus d'activité.
+- Comparez des périodes en changeant la **Plage de dates**, par exemple cette semaine
+  puis la semaine dernière.
+- Sur la vue d'un agent, une catégorie dont la **Tendance** monte en fin de période
+  mérite un coup d'œil, même si elle est bas dans le classement.
+- Une ligne **Non catégorisé** importante signifie que les catégories de l'agent ne
+  couvrent pas les sujets abordés. Revoyez-les dans l'[Admin](/fr/workspace-admin).
 
 ## Dépannage
 
@@ -106,12 +139,18 @@ les catégories sont combinées sur l'ensemble des agents.
   fonctionnalité optionnelle ; elle n'est peut-être pas activée pour votre espace de
   travail. Demandez au **Owner** ou à un **Admin** de l'espace de travail si elle
   manque.
+- **Je ne vois pas la carte Analytique sur la page d'un agent** — la carte n'apparaît
+  que sur les agents **conversationnels**, et seulement pour les personnes qui
+  peuvent gérer l'agent.
+- **Je ne vois pas Conversations par catégorie sur la vue de l'agent** — la liste
+  n'apparaît qu'une fois les catégories de conversation activées sur cet agent.
+  Activez-les dans l'onglet **Catégories de conversation** de l'agent.
 - **Les graphiques sont vides** — il n'y a peut-être aucune conversation sur la
   période sélectionnée. Élargissez la **Plage de dates**, ou vérifiez que l'agent
   sélectionné a eu des sessions.
-- **Tout est en Non categorise** — les catégories proviennent de la configuration de
-  vos agents conversationnels ; les sessions ne sont réparties qu'une fois que les
-  agents leur attribuent des catégories.
+- **Tout est en Non catégorisé** — les sessions ne sont réparties en catégories
+  qu'une fois les catégories activées sur l'agent ; les sessions antérieures restent
+  **Non catégorisé**.
 - **Les dates semblent en anglais** — les libellés de date des graphiques sont
   actuellement affichés dans un format anglais fixe, quelle que soit la langue de
   l'interface.

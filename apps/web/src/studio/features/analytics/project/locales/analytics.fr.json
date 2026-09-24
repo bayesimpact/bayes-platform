@@ -19,14 +19,6 @@
       "title": "Questions utilisateur moy. par session",
       "description": "Moyenne des messages utilisateur par session et par jour",
       "metricLabel": "Par jour"
-    },
-    "categoriesChart": {
-      "title": "Sessions par jour par categorie",
-      "description": "Volume quotidien des sessions, reparti par categorie (tous les agents ou agent selectionne)",
-      "metricLabel": "Total des comptes session-categorie",
-      "selectAgentState": "Affichage de tous les agents; chaque graphique ci-dessous correspond a un agent.",
-      "noDataState": "Aucune donnee de session par categorie sur cette periode.",
-      "uncategorizedLabel": "Non categorise"
     }
   }
 }

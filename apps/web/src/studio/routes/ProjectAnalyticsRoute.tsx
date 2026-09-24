@@ -18,12 +18,10 @@ import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import {
   selectAnalyticsAvgUserQuestionsPerSessionPerDay,
-  selectAnalyticsConversationsByCategoryPerDay,
   selectAnalyticsConversationsPerDay,
 } from "@/studio/features/analytics/project/analytics.selectors"
 import { loadProjectAnalytics } from "@/studio/features/analytics/project/analytics.thunks"
 import { dateRangeToAnalyticsQueryBounds } from "@/studio/features/analytics/project/analytics-date-range"
-import { ProjectCategoryChartCard } from "@/studio/features/analytics/project/components/ProjectCategoryChartCard"
 import { GridHeader } from "../../common/components/grid/Grid"
 import { AsyncRoute } from "../../common/routes/AsyncRoute"
 
@@ -63,10 +61,9 @@ export function ProjectAnalyticsRoute() {
 
   const conversations = useAppSelector(selectAnalyticsConversationsPerDay)
   const avgQuestions = useAppSelector(selectAnalyticsAvgUserQuestionsPerSessionPerDay)
-  const conversationsByCategoryPerDay = useAppSelector(selectAnalyticsConversationsByCategoryPerDay)
 
   return (
-    <AsyncRoute data={[conversations, avgQuestions, conversationsByCategoryPerDay]}>
+    <AsyncRoute data={[conversations, avgQuestions]}>
       <WithData
         onAnalyticsRangeChange={setBounds}
         selectedAgentId={selectedAgentId}
@@ -88,7 +85,6 @@ function WithData({
   const agents = useValue(selectAgentsData)
   const conversationsPoints = useValue(selectAnalyticsConversationsPerDay)
   const avgQuestionsPoints = useValue(selectAnalyticsAvgUserQuestionsPerSessionPerDay)
-  const categoryPoints = useValue(selectAnalyticsConversationsByCategoryPerDay)
   const { t } = useTranslation("analytics")
   const navigate = useNavigate()
   const projectRoute = useGetProjectRoute()
@@ -148,16 +144,6 @@ function WithData({
             getSummaryValue={meanDailyMetricValues}
           />
         </div>
-
-        <ProjectCategoryChartCard
-          points={categoryPoints}
-          allDates={conversationsPoints.map((point) => point.date)}
-          selectedAgentId={selectedAgentId}
-          title={t("categoriesChart.title")}
-          description={t("categoriesChart.description")}
-          noDataState={t("categoriesChart.noDataState")}
-          uncategorizedLabel={t("categoriesChart.uncategorizedLabel")}
-        />
       </div>
     </>
   )

@@ -2,6 +2,10 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import { agentFactory } from "@/common/features/agents/agent.factory"
 import { agentSettingsFactory } from "@/common/features/agents/agent-settings/agent-settings.factory"
 import type { Agent } from "@/common/features/agents/agents.models"
+import {
+  buildStoryCategoryPoints,
+  buildStoryConversationsPerDay,
+} from "@/stories/analytics/helpers"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -12,7 +16,7 @@ import {
 import { mergeSeeds, seed } from "@/stories/seed"
 import type { IAgentAnalyticsSpi } from "@/studio/features/analytics/agent/agent-analytics.spi"
 import {
-  analyticsCategoryDailyPointFactory,
+  type analyticsCategoryDailyPointFactory,
   analyticsDailyPointFactory,
 } from "@/studio/features/analytics/project/analytics.factory"
 import { StudioRoutes } from "@/studio/routes/helpers"
@@ -26,12 +30,10 @@ type StoryArgs = StudioStoryArgs & {
 const DATES = ["2026-05-09", "2026-05-10", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14"]
 
 function buildAnalytics(agent: Agent) {
-  const conversationsPerDay = DATES.map((date) => analyticsDailyPointFactory.build({ date }))
+  const conversationsByCategoryPerDay = buildStoryCategoryPoints({ agents: [agent], dates: DATES })
+  const conversationsPerDay = buildStoryConversationsPerDay(conversationsByCategoryPerDay, DATES)
   const avgUserQuestionsPerSessionPerDay = DATES.map((date) =>
     analyticsDailyPointFactory.build({ date }),
-  )
-  const conversationsByCategoryPerDay = DATES.flatMap((date) =>
-    analyticsCategoryDailyPointFactory.transient({ agent }).buildList(2, { date }),
   )
   return { conversationsPerDay, avgUserQuestionsPerSessionPerDay, conversationsByCategoryPerDay }
 }
