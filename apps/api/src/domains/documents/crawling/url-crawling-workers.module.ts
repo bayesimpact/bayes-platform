@@ -7,6 +7,7 @@ import { ALL_ENTITIES } from "@/common/all-entities"
 import { SpiderClientService } from "@/external/spider/spider-client.service"
 import { DocumentsService } from "../documents.service"
 import { DocumentEmbeddingStatusNotifierService } from "../embeddings/document-embedding-status-notifier.service"
+import { DocumentEmbeddingsBatchModule } from "../embeddings/document-embeddings-batch.module"
 import { PdfPagesModule } from "../pdf-pages/pdf-pages.module"
 import { StorageModule } from "../storage/storage.module"
 import { DocumentTagsService } from "../tags/document-tags.service"
@@ -32,6 +33,7 @@ import { WebSourceEmbeddingsBatchModule } from "./web-source-embeddings-batch.mo
     WebSourceEmbeddingsBatchModule,
     StorageModule,
     PdfPagesModule,
+    DocumentEmbeddingsBatchModule,
   ],
   providers: [
     UrlCrawlingWorker,
