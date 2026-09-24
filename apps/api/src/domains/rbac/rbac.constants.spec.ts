@@ -1,14 +1,20 @@
 import {
+  AGENT_ANALYTICS_READ_PERMISSION,
+  AGENT_ROLE_PERMISSIONS,
   APP_GRANTABLE_PERMISSIONS,
   DOCUMENT_CREATE_PERMISSION,
   DOCUMENT_DELETE_PERMISSION,
   DOCUMENT_READ_PERMISSION,
   DOCUMENT_UPDATE_PERMISSION,
   intersectWithAppGrantablePermissions,
+  ORGANIZATION_ROLE_PERMISSIONS,
+  PROJECT_ANALYTICS_READ_PERMISSION,
   PROJECT_CREATE_PERMISSION,
   PROJECT_DELETE_PERMISSION,
   PROJECT_READ_PERMISSION,
+  PROJECT_ROLE_PERMISSIONS,
   PROJECT_UPDATE_PERMISSION,
+  RESOURCE_TYPE_PERMISSIONS_MAP,
 } from "./rbac.constants"
 
 describe("intersectWithAppGrantablePermissions", () => {
@@ -49,5 +55,39 @@ describe("intersectWithAppGrantablePermissions", () => {
 
   it("returns an empty list for an empty input", () => {
     expect(intersectWithAppGrantablePermissions([])).toEqual([])
+  })
+})
+
+describe("analytics permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  it("grants project analytics to project owners and admins only", () => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, PROJECT_ANALYTICS_READ_PERMISSION)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, PROJECT_ANALYTICS_READ_PERMISSION)).toEqual(
+      [],
+    )
+  })
+
+  it("grants agent analytics to agent owners and admins only", () => {
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, AGENT_ANALYTICS_READ_PERMISSION)).toEqual([
+      "agent_owner",
+      "agent_admin",
+    ])
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, AGENT_ANALYTICS_READ_PERMISSION)).toEqual([])
+  })
+
+  it("never inherits analytics from a parent resource", () => {
+    const inheritable: readonly string[] = [
+      ...RESOURCE_TYPE_PERMISSIONS_MAP.project,
+      ...RESOURCE_TYPE_PERMISSIONS_MAP.agent,
+    ]
+    expect(inheritable).not.toContain(PROJECT_ANALYTICS_READ_PERMISSION)
+    expect(inheritable).not.toContain(AGENT_ANALYTICS_READ_PERMISSION)
   })
 })

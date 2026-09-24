@@ -12,9 +12,9 @@ import { Organization } from "@/domains/organizations/organization.entity"
 import { ProjectMembershipRepository } from "@/domains/projects/memberships/project-membership.repository"
 import { Project } from "@/domains/projects/project.entity"
 import { PublicAgentSession } from "@/domains/public-chat/public-agent-sessions/public-agent-session.entity"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { ProjectsAnalyticsController } from "./projects-analytics.controller"
-import { ProjectsAnalyticsGuard } from "./projects-analytics.guard"
 import { ProjectsAnalyticsService } from "./projects-analytics.service"
 
 @Module({
@@ -28,11 +28,11 @@ import { ProjectsAnalyticsService } from "./projects-analytics.service"
     ]),
     AuthModule,
     MembershipsModule,
+    RbacModule,
     UsersModule,
   ],
   providers: [
     ProjectsAnalyticsService,
-    ProjectsAnalyticsGuard,
     ProjectMembershipRepository,
     ResourceContextGuard,
     OrganizationContextResolver,

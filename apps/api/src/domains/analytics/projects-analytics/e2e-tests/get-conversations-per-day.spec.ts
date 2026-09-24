@@ -15,6 +15,7 @@ import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.f
 import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messages/agent-messages.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { ProjectsAnalyticsModule } from "../projects-analytics.module"
 
@@ -46,6 +47,7 @@ describe("Projects Analytics - getConversationsPerDay", () => {
       additionalImports: [ProjectsAnalyticsModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
     await app.init()

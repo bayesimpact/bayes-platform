@@ -4,22 +4,23 @@ import type { EndpointRequestWithProject } from "@/common/context/request.interf
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { toAnalyticsDailyPointDto } from "@/domains/analytics/shared/analytics-dto.helpers"
 import type { AnalyticsDailyPoint } from "@/domains/analytics/shared/analytics-metrics.types"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import { PROJECT_ANALYTICS_READ_PERMISSION } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
-import { ProjectsAnalyticsGuard } from "./projects-analytics.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectsAnalyticsService } from "./projects-analytics.service"
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, ProjectsAnalyticsGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
 export class ProjectsAnalyticsController {
   constructor(private readonly projectsAnalyticsService: ProjectsAnalyticsService) {}
 
   @Get(Routes.getConversationsPerDay.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(PROJECT_ANALYTICS_READ_PERMISSION, "project")
   async getConversationsPerDay(
     @Req() request: EndpointRequestWithProject,
     @Query("startAt", ParseIntPipe) startAt: number,
@@ -38,7 +39,7 @@ export class ProjectsAnalyticsController {
   }
 
   @Get(Routes.getAvgUserQuestionsPerSessionPerDay.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(PROJECT_ANALYTICS_READ_PERMISSION, "project")
   async getAvgUserQuestionsPerSessionPerDay(
     @Req() request: EndpointRequestWithProject,
     @Query("startAt", ParseIntPipe) startAt: number,

@@ -66,6 +66,15 @@ export const PROJECT_UPDATE_PERMISSION = "project.update" as const
 
 export const PROJECT_DELETE_PERMISSION = "project.delete" as const
 
+/** Read a project's conversation analytics. Not inherited from the organization. */
+export const PROJECT_ANALYTICS_READ_PERMISSION = "project.analytics.read" as const
+
+/**
+ * Read an agent's conversation analytics. Held on the agent only: a project or
+ * organization role does not grant it.
+ */
+export const AGENT_ANALYTICS_READ_PERMISSION = "agent.analytics.read" as const
+
 /**
  * Permissions an App may be granted. Policy lives here, not in the database:
  * there is no Permission entity and no `app_grantable` column. Intersect this
@@ -172,6 +181,7 @@ export const PROJECT_ROLE_PERMISSIONS = {
     "project.read",
     "project.update",
     "project.delete",
+    PROJECT_ANALYTICS_READ_PERMISSION,
     "agent.create",
     "agent.read",
     DOCUMENT_READ_PERMISSION,
@@ -187,6 +197,7 @@ export const PROJECT_ROLE_PERMISSIONS = {
     "project.read",
     "project.update",
     "project.delete",
+    PROJECT_ANALYTICS_READ_PERMISSION,
     "agent.create",
     "agent.read",
     DOCUMENT_READ_PERMISSION,
@@ -207,6 +218,7 @@ export const AGENT_ROLE_PERMISSIONS = {
     "agent.read",
     "agent.update",
     "agent.delete",
+    AGENT_ANALYTICS_READ_PERMISSION,
     USER_READ_PERMISSION,
     BACKOFFICE_AGENT_READ_PERMISSION,
   ],
@@ -214,6 +226,7 @@ export const AGENT_ROLE_PERMISSIONS = {
     "agent.read",
     "agent.update",
     "agent.delete",
+    AGENT_ANALYTICS_READ_PERMISSION,
     USER_READ_PERMISSION,
     BACKOFFICE_AGENT_READ_PERMISSION,
   ],
@@ -301,10 +314,12 @@ export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
   [PROJECT_READ_PERMISSION]: "See a project",
   [PROJECT_UPDATE_PERMISSION]: "Update a project",
   [PROJECT_DELETE_PERMISSION]: "Delete a project",
+  [PROJECT_ANALYTICS_READ_PERMISSION]: "See a project's conversation analytics",
   "agent.create": "Create agents in a project",
   "agent.read": "See an agent",
   "agent.update": "Update an agent",
   "agent.delete": "Delete an agent",
+  [AGENT_ANALYTICS_READ_PERMISSION]: "See an agent's conversation analytics",
   [DOCUMENT_READ_PERMISSION]: "See a document",
   [DOCUMENT_CREATE_PERMISSION]: "Create documents in a project",
   [DOCUMENT_UPDATE_PERMISSION]: "Update a document",
