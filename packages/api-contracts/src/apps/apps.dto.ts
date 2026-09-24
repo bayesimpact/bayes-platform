@@ -101,6 +101,7 @@ export type AppInstallationSummaryDto = {
   description: string | null
   logoUrl: string | null
   permissions: string[]
+  clientId: string | null
   createdAt: TimeType
 }
 

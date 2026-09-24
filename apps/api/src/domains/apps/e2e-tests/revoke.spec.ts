@@ -141,6 +141,7 @@ describe("Apps - Revoke", () => {
         appName: "Helpful Assistant",
         description: null,
         permissions: [DOCUMENT_READ_PERMISSION],
+        clientId: credentials.clientId,
       }),
     ])
 
