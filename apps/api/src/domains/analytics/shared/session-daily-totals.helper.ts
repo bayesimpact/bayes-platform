@@ -1,24 +1,20 @@
 import type { TimeType } from "@caseai-connect/api-contracts"
+import type { ConnectEntityBase } from "@/common/entities/connect-entity"
 import type { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
-import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import {
   getDayKeySql,
   getQualifiedColumnSql,
 } from "@/domains/analytics/shared/analytics-conversation-metrics.helpers"
-import type { PublicAgentSession } from "@/domains/public-chat/public-agent-sessions/public-agent-session.entity"
 
 export type SessionDailyTotals = {
   sessions: number
   userMessages: number
 }
 
-type SessionConnectRepository =
-  | ConnectRepository<ConversationAgentSession>
-  | ConnectRepository<PublicAgentSession>
-
 type DailyTotalsParams = {
+  /** The agent message entity: its `session_id` references both session tables. */
+  messageEntity: new () => ConnectEntityBase
   connectScope: RequiredConnectScope
   agentId?: string
   startAt: TimeType
@@ -26,15 +22,16 @@ type DailyTotalsParams = {
 }
 
 /** Sessions started and user messages sent in them, per UTC day of the session start. */
-async function getSessionDailyTotals({
+async function getSessionDailyTotals<Session extends ConnectEntityBase>({
   sessionConnectRepository,
   sessionAlias,
+  messageEntity,
   connectScope,
   agentId,
   startAt,
   endAt,
 }: DailyTotalsParams & {
-  sessionConnectRepository: SessionConnectRepository
+  sessionConnectRepository: ConnectRepository<Session>
   sessionAlias: string
 }): Promise<Map<string, SessionDailyTotals>> {
   const messageAlias = `${sessionAlias}Message`
@@ -47,7 +44,7 @@ async function getSessionDailyTotals({
   const queryBuilder = sessionConnectRepository
     .newQueryBuilderWithConnectScope(connectScope)
     .leftJoin(
-      AgentMessage,
+      messageEntity,
       messageAlias,
       `${getQualifiedColumnSql(messageAlias, "session_id")} = ${sessionIdCol}
         AND ${getQualifiedColumnSql(messageAlias, "role")} = :userRole`,
@@ -84,16 +81,19 @@ async function getSessionDailyTotals({
  * app) and PUBLIC (embed) sessions. `agent_message.session_id` references
  * either table, so the message join is the same for both.
  */
-export async function getAllSessionsDailyTotals({
+export async function getAllSessionsDailyTotals<
+  ConversationSession extends ConnectEntityBase,
+  PublicSession extends ConnectEntityBase,
+>({
   conversationAgentSessionConnectRepository,
   conversationAgentSessionAlias,
   publicAgentSessionConnectRepository,
   publicAgentSessionAlias,
   ...params
 }: DailyTotalsParams & {
-  conversationAgentSessionConnectRepository: ConnectRepository<ConversationAgentSession>
+  conversationAgentSessionConnectRepository: ConnectRepository<ConversationSession>
   conversationAgentSessionAlias: string
-  publicAgentSessionConnectRepository: ConnectRepository<PublicAgentSession>
+  publicAgentSessionConnectRepository: ConnectRepository<PublicSession>
   publicAgentSessionAlias: string
 }): Promise<Map<string, SessionDailyTotals>> {
   const [conversationTotals, publicTotals] = await Promise.all([

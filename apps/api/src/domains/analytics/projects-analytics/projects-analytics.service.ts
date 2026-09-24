@@ -8,6 +8,7 @@ import { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ConversationAgentSessionCategory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity"
 import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
+import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import {
   getDayKeySql,
   getQualifiedColumnSql,
@@ -292,6 +293,7 @@ export class ProjectsAnalyticsService {
       conversationAgentSessionAlias: this.conversationAgentSessionAlias,
       publicAgentSessionConnectRepository: this.publicAgentSessionConnectRepository,
       publicAgentSessionAlias: this.publicAgentSessionAlias,
+      messageEntity: AgentMessage,
       ...params,
     })
   }
