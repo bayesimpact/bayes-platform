@@ -45,6 +45,7 @@ import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import type { AppManifest } from "../backoffice.models"
 import { selectAppManifests } from "../backoffice.selectors"
 import { backofficeActions } from "../backoffice.slice"
+import { AppCliInstallButton } from "./AppCliInstallInstructions"
 import { SearchField } from "./BackofficeTable"
 
 type ManifestFormValues = z.input<typeof createAppManifestSchema>
@@ -143,7 +144,8 @@ function WithData() {
         id: "actions",
         header: () => null,
         cell: ({ row }) => (
-          <div className="flex justify-end gap-1">
+          <div className="flex items-center justify-end gap-1">
+            <AppCliInstallButton name={row.original.name} slug={row.original.slug} />
             <Button
               type="button"
               size="icon-sm"
