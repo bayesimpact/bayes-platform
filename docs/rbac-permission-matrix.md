@@ -49,6 +49,7 @@ Scoped to one project via `user_membership` (`resource_type = 'project'`).
 | `project.read` | ✅ | ✅ | ✅ |
 | `project.update` | ✅ | ✅ | — |
 | `project.delete` | ✅ | ✅ | — |
+| `project.analytics.read` — see the project's conversation analytics | ✅ | ✅ | — |
 | `agent.create` | ✅ | ✅ | — |
 | `agent.read` | ✅ | ✅ | — |
 | `document.read` | ✅ | ✅ | — |
@@ -64,11 +65,14 @@ Scoped to one project via `user_membership` (`resource_type = 'project'`).
 
 Scoped to one agent via `user_membership` (`resource_type = 'agent'`).
 
+The two analytics permissions are never inherited from a parent resource: an organization role does not open a project's analytics, and a project role does not open an agent's analytics.
+
 | Permission | `agent_owner` | `agent_admin` | `agent_member` |
 |---|---|---|---|
 | `agent.read` | ✅ | ✅ | ✅ |
 | `agent.update` | ✅ | ✅ | — |
 | `agent.delete` | ✅ | ✅ | — |
+| `agent.analytics.read` — see the agent's conversation analytics | ✅ | ✅ | — |
 | `user.read` — see the agent's members | ✅ | ✅ | — |
 | `backoffice.agent.read` — see the agent in the backoffice | ✅ | ✅ | — |
 
