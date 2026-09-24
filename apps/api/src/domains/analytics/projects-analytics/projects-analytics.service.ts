@@ -19,6 +19,10 @@ import type {
   AnalyticsDailyPoint,
 } from "@/domains/analytics/shared/analytics-metrics.types"
 import { getPublicSessionCategoryRows } from "@/domains/analytics/shared/public-session-category-rows.helper"
+import {
+  getAllSessionsDailyTotals,
+  getAvgUserQuestionsPerSession,
+} from "@/domains/analytics/shared/session-daily-totals.helper"
 import { PublicAgentSession } from "@/domains/public-chat/public-agent-sessions/public-agent-session.entity"
 
 @Injectable()
@@ -26,7 +30,7 @@ export class ProjectsAnalyticsService {
   private readonly conversationAgentSessionConnectRepository: ConnectRepository<ConversationAgentSession>
   private readonly publicAgentSessionConnectRepository: ConnectRepository<PublicAgentSession>
   private readonly conversationAgentSessionAlias = "conversationAgentSession"
-  private readonly agentMessageAlias = "agentMessage"
+  private readonly publicAgentSessionAlias = "publicAgentSession"
   private readonly sessionCategoryAlias = "sessionCategory"
   private readonly categoryAlias = "category"
   private readonly agentAlias = "agent"
@@ -43,7 +47,7 @@ export class ProjectsAnalyticsService {
     )
     this.publicAgentSessionConnectRepository = new ConnectRepository(
       publicAgentSessionRepository,
-      "publicAgentSession",
+      this.publicAgentSessionAlias,
     )
   }
 
@@ -59,32 +63,16 @@ export class ProjectsAnalyticsService {
     endAt: TimeType
   }): Promise<AnalyticsDailyPoint[]> {
     const dayKeys = getUtcDayKeys(startAt, endAt)
-    const dayExpr = getDayKeySql(this.conversationAgentSessionAlias, "created_at")
-    const createdAtCol = getQualifiedColumnSql(this.conversationAgentSessionAlias, "created_at")
-    const agentIdCol = getQualifiedColumnSql(this.conversationAgentSessionAlias, "agent_id")
-
-    const queryBuilder = this.buildConversationsPerDayQuery({
+    const totalsByDay = await this.getAllSessionsDailyTotals({
       connectScope,
-      dayExpr,
-      createdAtCol,
+      agentId,
       startAt,
       endAt,
     })
 
-    if (agentId) {
-      queryBuilder.andWhere(`${agentIdCol} = :agentId`, { agentId })
-    }
-
-    const raw = await queryBuilder.getRawMany<{
-      date: string
-      value: string
-    }>()
-
-    const valueByDay = new Map(raw.map((row) => [row.date, Number(row.value)]))
-
     return dayKeys.map((day) => ({
       date: day,
-      value: valueByDay.get(day) ?? 0,
+      value: totalsByDay.get(day)?.sessions ?? 0,
     }))
   }
 
@@ -100,37 +88,16 @@ export class ProjectsAnalyticsService {
     endAt: TimeType
   }): Promise<AnalyticsDailyPoint[]> {
     const dayKeys = getUtcDayKeys(startAt, endAt)
-
-    const dayExpr = getDayKeySql(this.conversationAgentSessionAlias, "created_at")
-    const createdAtCol = getQualifiedColumnSql(this.conversationAgentSessionAlias, "created_at")
-    const conversationIdCol = getQualifiedColumnSql(this.conversationAgentSessionAlias, "id")
-    const agentMessageIdCol = getQualifiedColumnSql(this.agentMessageAlias, "id")
-    const agentIdCol = getQualifiedColumnSql(this.conversationAgentSessionAlias, "agent_id")
-
-    const queryBuilder = this.buildAvgUserQuestionsPerSessionPerDayQuery({
+    const totalsByDay = await this.getAllSessionsDailyTotals({
       connectScope,
-      dayExpr,
-      createdAtCol,
-      conversationIdCol,
-      agentMessageIdCol,
+      agentId,
       startAt,
       endAt,
     })
 
-    if (agentId) {
-      queryBuilder.andWhere(`${agentIdCol} = :agentId`, { agentId })
-    }
-
-    const raw = await queryBuilder.getRawMany<{
-      date: string
-      value: string
-    }>()
-
-    const valueByDay = new Map(raw.map((row) => [row.date, Number(row.value)]))
-
     return dayKeys.map((day) => ({
       date: day,
-      value: valueByDay.get(day) ?? 0,
+      value: getAvgUserQuestionsPerSession(totalsByDay.get(day)),
     }))
   }
 
@@ -315,67 +282,19 @@ export class ProjectsAnalyticsService {
     )
   }
 
-  private buildConversationsPerDayQuery({
-    connectScope,
-    dayExpr,
-    createdAtCol,
-    startAt,
-    endAt,
-  }: {
+  private getAllSessionsDailyTotals(params: {
     connectScope: RequiredConnectScope
-    dayExpr: string
-    createdAtCol: string
+    agentId?: string
     startAt: TimeType
     endAt: TimeType
   }) {
-    return this.conversationAgentSessionConnectRepository
-      .newQueryBuilderWithConnectScope(connectScope)
-      .select(dayExpr, "date")
-      .addSelect("COUNT(*)::int", "value")
-      .andWhere(`${createdAtCol} BETWEEN :startAt AND :endAt`, {
-        startAt: new Date(startAt),
-        endAt: new Date(endAt),
-      })
-      .groupBy(dayExpr)
-      .orderBy("date", "ASC")
-  }
-
-  private buildAvgUserQuestionsPerSessionPerDayQuery({
-    connectScope,
-    dayExpr,
-    createdAtCol,
-    conversationIdCol,
-    agentMessageIdCol,
-    startAt,
-    endAt,
-  }: {
-    connectScope: RequiredConnectScope
-    dayExpr: string
-    createdAtCol: string
-    conversationIdCol: string
-    agentMessageIdCol: string
-    startAt: TimeType
-    endAt: TimeType
-  }) {
-    return this.conversationAgentSessionConnectRepository
-      .newQueryBuilderWithConnectScope(connectScope)
-      .leftJoin(
-        AgentMessage,
-        this.agentMessageAlias,
-        `${getQualifiedColumnSql(this.agentMessageAlias, "session_id")} = ${getQualifiedColumnSql(this.conversationAgentSessionAlias, "id")}
-          AND ${getQualifiedColumnSql(this.agentMessageAlias, "role")} = :userRole`,
-        { userRole: "user" },
-      )
-      .select(dayExpr, "date")
-      .addSelect(
-        `COALESCE((COUNT(${agentMessageIdCol})::float / NULLIF(COUNT(DISTINCT ${conversationIdCol}), 0)), 0)`,
-        "value",
-      )
-      .andWhere(`${createdAtCol} BETWEEN :startAt AND :endAt`, {
-        startAt: new Date(startAt),
-        endAt: new Date(endAt),
-      })
-      .groupBy(dayExpr)
-      .orderBy("date", "ASC")
+    return getAllSessionsDailyTotals({
+      conversationAgentSessionConnectRepository: this.conversationAgentSessionConnectRepository,
+      conversationAgentSessionAlias: this.conversationAgentSessionAlias,
+      publicAgentSessionConnectRepository: this.publicAgentSessionConnectRepository,
+      publicAgentSessionAlias: this.publicAgentSessionAlias,
+      messageEntity: AgentMessage,
+      ...params,
+    })
   }
 }
