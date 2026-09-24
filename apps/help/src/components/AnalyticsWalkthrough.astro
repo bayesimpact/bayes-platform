@@ -4,6 +4,11 @@
  * Studio interface (same shell, exact Lucide icons, real brand logo). Shares the
  * exact FORM of the other help-center walkthroughs — only the content differs.
  * Pass `lang="fr"` for the French copy.
+ *
+ * Sources (verified 2026-09-24): apps/web/src/studio/routes/ProjectAnalyticsRoute.tsx,
+ * AgentAnalyticsRoute.tsx, features/analytics/agent/components/CategoryRankingCard.tsx,
+ * features/agents/components/AgentSessionListHeader.tsx and their EN/FR locales.
+ * Category stats live on the agent page only; the workspace dashboard has two charts.
  */
 type Lang = "en" | "fr"
 const { lang = "en" } = Astro.props as { lang?: Lang }
@@ -22,8 +27,17 @@ const STRINGS = {
     convMetricLabel: "Total conversations", convMetric: "128",
     avgTitle: "Avg. user questions per session", avgDesc: "Average user messages per session per day",
     avgMetricLabel: "Per day", avgMetric: "3.4",
-    catTitle: "Sessions per day by category", catDesc: "Daily session volume, split by category (all agents or selected agent)",
-    catProduct: "Product", catPricing: "Pricing", catSupport: "Support", catUncat: "Uncategorized",
+    agentType: "Conversation",
+    newChatTitle: "New Chat", newChatDesc: "Start a chat with your agent.", newChatButton: "New Chat",
+    agentAnalyticsTitle: "Analytics", agentAnalyticsDesc: "Conversation metrics for this agent.",
+    feedbackTitle: "Feedback", feedbackDesc: "Manage feedback on agent messages.",
+    agentPageTitle: "Agent analytics",
+    agentConvDesc: "Conversational sessions started each day for this agent",
+    agentAvgDesc: "Average user messages per session per day for this agent",
+    catTitle: "Conversations by category",
+    catDesc: "Categories ranked by conversation volume over the period for this agent. Click a row to see its daily volume.",
+    colCategory: "Category", colConversations: "Conversations", colShare: "Share", colTrend: "Trend",
+    catSupport: "Support", catPricing: "Pricing", catProduct: "Product", catBilling: "Billing", catUncat: "Uncategorized",
     prev: "Prev", next: "Next", step: "Step",
     steps: [
       "Open Analytics in the left sidebar.",
@@ -32,7 +46,9 @@ const STRINGS = {
       "Choose the period with the Date range picker.",
       "Conversations per day shows the sessions started each day.",
       "Avg. user questions per session shows engagement within each session.",
-      "Sessions per day by category breaks the volume down by conversation category.",
+      "Categories are read per agent: open a conversation agent from the sidebar.",
+      "Click the Analytics card on the agent's page.",
+      "Conversations by category ranks the categories by volume. Click a row to see its daily volume.",
     ],
   },
   fr: {
@@ -48,8 +64,17 @@ const STRINGS = {
     convMetricLabel: "Total des conversations", convMetric: "128",
     avgTitle: "Questions utilisateur moy. par session", avgDesc: "Moyenne des messages utilisateur par session et par jour",
     avgMetricLabel: "Par jour", avgMetric: "3.4",
-    catTitle: "Sessions par jour par categorie", catDesc: "Volume quotidien des sessions, reparti par categorie (tous les agents ou agent selectionne)",
-    catProduct: "Product", catPricing: "Pricing", catSupport: "Support", catUncat: "Non categorise",
+    agentType: "Conversation",
+    newChatTitle: "Nouvelle discussion", newChatDesc: "Démarrez une discussion avec votre agent.", newChatButton: "Nouvelle discussion",
+    agentAnalyticsTitle: "Analytique", agentAnalyticsDesc: "Indicateurs de conversation pour cet agent.",
+    feedbackTitle: "Retours utilisateurs", feedbackDesc: "Gérez les retours sur les messages de l'agent.",
+    agentPageTitle: "Analytique de l’agent",
+    agentConvDesc: "Sessions conversationnelles démarrées chaque jour pour cet agent",
+    agentAvgDesc: "Moyenne des messages utilisateur par session et par jour pour cet agent",
+    catTitle: "Conversations par catégorie",
+    catDesc: "Catégories classées par volume de conversations sur la période pour cet agent. Cliquez sur une ligne pour voir le volume par jour.",
+    colCategory: "Catégorie", colConversations: "Conversations", colShare: "Part", colTrend: "Tendance",
+    catSupport: "Support", catPricing: "Pricing", catProduct: "Product", catBilling: "Billing", catUncat: "Non catégorisé",
     prev: "Précédent", next: "Suivant", step: "Étape",
     steps: [
       "Ouvrez Analytique dans la barre latérale gauche.",
@@ -58,7 +83,9 @@ const STRINGS = {
       "Choisissez la période avec le sélecteur Plage de dates.",
       "Conversations par jour montre les sessions démarrées chaque jour.",
       "Questions utilisateur moy. par session montre l'engagement au sein de chaque session.",
-      "Sessions par jour par catégorie répartit le volume par catégorie de conversation.",
+      "Les catégories se lisent par agent : ouvrez un agent conversationnel dans la barre latérale.",
+      "Cliquez sur la carte Analytique de la page de l'agent.",
+      "Conversations par catégorie classe les catégories par volume. Cliquez sur une ligne pour voir son volume par jour.",
     ],
   },
 } as const
@@ -67,15 +94,19 @@ const s = STRINGS[lang]
 
 const conv = [40, 62, 48, 80, 55, 72, 90]
 const avg = [55, 40, 68, 50, 75, 60, 82]
-const cat = [
-  { p: 40, r: 25, su: 20, u: 10 },
-  { p: 30, r: 35, su: 15, u: 12 },
-  { p: 50, r: 20, su: 25, u: 8 },
-  { p: 35, r: 30, su: 30, u: 10 },
-  { p: 55, r: 25, su: 18, u: 14 },
-  { p: 45, r: 40, su: 22, u: 9 },
-  { p: 60, r: 30, su: 28, u: 12 },
+const agentConv = [14, 19, 12, 22, 16, 18, 20]
+const agentAvg = [60, 45, 70, 52, 66, 58, 74]
+// Ranked rows: count, share of the period's conversations, daily sparkline (0-100).
+const ranking = [
+  { key: "support", label: s.catSupport, count: 86, share: "21%", bar: 100, spark: [60, 72, 55, 80, 66, 58, 48] },
+  { key: "pricing", label: s.catPricing, count: 77, share: "19%", bar: 90, spark: [40, 70, 62, 64, 50, 58, 60] },
+  { key: "product", label: s.catProduct, count: 57, share: "14%", bar: 66, spark: [30, 62, 60, 42, 66, 40, 38] },
+  { key: "billing", label: s.catBilling, count: 40, share: "10%", bar: 47, spark: [36, 28, 62, 56, 44, 40, 48] },
 ]
+const uncategorized = { key: "uncat", label: s.catUncat, count: 44, share: "11%", bar: 51, spark: [50, 56, 58, 54, 46, 44, 42] }
+const supportDaily = [62, 80, 50, 90, 70, 66, 54]
+const sparkPoints = (values: number[]) =>
+  values.map((value, index) => `${(index * 100) / (values.length - 1)},${30 - (value * 26) / 100}`).join(" ")
 
 const steps = [
   { page: "overview", nav: "", spot: "navAnalytics", observe: [] },
@@ -84,7 +115,9 @@ const steps = [
   { page: "dashboard", nav: "analytics", spot: "pillDate", observe: [] },
   { page: "dashboard", nav: "analytics", spot: "", observe: ["obsConv"] },
   { page: "dashboard", nav: "analytics", spot: "", observe: ["obsAvg"] },
-  { page: "dashboard", nav: "analytics", spot: "", observe: ["obsCat"] },
+  { page: "agent", nav: "agent", spot: "navAgent", observe: [] },
+  { page: "agent", nav: "agent", spot: "cardAgentAnalytics", observe: [] },
+  { page: "agentAnalytics", nav: "agent", spot: "rowSupport", observe: ["obsRanking"], expand: true },
 ].map((step, i) => ({ ...step, text: s.steps[i] }))
 
 const labels = { prev: s.prev, next: s.next, step: s.step }
@@ -101,7 +134,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
       <div class="sb-scroll">
         <div class="grp-label">{s.agents}<span class="add"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span></div>
         <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.agent1}</span></div>
-        <div class="navitem"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.conversationAgent}</span></div>
+        <div class="navitem" id="navAgent"><svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg><span>{s.conversationAgent}</span></div>
         <div class="navitem"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8h8"/><path d="M7 12h10"/><path d="M7 16h6"/></svg><span>{s.extractionAgent}</span></div>
         <div class="navitem"><svg viewBox="0 0 24 24"><path d="M4 14h6"/><path d="M4 2h10"/><rect x="4" y="18" width="16" height="4" rx="1"/><rect x="4" y="6" width="16" height="4" rx="1"/></svg><span>{s.formAgent}</span></div>
 
@@ -162,26 +195,57 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
             </div>
           </div>
 
-          <div class="chartcard wide" id="obsCat">
-            <div class="ch-head"><b>{s.catTitle}</b><p>{s.catDesc}</p></div>
-            <div class="stack-wrap">
-              <div class="stack-bars">
-                {cat.map((d) => (
-                  <span class="col">
-                    <i class="seg u" style={`height:${d.u}%`}></i>
-                    <i class="seg su" style={`height:${d.su}%`}></i>
-                    <i class="seg r" style={`height:${d.r}%`}></i>
-                    <i class="seg p" style={`height:${d.p}%`}></i>
-                  </span>
-                ))}
-              </div>
-              <div class="legend">
-                <span class="lg"><i class="dot p"></i>{s.catProduct}</span>
-                <span class="lg"><i class="dot r"></i>{s.catPricing}</span>
-                <span class="lg"><i class="dot su"></i>{s.catSupport}</span>
-                <span class="lg"><i class="dot u"></i>{s.catUncat}</span>
-              </div>
+        </div>
+
+        <!-- agent page (steps 7-8) -->
+        <div class="page" data-page="agent">
+          <div class="page-head">
+            <span class="back"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.conversationAgent}</span><span class="desc inline">{s.agentType} <svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg></span></span>
+          </div>
+          <div class="cards3">
+            <div class="ecard muted"><b>{s.newChatTitle}</b><p>{s.newChatDesc}</p><span class="btn-sm">{s.newChatButton}</span></div>
+            <div class="ecard" id="cardAgentAnalytics"><b>{s.agentAnalyticsTitle}</b><p>{s.agentAnalyticsDesc}</p><div class="minibars"><i style="height:40%"></i><i style="height:65%"></i><i style="height:45%"></i><i style="height:80%"></i><i style="height:55%"></i><i style="height:70%"></i><i style="height:90%"></i></div></div>
+            <div class="ecard"><b>{s.feedbackTitle}</b><p>{s.feedbackDesc}</p><span class="arrowbtn"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+          </div>
+        </div>
+
+        <!-- agent analytics (step 9) -->
+        <div class="page" data-page="agentAnalytics">
+          <div class="page-head">
+            <span class="back"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.agentPageTitle}</span><span class="desc inline">{s.conversationAgent} • {s.agentType} <svg viewBox="0 0 24 24"><path d="M12 6V2H8"/><path d="m8 18-4 4V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2Z"/><path d="M9 11v2"/><path d="M15 11v2"/></svg></span></span>
+            <span class="right"><span class="pill"><svg viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg> {s.dateRange}</span></span>
+          </div>
+
+          <div class="chart-grid compact">
+            <div class="chartcard">
+              <div class="ch-head"><b>{s.convTitle}</b><p>{s.agentConvDesc}</p></div>
+              <div class="bars">{agentConv.map((h) => <i style={`height:${h * 4}%`}></i>)}</div>
             </div>
+            <div class="chartcard">
+              <div class="ch-head"><b>{s.avgTitle}</b><p>{s.agentAvgDesc}</p></div>
+              <div class="bars">{agentAvg.map((h) => <i style={`height:${h}%`}></i>)}</div>
+            </div>
+          </div>
+
+          <div class="chartcard rank" id="obsRanking">
+            <div class="ch-head"><b>{s.catTitle}</b><p>{s.catDesc}</p></div>
+            <div class="rk-head"><span>{s.colCategory}</span><span class="num">{s.colConversations}</span><span class="num">{s.colShare}</span><span>{s.colTrend}</span><span></span></div>
+            {[...ranking, uncategorized].map((row) => (
+              <div class:list={["rk-group", row.key === "uncat" && "uncat"]}>
+                <div class="rk-row" id={row.key === "support" ? "rowSupport" : undefined}>
+                  <span class="rk-name"><span>{row.label}</span><i class="rk-bar"><i style={`width:${row.bar}%`}></i></i></span>
+                  <span class="num strong">{row.count}</span>
+                  <span class="num mutedtx">{row.share}</span>
+                  <svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none"><polyline points={sparkPoints(row.spark)} /></svg>
+                  <svg class="rchev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                </div>
+                {row.key === "support" && (
+                  <div class="rk-detail"><div class="bars">{supportDaily.map((h) => <i style={`height:${h}%`}></i>)}</div></div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -235,6 +299,8 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
     stepCount.textContent = labels.step + " " + (idx + 1) + " / " + steps.length
     capText.textContent = step.text
     q("#navAnalytics").classList.toggle("on", step.nav === "analytics")
+    q("#navAgent").classList.toggle("on", step.nav === "agent")
+    q("#rowSupport").parentElement.classList.remove("open")
 
     clearMarks()
     const active = idx
@@ -242,6 +308,15 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
       if (active !== idx) return
       if (step.spot) q("#" + step.spot)?.classList.add("spot-on")
       step.observe.forEach((id) => q("#" + id)?.classList.add("observe-on"))
+      const page = pages.find((p) => p.dataset.page === step.page)
+      const target = step.observe[0] && q("#" + step.observe[0])
+      if (page) page.scrollTop = target ? target.offsetTop - 12 : 0
+      if (step.expand) setTimeout(() => {
+        if (active !== idx) return
+        q("#rowSupport").parentElement.classList.add("open")
+        // The open row grows the page: scroll again once it has room to.
+        setTimeout(() => { if (active === idx && page && target) page.scrollTop = target.offsetTop - 12 }, 450)
+      }, 900)
     }, 260)
 
     bar.classList.remove("run"); void bar.offsetWidth
@@ -271,7 +346,6 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
     --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --destructive: oklch(0.577 0.245 27.325);
     --sidebar: oklch(0.985 0 0); --sidebar-foreground: oklch(0.145 0 0);
     --sidebar-accent: oklch(0.97 0 0); --sidebar-accent-foreground: oklch(0.205 0 0); --sidebar-border: oklch(0.922 0 0);
-    --cat-product: var(--primary); --cat-pricing: oklch(0.62 0.13 250); --cat-support: oklch(0.66 0.14 160); --cat-uncat: oklch(0.72 0 0);
     --radius: 0.625rem;
     --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
     --spot: color-mix(in oklab, var(--primary) 55%, transparent);
@@ -316,6 +390,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
 
   .anw .page { position: absolute; inset: 0; padding: 1.1rem 1.2rem; overflow: auto; opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease, transform 0.4s ease; pointer-events: none; }
   .anw .page[data-active="true"] { opacity: 1; transform: none; pointer-events: auto; }
+  .anw .page[data-page="agentAnalytics"] { scroll-behavior: smooth; }
 
   .anw .spot-on { position: relative; z-index: 7; animation: anw-spot 1.4s ease-in-out infinite; border-radius: 8px; }
   @keyframes anw-spot { 0%,100% { box-shadow: 0 0 0 0 var(--spot); } 50% { box-shadow: 0 0 0 6px color-mix(in oklab, var(--primary) 8%, transparent), 0 0 0 2px var(--spot); } }
@@ -353,18 +428,37 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   .anw .bars { display: flex; align-items: flex-end; gap: 5px; height: 90px; }
   .anw .bars i { flex: 1; background: var(--primary); border-radius: 3px 3px 0 0; opacity: 0.88; }
 
-  .anw .chartcard.wide .stack-wrap { display: flex; flex-direction: column; gap: 0.7rem; }
-  .anw .stack-bars { display: flex; align-items: flex-end; gap: 8px; height: 150px; margin-top: 0.7rem; }
-  .anw .stack-bars .col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
-  .anw .stack-bars .seg { display: block; width: 100%; }
-  .anw .stack-bars .col .seg:first-child { border-radius: 3px 3px 0 0; }
-  .anw .seg.p, .anw .dot.p { background: var(--cat-product); }
-  .anw .seg.r, .anw .dot.r { background: var(--cat-pricing); }
-  .anw .seg.su, .anw .dot.su { background: var(--cat-support); }
-  .anw .seg.u, .anw .dot.u { background: var(--cat-uncat); }
-  .anw .legend { display: flex; flex-wrap: wrap; gap: 0.8rem; }
-  .anw .legend .lg { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.74rem; color: var(--muted-foreground); }
-  .anw .legend .dot { width: 0.7rem; height: 0.7rem; border-radius: 3px; display: inline-block; }
+  .anw .chart-grid.compact .bars { height: 56px; }
+  .anw .back { color: var(--muted-foreground); font-size: 1.05rem; margin-top: 0.2rem; }
+  .anw .desc.inline { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .anw .ecard.muted { background: color-mix(in oklab, var(--muted) 35%, var(--card)); }
+  .anw .btn-sm { margin-top: auto; align-self: flex-start; background: var(--primary); color: var(--primary-foreground); border-radius: 8px; padding: 0.35rem 0.6rem; font-size: 0.74rem; font-weight: 500; }
+
+  .anw .rank { padding-bottom: 0.4rem; }
+  .anw .rk-head, .anw .rk-row { display: grid; grid-template-columns: minmax(0, 1fr) 5.5rem 3.5rem 6rem 1rem; gap: 0.9rem; align-items: center; padding: 0.4rem 0.5rem; }
+  .anw .rk-head { font-size: 0.68rem; color: var(--muted-foreground); margin-top: 0.6rem; }
+  .anw .rk-group { border-bottom: 1px solid color-mix(in oklab, var(--border) 50%, transparent); }
+  .anw .rk-group:last-child { border-bottom: 0; }
+  .anw .rk-group.uncat { border-top: 1px solid var(--border); margin-top: 0.2rem; }
+  .anw .rk-row { font-size: 0.8rem; border-radius: 7px; }
+  .anw .rk-group.open .rk-row { background: color-mix(in oklab, var(--muted) 50%, transparent); }
+  .anw .rk-name { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
+  .anw .rk-bar { display: block; height: 4px; border-radius: 999px; background: var(--muted); }
+  .anw .rk-bar i { display: block; height: 4px; border-radius: 999px; background: var(--primary); }
+  .anw .uncat .rk-name > span, .anw .uncat .mutedtx { color: var(--muted-foreground); }
+  .anw .uncat .rk-bar i { background: var(--muted-foreground); }
+  .anw .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .anw .strong { font-weight: 600; }
+  .anw .mutedtx { color: var(--muted-foreground); }
+  .anw .spark { width: 100%; height: 1.5rem; overflow: visible; }
+  .anw .spark polyline { fill: none; stroke: var(--primary); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+  .anw .uncat .spark polyline { stroke: var(--muted-foreground); }
+  .anw .rchev { color: var(--muted-foreground); font-size: 0.9rem; transition: transform 0.3s; }
+  .anw .rk-group.open .rchev { transform: rotate(180deg); }
+  .anw .rk-detail { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.4s ease; }
+  .anw .rk-detail > .bars { overflow: hidden; min-height: 0; height: auto; padding: 0 0.5rem; }
+  .anw .rk-group.open .rk-detail { grid-template-rows: 1fr; }
+  .anw .rk-group.open .rk-detail > .bars { height: 80px; padding: 0.5rem; }
 
   .anw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
   .anw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
@@ -386,8 +480,11 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
     .anw .sb { display: none; }
     .anw .inset { margin: 0.5rem; }
     .anw .cards3, .anw .chart-grid { grid-template-columns: 1fr; }
+    .anw .rk-head, .anw .rk-row { grid-template-columns: minmax(0, 1fr) 4.5rem 3rem 1rem; }
+    .anw .rk-head span:nth-child(4), .anw .spark { display: none; }
   }
   @media (prefers-reduced-motion: reduce) {
     .anw .page, .anw .spot-on, .anw .progress i { transition: none !important; animation: none !important; }
+    .anw .page, .anw .rk-detail, .anw .rchev { scroll-behavior: auto !important; transition: none !important; }
   }
 </style>

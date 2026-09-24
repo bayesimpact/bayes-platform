@@ -4,7 +4,7 @@ highlight: workspace
 description: Use the Admin page to rename your workspace, set the conversation retention policy, and manage the conversation categories that classify conversations in analytics.
 category: guides-team
 order: 3
-updated: 2026-08-28
+updated: 2026-09-24
 ---
 
 import WorkspaceAdminWalkthrough from "@/components/WorkspaceAdminWalkthrough.astro"
@@ -22,8 +22,8 @@ You open it from **Admin** in the left sidebar of **Studio**. It applies to the 
 **Conversation categories** are workspace-level labels (for example *Product*,
 *Pricing*, *Support*) used to **automatically classify** the sessions your
 conversation agents have. Once a conversation agent has categories enabled, its
-sessions are sorted into them, and the totals appear in the **Sessions per day by
-category** chart in [Analytics](/en/analytics). Managing the list of categories
+sessions are sorted into them, and the totals appear in **Conversations by category**
+on that agent's view in [Analytics](/en/analytics). Managing the list of categories
 happens here in Admin; **turning them on for a given agent** happens on that agent's
 **Conversation categories** tab.
 
@@ -111,15 +111,15 @@ this agent's conversations cannot be unchecked.** Click **Save**. (See
   better than many overlapping ones.
 - Tick **Also enable for all existing conversation agents** when a category should
   apply everywhere, to save enabling it agent by agent.
-- After categories are in use, review the **Sessions per day by category** chart in
-  [Analytics](/en/analytics) to see how conversations break down.
+- After categories are in use, open an agent's view in [Analytics](/en/analytics) and
+  read **Conversations by category** to see how its conversations break down.
 
 ## Troubleshooting
 
 - **I don't see the Conversation categories tab on an agent** — the tab only appears on
   **conversation** agents, and only once the workspace has **at least one** category.
   Create a category in Admin first.
-- **The analytics chart shows only Uncategorized** — categories classify sessions only
+- **Conversations by category shows only Uncategorized** — categories classify sessions only
   after they're **enabled on the agent**; enable them on the agent's tab and let new
   sessions come in.
 - **I can't uncheck a category on an agent** — categories already **used** in that

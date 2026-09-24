@@ -1,41 +1,55 @@
 ---
 title: Analytics
 highlight: Analytics
-description: Read your workspace's conversation analytics — daily conversations, average questions per session, and sessions by category — and filter by agent and date range.
+description: Read your workspace's conversation analytics, daily conversations and average questions per session, then open an agent's analytics to see its conversations ranked by category.
 category: guides-eval
 order: 1
-updated: 2026-07-22
+updated: 2026-09-24
 ---
 
 import AnalyticsWalkthrough from "@/components/AnalyticsWalkthrough.astro"
 
-**Analytics** shows how your agents are being used. It's a read-only dashboard of
-**conversation metrics** for your workspace — how many conversations happen, how
-engaged users are, and how sessions break down by category — that you can filter by
-**agent** and by **date range**.
+**Analytics** shows how your agents are being used. It's a read-only view of
+**conversation metrics**: how many conversations happen, how engaged users are, and,
+for each agent, which **conversation categories** come up most.
 
-You open it from **Analytics** in the left sidebar of **Studio**. The dashboard
-covers the whole **workspace**; each conversation agent also has its own Analytics
-view, reached from the agent's page.
+You open the workspace dashboard from **Analytics** in the left sidebar of
+**Studio**. It covers the whole **workspace** and can be filtered by **agent** and
+**date range**. Each conversation agent also has its own Analytics view, opened from
+the **Analytics** card on the agent's page. Categories are shown there, agent by
+agent.
 
 > **Optional feature — ask to have it enabled.** Analytics is turned on per
 > workspace. If you don't see **Analytics** in the Studio sidebar, the feature isn't
 > enabled for your workspace yet — contact the Bayes team to request it.
 
-## What the dashboard shows
+## What the dashboards show
 
-The page has a **filter row** at the top right and three charts:
+The **workspace dashboard** has a **filter row** at the top right and two charts:
 
-- **Conversations per day** — the number of conversational sessions started each
-  day.
-- **Avg. user questions per session** — the average number of user messages per
+- **Conversations per day**: the number of conversational sessions started each day,
+  with **Total conversations** as the headline number.
+- **Avg. user questions per session**: the average number of user messages per
   session, per day.
-- **Sessions per day by category** — a stacked bar chart splitting daily session
-  volume by **conversation category**.
 
-Each chart shows a headline number and a bar chart over the selected period. The
-charts read the sessions your agents have had, so a brand-new workspace with no
-conversations yet will show empty or zero data.
+The **agent's Analytics view** shows the same two charts for that agent, then
+**Conversations by category**: a list of the agent's categories ranked by
+conversation volume over the period. Each row shows:
+
+- the category name, with a bar comparing its volume to the other categories;
+- **Conversations**: the number of conversations in that category;
+- **Share**: the share of the period's conversations that fall in that category. A
+  conversation can have several categories, so the shares can add up to more than
+  100%;
+- **Trend**: a small curve of the category's daily volume over the period.
+
+Conversations without a category are grouped in an **Uncategorized** row, shown in
+grey at the bottom of the list. Click any row to open its daily volume as a bar
+chart.
+
+The charts read the sessions your agents have had, including conversations held in
+the embedded chat, so a brand-new workspace with no conversations yet will show empty
+or zero data.
 
 ## The full flow at a glance
 
@@ -75,35 +89,54 @@ each day, with **Total conversations** as the headline number for the period.
 ### 6. Avg. user questions per session
 
 The **Avg. user questions per session** chart shows the average number of user
-messages per session — a measure of how much back-and-forth each conversation
+messages per session, a measure of how much back-and-forth each conversation
 involves.
 
-### 7. Sessions per day by category
+### 7. Open a conversation agent
 
-The **Sessions per day by category** chart stacks each day's sessions by
-conversation category, with a color-coded **legend**. Sessions without a category
-appear as **Uncategorized**. With **All agents** selected, categories are combined
-across every agent.
+Categories are read agent by agent. In the **Agents** list of the sidebar, click a
+conversation agent. Its page opens with three cards: **New Chat**, **Analytics** and
+**Feedback**.
+
+### 8. Open the agent's Analytics
+
+Click the **Analytics** card (*Conversation metrics for this agent.*). The **Agent
+analytics** page opens, with the agent's name and type under the title and a **Date
+range** picker at the top right. It shows **Conversations per day** and **Avg. user
+questions per session** for this agent.
+
+### 9. Read Conversations by category
+
+Scroll down to **Conversations by category**. The categories are ranked from the
+most to the least frequent, with their **Conversations**, **Share** and **Trend**.
+**Uncategorized** sits apart at the bottom. Click a row to open that category's daily
+volume below it; hover a bar to see the date and the number of conversations. Click
+the row again to close it.
 
 ## Tips
 
-- Start with **All agents** for the big picture, then filter to one agent to spot
-  which agents drive the most activity.
-- Compare periods by changing the **Date range** — for example this week vs. last
+- Start with **All agents** on the workspace dashboard for the big picture, then
+  filter to one agent to spot which agents drive the most activity.
+- Compare periods by changing the **Date range**, for example this week and then last
   week.
-- The **by category** chart is most useful once your conversation agents use
-  categories; otherwise most sessions fall under **Uncategorized**.
-- Each **conversation agent** also has its own Analytics view (from the agent's
-  page) if you want to drill into a single agent.
+- On an agent's view, a category whose **Trend** rises at the end of the period is
+  worth a look even if it is low in the ranking.
+- A large **Uncategorized** row means the agent's categories don't cover what users
+  talk about. Review them in [Admin](/en/workspace-admin).
 
 ## Troubleshooting
 
 - **I don't see Analytics in the sidebar** — Analytics is an optional feature; it
   may not be enabled for your workspace. Ask your workspace **Owner** or an **Admin**
   if it's missing.
+- **I don't see the Analytics card on an agent's page** — the card only appears on
+  **conversation** agents, and only for people who can manage the agent.
+- **I don't see Conversations by category on the agent's view** — the list only
+  appears once conversation categories are enabled on that agent. Enable them on
+  the agent's **Conversation categories** tab.
 - **The charts are empty** — there may be no conversations in the selected period.
   Widen the **Date range**, or check that the selected agent has had sessions.
-- **Everything is Uncategorized** — categories come from your conversation agents'
-  configuration; sessions are only split out once agents assign categories.
+- **Everything is Uncategorized** — sessions are only sorted into categories once
+  the agent has categories enabled; earlier sessions stay **Uncategorized**.
 - **The dates look English** — chart date labels are currently shown in a fixed
   English format regardless of the interface language.

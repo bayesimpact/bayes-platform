@@ -4,7 +4,7 @@ highlight: espace de travail
 description: Utilisez la page Admin pour renommer votre espace de travail, régler la politique de conservation des conversations et gérer les catégories de conversation qui classent les conversations dans l'analytique.
 category: guides-team
 order: 3
-updated: 2026-08-28
+updated: 2026-09-24
 ---
 
 import WorkspaceAdminWalkthrough from "@/components/WorkspaceAdminWalkthrough.astro"
@@ -25,7 +25,7 @@ Les **catégories de conversation** sont des étiquettes au niveau de l'espace d
 travail (par exemple *Product*, *Pricing*, *Support*) utilisées pour **classer
 automatiquement** les sessions de vos agents conversationnels. Une fois les catégories
 activées sur un agent conversationnel, ses sessions y sont réparties, et les totaux
-apparaissent dans le graphique **Sessions par jour par catégorie** de
+apparaissent dans **Conversations par catégorie**, sur la vue de cet agent dans
 l'[Analytique](/fr/analytics). La **gestion de la liste** des catégories se fait ici,
 dans Admin ; leur **activation sur un agent donné** se fait dans l'onglet **Catégories
 de conversation** de cet agent.
@@ -122,16 +122,16 @@ peuvent pas être décochées.** Cliquez sur **Enregistrer**. (Voir
   classent mieux que de nombreuses catégories qui se recoupent.
 - Cochez **Activer également pour tous les agents conversationnels existants** quand
   une catégorie doit s'appliquer partout, pour éviter de l'activer agent par agent.
-- Une fois les catégories utilisées, consultez le graphique **Sessions par jour par
-  catégorie** de l'[Analytique](/fr/analytics) pour voir la répartition des
-  conversations.
+- Une fois les catégories utilisées, ouvrez la vue d'un agent dans
+  l'[Analytique](/fr/analytics) et lisez **Conversations par catégorie** pour voir la
+  répartition de ses conversations.
 
 ## Dépannage
 
 - **Je ne vois pas l'onglet Catégories de conversation sur un agent** — l'onglet
   n'apparaît que sur les agents **conversationnels**, et seulement lorsque l'espace de
   travail a **au moins une** catégorie. Créez d'abord une catégorie dans Admin.
-- **Le graphique d'analytique n'affiche que Non catégorisé** — les catégories ne
+- **Conversations par catégorie n'affiche que Non catégorisé** — les catégories ne
   classent les sessions qu'une fois **activées sur l'agent** ; activez-les dans
   l'onglet de l'agent et laissez arriver de nouvelles sessions.
 - **Je ne peux pas décocher une catégorie sur un agent** — les catégories déjà
