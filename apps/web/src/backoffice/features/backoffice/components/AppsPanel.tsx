@@ -98,78 +98,75 @@ function WithData() {
     })
   }, [manifests, searchInput])
 
-  const columns = useMemo<ColumnDef<AppManifest>[]>(
-    () => [
-      {
-        accessorKey: "name",
-        header: () => <span className="text-muted-foreground">App</span>,
-        cell: ({ row }) => (
-          <div className="flex items-center gap-3">
-            <AppLogo src={row.original.logoUrl} />
-            <div className="flex min-w-0 flex-col">
-              <span className="font-medium">{row.original.name}</span>
-              <span className="text-xs text-muted-foreground">{row.original.slug}</span>
-            </div>
+  const columns: ColumnDef<AppManifest>[] = [
+    {
+      accessorKey: "name",
+      header: () => <span className="text-muted-foreground">App</span>,
+      cell: ({ row }) => (
+        <div className="flex items-center gap-3">
+          <AppLogo src={row.original.logoUrl} />
+          <div className="flex min-w-0 flex-col">
+            <span className="font-medium">{row.original.name}</span>
+            <span className="text-xs text-muted-foreground">{row.original.slug}</span>
           </div>
-        ),
-      },
-      {
-        accessorKey: "grantablePermissions",
-        header: () => <span className="text-muted-foreground">Grantable permissions</span>,
-        cell: ({ row }) => {
-          const groups = groupAppGrantablePermissions(row.original.grantablePermissions)
-          if (groups.length === 0) {
-            return <span className="text-sm text-muted-foreground">None</span>
-          }
-          return (
-            <div
-              className="grid gap-4"
-              style={{
-                gridTemplateColumns: `repeat(${groups.length}, minmax(6rem, max-content))`,
-              }}
-            >
-              {groups.map((group) => (
-                <span key={group.resourceType} className="text-sm">
-                  <span className="text-muted-foreground">{group.label}: </span>
-                  {group.permissions
-                    .map((permission) => appGrantablePermissionActionLabel(permission))
-                    .join(", ")}
-                </span>
-              ))}
-            </div>
-          )
-        },
-      },
-      {
-        id: "actions",
-        header: () => null,
-        cell: ({ row }) => (
-          <div className="flex items-center justify-end gap-1">
-            <AppCliInstallButton name={row.original.name} slug={row.original.slug} />
-            <Button
-              type="button"
-              size="icon-sm"
-              variant="ghost"
-              onClick={() => setDialog({ kind: "edit", manifest: row.original })}
-              aria-label={`Edit ${row.original.name}`}
-            >
-              <PencilIcon className="size-4" />
-            </Button>
-            <Button
-              type="button"
-              size="icon-sm"
-              variant="ghost"
-              onClick={() => setDialog({ kind: "delete", manifest: row.original })}
-              aria-label={`Delete ${row.original.name}`}
-            >
-              <Trash2Icon className="size-4" />
-            </Button>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "grantablePermissions",
+      header: () => <span className="text-muted-foreground">Grantable permissions</span>,
+      cell: ({ row }) => {
+        const groups = groupAppGrantablePermissions(row.original.grantablePermissions)
+        if (groups.length === 0) {
+          return <span className="text-sm text-muted-foreground">None</span>
+        }
+        return (
+          <div
+            className="grid gap-4"
+            style={{
+              gridTemplateColumns: `repeat(${groups.length}, minmax(6rem, max-content))`,
+            }}
+          >
+            {groups.map((group) => (
+              <span key={group.resourceType} className="text-sm">
+                <span className="text-muted-foreground">{group.label}: </span>
+                {group.permissions
+                  .map((permission) => appGrantablePermissionActionLabel(permission))
+                  .join(", ")}
+              </span>
+            ))}
           </div>
-        ),
+        )
       },
-    ],
-    [],
-  )
+    },
+    {
+      id: "actions",
+      header: () => null,
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-1">
+          <AppCliInstallButton name={row.original.name} slug={row.original.slug} />
+          <Button
+            type="button"
+            size="icon-sm"
+            variant="ghost"
+            onClick={() => setDialog({ kind: "edit", manifest: row.original })}
+            aria-label={`Edit ${row.original.name}`}
+          >
+            <PencilIcon className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            size="icon-sm"
+            variant="ghost"
+            onClick={() => setDialog({ kind: "delete", manifest: row.original })}
+            aria-label={`Delete ${row.original.name}`}
+          >
+            <Trash2Icon className="size-4" />
+          </Button>
+        </div>
+      ),
+    },
+  ]
 
   const table = useReactTable({
     data: filteredManifests,
