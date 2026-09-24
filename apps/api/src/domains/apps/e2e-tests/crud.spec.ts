@@ -10,6 +10,7 @@ import {
 } from "@/common/test/test-database"
 import { APP_INSTALLATION_STATUS_ACTIVE } from "@/domains/apps/app-installation.entity"
 import { appInstallationFactory } from "@/domains/apps/app-installation.factory"
+import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
 import {
   createOrganizationWithOwner,
   createOrganizationWithProject,
@@ -33,7 +34,11 @@ describe("Apps - CRUD", () => {
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [AppsModule, RbacModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) =>
+        setupUserGuardForTesting(
+          withDocumentEmbeddingsBatchServiceMock(moduleBuilder),
+          () => auth0Id,
+        ),
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()

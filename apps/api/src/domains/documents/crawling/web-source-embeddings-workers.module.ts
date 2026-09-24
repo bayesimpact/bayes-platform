@@ -6,6 +6,7 @@ import { getBullMqConnection } from "@/bullmq.config"
 import { ALL_ENTITIES } from "@/common/all-entities"
 import { DocumentsService } from "../documents.service"
 import { DocumentEmbeddingStatusNotifierService } from "../embeddings/document-embedding-status-notifier.service"
+import { DocumentEmbeddingsBatchModule } from "../embeddings/document-embeddings-batch.module"
 import { DocumentEmbeddingsSharedService } from "../embeddings/document-embeddings-shared.service"
 import { PdfPagesModule } from "../pdf-pages/pdf-pages.module"
 import { StorageModule } from "../storage/storage.module"
@@ -29,6 +30,7 @@ import { WebSourceEmbeddingsQueueMetricsService } from "./web-source-embeddings-
     TypeOrmModule.forFeature(ALL_ENTITIES),
     StorageModule,
     PdfPagesModule,
+    DocumentEmbeddingsBatchModule,
   ],
   providers: [
     WebSourceEmbeddingsWorker,

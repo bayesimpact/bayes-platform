@@ -91,7 +91,7 @@ Target shape: `Conversation retention: conversations are now kept 30 days by def
 
 ## Working in a Worktree (Claude Code)
 
-Claude Code worktrees live under `.claude/worktrees/`. Gitignored config (`.env`, `.env.test`, root `dontsave/*.json`) is copied in automatically via `.worktreeinclude`. In a fresh worktree:
+Claude Code worktrees live under `.claude/worktrees/`. Gitignored config (`.env`, `.env.test`, root `dontsave/*.json`, `apps/api/.certs/*.pem`) is copied in automatically via `.worktreeinclude`. In a fresh worktree:
 
 1. Run `npm ci` at the worktree root before anything else. Never `npm install` — it rewrites `package-lock.json` with cosmetic peer-flag churn that pollutes the diff.
 2. Postgres and Redis (`infra/database` compose stack) are shared with the main checkout through localhost ports. Do not start a second stack, and remember that schema/migration changes hit the shared database.

@@ -9,6 +9,7 @@ import { DocumentTagsService } from "../tags/document-tags.service"
 import { DocumentEmbeddingStatusNotifierService } from "./document-embedding-status-notifier.service"
 import { DOCUMENT_EMBEDDINGS_QUEUE_NAME } from "./document-embeddings.constants"
 import { DocumentEmbeddingsWorker } from "./document-embeddings.worker"
+import { DocumentEmbeddingsBatchModule } from "./document-embeddings-batch.module"
 import { DocumentEmbeddingsProcessorService } from "./document-embeddings-processor.service"
 import { DocumentEmbeddingsSharedService } from "./document-embeddings-shared.service"
 import { DocumentTextExtractorService } from "./document-text-extractor.service"
@@ -22,6 +23,7 @@ import { QueueMetricsService } from "./queue-metrics.service"
     TypeOrmModule.forFeature(ALL_ENTITIES),
     StorageModule,
     PdfPagesModule,
+    DocumentEmbeddingsBatchModule,
   ],
   providers: [
     DocumentEmbeddingsWorker,
