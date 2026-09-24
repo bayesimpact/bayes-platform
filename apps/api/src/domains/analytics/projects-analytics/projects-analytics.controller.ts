@@ -5,14 +5,8 @@ import { getRequiredConnectScope } from "@/common/context/request-context.helper
 import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
-import {
-  toAnalyticsCategoryDailyPointDto,
-  toAnalyticsDailyPointDto,
-} from "@/domains/analytics/shared/analytics-dto.helpers"
-import type {
-  AnalyticsCategoryDailyPoint,
-  AnalyticsDailyPoint,
-} from "@/domains/analytics/shared/analytics-metrics.types"
+import { toAnalyticsDailyPointDto } from "@/domains/analytics/shared/analytics-dto.helpers"
+import type { AnalyticsDailyPoint } from "@/domains/analytics/shared/analytics-metrics.types"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 import { ProjectsAnalyticsGuard } from "./projects-analytics.guard"
@@ -60,24 +54,5 @@ export class ProjectsAnalyticsController {
       })
 
     return { data: toAnalyticsDailyPointDto(avgUserQuestionsPerSessionPerDay) }
-  }
-
-  @Get(Routes.getConversationsByCategoryPerAgentPerDay.path)
-  @CheckPolicy((policy) => policy.canList())
-  async getConversationsByCategoryPerAgentPerDay(
-    @Req() request: EndpointRequestWithProject,
-    @Query("startAt", ParseIntPipe) startAt: number,
-    @Query("endAt", ParseIntPipe) endAt: number,
-    @Query("agentId", new ParseUUIDPipe({ optional: true })) agentId?: string,
-  ): Promise<typeof Routes.getConversationsByCategoryPerAgentPerDay.response> {
-    const conversationsByCategoryPerDay: AnalyticsCategoryDailyPoint[] =
-      await this.projectsAnalyticsService.getConversationsByCategoryPerAgentPerDay({
-        connectScope: getRequiredConnectScope(request),
-        agentId,
-        startAt,
-        endAt,
-      })
-
-    return { data: toAnalyticsCategoryDailyPointDto(conversationsByCategoryPerDay) }
   }
 }

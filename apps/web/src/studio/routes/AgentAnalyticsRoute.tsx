@@ -21,8 +21,8 @@ import {
   selectAgentAnalyticsConversationsPerDay,
 } from "@/studio/features/analytics/agent/agent-analytics.selectors"
 import { loadAgentAnalytics } from "@/studio/features/analytics/agent/agent-analytics.thunks"
+import { CategoryRankingCard } from "@/studio/features/analytics/agent/components/CategoryRankingCard"
 import { dateRangeToAnalyticsQueryBounds } from "@/studio/features/analytics/project/analytics-date-range"
-import { ProjectCategoryChartCard } from "@/studio/features/analytics/project/components/ProjectCategoryChartCard"
 import { AsyncRoute } from "../../common/routes/AsyncRoute"
 import { ErrorRoute } from "../../common/routes/ErrorRoute"
 
@@ -140,10 +140,10 @@ function WithData({
         </div>
 
         {hasConfiguredCategoryTaxonomy ? (
-          <ProjectCategoryChartCard
+          <CategoryRankingCard
             points={categoryPoints}
+            conversationTotal={sumDailyMetricValues(conversationsPoints)}
             allDates={conversationsPoints.map((point) => point.date)}
-            selectedAgentId={agent.id}
             title={t("categoriesChart.title")}
             description={t("categoriesChart.description")}
             noDataState={t("categoriesChart.noDataState")}

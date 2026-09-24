@@ -11,6 +11,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) Installed apps can add a text document to their project.
 
 ### Changed
+- Analytics: conversation categories now show per agent, ranked by volume with their share and daily trend.
 
 ### Fixed
 - Analytics: conversations and questions per session now include conversations held in the embedded chat.

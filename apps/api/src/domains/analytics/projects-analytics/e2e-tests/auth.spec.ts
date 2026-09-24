@@ -24,7 +24,6 @@ describe("Projects Analytics - Auth", () => {
 
   let organizationId: string | null = RandomUuid.Organization
   let projectId: string | null = RandomUuid.Project
-  let categoryAgentId = randomUUID()
   let accessToken: string | null = "token"
   let auth0Id = `auth0|${randomUUID()}`
 
@@ -48,7 +47,6 @@ describe("Projects Analytics - Auth", () => {
     await clearTestDatabase(setup.dataSource)
     organizationId = RandomUuid.Organization
     projectId = RandomUuid.Project
-    categoryAgentId = randomUUID()
     accessToken = "token"
     auth0Id = `auth0|${randomUUID()}`
   })
@@ -65,7 +63,6 @@ describe("Projects Analytics - Auth", () => {
     })
     organizationId = organization.id
     projectId = project.id
-    categoryAgentId = randomUUID()
     accessToken = "token"
     return { organization, project, user }
   }
@@ -91,26 +88,16 @@ describe("Projects Analytics - Auth", () => {
       query: analyticsDateRangeQuery,
     })
 
-  const subjectByCategoryPerDay = async () =>
-    request({
-      route: AnalyticsRoutes.getConversationsByCategoryPerAgentPerDay,
-      pathParams: removeNullish({ organizationId, projectId }),
-      token: accessToken ?? undefined,
-      query: { ...analyticsDateRangeQuery, agentId: categoryAgentId },
-    })
-
   it("requires an authentication token", async () => {
     accessToken = null
     expectResponse(await subjectConversations(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     expectResponse(await subjectAvg(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
-    expectResponse(await subjectByCategoryPerDay(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
   })
 
   it("requires a valid organization ID", async () => {
     organizationId = null
     expectResponse(await subjectConversations(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     expectResponse(await subjectAvg(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
-    expectResponse(await subjectByCategoryPerDay(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
   })
 
   it("requires the user to be a member of the organization", async () => {
@@ -118,28 +105,24 @@ describe("Projects Analytics - Auth", () => {
     auth0Id = mockForeignAuth0Id()
     expectResponse(await subjectConversations(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     expectResponse(await subjectAvg(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
-    expectResponse(await subjectByCategoryPerDay(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
   })
 
   it("allows admins to list analytics for a project", async () => {
     await createContextForRole("admin")
     expectResponse(await subjectConversations(), 200)
     expectResponse(await subjectAvg(), 200)
-    expectResponse(await subjectByCategoryPerDay(), 200)
   })
 
   it("allows owners to list analytics for a project", async () => {
     await createContextForRole("owner")
     expectResponse(await subjectConversations(), 200)
     expectResponse(await subjectAvg(), 200)
-    expectResponse(await subjectByCategoryPerDay(), 200)
   })
 
   it("doesn't allow members to list analytics for a project", async () => {
     await createContextForRole("member")
     expectResponse(await subjectConversations(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await subjectAvg(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-    expectResponse(await subjectByCategoryPerDay(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 
   it("requires an existing project ID", async () => {
@@ -147,6 +130,5 @@ describe("Projects Analytics - Auth", () => {
     projectId = randomUUID()
     expectResponse(await subjectConversations(), 404)
     expectResponse(await subjectAvg(), 404)
-    expectResponse(await subjectByCategoryPerDay(), 404)
   })
 })

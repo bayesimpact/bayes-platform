@@ -13,13 +13,6 @@ export const AnalyticsRoutes = {
     method: "get",
     path: "organizations/:organizationId/projects/:projectId/analytics/avg-user-questions-per-session-per-day",
   }),
-
-  getConversationsByCategoryPerAgentPerDay: defineRoute<
-    ResponseData<AnalyticsCategoryDailyPointDto[]>
-  >({
-    method: "get",
-    path: "organizations/:organizationId/projects/:projectId/analytics/conversations-by-category-per-agent-per-day",
-  }),
 }
 
 /** Per-agent conversation metrics; query: `startAt`, `endAt` — Unix ms. */

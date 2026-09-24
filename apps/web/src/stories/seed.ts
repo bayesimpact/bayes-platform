@@ -335,13 +335,11 @@ export const seed = {
     projectAnalytics(value: {
       conversationsPerDay: AnalyticsDailyPoint[]
       avgUserQuestionsPerSessionPerDay: AnalyticsDailyPoint[]
-      conversationsByCategoryPerDay: AnalyticsCategoryDailyPoint[]
     }): StoryPreloadedState {
       return {
         projectAnalytics: {
           conversationsPerDay: ads.fulfilled(value.conversationsPerDay),
           avgUserQuestionsPerSessionPerDay: ads.fulfilled(value.avgUserQuestionsPerSessionPerDay),
-          conversationsByCategoryPerDay: ads.fulfilled(value.conversationsByCategoryPerDay),
         },
       }
     },

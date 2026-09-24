@@ -7,14 +7,11 @@ import {
 } from "@/common/test/test-database"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
-import { ConversationAgentSessionCategory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity"
-import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messages/agent-messages.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { agentEmbedConfigFactory } from "@/domains/public-chat/agent-embed-configs/agent-embed-config.factory"
 import { publicAgentSessionFactory } from "@/domains/public-chat/public-agent-sessions/public-agent-session.factory"
-import { PublicAgentSessionCategory } from "@/domains/public-chat/public-agent-sessions/public-agent-session-category.entity"
 import { ProjectsAnalyticsModule } from "./projects-analytics.module"
 import { ProjectsAnalyticsService } from "./projects-analytics.service"
 
@@ -313,150 +310,6 @@ describe("ProjectsAnalyticsService", () => {
     })
 
     expect(averages).toEqual([{ date: dayStart.toISOString().slice(0, 10), value: 0 }])
-  })
-
-  it("returns conversations by category per day split by agent", async () => {
-    const day1Start = new Date("2026-05-01T00:00:00.000Z")
-    const day2Start = days(1).after(day1Start)
-    const day2End = endOfUtcDay(day2Start)
-
-    const { organization, project, user } = await createOrganizationWithProject(repositories)
-    const supportAgent = agentFactory
-      .transient({ organization, project })
-      .build({ name: "Support" })
-    const salesAgent = agentFactory.transient({ organization, project }).build({ name: "Sales" })
-    await repositories.agentRepository.save([supportAgent, salesAgent])
-
-    const billingCategory = await setup
-      .getRepository(AgentSessionCategory)
-      .save({ agentId: supportAgent.id, name: "billing" })
-    const onboardingCategory = await setup
-      .getRepository(AgentSessionCategory)
-      .save({ agentId: salesAgent.id, name: "onboarding" })
-
-    const supportDay1 = conversationAgentSessionFactory
-      .transient({ organization, project, agent: supportAgent, user })
-      .build({ createdAt: hours(1).after(day1Start), updatedAt: new Date() })
-    const supportDay2Uncategorized = conversationAgentSessionFactory
-      .transient({ organization, project, agent: supportAgent, user })
-      .build({ createdAt: hours(1).after(day2Start), updatedAt: new Date() })
-    const salesDay2 = conversationAgentSessionFactory
-      .transient({ organization, project, agent: salesAgent, user })
-      .build({ createdAt: hours(2).after(day2Start), updatedAt: new Date() })
-    await repositories.conversationAgentSessionRepository.save([
-      supportDay1,
-      supportDay2Uncategorized,
-      salesDay2,
-    ])
-
-    await setup.getRepository(ConversationAgentSessionCategory).save([
-      { conversationAgentSessionId: supportDay1.id, agentSessionCategoryId: billingCategory.id },
-      { conversationAgentSessionId: salesDay2.id, agentSessionCategoryId: onboardingCategory.id },
-    ])
-
-    // PUBLIC (embed) sessions enter the same aggregation (#616): one
-    // categorized "billing" session on day 1 must SUM with the conversation
-    // one, and one uncategorized public session lands on day 2.
-    const embedConfig = agentEmbedConfigFactory
-      .transient({ organization, project, agent: supportAgent })
-      .build({ isEnabled: true })
-    await repositories.agentEmbedConfigRepository.save(embedConfig)
-    const publicDay1 = publicAgentSessionFactory
-      .transient({ embedConfig })
-      .build({ createdAt: hours(3).after(day1Start), updatedAt: new Date() })
-    const publicDay2Uncategorized = publicAgentSessionFactory
-      .transient({ embedConfig })
-      .build({ createdAt: hours(3).after(day2Start), updatedAt: new Date() })
-    await repositories.publicAgentSessionRepository.save([publicDay1, publicDay2Uncategorized])
-    await setup
-      .getRepository(PublicAgentSessionCategory)
-      .save([{ publicAgentSessionId: publicDay1.id, agentSessionCategoryId: billingCategory.id }])
-
-    const connectScope = { organizationId: organization.id, projectId: project.id, userId: user.id }
-    const supportPoints = await service.getConversationsByCategoryPerAgentPerDay({
-      connectScope,
-      agentId: supportAgent.id,
-      startAt: day1Start.getTime(),
-      endAt: day2End.getTime(),
-    })
-
-    expect(supportPoints).toEqual([
-      {
-        date: day1Start.toISOString().slice(0, 10),
-        agentId: supportAgent.id,
-        agentName: "Support",
-        categoryId: billingCategory.id,
-        categoryName: "billing",
-        // 1 conversation session + 1 public (embed) session, summed.
-        value: 2,
-        isUncategorized: false,
-      },
-      {
-        date: day2Start.toISOString().slice(0, 10),
-        agentId: supportAgent.id,
-        agentName: "Support",
-        categoryName: "uncategorized",
-        // 1 conversation session + 1 public (embed) session, summed.
-        value: 2,
-        isUncategorized: true,
-      },
-    ])
-
-    const salesPoints = await service.getConversationsByCategoryPerAgentPerDay({
-      connectScope,
-      agentId: salesAgent.id,
-      startAt: day1Start.getTime(),
-      endAt: day2End.getTime(),
-    })
-
-    expect(salesPoints).toEqual([
-      {
-        date: day2Start.toISOString().slice(0, 10),
-        agentId: salesAgent.id,
-        agentName: "Sales",
-        categoryId: onboardingCategory.id,
-        categoryName: "onboarding",
-        value: 1,
-        isUncategorized: false,
-      },
-    ])
-
-    const allAgentPoints = await service.getConversationsByCategoryPerAgentPerDay({
-      connectScope,
-      startAt: day1Start.getTime(),
-      endAt: day2End.getTime(),
-    })
-
-    expect(allAgentPoints).toEqual([
-      {
-        date: day1Start.toISOString().slice(0, 10),
-        agentId: supportAgent.id,
-        agentName: "Support",
-        categoryId: billingCategory.id,
-        categoryName: "billing",
-        // conversation + public (embed) session, summed (#616).
-        value: 2,
-        isUncategorized: false,
-      },
-      {
-        date: day2Start.toISOString().slice(0, 10),
-        agentId: salesAgent.id,
-        agentName: "Sales",
-        categoryId: onboardingCategory.id,
-        categoryName: "onboarding",
-        value: 1,
-        isUncategorized: false,
-      },
-      {
-        date: day2Start.toISOString().slice(0, 10),
-        agentId: supportAgent.id,
-        agentName: "Support",
-        categoryName: "uncategorized",
-        // conversation + public (embed) session, summed (#616).
-        value: 2,
-        isUncategorized: true,
-      },
-    ])
   })
 
   it("counts embed sessions in conversations and questions per session", async () => {

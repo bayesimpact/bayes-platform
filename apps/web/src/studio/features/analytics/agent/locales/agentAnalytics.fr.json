@@ -17,10 +17,16 @@
       "metricLabel": "Par jour"
     },
     "categoriesChart": {
-      "title": "Sessions par jour par categorie",
-      "description": "Volume quotidien des sessions, reparti par categorie pour cet agent",
-      "noDataState": "Aucune session categorisee sur cette periode.",
-      "uncategorizedLabel": "Non categorisee"
+      "title": "Conversations par catégorie",
+      "description": "Catégories classées par volume de conversations sur la période pour cet agent. Cliquez sur une ligne pour voir le volume par jour.",
+      "noDataState": "Aucune session catégorisée sur cette période.",
+      "uncategorizedLabel": "Non catégorisé",
+      "columns": {
+        "category": "Catégorie",
+        "conversations": "Conversations",
+        "share": "Part",
+        "trend": "Tendance"
+      }
     }
   }
 }

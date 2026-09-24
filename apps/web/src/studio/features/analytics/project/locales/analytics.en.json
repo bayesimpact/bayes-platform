@@ -19,14 +19,6 @@
       "title": "Avg. user questions per session",
       "description": "Average user messages per session per day",
       "metricLabel": "Per day"
-    },
-    "categoriesChart": {
-      "title": "Sessions per day by category",
-      "description": "Daily session volume, split by category (all agents or selected agent)",
-      "metricLabel": "Total category-session counts",
-      "selectAgentState": "Showing all agents; each chart below is one agent.",
-      "noDataState": "No category session data for this period.",
-      "uncategorizedLabel": "Uncategorized"
     }
   }
 }

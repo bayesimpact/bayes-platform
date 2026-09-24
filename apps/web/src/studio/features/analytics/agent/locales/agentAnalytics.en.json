@@ -17,10 +17,16 @@
       "metricLabel": "Per day"
     },
     "categoriesChart": {
-      "title": "Sessions per day by category",
-      "description": "Daily session volume, split by category for this agent",
+      "title": "Conversations by category",
+      "description": "Categories ranked by conversation volume over the period for this agent. Click a row to see its daily volume.",
       "noDataState": "No categorized sessions found in this date range.",
-      "uncategorizedLabel": "Uncategorized"
+      "uncategorizedLabel": "Uncategorized",
+      "columns": {
+        "category": "Category",
+        "conversations": "Conversations",
+        "share": "Share",
+        "trend": "Trend"
+      }
     }
   }
 }
