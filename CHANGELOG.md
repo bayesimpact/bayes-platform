@@ -13,6 +13,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+- Analytics: conversations and questions per session now include conversations held in the embedded chat.
 
 ### Security
 
@@ -29,7 +30,6 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Session titles and categories are now computed after each reply, reliably on every model.
 
 ### Fixed
-- Analytics: conversations and questions per session now include conversations held in the embedded chat.
 - Forms: an answer already collected is no longer erased when the assistant does not know a later field.
 - (beta) Review campaigns: reviewers see a session's form with the version of the form that collected the answers.
 - Voice input: microphone transcription now follows the interface language, including French set as fr-FR.
