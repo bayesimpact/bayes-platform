@@ -356,6 +356,7 @@ This will start all apps in watch mode using Turbo.
 - **Without HTTPS** (no certs): API at `http://localhost:3000`, web at `http://localhost:5173`
 - **API paths**: the private API is served under `/api` (`/api/healthz`, `/api/organizations/...`) and the public chat API under `/public`. `/public` is the stable public surface: an incompatible change would become `/public/v1`, never a move under `/api`. In the `app` image the web front is served at `/` on the same origin.
 - **PDF converter** (Go): `http://localhost:3002`, with the PDF export MCP endpoint at `/mcp`. Started when Go is installed and `apps/pdf-converter/.env` exists (copy `.env-example`), skipped otherwise. See [apps/pdf-converter/README.md](apps/pdf-converter/README.md).
+- **Apps CLI**: install an app from the terminal with `npx bayes`. See [apps/cli/README.md](apps/cli/README.md).
 
 #### Run Individual Projects
 
