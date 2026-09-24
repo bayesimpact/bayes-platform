@@ -65,24 +65,24 @@ function InstallationInstructionsDialog({
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="sm:max-w-xl">
-        <DialogHeader>
+        <DialogHeader className="min-w-0">
           <DialogTitle>How to use {appName}</DialogTitle>
           <DialogDescription>
             The client secret was shown once when this app was installed. It cannot be retrieved
             later.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           <CopyField label="Client id" value={clientId} />
           <CopyField label="Project id" value={projectId} />
-          <div className="flex flex-col gap-2">
+          <div className="flex min-w-0 flex-col gap-2">
             <div className="flex items-center justify-between gap-2">
               <span className="text-sm font-medium">Commands</span>
               <CopyButton value={commands} label="Copy commands" />
             </div>
-            <pre className="overflow-x-auto rounded-md border bg-muted/50 p-3 font-mono text-xs leading-5">
-              {commands}
-            </pre>
+            <div className="min-w-0 overflow-auto overscroll-contain rounded-md border bg-muted/50">
+              <pre className="w-max p-3 font-mono text-xs leading-5">{commands}</pre>
+            </div>
           </div>
         </div>
       </DialogContent>
