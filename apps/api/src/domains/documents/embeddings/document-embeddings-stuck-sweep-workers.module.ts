@@ -7,6 +7,7 @@ import { PdfPagesModule } from "../pdf-pages/pdf-pages.module"
 import { StorageModule } from "../storage/storage.module"
 import { DocumentTagsService } from "../tags/document-tags.service"
 import { DocumentEmbeddingStatusNotifierService } from "./document-embedding-status-notifier.service"
+import { DocumentEmbeddingsBatchModule } from "./document-embeddings-batch.module"
 import { DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME } from "./document-embeddings-stuck.constants"
 import { DocumentEmbeddingsStuckSweepService } from "./document-embeddings-stuck-sweep.service"
 import { DocumentEmbeddingsStuckSweepWorker } from "./document-embeddings-stuck-sweep.worker"
@@ -20,6 +21,7 @@ import { DocumentEmbeddingsStuckSweepSchedulerService } from "./document-embeddi
     TypeOrmModule.forFeature(ALL_ENTITIES),
     StorageModule,
     PdfPagesModule,
+    DocumentEmbeddingsBatchModule,
   ],
   providers: [
     DocumentEmbeddingsStuckSweepWorker,

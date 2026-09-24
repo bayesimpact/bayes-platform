@@ -7,3 +7,6 @@
 # GCP credentials referenced by apps/api/.env — root dontsave/ only,
 # so infra/database/dontsave/pgdata is never copied
 dontsave/*.json
+# Local HTTPS certs for connect.localhost. Without them Vite and the API
+# listen on HTTP, and https://connect.localhost fails the TLS handshake.
+apps/api/.certs/*.pem

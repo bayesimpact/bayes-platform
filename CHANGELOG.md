@@ -8,6 +8,17 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- (beta) Installed apps can add a text document to their project.
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.09.3] - 2026-09-23
+
+### Added
 - Usage statistics: a read-only analytics schema gives activity per workspace to dashboards, never a user or a conversation.
 - Public chat API: the routes are now versioned under /public/v1/ and documented on the help site.
 - Kubernetes: a Helm chart installs the platform anywhere, with bundled Postgres and Redis.
@@ -29,7 +40,6 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) PDF export: more reliable on large documents, download card in the agent's language, files kept as long as the link works.
 
 ### Security
-- (beta) Installed apps exchange their secret for a short-lived token that cannot open the studio.
 - MCP servers can no longer be enabled or disabled on an agent that belongs to another project.
 - Security updates of dependencies and base images across all services.
 
