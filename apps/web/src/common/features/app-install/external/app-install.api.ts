@@ -1,10 +1,15 @@
 import {
+  type AppInstallationSummaryDto,
   type AppInstallPageDto,
   AppsRoutes,
   type AuthorizeAppInstallResponseDto,
 } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
-import type { AppInstallPage, AuthorizeAppInstallResult } from "../app-install.models"
+import type {
+  AppInstallPage,
+  AuthorizeAppInstallResult,
+  ProjectAppInstallation,
+} from "../app-install.models"
 import type { IAppInstallSpi } from "../app-install.spi"
 
 export default {
@@ -25,6 +30,17 @@ export default {
     )
     return toAuthorizeResult(response.data.data)
   },
+  listForProject: async (projectId) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof AppsRoutes.listForProject.response>(
+      AppsRoutes.listForProject.getPath({ projectId }),
+    )
+    return response.data.data.map(toProjectAppInstallation)
+  },
+  revoke: async (installationId) => {
+    const axios = getAxiosInstance()
+    await axios.post(AppsRoutes.revoke.getPath({ id: installationId }))
+  },
 } satisfies IAppInstallSpi
 
 const toAppInstallPage = (dto: AppInstallPageDto): AppInstallPage => ({
@@ -42,6 +58,15 @@ const toAppInstallPage = (dto: AppInstallPageDto): AppInstallPage => ({
     organizationId: project.organizationId,
     organizationName: project.organizationName,
   })),
+})
+
+const toProjectAppInstallation = (dto: AppInstallationSummaryDto): ProjectAppInstallation => ({
+  id: dto.id,
+  appName: dto.appName,
+  description: dto.description,
+  logoUrl: dto.logoUrl,
+  permissions: dto.permissions,
+  createdAt: dto.createdAt,
 })
 
 const toAuthorizeResult = (dto: AuthorizeAppInstallResponseDto): AuthorizeAppInstallResult => ({

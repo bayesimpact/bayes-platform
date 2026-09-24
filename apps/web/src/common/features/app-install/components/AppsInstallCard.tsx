@@ -23,7 +23,9 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowRightIcon, GlobeIcon, ShieldCheckIcon } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { Trans, useTranslation } from "react-i18next"
+import { Link } from "react-router-dom"
 import type { z } from "zod"
+import { BackofficeProjectRoutes } from "@/backoffice/routes/helpers"
 import {
   selectAppInstallCallbackState,
   selectAppInstallPage,
@@ -57,6 +59,10 @@ export function AppsInstallCard() {
       state: callbackState,
     },
   })
+  const selectedProjectId = form.watch("projectId")
+  const revokePath = selectedProjectId
+    ? BackofficeProjectRoutes.project.build({ projectId: selectedProjectId })
+    : BackofficeProjectRoutes.projects.path
 
   const onValid = async (values: FormValues) => {
     const result = await dispatch(
@@ -159,7 +165,14 @@ export function AppsInstallCard() {
           i18nKey="revocability"
           ns="appInstall"
           values={{ name: page.app.name }}
-          components={{ settings: <strong className="font-semibold text-[#111118]" /> }}
+          components={{
+            settings: (
+              <Link
+                to={revokePath}
+                className="font-semibold text-[#111118] underline-offset-2 hover:underline"
+              />
+            ),
+          }}
         />
       </p>
     </div>

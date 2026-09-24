@@ -292,4 +292,79 @@ describe("AppsService", () => {
       }),
     ).rejects.toBeInstanceOf(UnauthorizedException)
   })
+
+  it("revokes an installation without dropping its credentials or issued JWT", async () => {
+    const repositories = setup.getAllRepositories()
+    const { project, user } = await createOrganizationWithProject(repositories)
+    await assignPlatformStaffToUser({ repositories, user })
+    const created = await service.createAppManifest({
+      ...createPayload,
+      slug: "revoke-assistant",
+    })
+    const authorized = await service.authorizeInstall({
+      slug: created.slug,
+      userId: user.id,
+      projectId: project.id,
+      permissions: [DOCUMENT_READ_PERMISSION],
+      redirectUri: "http://127.0.0.1:8787/callback",
+      state: "csrf-state",
+    })
+    const issued = await service.issueToken({
+      grant_type: "client_credentials",
+      client_id: authorized.clientId,
+      client_secret: authorized.clientSecret,
+    })
+    const installation = await repositories.appInstallationRepository.findOneByOrFail({
+      clientId: authorized.clientId,
+    })
+    const serviceUserId = installation.serviceUserId
+    const customRoleId = installation.customRoleId
+
+    await expect(service.listActiveInstallations(project.id)).resolves.toEqual([
+      expect.objectContaining({
+        id: installation.id,
+        appName: "Helpful Assistant",
+        description: "A generic assistant used in tests.",
+        logoUrl: null,
+        permissions: [DOCUMENT_READ_PERMISSION],
+      }),
+    ])
+
+    await service.revokeInstallation({ installationId: installation.id, userId: user.id })
+    await expect(service.listActiveInstallations(project.id)).resolves.toEqual([])
+
+    const revoked = await repositories.appInstallationRepository.findOneByOrFail({
+      id: installation.id,
+    })
+    expect(revoked.status).toBe(APP_INSTALLATION_STATUS_REVOKED)
+    expect(revoked.revokedAt).toBeInstanceOf(Date)
+    expect(revoked.clientId).toBe(authorized.clientId)
+    expect(revoked.clientSecretHash).toBe(installation.clientSecretHash)
+    expect(revoked.serviceUserId).toBe(serviceUserId)
+    expect(revoked.customRoleId).toBe(customRoleId)
+    expect(revoked.deletedAt).toBeNull()
+
+    const revokedAt = revoked.revokedAt
+    await service.revokeInstallation({ installationId: installation.id, userId: user.id })
+    const again = await repositories.appInstallationRepository.findOneByOrFail({
+      id: installation.id,
+    })
+    expect(again.revokedAt?.toISOString()).toBe(revokedAt?.toISOString())
+
+    await expect(
+      service.issueToken({
+        grant_type: "client_credentials",
+        client_id: authorized.clientId,
+        client_secret: authorized.clientSecret,
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException)
+
+    const principal = await service.resolveAppPrincipal(issued.accessToken)
+    expect(principal.installationId).toBe(installation.id)
+    expect(principal.projectId).toBe(project.id)
+
+    await expect(
+      service.revokeInstallation({ installationId: randomUUID(), userId: user.id }),
+    ).rejects.toBeInstanceOf(NotFoundException)
+  })
 })

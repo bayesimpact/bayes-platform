@@ -1,6 +1,7 @@
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
 import type {
+  AppInstallationSummaryDto,
   AppInstallPageDto,
   AppManifestDto,
   AuthorizeAppInstallRequestDto,
@@ -44,5 +45,13 @@ export const AppsRoutes = {
   >({
     method: "post",
     path: "apps/install/:slug/authorize",
+  }),
+  revoke: defineRoute<ResponseData<SuccessResponseDTO>>({
+    method: "post",
+    path: "app-installations/:id/revoke",
+  }),
+  listForProject: defineRoute<ResponseData<AppInstallationSummaryDto[]>>({
+    method: "get",
+    path: "projects/:projectId/app-installations",
   }),
 }

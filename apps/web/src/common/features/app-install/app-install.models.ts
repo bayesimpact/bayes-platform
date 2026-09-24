@@ -33,3 +33,12 @@ export type AuthorizeAppInstallResult = {
   redirectUri: string
   state: string
 }
+
+export type ProjectAppInstallation = {
+  id: string
+  appName: string
+  description: string | null
+  logoUrl: string | null
+  permissions: string[]
+  createdAt: number
+}

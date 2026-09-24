@@ -3,7 +3,7 @@ import { notificationsActions } from "@/common/features/notifications/notificati
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { selectAppInstallSlug } from "./app-install.selectors"
 import { appInstallActions } from "./app-install.slice"
-import { authorizeAppInstall, fetchInstallPage } from "./app-install.thunks"
+import { authorizeAppInstall, fetchInstallPage, revokeAppInstallation } from "./app-install.thunks"
 
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
@@ -12,6 +12,19 @@ listenerMiddleware.startListening({
   effect: async (_, listenerApi) => {
     const slug = selectAppInstallSlug(listenerApi.getState())
     if (slug) await listenerApi.dispatch(fetchInstallPage(slug))
+  },
+})
+
+listenerMiddleware.startListening({
+  actionCreator: revokeAppInstallation.rejected,
+  effect: async (action, listenerApi) => {
+    listenerApi.dispatch(
+      notificationsActions.show({
+        title: "Could not revoke the app",
+        description: action.payload || undefined,
+        type: "error",
+      }),
+    )
   },
 })
 

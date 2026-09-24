@@ -3,12 +3,17 @@ import { Button } from "@caseai-connect/ui/shad/button"
 import { ArrowLeftIcon, ExternalLinkIcon } from "lucide-react"
 import { useEffect } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
+import { selectProjectInstallations } from "@/common/features/app-install/app-install.selectors"
+import { appInstallActions } from "@/common/features/app-install/app-install.slice"
+import { fetchProjectInstallations } from "@/common/features/app-install/app-install.thunks"
+import { selectCanInstallApps } from "@/common/features/me/me.selectors"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { selectBackofficeProjectDetail } from "../features/backoffice/backoffice.selectors"
 import { backofficeActions } from "../features/backoffice/backoffice.slice"
 import { FeatureFlagCell } from "../features/backoffice/components/BackofficeTable"
+import { ProjectInstallations } from "../features/backoffice/components/ProjectInstallations"
 import {
   BackofficeAgentRoutes,
   BackofficeOrganizationRoutes,
@@ -20,15 +25,18 @@ export function BackofficeProjectDetailRoute() {
   const { projectId } = useParams<{ projectId: string }>()
   const dispatch = useAppDispatch()
   const projectDetail = useAppSelector(selectBackofficeProjectDetail)
+  const canInstallApps = useAppSelector(selectCanInstallApps)
 
   // useEffect is intentional: the ID comes from useParams (URL), not Redux state. See BackofficeAgentDetailRoute for rationale.
   useEffect(() => {
     if (!projectId) return
     dispatch(backofficeActions.getProject(projectId))
+    if (canInstallApps) dispatch(fetchProjectInstallations(projectId))
     return () => {
       dispatch(backofficeActions.resetProjectDetail())
+      dispatch(appInstallActions.clearProjectInstallations())
     }
-  }, [projectId, dispatch])
+  }, [canInstallApps, dispatch, projectId])
 
   return (
     <AsyncRoute data={[projectDetail]}>
@@ -41,6 +49,8 @@ function WithData() {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const project = useValue(selectBackofficeProjectDetail)
+  const canInstallApps = useAppSelector(selectCanInstallApps)
+  const installations = useAppSelector(selectProjectInstallations)
 
   return (
     <div className="p-6 space-y-6">
@@ -103,6 +113,8 @@ function WithData() {
           emptyText="No agents"
         />
       </div>
+
+      {canInstallApps && <ProjectInstallations installations={installations} />}
     </div>
   )
 }

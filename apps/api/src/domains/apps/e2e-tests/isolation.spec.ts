@@ -117,8 +117,8 @@ describe("Apps - JWT isolation", () => {
     expectResponse(me, 401, AUTH_ERRORS.INVALID_ACCESS_TOKEN)
   })
 
-  it("rejects an App JWT on studio /apps/install with 401, not 403", async () => {
-    const { slug, accessToken } = await installAndIssueToken()
+  it("rejects an App JWT on studio /apps/install and revoke with 401, not 403", async () => {
+    const { slug, accessToken, projectId } = await installAndIssueToken()
     const findOrCreate = jest.spyOn(setup.module.get(UsersService), "findOrCreate")
 
     const installPage = await request(app.getHttpServer())
@@ -128,6 +128,27 @@ describe("Apps - JWT isolation", () => {
 
     expect(installPage.status).toBe(401)
     expect(installPage.status).not.toBe(403)
+
+    const installation = await setup
+      .getAllRepositories()
+      .appInstallationRepository.findOneByOrFail({
+        projectId,
+      })
+    const revoke = await request(app.getHttpServer())
+      .post(AppsRoutes.revoke.getPath({ id: installation.id }))
+      .set("Connection", "close")
+      .set("Authorization", `Bearer ${accessToken}`)
+
+    expect(revoke.status).toBe(401)
+    expect(revoke.status).not.toBe(403)
+
+    const listed = await request(app.getHttpServer())
+      .get(AppsRoutes.listForProject.getPath({ projectId }))
+      .set("Connection", "close")
+      .set("Authorization", `Bearer ${accessToken}`)
+
+    expect(listed.status).toBe(401)
+    expect(listed.status).not.toBe(403)
     expect(findOrCreate).not.toHaveBeenCalled()
   })
 

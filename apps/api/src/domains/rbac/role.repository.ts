@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common"
-import type { Repository } from "typeorm"
+import { In, type Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 import { Role } from "./role.entity"
@@ -31,6 +31,23 @@ export class RoleRepository {
     }
 
     return { id: saved.id, key: saved.key }
+  }
+
+  async listPermissionKeysByRoleIds(roleIds: readonly string[]): Promise<Map<string, string[]>> {
+    const uniqueRoleIds = [...new Set(roleIds)]
+    if (uniqueRoleIds.length === 0) return new Map()
+
+    const grants = await this.grantRepo().find({
+      where: { roleId: In(uniqueRoleIds) },
+      order: { permissionKey: "ASC" },
+    })
+    const permissionsByRoleId = new Map<string, string[]>()
+    for (const grant of grants) {
+      const permissionKeys = permissionsByRoleId.get(grant.roleId) ?? []
+      permissionKeys.push(grant.permissionKey)
+      permissionsByRoleId.set(grant.roleId, permissionKeys)
+    }
+    return permissionsByRoleId
   }
 
   private roleRepo(): Repository<Role> {
