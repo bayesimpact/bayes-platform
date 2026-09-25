@@ -19,8 +19,6 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Analytics: conversations and questions per session now include conversations held in the embedded chat.
 
 ### Security
-- (beta) An installed app receives a short-lived token that cannot open the studio.
-- (beta) Revoking an app stops new tokens while a token already issued stays valid until it expires.
 
 ## [26.09.3] - 2026-09-23
 
