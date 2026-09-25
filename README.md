@@ -247,11 +247,13 @@ npm run migration:run
 This will apply all pending migrations to the `caseai_connect` database.
 
 The analytics migration creates a database role, which needs `CREATEROLE` on the
-migration user. New stacks have it (`infra/database/sql/common.sql`); on a stack
-started before, grant it once:
+migration user. A database created from the current `infra/database/sql/common.sql`
+has it. One created before that line does not: init scripts do not run again, and
+the migration fails with `permission denied to create role`. Grant it once, then
+run the migration again:
 
 ```bash
-docker exec connect-db-pgvector-1 psql -U admin -d connect -c "ALTER ROLE connect_admin CREATEROLE;"
+make db-grant-createrole
 ```
 
 **Migration Commands:**

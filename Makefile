@@ -245,6 +245,14 @@ ci-checks: npm-ci
 db-tests:
 	docker compose -f infra/database/docker-compose.yaml -f infra/database/docker-compose.test.yaml up -d
 
+# Volumes created before the analytics migration have connect_admin without
+# CREATEROLE, and Postgres does not re-run infra/database/sql/common.sql.
+# The analytics migration then fails with "permission denied to create role".
+# Safe to run again. Does not recreate the container.
+db-grant-createrole:
+	docker compose -f infra/database/docker-compose.yaml exec -T pgvector psql -U admin -d connect -v ON_ERROR_STOP=1 -c \
+	  "ALTER ROLE connect_admin CREATEROLE;"
+
 # The dashboard role of the local Grafana (infra/database/grafana): reads the
 # analytics schema through analytics_reader, created by the analytics migration.
 # Run once after `npm run migration:run`; safe to run again.
