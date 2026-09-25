@@ -8,6 +8,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- (beta) Superadmins can register an app in the back-office.
+- (beta) Platform staff can install an app on a project with limited credentials.
 - (beta) Installed apps can add a text document to their project.
 
 ### Changed
@@ -17,6 +19,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Analytics: conversations and questions per session now include conversations held in the embedded chat.
 
 ### Security
+- (beta) An installed app receives a short-lived token that cannot open the studio.
+- (beta) Revoking an app stops new tokens while a token already issued stays valid until it expires.
 
 ## [26.09.3] - 2026-09-23
 
