@@ -6,11 +6,14 @@ import type { ProjectAppInstallation } from "@/common/features/app-install/app-i
 import { revokeAppInstallation } from "@/common/features/app-install/app-install.thunks"
 import { ADS, type AsyncData } from "@/common/store/async-data-status"
 import { useAppDispatch } from "@/common/store/hooks"
+import { InstallationInstructionsButton } from "./InstallationInstructions"
 
 export function ProjectInstallations({
   installations,
+  projectId,
 }: {
   installations: AsyncData<ProjectAppInstallation[]>
+  projectId: string
 }) {
   const dispatch = useAppDispatch()
   const [pending, setPending] = useState<ProjectAppInstallation | null>(null)
@@ -61,15 +64,17 @@ export function ProjectInstallations({
                   </span>
                 </div>
               </div>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="shrink-0"
-                onClick={() => setPending(installation)}
-              >
-                Revoke
-              </Button>
+              <div className="flex shrink-0 gap-2">
+                <InstallationInstructionsButton installation={installation} projectId={projectId} />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setPending(installation)}
+                >
+                  Revoke
+                </Button>
+              </div>
             </li>
           ))}
         </ul>

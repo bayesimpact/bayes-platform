@@ -94,6 +94,7 @@ function toAppInstallationSummaryDto(
     description: installation.description,
     logoUrl: installation.logoUrl,
     permissions: installation.permissions,
+    clientId: installation.clientId,
     createdAt: installation.createdAt.getTime(),
   }
 }

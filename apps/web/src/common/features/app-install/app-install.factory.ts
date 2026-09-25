@@ -46,6 +46,7 @@ export const projectAppInstallationFactory = ProjectAppInstallationFactory.defin
     description: params.description ?? "A generic assistant used in tests.",
     logoUrl: params.logoUrl ?? null,
     permissions: params.permissions ?? ["document.read"],
+    clientId: params.clientId ?? faker.string.uuid(),
     createdAt: params.createdAt ?? Date.now(),
   }),
 )

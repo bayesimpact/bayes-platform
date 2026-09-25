@@ -28,6 +28,7 @@ export type ListedAppInstallation = {
   description: string | null
   logoUrl: string | null
   customRoleId: string | null
+  clientId: string | null
   createdAt: Date
 }
 
@@ -37,6 +38,7 @@ export type ActiveAppInstallationSummary = {
   description: string | null
   logoUrl: string | null
   permissions: string[]
+  clientId: string | null
   createdAt: Date
 }
 
@@ -84,6 +86,7 @@ export class AppInstallationRepository {
       description: installation.appManifest?.description ?? null,
       logoUrl: installation.appManifest?.logoUrl ?? null,
       customRoleId: installation.customRoleId,
+      clientId: installation.clientId,
       createdAt: installation.createdAt,
     }))
   }
