@@ -55,6 +55,10 @@ Scoped to one project via `user_membership` (`resource_type = 'project'`).
 | `document.create` | ✅ | ✅ | — |
 | `document.update` | ✅ | ✅ | — |
 | `document.delete` | ✅ | ✅ | — |
+| `document_source.read` | ✅ | ✅ | — |
+| `document_source.create` | ✅ | ✅ | — |
+| `document_source.update` | ✅ | ✅ | — |
+| `document_source.delete` | ✅ | ✅ | — |
 | `user.read` — see the project's members | ✅ | ✅ | — |
 | `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — |
 | `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — |
@@ -74,4 +78,4 @@ Scoped to one agent via `user_membership` (`resource_type = 'agent'`).
 
 ## App grantable permissions
 
-Apps may only be granted the permissions in `APP_GRANTABLE_PERMISSIONS`, grouped by resource type: document (`document.read`, `document.create`, `document.update`, `document.delete`) and workspace (`project.read`, `project.update`, `project.delete`). `project.create` is not grantable. This allowlist is code, not a database column. Manifest save and authorize intersect requested permissions with it.
+Apps may only be granted the permissions in `APP_GRANTABLE_PERMISSIONS`, grouped by resource type: document (`document.read`, `document.create`, `document.update`, `document.delete`), document source (`document_source.read`, `document_source.create`, `document_source.update`, `document_source.delete`), and workspace (`project.read`, `project.update`, `project.delete`). `project.create` is not grantable. This allowlist is code, not a database column. Manifest save and authorize intersect requested permissions with it.

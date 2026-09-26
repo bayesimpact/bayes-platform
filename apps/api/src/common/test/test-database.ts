@@ -280,6 +280,9 @@ WITH
   del_document AS (
     DELETE FROM "document"
   ),
+  del_document_source AS (
+    DELETE FROM "document_source"
+  ),
   del_agent_mcp_server AS (
     DELETE FROM "agent_mcp_server"
   ),
