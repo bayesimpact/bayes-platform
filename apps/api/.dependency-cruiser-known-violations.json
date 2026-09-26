@@ -942,6 +942,10 @@
         "dependencyTypes": ["local", "type-only", "import"]
       },
       {
+        "name": "src/domains/documents/sources/document-source.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
         "name": "src/domains/projects/project.entity.ts",
         "dependencyTypes": [
           "aliased",
@@ -1068,6 +1072,10 @@
       {
         "name": "src/domains/documents/document.entity.ts",
         "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "src/domains/documents/sources/document-source.entity.ts",
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/projects/project.entity.ts",
@@ -1218,6 +1226,10 @@
       {
         "name": "src/domains/documents/document.entity.ts",
         "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "src/domains/documents/sources/document-source.entity.ts",
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/projects/project.entity.ts",
@@ -1709,6 +1721,10 @@
         "dependencyTypes": ["local", "type-only", "import"]
       },
       {
+        "name": "src/domains/documents/sources/document-source.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
         "name": "src/domains/projects/project.entity.ts",
         "dependencyTypes": [
           "aliased",
@@ -1775,6 +1791,10 @@
         "dependencyTypes": ["local", "type-only", "import"]
       },
       {
+        "name": "src/domains/documents/sources/document-source.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
         "name": "src/domains/projects/project.entity.ts",
         "dependencyTypes": [
           "aliased",
@@ -1799,6 +1819,31 @@
       {
         "name": "src/domains/agents/shared/conversation-forms/conversation-form.entity.ts",
         "dependencyTypes": ["local", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/domains/documents/document.entity.ts",
+    "to": "src/domains/documents/sources/document-source.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/domains/documents/sources/document-source.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
+        "name": "src/domains/documents/document.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
       }
     ]
   },
@@ -1908,6 +1953,37 @@
       },
       {
         "name": "src/domains/documents/documents.module.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
+    "from": "src/domains/documents/sources/document-source.entity.ts",
+    "to": "src/domains/projects/project.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/domains/projects/project.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/documents/sources/document-source.entity.ts",
         "dependencyTypes": [
           "aliased",
           "aliased-tsconfig",
@@ -2438,6 +2514,10 @@
         "dependencyTypes": ["local", "type-only", "import"]
       },
       {
+        "name": "src/domains/documents/sources/document-source.entity.ts",
+        "dependencyTypes": ["local", "import"]
+      },
+      {
         "name": "src/domains/projects/project.entity.ts",
         "dependencyTypes": [
           "aliased",
@@ -2602,6 +2682,10 @@
       {
         "name": "src/domains/documents/document.entity.ts",
         "dependencyTypes": ["local", "type-only", "import"]
+      },
+      {
+        "name": "src/domains/documents/sources/document-source.entity.ts",
+        "dependencyTypes": ["local", "import"]
       },
       {
         "name": "src/domains/projects/project.entity.ts",
@@ -2959,34 +3043,7 @@
   {
     "type": "dependency",
     "from": "src/domains/analytics/projects-analytics/projects-analytics.service.ts",
-    "to": "src/domains/agents/agent.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/analytics/projects-analytics/projects-analytics.service.ts",
-    "to": "src/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/analytics/projects-analytics/projects-analytics.service.ts",
     "to": "src/domains/agents/conversation-agent-sessions/conversation-agent-session.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
-    "from": "src/domains/analytics/projects-analytics/projects-analytics.service.ts",
-    "to": "src/domains/agents/session-categories/agent-session-category.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"
@@ -4184,6 +4241,42 @@
     "type": "dependency",
     "from": "src/domains/agents/shared/agent-session-messages/streaming/tools/lookup-knowledge-base.tool.ts",
     "to": "src/domains/documents/embeddings/document-chunk-retrieval.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/apps/apps-v1.controller.ts",
+    "to": "src/domains/documents/documents.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/apps/apps.service.ts",
+    "to": "src/domains/rbac/permission.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/apps/apps.service.ts",
+    "to": "src/domains/users/users.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/apps/document-sources/apps-document-sources.controller.ts",
+    "to": "src/domains/documents/sources/document-sources.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"

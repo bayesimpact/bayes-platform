@@ -29,6 +29,22 @@
         "name": "Delete documents",
         "description": "Permanently remove documents from this workspace."
       },
+      "document_source_read": {
+        "name": "Read document sources",
+        "description": "See the document sources registered on this workspace."
+      },
+      "document_source_create": {
+        "name": "Create document sources",
+        "description": "Register a named document source on this workspace."
+      },
+      "document_source_update": {
+        "name": "Update document sources",
+        "description": "Rename a document source or change its settings."
+      },
+      "document_source_delete": {
+        "name": "Delete document sources",
+        "description": "Remove a document source that has no documents attached."
+      },
       "project_read": {
         "name": "Read workspace",
         "description": "See this workspace and its settings."
