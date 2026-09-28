@@ -41,18 +41,12 @@ describe("DocumentPolicy", () => {
         resourceState: "sameOrganization",
         projectRole: "member",
       })
-      const agentSessionPolicy = buildPolicy({
-        resourceState: "sameOrganization",
-        projectRole: "member",
-        options: "agentSessionMessage",
-      })
       const extractionPolicy = buildPolicy({
         resourceState: "sameOrganization",
         projectRole: "member",
         options: "extraction",
       })
       expect(defaultPolicy.canCreate()).toBe(false)
-      expect(agentSessionPolicy.canCreate()).toBe(true)
       expect(extractionPolicy.canCreate()).toBe(false)
     })
 

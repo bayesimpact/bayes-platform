@@ -31,7 +31,7 @@ export class DocumentPolicy extends ProjectScopedPolicy<Document> {
   }
 
   canCreate(): boolean {
-    if (this.sourceType && ["agentSessionMessage", "extraction"].includes(this.sourceType)) {
+    if (this.sourceType === "extraction") {
       return this.canAccess()
     }
     return this.canAccess() && this.isProjectAdminOrOwner()

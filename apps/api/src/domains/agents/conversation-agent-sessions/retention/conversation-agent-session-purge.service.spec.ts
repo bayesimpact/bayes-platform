@@ -171,7 +171,7 @@ describe("ConversationAgentSessionPurgeService", () => {
   it("removes the files of documents generated in the session from storage", async () => {
     const { organization, project, agentSession, agentSettings } = await createPurgeableSession()
     const generatedDocument = documentFactory.transient({ organization, project }).build({
-      sourceType: "agentSessionMessage",
+      sourceType: "extraction",
       storageRelativePath: `${organization.id}/${project.id}/generated1.pdf`,
       pdfPageCount: 1,
     })
