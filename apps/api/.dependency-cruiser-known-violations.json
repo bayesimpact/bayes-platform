@@ -4248,7 +4248,7 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/apps/apps-v1.controller.ts",
+    "from": "src/domains/apps/documents/apps-documents.controller.ts",
     "to": "src/domains/documents/documents.service.ts",
     "rule": {
       "severity": "warn",
