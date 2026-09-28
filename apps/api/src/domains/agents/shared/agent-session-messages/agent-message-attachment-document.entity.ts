@@ -1,10 +1,11 @@
 import { Column, JoinColumn, ManyToOne } from "typeorm"
-import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
+import { ConnectEntity } from "@/common/entities/connect-entity"
+import { DocumentEntityBase } from "@/common/entities/document-entity-base"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { Project } from "@/domains/projects/project.entity"
 
 @ConnectEntity("agent_message_attachment_document", "createdAt")
-export class AgentMessageAttachmentDocument extends ConnectEntityBase {
+export class AgentMessageAttachmentDocument extends DocumentEntityBase {
   @ManyToOne(() => Organization, { nullable: false })
   @JoinColumn({ name: "organization_id" })
   organization!: Organization
@@ -12,18 +13,6 @@ export class AgentMessageAttachmentDocument extends ConnectEntityBase {
   @ManyToOne(() => Project, { nullable: false })
   @JoinColumn({ name: "project_id" })
   project!: Project
-
-  @Column({ type: "varchar", name: "file_name" })
-  fileName!: string
-
-  @Column({ type: "varchar", name: "mime_type" })
-  mimeType!: string
-
-  @Column({ type: "integer" })
-  size!: number
-
-  @Column({ type: "varchar", name: "storage_relative_path" })
-  storageRelativePath!: string
 
   /** Rendered PNG page count in GCS (derived/{id}/page-{n}.png); null = not rendered. PDFs only. */
   @Column({ type: "integer", name: "pdf_page_count", nullable: true })
