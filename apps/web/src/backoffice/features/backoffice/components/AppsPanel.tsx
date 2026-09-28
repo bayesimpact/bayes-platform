@@ -121,19 +121,14 @@ function WithData() {
           return <span className="text-sm text-muted-foreground">None</span>
         }
         return (
-          <div
-            className="grid gap-4"
-            style={{
-              gridTemplateColumns: `repeat(${groups.length}, minmax(6rem, max-content))`,
-            }}
-          >
+          <div className="flex flex-col gap-1">
             {groups.map((group) => (
-              <span key={group.resourceType} className="text-sm">
+              <p key={group.resourceType} className="text-sm">
                 <span className="text-muted-foreground">{group.label}: </span>
                 {group.permissions
                   .map((permission) => appGrantablePermissionActionLabel(permission))
                   .join(", ")}
-              </span>
+              </p>
             ))}
           </div>
         )
@@ -212,7 +207,13 @@ function WithData() {
             table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell
+                    key={cell.id}
+                    className={cn(
+                      "align-top",
+                      cell.column.id === "grantablePermissions" && "w-full whitespace-normal",
+                    )}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

@@ -1,0 +1,87 @@
+import {
+  AppsDocumentsRoutes,
+  createAppDocumentSchema,
+  DOCUMENT_CREATE_PERMISSION,
+} from "@caseai-connect/api-contracts"
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  ForbiddenException,
+  HttpCode,
+  HttpStatus,
+  NotFoundException,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from "@nestjs/common"
+import type { EndpointRequest } from "@/common/context/request.interface"
+import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { DocumentsService } from "@/domains/documents/documents.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ProjectRepository } from "@/domains/projects/project.repository"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import { AppGuard } from "../app.guard"
+
+type AppRequest = EndpointRequest & { appProjectId: string }
+
+@Controller()
+@UseGuards(AppGuard, CheckPermissionGuard)
+export class AppsDocumentsController {
+  constructor(
+    private readonly documentsService: DocumentsService,
+    private readonly projectRepository: ProjectRepository,
+  ) {}
+
+  @CheckPermission(DOCUMENT_CREATE_PERMISSION, "project")
+  @Post(AppsDocumentsRoutes.createOne.path)
+  @HttpCode(HttpStatus.CREATED)
+  async createOne(
+    @Param("projectId") projectId: string,
+    @Req() request: AppRequest,
+    @Body() body: unknown,
+  ): Promise<typeof AppsDocumentsRoutes.createOne.response> {
+    const connectScope = await this.connectScopeFor(projectId, request)
+    const parsed = createAppDocumentSchema.safeParse(body)
+    if (!parsed.success) {
+      throw new BadRequestException("Invalid document payload")
+    }
+
+    const document = await this.documentsService.createInlineProjectDocument({
+      connectScope,
+      userId: request.user.id,
+      title: parsed.data.title,
+      content: parsed.data.content,
+      sourceUrl: parsed.data.source_url ?? null,
+    })
+
+    return {
+      data: {
+        id: document.id,
+        title: document.title,
+        projectId: document.projectId,
+        sourceUrl: document.sourceUrl,
+        embeddingStatus: document.embeddingStatus,
+      },
+    }
+  }
+
+  private async connectScopeFor(
+    projectId: string,
+    request: AppRequest,
+  ): Promise<RequiredConnectScope> {
+    if (projectId !== request.appProjectId) {
+      throw new ForbiddenException("Project does not match the access token")
+    }
+
+    const [project] = await this.projectRepository.findPickerProjectsByIds([projectId])
+    if (!project) {
+      throw new NotFoundException(`Project ${projectId} not found`)
+    }
+
+    return { organizationId: project.organizationId, projectId: project.id }
+  }
+}

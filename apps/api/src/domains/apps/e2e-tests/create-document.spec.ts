@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
 import {
-  AppsV1Routes,
+  AppsDocumentsRoutes,
   DOCUMENT_CREATE_PERMISSION,
   DOCUMENT_READ_PERMISSION,
 } from "@caseai-connect/api-contracts"
@@ -53,7 +53,7 @@ describe("Apps - Ingest document", () => {
     body?: Record<string, unknown>
   }) => {
     const req = request(app.getHttpServer())
-      .post(AppsV1Routes.createDocument.getPath({ projectId: params.projectId }))
+      .post(AppsDocumentsRoutes.createOne.getPath({ projectId: params.projectId }))
       .set("Connection", "close")
     if (params.token) {
       req.set("Authorization", `Bearer ${params.token}`)

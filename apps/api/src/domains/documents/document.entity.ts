@@ -2,6 +2,7 @@ import { Column, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany } from 
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { EvaluationExtractionDatasetDocument } from "@/domains/evaluations/extraction/datasets/evaluation-extraction-dataset-document.entity"
 import { Project } from "@/domains/projects/project.entity"
+import { DocumentSource } from "./sources/document-source.entity"
 import type { DocumentTag } from "./tags/document-tag.entity"
 
 @ConnectEntity("document")
@@ -80,4 +81,16 @@ export class Document extends ConnectEntityBase {
       evaluationExtractionDatasetDocument.document,
   )
   evaluationExtractionDatasetDocuments!: EvaluationExtractionDatasetDocument[]
+
+  @Column({ type: "uuid", name: "document_source_id", nullable: true })
+  documentSourceId!: string | null
+
+  // Nullable. Internal writers leave this unset. Deleting a source must not delete documents.
+  @ManyToOne(
+    () => DocumentSource,
+    (documentSource) => documentSource.documents,
+    { nullable: true, onDelete: "RESTRICT" },
+  )
+  @JoinColumn({ name: "document_source_id" })
+  documentSource!: DocumentSource | null
 }
