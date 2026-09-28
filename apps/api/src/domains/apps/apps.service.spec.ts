@@ -327,6 +327,7 @@ describe("AppsService", () => {
         description: "A generic assistant used in tests.",
         logoUrl: null,
         permissions: [DOCUMENT_READ_PERMISSION],
+        clientId: authorized.clientId,
       }),
     ])
 

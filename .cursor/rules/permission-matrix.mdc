@@ -8,8 +8,8 @@ alwaysApply: false
 
 `docs/rbac-permission-matrix.md` mirrors the RBAC catalog defined in:
 
-- `apps/api/src/domains/rbac/rbac.constants.ts` (roles + role/permission grants)
-- `packages/api-contracts/src/rbac/permissions.ts` (global permission contract)
+- `packages/api-contracts/src/rbac/permissions.ts` — permission string constants and the `GlobalPermission` contract. Declare a permission string only here.
+- `apps/api/src/domains/rbac/rbac.constants.ts` — role keys and which role receives which permission. Import the permission strings from `@caseai-connect/api-contracts`. Do not redeclare them.
 
 Whenever you add, rename, or remove a role, a permission, or a role/permission grant in those files, you MUST update the corresponding table in `docs/rbac-permission-matrix.md` in the same change set.
 

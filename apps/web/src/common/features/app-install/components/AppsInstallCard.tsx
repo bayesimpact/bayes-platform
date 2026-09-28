@@ -85,96 +85,98 @@ export function AppsInstallCard() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#f4f4f6] p-6 font-[Inter,system-ui,sans-serif] text-[#111118]">
-      <div className="w-full max-w-[440px] rounded-[12px] border border-[#e4e4e7] bg-white p-6 shadow-sm">
-        <div className="mb-5 flex items-center gap-3">
-          <AppMark logoUrl={page.app.logoUrl} />
-          <ArrowRightIcon className="size-4 shrink-0 text-[#a1a1aa]" aria-hidden />
-          <BayesCrossMark />
-        </div>
-        <h1 className="text-lg font-semibold leading-snug">
-          {t("headline", { name: page.app.name })}
-        </h1>
+    <div className="flex h-dvh flex-col items-center justify-center overflow-hidden bg-[#f4f4f6] p-6 font-[Inter,system-ui,sans-serif] text-[#111118]">
+      <div className="flex max-h-full min-h-0 w-full max-w-[440px] flex-col">
+        <div className="flex min-h-0 flex-col overflow-hidden rounded-[12px] border border-[#e4e4e7] bg-white p-6 shadow-sm">
+          <div className="mb-5 flex shrink-0 items-center gap-3">
+            <AppMark logoUrl={page.app.logoUrl} />
+            <ArrowRightIcon className="size-4 shrink-0 text-[#a1a1aa]" aria-hidden />
+            <BayesCrossMark />
+          </div>
+          <h1 className="shrink-0 text-lg font-semibold leading-snug">
+            {t("headline", { name: page.app.name })}
+          </h1>
 
-        {canInstall ? (
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onValid)} className="mt-6 flex flex-col">
-              <FormField
-                control={form.control}
-                name="projectId"
-                render={({ field }) => (
-                  <FormItem className="gap-1.5">
-                    <FormLabel className="text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase">
-                      {t("workspace")}
-                    </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      disabled={form.formState.isSubmitting}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-10 w-full rounded-lg border-[#e4e4e7] text-[#111118] shadow-none">
-                          <SelectValue placeholder={t("workspacePlaceholder")} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {page.projects.map((project) => (
-                          <SelectItem key={project.id} value={project.id}>
-                            {project.organizationName} / {project.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          {canInstall ? (
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onValid)} className="mt-6 flex min-h-0 flex-col">
+                <FormField
+                  control={form.control}
+                  name="projectId"
+                  render={({ field }) => (
+                    <FormItem className="shrink-0 gap-1.5">
+                      <FormLabel className="text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase">
+                        {t("workspace")}
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={form.formState.isSubmitting}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-10 w-full rounded-lg border-[#e4e4e7] text-[#111118] shadow-none">
+                            <SelectValue placeholder={t("workspacePlaceholder")} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {page.projects.map((project) => (
+                            <SelectItem key={project.id} value={project.id}>
+                              {project.organizationName} / {project.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
+                <PermissionList />
+
+                <Button
+                  type="submit"
+                  className="mt-6 h-11 w-full shrink-0 rounded-lg bg-[#7c3aed] text-sm font-semibold text-white hover:bg-[#6d28d9]"
+                  disabled={form.formState.isSubmitting}
+                >
+                  {form.formState.isSubmitting ? null : (
+                    <ShieldCheckIcon className="size-4" aria-hidden />
+                  )}
+                  {form.formState.isSubmitting
+                    ? t("authorizing")
+                    : t("submit", { name: page.app.name })}
+                </Button>
+              </form>
+            </Form>
+          ) : (
+            <>
+              <p className="mt-6 shrink-0 text-sm text-[#71717a]">{t("noWorkspaces")}</p>
               <PermissionList />
+            </>
+          )}
 
-              <Button
-                type="submit"
-                className="mt-6 h-11 w-full rounded-lg bg-[#7c3aed] text-sm font-semibold text-white hover:bg-[#6d28d9]"
-                disabled={form.formState.isSubmitting}
-              >
-                {form.formState.isSubmitting ? null : (
-                  <ShieldCheckIcon className="size-4" aria-hidden />
-                )}
-                {form.formState.isSubmitting
-                  ? t("authorizing")
-                  : t("submit", { name: page.app.name })}
-              </Button>
-            </form>
-          </Form>
-        ) : (
-          <>
-            <p className="mt-6 text-sm text-[#71717a]">{t("noWorkspaces")}</p>
-            <PermissionList />
-          </>
-        )}
-
-        <a
-          href={cancelUrl}
-          className="mt-3 block text-center text-sm text-[#71717a] underline-offset-2 hover:underline"
-        >
-          {t("cancel")}
-        </a>
+          <a
+            href={cancelUrl}
+            className="mt-3 block shrink-0 text-center text-sm text-[#71717a] underline-offset-2 hover:underline"
+          >
+            {t("cancel")}
+          </a>
+        </div>
+        <p className="mt-4 max-w-[440px] shrink-0 rounded-[12px] border border-[#e4e4e7] bg-white px-4 py-3 text-sm text-[#71717a]">
+          <Trans
+            i18nKey="revocability"
+            ns="appInstall"
+            values={{ name: page.app.name }}
+            components={{
+              settings: (
+                <Link
+                  to={revokePath}
+                  className="font-semibold text-[#111118] underline-offset-2 hover:underline"
+                />
+              ),
+            }}
+          />
+        </p>
       </div>
-      <p className="mt-4 max-w-[440px] rounded-[12px] border border-[#e4e4e7] bg-white px-4 py-3 text-sm text-[#71717a]">
-        <Trans
-          i18nKey="revocability"
-          ns="appInstall"
-          values={{ name: page.app.name }}
-          components={{
-            settings: (
-              <Link
-                to={revokePath}
-                className="font-semibold text-[#111118] underline-offset-2 hover:underline"
-              />
-            ),
-          }}
-        />
-      </p>
     </div>
   )
 }
@@ -184,31 +186,33 @@ function PermissionList() {
   const page = useValue(selectAppInstallPage)
 
   return (
-    <div className="mt-6 flex flex-col gap-3">
-      <span className="text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase">
+    <div className="mt-6 flex min-h-0 flex-col gap-3">
+      <span className="shrink-0 text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase">
         {t("permissionsRequested")}
       </span>
-      <ul className="flex flex-col gap-3">
-        {page.app.grantablePermissions.map((permission) => {
-          const copyKey = permissionCopyKey(permission)
-          return (
-            <li key={permission} className="flex items-start gap-3">
-              <AppInstallPermissionIcon permission={permission} />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold">
-                  {t(`copy.${copyKey}.name`, { defaultValue: permission })}
-                </p>
-                <p className="text-sm text-[#71717a]">
-                  {t(`copy.${copyKey}.description`, { defaultValue: "" })}
-                </p>
-              </div>
-              <code className="shrink-0 rounded-full bg-[#f4f4f6] px-2 py-0.5 font-mono text-[11px] text-[#71717a]">
-                {permission}
-              </code>
-            </li>
-          )
-        })}
-      </ul>
+      <div className="max-h-60 min-h-0 overflow-y-auto overscroll-contain pe-1 [scrollbar-gutter:stable]">
+        <ul className="flex flex-col gap-3">
+          {page.app.grantablePermissions.map((permission) => {
+            const copyKey = permissionCopyKey(permission)
+            return (
+              <li key={permission} className="flex items-start gap-3">
+                <AppInstallPermissionIcon permission={permission} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold">
+                    {t(`copy.${copyKey}.name`, { defaultValue: permission })}
+                  </p>
+                  <p className="text-sm text-[#71717a]">
+                    {t(`copy.${copyKey}.description`, { defaultValue: "" })}
+                  </p>
+                </div>
+                <code className="shrink-0 rounded-full bg-[#f4f4f6] px-2 py-0.5 font-mono text-[11px] text-[#71717a]">
+                  {permission}
+                </code>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
     </div>
   )
 }

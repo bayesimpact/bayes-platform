@@ -214,9 +214,20 @@ export function DocumentSelectionList<TDocument extends DocumentSelectionItem & 
  */
 type DocumentDetails = Pick<
   Document,
-  "title" | "fileName" | "createdAt" | "updatedAt" | "size" | "language" | "mimeType" | "sourceType"
+  "fileName" | "createdAt" | "updatedAt" | "size" | "mimeType"
 > &
-  Partial<Pick<Document, "embeddingStatus" | "embeddingError" | "content" | "tagIds">>
+  Partial<
+    Pick<
+      Document,
+      | "title"
+      | "language"
+      | "sourceType"
+      | "embeddingStatus"
+      | "embeddingError"
+      | "content"
+      | "tagIds"
+    >
+  >
 
 export function DocumentDetailsSheet({
   document,
@@ -229,13 +240,14 @@ export function DocumentDetailsSheet({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  const hasEmbeddingInfo = ["project", "webCrawl"].includes(document.sourceType)
+  const hasEmbeddingInfo =
+    document.sourceType !== undefined && ["project", "webCrawl"].includes(document.sourceType)
   const { t } = useTranslation()
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>{document.title}</SheetTitle>
+          <SheetTitle>{document.title ?? document.fileName}</SheetTitle>
         </SheetHeader>
         <div className="flex flex-col gap-4 px-4 pb-4">
           <div className="flex flex-col gap-4">

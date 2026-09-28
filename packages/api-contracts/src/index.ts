@@ -38,6 +38,10 @@ export { AgentAnalyticsRoutes, AnalyticsRoutes } from "./analytics/analytics.rou
 export * from "./apps/apps.dto"
 export { AppsRoutes } from "./apps/apps.routes"
 export { AppsV1Routes } from "./apps/apps-v1.routes"
+export * from "./apps/document-sources/apps-document-sources.dto"
+export { AppsDocumentSourcesRoutes } from "./apps/document-sources/apps-document-sources.routes"
+export * from "./apps/documents/apps-documents.dto"
+export { AppsDocumentsRoutes } from "./apps/documents/apps-documents.routes"
 export {
   buildAppInstallCallbackUrl,
   buildAppInstallDeniedUrl,

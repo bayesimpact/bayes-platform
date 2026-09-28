@@ -247,11 +247,13 @@ npm run migration:run
 This will apply all pending migrations to the `caseai_connect` database.
 
 The analytics migration creates a database role, which needs `CREATEROLE` on the
-migration user. New stacks have it (`infra/database/sql/common.sql`); on a stack
-started before, grant it once:
+migration user. A database created from the current `infra/database/sql/common.sql`
+has it. One created before that line does not: init scripts do not run again, and
+the migration fails with `permission denied to create role`. Grant it once, then
+run the migration again:
 
 ```bash
-docker exec connect-db-pgvector-1 psql -U admin -d connect -c "ALTER ROLE connect_admin CREATEROLE;"
+make db-grant-createrole
 ```
 
 **Migration Commands:**
@@ -356,6 +358,7 @@ This will start all apps in watch mode using Turbo.
 - **Without HTTPS** (no certs): API at `http://localhost:3000`, web at `http://localhost:5173`
 - **API paths**: the private API is served under `/api` (`/api/healthz`, `/api/organizations/...`) and the public chat API under `/public`. `/public` is the stable public surface: an incompatible change would become `/public/v1`, never a move under `/api`. In the `app` image the web front is served at `/` on the same origin.
 - **PDF converter** (Go): `http://localhost:3002`, with the PDF export MCP endpoint at `/mcp`. Started when Go is installed and `apps/pdf-converter/.env` exists (copy `.env-example`), skipped otherwise. See [apps/pdf-converter/README.md](apps/pdf-converter/README.md).
+- **Apps CLI**: install an app from the terminal with `npx bayes`. See [apps/cli/README.md](apps/cli/README.md).
 
 #### Run Individual Projects
 

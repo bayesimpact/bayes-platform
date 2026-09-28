@@ -403,6 +403,7 @@ function toActiveInstallationSummary(
     permissions: installation.customRoleId
       ? (permissionsByRoleId.get(installation.customRoleId) ?? [])
       : [],
+    clientId: installation.clientId,
     createdAt: installation.createdAt,
   }
 }

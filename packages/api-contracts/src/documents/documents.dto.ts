@@ -6,9 +6,7 @@ export const DOCUMENT_CRAWL_PROGRESS_CHANGED_CHANNEL_DTO = "document_crawl_progr
 
 export type DocumentSourceType =
   | "project"
-  | "agentSessionMessage"
   | "extraction"
-  | "evaluationExtractionDataset"
   | "evaluationExtractionRun"
   | "agentCsvExtractionRun"
   | "webCrawl"

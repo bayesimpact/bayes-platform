@@ -15,6 +15,8 @@ import { AppsController } from "./apps.controller"
 import { AppsService } from "./apps.service"
 import { AppsInstallController } from "./apps-install.controller"
 import { AppsV1Controller } from "./apps-v1.controller"
+import { AppsDocumentSourcesController } from "./document-sources/apps-document-sources.controller"
+import { AppsDocumentsController } from "./documents/apps-documents.controller"
 
 @Module({
   imports: [
@@ -24,7 +26,13 @@ import { AppsV1Controller } from "./apps-v1.controller"
     RbacModule,
     DocumentsModule,
   ],
-  controllers: [AppsController, AppsInstallController, AppsV1Controller],
+  controllers: [
+    AppsController,
+    AppsInstallController,
+    AppsV1Controller,
+    AppsDocumentSourcesController,
+    AppsDocumentsController,
+  ],
   providers: [
     AppsService,
     AppManifestRepository,

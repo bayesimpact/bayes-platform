@@ -114,7 +114,9 @@ function WithData() {
         />
       </div>
 
-      {canInstallApps && <ProjectInstallations installations={installations} />}
+      {canInstallApps && (
+        <ProjectInstallations installations={installations} projectId={project.id} />
+      )}
     </div>
   )
 }

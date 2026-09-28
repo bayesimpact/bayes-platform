@@ -2,8 +2,8 @@
 
 Source of truth in code:
 
-- Roles and grants: `apps/api/src/domains/rbac/rbac.constants.ts`
-- Global permission contract (exposed on `/me`): `packages/api-contracts/src/rbac/permissions.ts`
+- Permission strings: `packages/api-contracts/src/rbac/permissions.ts`. This is the only declaration. The API imports them.
+- Roles and grants: `apps/api/src/domains/rbac/rbac.constants.ts`. Role keys and which role receives which permission. It does not redeclare the strings.
 
 This document mirrors those files. Whenever a role or a role/permission grant changes, update the matching table here in the same PR (see `.cursor/rules/permission-matrix.mdc` and the `check-permission-matrix` Claude skill).
 
@@ -56,6 +56,10 @@ Scoped to one project via `user_membership` (`resource_type = 'project'`).
 | `document.create` | ✅ | ✅ | — |
 | `document.update` | ✅ | ✅ | — |
 | `document.delete` | ✅ | ✅ | — |
+| `document_source.read` | ✅ | ✅ | — |
+| `document_source.create` | ✅ | ✅ | — |
+| `document_source.update` | ✅ | ✅ | — |
+| `document_source.delete` | ✅ | ✅ | — |
 | `user.read` — see the project's members | ✅ | ✅ | — |
 | `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — |
 | `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — |
@@ -78,4 +82,4 @@ The two analytics permissions are never inherited from a parent resource: an org
 
 ## App grantable permissions
 
-Apps may only be granted the permissions in `APP_GRANTABLE_PERMISSIONS`, grouped by resource type: document (`document.read`, `document.create`, `document.update`, `document.delete`) and workspace (`project.read`, `project.update`, `project.delete`). `project.create` is not grantable. This allowlist is code, not a database column. Manifest save and authorize intersect requested permissions with it.
+Apps may only be granted the permissions in `APP_GRANTABLE_PERMISSIONS`, grouped by resource type: document (`document.read`, `document.create`, `document.update`, `document.delete`), document source (`document_source.read`, `document_source.create`, `document_source.update`, `document_source.delete`), and workspace (`project.read`, `project.update`, `project.delete`). `project.create` is not grantable. This allowlist is code, not a database column. Manifest save and authorize intersect requested permissions with it.

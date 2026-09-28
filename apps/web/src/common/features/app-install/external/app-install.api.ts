@@ -66,6 +66,7 @@ const toProjectAppInstallation = (dto: AppInstallationSummaryDto): ProjectAppIns
   description: dto.description,
   logoUrl: dto.logoUrl,
   permissions: dto.permissions,
+  clientId: dto.clientId,
   createdAt: dto.createdAt,
 })
 

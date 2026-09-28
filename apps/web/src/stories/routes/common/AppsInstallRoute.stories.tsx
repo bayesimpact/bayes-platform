@@ -95,6 +95,40 @@ export const InvalidRedirect: Story = {
   },
 }
 
+export const ManyPermissions: Story = {
+  render: () => {
+    const crowdedPage = appInstallPageFactory.build({
+      app: {
+        name: "Helpful Assistant",
+        slug: "helpful-assistant",
+        grantablePermissions: [
+          "document.read",
+          "document.create",
+          "document.update",
+          "document.delete",
+          "project.read",
+          "project.update",
+          "project.delete",
+        ],
+      },
+    })
+    const store = buildMockStore({
+      state: mergeSeeds(
+        seed.me(userFactory.build({ globalPermissions: ["app.install"], termsAccepted: true })),
+        seed.appInstallPage(crowdedPage),
+      ),
+    })
+    const router = createMemoryRouter([appsInstallRoute], {
+      initialEntries: [loopbackEntry],
+    })
+    return (
+      <Provider store={store}>
+        <RouterProvider router={router} />
+      </Provider>
+    )
+  },
+}
+
 export const EmptyWorkspaces: Story = {
   render: () => {
     const emptyPage = appInstallPageFactory.build({ projects: [] })

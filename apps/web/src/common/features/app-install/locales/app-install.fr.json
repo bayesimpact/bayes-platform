@@ -29,6 +29,22 @@
         "name": "Supprimer des documents",
         "description": "Supprimer définitivement des documents de cet espace."
       },
+      "document_source_read": {
+        "name": "Lire les sources de documents",
+        "description": "Voir les sources de documents enregistrées sur cet espace."
+      },
+      "document_source_create": {
+        "name": "Créer des sources de documents",
+        "description": "Enregistrer une source de documents nommée sur cet espace."
+      },
+      "document_source_update": {
+        "name": "Modifier les sources de documents",
+        "description": "Renommer une source de documents ou changer ses paramètres."
+      },
+      "document_source_delete": {
+        "name": "Supprimer des sources de documents",
+        "description": "Retirer une source de documents qui n'a aucun document attaché."
+      },
       "project_read": {
         "name": "Lire l'espace de travail",
         "description": "Voir cet espace de travail et ses paramètres."
