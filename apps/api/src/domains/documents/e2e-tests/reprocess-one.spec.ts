@@ -62,7 +62,7 @@ describe("Documents - reprocessOne", () => {
 
   const createContext = async (overrides?: {
     embeddingStatus?: "failed" | "completed"
-    sourceType?: "project" | "agentSessionMessage"
+    sourceType?: "project" | "extraction"
   }) => {
     const { user, organization, project, document } = await createOrganizationWithDocument(
       repositories,
@@ -115,7 +115,7 @@ describe("Documents - reprocessOne", () => {
   })
 
   it("rejects when document source type is not project", async () => {
-    await createContext({ sourceType: "agentSessionMessage" })
+    await createContext({ sourceType: "extraction" })
 
     const response = await subject()
 
