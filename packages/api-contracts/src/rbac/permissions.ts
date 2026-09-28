@@ -48,6 +48,15 @@ export const PROJECT_UPDATE_PERMISSION = "project.update" as const
 
 export const PROJECT_DELETE_PERMISSION = "project.delete" as const
 
+/** Read a project's conversation analytics. Not inherited from the organization. */
+export const PROJECT_ANALYTICS_READ_PERMISSION = "project.analytics.read" as const
+
+/**
+ * Read an agent's conversation analytics. Held on the agent only: a project or
+ * organization role does not grant it.
+ */
+export const AGENT_ANALYTICS_READ_PERMISSION = "agent.analytics.read" as const
+
 /**
  * Permissions an App may be granted. Policy lives in code, not in the database:
  * there is no Permission entity and no `app_grantable` column. Intersect this

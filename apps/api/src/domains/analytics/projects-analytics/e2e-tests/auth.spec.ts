@@ -11,8 +11,15 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { agentFactory } from "@/domains/agents/agent.factory"
+import {
+  agentMembershipFactory,
+  saveAgentMembership,
+} from "@/domains/agents/memberships/agent-membership.factory"
+import type { AgentMembershipRole } from "@/domains/agents/memberships/agent-membership.types"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { ProjectsAnalyticsModule } from "../projects-analytics.module"
 
@@ -37,6 +44,7 @@ describe("Projects Analytics - Auth", () => {
       additionalImports: [ProjectsAnalyticsModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
     await app.init()
@@ -130,5 +138,64 @@ describe("Projects Analytics - Auth", () => {
     projectId = randomUUID()
     expectResponse(await subjectConversations(), 404)
     expectResponse(await subjectAvg(), 404)
+  })
+
+  describe("filtering on one agent", () => {
+    let filteredAgentId: string
+
+    const createContextWithAgent = async (agentMembership: AgentMembershipRole | "none") => {
+      const { organization, project, user } = await createContextForRole("owner")
+      const agent = agentFactory.transient({ organization, project }).build()
+      await repositories.agentRepository.save(agent)
+      if (agentMembership !== "none") {
+        await saveAgentMembership({
+          repositories,
+          membership: agentMembershipFactory
+            .transient({ user, agent })
+            .build({ role: agentMembership }),
+        })
+      }
+      filteredAgentId = agent.id
+    }
+
+    const subjectFiltered = async (route: typeof AnalyticsRoutes.getConversationsPerDay) =>
+      request({
+        route,
+        pathParams: removeNullish({ organizationId, projectId }),
+        token: accessToken ?? undefined,
+        query: { ...analyticsDateRangeQuery, agentId: filteredAgentId },
+      })
+
+    it("doesn't allow project owners to filter on an agent they hold no role on", async () => {
+      await createContextWithAgent("none")
+      expectResponse(
+        await subjectFiltered(AnalyticsRoutes.getConversationsPerDay),
+        403,
+        AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
+      )
+      expectResponse(
+        await subjectFiltered(AnalyticsRoutes.getAvgUserQuestionsPerSessionPerDay),
+        403,
+        AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
+      )
+    })
+
+    it("doesn't allow project owners to filter on an agent they are only a member of", async () => {
+      await createContextWithAgent("member")
+      expectResponse(
+        await subjectFiltered(AnalyticsRoutes.getConversationsPerDay),
+        403,
+        AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
+      )
+    })
+
+    it("allows project owners to filter on an agent they are an admin of", async () => {
+      await createContextWithAgent("admin")
+      expectResponse(await subjectFiltered(AnalyticsRoutes.getConversationsPerDay), 200)
+      expectResponse(
+        await subjectFiltered(AnalyticsRoutes.getAvgUserQuestionsPerSessionPerDay),
+        200,
+      )
+    })
   })
 })
