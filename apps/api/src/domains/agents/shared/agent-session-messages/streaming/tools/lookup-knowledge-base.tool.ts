@@ -1,4 +1,4 @@
-import { ToolName } from "@caseai-connect/api-contracts"
+import { type EmbeddingModel, ToolName } from "@caseai-connect/api-contracts"
 import { tool } from "ai"
 import { z } from "zod"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
@@ -104,6 +104,7 @@ export function lookupKnowledgeBaseTool({
   connectScope,
   documentTagIds = [],
   retrievalService,
+  embeddingModel,
   retrievedChunksRegistry,
   citeInline = false,
   onExecute,
@@ -111,6 +112,8 @@ export function lookupKnowledgeBaseTool({
   connectScope: RequiredConnectScope
   documentTagIds?: string[]
   retrievalService: DocumentChunkRetrievalService
+  /** The agent's retrieval model; undefined or null means the platform default. */
+  embeddingModel?: EmbeddingModel | null
   retrievedChunksRegistry?: RetrievedChunksRegistry
   /** Adds the inline citation rule to the description (sources reporting on). */
   citeInline?: boolean
@@ -134,6 +137,7 @@ export function lookupKnowledgeBaseTool({
         query: input.query,
         topK: DEFAULT_TOP_K,
         documentTagIds,
+        embeddingModel,
       })
       const modelVisibleChunks = retrievedChunks.map((chunk) => ({
         id: retrievedChunksRegistry?.register(chunk) ?? chunk.chunkId,

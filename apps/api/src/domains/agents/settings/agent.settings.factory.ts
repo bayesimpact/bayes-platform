@@ -44,6 +44,7 @@ export const agentSettingsFactory = AgentSettingsFactory.define(
       outputJsonSchema: params.outputJsonSchema ?? null,
       fillFormEnabled: params.fillFormEnabled ?? false,
       priorityCallsEnabled: params.priorityCallsEnabled ?? false,
+      embeddingModel: params.embeddingModel ?? null,
       organizationId: transientParams.organization.id,
       projectId: transientParams.project.id,
       agentId: transientParams.agent.id,

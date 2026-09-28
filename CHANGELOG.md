@@ -11,6 +11,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) Superadmins can register an app in the back-office.
 - (beta) Platform staff can install an app on a project with limited credentials.
 - (beta) Installed apps can add a text document to their project.
+- (beta) Local embedding models: a project can enable bge-m3 or EmbeddingGemma, served by its own GPU workers, re-embed its documents with them and pick the retrieval model per agent.
 
 ### Changed
 - Analytics: conversation categories now show per agent, ranked by volume with their share and daily trend.

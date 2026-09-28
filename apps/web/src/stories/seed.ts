@@ -54,6 +54,7 @@ import type { DocumentTag } from "@/studio/features/document-tags/document-tags.
 import type { Document } from "@/studio/features/documents/documents.models"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import type { McpServer } from "@/studio/features/mcp-servers/mcp-servers.models"
+import type { ProjectEmbeddingModel } from "@/studio/features/project-embedding-models/project-embedding-models.models"
 import type {
   ProjectMemberAgent,
   ProjectMembership,
@@ -326,6 +327,10 @@ export const seed = {
 
     mcpServers(mcpServers: McpServer[]): StoryPreloadedState {
       return { mcpServers: { data: ads.fulfilled(mcpServers) } }
+    },
+
+    projectEmbeddingModels(models: ProjectEmbeddingModel[]): StoryPreloadedState {
+      return { projectEmbeddingModels: { data: ads.fulfilled(models) } }
     },
 
     resourceLibraries(resourceLibraries: ResourceLibrary[]): StoryPreloadedState {

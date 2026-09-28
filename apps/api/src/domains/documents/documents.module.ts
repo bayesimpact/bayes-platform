@@ -24,6 +24,10 @@ import { DocumentChunkRetrievalService } from "./embeddings/document-chunk-retri
 import { DocumentEmbeddingStatusNotifierService } from "./embeddings/document-embedding-status-notifier.service"
 import { DocumentEmbeddingStatusStreamService } from "./embeddings/document-embedding-status-stream.service"
 import { DocumentEmbeddingsBatchModule } from "./embeddings/document-embeddings-batch.module"
+import { ProjectEmbeddingModelProgressStreamService } from "./embeddings/project-embedding-models/project-embedding-model-progress-stream.service"
+import { ProjectEmbeddingModelsController } from "./embeddings/project-embedding-models/project-embedding-models.controller"
+import { ProjectEmbeddingModelsModule } from "./embeddings/project-embedding-models/project-embedding-models.module"
+import { QueryEmbeddingsClientModule } from "./embeddings/query-embeddings/query-embeddings-client.module"
 import { PdfPagesModule } from "./pdf-pages/pdf-pages.module"
 import { LocalPresignUploadController } from "./storage/local-presign-upload.controller"
 import { StorageModule } from "./storage/storage.module"
@@ -55,6 +59,8 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
     DocumentEmbeddingsBatchModule,
     UrlCrawlingBatchModule,
     WebSourceEmbeddingsBatchModule,
+    ProjectEmbeddingModelsModule,
+    QueryEmbeddingsClientModule,
     PdfPagesModule,
   ],
   providers: [
@@ -63,6 +69,7 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
     DocumentEmbeddingStatusNotifierService,
     DocumentCrawlProgressStreamService,
     DocumentChunkRetrievalService,
+    ProjectEmbeddingModelProgressStreamService,
     DocumentsGuard,
     ResourceContextGuard,
     OrganizationContextResolver,
@@ -72,8 +79,9 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
   controllers: [
     DocumentsController,
     CrawlingController,
+    ProjectEmbeddingModelsController,
     ...(process.env.NODE_ENV !== "production" ? [LocalPresignUploadController] : []),
   ],
-  exports: [DocumentsService, DocumentChunkRetrievalService],
+  exports: [DocumentsService, DocumentChunkRetrievalService, ProjectEmbeddingModelsModule],
 })
 export class DocumentsModule {}

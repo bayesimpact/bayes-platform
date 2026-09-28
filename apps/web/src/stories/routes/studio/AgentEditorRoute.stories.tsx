@@ -1,4 +1,4 @@
-import { AgentModel, DEFAULT_AGENT_MODEL } from "@caseai-connect/api-contracts"
+import { AgentModel, DEFAULT_AGENT_MODEL, EmbeddingModel } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import type { IAgentSettingsSpi } from "@/common/features/agents/agent-settings/agent-settings.spi"
@@ -13,6 +13,9 @@ import {
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
 import { agentSubAgentFactory } from "@/studio/features/agent-sub-agents/agent-sub-agents.factory"
+import { projectEmbeddingModelFactory } from "@/studio/features/project-embedding-models/project-embedding-models.factory"
+import type { ProjectEmbeddingModel } from "@/studio/features/project-embedding-models/project-embedding-models.models"
+import type { IProjectEmbeddingModelsSpi } from "@/studio/features/project-embedding-models/project-embedding-models.spi"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
@@ -24,6 +27,8 @@ type StoryArgs = StudioStoryArgs & {
   withDeprecatedModel?: boolean
   /** Turns the priority tier on; pair it with the `llm-priority-calls` flag to see the toggle. */
   withPriorityCalls?: boolean
+  /** Seeds local embedding models in every state; pair it with the `local-embeddings` flag. */
+  withEmbeddingModels?: boolean
 }
 
 /** Older revisions of the agent so the version history sheet has content to compare. */
@@ -65,6 +70,17 @@ function buildMockAgentsService(agents: Agent[]): IAgentsSpi {
     },
   }
 }
+function buildMockProjectEmbeddingModelsService(
+  models: ProjectEmbeddingModel[],
+): IProjectEmbeddingModelsSpi {
+  return {
+    getAll: async () => models,
+    createOne: async () => {
+      throw new Error("createOne is not supported in this story")
+    },
+    streamProgress: async () => {},
+  }
+}
 function buildMockAgentSettingsService(agentSettingsHistory: AgentSettings[]): IAgentSettingsSpi {
   return {
     getAll: async () => agentSettingsHistory,
@@ -93,6 +109,7 @@ const meta = {
     withDraft: { control: "boolean" },
     withDeprecatedModel: { control: "boolean" },
     withPriorityCalls: { control: "boolean" },
+    withEmbeddingModels: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
@@ -102,6 +119,7 @@ const meta = {
     withDraft: true,
     withDeprecatedModel: false,
     withPriorityCalls: false,
+    withEmbeddingModels: false,
   },
   render: render({ routes: studioRoutes, path: StudioRoutes.agentEdit.path }),
 } satisfies Meta<StoryArgs>
@@ -112,8 +130,24 @@ type Story = StoryObj<typeof meta>
 export const ConversationAgent: Story = {
   decorators: [
     buildDecorator<StoryArgs>(
-      ({ withSubAgents, withDraft, withDeprecatedModel, withPriorityCalls, ...args }) => {
-        const { baseSeeds, agents } = buildStudioData({ ...args, withAgents: true })
+      ({
+        withSubAgents,
+        withDraft,
+        withDeprecatedModel,
+        withPriorityCalls,
+        withEmbeddingModels,
+        ...args
+      }) => {
+        const { baseSeeds, agents, project } = buildStudioData({ ...args, withAgents: true })
+        const embeddingModels = withEmbeddingModels
+          ? [
+              projectEmbeddingModelFactory.completed().transient({ project }).build(),
+              projectEmbeddingModelFactory
+                .processing()
+                .transient({ project })
+                .build({ modelName: EmbeddingModel.EmbeddingGemma300m }),
+            ]
+          : []
         const [rawParentAgent, ...rawChildAgents] = agents
         if (!rawParentAgent) {
           throw new Error("Agent editor route story requires a parent agent")
@@ -156,10 +190,12 @@ export const ConversationAgent: Story = {
             // The agent layout above the editor lists the agent's conversations.
             seed.conversationAgentSessions({ [rawParentAgent.id]: [] }),
             seed.studio.mcpServers([]),
+            seed.studio.projectEmbeddingModels(embeddingModels),
           ),
           services: {
             agents: buildMockAgentsService(allAgents),
             agentSettings: buildMockAgentSettingsService(versions),
+            projectEmbeddingModels: buildMockProjectEmbeddingModelsService(embeddingModels),
           },
         }
       },
@@ -169,6 +205,15 @@ export const ConversationAgent: Story = {
 
 export const ConversationAgentOnDeprecatedModel: Story = {
   args: { withDeprecatedModel: true },
+  decorators: ConversationAgent.decorators,
+}
+
+/** The Model tab lists local embedding models: flag on, one ready and one still processing. */
+export const ConversationAgentWithLocalEmbeddings: Story = {
+  args: {
+    featureFlags: [...studioStoryArgs.featureFlags, "agent-orchestration", "local-embeddings"],
+    withEmbeddingModels: true,
+  },
   decorators: ConversationAgent.decorators,
 }
 

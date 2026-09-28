@@ -1,5 +1,6 @@
 import {
   AgentSettingsRoutes,
+  DEFAULT_EMBEDDING_MODEL,
   partialUpdateAgentSettingsSchema,
 } from "@caseai-connect/api-contracts"
 import type { AgentSettingsDto } from "@caseai-connect/api-contracts/src/agents/settings/agent-settings.dto"
@@ -266,6 +267,7 @@ function toAgentSettingsDto({
     description: agentSettings.revisionDesc,
     documentsRagMode: agentSettings.documentsRagMode,
     documentTagIds,
+    embeddingModel: agentSettings.embeddingModel ?? DEFAULT_EMBEDDING_MODEL,
     fillFormEnabled: agentSettings.fillFormEnabled,
     priorityCallsEnabled: agentSettings.priorityCallsEnabled,
     greetingMessage: agentSettings.greetingMessage ?? undefined,

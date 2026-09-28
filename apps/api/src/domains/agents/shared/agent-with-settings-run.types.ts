@@ -12,6 +12,7 @@ type AgentWithSettingsRunJobPayloadBase = Pick<Agent, "id" | "name" | "type"> &
     | "temperature"
     | "locale"
     | "priorityCallsEnabled"
+    | "embeddingModel"
   > &
   Partial<Pick<AgentSettings, "outputJsonSchema" | "greetingMessage">>
 

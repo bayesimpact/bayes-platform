@@ -14,6 +14,7 @@
       "outputJsonSchema": "Output JSON Schema",
       "fillFormEnabled": "Form filling",
       "priorityCallsEnabled": "Priority calls",
+      "embeddingModel": "Embedding model",
       "schemaBuilder": {
         "advancedMode": "Advanced mode",
         "visualMode": "Visual editor",
@@ -70,6 +71,7 @@
         "greeting": "Optional greeting the agent sends first when a new conversation starts",
         "documentsRagMode": "Select document usage",
         "model": "Select model",
+        "embeddingModel": "Select embedding model",
         "outputJsonSchema": "{\n \"type\": \"object\", \"properties\": {\n    \"field\": { \"type\": \"string\", \"description\": \"blablabla\" }\n  },\n  \"required\": [\"field\"]\n}",
         "temperature": "Enter temperature 0.0 - 2.0",
         "locale": "Select language for agent responses"
@@ -217,6 +219,9 @@
       "priorityCalls": {
         "title": "Priority calls",
         "description": "Lower and more stable response time, at a higher cost per call."
+      },
+      "embeddingModel": {
+        "description": "Model used to search the knowledge base. Local models appear once the project finished embedding its documents with them."
       }
     },
     "tools": {

@@ -7,7 +7,11 @@ export type AgentSettingsCreateFields = Pick<
   Partial<
     Pick<
       AgentSettings,
-      "outputJsonSchema" | "greetingMessage" | "fillFormEnabled" | "priorityCallsEnabled"
+      | "outputJsonSchema"
+      | "greetingMessage"
+      | "fillFormEnabled"
+      | "priorityCallsEnabled"
+      | "embeddingModel"
     >
   >
 
@@ -23,5 +27,6 @@ export type AgentSettingsUpdateFields = Partial<
     | "outputJsonSchema"
     | "fillFormEnabled"
     | "priorityCallsEnabled"
+    | "embeddingModel"
   >
 >

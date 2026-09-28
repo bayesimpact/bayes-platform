@@ -17,6 +17,7 @@ import { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entit
 import { AppInstallation } from "@/domains/apps/app-installation.entity"
 import { AppManifest } from "@/domains/apps/app-manifest.entity"
 import { Document } from "@/domains/documents/document.entity"
+import { ProjectEmbeddingModel } from "@/domains/documents/embeddings/project-embedding-models/project-embedding-model.entity"
 import { EvaluationConversationDataset } from "@/domains/evaluations/conversation/datasets/evaluation-conversation-dataset.entity"
 import { EvaluationConversationDatasetRecord } from "@/domains/evaluations/conversation/datasets/records/evaluation-conversation-dataset-record.entity"
 import { EvaluationConversationRun } from "@/domains/evaluations/conversation/runs/evaluation-conversation-run.entity"
@@ -67,6 +68,7 @@ export type AllRepositories = {
   appInstallationRepository: Repository<AppInstallation>
   appManifestRepository: Repository<AppManifest>
   documentRepository: Repository<Document>
+  projectEmbeddingModelRepository: Repository<ProjectEmbeddingModel>
   evaluationConversationDatasetRecordRepository: Repository<EvaluationConversationDatasetRecord>
   evaluationConversationDatasetRepository: Repository<EvaluationConversationDataset>
   evaluationConversationRunRecordRepository: Repository<EvaluationConversationRunRecord>
@@ -120,6 +122,7 @@ export function buildAllRepositories(
     appInstallationRepository: getRepository(AppInstallation),
     appManifestRepository: getRepository(AppManifest),
     documentRepository: getRepository(Document),
+    projectEmbeddingModelRepository: getRepository(ProjectEmbeddingModel),
     evaluationConversationDatasetRecordRepository: getRepository(
       EvaluationConversationDatasetRecord,
     ),

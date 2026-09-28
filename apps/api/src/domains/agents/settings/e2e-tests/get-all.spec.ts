@@ -2,6 +2,7 @@ import {
   AgentLocale,
   AgentModel,
   AgentSettingsRoutes,
+  DEFAULT_EMBEDDING_MODEL,
   DocumentsRagMode,
 } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
@@ -173,6 +174,7 @@ describe("Agent Settings - getAll", () => {
       model: AgentModel.Gemini25Flash,
       temperature: 1.5,
       documentsRagMode: DocumentsRagMode.None,
+      embeddingModel: DEFAULT_EMBEDDING_MODEL,
       fillFormEnabled: true,
       outputJsonSchema: { type: "object", properties: { title: { type: "string" } } },
       isDraft: false,
