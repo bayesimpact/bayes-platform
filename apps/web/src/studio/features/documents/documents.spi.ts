@@ -12,10 +12,6 @@ export interface IDocumentsSpi {
     projectId: string
     sourceType: DocumentSourceType
   }): Promise<Document[]>
-  listMyExtractionDocuments(params: {
-    organizationId: string
-    projectId: string
-  }): Promise<Document[]>
   uploadOne(params: {
     organizationId: string
     projectId: string

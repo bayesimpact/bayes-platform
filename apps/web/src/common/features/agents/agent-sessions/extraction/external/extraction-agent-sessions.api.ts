@@ -3,8 +3,13 @@ import {
   type ExtractionAgentSessionResultDto,
   type ExtractionAgentSessionSummaryDto,
   ExtractionAgentSessionsRoutes,
+  type PresignFileRequestItemDto,
 } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
+import {
+  fromDocumentDto,
+  putFileToSignedUrl,
+} from "@/studio/features/documents/external/documents.mappers"
 import type {
   ExtractionAgentSession,
   ExtractionAgentSessionResult,
@@ -50,6 +55,50 @@ const api: IExtractionAgentSessionsSpi = {
   },
   streamSessionStatus: async (params) => {
     await streamExtractionAgentSessionStatus(params)
+  },
+  uploadDocument: async ({ file, type, ...params }) => {
+    const axios = getAxiosInstance()
+
+    const presignResponse = await axios.post<
+      typeof ExtractionAgentSessionsRoutes.presignDocuments.response
+    >(ExtractionAgentSessionsRoutes.presignDocuments.getPath(params), {
+      payload: {
+        type,
+        files: [
+          {
+            fileName: file.name,
+            mimeType: file.type as PresignFileRequestItemDto["mimeType"],
+            size: file.size,
+          },
+        ],
+      },
+    } satisfies typeof ExtractionAgentSessionsRoutes.presignDocuments.request)
+    const [presigned] = presignResponse.data.data
+    if (!presigned) {
+      throw new Error("Presign response is missing data")
+    }
+
+    await putFileToSignedUrl({ uploadUrl: presigned.uploadUrl, file })
+
+    const confirmResponse = await axios.post<
+      typeof ExtractionAgentSessionsRoutes.confirmDocuments.response
+    >(ExtractionAgentSessionsRoutes.confirmDocuments.getPath(params), {
+      payload: { type, documentIds: [presigned.documentId] },
+    } satisfies typeof ExtractionAgentSessionsRoutes.confirmDocuments.request)
+    const [document] = confirmResponse.data.data.map(fromDocumentDto)
+    if (!document) {
+      throw new Error("Confirm response is missing data")
+    }
+    return document
+  },
+  listMyDocuments: async ({ type, ...params }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<
+      typeof ExtractionAgentSessionsRoutes.listMyDocuments.response
+    >(ExtractionAgentSessionsRoutes.listMyDocuments.getPath(params), {
+      payload: { type },
+    } satisfies typeof ExtractionAgentSessionsRoutes.listMyDocuments.request)
+    return response.data.data.map(fromDocumentDto)
   },
 }
 

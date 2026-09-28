@@ -1,4 +1,9 @@
 import type { BaseAgentSessionTypeDto } from "../../agents/conversation-agent-sessions/conversation-agent-sessions.dto"
+import type {
+  DocumentDto,
+  PresignFileRequestItemDto,
+  PresignFileResponseItemDto,
+} from "../../documents/documents.dto"
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../../generic"
 import { defineRoute } from "../../helpers"
 import type {
@@ -38,5 +43,22 @@ export const ExtractionAgentSessionsRoutes = {
   deleteOne: defineRoute<ResponseData<SuccessResponseDTO>, Request>({
     method: "post",
     path: `/${prefix}/:agentSessionId/delete`,
+  }),
+  // Documents an extraction run reads are uploaded through the agent, not the project documents
+  // routes: a live run is open to every project member, a playground run to admins and owners.
+  presignDocuments: defineRoute<
+    ResponseData<PresignFileResponseItemDto[]>,
+    Request<{ files: PresignFileRequestItemDto[] }>
+  >({
+    method: "post",
+    path: `${prefix}/documents/presign`,
+  }),
+  confirmDocuments: defineRoute<ResponseData<DocumentDto[]>, Request<{ documentIds: string[] }>>({
+    method: "post",
+    path: `${prefix}/documents/confirm`,
+  }),
+  listMyDocuments: defineRoute<ResponseData<DocumentDto[]>, Request>({
+    method: "post",
+    path: `${prefix}/documents/mine`,
   }),
 }
