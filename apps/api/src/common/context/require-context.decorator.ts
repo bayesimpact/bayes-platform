@@ -17,6 +17,7 @@ export type ContextResource =
   | "evaluationConversationDataset"
   | "evaluationConversationRun"
   | "evaluationExtractionDataset"
+  | "evaluationExtractionDatasetDocument"
   | "evaluationExtractionRun"
   | "reviewCampaign"
   | "reviewCampaignMembership"

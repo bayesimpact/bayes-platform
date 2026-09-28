@@ -8,6 +8,7 @@ import type { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
 import type { EvaluationConversationDataset } from "@/domains/evaluations/conversation/datasets/evaluation-conversation-dataset.entity"
 import type { EvaluationConversationRun } from "@/domains/evaluations/conversation/runs/evaluation-conversation-run.entity"
 import type { EvaluationExtractionDataset } from "@/domains/evaluations/extraction/datasets/evaluation-extraction-dataset.entity"
+import type { EvaluationExtractionDatasetDocument } from "@/domains/evaluations/extraction/datasets/evaluation-extraction-dataset-document.entity"
 import type { EvaluationExtractionRun } from "@/domains/evaluations/extraction/runs/evaluation-extraction-run.entity"
 import type { Invitation } from "@/domains/invitations/invitation.entity"
 import type { McpServer } from "@/domains/mcp-servers/mcp-server.entity"
@@ -85,6 +86,11 @@ export interface EndpointRequestWithAgentSession<
 
 export interface EndpointRequestWithEvaluationExtractionDataset extends EndpointRequestWithProject {
   evaluationExtractionDataset: EvaluationExtractionDataset
+}
+
+export interface EndpointRequestWithEvaluationExtractionDatasetDocument
+  extends EndpointRequestWithProject {
+  evaluationExtractionDatasetDocument: EvaluationExtractionDatasetDocument
 }
 
 export interface EndpointRequestWithEvaluationConversationDataset

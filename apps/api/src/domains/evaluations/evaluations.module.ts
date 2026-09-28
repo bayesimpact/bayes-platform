@@ -1,10 +1,10 @@
 import { Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
 import { AgentContextResolver } from "@/common/context/resolvers/agent-context.resolver"
-import { DocumentContextResolver } from "@/common/context/resolvers/document-context.resolver"
 import { EvaluationConversationDatasetContextResolver } from "@/common/context/resolvers/evaluation-conversation-dataset-context.resolver"
 import { EvaluationConversationRunContextResolver } from "@/common/context/resolvers/evaluation-conversation-run-context.resolver"
 import { EvaluationExtractionDatasetContextResolver } from "@/common/context/resolvers/evaluation-extraction-dataset-context.resolver"
+import { EvaluationExtractionDatasetDocumentContextResolver } from "@/common/context/resolvers/evaluation-extraction-dataset-document-context.resolver"
 import { EvaluationExtractionRunContextResolver } from "@/common/context/resolvers/evaluation-extraction-run-context.resolver"
 import { OrganizationContextResolver } from "@/common/context/resolvers/organization-context.resolver"
 import { ProjectContextResolver } from "@/common/context/resolvers/project-context.resolver"
@@ -38,6 +38,7 @@ import { EvaluationConversationRunRecord } from "./conversation/runs/records/eva
 import { EvaluationExtractionDataset } from "./extraction/datasets/evaluation-extraction-dataset.entity"
 import { EvaluationExtractionDatasetGuard } from "./extraction/datasets/evaluation-extraction-dataset.guard"
 import { EvaluationExtractionDatasetDocument } from "./extraction/datasets/evaluation-extraction-dataset-document.entity"
+import { EvaluationExtractionDatasetDocumentRepository } from "./extraction/datasets/evaluation-extraction-dataset-document.repository"
 import { EvaluationExtractionDatasetsController } from "./extraction/datasets/evaluation-extraction-datasets.controller"
 import { EvaluationExtractionDatasetsService } from "./extraction/datasets/evaluation-extraction-datasets.service"
 import { EvaluationExtractionDatasetRecord } from "./extraction/datasets/records/evaluation-extraction-dataset-record.entity"
@@ -82,7 +83,6 @@ import { EvaluationExtractionRunRecord } from "./extraction/runs/records/evaluat
   ],
   providers: [
     AgentContextResolver,
-    DocumentContextResolver,
     EvaluationConversationDatasetContextResolver,
     EvaluationConversationDatasetGuard,
     EvaluationConversationDatasetsService,
@@ -93,6 +93,8 @@ import { EvaluationExtractionRunRecord } from "./extraction/runs/records/evaluat
     EvaluationConversationRunStatusStreamService,
     EvaluationConversationRunsService,
     EvaluationExtractionDatasetContextResolver,
+    EvaluationExtractionDatasetDocumentContextResolver,
+    EvaluationExtractionDatasetDocumentRepository,
     EvaluationExtractionDatasetGuard,
     EvaluationExtractionDatasetsService,
     EvaluationExtractionRunContextResolver,

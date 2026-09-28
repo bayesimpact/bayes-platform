@@ -8,11 +8,12 @@ import {
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { documentFactory } from "@/domains/documents/document.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { projectFactory } from "@/domains/projects/project.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { EvaluationsModule } from "../../../evaluations.module"
+import { evaluationExtractionDatasetDocumentFactory } from "../evaluation-extraction-dataset-document.factory"
 
 describe("EvaluationExtractionDatasets - getAllFiles", () => {
   let app: INestApplication<App>
@@ -71,14 +72,13 @@ describe("EvaluationExtractionDatasets - getAllFiles", () => {
     expect(res.body.data).toEqual([])
   })
 
-  it("should return files with sourceType evaluationExtractionDataset", async () => {
+  it("should return the uploaded dataset files", async () => {
     const { organization, project } = await createContext()
 
-    const datasetFile = documentFactory.transient({ organization, project }).build({
-      sourceType: "evaluationExtractionDataset",
-      fileName: "dataset.csv",
-    })
-    await repositories.documentRepository.save(datasetFile)
+    const datasetFile = evaluationExtractionDatasetDocumentFactory
+      .transient({ organization, project })
+      .build({ fileName: "dataset.csv" })
+    await repositories.evaluationExtractionDatasetDocumentRepository.save(datasetFile)
 
     const res = await subject()
 
@@ -91,18 +91,19 @@ describe("EvaluationExtractionDatasets - getAllFiles", () => {
     })
   })
 
-  it("should not return files with other sourceTypes", async () => {
+  it("should not return files whose upload was never confirmed", async () => {
     const { organization, project } = await createContext()
 
-    const projectFile = documentFactory.transient({ organization, project }).build({
-      sourceType: "project",
-      fileName: "project-doc.txt",
-    })
-    const datasetFile = documentFactory.transient({ organization, project }).build({
-      sourceType: "evaluationExtractionDataset",
-      fileName: "dataset.csv",
-    })
-    await repositories.documentRepository.save([projectFile, datasetFile])
+    const pendingFile = evaluationExtractionDatasetDocumentFactory
+      .transient({ organization, project })
+      .build({ fileName: "pending.csv", uploadStatus: "pending" })
+    const uploadedFile = evaluationExtractionDatasetDocumentFactory
+      .transient({ organization, project })
+      .build({ fileName: "dataset.csv" })
+    await repositories.evaluationExtractionDatasetDocumentRepository.save([
+      pendingFile,
+      uploadedFile,
+    ])
 
     const res = await subject()
 
@@ -111,24 +112,66 @@ describe("EvaluationExtractionDatasets - getAllFiles", () => {
     expect(res.body.data[0]!.fileName).toBe("dataset.csv")
   })
 
-  it("should return files with all required fields", async () => {
+  it("should not return files of another project", async () => {
     const { organization, project } = await createContext()
+    const otherProject = await repositories.projectRepository.save(
+      projectFactory.transient({ organization }).build(),
+    )
 
-    const datasetFile = documentFactory.transient({ organization, project }).build({
-      sourceType: "evaluationExtractionDataset",
-    })
-    await repositories.documentRepository.save(datasetFile)
+    const foreignFile = evaluationExtractionDatasetDocumentFactory
+      .transient({ organization, project: otherProject })
+      .build({ fileName: "foreign.csv" })
+    const ownFile = evaluationExtractionDatasetDocumentFactory
+      .transient({ organization, project })
+      .build({ fileName: "dataset.csv" })
+    await repositories.evaluationExtractionDatasetDocumentRepository.save([foreignFile, ownFile])
 
     const res = await subject()
 
     expectResponse(res)
     expect(res.body.data).toHaveLength(1)
-    expect(res.body.data[0]).toMatchObject({
-      id: expect.any(String),
-      fileName: expect.any(String),
+    expect(res.body.data[0]!.fileName).toBe("dataset.csv")
+  })
+
+  it("should return files newest first", async () => {
+    const { organization, project } = await createContext()
+
+    const olderFile = evaluationExtractionDatasetDocumentFactory
+      .transient({ organization, project })
+      .build({ fileName: "older.csv", createdAt: new Date("2024-01-01") })
+    const newerFile = evaluationExtractionDatasetDocumentFactory
+      .transient({ organization, project })
+      .build({ fileName: "newer.csv", createdAt: new Date("2024-06-01") })
+    await repositories.evaluationExtractionDatasetDocumentRepository.save([olderFile, newerFile])
+
+    const res = await subject()
+
+    expectResponse(res)
+    expect(res.body.data.map((file: { fileName: string }) => file.fileName)).toEqual([
+      "newer.csv",
+      "older.csv",
+    ])
+  })
+
+  it("should return files with all required fields", async () => {
+    const { organization, project } = await createContext()
+
+    const datasetFile = evaluationExtractionDatasetDocumentFactory
+      .transient({ organization, project })
+      .build()
+    await repositories.evaluationExtractionDatasetDocumentRepository.save(datasetFile)
+
+    const res = await subject()
+
+    expectResponse(res)
+    expect(res.body.data).toHaveLength(1)
+    expect(res.body.data[0]).toEqual({
+      id: datasetFile.id,
+      fileName: datasetFile.fileName,
+      mimeType: "text/csv",
       projectId,
-      size: expect.any(Number),
-      storageRelativePath: expect.any(String),
+      size: datasetFile.size,
+      storageRelativePath: datasetFile.storageRelativePath,
       createdAt: expect.any(Number),
       updatedAt: expect.any(Number),
     })

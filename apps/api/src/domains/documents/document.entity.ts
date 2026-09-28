@@ -1,6 +1,5 @@
-import { Column, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany } from "typeorm"
+import { Column, JoinColumn, JoinTable, ManyToMany, ManyToOne } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
-import { EvaluationExtractionDatasetDocument } from "@/domains/evaluations/extraction/datasets/evaluation-extraction-dataset-document.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { DocumentSource } from "./sources/document-source.entity"
 import type { DocumentTag } from "./tags/document-tag.entity"
@@ -42,7 +41,6 @@ export class Document extends ConnectEntityBase {
   sourceType!:
     | "project"
     | "extraction"
-    | "evaluationExtractionDataset"
     | "evaluationExtractionRun"
     | "agentCsvExtractionRun"
     | "webCrawl"
@@ -73,13 +71,6 @@ export class Document extends ConnectEntityBase {
     inverseJoinColumn: { name: "document_tag_id", referencedColumnName: "id" },
   })
   tags!: DocumentTag[]
-
-  @OneToMany(
-    () => EvaluationExtractionDatasetDocument,
-    (evaluationExtractionDatasetDocument: EvaluationExtractionDatasetDocument) =>
-      evaluationExtractionDatasetDocument.document,
-  )
-  evaluationExtractionDatasetDocuments!: EvaluationExtractionDatasetDocument[]
 
   @Column({ type: "uuid", name: "document_source_id", nullable: true })
   documentSourceId!: string | null

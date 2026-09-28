@@ -115,30 +115,25 @@ const uploadFile = createAsyncThunk<void, { file: File }, ThunkConfig>(
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
     const params = { organizationId, projectId }
-    await services.documents.uploadMany({
-      ...params,
-      files: [file],
-      sourceType: "evaluationExtractionDataset",
-      onFileProcessed: (result) => {
-        dispatch(evaluationExtractionDatasetsActions.setFileProcessed())
-
-        if (result.status === "error") {
-          const title = `Error uploading file "${result.file.name}"`
-          const description = result.error.message
-          dispatch(
-            notificationsActions.show({
-              title: `${title}: ${description}`,
-              type: "error",
-            }),
-          )
-          dispatch(
-            evaluationExtractionDatasetsActions.setFileError({
-              error: { title, description },
-            }),
-          )
-        }
-      },
-    })
+    try {
+      await services.evaluationExtractionDatasets.uploadFile({ ...params, file })
+      dispatch(evaluationExtractionDatasetsActions.setFileProcessed())
+    } catch (error) {
+      dispatch(evaluationExtractionDatasetsActions.setFileProcessed())
+      const title = `Error uploading file "${file.name}"`
+      const description = error instanceof Error ? error.message : String(error)
+      dispatch(
+        notificationsActions.show({
+          title: `${title}: ${description}`,
+          type: "error",
+        }),
+      )
+      dispatch(
+        evaluationExtractionDatasetsActions.setFileError({
+          error: { title, description },
+        }),
+      )
+    }
   },
 )
 
@@ -150,7 +145,11 @@ const deleteFiles = createAsyncThunk<void, { fileIds: string[] }, ThunkConfig>(
     const projectId = getCurrentId({ state, name: "projectId" })
     await Promise.all(
       fileIds.map((fileId) =>
-        services.documents.deleteOne({ organizationId, projectId, documentId: fileId }),
+        services.evaluationExtractionDatasets.deleteFile({
+          organizationId,
+          projectId,
+          documentId: fileId,
+        }),
       ),
     )
   },

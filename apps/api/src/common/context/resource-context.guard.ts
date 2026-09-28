@@ -34,6 +34,8 @@ import { EvaluationConversationRunContextResolver } from "./resolvers/evaluation
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationExtractionDatasetContextResolver } from "./resolvers/evaluation-extraction-dataset-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { EvaluationExtractionDatasetDocumentContextResolver } from "./resolvers/evaluation-extraction-dataset-document-context.resolver"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationExtractionRunContextResolver } from "./resolvers/evaluation-extraction-run-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { InvitationScopeContextResolver } from "./resolvers/invitation-scope-context.resolver"
@@ -67,6 +69,7 @@ const RESOLUTION_ORDER: ContextResource[] = [
   "evaluationConversationDataset",
   "evaluationConversationRun",
   "evaluationExtractionDataset",
+  "evaluationExtractionDatasetDocument",
   "evaluationExtractionRun",
   "agentSessionInCampaign",
   "reviewCampaign",
@@ -97,6 +100,8 @@ export class ResourceContextGuard implements CanActivate {
     evaluationConversationRunContextResolver?: EvaluationConversationRunContextResolver,
     @Optional()
     evaluationExtractionDatasetContextResolver?: EvaluationExtractionDatasetContextResolver,
+    @Optional()
+    evaluationExtractionDatasetDocumentContextResolver?: EvaluationExtractionDatasetDocumentContextResolver,
     @Optional() evaluationExtractionRunContextResolver?: EvaluationExtractionRunContextResolver,
     @Optional() reviewCampaignContextResolver?: ReviewCampaignContextResolver,
     @Optional()
@@ -168,6 +173,12 @@ export class ResourceContextGuard implements CanActivate {
       resolverEntries.push([
         evaluationExtractionDatasetContextResolver.resource,
         evaluationExtractionDatasetContextResolver,
+      ])
+    }
+    if (evaluationExtractionDatasetDocumentContextResolver) {
+      resolverEntries.push([
+        evaluationExtractionDatasetDocumentContextResolver.resource,
+        evaluationExtractionDatasetDocumentContextResolver,
       ])
     }
     if (evaluationExtractionRunContextResolver) {

@@ -1,4 +1,4 @@
-import { Column, OneToMany } from "typeorm"
+import { Column, JoinColumn, ManyToOne, OneToMany } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { EvaluationExtractionDatasetDocument } from "./evaluation-extraction-dataset-document.entity"
 import { EvaluationExtractionDatasetRecord } from "./records/evaluation-extraction-dataset-record.entity"
@@ -31,10 +31,10 @@ export class EvaluationExtractionDataset extends ConnectEntityBase {
   )
   records!: EvaluationExtractionDatasetRecord[]
 
-  @OneToMany(
-    () => EvaluationExtractionDatasetDocument,
-    (evaluationExtractionDatasetDocument: EvaluationExtractionDatasetDocument) =>
-      evaluationExtractionDatasetDocument.evaluationExtractionDataset,
-  )
-  evaluationExtractionDatasetDocuments!: EvaluationExtractionDatasetDocument[]
+  /** The uploaded CSV the records were built from. Null until the dataset is initialized. */
+  @Column({ type: "uuid", name: "evaluation_extraction_dataset_document_id", nullable: true })
+  evaluationExtractionDatasetDocumentId!: string | null
+  @ManyToOne(() => EvaluationExtractionDatasetDocument, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "evaluation_extraction_dataset_document_id" })
+  evaluationExtractionDatasetDocument!: EvaluationExtractionDatasetDocument | null
 }

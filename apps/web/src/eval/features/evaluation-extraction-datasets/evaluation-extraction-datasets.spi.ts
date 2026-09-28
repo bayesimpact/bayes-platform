@@ -12,6 +12,8 @@ import type {
 type BaseParams = { organizationId: string; projectId: string }
 export interface IEvaluationExtractionDatasetsSpi {
   getAllFiles(params: BaseParams): Promise<EvaluationExtractionDatasetFile[]>
+  uploadFile(params: BaseParams & { file: File }): Promise<EvaluationExtractionDatasetFile>
+  deleteFile(params: BaseParams & { documentId: string }): Promise<void>
   getAll(params: BaseParams): Promise<EvaluationExtractionDataset[]>
   getRecords(
     params: BaseParams & {
