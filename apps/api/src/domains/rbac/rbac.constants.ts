@@ -1,4 +1,65 @@
+import {
+  APP_GRANTABLE_PERMISSIONS,
+  APP_INSTALL_PERMISSION,
+  type AppGrantablePermission,
+  BACKOFFICE_AGENT_READ_PERMISSION,
+  BACKOFFICE_APP_MANAGE_PERMISSION,
+  BACKOFFICE_ORGANIZATION_READ_PERMISSION,
+  BACKOFFICE_PROJECT_READ_PERMISSION,
+  BACKOFFICE_PROJECT_UPDATE_PERMISSION,
+  BACKOFFICE_READ_PERMISSION,
+  BACKOFFICE_TERMS_UPDATE_PERMISSION,
+  BACKOFFICE_USER_READ_PERMISSION,
+  DOCUMENT_CREATE_PERMISSION,
+  DOCUMENT_DELETE_PERMISSION,
+  DOCUMENT_READ_PERMISSION,
+  DOCUMENT_SOURCE_CREATE_PERMISSION,
+  DOCUMENT_SOURCE_DELETE_PERMISSION,
+  DOCUMENT_SOURCE_READ_PERMISSION,
+  DOCUMENT_SOURCE_UPDATE_PERMISSION,
+  DOCUMENT_UPDATE_PERMISSION,
+  ORGANIZATION_CREATE_PERMISSION,
+  PROJECT_CREATE_PERMISSION,
+  PROJECT_DELETE_PERMISSION,
+  PROJECT_READ_PERMISSION,
+  PROJECT_UPDATE_PERMISSION,
+  TRACE_READ_PERMISSION,
+  USER_READ_PERMISSION,
+} from "@caseai-connect/api-contracts"
 import type { PermissionResourceType } from "./permission.types"
+
+/**
+ * Permission strings are declared in `@caseai-connect/api-contracts` and imported here.
+ * Role keys and which role receives which permission stay in this file.
+ */
+export {
+  APP_GRANTABLE_PERMISSIONS,
+  APP_INSTALL_PERMISSION,
+  type AppGrantablePermission,
+  BACKOFFICE_AGENT_READ_PERMISSION,
+  BACKOFFICE_APP_MANAGE_PERMISSION,
+  BACKOFFICE_ORGANIZATION_READ_PERMISSION,
+  BACKOFFICE_PROJECT_READ_PERMISSION,
+  BACKOFFICE_PROJECT_UPDATE_PERMISSION,
+  BACKOFFICE_READ_PERMISSION,
+  BACKOFFICE_TERMS_UPDATE_PERMISSION,
+  BACKOFFICE_USER_READ_PERMISSION,
+  DOCUMENT_CREATE_PERMISSION,
+  DOCUMENT_DELETE_PERMISSION,
+  DOCUMENT_READ_PERMISSION,
+  DOCUMENT_SOURCE_CREATE_PERMISSION,
+  DOCUMENT_SOURCE_DELETE_PERMISSION,
+  DOCUMENT_SOURCE_READ_PERMISSION,
+  DOCUMENT_SOURCE_UPDATE_PERMISSION,
+  DOCUMENT_UPDATE_PERMISSION,
+  ORGANIZATION_CREATE_PERMISSION,
+  PROJECT_CREATE_PERMISSION,
+  PROJECT_DELETE_PERMISSION,
+  PROJECT_READ_PERMISSION,
+  PROJECT_UPDATE_PERMISSION,
+  TRACE_READ_PERMISSION,
+  USER_READ_PERMISSION,
+}
 
 export type RoleScopeType = "organization" | "project" | "agent" | "global"
 
@@ -24,78 +85,6 @@ export const AGENT_ROLES = {
   member: "agent_member",
 } as const
 
-export const ORGANIZATION_CREATE_PERMISSION = "organization.create" as const
-
-export const TRACE_READ_PERMISSION = "trace.read" as const
-
-export const BACKOFFICE_READ_PERMISSION = "backoffice.read" as const
-
-/** Backoffice "list all" permissions: read every resource of a type on the platform. */
-export const BACKOFFICE_ORGANIZATION_READ_PERMISSION = "backoffice.organization.read" as const
-
-export const BACKOFFICE_PROJECT_READ_PERMISSION = "backoffice.project.read" as const
-
-/** Mutate a project from the backoffice (e.g. feature flags). Not granted on org roles. */
-export const BACKOFFICE_PROJECT_UPDATE_PERMISSION = "backoffice.project.update" as const
-
-export const BACKOFFICE_AGENT_READ_PERMISSION = "backoffice.agent.read" as const
-
-export const BACKOFFICE_USER_READ_PERMISSION = "backoffice.user.read" as const
-
-export const BACKOFFICE_TERMS_UPDATE_PERMISSION = "backoffice.terms.update" as const
-
-/** Install an App on a project. Global, same wiring as `backoffice.read`. */
-export const APP_INSTALL_PERMISSION = "app.install" as const
-
-/** AppManifest back-office CRUD. Superadmin only in V0; not granted by `app.install`. */
-export const BACKOFFICE_APP_MANAGE_PERMISSION = "backoffice.app.manage" as const
-
-export const DOCUMENT_READ_PERMISSION = "document.read" as const
-
-export const DOCUMENT_CREATE_PERMISSION = "document.create" as const
-
-export const DOCUMENT_UPDATE_PERMISSION = "document.update" as const
-
-export const DOCUMENT_DELETE_PERMISSION = "document.delete" as const
-
-export const DOCUMENT_SOURCE_READ_PERMISSION = "document_source.read" as const
-
-export const DOCUMENT_SOURCE_CREATE_PERMISSION = "document_source.create" as const
-
-export const DOCUMENT_SOURCE_UPDATE_PERMISSION = "document_source.update" as const
-
-export const DOCUMENT_SOURCE_DELETE_PERMISSION = "document_source.delete" as const
-
-export const PROJECT_CREATE_PERMISSION = "project.create" as const
-
-export const PROJECT_READ_PERMISSION = "project.read" as const
-
-export const PROJECT_UPDATE_PERMISSION = "project.update" as const
-
-export const PROJECT_DELETE_PERMISSION = "project.delete" as const
-
-/**
- * Permissions an App may be granted. Policy lives here, not in the database:
- * there is no Permission entity and no `app_grantable` column. Intersect this
- * list with `AppManifest.grantable_permissions` on save and on authorize.
- * Grouped by resource type (document, project/workspace, agent, …).
- */
-export const APP_GRANTABLE_PERMISSIONS = [
-  DOCUMENT_READ_PERMISSION,
-  DOCUMENT_CREATE_PERMISSION,
-  DOCUMENT_UPDATE_PERMISSION,
-  DOCUMENT_DELETE_PERMISSION,
-  DOCUMENT_SOURCE_READ_PERMISSION,
-  DOCUMENT_SOURCE_CREATE_PERMISSION,
-  DOCUMENT_SOURCE_UPDATE_PERMISSION,
-  DOCUMENT_SOURCE_DELETE_PERMISSION,
-  PROJECT_READ_PERMISSION,
-  PROJECT_UPDATE_PERMISSION,
-  PROJECT_DELETE_PERMISSION,
-] as const
-
-export type AppGrantablePermission = (typeof APP_GRANTABLE_PERMISSIONS)[number]
-
 const APP_GRANTABLE_PERMISSION_SET: ReadonlySet<string> = new Set(APP_GRANTABLE_PERMISSIONS)
 
 function isAppGrantablePermission(permission: string): permission is AppGrantablePermission {
@@ -115,9 +104,6 @@ export function intersectWithAppGrantablePermissions(
   }
   return granted
 }
-
-/** See the users who are members of a resource you hold this permission on. */
-export const USER_READ_PERMISSION = "user.read" as const
 
 export const ORGANIZATION_PERMISSIONS = [
   ORGANIZATION_CREATE_PERMISSION,

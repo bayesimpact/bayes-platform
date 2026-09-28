@@ -8,8 +8,8 @@ Verify that `docs/rbac-permission-matrix.md` is an exact mirror of the RBAC cata
 ## Steps
 
 1. Read the two code sources of truth:
-   - `apps/api/src/domains/rbac/rbac.constants.ts` — extract every role key and its granted permissions from `ORGANIZATION_ROLE_PERMISSIONS`, `PROJECT_ROLE_PERMISSIONS`, and `AGENT_ROLE_PERMISSIONS` (resolve permission constants such as `TRACE_READ_PERMISSION` to their string values).
-   - `packages/api-contracts/src/rbac/permissions.ts` — extract every member of the `GlobalPermission` union.
+   - `packages/api-contracts/src/rbac/permissions.ts` — permission string constants (the only declaration) and every member of the `GlobalPermission` union.
+   - `apps/api/src/domains/rbac/rbac.constants.ts` — extract every role key and its granted permissions from `ORGANIZATION_ROLE_PERMISSIONS`, `PROJECT_ROLE_PERMISSIONS`, and `AGENT_ROLE_PERMISSIONS`. Permission constants such as `TRACE_READ_PERMISSION` are imported from the contracts file; resolve them to their string values. The API file must not redeclare those strings.
 
 2. Read `docs/rbac-permission-matrix.md` and parse each table into (permission, role) → granted/not-granted pairs.
 

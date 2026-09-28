@@ -49,8 +49,9 @@ export const PROJECT_UPDATE_PERMISSION = "project.update" as const
 export const PROJECT_DELETE_PERMISSION = "project.delete" as const
 
 /**
- * Permissions an App may be granted. Policy lives in code, not in the database.
- * Intersect this list with `AppManifest.grantable_permissions` on save and on authorize.
+ * Permissions an App may be granted. Policy lives in code, not in the database:
+ * there is no Permission entity and no `app_grantable` column. Intersect this
+ * list with `AppManifest.grantable_permissions` on save and on authorize.
  * Grouped by resource type (document, project/workspace, agent, …).
  */
 export const APP_GRANTABLE_PERMISSIONS = [
