@@ -22,6 +22,7 @@ export type TrackActivityEntityFrom =
   | "evaluationConversationDataset"
   | "evaluationConversationRun"
   | "evaluationExtractionDataset"
+  | "evaluationExtractionDatasetDocument"
 
 export type TrackActivityOptions = {
   action: string

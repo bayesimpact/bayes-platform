@@ -64,7 +64,7 @@ export const evaluationExtractionDatasetFactory = EvaluationExtractionDatasetFac
       id: params.id ?? faker.string.uuid(),
       name: params.name ?? faker.commerce.productName(),
       projectId: project.id,
-      documentIds: (params.documentIds as string[] | undefined) ?? [],
+      documentId: params.documentId ?? null,
       recordCount: params.recordCount ?? faker.number.int({ min: 1, max: 50 }),
       schemaMapping:
         (params.schemaMapping as

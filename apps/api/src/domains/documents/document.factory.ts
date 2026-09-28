@@ -43,7 +43,6 @@ export const documentFactory = DocumentFactory.define(({ sequence, params, trans
     extractionEngine: params.extractionEngine ?? null,
     tags: params.tags || [],
     uploadStatus: params.uploadStatus || "uploaded",
-    evaluationExtractionDatasetDocuments: params.evaluationExtractionDatasetDocuments || [],
     userId: params.userId || null,
     pdfPageCount: params.pdfPageCount ?? null,
     documentSourceId: params.documentSourceId ?? null,

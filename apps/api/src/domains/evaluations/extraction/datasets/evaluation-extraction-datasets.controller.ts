@@ -12,6 +12,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   Patch,
   Post,
@@ -20,8 +22,8 @@ import {
   UseGuards,
 } from "@nestjs/common"
 import type {
-  EndpointRequestWithDocument,
   EndpointRequestWithEvaluationExtractionDataset,
+  EndpointRequestWithEvaluationExtractionDatasetDocument,
   EndpointRequestWithProject,
 } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
@@ -30,10 +32,10 @@ import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
-import type { Document } from "@/domains/documents/document.entity"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { EvaluationExtractionDataset } from "./evaluation-extraction-dataset.entity"
 import { EvaluationExtractionDatasetGuard } from "./evaluation-extraction-dataset.guard"
+import type { EvaluationExtractionDatasetDocument } from "./evaluation-extraction-dataset-document.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import {
   EvaluationExtractionDatasetFileColumn,
@@ -48,6 +50,80 @@ export class EvaluationExtractionDatasetsController {
   constructor(
     private readonly evaluationExtractionDatasetsService: EvaluationExtractionDatasetsService,
   ) {}
+
+  // FILES
+
+  @Get(EvaluationExtractionDatasetsRoutes.getAllFiles.path)
+  @CheckPolicy((policy) => policy.canList())
+  async getAllFiles(
+    @Req() request: EndpointRequestWithProject,
+  ): Promise<typeof EvaluationExtractionDatasetsRoutes.getAllFiles.response> {
+    const files = await this.evaluationExtractionDatasetsService.listFiles({
+      connectScope: getRequiredConnectScope(request),
+    })
+    return { data: files.map(toEvaluationExtractionDatasetFileDto) }
+  }
+
+  @Post(EvaluationExtractionDatasetsRoutes.presignFile.path)
+  @CheckPolicy((policy) => policy.canCreate())
+  @HttpCode(HttpStatus.CREATED)
+  async presignFile(
+    @Req() request: EndpointRequestWithProject,
+    @Body() { payload }: typeof EvaluationExtractionDatasetsRoutes.presignFile.request,
+  ): Promise<typeof EvaluationExtractionDatasetsRoutes.presignFile.response> {
+    const { document, uploadUrl } = await this.evaluationExtractionDatasetsService.presignFile({
+      connectScope: getRequiredConnectScope(request),
+      file: { fileName: payload.fileName, mimeType: payload.mimeType, size: payload.size },
+    })
+    return { data: { documentId: document.id, uploadUrl } }
+  }
+
+  @Post(EvaluationExtractionDatasetsRoutes.confirmFile.path)
+  @AddContext("evaluationExtractionDatasetDocument")
+  @CheckPolicy((policy) => policy.canUpdate())
+  @TrackActivity({ action: "evaluationExtractionDatasetDocument.create" })
+  @HttpCode(HttpStatus.CREATED)
+  async confirmFile(
+    @Req() request: EndpointRequestWithEvaluationExtractionDatasetDocument,
+  ): Promise<typeof EvaluationExtractionDatasetsRoutes.confirmFile.response> {
+    const document = await this.evaluationExtractionDatasetsService.confirmFile({
+      connectScope: getRequiredConnectScope(request),
+      documentId: request.evaluationExtractionDatasetDocument.id,
+    })
+    return { data: toEvaluationExtractionDatasetFileDto(document) }
+  }
+
+  @Get(EvaluationExtractionDatasetsRoutes.getFileColumns.path)
+  @AddContext("evaluationExtractionDatasetDocument")
+  @CheckPolicy((policy) => policy.canUpdate())
+  async getColumns(
+    @Req() request: EndpointRequestWithEvaluationExtractionDatasetDocument,
+  ): Promise<typeof EvaluationExtractionDatasetsRoutes.getFileColumns.response> {
+    const columns = await this.evaluationExtractionDatasetsService.getFileColumns({
+      connectScope: getRequiredConnectScope(request),
+      documentId: request.evaluationExtractionDatasetDocument.id,
+    })
+    return { data: columns.map(toEvaluationExtractionDatasetFileColumnDto) }
+  }
+
+  @Delete(EvaluationExtractionDatasetsRoutes.deleteFile.path)
+  @AddContext("evaluationExtractionDatasetDocument")
+  @CheckPolicy((policy) => policy.canDelete())
+  @TrackActivity({
+    action: "evaluationExtractionDatasetDocument.delete",
+    entityFrom: "evaluationExtractionDatasetDocument",
+  })
+  async deleteFile(
+    @Req() request: EndpointRequestWithEvaluationExtractionDatasetDocument,
+  ): Promise<typeof EvaluationExtractionDatasetsRoutes.deleteFile.response> {
+    await this.evaluationExtractionDatasetsService.deleteFile({
+      connectScope: getRequiredConnectScope(request),
+      documentId: request.evaluationExtractionDatasetDocument.id,
+    })
+    return { data: { success: true } }
+  }
+
+  // DATASETS
 
   @Get(EvaluationExtractionDatasetsRoutes.getAll.path)
   @CheckPolicy((policy) => policy.canList())
@@ -113,30 +189,6 @@ export class EvaluationExtractionDatasetsController {
     return { data }
   }
 
-  @Get(EvaluationExtractionDatasetsRoutes.getAllFiles.path)
-  @CheckPolicy((policy) => policy.canList())
-  async getAllFiles(
-    @Req() request: EndpointRequestWithProject,
-  ): Promise<typeof EvaluationExtractionDatasetsRoutes.getAllFiles.response> {
-    const files = await this.evaluationExtractionDatasetsService.listFiles({
-      connectScope: getRequiredConnectScope(request),
-    })
-    return { data: files.map(toEvaluationExtractionDatasetFileDto) }
-  }
-
-  @Get(EvaluationExtractionDatasetsRoutes.getFileColumns.path)
-  @AddContext("document")
-  @CheckPolicy((policy) => policy.canCreate())
-  async getColumns(
-    @Req() request: EndpointRequestWithDocument,
-  ): Promise<typeof EvaluationExtractionDatasetsRoutes.getFileColumns.response> {
-    const columns = await this.evaluationExtractionDatasetsService.getFileColumns({
-      connectScope: getRequiredConnectScope(request),
-      documentId: request.document.id,
-    })
-    return { data: columns.map(toEvaluationExtractionDatasetFileColumnDto) }
-  }
-
   @Post(EvaluationExtractionDatasetsRoutes.createOne.path)
   @CheckPolicy((policy) => policy.canCreate())
   @TrackActivity({ action: "evaluationExtractionDataset.create" })
@@ -153,18 +205,21 @@ export class EvaluationExtractionDatasetsController {
     return { data: { success: true } }
   }
 
+  /** Initializes a dataset from an uploaded file: name, column mapping and records. */
   @Patch(EvaluationExtractionDatasetsRoutes.updateOne.path)
-  @CheckPolicy((policy) => policy.canCreate())
-  @AddContext("document")
+  @AddContext("evaluationExtractionDataset", "evaluationExtractionDatasetDocument")
+  @CheckPolicy((policy) => policy.canUpdate())
   @TrackActivity({ action: "evaluationExtractionDataset.update" })
   async updateOne(
-    @Req() request: EndpointRequestWithDocument,
+    @Req()
+    request: EndpointRequestWithEvaluationExtractionDataset &
+      EndpointRequestWithEvaluationExtractionDatasetDocument,
     @Body()
     { payload: { name, columns } }: typeof EvaluationExtractionDatasetsRoutes.updateOne.request,
-    @Param("datasetId") datasetId: string, // FIXME: should be in request context
   ): Promise<typeof EvaluationExtractionDatasetsRoutes.updateOne.response> {
     const connectScope = getRequiredConnectScope(request)
-    const documentId = request.document.id
+    const datasetId = request.evaluationExtractionDataset.id
+    const documentId = request.evaluationExtractionDatasetDocument.id
 
     await this.evaluationExtractionDatasetsService.updateDataset({
       connectScope,
@@ -215,29 +270,28 @@ export class EvaluationExtractionDatasetsController {
 }
 
 function toEvaluationExtractionDatasetFileDto(
-  entity: Document,
+  entity: EvaluationExtractionDatasetDocument,
 ): EvaluationExtractionDatasetFileDto {
   return {
     createdAt: entity.createdAt.getTime(),
     fileName: entity.fileName,
     id: entity.id,
-    language: entity.language === "fr" ? "fr" : "en",
     mimeType: entity.mimeType as MimeTypes,
     projectId: entity.projectId,
     size: entity.size,
-    sourceType: entity.sourceType,
     storageRelativePath: entity.storageRelativePath,
-    title: entity.title,
     updatedAt: entity.updatedAt.getTime(),
   }
 }
 function toEvaluationExtractionDatasetFileColumnDto(
-  v: EvaluationExtractionDatasetFileColumn,
+  column: EvaluationExtractionDatasetFileColumn,
 ): EvaluationExtractionDatasetFileColumnDto {
   return {
-    id: v.id,
-    name: v.name,
-    values: v.values.map((v) => (typeof v === "string" ? v : JSON.stringify(v))),
+    id: column.id,
+    name: column.name,
+    values: column.values.map((value) =>
+      typeof value === "string" ? value : JSON.stringify(value),
+    ),
   }
 }
 
@@ -255,7 +309,7 @@ function toEvaluationExtractionDatasetDto({
     projectId: entity.projectId,
     schemaMapping: entity.schemaMapping,
     updatedAt: entity.updatedAt.getTime(),
-    documentIds: entity.evaluationExtractionDatasetDocuments.map((d) => d.documentId),
+    documentId: entity.evaluationExtractionDatasetDocumentId,
     recordCount,
   }
 }
