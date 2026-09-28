@@ -11,6 +11,10 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
+import {
+  agentMembershipFactory,
+  saveAgentMembership,
+} from "@/domains/agents/memberships/agent-membership.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messages/agent-messages.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
@@ -76,6 +80,13 @@ describe("Projects Analytics - getConversationsPerDay", () => {
     const primaryAgent = agentFactory.transient({ organization, project }).build()
     const secondaryAgent = agentFactory.transient({ organization, project }).build()
     await repositories.agentRepository.save([primaryAgent, secondaryAgent])
+    // Filtering on an agent takes agent.analytics.read on it.
+    await saveAgentMembership({
+      repositories,
+      membership: agentMembershipFactory
+        .transient({ user, agent: primaryAgent })
+        .build({ role: "admin" }),
+    })
     const primaryAgentSettings = agentSettingsFactory
       .transient({ organization, project, agent: primaryAgent })
       .build()
