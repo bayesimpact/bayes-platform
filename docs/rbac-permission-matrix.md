@@ -2,8 +2,8 @@
 
 Source of truth in code:
 
-- Roles and grants: `apps/api/src/domains/rbac/rbac.constants.ts`
-- Global permission contract (exposed on `/me`): `packages/api-contracts/src/rbac/permissions.ts`
+- Permission strings: `packages/api-contracts/src/rbac/permissions.ts`. This is the only declaration. The API imports them.
+- Roles and grants: `apps/api/src/domains/rbac/rbac.constants.ts`. Role keys and which role receives which permission. It does not redeclare the strings.
 
 This document mirrors those files. Whenever a role or a role/permission grant changes, update the matching table here in the same PR (see `.cursor/rules/permission-matrix.mdc` and the `check-permission-matrix` Claude skill).
 
