@@ -1,15 +1,30 @@
 import { AnalyticsRoutes as Routes } from "@caseai-connect/api-contracts"
-import { Controller, Get, ParseIntPipe, ParseUUIDPipe, Query, Req, UseGuards } from "@nestjs/common"
+import {
+  Controller,
+  ForbiddenException,
+  Get,
+  ParseIntPipe,
+  ParseUUIDPipe,
+  Query,
+  Req,
+  UseGuards,
+} from "@nestjs/common"
 import type { EndpointRequestWithProject } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
+import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import { toAnalyticsDailyPointDto } from "@/domains/analytics/shared/analytics-dto.helpers"
 import type { AnalyticsDailyPoint } from "@/domains/analytics/shared/analytics-metrics.types"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
-import { PROJECT_ANALYTICS_READ_PERMISSION } from "@/domains/rbac/rbac.constants"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { PermissionService } from "@/domains/rbac/permission.service"
+import {
+  AGENT_ANALYTICS_READ_PERMISSION,
+  PROJECT_ANALYTICS_READ_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectsAnalyticsService } from "./projects-analytics.service"
@@ -17,7 +32,10 @@ import { ProjectsAnalyticsService } from "./projects-analytics.service"
 @RequireContext("organization", "project")
 @Controller()
 export class ProjectsAnalyticsController {
-  constructor(private readonly projectsAnalyticsService: ProjectsAnalyticsService) {}
+  constructor(
+    private readonly projectsAnalyticsService: ProjectsAnalyticsService,
+    private readonly permissionService: PermissionService,
+  ) {}
 
   @Get(Routes.getConversationsPerDay.path)
   @CheckPermission(PROJECT_ANALYTICS_READ_PERMISSION, "project")
@@ -27,6 +45,7 @@ export class ProjectsAnalyticsController {
     @Query("endAt", ParseIntPipe) endAt: number,
     @Query("agentId", new ParseUUIDPipe({ optional: true })) agentId?: string,
   ): Promise<typeof Routes.getConversationsPerDay.response> {
+    await this.assertCanFilterByAgent(request, agentId)
     const conversationsPerDay: AnalyticsDailyPoint[] =
       await this.projectsAnalyticsService.getConversationsPerDay({
         connectScope: getRequiredConnectScope(request),
@@ -46,6 +65,7 @@ export class ProjectsAnalyticsController {
     @Query("endAt", ParseIntPipe) endAt: number,
     @Query("agentId", new ParseUUIDPipe({ optional: true })) agentId?: string,
   ): Promise<typeof Routes.getAvgUserQuestionsPerSessionPerDay.response> {
+    await this.assertCanFilterByAgent(request, agentId)
     const avgUserQuestionsPerSessionPerDay: AnalyticsDailyPoint[] =
       await this.projectsAnalyticsService.getAvgUserQuestionsPerSessionPerDay({
         connectScope: getRequiredConnectScope(request),
@@ -55,5 +75,26 @@ export class ProjectsAnalyticsController {
       })
 
     return { data: toAnalyticsDailyPointDto(avgUserQuestionsPerSessionPerDay) }
+  }
+
+  /**
+   * Filtering on one agent shows that agent's figures, so it takes the same
+   * permission as the agent's own analytics. The project-wide total does not.
+   */
+  private async assertCanFilterByAgent(
+    request: EndpointRequestWithProject,
+    agentId: string | undefined,
+  ): Promise<void> {
+    if (!agentId) {
+      return
+    }
+    const isAllowed = await this.permissionService.has(
+      request.user.id,
+      AGENT_ANALYTICS_READ_PERMISSION,
+      { type: "agent", id: agentId },
+    )
+    if (!isAllowed) {
+      throw new ForbiddenException(AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    }
   }
 }

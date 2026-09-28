@@ -13,6 +13,7 @@ import type { DateRange } from "react-day-picker"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
+import { useAbility } from "@/common/hooks/use-ability"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
@@ -82,7 +83,11 @@ function WithData({
   selectedAgentId: string
   onAgentChange: (agentId: string) => void
 }) {
-  const agents = useValue(selectAgentsData)
+  const { abilities } = useAbility()
+  // Filtering on an agent shows its figures: offer only the agents whose analytics the user can read.
+  const agents = useValue(selectAgentsData).filter((agent) =>
+    abilities.canManageAgent({ agentId: agent.id }),
+  )
   const conversationsPoints = useValue(selectAnalyticsConversationsPerDay)
   const avgQuestionsPoints = useValue(selectAnalyticsAvgUserQuestionsPerSessionPerDay)
   const { t } = useTranslation("analytics")
