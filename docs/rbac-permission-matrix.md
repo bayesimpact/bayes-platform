@@ -16,7 +16,7 @@ Global roles are stored as `user_membership` rows with `resource_type = 'global'
 | `app.install` — install apps on a project | ✅ | ✅ |
 | `backoffice.app.manage` — manage app definitions in the backoffice | — | ✅ |
 | `backoffice.read` — access `/backoffice` routes | ✅ | ✅ |
-| `trace.read` — see Langfuse trace links | ✅ | ✅ |
+| `trace.read` — see trace links | ✅ | ✅ |
 | `backoffice.terms.update` — manage terms documents | — | ✅ |
 | `backoffice.organization.read` — see every organization in the backoffice | — | ✅ |
 | `backoffice.project.read` — see every project in the backoffice | ✅ | ✅ |

@@ -46,7 +46,7 @@ import {
   type IFileStorage,
 } from "@/domains/documents/storage/file-storage.interface"
 import { UserGuard } from "@/domains/users/user.guard"
-import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
+import { getTraceUrl } from "@/external/llm/trace-url"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 import type { AgentCsvExtractionRun } from "./agent-csv-extraction-run.entity"
 import { AgentCsvExtractionRunGuard } from "./agent-csv-extraction-run.guard"
@@ -444,7 +444,7 @@ function toAgentCsvExtractionRunRecordDto(
     inputData: record.inputData,
     agentRawOutput: record.agentRawOutput,
     errorDetails: record.errorDetails,
-    traceUrl: record.traceId ? getTraceUrl(record.traceId) : null,
+    traceUrl: record.traceId ? (getTraceUrl(record.traceId) ?? null) : null,
     createdAt: record.createdAt.getTime(),
     updatedAt: record.updatedAt.getTime(),
   }

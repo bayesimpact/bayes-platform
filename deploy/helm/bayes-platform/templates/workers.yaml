@@ -71,6 +71,8 @@ spec:
           env:
             - name: WORKER_HEALTH_PORT
               value: {{ $values.healthPort | quote }}
+            - name: OTEL_SERVICE_NAME
+              value: {{ $pool.component | quote }}
             - name: WORKER_QUEUE_NAMES
               value: {{ join "," $pool.queues | quote }}
             - name: WORKERS_HEALTH_QUEUE_NAME

@@ -535,7 +535,7 @@ export const backofficeRbacCatalogFactory = BackofficeRbacCatalogFactory.define(
     { key: "project.delete", description: "Delete a project" },
     { key: "project.read", description: "See a project" },
     { key: "project.update", description: "Update a project" },
-    { key: "trace.read", description: "See Langfuse trace links" },
+    { key: "trace.read", description: "See trace links" },
     { key: "user.read", description: "See the users who are members of a resource" },
   ],
 }))

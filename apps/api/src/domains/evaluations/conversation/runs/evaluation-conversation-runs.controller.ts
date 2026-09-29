@@ -36,7 +36,7 @@ import type { AgentSettings } from "@/domains/agents/settings/agent-settings.ent
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
-import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
+import { getTraceUrl } from "@/external/llm/trace-url"
 import type { EvaluationConversationRun } from "./evaluation-conversation-run.entity"
 import { EvaluationConversationRunGuard } from "./evaluation-conversation-run.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -322,7 +322,7 @@ function toEvaluationConversationRunRecordDto(
     output: record.output,
     score: record.score,
     errorDetails: record.errorDetails,
-    traceUrl: record.traceId ? getTraceUrl(record.traceId) : null,
+    traceUrl: record.traceId ? (getTraceUrl(record.traceId) ?? null) : null,
     createdAt: record.createdAt.getTime(),
     updatedAt: record.updatedAt.getTime(),
   }

@@ -8,7 +8,7 @@ export default {
   ...nestConfig,
 
   moduleFileExtensions: ["ts", "js", "json"],
-  transformIgnorePatterns: ["/node_modules/(?!langfuse-core/)", "\\.pnp\\.[^\\\\]+$"],
+  transformIgnorePatterns: ["/node_modules/", "\\.pnp\\.[^\\\\]+$"],
   maxWorkers: getNbWorkers(),
   cacheDirectory: join(__dirname, "../../node_modules/.cache/jest"),
 }

@@ -32,28 +32,3 @@ if (process.env.TEST_USE_WORKER_DATABASE === "true") {
 
 // Bull Board registers `forFeature` from domain modules but `forRoot` only exists on `AppModule`; never enable in Jest.
 delete process.env.BULL_BOARD_ENABLED
-
-//fixme: @Did: I comment this lines (Olivier)
-// // Mock langfuse-v2 and langfuse-core to avoid dynamic import issues
-// // These modules use dynamic imports that require --experimental-vm-modules
-// jest.mock("langfuse-v2", () => ({
-//   Langfuse: jest.fn().mockImplementation(() => ({
-//     trace: jest.fn(),
-//     span: jest.fn().mockReturnValue({ getTraceUrl: jest.fn() }),
-//     generation: jest.fn(),
-//     flushAsync: jest.fn().mockResolvedValue(undefined),
-//     shutdownAsync: jest.fn().mockResolvedValue(undefined),
-//     debug: jest.fn(),
-//   })),
-// }))
-
-// jest.mock("langfuse", () => ({
-//   Langfuse: jest.fn().mockImplementation(() => ({
-//     trace: jest.fn(),
-//     span: jest.fn().mockReturnValue({ getTraceUrl: jest.fn() }),
-//     generation: jest.fn(),
-//     flushAsync: jest.fn().mockResolvedValue(undefined),
-//     shutdownAsync: jest.fn().mockResolvedValue(undefined),
-//     debug: jest.fn(),
-//   })),
-// }))

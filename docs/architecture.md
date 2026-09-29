@@ -44,7 +44,7 @@ graph TB
         end
 
         subgraph "Secret Manager"
-            SM["Secrets<br/>DB password, Redis URL,<br/>Auth0, LangFuse, Slack"]
+            SM["Secrets<br/>DB password, Redis URL,<br/>Auth0, Slack"]
         end
     end
 
@@ -53,7 +53,7 @@ graph TB
     end
 
     subgraph "Observability"
-        LANGFUSE["LangFuse<br/>LLM Tracing"]
+        OTEL["OpenTelemetry gateway<br/>Prometheus, Loki, Phoenix"]
     end
 
     %% Client flows
@@ -65,7 +65,7 @@ graph TB
     API -- "BullMQ<br/>Enqueue jobs" --> REDIS
     API -- "GCS SDK<br/>File upload/download" --> GCS
     API -- "AI SDK<br/>LLM inference" --> VERTEX
-    API -- "OTEL Exporter" --> LANGFUSE
+    API -- "OTLP" --> OTEL
     API -- "M2M Client Credentials<br/>User provisioning & invitations" --> AUTH0
     API -- "JWKS verification" --> AUTH0
 
@@ -73,7 +73,7 @@ graph TB
     WORKERS -- "TypeORM" --> PG
     WORKERS -- "BullMQ<br/>Consume jobs" --> REDIS
     WORKERS -- "Embeddings API" --> VERTEX
-    WORKERS -- "OTEL Exporter" --> LANGFUSE
+    WORKERS -- "OTLP" --> OTEL
 
     %% CI/CD flows
     GH -- "Build & Push" --> AR
@@ -89,7 +89,7 @@ graph TB
     classDef cicd fill:#EA4335,stroke:#333,color:#fff
 
     class API,WORKERS,PG,REDIS,GCS,AR,SM,VERTEX gcp
-    class AUTH0,LANGFUSE,SLACK external
+    class AUTH0,OTEL,SLACK external
     class WEB client
     class GH cicd
 ```
@@ -105,11 +105,11 @@ graph TB
 | API | GCS | HTTPS | File upload/download |
 | API | Vertex AI (europe-west1) | HTTPS (gRPC) | LLM inference |
 | API | Auth0 | HTTPS | JWKS, M2M provisioning |
-| API | LangFuse | HTTPS | LLM observability traces |
+| API | OpenTelemetry gateway | OTLP/HTTP | Traces and metrics |
 | Workers | PostgreSQL | Unix Socket | Read/write entities |
 | Workers | Redis | TCP 6379 | BullMQ job consume |
 | Workers | Vertex AI | HTTPS (gRPC) | Document embeddings |
-| Workers | LangFuse | HTTPS | Observability |
+| Workers | OpenTelemetry gateway | OTLP/HTTP | Traces and metrics |
 | GitHub Actions | Artifact Registry | HTTPS | Docker image push |
 | GitHub Actions | Cloud Run | HTTPS (gcloud) | Service deployment |
 | GitHub Actions | Cloud SQL | TCP (proxy) | Run migrations |

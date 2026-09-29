@@ -505,9 +505,8 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
             error instanceof Error
               ? error
               : new Error(typeof error === "string" ? error : JSON.stringify(error))
-          // Record the exception on the captured doStream span so the Langfuse
-          // exporter (LangfuseIntegrationExporter.checkErrors) flags the
-          // generation as ERROR. recordException emits an event named
+          // Record the exception on the captured doStream span so the trace
+          // backend flags the generation as ERROR. recordException emits an event named
           // "exception" with `exception.type` / `exception.message` attributes.
           otelSpan?.recordException(normalized)
           otelSpan?.setStatus({ code: SpanStatusCode.ERROR, message: normalized.message })

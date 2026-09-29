@@ -34,6 +34,7 @@ describe("EvaluationConversationRuns - getRecords", () => {
   let auth0Id = "auth0|123"
 
   beforeAll(async () => {
+    process.env.TRACE_URL_TEMPLATE = "https://traces.example.org/redirects/sessions/{traceId}"
     setup = await setupTransactionalTestDatabase({
       additionalImports: [EvaluationsModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
@@ -51,6 +52,7 @@ describe("EvaluationConversationRuns - getRecords", () => {
   })
 
   afterAll(async () => {
+    delete process.env.TRACE_URL_TEMPLATE
     await teardownTestDatabase(setup)
     await app.close()
   })
@@ -127,7 +129,9 @@ describe("EvaluationConversationRuns - getRecords", () => {
     expect(res.body.data.records[0]!.expectedOutput).toBe("2")
     expect(res.body.data.records[0]!.output).toBe("The answer is 2")
     expect(res.body.data.records[0]!.score).toBe(4)
-    expect(res.body.data.records[0]!.traceUrl).toEqual(expect.any(String))
+    expect(res.body.data.records[0]!.traceUrl).toBe(
+      "https://traces.example.org/redirects/sessions/trace-1",
+    )
     expect(res.body.data.total).toBe(1)
     expect(res.body.data.page).toBe(0)
     expect(res.body.data.limit).toBe(10)
