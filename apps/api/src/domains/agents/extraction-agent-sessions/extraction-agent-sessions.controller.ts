@@ -1,10 +1,8 @@
 import {
-  type DocumentDto,
   type ExtractionAgentSessionDto,
   type ExtractionAgentSessionStatusChangedEventDto,
   type ExtractionAgentSessionSummaryDto,
   ExtractionAgentSessionsRoutes,
-  type PresignFileResponseItemDto,
 } from "@caseai-connect/api-contracts"
 import {
   Body,
@@ -204,65 +202,52 @@ export class ExtractionAgentSessionsController {
     return { data: { success: true } }
   }
 
-  // The documents an extraction run reads are uploaded here rather than through the project
+  // The document an extraction run reads is uploaded here rather than through the project
   // documents routes: those are for admins and owners, while a live run is open to every member.
   // The browser presigns, PUTs the bytes to the returned URL, then confirms.
-  @Post(ExtractionAgentSessionsRoutes.presignDocuments.path)
+  @Post(ExtractionAgentSessionsRoutes.presignDocument.path)
   @UseGuards(ExtractionAgentDocumentsGuard)
   @CheckPolicy((policy) => policy.canCreate())
   @HttpCode(HttpStatus.CREATED)
-  async presignDocuments(
+  async presignDocument(
     @Req() request: EndpointRequestWithAgent,
-    @Body() { payload }: typeof ExtractionAgentSessionsRoutes.presignDocuments.request,
-  ): Promise<typeof ExtractionAgentSessionsRoutes.presignDocuments.response> {
-    if (!payload.files || payload.files.length === 0) {
-      throw new UnprocessableEntityException("At least one file is required.")
+    @Body() { payload }: typeof ExtractionAgentSessionsRoutes.presignDocument.request,
+  ): Promise<typeof ExtractionAgentSessionsRoutes.presignDocument.response> {
+    if (!payload.file) {
+      throw new UnprocessableEntityException("A file is required.")
     }
 
-    const connectScope = getRequiredConnectScope(request)
-    const results: PresignFileResponseItemDto[] = []
-    for (const file of payload.files) {
-      results.push(
-        await this.documentsService.presignUpload({
-          connectScope,
-          file,
-          sourceType: "extraction",
-          userId: request.user.id,
-        }),
-      )
-    }
-    return { data: results }
+    const presigned = await this.documentsService.presignUpload({
+      connectScope: getRequiredConnectScope(request),
+      file: payload.file,
+      sourceType: "extraction",
+      userId: request.user.id,
+    })
+    return { data: presigned }
   }
 
-  @Post(ExtractionAgentSessionsRoutes.confirmDocuments.path)
+  @Post(ExtractionAgentSessionsRoutes.confirmDocument.path)
   @UseGuards(ExtractionAgentDocumentsGuard)
   @CheckPolicy((policy) => policy.canCreate())
-  @TrackActivity({ action: "extractionAgentSession.uploadDocuments" })
+  @TrackActivity({ action: "extractionAgentSession.uploadDocument" })
   @HttpCode(HttpStatus.CREATED)
-  async confirmDocuments(
+  async confirmDocument(
     @Req() request: EndpointRequestWithAgent,
-    @Body() { payload }: typeof ExtractionAgentSessionsRoutes.confirmDocuments.request,
-  ): Promise<typeof ExtractionAgentSessionsRoutes.confirmDocuments.response> {
-    if (!payload.documentIds || payload.documentIds.length === 0) {
-      throw new UnprocessableEntityException("At least one document ID is required.")
+    @Body() { payload }: typeof ExtractionAgentSessionsRoutes.confirmDocument.request,
+  ): Promise<typeof ExtractionAgentSessionsRoutes.confirmDocument.response> {
+    const { documentId } = payload
+    if (!documentId) {
+      throw new UnprocessableEntityException("A document ID is required.")
     }
 
     const connectScope = getRequiredConnectScope(request)
-    const documents: DocumentDto[] = []
-    for (const documentId of payload.documentIds) {
-      const document = await this.documentsService.findById({ connectScope, documentId })
-      // A member may only complete an upload they started; anything else is not theirs to confirm.
-      if (
-        !document ||
-        document.sourceType !== "extraction" ||
-        document.userId !== request.user.id
-      ) {
-        throw new NotFoundException(`Document ${documentId} not found`)
-      }
-      await this.documentsService.markAsUploaded({ connectScope, documentId })
-      documents.push(toDocumentDto(document))
+    const document = await this.documentsService.findById({ connectScope, documentId })
+    // A member may only complete an upload they started; anything else is not theirs to confirm.
+    if (!document || document.sourceType !== "extraction" || document.userId !== request.user.id) {
+      throw new NotFoundException(`Document ${documentId} not found`)
     }
-    return { data: documents }
+    await this.documentsService.markAsUploaded({ connectScope, documentId })
+    return { data: toDocumentDto(document) }
   }
 
   @Post(ExtractionAgentSessionsRoutes.listMyDocuments.path)

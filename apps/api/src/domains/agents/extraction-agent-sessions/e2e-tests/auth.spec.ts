@@ -260,21 +260,21 @@ describe("ExtractionAgentSessions - Auth", () => {
     })
   })
 
-  describe("ExtractionAgentSessionsRoutes.presignDocuments", () => {
+  describe("ExtractionAgentSessionsRoutes.presignDocument", () => {
     const subject = async (type: "playground" | "live") =>
       request({
-        route: ExtractionAgentSessionsRoutes.presignDocuments,
+        route: ExtractionAgentSessionsRoutes.presignDocument,
         pathParams: removeNullish({ organizationId, projectId, agentId }),
         token: accessToken ?? undefined,
         request: {
           payload: {
             type,
-            files: [{ fileName: "invoice.pdf", mimeType: MimeTypes.pdf, size: 10 }],
+            file: { fileName: "invoice.pdf", mimeType: MimeTypes.pdf, size: 10 },
           },
         },
       })
 
-    describe.each([["live"], ["playground"]] as const)("presigning %s documents", (type) => {
+    describe.each([["live"], ["playground"]] as const)("presigning a %s document", (type) => {
       it("requires an authentication token", async () => {
         accessToken = null
         expectResponse(await subject(type), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
@@ -295,17 +295,17 @@ describe("ExtractionAgentSessions - Auth", () => {
         expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
       })
       if (type === "playground") {
-        it("does not allow a simple member to presign playground documents", async () => {
+        it("does not allow a simple member to presign a playground document", async () => {
           await createContextForRole("member")
           expectResponse(await subject(type), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
         })
       } else {
-        it("allows a simple member to presign live documents", async () => {
+        it("allows a simple member to presign a live document", async () => {
           await createContextForRole("member")
           expectResponse(await subject(type), 201)
         })
       }
-      it("allows an owner to presign documents", async () => {
+      it("allows an owner to presign a document", async () => {
         await createContextForRole("owner")
         expectResponse(await subject(type), 201)
       })
@@ -314,25 +314,30 @@ describe("ExtractionAgentSessions - Auth", () => {
     it("rejects an unknown run type", async () => {
       await createContextForRole("owner")
       const response = await request({
-        route: ExtractionAgentSessionsRoutes.presignDocuments,
+        route: ExtractionAgentSessionsRoutes.presignDocument,
         pathParams: removeNullish({ organizationId, projectId, agentId }),
         token: accessToken ?? undefined,
-        request: { payload: { type: "other" as never, files: [] } },
+        request: {
+          payload: {
+            type: "other" as never,
+            file: { fileName: "invoice.pdf", mimeType: MimeTypes.pdf, size: 10 },
+          },
+        },
       })
       expectResponse(response, 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
 
-  describe("ExtractionAgentSessionsRoutes.confirmDocuments", () => {
+  describe("ExtractionAgentSessionsRoutes.confirmDocument", () => {
     const subject = async (type: "playground" | "live") =>
       request({
-        route: ExtractionAgentSessionsRoutes.confirmDocuments,
+        route: ExtractionAgentSessionsRoutes.confirmDocument,
         pathParams: removeNullish({ organizationId, projectId, agentId }),
         token: accessToken ?? undefined,
-        request: { payload: { type, documentIds: [documentId] } },
+        request: { payload: { type, documentId } },
       })
 
-    describe.each([["live"], ["playground"]] as const)("confirming %s documents", (type) => {
+    describe.each([["live"], ["playground"]] as const)("confirming a %s document", (type) => {
       it("requires an authentication token", async () => {
         accessToken = null
         expectResponse(await subject(type), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
@@ -343,12 +348,12 @@ describe("ExtractionAgentSessions - Auth", () => {
         expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
       })
       if (type === "playground") {
-        it("does not allow a simple member to confirm playground documents", async () => {
+        it("does not allow a simple member to confirm a playground document", async () => {
           await createContextForRole("member")
           expectResponse(await subject(type), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
         })
       } else {
-        it("lets a simple member through to confirm live documents", async () => {
+        it("lets a simple member through to confirm a live document", async () => {
           await createContextForRole("member")
           // The seeded document belongs to nobody, so the handler reports it as not found.
           expectResponse(await subject(type), 404)

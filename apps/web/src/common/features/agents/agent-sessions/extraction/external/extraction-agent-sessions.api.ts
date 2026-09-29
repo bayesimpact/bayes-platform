@@ -60,36 +60,27 @@ const api: IExtractionAgentSessionsSpi = {
     const axios = getAxiosInstance()
 
     const presignResponse = await axios.post<
-      typeof ExtractionAgentSessionsRoutes.presignDocuments.response
-    >(ExtractionAgentSessionsRoutes.presignDocuments.getPath(params), {
+      typeof ExtractionAgentSessionsRoutes.presignDocument.response
+    >(ExtractionAgentSessionsRoutes.presignDocument.getPath(params), {
       payload: {
         type,
-        files: [
-          {
-            fileName: file.name,
-            mimeType: file.type as PresignFileRequestItemDto["mimeType"],
-            size: file.size,
-          },
-        ],
+        file: {
+          fileName: file.name,
+          mimeType: file.type as PresignFileRequestItemDto["mimeType"],
+          size: file.size,
+        },
       },
-    } satisfies typeof ExtractionAgentSessionsRoutes.presignDocuments.request)
-    const [presigned] = presignResponse.data.data
-    if (!presigned) {
-      throw new Error("Presign response is missing data")
-    }
+    } satisfies typeof ExtractionAgentSessionsRoutes.presignDocument.request)
+    const presigned = presignResponse.data.data
 
     await putFileToSignedUrl({ uploadUrl: presigned.uploadUrl, file })
 
     const confirmResponse = await axios.post<
-      typeof ExtractionAgentSessionsRoutes.confirmDocuments.response
-    >(ExtractionAgentSessionsRoutes.confirmDocuments.getPath(params), {
-      payload: { type, documentIds: [presigned.documentId] },
-    } satisfies typeof ExtractionAgentSessionsRoutes.confirmDocuments.request)
-    const [document] = confirmResponse.data.data.map(fromDocumentDto)
-    if (!document) {
-      throw new Error("Confirm response is missing data")
-    }
-    return document
+      typeof ExtractionAgentSessionsRoutes.confirmDocument.response
+    >(ExtractionAgentSessionsRoutes.confirmDocument.getPath(params), {
+      payload: { type, documentId: presigned.documentId },
+    } satisfies typeof ExtractionAgentSessionsRoutes.confirmDocument.request)
+    return fromDocumentDto(confirmResponse.data.data)
   },
   listMyDocuments: async ({ type, ...params }) => {
     const axios = getAxiosInstance()

@@ -44,16 +44,17 @@ export const ExtractionAgentSessionsRoutes = {
     method: "post",
     path: `/${prefix}/:agentSessionId/delete`,
   }),
-  // Documents an extraction run reads are uploaded through the agent, not the project documents
-  // routes: a live run is open to every project member, a playground run to admins and owners.
-  presignDocuments: defineRoute<
-    ResponseData<PresignFileResponseItemDto[]>,
-    Request<{ files: PresignFileRequestItemDto[] }>
+  // The document an extraction run reads is uploaded through the agent, one at a time, not
+  // through the project documents routes: a live run is open to every project member, a
+  // playground run to admins and owners.
+  presignDocument: defineRoute<
+    ResponseData<PresignFileResponseItemDto>,
+    Request<{ file: PresignFileRequestItemDto }>
   >({
     method: "post",
     path: `${prefix}/documents/presign`,
   }),
-  confirmDocuments: defineRoute<ResponseData<DocumentDto[]>, Request<{ documentIds: string[] }>>({
+  confirmDocument: defineRoute<ResponseData<DocumentDto>, Request<{ documentId: string }>>({
     method: "post",
     path: `${prefix}/documents/confirm`,
   }),
