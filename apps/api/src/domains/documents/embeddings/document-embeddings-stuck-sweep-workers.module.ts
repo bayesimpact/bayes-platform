@@ -4,6 +4,8 @@ import { TypeOrmModule } from "@nestjs/typeorm"
 import { ALL_ENTITIES } from "@/common/all-entities"
 import { DocumentsService } from "../documents.service"
 import { PdfPagesModule } from "../pdf-pages/pdf-pages.module"
+import { DocumentSourceRepository } from "../sources/document-source.repository"
+import { DocumentSourcesService } from "../sources/document-sources.service"
 import { StorageModule } from "../storage/storage.module"
 import { DocumentTagsService } from "../tags/document-tags.service"
 import { DocumentEmbeddingStatusNotifierService } from "./document-embedding-status-notifier.service"
@@ -29,6 +31,8 @@ import { DocumentEmbeddingsStuckSweepSchedulerService } from "./document-embeddi
     DocumentEmbeddingsStuckSweepSchedulerService,
     DocumentEmbeddingStatusNotifierService,
     DocumentsService,
+    DocumentSourcesService,
+    DocumentSourceRepository,
     DocumentTagsService,
   ],
 })

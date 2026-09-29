@@ -9,6 +9,8 @@ import { DocumentEmbeddingStatusNotifierService } from "../embeddings/document-e
 import { DocumentEmbeddingsBatchModule } from "../embeddings/document-embeddings-batch.module"
 import { DocumentEmbeddingsSharedService } from "../embeddings/document-embeddings-shared.service"
 import { PdfPagesModule } from "../pdf-pages/pdf-pages.module"
+import { DocumentSourceRepository } from "../sources/document-source.repository"
+import { DocumentSourcesService } from "../sources/document-sources.service"
 import { StorageModule } from "../storage/storage.module"
 import { DocumentTagsService } from "../tags/document-tags.service"
 import { WebPageEmbeddingsProcessorService } from "./web-page-embeddings-processor.service"
@@ -38,6 +40,8 @@ import { WebSourceEmbeddingsQueueMetricsService } from "./web-source-embeddings-
     DocumentEmbeddingsSharedService,
     DocumentEmbeddingStatusNotifierService,
     DocumentsService,
+    DocumentSourcesService,
+    DocumentSourceRepository,
     DocumentTagsService,
     WebSourceEmbeddingsQueueMetricsService,
   ],

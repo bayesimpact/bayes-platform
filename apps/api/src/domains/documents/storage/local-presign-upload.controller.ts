@@ -12,7 +12,7 @@ import type { Request } from "express"
 import type { IFileStorage } from "./file-storage.interface"
 import { FILE_STORAGE_SERVICE } from "./file-storage.interface"
 // biome-ignore lint/style/useImportType: not a type
-import { LocalStorageService } from "./local-storage.service"
+import { LocalStorageService, UploadTooLargeError } from "./local-storage.service"
 
 @Controller()
 export class LocalPresignUploadController {
@@ -31,6 +31,13 @@ export class LocalPresignUploadController {
       req.on("end", resolve)
       req.on("error", reject)
     })
-    await localStorage.handleLocalUpload(token, Buffer.concat(chunks))
+    try {
+      await localStorage.handleLocalUpload(token, Buffer.concat(chunks))
+    } catch (error) {
+      if (error instanceof UploadTooLargeError) {
+        throw new BadRequestException(error.message)
+      }
+      throw error
+    }
   }
 }

@@ -14,6 +14,7 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { DocumentSourcesService } from "@/domains/documents/sources/document-sources.service"
 import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
@@ -92,11 +93,24 @@ describe("Apps - Ingest document", () => {
     return { project, accessToken: token.accessToken }
   }
 
+  const createFeed = (project: { id: string; organizationId: string }) =>
+    setup.module.get(DocumentSourcesService).createOne(
+      { organizationId: project.organizationId, projectId: project.id },
+      {
+        name: "Site crawler",
+        type: null,
+        externalId: null,
+        baseUrl: null,
+        config: null,
+      },
+    )
+
   it("creates a project document from inline text without fetching source_url", async () => {
     const { project, accessToken } = await installAndIssueToken([
       DOCUMENT_READ_PERMISSION,
       DOCUMENT_CREATE_PERMISSION,
     ])
+    const documentSource = await createFeed(project)
     const created = await postDocument({
       projectId: project.id,
       token: accessToken,
@@ -104,6 +118,7 @@ describe("Apps - Ingest document", () => {
         title: "Helpful notes",
         content: "The assistant stored this page.",
         source_url: "https://example.com/notes",
+        document_source_id: documentSource.id,
       },
     })
     expectResponse(created, 201)
@@ -113,13 +128,16 @@ describe("Apps - Ingest document", () => {
       sourceUrl: "https://example.com/notes",
       embeddingStatus: "queued",
     })
+    expect(created.body.data.uploadUrl).toBeUndefined()
+    expect(created.body.data.uploadHeaders).toBeUndefined()
 
     const stored = await repositories.documentRepository.findOneByOrFail({
       id: created.body.data.id,
     })
     expect(stored.content).toBe("The assistant stored this page.")
-    expect(stored.sourceType).toBe("project")
+    expect(stored.sourceType).toBe("app")
     expect(stored.sourceUrl).toBe("https://example.com/notes")
+    expect(stored.documentSourceId).toBe(documentSource.id)
   })
 
   it("returns 403 when the path project is not the token project", async () => {
@@ -156,5 +174,53 @@ describe("Apps - Ingest document", () => {
       400,
       "Invalid document payload",
     )
+    expectResponse(
+      await postDocument({
+        projectId: project.id,
+        token: accessToken,
+        body: {
+          title: "Helpful notes",
+          content: "The assistant stored this page.",
+          document_source_id: "not-a-uuid",
+        },
+      }),
+      400,
+      "Invalid document payload",
+    )
+  })
+
+  it("returns 404 when the document feed is not in the token project", async () => {
+    const { project, accessToken } = await installAndIssueToken([DOCUMENT_CREATE_PERMISSION])
+    const other = await createOrganizationWithProject(repositories)
+    const otherSource = await createFeed(other.project)
+    const missingId = "00000000-0000-4000-8000-000000000000"
+
+    expectResponse(
+      await postDocument({
+        projectId: project.id,
+        token: accessToken,
+        body: {
+          title: "Helpful notes",
+          content: "The assistant stored this page.",
+          document_source_id: missingId,
+        },
+      }),
+      404,
+      `Document source ${missingId} not found`,
+    )
+    expectResponse(
+      await postDocument({
+        projectId: project.id,
+        token: accessToken,
+        body: {
+          title: "Helpful notes",
+          content: "The assistant stored this page.",
+          document_source_id: otherSource.id,
+        },
+      }),
+      404,
+      `Document source ${otherSource.id} not found`,
+    )
+    expect(await repositories.documentRepository.count()).toBe(0)
   })
 })

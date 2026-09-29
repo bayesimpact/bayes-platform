@@ -102,7 +102,7 @@ describe("DocumentChunkRetrievalService", () => {
     expect(innerQueryBuilder.andWhere).toHaveBeenCalledWith(
       "document.source_type IN (:...allowedSourceTypes)",
       {
-        allowedSourceTypes: ["project", "webCrawl"],
+        allowedSourceTypes: ["project", "webCrawl", "app"],
       },
     )
     expect(innerQueryBuilder.andWhere).not.toHaveBeenCalledWith(
