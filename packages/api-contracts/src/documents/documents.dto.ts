@@ -10,6 +10,7 @@ export type DocumentSourceType =
   | "evaluationExtractionRun"
   | "agentCsvExtractionRun"
   | "webCrawl"
+  | "app"
 export type DocumentEmbeddingStatus = "pending" | "queued" | "processing" | "completed" | "failed"
 export type DocumentEmbeddingStatusChangedEventPayload = {
   type: typeof DOCUMENT_EMBEDDING_STATUS_CHANGED_CHANNEL_DTO

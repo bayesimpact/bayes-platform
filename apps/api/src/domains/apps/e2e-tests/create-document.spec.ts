@@ -135,7 +135,7 @@ describe("Apps - Ingest document", () => {
       id: created.body.data.id,
     })
     expect(stored.content).toBe("The assistant stored this page.")
-    expect(stored.sourceType).toBe("project")
+    expect(stored.sourceType).toBe("app")
     expect(stored.sourceUrl).toBe("https://example.com/notes")
     expect(stored.documentSourceId).toBe(documentSource.id)
   })

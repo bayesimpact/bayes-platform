@@ -61,6 +61,7 @@ export class AppsDocumentsController {
         content: parsed.data.value.content,
         sourceUrl: parsed.data.value.source_url ?? null,
         documentSourceId: parsed.data.value.document_source_id,
+        sourceType: "app",
       })
       return { data: toAppDocumentDto(document) }
     }
@@ -74,6 +75,7 @@ export class AppsDocumentsController {
       title: parsed.data.value.title,
       sourceUrl: parsed.data.value.source_url ?? null,
       documentSourceId: parsed.data.value.document_source_id,
+      sourceType: "app",
     })
     return {
       data: {

@@ -158,7 +158,7 @@ describe("Apps - Upload document", () => {
     })
     expect(storedPending).toMatchObject({
       content: null,
-      sourceType: "project",
+      sourceType: "app",
       uploadStatus: "pending",
       mimeType: "application/pdf",
       size: 8,

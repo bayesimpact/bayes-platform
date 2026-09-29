@@ -401,6 +401,7 @@ export class DocumentsService {
     content: string
     sourceUrl?: string | null
     documentSourceId: string
+    sourceType?: "project" | "app"
   }): Promise<Document> {
     await this.requireProjectDocumentSource(params.connectScope, params.documentSourceId)
     const buffer = Buffer.from(params.content, "utf8")
@@ -421,7 +422,7 @@ export class DocumentsService {
         mimeType: MimeTypes.txt,
         size: buffer.length,
         storageRelativePath,
-        sourceType: "project",
+        sourceType: params.sourceType ?? "project",
         sourceUrl: params.sourceUrl ?? null,
         documentSourceId: params.documentSourceId,
       },
@@ -450,6 +451,7 @@ export class DocumentsService {
     title?: string
     sourceUrl?: string | null
     documentSourceId: string
+    sourceType?: "project" | "app"
   }): Promise<{
     document: Document
     uploadUrl: string
@@ -481,7 +483,7 @@ export class DocumentsService {
         mimeType: params.mimeType,
         size: params.size,
         storageRelativePath,
-        sourceType: "project",
+        sourceType: params.sourceType ?? "project",
         sourceUrl: params.sourceUrl ?? null,
         documentSourceId: params.documentSourceId,
       },
