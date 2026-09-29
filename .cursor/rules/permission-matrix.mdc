@@ -6,6 +6,8 @@ alwaysApply: false
 
 # Permission Matrix Sync
 
+How to declare a permission, protect a route, and list what the caller can see: `.claude/skills/rbac/SKILL.md` and ADR 0019. This rule only keeps the matrix in sync with the catalog.
+
 `docs/rbac-permission-matrix.md` mirrors the RBAC catalog defined in:
 
 - `packages/api-contracts/src/rbac/permissions.ts` — permission string constants and the `GlobalPermission` contract. Declare a permission string only here.
