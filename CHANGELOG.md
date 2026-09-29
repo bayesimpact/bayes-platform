@@ -8,6 +8,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.09.4] - 2026-09-29
+
+### Added
 - (beta) Apps: platform staff can install external apps on a project to read it and add documents.
 
 ### Changed
