@@ -132,6 +132,14 @@ jobs:
             cache_from: |
               type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:help
     steps:
+      # A tests job that ran earlier in this runner's workspace leaves the
+      # Postgres data of its containers there, owned by root: actions/checkout
+      # cannot clean it and fails with EACCES. Only that folder: the Docker
+      # containers may belong to a tests job running at the same time.
+      - name: Clean up the workspace of a previous run
+        if: matrix.runner == 'self-hosted'
+        run: sudo rm -rf infra/database/dontsave 2>/dev/null || true
+
       - uses: actions/checkout@v4
 
       - name: Free disk space on the runner
