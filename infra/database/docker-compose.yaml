@@ -21,8 +21,11 @@ services:
   # Grafana on the analytics schema: http://localhost:3300, no login.
   # Datasource provisioned from ./grafana, dashboards from the Helm chart
   # (deploy/helm/bayes-platform/dashboards), the same files the cluster gets.
+  # Profile `analytics`: a plain `docker compose up` (and the CI, make db-tests)
+  # leaves it off; `docker compose up -d grafana` names it, so starts it.
   grafana:
     image: grafana/grafana:13.2.2 # same major as the cluster (chart grafana 13.x)
+    profiles: [analytics]
     ports:
       - "${GRAFANA_PORT:-3300}:3000"
     environment:
