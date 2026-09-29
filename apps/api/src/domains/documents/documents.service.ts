@@ -29,6 +29,8 @@ import type { DocumentEmbeddingsBatchService } from "./embeddings/document-embed
 import { DOCUMENT_EMBEDDINGS_BATCH_SERVICE } from "./embeddings/document-embeddings-batch.interface"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PdfPagesService } from "./pdf-pages/pdf-pages.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { DocumentSourcesService } from "./sources/document-sources.service"
 import { FILE_STORAGE_SERVICE, type IFileStorage } from "./storage/file-storage.interface"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentTagsService } from "./tags/document-tags.service"
@@ -41,6 +43,7 @@ export class DocumentsService {
   constructor(
     @InjectRepository(Document) private readonly documentRepository: Repository<Document>,
     private readonly documentTagsService: DocumentTagsService,
+    private readonly documentSourcesService: DocumentSourcesService,
     @Inject(FILE_STORAGE_SERVICE) private readonly fileStorageService: IFileStorage,
     private readonly pdfPagesService: PdfPagesService,
     @Inject(DOCUMENT_EMBEDDINGS_BATCH_SERVICE)
@@ -65,7 +68,7 @@ export class DocumentsService {
       Document,
       "fileName" | "mimeType" | "size" | "storageRelativePath" | "title" | "sourceType"
     > &
-      Partial<Pick<Document, "content" | "sourceUrl">>
+      Partial<Pick<Document, "content" | "sourceUrl" | "documentSourceId">>
     uploadStatus: "pending" | "uploaded"
     tagIds?: string[]
   }): Promise<Document> {
@@ -78,6 +81,7 @@ export class DocumentsService {
       title: fields.title ?? fields.fileName,
       sourceType: fields.sourceType,
       sourceUrl: fields.sourceUrl ?? null,
+      documentSourceId: fields.documentSourceId ?? null,
       content: fields.content,
       uploadStatus,
       userId: userId ?? null,
@@ -396,7 +400,9 @@ export class DocumentsService {
     title: string
     content: string
     sourceUrl?: string | null
+    documentSourceId: string
   }): Promise<Document> {
+    await this.requireProjectDocumentSource(params.connectScope, params.documentSourceId)
     const buffer = Buffer.from(params.content, "utf8")
     const { fileId, storageRelativePath } = await this.fileStorageService.save({
       extension: "txt",
@@ -417,6 +423,7 @@ export class DocumentsService {
         storageRelativePath,
         sourceType: "project",
         sourceUrl: params.sourceUrl ?? null,
+        documentSourceId: params.documentSourceId,
       },
     })
     const embeddingPatch =
@@ -442,11 +449,13 @@ export class DocumentsService {
     size: number
     title?: string
     sourceUrl?: string | null
+    documentSourceId: string
   }): Promise<{
     document: Document
     uploadUrl: string
     uploadHeaders: AppDocumentUploadHeadersDto
   }> {
+    await this.requireProjectDocumentSource(params.connectScope, params.documentSourceId)
     const normalizedFileName = normalizeUploadedFileName(params.fileName)
     const extension = fileExtensionOrBadRequest(normalizedFileName)
     const documentId = randomUUID()
@@ -474,6 +483,7 @@ export class DocumentsService {
         storageRelativePath,
         sourceType: "project",
         sourceUrl: params.sourceUrl ?? null,
+        documentSourceId: params.documentSourceId,
       },
     })
     document.embeddingStatus = document.embeddingStatus ?? "pending"
@@ -526,6 +536,16 @@ export class DocumentsService {
     document.embeddingError = embeddingPatch.embeddingError
     document.updatedAt = embeddingPatch.updatedAt
     return document
+  }
+
+  private async requireProjectDocumentSource(
+    connectScope: RequiredConnectScope,
+    documentSourceId: string,
+  ): Promise<void> {
+    const documentSource = await this.documentSourcesService.getOne(connectScope, documentSourceId)
+    if (!documentSource) {
+      throw new NotFoundException(`Document source ${documentSourceId} not found`)
+    }
   }
 
   /** Removes the source object and every rendered page image of a document from storage. */

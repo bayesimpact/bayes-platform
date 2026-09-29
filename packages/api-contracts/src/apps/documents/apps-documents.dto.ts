@@ -6,11 +6,14 @@ import {
   isAllowedMimeType,
 } from "../../documents/documents.dto"
 
+const documentSourceIdSchema = z.string().uuid()
+
 export const createAppDocumentSchema = z
   .object({
     title: z.string().trim().min(1).max(500),
     content: z.string().min(1),
     source_url: z.string().url().optional(),
+    document_source_id: documentSourceIdSchema,
   })
   .strict()
 
@@ -35,6 +38,7 @@ export const createAppDocumentUploadSchema = z
     size: z.number().int().positive().max(DOCUMENT_UPLOAD_MAX_BYTES),
     title: z.string().trim().min(1).max(500).optional(),
     source_url: absoluteHttpUrlSchema.optional(),
+    document_source_id: documentSourceIdSchema,
   })
   .strict()
 

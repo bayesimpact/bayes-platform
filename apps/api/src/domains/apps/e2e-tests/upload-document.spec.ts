@@ -18,6 +18,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { DOCUMENT_EMBEDDINGS_BATCH_SERVICE } from "@/domains/documents/embeddings/document-embeddings-batch.interface"
+import { DocumentSourcesService } from "@/domains/documents/sources/document-sources.service"
 import { FILE_STORAGE_SERVICE } from "@/domains/documents/storage/file-storage.interface"
 import { LocalStorageService } from "@/domains/documents/storage/local-storage.service"
 import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
@@ -111,6 +112,18 @@ describe("Apps - Upload document", () => {
     return { project, user, accessToken: token.accessToken }
   }
 
+  const createFeed = (project: { id: string; organizationId: string }) =>
+    setup.module.get(DocumentSourcesService).createOne(
+      { organizationId: project.organizationId, projectId: project.id },
+      {
+        name: "Site crawler",
+        type: null,
+        externalId: null,
+        baseUrl: null,
+        config: null,
+      },
+    )
+
   const fileBody = {
     file_name: "notes.pdf",
     mime_type: "application/pdf",
@@ -120,10 +133,11 @@ describe("Apps - Upload document", () => {
 
   it("uploads a file in three steps and queues extraction on confirm", async () => {
     const { project, user, accessToken } = await installAndIssueToken([DOCUMENT_CREATE_PERMISSION])
+    const documentSource = await createFeed(project)
     const created = await postDocument({
       projectId: project.id,
       token: accessToken,
-      body: { ...fileBody, title: "Helpful notes" },
+      body: { ...fileBody, title: "Helpful notes", document_source_id: documentSource.id },
     })
     expectResponse(created, 201)
     expect(created.body.data).toMatchObject({
@@ -185,6 +199,7 @@ describe("Apps - Upload document", () => {
     })
     expect(stored.uploadStatus).toBe("uploaded")
     expect(stored.content).toBeNull()
+    expect(stored.documentSourceId).toBe(documentSource.id)
     expect(stored.userId).toEqual(expect.any(String))
     expect(stored.userId).not.toBe(user.id)
     const storage = setup.module.get(FILE_STORAGE_SERVICE)
@@ -210,15 +225,22 @@ describe("Apps - Upload document", () => {
 
   it("uses the file name when the title is omitted and creates a new document each time", async () => {
     const { project, accessToken } = await installAndIssueToken([DOCUMENT_CREATE_PERMISSION])
+    const documentSource = await createFeed(project)
+    const upload = {
+      file_name: "report.pdf",
+      mime_type: "application/pdf",
+      size: 4,
+      document_source_id: documentSource.id,
+    }
     const first = await postDocument({
       projectId: project.id,
       token: accessToken,
-      body: { file_name: "report.pdf", mime_type: "application/pdf", size: 4 },
+      body: upload,
     })
     const second = await postDocument({
       projectId: project.id,
       token: accessToken,
-      body: { file_name: "report.pdf", mime_type: "application/pdf", size: 4 },
+      body: upload,
     })
     expectResponse(first, 201)
     expectResponse(second, 201)
@@ -229,14 +251,18 @@ describe("Apps - Upload document", () => {
 
   it("returns 400 when the body mixes content and a file, or the file fields are invalid", async () => {
     const { project, accessToken } = await installAndIssueToken([DOCUMENT_CREATE_PERMISSION])
+    const documentSource = await createFeed(project)
+    const validUpload = { ...fileBody, document_source_id: documentSource.id }
     const cases: Record<string, unknown>[] = [
-      { ...fileBody, content: "The assistant stored this page." },
-      { ...fileBody, mime_type: "application/zip" },
-      { ...fileBody, size: DOCUMENT_UPLOAD_MAX_BYTES + 1 },
-      { ...fileBody, title: " " },
-      { ...fileBody, title: "x".repeat(501) },
-      { ...fileBody, source_url: "ftp://example.com/notes.pdf" },
-      { ...fileBody, source_url: "/notes.pdf" },
+      { ...validUpload, content: "The assistant stored this page." },
+      { ...validUpload, mime_type: "application/zip" },
+      { ...validUpload, size: DOCUMENT_UPLOAD_MAX_BYTES + 1 },
+      { ...validUpload, title: " " },
+      { ...validUpload, title: "x".repeat(501) },
+      { ...validUpload, source_url: "ftp://example.com/notes.pdf" },
+      { ...validUpload, source_url: "/notes.pdf" },
+      { ...fileBody },
+      { ...validUpload, document_source_id: "not-a-uuid" },
     ]
     for (const body of cases) {
       const response = await postDocument({ projectId: project.id, token: accessToken, body })
@@ -247,6 +273,7 @@ describe("Apps - Upload document", () => {
 
   it("accepts a file at the size cap", async () => {
     const { project, accessToken } = await installAndIssueToken([DOCUMENT_CREATE_PERMISSION])
+    const documentSource = await createFeed(project)
     const created = await postDocument({
       projectId: project.id,
       token: accessToken,
@@ -254,6 +281,7 @@ describe("Apps - Upload document", () => {
         file_name: "large.pdf",
         mime_type: "application/pdf",
         size: DOCUMENT_UPLOAD_MAX_BYTES,
+        document_source_id: documentSource.id,
       },
     })
     expectResponse(created, 201)
@@ -276,6 +304,33 @@ describe("Apps - Upload document", () => {
       .set("Content-Type", "application/pdf")
       .send(Buffer.from("12345"))
     expectResponse(uploaded, 400, "Upload exceeds the maximum size.")
+  })
+
+  it("returns 404 when the document feed is not in the token project", async () => {
+    const { project, accessToken } = await installAndIssueToken([DOCUMENT_CREATE_PERMISSION])
+    const other = await createOrganizationWithProject(repositories)
+    const otherSource = await createFeed(other.project)
+    const missingId = "00000000-0000-4000-8000-000000000000"
+
+    expectResponse(
+      await postDocument({
+        projectId: project.id,
+        token: accessToken,
+        body: { ...fileBody, document_source_id: missingId },
+      }),
+      404,
+      `Document source ${missingId} not found`,
+    )
+    expectResponse(
+      await postDocument({
+        projectId: project.id,
+        token: accessToken,
+        body: { ...fileBody, document_source_id: otherSource.id },
+      }),
+      404,
+      `Document source ${otherSource.id} not found`,
+    )
+    expect(await repositories.documentRepository.count()).toBe(0)
   })
 
   it("returns 403 when the path project is not the token project", async () => {

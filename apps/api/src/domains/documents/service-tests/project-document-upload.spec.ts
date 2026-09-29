@@ -17,6 +17,7 @@ describe("project document file upload", () => {
 
     const { organization, project, user } = await createOrganizationWithProject(repositories)
     const connectScope = { organizationId: organization.id, projectId: project.id }
+    const documentSource = await createFeed(getTestContext().documentSourcesService, connectScope)
     const pending = await service.createPendingProjectDocumentUpload({
       connectScope,
       userId: user.id,
@@ -25,6 +26,7 @@ describe("project document file upload", () => {
       size: 8,
       title: "Helpful notes",
       sourceUrl: "https://example.com/notes.pdf",
+      documentSourceId: documentSource.id,
     })
 
     expect(pending.document).toMatchObject({
@@ -34,6 +36,7 @@ describe("project document file upload", () => {
       size: 8,
       sourceType: "project",
       sourceUrl: "https://example.com/notes.pdf",
+      documentSourceId: documentSource.id,
       uploadStatus: "pending",
       embeddingStatus: "pending",
     })
@@ -94,15 +97,18 @@ describe("project document file upload", () => {
   })
 
   it("uses the file name when the title is omitted", async () => {
-    const { service, repositories } = getTestContext()
+    const { service, repositories, documentSourcesService } = getTestContext()
     const { organization, project, user } = await createOrganizationWithProject(repositories)
+    const connectScope = { organizationId: organization.id, projectId: project.id }
+    const documentSource = await createFeed(documentSourcesService, connectScope)
 
     const pending = await service.createPendingProjectDocumentUpload({
-      connectScope: { organizationId: organization.id, projectId: project.id },
+      connectScope,
       userId: user.id,
       fileName: "report.pdf",
       mimeType: "application/pdf",
       size: 4,
+      documentSourceId: documentSource.id,
     })
 
     expect(pending.document.title).toBe("report.pdf")
@@ -121,10 +127,44 @@ describe("project document file upload", () => {
       }),
     ).rejects.toBeInstanceOf(NotFoundException)
   })
+
+  it("returns not found when the document feed is outside the project", async () => {
+    const { service, repositories, documentSourcesService } = getTestContext()
+    const { organization, project, user } = await createOrganizationWithProject(repositories)
+    const other = await createOrganizationWithProject(repositories)
+    const otherSource = await createFeed(documentSourcesService, {
+      organizationId: other.organization.id,
+      projectId: other.project.id,
+    })
+
+    await expect(
+      service.createPendingProjectDocumentUpload({
+        connectScope: { organizationId: organization.id, projectId: project.id },
+        userId: user.id,
+        fileName: "report.pdf",
+        mimeType: "application/pdf",
+        size: 4,
+        documentSourceId: otherSource.id,
+      }),
+    ).rejects.toThrow(`Document source ${otherSource.id} not found`)
+  })
 })
 
 function uploadToken(uploadUrl: string): string {
   const token = new URL(uploadUrl).pathname.split("/").pop()
   if (!token) throw new Error("Upload URL is missing a token")
   return token
+}
+
+function createFeed(
+  documentSourcesService: ReturnType<typeof getTestContext>["documentSourcesService"],
+  connectScope: { organizationId: string; projectId: string },
+) {
+  return documentSourcesService.createOne(connectScope, {
+    name: "Site crawler",
+    type: null,
+    externalId: null,
+    baseUrl: null,
+    config: null,
+  })
 }
