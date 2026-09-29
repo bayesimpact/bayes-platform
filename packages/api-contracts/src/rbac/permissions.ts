@@ -58,6 +58,22 @@ export const PROJECT_ANALYTICS_READ_PERMISSION = "project.analytics.read" as con
 export const AGENT_ANALYTICS_READ_PERMISSION = "agent.analytics.read" as const
 
 /**
+ * Evaluation extraction datasets and the files they are built from. Scoped to the
+ * project and never inherited from the organization.
+ */
+export const EVALUATION_EXTRACTION_DATASET_READ_PERMISSION =
+  "evaluation.extraction.dataset.read" as const
+
+export const EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION =
+  "evaluation.extraction.dataset.create" as const
+
+export const EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION =
+  "evaluation.extraction.dataset.update" as const
+
+export const EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION =
+  "evaluation.extraction.dataset.delete" as const
+
+/**
  * Permissions an App may be granted. Policy lives in code, not in the database:
  * there is no Permission entity and no `app_grantable` column. Intersect this
  * list with `AppManifest.grantable_permissions` on save and on authorize.

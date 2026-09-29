@@ -10,6 +10,10 @@ import {
   DOCUMENT_SOURCE_READ_PERMISSION,
   DOCUMENT_SOURCE_UPDATE_PERMISSION,
   DOCUMENT_UPDATE_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_READ_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION,
   intersectWithAppGrantablePermissions,
   ORGANIZATION_ROLE_PERMISSIONS,
   PROJECT_ANALYTICS_READ_PERMISSION,
@@ -97,5 +101,37 @@ describe("analytics permissions", () => {
     ]
     expect(inheritable).not.toContain(PROJECT_ANALYTICS_READ_PERMISSION)
     expect(inheritable).not.toContain(AGENT_ANALYTICS_READ_PERMISSION)
+  })
+})
+
+describe("evaluation extraction dataset permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const evaluationExtractionDatasetPermissions = [
+    EVALUATION_EXTRACTION_DATASET_READ_PERMISSION,
+    EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION,
+    EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION,
+    EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION,
+  ]
+
+  it.each(
+    evaluationExtractionDatasetPermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits evaluation extraction datasets from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of evaluationExtractionDatasetPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
   })
 })

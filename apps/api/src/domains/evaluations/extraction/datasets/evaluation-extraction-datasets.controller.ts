@@ -29,12 +29,18 @@ import type {
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import {
+  EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_READ_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { EvaluationExtractionDataset } from "./evaluation-extraction-dataset.entity"
-import { EvaluationExtractionDatasetGuard } from "./evaluation-extraction-dataset.guard"
 import type { EvaluationExtractionDatasetDocument } from "./evaluation-extraction-dataset-document.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import {
@@ -43,7 +49,7 @@ import {
 } from "./evaluation-extraction-datasets.service"
 import type { EvaluationExtractionDatasetRecord } from "./records/evaluation-extraction-dataset-record.entity"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, EvaluationExtractionDatasetGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
 export class EvaluationExtractionDatasetsController {
@@ -54,7 +60,7 @@ export class EvaluationExtractionDatasetsController {
   // FILES
 
   @Get(EvaluationExtractionDatasetsRoutes.getAllFiles.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(EVALUATION_EXTRACTION_DATASET_READ_PERMISSION, "project")
   async getAllFiles(
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof EvaluationExtractionDatasetsRoutes.getAllFiles.response> {
@@ -65,7 +71,7 @@ export class EvaluationExtractionDatasetsController {
   }
 
   @Post(EvaluationExtractionDatasetsRoutes.presignFile.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION, "project")
   @HttpCode(HttpStatus.CREATED)
   async presignFile(
     @Req() request: EndpointRequestWithProject,
@@ -80,7 +86,7 @@ export class EvaluationExtractionDatasetsController {
 
   @Post(EvaluationExtractionDatasetsRoutes.confirmFile.path)
   @AddContext("evaluationExtractionDatasetDocument")
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationExtractionDatasetDocument.create" })
   @HttpCode(HttpStatus.CREATED)
   async confirmFile(
@@ -95,7 +101,7 @@ export class EvaluationExtractionDatasetsController {
 
   @Get(EvaluationExtractionDatasetsRoutes.getFileColumns.path)
   @AddContext("evaluationExtractionDatasetDocument")
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(EVALUATION_EXTRACTION_DATASET_READ_PERMISSION, "project")
   async getColumns(
     @Req() request: EndpointRequestWithEvaluationExtractionDatasetDocument,
   ): Promise<typeof EvaluationExtractionDatasetsRoutes.getFileColumns.response> {
@@ -108,7 +114,7 @@ export class EvaluationExtractionDatasetsController {
 
   @Delete(EvaluationExtractionDatasetsRoutes.deleteFile.path)
   @AddContext("evaluationExtractionDatasetDocument")
-  @CheckPolicy((policy) => policy.canDelete())
+  @CheckPermission(EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION, "project")
   @TrackActivity({
     action: "evaluationExtractionDatasetDocument.delete",
     entityFrom: "evaluationExtractionDatasetDocument",
@@ -126,7 +132,7 @@ export class EvaluationExtractionDatasetsController {
   // DATASETS
 
   @Get(EvaluationExtractionDatasetsRoutes.getAll.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(EVALUATION_EXTRACTION_DATASET_READ_PERMISSION, "project")
   async getAll(
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof EvaluationExtractionDatasetsRoutes.getAll.response> {
@@ -146,7 +152,7 @@ export class EvaluationExtractionDatasetsController {
   }
 
   @Get(EvaluationExtractionDatasetsRoutes.getRecords.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(EVALUATION_EXTRACTION_DATASET_READ_PERMISSION, "project")
   async getRecords(
     @Req() request: EndpointRequestWithProject,
     @Param("datasetId") datasetId: string,
@@ -190,7 +196,7 @@ export class EvaluationExtractionDatasetsController {
   }
 
   @Post(EvaluationExtractionDatasetsRoutes.createOne.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationExtractionDataset.create" })
   async createOne(
     @Req() request: EndpointRequestWithProject,
@@ -208,7 +214,7 @@ export class EvaluationExtractionDatasetsController {
   /** Initializes a dataset from an uploaded file: name, column mapping and records. */
   @Patch(EvaluationExtractionDatasetsRoutes.updateOne.path)
   @AddContext("evaluationExtractionDataset", "evaluationExtractionDatasetDocument")
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationExtractionDataset.update" })
   async updateOne(
     @Req()
@@ -237,7 +243,7 @@ export class EvaluationExtractionDatasetsController {
   }
 
   @Patch(EvaluationExtractionDatasetsRoutes.renameOne.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationExtractionDataset.rename" })
   async renameOne(
     @Req() request: EndpointRequestWithProject,
@@ -256,7 +262,7 @@ export class EvaluationExtractionDatasetsController {
 
   @Delete(EvaluationExtractionDatasetsRoutes.deleteOne.path)
   @AddContext("evaluationExtractionDataset")
-  @CheckPolicy((policy) => policy.canDelete())
+  @CheckPermission(EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationExtractionDataset.delete" })
   async deleteOne(
     @Req() request: EndpointRequestWithEvaluationExtractionDataset,

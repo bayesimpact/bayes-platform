@@ -18,6 +18,7 @@ import { Organization } from "@/domains/organizations/organization.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { LlmModule } from "@/external/llm/llm.module"
 import { Agent } from "../agents/agent.entity"
@@ -36,7 +37,6 @@ import { EvaluationConversationRunsController } from "./conversation/runs/evalua
 import { EvaluationConversationRunsService } from "./conversation/runs/evaluation-conversation-runs.service"
 import { EvaluationConversationRunRecord } from "./conversation/runs/records/evaluation-conversation-run-record.entity"
 import { EvaluationExtractionDataset } from "./extraction/datasets/evaluation-extraction-dataset.entity"
-import { EvaluationExtractionDatasetGuard } from "./extraction/datasets/evaluation-extraction-dataset.guard"
 import { EvaluationExtractionDatasetDocument } from "./extraction/datasets/evaluation-extraction-dataset-document.entity"
 import { EvaluationExtractionDatasetDocumentRepository } from "./extraction/datasets/evaluation-extraction-dataset-document.repository"
 import { EvaluationExtractionDatasetsController } from "./extraction/datasets/evaluation-extraction-datasets.controller"
@@ -78,6 +78,7 @@ import { EvaluationExtractionRunRecord } from "./extraction/runs/records/evaluat
     StorageModule,
     OrganizationsModule,
     ProjectsModule,
+    RbacModule,
     UsersModule,
     AuthModule,
   ],
@@ -95,7 +96,6 @@ import { EvaluationExtractionRunRecord } from "./extraction/runs/records/evaluat
     EvaluationExtractionDatasetContextResolver,
     EvaluationExtractionDatasetDocumentContextResolver,
     EvaluationExtractionDatasetDocumentRepository,
-    EvaluationExtractionDatasetGuard,
     EvaluationExtractionDatasetsService,
     EvaluationExtractionRunContextResolver,
     EvaluationExtractionRunCsvExportService,
