@@ -40,9 +40,9 @@ export class Document extends ConnectEntityBase {
   @Column({ name: "source_type", nullable: false })
   sourceType!:
     | "project"
-    | "extraction"
+    | "extraction" // is the input an extraction run reads (pdf, csv...)
     | "evaluationExtractionRun"
-    | "agentCsvExtractionRun"
+    | "agentCsvExtractionRun" // is the output an extraction run produces (usually a CSV file).
     | "webCrawl"
 
   @Column({ type: "uuid", name: "user_id", nullable: true })
