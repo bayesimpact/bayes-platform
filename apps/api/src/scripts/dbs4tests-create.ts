@@ -114,6 +114,7 @@ async function main(): Promise<void> {
 
   const adminClient = new Client({ connectionString: adminDatabaseUrl.toString() })
   await adminClient.connect()
+  await adminClient.query(`ALTER ROLE connect_admin CREATEROLE`)
 
   try {
     console.log(
