@@ -142,5 +142,8 @@ export type AppAccessTokenResponseDto = {
 export type AppMeResponseDto = {
   userId: string
   projectId: string
+  projectName: string
+  organizationId: string
+  organizationName: string
   installationId: string
 }

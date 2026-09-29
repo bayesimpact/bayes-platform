@@ -8,6 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- (beta) Installed apps can read the workspace and project they are installed on.
 - (beta) Superadmins can register an app in the back-office.
 - (beta) Platform staff can install an app on a project with limited credentials.
 - (beta) Installed apps can add a text document to their project.
