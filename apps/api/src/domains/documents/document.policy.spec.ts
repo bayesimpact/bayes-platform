@@ -36,42 +36,21 @@ describe("DocumentPolicy", () => {
   })
 
   describe("canCreate", () => {
-    it.skip("allows members for non-project source types", () => {
-      const defaultPolicy = buildPolicy({
-        resourceState: "sameOrganization",
-        projectRole: "member",
+    describe.each<[ProjectMembershipRole, ResourceState, boolean]>([
+      ["owner", "sameOrganization", true],
+      ["owner", "differentOrganization", false],
+      ["owner", "noResource", true],
+      ["admin", "sameOrganization", true],
+      ["admin", "differentOrganization", false],
+      ["admin", "noResource", true],
+      ["member", "sameOrganization", false],
+      ["member", "differentOrganization", false],
+      ["member", "noResource", false],
+    ])("when user is %s with %s document", (projectRole, resourceState, expected) => {
+      it(`should return ${expected}`, () => {
+        const policy = buildPolicy({ resourceState, projectRole })
+        expect(policy.canCreate()).toBe(expected)
       })
-      const extractionPolicy = buildPolicy({
-        resourceState: "sameOrganization",
-        projectRole: "member",
-        options: "extraction",
-      })
-      expect(defaultPolicy.canCreate()).toBe(false)
-      expect(extractionPolicy.canCreate()).toBe(false)
-    })
-
-    it("forbids members for project source type", () => {
-      const policy = buildPolicy({
-        resourceState: "sameOrganization",
-        projectRole: "member",
-        options: "project",
-      })
-      expect(policy.canCreate()).toBe(false)
-    })
-
-    it("allows owners and admins for project source type", () => {
-      const ownerPolicy = buildPolicy({
-        resourceState: "sameOrganization",
-        projectRole: "owner",
-        options: "project",
-      })
-      const adminPolicy = buildPolicy({
-        resourceState: "sameOrganization",
-        projectRole: "admin",
-        options: "project",
-      })
-      expect(ownerPolicy.canCreate()).toBe(true)
-      expect(adminPolicy.canCreate()).toBe(true)
     })
   })
 

@@ -3,14 +3,6 @@ import type { Document } from "./document.entity"
 import { isPublicDocument } from "./documents.helpers"
 
 export class DocumentPolicy extends ProjectScopedPolicy<Document> {
-  constructor(
-    context: ConstructorParameters<typeof ProjectScopedPolicy<Document>>[0],
-    entity?: Document,
-    private readonly sourceType?: Document["sourceType"],
-  ) {
-    super(context, entity)
-  }
-
   canList(): boolean {
     return this.canAccess() && this.isProjectAdminOrOwner()
   }
@@ -31,9 +23,6 @@ export class DocumentPolicy extends ProjectScopedPolicy<Document> {
   }
 
   canCreate(): boolean {
-    if (this.sourceType === "extraction") {
-      return this.canAccess()
-    }
     return this.canAccess() && this.isProjectAdminOrOwner()
   }
 

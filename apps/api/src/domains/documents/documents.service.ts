@@ -1,13 +1,25 @@
 import { randomUUID } from "node:crypto"
 import { Readable } from "node:stream"
-import { MimeTypes } from "@caseai-connect/api-contracts"
-import { Inject, Injectable, Logger, NotFoundException } from "@nestjs/common"
+import {
+  isAllowedMimeType,
+  MimeTypes,
+  type PresignFileRequestItemDto,
+  type PresignFileResponseItemDto,
+} from "@caseai-connect/api-contracts"
+import {
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnprocessableEntityException,
+} from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository, UpdateResult } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { MulterFile } from "@/common/types"
 import { Document } from "./document.entity"
+import { extractFileExtension, normalizeUploadedFileName } from "./documents.helpers"
 import type { DocumentEmbeddingsBatchService } from "./embeddings/document-embeddings-batch.interface"
 import { DOCUMENT_EMBEDDINGS_BATCH_SERVICE } from "./embeddings/document-embeddings-batch.interface"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -76,6 +88,65 @@ export class DocumentsService {
     })
 
     return this.documentConnectRepository.saveOne(document)
+  }
+
+  /**
+   * Reserves a document for a browser upload: validates the file type, creates the document as
+   * `pending` and returns the signed URL the browser PUTs the bytes to. `markAsUploaded`
+   * completes the upload once the bytes are in storage.
+   */
+  async presignUpload({
+    connectScope,
+    file,
+    sourceType,
+    userId,
+  }: {
+    connectScope: RequiredConnectScope
+    file: PresignFileRequestItemDto
+    sourceType: Document["sourceType"]
+    userId: string
+  }): Promise<PresignFileResponseItemDto> {
+    if (!file.mimeType) {
+      throw new UnprocessableEntityException("File MIME type is required.")
+    }
+    if (!isAllowedMimeType(file.mimeType)) {
+      throw new UnprocessableEntityException(
+        `Invalid file type: ${file.mimeType}. Allowed types: PDF, Microsoft Office (Word, Excel, PowerPoint), images (PNG, JPEG, TIFF, BMP, WebP), CSV, plain text, or Markdown.`,
+      )
+    }
+
+    const normalizedFileName = normalizeUploadedFileName(file.fileName)
+    const extension = extractFileExtension(normalizedFileName)
+
+    const documentId = randomUUID()
+    const storagePath = this.fileStorageService.buildStorageRelativePath({
+      connectScope,
+      documentId,
+      extension,
+    })
+
+    const uploadUrl = await this.fileStorageService.generateSignedUploadUrl({
+      storagePath,
+      mimeType: file.mimeType,
+      expiresInSeconds: 900, // 15 minutes
+    })
+
+    await this.createDocument({
+      uploadStatus: "pending",
+      connectScope,
+      documentId,
+      fields: {
+        fileName: normalizedFileName,
+        mimeType: file.mimeType,
+        size: file.size,
+        storageRelativePath: storagePath,
+        title: normalizedFileName,
+        sourceType,
+      },
+      userId,
+    })
+
+    return { documentId, uploadUrl }
   }
 
   async markAsUploaded({

@@ -16,6 +16,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 - Analytics: conversation categories now show per agent, ranked by volume with their share and daily trend.
+- Extraction agents: documents uploaded for a run now use the agent's own upload flow and access rules.
 
 ### Fixed
 - Analytics: conversations and questions per session now include conversations held in the embedded chat.

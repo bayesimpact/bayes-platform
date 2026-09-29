@@ -21,14 +21,9 @@ export class DocumentsGuard implements CanActivate {
     // DocumentContextResolver should already have loaded request.document when required by the route.
     const request = context.switchToHttp().getRequest() as EndpointRequestWithProject & {
       document?: Document
-      params?: { sourceType?: Document["sourceType"] }
     }
 
-    const policy = new DocumentPolicy(
-      requestToProjectPolicyContext(request),
-      request.document,
-      request.params?.sourceType,
-    )
+    const policy = new DocumentPolicy(requestToProjectPolicyContext(request), request.document)
 
     const policyHandler = this.reflector.getAllAndOverride<PolicyHandler>(CHECK_POLICY_KEY, [
       context.getHandler(),

@@ -1,4 +1,5 @@
 import type { BaseAgentSessionTypeDto, SuccessResponseDTO } from "@caseai-connect/api-contracts"
+import type { Document } from "@/studio/features/documents/documents.models"
 import type {
   ExtractionAgentSession,
   ExtractionAgentSessionResult,
@@ -26,6 +27,9 @@ export interface IExtractionAgentSessionsSpi {
     },
   ) => Promise<ExtractionAgentSessionResult>
   deleteOne: (params: BaseParams & { agentSessionId: string }) => Promise<SuccessResponseDTO>
+  /** Presigns, sends the bytes to storage and confirms: the document a run can then read. */
+  uploadDocument: (params: BaseParams & { file: File }) => Promise<Document>
+  listMyDocuments: (params: BaseParams) => Promise<Document[]>
   streamSessionStatus: (params: {
     organizationId: string
     projectId: string
