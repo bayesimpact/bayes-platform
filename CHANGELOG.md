@@ -9,6 +9,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 - Kubernetes: the Helm chart can install an optional Phoenix to read LLM traces.
+- (beta) Apps: installed apps can upload a file as a project document.
 
 ### Changed
 - Trace links now open the conversation in Phoenix instead of Langfuse.

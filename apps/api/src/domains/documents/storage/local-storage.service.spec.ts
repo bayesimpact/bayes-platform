@@ -1,4 +1,5 @@
 import * as crypto from "node:crypto"
+import { randomUUID } from "node:crypto"
 import * as fs from "node:fs/promises"
 import * as os from "node:os"
 import * as path from "node:path"
@@ -7,6 +8,7 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 import type { MulterFile } from "@/common/types"
 import type { IFileStorage } from "./file-storage.interface"
 import { GcsStorageService } from "./gcs-storage.service"
+import { LocalStorageService, UploadTooLargeError } from "./local-storage.service"
 
 // Helper to compute SHA-1 hash
 const sha1 = (buffer: Buffer) => crypto.createHash("sha1").update(buffer).digest("hex")
@@ -63,3 +65,29 @@ if (process.env.GCS_STORAGE_BUCKET_NAME === "test-caseai-file-storage") {
     it("skips in CI", () => {})
   })
 }
+
+describe("LocalStorageService upload cap", () => {
+  const service = new LocalStorageService(new ConfigService())
+
+  it("rejects a body over the signed cap and still accepts a smaller retry", async () => {
+    const storagePath = `upload-cap/${randomUUID()}.pdf`
+    const uploadUrl = await service.generateSignedUploadUrl({
+      storagePath,
+      mimeType: "application/pdf",
+      expiresInSeconds: 60,
+      maxBytes: 4,
+    })
+    const token = new URL(uploadUrl).pathname.split("/").pop()
+    if (!token) throw new Error("Upload URL is missing a token")
+
+    await expect(service.fileExists(storagePath)).resolves.toBe(false)
+    await expect(service.handleLocalUpload(token, Buffer.from("12345"))).rejects.toBeInstanceOf(
+      UploadTooLargeError,
+    )
+    await service.handleLocalUpload(token, Buffer.from("1234"))
+
+    await expect(service.fileExists(storagePath)).resolves.toBe(true)
+    await expect(service.readFile(storagePath)).resolves.toEqual(Buffer.from("1234"))
+    await service.deleteFile(storagePath)
+  })
+})

@@ -113,6 +113,8 @@ describe("Apps - Ingest document", () => {
       sourceUrl: "https://example.com/notes",
       embeddingStatus: "queued",
     })
+    expect(created.body.data.uploadUrl).toBeUndefined()
+    expect(created.body.data.uploadHeaders).toBeUndefined()
 
     const stored = await repositories.documentRepository.findOneByOrFail({
       id: created.body.data.id,

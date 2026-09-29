@@ -1,12 +1,17 @@
 import { randomUUID } from "node:crypto"
 import { Readable } from "node:stream"
 import {
+  type AppDocumentUploadHeadersDto,
+  DOCUMENT_UPLOAD_CONTENT_LENGTH_RANGE_HEADER,
+  DOCUMENT_UPLOAD_MAX_BYTES,
+  documentUploadContentLengthRange,
   isAllowedMimeType,
   MimeTypes,
   type PresignFileRequestItemDto,
   type PresignFileResponseItemDto,
 } from "@caseai-connect/api-contracts"
 import {
+  BadRequestException,
   Inject,
   Injectable,
   Logger,
@@ -429,6 +434,100 @@ export class DocumentsService {
     return document
   }
 
+  async createPendingProjectDocumentUpload(params: {
+    connectScope: RequiredConnectScope
+    userId: string
+    fileName: string
+    mimeType: string
+    size: number
+    title?: string
+    sourceUrl?: string | null
+  }): Promise<{
+    document: Document
+    uploadUrl: string
+    uploadHeaders: AppDocumentUploadHeadersDto
+  }> {
+    const normalizedFileName = normalizeUploadedFileName(params.fileName)
+    const extension = fileExtensionOrBadRequest(normalizedFileName)
+    const documentId = randomUUID()
+    const storageRelativePath = this.fileStorageService.buildStorageRelativePath({
+      connectScope: params.connectScope,
+      documentId,
+      extension,
+    })
+    const uploadUrl = await this.fileStorageService.generateSignedUploadUrl({
+      storagePath: storageRelativePath,
+      mimeType: params.mimeType,
+      expiresInSeconds: 900,
+      maxBytes: DOCUMENT_UPLOAD_MAX_BYTES,
+    })
+    const document = await this.createDocument({
+      connectScope: params.connectScope,
+      documentId,
+      userId: params.userId,
+      uploadStatus: "pending",
+      fields: {
+        title: params.title ?? normalizedFileName,
+        fileName: normalizedFileName,
+        mimeType: params.mimeType,
+        size: params.size,
+        storageRelativePath,
+        sourceType: "project",
+        sourceUrl: params.sourceUrl ?? null,
+      },
+    })
+    document.embeddingStatus = document.embeddingStatus ?? "pending"
+    return {
+      document,
+      uploadUrl,
+      uploadHeaders: {
+        "Content-Type": params.mimeType,
+        [DOCUMENT_UPLOAD_CONTENT_LENGTH_RANGE_HEADER]: documentUploadContentLengthRange(),
+      },
+    }
+  }
+
+  async confirmProjectDocumentUpload(params: {
+    connectScope: RequiredConnectScope
+    userId: string
+    documentId: string
+  }): Promise<Document> {
+    const document = await this.findById({
+      connectScope: params.connectScope,
+      documentId: params.documentId,
+    })
+    if (!document) {
+      throw new NotFoundException(`Document ${params.documentId} not found`)
+    }
+    if (document.uploadStatus !== "pending") {
+      throw new BadRequestException("Document is not pending")
+    }
+    const storageRelativePath = document.storageRelativePath
+    if (!storageRelativePath || !(await this.fileStorageService.fileExists(storageRelativePath))) {
+      throw new BadRequestException("Upload is missing")
+    }
+
+    await this.markAsUploaded({
+      connectScope: params.connectScope,
+      documentId: document.id,
+    })
+    document.uploadStatus = "uploaded"
+
+    const embeddingPatch =
+      await this.documentEmbeddingsBatchService.enqueueCreateEmbeddingsForDocument({
+        documentId: document.id,
+        organizationId: params.connectScope.organizationId,
+        projectId: params.connectScope.projectId,
+        uploadedByUserId: params.userId,
+        origin: "document-upload",
+        currentTraceId: randomUUID(),
+      })
+    document.embeddingStatus = embeddingPatch.embeddingStatus
+    document.embeddingError = embeddingPatch.embeddingError
+    document.updatedAt = embeddingPatch.updatedAt
+    return document
+  }
+
   /** Removes the source object and every rendered page image of a document from storage. */
   private async deleteStoredFiles(document: Document): Promise<void> {
     // Crawled documents have no stored file: their content lives in the row only.
@@ -447,6 +546,14 @@ export class DocumentsService {
         `Could not delete stored files of document ${document.id} (${document.storageRelativePath}): ${(error as Error).message}`,
       )
     }
+  }
+}
+
+function fileExtensionOrBadRequest(fileName: string): string {
+  try {
+    return extractFileExtension(fileName)
+  } catch {
+    throw new BadRequestException("Invalid document payload")
   }
 }
 

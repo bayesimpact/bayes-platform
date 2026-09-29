@@ -168,6 +168,18 @@ export enum MimeTypes {
   _7z = "application/x-7z-compressed",
 }
 
+/** Maximum document upload size in bytes. Matches the studio uploader (40 MiB). */
+export const DOCUMENT_UPLOAD_MAX_BYTES = 40 * 1024 * 1024
+
+/** Signed on the upload URL so storage rejects a body over {@link DOCUMENT_UPLOAD_MAX_BYTES}. */
+export const DOCUMENT_UPLOAD_CONTENT_LENGTH_RANGE_HEADER = "x-goog-content-length-range" as const
+
+export function documentUploadContentLengthRange(
+  maxBytes: number = DOCUMENT_UPLOAD_MAX_BYTES,
+): string {
+  return `0,${maxBytes}`
+}
+
 /** MIME types accepted for document upload (aligned with API + text extraction / Docling pipeline). */
 export const AllowedMimeTypes = [
   MimeTypes.png,
