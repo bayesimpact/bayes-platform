@@ -1,5 +1,6 @@
 import { Column } from "typeorm"
-import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
+import { ConnectEntity } from "@/common/entities/connect-entity"
+import { DocumentEntityBase } from "@/common/entities/document-entity-base"
 
 export type EvaluationExtractionDatasetDocumentUploadStatus = "pending" | "uploaded"
 
@@ -10,19 +11,7 @@ export type EvaluationExtractionDatasetDocumentUploadStatus = "pending" | "uploa
  * built from through `EvaluationExtractionDataset.evaluationExtractionDatasetDocumentId`.
  */
 @ConnectEntity("evaluation_extraction_dataset_document")
-export class EvaluationExtractionDatasetDocument extends ConnectEntityBase {
-  @Column({ type: "varchar", name: "file_name" })
-  fileName!: string
-
-  @Column({ type: "varchar", name: "mime_type" })
-  mimeType!: string
-
-  @Column({ type: "integer" })
-  size!: number
-
-  @Column({ type: "varchar", name: "storage_relative_path" })
-  storageRelativePath!: string
-
+export class EvaluationExtractionDatasetDocument extends DocumentEntityBase {
   /** `pending` between presign and confirm: the row exists but the file may not be in storage yet. */
   @Column({ type: "varchar", name: "upload_status", default: "pending" })
   uploadStatus!: EvaluationExtractionDatasetDocumentUploadStatus
