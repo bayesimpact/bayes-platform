@@ -58,6 +58,25 @@ export const PROJECT_ANALYTICS_READ_PERMISSION = "project.analytics.read" as con
 export const AGENT_ANALYTICS_READ_PERMISSION = "agent.analytics.read" as const
 
 /**
+ * Evaluation extraction datasets and the files they are built from. Scoped to the
+ * project and never inherited from the organization.
+ */
+/** Open the evaluation app of a project. Scoped to the project, never inherited from the organization. */
+export const EVALUATION_ACCESS_PERMISSION = "evaluation.access" as const
+
+export const EVALUATION_EXTRACTION_DATASET_READ_PERMISSION =
+  "evaluation.extraction.dataset.read" as const
+
+export const EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION =
+  "evaluation.extraction.dataset.create" as const
+
+export const EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION =
+  "evaluation.extraction.dataset.update" as const
+
+export const EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION =
+  "evaluation.extraction.dataset.delete" as const
+
+/**
  * Permissions an App may be granted. Policy lives in code, not in the database:
  * there is no Permission entity and no `app_grantable` column. Intersect this
  * list with `AppManifest.grantable_permissions` on save and on authorize.
@@ -139,6 +158,19 @@ export const ORGANIZATION_SCOPED_PERMISSIONS = [
 ] as const
 
 export type OrganizationScopedPermission = (typeof ORGANIZATION_SCOPED_PERMISSIONS)[number]
+
+/** Project-scoped permissions exposed on `ProjectDto.permissions`. */
+export const PROJECT_SCOPED_PERMISSIONS = [EVALUATION_ACCESS_PERMISSION] as const
+
+export type ProjectScopedPermission = (typeof PROJECT_SCOPED_PERMISSIONS)[number]
+
+export type ProjectPermission = ProjectScopedPermission
+
+const PROJECT_SCOPED_PERMISSION_SET: ReadonlySet<string> = new Set(PROJECT_SCOPED_PERMISSIONS)
+
+export function isProjectPermission(permission: string): permission is ProjectPermission {
+  return PROJECT_SCOPED_PERMISSION_SET.has(permission)
+}
 
 export type GlobalPermission =
   | typeof ORGANIZATION_CREATE_PERMISSION

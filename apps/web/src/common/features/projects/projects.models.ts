@@ -1,4 +1,4 @@
-import type { FeatureFlagsDto, TimeType } from "@caseai-connect/api-contracts"
+import type { FeatureFlagsDto, ProjectPermission, TimeType } from "@caseai-connect/api-contracts"
 
 export type Project = {
   id: string
@@ -9,6 +9,7 @@ export type Project = {
   featureFlags: FeatureFlagsDto
   agentSessionCategories: ProjectAgentSessionCategory[]
   conversationRetentionDays: number
+  permissions: ProjectPermission[]
 }
 
 export type RetentionSweepRunStatus = "OK" | "PARTIAL" | "ERROR"

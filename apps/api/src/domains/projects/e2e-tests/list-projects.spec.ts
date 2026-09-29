@@ -124,4 +124,32 @@ describe("Projects - listProjects", () => {
     expect(projects).toHaveLength(1)
     expect(projects.map((project) => project.name)).toContain("Project 2")
   })
+
+  it("should expose evaluation.access to project admins but not to members", async () => {
+    const { organization, user } = await createContext()
+
+    const adminProject = projectFactory.transient({ organization }).build({ name: "Admin" })
+    const memberProject = projectFactory.transient({ organization }).build({ name: "Member" })
+    await repositories.projectRepository.save([adminProject, memberProject])
+    await addUserToProject({
+      repositories,
+      project: adminProject,
+      user,
+      membership: { role: "admin" },
+    })
+    await addUserToProject({
+      repositories,
+      project: memberProject,
+      user,
+      membership: { role: "member" },
+    })
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    const permissionsByName = Object.fromEntries(
+      response.body.data.map((project) => [project.name, project.permissions]),
+    )
+    expect(permissionsByName).toEqual({ Admin: ["evaluation.access"], Member: [] })
+  })
 })

@@ -96,6 +96,7 @@ export const toProject = (dto: ProjectDto): Project => ({
   featureFlags: dto.featureFlags,
   agentSessionCategories: dto.agentSessionCategories,
   conversationRetentionDays: dto.conversationRetentionDays,
+  permissions: dto.permissions,
 })
 
 function toRetentionSweepRun(dto: RetentionSweepRunDto): RetentionSweepRun {
