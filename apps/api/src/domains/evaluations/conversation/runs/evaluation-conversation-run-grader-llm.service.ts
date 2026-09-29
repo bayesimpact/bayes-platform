@@ -88,6 +88,7 @@ ${
       projectId: connectScope.projectId,
       organizationId: connectScope.organizationId,
       tags: ["*Rating Agent*"],
+      spanLabel: "grading",
     }
 
     //fixme: remove when specific agent for rating(in db) for rating with mock

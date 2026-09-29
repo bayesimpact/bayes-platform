@@ -91,14 +91,13 @@ export type LLMMetadata = (
   projectId: string
   tags: string[]
   /**
-   * Overrides the langfuse session id (which otherwise derives from
-   * `agentSessionId`). Sub-agents set this to the parent session id so their
-   * dedicated traces group under the same langfuse session as the parent run.
+   * Session of the parent run, set by sub-agents so their dedicated traces link
+   * back to it.
    */
-  langfuseSessionId?: string
+  parentSessionId?: string
   /**
-   * Labels the observations of a call that is not the answering loop of the
-   * turn (e.g. the post-turn classification) so langfuse shows
+   * Labels the spans of a call that is not the answering loop of the turn
+   * (e.g. the post-turn classification), so traces read
    * "Turn #4 · classification" instead of a second bare "Turn #4".
    */
   spanLabel?: string

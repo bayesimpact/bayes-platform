@@ -18,7 +18,7 @@ import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.s
 import { toConversationFormDto } from "@/domains/agents/shared/conversation-forms/conversation-form.mapper"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
-import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
+import { getTraceUrl } from "@/external/llm/trace-url"
 import { BaseAgentSessionGuard } from "../base-agent-sessions/base-agent-session.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { BaseAgentSessionsService } from "../base-agent-sessions/base-agent-sessions.service"

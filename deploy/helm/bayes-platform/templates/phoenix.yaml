@@ -1,0 +1,108 @@
+{{- if .Values.phoenix.enabled }}
+{{- $name := include "bayes-platform.componentName" (dict "root" . "component" "phoenix") }}
+# Bundled Phoenix, the store and UI of the LLM traces. NOT PRODUCTION READY:
+# no authentication, one replica, SQLite on a volume unless
+# phoenix.database.urlKey points at a Postgres. For production, run your own
+# Phoenix with sign-in and point otelCollector.phoenix.endpoint at it.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "bayes-platform.labels" . | nindent 4 }}
+    app.kubernetes.io/component: phoenix
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "bayes-platform.selectorLabels" (dict "root" . "component" "phoenix") | nindent 4 }}
+  ports:
+    - name: http
+      port: 6006
+      targetPort: http
+{{- if and (not .Values.phoenix.database.urlKey) .Values.phoenix.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "bayes-platform.labels" . | nindent 4 }}
+    app.kubernetes.io/component: phoenix
+spec:
+  accessModes: ["ReadWriteOnce"]
+  {{- with .Values.phoenix.persistence.storageClass }}
+  storageClassName: {{ . }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.phoenix.persistence.size }}
+{{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "bayes-platform.labels" . | nindent 4 }}
+    app.kubernetes.io/component: phoenix
+spec:
+  # One replica: SQLite has a single writer, and the volume is ReadWriteOnce.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "bayes-platform.selectorLabels" (dict "root" . "component" "phoenix") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "bayes-platform.selectorLabels" (dict "root" . "component" "phoenix") | nindent 8 }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        fsGroup: 65532
+      containers:
+        - name: phoenix
+          image: {{ .Values.phoenix.image }}
+          env:
+            - name: PHOENIX_WORKING_DIR
+              value: /mnt/data
+            {{- with .Values.phoenix.retentionDays }}
+            - name: PHOENIX_DEFAULT_RETENTION_POLICY_DAYS
+              value: {{ . | quote }}
+            {{- end }}
+            {{- if .Values.phoenix.database.urlKey }}
+            - name: PHOENIX_SQL_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "bayes-platform.secretName" . }}
+                  key: {{ .Values.phoenix.database.urlKey }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 6006
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.phoenix.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /mnt/data
+      volumes:
+        - name: data
+          {{- if and (not .Values.phoenix.database.urlKey) .Values.phoenix.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ $name }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+{{- end }}

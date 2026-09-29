@@ -34,7 +34,7 @@ import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
-import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
+import { getTraceUrl } from "@/external/llm/trace-url"
 import type { EvaluationExtractionRun } from "./evaluation-extraction-run.entity"
 import { EvaluationExtractionRunGuard } from "./evaluation-extraction-run.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -329,7 +329,7 @@ function toEvaluationExtractionRunRecordDto(
     agentRawOutput: record.agentRawOutput,
     errorDetails: record.errorDetails,
     datasetRecordData: record.evaluationExtractionDatasetRecord?.data ?? null,
-    traceUrl: record.traceId ? getTraceUrl(record.traceId) : null,
+    traceUrl: record.traceId ? (getTraceUrl(record.traceId) ?? null) : null,
     createdAt: record.createdAt.getTime(),
     updatedAt: record.updatedAt.getTime(),
   }

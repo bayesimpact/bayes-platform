@@ -8,7 +8,6 @@ import { afterAll, beforeAll } from "@jest/globals"
 import { BatchSpanProcessor, ConsoleSpanExporter } from "@opentelemetry/sdk-trace-base"
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
 import type { LLMConfig, LLMServiceTier } from "@/common/interfaces/llm-provider.interface"
-import { LangfuseIntegrationExporter } from "@/external/langfuse/langfuse-integration-exporter"
 import { GetAgentModelKeyFromValue } from "@/external/llm/agent-provider"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { AISDKVertex3Provider } from "@/external/llm/providers/ai-sdk-vertex3.provider"
@@ -84,16 +83,8 @@ describe("AISDKVertex3Provider service tier", () => {
 if (process.env.IS_TEST === "true" && process.env.VERTEX3_TEST === "true") {
   describe("AISDKVertex3Provider", () => {
     jest.setTimeout(60_000)
-    const langfuse = new LangfuseIntegrationExporter({
-      secretKey: process.env.LANGFUSE_SK,
-      publicKey: process.env.LANGFUSE_PK,
-      baseUrl: process.env.LANGFUSE_BASE_URL,
-    })
     const traceProvider = new NodeTracerProvider({
-      spanProcessors: [
-        new BatchSpanProcessor(new ConsoleSpanExporter()),
-        new BatchSpanProcessor(langfuse),
-      ],
+      spanProcessors: [new BatchSpanProcessor(new ConsoleSpanExporter())],
     })
     let provider: AISDKVertex3Provider
     beforeAll(async () => {
@@ -103,7 +94,6 @@ if (process.env.IS_TEST === "true" && process.env.VERTEX3_TEST === "true") {
       traceProvider.register()
     })
     afterAll(async () => {
-      await langfuse.forceFlush()
       await traceProvider.forceFlush()
       await traceProvider.shutdown()
       await sdk.shutdown()

@@ -28,6 +28,8 @@ urls:
   web: https://platform.example.org
   webEmbed: https://embed.platform.example.org
   help: https://help.platform.example.org
+  # Bundled Phoenix (phoenix.enabled): its host, and the trace links of the UI.
+  phoenix: ""
 
 serviceAccount:
   create: true
@@ -47,7 +49,6 @@ serviceAccount:
 #   AUTH0_M2M_CLIENT_SECRET      Auth0 machine-to-machine client secret
 #   APPS_JWT_PRIVATE_KEY         RSA private PEM, signs App access tokens (literal \n is accepted)
 #   APPS_JWT_PUBLIC_KEY          RSA public PEM, verifies App access tokens
-#   LANGFUSE_SK                  optional, Langfuse secret key
 #   DIAGNOSTICS_SECRET           optional, protects the diagnostics endpoint
 #   SPIDER_API_KEY               optional, web crawling provider (cpu workers)
 #   BULL_BOARD_AUTH0_CLIENT_ID, BULL_BOARD_AUTH0_CLIENT_SECRET, BULL_BOARD_OIDC_SECRET
@@ -88,9 +89,13 @@ config:
   LOCATION: europe-west1
   DOCUMENT_EMBEDDING_STUCK_THRESHOLD_SECONDS: "86400"
   DOCUMENT_EMBEDDING_STUCK_SWEEP_INTERVAL_SECONDS: "900"
-  # Tracing (optional). LANGFUSE_SK goes in the secret.
-  LANGFUSE_BASE_URL: ""
-  LANGFUSE_PK: ""
+  # Traces and metrics (optional): OTLP endpoint of an OpenTelemetry Collector,
+  # e.g. http://otel-gateway.observability:4318. Nothing is exported when empty.
+  # otelCollector.enabled sets it to the bundled collector.
+  OTEL_EXPORTER_OTLP_ENDPOINT: ""
+  # Link to a trace in the UI, {traceId} is replaced by our trace id. Derived
+  # from urls.phoenix when empty.
+  TRACE_URL_TEMPLATE: ""
   # Queue of the PDF exports sweep. Required on every worker process.
   PDF_EXPORTS_SWEEP_QUEUE_NAME: pdf-exports-sweep
   # Bull Board (queue dashboard) on the API.
@@ -284,6 +289,57 @@ pdfConverter:
   nodeSelector: {}
   tolerations: []
 
+# ---------------------------------------------------------------------------
+# LLM traces (optional)
+# ---------------------------------------------------------------------------
+# OpenTelemetry Collector: receives the OTLP of the API and the workers, keeps
+# the LLM spans, maps them to OpenInference (files/otel-collector.yaml) and
+# sends them to Phoenix. Off when a collector already runs in the cluster:
+# set config.OTEL_EXPORTER_OTLP_ENDPOINT to it instead.
+otelCollector:
+  enabled: false
+  image: otel/opentelemetry-collector-k8s:0.161.0
+  replicas: 1
+  phoenix:
+    # Base URL of Phoenix. Empty: the bundled Phoenix (phoenix.enabled).
+    endpoint: ""
+    # Key of the application Secret holding a Phoenix API key, for a Phoenix
+    # with authentication. Empty: no key sent.
+    apiKeySecretKey: ""
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+# Bundled Phoenix, the store and UI of the LLM traces.
+# NOT PRODUCTION READY: no authentication (anyone who reaches it reads every
+# prompt and answer), one replica, SQLite on a volume by default. Fine for a
+# demo or a small private install. For production, run your own Phoenix with
+# sign-in and a Postgres, keep this off and set otelCollector.phoenix.endpoint.
+phoenix:
+  enabled: false
+  image: arizephoenix/phoenix:version-20.14.0-nonroot
+  # Postgres instead of SQLite: key of the application Secret holding a
+  # postgresql:// URL. Create the database yourself; Phoenix runs its own
+  # migrations.
+  database:
+    urlKey: ""
+  # SQLite volume (unused with database.urlKey).
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 5Gi
+  # Days a trace is kept. Empty: forever.
+  retentionDays: "30"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      memory: 2Gi
+
 # Runtime configuration of the web front, handed to the browser by the API as
 # window.__CONFIG__ (apps/api/src/common/web-app). The API fills the Auth0
 # domain, audience and organization from its own AUTH0_* settings, and the API
@@ -414,3 +470,6 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-body-size: 100m
     nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+  # The bundled Phoenix has no sign-in: restrict it here (e.g.
+  # nginx.ingress.kubernetes.io/whitelist-source-range, or an auth proxy).
+  phoenixAnnotations: {}

@@ -330,7 +330,7 @@ export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
   [DOCUMENT_SOURCE_UPDATE_PERMISSION]: "Update a document feed",
   [DOCUMENT_SOURCE_DELETE_PERMISSION]: "Delete a document feed",
   [USER_READ_PERMISSION]: "See the users who are members of a resource",
-  [TRACE_READ_PERMISSION]: "See Langfuse trace links",
+  [TRACE_READ_PERMISSION]: "See trace links",
   [APP_INSTALL_PERMISSION]: "Install apps on a project",
   [BACKOFFICE_APP_MANAGE_PERMISSION]: "Manage app definitions in the backoffice",
   [BACKOFFICE_READ_PERMISSION]: "Access /backoffice routes",

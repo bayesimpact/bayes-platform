@@ -37,3 +37,25 @@ services:
       - ../../deploy/helm/bayes-platform/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       - pgvector
+  # LLM traces: the API sends OTLP to the collector (OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318),
+  # which maps them to OpenInference and forwards them to Phoenix at http://localhost:6006.
+  otel-collector:
+    image: otel/opentelemetry-collector-k8s:0.161.0 # same distribution as the gateway of the clusters
+    command: ["--config=/etc/otelcol/collector.yaml"]
+    ports:
+      - "${OTEL_COLLECTOR_PORT:-4318}:4318"
+    environment:
+      PHOENIX_ENDPOINT: http://phoenix:6006
+    volumes:
+      # The chart's file: one copy of the mapping (deploy/helm/bayes-platform/files).
+      - ../../deploy/helm/bayes-platform/files/otel-collector.yaml:/etc/otelcol/collector.yaml:ro
+    depends_on:
+      - phoenix
+  phoenix:
+    image: arizephoenix/phoenix:version-20.14.0 # same version as staging (chart phoenix-helm 12.0.x)
+    ports:
+      - "${PHOENIX_PORT:-6006}:6006"
+    environment:
+      PHOENIX_WORKING_DIR: /mnt/data
+    volumes:
+      - ./dontsave/phoenix:/mnt/data

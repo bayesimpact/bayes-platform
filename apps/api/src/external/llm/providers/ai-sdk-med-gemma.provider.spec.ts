@@ -2,7 +2,6 @@ import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-co
 import { afterAll, beforeAll } from "@jest/globals"
 import { BatchSpanProcessor, ConsoleSpanExporter } from "@opentelemetry/sdk-trace-base"
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
-import { LangfuseIntegrationExporter } from "@/external/langfuse/langfuse-integration-exporter"
 import { GetAgentModelKeyFromValue } from "@/external/llm/agent-provider"
 import { sdk } from "@/external/llm/open-telemetry-init"
 import { AISDKMedGemmaProvider } from "@/external/llm/providers/ai-sdk-med-gemma.provider"
@@ -21,16 +20,8 @@ const testModels = Object.values(AgentModel)
 if (process.env.IS_TEST === "true" && process.env.MEDGEMMA_TEST === "true") {
   describe("AISDKMedGemmaProvider", () => {
     jest.setTimeout(600_000)
-    const langfuse = new LangfuseIntegrationExporter({
-      secretKey: process.env.LANGFUSE_SK,
-      publicKey: process.env.LANGFUSE_PK,
-      baseUrl: process.env.LANGFUSE_BASE_URL,
-    })
     const traceProvider = new NodeTracerProvider({
-      spanProcessors: [
-        new BatchSpanProcessor(new ConsoleSpanExporter()),
-        new BatchSpanProcessor(langfuse),
-      ],
+      spanProcessors: [new BatchSpanProcessor(new ConsoleSpanExporter())],
     })
     let provider: AISDKMedGemmaProvider
     beforeAll(async () => {
@@ -40,7 +31,6 @@ if (process.env.IS_TEST === "true" && process.env.MEDGEMMA_TEST === "true") {
       traceProvider.register()
     })
     afterAll(async () => {
-      await langfuse.forceFlush()
       await traceProvider.forceFlush()
       await traceProvider.shutdown()
       await sdk.shutdown()
