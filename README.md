@@ -81,7 +81,7 @@ pipeline as the gateway of the clusters) and Phoenix at
 
 ```bash
 cd infra/database
-docker compose up -d --no-recreate otel-collector phoenix
+docker compose --profile traces up -d --no-recreate otel-collector phoenix
 ```
 
 #### Stop the Database

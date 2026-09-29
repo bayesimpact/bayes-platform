@@ -21,8 +21,11 @@ services:
   # Grafana on the analytics schema: http://localhost:3300, no login.
   # Datasource provisioned from ./grafana, dashboards from the Helm chart
   # (deploy/helm/bayes-platform/dashboards), the same files the cluster gets.
+  # Profile `analytics`: a plain `docker compose up` (and the CI, make db-tests)
+  # leaves it off; `docker compose up -d grafana` names it, so starts it.
   grafana:
     image: grafana/grafana:13.2.2 # same major as the cluster (chart grafana 13.x)
+    profiles: [analytics]
     ports:
       - "${GRAFANA_PORT:-3300}:3000"
     environment:
@@ -39,8 +42,11 @@ services:
       - pgvector
   # LLM traces: the API sends OTLP to the collector (OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318),
   # which maps them to OpenInference and forwards them to Phoenix at http://localhost:6006.
+  # Profile `traces`: a plain `docker compose up` (and the CI, make db-tests)
+  # leaves them off; start them with `docker compose --profile traces up -d`.
   otel-collector:
     image: otel/opentelemetry-collector-k8s:0.161.0 # same distribution as the gateway of the clusters
+    profiles: [traces]
     command: ["--config=/etc/otelcol/collector.yaml"]
     ports:
       - "${OTEL_COLLECTOR_PORT:-4318}:4318"
@@ -53,6 +59,7 @@ services:
       - phoenix
   phoenix:
     image: arizephoenix/phoenix:version-20.14.0 # same version as staging (chart phoenix-helm 12.0.x)
+    profiles: [traces]
     ports:
       - "${PHOENIX_PORT:-6006}:6006"
     environment:
