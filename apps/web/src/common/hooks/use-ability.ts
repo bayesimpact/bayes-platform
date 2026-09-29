@@ -1,4 +1,4 @@
-import type { OrganizationPermission } from "@caseai-connect/api-contracts"
+import type { OrganizationPermission, ProjectPermission } from "@caseai-connect/api-contracts"
 import { useCallback, useMemo } from "react"
 import {
   selectAgentMemberships,
@@ -6,11 +6,13 @@ import {
   selectReviewCampaignMemberships,
 } from "@/common/features/me/me.selectors"
 import { selectOrganizationsList } from "@/common/features/organizations/organizations.selectors"
+import { selectMyProjectsList } from "@/common/features/projects/projects.selectors"
 import { useAppSelector } from "@/common/store/hooks"
 import { SUPER_ROLES } from "../features/me/me.models"
 
 export function useAbility() {
   const organizations = useAppSelector(selectOrganizationsList)
+  const myProjects = useAppSelector(selectMyProjectsList)
   const projectMemberships = useAppSelector(selectProjectMemberships)
   const agentMemberships = useAppSelector(selectAgentMemberships)
   const reviewCampaignMemberships = useAppSelector(selectReviewCampaignMemberships)
@@ -28,6 +30,15 @@ export function useAbility() {
       return organization?.permissions.includes(permission) ?? false
     },
     [organizations],
+  )
+
+  const hasProjectPermission = useCallback(
+    ({ projectId, permission }: { projectId: string | null; permission: ProjectPermission }) => {
+      if (!projectId || !myProjects) return false
+      const project = myProjects.find((item) => item.id === projectId)
+      return project?.permissions.includes(permission) ?? false
+    },
+    [myProjects],
   )
 
   const canCreateProject = useCallback(
@@ -50,6 +61,12 @@ export function useAbility() {
       return isProjectOwnerOrAdmin
     },
     [projectMemberships],
+  )
+
+  const canAccessEvaluation = useCallback(
+    ({ projectId }: { projectId: string | null }) =>
+      hasProjectPermission({ projectId, permission: "evaluation.access" }),
+    [hasProjectPermission],
   )
 
   const canAccessTester = useCallback(
@@ -88,6 +105,7 @@ export function useAbility() {
     () => ({
       abilities: {
         canAccessStudio,
+        canAccessEvaluation,
         canCreateProject,
         canManageAgent,
         canAccessTester,
@@ -97,6 +115,7 @@ export function useAbility() {
     }),
     [
       canAccessStudio,
+      canAccessEvaluation,
       canCreateProject,
       canManageAgent,
       canAccessTester,

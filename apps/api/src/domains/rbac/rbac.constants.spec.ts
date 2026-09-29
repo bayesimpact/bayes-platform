@@ -10,6 +10,7 @@ import {
   DOCUMENT_SOURCE_READ_PERMISSION,
   DOCUMENT_SOURCE_UPDATE_PERMISSION,
   DOCUMENT_UPDATE_PERMISSION,
+  EVALUATION_ACCESS_PERMISSION,
   EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION,
   EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION,
   EVALUATION_EXTRACTION_DATASET_READ_PERMISSION,
@@ -133,5 +134,26 @@ describe("evaluation extraction dataset permissions", () => {
     for (const permission of evaluationExtractionDatasetPermissions) {
       expect(inheritable).not.toContain(permission)
     }
+  })
+})
+
+describe("evaluation access permission", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  it("grants evaluation.access to project owners and admins only", () => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, EVALUATION_ACCESS_PERMISSION)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, EVALUATION_ACCESS_PERMISSION)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, EVALUATION_ACCESS_PERMISSION)).toEqual([])
+  })
+
+  it("never inherits evaluation.access from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    expect(inheritable).not.toContain(EVALUATION_ACCESS_PERMISSION)
   })
 })
