@@ -69,6 +69,13 @@ All commands should be run from the root directory using Turbo (via npm scripts)
 
 The routes under `PUBLIC_PATH_PREFIX` (`/public/...`) are a frozen contract with external integrators. Read `docs/public-api-contract.md` before touching `packages/api-contracts/src/public-chat/`, the public chat controller, guards, CORS or the public help pages. No change without a maintainer's written go and the `public-contract-approved` label.
 
+## Architecture decisions and skills
+
+Decisions live in `docs/adr/`. Two of them apply to every API change, and each has a skill that walks through the steps:
+
+- **Authorization** follows [ADR 0019](docs/adr/0019-rbac-permission-catalog.md). A permission is one string declared in `api-contracts`, granted on a role in the RBAC catalog, checked on the route with `@CheckPermission`, and used through `PermissionService` to list what the caller can see. Use the `rbac` skill, then `check-permission-matrix`. ADR 0004 and ADR 0013 are superseded: do not implement the three membership tables, role checks inside services, or an org-wide `project.read` grant.
+- **Persistence** follows [ADR 0020](docs/adr/0020-custom-repositories.md). A service never imports TypeORM. It calls a named method on an `{Entity}Repository` provider, and transactions come from `transactionService.run()` in the service. Use the `custom-repository` skill. Many existing services still inject `Repository<T>`. Do not copy them.
+
 ## Package Management
 
 - Uses npm workspaces for monorepo management
