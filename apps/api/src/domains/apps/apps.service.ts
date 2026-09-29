@@ -149,6 +149,17 @@ export class AppsService {
     if (!deleted) throw new NotFoundException(`App ${appManifestId} not found`)
   }
 
+  async describeInstalledProject(projectId: string): Promise<{
+    id: string
+    name: string
+    organizationId: string
+    organizationName: string
+  }> {
+    const [project] = await this.projectRepository.findPickerProjectsByIds([projectId])
+    if (!project) throw new NotFoundException(`Project ${projectId} not found`)
+    return project
+  }
+
   async getInstallPage(params: { slug: string; userId: string }): Promise<AppInstallPage> {
     const app = await this.requireManifestBySlug(params.slug)
     const projectIds = await this.permissionService.listResourceIds(

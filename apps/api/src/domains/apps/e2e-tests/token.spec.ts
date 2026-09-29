@@ -53,7 +53,7 @@ describe("Apps - Token", () => {
 
   const installApp = async () => {
     const appsService = setup.module.get(AppsService)
-    const { project, user } = await createOrganizationWithProject(repositories)
+    const { project, organization, user } = await createOrganizationWithProject(repositories)
     await assignPlatformStaffToUser({ repositories, user })
     const created = await appsService.createAppManifest({
       name: "Helpful Assistant",
@@ -70,11 +70,11 @@ describe("Apps - Token", () => {
       redirectUri: "http://127.0.0.1:8787/callback",
       state: "csrf-state",
     })
-    return { project, credentials }
+    return { project, organization, credentials }
   }
 
   it("exchanges form-urlencoded client credentials for an App JWT and serves /apps/v1/me", async () => {
-    const { project, credentials } = await installApp()
+    const { project, organization, credentials } = await installApp()
     const issued = await postToken({
       grant_type: "client_credentials",
       client_id: credentials.clientId,
@@ -91,6 +91,9 @@ describe("Apps - Token", () => {
     })
     expectResponse(me, 200)
     expect(me.body.data.projectId).toBe(project.id)
+    expect(me.body.data.projectName).toBe(project.name)
+    expect(me.body.data.organizationId).toBe(organization.id)
+    expect(me.body.data.organizationName).toBe(organization.name)
     expect(me.body.data.userId).toBeTruthy()
     expect(me.body.data.installationId).toBeTruthy()
   })
