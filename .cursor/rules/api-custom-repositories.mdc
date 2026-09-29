@@ -9,6 +9,8 @@ alwaysApply: false
 
 # Custom Repositories — No TypeORM in Services
 
+How to add a repository: `.claude/skills/custom-repository/SKILL.md` and ADR 0020.
+
 **Rule**: Services MUST NOT depend on TypeORM. All persistence goes through a custom `{Entity}Repository` that exposes only the methods the service needs.
 
 ## Forbidden in services

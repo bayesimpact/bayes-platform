@@ -1,6 +1,6 @@
 # ADR 0013: Org-Scoped `project.read` for Organization Index Visibility
 
-* **Status**: Accepted
+* **Status**: Superseded by [ADR 0019](0019-rbac-permission-catalog.md). Org roles do not grant `project.read`.
 * **Date**: 2026-07-16
 * **Deciders**: engineering
 * **Scope**: Organization domain RBAC — `GET /organizations` nested projects, org roles `org_owner` / `org_admin`
