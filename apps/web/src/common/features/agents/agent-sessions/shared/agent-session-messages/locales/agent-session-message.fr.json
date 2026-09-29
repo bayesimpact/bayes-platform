@@ -4,8 +4,8 @@
     "navigator": {
       "title": "Aller à un message",
       "trigger": "Aller à un message",
-      "search": "Rechercher un message…",
-      "empty": "Aucun message correspondant"
+      "search": "Rechercher une question…",
+      "empty": "Aucune question correspondante"
     },
     "thinking": [
       "Réflexion en cours…",
