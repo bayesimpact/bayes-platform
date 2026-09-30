@@ -135,6 +135,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Apps: an installed app can let people outside the platform talk to the workspace's agents.
 - Apps: the studio now lists the apps connected to a project and can revoke them.
 - MCP: AI assistants can list projects, create agents and edit agent drafts with the access a person grants them.
+- (beta) Local embedding models: projects can enable bge-m3 or EmbeddingGemma and agents can search with them.
 
 ### Changed
 - Self-hosting: the Bull Board queue dashboard now runs as its own service, outside the API.
