@@ -8,6 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- (beta) Local embedding models: projects can enable bge-m3 or EmbeddingGemma and agents can search with them.
 
 ### Changed
 

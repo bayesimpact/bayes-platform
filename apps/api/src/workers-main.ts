@@ -15,12 +15,18 @@ import {
   isDoclingEnabled,
 } from "@/external/docling/docling.cli"
 import { runDoclingSelfTestIfEnabled } from "@/external/docling/docling.self-test"
+import {
+  getDocumentEmbedderCommand,
+  getLocalEmbeddingsVersion,
+  isLocalEmbeddingsEnabled,
+} from "@/external/local-embeddings/local-embeddings.cli"
 import { WorkersAppModule } from "./workers-app.module"
 
 async function bootstrapWorkersMain() {
   const healthCheckTimeoutMs = getWorkerDoclingHealthCheckTimeoutMs()
   await ensureDoclingIsReadyForWorkers(healthCheckTimeoutMs)
   await runDoclingSelfTestIfEnabled(healthCheckTimeoutMs)
+  await ensureLocalEmbeddingsAreReadyForWorkers(healthCheckTimeoutMs)
   const isProduction = process.env.NODE_ENV === "production"
   const logLevels = getLogLevels()
   const app = await NestFactory.create(WorkersAppModule, {
@@ -58,6 +64,31 @@ async function ensureDoclingIsReadyForWorkers(timeoutMs: number): Promise<void> 
   } catch (error) {
     Logger.error(
       `Docling health check failed. Command "${getDocumentChunkerCommand()} --docling-version" is not available or timed out.`,
+      error instanceof Error ? error.stack : String(error),
+      "WorkersMain",
+    )
+    throw error
+  }
+}
+
+async function ensureLocalEmbeddingsAreReadyForWorkers(timeoutMs: number): Promise<void> {
+  if (!isLocalEmbeddingsEnabled()) {
+    Logger.log(
+      "Local embeddings check skipped because LOCAL_EMBEDDINGS_ENABLED is not true",
+      "WorkersMain",
+    )
+    return
+  }
+
+  try {
+    const version = await getLocalEmbeddingsVersion({ timeoutMs })
+    Logger.log(
+      `Local embeddings health check passed (sentence-transformers ${version})`,
+      "WorkersMain",
+    )
+  } catch (error) {
+    Logger.error(
+      `Local embeddings health check failed. Command "${getDocumentEmbedderCommand()} --version" is not available or timed out.`,
       error instanceof Error ? error.stack : String(error),
       "WorkersMain",
     )
