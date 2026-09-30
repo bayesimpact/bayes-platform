@@ -1,0 +1,13 @@
+{
+  "projectEmbeddingModels": {
+    "manage": "Gérer les modèles",
+    "title": "Modèles d'embedding locaux",
+    "description": "Activer un modèle vectorise tous les documents du projet avec lui. Une fois terminé, les agents peuvent l'utiliser pour la recherche.",
+    "notEnabled": "Non activé",
+    "processing": "En cours",
+    "completed": "Prêt",
+    "progress": "{{processed}} / {{total}} extraits",
+    "dimensions": "{{count}} dimensions",
+    "retryResumes": "Réessayer reprend là où le traitement s'est arrêté : {{processed}} / {{total}} extraits déjà vectorisés."
+  }
+}

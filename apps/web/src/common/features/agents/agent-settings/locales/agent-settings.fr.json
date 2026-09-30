@@ -14,6 +14,7 @@
       "outputJsonSchema": "Schéma JSON de sortie",
       "fillFormEnabled": "Remplissage de formulaire",
       "priorityCallsEnabled": "Appels prioritaires",
+      "embeddingModel": "Modèle d'embedding",
       "schemaBuilder": {
         "advancedMode": "Mode avancé",
         "visualMode": "Éditeur visuel",
@@ -70,6 +71,7 @@
         "greeting": "Message d'accueil facultatif envoyé par l'agent au début d'une nouvelle conversation",
         "documentsRagMode": "Sélectionnez l'usage des documents",
         "model": "Sélectionnez le modèle",
+        "embeddingModel": "Sélectionnez le modèle d'embedding",
         "outputJsonSchema": "{\n \"type\": \"object\", \"properties\": {\n    \"field\": { \"type\": \"string\", \"description\": \"blablabla\" }\n  },\n  \"required\": [\"field\"]\n}",
         "temperature": "Entrez la température 0.0 - 2.0",
         "locale": "Sélectionnez la langue pour les réponses de l'agent"
@@ -217,6 +219,9 @@
       "priorityCalls": {
         "title": "Appels prioritaires",
         "description": "Temps de réponse plus bas et plus stable, pour un coût par appel plus élevé."
+      },
+      "embeddingModel": {
+        "description": "Modèle utilisé pour chercher dans la base de connaissances. Les modèles locaux apparaissent une fois les documents du projet vectorisés avec eux."
       }
     },
     "tools": {
