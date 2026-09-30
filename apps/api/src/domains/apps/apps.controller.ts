@@ -4,8 +4,11 @@ import {
   createAppManifestSchema,
   updateAppManifestSchema,
 } from "@caseai-connect/api-contracts"
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from "@nestjs/common"
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from "@nestjs/common"
+import type { EndpointRequest } from "@/common/context/request.interface"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
+import { attachTrackedActivity } from "@/domains/activities/attach-tracked-activity"
+import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
@@ -38,6 +41,7 @@ export class AppsController {
 
   @CheckPermission(BACKOFFICE_APP_MANAGE_PERMISSION)
   @Post(AppsRoutes.createOne.path)
+  @TrackActivity({ action: "appManifest.create" })
   async createOne(
     @Body(new ZodValidationPipe(createAppManifestSchema)) body: typeof AppsRoutes.createOne.request,
   ): Promise<typeof AppsRoutes.createOne.response> {
@@ -53,20 +57,26 @@ export class AppsController {
 
   @CheckPermission(BACKOFFICE_APP_MANAGE_PERMISSION)
   @Patch(AppsRoutes.updateOne.path)
+  @TrackActivity({ action: "appManifest.update", entityFrom: "appManifest" })
   async updateOne(
+    @Req() request: EndpointRequest,
     @Param("appManifestId") appManifestId: string,
     @Body(new ZodValidationPipe(updateAppManifestSchema)) body: typeof AppsRoutes.updateOne.request,
   ): Promise<typeof AppsRoutes.updateOne.response> {
     const manifest = await this.appsService.updateAppManifest(appManifestId, body.payload)
+    attachTrackedActivity(request, { entityFrom: "appManifest", entityId: manifest.id })
     return { data: toAppManifestDto(manifest) }
   }
 
   @CheckPermission(BACKOFFICE_APP_MANAGE_PERMISSION)
   @Delete(AppsRoutes.deleteOne.path)
+  @TrackActivity({ action: "appManifest.delete", entityFrom: "appManifest" })
   async deleteOne(
+    @Req() request: EndpointRequest,
     @Param("appManifestId") appManifestId: string,
   ): Promise<typeof AppsRoutes.deleteOne.response> {
     await this.appsService.deleteAppManifest(appManifestId)
+    attachTrackedActivity(request, { entityFrom: "appManifest", entityId: appManifestId })
     return { data: { success: true } }
   }
 }

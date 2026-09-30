@@ -188,6 +188,9 @@ describe("AppsService", () => {
       appManifestId: created.id,
       projectId: project.id,
     })
+    expect(authorized.installationId).toBe(installation.id)
+    expect(authorized.organizationId).toBe(project.organizationId)
+    expect(authorized.projectId).toBe(project.id)
     expect(installation.clientId).toBe(authorized.clientId)
     expect(installation.clientSecretHash).not.toContain(authorized.clientSecret)
     expect(installation.createdByUserId).toBe(user.id)
@@ -331,7 +334,12 @@ describe("AppsService", () => {
       }),
     ])
 
-    await service.revokeInstallation({ installationId: installation.id, userId: user.id })
+    await expect(
+      service.revokeInstallation({ installationId: installation.id, userId: user.id }),
+    ).resolves.toEqual({
+      organizationId: project.organizationId,
+      projectId: project.id,
+    })
     await expect(service.listActiveInstallations(project.id)).resolves.toEqual([])
 
     const revoked = await repositories.appInstallationRepository.findOneByOrFail({
