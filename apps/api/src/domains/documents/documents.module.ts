@@ -25,6 +25,8 @@ import { DocumentChunkRetrievalService } from "./embeddings/document-chunk-retri
 import { DocumentEmbeddingStatusNotifierService } from "./embeddings/document-embedding-status-notifier.service"
 import { DocumentEmbeddingStatusStreamService } from "./embeddings/document-embedding-status-stream.service"
 import { DocumentEmbeddingsBatchModule } from "./embeddings/document-embeddings-batch.module"
+import { ProjectEmbeddingModelsController } from "./embeddings/project-embedding-models/project-embedding-models.controller"
+import { ProjectEmbeddingModelsModule } from "./embeddings/project-embedding-models/project-embedding-models.module"
 import { PdfPagesModule } from "./pdf-pages/pdf-pages.module"
 import { DocumentSource } from "./sources/document-source.entity"
 import { DocumentSourceRepository } from "./sources/document-source.repository"
@@ -61,6 +63,7 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
     DocumentEmbeddingsBatchModule,
     UrlCrawlingBatchModule,
     WebSourceEmbeddingsBatchModule,
+    ProjectEmbeddingModelsModule,
     PdfPagesModule,
   ],
   providers: [
@@ -81,6 +84,7 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
     DocumentsController,
     DocumentSourcesController,
     CrawlingController,
+    ProjectEmbeddingModelsController,
     ...(process.env.NODE_ENV !== "production" ? [LocalPresignUploadController] : []),
   ],
   exports: [DocumentsService, DocumentSourcesService, DocumentChunkRetrievalService],

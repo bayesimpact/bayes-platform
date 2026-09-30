@@ -18,6 +18,7 @@ import { AppInstallation } from "@/domains/apps/app-installation.entity"
 import { AppManifest } from "@/domains/apps/app-manifest.entity"
 import { Document } from "@/domains/documents/document.entity"
 import { DocumentSource } from "@/domains/documents/sources/document-source.entity"
+import { ProjectEmbeddingModel } from "@/domains/documents/embeddings/project-embedding-models/project-embedding-model.entity"
 import { EvaluationConversationDataset } from "@/domains/evaluations/conversation/datasets/evaluation-conversation-dataset.entity"
 import { EvaluationConversationDatasetRecord } from "@/domains/evaluations/conversation/datasets/records/evaluation-conversation-dataset-record.entity"
 import { EvaluationConversationRun } from "@/domains/evaluations/conversation/runs/evaluation-conversation-run.entity"
@@ -69,6 +70,7 @@ export type AllRepositories = {
   appManifestRepository: Repository<AppManifest>
   documentRepository: Repository<Document>
   documentSourceRepository: Repository<DocumentSource>
+  projectEmbeddingModelRepository: Repository<ProjectEmbeddingModel>
   evaluationConversationDatasetRecordRepository: Repository<EvaluationConversationDatasetRecord>
   evaluationConversationDatasetRepository: Repository<EvaluationConversationDataset>
   evaluationConversationRunRecordRepository: Repository<EvaluationConversationRunRecord>
@@ -123,6 +125,7 @@ export function buildAllRepositories(
     appManifestRepository: getRepository(AppManifest),
     documentRepository: getRepository(Document),
     documentSourceRepository: getRepository(DocumentSource),
+    projectEmbeddingModelRepository: getRepository(ProjectEmbeddingModel),
     evaluationConversationDatasetRecordRepository: getRepository(
       EvaluationConversationDatasetRecord,
     ),
