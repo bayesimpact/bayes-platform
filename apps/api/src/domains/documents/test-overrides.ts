@@ -1,6 +1,7 @@
 import type { TestingModuleBuilder } from "@nestjs/testing"
 import { setupUserGuardForTesting } from "../../../test/e2e.helpers"
 import { DOCUMENT_EMBEDDINGS_BATCH_SERVICE } from "./embeddings/document-embeddings-batch.interface"
+import { PROJECT_EMBEDDING_REEMBED_BATCH_SERVICE } from "./embeddings/project-embedding-models/project-embedding-reembed-batch.interface"
 
 function createDocumentEmbeddingsBatchServiceMock() {
   return {
@@ -20,12 +21,26 @@ export function withDocumentEmbeddingsBatchServiceMock(
     .useValue(createDocumentEmbeddingsBatchServiceMock())
 }
 
+function createProjectEmbeddingReembedBatchServiceMock() {
+  return { enqueueReembedProjectChunks: jest.fn().mockResolvedValue(undefined) }
+}
+
+export function withProjectEmbeddingReembedBatchServiceMock(
+  moduleBuilder: TestingModuleBuilder,
+): TestingModuleBuilder {
+  return moduleBuilder
+    .overrideProvider(PROJECT_EMBEDDING_REEMBED_BATCH_SERVICE)
+    .useValue(createProjectEmbeddingReembedBatchServiceMock())
+}
+
 export function withDocumentAuthAndEmbeddingsMocks(
   moduleBuilder: TestingModuleBuilder,
   getAuthSubject: () => string,
 ): TestingModuleBuilder {
   return setupUserGuardForTesting(
-    withDocumentEmbeddingsBatchServiceMock(moduleBuilder),
+    withProjectEmbeddingReembedBatchServiceMock(
+      withDocumentEmbeddingsBatchServiceMock(moduleBuilder),
+    ),
     getAuthSubject,
   )
 }

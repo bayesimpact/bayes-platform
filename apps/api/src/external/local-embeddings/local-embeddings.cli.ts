@@ -8,7 +8,7 @@ const DOCUMENT_EMBEDDER_RELATIVE_FROM_API = "bin/document_embedder"
 const DOCUMENT_EMBEDDER_RELATIVE_FROM_REPO_ROOT = "apps/api/bin/document_embedder"
 
 const DEFAULT_LOCAL_EMBEDDING_REQUEST_TIMEOUT_MS = 120_000
-const DEFAULT_LOCAL_EMBEDDING_BATCH_SIZE = 32
+const DEFAULT_LOCAL_EMBEDDING_BATCH_SIZE = 128
 const DEFAULT_LOCAL_EMBEDDINGS_VERSION_TIMEOUT_MS = 30_000
 
 const runCommand = promisify(execFile)
@@ -54,7 +54,10 @@ export function getLocalEmbeddingRequestTimeoutMs(): number {
   })
 }
 
-/** Chunks sent to the model per request. Bounded by GPU memory rather than an API quota. */
+/**
+ * Chunks sent to the model per request. The default suits the GPU pool (bge-m3 capped at 1024
+ * tokens fits 128 on an L4); a laptop on CPU or Apple Silicon sets 32 in its .env.
+ */
 export function getLocalEmbeddingBatchSize(): number {
   return readPositiveIntEnv("LOCAL_EMBEDDING_BATCH_SIZE", {
     defaultValue: DEFAULT_LOCAL_EMBEDDING_BATCH_SIZE,
