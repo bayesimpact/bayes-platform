@@ -11,12 +11,14 @@ import type { INestApplication } from "@nestjs/common"
 import request from "supertest"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
+import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
 import {
   type AllRepositories,
   clearTestDatabase,
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { DOCUMENT_EMBEDDINGS_BATCH_SERVICE } from "@/domains/documents/embeddings/document-embeddings-batch.interface"
 import { DocumentSourcesService } from "@/domains/documents/sources/document-sources.service"
 import { FILE_STORAGE_SERVICE } from "@/domains/documents/storage/file-storage.interface"
@@ -34,14 +36,16 @@ describe("Apps - Upload document", () => {
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
   let enqueueEmbeddings: jest.Mock
+  let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [AppsModule, RbacModule],
+      additionalImports: [AppsModule, RbacModule, ActivitiesModule],
       applyOverrides: withDocumentEmbeddingsBatchServiceMock,
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
+    expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     enqueueEmbeddings = setup.module.get(DOCUMENT_EMBEDDINGS_BATCH_SERVICE)
       .enqueueCreateEmbeddingsForDocument as jest.Mock
     app = setup.module.createNestApplication()
@@ -214,6 +218,13 @@ describe("Apps - Upload document", () => {
         origin: "document-upload",
       }),
     )
+    await expectActivityCreated("document.confirm", {
+      userId: stored.userId,
+      organizationId: project.organizationId,
+      projectId: project.id,
+      entityId: created.body.data.id,
+      entityType: "document",
+    })
 
     const again = await confirmDocument({
       projectId: project.id,

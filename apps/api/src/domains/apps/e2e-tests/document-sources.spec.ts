@@ -10,12 +10,14 @@ import type { INestApplication } from "@nestjs/common"
 import request from "supertest"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
+import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
 import {
   type AllRepositories,
   clearTestDatabase,
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { createDocumentForProject } from "@/domains/documents/document.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
@@ -35,13 +37,15 @@ describe("Apps - Document sources", () => {
   let app: INestApplication<App>
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
+  let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [AppsModule, RbacModule],
+      additionalImports: [AppsModule, RbacModule, ActivitiesModule],
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
+    expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     app = setup.module.createNestApplication()
     await app.init()
   })
@@ -97,7 +101,8 @@ describe("Apps - Document sources", () => {
   }
 
   it("creates, lists, updates, and deletes a feed", async () => {
-    const { project, accessToken } = await installAndIssueToken(ALL_SOURCE_PERMISSIONS)
+    const { organization, project, accessToken } =
+      await installAndIssueToken(ALL_SOURCE_PERMISSIONS)
     const created = await call({
       method: "post",
       path: AppsDocumentSourcesRoutes.createOne.getPath({ projectId: project.id }),
@@ -146,6 +151,24 @@ describe("Apps - Document sources", () => {
     })
     expectResponse(removed, 200)
     expect(removed.body.data).toEqual({ success: true })
+    await expectActivityCreated("documentSource.create", {
+      organizationId: organization.id,
+      projectId: project.id,
+      entityId: null,
+      entityType: null,
+    })
+    await expectActivityCreated("documentSource.update", {
+      organizationId: organization.id,
+      projectId: project.id,
+      entityId: sourceId,
+      entityType: "documentSource",
+    })
+    await expectActivityCreated("documentSource.delete", {
+      organizationId: organization.id,
+      projectId: project.id,
+      entityId: sourceId,
+      entityType: "documentSource",
+    })
   })
 
   it("returns 409 when external_id is already used in the project", async () => {
@@ -194,6 +217,11 @@ describe("Apps - Document sources", () => {
       409,
       "Document source still has documents attached",
     )
+    expect(
+      await repositories.activityRepository.findOne({
+        where: { action: "documentSource.delete" },
+      }),
+    ).toBeNull()
   })
 
   it("hides a feed that belongs to another project", async () => {

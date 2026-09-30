@@ -19,6 +19,8 @@ import {
 } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+import { attachTrackedActivity } from "@/domains/activities/attach-tracked-activity"
+import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "@/domains/documents/documents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -42,12 +44,17 @@ export class AppsDocumentsController {
   @CheckPermission(DOCUMENT_CREATE_PERMISSION, "project")
   @Post(AppsDocumentsRoutes.createOne.path)
   @HttpCode(HttpStatus.CREATED)
+  @TrackActivity({ action: "document.create" })
   async createOne(
     @Param("projectId") projectId: string,
     @Req() request: AppRequest,
     @Body() body: unknown,
   ): Promise<typeof AppsDocumentsRoutes.createOne.response> {
     const connectScope = await this.connectScopeFor(projectId, request)
+    attachTrackedActivity(request, {
+      organizationId: connectScope.organizationId,
+      projectId: connectScope.projectId,
+    })
     const parsed = parseCreateAppDocumentRequest(body)
     if (!parsed.success) {
       throw new BadRequestException("Invalid document payload")
@@ -89,6 +96,7 @@ export class AppsDocumentsController {
   @CheckPermission(DOCUMENT_CREATE_PERMISSION, "project")
   @Post(AppsDocumentsRoutes.confirmOne.path)
   @HttpCode(HttpStatus.CREATED)
+  @TrackActivity({ action: "document.confirm", entityFrom: "document" })
   async confirmOne(
     @Param("projectId") projectId: string,
     @Param("documentId") documentId: string,
@@ -102,6 +110,12 @@ export class AppsDocumentsController {
       connectScope,
       userId: request.user.id,
       documentId,
+    })
+    attachTrackedActivity(request, {
+      organizationId: connectScope.organizationId,
+      projectId: connectScope.projectId,
+      entityFrom: "document",
+      entityId: document.id,
     })
     return { data: toAppDocumentDto(document) }
   }

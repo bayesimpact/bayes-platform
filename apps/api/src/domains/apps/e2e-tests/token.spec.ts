@@ -10,6 +10,7 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { APP_INSTALLATION_STATUS_REVOKED } from "@/domains/apps/app-installation.entity"
 import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
@@ -26,7 +27,7 @@ describe("Apps - Token", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [AppsModule, RbacModule],
+      additionalImports: [AppsModule, RbacModule, ActivitiesModule],
       applyOverrides: withDocumentEmbeddingsBatchServiceMock,
     })
     await ensureRbacCatalog(setup.module)
@@ -96,6 +97,7 @@ describe("Apps - Token", () => {
     expect(me.body.data.organizationName).toBe(organization.name)
     expect(me.body.data.userId).toBeTruthy()
     expect(me.body.data.installationId).toBeTruthy()
+    expect(await repositories.activityRepository.count()).toBe(0)
   })
 
   it("returns 401 for a wrong secret, an unknown client, a revoked install, and a missing token", async () => {

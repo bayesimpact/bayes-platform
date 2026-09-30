@@ -8,12 +8,14 @@ import type { INestApplication } from "@nestjs/common"
 import request from "supertest"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
+import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
 import {
   type AllRepositories,
   clearTestDatabase,
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { DocumentSourcesService } from "@/domains/documents/sources/document-sources.service"
 import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
@@ -27,14 +29,16 @@ describe("Apps - Ingest document", () => {
   let app: INestApplication<App>
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
+  let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [AppsModule, RbacModule],
+      additionalImports: [AppsModule, RbacModule, ActivitiesModule],
       applyOverrides: withDocumentEmbeddingsBatchServiceMock,
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
+    expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     app = setup.module.createNestApplication()
     await app.init()
   })
@@ -138,6 +142,13 @@ describe("Apps - Ingest document", () => {
     expect(stored.sourceType).toBe("app")
     expect(stored.sourceUrl).toBe("https://example.com/notes")
     expect(stored.documentSourceId).toBe(documentSource.id)
+    await expectActivityCreated("document.create", {
+      userId: stored.userId,
+      organizationId: project.organizationId,
+      projectId: project.id,
+      entityId: null,
+      entityType: null,
+    })
   })
 
   it("returns 403 when the path project is not the token project", async () => {

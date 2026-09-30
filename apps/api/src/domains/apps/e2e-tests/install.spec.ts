@@ -7,12 +7,14 @@ import {
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
+import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
 import {
   type AllRepositories,
   clearTestDatabase,
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { APP_INSTALLATION_STATUS_REVOKED } from "@/domains/apps/app-installation.entity"
 import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
@@ -34,10 +36,11 @@ describe("Apps - Install", () => {
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
   let auth0Id = `auth0|${randomUUID()}`
+  let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [AppsModule, RbacModule],
+      additionalImports: [AppsModule, RbacModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) =>
         setupUserGuardForTesting(
           withDocumentEmbeddingsBatchServiceMock(moduleBuilder),
@@ -46,6 +49,7 @@ describe("Apps - Install", () => {
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
+    expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -147,7 +151,7 @@ describe("Apps - Install", () => {
     const redirectUri = "http://127.0.0.1:8787/callback"
 
     it("creates credentials once and refuses a second active install", async () => {
-      const { project } = await createStaffInstaller()
+      const { project, user } = await createStaffInstaller()
       const manifest = await createManifest()
 
       const authorized = await request({
@@ -176,6 +180,13 @@ describe("Apps - Install", () => {
         id: installation.serviceUserId ?? undefined,
       })
       expect(serviceUser.type).toBe(USER_TYPE_SERVICE)
+      await expectActivityCreated("appInstallation.authorize", {
+        userId: user.id,
+        organizationId: project.organizationId,
+        projectId: project.id,
+        entityId: installation.id,
+        entityType: "appInstallation",
+      })
 
       const permissionService = setup.module.get(PermissionService)
       await expect(
