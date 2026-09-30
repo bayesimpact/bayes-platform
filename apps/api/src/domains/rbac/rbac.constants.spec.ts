@@ -11,6 +11,10 @@ import {
   DOCUMENT_SOURCE_UPDATE_PERMISSION,
   DOCUMENT_UPDATE_PERMISSION,
   EVALUATION_ACCESS_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_READ_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
   EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION,
   EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION,
   EVALUATION_EXTRACTION_DATASET_READ_PERMISSION,
@@ -189,6 +193,38 @@ describe("evaluation extraction run permissions", () => {
   it("never inherits evaluation extraction runs from the organization", () => {
     const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
     for (const permission of evaluationExtractionRunPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("evaluation conversation dataset permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const evaluationConversationDatasetPermissions = [
+    EVALUATION_CONVERSATION_DATASET_READ_PERMISSION,
+    EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
+    EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
+    EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION,
+  ]
+
+  it.each(
+    evaluationConversationDatasetPermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits evaluation conversation datasets from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of evaluationConversationDatasetPermissions) {
       expect(inheritable).not.toContain(permission)
     }
   })

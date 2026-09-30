@@ -23,17 +23,23 @@ import type {
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import {
+  EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_READ_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { EvaluationConversationDataset } from "./evaluation-conversation-dataset.entity"
-import { EvaluationConversationDatasetGuard } from "./evaluation-conversation-dataset.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationConversationDatasetsService } from "./evaluation-conversation-datasets.service"
 import type { EvaluationConversationDatasetRecord } from "./records/evaluation-conversation-dataset-record.entity"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, EvaluationConversationDatasetGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
 export class EvaluationConversationDatasetsController {
@@ -42,7 +48,7 @@ export class EvaluationConversationDatasetsController {
   ) {}
 
   @Get(EvaluationConversationDatasetsRoutes.getAll.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(EVALUATION_CONVERSATION_DATASET_READ_PERMISSION, "project")
   async getAll(
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof EvaluationConversationDatasetsRoutes.getAll.response> {
@@ -62,7 +68,7 @@ export class EvaluationConversationDatasetsController {
   }
 
   @Get(EvaluationConversationDatasetsRoutes.getRecords.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(EVALUATION_CONVERSATION_DATASET_READ_PERMISSION, "project")
   async getRecords(
     @Req() request: EndpointRequestWithProject,
     @Param("datasetId") datasetId: string,
@@ -90,7 +96,7 @@ export class EvaluationConversationDatasetsController {
   }
 
   @Post(EvaluationConversationDatasetsRoutes.createOne.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationConversationDataset.create" })
   async createOne(
     @Req() request: EndpointRequestWithProject,
@@ -106,7 +112,7 @@ export class EvaluationConversationDatasetsController {
   }
 
   @Patch(EvaluationConversationDatasetsRoutes.renameOne.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationConversationDataset.rename" })
   async renameOne(
     @Req() request: EndpointRequestWithProject,
@@ -125,7 +131,7 @@ export class EvaluationConversationDatasetsController {
 
   @Delete(EvaluationConversationDatasetsRoutes.deleteOne.path)
   @AddContext("evaluationConversationDataset")
-  @CheckPolicy((policy) => policy.canDelete())
+  @CheckPermission(EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationConversationDataset.delete" })
   async deleteOne(
     @Req() request: EndpointRequestWithEvaluationConversationDataset,
@@ -139,7 +145,7 @@ export class EvaluationConversationDatasetsController {
 
   @Post(EvaluationConversationDatasetsRoutes.createRecord.path)
   @AddContext("evaluationConversationDataset")
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationConversationDataset.createRecord" })
   async createRecord(
     @Req() request: EndpointRequestWithEvaluationConversationDataset,
@@ -157,7 +163,7 @@ export class EvaluationConversationDatasetsController {
 
   @Post(EvaluationConversationDatasetsRoutes.createRecords.path)
   @AddContext("evaluationConversationDataset")
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationConversationDataset.createRecords" })
   async createRecords(
     @Req() request: EndpointRequestWithEvaluationConversationDataset,
@@ -175,7 +181,7 @@ export class EvaluationConversationDatasetsController {
 
   @Patch(EvaluationConversationDatasetsRoutes.updateRecord.path)
   @AddContext("evaluationConversationDataset")
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationConversationDataset.updateRecord" })
   async updateRecord(
     @Req() request: EndpointRequestWithEvaluationConversationDataset,
@@ -195,7 +201,7 @@ export class EvaluationConversationDatasetsController {
 
   @Delete(EvaluationConversationDatasetsRoutes.deleteRecord.path)
   @AddContext("evaluationConversationDataset")
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationConversationDataset.deleteRecord" })
   async deleteRecord(
     @Req() request: EndpointRequestWithEvaluationConversationDataset,
