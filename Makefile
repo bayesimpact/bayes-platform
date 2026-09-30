@@ -112,7 +112,13 @@ docker-workers-check: docker-gpu-workers-check docker-cpu-workers-check
 
 docker-gpu-workers-check: docker-build-gpu-workers
 	@echo "Starting GPU workers (Docling) with smoke dependencies and checking for successful startup..."
-	@$(smokeEnv) docker compose -f ${smokeComposeFile} up -d postgres redis gpu-workers; \
+	@if ! $(smokeEnv) docker compose -f ${smokeComposeFile} up -d postgres redis gpu-workers; then \
+		echo "✗ Smoke stack failed to start"; \
+		$(smokeEnv) docker compose -f ${smokeComposeFile} ps -a; \
+		$(smokeEnv) docker compose -f ${smokeComposeFile} logs --tail=50 postgres redis gpu-workers; \
+		$(smokeEnv) docker compose -f ${smokeComposeFile} down -v >/dev/null 2>&1; \
+		exit 1; \
+	fi; \
 	CONTAINER_ID=$$($(smokeEnv) docker compose -f ${smokeComposeFile} ps -q gpu-workers); \
 	echo "Container ID: $$CONTAINER_ID"; \
 	echo "Verifying Docling CLI in GPU workers container..."; \
@@ -158,7 +164,13 @@ docker-gpu-workers-check: docker-build-gpu-workers
 
 docker-cpu-workers-check: docker-build-cpu-workers
 	@echo "Starting CPU workers (no Docling) with smoke dependencies and checking for successful startup..."
-	@$(smokeEnv) docker compose -f ${smokeComposeFile} up -d postgres redis cpu-workers; \
+	@if ! $(smokeEnv) docker compose -f ${smokeComposeFile} up -d postgres redis cpu-workers; then \
+		echo "✗ Smoke stack failed to start"; \
+		$(smokeEnv) docker compose -f ${smokeComposeFile} ps -a; \
+		$(smokeEnv) docker compose -f ${smokeComposeFile} logs --tail=50 postgres redis cpu-workers; \
+		$(smokeEnv) docker compose -f ${smokeComposeFile} down -v >/dev/null 2>&1; \
+		exit 1; \
+	fi; \
 	CONTAINER_ID=$$($(smokeEnv) docker compose -f ${smokeComposeFile} ps -q cpu-workers); \
 	echo "Container ID: $$CONTAINER_ID"; \
 	echo "Verifying Docling is absent from CPU workers container..."; \
