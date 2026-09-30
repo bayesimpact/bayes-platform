@@ -27,6 +27,7 @@ import { DocumentEmbeddingStatusStreamService } from "./embeddings/document-embe
 import { DocumentEmbeddingsBatchModule } from "./embeddings/document-embeddings-batch.module"
 import { ProjectEmbeddingModelsController } from "./embeddings/project-embedding-models/project-embedding-models.controller"
 import { ProjectEmbeddingModelsModule } from "./embeddings/project-embedding-models/project-embedding-models.module"
+import { QueryEmbeddingsClientModule } from "./embeddings/query-embeddings/query-embeddings-client.module"
 import { PdfPagesModule } from "./pdf-pages/pdf-pages.module"
 import { DocumentSource } from "./sources/document-source.entity"
 import { DocumentSourceRepository } from "./sources/document-source.repository"
@@ -64,6 +65,7 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
     UrlCrawlingBatchModule,
     WebSourceEmbeddingsBatchModule,
     ProjectEmbeddingModelsModule,
+    QueryEmbeddingsClientModule,
     PdfPagesModule,
   ],
   providers: [
