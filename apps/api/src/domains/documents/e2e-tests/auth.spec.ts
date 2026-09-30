@@ -1,5 +1,9 @@
 import { randomUUID } from "node:crypto"
-import { DocumentsRoutes } from "@caseai-connect/api-contracts"
+import {
+  DocumentsRoutes,
+  EmbeddingModel,
+  ProjectEmbeddingModelsRoutes,
+} from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import type { Repository } from "typeorm"
@@ -11,7 +15,10 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { createOrganizationWithDocument } from "@/domains/organizations/organization.factory"
+import {
+  addFeature,
+  createOrganizationWithDocument,
+} from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
 import { mockForeignAuthSubject } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
@@ -292,6 +299,88 @@ describe("Documents - Auth", () => {
     it("doesn't allow a simple member to reprocess a document", async () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
+  // Local embedding models are managed from the documents domain (same admin policy).
+  describe("ProjectEmbeddingModelsRoutes.getAll", () => {
+    const subject = async () =>
+      request({
+        route: ProjectEmbeddingModelsRoutes.getAll,
+        pathParams: removeNullish({ organizationId, projectId }),
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("requires a valid organization ID", async () => {
+      organizationId = null
+      expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    })
+    it("requires a valid project ID", async () => {
+      await createContextForRole("owner")
+      projectId = null
+      expectResponse(await subject(), 404)
+    })
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("owner")
+      auth0Id = mockForeignAuth0Id()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+    it("doesn't allow a simple member to list the embedding models", async () => {
+      await createContextForRole("member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it.each(["owner", "admin"] as const)("allows a project %s to list", async (role) => {
+      await createContextForRole(role)
+      expectResponse(await subject(), 200)
+    })
+  })
+
+  describe("ProjectEmbeddingModelsRoutes.createOne", () => {
+    const subject = async () =>
+      request({
+        route: ProjectEmbeddingModelsRoutes.createOne,
+        pathParams: removeNullish({ organizationId, projectId }),
+        token: accessToken ?? undefined,
+        request: { payload: { modelName: EmbeddingModel.BgeM3 } },
+      })
+    const createContextWithFeature = async (role: "owner" | "admin" | "member") => {
+      const { project } = await createContextForRole(role)
+      await addFeature({
+        featureFlagRepository: repositories.featureFlagRepository,
+        projectId: project.id,
+        featureFlagKey: "local-embeddings",
+      })
+    }
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("requires a valid organization ID", async () => {
+      organizationId = null
+      expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    })
+    it("requires a valid project ID", async () => {
+      await createContextWithFeature("owner")
+      projectId = null
+      expectResponse(await subject(), 404)
+    })
+    it("requires the user to be a member of the organization", async () => {
+      await createContextWithFeature("owner")
+      auth0Id = mockForeignAuth0Id()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+    it("doesn't allow a simple member to enable a model", async () => {
+      await createContextWithFeature("member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it.each(["owner", "admin"] as const)("allows a project %s to enable a model", async (role) => {
+      await createContextWithFeature(role)
+      expectResponse(await subject(), 201)
     })
   })
 })

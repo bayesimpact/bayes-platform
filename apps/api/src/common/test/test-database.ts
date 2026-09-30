@@ -189,6 +189,9 @@ WITH
   del_resource_library AS (
     DELETE FROM "resource_library"
   ),
+  del_project_embedding_model AS (
+    DELETE FROM "project_embedding_model"
+  ),
   del_feature_flag AS (
     DELETE FROM "feature_flag"
   ),
