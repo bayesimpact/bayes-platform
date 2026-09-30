@@ -13,15 +13,19 @@ import {
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
-import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { DocumentsModule } from "../../../documents.module"
+import { withDocumentAuthAndEmbeddingsMocks } from "../../../test-overrides"
 import { projectEmbeddingModelFactory } from "../project-embedding-model.factory"
 import { LOCAL_EMBEDDINGS_FEATURE_DISABLED_ERROR_MESSAGE } from "../project-embedding-models.controller"
 import {
   EMBEDDING_MODEL_ALREADY_PROCESSING_ERROR_MESSAGE,
   EMBEDDING_MODEL_NOT_LOCAL_ERROR_MESSAGE,
 } from "../project-embedding-models.service"
+import {
+  PROJECT_EMBEDDING_REEMBED_BATCH_SERVICE,
+  type ProjectEmbeddingReembedBatchService,
+} from "../project-embedding-reembed-batch.interface"
 
 describe("Project Embedding Models", () => {
   let app: INestApplication<App>
@@ -33,13 +37,20 @@ describe("Project Embedding Models", () => {
   let projectId: string
   let accessToken: string | undefined = "token"
   let auth0Id = "auth0|123"
+  let reembedBatchServiceMock: {
+    enqueueReembedProjectChunks: jest.MockedFunction<
+      ProjectEmbeddingReembedBatchService["enqueueReembedProjectChunks"]
+    >
+  }
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [DocumentsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) =>
+        withDocumentAuthAndEmbeddingsMocks(moduleBuilder, () => auth0Id),
     })
     repositories = setup.getAllRepositories()
+    reembedBatchServiceMock = setup.module.get(PROJECT_EMBEDDING_REEMBED_BATCH_SERVICE)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -49,6 +60,7 @@ describe("Project Embedding Models", () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
     auth0Id = "auth0|123"
+    reembedBatchServiceMock.enqueueReembedProjectChunks.mockClear()
   })
 
   afterAll(async () => {
@@ -88,7 +100,7 @@ describe("Project Embedding Models", () => {
       request: { payload: { modelName } },
     })
 
-  it("enables a local model on the project as a pending row", async () => {
+  it("enables a local model on the project and enqueues the re-embedding job", async () => {
     await createContext()
 
     const response = await subject()
@@ -108,6 +120,12 @@ describe("Project Embedding Models", () => {
       where: { projectId, modelName: EmbeddingModel.BgeM3 },
     })
     expect(row?.status).toBe("pending")
+    expect(reembedBatchServiceMock.enqueueReembedProjectChunks).toHaveBeenCalledWith({
+      projectEmbeddingModelId: row?.id,
+      organizationId,
+      projectId,
+      modelName: EmbeddingModel.BgeM3,
+    })
   })
 
   it("rejects when the project does not have the local-embeddings feature", async () => {

@@ -29,6 +29,14 @@ type PendingRequest = {
   timeoutHandle: NodeJS.Timeout
 }
 
+/** Thrown to in-flight requests when the worker process stops: the job is retried, not failed. */
+export class LocalEmbedderShuttingDownError extends Error {
+  constructor() {
+    super("Local embedding interrupted: the worker is shutting down")
+    this.name = "LocalEmbedderShuttingDownError"
+  }
+}
+
 export const LOCAL_EMBEDDINGS_DISABLED_ERROR_MESSAGE =
   "Local embeddings are not enabled on this worker (set LOCAL_EMBEDDINGS_ENABLED=true on a worker with the Python embedder installed)."
 
@@ -152,12 +160,12 @@ export class LocalEmbeddingBridgeService implements OnModuleDestroy {
     pendingRequest.resolve(response.embeddings)
   }
 
-  private onChildGone(reason: string): void {
+  private onChildGone(reason: string, error?: Error): void {
     this.child = null
     this.stdoutBuffer = ""
     for (const [id, pendingRequest] of this.pending) {
       clearTimeout(pendingRequest.timeoutHandle)
-      pendingRequest.reject(new Error(`Local embedding failed: ${reason}`))
+      pendingRequest.reject(error ?? new Error(`Local embedding failed: ${reason}`))
       this.pending.delete(id)
     }
   }
@@ -168,6 +176,6 @@ export class LocalEmbeddingBridgeService implements OnModuleDestroy {
     this.child = null
     child.stdin.end()
     child.kill()
-    this.onChildGone("the worker is shutting down")
+    this.onChildGone("the worker is shutting down", new LocalEmbedderShuttingDownError())
   }
 }

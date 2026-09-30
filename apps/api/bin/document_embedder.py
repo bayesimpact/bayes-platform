@@ -26,7 +26,17 @@ from typing import Any
 
 # bge-m3 accepts 8192 tokens; chunks are far shorter and a lower cap keeps memory flat.
 MAX_SEQ_LENGTH_BY_MODEL = {"BAAI/bge-m3": 1024}
+# Texts encoded per forward pass. CUDA takes the whole request at once; CPU and Apple
+# Silicon stay small to keep memory flat. LOCAL_EMBEDDING_ENCODE_BATCH_SIZE overrides both.
+ENCODE_BATCH_SIZE_BY_DEVICE = {"cuda": 128}
 DEFAULT_ENCODE_BATCH_SIZE = 32
+
+
+def _resolve_encode_batch_size(device: str) -> int:
+    override = os.environ.get("LOCAL_EMBEDDING_ENCODE_BATCH_SIZE")
+    if override:
+        return int(override)
+    return ENCODE_BATCH_SIZE_BY_DEVICE.get(device.split(":")[0], DEFAULT_ENCODE_BATCH_SIZE)
 
 
 def _resolve_sentence_transformers_version() -> str:
@@ -75,6 +85,7 @@ class ModelRegistry:
         self._loader = loader
         self._device = device
         self._models: dict[str, Any] = {}
+        self._encode_batch_size = _resolve_encode_batch_size(device or _resolve_device())
 
     def get(self, model_name: str) -> Any:
         model = self._models.get(model_name)
@@ -99,7 +110,7 @@ class ModelRegistry:
     def encode(self, model_name: str, texts: list[str], input_type: str) -> list[list[float]]:
         model = self.get(model_name)
         encode_kwargs = {
-            "batch_size": DEFAULT_ENCODE_BATCH_SIZE,
+            "batch_size": self._encode_batch_size,
             "normalize_embeddings": True,
             "convert_to_numpy": True,
         }

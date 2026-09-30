@@ -1,6 +1,8 @@
 import { Module } from "@nestjs/common"
+import { DocumentChunkEmbeddingRepository } from "./document-chunk-embedding.repository"
 import { ProjectEmbeddingModelRepository } from "./project-embedding-model.repository"
 import { ProjectEmbeddingModelsService } from "./project-embedding-models.service"
+import { ProjectEmbeddingReembedBatchModule } from "./project-embedding-reembed-batch.module"
 
 /**
  * Persistence and lifecycle of a project's local embedding models. Depends on nothing in the
@@ -8,7 +10,16 @@ import { ProjectEmbeddingModelsService } from "./project-embedding-models.servic
  * lives in DocumentsModule, which owns the guards it reuses.
  */
 @Module({
-  providers: [ProjectEmbeddingModelsService, ProjectEmbeddingModelRepository],
-  exports: [ProjectEmbeddingModelsService, ProjectEmbeddingModelRepository],
+  imports: [ProjectEmbeddingReembedBatchModule],
+  providers: [
+    ProjectEmbeddingModelsService,
+    ProjectEmbeddingModelRepository,
+    DocumentChunkEmbeddingRepository,
+  ],
+  exports: [
+    ProjectEmbeddingModelsService,
+    ProjectEmbeddingModelRepository,
+    DocumentChunkEmbeddingRepository,
+  ],
 })
 export class ProjectEmbeddingModelsModule {}
