@@ -10,9 +10,12 @@ import {
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
+import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
-import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
+import { mockAuth0EmailForSub, setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { EvaluationsModule } from "../../../evaluations.module"
 import { EvaluationConversationDataset } from "../../datasets/evaluation-conversation-dataset.entity"
@@ -38,6 +41,7 @@ describe("EvaluationConversationRuns - Auth", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -90,6 +94,21 @@ describe("EvaluationConversationRuns - Auth", () => {
     return { organization, project, agent, dataset, run }
   }
 
+  /** Switches the caller to an organization admin who holds no role on the project. */
+  const switchToOrganizationAdminWithoutProjectRole = async (organization: Organization) => {
+    const organizationAdminAuth0Id = `auth0|${randomUUID()}`
+    await addUserToOrganization({
+      repositories,
+      organization,
+      user: {
+        auth0Id: organizationAdminAuth0Id,
+        email: mockAuth0EmailForSub(organizationAdminAuth0Id),
+      },
+      membership: { role: "admin" },
+    })
+    auth0Id = organizationAdminAuth0Id
+  }
+
   describe("EvaluationConversationRunsRoutes.createOne", () => {
     const payload: typeof EvaluationConversationRunsRoutes.createOne.request = {
       payload: {
@@ -133,6 +152,11 @@ describe("EvaluationConversationRuns - Auth", () => {
       await createContextForRole("member")
       expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
+    it("doesn't allow an organization admin without a project role to create an evaluation run", async () => {
+      const { organization } = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(organization)
+      expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
   })
 
   describe("EvaluationConversationRunsRoutes.getAll", () => {
@@ -165,6 +189,15 @@ describe("EvaluationConversationRuns - Auth", () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
+    it("doesn't allow an organization admin without a project role to list evaluation runs", async () => {
+      const { organization } = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(organization)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("allows a project admin to list evaluation runs", async () => {
+      await createContextForRole("admin")
+      expectResponse(await subject(), 200)
+    })
   })
 
   describe("EvaluationConversationRunsRoutes.getOne", () => {
@@ -196,6 +229,10 @@ describe("EvaluationConversationRuns - Auth", () => {
     it("doesn't allow a simple member to get an evaluation run", async () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("allows a project admin to get an evaluation run", async () => {
+      await createContextForRole("admin")
+      expectResponse(await subject(), 200)
     })
   })
 
@@ -377,6 +414,15 @@ describe("EvaluationConversationRuns - Auth", () => {
     it("doesn't allow a simple member to delete an evaluation run", async () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("doesn't allow an organization admin without a project role to delete an evaluation run", async () => {
+      const { organization } = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(organization)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("allows a project admin to delete an evaluation run", async () => {
+      await createContextForRole("admin")
+      expectResponse(await subject(), 200)
     })
   })
 })
