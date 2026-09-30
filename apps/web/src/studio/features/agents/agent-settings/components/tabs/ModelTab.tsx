@@ -1,4 +1,8 @@
-import { updateAgentSettingsModelSchema } from "@caseai-connect/api-contracts"
+import {
+  DEFAULT_EMBEDDING_MODEL,
+  EmbeddingModelCatalog,
+  updateAgentSettingsModelSchema,
+} from "@caseai-connect/api-contracts"
 import {
   Form,
   FormControl,
@@ -21,6 +25,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import type { z } from "zod"
+import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import {
   buildAgentModelOptions,
   formatAgentModelLabel,
@@ -30,7 +35,9 @@ import { updateAgentSettingsModel } from "@/common/features/agents/agent-setting
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useValue } from "@/common/hooks/use-value"
-import { useAppDispatch } from "@/common/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import { EmbeddingModelManager } from "@/studio/features/project-embedding-models/components/EmbeddingModelManager"
+import { selectCompletedProjectEmbeddingModels } from "@/studio/features/project-embedding-models/project-embedding-models.selectors"
 import { type AgentTabFormProps, pickDirtyFields, useReportDirty } from "../agent-tab-form.shared"
 import { TabSaveButton } from "./TabSaveButton"
 
@@ -42,6 +49,16 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
   const project = useValue(selectCurrentProjectData)
   const { hasFeature } = useFeatureFlags(project)
   const models = buildAgentModelOptions(hasFeature)
+  const completedEmbeddingModels = useAppSelector(selectCompletedProjectEmbeddingModels)
+  // The default model always applies; a local model is offered once the project finished
+  // embedding with it. Keep the agent's current value listed even if it is no longer ready.
+  const embeddingModelOptions = [
+    ...new Set([
+      DEFAULT_EMBEDDING_MODEL,
+      ...completedEmbeddingModels.map((model) => model.modelName),
+      agentSettings.embeddingModel ?? DEFAULT_EMBEDDING_MODEL,
+    ]),
+  ]
 
   const form = useForm<FormValues>({
     resolver: zodResolver(updateAgentSettingsModelSchema),
@@ -49,6 +66,7 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
       model: agentSettings.model,
       temperature: agentSettings.temperature,
       priorityCallsEnabled: agentSettings.priorityCallsEnabled,
+      embeddingModel: agentSettings.embeddingModel ?? DEFAULT_EMBEDDING_MODEL,
     },
   })
   useReportDirty(form.formState.isDirty, onDirtyChange)
@@ -122,6 +140,42 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
             )}
           />
         </div>
+
+        {/* The whole embedding section is a flagged beta: without it, agents stay on the default model. */}
+        <RestrictedFeature feature="local-embeddings">
+          <FormField
+            control={form.control}
+            name="embeddingModel"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center justify-between gap-2">
+                  <FormLabel>{t("agentSettings:props.embeddingModel")}</FormLabel>
+                  <EmbeddingModelManager />
+                </div>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="md:w-1/2">
+                      <SelectValue
+                        placeholder={t("agentSettings:props.placeholders.embeddingModel")}
+                      />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {embeddingModelOptions.map((embeddingModel) => (
+                      <SelectItem key={embeddingModel} value={embeddingModel}>
+                        {EmbeddingModelCatalog[embeddingModel]?.label ?? embeddingModel}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  {t("agentSettings:model.embeddingModel.description")}
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </RestrictedFeature>
 
         {priorityCallsAvailable && (
           <FormField
