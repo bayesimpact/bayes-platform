@@ -1,0 +1,6 @@
+# Local embedding models for the document_embedder CLI
+# (apps/api/bin/document_embedder.py): sentence-transformers loads BAAI/bge-m3 and
+# google/embeddinggemma-300m from the HuggingFace hub. Installed in the GPU
+# workers image after requirements-torch.txt (CUDA torch) and
+# requirements-docling.txt (which pins transformers); locally, in the repo venv.
+sentence-transformers>=5.1,<6
