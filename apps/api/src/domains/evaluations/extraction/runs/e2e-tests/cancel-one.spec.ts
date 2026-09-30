@@ -13,6 +13,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { EvaluationsModule } from "../../../evaluations.module"
 import { EvaluationExtractionRun } from "../evaluation-extraction-run.entity"
@@ -40,6 +41,7 @@ describe("EvaluationExtractionRuns - cancelOne", () => {
     })
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)

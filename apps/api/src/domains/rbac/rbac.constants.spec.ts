@@ -15,6 +15,10 @@ import {
   EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION,
   EVALUATION_EXTRACTION_DATASET_READ_PERMISSION,
   EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_CREATE_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_READ_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION,
   intersectWithAppGrantablePermissions,
   ORGANIZATION_ROLE_PERMISSIONS,
   PROJECT_ANALYTICS_READ_PERMISSION,
@@ -155,5 +159,37 @@ describe("evaluation access permission", () => {
   it("never inherits evaluation.access from the organization", () => {
     const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
     expect(inheritable).not.toContain(EVALUATION_ACCESS_PERMISSION)
+  })
+})
+
+describe("evaluation extraction run permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const evaluationExtractionRunPermissions = [
+    EVALUATION_EXTRACTION_RUN_READ_PERMISSION,
+    EVALUATION_EXTRACTION_RUN_CREATE_PERMISSION,
+    EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION,
+    EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION,
+  ]
+
+  it.each(
+    evaluationExtractionRunPermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits evaluation extraction runs from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of evaluationExtractionRunPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
   })
 })
