@@ -103,4 +103,105 @@ describe("DocumentSourcesService", () => {
       id: documentSource.id,
     })
   })
+
+  it("summarizes document count, last sync, and status", async () => {
+    const { organization, project } = await createOrganizationWithProject(repositories)
+    const connectScope = { organizationId: organization.id, projectId: project.id }
+    const readySource = await createFeed(connectScope, "ready-feed")
+    const errorSource = await service.createOne(connectScope, {
+      name: "Broken feed",
+      type: null,
+      externalId: "broken-feed",
+      baseUrl: null,
+      config: null,
+    })
+    const emptySource = await service.createOne(connectScope, {
+      name: "Empty feed",
+      type: "folder",
+      externalId: "empty-feed",
+      baseUrl: null,
+      config: null,
+    })
+
+    const older = new Date("2026-01-01T00:00:00.000Z")
+    const newer = new Date("2026-02-01T00:00:00.000Z")
+    await createDocumentForProject({
+      repositories,
+      organization,
+      project,
+      params: {
+        document: {
+          documentSourceId: readySource.id,
+          embeddingStatus: "completed",
+          createdAt: older,
+          sourceType: "app",
+        },
+      },
+    })
+    await createDocumentForProject({
+      repositories,
+      organization,
+      project,
+      params: {
+        document: {
+          documentSourceId: readySource.id,
+          embeddingStatus: "completed",
+          createdAt: newer,
+          sourceType: "app",
+        },
+      },
+    })
+    await createDocumentForProject({
+      repositories,
+      organization,
+      project,
+      params: {
+        document: {
+          documentSourceId: errorSource.id,
+          embeddingStatus: "failed",
+          createdAt: newer,
+          sourceType: "app",
+        },
+      },
+    })
+    await createDocumentForProject({
+      repositories,
+      organization,
+      project,
+      params: {
+        document: {
+          documentSourceId: errorSource.id,
+          embeddingStatus: "completed",
+          createdAt: older,
+          sourceType: "app",
+        },
+      },
+    })
+
+    const summaries = await service.listSummaries(connectScope)
+    const ready = summaries.find((summary) => summary.id === readySource.id)
+    const broken = summaries.find((summary) => summary.id === errorSource.id)
+    const empty = summaries.find((summary) => summary.id === emptySource.id)
+
+    expect(ready).toMatchObject({
+      documentCount: 2,
+      indexedDocumentCount: 2,
+      status: "ready",
+      baseUrl: "https://example.com",
+      type: "site-crawler",
+    })
+    expect(ready?.lastSyncedAt?.toISOString()).toBe(newer.toISOString())
+    expect(broken).toMatchObject({
+      documentCount: 2,
+      indexedDocumentCount: 1,
+      status: "error",
+    })
+    expect(empty).toMatchObject({
+      documentCount: 0,
+      indexedDocumentCount: 0,
+      lastSyncedAt: null,
+      status: "ready",
+      type: "folder",
+    })
+  })
 })

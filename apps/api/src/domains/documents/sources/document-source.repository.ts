@@ -3,6 +3,7 @@ import { QueryFailedError, type Repository } from "typeorm"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
+import { Document } from "@/domains/documents/document.entity"
 import { DocumentSource } from "./document-source.entity"
 
 const UNIQUE_VIOLATION = "23505"
@@ -21,6 +22,14 @@ export type UpdateDocumentSourceFields = {
   config?: Record<string, unknown> | null
 }
 
+export type DocumentSourceStats = {
+  documentSourceId: string
+  documentCount: number
+  indexedDocumentCount: number
+  failedDocumentCount: number
+  lastSyncedAt: Date | null
+}
+
 @Injectable()
 export class DocumentSourceRepository {
   constructor(private readonly transactionService: TransactionService) {}
@@ -37,6 +46,39 @@ export class DocumentSourceRepository {
       },
       order: { createdAt: "ASC" },
     })
+  }
+
+  async listStats(connectScope: RequiredConnectScope): Promise<DocumentSourceStats[]> {
+    const rows: DocumentSourceStatsRow[] = await this.transactionService
+      .getManager()
+      .getRepository(Document)
+      .createQueryBuilder("document")
+      .select("document.documentSourceId", "documentSourceId")
+      .addSelect("COUNT(*)::int", "documentCount")
+      .addSelect(
+        "COUNT(*) FILTER (WHERE document.embedding_status = 'completed')::int",
+        "indexedDocumentCount",
+      )
+      .addSelect(
+        "COUNT(*) FILTER (WHERE document.embedding_status = 'failed')::int",
+        "failedDocumentCount",
+      )
+      .addSelect("MAX(document.created_at)", "lastSyncedAt")
+      .where("document.organizationId = :organizationId", {
+        organizationId: connectScope.organizationId,
+      })
+      .andWhere("document.projectId = :projectId", { projectId: connectScope.projectId })
+      .andWhere("document.documentSourceId IS NOT NULL")
+      .groupBy("document.documentSourceId")
+      .getRawMany()
+
+    return rows.map((row) => ({
+      documentSourceId: row.documentSourceId,
+      documentCount: Number(row.documentCount),
+      indexedDocumentCount: Number(row.indexedDocumentCount),
+      failedDocumentCount: Number(row.failedDocumentCount),
+      lastSyncedAt: toDate(row.lastSyncedAt),
+    }))
   }
 
   findOne(connectScope: RequiredConnectScope, id: string): Promise<DocumentSource | null> {
@@ -108,6 +150,19 @@ export class DocumentSourceRepository {
   private repo(): Repository<DocumentSource> {
     return this.transactionService.getManager().getRepository(DocumentSource)
   }
+}
+
+type DocumentSourceStatsRow = {
+  documentSourceId: string
+  documentCount: string | number
+  indexedDocumentCount: string | number
+  failedDocumentCount: string | number
+  lastSyncedAt: Date | string | null
+}
+
+function toDate(value: Date | string | null): Date | null {
+  if (value == null) return null
+  return value instanceof Date ? value : new Date(value)
 }
 
 function postgresErrorCode(error: unknown): string | undefined {

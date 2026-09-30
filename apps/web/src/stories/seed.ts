@@ -50,6 +50,7 @@ import type {
   AnalyticsCategoryDailyPoint,
   AnalyticsDailyPoint,
 } from "@/studio/features/analytics/project/analytics.models"
+import type { DocumentSource } from "@/studio/features/document-sources/document-sources.models"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import type { Document } from "@/studio/features/documents/documents.models"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
@@ -318,6 +319,10 @@ export const seed = {
   studio: {
     documents(documents: Document[]): StoryPreloadedState {
       return { documents: { data: ads.fulfilled(documents) } }
+    },
+
+    documentSources(documentSources: DocumentSource[]): StoryPreloadedState {
+      return { documentSources: { data: ads.fulfilled(documentSources) } }
     },
 
     documentTags(documentTags: DocumentTag[]): StoryPreloadedState {

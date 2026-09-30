@@ -1,0 +1,21 @@
+{
+  "documentSource": {
+    "title": "Externe",
+    "description": "Synchronisez des documents depuis des applications externes vers la base de connaissances de vos agents.",
+    "nav": "Externe",
+    "columns": {
+      "source": "Source",
+      "app": "Application",
+      "docs": "Docs",
+      "lastSync": "Dernière synchro",
+      "status": "Statut"
+    },
+    "indexed_one": "{{count}} document indexé",
+    "indexed_other": "{{count}} documents indexés",
+    "active_one": "{{count}} connexion active",
+    "active_other": "{{count}} connexions actives",
+    "errors_one": "{{count}} erreur",
+    "errors_other": "{{count}} erreurs",
+    "summary": "{{indexed}} · {{active}} · {{errors}}"
+  }
+}

@@ -220,3 +220,20 @@ export const allowedDocumentUploadMimeTypesForFileUploader = Object.fromEntries(
 export function isAllowedMimeType(mimeType: string): boolean {
   return new Set(ALLOWED_MIME_TYPE_STRINGS).has(mimeType)
 }
+
+/** Studio list row for a document feed registered by an external app. */
+export type DocumentSourceStatus = "ready" | "error"
+
+export type DocumentSourceSummaryDto = {
+  id: string
+  name: string
+  type: string | null
+  externalId: string | null
+  baseUrl: string | null
+  documentCount: number
+  indexedDocumentCount: number
+  lastSyncedAt: TimeType | null
+  status: DocumentSourceStatus
+  createdAt: TimeType
+  updatedAt: TimeType
+}

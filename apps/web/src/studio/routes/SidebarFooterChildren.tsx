@@ -1,3 +1,4 @@
+import { DOCUMENT_SOURCE_READ_PERMISSION } from "@caseai-connect/api-contracts"
 import {
   Collapsible,
   CollapsibleContent,
@@ -26,6 +27,7 @@ import {
   ListChecksIcon,
   Loader2Icon,
   MegaphoneIcon,
+  PlugIcon,
   ServerIcon,
   Settings2Icon,
   UsersIcon,
@@ -34,8 +36,14 @@ import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import type { Project } from "@/common/features/projects/projects.models"
+import {
+  selectCurrentProjectId,
+  selectMyProjectsList,
+} from "@/common/features/projects/projects.selectors"
 import { useIsRoute } from "@/common/hooks/use-is-route"
+import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
+import { selectDocumentSourcesData } from "../features/document-sources/document-sources.selectors"
 import { selectUploaderState } from "../features/documents/documents.selectors"
 import { StudioRoutes } from "./helpers"
 
@@ -153,6 +161,7 @@ function NavSources({ organizationId, projectId }: { organizationId: string; pro
         <CollapsibleContent>
           <SidebarMenuSub>
             <NavDocumentsList organizationId={organizationId} projectId={projectId} />
+            <NavExternalSources organizationId={organizationId} projectId={projectId} />
             <RestrictedFeature feature="web-sources">
               <NavWebSources organizationId={organizationId} projectId={projectId} />
             </RestrictedFeature>
@@ -182,6 +191,37 @@ function NavDocumentsList({
           <FileIcon />
           <span className="flex-1">{t("document:documents")}</span>
           <UploaderState />
+        </Link>
+      </SidebarMenuSubButton>
+    </SidebarMenuSubItem>
+  )
+}
+
+function NavExternalSources({
+  organizationId,
+  projectId,
+}: {
+  organizationId: string
+  projectId: string
+}) {
+  const { t } = useTranslation("documentSource")
+  const { isRoute } = useIsRoute()
+  const currentProjectId = useAppSelector(selectCurrentProjectId)
+  const myProjects = useAppSelector(selectMyProjectsList)
+  const documentSources = useAppSelector(selectDocumentSourcesData)
+  const currentProject = myProjects?.find((project) => project.id === currentProjectId)
+  const canRead = currentProject?.permissions.includes(DOCUMENT_SOURCE_READ_PERMISSION) ?? false
+  const hasSources = ADS.isFulfilled(documentSources) && documentSources.value.length > 0
+  if (!canRead || !hasSources) return null
+
+  const isActive = isRoute(StudioRoutes.externalSources.path)
+  const path = StudioRoutes.externalSources.build({ organizationId, projectId })
+  return (
+    <SidebarMenuSubItem>
+      <SidebarMenuSubButton isActive={isActive} asChild>
+        <Link to={path}>
+          <PlugIcon />
+          <span>{t("nav")}</span>
         </Link>
       </SidebarMenuSubButton>
     </SidebarMenuSubItem>

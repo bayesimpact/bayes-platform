@@ -56,6 +56,7 @@ export { BackofficeRoutes } from "./backoffice/backoffice.routes"
 // Document Tags
 export * from "./document-tags/document-tag.dto"
 export { DocumentTagsRoutes } from "./document-tags/document-tag.routes"
+export { DocumentSourcesRoutes } from "./documents/document-sources.routes"
 // Documents
 export * from "./documents/documents.dto"
 export { DocumentsRoutes } from "./documents/documents.routes"

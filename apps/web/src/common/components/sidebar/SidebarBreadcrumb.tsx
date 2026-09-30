@@ -4,6 +4,7 @@ import { BreadcrumbAgentAnalytics } from "@/common/components/breadcrumb/Breadcr
 import { BreadcrumbAgentMembership } from "@/common/components/breadcrumb/BreadcrumbAgentMembership"
 import { BreadcrumbAgentSession } from "@/common/components/breadcrumb/BreadcrumbAgentSession"
 import { BreadcrumbDocuments } from "@/common/components/breadcrumb/BreadcrumbDocuments"
+import { BreadcrumbExternalSources } from "@/common/components/breadcrumb/BreadcrumbExternalSources"
 import { BreadcrumbFeedback } from "@/common/components/breadcrumb/BreadcrumbFeedback"
 import { BreadcrumbProjectAnalytics } from "@/common/components/breadcrumb/BreadcrumbProjectAnalytics"
 import { BreadcrumbProjectMembership } from "@/common/components/breadcrumb/BreadcrumbProjectMembership"
@@ -35,6 +36,8 @@ export function SidebarBreadcrumb({
         />
 
         <BreadcrumbDocuments />
+
+        <BreadcrumbExternalSources />
 
         <BreadcrumbReviewCampaigns />
 

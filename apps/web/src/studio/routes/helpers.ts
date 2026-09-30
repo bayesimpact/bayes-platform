@@ -8,6 +8,7 @@ const project = organization.extend("/p/:projectId")
 // PROJECT-LEVEL
 const agent = project.extend("/a/:agentId")
 const documents = project.extend("/d")
+const externalSources = project.extend("/external")
 const webSources = project.extend("/web-sources")
 const document = documents.extend("/:documentId")
 const mcpServers = project.extend("/mcp-servers")
@@ -44,6 +45,7 @@ export const StudioRoutes = {
   agentSession,
   document,
   documents,
+  externalSources,
   feedback,
   home,
   mcpServers,
