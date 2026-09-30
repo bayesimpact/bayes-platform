@@ -6,6 +6,9 @@ import { embedMany } from "ai"
 import { toSql } from "pgvector"
 import type { DataSource } from "typeorm"
 import type { DoclingChunk, DoclingParentChunk } from "@/external/docling/docling.types"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { LocalEmbeddingBridgeService } from "@/external/local-embeddings/local-embedding-bridge.service"
+import { getLocalEmbeddingBatchSize } from "@/external/local-embeddings/local-embeddings.cli"
 import type { Document } from "../document.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "../documents.service"
@@ -17,6 +20,8 @@ import {
   resolveVertexConfig,
 } from "./document-embeddings.config"
 import type { CreateDocumentEmbeddingsJobPayload } from "./document-embeddings.types"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ProjectEmbeddingModelRepository } from "./project-embedding-models/project-embedding-model.repository"
 
 type ChunkInsertionScope = {
   documentId: string
@@ -32,6 +37,8 @@ export class DocumentEmbeddingsSharedService {
     private readonly documentsService: DocumentsService,
     private readonly embeddingStatusNotifierService: DocumentEmbeddingStatusNotifierService,
     @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly projectEmbeddingModelRepository: ProjectEmbeddingModelRepository,
+    private readonly localEmbeddingBridge: LocalEmbeddingBridgeService,
   ) {}
 
   async findDocumentOrThrow(payload: CreateDocumentEmbeddingsJobPayload): Promise<Document> {
@@ -57,7 +64,58 @@ export class DocumentEmbeddingsSharedService {
     await this.saveDocumentAndNotify(document)
   }
 
-  async generateEmbeddingsByModel(chunks: string[]): Promise<Map<string, number[][]>> {
+  /**
+   * One vector per chunk for the Vertex models of the deployment, plus one per local model the
+   * project enabled (so a new upload is retrievable with every model an agent may pick).
+   */
+  async generateEmbeddingsByModel({
+    chunks,
+    projectId,
+  }: {
+    chunks: string[]
+    projectId: string
+  }): Promise<Map<string, number[][]>> {
+    const embeddingsByModelName = await this.generateVertexEmbeddingsByModel(chunks)
+    const localModelNames =
+      await this.projectEmbeddingModelRepository.listActiveModelNames(projectId)
+    for (const localModelName of localModelNames) {
+      embeddingsByModelName.set(
+        localModelName,
+        await this.generateLocalEmbeddings({ modelName: localModelName, chunks }),
+      )
+    }
+    return embeddingsByModelName
+  }
+
+  private async generateLocalEmbeddings({
+    modelName,
+    chunks,
+  }: {
+    modelName: string
+    chunks: string[]
+  }): Promise<number[][]> {
+    this.logger.log(`Creating embeddings with local model ${modelName}`)
+    const batchSize = getLocalEmbeddingBatchSize()
+    const embeddings: number[][] = []
+    for (let batchStartIndex = 0; batchStartIndex < chunks.length; batchStartIndex += batchSize) {
+      const batchEmbeddings = await this.localEmbeddingBridge.embed({
+        modelName,
+        texts: chunks.slice(batchStartIndex, batchStartIndex + batchSize),
+        inputType: "document",
+      })
+      embeddings.push(...batchEmbeddings)
+    }
+    if (embeddings.length !== chunks.length) {
+      throw new Error(
+        `Local model ${modelName} returned ${embeddings.length} vectors for ${chunks.length} chunks`,
+      )
+    }
+    return embeddings
+  }
+
+  private async generateVertexEmbeddingsByModel(
+    chunks: string[],
+  ): Promise<Map<string, number[][]>> {
     const { project, location } = resolveVertexConfig()
     const embeddingModelNames = resolveEmbeddingModelNames()
     const maxVertexEmbeddingBatchSize = resolveMaxVertexEmbeddingBatchSize()
@@ -212,7 +270,8 @@ export class DocumentEmbeddingsSharedService {
       // NOTE: raw SQL because TypeORM 0.3.28 does not support pgvector columns.
       await this.dataSource.query(
         `INSERT INTO document_chunk_embedding (id, created_at, updated_at, organization_id, project_id, document_chunk_id, model_name, embedding)
-         VALUES (uuid_generate_v4(), now(), now(), $1, $2, $3, $4, $5::vector)`,
+         VALUES (uuid_generate_v4(), now(), now(), $1, $2, $3, $4, $5::vector)
+         ON CONFLICT (document_chunk_id, model_name) DO NOTHING`,
         [
           scope.organizationId,
           scope.projectId,
