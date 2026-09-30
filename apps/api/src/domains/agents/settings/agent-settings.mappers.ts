@@ -42,6 +42,7 @@ export function toAgentSettingsDto({
     description: agentSettings.revisionDesc,
     documentsRagMode: agentSettings.documentsRagMode,
     documentTagIds,
+    embeddingModel: agentSettings.embeddingModel ?? undefined,
     fillFormEnabled: agentSettings.fillFormEnabled,
     priorityCallsEnabled: agentSettings.priorityCallsEnabled,
     greetingMessage: agentSettings.greetingMessage ?? undefined,
