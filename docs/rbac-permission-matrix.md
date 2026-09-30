@@ -71,6 +71,10 @@ The evaluation permissions are never inherited from the organization: an organiz
 | `evaluation.extraction.run.create` — create an evaluation extraction run | ✅ | ✅ | — |
 | `evaluation.extraction.run.update` — execute, retry or cancel an evaluation extraction run | ✅ | ✅ | — |
 | `evaluation.extraction.run.delete` — delete an evaluation extraction run | ✅ | ✅ | — |
+| `evaluation.conversation.dataset.read` — see the project's evaluation conversation datasets and their records | ✅ | ✅ | — |
+| `evaluation.conversation.dataset.create` — create an evaluation conversation dataset | ✅ | ✅ | — |
+| `evaluation.conversation.dataset.update` — rename an evaluation conversation dataset or edit its records | ✅ | ✅ | — |
+| `evaluation.conversation.dataset.delete` — delete an evaluation conversation dataset | ✅ | ✅ | — |
 | `user.read` — see the project's members | ✅ | ✅ | — |
 | `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — |
 | `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — |

@@ -23,7 +23,6 @@ import { UsersModule } from "@/domains/users/users.module"
 import { LlmModule } from "@/external/llm/llm.module"
 import { Agent } from "../agents/agent.entity"
 import { EvaluationConversationDataset } from "./conversation/datasets/evaluation-conversation-dataset.entity"
-import { EvaluationConversationDatasetGuard } from "./conversation/datasets/evaluation-conversation-dataset.guard"
 import { EvaluationConversationDatasetsController } from "./conversation/datasets/evaluation-conversation-datasets.controller"
 import { EvaluationConversationDatasetsService } from "./conversation/datasets/evaluation-conversation-datasets.service"
 import { EvaluationConversationDatasetRecord } from "./conversation/datasets/records/evaluation-conversation-dataset-record.entity"
@@ -84,7 +83,6 @@ import { EvaluationExtractionRunRecord } from "./extraction/runs/records/evaluat
   providers: [
     AgentContextResolver,
     EvaluationConversationDatasetContextResolver,
-    EvaluationConversationDatasetGuard,
     EvaluationConversationDatasetsService,
     EvaluationConversationRunContextResolver,
     EvaluationConversationRunGraderLlmService,

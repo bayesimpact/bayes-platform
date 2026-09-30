@@ -93,6 +93,23 @@ export const EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION =
   "evaluation.extraction.run.delete" as const
 
 /**
+ * Evaluation conversation datasets and their records. Scoped to the project and
+ * never inherited from the organization.
+ */
+export const EVALUATION_CONVERSATION_DATASET_READ_PERMISSION =
+  "evaluation.conversation.dataset.read" as const
+
+export const EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION =
+  "evaluation.conversation.dataset.create" as const
+
+/** Rename an evaluation conversation dataset, or add, edit and remove its records. */
+export const EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION =
+  "evaluation.conversation.dataset.update" as const
+
+export const EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION =
+  "evaluation.conversation.dataset.delete" as const
+
+/**
  * Permissions an App may be granted. Policy lives in code, not in the database:
  * there is no Permission entity and no `app_grantable` column. Intersect this
  * list with `AppManifest.grantable_permissions` on save and on authorize.
