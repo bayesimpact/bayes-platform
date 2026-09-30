@@ -14,6 +14,7 @@ const agentSettingsFieldKeys: (keyof AgentSettingsCreateFields)[] = [
   "fillFormEnabled",
   "priorityCallsEnabled",
   "thinkingLevel",
+  "embeddingModel",
 ]
 
 export function extractAgentSettingsCreateFields<T extends object>(

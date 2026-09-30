@@ -1,5 +1,6 @@
 import { forwardRef, Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
+import { ProjectEmbeddingModelsModule } from "@/domains/documents/embeddings/project-embedding-models/project-embedding-models.module"
 import { DocumentTagsModule } from "@/domains/documents/tags/document-tags.module"
 import { ResourceLibrariesModule } from "@/domains/resource-libraries/resource-libraries.module"
 import { Agent } from "../agent.entity"
@@ -19,6 +20,7 @@ import { AgentSettingsService } from "./agent-settings.service"
     ]),
     forwardRef(() => DocumentTagsModule),
     forwardRef(() => ResourceLibrariesModule),
+    ProjectEmbeddingModelsModule,
   ],
   providers: [AgentSessionCategoriesService, AgentSettingsService],
   exports: [AgentSettingsService],

@@ -1,3 +1,4 @@
+import { isLocalEmbeddingModel } from "@caseai-connect/api-contracts"
 import { Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"
@@ -7,6 +8,8 @@ import {
   extractAgentSettingsUpdateFields,
   requiresUpdateAgentSettings,
 } from "@/domains/agents/settings/agent.settings.functions"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ProjectEmbeddingModelsService } from "@/domains/documents/embeddings/project-embedding-models/project-embedding-models.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentTagsService } from "@/domains/documents/tags/document-tags.service"
 import type { DocumentTagsUpdateFields } from "@/domains/documents/tags/document-tags.types"
@@ -40,6 +43,8 @@ export class AgentSettingsService {
     private readonly documentTagsService: DocumentTagsService,
 
     private readonly resourceLibrariesService: ResourceLibrariesService,
+
+    private readonly projectEmbeddingModelsService: ProjectEmbeddingModelsService,
   ) {
     this.agentConnectRepository = new ConnectRepository(agentRepository, "agents")
     this.agentSettingsConnectRepository = new ConnectRepository(agentSettingsRepository, "agents")
@@ -344,6 +349,13 @@ export class AgentSettingsService {
       outputJsonSchema: nextOutputJsonSchema,
     })
 
+    if (agentSettingsFieldsToUpdate.embeddingModel !== undefined) {
+      await this.validateEmbeddingModel({
+        connectScope,
+        embeddingModel: agentSettingsFieldsToUpdate.embeddingModel,
+      })
+    }
+
     if (needsTags) {
       const currentTags = agent.documentTags ?? []
       agent.documentTags = await this.resolveDocumentTags({
@@ -402,6 +414,28 @@ export class AgentSettingsService {
   }): void {
     if (type === "extraction" && !outputJsonSchema) {
       throw new UnprocessableEntityException("Extraction agent requires outputJsonSchema")
+    }
+  }
+
+  /** A local model is only selectable once the project enabled it and finished embedding. */
+  async validateEmbeddingModel({
+    connectScope,
+    embeddingModel,
+  }: {
+    connectScope: RequiredConnectScope
+    embeddingModel: AgentSettings["embeddingModel"]
+  }): Promise<void> {
+    if (!embeddingModel || !isLocalEmbeddingModel(embeddingModel)) return
+
+    // Enabling a model needs the `local-embeddings` flag, so a completed row implies the flag.
+    const isReady = await this.projectEmbeddingModelsService.isCompleted({
+      projectId: connectScope.projectId,
+      modelName: embeddingModel,
+    })
+    if (!isReady) {
+      throw new UnprocessableEntityException(
+        `Embedding model ${embeddingModel} is not ready for this project yet`,
+      )
     }
   }
 

@@ -1,4 +1,5 @@
 import { createVertex } from "@ai-sdk/google-vertex"
+import { type EmbeddingModel, isLocalEmbeddingModel } from "@caseai-connect/api-contracts"
 import { Injectable, Logger } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
 import { embed } from "ai"
@@ -8,35 +9,50 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 import { DEFAULT_TOP_K } from "@/domains/agents/shared/agent-session-messages/streaming/tools/lookup-knowledge-base.tool"
 import type { RetrievedDocumentChunk } from "./document-chunk.types"
 import { resolveEmbeddingModelNames, resolveVertexConfig } from "./document-embeddings.config"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ProjectEmbeddingModelRepository } from "./project-embedding-models/project-embedding-model.repository"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { BullMqQueryEmbeddingsClientService } from "./query-embeddings/bull-mq-query-embeddings-client.service"
 
 @Injectable()
 export class DocumentChunkRetrievalService {
   private readonly logger = new Logger(DocumentChunkRetrievalService.name)
 
-  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
+  constructor(
+    @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly projectEmbeddingModelRepository: ProjectEmbeddingModelRepository,
+    private readonly queryEmbeddingsClient: BullMqQueryEmbeddingsClientService,
+  ) {}
 
   async retrieveTopChunks({
     connectScope,
     query,
     topK = DEFAULT_TOP_K,
     documentTagIds = [],
+    embeddingModel,
   }: {
     connectScope: RequiredConnectScope
     query: string
     topK?: number
     documentTagIds?: string[]
+    /** The agent's choice; a local model only applies once the project finished embedding with it. */
+    embeddingModel?: EmbeddingModel | null
   }): Promise<RetrievedDocumentChunk[]> {
     const retrievalQueryText = this.buildRetrievalQueryText({
       query,
     })
-    const modelName = this.resolvePrimaryModelName()
-    if (!modelName) {
+    const embedded = await this.embedQueryWithAgentModel({
+      projectId: connectScope.projectId,
+      query: retrievalQueryText,
+      embeddingModel,
+    })
+    if (!embedded) {
       return []
     }
+    const { modelName, embedding } = embedded
 
     const normalizedTopK = this.normalizeTopK(topK)
     const normalizedDocumentTagIds = this.normalizeDocumentTagIds(documentTagIds)
-    const embedding = await this.embedQuery({ query: retrievalQueryText, modelName })
 
     const results = await this.fetchChunksByEmbedding({
       connectScope,
@@ -55,6 +71,54 @@ export class DocumentChunkRetrievalService {
 
   private resolvePrimaryModelName(): string | undefined {
     return resolveEmbeddingModelNames()[0]
+  }
+
+  /**
+   * Embeds the query with the agent's local model when the project has it ready, and with the
+   * Vertex default otherwise. A local failure (workers down, timeout) falls back to Vertex with a
+   * warning rather than failing the chat turn: the answer is a little less relevant, not absent.
+   */
+  private async embedQueryWithAgentModel({
+    projectId,
+    query,
+    embeddingModel,
+  }: {
+    projectId: string
+    query: string
+    embeddingModel?: EmbeddingModel | null
+  }): Promise<{ modelName: string; embedding: number[] } | undefined> {
+    if (embeddingModel && isLocalEmbeddingModel(embeddingModel)) {
+      const isReady = await this.projectEmbeddingModelRepository.isCompleted({
+        projectId,
+        modelName: embeddingModel,
+      })
+      if (!isReady) {
+        this.logger.warn(
+          `Embedding model ${embeddingModel} is not ready for project ${projectId}, falling back to the default model`,
+        )
+      } else {
+        try {
+          const embedding = await this.queryEmbeddingsClient.embedQuery({
+            modelName: embeddingModel,
+            text: query,
+          })
+          return { modelName: embeddingModel, embedding }
+        } catch (error) {
+          this.logger.warn(
+            `Local query embedding with ${embeddingModel} failed for project ${projectId}, falling back to the default model: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          )
+        }
+      }
+    }
+
+    const modelName = this.resolvePrimaryModelName()
+    if (!modelName) {
+      return undefined
+    }
+    const embedding = await this.embedQuery({ query, modelName })
+    return { modelName, embedding }
   }
 
   private normalizeTopK(topK: number): number {

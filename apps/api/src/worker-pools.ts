@@ -9,6 +9,7 @@ import { WEB_SOURCE_EMBEDDINGS_QUEUE_NAME } from "./domains/documents/crawling/w
 import { DOCUMENT_EMBEDDINGS_QUEUE_NAME } from "./domains/documents/embeddings/document-embeddings.constants"
 import { DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME } from "./domains/documents/embeddings/document-embeddings-stuck.constants"
 import { PROJECT_EMBEDDING_REEMBED_QUEUE_NAME } from "./domains/documents/embeddings/project-embedding-models/project-embedding-reembed.constants"
+import { QUERY_EMBEDDINGS_QUEUE_NAME } from "./domains/documents/embeddings/query-embeddings/query-embeddings.constants"
 import { PDF_EXPORTS_SWEEP_QUEUE_NAME } from "./domains/documents/pdf-exports/pdf-exports.constants"
 import {
   EVALUATION_CONVERSATION_RUN_EXECUTE_QUEUE_NAME,
@@ -37,6 +38,7 @@ export const KNOWN_WORKER_QUEUE_NAMES: readonly string[] = [
   DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME,
   WEB_SOURCE_EMBEDDINGS_QUEUE_NAME,
   PROJECT_EMBEDDING_REEMBED_QUEUE_NAME,
+  QUERY_EMBEDDINGS_QUEUE_NAME,
   CONVERSATION_RETENTION_SWEEP_QUEUE_NAME,
   PDF_EXPORTS_SWEEP_QUEUE_NAME,
 ]
