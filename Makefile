@@ -27,6 +27,7 @@ API_PATHS := \
 	apps/api/Dockerfile \
 	apps/api/requirements-torch.txt \
 	apps/api/requirements-docling.txt \
+	apps/api/requirements-embeddings.txt \
 	packages/api-contracts \
 	package.json \
 	package-lock.json \
