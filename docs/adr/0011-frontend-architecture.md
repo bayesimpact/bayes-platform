@@ -39,7 +39,7 @@ apps/web/src/
 │   └── components/                    scope-wide layout (e.g. StudioLayout)
 │
 ├── di/services.ts                     Services type — the typed contract every thunk uses via `extra.services`
-└── external/                          axios singleton, axios.services (concrete SPI wiring), auth0 client
+└── external/                          axios singleton, axios.services (concrete SPI wiring), OIDC client
 ```
 
 The studio is the reference. Open [apps/web/src/studio/](../../apps/web/src/studio/) when you're unsure — `documents` is the canonical feature, `DocumentsRoute` is the canonical sub-route, `StudioRoute` + `StudioRoutes.tsx` are the canonical scope root.

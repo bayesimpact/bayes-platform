@@ -2,8 +2,14 @@
 /**
  * Animated, full-page walkthrough of the "add a user" (agent Members) flow,
  * mirroring the real Studio interface (same shell, exact Lucide icons, real brand
- * logo). Shares the exact FORM of the other help-center walkthroughs — only the
+ * logo). Shares the exact FORM of the other help-center walkthroughs; only the
  * content differs. Pass `lang="fr"` for the French copy.
+ *
+ * Source components (re-verified 2026-09-28): AgentMembershipsRoute.tsx,
+ * agent-memberships/components/MembersCreator.tsx (create.submit = Give access), AgentMembershipItem.tsx,
+ * NeverSignedInBadge.tsx. Labels from the agentMembership, actions and status
+ * locales (EN + FR). People are added by email and get access right away: no
+ * invitation, no pending list.
  */
 type Lang = "en" | "fr"
 const { lang = "en" } = Astro.props as { lang?: Lang }
@@ -18,27 +24,25 @@ const STRINGS = {
     agentType: "Conversation",
     goToApp: "App", edit: "Edit", membersBtn: "Members",
     newChat: "New Chat", newChatDesc: "Start a chat with your agent.",
-    listTitle: "Members of Bayes Assistant", listDesc: "Invite users to use your agent.",
-    inviteCardTitle: "Invite a user",
-    inviteCardDesc: "Enter the email address of the person you want to invite to join your agent.",
-    invite: "Invite", emailLabel: "Email address", emailPlaceholder: "Enter email address", add: "Add", send: "Send", cancel: "Cancel",
-    inviteEmail: "sam.rivera@example.com",
+    listTitle: "Members of Bayes Assistant", listDesc: "Add users who can use your agent.",
+    addCardTitle: "Add users",
+    addCardDesc: "Enter the email addresses of the people who should use this agent.",
+    emailLabel: "Email address", emailPlaceholder: "Enter email address", add: "Add", submit: "Give access", cancel: "Cancel",
+    accessHint: "People get access right away. They sign in with your organization's account.",
+    newEmail: "sam.rivera@example.com",
     member2Name: "Jordan Lee", member2Email: "jordan.lee@example.com",
-    roleOwner: "owner", roleMember: "member",
-    pendingTitle: "Pending invitations", pendingDesc: "Invitations already sent for this agent.",
-    invitedAgo: "Invited less than a minute ago",
+    roleOwner: "owner", roleMember: "member", neverSignedIn: "Never signed in",
     removeTitle: "Remove Jordan Lee?", removeDesc: "This will remove the member from the agent. This action cannot be undone.", remove: "Remove",
     prev: "Prev", next: "Next", step: "Step",
     steps: [
       "Open the agent you want to give access to.",
       "On the agent's page, click Members.",
-      "Open the Invite a user card and click Invite.",
-      "Enter the person's email address, then click Add.",
-      "Check the recipients, then click Send.",
-      "The invitation appears under Pending invitations until it's accepted.",
-      "Once accepted, the person appears as a member with a role badge.",
+      "On the Add users card, click Add.",
+      "Enter the person's email address, then click Add to put it in the list.",
+      "Check the addresses, then click Give access.",
+      "The person appears right away as a member, with the Never signed in badge.",
+      "After their first sign-in, only the role remains on the card.",
       "To remove a member, click the trash icon on their card, then confirm.",
-      "To cancel an invitation that hasn't been accepted, delete it from Pending invitations.",
     ],
   },
   fr: {
@@ -50,27 +54,25 @@ const STRINGS = {
     agentType: "Conversation",
     goToApp: "Application", edit: "Modifier", membersBtn: "Membres",
     newChat: "Nouvelle discussion", newChatDesc: "Démarrez une discussion avec votre agent.",
-    listTitle: "Membres de Bayes Assistant", listDesc: "Invitez des membres à utiliser votre agent.",
-    inviteCardTitle: "Inviter un utilisateur",
-    inviteCardDesc: "Entrez l'adresse email de la personne que vous souhaitez inviter à utiliser votre agent.",
-    invite: "Inviter", emailLabel: "Adresse email", emailPlaceholder: "Entrez l'adresse email", add: "Ajouter", send: "Envoyer", cancel: "Annuler",
-    inviteEmail: "sam.rivera@example.com",
+    listTitle: "Membres de Bayes Assistant", listDesc: "Ajoutez les personnes qui peuvent utiliser votre agent.",
+    addCardTitle: "Ajouter des utilisateurs",
+    addCardDesc: "Entrez l'adresse email des personnes qui doivent utiliser cet agent.",
+    emailLabel: "Adresse email", emailPlaceholder: "Entrez l'adresse email", add: "Ajouter", submit: "Donner l'accès", cancel: "Annuler",
+    accessHint: "Les personnes ont accès immédiatement. Elles se connectent avec le compte de votre organisation.",
+    newEmail: "sam.rivera@example.com",
     member2Name: "Jordan Lee", member2Email: "jordan.lee@example.com",
-    roleOwner: "owner", roleMember: "member",
-    pendingTitle: "Invitations en attente", pendingDesc: "Invitations déjà envoyées pour cet agent.",
-    invitedAgo: "Invité il y a moins d'une minute",
+    roleOwner: "owner", roleMember: "member", neverSignedIn: "Jamais connecté",
     removeTitle: "Retirer Jordan Lee ?", removeDesc: "Ce membre sera retiré de l'agent. Cette action est irréversible.", remove: "Retirer",
     prev: "Précédent", next: "Suivant", step: "Étape",
     steps: [
       "Ouvrez l'agent auquel vous voulez donner accès.",
       "Sur la page de l'agent, cliquez sur Membres.",
-      "Ouvrez la carte Inviter un utilisateur et cliquez sur Inviter.",
-      "Saisissez l'adresse email de la personne, puis cliquez sur Ajouter.",
-      "Vérifiez les destinataires, puis cliquez sur Envoyer.",
-      "L'invitation apparaît dans Invitations en attente jusqu'à son acceptation.",
-      "Une fois acceptée, la personne apparaît comme membre avec un badge de rôle.",
+      "Sur la carte Ajouter des utilisateurs, cliquez sur Ajouter.",
+      "Saisissez l'adresse email de la personne, puis cliquez sur Ajouter pour la mettre dans la liste.",
+      "Vérifiez les adresses, puis cliquez sur Donner l'accès.",
+      "La personne apparaît aussitôt comme membre, avec le badge Jamais connecté.",
+      "Après sa première connexion, seul le rôle reste sur la carte.",
       "Pour retirer un membre, cliquez sur l'icône corbeille de sa carte, puis confirmez.",
-      "Pour annuler une invitation non acceptée, supprimez-la dans Invitations en attente.",
     ],
   },
 } as const
@@ -80,13 +82,12 @@ const s = STRINGS[lang]
 const steps = [
   { page: "overview", sources: false, nav: "", spot: "cardAgent", observe: [] },
   { page: "agentPage", sources: false, nav: "agent", spot: "btnMembers", observe: [] },
-  { page: "membersList", sources: false, nav: "agent", spot: "btnInvite", observe: [] },
-  { page: "inviteDialog", sources: false, nav: "agent", spot: "btnAdd", observe: ["obsEmailField"] },
-  { page: "inviteDialog", sources: false, nav: "agent", spot: "btnSend", observe: ["obsChip"] },
-  { page: "membersFull", sources: false, nav: "agent", spot: "", observe: ["obsPending"] },
+  { page: "membersList", sources: false, nav: "agent", spot: "btnOpenAdd", observe: [] },
+  { page: "addDialog", sources: false, nav: "agent", spot: "btnAdd", observe: ["obsEmailField"] },
+  { page: "addDialog", sources: false, nav: "agent", spot: "btnSubmit", observe: ["obsChip"] },
+  { page: "membersFull", sources: false, nav: "agent", spot: "", observe: ["obsNewMember"] },
   { page: "membersFull", sources: false, nav: "agent", spot: "", observe: ["obsRole"] },
   { page: "removeDialog", sources: false, nav: "agent", spot: "btnRemoveConfirm", observe: ["obsRemoveModal"] },
-  { page: "membersFull", sources: false, nav: "agent", spot: "btnRevoke", observe: ["obsPending"] },
 ].map((step, i) => ({ ...step, text: s.steps[i] }))
 
 const labels = { prev: s.prev, next: s.next, step: s.step }
@@ -162,7 +163,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
           </div>
         </div>
 
-        <!-- agent members list, owner + invite card (step 3) -->
+        <!-- agent members list, owner + Add users card (step 3) -->
         <div class="page" data-page="membersList">
           <div class="page-head">
             <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
@@ -174,29 +175,33 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
               <p>{s.userEmail}</p>
             </div>
             <div class="ecard muted">
-              <b>{s.inviteCardTitle}</b>
-              <p>{s.inviteCardDesc}</p>
-              <span class="btn sm" id="btnInvite"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg> {s.invite}</span>
+              <b>{s.addCardTitle}</b>
+              <p>{s.addCardDesc}</p>
+              <span class="btn" id="btnOpenAdd">{s.add} <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></span>
             </div>
           </div>
         </div>
 
-        <!-- invite dialog (steps 4 & 5) -->
-        <div class="page" data-page="inviteDialog">
+        <!-- Add users dialog (steps 4 & 5) -->
+        <div class="page" data-page="addDialog">
           <div class="scrim"></div>
           <div class="modal">
-            <div class="mhead"><b>{s.inviteCardTitle}</b><p>{s.inviteCardDesc}</p></div>
-            <p class="lbl">{s.emailLabel}</p>
-            <div class="row" id="obsEmailField">
-              <span class="input">{s.emailPlaceholder}</span>
-              <span class="btn outline sm" id="btnAdd">{s.add}</span>
+            <span class="mclose"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
+            <div class="mhead"><b>{s.addCardTitle}</b><p>{s.addCardDesc}</p></div>
+            <div id="obsEmailField">
+              <p class="lbl">{s.emailLabel}</p>
+              <div class="row">
+                <span class="input">{s.emailPlaceholder}</span>
+                <span class="btn outline sm" id="btnAdd">{s.add}</span>
+              </div>
+              <p class="hint">{s.accessHint}</p>
             </div>
-            <div class="chips"><span class="chip email" id="obsChip">{s.inviteEmail} <svg class="chipx" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span></div>
-            <div class="row" style="justify-content:flex-end; margin-top:1rem; gap:0.5rem"><span class="btn ghost">{s.cancel}</span><span class="btn" id="btnSend">{s.send}</span></div>
+            <div class="chips"><span class="chip email" id="obsChip">{s.newEmail} <svg class="chipx" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span></div>
+            <div class="row" style="justify-content:flex-end; margin-top:1rem"><span class="btn" id="btnSubmit">{s.submit}</span></div>
           </div>
         </div>
 
-        <!-- agent members full: owner + member + invite card + pending (steps 6, 7, 9) -->
+        <!-- agent members full: owner + signed-in member + new member (never signed in) + Add users card (steps 6 & 7) -->
         <div class="page" data-page="membersFull">
           <div class="page-head">
             <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
@@ -211,18 +216,14 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
               <span class="mtop"><b>{s.member2Name}</b><span class="rolebadge" id="obsRole">{s.roleMember}</span><span class="cardtrash"><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span></span>
               <p>{s.member2Email}</p>
             </div>
-            <div class="ecard muted">
-              <b>{s.inviteCardTitle}</b>
-              <p>{s.inviteCardDesc}</p>
-              <span class="btn sm"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg> {s.invite}</span>
+            <div class="ecard" id="obsNewMember">
+              <span class="mtop"><span class="rolebadge">{s.roleMember}</span><span class="nsbadge">{s.neverSignedIn}</span><span class="cardtrash"><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span></span>
+              <p>{s.newEmail}</p>
             </div>
-          </div>
-          <div class="section" id="obsPending">
-            <div class="sec-head"><b>{s.pendingTitle}</b><p>{s.pendingDesc}</p></div>
-            <div class="pending-card">
-              <span class="pemail"><svg viewBox="0 0 24 24"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg> {s.inviteEmail}</span>
-              <span class="muted-cell">{s.invitedAgo}</span>
-              <span class="cardtrash" id="btnRevoke"><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
+            <div class="ecard muted">
+              <b>{s.addCardTitle}</b>
+              <p>{s.addCardDesc}</p>
+              <span class="btn">{s.add} <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></span>
             </div>
           </div>
         </div>
@@ -429,15 +430,9 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   .amw .mhead b { font-size: 0.98rem; font-weight: 600; }
   .amw .mhead p { font-size: 0.78rem; color: var(--muted-foreground); margin: 0.2rem 0 0; }
 
-  .amw .section { margin-top: 1.4rem; }
-  .amw .sec-head { margin-bottom: 0.6rem; }
-  .amw .sec-head b { font-size: 0.98rem; font-weight: 600; }
-  .amw .sec-head p { font-size: 0.78rem; color: var(--muted-foreground); margin: 0.15rem 0 0; }
-  .amw .pending-card { display: flex; align-items: center; gap: 0.6rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.6rem 0.8rem; }
-  .amw .pending-card .pemail { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; }
-  .amw .pending-card .pemail svg { color: var(--muted-foreground); font-size: 0.9rem; }
-  .amw .pending-card .muted-cell { color: var(--muted-foreground); font-size: 0.78rem; margin-left: 0.4rem; }
-  .amw .pending-card .cardtrash { margin-left: auto; }
+  .amw .nsbadge { display: inline-flex; align-items: center; font-size: 0.66rem; font-weight: 500; border-radius: 999px; padding: 0.1rem 0.45rem; border: 1px solid var(--border); color: var(--muted-foreground); }
+  .amw .hint { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.45rem 0 0; }
+  .amw .modal .mclose { position: absolute; top: 0.7rem; right: 0.7rem; color: var(--muted-foreground); font-size: 0.9rem; }
 
   .amw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
   .amw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }

@@ -141,6 +141,7 @@ function toReviewCampaignMembershipDto(
     campaignId: membership.campaignId,
     userId: membership.userId,
     userEmail: membership.user?.email ?? "",
+    userHasSignedIn: membership.user ? membership.user.authSubject !== null : false,
     role: membership.role,
   }
 }

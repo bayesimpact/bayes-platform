@@ -35,12 +35,12 @@ describe("Organizations - listOrganizations", () => {
   let repositories: AllRepositories
 
   let accessToken: string | undefined = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [OrganizationsModule, RbacModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
@@ -52,7 +52,7 @@ describe("Organizations - listOrganizations", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -72,7 +72,7 @@ describe("Organizations - listOrganizations", () => {
   })
 
   it("returns an empty list when the user has no organizations", async () => {
-    const user = userFactory.build({ auth0Id })
+    const user = userFactory.build({ authSubject })
     await repositories.userRepository.save(user)
 
     const response = await subject()
@@ -83,7 +83,7 @@ describe("Organizations - listOrganizations", () => {
 
   it("returns organizations with RBAC permissions", async () => {
     const { organization } = await createOrganizationWithOwner(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
     })
 
     const response = await subject()
@@ -110,7 +110,7 @@ describe("Organizations - listOrganizations", () => {
       organization,
       membership: { role: "member" },
     })
-    auth0Id = memberUser.auth0Id
+    authSubject = memberUser.authSubject!
 
     const response = await subject()
 
@@ -124,7 +124,7 @@ describe("Organizations - listOrganizations", () => {
 
   it("returns organizations sorted by name, case-insensitively", async () => {
     const { user } = await createOrganizationWithOwner(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
       organization: { name: "zebra" },
     })
     const acme = await repositories.organizationRepository.save(
@@ -159,7 +159,7 @@ describe("Organizations - listOrganizations", () => {
   })
 
   it("does not expose global organization.create on listed organizations", async () => {
-    const user = userFactory.build({ auth0Id, email: "superadmin@bayesimpact.org" })
+    const user = userFactory.build({ authSubject, email: "superadmin@bayesimpact.org" })
     await repositories.userRepository.save(user)
     await assignPlatformSuperadminToUser({ repositories, user })
 

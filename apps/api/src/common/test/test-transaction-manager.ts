@@ -65,7 +65,7 @@ export interface TransactionalTestSetup {
  * it("should work with services", async () => {
  *   const service = setup.module.get(UsersService)
  *   // Service automatically uses transactional repository!
- *   const user = await service.findByAuth0Id("auth0|123")
+ *   const user = await service.findByAuthSubject("oidc|123")
  * })
  * ```
  */

@@ -2,6 +2,8 @@
 
 > **Companion documents:** [ADR 0008 — Conversational Agent Human Evaluation Model](../adr/0008-agent-human-evaluation-model.md) for all load-bearing decisions. [Review Campaigns — Tester Experience (v1)](./review-campaigns-tester-v1.md) for the Level-1 flow and the foundation this spec builds on.
 
+> **Superseded for invitations** by [ADR 0019](../adr/0019-generic-oidc-and-access-by-email.md): people are added by email and get access right away, with no invitation email or accept step. The Auth0 parts below are historical.
+
 ## Overview
 
 Once a campaign is active and testers are generating sessions, invited **reviewers** browse those sessions, read each transcript blindly (without seeing the tester's score or comment), and submit their own 5-star rating + comment + answers to reviewer-configured questions. The campaign then exposes an aggregated report showing tester and reviewer signal side by side.

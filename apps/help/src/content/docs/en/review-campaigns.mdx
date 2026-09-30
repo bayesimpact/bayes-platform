@@ -1,15 +1,15 @@
 ---
 title: Review campaigns
 highlight: campaigns
-description: Create a campaign to invite testers and reviewers to evaluate an agent, then read the aggregated results.
+description: Create a campaign so testers and reviewers can evaluate an agent, then read the aggregated results.
 category: guides-eval
 order: 4
-updated: 2026-07-22
+updated: 2026-09-28
 ---
 
 import ReviewCampaignsWalkthrough from "@/components/ReviewCampaignsWalkthrough.astro"
 
-A **review campaign** lets you evaluate an agent with the help of invited people.
+A **review campaign** lets you evaluate an agent with the help of people you add to it.
 [**Testers**](/en/participate-as-a-tester) hold real conversations with the agent and answer questions about them;
 [**reviewers**](/en/review-as-a-reviewer) then read those sessions and give their own independent judgement.
 When the campaign closes, their feedback is aggregated into a report.
@@ -21,7 +21,7 @@ overview, and belong to the **workspace**.
 
 A campaign moves through three states: **Draft** → **Active** → **Closed**. You
 build it as a draft (agent, questions, and — optionally — a description), then
-**Activate** it to start inviting participants and collecting feedback. Once
+**Activate** it to start adding participants and collecting feedback. Once
 activated, the configuration is **locked** so everyone evaluates the same thing.
 When you **Close** it, results are aggregated and the campaign becomes read-only,
 ready to read in the report.
@@ -95,19 +95,30 @@ editor **header, top-right**, click **Activate** (rocket icon), then confirm in 
 dialog. From this point the configuration (agent, questions) is **locked** — activate
 only once you're happy with it.
 
-> You must activate a campaign **before** inviting participants: invitations send a
-> real email, and an invitee should land on a campaign that's already live.
+> You must activate a campaign **before** adding participants. Until then the
+> **Participants** tab reads *Save the campaign first, then add participants.* (new
+> campaign) or *Activate the campaign before adding participants, so they find it in
+> their list when they sign in.* (draft).
 
-### 5. Invite testers and reviewers
+### 5. Add testers and reviewers
 
-In the editor's **Participants** tab (available once the campaign is **Active**):
+In the editor's **Participants** tab (available once the campaign is **Active**), the
+**Add participants** box has:
 
-1. Enter one or more addresses in **Emails** (comma- or newline-separated).
-2. Choose the **Role** — **Tester** or **Reviewer**.
-3. Click **Send invitations**. A real email is sent to each address.
+1. **Emails (comma or newline separated)**: enter one or more addresses.
+2. **Role**: choose **Tester** or **Reviewer**. Everyone in one batch gets the same
+   role, so add testers and reviewers in separate batches.
+3. **Add**: click it to give access. A **Participants added** notification confirms
+   it.
 
-Invited people appear under **Pending invitations** until they accept. You can
-**Revoke** an invitation that hasn't been accepted yet.
+The hint under the field reads *People get access right away. They sign in with your
+organization's account.* The platform sends no email, so tell participants the
+campaign is ready. Each person appears right away in the participants table, with
+the columns **Email**, **Role**, **Status** and **Actions**. **Status** shows **Never
+signed in** until their first sign-in (see
+[Sign in for the first time](/en/sign-in-for-the-first-time)). To take access back,
+click **Revoke** on the row and confirm in the **Revoke *email*?** dialog; the
+participant is removed from the campaign and this **cannot be undone**.
 
 ### 6. Manage campaigns from the table
 
@@ -129,7 +140,7 @@ it:
    closed campaign shows neither).
 3. Confirm in the **Close “…”?** dialog by clicking **Close campaign**.
 
-A closed campaign is **read-only** — you can no longer edit it or invite anyone.
+A closed campaign is **read-only**: you can no longer edit it or add anyone.
 
 ### 8. Read the report
 
@@ -143,13 +154,18 @@ number of **sessions**, **end-of-phase surveys** and a per-question breakdown. U
 - Keep questions short and focused — testers answer them after every session.
 - Mark a question as **Factual** when there's a correct answer; it stays visible to
   reviewers during blind review.
-- Invite a few testers and reviewers rather than many at once, so you can adjust the
+- Add a few testers and reviewers rather than many at once, so you can adjust the
   next campaign based on what you learn.
+- Participants sign in with your organization's account using the email you entered.
+  Double-check each address.
 
 ## Troubleshooting
 
-- **I can't invite anyone** — the campaign is still a **Draft**. **Activate** it
-  first.
+- **I can't add anyone.** The campaign is still a **Draft**. **Activate** it first.
+- **A participant still shows Never signed in.** They haven't signed in yet. Remind
+  them to sign in with their organization's account, using the email you added. If
+  they see **No access yet**, they used a different email: **Revoke** the entry and
+  add the right address.
 - **I can't change the questions or agent** — the configuration locks once the
   campaign is **Active**. Create a new campaign if you need a different setup.
 - **I can't delete a campaign** — only **Draft** campaigns can be deleted. **Close**

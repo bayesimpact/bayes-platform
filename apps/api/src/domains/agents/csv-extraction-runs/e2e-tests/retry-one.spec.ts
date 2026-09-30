@@ -33,7 +33,7 @@ describe("AgentCsvExtractionRuns - retryOne", () => {
   let agentId: string
   let agentCsvExtractionRunId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   const mockBatchService = buildMockBatchService()
   const mockFileStorageService = buildMockFileStorageService()
@@ -42,7 +42,7 @@ describe("AgentCsvExtractionRuns - retryOne", () => {
     setup = await setupTransactionalTestDatabase({
       additionalImports: [AgentCsvExtractionRunsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) =>
-        applyCsvExtractionRunOverrides(moduleBuilder, () => auth0Id, {
+        applyCsvExtractionRunOverrides(moduleBuilder, () => authSubject, {
           batchService: mockBatchService,
           fileStorageService: mockFileStorageService,
         }),
@@ -58,7 +58,7 @@ describe("AgentCsvExtractionRuns - retryOne", () => {
     await clearTestDatabase(setup.dataSource)
     jest.clearAllMocks()
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -69,7 +69,7 @@ describe("AgentCsvExtractionRuns - retryOne", () => {
   let context: Awaited<ReturnType<typeof createCsvExtractionRunContext>>
 
   const createContext = async () => {
-    context = await createCsvExtractionRunContext({ repositories, auth0Id })
+    context = await createCsvExtractionRunContext({ repositories, authSubject })
     const run = await createCsvExtractionRun({ repositories, context, status: "failed" })
 
     const erroredRecord = agentCsvExtractionRunRecordFactory
@@ -85,7 +85,7 @@ describe("AgentCsvExtractionRuns - retryOne", () => {
     projectId = context.project.id
     agentId = context.agent.id
     agentCsvExtractionRunId = run.id
-    auth0Id = context.user.auth0Id
+    authSubject = context.user.authSubject!
   }
 
   const subject = async () =>

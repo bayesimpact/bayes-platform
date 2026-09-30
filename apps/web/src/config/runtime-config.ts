@@ -25,10 +25,18 @@ export type RuntimeConfig = {
   helpAgentEmbedToken?: string
   helpAgentEmbedColor?: string
   helpAgentEmbedHint?: string
-  auth0Domain: string
-  auth0ClientId: string
-  auth0Audience: string
-  auth0OrganizationId: string
+  /** Issuer URL of the OpenID Connect provider (Keycloak realm, Dex, Auth0 tenant...). */
+  oidcAuthority: string
+  /** Public client (Authorization Code + PKCE) registered for the SPA. */
+  oidcClientId: string
+  /** Sent as the `audience` authorize parameter when set (needed by Auth0). */
+  oidcAudience?: string
+  oidcScope?: string
+  /**
+   * JSON object of extra authorize parameters, for example
+   * `{"organization":"org_123"}` for an Auth0 organization.
+   */
+  oidcAuthorizationParams?: string
   defaultConversationAgentPrompt?: string
   defaultFormAgentPrompt?: string
   defaultFormAgentSchema?: string
@@ -56,10 +64,11 @@ function readBuildTimeConfig(): RuntimeConfig {
     helpAgentEmbedToken: env.VITE_HELP_AGENT_EMBED_TOKEN,
     helpAgentEmbedColor: env.VITE_HELP_AGENT_EMBED_COLOR,
     helpAgentEmbedHint: env.VITE_HELP_AGENT_EMBED_HINT,
-    auth0Domain: env.VITE_AUTH0_DOMAIN ?? "",
-    auth0ClientId: env.VITE_AUTH0_CLIENT_ID ?? "",
-    auth0Audience: env.VITE_AUTH0_AUDIENCE ?? "",
-    auth0OrganizationId: env.VITE_AUTH0_ORGANIZATION_ID ?? "",
+    oidcAuthority: env.VITE_OIDC_AUTHORITY ?? "",
+    oidcClientId: env.VITE_OIDC_CLIENT_ID ?? "",
+    oidcAudience: env.VITE_OIDC_AUDIENCE,
+    oidcScope: env.VITE_OIDC_SCOPE,
+    oidcAuthorizationParams: env.VITE_OIDC_AUTHORIZATION_PARAMS,
     defaultConversationAgentPrompt: env.VITE_DEFAULT_CONVERSATION_AGENT_PROMPT,
     defaultFormAgentPrompt: env.VITE_DEFAULT_FORM_AGENT_PROMPT,
     defaultFormAgentSchema: env.VITE_DEFAULT_FORM_AGENT_SCHEMA,
@@ -113,7 +122,7 @@ export const runtimeConfig: RuntimeConfig = buildRuntimeConfig()
  */
 export const APP_BASE_PATH: string = import.meta.env.BASE_URL
 
-/** Absolute URL of the SPA root, without trailing slash. Used for Auth0 redirects. */
+/** Absolute URL of the SPA root, without trailing slash. Used for OIDC redirects. */
 export function getAppUrl(): string {
   return `${window.location.origin}${trimTrailingSlash(APP_BASE_PATH)}`
 }

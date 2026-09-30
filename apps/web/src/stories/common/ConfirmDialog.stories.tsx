@@ -24,7 +24,7 @@ export const RemoveMember: Story = {
   },
 }
 
-export const RevokeInvitation: Story = {
+export const RevokeParticipant: Story = {
   args: {
     title: "Revoke alice@example.com?",
     description:

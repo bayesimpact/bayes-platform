@@ -12,7 +12,7 @@ import {
 import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
 import { createOrganizationWithOwner } from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
-import { mockAuth0EmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
   assignPlatformStaffToUser,
   assignPlatformSuperadminToUser,
@@ -28,7 +28,7 @@ describe("Apps - Auth", () => {
   let repositories: AllRepositories
 
   let accessToken: string | null = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
@@ -36,7 +36,7 @@ describe("Apps - Auth", () => {
       applyOverrides: (moduleBuilder) =>
         setupUserGuardForTesting(
           withDocumentEmbeddingsBatchServiceMock(moduleBuilder),
-          () => auth0Id,
+          () => authSubject,
         ),
     })
     await ensureRbacCatalog(setup.module)
@@ -49,7 +49,7 @@ describe("Apps - Auth", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -59,7 +59,7 @@ describe("Apps - Auth", () => {
 
   const createSuperadmin = async () => {
     const { user } = await createOrganizationWithOwner(repositories, {
-      user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+      user: { authSubject, email: mockOidcEmailForSub(authSubject) },
     })
     await assignPlatformSuperadminToUser({ repositories, user })
     return user
@@ -67,7 +67,7 @@ describe("Apps - Auth", () => {
 
   const createStaff = async () => {
     const { user } = await createOrganizationWithOwner(repositories, {
-      user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+      user: { authSubject, email: mockOidcEmailForSub(authSubject) },
     })
     await assignPlatformStaffToUser({ repositories, user })
     return user
@@ -87,7 +87,7 @@ describe("Apps - Auth", () => {
 
     it("rejects users without backoffice.app.manage", async () => {
       await createOrganizationWithOwner(repositories, {
-        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
       })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
@@ -150,7 +150,7 @@ describe("Apps - Auth", () => {
 
     it("rejects users without app.install", async () => {
       await createOrganizationWithOwner(repositories, {
-        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
       })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
@@ -189,7 +189,7 @@ describe("Apps - Auth", () => {
 
     it("rejects users without app.install", async () => {
       await createOrganizationWithOwner(repositories, {
-        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
       })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
@@ -220,7 +220,7 @@ describe("Apps - Auth", () => {
 
     it("rejects users without app.install", async () => {
       await createOrganizationWithOwner(repositories, {
-        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
       })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
@@ -251,7 +251,7 @@ describe("Apps - Auth", () => {
 
     it("rejects users without app.install", async () => {
       await createOrganizationWithOwner(repositories, {
-        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
       })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })

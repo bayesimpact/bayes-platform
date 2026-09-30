@@ -7,7 +7,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@caseai-connect/ui/shad/dialog"
-import { Field, FieldGroup, FieldLabel, FieldSet } from "@caseai-connect/ui/shad/field"
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldSet,
+} from "@caseai-connect/ui/shad/field"
 import { Input } from "@caseai-connect/ui/shad/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { PlusCircleIcon, XIcon } from "lucide-react"
@@ -16,7 +22,7 @@ import { useForm, useWatch } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { z } from "zod"
 import { useAppDispatch } from "@/common/store/hooks"
-import { createInvitationsForTarget } from "@/studio/features/invitations/invitations.thunks"
+import { createMemberGrants } from "@/studio/features/member-grants/member-grants.thunks"
 
 export function MembersCreator({ agentId }: { agentId: string }) {
   const { t } = useTranslation()
@@ -30,7 +36,7 @@ export function MembersCreator({ agentId }: { agentId: string }) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button size="lg" className="text-base">
-          {t("actions:invite")}
+          {t("actions:add")}
           <PlusCircleIcon className="ml-2 size-5" />
         </Button>
       </DialogTrigger>
@@ -124,11 +130,10 @@ function CreateForm({
   const handleFormSubmit = (data: FormValues) => {
     if (data.emails.length === 0) return
     dispatch(
-      createInvitationsForTarget({
+      createMemberGrants({
         targetType: "agent",
         targetId: agentId,
         emails: data.emails,
-        refreshTarget: { targetType: "agent", targetId: agentId },
       }),
     )
     onClose()
@@ -159,6 +164,7 @@ function CreateForm({
                 </Button>
               </div>
               {inputError && <p className="text-sm text-destructive">{inputError}</p>}
+              <FieldDescription>{t("agentMembership:create.accessHint")}</FieldDescription>
             </Field>
 
             {emails.length > 0 && (
@@ -185,7 +191,7 @@ function CreateForm({
 
             <Field orientation="horizontal" className="justify-end">
               <Button type="submit" disabled={emails.length === 0}>
-                {t("actions:send", { count: emails.length })}
+                {t("agentMembership:create.submit")}
               </Button>
             </Field>
           </FieldGroup>

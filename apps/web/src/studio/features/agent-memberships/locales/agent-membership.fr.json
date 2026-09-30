@@ -11,27 +11,21 @@
         "emailInvalid": "Email invalide"
       }
     },
-    "statuses": {
-      "sent": "Envoyé",
-      "accepted": "Accepté"
-    },
     "create": {
-      "button": "Inviter un utilisateur",
-      "title": "Inviter un utilisateur",
-      "description": "Entrez l'adresse email de la personne que vous souhaitez inviter à utiliser votre agent.",
+      "button": "Ajouter des utilisateurs",
+      "title": "Ajouter des utilisateurs",
+      "description": "Entrez l'adresse email des personnes qui doivent utiliser cet agent.",
       "label": "Adresse email",
-      "placeholder": "Entrez l'adresse email"
-    },
-    "pendingInvitations": {
-      "title": "Invitations en attente",
-      "description": "Invitations déjà envoyées pour cet agent."
+      "placeholder": "Entrez l'adresse email",
+      "accessHint": "Les personnes ont accès immédiatement. Elles se connectent avec le compte de votre organisation.",
+      "submit": "Donner l'accès"
     },
     "list": {
       "title": "Membres de {{agentName}}",
-      "description": "Invitez des membres à utiliser votre agent.",
+      "description": "Ajoutez les personnes qui peuvent utiliser votre agent.",
       "empty": {
         "title": "Aucun membre",
-        "description": "Invitez des membres à utiliser votre agent."
+        "description": "Ajoutez les personnes qui peuvent utiliser votre agent."
       }
     },
     "remove": {

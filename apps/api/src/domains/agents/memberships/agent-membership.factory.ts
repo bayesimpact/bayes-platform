@@ -7,7 +7,6 @@ import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import type { Agent } from "../agent.entity"
 import type { AgentMembershipFixture, AgentMembershipRole } from "./agent-membership.types"
-import { PLACEHOLDER_AUTH0_ID_PREFIX } from "./agent-memberships.service"
 
 type AgentMembershipTransientParams = {
   agent: Agent
@@ -107,7 +106,7 @@ export const addUserToAgent = async ({
   return await createMembership(newUser)
 }
 
-export const inviteUserToAgent = async ({
+export const addMemberByEmailToAgent = async ({
   repositories,
   agent,
   user,
@@ -117,18 +116,17 @@ export const inviteUserToAgent = async ({
   user?: Partial<User>
 }) => {
   user = user ?? {
-    email: "invited@example.com",
-    name: "Invited User",
-    auth0Id: `${PLACEHOLDER_AUTH0_ID_PREFIX}-test`,
+    email: "added@example.com",
+    name: "Added User",
+    authSubject: null,
   }
-  const invitedUser = userFactory.build(user)
-  await repositories.userRepository.save(invitedUser)
+  const addedUser = userFactory.build(user)
+  await repositories.userRepository.save(addedUser)
 
-  const invitationToken = randomUUID()
   const membership = await saveAgentMembership({
     repositories,
-    membership: agentMembershipFactory.transient({ agent, user: invitedUser }).build(),
+    membership: agentMembershipFactory.transient({ agent, user: addedUser }).build(),
   })
 
-  return { membership, invitedUser, invitationToken }
+  return { membership, addedUser }
 }

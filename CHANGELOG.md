@@ -12,9 +12,11 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) Platform staff can install an app on a project with limited credentials.
 - (beta) Installed apps can add a text document to their project.
 - (beta) Installed apps can register a named document feed on a project.
+- Sign-in: any OpenID Connect provider, such as Keycloak, can now authenticate platform users.
 
 ### Changed
 - Analytics: conversation categories now show per agent, ranked by volume with their share and daily trend.
+- Members: people added by email get access right away, without an invitation to accept.
 
 ### Fixed
 - Analytics: conversations and questions per session now include conversations held in the embedded chat.

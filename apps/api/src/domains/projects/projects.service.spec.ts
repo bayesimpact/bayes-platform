@@ -5,7 +5,6 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
 import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
@@ -21,10 +20,6 @@ import { projectFactory } from "./project.factory"
 import { ProjectsModule } from "./projects.module"
 import { ProjectsService } from "./projects.service"
 
-const mockInvitationSender = {
-  sendInvitation: jest.fn().mockResolvedValue(undefined),
-}
-
 describe("ProjectsService", () => {
   let service: ProjectsService
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
@@ -33,8 +28,7 @@ describe("ProjectsService", () => {
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ProjectsModule],
-      applyOverrides: (moduleBuilder) =>
-        moduleBuilder.overrideProvider(INVITATION_SENDER).useValue(mockInvitationSender),
+      applyOverrides: (moduleBuilder) => moduleBuilder,
     })
     await ensureRbacCatalog(setup.module)
     await clearTestDatabase(setup.dataSource)

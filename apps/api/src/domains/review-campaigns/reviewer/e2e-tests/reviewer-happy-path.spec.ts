@@ -10,7 +10,6 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
-import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
@@ -21,10 +20,6 @@ import {
 } from "../../memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
-
-const mockInvitationSender = {
-  sendInvitation: jest.fn().mockResolvedValue({ ticketId: "ticket-reviewer" }),
-}
 
 describe("ReviewCampaigns - Reviewer happy path", () => {
   let app: INestApplication<App>
@@ -37,15 +32,12 @@ describe("ReviewCampaigns - Reviewer happy path", () => {
   let sessionId: string = randomUUID()
   let reviewCampaignId: string = randomUUID()
   let accessToken: string = "token"
-  let auth0Id = `auth0|reviewer-${randomUUID()}`
+  let authSubject = `oidc|reviewer-${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ReviewCampaignsModule],
-      applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
-          .overrideProvider(INVITATION_SENDER)
-          .useValue(mockInvitationSender),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -56,7 +48,7 @@ describe("ReviewCampaigns - Reviewer happy path", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = `auth0|reviewer-${randomUUID()}`
+    authSubject = `oidc|reviewer-${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -78,7 +70,7 @@ describe("ReviewCampaigns - Reviewer happy path", () => {
       agent,
       agentSettings,
     } = await createOrganizationWithAgent(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
       agent: { type: "conversation" },
     })
     const tester = await repositories.userRepository.save(
@@ -162,7 +154,7 @@ describe("ReviewCampaigns - Reviewer happy path", () => {
       agent,
       agentSettings,
     } = await createOrganizationWithAgent(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
       agent: { type: "conversation" },
     })
     const campaign = reviewCampaignFactory

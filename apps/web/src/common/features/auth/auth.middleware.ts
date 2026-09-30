@@ -1,12 +1,10 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
 import { authActions } from "@/common/features/auth/auth.slice"
 import { meActions } from "@/common/features/me/me.slice"
-import { fetchMe, fetchPendingInvitations } from "@/common/features/me/me.thunks"
+import { fetchMe } from "@/common/features/me/me.thunks"
 import { organizationsActions } from "@/common/features/organizations/organizations.slice"
 import { fetchOrganizations } from "@/common/features/organizations/organizations.thunks"
-import { consumePendingInvitation } from "@/common/routes/HomeRoute"
 import type { AppDispatch, RootState } from "@/common/store/types"
-import { acceptInvitation } from "@/studio/features/invitations/invitations.thunks"
 
 // Create typed listener middleware
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
@@ -25,21 +23,10 @@ listenerMiddleware.startListening({
     const isAuthenticated = action.payload
 
     if (isAuthenticated) {
-      // Check for a pending invitation BEFORE fetching /me.
-      // This is critical: /me triggers UserGuard.findOrCreate which would create
-      // a duplicate user. acceptInvitation reconciles the placeholder user's
-      // auth0Id first, so /me then finds the correct existing user.
-      const pendingTicketId = consumePendingInvitation()
-      if (pendingTicketId) {
-        await listenerApi.dispatch(acceptInvitation({ ticketId: pendingTicketId }))
-      }
-
-      // Now fetch user data (will find the reconciled user, not create a new one)
-      await Promise.all([
-        listenerApi.dispatch(fetchMe()),
-        listenerApi.dispatch(fetchOrganizations()),
-      ])
-      listenerApi.dispatch(fetchPendingInvitations())
+      // /me links a first sign-in to the account of a person added by email,
+      // so it runs before the organization list that depends on it.
+      await listenerApi.dispatch(fetchMe())
+      await listenerApi.dispatch(fetchOrganizations())
     } else {
       // User logged out - clear user and organizations state
       listenerApi.dispatch(meActions.reset())

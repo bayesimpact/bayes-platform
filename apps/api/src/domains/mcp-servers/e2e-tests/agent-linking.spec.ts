@@ -33,12 +33,12 @@ describe("McpServers - agent linking", () => {
   let mcpServerId: string
   let agentId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [McpServersModule, AgentsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -49,7 +49,7 @@ describe("McpServers - agent linking", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -61,7 +61,7 @@ describe("McpServers - agent linking", () => {
     const { user, organization, project } = await createOrganizationWithProject(repositories)
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     const mcpServer = mcpServerFactory.build({ name: "Test Server", projectId: project.id })
     await repositories.mcpServerRepository.save(mcpServer)
@@ -78,7 +78,7 @@ describe("McpServers - agent linking", () => {
   /** An agent of another organization, whose id the caller has no business with. */
   const createAgentInOtherOrganization = async () => {
     const other = await createOrganizationWithProject(repositories, {
-      user: { auth0Id: "auth0|other" },
+      user: { authSubject: "oidc|other" },
     })
     const foreignAgent = agentFactory
       .transient({ organization: other.organization, project: other.project })

@@ -1,15 +1,9 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { ADS } from "@/common/store/async-data-status"
-import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import {
-  createInvitationsForTarget,
-  listInvitationsForTarget,
-  revokeInvitation,
-} from "@/studio/features/invitations/invitations.thunks"
+import { useAppDispatch } from "@/common/store/hooks"
+import { createMemberGrants } from "@/studio/features/member-grants/member-grants.thunks"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import type { ReviewCampaignDetail } from "../review-campaigns.models"
-import { selectReviewCampaignPendingInvitations } from "../review-campaigns.selectors"
 import {
   deleteReviewCampaign,
   revokeReviewCampaignMembership,
@@ -31,17 +25,8 @@ type DialogKind = "activate" | "close" | "delete" | null
 
 export function UpdateCampaignForm({ campaign, agents, onSuccess, onDeleted }: Props) {
   const dispatch = useAppDispatch()
-  const pendingInvitationsData = useAppSelector(selectReviewCampaignPendingInvitations)
   const navigate = useNavigate()
   const [dialog, setDialog] = useState<DialogKind>(null)
-  const pendingInvitations = ADS.isFulfilled(pendingInvitationsData)
-    ? pendingInvitationsData.value
-    : []
-
-  // FIXME: should be moved in middleware when .mount
-  useEffect(() => {
-    dispatch(listInvitationsForTarget({ targetType: "review_campaign", targetId: campaign.id }))
-  }, [campaign.id, dispatch])
 
   const handleOpenReport = () => {
     navigate(
@@ -97,29 +82,19 @@ export function UpdateCampaignForm({ campaign, agents, onSuccess, onDeleted }: P
     onDeleted?.()
   }
 
-  const handleInvite = (role: "tester" | "reviewer", emails: string[]) => {
+  const handleAddParticipants = (role: "tester" | "reviewer", emails: string[]) => {
     void dispatch(
-      createInvitationsForTarget({
+      createMemberGrants({
         targetType: "review_campaign",
         targetId: campaign.id,
         emails,
         role,
-        refreshTarget: { targetType: "review_campaign", targetId: campaign.id },
       }),
     )
   }
 
   const handleRevoke = (membershipId: string) => {
     dispatch(revokeReviewCampaignMembership({ reviewCampaignId: campaign.id, membershipId }))
-  }
-
-  const handleRevokeInvitation = (invitationId: string) => {
-    void dispatch(
-      revokeInvitation({
-        invitationId,
-        refreshTarget: { targetType: "review_campaign", targetId: campaign.id },
-      }),
-    )
   }
 
   return (
@@ -129,7 +104,6 @@ export function UpdateCampaignForm({ campaign, agents, onSuccess, onDeleted }: P
         status={campaign.status}
         agents={agents}
         memberships={campaign.memberships}
-        pendingInvitations={pendingInvitations}
         aggregates={campaign.aggregates}
         defaultValues={{
           name: campaign.name,
@@ -143,9 +117,8 @@ export function UpdateCampaignForm({ campaign, agents, onSuccess, onDeleted }: P
         onActivate={() => setDialog("activate")}
         onClose={() => setDialog("close")}
         onDelete={() => setDialog("delete")}
-        onInviteMember={handleInvite}
+        onAddParticipants={handleAddParticipants}
         onRevokeMember={handleRevoke}
-        onRevokeInvitation={handleRevokeInvitation}
         onOpenReport={handleOpenReport}
       />
 

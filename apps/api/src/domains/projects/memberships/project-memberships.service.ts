@@ -9,8 +9,6 @@ import type { ProjectMembershipModel } from "./project-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipRepository } from "./project-membership.repository"
 
-export const PLACEHOLDER_AUTH0_ID_PREFIX = "00000000-0000-0000-0000-"
-
 @Injectable()
 export class ProjectMembershipsService {
   constructor(
@@ -165,8 +163,8 @@ export class ProjectMembershipsService {
 
   /**
    * Removes a project membership.
-   * If the associated user is a placeholder (never accepted the invitation),
-   * also deletes the placeholder user to avoid orphaned records.
+   * If the user was added by email and never signed in, also removes the
+   * account once it has no membership left.
    */
   async removeProjectMembership({
     userId,
@@ -203,9 +201,7 @@ export class ProjectMembershipsService {
         userId: membership.userId,
       })
 
-      if (membership.user.auth0Id.startsWith(PLACEHOLDER_AUTH0_ID_PREFIX)) {
-        await this.userRepository.deleteById({ userId: membership.userId })
-      }
+      await this.userRepository.deleteIfUnusedPlaceholder({ userId: membership.userId })
     })
   }
 }

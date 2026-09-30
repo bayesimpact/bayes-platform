@@ -9,14 +9,14 @@ describe("getAuthCallbackError", () => {
 
   it("reads the error code and its description", () => {
     const search =
-      "?error=invalid_request&error_description=parameter%20organization%20is%20not%20allowed%20for%20this%20client&state=abc"
+      "?error=unauthorized_client&error_description=Client%20is%20not%20allowed%20to%20sign%20in&state=abc"
     expect(getAuthCallbackError(search)).toEqual({
-      code: "invalid_request",
-      description: "parameter organization is not allowed for this client",
+      code: "unauthorized_client",
+      description: "Client is not allowed to sign in",
     })
   })
 
-  it("keeps a null description when Auth0 sends none", () => {
+  it("keeps a null description when the provider sends none", () => {
     expect(getAuthCallbackError("?error=access_denied")).toEqual({
       code: "access_denied",
       description: null,

@@ -11,7 +11,7 @@ import {
 } from "@/common/test/test-database"
 import { createOrganizationWithOwner } from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
-import { mockAuth0EmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
   assignPlatformSuperadminToUser,
   ensureRbacCatalog,
@@ -26,12 +26,12 @@ describe("Backoffice - Auth", () => {
   let repositories: AllRepositories
 
   let accessToken: string | null = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [BackofficeModule, RbacModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
@@ -43,7 +43,7 @@ describe("Backoffice - Auth", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -53,7 +53,7 @@ describe("Backoffice - Auth", () => {
 
   const createAuthorizedUser = async () => {
     const { user } = await createOrganizationWithOwner(repositories, {
-      user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+      user: { authSubject, email: mockOidcEmailForSub(authSubject) },
     })
     await assignPlatformSuperadminToUser({ repositories, user })
     return user
@@ -73,7 +73,7 @@ describe("Backoffice - Auth", () => {
 
     it("rejects users without the backoffice.read permission", async () => {
       await createOrganizationWithOwner(repositories, {
-        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
       })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
@@ -98,7 +98,7 @@ describe("Backoffice - Auth", () => {
 
     it("rejects users without the backoffice.read permission", async () => {
       await createOrganizationWithOwner(repositories, {
-        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
       })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
@@ -123,7 +123,7 @@ describe("Backoffice - Auth", () => {
 
     it("rejects users without the backoffice.read permission", async () => {
       await createOrganizationWithOwner(repositories, {
-        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
       })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
@@ -149,7 +149,7 @@ describe("Backoffice - Auth", () => {
 
     it("rejects users without the backoffice.read permission", async () => {
       await createOrganizationWithOwner(repositories, {
-        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
       })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
@@ -176,7 +176,7 @@ describe("Backoffice - Auth", () => {
 
     it("rejects users without the backoffice.read permission", async () => {
       await createOrganizationWithOwner(repositories, {
-        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
       })
       expectResponse(await subject(randomUUID()), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
@@ -197,7 +197,7 @@ describe("Backoffice - Auth", () => {
 
     it("rejects users without the backoffice.read permission", async () => {
       await createOrganizationWithOwner(repositories, {
-        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
       })
       expectResponse(await subject(randomUUID()), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })

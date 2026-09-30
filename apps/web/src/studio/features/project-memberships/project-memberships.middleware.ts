@@ -3,11 +3,7 @@ import { getCurrentId } from "@/common/features/helpers"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import type { AppDispatch, RootState } from "@/common/store/types"
-import {
-  createInvitationsForTarget,
-  listInvitationsForTarget,
-  revokeInvitation,
-} from "@/studio/features/invitations/invitations.thunks"
+import { createMemberGrants } from "@/studio/features/member-grants/member-grants.thunks"
 import { projectMembershipsActions } from "./project-memberships.slice"
 import {
   listProjectMemberAgents,
@@ -23,12 +19,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       const projectId = selectCurrentProjectId(listenerApi.getState())
       if (!projectId) return
-      await Promise.all([
-        listenerApi.dispatch(listProjectMemberships()),
-        listenerApi.dispatch(
-          listInvitationsForTarget({ targetType: "project", targetId: projectId }),
-        ),
-      ])
+      await listenerApi.dispatch(listProjectMemberships())
     },
   })
 
@@ -47,41 +38,27 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       const projectId = selectCurrentProjectId(listenerApi.getState())
       if (!projectId) return
-      await Promise.all([
-        listenerApi.dispatch(listProjectMemberships()),
-        listenerApi.dispatch(
-          listInvitationsForTarget({ targetType: "project", targetId: projectId }),
-        ),
-      ])
+      await listenerApi.dispatch(listProjectMemberships())
     },
   })
 
+  // Refresh list after members were added by email
   listenerMiddleware.startListening({
-    actionCreator: createInvitationsForTarget.fulfilled,
+    actionCreator: createMemberGrants.fulfilled,
     effect: async (action, listenerApi) => {
-      const refreshTarget = action.meta.arg.refreshTarget
-      if (refreshTarget?.targetType !== "project") return
-      await listenerApi.dispatch(listInvitationsForTarget(refreshTarget))
-    },
-  })
-
-  listenerMiddleware.startListening({
-    actionCreator: revokeInvitation.fulfilled,
-    effect: async (action, listenerApi) => {
-      const refreshTarget = action.meta.arg.refreshTarget
-      if (refreshTarget?.targetType !== "project") return
-      await listenerApi.dispatch(listInvitationsForTarget(refreshTarget))
+      if (action.meta.arg.targetType !== "project") return
+      await listenerApi.dispatch(listProjectMemberships())
     },
   })
 
   // Success notifications
   listenerMiddleware.startListening({
-    actionCreator: createInvitationsForTarget.fulfilled,
+    actionCreator: createMemberGrants.fulfilled,
     effect: async (action, listenerApi) => {
-      if (action.meta.arg.refreshTarget?.targetType !== "project") return
+      if (action.meta.arg.targetType !== "project") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Invitations sent successfully",
+          title: "Members added",
           type: "success",
         }),
       )
@@ -102,12 +79,12 @@ function registerListeners() {
 
   // Error notifications
   listenerMiddleware.startListening({
-    actionCreator: createInvitationsForTarget.rejected,
+    actionCreator: createMemberGrants.rejected,
     effect: async (action, listenerApi) => {
-      if (action.meta.arg.refreshTarget?.targetType !== "project") return
+      if (action.meta.arg.targetType !== "project") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to send invitations",
+          title: "Failed to add members",
           type: "error",
         }),
       )

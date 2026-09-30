@@ -29,7 +29,7 @@ describe("EvaluationConversationRuns - executeOne", () => {
   let projectId: string
   let evaluationConversationRunId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   const mockEnqueueExecuteRun = jest.fn().mockResolvedValue(undefined)
 
@@ -37,7 +37,7 @@ describe("EvaluationConversationRuns - executeOne", () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [EvaluationsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
+        setupUserGuardForTesting(moduleBuilder, () => authSubject)
           .overrideProvider(EVALUATION_CONVERSATION_RUN_BATCH_SERVICE)
           .useValue({
             enqueueExecuteRun: mockEnqueueExecuteRun,
@@ -58,7 +58,7 @@ describe("EvaluationConversationRuns - executeOne", () => {
     await clearTestDatabase(setup.dataSource)
     mockEnqueueExecuteRun.mockClear()
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -70,7 +70,7 @@ describe("EvaluationConversationRuns - executeOne", () => {
     const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
       {
-        user: { auth0Id },
+        user: { authSubject },
         agent: { type: "conversation" },
         agentSettings: {
           model: AgentModel._Mock,
@@ -80,7 +80,7 @@ describe("EvaluationConversationRuns - executeOne", () => {
     )
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     const { dataset, datasetRecords, run } = await createRunWithConversationDataset({
       getRepository: setup.getRepository,

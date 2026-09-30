@@ -31,12 +31,12 @@ describe("EvaluationConversationDatasets - deleteOne", () => {
   let projectId: string
   let datasetId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupTransactionalTestDatabase({
       additionalImports: [EvaluationsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     datasetRepository = setup.getRepository(EvaluationConversationDataset)
@@ -49,7 +49,7 @@ describe("EvaluationConversationDatasets - deleteOne", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -61,7 +61,7 @@ describe("EvaluationConversationDatasets - deleteOne", () => {
     const { user, organization, project } = await createOrganizationWithProject(repositories)
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     const dataset = evaluationConversationDatasetFactory
       .transient({ organization, project })

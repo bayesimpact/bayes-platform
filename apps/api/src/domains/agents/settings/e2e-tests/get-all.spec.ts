@@ -33,12 +33,12 @@ describe("Agent Settings - getAll", () => {
   let projectId: string
   let agentId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [AgentsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -49,7 +49,7 @@ describe("Agent Settings - getAll", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -63,7 +63,7 @@ describe("Agent Settings - getAll", () => {
     organizationId = organization.id
     projectId = project.id
     agentId = agent.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
     return { organization, project, agent, agentSettings, user }
   }
 

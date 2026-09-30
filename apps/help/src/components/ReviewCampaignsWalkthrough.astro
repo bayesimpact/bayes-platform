@@ -2,8 +2,12 @@
 /**
  * Animated, full-page walkthrough of the Review campaigns flow, mirroring the real
  * Studio interface (same shell, exact Lucide icons, real brand logo). Shares the
- * exact FORM of the other help-center walkthroughs — only the content differs.
+ * exact FORM of the other help-center walkthroughs; only the content differs.
  * Pass `lang="fr"` for the French copy.
+ *
+ * Participants tab re-verified 2026-09-28 against CampaignForm.tsx and
+ * ParticipantsList.tsx (reviewCampaigns, actions and status locales, EN + FR):
+ * people are added by email with a role and get access right away, no invitation.
  */
 type Lang = "en" | "fr"
 const { lang = "en" } = Astro.props as { lang?: Lang }
@@ -19,14 +23,14 @@ const STRINGS = {
     timeAgo: "About 1 hour ago", create: "Create",
     newAgent: "New Agent", newAgentDesc: "An agent can perform specific tasks based on its type and configuration.",
     documentsDesc: "Enhance your agents' knowledge and capabilities by adding documents.",
-    membersDesc: "Invite members to join your workspace to collaborate together.",
-    reviewCampaigns: "Review campaigns", reviewDesc: "Invite testers and reviewers to evaluate an agent.",
+    membersDesc: "Add admins to your workspace to collaborate together.",
+    reviewCampaigns: "Review campaigns", reviewDesc: "Ask testers and reviewers to evaluate an agent.",
     analyticsDesc: "View analytics for your project, including conversations, average questions per session, and more.",
     evalDesc: "Test the performance of your agents.",
-    title: "Review campaigns", subtitle: "Evaluate agents with invited testers and reviewers.",
+    title: "Review campaigns", subtitle: "Evaluate agents with testers and reviewers.",
     newBtn: "New campaign",
-    emptyTitle: "No review campaigns yet", emptyDesc: "Create a campaign to invite testers and reviewers to evaluate an agent.",
-    createTitle: "New review campaign", createDesc: "Configure the agent, questions, and invitees before activating.",
+    emptyTitle: "No review campaigns yet", emptyDesc: "Create a campaign so testers and reviewers can evaluate an agent.",
+    createTitle: "New review campaign", createDesc: "Configure the agent, questions, and participants before activating.",
     editTitle: "Edit review campaign",
     tabGeneral: "General", tabQuestions: "Questions", tabParticipants: "Participants", tabPreview: "Preview",
     fName: "Name", fNamePh: "e.g. Support agent — Q2 review",
@@ -41,12 +45,12 @@ const STRINGS = {
     qRequired: "Required", qFactual: "Factual", qFactualHint: "(visible to reviewers during blind)",
     qSample1: "Was the response clear?", qSample2: "Was the answer factually correct?", qSample3: "Any comments?",
     addQuestion: "Add question",
-    inviteTitle: "Invite participants",
+    addTitle: "Add participants",
     emailsLabel: "Emails (comma or newline separated)", emailsPh: "alice@example.com, bob@example.com",
+    accessHint: "People get access right away. They sign in with your organization's account.",
     roleLabel: "Role", roleTester: "Tester", roleReviewer: "Reviewer",
-    send: "Send invitations",
-    pendingTitle: "Pending invitations", pendingDesc: "Invitations already sent for this review campaign.",
-    colEmail: "Email", colRole: "Role", colAccepted: "Accepted", statusPending: "pending", revoke: "Revoke",
+    add: "Add",
+    colEmail: "Email", colRole: "Role", colStatus2: "Status", neverSignedIn: "Never signed in", revoke: "Revoke",
     stDraft: "Draft", stActive: "Active", stClosed: "Closed",
     colName: "Name", colStatus: "Status", colMembers: "Members", colCreated: "Created", colUpdated: "Updated", colActions: "Actions",
     campaignName: "Bayes Assistant — Q2 review", timeShort: "just now",
@@ -66,8 +70,8 @@ const STRINGS = {
       "Click Create campaign — it's saved as a Draft.",
       "Your campaign appears in the table with the Draft status.",
       "Open the draft and click Activate (top-right of the editor), then confirm.",
-      "In Participants, enter emails, choose Tester or Reviewer, and Send invitations.",
-      "Invitees stay under Pending invitations until they accept.",
+      "In Participants, enter emails, choose Tester or Reviewer, then click Add.",
+      "Participants appear in the table right away. Never signed in marks who hasn't signed in yet.",
       "To end it, open the campaign and click Close in the editor header.",
       "Confirm to close the campaign — it becomes read-only.",
       "Once closed, open the report to see aggregated results.",
@@ -83,14 +87,14 @@ const STRINGS = {
     timeAgo: "Il y a environ 1 heure", create: "Créer",
     newAgent: "Nouvel agent", newAgentDesc: "Un agent peut effectuer des tâches spécifiques selon son type et sa configuration.",
     documentsDesc: "Enrichissez les connaissances et capacités de vos agents en ajoutant des documents.",
-    membersDesc: "Invitez des membres à rejoindre votre espace de travail pour collaborer ensemble.",
-    reviewCampaigns: "Campagnes d'évaluation", reviewDesc: "Invitez des testeurs et des relecteurs à évaluer un agent.",
+    membersDesc: "Ajoutez des administrateurs à votre espace de travail pour collaborer ensemble.",
+    reviewCampaigns: "Campagnes d'évaluation", reviewDesc: "Faites évaluer un agent par des testeurs et des relecteurs.",
     analyticsDesc: "Consultez les analyses de votre espace de travail : conversations, questions moyennes par session, et plus.",
     evalDesc: "Testez les performances de vos agents.",
-    title: "Campagnes d'évaluation", subtitle: "Évaluez les agents avec des testeurs et des relecteurs invités.",
+    title: "Campagnes d'évaluation", subtitle: "Évaluez des agents avec des testeurs et des relecteurs.",
     newBtn: "Nouvelle campagne",
-    emptyTitle: "Aucune campagne d'évaluation pour le moment", emptyDesc: "Créez une campagne pour inviter des testeurs et des relecteurs à évaluer un agent.",
-    createTitle: "Nouvelle campagne d'évaluation", createDesc: "Configurez l'agent, les questions et les invités avant d'activer.",
+    emptyTitle: "Aucune campagne d'évaluation pour le moment", emptyDesc: "Créez une campagne pour faire évaluer un agent par des testeurs et des relecteurs.",
+    createTitle: "Nouvelle campagne d'évaluation", createDesc: "Configurez l'agent, les questions et les participants avant d'activer.",
     editTitle: "Modifier la campagne d'évaluation",
     tabGeneral: "Général", tabQuestions: "Questions", tabParticipants: "Participants", tabPreview: "Aperçu",
     fName: "Nom", fNamePh: "ex. Agent Support — revue T2",
@@ -105,12 +109,12 @@ const STRINGS = {
     qRequired: "Obligatoire", qFactual: "Factuelle", qFactualHint: "(visible aux relecteurs en mode aveugle)",
     qSample1: "La réponse était-elle claire ?", qSample2: "La réponse était-elle factuellement correcte ?", qSample3: "Des commentaires ?",
     addQuestion: "Ajouter une question",
-    inviteTitle: "Inviter des participants",
+    addTitle: "Ajouter des participants",
     emailsLabel: "E-mails (séparés par des virgules ou des retours à la ligne)", emailsPh: "alice@exemple.com, bob@exemple.com",
+    accessHint: "Les personnes ont accès immédiatement. Elles se connectent avec le compte de votre organisation.",
     roleLabel: "Rôle", roleTester: "Testeur", roleReviewer: "Relecteur",
-    send: "Envoyer les invitations",
-    pendingTitle: "Invitations en attente", pendingDesc: "Invitations déjà envoyées pour cette campagne de revue.",
-    colEmail: "E-mail", colRole: "Rôle", colAccepted: "Accepté", statusPending: "en attente", revoke: "Révoquer",
+    add: "Ajouter",
+    colEmail: "E-mail", colRole: "Rôle", colStatus2: "Statut", neverSignedIn: "Jamais connecté", revoke: "Révoquer",
     stDraft: "Brouillon", stActive: "Active", stClosed: "Clôturée",
     colName: "Nom", colStatus: "Statut", colMembers: "Membres", colCreated: "Créée", colUpdated: "Modifiée", colActions: "Actions",
     campaignName: "Bayes Assistant — revue T2", timeShort: "à l'instant",
@@ -130,8 +134,8 @@ const STRINGS = {
       "Cliquez sur Créer la campagne — elle est enregistrée en Brouillon.",
       "Votre campagne apparaît dans le tableau avec le statut Brouillon.",
       "Ouvrez le brouillon et cliquez sur Activer (en haut à droite de l'éditeur), puis confirmez.",
-      "Dans Participants, saisissez les e-mails, choisissez Testeur ou Relecteur, puis Envoyer les invitations.",
-      "Les invités restent dans Invitations en attente jusqu'à leur acceptation.",
+      "Dans Participants, saisissez les e-mails, choisissez Testeur ou Relecteur, puis cliquez sur Ajouter.",
+      "Les participants apparaissent aussitôt dans le tableau. Jamais connecté signale qui ne s'est pas encore connecté.",
       "Pour la terminer, ouvrez la campagne et cliquez sur Clôturer dans l'en-tête de l'éditeur.",
       "Confirmez pour clôturer la campagne — elle passe en lecture seule.",
       "Une fois clôturée, ouvrez le rapport pour voir les résultats agrégés.",
@@ -150,8 +154,8 @@ const steps = [
   { page: "editorQuestions", sources: false, spot: "btnCreate", observe: [] },
   { page: "campaignsTable", sources: false, spot: "", observe: ["obsRowDraft"] },
   { page: "editorEdit", sources: false, spot: "btnActivate", observe: [] },
-  { page: "editorParticipants", sources: false, spot: "btnSend", observe: ["obsInvite"] },
-  { page: "editorParticipants", sources: false, spot: "", observe: ["obsPending"] },
+  { page: "editorParticipants", sources: false, spot: "btnAddParticipants", observe: ["obsAddBox"] },
+  { page: "editorParticipants", sources: false, spot: "", observe: ["obsParticipants"] },
   { page: "editorParticipants", sources: false, spot: "btnCloseHeader", observe: [] },
   { page: "closeDialog", sources: false, spot: "btnCloseConfirm", observe: ["obsCloseModal"] },
   { page: "report", sources: false, spot: "", observe: ["obsReport"] },
@@ -367,7 +371,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
           </div>
         </div>
 
-        <!-- editor sheet — Participants tab, active (steps 9, 10 & 11) -->
+        <!-- editor sheet, Participants tab, active (steps 9, 10 & 11) -->
         <div class="page" data-page="editorParticipants">
           <div class="scrim"></div>
           <div class="sheet">
@@ -377,21 +381,20 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
             </div>
             <div class="tabbar"><span class="tab">{s.tabGeneral}</span><span class="tab">{s.tabQuestions}</span><span class="tab on">{s.tabParticipants}</span><span class="tab">{s.tabPreview}</span></div>
             <div class="sheet-body">
-              <div class="invitebox" id="obsInvite">
-                <b class="secttl">{s.inviteTitle}</b>
-                <div class="field"><span class="lbl">{s.emailsLabel}</span><span class="textarea">{s.emailsPh}</span></div>
-                <div class="row" style="gap:0.6rem; align-items:flex-end">
-                  <span style="flex:1"><span class="lbl">{s.roleLabel}</span><span class="select">{s.roleTester} <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></span>
-                  <span class="btn" id="btnSend"><svg viewBox="0 0 24 24"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg> {s.send}</span>
+              <div class="addbox" id="obsAddBox">
+                <b class="secttl">{s.addTitle}</b>
+                <div class="row" style="gap:0.6rem; align-items:flex-start">
+                  <span class="field" style="flex:1"><span class="lbl">{s.emailsLabel}</span><span class="textarea">{s.emailsPh}</span><span class="hint">{s.accessHint}</span></span>
+                  <span style="width:9rem"><span class="lbl">{s.roleLabel}</span><span class="select">{s.roleTester} <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></span>
                 </div>
+                <div class="row" style="justify-content:flex-end"><span class="btn" id="btnAddParticipants">{s.add}</span></div>
               </div>
-              <div class="section" id="obsPending">
-                <div class="sec-head"><b>{s.pendingTitle}</b><p>{s.pendingDesc}</p></div>
+              <div class="section" id="obsParticipants">
                 <table class="res">
-                  <thead><tr><th>{s.colEmail}</th><th>{s.colRole}</th><th>{s.colAccepted}</th><th class="ta-r">{s.colActions}</th></tr></thead>
+                  <thead><tr><th>{s.colEmail}</th><th>{s.colRole}</th><th>{s.colStatus2}</th><th class="ta-r">{s.colActions}</th></tr></thead>
                   <tbody>
-                    <tr><td>{s.email1}</td><td>{s.roleTester}</td><td class="muted-cell">{s.statusPending}</td><td class="rowacts"><span class="linkbtn">{s.revoke}</span></td></tr>
-                    <tr><td>{s.email2}</td><td>{s.roleReviewer}</td><td class="muted-cell">{s.statusPending}</td><td class="rowacts"><span class="linkbtn">{s.revoke}</span></td></tr>
+                    <tr><td><b>{s.email1}</b></td><td><span class="rolepill">{s.roleTester}</span></td><td><span class="nsbadge">{s.neverSignedIn}</span></td><td class="rowacts"><span class="linkbtn">{s.revoke}</span></td></tr>
+                    <tr><td><b>{s.email2}</b></td><td><span class="rolepill">{s.roleReviewer}</span></td><td></td><td class="rowacts"><span class="linkbtn">{s.revoke}</span></td></tr>
                   </tbody>
                 </table>
               </div>
@@ -620,7 +623,10 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   .rcw .tab.on { color: var(--foreground); border-bottom-color: var(--primary); font-weight: 600; }
   .rcw .sheet-body { flex: 1; overflow: auto; padding: 1rem 1.1rem; }
   .rcw .secttl { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.5rem; }
-  .rcw .invitebox { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem; background: var(--card); }
+  .rcw .addbox { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem; background: var(--card); }
+  .rcw .addbox .hint { display: block; font-size: 0.72rem; color: var(--muted-foreground); margin-top: 0.35rem; }
+  .rcw .rolepill, .rcw .nsbadge { display: inline-flex; align-items: center; font-size: 0.68rem; font-weight: 500; border-radius: 999px; padding: 0.1rem 0.45rem; border: 1px solid var(--border); color: var(--foreground); }
+  .rcw .nsbadge { color: var(--muted-foreground); }
 
   /* question editor */
   .rcw .qsec { margin-bottom: 1.1rem; }

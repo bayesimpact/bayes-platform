@@ -38,9 +38,9 @@ import { EvaluationExtractionDatasetDocumentContextResolver } from "./resolvers/
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationExtractionRunContextResolver } from "./resolvers/evaluation-extraction-run-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { InvitationScopeContextResolver } from "./resolvers/invitation-scope-context.resolver"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpServerContextResolver } from "./resolvers/mcp-server-context.resolver"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { MemberGrantScopeContextResolver } from "./resolvers/member-grant-scope-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationContextResolver } from "./resolvers/organization-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -74,7 +74,7 @@ const RESOLUTION_ORDER: ContextResource[] = [
   "agentSessionInCampaign",
   "reviewCampaign",
   "reviewCampaignMembership",
-  "invitationScope",
+  "memberGrantScope",
 ]
 
 @Injectable()
@@ -109,7 +109,7 @@ export class ResourceContextGuard implements CanActivate {
     @Optional()
     agentSessionInCampaignContextResolver?: AgentSessionInCampaignContextResolver,
     @Optional()
-    invitationScopeContextResolver?: InvitationScopeContextResolver,
+    memberGrantScopeContextResolver?: MemberGrantScopeContextResolver,
   ) {
     const resolverEntries: Array<[ContextResource, ContextResolver]> = []
     if (organizationContextResolver) {
@@ -202,10 +202,10 @@ export class ResourceContextGuard implements CanActivate {
         agentSessionInCampaignContextResolver,
       ])
     }
-    if (invitationScopeContextResolver) {
+    if (memberGrantScopeContextResolver) {
       resolverEntries.push([
-        invitationScopeContextResolver.resource,
-        invitationScopeContextResolver,
+        memberGrantScopeContextResolver.resource,
+        memberGrantScopeContextResolver,
       ])
     }
     this.resolverMap = new Map(resolverEntries)

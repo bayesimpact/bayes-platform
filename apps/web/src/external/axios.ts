@@ -1,6 +1,6 @@
 import axios, { type AxiosInstance } from "axios"
 import { runtimeConfig } from "@/config/runtime-config"
-import { Auth0AuthenticationError, getAccessToken, logoutAuth0 } from "./auth0Client"
+import { AuthenticationRequiredError, getAccessToken, logout } from "./oidcClient"
 
 let axiosInstance: AxiosInstance | null = null
 
@@ -14,7 +14,7 @@ const buildAxiosInstance = (): AxiosInstance => {
   const timeoutMs = Number(runtimeConfig.apiTimeoutMs ?? "10000")
   const axiosInstance = axios.create({ baseURL: `${baseURL}/`, timeout: timeoutMs })
 
-  // Set up request interceptor to automatically inject Auth0 access token
+  // Set up request interceptor to automatically inject the OIDC access token
   // This ensures tokens are always fresh and handles refresh automatically
   axiosInstance.interceptors.request.use(
     async (config) => {
@@ -22,14 +22,12 @@ const buildAxiosInstance = (): AxiosInstance => {
         const token = await getAccessToken()
         config.headers.Authorization = `Bearer ${token}`
       } catch (error) {
-        // Handle Auth0 authentication errors that require re-authentication
-        if (error instanceof Auth0AuthenticationError) {
-          console.warn(
-            `Auth0 authentication error (${error.errorCode}): ${error.message}. Logging out user.`,
-          )
+        // The session is gone: the user must sign in again
+        if (error instanceof AuthenticationRequiredError) {
+          console.warn(`${error.message} Logging out user.`)
           // Logout will redirect the user, so we reject the request
           // The logout will clear localStorage and redirect to home page
-          await logoutAuth0()
+          await logout()
           return Promise.reject(new Error("Your session has expired. Please log in again."))
         }
 
@@ -62,12 +60,10 @@ const buildAxiosInstance = (): AxiosInstance => {
           error.config.headers.Authorization = `Bearer ${token}`
           return axiosInstance.request(error.config)
         } catch (tokenError) {
-          // If getting a fresh token fails with Auth0AuthenticationError, logout
-          if (tokenError instanceof Auth0AuthenticationError) {
-            console.warn(
-              `Auth0 authentication error (${tokenError.errorCode}): ${tokenError.message}. Logging out user.`,
-            )
-            await logoutAuth0()
+          // If getting a fresh token fails because the session is gone, logout
+          if (tokenError instanceof AuthenticationRequiredError) {
+            console.warn(`${tokenError.message} Logging out user.`)
+            await logout()
             return Promise.reject(new Error("Your session has expired. Please log in again."))
           }
           // For other errors, reject with the original error

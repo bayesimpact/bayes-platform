@@ -7,7 +7,6 @@ import {
   studioStoryArgTypes,
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
-import { pendingInvitationFactory } from "@/studio/features/invitations/invitations.factory"
 import {
   projectMemberAgentFactory,
   projectMembershipFactory,
@@ -81,17 +80,11 @@ export const Default: Story = {
         : []
       const memberships = [membership, ...otherMemberships]
 
-      const pendingInvitations = [
-        pendingInvitationFactory.transient({ project }).build({ role: "admin" }),
-        pendingInvitationFactory.transient({ project }).build({ role: "member" }),
-      ]
-
       return {
         state: mergeSeeds(
           baseSeeds,
           seed.studio.projectMemberships(memberships),
           seed.studio.projectMemberAgents(memberAgents),
-          seed.studio.pendingInvitations(pendingInvitations),
           seed.currentMembershipId(FIXED_MEMBERSHIP_ID),
         ),
         services: {

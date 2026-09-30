@@ -37,13 +37,13 @@ describe("EvaluationExtractionDatasets - getFileColumns", () => {
   let projectId: string
   let documentId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupTransactionalTestDatabase({
       additionalImports: [EvaluationsModule],
       applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
+        setupUserGuardForTesting(moduleBuilder, () => authSubject)
           .overrideProvider(FILE_STORAGE_SERVICE)
           .useValue(mockFileStorageService),
     })
@@ -56,7 +56,7 @@ describe("EvaluationExtractionDatasets - getFileColumns", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
     mockFileStorageService.readFile.mockResolvedValue(Buffer.from(CSV_CONTENT))
     mockFileStorageService.createReadStream.mockImplementation(() =>
       Readable.from(Buffer.from(CSV_CONTENT)),
@@ -72,7 +72,7 @@ describe("EvaluationExtractionDatasets - getFileColumns", () => {
     const { user, organization, project } = await createOrganizationWithProject(repositories)
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     const document = evaluationExtractionDatasetDocumentFactory
       .transient({ organization, project })

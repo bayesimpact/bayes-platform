@@ -9,7 +9,7 @@
       "loading": "Chargement…",
       "empty": {
         "title": "Aucune campagne d'évaluation pour le moment",
-        "description": "Lorsqu'on vous invitera à évaluer un agent, la campagne apparaîtra ici."
+        "description": "Lorsque quelqu'un vous ajoute comme relecteur, la campagne apparaîtra ici."
       },
       "card": {
         "description": "Relisez les sessions des testeurs et soumettez votre propre évaluation.",

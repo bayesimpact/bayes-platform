@@ -12,7 +12,6 @@ import { OrganizationGuard } from "./organization.guard"
 import { OrganizationRepository } from "./organization.repository"
 import { OrganizationsController } from "./organizations.controller"
 import { OrganizationsService } from "./organizations.service"
-import { OrganizationAccountProvisioningService } from "./provisioning/organization-account-provisioning.service"
 
 @Module({
   imports: [
@@ -29,14 +28,8 @@ import { OrganizationAccountProvisioningService } from "./provisioning/organizat
     OrganizationMembershipsService,
     OrganizationRepository,
     OrganizationGuard,
-    OrganizationAccountProvisioningService,
   ],
   controllers: [OrganizationsController],
-  exports: [
-    OrganizationsService,
-    OrganizationMembershipsService,
-    OrganizationMembershipRepository,
-    OrganizationAccountProvisioningService,
-  ],
+  exports: [OrganizationsService, OrganizationMembershipsService, OrganizationMembershipRepository],
 })
 export class OrganizationsModule {}

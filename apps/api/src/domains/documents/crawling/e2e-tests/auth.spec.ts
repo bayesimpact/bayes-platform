@@ -12,7 +12,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithDocument } from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
-import { mockForeignAuth0Id } from "../../../../../test/e2e.helpers"
+import { mockForeignAuthSubject } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { DocumentsModule } from "../../documents.module"
 import { withCrawlingAndAuthMocks } from "../../test-overrides"
@@ -27,12 +27,12 @@ describe("Documents Crawling - Auth", () => {
   let projectId: string | null = "random-project-id"
   let documentId: string | null = "random-document-id"
   let accessToken: string | null = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [DocumentsModule],
-      applyOverrides: (moduleBuilder) => withCrawlingAndAuthMocks(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => withCrawlingAndAuthMocks(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -46,7 +46,7 @@ describe("Documents Crawling - Auth", () => {
     projectId = "random-project-id"
     documentId = "random-document-id"
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -56,7 +56,7 @@ describe("Documents Crawling - Auth", () => {
 
   const createContextForRole = async (role: "owner" | "admin" | "member" = "owner") => {
     const { organization, project, document } = await createOrganizationWithDocument(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
       projectMembership: { role },
       document: { sourceType: "webCrawl", sourceUrl: "https://example.com" },
     })
@@ -91,7 +91,7 @@ describe("Documents Crawling - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to crawl a URL", async () => {
@@ -127,7 +127,7 @@ describe("Documents Crawling - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("requires the document to be part of the project", async () => {
@@ -171,7 +171,7 @@ describe("Documents Crawling - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to stream crawl progress", async () => {

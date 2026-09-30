@@ -4,7 +4,7 @@ import type {
 } from "@caseai-connect/api-contracts"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
-import { Field, FieldLabel } from "@caseai-connect/ui/shad/field"
+import { Field, FieldDescription, FieldLabel } from "@caseai-connect/ui/shad/field"
 import {
   Select,
   SelectContent,
@@ -24,15 +24,12 @@ import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
-import { PendingInvitationsSection } from "@/studio/features/invitations/components/PendingInvitationsSection"
-import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
+import { NeverSignedInBadge } from "@/common/components/NeverSignedInBadge"
 
 type Props = {
   memberships: ReviewCampaignMembershipDto[]
-  pendingInvitations: PendingInvitations
-  onInvite: (role: ReviewCampaignMembershipRole, emails: string[]) => void
+  onAdd: (role: ReviewCampaignMembershipRole, emails: string[]) => void
   onRevoke: (membershipId: string) => void
-  onRevokeInvitation: (invitationId: string) => void
   disabled?: boolean
 }
 
@@ -42,14 +39,7 @@ const parseEmails = (raw: string): string[] =>
     .map((email) => email.trim())
     .filter(Boolean)
 
-export function ParticipantsList({
-  memberships,
-  pendingInvitations,
-  onInvite,
-  onRevoke,
-  onRevokeInvitation,
-  disabled = false,
-}: Props) {
+export function ParticipantsList({ memberships, onAdd, onRevoke, disabled = false }: Props) {
   const { t } = useTranslation()
   const [emailsInput, setEmailsInput] = useState("")
   const [role, setRole] = useState<ReviewCampaignMembershipRole>("tester")
@@ -61,33 +51,34 @@ export function ParticipantsList({
       ? t("reviewCampaigns:participants.tester")
       : t("reviewCampaigns:participants.reviewer")
 
-  const handleInvite = () => {
+  const handleAdd = () => {
     const emails = parseEmails(emailsInput)
     if (emails.length === 0) return
-    onInvite(role, emails)
+    onAdd(role, emails)
     setEmailsInput("")
   }
 
   return (
     <section className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 rounded-md border p-3">
-        <h3 className="text-sm font-semibold">{t("reviewCampaigns:participants.inviteTitle")}</h3>
+        <h3 className="text-sm font-semibold">{t("reviewCampaigns:participants.addTitle")}</h3>
         <div className="flex flex-col gap-3 md:flex-row">
           <Field className="md:flex-1">
-            <FieldLabel htmlFor="invite-emails">
+            <FieldLabel htmlFor="participant-emails">
               {t("reviewCampaigns:participants.emailsLabel")}
             </FieldLabel>
             <Textarea
-              id="invite-emails"
+              id="participant-emails"
               rows={3}
               value={emailsInput}
               disabled={disabled}
               placeholder={t("reviewCampaigns:participants.emailsPlaceholder")}
               onChange={(event) => setEmailsInput(event.target.value)}
             />
+            <FieldDescription>{t("reviewCampaigns:participants.accessHint")}</FieldDescription>
           </Field>
           <Field className="md:w-40">
-            <FieldLabel htmlFor="invite-role">
+            <FieldLabel htmlFor="participant-role">
               {t("reviewCampaigns:participants.roleLabel")}
             </FieldLabel>
             <Select
@@ -95,7 +86,7 @@ export function ParticipantsList({
               disabled={disabled}
               onValueChange={(value) => setRole(value as ReviewCampaignMembershipRole)}
             >
-              <SelectTrigger id="invite-role">
+              <SelectTrigger id="participant-role">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -110,10 +101,10 @@ export function ParticipantsList({
         <div className="flex justify-end">
           <Button
             type="button"
-            onClick={handleInvite}
+            onClick={handleAdd}
             disabled={disabled || parseEmails(emailsInput).length === 0}
           >
-            {t("reviewCampaigns:participants.send")}
+            {t("actions:add")}
           </Button>
         </div>
       </div>
@@ -129,7 +120,7 @@ export function ParticipantsList({
               <TableRow>
                 <TableHead>{t("reviewCampaigns:participants.email")}</TableHead>
                 <TableHead>{t("reviewCampaigns:participants.roleLabel")}</TableHead>
-                <TableHead>{t("reviewCampaigns:participants.accepted")}</TableHead>
+                <TableHead>{t("reviewCampaigns:participants.status")}</TableHead>
                 <TableHead className="text-right">
                   {t("reviewCampaigns:participants.actions")}
                 </TableHead>
@@ -142,7 +133,7 @@ export function ParticipantsList({
                   <TableCell>
                     <Badge variant="outline">{roleLabel(membership.role)}</Badge>
                   </TableCell>
-                  <TableCell />
+                  <TableCell>{!membership.userHasSignedIn && <NeverSignedInBadge />}</TableCell>
                   <TableCell className="text-right">
                     <Button
                       variant="ghost"
@@ -158,12 +149,6 @@ export function ParticipantsList({
             </TableBody>
           </Table>
         )}
-        <PendingInvitationsSection
-          invitations={pendingInvitations}
-          title={t("reviewCampaigns:participants.pendingInvitations.title")}
-          description={t("reviewCampaigns:participants.pendingInvitations.description")}
-          onRevoke={onRevokeInvitation}
-        />
       </div>
 
       <ConfirmDialog

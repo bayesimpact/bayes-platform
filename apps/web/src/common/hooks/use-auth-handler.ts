@@ -1,19 +1,7 @@
-import { useAuth0 } from "@auth0/auth0-react"
-import { AUTH0_ORGANIZATION_ID } from "@/config/auth0.config"
-import { getAppUrl } from "@/config/runtime-config"
+import { login, logout } from "@/external/oidcClient"
 
 export function useAuthHandler() {
-  const { loginWithRedirect, logout } = useAuth0()
-
-  const handleLogIn = () =>
-    loginWithRedirect({
-      authorizationParams: {
-        organization: AUTH0_ORGANIZATION_ID,
-      },
-    })
-
-  const handleLogOut = () => {
-    logout({ logoutParams: { returnTo: getAppUrl() } })
-  }
+  const handleLogIn = () => login()
+  const handleLogOut = () => logout()
   return { handleLogOut, handleLogIn }
 }

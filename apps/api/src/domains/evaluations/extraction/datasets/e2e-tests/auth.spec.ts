@@ -15,8 +15,8 @@ import { createOrganizationWithProject } from "@/domains/organizations/organizat
 import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
 import { projectFactory } from "@/domains/projects/project.factory"
 import {
-  mockAuth0EmailForSub,
-  mockForeignAuth0Id,
+  mockForeignAuthSubject,
+  mockOidcEmailForSub,
   setupUserGuardForTesting,
 } from "../../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
@@ -38,12 +38,12 @@ describe("EvaluationExtractionDatasets - Auth", () => {
   let documentId: string | null = randomUUID()
   let datasetId: string | null = randomUUID()
   let accessToken: string | null = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [EvaluationsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     datasetRepository = setup.getRepository(EvaluationExtractionDataset)
@@ -59,7 +59,7 @@ describe("EvaluationExtractionDatasets - Auth", () => {
     documentId = randomUUID()
     datasetId = randomUUID()
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -69,13 +69,13 @@ describe("EvaluationExtractionDatasets - Auth", () => {
 
   const createContextForRole = async (role: ProjectMembershipRole = "owner") => {
     const { user, organization, project } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+      user: { authSubject, email: mockOidcEmailForSub(authSubject) },
       projectMembership: { role },
     })
     organizationId = organization.id
     projectId = project.id
     accessToken = "token"
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     const document = evaluationExtractionDatasetDocumentFactory
       .transient({ organization, project })
@@ -109,7 +109,7 @@ describe("EvaluationExtractionDatasets - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to get all datasets", async () => {
@@ -141,7 +141,7 @@ describe("EvaluationExtractionDatasets - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to get records", async () => {
@@ -173,7 +173,7 @@ describe("EvaluationExtractionDatasets - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to get all files", async () => {
@@ -210,7 +210,7 @@ describe("EvaluationExtractionDatasets - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to upload a file", async () => {
@@ -242,7 +242,7 @@ describe("EvaluationExtractionDatasets - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("requires the file to be part of the project", async () => {
@@ -282,7 +282,7 @@ describe("EvaluationExtractionDatasets - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("requires the file to be part of the project", async () => {
@@ -322,7 +322,7 @@ describe("EvaluationExtractionDatasets - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("requires the document to be part of the project", async () => {
@@ -369,7 +369,7 @@ describe("EvaluationExtractionDatasets - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(payload), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to create a dataset", async () => {
@@ -413,7 +413,7 @@ describe("EvaluationExtractionDatasets - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(payload), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("requires the dataset to be part of the project", async () => {
@@ -487,7 +487,7 @@ describe("EvaluationExtractionDatasets - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(payload), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to rename a dataset", async () => {
@@ -519,7 +519,7 @@ describe("EvaluationExtractionDatasets - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to delete a dataset", async () => {

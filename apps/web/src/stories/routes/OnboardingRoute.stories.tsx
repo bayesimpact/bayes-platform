@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { agentFactory } from "@/common/features/agents/agent.factory"
 import {
   organizationMembershipFactory,
   projectMembershipFactory,
@@ -13,14 +12,11 @@ import { RouteNames } from "@/common/routes/helpers"
 import { onboardingRoute } from "@/common/routes/Router"
 import { buildDecorator, render } from "@/stories/decorators"
 import { mergeSeeds, seed } from "@/stories/seed"
-import { pendingInvitationFactory } from "@/studio/features/invitations/invitations.factory"
 import { type BaseStoryArgs, baseStoryArgs, baseStoryArgTypes } from "../helpers"
 
 type StoryArgs = BaseStoryArgs & {
   organizationCount: number
   projectsPerOrganization: number
-  withProjectInvitations: boolean
-  withAgentInvitations: boolean
   withReviewCampaignMembershipsAsTester: boolean
   withReviewCampaignMembershipsAsReviewer: boolean
 }
@@ -31,8 +27,6 @@ function buildData(args: StoryArgs) {
     organizationMembershipRole,
     projectMembershipRole,
     projectsPerOrganization,
-    withProjectInvitations,
-    withAgentInvitations,
     withReviewCampaignMembershipsAsTester,
     withReviewCampaignMembershipsAsReviewer,
     featureFlags,
@@ -68,35 +62,6 @@ function buildData(args: StoryArgs) {
     projectMembershipFactory.transient({ project }).build({ role: projectMembershipRole }),
   )
 
-  const projectInvitations = withProjectInvitations
-    ? [
-        pendingInvitationFactory
-          .transient({
-            project: projectFactory
-              .transient({ organization: organizationFactory.build() })
-              .build(),
-            targetType: "project",
-          })
-          .build({ role: "member" }),
-      ]
-    : []
-
-  const agentInvitations = withAgentInvitations
-    ? (() => {
-        const project = projectFactory
-          .transient({ organization: organizationFactory.build() })
-          .build()
-        const agent = agentFactory.transient({ project }).build()
-        return [
-          pendingInvitationFactory
-            .transient({ agent, project, targetType: "agent" })
-            .build({ role: "member" }),
-        ]
-      })()
-    : []
-
-  const invitations = [...projectInvitations, ...agentInvitations]
-
   const reviewCampaignMemberships =
     (withReviewCampaignMembershipsAsTester || withReviewCampaignMembershipsAsReviewer) &&
     firstProject
@@ -122,7 +87,6 @@ function buildData(args: StoryArgs) {
     myProjects,
     organizationMemberships,
     projectMemberships,
-    invitations,
     reviewCampaignMemberships,
   }
 }
@@ -134,8 +98,6 @@ const meta = {
     ...baseStoryArgTypes,
     organizationCount: { control: { type: "number", min: 0, max: 4 } },
     projectsPerOrganization: { control: { type: "number", min: 0, max: 4 } },
-    withProjectInvitations: { control: "boolean" },
-    withAgentInvitations: { control: "boolean" },
     withReviewCampaignMembershipsAsTester: { control: "boolean" },
     withReviewCampaignMembershipsAsReviewer: { control: "boolean" },
   },
@@ -145,8 +107,6 @@ const meta = {
     projectMembershipRole: "member",
     organizationCount: 1,
     projectsPerOrganization: 1,
-    withProjectInvitations: false,
-    withAgentInvitations: false,
     withReviewCampaignMembershipsAsTester: false,
     withReviewCampaignMembershipsAsReviewer: false,
   },
@@ -166,7 +126,6 @@ const meta = {
           seed.me(user),
           seed.organizations(data.organizations),
           seed.myProjects(data.myProjects),
-          seed.pendingInvitations(data.invitations),
         ),
       }
     }),
@@ -186,6 +145,7 @@ export const Default: Story = {
   },
 }
 
+/** Signed in, but nobody gave this person access yet: the no-access page. */
 export const Empty: Story = {
   args: {
     organizationMembershipRole: "member",
@@ -194,8 +154,6 @@ export const Empty: Story = {
     featureFlags: [],
     organizationCount: 0,
     projectsPerOrganization: 0,
-    withProjectInvitations: false,
-    withAgentInvitations: false,
     withReviewCampaignMembershipsAsTester: false,
     withReviewCampaignMembershipsAsReviewer: false,
   },
@@ -209,23 +167,6 @@ export const Single: Story = {
     featureFlags: [],
     organizationCount: 1,
     projectsPerOrganization: 1,
-    withProjectInvitations: false,
-    withAgentInvitations: false,
-    withReviewCampaignMembershipsAsTester: false,
-    withReviewCampaignMembershipsAsReviewer: false,
-  },
-}
-
-export const SingleWithInvitations: Story = {
-  args: {
-    organizationMembershipRole: "member",
-    projectMembershipRole: "member",
-    agentMembershipRole: "owner",
-    featureFlags: [],
-    organizationCount: 1,
-    projectsPerOrganization: 1,
-    withProjectInvitations: true,
-    withAgentInvitations: true,
     withReviewCampaignMembershipsAsTester: false,
     withReviewCampaignMembershipsAsReviewer: false,
   },
@@ -239,8 +180,6 @@ export const SingleWithStudioAccess: Story = {
     featureFlags: ["evaluation"],
     organizationCount: 1,
     projectsPerOrganization: 1,
-    withProjectInvitations: false,
-    withAgentInvitations: false,
     withReviewCampaignMembershipsAsTester: true,
     withReviewCampaignMembershipsAsReviewer: true,
   },
@@ -254,8 +193,6 @@ export const Multi: Story = {
     featureFlags: [],
     organizationCount: 2,
     projectsPerOrganization: 3,
-    withProjectInvitations: false,
-    withAgentInvitations: false,
     withReviewCampaignMembershipsAsTester: true,
     withReviewCampaignMembershipsAsReviewer: true,
   },

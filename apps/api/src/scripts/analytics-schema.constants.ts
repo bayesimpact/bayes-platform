@@ -35,7 +35,7 @@ export const ANALYTICS_FORBIDDEN_COLUMNS = [
   "session_token_hash",
   "embed_token",
   "trace_id",
-  "auth0_id",
+  "auth_subject",
   "email",
   "content",
   "title",

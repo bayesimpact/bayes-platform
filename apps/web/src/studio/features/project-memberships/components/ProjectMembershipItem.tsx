@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { GridCard } from "@/common/components/grid/Grid"
+import { NeverSignedInBadge } from "@/common/components/NeverSignedInBadge"
 import { SUPER_ROLES } from "@/common/features/me/me.models"
 import { selectMe } from "@/common/features/me/me.selectors"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
@@ -55,7 +56,10 @@ export function ProjectMembershipItem({
           </GridCard.TopAction>
         )}
         <GridCard.Badge>
-          <BadgeWithIcon role={membership.role} />
+          <div className="flex gap-1">
+            <BadgeWithIcon role={membership.role} />
+            {!membership.userHasSignedIn && <NeverSignedInBadge />}
+          </div>
         </GridCard.Badge>
         <GridCard.Body>
           <GridCard.Title>{membership.userName}</GridCard.Title>

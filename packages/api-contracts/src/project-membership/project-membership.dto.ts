@@ -7,6 +7,8 @@ export type ProjectMembershipDto = {
   userId: string
   userName: string | null
   userEmail: string
+  /** False while the member was added by email and has never signed in. */
+  userHasSignedIn: boolean
   createdAt: TimeType
   role: ProjectMembershipRoleDto
 }

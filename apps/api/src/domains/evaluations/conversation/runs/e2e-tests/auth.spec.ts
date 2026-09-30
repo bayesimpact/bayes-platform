@@ -30,12 +30,12 @@ describe("EvaluationConversationRuns - Auth", () => {
   let projectId: string | null = randomUUID()
   let evaluationConversationRunId: string | null = randomUUID()
   let accessToken: string | null = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupTransactionalTestDatabase({
       additionalImports: [EvaluationsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -49,7 +49,7 @@ describe("EvaluationConversationRuns - Auth", () => {
     projectId = randomUUID()
     evaluationConversationRunId = randomUUID()
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -68,7 +68,7 @@ describe("EvaluationConversationRuns - Auth", () => {
     organizationId = organization.id
     projectId = project.id
     accessToken = "token"
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     const dataset = evaluationConversationDatasetFactory
       .transient({ organization, project })
@@ -126,7 +126,7 @@ describe("EvaluationConversationRuns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = "another-auth0-id"
+      authSubject = "another-oidc-subject"
       expectResponse(await subject(payload), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to create an evaluation run", async () => {
@@ -158,7 +158,7 @@ describe("EvaluationConversationRuns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = "another-auth0-id"
+      authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to list evaluation runs", async () => {
@@ -190,7 +190,7 @@ describe("EvaluationConversationRuns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = "another-auth0-id"
+      authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to get an evaluation run", async () => {
@@ -222,7 +222,7 @@ describe("EvaluationConversationRuns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = "another-auth0-id"
+      authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to execute an evaluation run", async () => {
@@ -254,7 +254,7 @@ describe("EvaluationConversationRuns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = "another-auth0-id"
+      authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to retry an evaluation run", async () => {
@@ -286,7 +286,7 @@ describe("EvaluationConversationRuns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = "another-auth0-id"
+      authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to cancel an evaluation run", async () => {
@@ -311,7 +311,7 @@ describe("EvaluationConversationRuns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = "another-auth0-id"
+      authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
   })
@@ -339,7 +339,7 @@ describe("EvaluationConversationRuns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = "another-auth0-id"
+      authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to get evaluation run records", async () => {
@@ -371,7 +371,7 @@ describe("EvaluationConversationRuns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = "another-auth0-id"
+      authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to delete an evaluation run", async () => {

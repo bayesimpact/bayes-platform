@@ -13,7 +13,7 @@ import { APP_INSTALLATION_STATUS_REVOKED } from "@/domains/apps/app-installation
 import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
-import { mockAuth0EmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
   assignPlatformStaffToUser,
   assignPlatformSuperadminToUser,
@@ -27,7 +27,7 @@ describe("Apps - Revoke", () => {
   let requester: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
@@ -35,7 +35,7 @@ describe("Apps - Revoke", () => {
       applyOverrides: (moduleBuilder) =>
         setupUserGuardForTesting(
           withDocumentEmbeddingsBatchServiceMock(moduleBuilder),
-          () => auth0Id,
+          () => authSubject,
         ),
     })
     await ensureRbacCatalog(setup.module)
@@ -47,7 +47,7 @@ describe("Apps - Revoke", () => {
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -57,18 +57,21 @@ describe("Apps - Revoke", () => {
 
   const createStaffInstaller = async () => {
     const { organization, project, user } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+      user: { authSubject, email: mockOidcEmailForSub(authSubject) },
     })
     await assignPlatformStaffToUser({ repositories, user })
     return { organization, project, user }
   }
 
   const createManifest = async () => {
-    const superadminAuth0Id = `auth0|${randomUUID()}`
-    const previousAuth0Id = auth0Id
-    auth0Id = superadminAuth0Id
+    const superadminAuthSubject = `oidc|${randomUUID()}`
+    const previousAuthSubject = authSubject
+    authSubject = superadminAuthSubject
     const { user } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id: superadminAuth0Id, email: mockAuth0EmailForSub(superadminAuth0Id) },
+      user: {
+        authSubject: superadminAuthSubject,
+        email: mockOidcEmailForSub(superadminAuthSubject),
+      },
     })
     await assignPlatformSuperadminToUser({ repositories, user })
     const created = await requester({
@@ -85,7 +88,7 @@ describe("Apps - Revoke", () => {
       },
     })
     expectResponse(created, 201)
-    auth0Id = previousAuth0Id
+    authSubject = previousAuthSubject
     return created.body.data
   }
 
@@ -176,7 +179,7 @@ describe("Apps - Revoke", () => {
       id: serviceUser.id,
     })
     expect(serviceUserAfter.email).toBe(serviceUser.email)
-    expect(serviceUserAfter.auth0Id).toBe(serviceUser.auth0Id)
+    expect(serviceUserAfter.authSubject).toBe(serviceUser.authSubject)
     expect(serviceUserAfter.deletedAt).toBeNull()
     await expect(
       repositories.roleRepository.findOneByOrFail({ id: installation.customRoleId ?? undefined }),
@@ -224,6 +227,6 @@ describe("Apps - Revoke", () => {
       id: reinstalled.serviceUserId ?? undefined,
     })
     expect(reinstalledUser.email).not.toBe(serviceUser.email)
-    expect(reinstalledUser.auth0Id).not.toBe(serviceUser.auth0Id)
+    expect(reinstalledUser.authSubject).not.toBe(serviceUser.authSubject)
   })
 })

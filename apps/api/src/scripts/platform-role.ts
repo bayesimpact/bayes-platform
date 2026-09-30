@@ -10,16 +10,14 @@
  *   node /app/apps/api/dist/scripts/platform-role.js grant --email ... --role ...
  *
  * `grant` works before the person has ever signed in: the user is created
- * with a placeholder identity and linked to the real one at first sign-in
- * (the same path as an invited member). This is how the first administrator
+ * without an identity and linked to their OIDC account at first sign-in
+ * (the same path as a member added by email). This is how the first administrator
  * of a fresh install gets in. Roles are never granted automatically at
  * sign-in: an operator decides, here or in the chart's platformSuperadmins job.
  */
-import { randomUUID } from "node:crypto"
 import { Logger } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 import { AppModule } from "@/app.module"
-import { PLACEHOLDER_AUTH0_ID_PREFIX } from "@/domains/projects/memberships/project-memberships.service"
 import {
   isPlatformRoleKey,
   PLATFORM_ROLE_KEYS,
@@ -106,10 +104,7 @@ async function main(): Promise<void> {
 
     if (!user) {
       // Pre-provision: linked to the identity provider account at first sign-in.
-      user = await usersService.create({
-        sub: `${PLACEHOLDER_AUTH0_ID_PREFIX}${randomUUID().slice(-12)}`,
-        email,
-      })
+      user = await usersService.findOrCreateByEmail({ email })
       logger.log(`Created ${email} (signs in for the first time later)`)
     }
     const created = await platformRoles.grantGlobalRole(user.id, role)

@@ -4,7 +4,7 @@ import { type INestApplication, RequestMethod } from "@nestjs/common"
 /**
  * Three surfaces share one origin (#770):
  * - `/`           the web front, when the process serves it (see common/web-app)
- * - `/api/...`    the private API, authenticated with Auth0
+ * - `/api/...`    the private API, authenticated with OIDC access tokens
  * - `/public/...` the public chat API, a published contract that never moves
  *
  * Nest prefixes every controller route with `api`, except the public chat

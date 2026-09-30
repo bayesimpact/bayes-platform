@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs"
 import { join } from "node:path"
 import { PRIVATE_API_PATH } from "@/config/api-prefix"
+import { parseOidcAuthorizationParams } from "@/domains/auth/oidc-config"
 
 /**
  * The web front (apps/web) served by the API, from the `app-runtime` image.
@@ -42,10 +43,10 @@ const ENV_TO_CONFIG_KEY: Record<string, string> = {
   WEB_HELP_AGENT_EMBED_TOKEN: "helpAgentEmbedToken",
   WEB_HELP_AGENT_EMBED_COLOR: "helpAgentEmbedColor",
   WEB_HELP_AGENT_EMBED_HINT: "helpAgentEmbedHint",
-  WEB_AUTH0_DOMAIN: "auth0Domain",
-  WEB_AUTH0_CLIENT_ID: "auth0ClientId",
-  WEB_AUTH0_AUDIENCE: "auth0Audience",
-  WEB_AUTH0_ORGANIZATION_ID: "auth0OrganizationId",
+  WEB_OIDC_AUTHORITY: "oidcAuthority",
+  WEB_OIDC_CLIENT_ID: "oidcClientId",
+  WEB_OIDC_AUDIENCE: "oidcAudience",
+  WEB_OIDC_SCOPE: "oidcScope",
   WEB_DEFAULT_CONVERSATION_AGENT_PROMPT: "defaultConversationAgentPrompt",
   WEB_DEFAULT_FORM_AGENT_PROMPT: "defaultFormAgentPrompt",
   WEB_DEFAULT_FORM_AGENT_SCHEMA: "defaultFormAgentSchema",
@@ -58,32 +59,28 @@ const ENV_TO_CONFIG_KEY: Record<string, string> = {
  *
  * Defaults keep the Helm values short: the API URL is `/api` on the page
  * origin (same image, same host; the SPA resolves it against its origin), and
- * the Auth0 tenant, audience and organization are those the API already
- * validates tokens against. The SPA client id has no API-side counterpart
- * (AUTH0_CLIENT_ID is a different application), so WEB_AUTH0_CLIENT_ID is
- * always required.
+ * the OIDC provider and audience are those the API already validates tokens
+ * against. The SPA client id has no API-side counterpart (it is a public
+ * client of its own), so WEB_OIDC_CLIENT_ID is always required.
  */
 export function buildWebAppRuntimeConfig(
   env: NodeJS.ProcessEnv = process.env,
 ): WebAppRuntimeConfig {
   const config: WebAppRuntimeConfig = {
     apiUrl: PRIVATE_API_PATH,
-    auth0Domain: auth0DomainFromIssuerUrl(env.AUTH0_ISSUER_URL) ?? "",
-    auth0Audience: env.AUTH0_AUDIENCE ?? "",
-    auth0OrganizationId: env.AUTH0_ORGANIZATION_ID ?? "",
+    oidcAuthority: env.OIDC_ISSUER_URL ?? "",
+    oidcAudience: env.OIDC_AUDIENCE ?? "",
   }
   for (const [envName, configKey] of Object.entries(ENV_TO_CONFIG_KEY)) {
     const value = env[envName]
     if (value !== undefined) config[configKey] = value
   }
-  return config
-}
-
-function auth0DomainFromIssuerUrl(issuerUrl: string | undefined): string | undefined {
-  if (!issuerUrl) return undefined
-  try {
-    return new URL(issuerUrl).host
-  } catch {
-    return undefined
+  // Validated here, at boot, so a malformed value fails the start instead of the login.
+  const authorizationParams = parseOidcAuthorizationParams(
+    env.WEB_OIDC_AUTHORIZATION_PARAMS ?? env.OIDC_AUTHORIZATION_PARAMS,
+  )
+  if (Object.keys(authorizationParams).length > 0) {
+    config.oidcAuthorizationParams = JSON.stringify(authorizationParams)
   }
+  return config
 }

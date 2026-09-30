@@ -1,28 +1,61 @@
 import { Injectable } from "@nestjs/common"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { ConfigService } from "@nestjs/config"
 import { PassportStrategy } from "@nestjs/passport"
 import { passportJwtSecret } from "jwks-rsa"
-import { ExtractJwt, Strategy } from "passport-jwt"
+import { ExtractJwt, type SecretOrKeyProvider, Strategy } from "passport-jwt"
+import { getOidcAudience, getOidcIssuerUrl } from "./oidc-config"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { OidcDiscoveryService } from "./oidc-discovery.service"
 
+/**
+ * Validates access tokens issued by the configured OIDC provider (RS256,
+ * signing keys from the provider's JWKS).
+ */
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(configService: ConfigService) {
+  constructor(oidcDiscoveryService: OidcDiscoveryService) {
     super({
-      secretOrKeyProvider: passportJwtSecret({
-        cache: true,
-        rateLimit: true,
-        jwksRequestsPerMinute: 5,
-        jwksUri: `${configService.get<string>("AUTH0_ISSUER_URL")}.well-known/jwks.json`,
-      }),
+      secretOrKeyProvider: buildJwksKeyProvider(oidcDiscoveryService),
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      audience: configService.get<string>("AUTH0_AUDIENCE"),
-      issuer: configService.get<string>("AUTH0_ISSUER_URL"),
+      audience: getOidcAudience(),
+      issuer: process.env.OIDC_ISSUER_URL?.trim() || undefined,
       algorithms: ["RS256"],
     })
   }
 
   validate(payload: unknown): unknown {
     return payload
+  }
+}
+
+/**
+ * The JWKS URL comes from the discovery document, which is fetched on the
+ * first request rather than at boot so that the API starts even when the
+ * provider is briefly unreachable.
+ */
+function buildJwksKeyProvider(oidcDiscoveryService: OidcDiscoveryService): SecretOrKeyProvider {
+  let keyProvider: SecretOrKeyProvider | null = null
+  return (request, rawJwtToken, done) => {
+    if (keyProvider) {
+      keyProvider(request, rawJwtToken, done)
+      return
+    }
+    try {
+      getOidcIssuerUrl()
+    } catch (error) {
+      done(error as Error)
+      return
+    }
+    oidcDiscoveryService
+      .getMetadata()
+      .then((metadata) => {
+        keyProvider ??= passportJwtSecret({
+          cache: true,
+          rateLimit: true,
+          jwksRequestsPerMinute: 5,
+          jwksUri: metadata.jwks_uri,
+        })
+        keyProvider(request, rawJwtToken, done)
+      })
+      .catch((error: unknown) => done(error as Error))
   }
 }

@@ -16,8 +16,8 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { FILE_STORAGE_SERVICE } from "@/domains/documents/storage/file-storage.interface"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import {
-  mockAuth0EmailForSub,
-  mockForeignAuth0Id,
+  mockForeignAuthSubject,
+  mockOidcEmailForSub,
   setupUserGuardForTesting,
 } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -48,13 +48,13 @@ describe("ExtractionAgentSessions - Auth", () => {
   let documentId: string = randomUUID()
   let agentSessionId: string | null = randomUUID()
   let accessToken: string | null = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ExtractionAgentSessionsModule],
       applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
+        setupUserGuardForTesting(moduleBuilder, () => authSubject)
           .overrideProvider("_MockLLMProvider")
           .useValue(mockLlmProvider)
           .overrideProvider(FILE_STORAGE_SERVICE)
@@ -74,7 +74,7 @@ describe("ExtractionAgentSessions - Auth", () => {
     documentId = randomUUID()
     agentSessionId = randomUUID()
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -87,7 +87,7 @@ describe("ExtractionAgentSessions - Auth", () => {
       await createOrganizationWithAgentSession({
         repositories,
         params: {
-          user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+          user: { authSubject, email: mockOidcEmailForSub(authSubject) },
           projectMembership: { role },
           agentSettings: {
             outputJsonSchema: {
@@ -99,7 +99,7 @@ describe("ExtractionAgentSessions - Auth", () => {
         },
         agentType: "extraction",
       })
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
     organizationId = organization.id
     projectId = project.id
     agentId = agent.id
@@ -136,7 +136,7 @@ describe("ExtractionAgentSessions - Auth", () => {
 
       it("requires the user to be a member of the organization", async () => {
         await createContextForRole("owner")
-        auth0Id = mockForeignAuth0Id()
+        authSubject = mockForeignAuthSubject()
         expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
       })
 
@@ -238,7 +238,7 @@ describe("ExtractionAgentSessions - Auth", () => {
       })
       it("requires the user to be a member of the organization", async () => {
         await createContextForRole("owner")
-        auth0Id = mockForeignAuth0Id()
+        authSubject = mockForeignAuthSubject()
         expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
       })
       if (type === "playground") {

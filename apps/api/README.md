@@ -42,9 +42,7 @@ When `DOTENV_CONFIG_PATH` is set, the specified file is loaded with `override: t
 
 | Command | Description |
 |---|---|
-| `npm run invite:manage` | List and resend pending invitations interactively |
-| `npm run invite:organization-owners` | Batch-invite organization owners from a CSV file (`--file <path>` required, supports `--dry-run` and `--inviter-name`) |
-| `npm run seed:mcp-preset` | Create an MCP server preset interactively |
+| `npm run provision:organization-owners` | Create organizations and give their owners admin access by email, from a CSV file (`--file <path>` required, supports `--dry-run`) || `npm run seed:mcp-preset` | Create an MCP server preset interactively |
 | `npm run mcp:link-to-project` | Link an MCP server preset to project agents interactively |
 | `npm run requeue:document-embeddings` | Re-enqueue documents for embedding generation (supports `--dry-run`, `--limit`, `--batch-size`, `--organization-id`, `--project-id`, `--all-project-documents`) |
 

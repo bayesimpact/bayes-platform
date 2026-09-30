@@ -31,12 +31,12 @@ describe("EvaluationExtractionRuns - cancelOne", () => {
   let projectId: string
   let evaluationExtractionRunId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [EvaluationsModule, ActivitiesModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
@@ -48,7 +48,7 @@ describe("EvaluationExtractionRuns - cancelOne", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -60,7 +60,7 @@ describe("EvaluationExtractionRuns - cancelOne", () => {
     const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
       {
-        user: { auth0Id },
+        user: { authSubject },
         agent: {
           type: "extraction",
         },
@@ -72,7 +72,7 @@ describe("EvaluationExtractionRuns - cancelOne", () => {
     )
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     const { run, datasetRecords } = await createRunWithCsvDataset({
       getRepository: setup.getRepository,

@@ -39,13 +39,13 @@ describe("ExtractionAgentSessions - listRuns", () => {
   let agentId: string
   let agentSessionId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ExtractionAgentSessionsModule],
       applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
+        setupUserGuardForTesting(moduleBuilder, () => authSubject)
           .overrideProvider("_MockLLMProvider")
           .useValue(mockLlmProvider)
           .overrideProvider(FILE_STORAGE_SERVICE)
@@ -60,7 +60,7 @@ describe("ExtractionAgentSessions - listRuns", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -77,7 +77,7 @@ describe("ExtractionAgentSessions - listRuns", () => {
     projectId = context.project.id
     agentId = context.agent.id
     agentSessionId = context.agentSession.id
-    auth0Id = context.user.auth0Id
+    authSubject = context.user.authSubject!
     return context
   }
 

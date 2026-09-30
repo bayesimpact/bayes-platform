@@ -18,10 +18,10 @@ describe("serializeForInlineScript", () => {
 
 describe("renderIndexHtml", () => {
   it("injects window.__CONFIG__ before </head>", () => {
-    const html = renderIndexHtml(template, { apiUrl: "", auth0Domain: "tenant.auth0.com" })
+    const html = renderIndexHtml(template, { apiUrl: "", oidcAuthority: "https://idp.example.org" })
     const headEnd = html.indexOf("</head>")
     const scriptIndex = html.indexOf(
-      '<script>window.__CONFIG__={"apiUrl":"","auth0Domain":"tenant.auth0.com"}</script>',
+      '<script>window.__CONFIG__={"apiUrl":"","oidcAuthority":"https://idp.example.org"}</script>',
     )
     expect(scriptIndex).toBeGreaterThan(-1)
     expect(scriptIndex).toBeLessThan(headEnd)

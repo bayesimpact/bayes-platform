@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { GridCard } from "@/common/components/grid/Grid"
+import { NeverSignedInBadge } from "@/common/components/NeverSignedInBadge"
 import { selectMe } from "@/common/features/me/me.selectors"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
@@ -33,7 +34,12 @@ export function AgentMembershipItem({ membership }: { membership: AgentMembershi
             </Button>
           </GridCard.TopAction>
         )}
-        <GridCard.Badge>{membership.role}</GridCard.Badge>
+        <GridCard.Badge>
+          <div className="flex gap-1">
+            <span>{membership.role}</span>
+            {!membership.userHasSignedIn && <NeverSignedInBadge />}
+          </div>
+        </GridCard.Badge>
         <GridCard.Body>
           <GridCard.Title>{membership.userName}</GridCard.Title>
           <GridCard.Description>{membership.userEmail}</GridCard.Description>

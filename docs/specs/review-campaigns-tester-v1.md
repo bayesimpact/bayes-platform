@@ -2,6 +2,8 @@
 
 > **Companion documents:** [ADR 0008 — Conversational Agent Human Evaluation Model](../adr/0008-agent-human-evaluation-model.md) for the "why" behind every decision below. [Review Campaigns — Reviewer Experience (v1)](./review-campaigns-reviewer-v1.md) for the Level-2 flow that builds on this foundation.
 
+> **Superseded for invitations** by [ADR 0019](../adr/0019-generic-oidc-and-access-by-email.md): people are added by email and get access right away, with no invitation email or accept step. The Auth0 parts below are historical.
+
 ## Overview
 
 Workspace admins can create a **review campaign** targeting a specific agent, invite **testers** to use it, and collect structured feedback. Testers interact with the agent through the normal user UI augmented with post-session feedback (5-star rating, predefined questions, free comment) and an optional one-time end-of-phase survey.

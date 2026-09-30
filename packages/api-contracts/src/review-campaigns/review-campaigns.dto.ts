@@ -49,6 +49,8 @@ export type ReviewCampaignMembershipDto = {
   campaignId: string
   userId: string
   userEmail: string
+  /** False while the member was added by email and has never signed in. */
+  userHasSignedIn: boolean
   role: ReviewCampaignMembershipRole
 }
 

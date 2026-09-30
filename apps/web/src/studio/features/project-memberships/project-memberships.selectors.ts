@@ -10,9 +10,6 @@ export const selectProjectMembershipsStatus = (state: RootState) =>
 
 export const selectProjectMemberAgents = (state: RootState) => state.projectMemberships.memberAgents
 
-export const selectProjectPendingInvitations = (state: RootState) =>
-  state.projectMemberships.pendingInvitations
-
 export const selectCurrentProjectMembershipId = (state: RootState) => state.currentIds.membershipId
 
 export const selectCurrentProjectMembership = createSelector(

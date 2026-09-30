@@ -12,8 +12,8 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import {
-  mockAuth0EmailForSub,
-  mockForeignAuth0Id,
+  mockForeignAuthSubject,
+  mockOidcEmailForSub,
   setupUserGuardForTesting,
 } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
@@ -31,12 +31,12 @@ describe("ReviewCampaigns - Auth", () => {
   let reviewCampaignId: string | null = randomUUID()
   let membershipId: string = randomUUID()
   let accessToken: string | null = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ReviewCampaignsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -51,7 +51,7 @@ describe("ReviewCampaigns - Auth", () => {
     reviewCampaignId = randomUUID()
     membershipId = randomUUID()
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -63,11 +63,11 @@ describe("ReviewCampaigns - Auth", () => {
     const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
       {
-        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
         projectMembership: { role },
       },
     )
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
     const campaign = reviewCampaignFactory
       .transient({ organization, project, agent, agentSettings })
       .build()
@@ -101,7 +101,7 @@ describe("ReviewCampaigns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("forbids project members without admin role", async () => {
@@ -128,7 +128,7 @@ describe("ReviewCampaigns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("forbids project members without admin role", async () => {
@@ -151,7 +151,7 @@ describe("ReviewCampaigns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("returns 404 when the campaign is not in this project", async () => {
@@ -183,7 +183,7 @@ describe("ReviewCampaigns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("returns 404 when the campaign is not in this project", async () => {
@@ -211,7 +211,7 @@ describe("ReviewCampaigns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("forbids project members without admin role", async () => {
@@ -239,7 +239,7 @@ describe("ReviewCampaigns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("forbids project members without admin role", async () => {

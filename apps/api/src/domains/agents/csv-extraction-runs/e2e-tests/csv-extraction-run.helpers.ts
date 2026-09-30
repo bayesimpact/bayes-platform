@@ -14,16 +14,16 @@ import { agentCsvExtractionRunFactory } from "../agent-csv-extraction-run.factor
 export async function createCsvExtractionRunContext({
   repositories,
   role = "owner",
-  auth0Id,
+  authSubject,
 }: {
   repositories: AllRepositories
   role?: ProjectMembershipRoleDto
-  auth0Id: string
+  authSubject: string
 }) {
   const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
     repositories,
     {
-      user: { auth0Id },
+      user: { authSubject },
       projectMembership: { role },
       agent: { type: "extraction" },
     },

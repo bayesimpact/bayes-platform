@@ -41,13 +41,8 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgresql://connect_admin:passpass@postgres:5432/connect
       BULLMQ_REDIS_URL: redis://redis:6379
-      AUTH0_ISSUER_URL: https://example.auth0.com/
-      AUTH0_AUDIENCE: https://example.auth0.com/api/v2/
-      AUTH0_ORGANIZATION_ID: org_example
-      AUTH0_CLIENT_ID: example_client_id
-      AUTH0_M2M_CLIENT_ID: example_m2m_client_id
-      AUTH0_M2M_CLIENT_SECRET: example_m2m_client_secret
-      AUTH0_DB_CONNECTION_NAME: Username-Password-Authentication
+      OIDC_ISSUER_URL: https://idp.example.org/realms/platform
+      OIDC_AUDIENCE: platform-api
       GOOGLE_VERTEX_PROJECT: example-project
       GOOGLE_VERTEX_LOCATION: europe-west1
       DOCUMENT_EMBEDDING_MODELS: gemini-embedding-001
@@ -76,13 +71,8 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgresql://connect_admin:passpass@postgres:5432/connect
       BULLMQ_REDIS_URL: redis://redis:6379
-      AUTH0_ISSUER_URL: https://example.auth0.com/
-      AUTH0_AUDIENCE: https://example.auth0.com/api/v2/
-      AUTH0_ORGANIZATION_ID: org_example
-      AUTH0_CLIENT_ID: example_client_id
-      AUTH0_M2M_CLIENT_ID: example_m2m_client_id
-      AUTH0_M2M_CLIENT_SECRET: example_m2m_client_secret
-      AUTH0_DB_CONNECTION_NAME: Username-Password-Authentication
+      OIDC_ISSUER_URL: https://idp.example.org/realms/platform
+      OIDC_AUDIENCE: platform-api
       GOOGLE_VERTEX_PROJECT: example-project
       GOOGLE_VERTEX_LOCATION: europe-west1
       DOCUMENT_EMBEDDING_MODELS: gemini-embedding-001
@@ -113,13 +103,8 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgresql://connect_admin:passpass@postgres:5432/connect
       BULLMQ_REDIS_URL: redis://redis:6379
-      AUTH0_ISSUER_URL: https://example.auth0.com/
-      AUTH0_AUDIENCE: https://example.auth0.com/api/v2/
-      AUTH0_ORGANIZATION_ID: org_example
-      AUTH0_CLIENT_ID: example_client_id
-      AUTH0_M2M_CLIENT_ID: example_m2m_client_id
-      AUTH0_M2M_CLIENT_SECRET: example_m2m_client_secret
-      AUTH0_DB_CONNECTION_NAME: Username-Password-Authentication
+      OIDC_ISSUER_URL: https://idp.example.org/realms/platform
+      OIDC_AUDIENCE: platform-api
       GOOGLE_VERTEX_PROJECT: example-project
       GOOGLE_VERTEX_LOCATION: europe-west1
       DOCUMENT_EMBEDDING_MODELS: gemini-embedding-001

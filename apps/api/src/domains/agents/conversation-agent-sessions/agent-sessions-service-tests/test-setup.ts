@@ -96,7 +96,7 @@ export function agentSessionControllerTestSetup() {
     testOrganization = await organizationRepository.save(testOrganization)
 
     const user = userFactory.build({
-      auth0Id: `auth0|test-user-${uniqueId}`,
+      authSubject: `oidc|test-user-${uniqueId}`,
       email: `test-${uniqueId}@example.com`,
       name: "Test User",
     })

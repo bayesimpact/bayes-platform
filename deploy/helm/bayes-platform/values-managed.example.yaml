@@ -24,11 +24,8 @@ secrets:
   existingSecret: platform-secrets
 
 config:
-  AUTH0_ISSUER_URL: https://my-tenant.eu.auth0.com/
-  AUTH0_AUDIENCE: https://my-tenant.eu.auth0.com/api/v2/
-  AUTH0_ORGANIZATION_ID: org_xxx
-  AUTH0_CLIENT_ID: xxx
-  AUTH0_M2M_CLIENT_ID: xxx
+  OIDC_ISSUER_URL: https://idp.example.org/realms/platform
+  OIDC_AUDIENCE: ""
   ORGANIZATION_CREATOR_EMAIL_DOMAIN: "@example.org"
   BACKOFFICE_AUTHORIZED_DOMAIN: "@example.org"
   GOOGLE_VERTEX_PROJECT: my-project
@@ -69,7 +66,7 @@ gpuWorkers:
 web:
   env:
     WEB_APP_TITLE: My platform
-    WEB_AUTH0_CLIENT_ID: xxx
+    WEB_OIDC_CLIENT_ID: platform-web
 
 ingress:
   className: nginx

@@ -1,12 +1,12 @@
 import { Injectable } from "@nestjs/common"
-import type { Repository } from "typeorm"
+import { IsNull, type Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 import { User } from "./user.entity"
 import type { UserType } from "./user.types"
 
 export type CreateUserParams = {
-  auth0Id: string
+  authSubject: string | null
   email: string
   name: string | null
   pictureUrl: string | null
@@ -23,8 +23,8 @@ export type CreateUserParams = {
 export class UserRepository {
   constructor(private readonly transactionService: TransactionService) {}
 
-  async findByAuth0Id(auth0Id: string): Promise<User | null> {
-    return this.repo().findOne({ where: { auth0Id } })
+  async findByAuthSubject(authSubject: string): Promise<User | null> {
+    return this.repo().findOne({ where: { authSubject } })
   }
 
   async findByEmail(email: string): Promise<User | null> {
@@ -45,20 +45,16 @@ export class UserRepository {
     return this.findById(userId)
   }
 
-  async updateAuth0Id(user: User, auth0Id: string): Promise<User> {
-    user.auth0Id = auth0Id
-    return this.repo().save(user)
-  }
-
-  async linkAuth0Identity(params: {
+  /** Attaches an OIDC identity to an existing account. Keeps the stored name and picture when the provider sends none. */
+  async linkIdentity(params: {
     user: User
-    auth0Id: string
+    authSubject: string
     name: string | null
     pictureUrl: string | null
   }): Promise<User> {
-    params.user.auth0Id = params.auth0Id
-    params.user.name = params.name
-    params.user.pictureUrl = params.pictureUrl
+    params.user.authSubject = params.authSubject
+    params.user.name = params.name ?? params.user.name
+    params.user.pictureUrl = params.pictureUrl ?? params.user.pictureUrl
     return this.repo().save(params.user)
   }
 
@@ -68,6 +64,19 @@ export class UserRepository {
    * delete should roll back with the surrounding unit of work.
    */
   async deleteById({ userId }: { userId: string }): Promise<void> {
+    await this.repo().delete({ id: userId })
+  }
+
+  /**
+   * Deletes a person added by email who never signed in, once their last
+   * membership is gone, so removed members leave no orphan account behind.
+   */
+  async deleteIfUnusedPlaceholder({ userId }: { userId: string }): Promise<void> {
+    const user = await this.repo().findOne({
+      where: { id: userId, authSubject: IsNull() },
+      relations: { userMemberships: true },
+    })
+    if (!user || user.userMemberships.length > 0) return
     await this.repo().delete({ id: userId })
   }
 

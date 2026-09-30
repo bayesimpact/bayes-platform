@@ -16,10 +16,7 @@ import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { projectFactory } from "../project.factory"
 import { ProjectsModule } from "../projects.module"
 import { addUserToProject } from "./project-membership.factory"
-import {
-  PLACEHOLDER_AUTH0_ID_PREFIX,
-  ProjectMembershipsService,
-} from "./project-memberships.service"
+import { ProjectMembershipsService } from "./project-memberships.service"
 
 describe("ProjectMembershipsService", () => {
   let service: ProjectMembershipsService
@@ -99,7 +96,7 @@ describe("ProjectMembershipsService", () => {
         userFactory.build({
           type: USER_TYPE_SERVICE,
           email: "app+install@service.bayes.internal",
-          auth0Id: "service|project-list",
+          authSubject: "service|project-list",
         }),
       )
       await addUserToProject({ repositories, project, user: serviceUser })
@@ -168,11 +165,11 @@ describe("ProjectMembershipsService", () => {
       ).rejects.toThrow("Cannot remove yourself from the project")
     })
 
-    it("deletes placeholder user when membership is removed", async () => {
+    it("deletes a never-signed-in user when their last membership is removed", async () => {
       const { project, user: actorUser } = await createOrganizationWithProject(repositories)
       const placeholderUser = await repositories.userRepository.save(
         userFactory.build({
-          auth0Id: `${PLACEHOLDER_AUTH0_ID_PREFIX}test-placeholder`,
+          authSubject: null,
         }),
       )
       const { membership } = await addUserToProject({

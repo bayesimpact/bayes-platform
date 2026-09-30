@@ -27,7 +27,7 @@ import {
 } from "@/domains/projects/memberships/project-membership.factory"
 import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
 import { projectFactory } from "@/domains/projects/project.factory"
-import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentsAnalyticsModule } from "../agents-analytics.module"
@@ -42,7 +42,7 @@ describe("Agents Analytics - Auth", () => {
   let projectId: string | null = RandomUuid.Project
   let agentId: string | null = RandomUuid.Project
   let accessToken: string | null = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   const dateRange = {
     startAt: new Date("2026-01-01T00:00:00.000Z").getTime(),
@@ -52,7 +52,7 @@ describe("Agents Analytics - Auth", () => {
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [AgentsAnalyticsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
@@ -67,7 +67,7 @@ describe("Agents Analytics - Auth", () => {
     projectId = RandomUuid.Project
     agentId = RandomUuid.Project
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -80,7 +80,7 @@ describe("Agents Analytics - Auth", () => {
     agentMembership: AgentMembershipRole | "none"
   }) => {
     const { organization, project, user } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
       projectMembership: { role: options.projectRole },
     })
     const agent = agentFactory.transient({ organization, project }).build()
@@ -102,7 +102,7 @@ describe("Agents Analytics - Auth", () => {
 
   const seedAgentOwnerViaFactory = async () => {
     const { organization, project, user, agent } = await createOrganizationWithAgent(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
     })
     organizationId = organization.id
     projectId = project.id
@@ -156,7 +156,7 @@ describe("Agents Analytics - Auth", () => {
 
   it("requires the user to be a member of the organization", async () => {
     await seedAgentOwnerViaFactory()
-    auth0Id = mockForeignAuth0Id()
+    authSubject = mockForeignAuthSubject()
     expectResponse(await subjectConversations(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     expectResponse(await subjectAvg(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     expectResponse(await subjectByCategoryPerDay(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
@@ -164,7 +164,7 @@ describe("Agents Analytics - Auth", () => {
 
   it("allows agent owners who are only project members", async () => {
     await createOrganizationWithAgent(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
       projectMembership: { role: "member" },
     }).then(({ organization, project, agent }) => {
       organizationId = organization.id

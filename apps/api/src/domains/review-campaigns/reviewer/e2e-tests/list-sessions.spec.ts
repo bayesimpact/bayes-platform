@@ -13,7 +13,6 @@ import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { conversationFormFactory } from "@/domains/agents/shared/conversation-forms/conversation-form.factory"
-import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
@@ -25,10 +24,6 @@ import {
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
 
-const mockInvitationSender = {
-  sendInvitation: jest.fn().mockResolvedValue({ ticketId: "ticket-reviewer-list" }),
-}
-
 describe("ReviewCampaigns - Reviewer list sessions", () => {
   let app: INestApplication<App>
   let request: Requester
@@ -39,15 +34,12 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
   let projectId: string = randomUUID()
   let reviewCampaignId: string = randomUUID()
   let accessToken: string = "token"
-  let auth0Id = `auth0|reviewer-${randomUUID()}`
+  let authSubject = `oidc|reviewer-${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ReviewCampaignsModule],
-      applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
-          .overrideProvider(INVITATION_SENDER)
-          .useValue(mockInvitationSender),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -58,7 +50,7 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = `auth0|reviewer-${randomUUID()}`
+    authSubject = `oidc|reviewer-${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -71,7 +63,7 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
       organization,
       project,
       user: reviewer,
-    } = await createOrganizationWithProject(repositories, { user: { auth0Id } })
+    } = await createOrganizationWithProject(repositories, { user: { authSubject } })
     const agent = agentFactory.transient({ organization, project }).build({ type: "conversation" })
     await repositories.agentRepository.save(agent)
     const agentSettings = agentSettingsFactory.transient({ organization, project, agent }).build()

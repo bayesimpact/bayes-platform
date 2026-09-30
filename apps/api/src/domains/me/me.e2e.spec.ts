@@ -35,12 +35,12 @@ describe("MeController (e2e)", () => {
   let repositories: AllRepositories
 
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [MeModule, RbacModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
@@ -52,7 +52,7 @@ describe("MeController (e2e)", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -63,7 +63,7 @@ describe("MeController (e2e)", () => {
   const createContext = async () => {
     const { user, organization, organizationMembership } =
       await createOrganizationWithOwner(repositories)
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
     return { user, organization, organizationMembership }
   }
 
@@ -109,7 +109,7 @@ describe("MeController (e2e)", () => {
     it("returns user info with empty organizations when user has no orgs", async () => {
       const soloUser = userFactory.build()
       await repositories.userRepository.save(soloUser)
-      auth0Id = soloUser.auth0Id
+      authSubject = soloUser.authSubject!
 
       const response = await subject()
 
@@ -155,7 +155,7 @@ describe("MeController (e2e)", () => {
 
     it("returns all membership types", async () => {
       const { user, organization, project, agent } = await createOrganizationWithAgent(repositories)
-      auth0Id = user.auth0Id
+      authSubject = user.authSubject!
 
       const response = await subject()
 
@@ -206,7 +206,7 @@ describe("MeController (e2e)", () => {
           .transient({ organization, project, campaign: draftCampaign, user })
           .build(),
       })
-      auth0Id = user.auth0Id
+      authSubject = user.authSubject!
 
       const response = await subject()
       expectResponse(response, 200)
@@ -233,7 +233,7 @@ describe("MeController (e2e)", () => {
     })
 
     it("returns global permissions of platform_staff users", async () => {
-      const user = userFactory.build({ auth0Id })
+      const user = userFactory.build({ authSubject })
       await repositories.userRepository.save(user)
       await assignPlatformStaffToUser({ repositories, user })
 
@@ -249,7 +249,7 @@ describe("MeController (e2e)", () => {
     })
 
     it("returns global permissions of platform_superadmin users", async () => {
-      const user = userFactory.build({ auth0Id })
+      const user = userFactory.build({ authSubject })
       await repositories.userRepository.save(user)
       await assignPlatformSuperadminToUser({ repositories, user })
 

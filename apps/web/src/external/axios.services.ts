@@ -22,8 +22,8 @@ import agentAnalytics from "@/studio/features/analytics/agent/external/agent-ana
 import projectAnalytics from "@/studio/features/analytics/project/external/analytics.api"
 import documentTags from "@/studio/features/document-tags/external/document-tags.api"
 import documents from "@/studio/features/documents/external/documents.api"
-import invitations from "@/studio/features/invitations/external/invitations.api"
 import mcpServers from "@/studio/features/mcp-servers/external/mcp-servers.api"
+import memberGrants from "@/studio/features/member-grants/external/member-grants.api"
 import projectMemberships from "@/studio/features/project-memberships/external/project-memberships.api"
 import resourceLibraries from "@/studio/features/resource-libraries/external/resource-libraries.api"
 import reviewCampaigns from "@/studio/features/review-campaigns/external/review-campaigns.api"
@@ -50,9 +50,9 @@ export const services = {
   evaluationExtractionDatasets,
   evaluationExtractionRuns,
   extractionAgentSessions,
-  invitations,
   mcpServers,
   me,
+  memberGrants,
   organizations,
   projectAnalytics,
   projectMemberships,

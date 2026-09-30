@@ -1,34 +1,34 @@
 ---
 title: Add a user
 highlight: user
-description: Invite someone by email to use one of your agents, and manage that agent's members and pending invitations.
+description: Add someone by email so they can use one of your agents, and manage that agent's members.
 category: guides-team
 order: 1
-updated: 2026-07-22
+updated: 2026-09-28
 ---
 
 import AgentMembersWalkthrough from "@/components/AgentMembersWalkthrough.astro"
 
-Adding a user means **inviting someone to use one of your agents**. You invite
-people by their **email address**; once they accept, they join as a **member** of
-that agent and can use it in the app.
+Adding a user gives someone access to **one of your agents**. You add people by
+their **email address**, and they get access right away: they become a **member** of
+that agent and can use it in the app, with no invitation to accept.
 
-This is different from adding a workspace collaborator — see [Add an admin](/en/add-an-admin)
-for inviting people to the whole **workspace**. Here you grant access to a **single
-agent**, from that agent's own **Members** page.
+This is different from adding a workspace collaborator: see
+[Add an admin](/en/add-an-admin) to give access to the whole **workspace**. Here you
+grant access to a **single agent**, from that agent's own **Members** page.
 
-## How agent members and invitations work
+## How agent members work
 
-Each agent has its own list of members. You invite someone by entering their
-**email address** and sending the invitation. Until they accept, it stays listed
-under **Pending invitations**. Once accepted, the person appears in the members
-grid with a **role badge** showing their role (**owner** / **admin** / **member**).
-You can remove a member, or cancel an invitation that hasn't been accepted yet, at
-any time.
+Each agent has its own list of members. You enter one or more **email addresses** and
+click **Give access**. Each person immediately appears in the members grid with the role
+**member**. They sign in with your **organization's account** (the platform sends no
+email, so let them know). Until their first sign-in, their card shows a **Never
+signed in** badge; after it, their name fills in and the badge disappears. You can
+remove a member at any time.
 
-> **Roles are shown but not chosen here.** The invite dialog asks only for an email
-> address — there is no role picker. The role labels on the cards are the platform's
-> built-in role names.
+> **Roles are shown but not chosen here.** The **Add users** dialog asks only for
+> email addresses; there is no role picker. The role labels on the cards (**owner** /
+> **admin** / **member**) are the platform's built-in role names.
 
 ## The full flow at a glance
 
@@ -42,72 +42,79 @@ and the area to watch.
 
 ### 1. Open the agent
 
-In **Studio**, open the agent you want to give access to — either from the
-**Agents** group in the left sidebar or from its card on the workspace overview.
+In **Studio**, open the agent you want to give access to, either from the **Agents**
+group in the left sidebar or from its card on the workspace overview.
 
 ### 2. Open the agent's Members page
 
 On the agent's page, click **Members** in the top-right actions (next to **App** and
-**Edit**). The page is titled **Members of** your agent and lists everyone who
-already has access, with the invite card at the end of the grid.
+**Edit**). The page is titled **Members of** your agent, with the description *Add
+users who can use your agent.* It lists everyone who already has access, with the
+**Add users** card at the end of the grid.
 
-### 3. Start an invitation
+### 3. Open the Add users dialog
 
-Find the **Invite a user** card and click **Invite**. This opens the invitation
-dialog.
+The **Add users** card reads *Enter the email addresses of the people who should use
+this agent.* Click its **Add** button to open the **Add users** dialog.
 
 ### 4. Add the email address
 
-1. In the **Invite a user** dialog, type the person's address in the **Email
-   address** field.
-2. Click **Add** (or press **Enter**). The address appears as a chip below the
-   field. Repeat to invite several people at once; remove a chip with its **✕** if
-   you added one by mistake.
+1. Type the person's address in the **Email address** field (placeholder **Enter
+   email address**).
+2. Click **Add** next to the field, or press **Enter**. This only puts the address in
+   the list: it appears as a chip below the field. Repeat to add several people at once; remove a chip with its
+   **✕** if you added one by mistake.
 
-### 5. Send the invitation
+The hint under the field reminds you: *People get access right away. They sign in
+with your organization's account.* An invalid address shows **Invalid email
+address**, and an address already in the list shows **Email already added**.
 
-Click **Send**. Each address you added receives an invitation to use the agent.
+### 5. Give access
 
-### 6. Track pending invitations
+Click **Give access** at the bottom of the dialog. The dialog closes and a **Members added**
+notification confirms it. The button stays disabled until at least one address is in
+the list.
 
-A sent invitation is listed under **Pending invitations** ("Invitations already
-sent for this agent") until the person accepts it. Each entry shows the invited
-email and when it was sent.
+### 6. See the new member
 
-### 7. See who has joined
+Each person appears in the members grid right away, with their email, the role
+**member** and a **Never signed in** badge. They already have access to the agent,
+and to its workspace in the app. Tell them to sign in with their organization's
+account (see [Sign in for the first time](/en/sign-in-for-the-first-time)). Someone
+who was already a member is skipped.
 
-Once someone accepts, they appear in the members grid with their email and a
-**role badge** showing their role (for example **member**).
+### 7. Check who has signed in
+
+Once a person signs in for the first time, their name appears on the card and only
+their role remains (for example **member**).
 
 ### 8. Remove a member
 
 To remove someone, click the **trash** icon on their card. A confirmation dialog
-(**Remove *name*?**) explains the member will be removed from the agent and that
-the action **cannot be undone** — click **Remove** to confirm. You can't remove the
-agent **owner** or yourself.
-
-### 9. Cancel a pending invitation
-
-To withdraw an invitation before it's accepted, click the **trash** icon on its
-card under **Pending invitations** and confirm. This cancels the invitation that
-was sent to that email.
+(**Remove *name*?**) explains the member will be removed from the agent and that the
+action **cannot be undone**. Click **Remove** to confirm. This is also how you take
+back access from someone who never signed in. You can't remove the agent **owner**
+or yourself.
 
 ## Tips
 
-- Double-check each **Email address** before clicking **Add** — invitations go to
-  exactly what you type.
-- Invite several people in one go by adding multiple email chips before **Send**.
+- Double-check each **Email address** before clicking **Give access**: access goes to exactly
+  what you type, and it must match the email of the person's organization account.
+- Add several people in one go by adding multiple email chips before clicking
+  **Give access**.
 - Agent members are scoped to that agent only. To give someone access to the whole
   workspace instead, use [Add an admin](/en/add-an-admin).
 
 ## Troubleshooting
 
-- **The person hasn't joined yet** — their invitation is still under **Pending
-  invitations**. Ask them to check their inbox; if needed, cancel it and send a new
-  one to the correct address.
-- **I can't remove a member** — the **trash** icon isn't available for the agent
+- **The card still shows Never signed in.** The person hasn't signed in yet. Remind
+  them to sign in with their organization's account, using the email you added.
+- **The person sees No access yet.** They signed in with a different email than the
+  one you added. Remove the wrong entry and add the address of their organization
+  account.
+- **I added the wrong address.** Click the **trash** icon on that card and confirm,
+  then add the correct email.
+- **I can't remove a member.** The **trash** icon isn't available for the agent
   **owner** or for your own account.
-- **I invited the wrong address** — cancel the entry under **Pending invitations**,
-  then invite the correct email.
-- **I don't see the Members button** — you need management access to the agent; ask
+- **I don't see the Members button.** You need management access to the agent; ask
   the agent **owner** or a workspace **admin** if it isn't visible.

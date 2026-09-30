@@ -1,18 +1,18 @@
 import { USER_TYPE_HUMAN, USER_TYPE_SERVICE, type UserType } from "./user.types"
 
 export const SERVICE_USER_EMAIL_DOMAIN = "service.bayes.internal"
-export const SERVICE_USER_AUTH0_ID_PREFIX = "service|"
+export const SERVICE_USER_AUTH_SUBJECT_PREFIX = "service|"
 
 export function buildServiceUserEmail(appSlug: string, installationId: string): string {
   return `${appSlug.trim().toLowerCase()}+${installationId}@${SERVICE_USER_EMAIL_DOMAIN}`
 }
 
-export function buildServiceUserAuth0Id(installationId: string): string {
-  return `${SERVICE_USER_AUTH0_ID_PREFIX}${installationId}`
+export function buildServiceUserAuthSubject(installationId: string): string {
+  return `${SERVICE_USER_AUTH_SUBJECT_PREFIX}${installationId}`
 }
 
-export function isServiceAuth0Id(auth0Id: string): boolean {
-  return auth0Id.startsWith(SERVICE_USER_AUTH0_ID_PREFIX)
+export function isServiceAuthSubject(authSubject: string): boolean {
+  return authSubject.startsWith(SERVICE_USER_AUTH_SUBJECT_PREFIX)
 }
 
 export function isServiceUserEmail(email: string): boolean {
@@ -23,7 +23,7 @@ export function isServiceUser(user: { type: UserType }): boolean {
   return user.type === USER_TYPE_SERVICE
 }
 
-export function isUninvitableServiceIdentity(params: {
+export function isServiceIdentity(params: {
   email: string
   user?: { type: UserType } | null
 }): boolean {

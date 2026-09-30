@@ -7,14 +7,13 @@ import {
   studioStoryArgTypes,
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
-import { pendingInvitationFactory } from "@/studio/features/invitations/invitations.factory"
 import { projectMembershipFactory } from "@/studio/features/project-memberships/project-memberships.factory"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
   withMemberships?: boolean
-  withPendingInvitations?: boolean
+  withNeverSignedInMembers?: boolean
 }
 
 const meta = {
@@ -23,12 +22,12 @@ const meta = {
   argTypes: {
     ...studioStoryArgTypes,
     withMemberships: { control: "boolean" },
-    withPendingInvitations: { control: "boolean" },
+    withNeverSignedInMembers: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
     withMemberships: false,
-    withPendingInvitations: false,
+    withNeverSignedInMembers: false,
   },
   render: render({
     routes: studioRoutes,
@@ -41,7 +40,7 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   decorators: [
-    buildDecorator<StoryArgs>(({ withMemberships, withPendingInvitations, ...args }) => {
+    buildDecorator<StoryArgs>(({ withMemberships, withNeverSignedInMembers, ...args }) => {
       const { baseSeeds, project } = buildStudioData(args)
       const memberships = withMemberships
         ? [
@@ -50,17 +49,17 @@ export const Default: Story = {
             projectMembershipFactory.transient({ project }).build({ role: "member" }),
           ]
         : [projectMembershipFactory.transient({ project }).build({ role: "owner" })]
-      const pendingInvitations = withPendingInvitations
+      const neverSignedInMembers = withNeverSignedInMembers
         ? [
-            pendingInvitationFactory.transient({ project }).build({ role: "admin" }),
-            pendingInvitationFactory.transient({ project }).build({ role: "member" }),
+            projectMembershipFactory
+              .transient({ project })
+              .build({ role: "admin", userHasSignedIn: false }),
           ]
         : []
       return {
         state: mergeSeeds(
           baseSeeds,
-          seed.studio.projectMemberships(memberships),
-          seed.studio.pendingInvitations(pendingInvitations),
+          seed.studio.projectMemberships([...memberships, ...neverSignedInMembers]),
         ),
       }
     }),
@@ -75,11 +74,11 @@ export const WithMembers: Story = {
     featureFlags: [],
     withAgents: true,
     withMemberships: true,
-    withPendingInvitations: true,
+    withNeverSignedInMembers: true,
   },
 
   decorators: [
-    buildDecorator<StoryArgs>(({ withMemberships, withPendingInvitations, ...args }) => {
+    buildDecorator<StoryArgs>(({ withMemberships, withNeverSignedInMembers, ...args }) => {
       const { baseSeeds, project } = buildStudioData(args)
       const memberships = withMemberships
         ? [
@@ -114,17 +113,17 @@ export const WithMembers: Story = {
                 role: "owner",
               }),
           ]
-      const pendingInvitations = withPendingInvitations
+      const neverSignedInMembers = withNeverSignedInMembers
         ? [
-            pendingInvitationFactory.transient({ project }).build({ role: "admin" }),
-            pendingInvitationFactory.transient({ project }).build({ role: "member" }),
+            projectMembershipFactory
+              .transient({ project })
+              .build({ role: "admin", userHasSignedIn: false }),
           ]
         : []
       return {
         state: mergeSeeds(
           baseSeeds,
-          seed.studio.projectMemberships(memberships),
-          seed.studio.pendingInvitations(pendingInvitations),
+          seed.studio.projectMemberships([...memberships, ...neverSignedInMembers]),
         ),
       }
     }),
