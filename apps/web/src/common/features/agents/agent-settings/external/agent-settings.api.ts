@@ -62,6 +62,7 @@ const toAgentSettings = (dto: AgentSettingsDto): AgentSettings => ({
   description: dto.description,
   documentsRagMode: dto.documentsRagMode,
   documentTagIds: dto.documentTagIds,
+  embeddingModel: dto.embeddingModel,
   fillFormEnabled: dto.fillFormEnabled,
   priorityCallsEnabled: dto.priorityCallsEnabled,
   greetingMessage: dto.greetingMessage,

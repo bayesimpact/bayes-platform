@@ -25,6 +25,7 @@ import documentTags from "@/studio/features/document-tags/external/document-tags
 import documents from "@/studio/features/documents/external/documents.api"
 import invitations from "@/studio/features/invitations/external/invitations.api"
 import mcpServers from "@/studio/features/mcp-servers/external/mcp-servers.api"
+import projectEmbeddingModels from "@/studio/features/project-embedding-models/external/project-embedding-models.api"
 import projectMemberships from "@/studio/features/project-memberships/external/project-memberships.api"
 import resourceLibraries from "@/studio/features/resource-libraries/external/resource-libraries.api"
 import reviewCampaigns from "@/studio/features/review-campaigns/external/review-campaigns.api"
@@ -57,6 +58,7 @@ export const services = {
   invitations,
   organizations,
   projectAnalytics,
+  projectEmbeddingModels,
   projectMemberships,
   projects,
   resourceLibraries,

@@ -26,6 +26,7 @@ import type { IDocumentTagsSpi } from "@/studio/features/document-tags/document-
 import type { IDocumentsSpi } from "@/studio/features/documents/documents.spi"
 import type { IInvitationsSpi } from "@/studio/features/invitations/invitations.spi"
 import type { IMcpServersSpi } from "@/studio/features/mcp-servers/mcp-servers.spi"
+import type { IProjectEmbeddingModelsSpi } from "@/studio/features/project-embedding-models/project-embedding-models.spi"
 import type { IProjectMembershipsSpi } from "@/studio/features/project-memberships/project-memberships.spi"
 import type { IResourceLibrariesSpi } from "@/studio/features/resource-libraries/resource-libraries.spi"
 import type { IReportsSpi } from "@/studio/features/review-campaigns/reports/reports.spi"
@@ -58,6 +59,7 @@ export type Services = {
   invitations: IInvitationsSpi
   organizations: IOrganizationsSpi
   projectAnalytics: IProjectAnalyticsSpi
+  projectEmbeddingModels: IProjectEmbeddingModelsSpi
   projectMemberships: IProjectMembershipsSpi
   projects: IProjectsSpi
   resourceLibraries: IResourceLibrariesSpi
