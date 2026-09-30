@@ -13,6 +13,7 @@ export type AgentSettingsCreateFields = Pick<
       | "priorityCallsEnabled"
       | "thinkingLevel"
       | "memoryMode"
+      | "embeddingModel"
     >
   >
 
@@ -30,5 +31,6 @@ export type AgentSettingsUpdateFields = Partial<
     | "priorityCallsEnabled"
     | "thinkingLevel"
     | "memoryMode"
+    | "embeddingModel"
   >
 >

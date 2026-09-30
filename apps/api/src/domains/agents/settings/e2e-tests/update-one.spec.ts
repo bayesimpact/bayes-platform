@@ -3,6 +3,7 @@ import {
   AgentSettingsRoutes,
   AgentThinkingLevel,
   DocumentsRagMode,
+  EmbeddingModel,
 } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
@@ -16,6 +17,7 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
+import { projectEmbeddingModelFactory } from "@/domains/documents/embeddings/project-embedding-models/project-embedding-model.factory"
 import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
 import { documentTagFactory } from "@/domains/documents/tags/document-tag.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
@@ -99,6 +101,48 @@ describe("Agent Settings - updateOne", () => {
     expect(updatedAgentSettings?.documentsRagMode).toBe(DocumentsRagMode.All)
     expect(updatedAgentSettings?.isDraft).toBeTruthy()
     await expectActivityCreated("agentSettings.update")
+  })
+
+  it("rejects a local embedding model the project has not finished embedding with", async () => {
+    const { organization, project } = await createContext()
+    await repositories.projectEmbeddingModelRepository.save(
+      projectEmbeddingModelFactory
+        .transient({ organization, project })
+        .build({ status: "processing", modelName: EmbeddingModel.BgeM3 }),
+    )
+
+    const response = await subject({ payload: { embeddingModel: EmbeddingModel.BgeM3 } })
+
+    expectResponse(
+      response,
+      422,
+      `Embedding model ${EmbeddingModel.BgeM3} is not ready for this project yet`,
+    )
+  })
+
+  it("accepts a local embedding model once the project completed it", async () => {
+    const { organization, project } = await createContext()
+    await repositories.projectEmbeddingModelRepository.save(
+      projectEmbeddingModelFactory.completed().transient({ organization, project }).build(),
+    )
+
+    const response = await subject({ payload: { embeddingModel: EmbeddingModel.BgeM3 } })
+
+    expectResponse(response, 200)
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 2 },
+    })
+    expect(updatedAgentSettings?.embeddingModel).toBe(EmbeddingModel.BgeM3)
+  })
+
+  it("always accepts the default Vertex embedding model", async () => {
+    await createContext()
+
+    const response = await subject({
+      payload: { embeddingModel: EmbeddingModel.GeminiEmbedding001 },
+    })
+
+    expectResponse(response, 200)
   })
 
   it("should leave the other fields untouched on a partial update", async () => {

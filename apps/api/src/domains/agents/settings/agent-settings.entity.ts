@@ -5,6 +5,7 @@ import type {
   AgentTemperature,
   AgentThinkingLevel,
   DocumentsRagMode,
+  EmbeddingModel,
 } from "@caseai-connect/api-contracts"
 import { Column, JoinColumn, ManyToOne } from "typeorm"
 import { ConnectEntityBase, ConnectEntityWithUniqueIndex } from "@/common/entities/connect-entity"
@@ -60,6 +61,10 @@ export class AgentSettings extends ConnectEntityBase {
 
   @Column({ type: "varchar", name: "documents_rag_mode", default: "all", nullable: false })
   documentsRagMode!: DocumentsRagMode
+
+  /** Null means the Vertex default (DEFAULT_EMBEDDING_MODEL); a value names a local model. */
+  @Column({ type: "varchar", name: "embedding_model", nullable: true })
+  embeddingModel!: EmbeddingModel | null
 
   @Column({ type: "text", nullable: true, name: "greeting_message" })
   greetingMessage!: string | null
