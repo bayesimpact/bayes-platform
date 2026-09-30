@@ -71,6 +71,11 @@ export const FeatureFlags = [
     description:
       "Tell conversation agents how the Desk shows their task lists, and what the quoted passages and ticked tasks in the user's messages mean.",
   }),
+  featureFlag({
+    key: "local-embeddings",
+    description:
+      "(beta) Embed project documents with local HuggingFace models (bge-m3, EmbeddingGemma) and pick the retrieval model per agent.",
+  }),
 ] as const
 export type FeatureFlagKey = (typeof FeatureFlags)[number]["key"]
 export type FeatureFlagsDto = FeatureFlagKey[]

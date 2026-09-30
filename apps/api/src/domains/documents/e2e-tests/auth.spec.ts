@@ -2,7 +2,9 @@ import { randomUUID } from "node:crypto"
 import {
   DocumentSourcesRoutes,
   DocumentsRoutes,
+  EmbeddingModel,
   MimeTypes,
+  ProjectEmbeddingModelsRoutes,
   PUBLIC_DOCUMENTS_TAG_NAME,
 } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
@@ -21,6 +23,7 @@ import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
 import { documentTagFactory } from "@/domains/documents/tags/document-tag.factory"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import {
+  addFeature,
   createOrganizationWithAgent,
   createOrganizationWithDocument,
 } from "@/domains/organizations/organization.factory"
