@@ -58,6 +58,7 @@ export function UpdateCampaignForm({ campaign, agents, onSuccess, onDeleted }: P
       updateReviewCampaign({
         reviewCampaignId: campaign.id,
         fields: {
+          agentId: values.agentId,
           name: values.name,
           description: values.description,
           testerPerSessionQuestions: values.testerPerSessionQuestions,

@@ -34,6 +34,7 @@ export type CreateReviewCampaignFields = {
 }
 
 export type UpdateReviewCampaignFields = {
+  agentId?: string
   name?: string
   description?: string | null
   testerPerSessionQuestions?: ReviewCampaignQuestion[]
@@ -74,24 +75,14 @@ export class ReviewCampaignsService {
       throw new UnprocessableEntityException("Campaign name is required")
     }
 
-    const agent = await this.agentRepository.findOne({
-      where: {
-        id: fields.agentId,
-        organizationId: connectScope.organizationId,
-        projectId: connectScope.projectId,
-      },
-    })
-    if (!agent) {
-      throw new UnprocessableEntityException(`Agent ${fields.agentId} not found in this project`)
-    }
-    const agentSettings = await this.agentSettingsService.getLast({
+    const agentSettingsId = await this.resolveAgentSettingsId({
       connectScope,
-      agentId: agent.id,
+      agentId: fields.agentId,
     })
 
     return this.reviewCampaignConnectRepository.createAndSave(connectScope, {
       agentId: fields.agentId,
-      agentSettingsId: agentSettings.id,
+      agentSettingsId,
       name: fields.name.trim(),
       description: fields.description ?? null,
       status: "draft",
@@ -170,6 +161,13 @@ export class ReviewCampaignsService {
       )
     }
 
+    if (configUpdates.agentId !== undefined && configUpdates.agentId !== campaign.agentId) {
+      campaign.agentSettingsId = await this.resolveAgentSettingsId({
+        connectScope,
+        agentId: configUpdates.agentId,
+      })
+      campaign.agentId = configUpdates.agentId
+    }
     if (configUpdates.name !== undefined) {
       if (!configUpdates.name.trim()) {
         throw new UnprocessableEntityException("Campaign name is required")
@@ -194,6 +192,30 @@ export class ReviewCampaignsService {
     }
 
     return this.reviewCampaignConnectRepository.saveOne(campaign)
+  }
+
+  private async resolveAgentSettingsId({
+    connectScope,
+    agentId,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+  }): Promise<string> {
+    const agent = await this.agentRepository.findOne({
+      where: {
+        id: agentId,
+        organizationId: connectScope.organizationId,
+        projectId: connectScope.projectId,
+      },
+    })
+    if (!agent) {
+      throw new UnprocessableEntityException(`Agent ${agentId} not found in this project`)
+    }
+    const agentSettings = await this.agentSettingsService.getLast({
+      connectScope,
+      agentId: agent.id,
+    })
+    return agentSettings.id
   }
 
   private applyStatusTransition(campaign: ReviewCampaign, nextStatus: ReviewCampaignStatus): void {
