@@ -44,7 +44,7 @@ Scoped to one organization via `user_membership` (`resource_type = 'organization
 
 Scoped to one project via `user_membership` (`resource_type = 'project'`).
 
-The evaluation permissions are never inherited from the organization: an organization role does not open a project's evaluation app or its datasets.
+The evaluation permissions are never inherited from the organization: an organization role does not open a project's evaluation app, its datasets or its runs.
 
 | Permission | `project_owner` | `project_admin` | `project_member` |
 |---|---|---|---|
@@ -67,6 +67,10 @@ The evaluation permissions are never inherited from the organization: an organiz
 | `evaluation.extraction.dataset.create` — create evaluation extraction datasets and upload their files | ✅ | ✅ | — |
 | `evaluation.extraction.dataset.update` — update an evaluation extraction dataset | ✅ | ✅ | — |
 | `evaluation.extraction.dataset.delete` — delete an evaluation extraction dataset or one of its files | ✅ | ✅ | — |
+| `evaluation.extraction.run.read` — see the project's evaluation extraction runs and their results | ✅ | ✅ | — |
+| `evaluation.extraction.run.create` — create an evaluation extraction run | ✅ | ✅ | — |
+| `evaluation.extraction.run.update` — execute, retry or cancel an evaluation extraction run | ✅ | ✅ | — |
+| `evaluation.extraction.run.delete` — delete an evaluation extraction run | ✅ | ✅ | — |
 | `user.read` — see the project's members | ✅ | ✅ | — |
 | `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — |
 | `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — |
