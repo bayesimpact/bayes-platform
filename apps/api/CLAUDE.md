@@ -17,7 +17,7 @@ import type { UsersService } from "@/users/users.service"
 import { UsersService } from "@/users/users.service"
 ```
 
-**When to use regular imports**: Services injected via `@InjectRepository()`, `@Inject()`, or constructor injection; Controllers, Guards, Interceptors, Pipes.
+**When to use regular imports**: Services, custom repositories and `TransactionService` injected through the constructor or `@Inject()`; Controllers, Guards, Interceptors, Pipes.
 
 **When type-only imports are OK**: DTOs, interfaces, types, return types — anything not used for DI.
 
@@ -274,26 +274,6 @@ describe("Domain - actionName", () => {
 
 Every service MUST have a corresponding `*.service.spec.ts`. Use `setupTransactionalTestDatabase` from `@/common/test/test-transaction-manager`.
 
-### Custom Repositories — No TypeORM in Services
-
-Services MUST NOT depend on TypeORM (`import from "typeorm"` / `@nestjs/typeorm`, `@InjectRepository`, `Repository<T>`). Persist through a custom `{Entity}Repository` that exposes only the methods the service needs. TypeORM stays in the repository via `TransactionService.getManager().getRepository(Entity)`. See `.cursor/rules/api-custom-repositories.mdc`.
-
-### Connect Scope Pattern
-
-Services MUST accept `connectScope: RequiredConnectScope` and pass it to named custom-repository methods. Keep `ConnectRepository` inside the custom repository — do not construct it in a service.
-
-```typescript
-export class DocumentsService {
-  constructor(private readonly documentRepository: DocumentRepository) {}
-
-  async listDocuments(connectScope: RequiredConnectScope): Promise<Document[]> {
-    return this.documentRepository.getMany(connectScope)
-  }
-}
-```
-
-Do **not** re-implement connect scoping in service `where` clauses.
-
 ### Always Use Factory Functions for Test Data
 
 **Rule**: ALWAYS use fishery factory functions to create test data. Never use `new EntityName()` or manual object literals.
@@ -327,32 +307,53 @@ const { user, organization } = await createOrganizationWithOwner(mainRepositorie
 
 ---
 
-## Organization-Based Resource Authorization
+## Persistence: custom repositories
 
-**Rule**: When a resource has an `organizationId`, you MUST verify the user:
-1. Is a member of the organization
-2. Has the appropriate role
+A service never imports TypeORM. Persistence goes through an `@Injectable()` `{Entity}Repository` provider whose public methods are named for the operation (`createProject`, `findSummariesByProject`, `softDelete`). Follow the `custom-repository` skill. The rationale is in [ADR 0020](../../docs/adr/0020-custom-repositories.md).
+
+- Forbidden in a service: `import ... from "typeorm"` or `@nestjs/typeorm`, `@InjectRepository`, `Repository<T>`, `find` / `save` / `create` / `In()`, query builders, `new ConnectRepository(...)`.
+- The repository injects `TransactionService` (value import with the biome-ignore comment) and calls `transactionService.getManager().getRepository(Entity)` inside each method, never in the constructor. It does not take an `EntityManager` parameter and does not open its own transaction.
+- Public repository methods take and return plain values, records, or the entity. No TypeORM type appears in a signature.
+- Raw SQL goes through `getManager().query()` inside the repository so it joins the ambient transaction.
+- Register the repository in the domain module `providers`, and in `exports` when another module injects it. Leave `TypeOrmModule.forFeature` as it is.
+- Work that must commit or roll back together is wrapped in `transactionService.run()` in the service. Every repository method called inside that callback shares the transaction. Do not thread an optional `manager` argument through service methods.
+
+Many existing services still inject `Repository<T>` or pass a `manager` argument. They are legacy. Do not copy them.
+
+Reference repositories: `domains/agents/agent.repository.ts`, `domains/projects/project.repository.ts`, `domains/rbac/platform-role.repository.ts` (raw SQL), `domains/evaluations/extraction/datasets/evaluation-extraction-dataset-document.repository.ts` (connect scope).
+
+### Connect scope
+
+For an entity scoped by `organizationId` / `projectId`, the repository wraps `repo()` in `ConnectRepository`. The service passes `connectScope: RequiredConnectScope` into the named method and never rebuilds the scope in a `where` clause.
 
 ```typescript
-async verifyUserCanCreateProject(userId: string, organizationId: string): Promise<void> {
-  const membership = await this.userMembershipRepository.findByUserAndOrganization({
-    userId,
-    organizationId,
-  })
-  if (!membership) throw new ForbiddenException(`User does not have access to organization ${organizationId}`)
-  const allowedRoles: MembershipRole[] = ["owner", "admin"]
-  if (!allowedRoles.includes(membership.role)) {
-    throw new ForbiddenException(`User must be an owner or admin of organization ${organizationId} to create projects`)
+export class DocumentsService {
+  constructor(private readonly documentRepository: DocumentRepository) {}
+
+  async listDocuments(connectScope: RequiredConnectScope): Promise<Document[]> {
+    return this.documentRepository.getMany(connectScope)
   }
 }
 ```
 
-**Role patterns**:
-- `owner` or `admin`: create, update, delete
-- `owner`, `admin`, or `member`: read (may vary)
-- `owner` only: sensitive operations (deletion, role changes)
+---
 
-**If unsure about required role, ASK THE USER before implementing.**
+## Authorization: RBAC permission catalog
+
+Access is one permission string, granted on roles, checked on the route, and used to list what the caller can see. Follow the `rbac` skill. The rationale is in [ADR 0019](../../docs/adr/0019-rbac-permission-catalog.md). ADR 0004 and ADR 0013 are superseded: no role enum checks in services, no org-wide `project.read`.
+
+A new capability touches all of these in one change:
+
+1. Declare the string once in `packages/api-contracts/src/rbac/permissions.ts`. Add it to `GlobalPermission` when it has no resource id.
+2. Import it in `apps/api/src/domains/rbac/rbac.constants.ts`, grant it in `ORGANIZATION_ROLE_PERMISSIONS` / `PROJECT_ROLE_PERMISSIONS` / `AGENT_ROLE_PERMISSIONS`, and describe it in `PERMISSION_DESCRIPTIONS`. Add it to `READ_PERMISSION_RESOURCE_TYPE_MAP` when it is used for listing, and to `RESOURCE_TYPE_PERMISSIONS_MAP` when a parent membership should pass it down to a child resource.
+3. Update the matching table in `docs/rbac-permission-matrix.md` and run the `check-permission-matrix` skill.
+4. Ship a data migration that inserts the `role_permission` rows, modelled on `src/migrations/1790269217250-analytics-read-permissions.ts` (`up` inserts with `ON CONFLICT DO NOTHING`, `down` deletes). `migration:generate` cannot emit it because there is no schema diff. The running app never re-reads the constants: tests and `seed:rbac` go through `RbacService`, production only knows the migration.
+5. Protect the route with `@CheckPermission(permission)` for a global check, or `@CheckPermission(permission, "organization" | "project" | "agent")` for a scoped one, with `CheckPermissionGuard` after `JwtAuthGuard` and `UserGuard`. Keep the context resolver or domain guard that puts the resource id on the request. The permission guard only answers whether the permission holds.
+6. A service that lists resources calls `PermissionService.listResourceIds(userId, permission)` or `listResourcePermissions(userId, permission)`, then loads those ids through its custom repository. Pass the key you mean: `backoffice.organization.read` is never rewritten to `organization.read`.
+
+Feature services do not query `user_membership` or `role_permission`, and do not compare `membership.role` against a list of allowed roles. Existing `@CheckPolicy` policies stay where they are. A new check uses `@CheckPermission`.
+
+**If unsure which role should hold a permission, ASK THE USER before implementing.**
 
 ---
 
@@ -383,7 +384,7 @@ NEVER manually create migration files unless the user explicitly requests it. Al
 Default behavior for schema changes:
 - Required: `npm run migration:generate`
 - Forbidden by default: `migration:create` and hand-written migration SQL
-- Exception: only when the user explicitly asks for a manual migration
+- Exception: only when the user explicitly asks for a manual migration, or for the `role_permission` data migration of an RBAC grant (see "Authorization: RBAC permission catalog"), which has no schema diff to generate from
 
 ### Migration Best Practices
 
@@ -507,5 +508,6 @@ Before marking API work as completed:
 2. `npm run typecheck` — must pass
 3. `npm run test` — all tests must pass
 4. `npm run check:boundaries` (from `apps/api`) — must pass (regenerate baselines if new TypeORM relation cycles were introduced, see "Boundary Check Baselines" above)
+5. When `rbac.constants.ts` or `permissions.ts` changed, the `check-permission-matrix` skill reports no mismatch
 
-Work is NOT complete until all four commands exit with code 0.
+Work is NOT complete until all applicable commands exit with code 0.

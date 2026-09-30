@@ -15,7 +15,10 @@ export class LocalStorageService implements IFileStorage {
   private readonly logger = new Logger(LocalStorageService.name)
   private readonly dir = path.join(process.cwd(), "dontsave_documents")
   private readonly baseUrl: string
-  private readonly pendingUploads = new Map<string, { storagePath: string; expiresAt: number }>()
+  private readonly pendingUploads = new Map<
+    string,
+    { storagePath: string; expiresAt: number; maxBytes?: number }
+  >()
 
   constructor(private readonly configService: ConfigService) {
     const envBaseUrl = process.env.LOCAL_STORAGE_SERVER_BASE_URL || "http://localhost:3000"
@@ -25,13 +28,19 @@ export class LocalStorageService implements IFileStorage {
   async generateSignedUploadUrl({
     storagePath,
     expiresInSeconds,
+    maxBytes,
   }: {
     storagePath: string
     mimeType: string
     expiresInSeconds: number
+    maxBytes?: number
   }): Promise<string> {
     const token = uuidv4()
-    this.pendingUploads.set(token, { storagePath, expiresAt: Date.now() + expiresInSeconds * 1000 })
+    this.pendingUploads.set(token, {
+      storagePath,
+      expiresAt: Date.now() + expiresInSeconds * 1000,
+      maxBytes,
+    })
     return `${this.baseUrl}${PRIVATE_API_PATH}/local-presign-upload/${token}`
   }
 
@@ -43,6 +52,9 @@ export class LocalStorageService implements IFileStorage {
     if (Date.now() > pending.expiresAt) {
       this.pendingUploads.delete(token)
       throw new Error("Upload token expired.")
+    }
+    if (pending.maxBytes !== undefined && fileBuffer.length > pending.maxBytes) {
+      throw new UploadTooLargeError()
     }
     const destinationPath = path.join(this.dir, pending.storagePath)
     const destinationDir = path.dirname(destinationPath)
@@ -57,6 +69,16 @@ export class LocalStorageService implements IFileStorage {
 
   async readFile(storageRelativePath: string): Promise<Buffer> {
     return fs.readFile(path.join(this.dir, storageRelativePath))
+  }
+
+  async fileExists(storageRelativePath: string): Promise<boolean> {
+    try {
+      await fs.access(path.join(this.dir, storageRelativePath))
+      return true
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return false
+      throw error
+    }
   }
 
   async deleteFile(storageRelativePath: string): Promise<void> {
@@ -120,5 +142,12 @@ export class LocalStorageService implements IFileStorage {
     extension: string
   }): string {
     return `${connectScope.organizationId}/${connectScope.projectId}/${documentId}.${extension}`
+  }
+}
+
+export class UploadTooLargeError extends Error {
+  constructor() {
+    super("Upload exceeds the maximum size.")
+    this.name = "UploadTooLargeError"
   }
 }

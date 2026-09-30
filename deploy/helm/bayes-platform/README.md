@@ -73,7 +73,6 @@ kubectl -n platform create secret generic platform-secrets \
   --from-literal=MCP_ENCRYPTION_KEY=$(openssl rand -hex 32) \
   --from-file=APPS_JWT_PRIVATE_KEY=./apps-jwt-private.pem \
   --from-file=APPS_JWT_PUBLIC_KEY=./apps-jwt-public.pem \
-  --from-literal=LANGFUSE_SK=... \
   --from-literal=VLLM_MYMODEL_URL=https://... \
   --from-literal=VLLM_MYMODEL_APIKEY=...
 ```
@@ -160,6 +159,16 @@ dashboards query a datasource named `analytics`: the platform database through
 its read-only `analytics` schema (`docs/analytics-schema.md`). The chart installs
 neither Grafana nor the datasource.
 
+## LLM traces
+
+The API and the workers send their traces and metrics over OTLP to `config.OTEL_EXPORTER_OTLP_ENDPOINT`, and nothing when it is empty. The trace links of the UI come from `config.TRACE_URL_TEMPLATE` (`{traceId}` is replaced by our trace id).
+
+- **A collector already runs in your cluster**: set `config.OTEL_EXPORTER_OTLP_ENDPOINT` to it, and give it the processors of `files/otel-collector.yaml` (the mapping from the AI SDK attributes to what Phoenix reads). Without them, the traces reach Phoenix unreadable.
+- **No collector**: `otelCollector.enabled: true` deploys one with that file and points the API and the workers at it. It sends the traces to `otelCollector.phoenix.endpoint`, or to the bundled Phoenix. For a Phoenix with authentication, put an API key in the Secret and name it in `otelCollector.phoenix.apiKeySecretKey`.
+- **No Phoenix**: `phoenix.enabled: true` deploys one, and `urls.phoenix` gives it a host and the trace links of the UI.
+
+> **The bundled Phoenix is not production ready.** It has no authentication: anyone who reaches it reads every prompt and answer. One replica, SQLite on a volume by default (`phoenix.database.urlKey` switches to a Postgres you created). Restrict its ingress (`ingress.phoenixAnnotations`) or keep it without `urls.phoenix` and reach it with `kubectl port-forward`. For production, run your own Phoenix with sign-in, keep `phoenix.enabled: false` and set `otelCollector.phoenix.endpoint`.
+
 ## Managed services
 
 See `values-managed.example.yaml`. The differences with the default:
@@ -222,6 +231,7 @@ See `values.yaml`. Every key is documented in place. The main sections:
 | `redis`, `externalRedis` | bundled or external Redis |
 | `storage` | `local` volume or `gcs` bucket |
 | `api`, `cpuWorkers`, `gpuWorkers`, `pdfConverter`, `webEmbed`, `help` | one block per component: replicas, resources, placement |
+| `otelCollector`, `phoenix` | optional collector and Phoenix for the LLM traces (see "LLM traces") |
 | `migrations` | the migration Job |
 | `ingress` | class, annotations, cert-manager issuer, TLS |
 

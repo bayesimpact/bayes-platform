@@ -155,7 +155,7 @@ export class DocumentChunkRetrievalService {
         embeddingStatus: "completed",
       })
       .andWhere("document.source_type IN (:...allowedSourceTypes)", {
-        allowedSourceTypes: ["project", "webCrawl"],
+        allowedSourceTypes: ["project", "webCrawl", "app"],
       })
       .andWhere("chunk.deleted_at IS NULL")
       .andWhere("embedding.deleted_at IS NULL")

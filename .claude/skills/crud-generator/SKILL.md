@@ -239,6 +239,8 @@ export class {EntityName}Policy extends ProjectScopedPolicy<{EntityName}> {}
 
 Unless the entity requires custom access control logic.
 
+> **Note:** The policy only answers whether the resource belongs to the caller's scope. A capability that belongs in the RBAC catalog (a new permission, a per-role grant, or a list of what the caller can see) follows `.claude/skills/rbac/SKILL.md` and ADR 0019 with `@CheckPermission` and `PermissionService`. Do not add a `can*()` method or a membership role check for it.
+
 ### 4i. Backend — Factory
 
 File: `apps/api/src/domains/{featureName}/{entityNameKebab}.factory.ts`

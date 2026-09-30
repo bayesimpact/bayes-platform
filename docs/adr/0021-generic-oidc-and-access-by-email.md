@@ -1,4 +1,4 @@
-# ADR 0019: Generic OpenID Connect and Access Granted by Email
+# ADR 0021: Generic OpenID Connect and Access Granted by Email
 
 * **Status**: Accepted
 * **Date**: 2026-09-28

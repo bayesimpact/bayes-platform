@@ -8,15 +8,26 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
-- (beta) Superadmins can register an app in the back-office.
-- (beta) Platform staff can install an app on a project with limited credentials.
-- (beta) Installed apps can add a text document to their project.
-- (beta) Installed apps can register a named document feed on a project.
+- Kubernetes: the Helm chart can install an optional Phoenix to read LLM traces.
 - Sign-in: any OpenID Connect provider, such as Keycloak, can now authenticate platform users.
 
 ### Changed
-- Analytics: conversation categories now show per agent, ranked by volume with their share and daily trend.
+- Trace links now open the conversation in Phoenix instead of Langfuse.
 - Members: people added by email get access right away, without an invitation to accept.
+
+### Fixed
+- Review campaigns: changing the targeted agent of a draft campaign is now saved.
+
+### Security
+
+## [26.09.4] - 2026-09-29
+
+### Added
+- (beta) Apps: platform staff can install external apps on a project to read it and add documents.
+
+### Changed
+- Analytics: conversation categories now show per agent, ranked by volume with their share and daily trend.
+- Extraction agents: documents uploaded for a run now use the agent's own upload flow and access rules.
 
 ### Fixed
 - Analytics: conversations and questions per session now include conversations held in the embedded chat.

@@ -9,6 +9,8 @@ import { DocumentsService } from "../documents.service"
 import { DocumentEmbeddingStatusNotifierService } from "../embeddings/document-embedding-status-notifier.service"
 import { DocumentEmbeddingsBatchModule } from "../embeddings/document-embeddings-batch.module"
 import { PdfPagesModule } from "../pdf-pages/pdf-pages.module"
+import { DocumentSourceRepository } from "../sources/document-source.repository"
+import { DocumentSourcesService } from "../sources/document-sources.service"
 import { StorageModule } from "../storage/storage.module"
 import { DocumentTagsService } from "../tags/document-tags.service"
 import { DocumentCrawlProgressNotifierService } from "./document-crawl-progress-notifier.service"
@@ -40,6 +42,8 @@ import { WebSourceEmbeddingsBatchModule } from "./web-source-embeddings-batch.mo
     UrlCrawlingProcessorService,
     SpiderClientService,
     DocumentsService,
+    DocumentSourcesService,
+    DocumentSourceRepository,
     DocumentTagsService,
     DocumentEmbeddingStatusNotifierService,
     DocumentCrawlProgressNotifierService,

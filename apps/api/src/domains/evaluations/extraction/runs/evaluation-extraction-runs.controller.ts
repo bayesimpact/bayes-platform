@@ -28,15 +28,21 @@ import { getRequiredConnectScope } from "@/common/context/request-context.helper
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import {
+  EVALUATION_EXTRACTION_RUN_CREATE_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_READ_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
-import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
+import { getTraceUrl } from "@/external/llm/trace-url"
 import type { EvaluationExtractionRun } from "./evaluation-extraction-run.entity"
-import { EvaluationExtractionRunGuard } from "./evaluation-extraction-run.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationExtractionRunCsvExportService } from "./evaluation-extraction-run-csv-export.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -47,7 +53,7 @@ import { EvaluationExtractionRunStatusStreamService } from "./evaluation-extract
 import { EvaluationExtractionRunsService } from "./evaluation-extraction-runs.service"
 import type { EvaluationExtractionRunRecord } from "./records/evaluation-extraction-run-record.entity"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, EvaluationExtractionRunGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
 export class EvaluationExtractionRunsController {
@@ -62,7 +68,7 @@ export class EvaluationExtractionRunsController {
   ) {}
 
   @Post(EvaluationExtractionRunsRoutes.createOne.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(EVALUATION_EXTRACTION_RUN_CREATE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationExtractionRun.create" })
   async createOne(
     @Req() request: EndpointRequestWithProject,
@@ -131,7 +137,7 @@ export class EvaluationExtractionRunsController {
 
   @Post(EvaluationExtractionRunsRoutes.executeOne.path)
   @AddContext("evaluationExtractionRun")
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationExtractionRun.execute" })
   async executeOne(
     @Req() request: EndpointRequestWithEvaluationExtractionRun,
@@ -151,7 +157,7 @@ export class EvaluationExtractionRunsController {
 
   @Post(EvaluationExtractionRunsRoutes.retryOne.path)
   @AddContext("evaluationExtractionRun")
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationExtractionRun.retry" })
   async retryOne(
     @Req() request: EndpointRequestWithEvaluationExtractionRun,
@@ -166,7 +172,7 @@ export class EvaluationExtractionRunsController {
 
   @Post(EvaluationExtractionRunsRoutes.cancelOne.path)
   @AddContext("evaluationExtractionRun")
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationExtractionRun.cancel" })
   async cancelOne(
     @Req() request: EndpointRequestWithEvaluationExtractionRun,
@@ -207,7 +213,7 @@ export class EvaluationExtractionRunsController {
 
   @Get(EvaluationExtractionRunsRoutes.getOne.path)
   @AddContext("evaluationExtractionRun")
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(EVALUATION_EXTRACTION_RUN_READ_PERMISSION, "project")
   async getOne(
     @Req() request: EndpointRequestWithEvaluationExtractionRun,
   ): Promise<typeof EvaluationExtractionRunsRoutes.getOne.response> {
@@ -215,7 +221,7 @@ export class EvaluationExtractionRunsController {
   }
 
   @Get(EvaluationExtractionRunsRoutes.getAll.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(EVALUATION_EXTRACTION_RUN_READ_PERMISSION, "project")
   async getAll(
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof EvaluationExtractionRunsRoutes.getAll.response> {
@@ -227,7 +233,7 @@ export class EvaluationExtractionRunsController {
 
   @Get(EvaluationExtractionRunsRoutes.getRecords.path)
   @AddContext("evaluationExtractionRun")
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(EVALUATION_EXTRACTION_RUN_READ_PERMISSION, "project")
   async getRecords(
     @Req() request: EndpointRequestWithEvaluationExtractionRun,
     @Query("page") pageParam?: string,
@@ -271,7 +277,7 @@ export class EvaluationExtractionRunsController {
 
   @Delete(EvaluationExtractionRunsRoutes.deleteOne.path)
   @AddContext("evaluationExtractionRun")
-  @CheckPolicy((policy) => policy.canDelete())
+  @CheckPermission(EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationExtractionRun.delete" })
   async deleteOne(
     @Req() request: EndpointRequestWithEvaluationExtractionRun,
@@ -283,7 +289,7 @@ export class EvaluationExtractionRunsController {
     return { data: { success: true } }
   }
 
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(EVALUATION_EXTRACTION_RUN_READ_PERMISSION, "project")
   @Sse(EvaluationExtractionRunsRoutes.streamRunStatus.path, { method: 0 /* GET */ })
   streamRunStatus(
     @Req() request: EndpointRequestWithProject,
@@ -329,7 +335,7 @@ function toEvaluationExtractionRunRecordDto(
     agentRawOutput: record.agentRawOutput,
     errorDetails: record.errorDetails,
     datasetRecordData: record.evaluationExtractionDatasetRecord?.data ?? null,
-    traceUrl: record.traceId ? getTraceUrl(record.traceId) : null,
+    traceUrl: record.traceId ? (getTraceUrl(record.traceId) ?? null) : null,
     createdAt: record.createdAt.getTime(),
     updatedAt: record.updatedAt.getTime(),
   }

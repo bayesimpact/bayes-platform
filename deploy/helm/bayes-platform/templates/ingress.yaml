@@ -40,6 +40,11 @@ Both carry ingress.apiAnnotations (uploads, long answers).
   {{- $s := include "bayes-platform.componentName" (dict "root" $root "component" "help") }}
   {{- $rules = append $rules (dict "name" $s "component" "help" "host" (include "bayes-platform.host" .Values.urls.help) "paths" (list "/") "service" $s "port" 80 "annotations" dict) }}
 {{- end }}
+{{- if and .Values.phoenix.enabled .Values.urls.phoenix }}
+  {{- /* No authentication on the bundled Phoenix: restrict it with ingress.phoenixAnnotations. */}}
+  {{- $s := include "bayes-platform.componentName" (dict "root" $root "component" "phoenix") }}
+  {{- $rules = append $rules (dict "name" $s "component" "phoenix" "host" (include "bayes-platform.host" .Values.urls.phoenix) "paths" (list "/") "service" $s "port" 6006 "annotations" .Values.ingress.phoenixAnnotations) }}
+{{- end }}
 {{- range $rule := $rules }}
 ---
 # One Ingress per host, so each component can carry its own annotations.

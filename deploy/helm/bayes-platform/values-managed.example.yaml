@@ -30,8 +30,8 @@ config:
   BACKOFFICE_AUTHORIZED_DOMAIN: "@example.org"
   GOOGLE_VERTEX_PROJECT: my-project
   GOOGLE_VERTEX_LOCATION: europe-west1
-  LANGFUSE_BASE_URL: https://langfuse.example.org
-  LANGFUSE_PK: pk-lf-xxx
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-gateway.observability:4318
+  TRACE_URL_TEMPLATE: https://traces.example.org/redirects/sessions/{traceId}
 
 postgresql:
   enabled: false

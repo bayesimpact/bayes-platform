@@ -8,6 +8,8 @@ import {
   Body,
   Controller,
   ForbiddenException,
+  HttpCode,
+  HttpStatus,
   NotFoundException,
   Post,
   Req,
@@ -30,12 +32,16 @@ import type { AgentSettings } from "@/domains/agents/settings/agent-settings.ent
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { toDocumentDto } from "@/domains/documents/documents.helpers"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { DocumentsService } from "@/domains/documents/documents.service"
 import { UserGuard } from "@/domains/users/user.guard"
-import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
+import { getTraceUrl } from "@/external/llm/trace-url"
 import { BaseAgentSessionGuard } from "../base-agent-sessions/base-agent-session.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { BaseAgentSessionsService } from "../base-agent-sessions/base-agent-sessions.service"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
+import { ExtractionAgentDocumentsGuard } from "./extraction-agent-documents.guard"
 import type { ExtractionAgentSession } from "./extraction-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ExtractionAgentSessionStatusStreamService } from "./extraction-agent-session-status-stream.service"
@@ -53,6 +59,7 @@ export class ExtractionAgentSessionsController {
     private readonly baseAgentSessionsService: BaseAgentSessionsService,
     private readonly sessionStatusStreamService: ExtractionAgentSessionStatusStreamService,
     private readonly agentSettingsService: AgentSettingsService,
+    private readonly documentsService: DocumentsService,
   ) {}
 
   @Post(ExtractionAgentSessionsRoutes.executeOne.path)
@@ -193,6 +200,67 @@ export class ExtractionAgentSessionsController {
       agentSession: request.agentSession,
     })
     return { data: { success: true } }
+  }
+
+  // The document an extraction run reads is uploaded here rather than through the project
+  // documents routes: those are for admins and owners, while a live run is open to every member.
+  // The browser presigns, PUTs the bytes to the returned URL, then confirms.
+  @Post(ExtractionAgentSessionsRoutes.presignDocument.path)
+  @UseGuards(ExtractionAgentDocumentsGuard)
+  @CheckPolicy((policy) => policy.canCreate())
+  @HttpCode(HttpStatus.CREATED)
+  async presignDocument(
+    @Req() request: EndpointRequestWithAgent,
+    @Body() { payload }: typeof ExtractionAgentSessionsRoutes.presignDocument.request,
+  ): Promise<typeof ExtractionAgentSessionsRoutes.presignDocument.response> {
+    if (!payload.file) {
+      throw new UnprocessableEntityException("A file is required.")
+    }
+
+    const presigned = await this.documentsService.presignUpload({
+      connectScope: getRequiredConnectScope(request),
+      file: payload.file,
+      sourceType: "extraction",
+      userId: request.user.id,
+    })
+    return { data: presigned }
+  }
+
+  @Post(ExtractionAgentSessionsRoutes.confirmDocument.path)
+  @UseGuards(ExtractionAgentDocumentsGuard)
+  @CheckPolicy((policy) => policy.canCreate())
+  @TrackActivity({ action: "extractionAgentSession.uploadDocument" })
+  @HttpCode(HttpStatus.CREATED)
+  async confirmDocument(
+    @Req() request: EndpointRequestWithAgent,
+    @Body() { payload }: typeof ExtractionAgentSessionsRoutes.confirmDocument.request,
+  ): Promise<typeof ExtractionAgentSessionsRoutes.confirmDocument.response> {
+    const { documentId } = payload
+    if (!documentId) {
+      throw new UnprocessableEntityException("A document ID is required.")
+    }
+
+    const connectScope = getRequiredConnectScope(request)
+    const document = await this.documentsService.findById({ connectScope, documentId })
+    // A member may only complete an upload they started; anything else is not theirs to confirm.
+    if (!document || document.sourceType !== "extraction" || document.userId !== request.user.id) {
+      throw new NotFoundException(`Document ${documentId} not found`)
+    }
+    await this.documentsService.markAsUploaded({ connectScope, documentId })
+    return { data: toDocumentDto(document) }
+  }
+
+  @Post(ExtractionAgentSessionsRoutes.listMyDocuments.path)
+  @UseGuards(ExtractionAgentDocumentsGuard)
+  @CheckPolicy((policy) => policy.canList())
+  async listMyDocuments(
+    @Req() request: EndpointRequestWithAgent,
+  ): Promise<typeof ExtractionAgentSessionsRoutes.listMyDocuments.response> {
+    const documents = await this.documentsService.listExtractionDocumentsForUser({
+      connectScope: getRequiredConnectScope(request),
+      userId: request.user.id,
+    })
+    return { data: documents.map(toDocumentDto) }
   }
 }
 

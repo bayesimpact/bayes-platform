@@ -1,10 +1,11 @@
-import type {
-  FeatureFlagKey,
-  FeatureFlagsDto,
-  MyProjectDto,
-  ProjectAgentSessionCategoryDto,
-  ProjectDto,
-  TimeType,
+import {
+  type FeatureFlagKey,
+  type FeatureFlagsDto,
+  isProjectPermission,
+  type MyProjectDto,
+  type ProjectAgentSessionCategoryDto,
+  type ProjectDto,
+  type TimeType,
 } from "@caseai-connect/api-contracts"
 import type {
   EndpointRequestWithAgent,
@@ -40,6 +41,7 @@ export function toProjectDto(project: ProjectModel): ProjectDto {
     featureFlags: project.featureFlags as FeatureFlagKey[],
     conversationRetentionDays: project.conversationRetentionDays,
     agentSessionCategories: project.agentSessionCategories.map(toProjectAgentSessionCategoryDto),
+    permissions: project.permissions.filter(isProjectPermission),
   }
 }
 

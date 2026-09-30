@@ -27,6 +27,8 @@ import {
 } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+import { attachTrackedActivity } from "@/domains/activities/attach-tracked-activity"
+import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentSourcesService } from "@/domains/documents/sources/document-sources.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -77,12 +79,17 @@ export class AppsDocumentSourcesController {
   @CheckPermission(DOCUMENT_SOURCE_CREATE_PERMISSION, "project")
   @Post(AppsDocumentSourcesRoutes.createOne.path)
   @HttpCode(HttpStatus.CREATED)
+  @TrackActivity({ action: "documentSource.create" })
   async createOne(
     @Param("projectId") projectId: string,
     @Req() request: AppRequest,
     @Body() body: unknown,
   ): Promise<typeof AppsDocumentSourcesRoutes.createOne.response> {
     const connectScope = await this.connectScopeFor(projectId, request)
+    attachTrackedActivity(request, {
+      organizationId: connectScope.organizationId,
+      projectId: connectScope.projectId,
+    })
     const parsed = createDocumentSourceSchema.safeParse(body)
     if (!parsed.success) {
       throw new BadRequestException("Invalid document source payload")
@@ -100,6 +107,7 @@ export class AppsDocumentSourcesController {
 
   @CheckPermission(DOCUMENT_SOURCE_UPDATE_PERMISSION, "project")
   @Patch(AppsDocumentSourcesRoutes.updateOne.path)
+  @TrackActivity({ action: "documentSource.update", entityFrom: "documentSource" })
   async updateOne(
     @Param("projectId") projectId: string,
     @Param("id") id: string,
@@ -116,12 +124,19 @@ export class AppsDocumentSourcesController {
       ...(parsed.data.name !== undefined ? { name: parsed.data.name } : {}),
       ...(parsed.data.config !== undefined ? { config: parsed.data.config } : {}),
     })
+    attachTrackedActivity(request, {
+      organizationId: connectScope.organizationId,
+      projectId: connectScope.projectId,
+      entityFrom: "documentSource",
+      entityId: documentSource.id,
+    })
     return { data: toDocumentSourceDto(documentSource) }
   }
 
   @CheckPermission(DOCUMENT_SOURCE_DELETE_PERMISSION, "project")
   @Delete(AppsDocumentSourcesRoutes.deleteOne.path)
   @HttpCode(HttpStatus.OK)
+  @TrackActivity({ action: "documentSource.delete", entityFrom: "documentSource" })
   async deleteOne(
     @Param("projectId") projectId: string,
     @Param("id") id: string,
@@ -129,6 +144,12 @@ export class AppsDocumentSourcesController {
   ): Promise<typeof AppsDocumentSourcesRoutes.deleteOne.response> {
     const connectScope = await this.connectScopeFor(projectId, request)
     await this.documentSourcesService.deleteOne(connectScope, id)
+    attachTrackedActivity(request, {
+      organizationId: connectScope.organizationId,
+      projectId: connectScope.projectId,
+      entityFrom: "documentSource",
+      entityId: id,
+    })
     return { data: { success: true } }
   }
 

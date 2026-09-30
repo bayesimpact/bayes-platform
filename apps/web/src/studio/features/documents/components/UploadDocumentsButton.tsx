@@ -1,4 +1,7 @@
-import { allowedDocumentUploadMimeTypesForFileUploader } from "@caseai-connect/api-contracts"
+import {
+  allowedDocumentUploadMimeTypesForFileUploader,
+  DOCUMENT_UPLOAD_MAX_BYTES,
+} from "@caseai-connect/api-contracts"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
@@ -92,7 +95,7 @@ export function UploadDocumentsButton({
         allowedMimeTypes={allowedDocumentUploadMimeTypesForFileUploader}
         maxFiles={400}
         disabled={isUploading}
-        maxSize={40 * 1024 * 1024} // 40MB
+        maxSize={DOCUMENT_UPLOAD_MAX_BYTES}
         onDropFiles={handleDropFiles}
         onProcessFiles={handleProcessFiles}
         startProcessingFiles={startProcessingFiles}

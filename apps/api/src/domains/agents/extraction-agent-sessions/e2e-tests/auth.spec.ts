@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto"
 import {
   ExtractionAgentSessionsRoutes,
+  MimeTypes,
   type ProjectMembershipRoleDto,
 } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
@@ -256,6 +257,146 @@ describe("ExtractionAgentSessions - Auth", () => {
         await createContextForRole("owner")
         expectResponse(await subject(type), 201)
       })
+    })
+  })
+
+  describe("ExtractionAgentSessionsRoutes.presignDocument", () => {
+    const subject = async (type: "playground" | "live") =>
+      request({
+        route: ExtractionAgentSessionsRoutes.presignDocument,
+        pathParams: removeNullish({ organizationId, projectId, agentId }),
+        token: accessToken ?? undefined,
+        request: {
+          payload: {
+            type,
+            file: { fileName: "invoice.pdf", mimeType: MimeTypes.pdf, size: 10 },
+          },
+        },
+      })
+
+    describe.each([["live"], ["playground"]] as const)("presigning a %s document", (type) => {
+      it("requires an authentication token", async () => {
+        accessToken = null
+        expectResponse(await subject(type), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+      })
+      it("requires a valid organization ID", async () => {
+        await createContextForRole("owner")
+        organizationId = null
+        expectResponse(await subject(type), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+      })
+      it("requires a valid agent ID", async () => {
+        await createContextForRole("owner")
+        agentId = randomUUID()
+        expectResponse(await subject(type), 404)
+      })
+      it("requires the user to be a member of the organization", async () => {
+        await createContextForRole("owner")
+        authSubject = mockForeignAuthSubject()
+        expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+      })
+      if (type === "playground") {
+        it("does not allow a simple member to presign a playground document", async () => {
+          await createContextForRole("member")
+          expectResponse(await subject(type), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+        })
+      } else {
+        it("allows a simple member to presign a live document", async () => {
+          await createContextForRole("member")
+          expectResponse(await subject(type), 201)
+        })
+      }
+      it("allows an owner to presign a document", async () => {
+        await createContextForRole("owner")
+        expectResponse(await subject(type), 201)
+      })
+    })
+
+    it("rejects an unknown run type", async () => {
+      await createContextForRole("owner")
+      const response = await request({
+        route: ExtractionAgentSessionsRoutes.presignDocument,
+        pathParams: removeNullish({ organizationId, projectId, agentId }),
+        token: accessToken ?? undefined,
+        request: {
+          payload: {
+            type: "other" as never,
+            file: { fileName: "invoice.pdf", mimeType: MimeTypes.pdf, size: 10 },
+          },
+        },
+      })
+      expectResponse(response, 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
+  describe("ExtractionAgentSessionsRoutes.confirmDocument", () => {
+    const subject = async (type: "playground" | "live") =>
+      request({
+        route: ExtractionAgentSessionsRoutes.confirmDocument,
+        pathParams: removeNullish({ organizationId, projectId, agentId }),
+        token: accessToken ?? undefined,
+        request: { payload: { type, documentId } },
+      })
+
+    describe.each([["live"], ["playground"]] as const)("confirming a %s document", (type) => {
+      it("requires an authentication token", async () => {
+        accessToken = null
+        expectResponse(await subject(type), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+      })
+      it("requires the user to be a member of the organization", async () => {
+        await createContextForRole("owner")
+        authSubject = mockForeignAuthSubject()
+        expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+      })
+      if (type === "playground") {
+        it("does not allow a simple member to confirm a playground document", async () => {
+          await createContextForRole("member")
+          expectResponse(await subject(type), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+        })
+      } else {
+        it("lets a simple member through to confirm a live document", async () => {
+          await createContextForRole("member")
+          // The seeded document belongs to nobody, so the handler reports it as not found.
+          expectResponse(await subject(type), 404)
+        })
+      }
+    })
+  })
+
+  describe("ExtractionAgentSessionsRoutes.listMyDocuments", () => {
+    const subject = async (type: "playground" | "live") =>
+      request({
+        route: ExtractionAgentSessionsRoutes.listMyDocuments,
+        pathParams: removeNullish({ organizationId, projectId, agentId }),
+        token: accessToken ?? undefined,
+        request: { payload: { type } },
+      })
+
+    describe.each([["live"], ["playground"]] as const)("listing %s documents", (type) => {
+      it("requires an authentication token", async () => {
+        accessToken = null
+        expectResponse(await subject(type), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+      })
+      it("requires a valid agent ID", async () => {
+        await createContextForRole("owner")
+        agentId = randomUUID()
+        expectResponse(await subject(type), 404)
+      })
+      it("requires the user to be a member of the organization", async () => {
+        await createContextForRole("owner")
+        authSubject = mockForeignAuthSubject()
+        expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+      })
+      if (type === "playground") {
+        it("does not allow a simple member to list playground documents", async () => {
+          await createContextForRole("member")
+          expectResponse(await subject(type), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+        })
+      } else {
+        it("allows a simple member to list their live documents", async () => {
+          await createContextForRole("member")
+          expectResponse(await subject(type), 201)
+        })
+      }
     })
   })
 })

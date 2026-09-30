@@ -2,12 +2,14 @@ import { randomUUID } from "node:crypto"
 import { AppsRoutes, DOCUMENT_READ_PERMISSION } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
+import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
 import {
   type AllRepositories,
   clearTestDatabase,
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { APP_INSTALLATION_STATUS_ACTIVE } from "@/domains/apps/app-installation.entity"
 import { appInstallationFactory } from "@/domains/apps/app-installation.factory"
 import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
@@ -30,10 +32,11 @@ describe("Apps - CRUD", () => {
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
   let authSubject = `oidc|${randomUUID()}`
+  let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [AppsModule, RbacModule],
+      additionalImports: [AppsModule, RbacModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) =>
         setupUserGuardForTesting(
           withDocumentEmbeddingsBatchServiceMock(moduleBuilder),
@@ -42,6 +45,7 @@ describe("Apps - CRUD", () => {
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
+    expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -105,6 +109,19 @@ describe("Apps - CRUD", () => {
     })
     expectResponse(updated, 200)
     expect(updated.body.data.name).toBe("Updated Assistant")
+
+    await expectActivityCreated("appManifest.create", {
+      entityId: null,
+      entityType: null,
+      organizationId: null,
+      projectId: null,
+    })
+    await expectActivityCreated("appManifest.update", {
+      entityId: created.body.data.id,
+      entityType: "appManifest",
+      organizationId: null,
+      projectId: null,
+    })
   })
 
   it("rejects an invalid slug and unknown grantable permissions", async () => {
@@ -148,6 +165,10 @@ describe("Apps - CRUD", () => {
       token: "token",
     })
     expectResponse(fetched, 404)
+    await expectActivityCreated("appManifest.delete", {
+      entityId: created.body.data.id,
+      entityType: "appManifest",
+    })
   })
 
   it("refuses to delete a manifest with active installations", async () => {
@@ -167,6 +188,9 @@ describe("Apps - CRUD", () => {
       token: "token",
     })
     expectResponse(deleted, 409)
+    expect(
+      await repositories.activityRepository.findOne({ where: { action: "appManifest.delete" } }),
+    ).toBeNull()
   })
 
   it("returns 404 when updating a missing manifest", async () => {

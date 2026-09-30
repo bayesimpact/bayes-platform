@@ -11,11 +11,17 @@ export interface IFileStorage {
   deleteFile(storageRelativePath: string): Promise<void>
   readFile(storageRelativePath: string): Promise<Buffer>
   createReadStream(storageRelativePath: string): Readable
+  /**
+   * When `maxBytes` is set, the upload URL rejects a body larger than that cap.
+   * On GCS the caller must send `x-goog-content-length-range: 0,<maxBytes>`.
+   */
   generateSignedUploadUrl(p: {
     storagePath: string
     mimeType: string
     expiresInSeconds: number
+    maxBytes?: number
   }): Promise<string>
+  fileExists(storageRelativePath: string): Promise<boolean>
   buildStorageRelativePath(p: {
     connectScope: RequiredConnectScope
     documentId: string

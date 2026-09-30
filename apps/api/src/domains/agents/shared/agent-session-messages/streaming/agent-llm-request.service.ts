@@ -19,8 +19,8 @@ import {
 } from "@/domains/documents/storage/file-storage.interface"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectsService } from "@/domains/projects/projects.service"
-import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
 import { modelRequiresPdfAsImages } from "@/external/llm/agent-provider"
+import { getTraceUrl } from "@/external/llm/trace-url"
 import type { AgentMessage } from "../agent-message.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMessageAttachmentDocumentsService } from "../agent-message-attachment-documents.service"
@@ -154,7 +154,7 @@ export class AgentLlmRequestService {
       agentSettings,
       hasSubAgentTools,
       extraTags,
-      // Langfuse: the turns of one user message share a number; the label says
+      // Traces: the turns of one user message share a number; the label says
       // which one is the sub-agent's, and which one the parent's resumption.
       spanLabel: agentSessionScope.handoff
         ? `handoff · ${agent.name}`
@@ -222,7 +222,7 @@ export class AgentLlmRequestService {
     spanLabel?: string
   }): LLMMetadata {
     this.logger.log(
-      `Agent "${agent.name}" (${agent.id}) trace: ${getTraceUrl(session.traceId)} (session ${session.id})`,
+      `Agent "${agent.name}" (${agent.id}) trace: ${getTraceUrl(session.traceId) ?? session.traceId} (session ${session.id})`,
     )
     const tags = [agent.name, `rev-${agentSettings.revision}`, agent.type, ...extraTags]
     return {

@@ -22,8 +22,8 @@ import type { MigrationInterface, QueryRunner } from "typeorm"
  * `down()` restores the column. The memberships created in step 2 stay: they
  * cannot be told apart from memberships granted afterwards.
  */
-export class GenericOidcUserSubject1790626076979 implements MigrationInterface {
-  name = "GenericOidcUserSubject1790626076979"
+export class GenericOidcUserSubject1790798858000 implements MigrationInterface {
+  name = "GenericOidcUserSubject1790798858000"
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`ALTER TABLE "user" RENAME COLUMN "auth0_id" TO "auth_subject"`)

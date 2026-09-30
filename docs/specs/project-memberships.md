@@ -1,6 +1,6 @@
 # Feature Specification: Project Memberships (External User Invitations)
 
-> **Superseded for invitations** by [ADR 0019](../adr/0019-generic-oidc-and-access-by-email.md): people are added by email and get access right away, with no invitation email or accept step. The Auth0 parts below are historical.
+> **Superseded for invitations** by [ADR 0021](../adr/0021-generic-oidc-and-access-by-email.md): people are added by email and get access right away, with no invitation email or accept step. The Auth0 parts below are historical.
 
 ## Overview
 

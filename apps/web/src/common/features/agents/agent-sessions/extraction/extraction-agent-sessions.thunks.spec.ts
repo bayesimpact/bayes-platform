@@ -26,7 +26,10 @@ const agent = agentFactory.transient({ project }).build({ id: agentId })
 const document = documentFactory.transient({ project }).build({ id: "document-1" })
 
 const executeOne = vi.fn()
-const extra = { services: { extractionAgentSessions: { executeOne } } as unknown as Services }
+const uploadDocument = vi.fn()
+const extra = {
+  services: { extractionAgentSessions: { executeOne, uploadDocument } } as unknown as Services,
+}
 
 /**
  * A fixture shaped like only the slices the thunk reads, not a full `RootState` — the real type is
@@ -64,6 +67,7 @@ const run = (state: RootState) =>
 beforeEach(() => {
   vi.clearAllMocks()
   executeOne.mockResolvedValue({ runId: "run-1" })
+  uploadDocument.mockResolvedValue(document)
 })
 
 describe("executeOne", () => {
@@ -114,5 +118,36 @@ describe("executeOne", () => {
     expect(executeOne).toHaveBeenCalledWith(
       expect.objectContaining({ agentSettingsRevision: undefined }),
     )
+  })
+
+  it("uploads a file through the extraction agent before running it", async () => {
+    mockedIsStudioInterface.mockReturnValue(false)
+    const file = new File(["content"], "invoice.pdf", { type: "application/pdf" })
+
+    await extractionAgentSessionsThunks.executeOne({ agentId, file, onSuccess: vi.fn() })(
+      vi.fn(),
+      () => buildState(),
+      extra,
+    )
+
+    expect(uploadDocument).toHaveBeenCalledWith({
+      organizationId,
+      projectId,
+      agentId,
+      type: "live",
+      file,
+    })
+    expect(executeOne).toHaveBeenCalledWith(
+      expect.objectContaining({ documentId: document.id, type: "live" }),
+    )
+  })
+
+  it("runs an already uploaded document without uploading again", async () => {
+    mockedIsStudioInterface.mockReturnValue(false)
+
+    await run(buildState())
+
+    expect(uploadDocument).not.toHaveBeenCalled()
+    expect(executeOne).toHaveBeenCalledWith(expect.objectContaining({ documentId: document.id }))
   })
 })

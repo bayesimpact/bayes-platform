@@ -10,6 +10,23 @@ import {
   DOCUMENT_SOURCE_READ_PERMISSION,
   DOCUMENT_SOURCE_UPDATE_PERMISSION,
   DOCUMENT_UPDATE_PERMISSION,
+  EVALUATION_ACCESS_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_READ_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_READ_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_READ_PERMISSION,
+  EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_CREATE_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_READ_PERMISSION,
+  EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION,
   intersectWithAppGrantablePermissions,
   ORGANIZATION_ROLE_PERMISSIONS,
   PROJECT_ANALYTICS_READ_PERMISSION,
@@ -97,5 +114,154 @@ describe("analytics permissions", () => {
     ]
     expect(inheritable).not.toContain(PROJECT_ANALYTICS_READ_PERMISSION)
     expect(inheritable).not.toContain(AGENT_ANALYTICS_READ_PERMISSION)
+  })
+})
+
+describe("evaluation extraction dataset permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const evaluationExtractionDatasetPermissions = [
+    EVALUATION_EXTRACTION_DATASET_READ_PERMISSION,
+    EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION,
+    EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION,
+    EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION,
+  ]
+
+  it.each(
+    evaluationExtractionDatasetPermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits evaluation extraction datasets from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of evaluationExtractionDatasetPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("evaluation access permission", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  it("grants evaluation.access to project owners and admins only", () => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, EVALUATION_ACCESS_PERMISSION)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, EVALUATION_ACCESS_PERMISSION)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, EVALUATION_ACCESS_PERMISSION)).toEqual([])
+  })
+
+  it("never inherits evaluation.access from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    expect(inheritable).not.toContain(EVALUATION_ACCESS_PERMISSION)
+  })
+})
+
+describe("evaluation extraction run permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const evaluationExtractionRunPermissions = [
+    EVALUATION_EXTRACTION_RUN_READ_PERMISSION,
+    EVALUATION_EXTRACTION_RUN_CREATE_PERMISSION,
+    EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION,
+    EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION,
+  ]
+
+  it.each(
+    evaluationExtractionRunPermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits evaluation extraction runs from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of evaluationExtractionRunPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("evaluation conversation dataset permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const evaluationConversationDatasetPermissions = [
+    EVALUATION_CONVERSATION_DATASET_READ_PERMISSION,
+    EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
+    EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
+    EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION,
+  ]
+
+  it.each(
+    evaluationConversationDatasetPermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits evaluation conversation datasets from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of evaluationConversationDatasetPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("evaluation conversation run permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const evaluationConversationRunPermissions = [
+    EVALUATION_CONVERSATION_RUN_READ_PERMISSION,
+    EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION,
+    EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION,
+    EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION,
+  ]
+
+  it.each(
+    evaluationConversationRunPermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits evaluation conversation runs from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of evaluationConversationRunPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
   })
 })

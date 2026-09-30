@@ -73,6 +73,9 @@ export type AuthorizeAppInstallResult = {
   clientSecret: string
   redirectUri: string
   state: string
+  installationId: string
+  organizationId: string
+  projectId: string
 }
 
 export type AppAccessTokenResult = {
@@ -149,6 +152,17 @@ export class AppsService {
     if (!deleted) throw new NotFoundException(`App ${appManifestId} not found`)
   }
 
+  async describeInstalledProject(projectId: string): Promise<{
+    id: string
+    name: string
+    organizationId: string
+    organizationName: string
+  }> {
+    const [project] = await this.projectRepository.findPickerProjectsByIds([projectId])
+    if (!project) throw new NotFoundException(`Project ${projectId} not found`)
+    return project
+  }
+
   async getInstallPage(params: { slug: string; userId: string }): Promise<AppInstallPage> {
     const app = await this.requireManifestBySlug(params.slug)
     const projectIds = await this.permissionService.listResourceIds(
@@ -221,6 +235,9 @@ export class AppsService {
       clientSecret,
       redirectUri,
       state: params.state,
+      installationId,
+      organizationId: pickerProject.organizationId,
+      projectId: pickerProject.id,
     }
   }
 
@@ -238,7 +255,10 @@ export class AppsService {
     )
   }
 
-  async revokeInstallation(params: { installationId: string; userId: string }): Promise<void> {
+  async revokeInstallation(params: {
+    installationId: string
+    userId: string
+  }): Promise<{ organizationId: string; projectId: string }> {
     const installation = await this.appInstallationRepository.findById(params.installationId)
     if (!installation) {
       throw new NotFoundException(`App installation ${params.installationId} not found`)
@@ -249,15 +269,17 @@ export class AppsService {
       throw new NotFoundException(`Project ${installation.projectId} not found`)
     }
 
-    if (installation.status === APP_INSTALLATION_STATUS_REVOKED) return
+    const scope = { organizationId: project.organizationId, projectId: project.id }
+    if (installation.status === APP_INSTALLATION_STATUS_REVOKED) return scope
 
     const revokedAt = new Date()
     const revoked = await this.appInstallationRepository.markRevoked(installation.id, revokedAt)
-    if (!revoked) return
+    if (!revoked) return scope
 
     this.logger.log(
       `Revoked app installation ${installation.id} on project ${project.id} by user ${params.userId}`,
     )
+    return scope
   }
 
   async issueToken(body: unknown): Promise<AppAccessTokenResult> {

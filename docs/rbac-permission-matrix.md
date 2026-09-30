@@ -16,7 +16,7 @@ Global roles are stored as `user_membership` rows with `resource_type = 'global'
 | `app.install` — install apps on a project | ✅ | ✅ |
 | `backoffice.app.manage` — manage app definitions in the backoffice | — | ✅ |
 | `backoffice.read` — access `/backoffice` routes | ✅ | ✅ |
-| `trace.read` — see Langfuse trace links | ✅ | ✅ |
+| `trace.read` — see trace links | ✅ | ✅ |
 | `backoffice.terms.update` — manage terms documents | — | ✅ |
 | `backoffice.organization.read` — see every organization in the backoffice | — | ✅ |
 | `backoffice.project.read` — see every project in the backoffice | ✅ | ✅ |
@@ -44,6 +44,8 @@ Scoped to one organization via `user_membership` (`resource_type = 'organization
 
 Scoped to one project via `user_membership` (`resource_type = 'project'`).
 
+The evaluation permissions are never inherited from the organization: an organization role does not open a project's evaluation app, its datasets or its runs.
+
 | Permission | `project_owner` | `project_admin` | `project_member` |
 |---|---|---|---|
 | `project.read` | ✅ | ✅ | ✅ |
@@ -60,6 +62,23 @@ Scoped to one project via `user_membership` (`resource_type = 'project'`).
 | `document_source.create` | ✅ | ✅ | — |
 | `document_source.update` | ✅ | ✅ | — |
 | `document_source.delete` | ✅ | ✅ | — |
+| `evaluation.access` — open the project's evaluation app | ✅ | ✅ | — |
+| `evaluation.extraction.dataset.read` — see the project's evaluation extraction datasets and their files | ✅ | ✅ | — |
+| `evaluation.extraction.dataset.create` — create evaluation extraction datasets and upload their files | ✅ | ✅ | — |
+| `evaluation.extraction.dataset.update` — update an evaluation extraction dataset | ✅ | ✅ | — |
+| `evaluation.extraction.dataset.delete` — delete an evaluation extraction dataset or one of its files | ✅ | ✅ | — |
+| `evaluation.extraction.run.read` — see the project's evaluation extraction runs and their results | ✅ | ✅ | — |
+| `evaluation.extraction.run.create` — create an evaluation extraction run | ✅ | ✅ | — |
+| `evaluation.extraction.run.update` — execute, retry or cancel an evaluation extraction run | ✅ | ✅ | — |
+| `evaluation.extraction.run.delete` — delete an evaluation extraction run | ✅ | ✅ | — |
+| `evaluation.conversation.dataset.read` — see the project's evaluation conversation datasets and their records | ✅ | ✅ | — |
+| `evaluation.conversation.dataset.create` — create an evaluation conversation dataset | ✅ | ✅ | — |
+| `evaluation.conversation.dataset.update` — rename an evaluation conversation dataset or edit its records | ✅ | ✅ | — |
+| `evaluation.conversation.dataset.delete` — delete an evaluation conversation dataset | ✅ | ✅ | — |
+| `evaluation.conversation.run.read` — see the project's evaluation conversation runs and their results | ✅ | ✅ | — |
+| `evaluation.conversation.run.create` — create an evaluation conversation run | ✅ | ✅ | — |
+| `evaluation.conversation.run.update` — execute, retry or cancel an evaluation conversation run | ✅ | ✅ | — |
+| `evaluation.conversation.run.delete` — delete an evaluation conversation run | ✅ | ✅ | — |
 | `user.read` — see the project's members | ✅ | ✅ | — |
 | `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — |
 | `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — |

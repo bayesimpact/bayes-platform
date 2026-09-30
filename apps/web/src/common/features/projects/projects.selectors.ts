@@ -1,11 +1,17 @@
 import { createSelector } from "@reduxjs/toolkit"
 import type { RootState } from "@/common/store"
 import { ADS, type AsyncData } from "@/common/store/async-data-status"
-import type { Project } from "./projects.models"
+import type { MyProject, Project } from "./projects.models"
 
 export const selectProjectsData = (state: RootState) => state.projects.data
 
 export const selectMyProjectsData = (state: RootState) => state.projects.mine
+
+export const selectMyProjectsList = createSelector(
+  selectMyProjectsData,
+  (myProjectsData): MyProject[] | null =>
+    ADS.isFulfilled(myProjectsData) ? myProjectsData.value : null,
+)
 
 export const selectRetentionSweepRunsData = (state: RootState) => state.projects.retentionSweepRuns
 

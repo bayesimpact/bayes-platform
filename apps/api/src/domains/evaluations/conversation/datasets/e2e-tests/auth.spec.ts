@@ -11,6 +11,8 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
+import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
 import {
@@ -18,6 +20,7 @@ import {
   mockOidcEmailForSub,
   setupUserGuardForTesting,
 } from "../../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { EvaluationsModule } from "../../../evaluations.module"
 import { EvaluationConversationDataset } from "../evaluation-conversation-dataset.entity"
@@ -44,6 +47,7 @@ describe("EvaluationConversationDatasets - Auth", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     datasetRepository = setup.getRepository(EvaluationConversationDataset)
     app = setup.module.createNestApplication()
     await app.init()
@@ -89,6 +93,21 @@ describe("EvaluationConversationDatasets - Auth", () => {
     return dataset
   }
 
+  /** Switches the caller to an organization admin who holds no role on the project. */
+  const switchToOrganizationAdminWithoutProjectRole = async (organization: Organization) => {
+    const organizationAdminAuthSubject = `oidc|${randomUUID()}`
+    await addUserToOrganization({
+      repositories,
+      organization,
+      user: {
+        authSubject: organizationAdminAuthSubject,
+        email: mockOidcEmailForSub(organizationAdminAuthSubject),
+      },
+      membership: { role: "admin" },
+    })
+    authSubject = organizationAdminAuthSubject
+  }
+
   describe("EvaluationConversationDatasetsRoutes.getAll", () => {
     const subject = async () =>
       request({
@@ -118,6 +137,15 @@ describe("EvaluationConversationDatasets - Auth", () => {
     it("doesn't allow a simple member to get all datasets", async () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("doesn't allow an organization admin without a project role to get all datasets", async () => {
+      const { organization } = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(organization)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("allows a project admin to get all datasets", async () => {
+      await createContextForRole("admin")
+      expectResponse(await subject(), 200)
     })
   })
 
@@ -188,6 +216,11 @@ describe("EvaluationConversationDatasets - Auth", () => {
     })
     it("doesn't allow a simple member to create a dataset", async () => {
       await createContextForRole("member")
+      expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("doesn't allow an organization admin without a project role to create a dataset", async () => {
+      const { organization } = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(organization)
       expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
@@ -261,6 +294,17 @@ describe("EvaluationConversationDatasets - Auth", () => {
       const { organization, project } = await createContextForRole("member")
       await createDataset({ organization, project })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("doesn't allow an organization admin without a project role to delete a dataset", async () => {
+      const { organization, project } = await createContextForRole("owner")
+      await createDataset({ organization, project })
+      await switchToOrganizationAdminWithoutProjectRole(organization)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("allows a project admin to delete a dataset", async () => {
+      const { organization, project } = await createContextForRole("admin")
+      await createDataset({ organization, project })
+      expectResponse(await subject(), 200)
     })
   })
 
@@ -394,6 +438,12 @@ describe("EvaluationConversationDatasets - Auth", () => {
     it("doesn't allow a simple member to update a record", async () => {
       const { organization, project } = await createContextForRole("member")
       await createDataset({ organization, project })
+      expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("doesn't allow an organization admin without a project role to update a record", async () => {
+      const { organization, project } = await createContextForRole("owner")
+      await createDataset({ organization, project })
+      await switchToOrganizationAdminWithoutProjectRole(organization)
       expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })

@@ -30,6 +30,7 @@ export const projectFactory = ProjectFactory.define(({ params, transientParams }
     featureFlags: params.featureFlags ?? [],
     conversationRetentionDays: params.conversationRetentionDays ?? 30,
     agentSessionCategories: params.agentSessionCategories ?? [],
+    permissions: params.permissions ?? [],
   }
 })
 

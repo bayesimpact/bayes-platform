@@ -3,12 +3,14 @@ import { AppsRoutes, AppsV1Routes, DOCUMENT_READ_PERMISSION } from "@caseai-conn
 import type { INestApplication } from "@nestjs/common"
 import request from "supertest"
 import type { App } from "supertest/types"
+import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
 import {
   type AllRepositories,
   clearTestDatabase,
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { APP_INSTALLATION_STATUS_REVOKED } from "@/domains/apps/app-installation.entity"
 import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
@@ -28,10 +30,11 @@ describe("Apps - Revoke", () => {
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
   let authSubject = `oidc|${randomUUID()}`
+  let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [AppsModule, RbacModule],
+      additionalImports: [AppsModule, RbacModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) =>
         setupUserGuardForTesting(
           withDocumentEmbeddingsBatchServiceMock(moduleBuilder),
@@ -40,6 +43,7 @@ describe("Apps - Revoke", () => {
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
+    expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     app = setup.module.createNestApplication()
     await app.init()
     requester = testRequester(app)
@@ -111,7 +115,7 @@ describe("Apps - Revoke", () => {
   }
 
   it("revokes the installation, blocks new tokens, and keeps the issued JWT until it expires", async () => {
-    const { project } = await createStaffInstaller()
+    const { organization, project, user } = await createStaffInstaller()
     const manifest = await createManifest()
     const credentials = await install(project.id, manifest.slug)
     const installation = await repositories.appInstallationRepository.findOneByOrFail({
@@ -155,6 +159,13 @@ describe("Apps - Revoke", () => {
     })
     expectResponse(revoked, 200)
     expect(revoked.body.data.success).toBe(true)
+    await expectActivityCreated("appInstallation.revoke", {
+      userId: user.id,
+      organizationId: organization.id,
+      projectId: project.id,
+      entityId: installation.id,
+      entityType: "appInstallation",
+    })
 
     const listedAfter = await requester({
       route: AppsRoutes.listForProject,

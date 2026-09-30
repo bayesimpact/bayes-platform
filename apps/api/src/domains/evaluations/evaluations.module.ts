@@ -18,16 +18,15 @@ import { Organization } from "@/domains/organizations/organization.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { LlmModule } from "@/external/llm/llm.module"
 import { Agent } from "../agents/agent.entity"
 import { EvaluationConversationDataset } from "./conversation/datasets/evaluation-conversation-dataset.entity"
-import { EvaluationConversationDatasetGuard } from "./conversation/datasets/evaluation-conversation-dataset.guard"
 import { EvaluationConversationDatasetsController } from "./conversation/datasets/evaluation-conversation-datasets.controller"
 import { EvaluationConversationDatasetsService } from "./conversation/datasets/evaluation-conversation-datasets.service"
 import { EvaluationConversationDatasetRecord } from "./conversation/datasets/records/evaluation-conversation-dataset-record.entity"
 import { EvaluationConversationRun } from "./conversation/runs/evaluation-conversation-run.entity"
-import { EvaluationConversationRunGuard } from "./conversation/runs/evaluation-conversation-run.guard"
 import { EvaluationConversationRunBatchModule } from "./conversation/runs/evaluation-conversation-run-batch.module"
 import { EvaluationConversationRunGraderLlmService } from "./conversation/runs/evaluation-conversation-run-grader-llm.service"
 import { EvaluationConversationRunStatusNotifierService } from "./conversation/runs/evaluation-conversation-run-status-notifier.service"
@@ -36,14 +35,12 @@ import { EvaluationConversationRunsController } from "./conversation/runs/evalua
 import { EvaluationConversationRunsService } from "./conversation/runs/evaluation-conversation-runs.service"
 import { EvaluationConversationRunRecord } from "./conversation/runs/records/evaluation-conversation-run-record.entity"
 import { EvaluationExtractionDataset } from "./extraction/datasets/evaluation-extraction-dataset.entity"
-import { EvaluationExtractionDatasetGuard } from "./extraction/datasets/evaluation-extraction-dataset.guard"
 import { EvaluationExtractionDatasetDocument } from "./extraction/datasets/evaluation-extraction-dataset-document.entity"
 import { EvaluationExtractionDatasetDocumentRepository } from "./extraction/datasets/evaluation-extraction-dataset-document.repository"
 import { EvaluationExtractionDatasetsController } from "./extraction/datasets/evaluation-extraction-datasets.controller"
 import { EvaluationExtractionDatasetsService } from "./extraction/datasets/evaluation-extraction-datasets.service"
 import { EvaluationExtractionDatasetRecord } from "./extraction/datasets/records/evaluation-extraction-dataset-record.entity"
 import { EvaluationExtractionRun } from "./extraction/runs/evaluation-extraction-run.entity"
-import { EvaluationExtractionRunGuard } from "./extraction/runs/evaluation-extraction-run.guard"
 import { EvaluationExtractionRunBatchModule } from "./extraction/runs/evaluation-extraction-run-batch.module"
 import { EvaluationExtractionRunCsvExportService } from "./extraction/runs/evaluation-extraction-run-csv-export.service"
 import { EvaluationExtractionRunGraderService } from "./extraction/runs/evaluation-extraction-run-grader.service"
@@ -78,29 +75,26 @@ import { EvaluationExtractionRunRecord } from "./extraction/runs/records/evaluat
     StorageModule,
     OrganizationsModule,
     ProjectsModule,
+    RbacModule,
     UsersModule,
     AuthModule,
   ],
   providers: [
     AgentContextResolver,
     EvaluationConversationDatasetContextResolver,
-    EvaluationConversationDatasetGuard,
     EvaluationConversationDatasetsService,
     EvaluationConversationRunContextResolver,
     EvaluationConversationRunGraderLlmService,
-    EvaluationConversationRunGuard,
     EvaluationConversationRunStatusNotifierService,
     EvaluationConversationRunStatusStreamService,
     EvaluationConversationRunsService,
     EvaluationExtractionDatasetContextResolver,
     EvaluationExtractionDatasetDocumentContextResolver,
     EvaluationExtractionDatasetDocumentRepository,
-    EvaluationExtractionDatasetGuard,
     EvaluationExtractionDatasetsService,
     EvaluationExtractionRunContextResolver,
     EvaluationExtractionRunCsvExportService,
     EvaluationExtractionRunGraderService,
-    EvaluationExtractionRunGuard,
     EvaluationExtractionRunStatusNotifierService,
     EvaluationExtractionRunStatusStreamService,
     EvaluationExtractionRunsService,

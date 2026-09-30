@@ -22,13 +22,17 @@ export class AppsV1Controller {
 
   @UseGuards(AppGuard)
   @Get(AppsV1Routes.getMe.path)
-  getMe(
+  async getMe(
     @Req() request: EndpointRequest & { appInstallationId: string; appProjectId: string },
-  ): typeof AppsV1Routes.getMe.response {
+  ): Promise<typeof AppsV1Routes.getMe.response> {
+    const project = await this.appsService.describeInstalledProject(request.appProjectId)
     return {
       data: {
         userId: request.user.id,
-        projectId: request.appProjectId,
+        projectId: project.id,
+        projectName: project.name,
+        organizationId: project.organizationId,
+        organizationName: project.organizationName,
         installationId: request.appInstallationId,
       },
     }

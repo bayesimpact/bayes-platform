@@ -1,5 +1,4 @@
 import {
-  type DocumentDto,
   type DocumentSourceType,
   DocumentsRoutes,
   type PresignFileRequestItemDto,
@@ -7,6 +6,7 @@ import {
 import { getAxiosInstance } from "@/external/axios"
 import type { Document } from "../documents.models"
 import type { IDocumentsSpi } from "../documents.spi"
+import { fromDocumentDto, putFileToSignedUrl } from "./documents.mappers"
 import { streamDocumentCrawlProgress, streamDocumentEmbeddingStatus } from "./documents-streaming"
 
 export default {
@@ -15,14 +15,7 @@ export default {
     const response = await axios.get<typeof DocumentsRoutes.getAll.response>(
       DocumentsRoutes.getAll.getPath({ organizationId, projectId, sourceType }),
     )
-    return response.data.data.map(toDocument)
-  },
-  listMyExtractionDocuments: async ({ organizationId, projectId }) => {
-    const axios = getAxiosInstance()
-    const response = await axios.get<typeof DocumentsRoutes.listMyExtractionDocuments.response>(
-      DocumentsRoutes.listMyExtractionDocuments.getPath({ organizationId, projectId }),
-    )
-    return response.data.data.map(toDocument)
+    return response.data.data.map(fromDocumentDto)
   },
   uploadOne: async ({ organizationId, projectId, file, sourceType, tagIds }) => {
     return presignUploadAndConfirm({ organizationId, projectId, file, sourceType, tagIds })
@@ -153,11 +146,7 @@ async function presignUploadAndConfirm({
   }
 
   // 2. Upload directly to GCS
-  await fetch(presigned.uploadUrl, {
-    method: "PUT",
-    headers: { "Content-Type": file.type },
-    body: file,
-  })
+  await putFileToSignedUrl({ uploadUrl: presigned.uploadUrl, file })
 
   // 3. Confirm — backend marks as uploaded and enqueues embeddings
   const confirmResponse = await axios.post<typeof DocumentsRoutes.confirmMany.response>(
@@ -170,34 +159,11 @@ async function presignUploadAndConfirm({
     } satisfies typeof DocumentsRoutes.confirmMany.request,
   )
 
-  const [document] = confirmResponse.data.data.map(toDocument)
+  const [document] = confirmResponse.data.data.map(fromDocumentDto)
 
   if (!document) {
     throw new Error(`Confirm response is missing data`)
   }
 
   return document
-}
-
-function toDocument(dto: DocumentDto): Document {
-  return {
-    content: dto.content,
-    pages: dto.pages,
-    createdAt: dto.createdAt,
-    deletedAt: dto.deletedAt,
-    fileName: dto.fileName,
-    id: dto.id,
-    language: dto.language,
-    mimeType: dto.mimeType,
-    projectId: dto.projectId,
-    size: dto.size,
-    storageRelativePath: dto.storageRelativePath,
-    sourceType: dto.sourceType,
-    sourceUrl: dto.sourceUrl,
-    embeddingStatus: dto.embeddingStatus,
-    embeddingError: dto.embeddingError ?? null,
-    title: dto.title,
-    updatedAt: dto.updatedAt,
-    tagIds: dto.tagIds,
-  }
 }

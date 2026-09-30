@@ -1,6 +1,6 @@
 # ADR 0001: Use of a Single Default Auth0 Organization
 
-**Status:** Superseded by [ADR 0019](0019-generic-oidc-and-access-by-email.md)
+**Status:** Superseded by [ADR 0021](0021-generic-oidc-and-access-by-email.md)
 
 **Date:** February 11, 2026
 

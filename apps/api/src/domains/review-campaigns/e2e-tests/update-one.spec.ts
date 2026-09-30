@@ -10,9 +10,14 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import type { Agent } from "@/domains/agents/agent.entity"
+import { agentFactory } from "@/domains/agents/agent.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { Organization } from "@/domains/organizations/organization.entity"
-import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithProject,
+} from "@/domains/organizations/organization.factory"
 import type { Project } from "@/domains/projects/project.entity"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
@@ -88,6 +93,61 @@ describe("ReviewCampaigns - updateOne", () => {
     const response = await subject({ payload: { name: "Renamed" } })
     expectResponse(response, 200)
     expect(response.body.data.name).toBe("Renamed")
+  })
+
+  it("retargets a draft campaign to another agent of the project", async () => {
+    const { organization, project, agent, agentSettings } = await createContext()
+    const campaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory.transient({ organization, project, agent, agentSettings }).build(),
+    )
+    reviewCampaignId = campaign.id
+    const otherAgent = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project }).build(),
+    )
+    const otherAgentSettings = await repositories.agentSettingsRepository.save(
+      agentSettingsFactory.transient({ organization, project, agent: otherAgent }).build(),
+    )
+
+    const response = await subject({ payload: { agentId: otherAgent.id } })
+    expectResponse(response, 200)
+    expect(response.body.data.agentId).toBe(otherAgent.id)
+
+    const persisted = await repositories.reviewCampaignRepository.findOneOrFail({
+      where: { id: campaign.id },
+    })
+    expect(persisted.agentId).toBe(otherAgent.id)
+    expect(persisted.agentSettingsId).toBe(otherAgentSettings.id)
+  })
+
+  it("rejects retargeting to an agent from another project", async () => {
+    const { organization, project, agent, agentSettings } = await createContext()
+    const campaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory.transient({ organization, project, agent, agentSettings }).build(),
+    )
+    reviewCampaignId = campaign.id
+    const { organization: otherOrganization, project: otherProject } =
+      await createOrganizationWithProject(repositories)
+    const otherAgent = await repositories.agentRepository.save(
+      agentFactory.transient({ organization: otherOrganization, project: otherProject }).build(),
+    )
+
+    expectResponse(await subject({ payload: { agentId: otherAgent.id } }), 422)
+  })
+
+  it("refuses retargeting an active campaign", async () => {
+    const { organization, project, agent, agentSettings } = await createContext()
+    const campaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
+    )
+    reviewCampaignId = campaign.id
+    const otherAgent = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project }).build(),
+    )
+
+    expectResponse(await subject({ payload: { agentId: otherAgent.id } }), 409)
   })
 
   it("refuses config updates on an active campaign", async () => {

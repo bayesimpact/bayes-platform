@@ -75,6 +75,7 @@ export type CreateReviewCampaignRequestDto = {
 }
 
 export type UpdateReviewCampaignRequestDto = {
+  agentId?: string
   name?: string
   description?: string | null
   testerPerSessionQuestions?: ReviewCampaignQuestionDto[]
