@@ -29,16 +29,22 @@ import { getRequiredConnectScope } from "@/common/context/request-context.helper
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import {
+  EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_READ_PERMISSION,
+  EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import { getTraceUrl } from "@/external/llm/trace-url"
 import type { EvaluationConversationRun } from "./evaluation-conversation-run.entity"
-import { EvaluationConversationRunGuard } from "./evaluation-conversation-run.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationConversationRunStatusNotifierService } from "./evaluation-conversation-run-status-notifier.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -47,7 +53,7 @@ import { EvaluationConversationRunStatusStreamService } from "./evaluation-conve
 import { EvaluationConversationRunsService } from "./evaluation-conversation-runs.service"
 import type { EvaluationConversationRunRecord } from "./records/evaluation-conversation-run-record.entity"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, EvaluationConversationRunGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
 export class EvaluationConversationRunsController {
@@ -61,7 +67,7 @@ export class EvaluationConversationRunsController {
   ) {}
 
   @Post(EvaluationConversationRunsRoutes.createOne.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationConversationRun.create" })
   async createOne(
     @Req() request: EndpointRequestWithProject,
@@ -116,7 +122,7 @@ export class EvaluationConversationRunsController {
 
   @Post(EvaluationConversationRunsRoutes.executeOne.path)
   @AddContext("evaluationConversationRun")
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationConversationRun.execute" })
   async executeOne(
     @Req() request: EndpointRequestWithEvaluationConversationRun,
@@ -141,7 +147,7 @@ export class EvaluationConversationRunsController {
 
   @Post(EvaluationConversationRunsRoutes.retryOne.path)
   @AddContext("evaluationConversationRun")
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationConversationRun.retry" })
   async retryOne(
     @Req() request: EndpointRequestWithEvaluationConversationRun,
@@ -159,7 +165,7 @@ export class EvaluationConversationRunsController {
 
   @Post(EvaluationConversationRunsRoutes.cancelOne.path)
   @AddContext("evaluationConversationRun")
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationConversationRun.cancel" })
   async cancelOne(
     @Req() request: EndpointRequestWithEvaluationConversationRun,
@@ -199,7 +205,7 @@ export class EvaluationConversationRunsController {
 
   @Get(EvaluationConversationRunsRoutes.getOne.path)
   @AddContext("evaluationConversationRun")
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(EVALUATION_CONVERSATION_RUN_READ_PERMISSION, "project")
   async getOne(
     @Req() request: EndpointRequestWithEvaluationConversationRun,
   ): Promise<typeof EvaluationConversationRunsRoutes.getOne.response> {
@@ -207,7 +213,7 @@ export class EvaluationConversationRunsController {
   }
 
   @Get(EvaluationConversationRunsRoutes.getAll.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(EVALUATION_CONVERSATION_RUN_READ_PERMISSION, "project")
   async getAll(
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof EvaluationConversationRunsRoutes.getAll.response> {
@@ -219,7 +225,7 @@ export class EvaluationConversationRunsController {
 
   @Get(EvaluationConversationRunsRoutes.getRecords.path)
   @AddContext("evaluationConversationRun")
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(EVALUATION_CONVERSATION_RUN_READ_PERMISSION, "project")
   async getRecords(
     @Req() request: EndpointRequestWithEvaluationConversationRun,
     @Query("page") pageParam?: string,
@@ -247,7 +253,7 @@ export class EvaluationConversationRunsController {
 
   @Delete(EvaluationConversationRunsRoutes.deleteOne.path)
   @AddContext("evaluationConversationRun")
-  @CheckPolicy((policy) => policy.canDelete())
+  @CheckPermission(EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION, "project")
   @TrackActivity({ action: "evaluationConversationRun.delete" })
   async deleteOne(
     @Req() request: EndpointRequestWithEvaluationConversationRun,
@@ -259,7 +265,7 @@ export class EvaluationConversationRunsController {
     return { data: { success: true } }
   }
 
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(EVALUATION_CONVERSATION_RUN_READ_PERMISSION, "project")
   @Sse(EvaluationConversationRunsRoutes.streamRunStatus.path, { method: 0 /* GET */ })
   streamRunStatus(
     @Req() request: EndpointRequestWithProject,

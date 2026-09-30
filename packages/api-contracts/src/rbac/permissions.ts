@@ -110,6 +110,23 @@ export const EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION =
   "evaluation.conversation.dataset.delete" as const
 
 /**
+ * Evaluation conversation runs: a conversation agent run against a dataset, and its
+ * records. Scoped to the project and never inherited from the organization.
+ */
+export const EVALUATION_CONVERSATION_RUN_READ_PERMISSION =
+  "evaluation.conversation.run.read" as const
+
+export const EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION =
+  "evaluation.conversation.run.create" as const
+
+/** Execute, retry or cancel an evaluation conversation run. */
+export const EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION =
+  "evaluation.conversation.run.update" as const
+
+export const EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION =
+  "evaluation.conversation.run.delete" as const
+
+/**
  * Permissions an App may be granted. Policy lives in code, not in the database:
  * there is no Permission entity and no `app_grantable` column. Intersect this
  * list with `AppManifest.grantable_permissions` on save and on authorize.
