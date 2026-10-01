@@ -16,3 +16,15 @@ export const listDocumentSources = createAsyncThunk<DocumentSource[], void, Thun
     return await services.documentSources.getAll(currentProjectScope(getState()))
   },
 )
+
+export const deleteDocumentSource = createAsyncThunk<
+  string,
+  { documentSourceId: string },
+  ThunkConfig
+>("documentSources/delete", async ({ documentSourceId }, { extra: { services }, getState }) => {
+  await services.documentSources.deleteOne({
+    ...currentProjectScope(getState()),
+    documentSourceId,
+  })
+  return documentSourceId
+})

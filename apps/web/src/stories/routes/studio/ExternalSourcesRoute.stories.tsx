@@ -40,8 +40,10 @@ function studioState({ withSources, ...args }: StoryArgs) {
     ? [
         documentSourceFactory.transient({ project: readableProject }).build({
           name: "Helpful Assistant",
-          type: "site-crawler",
-          baseUrl: "https://example.com/docs",
+          type: "site",
+          baseUrl:
+            "https://www.example.com/resources/culture-and-support-essential-levers-for-the-knowledge-base/",
+          app: { name: "Helpful Assistant", logoUrl: "https://placehold.co/52x52/png" },
           documentCount: 12,
           indexedDocumentCount: 12,
           status: "ready",
@@ -51,6 +53,7 @@ function studioState({ withSources, ...args }: StoryArgs) {
           type: "folder",
           baseUrl: null,
           externalId: "library/pricing",
+          app: null,
           documentCount: 4,
           indexedDocumentCount: 3,
           status: "error",

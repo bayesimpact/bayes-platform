@@ -11,6 +11,12 @@ export default {
     )
     return response.data.data.map((documentSource) => toDocumentSource(documentSource, projectId))
   },
+  deleteOne: async ({ organizationId, projectId, documentSourceId }) => {
+    const axios = getAxiosInstance()
+    await axios.delete<typeof DocumentSourcesRoutes.deleteOne.response>(
+      DocumentSourcesRoutes.deleteOne.getPath({ organizationId, projectId, documentSourceId }),
+    )
+  },
 } satisfies IDocumentSourcesSpi
 
 function toDocumentSource(dto: DocumentSourceSummaryDto, projectId: string): DocumentSource {
@@ -21,6 +27,7 @@ function toDocumentSource(dto: DocumentSourceSummaryDto, projectId: string): Doc
     type: dto.type,
     externalId: dto.externalId,
     baseUrl: dto.baseUrl,
+    app: dto.app,
     documentCount: dto.documentCount,
     indexedDocumentCount: dto.indexedDocumentCount,
     lastSyncedAt: dto.lastSyncedAt,

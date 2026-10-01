@@ -4,6 +4,7 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 import type { DocumentSource } from "./document-source.entity"
 import type {
   CreateDocumentSourceFields,
+  DocumentSourceAppRecord,
   UpdateDocumentSourceFields,
 } from "./document-source.repository"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -15,6 +16,7 @@ export type DocumentSourceSummary = {
   type: string | null
   externalId: string | null
   baseUrl: string | null
+  app: DocumentSourceAppRecord | null
   createdAt: Date
   updatedAt: Date
   documentCount: number
@@ -29,12 +31,12 @@ export class DocumentSourcesService {
 
   async listSummaries(connectScope: RequiredConnectScope): Promise<DocumentSourceSummary[]> {
     const [documentSources, stats] = await Promise.all([
-      this.documentSourceRepository.list(connectScope),
+      this.documentSourceRepository.listWithApp(connectScope),
       this.documentSourceRepository.listStats(connectScope),
     ])
     const statsBySourceId = new Map(stats.map((stat) => [stat.documentSourceId, stat]))
 
-    return documentSources.map((documentSource) => {
+    return documentSources.map(({ documentSource, app }) => {
       const stat = statsBySourceId.get(documentSource.id)
       const failedDocumentCount = stat?.failedDocumentCount ?? 0
       return {
@@ -43,6 +45,7 @@ export class DocumentSourcesService {
         type: documentSource.type,
         externalId: documentSource.externalId,
         baseUrl: documentSource.baseUrl,
+        app,
         createdAt: documentSource.createdAt,
         updatedAt: documentSource.updatedAt,
         documentCount: stat?.documentCount ?? 0,
@@ -85,6 +88,13 @@ export class DocumentSourcesService {
 
   async deleteOne(connectScope: RequiredConnectScope, id: string): Promise<void> {
     const deleted = await this.documentSourceRepository.deleteOne(connectScope, id)
+    if (!deleted) {
+      throw new NotFoundException(`Document source ${id} not found`)
+    }
+  }
+
+  async softDeleteOne(connectScope: RequiredConnectScope, id: string): Promise<void> {
+    const deleted = await this.documentSourceRepository.softDeleteOne(connectScope, id)
     if (!deleted) {
       throw new NotFoundException(`Document source ${id} not found`)
     }

@@ -16,6 +16,10 @@
     "active_other": "{{count}} active connections",
     "errors_one": "{{count}} error",
     "errors_other": "{{count}} errors",
-    "summary": "{{indexed}} · {{active}} · {{errors}}"
+    "summary": "{{indexed}} · {{active}} · {{errors}}",
+    "delete": {
+      "title": "Delete {{name}}?",
+      "description": "This deletes the source and the documents that belong to it."
+    }
   }
 }

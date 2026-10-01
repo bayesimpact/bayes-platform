@@ -8,7 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
-- External sources: Studio lists the document feeds that external apps sync into a project.
+- External sources: Studio lists each source with its app, and can delete the source and its documents.
 - Kubernetes: the Helm chart can install an optional Phoenix to read LLM traces.
 
 ### Changed

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { ConflictException, NotFoundException } from "@nestjs/common"
 import {
   type AllRepositories,
@@ -5,13 +6,17 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { appInstallationFactory } from "@/domains/apps/app-installation.factory"
+import { appManifestFactory } from "@/domains/apps/app-manifest.factory"
 import { createDocumentForProject } from "@/domains/documents/document.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { DocumentsModule } from "../documents.module"
+import { DocumentsService } from "../documents.service"
 import { DocumentSourcesService } from "./document-sources.service"
 
 describe("DocumentSourcesService", () => {
   let service: DocumentSourcesService
+  let documentsService: DocumentsService
   let repositories: AllRepositories
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
 
@@ -20,6 +25,7 @@ describe("DocumentSourcesService", () => {
       additionalImports: [DocumentsModule],
     })
     service = setup.module.get(DocumentSourcesService)
+    documentsService = setup.module.get(DocumentsService)
     repositories = setup.getAllRepositories()
   })
 
@@ -202,6 +208,60 @@ describe("DocumentSourcesService", () => {
       lastSyncedAt: null,
       status: "ready",
       type: "folder",
+      app: null,
     })
+  })
+
+  it("returns the app name and logo when the source belongs to an installation", async () => {
+    const { organization, project } = await createOrganizationWithProject(repositories)
+    const connectScope = { organizationId: organization.id, projectId: project.id }
+    const manifest = await repositories.appManifestRepository.save(
+      appManifestFactory.build({
+        name: "Helpful Assistant",
+        slug: `helpful-assistant-${randomUUID()}`,
+        logoUrl: "https://example.com/logo.png",
+      }),
+    )
+    const installation = await repositories.appInstallationRepository.save(
+      appInstallationFactory.build({
+        appManifestId: manifest.id,
+        projectId: project.id,
+      }),
+    )
+    const documentSource = await service.createOne(connectScope, {
+      name: "Helpful Assistant",
+      type: "site",
+      externalId: "site-1",
+      baseUrl: "https://example.com/docs",
+      config: null,
+      appInstallationId: installation.id,
+    })
+
+    const summaries = await service.listSummaries(connectScope)
+    expect(summaries.find((summary) => summary.id === documentSource.id)?.app).toEqual({
+      name: "Helpful Assistant",
+      logoUrl: "https://example.com/logo.png",
+    })
+  })
+
+  it("deletes the source and its documents", async () => {
+    const { organization, project } = await createOrganizationWithProject(repositories)
+    const connectScope = { organizationId: organization.id, projectId: project.id }
+    const documentSource = await createFeed(connectScope, "folder-1")
+    const document = await createDocumentForProject({
+      repositories,
+      organization,
+      project,
+      params: {
+        document: { documentSourceId: documentSource.id, sourceType: "app" },
+      },
+    })
+
+    await documentsService.deleteDocumentsForSource(connectScope, documentSource.id)
+    await service.softDeleteOne(connectScope, documentSource.id)
+
+    await expect(service.getOne(connectScope, documentSource.id)).resolves.toBeNull()
+    const remaining = await repositories.documentRepository.findOne({ where: { id: document.id } })
+    expect(remaining).toBeNull()
   })
 })

@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { Project } from "@/common/features/projects/projects.models"
-import type { DocumentSource } from "./document-sources.models"
+import type { DocumentSource, DocumentSourceApp } from "./document-sources.models"
 
 type DocumentSourceTransientParams = {
   project: Project
@@ -23,6 +23,7 @@ export const documentSourceFactory = DocumentSourceFactory.define(({ params, tra
     type: params.type === undefined ? "site-crawler" : params.type,
     externalId: params.externalId === undefined ? faker.internet.domainName() : params.externalId,
     baseUrl: params.baseUrl === undefined ? faker.internet.url() : params.baseUrl,
+    app: toDocumentSourceApp(params.app),
     documentCount,
     indexedDocumentCount: params.indexedDocumentCount ?? documentCount,
     lastSyncedAt:
@@ -32,3 +33,10 @@ export const documentSourceFactory = DocumentSourceFactory.define(({ params, tra
     updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
   }
 })
+
+function toDocumentSourceApp(
+  app: { name?: string; logoUrl?: string | null } | null | undefined,
+): DocumentSourceApp | null {
+  if (!app?.name) return null
+  return { name: app.name, logoUrl: app.logoUrl ?? null }
+}

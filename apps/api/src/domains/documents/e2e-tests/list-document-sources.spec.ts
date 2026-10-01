@@ -105,6 +105,7 @@ describe("Document sources - getAll", () => {
         type: "site-crawler",
         externalId: "example.com",
         baseUrl: "https://example.com",
+        app: null,
         documentCount: 1,
         indexedDocumentCount: 0,
         lastSyncedAt: syncedAt.getTime(),
@@ -122,5 +123,62 @@ describe("Document sources - getAll", () => {
   it("does not allow a project member to list feeds", async () => {
     await createContext("member")
     expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+  })
+
+  it("deletes a source and its documents for a project admin", async () => {
+    const { organization, project } = await createContext("admin")
+    const connectScope = { organizationId: organization.id, projectId: project.id }
+    const documentSource = await documentSourcesService.createOne(connectScope, {
+      name: "Helpful Assistant",
+      type: "site",
+      externalId: "site-1",
+      baseUrl: "https://example.com/docs",
+      config: null,
+    })
+    await createDocumentForProject({
+      repositories,
+      organization,
+      project,
+      params: { document: { documentSourceId: documentSource.id, sourceType: "app" } },
+    })
+
+    const response = await request({
+      route: DocumentSourcesRoutes.deleteOne,
+      pathParams: removeNullish({
+        organizationId,
+        projectId,
+        documentSourceId: documentSource.id,
+      }),
+      token: accessToken,
+    })
+    expectResponse(response, 200)
+    expect(response.body.data).toEqual({ success: true })
+    expectResponse(await subject(), 200)
+    expect((await subject()).body.data).toEqual([])
+  })
+
+  it("does not allow a project member to delete a source", async () => {
+    const { organization, project } = await createContext("member")
+    const documentSource = await documentSourcesService.createOne(
+      { organizationId: organization.id, projectId: project.id },
+      {
+        name: "Helpful Assistant",
+        type: "site",
+        externalId: "site-1",
+        baseUrl: null,
+        config: null,
+      },
+    )
+
+    const response = await request({
+      route: DocumentSourcesRoutes.deleteOne,
+      pathParams: removeNullish({
+        organizationId,
+        projectId,
+        documentSourceId: documentSource.id,
+      }),
+      token: accessToken,
+    })
+    expectResponse(response, 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 })

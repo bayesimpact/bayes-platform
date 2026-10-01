@@ -23,6 +23,16 @@ export type UpdateDocumentSourceFields = {
   config?: Record<string, unknown> | null
 }
 
+export type DocumentSourceAppRecord = {
+  name: string
+  logoUrl: string | null
+}
+
+export type DocumentSourceWithApp = {
+  documentSource: DocumentSource
+  app: DocumentSourceAppRecord | null
+}
+
 export type DocumentSourceStats = {
   documentSourceId: string
   documentCount: number
@@ -82,6 +92,30 @@ export class DocumentSourceRepository {
     }))
   }
 
+  async listWithApp(connectScope: RequiredConnectScope): Promise<DocumentSourceWithApp[]> {
+    const { entities, raw } = await this.repo()
+      .createQueryBuilder("documentSource")
+      .leftJoin("documentSource.appInstallation", "installation")
+      .leftJoin("installation.appManifest", "manifest")
+      .addSelect("manifest.name", "appName")
+      .addSelect("manifest.logoUrl", "appLogoUrl")
+      .where("documentSource.organizationId = :organizationId", {
+        organizationId: connectScope.organizationId,
+      })
+      .andWhere("documentSource.projectId = :projectId", { projectId: connectScope.projectId })
+      .orderBy("documentSource.createdAt", "ASC")
+      .getRawAndEntities()
+
+    return entities.map((documentSource, index) => {
+      const row = raw[index] as { appName?: string | null; appLogoUrl?: string | null } | undefined
+      const name = row?.appName
+      return {
+        documentSource,
+        app: name ? { name, logoUrl: row?.appLogoUrl ?? null } : null,
+      }
+    })
+  }
+
   findOne(connectScope: RequiredConnectScope, id: string): Promise<DocumentSource | null> {
     return this.repo().findOne({
       where: {
@@ -128,6 +162,15 @@ export class DocumentSourceRepository {
     if (fields.name !== undefined) documentSource.name = fields.name
     if (fields.config !== undefined) documentSource.config = fields.config
     return this.repo().save(documentSource)
+  }
+
+  async softDeleteOne(connectScope: RequiredConnectScope, id: string): Promise<boolean> {
+    const result = await this.repo().softDelete({
+      id,
+      organizationId: connectScope.organizationId,
+      projectId: connectScope.projectId,
+    })
+    return (result.affected ?? 0) > 0
   }
 
   async deleteOne(connectScope: RequiredConnectScope, id: string): Promise<boolean> {
