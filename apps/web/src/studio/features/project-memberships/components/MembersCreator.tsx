@@ -7,13 +7,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@caseai-connect/ui/shad/dialog"
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-  FieldSet,
-} from "@caseai-connect/ui/shad/field"
+import { Field, FieldGroup, FieldLabel, FieldSet } from "@caseai-connect/ui/shad/field"
 import { Input } from "@caseai-connect/ui/shad/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { PlusCircleIcon, XIcon } from "lucide-react"
@@ -22,7 +16,7 @@ import { useForm, useWatch } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { z } from "zod"
 import { useAppDispatch } from "@/common/store/hooks"
-import { createMemberGrants } from "@/studio/features/member-grants/member-grants.thunks"
+import { createInvitations } from "@/studio/features/invitations/invitations.thunks"
 
 export function MembersCreator({ projectId }: { projectId: string }) {
   const { t } = useTranslation()
@@ -36,7 +30,7 @@ export function MembersCreator({ projectId }: { projectId: string }) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button size="lg" className="text-base">
-          {t("actions:add")}
+          {t("actions:invite")}
           <PlusCircleIcon className="ml-2 size-5" />
         </Button>
       </DialogTrigger>
@@ -130,7 +124,7 @@ function CreateForm({
   const handleFormSubmit = (data: FormValues) => {
     if (data.emails.length === 0) return
     dispatch(
-      createMemberGrants({
+      createInvitations({
         targetType: "project",
         targetId: projectId,
         emails: data.emails,
@@ -164,7 +158,6 @@ function CreateForm({
                 </Button>
               </div>
               {inputError && <p className="text-sm text-destructive">{inputError}</p>}
-              <FieldDescription>{t("projectMembership:create.accessHint")}</FieldDescription>
             </Field>
 
             {emails.length > 0 && (
@@ -191,7 +184,7 @@ function CreateForm({
 
             <Field orientation="horizontal" className="justify-end">
               <Button type="submit" disabled={emails.length === 0}>
-                {t("projectMembership:create.submit")}
+                {t("actions:invite")}
               </Button>
             </Field>
           </FieldGroup>

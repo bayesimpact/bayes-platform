@@ -1,6 +1,6 @@
 # ADR 0021: Generic OpenID Connect and Access Granted by Email
 
-* **Status**: Accepted
+* **Status**: Accepted, section 2.2 amended by [ADR 0022](0022-in-app-invitations.md)
 * **Date**: 2026-09-28
 * **Deciders**: Jérémie
 * **Supersedes**: [ADR 0001](0001-single-default-auth0-organization.md), and the invitation mechanics of [ADR 0008](0008-agent-human-evaluation-model.md) and `docs/specs/project-memberships.md`
@@ -43,6 +43,10 @@ email: an admin adds people by email and the access is granted right away.**
 * One provider per install. `user.auth_subject` holds the `sub` claim.
 
 ### 2.2 Access by email
+
+> Amended by [ADR 0022](0022-in-app-invitations.md): adding someone by email now
+> creates an invitation that the person accepts in the app. The linking rules
+> below are unchanged.
 
 * Adding a member (project, agent or review campaign) by email creates the
   memberships immediately (`POST /member-grants`). An unknown email gets an

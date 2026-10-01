@@ -9,13 +9,13 @@
     },
     "myCampaigns": {
       "title": "My review campaigns",
-      "subtitle": "Active campaigns you were added to as a tester.",
+      "subtitle": "Active campaigns you joined as a tester.",
       "empty": {
         "title": "No active review campaigns",
         "description": "When someone adds you as a tester, the campaign will appear here."
       },
       "card": {
-        "invitedToEvaluate": "You were added to evaluate this agent.",
+        "invitedToEvaluate": "You were invited to evaluate this agent.",
         "open": "Open"
       }
     },

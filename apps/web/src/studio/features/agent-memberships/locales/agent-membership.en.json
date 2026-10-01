@@ -12,20 +12,22 @@
       }
     },
     "create": {
-      "button": "Add users",
-      "title": "Add users",
-      "description": "Enter the email addresses of the people who should use this agent.",
+      "button": "Invite users",
+      "title": "Invite users",
+      "description": "Enter the email addresses of the people who should use this agent. They accept the invitation after signing in.",
       "label": "Email address",
-      "placeholder": "Enter email address",
-      "accessHint": "People get access right away. They sign in with your organization's account.",
-      "submit": "Give access"
+      "placeholder": "Enter email address"
+    },
+    "pendingInvitations": {
+      "title": "Pending invitations",
+      "description": "People invited to this agent who have not answered yet."
     },
     "list": {
       "title": "Members of {{agentName}}",
-      "description": "Add users who can use your agent.",
+      "description": "Invite users who can use your agent.",
       "empty": {
         "title": "No members",
-        "description": "Add users who can use your agent."
+        "description": "Invite users who can use your agent."
       }
     },
     "remove": {

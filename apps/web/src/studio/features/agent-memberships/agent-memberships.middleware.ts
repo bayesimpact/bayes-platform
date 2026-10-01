@@ -2,7 +2,11 @@ import { createListenerMiddleware } from "@reduxjs/toolkit"
 import { selectCurrentAgentId } from "@/common/features/agents/agents.selectors"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
-import { createMemberGrants } from "@/studio/features/member-grants/member-grants.thunks"
+import {
+  createInvitations,
+  listInvitationsForTarget,
+  revokeInvitation,
+} from "@/studio/features/invitations/invitations.thunks"
 import { agentMembershipsActions } from "./agent-memberships.slice"
 
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
@@ -13,7 +17,10 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       const agentId = selectCurrentAgentId(listenerApi.getState())
       if (!agentId) return
-      await listenerApi.dispatch(agentMembershipsActions.list())
+      await Promise.all([
+        listenerApi.dispatch(agentMembershipsActions.list()),
+        listenerApi.dispatch(listInvitationsForTarget({ targetType: "agent", targetId: agentId })),
+      ])
     },
   })
   listenerMiddleware.startListening({
@@ -29,38 +36,50 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       const agentId = selectCurrentAgentId(listenerApi.getState())
       if (!agentId) return
-      await listenerApi.dispatch(agentMembershipsActions.list())
+      await Promise.all([
+        listenerApi.dispatch(agentMembershipsActions.list()),
+        listenerApi.dispatch(listInvitationsForTarget({ targetType: "agent", targetId: agentId })),
+      ])
     },
   })
 
-  // Refresh list after members were added by email
   listenerMiddleware.startListening({
-    actionCreator: createMemberGrants.fulfilled,
+    actionCreator: createInvitations.fulfilled,
     effect: async (action, listenerApi) => {
-      if (action.meta.arg.targetType !== "agent") return
-      await listenerApi.dispatch(agentMembershipsActions.list())
+      const { targetType, targetId } = action.meta.arg
+      if (targetType !== "agent") return
+      await listenerApi.dispatch(listInvitationsForTarget({ targetType, targetId }))
     },
   })
 
   listenerMiddleware.startListening({
-    actionCreator: createMemberGrants.fulfilled,
+    actionCreator: revokeInvitation.fulfilled,
+    effect: async (action, listenerApi) => {
+      const { targetType, targetId } = action.meta.arg
+      if (targetType !== "agent") return
+      await listenerApi.dispatch(listInvitationsForTarget({ targetType, targetId }))
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: createInvitations.fulfilled,
     effect: async (action, listenerApi) => {
       if (action.meta.arg.targetType !== "agent") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Members added",
+          title: "People invited",
           type: "success",
         }),
       )
     },
   })
   listenerMiddleware.startListening({
-    actionCreator: createMemberGrants.rejected,
+    actionCreator: createInvitations.rejected,
     effect: async (action, listenerApi) => {
       if (action.meta.arg.targetType !== "agent") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to add members",
+          title: "Failed to invite people",
           type: "error",
         }),
       )

@@ -91,7 +91,7 @@ export class UsersService {
    * Resolves the account behind an OIDC sign-in.
    *
    * A known `sub` is enough. On a first sign-in the userinfo claims decide:
-   * an existing account with the same email (someone added by email, or an
+   * an existing account with the same email (someone invited by email, or an
    * account moved from another provider) is linked when the provider reports
    * the email as verified and linking is allowed; otherwise a new account
    * without any access is created.

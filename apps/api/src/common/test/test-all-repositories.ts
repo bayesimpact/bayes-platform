@@ -28,6 +28,7 @@ import { EvaluationExtractionDatasetRecord } from "@/domains/evaluations/extract
 import { EvaluationExtractionRun } from "@/domains/evaluations/extraction/runs/evaluation-extraction-run.entity"
 import { EvaluationExtractionRunRecord } from "@/domains/evaluations/extraction/runs/records/evaluation-extraction-run-record.entity"
 import { FeatureFlag } from "@/domains/feature-flags/feature-flag.entity"
+import { Invitation } from "@/domains/invitations/invitation.entity"
 import { AgentMcpServer } from "@/domains/mcp-servers/agent-mcp-server.entity"
 import { McpServer } from "@/domains/mcp-servers/mcp-server.entity"
 import { UserMembership } from "@/domains/memberships/user-membership.entity"
@@ -79,6 +80,7 @@ export type AllRepositories = {
   evaluationExtractionRunRepository: Repository<EvaluationExtractionRun>
   extractionAgentSessionRepository: Repository<ExtractionAgentSession>
   featureFlagRepository: Repository<FeatureFlag>
+  invitationRepository: Repository<Invitation>
   mcpServerRepository: Repository<McpServer>
   organizationRepository: Repository<Organization>
   projectAgentSessionCategoryRepository: Repository<ProjectAgentSessionCategory>
@@ -136,6 +138,7 @@ export function buildAllRepositories(
     evaluationExtractionRunRepository: getRepository(EvaluationExtractionRun),
     extractionAgentSessionRepository: getRepository(ExtractionAgentSession),
     featureFlagRepository: getRepository(FeatureFlag),
+    invitationRepository: getRepository(Invitation),
     mcpServerRepository: getRepository(McpServer),
     organizationRepository: getRepository(Organization),
     projectAgentSessionCategoryRepository: getRepository(ProjectAgentSessionCategory),

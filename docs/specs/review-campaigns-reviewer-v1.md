@@ -2,7 +2,7 @@
 
 > **Companion documents:** [ADR 0008 — Conversational Agent Human Evaluation Model](../adr/0008-agent-human-evaluation-model.md) for all load-bearing decisions. [Review Campaigns — Tester Experience (v1)](./review-campaigns-tester-v1.md) for the Level-1 flow and the foundation this spec builds on.
 
-> **Superseded for invitations** by [ADR 0021](../adr/0021-generic-oidc-and-access-by-email.md): people are added by email and get access right away, with no invitation email or accept step. The Auth0 parts below are historical.
+> **Superseded for invitations** by [ADR 0022](../adr/0022-in-app-invitations.md): people are invited by email and accept the invitation in the app, with no invitation email. The Auth0 parts below are historical.
 
 ## Overview
 

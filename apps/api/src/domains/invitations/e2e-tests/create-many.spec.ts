@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { MemberGrantsRoutes, MeRoutes } from "@caseai-connect/api-contracts"
+import { InvitationsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
@@ -10,7 +10,6 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
-import { MeModule } from "@/domains/me/me.module"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
@@ -19,7 +18,7 @@ import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaig
 import { buildServiceUserEmail } from "@/domains/users/service-user.helpers"
 import { userFactory } from "@/domains/users/user.factory"
 import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
-import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
   findAgentMembershipRow,
   findOrganizationMembershipRow,
@@ -27,9 +26,9 @@ import {
   findReviewCampaignMembershipRow,
 } from "../../../../test/membership-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
-import { MemberGrantsModule } from "../member-grants.module"
+import { InvitationsModule } from "../invitations.module"
 
-describe("Member grants - createMany", () => {
+describe("Invitations - createMany", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
@@ -40,7 +39,7 @@ describe("Member grants - createMany", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [MemberGrantsModule, MeModule, ActivitiesModule],
+      additionalImports: [InvitationsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
@@ -60,14 +59,17 @@ describe("Member grants - createMany", () => {
     await app.close()
   })
 
-  const subject = async (payload: typeof MemberGrantsRoutes.createMany.request.payload) =>
-    request({ route: MemberGrantsRoutes.createMany, token: "token", request: { payload } })
+  const subject = async (payload: typeof InvitationsRoutes.createMany.request.payload) =>
+    request({ route: InvitationsRoutes.createMany, token: "token", request: { payload } })
 
   const createProjectContext = async () =>
     createOrganizationWithProject(repositories, { user: { authSubject } })
 
+  const findPendingInvitation = (params: { userId: string; targetId: string }) =>
+    repositories.invitationRepository.findOne({ where: { ...params, status: "pending" } })
+
   describe("project target", () => {
-    it("gives an unknown email admin access right away, with a never-signed-in account", async () => {
+    it("invites an unknown email without giving access yet, with a never-signed-in account", async () => {
       const { organization, project } = await createProjectContext()
 
       const response = await subject({
@@ -77,22 +79,57 @@ describe("Member grants - createMany", () => {
       })
 
       expectResponse(response, 201)
-      expect(response.body.data).toEqual({ grantedEmails: ["new.person@example.com"] })
-      const addedUser = await repositories.userRepository.findOneOrFail({
+      expect(response.body.data.invitations).toEqual([
+        expect.objectContaining({
+          targetType: "project",
+          targetId: project.id,
+          invitedEmail: "new.person@example.com",
+          role: "admin",
+          status: "pending",
+          organizationName: organization.name,
+          projectName: project.name,
+          targetName: project.name,
+        }),
+      ])
+      const invitedUser = await repositories.userRepository.findOneOrFail({
         where: { email: "new.person@example.com" },
       })
-      expect(addedUser.authSubject).toBeNull()
-      const organizationMembership = await findOrganizationMembershipRow(repositories, {
-        userId: addedUser.id,
-        organizationId: organization.id,
+      expect(invitedUser.authSubject).toBeNull()
+      expect(
+        await findPendingInvitation({ userId: invitedUser.id, targetId: project.id }),
+      ).not.toBeNull()
+      expect(
+        await findOrganizationMembershipRow(repositories, {
+          userId: invitedUser.id,
+          organizationId: organization.id,
+        }),
+      ).toBeNull()
+      expect(
+        await findProjectMembershipRow(repositories, {
+          userId: invitedUser.id,
+          projectId: project.id,
+        }),
+      ).toBeNull()
+      await expectActivityCreated("invitation.invite")
+    })
+
+    it("invites a person who already has an account", async () => {
+      const { project } = await createProjectContext()
+      const existingUser = await repositories.userRepository.save(
+        userFactory.build({ email: "existing@example.com" }),
+      )
+
+      const response = await subject({
+        targetType: "project",
+        targetId: project.id,
+        emails: ["existing@example.com"],
       })
-      const projectMembership = await findProjectMembershipRow(repositories, {
-        userId: addedUser.id,
-        projectId: project.id,
-      })
-      expect(organizationMembership?.role).toBe("admin")
-      expect(projectMembership?.role).toBe("admin")
-      await expectActivityCreated("member_grant.create")
+
+      expectResponse(response, 201)
+      expect(response.body.data.invitations).toHaveLength(1)
+      expect(
+        await findPendingInvitation({ userId: existingUser.id, targetId: project.id }),
+      ).not.toBeNull()
     })
 
     it("skips people who are already project members", async () => {
@@ -105,12 +142,25 @@ describe("Member grants - createMany", () => {
       })
 
       expectResponse(response, 201)
-      expect(response.body.data.grantedEmails).toEqual([])
-      const ownerMembership = await findProjectMembershipRow(repositories, {
-        userId: user.id,
-        projectId: project.id,
-      })
-      expect(ownerMembership?.role).toBe("owner")
+      expect(response.body.data.invitations).toEqual([])
+    })
+
+    it("skips people who already have a pending invitation", async () => {
+      const { project } = await createProjectContext()
+      const payload = {
+        targetType: "project" as const,
+        targetId: project.id,
+        emails: ["twice@example.com"],
+      }
+      expectResponse(await subject(payload), 201)
+
+      const response = await subject(payload)
+
+      expectResponse(response, 201)
+      expect(response.body.data.invitations).toEqual([])
+      expect(
+        await repositories.invitationRepository.count({ where: { targetId: project.id } }),
+      ).toBe(1)
     })
 
     it("skips service identities", async () => {
@@ -127,39 +177,13 @@ describe("Member grants - createMany", () => {
       })
 
       expectResponse(response, 201)
-      expect(response.body.data.grantedEmails).toEqual([])
-    })
-
-    it("hands the access to the person at their first sign-in", async () => {
-      const { project } = await createProjectContext()
-      const newcomerSubject = `oidc|${randomUUID()}`
-      const newcomerEmail = mockOidcEmailForSub(newcomerSubject)
-      expectResponse(
-        await subject({ targetType: "project", targetId: project.id, emails: [newcomerEmail] }),
-        201,
-      )
-
-      authSubject = newcomerSubject
-      const meResponse = await request({ route: MeRoutes.getMe, token: "token" })
-
-      expectResponse(meResponse, 200)
-      const linkedUser = await repositories.userRepository.findOneOrFail({
-        where: { email: newcomerEmail },
-      })
-      expect(linkedUser.authSubject).toBe(newcomerSubject)
-      expect(await repositories.userRepository.count({ where: { email: newcomerEmail } })).toBe(1)
-      expect(
-        await findProjectMembershipRow(repositories, {
-          userId: linkedUser.id,
-          projectId: project.id,
-        }),
-      ).not.toBeNull()
+      expect(response.body.data.invitations).toEqual([])
     })
   })
 
   describe("agent target", () => {
-    it("gives agent member access plus the project and organization memberships it needs", async () => {
-      const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
+    it("invites as an agent member, without giving access yet", async () => {
+      const { project, agent } = await createOrganizationWithAgent(repositories, {
         user: { authSubject },
       })
 
@@ -170,24 +194,21 @@ describe("Member grants - createMany", () => {
       })
 
       expectResponse(response, 201)
-      const addedUser = await repositories.userRepository.findOneOrFail({
+      expect(response.body.data.invitations).toEqual([
+        expect.objectContaining({ targetType: "agent", role: "member", targetName: agent.name }),
+      ])
+      const invitedUser = await repositories.userRepository.findOneOrFail({
         where: { email: "agent.member@example.com" },
       })
-      const agentMembership = await findAgentMembershipRow(repositories, {
-        userId: addedUser.id,
-        agentId: agent.id,
-      })
-      const projectMembership = await findProjectMembershipRow(repositories, {
-        userId: addedUser.id,
-        projectId: project.id,
-      })
-      const organizationMembership = await findOrganizationMembershipRow(repositories, {
-        userId: addedUser.id,
-        organizationId: organization.id,
-      })
-      expect(agentMembership?.role).toBe("member")
-      expect(projectMembership?.role).toBe("member")
-      expect(organizationMembership?.role).toBe("member")
+      expect(
+        await findAgentMembershipRow(repositories, { userId: invitedUser.id, agentId: agent.id }),
+      ).toBeNull()
+      expect(
+        await findProjectMembershipRow(repositories, {
+          userId: invitedUser.id,
+          projectId: project.id,
+        }),
+      ).toBeNull()
     })
   })
 
@@ -204,7 +225,7 @@ describe("Member grants - createMany", () => {
       )
     }
 
-    it("gives the requested campaign role", async () => {
+    it("stores the requested campaign role, without giving access yet", async () => {
       const campaign = await createCampaign("active")
 
       const response = await subject({
@@ -215,16 +236,19 @@ describe("Member grants - createMany", () => {
       })
 
       expectResponse(response, 201)
-      const addedUser = await repositories.userRepository.findOneOrFail({
+      expect(response.body.data.invitations).toEqual([
+        expect.objectContaining({ role: "reviewer", targetName: campaign.name }),
+      ])
+      const invitedUser = await repositories.userRepository.findOneOrFail({
         where: { email: "reviewer@example.com" },
       })
       expect(
         await findReviewCampaignMembershipRow(repositories, {
-          userId: addedUser.id,
+          userId: invitedUser.id,
           campaignId: campaign.id,
           role: "reviewer",
         }),
-      ).not.toBeNull()
+      ).toBeNull()
     })
 
     it("requires a valid campaign role", async () => {
@@ -249,7 +273,7 @@ describe("Member grants - createMany", () => {
       )
     })
 
-    it("refuses to add members to a campaign that is not active", async () => {
+    it("refuses to invite members to a campaign that is not active", async () => {
       const campaign = await createCampaign("draft")
 
       expectResponse(

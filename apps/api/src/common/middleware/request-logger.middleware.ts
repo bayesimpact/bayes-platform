@@ -8,8 +8,8 @@ import type { NextFunction, Request, Response } from "express"
  * Must be registered via AppModule.configure() so it runs AFTER body parsing.
  *
  * Example output:
- *   --> POST /member-grants body: {"payload":{"targetType":"project","targetId":"..."}}
- *   <-- POST /member-grants 201 45ms
+ *   --> POST /invitations body: {"payload":{"targetType":"project","targetId":"..."}}
+ *   <-- POST /invitations 201 45ms
  */
 @Injectable()
 export class RequestLoggerMiddleware implements NestMiddleware {

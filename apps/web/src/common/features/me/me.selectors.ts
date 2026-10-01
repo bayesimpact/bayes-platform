@@ -5,6 +5,8 @@ export const selectMe = (state: RootState) => state.me.data
 export const selectMeStatus = (state: RootState) => state.me.data.status
 export const selectMeError = (state: RootState) => state.me.data.error
 
+export const selectPendingInvitations = (state: RootState) => state.me.pendingInvitations
+
 export const selectCanViewTraces = (state: RootState): boolean =>
   state.me.data.value?.globalPermissions.includes("trace.read") ?? false
 

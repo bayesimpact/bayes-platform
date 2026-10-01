@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { isAxiosError } from "axios"
 import type { RootState, ThunkExtraArg } from "@/common/store"
+import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import type { Me } from "./me.models"
 
 type FetchMeRejectedValue = {
@@ -31,6 +32,11 @@ export const fetchMe = createAsyncThunk<Me, void, ThunkConfig>(
       throw error
     }
   },
+)
+
+export const fetchPendingInvitations = createAsyncThunk<PendingInvitations, void, ThunkConfig>(
+  "me/fetchPendingInvitations",
+  async (_, { extra: { services } }) => await services.invitations.listPendingMine(),
 )
 
 export const updateMe = createAsyncThunk<void, { name: string }, ThunkConfig>(

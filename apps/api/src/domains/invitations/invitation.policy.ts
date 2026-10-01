@@ -1,12 +1,12 @@
 import { ProjectScopedPolicy } from "@/common/policies/project-scoped-policy"
-import type { MemberGrantTargetType } from "./member-grant.types"
+import type { InvitationTargetType } from "./invitation.types"
 
 /**
- * Minimal structural shape shared by all grant targets (Project, Agent, ReviewCampaign).
+ * Minimal structural shape shared by all invitation targets (Project, Agent, ReviewCampaign).
  * `projectId` is optional because Project targets are the project itself (no nested projectId).
- * Using structural types avoids cross-domain entity imports from the member-grants domain.
+ * Using structural types avoids cross-domain entity imports from the invitations domain.
  */
-export type MemberGrantTarget = {
+export type InvitationPolicyTarget = {
   id: string
   organizationId: string
   projectId?: string
@@ -17,16 +17,17 @@ type AgentMembershipLike = {
   role: "owner" | "admin" | "member"
 }
 
-export class MemberGrantPolicy extends ProjectScopedPolicy<MemberGrantTarget> {
+/** Who may invite people to a target, list its pending invitations and revoke them. */
+export class InvitationPolicy extends ProjectScopedPolicy<InvitationPolicyTarget> {
   private readonly agentMembership?: AgentMembershipLike
-  private readonly targetType?: MemberGrantTargetType
+  private readonly targetType?: InvitationTargetType
 
   constructor(
-    context: ConstructorParameters<typeof ProjectScopedPolicy<MemberGrantTarget>>[0] & {
+    context: ConstructorParameters<typeof ProjectScopedPolicy<InvitationPolicyTarget>>[0] & {
       agentMembership?: AgentMembershipLike
     },
-    target?: MemberGrantTarget,
-    targetType?: MemberGrantTargetType,
+    target?: InvitationPolicyTarget,
+    targetType?: InvitationTargetType,
   ) {
     super(context, target)
     this.agentMembership = context.agentMembership
@@ -34,6 +35,18 @@ export class MemberGrantPolicy extends ProjectScopedPolicy<MemberGrantTarget> {
   }
 
   canCreate(): boolean {
+    return this.canManage()
+  }
+
+  canList(): boolean {
+    return this.canManage()
+  }
+
+  canDelete(): boolean {
+    return this.canManage()
+  }
+
+  private canManage(): boolean {
     switch (this.targetType) {
       case "agent":
         return this.canManageAgentMembers()

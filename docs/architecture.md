@@ -148,7 +148,7 @@ sequenceDiagram
     API->>A: Verify JWT (JWKS endpoint)
     API->>API: JwtAuthGuard → UserGuard → ResourceContextGuard
     API-->>W: Response
-    Note over API: First login links the account<br/>added by email (verified email)<br/>or creates one without access
+    Note over API: First login links the account<br/>invited by email (verified email)<br/>or creates one without access.<br/>Invitations are accepted in the app
 ```
 
 ## CI/CD Pipeline (publish-images.yml)

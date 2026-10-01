@@ -59,7 +59,7 @@ export function parseOidcAuthorizationParams(raw: string | undefined): Record<st
 export type OidcEmailLinkingPolicy = {
   /**
    * Links a first sign-in to the existing account that has the same email,
-   * which is how people added by email get their access. On by default.
+   * which is how people invited by email find their invitations. On by default.
    */
   allowEmailLinking: boolean
   /**

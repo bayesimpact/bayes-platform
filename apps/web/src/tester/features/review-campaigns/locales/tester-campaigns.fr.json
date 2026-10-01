@@ -9,13 +9,13 @@
     },
     "myCampaigns": {
       "title": "Mes campagnes d'évaluation",
-      "subtitle": "Campagnes actives auxquelles vous avez été ajouté comme testeur.",
+      "subtitle": "Campagnes actives que vous avez rejointes comme testeur.",
       "empty": {
         "title": "Aucune campagne d'évaluation active",
         "description": "Lorsque quelqu'un vous ajoute comme testeur, la campagne apparaîtra ici."
       },
       "card": {
-        "invitedToEvaluate": "Vous avez été ajouté pour évaluer cet agent.",
+        "invitedToEvaluate": "Vous avez été invité à évaluer cet agent.",
         "open": "Ouvrir"
       }
     },

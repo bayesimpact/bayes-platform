@@ -79,6 +79,9 @@ export type * from "./generic"
 export type { ApiRoute } from "./helpers"
 // Helpers
 export { defineRoute } from "./helpers"
+// Member grants
+export type * from "./invitations/invitations.dto"
+export { InvitationsRoutes } from "./invitations/invitations.routes"
 export { isAllowedOauthEndpointUrl } from "./mcp-servers/mcp-oauth-endpoint-url"
 // MCP Servers
 export * from "./mcp-servers/mcp-servers.dto"
@@ -87,9 +90,6 @@ export { McpServersRoutes } from "./mcp-servers/mcp-servers.routes"
 export * from "./me/me.dto"
 export { MeRoutes } from "./me/me.routes"
 export { isSignInError, SIGN_IN_ERRORS, type SignInError } from "./me/sign-in-errors"
-// Member grants
-export type * from "./member-grants/member-grants.dto"
-export { MemberGrantsRoutes } from "./member-grants/member-grants.routes"
 // Organizations
 export * from "./organizations/organizations.dto"
 export { OrganizationsRoutes } from "./organizations/organizations.routes"

@@ -33,8 +33,8 @@
       "editTitle": "Edit review campaign",
       "createDescription": "Configure the agent, questions, and participants before activating.",
       "editDescription": "Manage configuration, participants, and lifecycle.",
-      "noticeSaveFirst": "Save the campaign first, then add participants.",
-      "noticeActivateFirst": "Activate the campaign before adding participants, so they find it in their list when they sign in.",
+      "noticeSaveFirst": "Save the campaign first, then invite participants.",
+      "noticeActivateFirst": "Activate the campaign before inviting participants, so they can accept and find it in their list.",
       "tabs": {
         "summary": "Summary",
         "general": "General",
@@ -124,22 +124,26 @@
       "empty": "No questions yet."
     },
     "participants": {
+      "inviteTitle": "Invite participants",
       "emailsLabel": "Emails (comma or newline separated)",
       "emailsPlaceholder": "alice@example.com, bob@example.com",
       "roleLabel": "Role",
       "tester": "Tester",
       "reviewer": "Reviewer",
+      "send": "Invite",
       "empty": "No participants yet.",
       "email": "Email",
       "actions": "Actions",
       "revoke": "Revoke",
+      "pendingInvitations": {
+        "title": "Pending invitations",
+        "description": "People invited to this campaign who have not answered yet."
+      },
       "revokeDialog": {
         "title": "Revoke {{email}}?",
         "description": "This will remove the participant from the campaign. This action cannot be undone.",
         "confirm": "Revoke"
       },
-      "addTitle": "Add participants",
-      "accessHint": "People get access right away. They sign in with your organization's account.",
       "status": "Status"
     },
     "preview": {

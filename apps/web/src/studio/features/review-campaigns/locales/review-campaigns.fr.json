@@ -33,8 +33,8 @@
       "editTitle": "Modifier la campagne d'évaluation",
       "createDescription": "Configurez l'agent, les questions et les participants avant d'activer.",
       "editDescription": "Gérez la configuration, les participants et le cycle de vie.",
-      "noticeSaveFirst": "Enregistrez d'abord la campagne, puis ajoutez des participants.",
-      "noticeActivateFirst": "Activez la campagne avant d'ajouter des participants, pour qu'ils la trouvent dans leur liste en se connectant.",
+      "noticeSaveFirst": "Enregistrez d'abord la campagne, puis invitez des participants.",
+      "noticeActivateFirst": "Activez la campagne avant d'inviter des participants, pour qu'ils puissent accepter et la trouver dans leur liste.",
       "tabs": {
         "summary": "Synthèse",
         "general": "Général",
@@ -124,22 +124,26 @@
       "empty": "Aucune question pour le moment."
     },
     "participants": {
+      "inviteTitle": "Inviter des participants",
       "emailsLabel": "E-mails (séparés par des virgules ou des retours à la ligne)",
       "emailsPlaceholder": "alice@exemple.com, bob@exemple.com",
       "roleLabel": "Rôle",
       "tester": "Testeur",
       "reviewer": "Relecteur",
+      "send": "Inviter",
       "empty": "Aucun participant pour l'instant.",
       "email": "E-mail",
       "actions": "Actions",
       "revoke": "Révoquer",
+      "pendingInvitations": {
+        "title": "Invitations en attente",
+        "description": "Personnes invitées sur cette campagne qui n'ont pas encore répondu."
+      },
       "revokeDialog": {
         "title": "Révoquer {{email}} ?",
         "description": "Ce participant sera retiré de la campagne. Cette action est irréversible.",
         "confirm": "Révoquer"
       },
-      "addTitle": "Ajouter des participants",
-      "accessHint": "Les personnes ont accès immédiatement. Elles se connectent avec le compte de votre organisation.",
       "status": "Statut"
     },
     "preview": {
